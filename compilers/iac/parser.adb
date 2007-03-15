@@ -1,54 +1,86 @@
-with GNAT.Table;
+------------------------------------------------------------------------------
+--                                                                          --
+--                           POLYORB COMPONENTS                             --
+--                                                                          --
+--                               P A R S E R                                --
+--                                                                          --
+--                                 B o d y                                  --
+--                                                                          --
+--         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
+--                                                                          --
+-- PolyORB is free software; you  can  redistribute  it and/or modify it    --
+-- under terms of the  GNU General Public License as published by the  Free --
+-- Software Foundation;  either version 2,  or (at your option)  any  later --
+-- version. PolyORB is distributed  in the hope that it will be  useful,    --
+-- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
+-- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
+-- License  for more details.  You should have received  a copy of the GNU  --
+-- General Public License distributed with PolyORB; see file COPYING. If    --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
+--                                                                          --
+-- As a special exception,  if other files  instantiate  generics from this --
+-- unit, or you link  this unit with other files  to produce an executable, --
+-- this  unit  does not  by itself cause  the resulting  executable  to  be --
+-- covered  by the  GNU  General  Public  License.  This exception does not --
+-- however invalidate  any other reasons why  the executable file  might be --
+-- covered by the  GNU Public License.                                      --
+--                                                                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
+--                                                                          --
+------------------------------------------------------------------------------
 
-with Errors;    use Errors;
-with Lexer;     use Lexer;
-with Locations; use Locations;
-with Namet;     use Namet;
-with Nodes;     use Nodes;
-with Nutils;    use Nutils;
---  with Scopes;    use Scopes;
-with Types;     use Types;
-with Utils;     use Utils;
+with GNAT.Table;
+with GNAT.OS_Lib;       use GNAT.OS_Lib;
+
+with Errors;            use Errors;
+with Locations;         use Locations;
+with Namet;             use Namet;
+with Scopes;            use Scopes;
+with Values;            use Values;
+
+with Frontend.Nodes;    use Frontend.Nodes;
+with Frontend.Nutils;   use Frontend.Nutils;
 
 package body Parser is
+
+   package FEN renames Frontend.Nodes;
+
+   Specification : Node_Id;
 
    procedure Declare_Base_Type (L : Token_List_Type; K : Node_Kind);
    --  L denotes a token list used to name an IDL base type. Allocate
    --  a node for it and associate it to the concatenated names.
 
-   function Resolve_Base_Type (L : Token_List_Type) return Node_Id;
-   --  Take the sequence of tokens in the paremter list to return the
-   --  node of the IDL predefined type.
-
-
    function Is_Param_Type_Spec (E : Node_Id) return Boolean;
    --  Return true when the type specifier N belongs to the restricted
    --  parameter type specifier set.
 
-   function Operator (E : Node_Id) return Operator_Type;
-   procedure Set_Operator (E : Node_Id; O : Operator_Type);
-
-   function Parameter_Mode (E : Node_Id) return Mode_Type;
-   pragma Unreferenced (Parameter_Mode);
-   procedure Set_Parameter_Mode (E : Node_Id; M : Mode_Type);
+   function Locate_Imported_File (Scoped_Name : Node_Id) return Name_Id;
+   --  Locate the IDL file corresponding to the imported scope.
 
    Sequencing_Level : Natural := 0;
 
    function P_No_Such_Node return Node_Id;
+   pragma Unreferenced (P_No_Such_Node);
+
+   procedure P_Specification (Imported : Boolean := False);
 
    function P_Attribute_Declaration return Node_Id;
-   function P_Complex_Declarator return Node_Id;
    function P_Constant_Declaration return Node_Id;
    function P_Constant_Expression return Node_Id;
    function P_Constant_Type return Node_Id;
    function P_Declarator return Node_Id;
-   function P_Declarator_List return Node_Id;
+   function P_Declarator_List return List_Id;
    function P_Definition return Node_Id;
    function P_Enumeration_Type return Node_Id;
    function P_Exception_Declaration return Node_Id;
+   function P_Exception_List return List_Id;
    function P_Export return Node_Id;
    function P_Fixed_Point_Type return Node_Id;
    function P_Identifier return Node_Id;
+   function P_Import return Node_Id;
    function P_Initializer_Declaration return Node_Id;
    function P_Interface return Node_Id;
    function P_Interface_Declaration return Node_Id;
@@ -57,17 +89,17 @@ package body Parser is
    function P_Module return Node_Id;
    function P_Operation_Declaration return Node_Id;
    function P_Parameter_Declaration return Node_Id;
-   function P_Pragma return Node_Id
-     renames P_No_Such_Node;
+   function P_Pragma return Node_Id;
    function P_Scoped_Name return Node_Id;
    function P_Sequence_Type return Node_Id;
    function P_Simple_Declarator return Node_Id;
    function P_Simple_Type_Spec return Node_Id;
-   function P_Specification return Node_Id;
    function P_State_Member return Node_Id;
    function P_Structure_Type return Node_Id;
    function P_String_Type return Node_Id;
    function P_Type_Declaration return Node_Id;
+   function P_Type_Id_Declaration return Node_Id;
+   function P_Type_Prefix_Declaration return Node_Id;
    function P_Type_Spec return Node_Id;
    function P_Union_Type return Node_Id;
    function P_Value return Node_Id;
@@ -98,6 +130,7 @@ package body Parser is
 
    procedure Declare_Base_Type (L : Token_List_Type; K : Node_Kind) is
       E : Node_Id;
+      N : Name_Id;
    begin
 
       --  Create a fake node located at the beginning of the
@@ -112,7 +145,9 @@ package body Parser is
          Add_Char_To_Name_Buffer (' ');
          Add_Str_To_Name_Buffer (Image (L (I)));
       end loop;
-      Set_Name_Table_Info (Name_Find, Int (E));
+      N := Name_Find;
+      Set_Name_Table_Info (N, Int (E));
+      Set_Image (Base_Type (E), N);
    end Declare_Base_Type;
 
    ------------------------
@@ -145,6 +180,8 @@ package body Parser is
            | K_Value_Base
            | K_String
            | K_Wide_String
+           | K_String_Type
+           | K_Wide_String_Type
            | K_Scoped_Name =>
             return True;
 
@@ -153,30 +190,93 @@ package body Parser is
       end case;
    end Is_Param_Type_Spec;
 
-   --------------
-   -- Operator --
-   --------------
+   --------------------------
+   -- Locate_Imported_File --
+   --------------------------
 
-   function Operator (E : Node_Id) return Operator_Type is
-      O : Operator_Id;
+   function Locate_Imported_File (Scoped_Name : Node_Id) return Name_Id is
+      pragma Assert (Kind (Scoped_Name) = K_Scoped_Name);
+
+      --  Whatever the nature of the scoped name is (::X, ::X::Y::Z, X::Y...),
+      --  the file name is deduced from the deepest parent entity
+
+      Parent            : Node_Id := Parent_Entity (Scoped_Name);
+      Parent_Enity_Name : Name_Id := IDL_Name (Identifier (Scoped_Name));
    begin
-      O := Nodes.Operator (E);
-      return Operator_Type'Val (O);
-   end Operator;
+      while Present (Parent) loop
+         if IDL_Name (Identifier (Parent)) /= No_Name then
+            Parent_Enity_Name := IDL_Name (Identifier (Parent));
+         end if;
+         Parent := Parent_Entity (Parent);
+      end loop;
+
+      Get_Name_String (Parent_Enity_Name);
+
+      --  Handling the particular cases :
+      --   CORBA module is declared in the orb.idl file
+
+      if Name_Buffer (1 .. Name_Len) = "CORBA" then
+         Set_Str_To_Name_Buffer ("orb");
+      end if;
+
+      --  Adding the file suffix
+      Add_Str_To_Name_Buffer (".idl");
+
+      --  Locating the file in the IAC_Search_Paths set
+      declare
+         File_Name_Str : constant String := Name_Buffer (1 .. Name_Len);
+      begin
+         for Index in 1 .. IAC_Search_Count loop
+            declare
+               Full_Path : constant String
+                 := IAC_Search_Paths (Index).all
+                 & Directory_Separator
+                 & File_Name_Str;
+            begin
+               if Is_Regular_File (Full_Path) then
+                  Set_Str_To_Name_Buffer (Full_Path);
+                  return Name_Find;
+               end if;
+            end;
+         end loop;
+      end;
+
+      return No_Name;
+   end Locate_Imported_File;
 
    -----------------------------
    -- P_Attribute_Declaration --
    -----------------------------
 
-   --  (85) <attr_dcl> ::= [ "readonly" ] "attribute"
-   --                      <param_type_spec> <simple_declarator>
-   --                                  { "," <simple_declarator> }*
+   --  (85) <attr_dcl> ::= <readonly_attr_spec>
+   --                  | <attr_spec>
+
+   --  (104) <readonly_attr_spec> ::= "readonly" "attribute" <param_type_spec>
+   --                                 <readonly_attr_declarator>
+
+   --  (105) <readonly_attr_declarator > ::= <simple_declarator> <raises_expr>
+   --                                    |   <simple_declarator>
+   --                                        { "," <simple_declarator> }*
+
+   --  (106) <attr_spec> ::= "attribute" <param_type_spec>
+   --                        <attr_declarator>
+
+   --  (107) <attr_declarator> ::= <simple_declarator> <attr_raises_expr>
+   --                          |   <simple_declarator>
+   --                              { "," <simple_declarator> }*
+
+   --  (108) <attr_raises_expr> ::= <get_excep_expr> [ <set_excep_expr> ]
+   --                           | <set_excep_expr>
 
    function P_Attribute_Declaration return Node_Id is
       Attribute_Decl  : Node_Id;
       Attr_Type_Spec  : Node_Id;
       Is_Readonly     : Boolean := False;
-      Declarators     : Node_Id;
+      Declarators     : List_Id;
+      Declarator      : Node_Id;
+      Getter_Excps    : List_Id := No_List;
+      Setter_Excps    : List_Id := No_List;
+
    begin
       Scan_Token; --  past "readonly" or "attribute"
 
@@ -205,74 +305,79 @@ package body Parser is
       end if;
 
       Declarators := P_Declarator_List;
-      if No (Declarators) then
+      if Is_Empty (Declarators) then
          return No_Node;
       end if;
 
+      --  Parsing the exception list of the attribute :
+      --  According to the CORBA 3.0 IDL grammar (rules 105 and 107), only
+      --  attributes that have one single declarator can throw exceptions.
+      --  This limitation is not justifyed in the CORBA Spec.
+      --  In IAC, we accept that attributes that have more than one declarator
+      --  throw exceptions
+
+      --  Case of a readonly attribute :
+
+      if Next_Token = T_Raises then
+         if not Is_Readonly then
+            Error_Loc (1) := Token_Location;
+            DE ("Key word 'raises' not allowed for read-write attributes");
+            return No_Node;
+         end if;
+
+         Getter_Excps := P_Exception_List;
+         if Getter_Excps = No_List then
+            return No_Node;
+         end if;
+      end if;
+
+      --  Case of read-write attributes
+
+      if Next_Token = T_Get_Raises then
+         if Is_Readonly then
+            Error_Loc (1) := Token_Location;
+            DE ("Key word 'getraises' not allowed for readonly attributes");
+            return No_Node;
+         end if;
+         Getter_Excps := P_Exception_List;
+         if Getter_Excps = No_List then
+            return No_Node;
+         end if;
+      end if;
+
+      if Next_Token = T_Set_Raises then
+         if Is_Readonly then
+            Error_Loc (1) := Token_Location;
+            DE ("Key word 'setraises' not allowed for readonly attributes");
+            return No_Node;
+         end if;
+         Setter_Excps := P_Exception_List;
+         if Setter_Excps = No_List then
+            return No_Node;
+         end if;
+      end if;
+
       Attribute_Decl := New_Node (K_Attribute_Declaration,
-                                    Loc (Declarators));
+                                    Loc (Attr_Type_Spec));
       Set_Is_Readonly (Attribute_Decl, Is_Readonly);
       Set_Type_Spec   (Attribute_Decl, Attr_Type_Spec);
       Set_Declarators (Attribute_Decl, Declarators);
+      Bind_Declarators_To_Entity (Declarators, Attribute_Decl);
+      Set_Getter_Exceptions (Attribute_Decl, Getter_Excps);
+      Set_Setter_Exceptions (Attribute_Decl, Setter_Excps);
 
-      while Present (Declarators) loop
-         if Kind (Declarators) /= K_Simple_Declarator then
-            Error_Loc (1) := Loc (Declarators);
+      Declarator := First_Entity (Declarators);
+      while Present (Declarator) loop
+         if Kind (Declarator) /= K_Simple_Declarator then
+            Error_Loc (1) := Loc (Declarator);
             DE ("incorrect attribute declarator");
             return No_Node;
          end if;
-         Declarators := Next_Node (Declarators);
+         Declarator := Next_Entity (Declarator);
       end loop;
 
       return Attribute_Decl;
    end P_Attribute_Declaration;
-
-   --------------------------
-   -- P_Complex_Declarator --
-   --------------------------
-
-   --  (52) <complex_declarator> ::= <array_declarator>
-   --
-   --  (83) <array_declarator> ::= <identifier> <fixed_array_size> +
-   --  (84) <fixed_array_size> ::= "[" <positive_int_const> "]"
-
-   function P_Complex_Declarator return Node_Id is
-      Identifier  : Node_Id;
-      Node      : Node_Id;
-      Array_Sizes : List_Id;
-      Array_Size  : Node_Id;
-   begin
-      Identifier := P_Identifier;
-      if No (Identifier) then
-         return No_Node;
-      end if;
-
-      Node := New_Node (K_Complex_Declarator, Loc (Identifier));
-      Associate      (Node, Identifier);
-
-      Array_Sizes := New_List (K_Array_Size_List, Token_Location);
-      Set_Array_Sizes (Node, Array_Sizes);
-
-      loop
-         Scan_Token; --  past '['
-
-         Array_Size := P_Constant_Expression;
-         if No (Array_Size) then
-            return No_Node;
-         end if;
-
-         Append_Node_To_List (Array_Size, Array_Sizes);
-
-         Scan_Token (T_Right_Bracket);
-         if Token = T_Error then
-            return No_Node;
-         end if;
-
-         exit when Next_Token /= T_Left_Bracket;
-      end loop;
-
-      return Node;
-   end P_Complex_Declarator;
 
    ----------------------------
    -- P_Constant_Declaration --
@@ -373,6 +478,7 @@ package body Parser is
       --  the current expression.
 
       function P_Expression_Part return Node_Id;
+      --  XXX LP: Cannot parse comment
       --  Return a node describing an expression. It is either a
       --  binary operator (an operator with no right expression
       --  assigned) or an expression value (a scoped name, a literal
@@ -421,10 +527,13 @@ package body Parser is
 
       function Is_Expression_Value (E : Node_Id) return Boolean is
       begin
-         return Kind (E) = K_Literal
+         return Kind (E) in K_Integer_Literal .. K_Boolean_Literal
            or else Kind (E) = K_Scoped_Name
-           or else Operator (E) not in Binary_Operator_Type
-           or else Present (Right_Expr (E));
+           or else (Operator (E) in Unary_Operator_Type
+                    and then Present (Right_Expr (E)))
+           or else (Operator (E) in Binary_Operator_Type
+                    and then Present (Left_Expr (E))
+                    and then Present (Right_Expr (E)));
       end Is_Expression_Value;
 
       ------------------------
@@ -443,7 +552,7 @@ package body Parser is
       -----------------------
 
       function P_Expression_Part return Node_Id is
-         Expression     : Node_Id;
+         Expression     : Node_Id := No_Node;
          Right_Expr     : Node_Id;
          Previous_Token : Token_Type;
       begin
@@ -470,13 +579,68 @@ package body Parser is
                   return No_Node;
                end if;
 
-            when T_Integer_Literal .. T_Wide_String_Literal =>
-
-               --  Look for a literal
-
+            when T_Integer_Literal        =>
                Scan_Token;  --  past literal
-               Expression := New_Node (K_Literal, Token_Location);
-               Set_Literal (Expression, Token_Name);
+               Expression :=
+                 New_Node (K_Integer_Literal, Token_Location);
+               Set_Value
+                 (Expression,
+                  New_Integer_Value (Value => Integer_Literal_Value,
+                                     Sign  => 1,
+                                     Base  => Integer_Literal_Base));
+
+            when T_Fixed_Point_Literal    =>
+               Scan_Token;  --  past literal
+               Expression :=
+                 New_Node (K_Fixed_Point_Literal, Token_Location);
+               Set_Value
+                 (Expression,
+                  New_Fixed_Point_Value
+                  (Value => Integer_Literal_Value,
+                   Sign  => 1,
+                   Total => Unsigned_Short_Short (Name_Len),
+                   Scale => Decimal_Point_Position));
+
+            when T_Boolean_Literal    =>
+               Scan_Token;  --  past literal
+               Expression :=
+                 New_Node (K_Boolean_Literal, Token_Location);
+               Set_Value
+                 (Expression,
+                  New_Boolean_Value (Value => (Integer_Literal_Value = 1)));
+
+            when T_Floating_Point_Literal =>
+               Scan_Token;  --  past literal
+               Expression :=
+                 New_Node (K_Floating_Point_Literal, Token_Location);
+               Set_Value
+                 (Expression,
+                  New_Floating_Point_Value (Float_Literal_Value));
+
+            when T_Character_Literal
+              |  T_Wide_Character_Literal =>
+               Scan_Token;  --  past literal
+               if Character_Literal_Value /= Incorrect_Character then
+                  Expression :=
+                    New_Node (K_Character_Literal, Token_Location);
+                  Set_Value
+                    (Expression,
+                     New_Character_Value
+                     (Character_Literal_Value,
+                      (Token /= T_Character_Literal)));
+               end if;
+
+            when T_String_Literal
+              |  T_Wide_String_Literal =>
+               Scan_Token;  --  past literal
+               if String_Literal_Value /= Incorrect_String then
+                  Expression :=
+                    New_Node (K_String_Literal, Token_Location);
+                  Set_Value
+                    (Expression,
+                     New_String_Value (String_Literal_Value,
+                                       (Token /= T_String_Literal)));
+               end if;
 
             when T_Tilde .. T_Less_Less =>
 
@@ -544,7 +708,7 @@ package body Parser is
          Op_L : constant Token_Type := Operator (L);
          Op_R : constant Token_Type := Operator (R);
       begin
-         return Preferences (Op_L) < Preferences (Op_R);
+         return Preferences (Op_L) <= Preferences (Op_R);
       end Precede;
 
       Expr     : Node_Id;
@@ -641,9 +805,14 @@ package body Parser is
            and then Precede (Table (Last - 2), Expr)
          loop
             Set_Right_Expr (Table (Last - 2), Table (Last - 1));
-            Set_Left_Expr  (Table (Last), Table (Last - 2));
-            Table (Last - 2) := Table (Last);
-            Set_Last (Last - 2);
+            Table (Last - 1) := Table (Last);
+            Set_Last (Last - 1);
+            if No (Left_Expr (Table (Last - 1))) then
+               Set_Left_Expr (Table (Last - 1), Table (Last - 2));
+               Table (Last - 2) := Table (Last - 1);
+               Table (Last - 1) := Table (Last);
+               Set_Last (Last - 1);
+            end if;
          end loop;
       end loop;
 
@@ -660,14 +829,11 @@ package body Parser is
       --  Reduce the global expression
 
       while First < Last loop
-         if No (Left_Expr (Table (Last - 1))) then
-            Set_Right_Expr (Table (Last - 1), Table (Last));
-            Set_Left_Expr  (Table (Last - 1), Table (Last - 2));
-            Table (Last - 2) := Table (Last - 1);
-            Set_Last (Last - 2);
-
-         else
-            Set_Right_Expr (Table (Last - 1), Table (Last));
+         Set_Right_Expr (Table (Last - 1), Table (Last));
+         Set_Last (Last - 1);
+         if No (Left_Expr (Table (Last))) then
+            Set_Left_Expr (Table (Last), Table (Last - 1));
+            Table (Last - 1) := Table (Last);
             Set_Last (Last - 1);
          end if;
       end loop;
@@ -730,22 +896,48 @@ package body Parser is
    --  (84) <fixed_array_size> ::= "[" <positive_int_const> "]"
 
    function P_Declarator return Node_Id is
-      State  : Location;
+      Identifier  : Node_Id;
+      Array_Sizes : List_Id;
+      Array_Size  : Node_Id;
+      Node        : Node_Id;
 
    begin
-      Save_Lexer (State);
-      if No (P_Identifier) then
+      Identifier := P_Identifier;
+      if No (Identifier) then
          return No_Node;
       end if;
 
-      if Next_Token = T_Left_Bracket then
-         Restore_Lexer (State);
-         return P_Complex_Declarator;
-
-      else
-         Restore_Lexer (State);
-         return P_Simple_Declarator;
+      if Next_Token /= T_Left_Bracket then
+         Node := New_Node (K_Simple_Declarator, Loc (Identifier));
+         Bind_Identifier_To_Entity (Identifier, Node);
+         return Node;
       end if;
+
+      Node := New_Node (K_Complex_Declarator, Loc (Identifier));
+      Bind_Identifier_To_Entity (Identifier, Node);
+
+      Array_Sizes := New_List (K_Array_Size_List, Token_Location);
+      Set_Array_Sizes (Node, Array_Sizes);
+
+      loop
+         Scan_Token; --  past '['
+
+         Array_Size := P_Constant_Expression;
+         if No (Array_Size) then
+            return No_Node;
+         end if;
+
+         Append_Node_To_List (Array_Size, Array_Sizes);
+
+         Scan_Token (T_Right_Bracket);
+         if Token = T_Error then
+            return No_Node;
+         end if;
+
+         exit when Next_Token /= T_Left_Bracket;
+      end loop;
+
+      return Node;
    end P_Declarator;
 
    -----------------------
@@ -754,31 +946,24 @@ package body Parser is
 
    --  (49) <declarators> ::= <declarator> { "," <declarator> }
 
-   function P_Declarator_List return Node_Id is
-      First    : Node_Id := No_Node;
-      Previous : Node_Id := No_Node;
-      Current  : Node_Id;
+   function P_Declarator_List return List_Id
+   is
+      List : List_Id;
+      Node : Node_Id;
    begin
+      List := New_List (K_Declarators, Token_Location);
       loop
-         Current := P_Declarator;
-         if No (Current) then
-            return No_Node;
+         Node := P_Declarator;
+         if No (Node) then
+            return List;
          end if;
 
-         if No (First) then
-            First := Current;
-         end if;
-
-         if Present (Previous) then
-            Set_Next_Node (Previous, Current);
-         end if;
+         Append_Node_To_List (Node, List);
          exit when Next_Token /= T_Comma;
          Scan_Token; --  past ','
-
-         Previous := Current;
       end loop;
 
-      return First;
+      return List;
    end P_Declarator_List;
 
    ------------------
@@ -791,13 +976,17 @@ package body Parser is
    --                     | <interface> ";"
    --                     | <module> ";"
    --                     | <value> ";"
+   --                     | <type_id_dcl> ";"
+   --                     | <type_prefix_dcl> ";"
 
    function P_Definition return Node_Id is
       Definition : Node_Id := No_Node;
       State      : Location;
+      Token_Backup : Token_Type;
    begin
       Save_Lexer (State);
       Scan_Token;
+      Token_Backup := Token;
       case Token is
          when T_Typedef
            | T_Struct
@@ -815,7 +1004,8 @@ package body Parser is
             Restore_Lexer (State);
             Definition := P_Exception_Declaration;
 
-         when T_Abstract =>
+         when T_Abstract
+           | T_Local =>
             Scan_Token ((T_Interface, T_Value_Type));
             if Token = T_Interface then
                Restore_Lexer (State);
@@ -843,17 +1033,72 @@ package body Parser is
             Restore_Lexer (State);
             Definition := P_Pragma;
 
+         when T_Type_Id =>
+            Restore_Lexer (State);
+            Definition := P_Type_Id_Declaration;
+
+         when T_Type_Prefix =>
+            Restore_Lexer (State);
+            Definition := P_Type_Prefix_Declaration;
+
          when others =>
             Unexpected_Token (Token, "definition");
       end case;
 
       --  The definition is successfully parsed
 
-      if Present (Definition) then
+      --  Particular case when parsing a typeprefix or a typeid statement :
+      --  The IDL grammar is clear :
+      --  (2) <definition> ::= <type_dcl> ";"
+      --                     | <const_dcl> ";"
+      --                     | <except_dcl> ";"
+      --                     | <interface> ";"
+      --                     | <module> ";"
+      --                     | <value> ";"
+      --                     | <type_id_dcl> ";"
+      --                     | <type_prefix_dcl> ";"
+
+      --  The last 2 lines show that a semi-colon is required after a
+      --  <type_id_dcl> and <type_prefix_dcl>.
+      --  The code we should put here is :
+
+      --  if Present (Definition) and then Kind (Definition) /= K_Pragma then
+      --     Save_Lexer (State);
+      --     Scan_Token (T_Semi_Colon);
+      --     if Token = T_Error then
+      --        Definition := No_Node;
+      --     end if;
+      --  end if;
+
+      --  However, in some OMG idl files (including orb.idl), there is no
+      --  semi-colon after typeprefix statement.
+      --  This problem was discussed in the issue 3299 of the omg :
+      --  http://www.omg.org/issues/issue3299.txt
+      --  but no solution has been accepted, and the issue is still pending.
+
+      --  To be respectful of the IDL grammar and at the same time, to be
+      --  able to parse OMG idl files, we accept both cases : with semi-colon
+      --  and without semi-colon.
+
+      --  This is of course a temporary solution, and when the error is fixed
+      --  by OMG, the IDL grammar must be respected by all IDL files.
+
+      --  The same situation is met when parsing an import statement
+
+      if Present (Definition) and then Kind (Definition) /= K_Pragma then
          Save_Lexer (State);
-         Scan_Token (T_Semi_Colon);
-         if Token = T_Error then
-            Definition := No_Node;
+         Scan_Token;
+         if Token /= T_Semi_Colon then
+            if Token_Backup = T_Type_Id
+              or else Token_Backup = T_Type_Prefix
+            then
+               Restore_Lexer (State);
+               Error_Loc (1) := Token_Location;
+               DE ("Conforming to the IDL grammar, a semi-colon"
+                   & " is expected here", K_Warning);
+            else
+               Definition := No_Node;
+            end if;
          end if;
       end if;
 
@@ -876,10 +1121,11 @@ package body Parser is
 
    function P_Enumeration_Type return Node_Id is
       Identifier  : Node_Id;
-      Node      : Node_Id;
+      Node        : Node_Id;
       Enumerator  : Node_Id;
       Enumerators : List_Id;
       State       : Location;
+      Position    : Unsigned_Long_Long := 0;
 
    begin
       Scan_Token; --  past "enum"
@@ -889,7 +1135,7 @@ package body Parser is
       if No (Identifier) then
          return No_Node;
       end if;
-      Associate (Node, Identifier);
+      Bind_Identifier_To_Entity (Identifier, Node);
 
       Scan_Token (T_Left_Brace);
       if Token = T_Error then
@@ -900,6 +1146,7 @@ package body Parser is
       Set_Enumerators (Node, Enumerators);
 
       loop
+
          --  Save lexer state in order to skip the enumerator list on error
 
          Save_Lexer (State);
@@ -910,10 +1157,14 @@ package body Parser is
             exit;
          end if;
 
-         Enumerator := New_Node (K_Simple_Declarator, Loc (Identifier));
-         Associate (Enumerator, Identifier);
+         Enumerator := New_Node (K_Enumerator, Loc (Identifier));
+         Bind_Identifier_To_Entity (Identifier, Enumerator);
 
          Append_Node_To_List (Enumerator, Enumerators);
+         Position := Position + 1;
+         Set_Value
+           (Enumerator,
+            New_Enumerator (IDL_Name (Identifier), Position));
 
          Save_Lexer (State);
          Scan_Token ((T_Comma, T_Right_Brace));
@@ -950,7 +1201,7 @@ package body Parser is
       if No (Identifier) then
          return No_Node;
       end if;
-      Associate (Node, Identifier);
+      Bind_Identifier_To_Entity (Identifier, Node);
 
       Scan_Token (T_Left_Brace);
       if Token = T_Error then
@@ -981,6 +1232,57 @@ package body Parser is
 
       return Node;
    end P_Exception_Declaration;
+
+   ----------------------
+   -- P_Exception_List --
+   ----------------------
+
+   --  (93) <raises_expr> ::= "raises" "(" <scoped_name>
+   --                                { "," <scoped_name> } ")"
+
+   --  (109) <get_excep_expr> ::= "getraises" <exception_list>
+
+   --  (110) <set_excep_expr> ::= "setraises" <exception_list>
+
+   --  (111) <exception_list> ::= "(" <scoped_name>
+   --                              { "," <scoped_name> } * ")"
+
+   function P_Exception_List return List_Id is
+      Exception_List : List_Id;
+      Scoped_Name    : Node_Id;
+      State          : Location;
+   begin
+      Scan_Token; --  past "raises", "getraises" or "setraises"
+      Scan_Token (T_Left_Paren);
+      if Token = T_Error then
+         return No_List;
+      end if;
+
+      Exception_List := New_List (K_Exception_List, Token_Location);
+      loop
+         Save_Lexer (State);
+         Scoped_Name := P_Scoped_Name;
+         if No (Scoped_Name) then
+            Restore_Lexer (State);
+            Skip_Declaration (T_Right_Paren);
+            exit;
+         end if;
+
+         Append_Node_To_List (Scoped_Name, Exception_List);
+
+         Save_Lexer (State);
+         Scan_Token ((T_Comma, T_Right_Paren));
+         if Token /= T_Comma then
+            if Token = T_Error then
+               Restore_Lexer (State);
+               Skip_Declaration (T_Right_Paren);
+            end if;
+            exit;
+         end if;
+      end loop;
+
+      return Exception_List;
+   end P_Exception_List;
 
    --------------
    -- P_Export --
@@ -1024,22 +1326,35 @@ package body Parser is
             Restore_Lexer (State);
             Export := P_Type_Declaration;
 
+         when T_Pragma =>
+            Restore_Lexer (State);
+            Export := P_Pragma;
+
+         when T_Type_Id =>
+            Restore_Lexer (State);
+            Export := P_Type_Id_Declaration;
+
+         when T_Type_Prefix =>
+            Restore_Lexer (State);
+            Export := P_Type_Prefix_Declaration;
+
          when others =>
             Restore_Lexer (State);
             Export := P_Operation_Declaration;
       end case;
 
-      if Present (Export) then
-         Save_Lexer (State);
+      if Present (Export) and then Kind (Export) /= K_Pragma then
          Scan_Token (T_Semi_Colon);
-         if Token = T_Error then
-            Export := No_Node;
-         end if;
+      end if;
+
+      if Token = T_Error then
+         Export := No_Node;
       end if;
 
       if No (Export) then
          Restore_Lexer (State);
          Skip_Declaration (T_Semi_Colon);
+         return No_Node;
       end if;
 
       return Export;
@@ -1068,7 +1383,15 @@ package body Parser is
          if Token = T_Error then
             return No_Node;
          end if;
-         Set_N_Digits (Node, Token_Name);
+         if Integer_Literal_Sign < 0
+           or else Integer_Literal_Value = 0
+           or else Integer_Literal_Value > 31
+         then
+            Error_Loc (1) := Token_Location;
+            DE ("fixed point values must have between 1 and 31 digits");
+            return No_Node;
+         end if;
+         Set_N_Total (Node, Int (Integer_Literal_Value));
 
          Scan_Token (T_Comma);
          if Token = T_Error then
@@ -1079,7 +1402,20 @@ package body Parser is
          if Token = T_Error then
             return No_Node;
          end if;
-         Set_N_Delta (Node, Token_Name);
+         if Integer_Literal_Sign < 0
+           or else Integer_Literal_Value = 0
+           or else Integer_Literal_Value > 31
+         then
+            Error_Loc (1) := Token_Location;
+            DE ("fixed point values must have between 1 and 31 digits");
+            return No_Node;
+         end if;
+         if N_Total (Node) < Int (Integer_Literal_Value) then
+            Error_Loc (1) := Token_Location;
+            DE ("fixed point scale factor is greater than number of digits");
+            return No_Node;
+         end if;
+         Set_N_Scale (Node, Int (Integer_Literal_Value));
 
          Scan_Token (T_Greater);
          if Token = T_Error then
@@ -1095,17 +1431,100 @@ package body Parser is
    ------------------
 
    function P_Identifier return Node_Id is
-      Identifier : Node_Id;
    begin
       Scan_Token (T_Identifier);
       if Token = T_Error then
          return No_Node;
       end if;
-      Identifier := New_Node (K_Identifier, Token_Location);
-      Set_IDL_Name (Identifier, Token_Name);
-      Set_Name     (Identifier, To_Lower (Token_Name));
-      return Identifier;
+      return Make_Identifier (Token_Location, Token_Name, No_Node, No_Node);
    end P_Identifier;
+
+   --------------
+   -- P_Import --
+   --------------
+
+   --  (100) <import> ::= "import" <imported_scope> ";"
+   --  (101) <imported_scope> ::= <scoped_name> | <string_literal>
+
+   --  The string literal is an interface repository ID of an IDL scoped name
+   --  The import of interface repository ID is not supported by IAC
+
+   function P_Import return Node_Id is
+      State           : Location;
+      Import_Node     : Node_Id;
+      Import_Location : Location;
+      Imported_Scope  : Node_Id;
+   begin
+      Scan_Token; --  past import
+      Import_Location := Token_Location;
+
+      Save_Lexer (State);
+      Scan_Token; --  past "::"
+      if Token /= T_Colon_Colon then
+         Error_Loc (1) := Token_Location;
+         DE ("Only identifier relative global scope now allowed "
+             & "(IAC restriction)");
+         return No_Node;
+      end if;
+      Restore_Lexer (State);
+      Imported_Scope := P_Scoped_Name;
+      Import_Node := New_Node (K_Import, Import_Location);
+      Set_Imported_Scope (Import_Node, Imported_Scope);
+
+      --  The import is successfully parsed
+
+      --  See the comment at the end of the P_Definition function to understand
+      --  why we should accept that no ";" may be given after an import
+      --  declaration.
+
+      --  Once the error in OMG idl files is fixed, the code to be put is :
+      --  if Present (Imported_Scope) then
+      --     Scan_Token (T_Semi_Colon);
+      --     if Token = T_Error then
+      --        Import_Node := No_Node;
+      --     end if;
+      --  end if;
+
+      if Present (Imported_Scope) then
+         Save_Lexer (State);
+         Scan_Token;
+         if Token /= T_Semi_Colon then
+            Restore_Lexer (State);
+            Error_Loc (1) := Token_Location;
+            DE ("Conforming to the IDL grammar, a semi-colon"
+                & " is expected here", K_Warning);
+         end if;
+      end if;
+
+      --  Now, we parse the file corresponding to the imported scope
+
+      --  FIXME : Note that even if the imported scope covers only a part
+      --  of a file and not a whole file, all the entities in this file
+      --  will be visible
+
+      declare
+         Imported_File      : File_Descriptor;
+         Imported_File_Name : Name_Id;
+      begin
+         Imported_File_Name := Locate_Imported_File (Imported_Scope);
+         if Imported_File_Name = No_Name then
+            Error_Loc (1) := Loc (Imported_Scope);
+            Error_Name (1) := IDL_Name (Identifier (Imported_Scope));
+            DE ("File containing the%scope declaration not found");
+            return No_Node;
+         end if;
+
+         if not Handled (Imported_File_Name) then
+            Set_Handled (Imported_File_Name);
+            Lexer.Preprocess (Imported_File_Name, Imported_File);
+            Lexer.Process (Imported_File, Imported_File_Name);
+            P_Specification (Imported => True);
+            Finalize_Imported;
+         end if;
+      end;
+
+      return Import_Node;
+   end P_Import;
 
    -------------------------------
    -- P_Initializer_Declaration --
@@ -1133,14 +1552,14 @@ package body Parser is
       if No (Identifier) then
          return No_Node;
       end if;
-      Associate (Node, Identifier);
+      Bind_Identifier_To_Entity (Identifier, Node);
 
       Scan_Token (T_Left_Paren);
       if Token = T_Error then
          return No_Node;
       end if;
 
-      Parameters := New_List (K_Initializer_Parameter_List, Token_Location);
+      Parameters := New_List (K_Parameter_List, Token_Location);
       Set_Parameters   (Node, Parameters);
 
       loop
@@ -1170,6 +1589,13 @@ package body Parser is
          end if;
       end loop;
 
+      Scan_Token (T_Semi_Colon);
+      if Token = T_Error then
+         Restore_Lexer (State);
+         Skip_Declaration (T_Semi_Colon);
+         Node := No_Node;
+      end if;
+
       return Node;
    end P_Initializer_Declaration;
 
@@ -1182,18 +1608,23 @@ package body Parser is
 
    function P_Interface return Node_Id is
       Identifier  : Node_Id;
-      Node      : Node_Id;
+      Node        : Node_Id;
       Is_Abstract : Boolean := False;
+      Is_Local    : Boolean := False;
       State       : Location;
       Fwd_Loc     : Location;
 
    begin
       Save_Lexer (State);
 
-      Scan_Token; --  past "abstract" or "interface"
+      Scan_Token; --  past "abstract", "local" or "interface"
       Fwd_Loc := Token_Location;
       if Token = T_Abstract then
          Is_Abstract := True;
+         Scan_Token; --  past "interface"
+
+      elsif Token = T_Local then
+         Is_Local := True;
          Scan_Token; --  past "interface"
       end if;
 
@@ -1205,8 +1636,9 @@ package body Parser is
       case Next_Token is
          when T_Semi_Colon =>
             Node := New_Node (K_Forward_Interface_Declaration, Fwd_Loc);
-            Associate (Node, Identifier);
-            Set_Is_Abstract (Node, Is_Abstract);
+            Bind_Identifier_To_Entity (Identifier, Node);
+            Set_Is_Abstract_Interface (Node, Is_Abstract);
+            Set_Is_Local_Interface (Node, Is_Local);
 
          when T_Left_Brace
            | T_Colon =>
@@ -1234,7 +1666,7 @@ package body Parser is
 
    function P_Interface_Declaration return Node_Id is
       Identifier     : Node_Id;
-      Node         : Node_Id;
+      Node           : Node_Id;
       Interface_Body : List_Id;
       Export         : Node_Id;
       Interface_Spec : List_Id;
@@ -1246,19 +1678,26 @@ package body Parser is
       Node := New_Node (K_Interface_Declaration, Token_Location);
 
       if Token = T_Abstract then
-         Set_Is_Abstract (Node, True);
+         Set_Is_Abstract_Interface (Node, True);
+         Scan_Token; --  past "interface"
+
+      elsif Token = T_Local then
+         Set_Is_Local_Interface (Node, True);
          Scan_Token; --  past "interface"
       end if;
 
       Identifier := P_Identifier;
-      Associate (Node, Identifier);
+      Bind_Identifier_To_Entity (Identifier, Node);
+
+      --  Always create an interface inheritance specifier even if it
+      --  is left empty.
+
+      Interface_Spec := New_List (K_Interface_Name_List, Token_Location);
+      Set_Interface_Spec (Node, Interface_Spec);
 
       --  Parse interface inheritance specifier
 
       if Next_Token = T_Colon then
-         Interface_Spec := New_List (K_Interface_Name_List, Token_Location);
-         Set_Interface_Spec (Node, Interface_Spec);
-
          Scan_Token; --  past ':'
 
          loop
@@ -1327,7 +1766,7 @@ package body Parser is
 
    function P_Member return Node_Id is
       Member       : Node_Id;
-      Declarators  : Node_Id;
+      Declarators  : List_Id;
       Type_Spec    : Node_Id;
       State        : Location;
    begin
@@ -1353,9 +1792,10 @@ package body Parser is
          return No_Node;
       end if;
 
-      Member := New_Node (K_Member, Loc (Declarators));
+      Member := New_Node (K_Member, Loc (Type_Spec));
       Set_Type_Spec   (Member, Type_Spec);
       Set_Declarators (Member, Declarators);
+      Bind_Declarators_To_Entity (Declarators, Member);
 
       Scan_Token (T_Semi_Colon);
       if Token = T_Error then
@@ -1373,7 +1813,7 @@ package body Parser is
 
    function P_Module return Node_Id is
       Identifier  : Node_Id;
-      Node      : Node_Id;
+      Node        : Node_Id;
       Definitions : List_Id;
       Definition  : Node_Id;
 
@@ -1388,7 +1828,7 @@ package body Parser is
       if No (Identifier) then
          return No_Node;
       end if;
-      Associate (Node, Identifier);
+      Bind_Identifier_To_Entity (Identifier, Node);
 
       Scan_Token (T_Left_Brace);
       if Token = T_Error then
@@ -1462,7 +1902,6 @@ package body Parser is
 
    function P_Operation_Declaration return Node_Id is
       function P_Context_List return List_Id;
-      function P_Exception_List return List_Id;
 
       --------------------
       -- P_Context_List --
@@ -1496,7 +1935,10 @@ package body Parser is
             end if;
 
             String_Literal := New_Node (K_Literal, Token_Location);
-            Set_Literal (String_Literal, Token_Name);
+            Set_Value
+              (String_Literal,
+               New_String_Value (Value => String_Literal_Value,
+                                 Wide  => Is_Wide_Literal_Value));
 
             Append_Node_To_List (String_Literal, Context_List);
 
@@ -1513,50 +1955,6 @@ package body Parser is
 
          return Context_List;
       end P_Context_List;
-
-      ----------------------
-      -- P_Exception_List --
-      ----------------------
-
-      --  (93) <raises_expr> ::= "raises" "(" <scoped_name>
-      --                                { "," <scoped_name> } ")"
-
-      function P_Exception_List return List_Id is
-         Exception_List : List_Id;
-         Scoped_Name    : Node_Id;
-         State          : Location;
-      begin
-         Scan_Token; --  past "raises"
-         Scan_Token (T_Left_Paren);
-         if Token = T_Error then
-            return No_List;
-         end if;
-
-         Exception_List := New_List (K_Exception_List, Token_Location);
-         loop
-            Save_Lexer (State);
-            Scoped_Name := P_Scoped_Name;
-            if No (Scoped_Name) then
-               Restore_Lexer (State);
-               Skip_Declaration (T_Right_Paren);
-               exit;
-            end if;
-
-            Append_Node_To_List (Scoped_Name, Exception_List);
-
-            Save_Lexer (State);
-            Scan_Token ((T_Comma, T_Right_Paren));
-            if Token /= T_Comma then
-               if Token = T_Error then
-                  Restore_Lexer (State);
-                  Skip_Declaration (T_Right_Paren);
-               end if;
-               exit;
-            end if;
-         end loop;
-
-         return Exception_List;
-      end P_Exception_List;
 
       Identifier      : Node_Id;
       Node          : Node_Id;
@@ -1585,6 +1983,9 @@ package body Parser is
          Restore_Lexer (State);
 
          Param_Type_Spec := P_Simple_Type_Spec;
+
+         --  Guard against previously detected error
+
          if No (Param_Type_Spec) then
             return No_Node;
          end if;
@@ -1601,7 +2002,7 @@ package body Parser is
       if No (Identifier) then
          return No_Node;
       end if;
-      Associate (Node, Identifier);
+      Bind_Identifier_To_Entity (Identifier, Node);
 
       Scan_Token (T_Left_Paren);
       if Token = T_Error then
@@ -1609,7 +2010,7 @@ package body Parser is
       end if;
 
       Parameters := New_List (K_Parameter_List, Token_Location);
-      Set_Parameters   (Node, Parameters);
+      Set_Parameters (Node, Parameters);
 
       if Next_Token = T_Right_Paren then
          Scan_Token; --  past ')'
@@ -1672,7 +2073,7 @@ package body Parser is
       Param_Declaration : Node_Id;
       Param_Declarator  : Node_Id;
       Param_Type_Spec   : Node_Id;
-      Param_Mode        : Token_Type;
+      Param_Mode        : Mode_Id;
       Param_Location    : Location;
 
    begin
@@ -1681,9 +2082,16 @@ package body Parser is
       if Token = T_Error then
          return No_Node;
       end if;
-      Param_Mode := Token;
+      Param_Mode := Parameter_Mode (Token);
 
       Param_Type_Spec := P_Simple_Type_Spec;
+
+      --  Guard against previously detected error
+
+      if No (Param_Type_Spec) then
+         return No_Node;
+      end if;
+
       if not Is_Param_Type_Spec (Param_Type_Spec) then
          Error_Loc (1) := Loc (Param_Type_Spec);
          DE ("incorrect param type spec");
@@ -1700,9 +2108,118 @@ package body Parser is
       Set_Parameter_Mode (Param_Declaration, Param_Mode);
       Set_Type_Spec      (Param_Declaration, Param_Type_Spec);
       Set_Declarator     (Param_Declaration, Param_Declarator);
+      Bind_Declarator_To_Entity (Param_Declarator, Param_Declaration);
 
       return Param_Declaration;
    end P_Parameter_Declaration;
+
+   --------------
+   -- P_Pragma --
+   --------------
+
+   --  There three standard IDL pragmas :
+   --  #pragma ID <name> "<id>"
+   --  #pragma prefix "<string>"
+   --  #pragma version <name> <major>.<minor>
+
+   --  However an IDL compiler "must not refuse to compile IDL source
+   --  containing non-standard pragmas that are not understood by the
+   --  compiler" CORBA, v3.0 $10.7.5
+
+   --  Not understood pragmas will be ignored
+
+   function P_Pragma return Node_Id is
+      Pragma_Kind  : Pragma_Type;
+      Pragma_Node  : Node_Id;
+      Scoped_Name  : Node_Id := No_Node;
+
+   begin
+      Scan_Token; -- Past #pragma
+      Pragma_Node := New_Node (K_Pragma, Token_Location);
+
+      --  We scan an identifier, then we convert it into a pragma related token
+      --  because pragma kinds (id, prefix, version) can be used as legal
+      --  identifiers in other locations
+      Scan_Token (T_Identifier);
+
+      if Token = T_Error then
+         return Pragma_Node;
+      end if;
+
+      --  Converting the identifier into a pragma related token
+
+      declare
+         Pragma_Image : constant String := Get_Name_String (Token_Name);
+      begin
+         if Pragma_Image = Image (T_Pragma_Id) then
+            Token := T_Pragma_Id;
+         elsif Pragma_Image = Image (T_Pragma_Prefix) then
+            Token := T_Pragma_Prefix;
+         elsif Pragma_Image = Image (T_Pragma_Version) then
+            Token := T_Pragma_Version;
+         end if;
+      end;
+
+      --  Unrecognized pragma
+
+      if Token = T_Identifier then
+         Token := T_Pragma_Unrecognized;
+      end if;
+
+      Pragma_Kind := Get_Pragma_Type (Token);
+
+      case Pragma_Kind is
+         when Pragma_Id =>
+            Set_Pragma_Kind (Pragma_Node, Pragma_Kind);
+
+            Scoped_Name := P_Scoped_Name;
+            if No (Scoped_Name) then
+               Error_Loc (1) := Token_Location;
+               DE ("incorrect #pragma ID syntax");
+            end if;
+
+            Set_Target (Pragma_Node, Scoped_Name);
+
+            --  Getting the "<id>"
+
+            Scan_Token (T_String_Literal);
+            Set_Data (Pragma_Node, Name_Find);
+
+         when Pragma_Prefix =>
+            Set_Pragma_Kind (Pragma_Node, Pragma_Kind);
+
+            --  Getting the "<prefix>"
+
+            Scan_Token (T_String_Literal);
+            Set_Data (Pragma_Node, Name_Find);
+
+         when Pragma_Version =>
+            Set_Pragma_Kind (Pragma_Node, Pragma_Kind);
+
+            Scoped_Name := P_Scoped_Name;
+            if No (Scoped_Name) then
+               Error_Loc (1) := Token_Location;
+               DE ("incorrect #pragma version syntax");
+            end if;
+
+            Set_Target (Pragma_Node, Scoped_Name);
+
+            --  Getting the <major>.<minor>
+            --  We don't want to get a floating point value, so we take the
+            --  value from the Name_Buffer
+
+            Scan_Token (T_Floating_Point_Literal);
+            Set_Data (Pragma_Node, Name_Find);
+
+         when Pragma_Unrecognized =>
+            Set_Pragma_Kind (Pragma_Node, Pragma_Kind);
+
+            --  We ignore unrecognized pragmas
+
+            Skip_Line;
+      end case;
+      return Pragma_Node;
+   end P_Pragma;
 
    -------------------
    -- P_Scoped_Name --
@@ -1716,18 +2233,19 @@ package body Parser is
       Scoped_Name : Node_Id := No_Node;
       Parent      : Node_Id := No_Node;
       Identifier  : Node_Id;
+      Scope_Depth : Int;
 
    begin
       --  Scoped name starts with a '::'
 
       if Next_Token = T_Colon_Colon then
          Scan_Token;  --  past '::'
---           Identifier  := New_Node (K_Identifier, Token_Location);
---           Set_IDL_Name (Identifier, Root_Name);
---           Set_Name     (Identifier, Root_Name);
---           Scoped_Name := New_Node (K_Scoped_Name, Token_Location);
---           Associate (Scoped_Name, Identifier);
-         Scoped_Name := No_Node;
+         Identifier  := Make_Identifier
+           (Token_Location, No_Name, No_Node, No_Node);
+         Scoped_Name := New_Node
+           (K_Scoped_Name, Token_Location);
+         Bind_Identifier_To_Entity
+           (Identifier, Scoped_Name);
       end if;
 
       --  start loop with an identifier
@@ -1740,11 +2258,19 @@ package body Parser is
 
          Parent      := Scoped_Name;
          Scoped_Name := New_Node (K_Scoped_Name, Token_Location);
-         Associate  (Scoped_Name, Identifier);
-         Set_Parent (Scoped_Name, Parent);
+         Bind_Identifier_To_Entity  (Identifier, Scoped_Name);
+         Set_Parent_Entity (Scoped_Name, Parent);
 
          exit when Next_Token /= T_Colon_Colon;
          Scan_Token; --  past '::'
+      end loop;
+
+      Parent      := Parent_Entity (Scoped_Name);
+      Scope_Depth := Depth (Scoped_Name);
+      while Present (Parent) loop
+         Scope_Depth := Scope_Depth + 1;
+         Set_Depth (Parent, Scope_Depth);
+         Parent := Parent_Entity (Parent);
       end loop;
 
       return Scoped_Name;
@@ -1759,9 +2285,10 @@ package body Parser is
    --                         | "sequence" "<" <simple_type_spec> ">"
 
    function P_Sequence_Type return Node_Id is
-      Node        : Node_Id;
+      Node          : Node_Id;
       Seq_Type_Spec : Node_Id;
       Seq_Level     : Natural;
+      Size          : Node_Id;
 
    begin
       Scan_Token; --  past "sequence"
@@ -1800,7 +2327,12 @@ package body Parser is
             return No_Node;
          end if;
 
-         Set_Max_Size (Node, Token_Name);
+         Size := New_Node (K_Integer_Literal, Token_Location);
+         Set_Value
+           (Size,
+            New_Integer_Value (Value => Integer_Literal_Value,
+                               Sign  => 1,
+                               Base  => Integer_Literal_Base));
 
          if Sequencing_Level > 1 then
             Scan_Token ((T_Greater, T_Greater_Greater));
@@ -1812,11 +2344,12 @@ package body Parser is
             return No_Node;
          end if;
 
-      --  A maximum size of zero stands for no size
+      --  No max size means no size
 
       else
-         Set_Max_Size (Node, No_Name);
+         Size := No_Node;
       end if;
+      Set_Max_Size (Node, Size);
 
       if Token = T_Greater_Greater then
          Sequencing_Level := Sequencing_Level - 2;
@@ -1844,7 +2377,7 @@ package body Parser is
       end if;
 
       Node := New_Node (K_Simple_Declarator, Loc (Identifier));
-      Associate (Node, Identifier);
+      Bind_Identifier_To_Entity (Identifier, Node);
 
       return Node;
    end P_Simple_Declarator;
@@ -1873,9 +2406,9 @@ package body Parser is
    --                              | <fixed_pt_type>
 
    function P_Simple_Type_Spec return Node_Id is
-      State : Location;
       List  : Token_List_Type (1 .. 3) := (others => T_Error);
       Size  : Natural := 0;
+      Next  : Token_Type;
 
       procedure Push_Base_Type_Token (T : Token_Type);
       --  Push token in the list above. This token is either T_Float,
@@ -1904,19 +2437,17 @@ package body Parser is
 
    begin
       Size := 0;
-      Save_Lexer (State);
-      Scan_Token;
-      Push_Base_Type_Token (Token);
-      case Token is
+      Next := Next_Token;
+      Push_Base_Type_Token (Next);
+      case Next is
          when T_Long =>
-            Save_Lexer (State);
-            Scan_Token;
-            if Token = T_Double
-              or else Token = T_Long
+            Scan_Token; -- skip long
+            Next := Next_Token;
+            if Next = T_Double
+              or else Next = T_Long
             then
-               Push_Base_Type_Token (Token);
-            else
-               Restore_Lexer (State);
+               Scan_Token;
+               Push_Base_Type_Token (Next);
             end if;
             return Resolve_Base_Type;
 
@@ -1930,44 +2461,42 @@ package body Parser is
            | T_Any
            | T_Object
            | T_Value_Base =>
+            Scan_Token;
             return Resolve_Base_Type;
 
          when T_Unsigned =>
+            Scan_Token; --  skip unsigned
             Scan_Token ((T_Short, T_Long));
             Push_Base_Type_Token (Token);
             if Token = T_Error then
                return No_Node;
 
             elsif Token = T_Long then
-               Save_Lexer (State);
-               Scan_Token;
-               if Token = T_Long then
-                  Push_Base_Type_Token (Token);
-               else
-                  Restore_Lexer (State);
+               Next := Next_Token;
+               if Next = T_Long then
+                  Scan_Token; -- skip long
+                  Push_Base_Type_Token (Next);
                end if;
             end if;
             return Resolve_Base_Type;
 
          when T_String
            | T_Wstring =>
-            Restore_Lexer (State);
             return P_String_Type;
 
          when T_Fixed =>
-            Restore_Lexer (State);
             return P_Fixed_Point_Type;
 
          when T_Identifier
            | T_Colon_Colon =>
-            Restore_Lexer (State);
             return P_Scoped_Name;
 
          when T_Sequence =>
-            Restore_Lexer (State);
             return P_Sequence_Type;
 
          when others =>
+            Scan_Token;
+            Unexpected_Token (Token, "type specifier");
             return No_Node;
       end case;
    end P_Simple_Type_Spec;
@@ -1976,27 +2505,56 @@ package body Parser is
    -- P_Specification --
    ---------------------
 
-   --  (1) <specification> ::= <definition> +
+   --  (1) <specification> ::= <import>* <definition>+
 
-   function P_Specification return Node_Id is
-      Node      : Node_Id;
+   procedure P_Specification (Imported : Boolean := False)
+   is
       Definitions : List_Id;
+      Imports     : List_Id;
       Definition  : Node_Id;
+      Import      : Node_Id;
+      Identifier  : Node_Id;
+      Next        : Token_Type;
 
    begin
-      Node      := New_Node (K_Specification, Token_Location);
-      Definitions := New_List (K_Definition_List, Token_Location);
-      Set_Definitions (Node, Definitions);
+      --  If we parse an imported specification, we don't create a new node
+      --  K_Specification, we append the imported entities to the original
+      --  specification
+
+      if Imported then
+         Definitions := FEN.Definitions (Specification);
+         Imports     := FEN.Imports (Specification);
+      else
+         Identifier :=
+           Make_Identifier (Token_Location, IDL_Spec_Name, No_Node, No_Node);
+         Specification := New_Node (K_Specification, Token_Location);
+         Bind_Identifier_To_Entity (Identifier, Specification);
+         Definitions   := New_List (K_Definition_List, Token_Location);
+         Set_Definitions (Specification, Definitions);
+         Imports := New_List (K_Imports_List, Token_Location);
+         Set_Imports (Specification, Imports);
+      end if;
+
+      --  Scanning the imported scopes to the current global scope
+      Next := Next_Token;
+      while Next = T_Import loop
+         Import := P_Import;
+         if Present (Import) then
+            Set_Imported (Import, Imported);
+            Append_Node_To_List (Import, Imports);
+         end if;
+         Next := Next_Token;
+      end loop;
 
       loop
          Definition := P_Definition;
          if Present (Definition) then
+            Set_Imported (Definition, Imported);
             Append_Node_To_List (Definition, Definitions);
          end if;
          exit when Next_Token = T_EOF;
       end loop;
 
-      return Node;
    end P_Specification;
 
    --------------------
@@ -2008,11 +2566,13 @@ package body Parser is
    --  (49) <declarators> ::= <declarator> { "," <declarator> }
 
    function P_State_Member return Node_Id is
-      Declarator   : Node_Id;
+      Declarators  : List_Id;
       Type_Spec    : Node_Id;
       State_Member : Node_Id := No_Node;
-      Is_Public    : Boolean   := False;
+      Is_Public    : Boolean := False;
+      State        : Location;
    begin
+      State := Token_Location;
       Scan_Token; --  past "public" or "private"
       if Token = T_Public then
          Is_Public := True;
@@ -2023,20 +2583,22 @@ package body Parser is
          return No_Node;
       end if;
 
-      Declarator := P_Declarator_List;
-      if No (Declarator) then
+      Declarators := P_Declarator_List;
+      if Is_Empty (Declarators) then
          return No_Node;
       end if;
 
-      while Present (Declarator) loop
-         Set_Kind (Declarator, K_State_Member);
-         Set_Type_Spec (Declarator, Type_Spec);
-         Set_Is_Public (Declarator, Is_Public);
-         if No (State_Member) then
-            State_Member := Declarator;
-         end if;
-         Declarator := Next_Node (Declarator);
-      end loop;
+      Scan_Token (T_Semi_Colon);
+      if Token = T_Error then
+         Restore_Lexer (State);
+         Skip_Declaration (T_Semi_Colon);
+         return No_Node;
+      end if;
+
+      State_Member := New_Node (K_State_Member, State);
+      Set_Type_Spec   (State_Member, Type_Spec);
+      Set_Is_Public   (State_Member, Is_Public);
+      Set_Declarators (State_Member, Declarators);
 
       return State_Member;
    end P_State_Member;
@@ -2052,31 +2614,42 @@ package body Parser is
    --                            | "wstring"
 
    function P_String_Type return Node_Id is
-      Node : Node_Id;
+      Node     : Node_Id;
+      Size     : Node_Id;
+      Prev_Loc : Location;
+      Prev_Tok : Token_Type;
    begin
       Scan_Token;
-      if Token = T_String then
-         Node := New_Node (K_String, Token_Location);
-      else
-         Node := New_Node (K_Wide_String, Token_Location);
+      Prev_Tok := Token;
+      Prev_Loc := Token_Location;
+
+      if Next_Token /= T_Less then
+         return Resolve_Base_Type ((1 => Prev_Tok));
       end if;
 
-      if Next_Token = T_Less then
-         Scan_Token; --  past '<'
+      Scan_Token; --  past '<'
+      Scan_Token (T_Integer_Literal);
+      if Token = T_Error then
+         return No_Node;
+      end if;
 
-         Scan_Token (T_Integer_Literal);
-         if Token = T_Error then
-            return No_Node;
-         end if;
-         Set_Max_Size (Node, Token_Name);
-
-         Scan_Token (T_Greater);
-         if Token = T_Error then
-            return No_Node;
-         end if;
-
+      if Prev_Tok = T_String then
+         Node := New_Node (K_String_Type, Prev_Loc);
       else
-         Set_Max_Size (Node, No_Name);
+         Node := New_Node (K_Wide_String_Type, Prev_Loc);
+      end if;
+
+      Size := New_Node (K_Integer_Literal, Token_Location);
+      Set_Value
+        (Size,
+         New_Integer_Value (Value => Integer_Literal_Value,
+                            Sign  => 1,
+                            Base  => Integer_Literal_Base));
+      Set_Max_Size (Node, Size);
+
+      Scan_Token (T_Greater);
+      if Token = T_Error then
+         return No_Node;
       end if;
 
       return Node;
@@ -2091,7 +2664,7 @@ package body Parser is
 
    function P_Structure_Type return Node_Id is
       Identifier  : Node_Id;
-      Node      : Node_Id;
+      Node        : Node_Id;
       Members     : List_Id;
       Member      : Node_Id;
       State       : Location;
@@ -2104,7 +2677,7 @@ package body Parser is
       if No (Identifier) then
          return No_Node;
       end if;
-      Associate (Node, Identifier);
+      Bind_Identifier_To_Entity (Identifier, Node);
 
       Members := New_List (K_Member_List, Token_Location);
       Set_Members      (Node, Members);
@@ -2145,10 +2718,10 @@ package body Parser is
 
    function P_Type_Declaration return Node_Id is
       Identifier  : Node_Id;
-      Node      : Node_Id := No_Node;
+      Node        : Node_Id := No_Node;
       Type_Spec   : Node_Id;
       Declarator  : Node_Id;
-      Declarators : Node_Id;
+      Declarators : List_Id;
       State       : Location;
 
    begin
@@ -2163,12 +2736,13 @@ package body Parser is
             end if;
 
             Declarators := P_Declarator_List;
-            if No (Declarators) then
+            if Is_Empty (Declarators) then
                return No_Node;
             end if;
             Node := New_Node (K_Type_Declaration, State);
             Set_Type_Spec   (Node, Type_Spec);
             Set_Declarators (Node, Declarators);
+            Bind_Declarators_To_Entity (Declarators, Node);
 
          when T_Native =>
 
@@ -2179,6 +2753,7 @@ package body Parser is
 
             Node := New_Node (K_Native_Type, State);
             Set_Declarator (Node, Declarator);
+            Bind_Declarator_To_Entity (Declarator, Node);
 
          when T_Struct =>
             Identifier := P_Identifier;
@@ -2188,7 +2763,7 @@ package body Parser is
 
             if Next_Token = T_Semi_Colon then
                Node := New_Node (K_Forward_Structure_Type, State);
-               Associate (Node, Identifier);
+               Bind_Identifier_To_Entity (Identifier, Node);
 
             else
                Restore_Lexer (State);
@@ -2203,7 +2778,7 @@ package body Parser is
 
             if Next_Token = T_Semi_Colon then
                Node := New_Node (K_Forward_Union_Type, State);
-               Associate (Node, Identifier);
+               Bind_Identifier_To_Entity (Identifier, Node);
 
             else
                Restore_Lexer (State);
@@ -2220,6 +2795,64 @@ package body Parser is
 
       return Node;
    end P_Type_Declaration;
+
+   ---------------
+   -- P_Type_Id --
+   ---------------
+
+   --  (102) <type_id_dcl> ::= "typeid" <scoped_name> <string_literal>
+
+   function P_Type_Id_Declaration return Node_Id is
+      Node        : Node_Id;
+      Scoped_Name : Node_Id;
+   begin
+      Scan_Token; --  past "typeid";
+      Node := New_Node (K_Type_Id_Declaration, Token_Location);
+
+      Scoped_Name := P_Scoped_Name;
+      if No (Scoped_Name) then
+         Error_Loc (1) := Token_Location;
+         DE ("Scoped name expected after typeid");
+      end if;
+
+      Set_Target (Node, Scoped_Name);
+
+      --  Getting the "<string_literal>"
+
+      Scan_Token (T_String_Literal);
+      Set_Data (Node, Name_Find);
+
+      return Node;
+   end P_Type_Id_Declaration;
+
+   -------------------
+   -- P_Type_Prefix --
+   -------------------
+
+   --  (103) <type_prefix_dcl> ::= "typeprefix" <scoped_name> <string_literal>
+
+   function P_Type_Prefix_Declaration return Node_Id is
+      Node        : Node_Id;
+      Scoped_Name : Node_Id;
+   begin
+      Scan_Token; --  past "typeprefix";
+      Node := New_Node (K_Type_Prefix_Declaration, Token_Location);
+
+      Scoped_Name := P_Scoped_Name;
+      if No (Scoped_Name) then
+         Error_Loc (1) := Token_Location;
+         DE ("Scoped name expected after typeprefix");
+      end if;
+
+      Set_Target (Node, Scoped_Name);
+
+      --  Getting the "<string_literal>"
+
+      Scan_Token (T_String_Literal);
+      Set_Data (Node, Name_Find);
+
+      return Node;
+   end P_Type_Prefix_Declaration;
 
    -----------------
    -- P_Type_Spec --
@@ -2323,7 +2956,7 @@ package body Parser is
       end Is_Switch_Type_Spec;
 
       Identifier         : Node_Id;
-      Node             : Node_Id;
+      Node               : Node_Id;
       Switch_Type_Spec   : Node_Id;
       Switch_Type_Body   : List_Id;
       Switch_Alt_Decl    : Node_Id;
@@ -2332,9 +2965,15 @@ package body Parser is
       Element            : Node_Id;
       Case_Labels        : List_Id;
       Case_Label         : Node_Id;
+      Expression         : Node_Id;
       State              : Location;
 
    begin
+
+      --  (72) <union_type> ::= "union" <identifier> "switch"
+      --                        "(" <switch_type_spec> ")"
+      --                        "{" <switch_body> "}"
+
       Scan_Token; --  past "union"
       Node := New_Node (K_Union_Type, Token_Location);
 
@@ -2342,7 +2981,7 @@ package body Parser is
       if No (Identifier) then
          return No_Node;
       end if;
-      Associate (Node, Identifier);
+      Bind_Identifier_To_Entity (Identifier, Node);
 
       Scan_Token (T_Switch);
       if Token = T_Error then
@@ -2353,6 +2992,12 @@ package body Parser is
       if Token = T_Error then
          return No_Node;
       end if;
+
+      --  (73) <switch_type_spec> ::= <integer_type>
+      --                            | <char_type>
+      --                            | <boolean_type>
+      --                            | <enum_type>
+      --                            | <scoped_name>
 
       Save_Lexer (State);
       Switch_Type_Spec := P_Type_Spec;
@@ -2390,46 +3035,60 @@ package body Parser is
       loop
          Save_Lexer (State);
          Scan_Token ((T_Default, T_Case));
-         Switch_Alt_Decl := New_Node (K_Switch_Alternative, Token_Location);
-         Case_Labels := New_List (K_Case_Label_List, Token_Location);
-         Set_Labels (Switch_Alt_Decl, Case_Labels);
          if Token = T_Error then
             Restore_Lexer (State);
             Skip_Declaration (T_Right_Brace);
             exit Switch_Alternative_Declaration;
          end if;
 
+         Switch_Alt_Decl := New_Node (K_Switch_Alternative, Token_Location);
+         Case_Labels := New_List (K_Case_Label_List, Token_Location);
+         Set_Labels (Switch_Alt_Decl, Case_Labels);
+
+         --  (74) <switch_body> ::= <case> +
+
          Case_Label_List :
          loop
+            Save_Lexer (State);
+            Case_Label := New_Node (K_Case_Label, Token_Location);
+            Set_Declaration (Case_Label, Switch_Alt_Decl);
+
+            --  (75) <case> ::= <case_label> + <element_spec> ";"
+
+            Expression := No_Node;
             if Token = T_Case then
-               Save_Lexer (State);
-               Case_Label := P_Constant_Expression;
-               if No (Case_Label) then
+               Expression := P_Constant_Expression;
+               if No (Expression) then
                   Restore_Lexer (State);
                   Skip_Declaration (T_Right_Brace);
                   exit Switch_Alternative_Declaration;
                end if;
-               Append_Node_To_List (Case_Label, Case_Labels);
             end if;
+
+            Scan_Token (T_Colon);
+            if Token = T_Error then
+               Restore_Lexer (State);
+               Skip_Declaration (T_Right_Brace);
+               exit Switch_Alternative_Declaration;
+            end if;
+
+            Set_Expression (Case_Label, Expression);
+            Append_Node_To_List (Case_Label, Case_Labels);
+
+            --  (76) <case_label> ::= "case" <const_exp> ":"
+            --                      | "default" ":"
 
             case Next_Token is
                when T_Case
                  | T_Default =>
                   Scan_Token;
-                  exit Case_Label_List when Token = T_Default;
 
                when others =>
                   exit Case_Label_List;
             end case;
          end loop Case_Label_List;
 
-         Save_Lexer (State);
-         Scan_Token (T_Colon);
-         if Token = T_Error then
-            Restore_Lexer (State);
-            Skip_Declaration (T_Right_Brace);
-            exit Switch_Alternative_Declaration;
-         end if;
+         --  (77) <element_spec> ::= <type_spec> <declarator>
 
          Save_Lexer (State);
          Element_Type_Spec := P_Type_Spec;
@@ -2446,11 +3105,16 @@ package body Parser is
             Skip_Declaration (T_Right_Brace);
             exit Switch_Alternative_Declaration;
          end if;
+
+         --  Assemble Element and append it to Switch Alternative
+
          Element := New_Node (K_Element, Loc (Element_Type_Spec));
          Set_Type_Spec  (Element, Element_Type_Spec);
          Set_Declarator (Element, Element_Declarator);
+         Bind_Declarator_To_Entity (Element_Declarator, Element);
 
-         Set_Element   (Switch_Alt_Decl, Element);
+         Set_Element     (Switch_Alt_Decl, Element);
+         Set_Declaration (Switch_Alt_Decl, Node);
 
          Append_Node_To_List (Switch_Alt_Decl, Switch_Type_Body);
 
@@ -2462,10 +3126,11 @@ package body Parser is
             exit Switch_Alternative_Declaration;
          end if;
 
-         exit Switch_Alternative_Declaration when Next_Token = T_Right_Brace;
+         if Next_Token = T_Right_Brace then
+            Scan_Token; --  past '}'
+            exit Switch_Alternative_Declaration;
+         end if;
       end loop Switch_Alternative_Declaration;
-
-      Scan_Token; --  past '}'
 
       return Node;
    end P_Union_Type;
@@ -2490,6 +3155,7 @@ package body Parser is
       if Token = T_Abstract then
          Value_Abs := True;
          Scan_Token; --  past "valuetype"
+
       elsif Token = T_Custom then
          Scan_Token; --  past "valuetype"
       end if;
@@ -2547,7 +3213,7 @@ package body Parser is
       if No (Identifier) then
          return No_Node;
       end if;
-      Associate (Node, Identifier);
+      Bind_Identifier_To_Entity (Identifier, Node);
 
       Value_Spec := P_Value_Spec;
       Set_Value_Spec (Node, Value_Spec);
@@ -2604,7 +3270,7 @@ package body Parser is
       if No (Identifier) then
          return No_Node;
       end if;
-      Associate (Node, Identifier);
+      Bind_Identifier_To_Entity (Identifier, Node);
 
       Type_Spec := P_Type_Spec;
       if No (Type_Spec) then
@@ -2651,7 +3317,7 @@ package body Parser is
       if No (Identifier) then
          return No_Node;
       end if;
-      Associate (Node, Identifier);
+      Bind_Identifier_To_Entity (Identifier, Node);
 
       Value_Spec := P_Value_Spec;
       Set_Value_Spec (Node, Value_Spec);
@@ -2673,6 +3339,10 @@ package body Parser is
             when T_Public | T_Private =>
                Value_Element := P_State_Member;
 
+            when T_Right_Brace =>
+               Scan_Token;  -- past "}"
+               exit;
+
             when others =>
                Value_Element := P_Export;
          end case;
@@ -2684,11 +3354,6 @@ package body Parser is
          end if;
 
          Append_Node_To_List (Value_Element, Value_Body);
-
-         if Next_Token = T_Right_Brace then
-            Scan_Token; --  past '}'
-            exit;
-         end if;
       end loop;
 
       return Node;
@@ -2702,14 +3367,14 @@ package body Parser is
 
    function P_Value_Forward_Declaration return Node_Id is
       Identifier : Node_Id;
-      Node     : Node_Id;
+      Node       : Node_Id;
 
    begin
       Scan_Token; --  past "valuetype" or "abstract"
       Node := New_Node (K_Value_Forward_Declaration, Token_Location);
 
       if Token = T_Abstract then
-         Set_Is_Abstract (Node, True);
+         Set_Is_Abstract_Value (Node, True);
          Scan_Token (T_Value_Type);
       end if;
 
@@ -2717,7 +3382,7 @@ package body Parser is
       if No (Identifier) then
          return No_Node;
       end if;
-      Associate (Node, Identifier);
+      Bind_Identifier_To_Entity (Identifier, Node);
 
       return Node;
    end P_Value_Forward_Declaration;
@@ -2738,14 +3403,12 @@ package body Parser is
       Interface_Names : List_Id;
       Scoped_Name     : Node_Id;
       Interface_Name  : Node_Id;
-      State           : Location;
-   begin
-      Save_Lexer (State);
-      Scan_Token;
 
+   begin
       Value_Spec := New_Node (K_Value_Spec, Token_Location);
 
-      if Token = T_Colon then
+      if Next_Token = T_Colon then
+         Scan_Token; --  past ":"
          if Next_Token = T_Truncatable then
             Scan_Token; --  past "truncatable"
             Set_Is_Truncatable (Value_Spec, True);
@@ -2765,12 +3428,10 @@ package body Parser is
             exit when Next_Token /= T_Comma;
             Scan_Token; --  past ','
          end loop;
-
-         Save_Lexer (State);
-         Scan_Token;
       end if;
 
-      if Token = T_Supports then
+      if Next_Token = T_Supports then
+         Scan_Token;  --  past "supports"
          Interface_Names := New_List (K_Interface_Name_List, Token_Location);
          Set_Interface_Names (Value_Spec, Interface_Names);
 
@@ -2782,33 +3443,19 @@ package body Parser is
 
             Append_Node_To_List (Interface_Name, Interface_Names);
 
-            Save_Lexer (State);
-            Scan_Token;
-            exit when Token /= T_Comma;
+            exit when Next_Token /= T_Comma;
+            Scan_Token;  --  past ','
          end loop;
       end if;
 
-      Restore_Lexer (State);
-
       return Value_Spec;
    end P_Value_Spec;
-
-   --------------------
-   -- Parameter_Mode --
-   --------------------
-
-   function Parameter_Mode (E : Node_Id) return Mode_Type is
-      M : Mode_Id;
-   begin
-      M := Parameter_Mode (E);
-      return Mode_Type'Val (M);
-   end Parameter_Mode;
 
    -------------
    -- Process --
    -------------
 
-   procedure Process (Root : out Node_Id) is
+   procedure Process (IDL_Spec : out Node_Id) is
    begin
       --  (53) <floating_pt_type> ::= "float"
       --                            | "double"
@@ -2868,7 +3515,8 @@ package body Parser is
 
       Declare_Base_Type ((1 => T_Void), K_Void);
 
-      Root := P_Specification;
+      P_Specification;
+      IDL_Spec := Specification;
    end Process;
 
    -----------------------
@@ -2884,27 +3532,5 @@ package body Parser is
       end loop;
       return Node_Id (Get_Name_Table_Info (Name_Find));
    end Resolve_Base_Type;
-
-   ------------------
-   -- Set_Operator --
-   ------------------
-
-   procedure Set_Operator (E : Node_Id; O : Operator_Type) is
-      B : Byte;
-   begin
-      B := Operator_Type'Pos (O);
-      Set_Operator (E, Operator_Id (B));
-   end Set_Operator;
-
-   ------------------------
-   -- Set_Parameter_Mode --
-   ------------------------
-
-   procedure Set_Parameter_Mode (E : Node_Id; M : Mode_Type) is
-      B : Byte;
-   begin
-      B := Mode_Type'Pos (M);
-      Set_Parameter_Mode (E, Mode_Id (B));
-   end Set_Parameter_Mode;
 
 end Parser;

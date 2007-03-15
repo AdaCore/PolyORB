@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2004 Free Software Foundation, Inc.             --
+--         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -40,8 +40,8 @@ package body PolyORB.CORBA_P.Interceptors_Policies is
      of PortableInterceptor.PolicyFactory.Local_Ref;
 
    function Create_Policy
-     (The_Type : in CORBA.PolicyType;
-      Value    : in CORBA.Any)
+     (The_Type : CORBA.PolicyType;
+      Value    : CORBA.Any)
      return CORBA.Policy.Ref;
 
    -------------------
@@ -49,8 +49,8 @@ package body PolyORB.CORBA_P.Interceptors_Policies is
    -------------------
 
    function Create_Policy
-     (The_Type : in CORBA.PolicyType;
-      Value    : in CORBA.Any)
+     (The_Type : CORBA.PolicyType;
+      Value    : CORBA.Any)
      return CORBA.Policy.Ref
    is
    begin
@@ -67,8 +67,8 @@ package body PolyORB.CORBA_P.Interceptors_Policies is
    -----------------------------
 
    procedure Register_Policy_Factory
-     (IDL_Type       : in CORBA.PolicyType;
-      Policy_Factory : in PortableInterceptor.PolicyFactory.Local_Ref)
+     (IDL_Type       : CORBA.PolicyType;
+      Policy_Factory : PortableInterceptor.PolicyFactory.Local_Ref)
    is
    begin
       if Policy_Management.Is_Registered (IDL_Type) then

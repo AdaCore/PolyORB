@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -31,18 +31,18 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Message_Consumer servant.
+--  Message_Consumer servant
 
 with MOMA.Destinations;
 with MOMA.Types;
 with MOMA.Messages;
 
-with PolyORB.Any;
 with PolyORB.Any.NVList;
-with PolyORB.Log;
-with PolyORB.Types;
-with PolyORB.Requests;
 with PolyORB.Errors;
+with PolyORB.Log;
+with PolyORB.QoS;
+with PolyORB.Request_QoS;
+with PolyORB.Types;
 
 package body PolyORB.MOMA_P.Provider.Message_Consumer is
 
@@ -52,47 +52,64 @@ package body PolyORB.MOMA_P.Provider.Message_Consumer is
 
    use PolyORB.Any;
    use PolyORB.Log;
-   use PolyORB.Types;
    use PolyORB.Requests;
+   use PolyORB.Types;
 
    package L is
       new PolyORB.Log.Facility_Log ("moma.provider.message_consumer");
-   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+   procedure O (Message : Standard.String; Level : Log_Level := Debug)
      renames L.Output;
+   function C (Level : Log_Level := Debug) return Boolean
+     renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
-   --  Actual function implemented by the servant.
+   --  Actual function implemented by the servant
 
    function Get
-     (Self       : in PolyORB.References.Ref;
-      Message_Id : in MOMA.Types.String)
+     (Self       : PolyORB.References.Ref;
+      Message_Id : MOMA.Types.String;
+      QoS_Params : PolyORB.QoS.QoS_Parameters)
      return PolyORB.Any.Any;
-   --  Return Message_Id message.
+   --  Return Message_Id message
 
    procedure Register_Handler
      (Self        : access Object;
       Handler_Ref :        PolyORB.References.Ref;
       Behavior    :        MOMA.Types.Call_Back_Behavior);
-   --  Register a message handler.
+   --  Register a message handler
 
-   --  Accessors to servant interface.
+   --  Accessors to servant interface
 
    function Get_Parameter_Profile
      (Method : String)
      return PolyORB.Any.NVList.Ref;
-   --  Parameters part of the interface description.
+   --  Parameters part of the interface description
+
+   Message_S : constant PolyORB.Types.Identifier
+     := To_PolyORB_String ("Message");
+
+   Message_Id_S : constant PolyORB.Types.Identifier
+     := To_PolyORB_String ("Message_Id");
+
+   Message_Handler_S : constant PolyORB.Types.Identifier
+     := To_PolyORB_String ("Message_Handler");
+
+   Behavior_S : constant PolyORB.Types.Identifier
+     := To_PolyORB_String ("Behavior");
+
+   Result_S : constant PolyORB.Types.Identifier
+     := To_PolyORB_String ("Result");
 
    ---------
    -- Get --
    ---------
 
    function Get
-     (Self       : in PolyORB.References.Ref;
-      Message_Id : in MOMA.Types.String)
+     (Self       : PolyORB.References.Ref;
+      Message_Id : MOMA.Types.String;
+      QoS_Params : PolyORB.QoS.QoS_Parameters)
      return PolyORB.Any.Any
    is
-      Arg_Name_Mesg : PolyORB.Types.Identifier :=
-        PolyORB.Types.To_PolyORB_String ("Message");
-
       Argument_Mesg : PolyORB.Any.Any
         := PolyORB.Any.To_Any (PolyORB.Types.String (Message_Id));
 
@@ -101,17 +118,16 @@ package body PolyORB.MOMA_P.Provider.Message_Consumer is
       Request     : PolyORB.Requests.Request_Access;
       Arg_List    : PolyORB.Any.NVList.Ref;
       Result      : PolyORB.Any.NamedValue;
-      Result_Name : PolyORB.Types.String := To_PolyORB_String ("Result");
 
    begin
       PolyORB.Any.NVList.Create (Arg_List);
 
       PolyORB.Any.NVList.Add_Item (Arg_List,
-                                   Arg_Name_Mesg,
+                                   Message_S,
                                    Argument_Mesg,
                                    PolyORB.Any.ARG_IN);
 
-      Result := (Name      => PolyORB.Types.Identifier (Result_Name),
+      Result := (Name      => Result_S,
                  Argument  => PolyORB.Any.Get_Empty_Any (TC_MOMA_Message),
                  Arg_Modes => 0);
 
@@ -122,13 +138,13 @@ package body PolyORB.MOMA_P.Provider.Message_Consumer is
          Result    => Result,
          Req       => Request);
 
+      PolyORB.Request_QoS.Set_Request_QoS (Request, QoS_Params);
+
       PolyORB.Requests.Invoke (Request);
 
       PolyORB.Requests.Destroy_Request (Request);
 
-      --  Retrieve return value.
       return Result.Argument;
-
    end Get;
 
    ---------------------------
@@ -139,9 +155,7 @@ package body PolyORB.MOMA_P.Provider.Message_Consumer is
      (Method : String)
      return PolyORB.Any.NVList.Ref
    is
-      use PolyORB.Any;
       use PolyORB.Any.NVList;
-      use PolyORB.Types;
 
       Result : PolyORB.Any.NVList.Ref;
    begin
@@ -150,19 +164,19 @@ package body PolyORB.MOMA_P.Provider.Message_Consumer is
 
       if Method = "Get" then
          Add_Item (Result,
-                   (Name => To_PolyORB_String ("Message_Id"),
+                   (Name => Message_Id_S,
                     Argument => Get_Empty_Any (TypeCode.TC_String),
                     Arg_Modes => ARG_IN));
 
       elsif Method = "Register_Handler" then
          Add_Item
            (Result,
-            (Name => To_PolyORB_String ("Message_Handler"),
+            (Name => Message_Handler_S,
              Argument => Get_Empty_Any (MOMA.Destinations.TC_MOMA_Destination),
              Arg_Modes => ARG_IN));
 
          Add_Item (Result,
-                   (Name => To_PolyORB_String ("Behavior"),
+                   (Name => Behavior_S,
                     Argument => Get_Empty_Any (TypeCode.TC_String),
                     Arg_Modes => ARG_IN));
          --  XXX should use an enum type !
@@ -191,7 +205,7 @@ package body PolyORB.MOMA_P.Provider.Message_Consumer is
 
    procedure Invoke
      (Self : access Object;
-      Req  : in     PolyORB.Requests.Request_Access)
+      Req  : PolyORB.Requests.Request_Access)
    is
       use PolyORB.Any.NVList.Internals;
       use PolyORB.Any.NVList.Internals.NV_Lists;
@@ -200,6 +214,8 @@ package body PolyORB.MOMA_P.Provider.Message_Consumer is
       Args  : PolyORB.Any.NVList.Ref;
       It    : Iterator;
       Error : Error_Container;
+
+      QoS_Params  : PolyORB.QoS.QoS_Parameters;
    begin
       pragma Debug (O ("The server is executing the request:"
                        & PolyORB.Requests.Image (Req.all)));
@@ -210,7 +226,7 @@ package body PolyORB.MOMA_P.Provider.Message_Consumer is
 
          PolyORB.Any.NVList.Add_Item
            (Args,
-            (Name => To_PolyORB_String ("Message_Id"),
+            (Name => Message_Id_S,
              Argument => Get_Empty_Any (TypeCode.TC_String),
              Arg_Modes => PolyORB.Any.ARG_IN));
          Arguments (Req, Args, Error);
@@ -221,13 +237,18 @@ package body PolyORB.MOMA_P.Provider.Message_Consumer is
 
          end if;
 
+         QoS_Params (PolyORB.QoS.Static_Priority) :=
+           PolyORB.Request_QoS.Extract_Request_Parameter
+           (PolyORB.QoS.Static_Priority, Req);
+
          It := First (List_Of (Args).all);
          Set_Result
            (Req,
             Get (Self.Remote_Ref,
                  MOMA.Types.String
                  (PolyORB.Types.String'(PolyORB.Any.From_Any
-                                        (Value (It).Argument)))));
+                                        (Value (It).Argument))),
+                 QoS_Params));
          pragma Debug (O ("Result: " & Image (Req.Result)));
 
       elsif Req.Operation.all = "Register_Handler" then
@@ -293,18 +314,18 @@ package body PolyORB.MOMA_P.Provider.Message_Consumer is
 
       PolyORB.Any.NVList.Add_Item
         (Arg_List,
-         To_PolyORB_String ("Message_Handler"),
+         Message_Handler_S,
          To_Any (Handler_Dest),
          PolyORB.Any.ARG_IN);
 
       PolyORB.Any.NVList.Add_Item
         (Arg_List,
-         To_PolyORB_String ("Behavior"),
+         Behavior_S,
          PolyORB.Any.To_Any
          (To_PolyORB_String (Call_Back_Behavior'Image (Behavior))),
          PolyORB.Any.ARG_IN);
 
-      Result := (Name      => To_PolyORB_String ("Result"),
+      Result := (Name      => Result_S,
                  Argument  => PolyORB.Any.Get_Empty_Any
                  (TypeCode.TC_Void),
                  Arg_Modes => 0);

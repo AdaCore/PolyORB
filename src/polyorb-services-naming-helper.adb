@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---        P O L Y O R B . S E R V I C E S . N A M I N G . H E L P E R       --
+--       P O L Y O R B . S E R V I C E S . N A M I N G . H E L P E R        --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2002 Free Software Foundation, Inc.             --
+--         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,11 +26,10 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
-
 
 with PolyORB.Initialization;
 pragma Elaborate_All (PolyORB.Initialization);
@@ -49,14 +48,17 @@ package body  PolyORB.Services.Naming.Helper is
 
    package L is new PolyORB.Log.Facility_Log
      ("polyorb.services.naming.helper");
-   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+   procedure O (Message : Standard.String; Level : Log_Level := Debug)
      renames L.Output;
+   function C (Level : Log_Level := Debug) return Boolean
+     renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    --------------
    -- From_Any --
    --------------
 
-   function From_Any (Item : in PolyORB.Any.Any)
+   function From_Any (Item : PolyORB.Any.Any)
       return Istring
    is
       Result : PolyORB.Types.String := From_Any (Item);
@@ -65,7 +67,7 @@ package body  PolyORB.Services.Naming.Helper is
       return Istring (Result);
    end From_Any;
 
-   function From_Any (Item : in PolyORB.Any.Any)
+   function From_Any (Item : PolyORB.Any.Any)
       return NameComponent is
       Index : PolyORB.Any.Any;
       Result_id : Istring;
@@ -86,7 +88,7 @@ package body  PolyORB.Services.Naming.Helper is
           kind => Result_kind);
    end From_Any;
 
-   function From_Any (Item : in PolyORB.Any.Any)
+   function From_Any (Item : PolyORB.Any.Any)
       return Name
    is
       Result : SEQUENCE_NameComponent.Sequence := Helper.From_Any (Item);
@@ -95,7 +97,7 @@ package body  PolyORB.Services.Naming.Helper is
       return Name (Result);
    end From_Any;
 
-   function From_Any (Item : in PolyORB.Any.Any)
+   function From_Any (Item : PolyORB.Any.Any)
       return BindingType
    is
       pragma Debug (O ("From Any : (BindingType)"));
@@ -109,7 +111,7 @@ package body  PolyORB.Services.Naming.Helper is
       return BindingType'Val (Position);
    end From_Any;
 
-   function From_Any (Item : in PolyORB.Any.Any)
+   function From_Any (Item : PolyORB.Any.Any)
       return Binding
    is
       Index : PolyORB.Any.Any;
@@ -130,7 +132,7 @@ package body  PolyORB.Services.Naming.Helper is
           binding_type => Result_binding_type);
    end From_Any;
 
-   function From_Any (Item : in PolyORB.Any.Any)
+   function From_Any (Item : PolyORB.Any.Any)
       return SEQUENCE_Binding.Sequence
    is
       use SEQUENCE_Binding;
@@ -155,7 +157,7 @@ package body  PolyORB.Services.Naming.Helper is
       return To_Sequence (Result);
    end From_Any;
 
-   function From_Any (Item : in PolyORB.Any.Any)
+   function From_Any (Item : PolyORB.Any.Any)
       return SEQUENCE_NameComponent.Sequence
    is
       use SEQUENCE_NameComponent;
@@ -180,7 +182,7 @@ package body  PolyORB.Services.Naming.Helper is
       return To_Sequence (Result);
    end From_Any;
 
-   function From_Any (Item : in PolyORB.Any.Any)
+   function From_Any (Item : PolyORB.Any.Any)
       return BindingList is
       Result : SEQUENCE_Binding.Sequence := Helper.From_Any (Item);
    begin
@@ -191,7 +193,7 @@ package body  PolyORB.Services.Naming.Helper is
    -- To_Any --
    ------------
 
-   function To_Any (Item : in Istring)
+   function To_Any (Item : Istring)
      return PolyORB.Any.Any
    is
       Result : PolyORB.Any.Any := To_Any (PolyORB.Types.String (Item));
@@ -202,7 +204,7 @@ package body  PolyORB.Services.Naming.Helper is
    end To_Any;
 
    function To_Any
-     (Item : in NameComponent)
+     (Item : NameComponent)
      return PolyORB.Any.Any is
       Result : PolyORB.Any.Any := Get_Empty_Any_Aggregate (TC_NameComponent);
    begin
@@ -214,7 +216,7 @@ package body  PolyORB.Services.Naming.Helper is
    end To_Any;
 
    function To_Any
-     (Item : in SEQUENCE_NameComponent.Sequence)
+     (Item : SEQUENCE_NameComponent.Sequence)
      return PolyORB.Any.Any
    is
       use SEQUENCE_NameComponent;
@@ -234,7 +236,7 @@ package body  PolyORB.Services.Naming.Helper is
       return Result;
    end To_Any;
 
-   function To_Any (Item : in Name)
+   function To_Any (Item : Name)
      return PolyORB.Any.Any
    is
       Result : PolyORB.Any.Any :=
@@ -246,7 +248,7 @@ package body  PolyORB.Services.Naming.Helper is
    end To_Any;
 
    function To_Any
-     (Item : in BindingType)
+     (Item : BindingType)
       return PolyORB.Any.Any
    is
       Result : PolyORB.Any.Any :=
@@ -260,7 +262,7 @@ package body  PolyORB.Services.Naming.Helper is
    end To_Any;
 
    function To_Any
-     (Item : in Binding)
+     (Item : Binding)
      return PolyORB.Any.Any
    is
       Result : PolyORB.Any.Any :=
@@ -275,7 +277,7 @@ package body  PolyORB.Services.Naming.Helper is
    end To_Any;
 
    function To_Any
-     (Item : in SEQUENCE_Binding.Sequence)
+     (Item : SEQUENCE_Binding.Sequence)
      return PolyORB.Any.Any
    is
       use SEQUENCE_Binding;
@@ -296,7 +298,7 @@ package body  PolyORB.Services.Naming.Helper is
    end To_Any;
 
    function To_Any
-     (Item : in BindingList)
+     (Item : BindingList)
      return PolyORB.Any.Any is
       Result : PolyORB.Any.Any := To_Any (SEQUENCE_Binding.Sequence (Item));
    begin
@@ -305,7 +307,7 @@ package body  PolyORB.Services.Naming.Helper is
       return Result;
    end To_Any;
 
-   function To_Any (Item : in PolyORB.References.Ref)
+   function To_Any (Item : PolyORB.References.Ref)
                     return PolyORB.Any.Any
    is
       A : PolyORB.Any.Any := PolyORB.Any.ObjRef.To_Any (Item);
@@ -442,5 +444,6 @@ begin
        Depends   => +"any",
        Provides  => Empty,
        Implicit  => False,
-       Init      => Initialize'Access));
+       Init      => Initialize'Access,
+       Shutdown  => null));
 end PolyORB.Services.Naming.Helper;

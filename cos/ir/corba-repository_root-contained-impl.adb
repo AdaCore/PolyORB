@@ -1,22 +1,50 @@
+------------------------------------------------------------------------------
+--                                                                          --
+--                           POLYORB COMPONENTS                             --
+--                                                                          --
+--                  CORBA.REPOSITORY_ROOT.CONTAINED.IMPL                    --
+--                                                                          --
+--                                 B o d y                                  --
+--                                                                          --
+--         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
+--                                                                          --
+-- PolyORB is free software; you  can  redistribute  it and/or modify it    --
+-- under terms of the  GNU General Public License as published by the  Free --
+-- Software Foundation;  either version 2,  or (at your option)  any  later --
+-- version. PolyORB is distributed  in the hope that it will be  useful,    --
+-- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
+-- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
+-- License  for more details.  You should have received  a copy of the GNU  --
+-- General Public License distributed with PolyORB; see file COPYING. If    --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
+--                                                                          --
+-- As a special exception,  if other files  instantiate  generics from this --
+-- unit, or you link  this unit with other files  to produce an executable, --
+-- this  unit  does not  by itself cause  the resulting  executable  to  be --
+-- covered  by the  GNU  General  Public  License.  This exception does not --
+-- however invalidate  any other reasons why  the executable file  might be --
+-- covered by the  GNU Public License.                                      --
+--                                                                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
+--                                                                          --
+------------------------------------------------------------------------------
+
 pragma Style_Checks (Off);
-----------------------------------------------
---  This file has been generated automatically
---  by AdaBroker (http://adabroker.eu.org/)
-----------------------------------------------
 
 with Ada.Text_IO;
 with Ada.Strings.Unbounded;
 
-with CORBA.Repository_Root; use CORBA.Repository_Root;
+with PortableServer;
+
 with CORBA.Repository_Root.Contained.Helper;
 with CORBA.Repository_Root.Container.Impl;
 with CORBA.Repository_Root.Exceptiondef.Impl;
 with CORBA.Repository_Root.Interfacedef.Impl;
 with CORBA.Repository_Root.Valuedef.Impl;
 with CORBA.Repository_Root.Moduledef.Impl;
-with CORBA.Repository_Root.IRObject.Impl;
 with CORBA.Repository_Root.Repository.Impl;
-
 with CORBA.Repository_Root.ConstantDef;
 with CORBA.Repository_Root.AttributeDef;
 with CORBA.Repository_Root.OperationDef;
@@ -35,11 +63,10 @@ with CORBA.Repository_Root.UnionDef;
 with PolyORB.Log;
 pragma Elaborate_All (PolyORB.Log);
 with PolyORB.CORBA_P.Server_Tools;
-with PortableServer;
 
 package body CORBA.Repository_Root.Contained.Impl is
 
-   package Contained_For_Seq renames IDL_Sequence_CORBA_Contained_Forward;
+   package Contained_For_Seq renames IDL_SEQUENCE_CORBA_Contained_Forward;
 
    -----------
    -- Debug --
@@ -48,12 +75,18 @@ package body CORBA.Repository_Root.Contained.Impl is
    use PolyORB.Log;
 
    package L is new PolyORB.Log.Facility_Log ("contained.impl");
-   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+   procedure O (Message : Standard.String; Level : Log_Level := Debug)
      renames L.Output;
+   function C (Level : Log_Level := Debug) return Boolean
+     renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    package L2 is new PolyORB.Log.Facility_Log ("contained.impl_method_trace");
-   procedure O2 (Message : in Standard.String; Level : Log_Level := Debug)
+   procedure O2 (Message : Standard.String; Level : Log_Level := Debug)
      renames L2.Output;
+   function C2 (Level : Log_Level := Debug) return Boolean
+     renames L2.Enabled;
+   pragma Unreferenced (C2); --  For conditional pragma Debug
 
    ----------------------
    --  Procedure init  --
@@ -74,7 +107,6 @@ package body CORBA.Repository_Root.Contained.Impl is
       Self.Defined_In := Defined_In;
       pragma Debug (O2 ("init (contained) end"));
    end Init;
-
 
    -----------------
    --  To_Object  --
@@ -347,7 +379,6 @@ package body CORBA.Repository_Root.Contained.Impl is
       return;
    end To_Contained;
 
-
    function To_Contained
      (Self : IRObject.Impl.Object_Ptr)
      return  Object_ptr
@@ -421,7 +452,6 @@ package body CORBA.Repository_Root.Contained.Impl is
       end case;
    end To_Contained;
 
-
    -----------------------
    -- IR implementation --
    -----------------------
@@ -434,10 +464,9 @@ package body CORBA.Repository_Root.Contained.Impl is
       return Self.Id;
    end get_id;
 
-
    procedure set_id
      (Self : access Object;
-      To : in CORBA.RepositoryId) is
+      To : CORBA.RepositoryId) is
    begin
       --  If the Id is already used, raise an exception.
       if Contained.Is_Nil
@@ -453,7 +482,6 @@ package body CORBA.Repository_Root.Contained.Impl is
       end if;
    end set_id;
 
-
    function get_name
      (Self : access Object)
      return CORBA.Identifier
@@ -464,7 +492,7 @@ package body CORBA.Repository_Root.Contained.Impl is
 
    procedure set_name
      (Self : access Object;
-      To : in CORBA.Identifier)
+      To : CORBA.Identifier)
    is
       Other : ContainedSeq;
       use Contained_For_Seq;
@@ -487,7 +515,6 @@ package body CORBA.Repository_Root.Contained.Impl is
       end if;
    end set_name;
 
-
    function get_version
      (Self : access Object)
      return VersionSpec
@@ -496,14 +523,12 @@ package body CORBA.Repository_Root.Contained.Impl is
       return Self.Version;
    end get_version;
 
-
    procedure set_version
      (Self : access Object;
-      To : in VersionSpec) is
+      To : VersionSpec) is
    begin
       Self.Version := To;
    end set_version;
-
 
    ----------------------
    --  get_defined_in  --
@@ -515,7 +540,6 @@ package body CORBA.Repository_Root.Contained.Impl is
    begin
       return Self.Defined_In;
    end get_defined_in;
-
 
    function get_defined_in
      (Self : access Object)
@@ -580,7 +604,6 @@ package body CORBA.Repository_Root.Contained.Impl is
            (To_Contained (Get_Real_Object (To_Object (Self.Defined_In))));
       end if;
    end get_containing_repository;
-
 
    ----------------
    --  describe  --
@@ -663,9 +686,9 @@ package body CORBA.Repository_Root.Contained.Impl is
 
    procedure move
      (Self          : access Object;
-      new_container : in     Container_Forward.Ref;
-      new_name      : in     CORBA.Identifier;
-      new_version   : in     VersionSpec)
+      new_container : Container_Forward.Ref;
+      new_name      : CORBA.Identifier;
+      new_version   : VersionSpec)
    is
       use Repository.Impl;
 
@@ -723,7 +746,6 @@ package body CORBA.Repository_Root.Contained.Impl is
    ------------------------
    -- A Seq of contained --
    ------------------------
-
 
    ------------------------------
    --  Simplify_Contained_Seq  --
@@ -991,13 +1013,4 @@ package body CORBA.Repository_Root.Contained.Impl is
 
    end;
 
-
 end CORBA.Repository_Root.Contained.Impl;
-
-
-
-
-
-
-
-

@@ -4,5 +4,6 @@ module M {
   
   interface I { 
     void i (in short j); // Error: i clashes with the interface name I
+    void a (in short a); // No clash since a is an operation
   }; 
 };

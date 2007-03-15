@@ -34,7 +34,6 @@
 with Ada.Text_IO;
 
 with Echo.Skel;
-pragma Elaborate (Echo.Skel);
 pragma Warnings (Off, Echo.Skel);
 --  No entity from Echo.Skel is referenced.
 
@@ -60,4 +59,3 @@ package body Echo.Impl is
    end EchoString;
 
 end Echo.Impl;
-

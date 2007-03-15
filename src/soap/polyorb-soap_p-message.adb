@@ -1,31 +1,34 @@
 ------------------------------------------------------------------------------
---                              Ada Web Server                              --
 --                                                                          --
---                         Copyright (C) 2000-2001                          --
---                                ACT-Europe                                --
+--                           POLYORB COMPONENTS                             --
 --                                                                          --
---  Authors: Dmitriy Anisimkov - Pascal Obry                                --
+--               P O L Y O R B . S O A P _ P . M E S S A G E                --
 --                                                                          --
---  This library is free software; you can redistribute it and/or modify    --
---  it under the terms of the GNU General Public License as published by    --
---  the Free Software Foundation; either version 2 of the License, or (at   --
---  your option) any later version.                                         --
+--                                 B o d y                                  --
 --                                                                          --
---  This library is distributed in the hope that it will be useful, but     --
---  WITHOUT ANY WARRANTY; without even the implied warranty of              --
---  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU       --
---  General Public License for more details.                                --
+--         Copyright (C) 2000-2006, Free Software Foundation, Inc.          --
 --                                                                          --
---  You should have received a copy of the GNU General Public License       --
---  along with this library; if not, write to the Free Software Foundation, --
---  Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.          --
+-- PolyORB is free software; you  can  redistribute  it and/or modify it    --
+-- under terms of the  GNU General Public License as published by the  Free --
+-- Software Foundation;  either version 2,  or (at your option)  any  later --
+-- version. PolyORB is distributed  in the hope that it will be  useful,    --
+-- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
+-- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
+-- License  for more details.  You should have received  a copy of the GNU  --
+-- General Public License distributed with PolyORB; see file COPYING. If    --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
---  As a special exception, if other files instantiate generics from this   --
---  unit, or you link this unit with other files to produce an executable,  --
---  this  unit  does not  by itself cause  the resulting executable to be   --
---  covered by the GNU General Public License. This exception does not      --
---  however invalidate any other reasons why the executable file  might be  --
---  covered by the  GNU Public License.                                     --
+-- As a special exception,  if other files  instantiate  generics from this --
+-- unit, or you link  this unit with other files  to produce an executable, --
+-- this  unit  does not  by itself cause  the resulting  executable  to  be --
+-- covered  by the  GNU  General  Public  License.  This exception does not --
+-- however invalidate  any other reasons why  the executable file  might be --
+-- covered by the  GNU Public License.                                      --
+--                                                                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
+--                                                                          --
 ------------------------------------------------------------------------------
 
 with PolyORB.Any;
@@ -40,7 +43,7 @@ package body PolyORB.SOAP_P.Message is
    -- Name_Space --
    ----------------
 
-   function Name_Space (M : in Object'Class) return String is
+   function Name_Space (M : Object'Class) return String is
    begin
       return To_String (M.Name_Space);
    end Name_Space;
@@ -49,7 +52,7 @@ package body PolyORB.SOAP_P.Message is
    -- Parameters --
    ----------------
 
-   function Parameters (M : in Object'Class) return SOAP_P.Parameters.List is
+   function Parameters (M : Object'Class) return SOAP_P.Parameters.List is
    begin
       return M.P;
    end Parameters;
@@ -58,7 +61,7 @@ package body PolyORB.SOAP_P.Message is
    -- Set_Name_Space --
    --------------------
 
-   procedure Set_Name_Space (M : in out Object'Class; Name  : in String) is
+   procedure Set_Name_Space (M : in out Object'Class; Name  : String) is
    begin
       M.Name_Space := To_Unbounded_String (Name);
    end Set_Name_Space;
@@ -69,7 +72,7 @@ package body PolyORB.SOAP_P.Message is
 
    procedure Set_Parameters
      (M     : in out Object'Class;
-      P_Set : in     SOAP_P.Parameters.List) is
+      P_Set : SOAP_P.Parameters.List) is
    begin
       M.P := P_Set;
    end Set_Parameters;
@@ -80,7 +83,7 @@ package body PolyORB.SOAP_P.Message is
 
    procedure Set_Wrapper_Name
      (M     : in out Object'Class;
-      Name  : in     String) is
+      Name  : String) is
    begin
       M.Wrapper_Name := To_Unbounded_String (Name);
    end Set_Wrapper_Name;
@@ -89,7 +92,7 @@ package body PolyORB.SOAP_P.Message is
    -- Wrapper_Name --
    ------------------
 
-   function Wrapper_Name (M : in Object'class) return String is
+   function Wrapper_Name (M : Object'class) return String is
    begin
       return To_String (M.Wrapper_Name);
    end Wrapper_Name;
@@ -98,7 +101,7 @@ package body PolyORB.SOAP_P.Message is
    -- XML_Image --
    ---------------
 
-   function XML_Image (M : in Object) return Unbounded_String is
+   function XML_Image (M : Object) return Unbounded_String is
       NL           : constant String := ASCII.CR & ASCII.LF;
       Message_Body : Unbounded_String;
 
@@ -146,4 +149,3 @@ package body PolyORB.SOAP_P.Message is
    end XML_Image;
 
 end PolyORB.SOAP_P.Message;
-

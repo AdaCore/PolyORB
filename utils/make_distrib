@@ -1,41 +1,29 @@
 #!/bin/sh
 #
-# $Id: //droopi/main/utils/make_distrib#23 $
+# $Id: //droopi/main/utils/make_distrib#27 $
 #
 # This script builds a compressed archive suitable for distribution.
 #
-# Usage: make_distrib [-s] [-k?|-prcs|-n|-c] tag dir
+# Usage: make_distrib [-Dn] [-svn] [-b branch] dir
 #
-#   -s    : suppress automatic version numbering and get info from VERSION.INFO
-#   -k?   : override CVS keywords expansion
-#   -prcs : use prcs to extract files
-#   -p4   : use Perforce to extract files
+#   -D    : build and package documentation
 #   -n    : assume a checkout has already been done in dir
-#   -c    : assume current directory can be used as source
-#   -b branch : use that Perforce branch
-#   tag   : CVS or prcs tag or branch
+#   -svn  : use Subversion to extract files
+#   -b branch : use that CM branch
 #   dir   : the distribution will unpack in directory <dir> and will be
 #           named <dir>.tar.gz
 #
-# The VERSION.INFO file will be used to substitute some variables in files
-# such as README, etc.
-#
-# The file MANIFEST contains the list of files to be included in this
-# archive, one file per line.
-#
 
-prcs=false
-perforce=false
-kk=
+subversion=false
 nocheckout=false
-no_implicit_version=false
+prepare_distrib_options=
 
 ###################################################
 # Usage information
 ###################################################
 
 usage() {
-   echo "Usage: $0 [-kK] [-prcs|-p4] [-bBRANCH] -[ncs] tag dir"
+   echo "Usage: $0 [-Dks] [-svn] [-bBRANCH] -[ncs] tag dir"
    exit 1
 }
 
@@ -45,35 +33,30 @@ set -e
 # Parse commande line
 ###################################################
 
-while getopts k:p:nscb: opt; do
+while getopts Dns:b: opt; do
   case "$opt" in
-    k) kk="-k$OPTARG" ;;
-    p)
-      case "$OPTARG" in
-        4)   perforce=true ;;
-        rcs) prcs=true     ;;
-        *)   usage ;;
+    D) prepare_distrib_options="${prepare_distrib_options} -D" ;;
+    s)
+      case "s$OPTARG" in
+        svn) subversion=true ;;
       esac
       ;;
-    s) no_implicit_version=true ;;
-    b) branch="$OPTARG" ;;
     n) nocheckout=true;;
-    c) nocheckout=true;;
+    b) branch="$OPTARG" ;;
     *) usage ;;
   esac
 done
 
 shift `expr $OPTIND - 1`
 
-if [ $# != 2 ]; then
+if [ $# != 1 ]; then
   usage
 fi
 
-tag=$1
-dir=$2
+dir=$1
 
 ###################################################
-# Delete previous temporary files
+# Prepare temporary directory
 ###################################################
 
 prev=`pwd`
@@ -82,127 +65,90 @@ mkdir -p ${tmp}/${dir}
 trap "cd /; rm -fr ${tmp}" 0
 
 ###################################################
-# Retrieve all files in repository
+# Checkout from repository, if required
 ###################################################
 
-# pcrs
+# Subversion
 
-if $prcs; then
-  name=`echo *.prj | sed -e 's/\.prj//'`
-  echo Extracting module ${name} from prcs using tag ${tag}
-  cd ${tmp}/${dir}
-  prcs checkout -r${tag} ${name}
+if $subversion; then
+  # Tag is always ignored
 
-# Perforce
+  if [ "${branch}" != "" ]; then
+    case ${branch} in
+      */global/*)
+        view_root=${branch}/polyorb
+        ;;
+      *)
+        view_root=${branch}
+        ;;
+    esac
 
-elif $perforce; then
-  if [ -n "${P4CONFIG}" -a -r "./${P4CONFIG}" ]; then
-    . "./${P4CONFIG}"
-    export P4USER P4PASSWD P4PORT
-  fi
-  if [ "${branch}" = "" ]; then
-    view_root=`p4 files MANIFEST | sed 's,/MANIFEST#.*$,,'`
   else
-    view_root=//droopi/${branch}
+    view_root=/trunk/polyorb
   fi
+
   cd ${tmp}/${dir}
   tmp=`/bin/pwd`
-  client=make_distrib_$$
-  (cat <<__EOF__
-Client: $client
-Root: ${tmp}
-Options: allwrite clobber compress
-View:
-__EOF__
-  p4 print -q ${view_root}/MANIFEST | \
-   sed "s,.*,	${view_root}/& //${client}/&,") | \
-   p4 client -i
-  P4CLIENT=${client}; export P4CLIENT
   set +e
-  case "${tag}" in
-    head|HEAD) tagsep=# ;;
-    *)         tagsep=@ ;;
-  esac
-  (unset PWD; p4 sync ...${tagsep}${tag})
+  svn checkout svn+ssh://svn.eu.adacore.com/Dev${view_root} .
   rc=$?
   set -e
-  p4 client -d ${client}
+
   if [ $rc != 0 ]; then
     exit $rc
   fi
 
-# Use current directory
+  # Get last change for this tree
+  prepare_distrib_options="${prepare_distrib_options} -c "`svn log --limit 1 | sed -n '2s/^r\([0-9]*\) .*$/\1/p'`
 
-elif $usercurrent; then
-  tar cf - . | (cd $tmp/$dir && tar xpBf -)
-  cd $tmp/$dir
+  cd ..
 
 # Do no checkout
 
 elif $nocheckout; then
-  cd ${dir}
+  # Edits will be done in place directly in this case
+  # Note that this assumes that the specified directory contains a
+  # clean checkout of the repository.
 
-# CVS
+  : Nothing to do
 
 else
-  root=`cat CVS/Root`
-  trunc_root=`echo ${root} | sed -e 's/^.*://'`
-  name=`sed -e "s,${trunc_root}/,," < CVS/Repository`
-  echo Extracting module ${name} from ${root} using tag ${tag}
-  cd ${tmp}
-  cvs -d ${root} co ${kk} -r ${tag} -d ${dir} ${name}
-  cd ${dir}
+  echo "Specify either -svn or -n"
+  exit 1
 fi
 
-###################################################
-# Update VERSION in all files
-###################################################
-
-if [ -f utils/VERSION.INFO ]; then
-  echo "Calling version file, then deleting it"
-  if $no_implicit_version; then
-    echo "(with no implicit version information)"
-    sh utils/VERSION.INFO
-  else
-    echo "(with version information derived from ${dir})"
-    sh utils/VERSION.INFO ${dir}
-  fi
-  rm -f utils/VERSION.INFO
-else
-  echo "WARNING: unable to locate VERSION.INFO in directory utils"
-fi
-
-###################################################
-# Generating *.in files
-###################################################
-
-echo Generating auto-generated files
-if [ -f support/reconfig ]
-then
-  sh support/reconfig -w
-fi
+${dir}/utils/prepare_distrib $prepare_distrib_options $dir
 
 ###################################################
 # Packaging
 ###################################################
 
-echo "Adapting modes"
-chmod -R og=u-w .
-
 echo Packaging
-cd ..
+
+local_filelist=${tmp}/filelist
+rm -f ${local_filelist}
+
 for f in `cat ${dir}/MANIFEST`; do
   if [ ! -f ${dir}/${f} ]; then
     echo "FATAL: ${dir}/${f} is not a regular file."
     exit 1
   fi
-  echo ${dir}/${f} >> MANIFEST.local
+  echo ${dir}/${f} >> ${local_filelist}
 done
+
+# Check for GNU tar
 tar --version 2> /dev/null | grep "GNU tar" > /dev/null && \
-  GTAR_OPTS=--portability
-tar ${GTAR_OPTS} -cf ${dir}.tar -T MANIFEST.local
+GTAR_OPTS=--portability
+
+# Create package
+tar ${GTAR_OPTS} -cf ${dir}.tar -T ${local_filelist}
 gzip --best ${dir}.tar
+
 ls -l ${dir}.tar.gz
-mv ${dir}.tar.gz ${prev}
-cd ${prev}
-rm -rf ${tmp}
+
+if [ "`pwd`" != "${prev}" ]; then
+  mv ${dir}.tar.gz ${prev}
+  cd ${prev}
+fi
+
+rm -fr ${tmp}

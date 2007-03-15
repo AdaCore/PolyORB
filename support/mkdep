@@ -18,6 +18,7 @@ top_srcdir=`cd ${1:-.} && /bin/pwd`; shift
 top_builddir=`cd ${1:-.} && /bin/pwd`; shift
 
 PREFIXLIST=":"
+CLINE_genlist=""
 
 addprefix() {
   case "${PREFIXLIST}" in
@@ -32,7 +33,7 @@ addprefix() {
 addprefix "${srcdir}"
 addprefix "${builddir}"
 
-while true
+while test $# -ne 0
 do
   case "$1" in
     -I*)
@@ -43,7 +44,8 @@ do
       shift
       ;;
     *)
-      break
+      CLINE_genlist="${CLINE_genlist}:${1}"
+      shift
       ;;
   esac
 done
@@ -65,8 +67,8 @@ expand_dep() {
 
 GPERF_genlist=":src/soap/polyorb-http_headers.adb:src/soap/polyorb-http_methods.adb"
 GENCS_genlist=":src/giop/polyorb-giop_p-code_sets-data.ads"
-genlist=${GPERF_genlist}${GENCS_genlist}":`sed -n -e '/^AC_OUTPUT/,/^\]/s/[ 	]*//p' \
-  < ${top_srcdir}/configure.ac | tr '
+genlist=${GPERF_genlist}${GENCS_genlist}${CLINE_genlist}":`sed -n -e '/^AC_OUTPUT/,/^\]/s/[ 	]*//p' \
+  < ${top_srcdir}/configure.ac | grep '.ad[sb]$' | tr '
 ' ':'`"
 makefile=${srcdir}/Makefile.am
 MKDEP="### DO NOT REMOVE THIS LINE, IT IS USED BY MAKEDEPEND ###"
@@ -75,9 +77,8 @@ cp ${makefile} ${makefile}.bak
 (sed -e "/$MKDEP/,\$d" < ${makefile}.bak
 echo $MKDEP
 IFS=":${IFS}"
-for alifile in `echo *.ali | sort`; do
+for alifile in `echo *.ali | tr ' ' '\n' | sort`; do
   echo "Processing ${alifile}..." > /dev/stderr
-  i="${alifile%.ali}"
   withlist=
   while read key unit rest; do
     case "${key}" in
@@ -93,7 +94,7 @@ for alifile in `echo *.ali | sort`; do
         ;;
     esac
   done < ${alifile}
-  ${ucbecho} -n "${i}.lo:"
+  ${ucbecho} -n "${alifile%.ali}.lo:"
   withlist="${withlist#:}"
   echo "${withlist}" | tr ':' '
 ' | sort | uniq | while read dep; do

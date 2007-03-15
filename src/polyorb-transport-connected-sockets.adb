@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -39,20 +39,24 @@ with System.Storage_Elements;
 
 with PolyORB.Asynch_Ev.Sockets;
 with PolyORB.Log;
+with PolyORB.Parameters;
 
 package body PolyORB.Transport.Connected.Sockets is
 
    use Ada.Streams;
 
-   use PolyORB.Asynch_Ev;
    use PolyORB.Asynch_Ev.Sockets;
    use PolyORB.Log;
+   use PolyORB.Parameters;
    use PolyORB.Tasking.Mutexes;
 
    package L is new PolyORB.Log.Facility_Log
      ("polyorb.transport.connected.sockets");
-   procedure O (Message : in String; Level : Log_Level := Debug)
+   procedure O (Message : String; Level : Log_Level := Debug)
      renames L.Output;
+   function C (Level : Log_Level := Debug) return Boolean
+     renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    -----------------------
    -- Accept_Connection --
@@ -143,6 +147,14 @@ package body PolyORB.Transport.Connected.Sockets is
       S  :        Socket_Type) is
    begin
       TE.Socket := S;
+
+      if Get_Conf ("transport", "tcp.nodelay", True) then
+         Set_Socket_Option
+           (Socket => S,
+            Level  => IP_Protocol_For_TCP_Level,
+            Option => (Name => No_Delay, Enabled => True));
+      end if;
+
       Create (TE.Mutex);
    end Create;
 
@@ -218,7 +230,9 @@ package body PolyORB.Transport.Connected.Sockets is
       begin
          Receive_Buffer (Buffer, Size, Data_Received);
       exception
-         when PolyORB.Sockets.Socket_Error =>
+         when E : PolyORB.Sockets.Socket_Error =>
+            pragma Debug (O ("Read: got "
+                             & Ada.Exceptions.Exception_Information (E)));
             Throw
               (Error, Comm_Failure_E,
                System_Exception_Members'
@@ -288,7 +302,9 @@ package body PolyORB.Transport.Connected.Sockets is
       begin
          Send_Buffer (Buffer);
       exception
-         when PolyORB.Sockets.Socket_Error =>
+         when E : PolyORB.Sockets.Socket_Error =>
+            pragma Debug (O ("Write: got "
+                             & Ada.Exceptions.Exception_Information (E)));
             Throw
               (Error, Comm_Failure_E, System_Exception_Members'
                 (Minor => 0, Completed => Completed_Maybe));
@@ -313,6 +329,8 @@ package body PolyORB.Transport.Connected.Sockets is
 
       Enter (TE.Mutex);
       begin
+         PolyORB.Transport.Connected.Close
+           (Connected_Transport_Endpoint (TE.all)'Access);
          if TE.Socket /= No_Socket then
             pragma Debug (O ("Closing socket"
                              & PolyORB.Sockets.Image (TE.Socket)));
@@ -320,8 +338,6 @@ package body PolyORB.Transport.Connected.Sockets is
             TE.Socket := No_Socket;
          end if;
          Leave (TE.Mutex);
-         PolyORB.Transport.Connected.Close
-           (Connected_Transport_Endpoint (TE.all)'Access);
       exception
          when E : others =>
             pragma Debug (O ("Close (Socket_Endpoint): got "

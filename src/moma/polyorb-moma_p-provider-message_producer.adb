@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -31,14 +31,15 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Message_Producer servant.
+--  Message_Producer servant
 
 with MOMA.Messages;
 
 with PolyORB.Any.NVList;
 with PolyORB.Errors;
 with PolyORB.Log;
-with PolyORB.Requests;
+with PolyORB.QoS;
+with PolyORB.Request_QoS;
 with PolyORB.Types;
 
 package body PolyORB.MOMA_P.Provider.Message_Producer is
@@ -53,15 +54,24 @@ package body PolyORB.MOMA_P.Provider.Message_Producer is
 
    package L is
      new PolyORB.Log.Facility_Log ("moma.provider.message_producer");
-   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+   procedure O (Message : Standard.String; Level : Log_Level := Debug)
      renames L.Output;
+   function C (Level : Log_Level := Debug) return Boolean
+     renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
-   --  Actual function implemented by the servant.
+   --  Actual function implemented by the servant
 
    procedure Publish
-     (Self    : in PolyORB.References.Ref;
-      Message : in PolyORB.Any.Any);
-   --  Publish a message.
+     (Self    : PolyORB.References.Ref;
+      Message : PolyORB.Any.Any;
+      QoS_Params : PolyORB.QoS.QoS_Parameters);
+   --  Publish a message
+
+   Message_S : constant PolyORB.Types.Identifier
+     := To_PolyORB_String ("Message");
+   Result_S : constant PolyORB.Types.Identifier
+     := To_PolyORB_String ("Result");
 
    --------------------
    -- Get_Remote_Ref --
@@ -80,12 +90,16 @@ package body PolyORB.MOMA_P.Provider.Message_Producer is
 
    procedure Invoke
      (Self : access Object;
-      Req  : in     PolyORB.Requests.Request_Access)
+      Req  : PolyORB.Requests.Request_Access)
    is
       use PolyORB.Errors;
+      use PolyORB.Any.NVList.Internals;
+      use PolyORB.Any.NVList.Internals.NV_Lists;
 
       Args  : PolyORB.Any.NVList.Ref;
       Error : Error_Container;
+      QoS_Params : PolyORB.QoS.QoS_Parameters;
+
    begin
       pragma Debug (O ("The server is executing the request:"
                     & PolyORB.Requests.Image (Req.all)));
@@ -97,7 +111,7 @@ package body PolyORB.MOMA_P.Provider.Message_Producer is
          --  Publish
 
          Add_Item (Args,
-                   (Name => To_PolyORB_String ("Message"),
+                   (Name => Message_S,
                     Argument => Get_Empty_Any (TC_MOMA_Message),
                     Arg_Modes => PolyORB.Any.ARG_IN));
          Arguments (Req, Args, Error);
@@ -108,15 +122,14 @@ package body PolyORB.MOMA_P.Provider.Message_Producer is
 
          end if;
 
-         declare
-            use PolyORB.Any.NVList.Internals;
-            use PolyORB.Any.NVList.Internals.NV_Lists;
-         begin
-            Publish
-              (Self.Remote_Ref,
-               Value (First (List_Of (Args).all)).Argument);
-         end;
+         QoS_Params (PolyORB.QoS.Static_Priority) :=
+           PolyORB.Request_QoS.Extract_Request_Parameter
+           (PolyORB.QoS.Static_Priority, Req);
 
+         Publish
+           (Self.Remote_Ref,
+            Value (First (List_Of (Args).all)).Argument,
+            QoS_Params);
       end if;
    end Invoke;
 
@@ -125,8 +138,9 @@ package body PolyORB.MOMA_P.Provider.Message_Producer is
    -------------
 
    procedure Publish
-     (Self    : in PolyORB.References.Ref;
-      Message : in PolyORB.Any.Any)
+     (Self    : PolyORB.References.Ref;
+      Message : PolyORB.Any.Any;
+      QoS_Params : PolyORB.QoS.QoS_Parameters)
    is
       Request     : PolyORB.Requests.Request_Access;
       Arg_List    : PolyORB.Any.NVList.Ref;
@@ -138,11 +152,11 @@ package body PolyORB.MOMA_P.Provider.Message_Producer is
       PolyORB.Any.NVList.Create (Arg_List);
 
       PolyORB.Any.NVList.Add_Item (Arg_List,
-                                   To_PolyORB_String ("Message"),
+                                   Message_S,
                                    Message,
                                    PolyORB.Any.ARG_IN);
 
-      Result := (Name      => To_PolyORB_String ("Result"),
+      Result := (Name      => Result_S,
                  Argument  => PolyORB.Any.Get_Empty_Any (PolyORB.Any.TC_Void),
                  Arg_Modes => 0);
 
@@ -153,9 +167,13 @@ package body PolyORB.MOMA_P.Provider.Message_Producer is
          Result    => Result,
          Req       => Request);
 
+      PolyORB.Request_QoS.Set_Request_QoS (Request, QoS_Params);
+
       PolyORB.Requests.Invoke (Request);
 
       PolyORB.Requests.Destroy_Request (Request);
+
+      pragma Debug (O ("Message published"));
    end Publish;
 
    --------------------
@@ -164,8 +182,7 @@ package body PolyORB.MOMA_P.Provider.Message_Producer is
 
    procedure Set_Remote_Ref
      (Self : in out Object;
-      Ref  :        PolyORB.References.Ref)
-   is
+      Ref  :        PolyORB.References.Ref) is
    begin
       Self.Remote_Ref := Ref;
    end Set_Remote_Ref;

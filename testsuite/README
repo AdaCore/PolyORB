@@ -1,7 +1,7 @@
 README for the PolyORB testsuite
 --------------------------------
 
-$Id: //droopi/main/testsuite/README#1 $
+$Id: //droopi/main/testsuite/README#2 $
 
 This file details the organization of PolyORB's test suite.
 
@@ -36,6 +36,11 @@ Run make
 Go in $build_dir/testsuite
 Run Make
 
+Note: some tests are not built by default: they require the
+installation of third-party middleware, and adaptation of the
+makefiles. See corba/interop/cpp/README and corba/interop/java/README
+for more details.
+
 * Run the test suite
 
 In $buld_dir/testsuite, type 'make run_tests'.
@@ -46,3 +51,4 @@ $build_dir/output/error provides information on any internal error,
 $build_dir/output/failed lists failed tests,
 $build_dir/output/log provides various information,
 $build_dir/output/<scenario_name>/<test> is a trace of the test.
+

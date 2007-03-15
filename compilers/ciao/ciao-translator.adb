@@ -31,7 +31,6 @@ with Asis.Elements;
 with Asis.Expressions;
 with Asis.Extensions;
 with Asis.Iterator;
-pragma Elaborate_All (Asis.Iterator);
 with Asis.Text;
 
 with CIAO.ASIS_Queries; use CIAO.ASIS_Queries;
@@ -2101,4 +2100,3 @@ package body CIAO.Translator is
    end Translate;
 
 end CIAO.Translator;
-

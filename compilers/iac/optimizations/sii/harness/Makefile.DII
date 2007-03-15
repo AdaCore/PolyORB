@@ -1,0 +1,24 @@
+SHELL = /bin/sh
+GNATCHOP = gnatchop
+GNATFLAGS = -a -f -O2 -gnatpn
+GNATMAKE = gnatmake
+
+all: servers client
+
+force:
+
+servers: force harness-skel.ads 
+	$(GNATMAKE) $(GNATFLAGS) server_no_tasking.adb `polyorb-config`
+
+client: force harness-skel.ads
+	$(GNATMAKE) $(GNATFLAGS) client.adb `polyorb-config`
+
+harness-skel.ads: harness.idl 
+	iac harness.idl 
+
+clean: 
+	@-rm -f *.o *.ali *ir_info* 
+	@-rm -f client server_no_tasking *skel* *helper* *cdr* *idl_file* 
+	@-rm -f harness.ad* iac.ada GNAT* *~
+	@-rm -f server*_tasking2 s*request s*pool s*session s*lf s*hahs
+	@-rm -f b~*

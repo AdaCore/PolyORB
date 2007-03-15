@@ -1,5 +1,4 @@
 
-
 with Report;
 package body CXE4005_Normal is
   procedure Single_Controlling_Operand (

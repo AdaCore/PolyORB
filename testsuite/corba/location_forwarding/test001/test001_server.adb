@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2004 Free Software Foundation, Inc.             --
+--         Copyright (C) 2004-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -40,21 +40,22 @@ with PolyORB.Setup.Thread_Pool_Server;
 pragma Warnings (Off, PolyORB.Setup.Thread_Pool_Server);
 with PortableServer.POA.Helper;
 with PortableServer.POAManager;
+with PolyORB.Smart_Pointers;
 
 with Test_Globals;
 with Test_Interface.Helper;
 with Test_Interface.Impl;
-with Test_ServantActivator;
+with Test_ServantActivator.Impl;
 
 procedure Test001_Server is
 begin
    CORBA.ORB.Initialize ("ORB");
 
    declare
-      Root_POA : PortableServer.POA.Ref;
-      My_POA   : PortableServer.POA.Ref;
+      Root_POA : PortableServer.POA.Local_Ref;
+      My_POA   : PortableServer.POA.Local_Ref;
 
-      use CORBA.Policy.IDL_Sequence_Policy;
+      use CORBA.Policy.IDL_SEQUENCE_Policy;
 
       Implicit_Activation_Policy : CORBA.Policy.Ref
         := CORBA.Policy.Ref
@@ -73,9 +74,13 @@ begin
 
       Policies : CORBA.Policy.PolicyList;
 
+      Obj : constant Test_ServantActivator.Impl.Object_Ptr
+        := new Test_ServantActivator.Impl.Object;
+      Ref : Test_ServantActivator.Local_Ref;
+
    begin
       Root_POA :=
-        PortableServer.POA.Helper.To_Ref
+        PortableServer.POA.Helper.To_Local_Ref
         (CORBA.ORB.Resolve_Initial_References
          (CORBA.ORB.To_CORBA_String ("RootPOA")));
       PortableServer.POAManager.Activate
@@ -85,14 +90,14 @@ begin
       Append (Policies, Id_Assignment_Policy);
       Append (Policies, Request_Processing_Policy);
       My_POA :=
-        PortableServer.POA.Ref
+        PortableServer.POA.Local_Ref
         (PortableServer.POA.Create_POA
          (Root_POA,
           CORBA.To_CORBA_String ("My_POA"),
           PortableServer.POA.Get_The_POAManager (Root_POA),
           Policies));
-      PortableServer.POA.Set_Servant_Manager
-        (My_POA, new Test_ServantActivator.Ref);
+      Test_ServantActivator.Set (Ref, PolyORB.Smart_Pointers.Entity_Ptr (Obj));
+      PortableServer.POA.Set_Servant_Manager (My_POA, Ref);
       PortableServer.POAManager.Activate
         (PortableServer.POA.Get_The_POAManager (My_POA));
 

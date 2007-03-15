@@ -12,7 +12,6 @@ package body CXE4001_Partition_A is
   -- the following exception is only defined in partition A
   Exception_Local_To_A : exception;
 
-
 procedure Predefined_Simple is
 begin
   if CXE4001_Decl_Pure.Verbose then
@@ -30,7 +29,6 @@ exception
   when others =>
      Report.Failed ("Wrong exception was propagated across partitions (1)");
 end Predefined_Simple;
-
 
 procedure Userdefined_Simple is
 begin
@@ -50,7 +48,6 @@ exception
      Report.Failed ("Wrong exception was propagated across partitions (2)");
 end Userdefined_Simple;
 
-
 procedure Invisible_Simple is
 begin
   if CXE4001_Decl_Pure.Verbose then
@@ -66,7 +63,6 @@ exception
   when others =>
      null;  -- passed
 end Invisible_Simple;
-
 
 procedure Invisible_Complex_1 is
 begin
@@ -87,7 +83,6 @@ exception
   when others =>
      Report.Failed ("Wrong exception was propagated across partitions (3)");
 end Invisible_Complex_1;
-
 
 procedure Invisible_Complex_2 is
 begin
@@ -110,7 +105,6 @@ exception
   when others =>
      Report.Failed ("Wrong exception was propagated across partitions (4)");
 end Invisible_Complex_2;
-
 
     -- service routine for Invisible_Complex test
 procedure Raise_Invisible is

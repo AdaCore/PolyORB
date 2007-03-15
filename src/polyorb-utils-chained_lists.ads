@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -147,16 +147,27 @@ private
 
    type Node;
    type Node_Access is access all Node;
-   type Node is record
+
+   --  For simply chained lists, we only have one Next pointer in each
+   --  node; for doubly chained lists, we have Next and Prev.
+
+   type Node_Chain is array (False .. Doubly_Chained) of Node_Access;
+   pragma Suppress (Index_Check, Node_Chain);
+   --  No index checks are required for accesses to Node_Chain, because all
+   --  all cases of access to Node_Chain (Prev) are correctly protected by an
+   --  'if Doubly_Chained' condition.
+
+   Next_Node : constant Boolean := False;
+   Prev_Node : constant Boolean := True;
+
+   type Node is limited record
       Value : aliased T;
       --  Value associated with this list node
 
-      Next  : Node_Access;
-      --  Next node
-
-      Prev  : Node_Access;
-      --  Previous node (null for first node on list,
-      --  unused if Doubly_Chained is False).
+      Chain : Node_Chain;
+      --  Next and optional Prev nodes.
+      --  Note that all accesses to Chain (Prev_Node) must be protected
+      --  by an 'if Doubly_Chained' conditition.
    end record;
 
    type Iterator is record

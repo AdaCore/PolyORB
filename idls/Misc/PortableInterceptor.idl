@@ -56,8 +56,8 @@ module PortableInterceptor {
         readonly attribute string operation;
         readonly attribute Dynamic::ParameterList arguments;
         readonly attribute Dynamic::ExceptionList exceptions;
-//PolyORB:IL:        readonly attribute Dynamic::ContextList contexts;
-//PolyORB:IL:        readonly attribute Dynamic::RequestContext operation_context;
+        readonly attribute Dynamic::ContextList contexts;
+        readonly attribute Dynamic::RequestContext operation_context;
         readonly attribute any result;
         readonly attribute boolean response_expected;
         readonly attribute Messaging::SyncScope sync_scope;
@@ -91,16 +91,16 @@ module PortableInterceptor {
 
     typedef string ServerId ;
     typedef string ORBId ;
-//PolyORB:IL:    typedef CORBA::StringSeq AdapterName ;
-//PolyORB:IL:    typedef CORBA::OctetSeq ObjectId ;
+    typedef CORBA::StringSeq AdapterName ;
+    typedef CORBA::OctetSeq ObjectId ;
 
     local interface ServerRequestInfo : RequestInfo {
         readonly attribute any sending_exception;
 	readonly attribute ServerId server_id;
 	readonly attribute ORBId orb_id;
-//PolyORB:IL:	readonly attribute AdapterName adapter_name;
-//PolyORB:IL:        readonly attribute ObjectId object_id;
-//PolyORB:IL:        readonly attribute CORBA::OctetSeq adapter_id;
+	readonly attribute AdapterName adapter_name;
+        readonly attribute ObjectId object_id;
+        readonly attribute CORBA::OctetSeq adapter_id;
         readonly attribute CORBA::RepositoryId target_most_derived_interface;
 
         CORBA::Policy get_server_policy (in CORBA::PolicyType type);
@@ -160,11 +160,11 @@ module PortableInterceptor {
 
     local interface IORInfo {
         CORBA::Policy get_effective_policy (in CORBA::PolicyType type);
-//PolyORB:NI:        void add_ior_component (
-//PolyORB:NI:            in IOP::TaggedComponent a_component);
-//PolyORB:NI:        void add_ior_component_to_profile (
-//PolyORB:NI:            in IOP::TaggedComponent a_component,
-//PolyORB:NI:            in IOP::ProfileId profile_id);
+        void add_ior_component (
+            in IOP::TaggedComponent a_component);
+        void add_ior_component_to_profile (
+            in IOP::TaggedComponent a_component,
+            in IOP::ProfileId profile_id);
     };
 
     local interface IORInterceptor : Interceptor {
@@ -198,7 +198,7 @@ module PortableInterceptor {
 
         exception InvalidName {};
 
-//PolyORB:IL:        readonly attribute CORBA::StringSeq arguments;
+        readonly attribute CORBA::StringSeq arguments;
         readonly attribute string orb_id;
         readonly attribute IOP::CodecFactory codec_factory;
         void register_initial_reference (in ObjectId id, in Object obj)

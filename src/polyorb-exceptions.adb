@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -32,19 +32,18 @@
 ------------------------------------------------------------------------------
 
 with Ada.Unchecked_Conversion;
+with Ada.Characters.Latin_1;
 
 pragma Warnings (Off);
 with System.Exception_Table;
 with System.Standard_Library;
 pragma Warnings (On);
 --  Mapping between exception names and exception ids.
---  GNAT internal exception table is used to maintain a list of
---  all exceptions.
+--  GNAT internal exception table is used to maintain a list of all exceptions.
 
 with PolyORB.Initialization;
 with PolyORB.Log;
 with PolyORB.Tasking.Mutexes;
-with PolyORB.Types;
 with PolyORB.Utils.Chained_Lists;
 with PolyORB.Utils.Strings;
 
@@ -59,8 +58,11 @@ package body PolyORB.Exceptions is
    use PolyORB.Utils;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.exceptions");
-   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+   procedure O (Message : Standard.String; Level : Log_Level := Debug)
      renames L.Output;
+   function C (Level : Log_Level := Debug) return Boolean
+     renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    -----------------------------
    -- User exception handling --
@@ -77,29 +79,31 @@ package body PolyORB.Exceptions is
    function Find_Exception_Info
      (For_Exception : PolyORB.Types.RepositoryId)
      return Exception_Info;
-   --  Return Exception_Info associated to 'For_Exception'.
+   --  Return Exception_Info associated to 'For_Exception'
 
    All_Exceptions : Exception_Lists.List;
-   --  Exception list, use to associate an exception typecode
-   --  with a raiser function that retrieves member data from
-   --  an Any and raises the exception with the appropriate
-   --  information in the occurrence.
+   --  Exception list, use to associate an exception typecode with a raiser
+   --  function that retrieves member data from an Any and raises the exception
+   --  with the appropriate information in the occurrence.
 
    All_Exceptions_Lock : Mutex_Access;
    --  Mutex used to safely access All_Exceptions list.
 
-   --  When an exception with members is raised (Raise_Exception), we
-   --  allocate an exception occurrence id and attach to the exception
-   --  occurrence a message with a magic string and the id. The member
-   --  is stored in dynamic structure with the id. When we call
-   --  Get_Members, we retrieve the exception occurrence id from the
-   --  attached message. The member may have been removed in the
-   --  meantime if too many exceptions were raised between the call to
-   --  Raise_Exception and Get_Members (very rare). We have to keep
-   --  the list size in a max size because the user may not retrieve
-   --  the member of an exception with members. In this case, the
-   --  members will never be deallocated. This limit forces some kind
-   --  of garbage collection.
+   --  When an exception with members is raised (Raise_Exception), we allocate
+   --  an exception occurrence id and attach to the exception occurrence a
+   --  message with a magic string and the id. The member is stored in dynamic
+   --  structure with the id. When we call Get_Members, we retrieve the
+   --  exception occurrence id from the attached message. The member may have
+   --  been removed in the meantime if too many exceptions were raised between
+   --  the call to Raise_Exception and Get_Members (very rare). We have to keep
+   --  the list size in a max size because the user may not retrieve the member
+   --  of an exception with members. In this case, the members will never be
+   --  deallocated. This limit forces some kind of garbage collection.
+
+   --  If exception is raised with optional user defined message then this
+   --  message is appended to exception occurrence message after a magic string
+   --  and the id, separating from id by the LF character. This character is
+   --  used to detect the end of id.
 
    Magic : constant String := "PO_Exc_Occ";
 
@@ -109,8 +113,9 @@ package body PolyORB.Exceptions is
    Null_Id : constant Exc_Occ_Id_Type := 0;
 
    type Exc_Occ_Node is record
-      Id   : Exc_Occ_Id_Type;
-      Mbr  : Exception_Members_Access;
+      Id  : Exc_Occ_Id_Type;
+      Mbr : Exception_Members_Access;
+      Msg : Types.String;
    end record;
 
    package Exc_Occ_Lists is new PolyORB.Utils.Chained_Lists
@@ -128,9 +133,8 @@ package body PolyORB.Exceptions is
    --  Store the magic string and the exception occurrence id
 
    function Value (M : String) return Exc_Occ_Id_Type;
-   --  Extract the exception occurrence id from the exception
-   --  message. Return Null_Id if the exception message has no the
-   --  expected format.
+   --  Extract the exception occurrence id from the exception message. Return
+   --  Null_Id if the exception message has no the expected format.
 
    procedure Dump_All_Occurrences;
    --  Dump the occurrence list (not protected)
@@ -139,16 +143,14 @@ package body PolyORB.Exceptions is
      (Exc_Occ     :     Ada.Exceptions.Exception_Occurrence;
       Exc_Mbr     : out Exception_Members'Class;
       Get_Members :     Boolean);
-   --  Internal implementation of Get_Members and Purge_Members.
-   --  If Get_Members is true, the retrieved members object is
-   --  assigned to Exc_Mbr, else the object is discarded and no
-   --  assignment is made.
+   --  Internal implementation of Get_Members and Purge_Members. If Get_Members
+   --  is true, the retrieved members object is assigned to Exc_Mbr, else the
+   --  object is discarded and no assignment is made.
 
    function Get_ExcepId_By_RepositoryId
      (RepoId  : Standard.String)
       return Ada.Exceptions.Exception_Id;
-   --  Return the corresponding Ada Exception_Id for
-   --  a repository id.
+   --  Return the corresponding Ada Exception_Id for a repository id
 
    --------------------------
    -- Dump_All_Occurrences --
@@ -211,8 +213,8 @@ package body PolyORB.Exceptions is
       if Value (It).all.Id /= Exc_Occ_Id then
          Leave (Exc_Occ_Lock);
 
-         --  Too many exceptions were raised and this member is no
-         --  longer available.
+         --  Too many exceptions were raised and this member is no longer
+         --  available.
 
          --  PolyORB.Exceptions.Raise_Imp_Limit;
          raise Program_Error;
@@ -281,9 +283,10 @@ package body PolyORB.Exceptions is
       end if;
       N := N + 1;
 
-      --  Scan the exception occurrence id
+      --  Scan the exception occurrence id until end of id or LF character is
+      --  found.
 
-      while N <= M'Last loop
+      while N <= M'Last and then M (N) /= Ada.Characters.Latin_1.LF loop
          if M (N) not in '0' .. '9' then
             return Null_Id;
          end if;
@@ -331,15 +334,16 @@ package body PolyORB.Exceptions is
 
    procedure User_Raise_Exception
      (Id      : Ada.Exceptions.Exception_Id;
-      Members : Exception_Members'Class)
+      Members : Exception_Members'Class;
+      Message : String := "")
    is
       New_Node : Exc_Occ_Node;
 
    begin
       Enter (Exc_Occ_Lock);
 
-      --  Keep the list size to a max size. Otherwise, remove the
-      --  oldest member (first in the list).
+      --  Keep the list size to a max size. Otherwise, remove the oldest member
+      --  (first in the list).
 
       if Length (Exc_Occ_List) = Max_Exc_Occ_List_Size then
          Extract_First (Exc_Occ_List, New_Node);
@@ -353,6 +357,7 @@ package body PolyORB.Exceptions is
 
       New_Node.Id := Seed_Id;
       New_Node.Mbr := new Exception_Members'Class'(Members);
+      New_Node.Msg := To_PolyORB_String (Message);
 
       if Seed_Id = Exc_Occ_Id_Type'Last then
          Seed_Id := Null_Id;
@@ -369,7 +374,14 @@ package body PolyORB.Exceptions is
       pragma Debug (Dump_All_Occurrences);
       Leave (Exc_Occ_Lock);
 
-      Ada.Exceptions.Raise_Exception (Id, Image (New_Node.Id));
+      if Message = "" then
+         Ada.Exceptions.Raise_Exception (Id, Image (New_Node.Id));
+
+      else
+         Ada.Exceptions.Raise_Exception
+           (Id, Image (New_Node.Id) & Ada.Characters.Latin_1.LF & Message);
+      end if;
+
       raise Program_Error;
    end User_Raise_Exception;
 
@@ -379,19 +391,18 @@ package body PolyORB.Exceptions is
 
    procedure Raise_User_Exception_From_Any
      (Repository_Id : PolyORB.Types.RepositoryId;
-      Occurence     : PolyORB.Any.Any) is
+      Occurence     : PolyORB.Any.Any;
+      Message       : Standard.String := "")
+   is
    begin
-      Find_Exception_Info (Repository_Id).Raiser.all (Occurence);
+      Find_Exception_Info (Repository_Id).Raiser.all (Occurence, Message);
    end Raise_User_Exception_From_Any;
 
    ----------------------------
    -- Default_Raise_From_Any --
    ----------------------------
 
-   procedure Default_Raise_From_Any
-     (Occurrence : Any.Any)
-   is
-      use PolyORB.Any;
+   procedure Default_Raise_From_Any (Occurrence : Any.Any) is
    begin
       if not Is_Empty (Occurrence) then
          Ada.Exceptions.Raise_Exception
@@ -406,8 +417,8 @@ package body PolyORB.Exceptions is
    ------------------------
 
    procedure Register_Exception
-     (TC     : in PolyORB.Any.TypeCode.Object;
-      Raiser : in Raise_From_Any_Procedure) is
+     (TC     : PolyORB.Any.TypeCode.Object;
+      Raiser : Raise_From_Any_Procedure) is
    begin
       pragma Debug
         (O ("Registering exception: "
@@ -426,7 +437,6 @@ package body PolyORB.Exceptions is
      (For_Exception : PolyORB.Types.RepositoryId)
      return Exception_Info
    is
-      use PolyORB.Types;
       use Exception_Lists;
 
       Id : constant Types.RepositoryId := For_Exception;
@@ -488,19 +498,56 @@ package body PolyORB.Exceptions is
       end if;
    end Exception_Name;
 
-   ---------------------------------
-   -- Get_ExcepId_By_RepositoryId --
-   ---------------------------------
+   --------------------------------
+   -- Exception_Name_To_Error_Id --
+   --------------------------------
 
-   function Get_ExcepId_By_RepositoryId
-     (RepoId : Standard.String)
+   procedure Exception_Name_To_Error_Id
+     (Name     :     String;
+      Is_Error : out Boolean;
+      Id       : out Error_Id)
+   is
+      Prefix_Length  : constant Natural := PolyORB_Exc_Prefix'Length;
+      Version_Length : constant Natural := PolyORB_Exc_Version'Length;
+
+   begin
+      if Name'Length > Prefix_Length + Version_Length
+        and then Name (Name'First .. Name'First + Prefix_Length - 1)
+        = PolyORB_Exc_Prefix
+      then
+         declare
+            Error_Id_Name : constant String
+              := Name (Name'First + Prefix_Length ..
+                       Name'Last - Version_Length) & "_E";
+
+         begin
+            pragma Debug (O ("Error_Id_Name : " & Error_Id_Name));
+
+            Is_Error := True;
+            Id := Error_Id'Value (Error_Id_Name);
+         end;
+      else
+         Is_Error := False;
+         Id := No_Error;
+      end if;
+
+      pragma Debug (O (Name & " is a PolyORB error ? "
+                       & Boolean'Image (Is_Error)));
+   end Exception_Name_To_Error_Id;
+
+   -------------------------
+   -- Get_ExcepId_By_Name --
+   -------------------------
+
+   function Get_ExcepId_By_Name
+     (Name : Standard.String)
       return Ada.Exceptions.Exception_Id
    is
       function To_Exception_Id is new Ada.Unchecked_Conversion
         (System.Standard_Library.Exception_Data_Ptr,
          Ada.Exceptions.Exception_Id);
 
-      Internal_Name : Standard.String  := Exception_Name (RepoId);
+      Internal_Name : String := Name;
    begin
       if Internal_Name = "" then
          return Ada.Exceptions.Null_Id;
@@ -516,6 +563,18 @@ package body PolyORB.Exceptions is
 
       return To_Exception_Id
         (System.Exception_Table.Internal_Exception (Internal_Name));
+   end Get_ExcepId_By_Name;
+
+   ---------------------------------
+   -- Get_ExcepId_By_RepositoryId --
+   ---------------------------------
+
+   function Get_ExcepId_By_RepositoryId
+     (RepoId : Standard.String)
+      return Ada.Exceptions.Exception_Id
+   is
+   begin
+      return Get_ExcepId_By_Name (Exception_Name (RepoId));
    end Get_ExcepId_By_RepositoryId;
 
    ------------------------
@@ -523,8 +582,7 @@ package body PolyORB.Exceptions is
    ------------------------
 
    function Occurrence_To_Name
-     (Occurrence : Ada.Exceptions.Exception_Occurrence)
-     return PolyORB.Types.RepositoryId
+     (Occurrence : Ada.Exceptions.Exception_Occurrence) return String
    is
       Name : String := Ada.Exceptions.Exception_Name (Occurrence);
    begin
@@ -534,7 +592,7 @@ package body PolyORB.Exceptions is
          end if;
       end loop;
 
-      return PolyORB.Types.To_PolyORB_String (Name);
+      return Name;
    end Occurrence_To_Name;
 
    ----------------
@@ -561,5 +619,6 @@ begin
        Depends   => +"tasking.mutexes",
        Provides  => PolyORB.Initialization.String_Lists.Empty,
        Implicit  => False,
-       Init      => Initialize'Access));
+       Init      => Initialize'Access,
+       Shutdown  => null));
 end PolyORB.Exceptions;

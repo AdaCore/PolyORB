@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2004 Free Software Foundation, Inc.             --
+--         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,17 +26,17 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Test000_Idl.TestInterface.Helper;
+
 with Test000_Idl.TestInterface.Skel;
-pragma Elaborate (Test000_Idl.TestInterface.Skel);
 pragma Warnings (Off, Test000_Idl.TestInterface.Skel);
 
 with Test000_Globals;
-with PolyORB.Exceptions;
 
 package body Test000_Idl.TestInterface.Impl is
 
@@ -62,9 +62,8 @@ package body Test000_Idl.TestInterface.Impl is
       if Self.State = Normal then
          null;
       else
-         PolyORB.Exceptions.User_Raise_Exception
-           (TestException'Identity,
-            TestException_Members'
+         Test000_Idl.TestInterface.Helper.Raise_TestException
+           (TestException_Members'
             (CORBA.IDL_Exception_Members with null record));
       end if;
    end Proc;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,16 +26,12 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Streams;
-
-with PolyORB.Binding_Data;
 with PolyORB.Initialization;
-pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 with PolyORB.Log;
 with PolyORB.Representations.CDR.Common;
 with PolyORB.Types;
@@ -51,8 +47,11 @@ package body PolyORB.References.IOR is
    use PolyORB.Utils;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.references.ior");
-   procedure O (Message : in String; Level : Log_Level := Debug)
+   procedure O (Message : String; Level : Log_Level := Debug)
      renames L.Output;
+   function C (Level : Log_Level := Debug) return Boolean
+     renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    IOR_Prefix : constant String := "IOR:";
 
@@ -171,7 +170,7 @@ package body PolyORB.References.IOR is
 
    procedure Marshall_IOR
      (Buffer : access Buffer_Type;
-      Value  : in PolyORB.References.Ref)
+      Value  : PolyORB.References.Ref)
    is
       use PolyORB.Types;
 
@@ -332,7 +331,6 @@ package body PolyORB.References.IOR is
    function String_To_Object (Str : String) return PolyORB.References.Ref
    is
       use PolyORB.Types;
-      use PolyORB.Buffers;
       use PolyORB.Utils.Strings;
 
    begin
@@ -355,9 +353,9 @@ package body PolyORB.References.IOR is
    --------------
 
    procedure Register
-     (Profile     : in Profile_Tag;
-      Marshall_Profile_Body   : in Marshall_Profile_Body_Type;
-      Unmarshall_Profile_Body : in Unmarshall_Profile_Body_Type)
+     (Profile     : Profile_Tag;
+      Marshall_Profile_Body   : Marshall_Profile_Body_Type;
+      Unmarshall_Profile_Body : Unmarshall_Profile_Body_Type)
    is
       Elt : constant Profile_Record
         := (Profile, Marshall_Profile_Body,
@@ -389,5 +387,6 @@ begin
        Depends   => PolyORB.Initialization.String_Lists.Empty,
        Provides  => +"references",
        Implicit  => False,
-       Init      => Initialize'Access));
+       Init      => Initialize'Access,
+       Shutdown  => null));
 end PolyORB.References.IOR;

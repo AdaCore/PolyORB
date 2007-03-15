@@ -45,7 +45,6 @@ with AWS.Response;
 with AWS.Parameters;
 
 with PolyORB.Setup.No_Tasking_Server;
-pragma Elaborate_All (PolyORB.Setup.No_Tasking_Server);
 pragma Warnings (Off, PolyORB.Setup.No_Tasking_Server);
 
 with PolyORB.References.IOR;
@@ -109,7 +108,6 @@ begin
    AWS.Server.Initialization;
    Put_Line ("initialized");
 
-
    declare
       SOAP_Server : AWS.Server.Servants.SOAP_Servant;
       Web_Server : AWS.Server.Servants.Web_Servant;
@@ -135,11 +133,7 @@ begin
       Put_Line ((PolyORB.References.IOR.Object_To_String
                  (AWS.Server.Get_Server_Reference (Web_Server))));
 
-
       AWS.Server.Run;
    end;
 
 end Server;
-
-
-

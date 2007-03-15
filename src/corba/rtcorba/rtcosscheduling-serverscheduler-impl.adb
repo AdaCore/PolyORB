@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2005 Free Software Foundation, Inc.             --
+--         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -52,13 +52,7 @@ with PolyORB.CORBA_P.Exceptions;
 
 with PolyORB.RTCORBA_P.To_ORB_Priority;
 
-with CORBA.Object;
 with CORBA.ORB;
-with CORBA.Policy;
-
-with PortableServer.POAManager;
-with PortableServer.POA;
-
 with RTCORBA.RTORB.Helper;
 with RTCORBA.PriorityModelPolicy;
 with RTCORBA.ThreadpoolPolicy;
@@ -71,8 +65,11 @@ package body RTCosScheduling.ServerScheduler.Impl is
 
    package L is new PolyORB.Log.Facility_Log
      ("rtcosscheduling.serverscheduler.impl");
-   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+   procedure O (Message : Standard.String; Level : Log_Level := Debug)
      renames L.Output;
+   function C (Level : Log_Level := Debug) return Boolean
+     renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    -----------------------------
    -- Load_Configuration_File --
@@ -89,11 +86,11 @@ package body RTCosScheduling.ServerScheduler.Impl is
 
    function Create_POA
      (Self         : access Object;
-      Parent       : in PortableServer.POA.Ref;
-      Adapter_Name : in CORBA.String;
-      A_POAManager : in PortableServer.POAManager.Ref;
-      Policies     : in CORBA.Policy.PolicyList)
-     return PortableServer.POA.Ref
+      Parent       : PortableServer.POA.Local_Ref;
+      Adapter_Name : CORBA.String;
+      A_POAManager : PortableServer.POAManager.Local_Ref;
+      Policies     : CORBA.Policy.PolicyList)
+     return PortableServer.POA.Local_Ref
    is
       pragma Unreferenced (Self);
 
@@ -108,7 +105,8 @@ package body RTCosScheduling.ServerScheduler.Impl is
       Thread_Pool_Policy_Ref : RTCORBA.ThreadpoolPolicy.Local_Ref;
 
    begin
-      pragma Debug (O ("Configuring POA " & CORBA.To_String (Adapter_Name)));
+      pragma Debug (O ("Configuring POA "
+                       & CORBA.To_String (Adapter_Name)));
 
       --  Retrieve parameters for the PriorityModel Policy, if any
 
@@ -132,7 +130,7 @@ package body RTCosScheduling.ServerScheduler.Impl is
                RTCORBA.CLIENT_PROPAGATED,
                RTCORBA.Priority (Default_Priority));
 
-            CORBA.Policy.IDL_Sequence_Policy.Append
+            CORBA.Policy.IDL_SEQUENCE_Policy.Append
               (All_Policies, CORBA.Policy.Ref (Priority_Model_Policy_Ref));
 
          elsif Priority_Model = "SERVER_DECLARED" then
@@ -144,7 +142,7 @@ package body RTCosScheduling.ServerScheduler.Impl is
                RTCORBA.SERVER_DECLARED,
                RTCORBA.Priority (Default_Priority));
 
-            CORBA.Policy.IDL_Sequence_Policy.Append
+            CORBA.Policy.IDL_SEQUENCE_Policy.Append
               (All_Policies, CORBA.Policy.Ref (Priority_Model_Policy_Ref));
 
          else
@@ -168,7 +166,7 @@ package body RTCosScheduling.ServerScheduler.Impl is
               := RTCORBA.RTORB.Create_Threadpool_Policy
               (RT_ORB, RTCORBA.ThreadpoolId (Threadpool_Id));
 
-            CORBA.Policy.IDL_Sequence_Policy.Append
+            CORBA.Policy.IDL_SEQUENCE_Policy.Append
               (All_Policies, CORBA.Policy.Ref (Thread_Pool_Policy_Ref));
 
          else
@@ -178,7 +176,7 @@ package body RTCosScheduling.ServerScheduler.Impl is
          end if;
       end;
 
-      return PortableServer.POA.Ref
+      return PortableServer.POA.Local_Ref
         (PortableServer.POA.Create_POA
          (Parent,
           Adapter_Name,
@@ -192,8 +190,8 @@ package body RTCosScheduling.ServerScheduler.Impl is
 
    procedure Schedule_Object
      (Self : access Object;
-      Obj  : in CORBA.Object.Ref;
-      Name : in CORBA.String)
+      Obj  : CORBA.Object.Ref;
+      Name : CORBA.String)
    is
       pragma Unreferenced (Self);
 
@@ -218,7 +216,7 @@ package body RTCosScheduling.ServerScheduler.Impl is
       CORBA_Priority := PolyORB.Parameters.Get_Conf
         ("object " & CORBA.To_String (Name), "priority");
 
-      pragma Debug (O ("Set priority to:" & Integer'Image (CORBA_Priority)));
+      pragma Debug (O ("Set priority to:" & CORBA_Priority'Img));
 
       --  Compute corresponding Native priority
 
@@ -228,8 +226,9 @@ package body RTCosScheduling.ServerScheduler.Impl is
       --  Retrieve servant from reference information
 
       PolyORB.References.Binding.Bind
-        (CORBA.Object.To_PolyORB_Ref (Obj),
+        (CORBA.Object.Internals.To_PolyORB_Ref (Obj),
          PolyORB.Setup.The_ORB,
+         (others => null),
          The_Servant,
          The_Profile,
          True,

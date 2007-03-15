@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -39,20 +39,17 @@ with PolyORB.RTCORBA_P.Setup;
 
 with PolyORB.Annotations;
 with PolyORB.Initialization;
-pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
-
-with PolyORB.Smart_Pointers;
+with PolyORB.QoS.Priority;
 with PolyORB.Tasking.Priorities;
 with PolyORB.Tasking.Threads.Annotations;
 with PolyORB.Utils.Strings.Lists;
-with PolyORB.Request_QoS.Priority;
 
 package body RTCORBA.Current is
 
    use PolyORB.Annotations;
    use PolyORB.Tasking.Priorities;
    use PolyORB.Tasking.Threads.Annotations;
-   use PolyORB.Request_QoS.Priority;
+   use PolyORB.QoS.Priority;
 
    function Create return CORBA.Object.Ref;
    --  Create a RTCORBA.Current.Ref
@@ -78,7 +75,7 @@ package body RTCORBA.Current is
    ----------------------
 
    function Get_The_Priority
-     (Self : in Local_Ref)
+     (Self : Local_Ref)
      return RTCORBA.Priority
    is
       pragma Unreferenced (Self);
@@ -99,8 +96,8 @@ package body RTCORBA.Current is
    ----------------------
 
    procedure Set_The_Priority
-     (Self : in Local_Ref;
-      To   : in RTCORBA.Priority)
+     (Self : Local_Ref;
+      To   : RTCORBA.Priority)
    is
       pragma Unreferenced (Self);
 
@@ -197,6 +194,6 @@ begin
        & "tasking.annotations",
        Provides  => Empty,
        Implicit  => False,
-       Init      => Initialize'Access));
+       Init      => Initialize'Access,
+       Shutdown  => null));
 end RTCORBA.Current;
-

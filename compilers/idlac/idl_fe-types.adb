@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,18 +26,16 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 with Ada.Text_IO;
-with Ada.Unchecked_Deallocation;
 with System;
 
 with GNAT.Case_Util;
 
-with Errors;
 with Idl_Fe.Lexer;
 with Idl_Fe.Tree; use Idl_Fe.Tree;
 with Idl_Fe.Tree.Synthetic; use Idl_Fe.Tree.Synthetic;
@@ -64,21 +62,24 @@ package body Idl_Fe.Types is
    -- Internal subprograms --
    --------------------------
 
+   procedure Unchecked_Deallocation is
+     new Ada.Unchecked_Deallocation (Node_List_Cell, Node_List);
+
    procedure Add_Definition_To_Storage
-     (Scope      : in Node_Id;
-      Definition : in Identifier_Definition_Acc;
-      Is_Inheritable : in Boolean);
+     (Scope      : Node_Id;
+      Definition : Identifier_Definition_Acc;
+      Is_Inheritable : Boolean);
    --  Add the definition to Scope storage table.
 
    procedure Add_Identifier_Definition
      (Scope      : Node_Id;
-      Definition : in Identifier_Definition_Acc;
+      Definition : Identifier_Definition_Acc;
       Is_Inheritable : Boolean);
    --  Add an identifier definition to a scope.
 
    function Find_Inherited_Identifier_Definition
      (Name : String;
-      Loc  : Errors.Location)
+      Loc  : Idlac_Errors.Location)
      return Identifier_Definition_Acc;
    --  Find the identifier definition in inherited interfaces.
    --  If this identifier is not defined, returns a null pointer.
@@ -93,10 +94,10 @@ package body Idl_Fe.Types is
 
    procedure Set_Location
      (N : Node_Id;
-      Loc : Errors.Location)
+      Loc : Idlac_Errors.Location)
    is
-      Loc2 : Errors.Location;
-      use Errors;
+      Loc2 : Idlac_Errors.Location;
+      use Idlac_Errors;
    begin
       Loc2.Col := Loc.Col;
       Loc2.Line := Loc.Line;
@@ -116,7 +117,7 @@ package body Idl_Fe.Types is
 
    function Get_Location
      (N : Node_Id)
-     return Errors.Location is
+     return Idlac_Errors.Location is
    begin
       return Loc (N);
    end Get_Location;
@@ -137,15 +138,15 @@ package body Idl_Fe.Types is
         & Minor_Image (Major_Image'First + 1 .. Minor_Image'Last);
    end Image;
 
-   ----------------------------------
-   --  Management of const values  --
-   ----------------------------------
+   --------------------------------
+   -- Management of const values --
+   --------------------------------
 
-   -----------------
-   --  Duplicate  --
-   -----------------
+   ---------------
+   -- Duplicate --
+   ---------------
 
-   function Duplicate (C : in Constant_Value_Ptr)
+   function Duplicate (C : Constant_Value_Ptr)
                        return Constant_Value_Ptr is
       Result : constant Constant_Value_Ptr
         := new Constant_Value (Kind => C.Kind);
@@ -189,9 +190,9 @@ package body Idl_Fe.Types is
       return Result;
    end Duplicate;
 
-   ------------
-   --  Free  --
-   ------------
+   ----------
+   -- Free --
+   ----------
 
    procedure Free (C : in out Constant_Value_Ptr) is
       procedure Real_Free is new Ada.Unchecked_Deallocation
@@ -208,46 +209,36 @@ package body Idl_Fe.Types is
       Real_Free (C);
    end Free;
 
+   --------------------
+   -- Lists of nodes --
+   --------------------
 
-   ---------------------
-   -- A list of nodes --
-   ---------------------
+   ----------
+   -- Head --
+   ----------
 
-   ------------
-   --  Head  --
-   ------------
-
-   function Head
-     (NL : Node_List)
-     return Node_Id is
+   function Head (NL : Node_List) return Node_Id is
    begin
       pragma Assert (NL /= Nil_List);
       return NL.Car;
    end Head;
 
-   ----------------
-   --  Is_Empty  --
-   ----------------
+   --------------
+   -- Is_Empty --
+   --------------
 
-   function Is_Empty
-     (NL : Node_List)
-     return Boolean is
+   function Is_Empty (NL : Node_List) return Boolean is
    begin
       return NL = Nil_List;
    end Is_Empty;
 
-   --------------
-   --  Length  --
-   --------------
+   ------------
+   -- Length --
+   ------------
 
-   function Length
-     (NL : Node_List)
-     return Natural
-   is
-      Current : Node_List
-        := NL;
-      Count : Natural
-        := 0;
+   function Length (NL : Node_List) return Natural is
+      Current : Node_List := NL;
+      Count   : Natural := 0;
    begin
       while not Is_Empty (Current) loop
          Count := Count + 1;
@@ -276,36 +267,42 @@ package body Idl_Fe.Types is
    begin
       pragma Debug (O ("Getting head of list at "
                        & Img (It.all'Address)));
-      Node := It.Car;
-      It := Node_Iterator (It.Cdr);
+      Node := Get_Node (It);
+      Next (It);
    end Get_Next_Node;
 
    --------------
-   --  Is_End  --
+   -- Get_Node --
    --------------
+
+   function Get_Node (It : Node_Iterator) return Node_Id is
+   begin
+      return It.Car;
+   end Get_Node;
+
+   ------------
+   -- Is_End --
+   ------------
+
    function Is_End (It : Node_Iterator) return Boolean is
    begin
       return Is_Empty (Node_List (It));
    end Is_End;
 
-   -------------------
-   --  Append_Node  --
-   -------------------
+   -----------------
+   -- Append_Node --
+   -----------------
 
-   procedure Append_Node
-     (List : in out Node_List;
-      Node : in Node_Id) is
+   procedure Append_Node (List : in out Node_List; Node : Node_Id) is
    begin
       List := Append_Node (List, Node);
    end Append_Node;
 
-   -------------------
-   --  Append_Node  --
-   -------------------
+   -----------------
+   -- Append_Node --
+   -----------------
 
-   function Append_Node
-     (List : Node_List;
-      Node : Node_Id) return Node_List
+   function Append_Node (List : Node_List; Node : Node_Id) return Node_List
    is
       Cell, Last : Node_List;
    begin
@@ -336,9 +333,7 @@ package body Idl_Fe.Types is
       pragma Assert (List /= Nil_List);
 
       if List.Car = Before then
-         Cell := new Node_List_Cell'
-           (Car => Node,
-            Cdr => List);
+         Cell := new Node_List_Cell'(Car => Node, Cdr => List);
          List := Cell;
       else
          Insert_Before (List.Cdr, Node, Before);
@@ -350,7 +345,7 @@ package body Idl_Fe.Types is
    ------------------
 
    procedure Insert_After
-     (List : in Node_List;
+     (List : Node_List;
       Node : Node_Id;
       After : Node_Id)
    is
@@ -359,23 +354,18 @@ package body Idl_Fe.Types is
       pragma Assert (List /= Nil_List);
 
       if List.Car = After then
-         Cell := new Node_List_Cell'
-           (Car => Node,
-            Cdr => List.Cdr);
+         Cell := new Node_List_Cell'(Car => Node, Cdr => List.Cdr);
          List.Cdr := Cell;
       else
          Insert_After (List.Cdr, Node, After);
       end if;
    end Insert_After;
 
-   ------------------
-   --  Is_In_List  --
-   ------------------
+   ----------------
+   -- Is_In_List --
+   ----------------
 
-   function Is_In_List
-     (List : Node_List;
-      Node : Node_Id)
-     return Boolean is
+   function Is_In_List (List : Node_List; Node : Node_Id) return Boolean is
    begin
       pragma Debug (O2 ("Is_In_List : enter"));
       if List = Nil_List then
@@ -394,14 +384,13 @@ package body Idl_Fe.Types is
       end if;
    end Is_In_List;
 
-   --------------------------
-   --  Is_In_Pointed_List  --
-   --------------------------
+   ------------------------
+   -- Is_In_Pointed_List --
+   ------------------------
 
    function Is_In_Pointed_List
      (List : Node_List;
-      Node : Node_Id)
-      return Boolean is
+      Node : Node_Id) return Boolean is
    begin
       if List = Nil_List then
          return False;
@@ -414,22 +403,21 @@ package body Idl_Fe.Types is
       end if;
    end Is_In_Pointed_List;
 
-   -------------------
-   --  Remove_Node  --
-   -------------------
+   ----------
+   -- Next --
+   ----------
 
-   procedure Unchecked_Deallocation is
-      new Ada.Unchecked_Deallocation
-     (Node_List_Cell, Node_List);
+   procedure Next (It : in out Node_Iterator) is
+   begin
+      It := Node_Iterator (It.Cdr);
+   end Next;
 
-   -------------------
-   --  Remove_Node  --
-   -------------------
+   -----------------
+   -- Remove_Node --
+   -----------------
 
-   function Remove_Node
-     (List : Node_List;
-      Node : Node_Id)
-     return Node_List is
+   function Remove_Node (List : Node_List; Node : Node_Id) return Node_List
+   is
    begin
       if List /= Nil_List then
          if List.Car = Node then
@@ -450,6 +438,10 @@ package body Idl_Fe.Types is
       return List;
    end Remove_Node;
 
+   -----------------
+   -- Remove_Node --
+   -----------------
+
    procedure Remove_Node
      (List : in out Node_List;
       Node : Node_Id) is
@@ -457,13 +449,11 @@ package body Idl_Fe.Types is
       List := Remove_Node (List, Node);
    end Remove_Node;
 
-   ------------
-   --  Free  --
-   ------------
+   ----------
+   -- Free --
+   ----------
 
-   procedure Free
-     (List : in out Node_List)
-   is
+   procedure Free (List : in out Node_List) is
       Old_List : Node_List;
    begin
       while List /= null loop
@@ -472,24 +462,6 @@ package body Idl_Fe.Types is
          Unchecked_Deallocation (Old_List);
       end loop;
    end Free;
-
-   ------------------
-   --  Get_Length  --
-   ------------------
-
-   function Get_Length
-     (List : Node_List)
-     return Integer
-   is
-      Temp_List : Node_List := List;
-      Result : Integer := 0;
-   begin
-      while Temp_List /= Nil_List loop
-         Result := Result + 1;
-         Temp_List := Temp_List.Cdr;
-      end loop;
-      return Result;
-   end Get_Length;
 
    --------------------------
    --  Simplify node list  --
@@ -516,7 +488,7 @@ package body Idl_Fe.Types is
 
    procedure Merge_List
      (Into : in out Node_List;
-      From : in Node_List)
+      From : Node_List)
    is
       It : Node_Iterator;
       N : Node_Id;
@@ -546,7 +518,7 @@ package body Idl_Fe.Types is
       if Definition  /= null then
          return Definition.Node;
       else
-         raise Errors.Fatal_Error;
+         raise Idlac_Errors.Fatal_Error;
       end if;
    end Get_Node;
 
@@ -556,7 +528,7 @@ package body Idl_Fe.Types is
 
    procedure Add_Identifier_Definition
      (Scope : Node_Id;
-      Definition : in Identifier_Definition_Acc;
+      Definition : Identifier_Definition_Acc;
       Is_Inheritable : Boolean)
    is
       List : Identifier_Definition_List;
@@ -613,7 +585,7 @@ package body Idl_Fe.Types is
    --  is currently null.
 
    procedure Allocate (T : in out Table;
-                       Num : in Integer := 1;
+                       Num : Integer := 1;
                        Result : out Uniq_Id) is
       Old_Last : constant Integer := T.Last_Val;
 
@@ -725,7 +697,7 @@ package body Idl_Fe.Types is
       Reallocate (T);
    end Release;
 
-   procedure Set_Last (T : in out Table; New_Val : in Uniq_Id) is
+   procedure Set_Last (T : in out Table; New_Val : Uniq_Id) is
    begin
       if Integer (New_Val) < T.Last_Val then
          T.Last_Val := Integer (New_Val);
@@ -748,7 +720,7 @@ package body Idl_Fe.Types is
    -- Hash  --
    -----------
 
-   function Hash (Str : in String) return Hash_Value_Type is
+   function Hash (Str : String) return Hash_Value_Type is
       Res : Hash_Value_Type := 0;
    begin
       for I in Str'Range loop
@@ -762,9 +734,8 @@ package body Idl_Fe.Types is
    -- Add_Int_Val_Forward --
    -------------------------
 
-
    procedure Add_Int_Val_Forward
-     (Node : in Node_Id)
+     (Node : Node_Id)
    is
       UF : Node_List
         := Unimplemented_Forwards (Get_Root_Scope);
@@ -779,7 +750,7 @@ package body Idl_Fe.Types is
    ----------------------------
 
    procedure Add_Int_Val_Definition
-     (Node : in Node_Id)
+     (Node : Node_Id)
    is
       UF : Node_List
         := Unimplemented_Forwards (Get_Root_Scope);
@@ -947,7 +918,7 @@ package body Idl_Fe.Types is
       if Current_Scope = null then
          pragma Debug (O ("Push_Scope : current_scope is null."));
          pragma Debug (O ("Push_Scope : root scope is defined at " &
-                          Errors.Location_To_String
+                          Idlac_Errors.Location_To_String
                           (Get_Location (Scope))));
          Root_Scope := Stack;
       end if;
@@ -1040,12 +1011,12 @@ package body Idl_Fe.Types is
          while not Is_End (Forward_Defs) loop
             Get_Next_Node (Forward_Defs, Forward_Def);
 
-            Errors.Error
+            Idlac_Errors.Error
               ("The forward declaration " &
-               Errors.Location_To_String
+               Idlac_Errors.Location_To_String
                (Get_Location (Forward_Def)) &
                " is not implemented.",
-               Errors.Error,
+               Idlac_Errors.Error,
                Get_Location (Old_Scope.Scope));
          end loop;
       end if;
@@ -1072,7 +1043,7 @@ package body Idl_Fe.Types is
 
    function Is_Redefinable
      (Name  : String;
-      Loc   : Errors.Location;
+      Loc   : Idlac_Errors.Location;
       Scope : Node_Id := No_Node)
      return Boolean is
       A_Definition : Identifier_Definition_Acc;
@@ -1275,7 +1246,7 @@ package body Idl_Fe.Types is
 
    function Find_Identifier_Definition
      (Name : String;
-      Loc  : Errors.Location)
+      Loc  : Idlac_Errors.Location)
      return Identifier_Definition_Acc
    is
       Index : Uniq_Id;
@@ -1335,7 +1306,7 @@ package body Idl_Fe.Types is
 
    function Find_Identifier_Node
      (Name : String;
-      Loc  : Errors.Location)
+      Loc  : Idlac_Errors.Location)
      return Node_Id is
       Definition : Identifier_Definition_Acc;
    begin
@@ -1358,7 +1329,7 @@ package body Idl_Fe.Types is
       pragma Debug (O2 ("Redefine_Identifier : begin"));
       if A_Definition.Node = No_Node
         or else Definition (Node) /= null then
-         raise Errors.Internal_Error;
+         raise Idlac_Errors.Internal_Error;
       end if;
 
       Set_Definition (A_Definition.Node, null);
@@ -1382,7 +1353,7 @@ package body Idl_Fe.Types is
       Definition : Identifier_Definition_Acc;
       Index      : Uniq_Id;
       Scop       : Node_Id;
-      Loc        : constant Errors.Location
+      Loc        : constant Idlac_Errors.Location
         := Get_Location (Node);
    begin
       if Scope = No_Node then
@@ -1501,9 +1472,9 @@ package body Idl_Fe.Types is
    -------------------------------
 
    procedure Add_Definition_To_Storage
-     (Scope      : in Node_Id;
-      Definition : in Identifier_Definition_Acc;
-      Is_Inheritable : in Boolean)
+     (Scope      : Node_Id;
+      Definition : Identifier_Definition_Acc;
+      Is_Inheritable : Boolean)
    is
       Index : Uniq_Id;
    begin
@@ -1523,7 +1494,6 @@ package body Idl_Fe.Types is
         Table (Index).Is_Inheritable := Is_Inheritable;
       pragma Debug (O2 ("Add_Definition_To_Storage : end"));
    end Add_Definition_To_Storage;
-
 
    -----------------------------------------
    -- Find_Imported_Identifier_Definition --
@@ -1576,8 +1546,8 @@ package body Idl_Fe.Types is
    --------------------------------
 
    procedure Add_Definition_To_Imported
-     (Definition : in Identifier_Definition_Acc;
-      Scope : in Node_Id)
+     (Definition : Identifier_Definition_Acc;
+      Scope : Node_Id)
    is
       Index : Uniq_Id;
       Definition_Test : Identifier_Definition_Acc;
@@ -1594,7 +1564,7 @@ package body Idl_Fe.Types is
         Imported_Table (Scope).Content_Table.Table (Index).Definition;
       if Definition_Test /= null then
          if Definition_Test /= Definition then
-            raise Errors.Internal_Error;
+            raise Idlac_Errors.Internal_Error;
          end if;
       end if;
       Imported_Table (Scope).Content_Table.
@@ -1606,8 +1576,8 @@ package body Idl_Fe.Types is
    ------------------------------------
 
    procedure Find_Identifier_In_Inheritance
-     (Name : in String;
-      Scope : in Node_Id;
+     (Name : String;
+      Scope : Node_Id;
       List : in out Node_List)
    is
       It : Node_Iterator;
@@ -1642,13 +1612,13 @@ package body Idl_Fe.Types is
       return;
    end Find_Identifier_In_Inheritance;
 
-   --------------------------------------------
-   --  Find_Inherited_Identifier_Definition  --
-   --------------------------------------------
+   ------------------------------------------
+   -- Find_Inherited_Identifier_Definition --
+   ------------------------------------------
 
    function Find_Inherited_Identifier_Definition
      (Name : String;
-      Loc  : Errors.Location)
+      Loc  : Idlac_Errors.Location)
      return Identifier_Definition_Acc
    is
       Temp_List   : Node_List := Nil_List;
@@ -1670,7 +1640,7 @@ package body Idl_Fe.Types is
         (Name, Current_Scope.Scope, Temp_List);
       Result_List := Simplify_Node_List (Temp_List);
 
-      case Get_Length (Result_List) is
+      case Length (Result_List) is
 
          when 0 =>
             pragma Debug (O ("Find_Inherited_Identifier_Definition: " &
@@ -1688,10 +1658,10 @@ package body Idl_Fe.Types is
             pragma Debug (O ("Find_Inherited_Identifier_Definition: " &
                              "Multiple definitions found in inheritance"));
 
-            Errors.Error ("Multiple definitions found" &
+            Idlac_Errors.Error ("Multiple definitions found" &
                           " in inheritance: ambiguous " &
                           "reference",
-                          Errors.Error,
+                          Idlac_Errors.Error,
                           Loc);
 
             Result := Definition (Head (Result_List));
@@ -1702,16 +1672,15 @@ package body Idl_Fe.Types is
       return Result;
    end Find_Inherited_Identifier_Definition;
 
-   -----------------------------------
-   --  dealing with Repository_Ids  --
-   -----------------------------------
+   ----------------------------------
+   -- Processing of Repository_Ids --
+   ----------------------------------
 
-   ---------------------------------
-   --  Set_Default_Repository_Id  --
-   ---------------------------------
+   -------------------------------
+   -- Set_Default_Repository_Id --
+   -------------------------------
 
-   procedure Set_Default_Repository_Id
-     (Node : Node_Id)
+   procedure Set_Default_Repository_Id (Node : Node_Id)
    is
       Prefix_Node : constant Node_Id
         := Current_Prefix (Get_Current_Scope);
@@ -1736,12 +1705,11 @@ package body Idl_Fe.Types is
       pragma Debug (O2 ("Set_Default_Repository_Id : end"));
    end Set_Default_Repository_Id;
 
-   ----------------------------------
-   --  Set_Initial_Current_Prefix  --
-   ----------------------------------
+   --------------------------------
+   -- Set_Initial_Current_Prefix --
+   --------------------------------
 
-   procedure Set_Initial_Current_Prefix
-     (Node : Node_Id) is
+   procedure Set_Initial_Current_Prefix (Node : Node_Id) is
    begin
       pragma Assert (Is_Scope (Node));
 

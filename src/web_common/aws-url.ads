@@ -1,31 +1,34 @@
 ------------------------------------------------------------------------------
---                              Ada Web Server                              --
 --                                                                          --
---                         Copyright (C) 2000-2002                          --
---                                ACT-Europe                                --
+--                           POLYORB COMPONENTS                             --
 --                                                                          --
---  Authors: Dmitriy Anisimkov - Pascal Obry                                --
+--                              A W S . U R L                               --
 --                                                                          --
---  This library is free software; you can redistribute it and/or modify    --
---  it under the terms of the GNU General Public License as published by    --
---  the Free Software Foundation; either version 2 of the License, or (at   --
---  your option) any later version.                                         --
+--                                 S p e c                                  --
 --                                                                          --
---  This library is distributed in the hope that it will be useful, but     --
---  WITHOUT ANY WARRANTY; without even the implied warranty of              --
---  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU       --
---  General Public License for more details.                                --
+--         Copyright (C) 2000-2006, Free Software Foundation, Inc.          --
 --                                                                          --
---  You should have received a copy of the GNU General Public License       --
---  along with this library; if not, write to the Free Software Foundation, --
---  Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.          --
+-- PolyORB is free software; you  can  redistribute  it and/or modify it    --
+-- under terms of the  GNU General Public License as published by the  Free --
+-- Software Foundation;  either version 2,  or (at your option)  any  later --
+-- version. PolyORB is distributed  in the hope that it will be  useful,    --
+-- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
+-- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
+-- License  for more details.  You should have received  a copy of the GNU  --
+-- General Public License distributed with PolyORB; see file COPYING. If    --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
---  As a special exception, if other files instantiate generics from this   --
---  unit, or you link this unit with other files to produce an executable,  --
---  this  unit  does not  by itself cause  the resulting executable to be   --
---  covered by the GNU General Public License. This exception does not      --
---  however invalidate any other reasons why the executable file  might be  --
---  covered by the  GNU Public License.                                     --
+-- As a special exception,  if other files  instantiate  generics from this --
+-- unit, or you link  this unit with other files  to produce an executable, --
+-- this  unit  does not  by itself cause  the resulting  executable  to  be --
+-- covered  by the  GNU  General  Public  License.  This exception does not --
+-- however invalidate  any other reasons why  the executable file  might be --
+-- covered by the  GNU Public License.                                      --
+--                                                                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
+--                                                                          --
 ------------------------------------------------------------------------------
 
 with Ada.Strings.Unbounded;
@@ -58,9 +61,9 @@ package AWS.URL is
    Default_HTTPS_Port : constant := 443;
 
    function Parse
-      (URL            : in String;
-       Check_Validity : in Boolean := True;
-       Normalize      : in Boolean := False)
+      (URL            : String;
+       Check_Validity : Boolean := True;
+       Normalize      : Boolean := False)
        return Object;
    --  Parse an URL and return an Object representing this URL. It is then
    --  possible to extract each part of the URL with the services bellow.
@@ -72,39 +75,39 @@ package AWS.URL is
    --  ".". Raises URL_Error if the URL reference a resource above the Web
    --  root directory.
 
-   function Is_Valid (URL : in Object) return Boolean;
+   function Is_Valid (URL : Object) return Boolean;
    --  Returns True if the URL is valid (does not reference directory above
    --  the Web root).
 
-   function URL (URL : in Object) return String;
+   function URL (URL : Object) return String;
    --  Returns full URL string, this can be different to the URL passed if it
    --  has been normalized.
 
-   function Protocol_Name (URL : in Object) return String;
+   function Protocol_Name (URL : Object) return String;
    --  Returns "http" or "https" depending on the protocol used by URL.
 
-   function Host (URL : in Object) return String;
+   function Host (URL : Object) return String;
    --  Returns the hostname.
 
-   function Protocol (URL : in Object) return String;
+   function Protocol (URL : Object) return String;
    --  returns the protocol used by the connection
 
-   function Port (URL : in Object) return Positive;
+   function Port (URL : Object) return Positive;
    --  Returns the port as a positive.
 
-   function Port (URL : in Object) return String;
+   function Port (URL : Object) return String;
    --  Returns the port as a string.
 
    function Abs_Path
-     (URL    : in Object;
-      Encode : in Boolean := False)
+     (URL    : Object;
+      Encode : Boolean := False)
       return String;
    --  Returns the absolute path. This is the complete resource reference
    --  without the query part.
 
    function Query
-     (URL    : in Object;
-      Encode : in Boolean := False)
+     (URL    : Object;
+      Encode : Boolean := False)
       return String;
    --  Returns the Query part of the URL or the empty string if none was
    --  specified. Note that character '?' is not part of the Query and is
@@ -114,66 +117,65 @@ package AWS.URL is
    --  Below are extended API not part of the RFC 2616 URL specification.
    --
 
-   function User (URL : in Object) return String;
+   function User (URL : Object) return String;
    --  Returns user name part of the URL. Returns the empty string if user was
    --  not specified.
 
-   function Password (URL : in Object) return String;
+   function Password (URL : Object) return String;
    --  Returns user's password part of the URL. Returns the empty string if
    --  password was not specified.
 
-   function Server_Name (URL : in Object) return String renames Host;
+   function Server_Name (URL : Object) return String renames Host;
 
-   function Security (URL : in Object) return Boolean;
+   function Security (URL : Object) return Boolean;
    --  Returns True if it is a Secure HTTP (HTTPS) URL.
 
-   function Path (URL : in Object; Encode : in Boolean := False) return String;
+   function Path (URL : Object; Encode : Boolean := False) return String;
    --  Returns the Path (including the leading slash). If Encode is True then
    --  the URL will be encoded using the Encode routine.
 
-   function File (URL : in Object; Encode : in Boolean := False) return String;
+   function File (URL : Object; Encode : Boolean := False) return String;
    --  Returns the File. If Encode is True then the URL will be encoded using
    --  the Encode routine. Not that by File here we mean the latest part of
    --  the URL, it could be a real file or a diretory into the filesystem.
    --  Parent and current directories are part of the path.
 
    function Parameters
-     (URL    : in Object;
-      Encode : in Boolean := False)
+     (URL    : Object;
+      Encode : Boolean := False)
       return String;
    --  Returns the Parameters (including the starting ? character). If Encode
    --  is True then the URL will be encoded using the Encode routine.
 
    function Pathname
-     (URL    : in Object;
-      Encode : in Boolean := False)
+     (URL    : Object;
+      Encode : Boolean := False)
       return String
       renames Abs_Path;
 
    function Pathname_And_Parameters
-     (URL    : in Object;
-      Encode : in Boolean := False)
+     (URL    : Object;
+      Encode : Boolean := False)
       return String;
    --  Returns the pathname and the parameters. This is equivalent to:
    --  Pathname & Parameters.
 
-   function URI (URL : in Object; Encode : in Boolean := False) return String;
+   function URI (URL : Object; Encode : Boolean := False) return String;
    --  Returns the URI. If Encode is True then the URI will be encoded using
    --  the Encode routine.
    --  For the SOAP personnality
-
 
    --
    --  URL Encoding and Decoding
    --
 
-   function Encode (Str : in String) return String;
+   function Encode (Str : String) return String;
    --  Encode Str into a URL-safe form. Many characters are forbiden into an
    --  URL and needs to be encoded. A character is encoded by %XY where XY is
    --  the character's ASCII hexadecimal code. For example a space is encoded
    --  as %20.
 
-   function Decode (Str : in String) return String;
+   function Decode (Str : String) return String;
    --  This is the oposite of Encode above.
 
 private

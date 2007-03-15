@@ -1,41 +1,39 @@
 ------------------------------------------------------------------------------
---                              Ada Web Server                              --
 --                                                                          --
---                         Copyright (C) 2000-2003                          --
---                                ACT-Europe                                --
+--                           POLYORB COMPONENTS                             --
 --                                                                          --
---  Authors: Dmitriy Anisimkov - Pascal Obry                                --
+--                          S O A P . C L I E N T                           --
 --                                                                          --
---  This library is free software; you can redistribute it and/or modify    --
---  it under the terms of the GNU General Public License as published by    --
---  the Free Software Foundation; either version 2 of the License, or (at   --
---  your option) any later version.                                         --
+--                                 B o d y                                  --
 --                                                                          --
---  This library is distributed in the hope that it will be useful, but     --
---  WITHOUT ANY WARRANTY; without even the implied warranty of              --
---  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU       --
---  General Public License for more details.                                --
+--         Copyright (C) 2000-2006, Free Software Foundation, Inc.          --
 --                                                                          --
---  You should have received a copy of the GNU General Public License       --
---  along with this library; if not, write to the Free Software Foundation, --
---  Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.          --
+-- PolyORB is free software; you  can  redistribute  it and/or modify it    --
+-- under terms of the  GNU General Public License as published by the  Free --
+-- Software Foundation;  either version 2,  or (at your option)  any  later --
+-- version. PolyORB is distributed  in the hope that it will be  useful,    --
+-- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
+-- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
+-- License  for more details.  You should have received  a copy of the GNU  --
+-- General Public License distributed with PolyORB; see file COPYING. If    --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
---  As a special exception, if other files instantiate generics from this   --
---  unit, or you link this unit with other files to produce an executable,  --
---  this  unit  does not  by itself cause  the resulting executable to be   --
---  covered by the GNU General Public License. This exception does not      --
---  however invalidate any other reasons why the executable file  might be  --
---  covered by the  GNU Public License.                                     --
+-- As a special exception,  if other files  instantiate  generics from this --
+-- unit, or you link  this unit with other files  to produce an executable, --
+-- this  unit  does not  by itself cause  the resulting  executable  to  be --
+-- covered  by the  GNU  General  Public  License.  This exception does not --
+-- however invalidate  any other reasons why  the executable file  might be --
+-- covered by the  GNU Public License.                                      --
+--                                                                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
+--                                                                          --
 ------------------------------------------------------------------------------
 
---  with Ada.Strings.Unbounded;
-
---  with SOAP.Message.XML;
-with SOAP.Message.Payload;
 with SOAP.Parameters;
 with SOAP.Types;
 
-with AWS.Client;
 with AWS.URL;
 
 with PolyORB.Any.NVList;
@@ -50,25 +48,27 @@ package body SOAP.Client is
    use PolyORB.Log;
    package L is
       new PolyORB.Log.Facility_Log ("aws.soap_client");
-   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+   procedure O (Message : Standard.String; Level : Log_Level := Debug)
      renames L.Output;
+   function C (Level : Log_Level := Debug) return Boolean
+     renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
    --  the polyorb logging facility
-
 
 --   use Ada.Strings.Unbounded;
 
    function Handle_Request
      (Connection : access AWS.Client.HTTP_Connection;
-      P          : in     SOAP.Message.Payload.Object;
-      SOAPAction : in     String)
+      P          : SOAP.Message.Payload.Object;
+      SOAPAction : String)
      return SOAP.Message.Response.Object'Class;
    --  sends the soap payload to the host specified in Connection,
    --  calling the method called SOAPAction
 
    function Handle_Request
      (Connection : access AWS.Client.HTTP_Connection;
-      P          : in     SOAP.Message.Payload.Object;
-      SOAPAction : in     String)
+      P          : SOAP.Message.Payload.Object;
+      SOAPAction : String)
      return SOAP.Message.Response.Object'Class
    is
       --  we read the method name stored in P, as we are sure it is
@@ -134,16 +134,14 @@ package body SOAP.Client is
 
    end Handle_Request;
 
-
-
    ----------
    -- Call --
    ----------
 
    function Call
-     (URL        : in String;
-      P          : in SOAP.Message.Payload.Object;
-      SOAPAction : in String         := Not_Specified)
+     (URL        : String;
+      P          : SOAP.Message.Payload.Object;
+      SOAPAction : String         := Not_Specified)
       return SOAP.Message.Response.Object'Class
    is
       use AWS.Client;
@@ -208,7 +206,7 @@ package body SOAP.Client is
 
    function Call
      (Connection : access AWS.Client.HTTP_Connection;
-      P          : in     SOAP.Message.Payload.Object)
+      P          : SOAP.Message.Payload.Object)
       return SOAP.Message.Response.Object'Class
    is
       use SOAP.Message.Payload;
@@ -227,4 +225,3 @@ package body SOAP.Client is
    end Call;
 
 end SOAP.Client;
-

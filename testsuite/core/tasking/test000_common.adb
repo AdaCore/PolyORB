@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -59,6 +59,9 @@ package body Test000_Common is
    package L is new PolyORB.Log.Facility_Log ("polyorb.tasking.test");
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
+   function C (Level : Log_Level := Debug) return Boolean
+     renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    procedure Tempo (Time_In_Seconds : Float := Delay_Used);
    --  Wait for Time_In_Seconds seconds.
@@ -923,7 +926,6 @@ package body Test000_Common is
    ------------
 
    procedure Test_1 is
-      use PolyORB.Tasking.Threads;
    begin
       Tempo;
       Counter.Increase;
@@ -947,7 +949,6 @@ package body Test000_Common is
    ------------
 
    procedure Test_2 is
-      use PolyORB.Tasking.Threads;
    begin
       Acc := Get_Current_Thread_Id (My_Thread_Factory);
       Tempo;
@@ -1192,9 +1193,7 @@ package body Test000_Common is
    ------------------
 
    procedure Test_Threads is
-      use PolyORB.Tasking.Threads;
-
-      Ok : Boolean := True;
+      Thr_Ok : Boolean;
    begin
       PolyORB.Utils.Report.New_Test ("Thread manipulation");
 
@@ -1219,9 +1218,10 @@ package body Test000_Common is
                null;
             end;
          end loop;
+         Thr_Ok := True;
       exception
          when Exc : others =>
-            Ok := False;
+            Thr_Ok := False;
             O ("main task "
                & " EXCEPTION RAISED ! "
                & Exception_Name (Exc)
@@ -1229,11 +1229,10 @@ package body Test000_Common is
                & Exception_Message (Exc));
       end;
       Synchro_Joiner.Join;
-      Ok := (Counter.Get = Number_Of_Tasks) and Ok;
+      Thr_Ok := (Counter.Get = Number_Of_Tasks) and Thr_Ok;
       PolyORB.Utils.Report.Output
-        ("test that the expected number of tasks is created", Ok);
+        ("test that the expected number of tasks is created", Thr_Ok);
 
-      Ok := True;
       Counter.Reset;
 
       begin
@@ -1255,19 +1254,19 @@ package body Test000_Common is
             end;
          end loop;
          Synchro_Joiner.Join;
+         Thr_Ok := True;
       exception
          when Exc : others =>
-            Ok := False;
+            Thr_Ok := False;
             O ("main task "
                & " EXCEPTION RAISED ! "
                & Exception_Name (Exc)
                & " : "
                & Exception_Message (Exc));
       end;
-      Ok := (Counter.Get >= 1) and Ok;
+      Thr_Ok := (Counter.Get >= 1) and Thr_Ok;
       PolyORB.Utils.Report.Output ("test Get_Current_Thread",
-                                   Ok);
-      Ok := True;
+                                   Thr_Ok);
    end Test_Threads;
 
    -------------------

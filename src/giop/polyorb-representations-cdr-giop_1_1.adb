@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -77,9 +77,9 @@ package body PolyORB.Representations.CDR.GIOP_1_1 is
    --------------
 
    procedure Marshall
-     (R      : in     GIOP_1_1_CDR_Representation;
+     (R      : GIOP_1_1_CDR_Representation;
       Buffer : access Buffers.Buffer_Type;
-      Data   : in     PolyORB.Types.Char;
+      Data   : PolyORB.Types.Char;
       Error  : in out Errors.Error_Container)
    is
    begin
@@ -97,9 +97,9 @@ package body PolyORB.Representations.CDR.GIOP_1_1 is
    --------------
 
    procedure Marshall
-     (R      : in     GIOP_1_1_CDR_Representation;
+     (R      : GIOP_1_1_CDR_Representation;
       Buffer : access Buffers.Buffer_Type;
-      Data   : in     PolyORB.Types.String;
+      Data   : PolyORB.Types.String;
       Error  : in out Errors.Error_Container)
    is
    begin
@@ -117,9 +117,9 @@ package body PolyORB.Representations.CDR.GIOP_1_1 is
    --------------
 
    procedure Marshall
-     (R      : in     GIOP_1_1_CDR_Representation;
+     (R      : GIOP_1_1_CDR_Representation;
       Buffer : access Buffers.Buffer_Type;
-      Data   : in     PolyORB.Types.Wchar;
+      Data   : PolyORB.Types.Wchar;
       Error  : in out Errors.Error_Container)
    is
    begin
@@ -141,9 +141,9 @@ package body PolyORB.Representations.CDR.GIOP_1_1 is
    --------------
 
    procedure Marshall
-     (R      : in     GIOP_1_1_CDR_Representation;
+     (R      : GIOP_1_1_CDR_Representation;
       Buffer : access Buffers.Buffer_Type;
-      Data   : in     PolyORB.Types.Wide_String;
+      Data   : PolyORB.Types.Wide_String;
       Error  : in out Errors.Error_Container)
    is
    begin
@@ -176,8 +176,8 @@ package body PolyORB.Representations.CDR.GIOP_1_1 is
 
    procedure Set_Converters
      (R : in out GIOP_1_1_CDR_Representation;
-      C : in     PolyORB.GIOP_P.Code_Sets.Converters.Converter_Access;
-      W : in     PolyORB.GIOP_P.Code_Sets.Converters.Wide_Converter_Access)
+      C : PolyORB.GIOP_P.Code_Sets.Converters.Converter_Access;
+      W : PolyORB.GIOP_P.Code_Sets.Converters.Wide_Converter_Access)
    is
    begin
       R.C_Converter := C;
@@ -189,7 +189,7 @@ package body PolyORB.Representations.CDR.GIOP_1_1 is
    ----------------
 
    procedure Unmarshall
-     (R      : in     GIOP_1_1_CDR_Representation;
+     (R      : GIOP_1_1_CDR_Representation;
       Buffer : access Buffers.Buffer_Type;
       Data   :    out PolyORB.Types.Char;
       Error  : in out Errors.Error_Container)
@@ -209,7 +209,7 @@ package body PolyORB.Representations.CDR.GIOP_1_1 is
    ----------------
 
    procedure Unmarshall
-     (R      : in     GIOP_1_1_CDR_Representation;
+     (R      : GIOP_1_1_CDR_Representation;
       Buffer : access Buffers.Buffer_Type;
       Data   :    out PolyORB.Types.String;
       Error  : in out Errors.Error_Container)
@@ -229,7 +229,7 @@ package body PolyORB.Representations.CDR.GIOP_1_1 is
    ----------------
 
    procedure Unmarshall
-     (R      : in     GIOP_1_1_CDR_Representation;
+     (R      : GIOP_1_1_CDR_Representation;
       Buffer : access Buffers.Buffer_Type;
       Data   :    out PolyORB.Types.Wchar;
       Error  : in out Errors.Error_Container)
@@ -253,7 +253,7 @@ package body PolyORB.Representations.CDR.GIOP_1_1 is
    ----------------
 
    procedure Unmarshall
-     (R      : in     GIOP_1_1_CDR_Representation;
+     (R      : GIOP_1_1_CDR_Representation;
       Buffer : access Buffers.Buffer_Type;
       Data   :    out PolyORB.Types.Wide_String;
       Error  : in out Errors.Error_Container)
@@ -285,6 +285,7 @@ begin
           Depends   => Empty,
           Provides  => Empty,
           Implicit  => False,
-          Init      => Deferred_Initialization'Access));
+          Init      => Deferred_Initialization'Access,
+          Shutdown  => null));
    end;
 end PolyORB.Representations.CDR.GIOP_1_1;

@@ -1,5 +1,11 @@
 include $(top_srcdir)/cos/Makefile.common
 
+# Override initial ADAFLAGS value to disable optimization if required
+
+if DISABLE_IR_OPTIMIZATION
+  ADAFLAGS+=-O0
+endif
+
 alidir = $(includedir)/polyorb/corba/cos
 
 IMPL_SPECS_WITH_BODY= \
@@ -139,15 +145,19 @@ GEN_SPECS_WITH_BODY= \
   corba-repository_root-wstringdef-skel.ads \
   corba-repository_root-wstringdef.ads
 
-GEN_BODIES = $(GEN_SPECS_WITH_BODY:.ads=.adb)
-
 GEN= \
 	$(GEN_SPECS_WITH_BODY)
 
-$(GEN): $(top_srcdir)/idls/CORBA_IDL/orb.idl $(top_srcdir)/idls/CORBA_IDL/CORBA_InterfaceRepository.idl $(top_srcdir)/idls/CORBA_IDL/CORBA_TypeCode.idl $(IDLAC)
-	$(IDLAC) -I$(top_srcdir)/idls/CORBA_IDL \
-		-I$(top_srcdir)/idls/CORBA_PIDL orb.idl
+$(GEN): orb.idl-stamp
+
+orb.idl-stamp: $(top_srcdir)/idls/CORBA_IDL/orb.idl $(top_srcdir)/idls/CORBA_IDL/CORBA_InterfaceRepository.idl $(top_srcdir)/idls/CORBA_IDL/CORBA_TypeCode.idl $(IDLAC_bin)
+	@chmod a+x $(IDLAC_WRAPPER)
+	$(IDLAC_WRAPPER) --idlac=$(IDLAC_bin) \
+		-I$(top_srcdir)/idls/CORBA_IDL \
+		-I$(top_srcdir)/idls/CORBA_PIDL \
+		$(IDLAC_FLAGS) $<
 	$(RM) corba-repository_root.ads
+	touch $@
 
 $(GEN_BODIES): $(GEN)
 
@@ -166,14 +176,16 @@ ADA_SPECS_WITH_BODY = \
 ADA_SPECS_NO_BODY = \
 	$(GEN_SPECS_NO_BODY)
 
+#
+# Note that the generated sources must be available before we recompile
+# the impl sources
+#
+
+IMPL_OBJS=$(IMPL_SPECS_WITH_BODY:.ads=.lo) $(IMPL_SPECS_NO_BODY:.ads=.lo)
+$(IMPL_OBJS): $(GEN)
+
 lib_LTLIBRARIES = libpolyorb-corba-cos-ir-impl.la
 
 libpolyorb_corba_cos_ir_impl_la_SOURCES = $(GEN_BODIES)
 libpolyorb_corba_cos_ir_impl_la_LIBADD  = $(ADA_LIBADD)
 libpolyorb_corba_cos_ir_impl_la_LDFLAGS = -no-undefined -version-info $(LIBVERSIONINFO)
-
-#
-# Executables to be compiled
-#   
-
-ir_exe=po_ir

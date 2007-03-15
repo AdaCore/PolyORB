@@ -49,7 +49,6 @@ with CORBA.Repository_Root.ValueDef.Helper;
 with CORBA.Repository_Root.ModuleDef.Helper;
 
 with PolyORB.Setup.Client;
-pragma Elaborate_All (PolyORB.Setup.Client);
 pragma Warnings (Off, PolyORB.Setup.Client);
 
 procedure PO_DumpIR is
@@ -226,7 +225,7 @@ procedure PO_DumpIR is
      (Des : ParDescriptionSeq;
       Inc : Standard.String)
    is
-      package PDS renames IDL_Sequence_CORBA_ParameterDescription;
+      package PDS renames IDL_SEQUENCE_CORBA_ParameterDescription;
       A : PDS.Element_Array
         := PDS.To_Element_Array (PDS.Sequence (Des));
 
@@ -354,7 +353,7 @@ procedure PO_DumpIR is
       Inc   : Standard.String)
    is
       package Contained_For_Seq renames
-        CORBA.Repository_Root.  IDL_Sequence_CORBA_Contained_Forward;
+        CORBA.Repository_Root.IDL_SEQUENCE_CORBA_Contained_Forward;
       Cont_Array : Contained_For_Seq.Element_Array
         := Contained_For_Seq.To_Element_Array
         (Contained_For_Seq.Sequence (In_Seq));
@@ -367,26 +366,26 @@ procedure PO_DumpIR is
          begin
             Put_Line (Inc & "Node     : " &
                       DefinitionKind'Image
-                      (get_def_kind (The_Ref)));
+                      (Get_def_kind (The_Ref)));
             Put_Line (Inc & "Name     : " &
                       CORBA.To_Standard_String
-                      (CORBA.String (get_name (The_Ref))));
+                      (CORBA.String (Get_name (The_Ref))));
             Put_Line (Inc & "Id       : " &
                       CORBA.To_Standard_String
-                      (CORBA.String (get_id (The_Ref))));
+                      (CORBA.String (Get_id (The_Ref))));
             Put_Line (Inc & "Vers     : " &
                       CORBA.To_Standard_String
-                      (CORBA.String (get_version (The_Ref))));
+                      (CORBA.String (Get_version (The_Ref))));
             Put_Line (Inc & "Abs-Name : " &
                       CORBA.To_Standard_String
                       (CORBA.String
-                       (get_absolute_name (The_Ref))));
+                       (Get_absolute_name (The_Ref))));
             Print_Description (Contained.describe (The_Ref), Inc);
             Put_Line (" ");
 
             --  Recursivity
 
-            case Contained.get_def_kind (The_Ref) is
+            case Contained.Get_def_kind (The_Ref) is
                when dk_Module =>
                   declare
                      R : Container.Ref := Container.Helper.To_Ref

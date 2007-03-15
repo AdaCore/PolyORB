@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -31,21 +31,21 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  The Request object.
+--  The Request object
 
 with PolyORB.Annotations;
 with PolyORB.Any.ExceptionList;
 with PolyORB.Any.NVList;
 with PolyORB.Components;
+with PolyORB.Errors;
 with PolyORB.References;
 with PolyORB.Smart_Pointers;
 with PolyORB.Task_Info;
-with PolyORB.Errors;
 with PolyORB.Types;
 with PolyORB.Utils.Simple_Flags;
-with PolyORB.Utils.Strings;
+pragma Elaborate_All (PolyORB.Utils.Simple_Flags);
 
-pragma Elaborate_All (PolyORB.Utils.Simple_Flags); --  WAG:3.15
+with PolyORB.Utils.Strings;
 
 package PolyORB.Requests is
 
@@ -136,10 +136,10 @@ package PolyORB.Requests is
       --  set to the Session on which the arguments are
       --  waiting to be unmarshalled.
 
-      Arguments_Called : Boolean := False;
-      --  Flag set to True once the Arguments operation has been
-      --  called on this request, to prevent it from being called
-      --  again.
+      Arguments_Called  : Boolean := False;
+      Set_Result_Called : Boolean := False;
+      --  Flags to guard against double invocation of Arguments and Set_Result
+      --  on the same request.
 
       --  When creating a Request object with deferred arguments,
       --  it is the Protocol layer's responsibility to ensure that
@@ -216,20 +216,20 @@ package PolyORB.Requests is
    type Request_Access is access all Request;
 
    procedure Create_Request
-     (Target                     : in     References.Ref;
-      Operation                  : in     String;
-      Arg_List                   : in     Any.NVList.Ref;
+     (Target                     : References.Ref;
+      Operation                  : String;
+      Arg_List                   : Any.NVList.Ref;
       Result                     : in out Any.NamedValue;
-      Exc_List                   : in     Any.ExceptionList.Ref
+      Exc_List                   : Any.ExceptionList.Ref
         := Any.ExceptionList.Nil_Ref;
       Req                        :    out Request_Access;
-      Req_Flags                  : in     Flags
+      Req_Flags                  : Flags
         := Default_Flags;
-      Deferred_Arguments_Session : in     Components.Component_Access
+      Deferred_Arguments_Session : Components.Component_Access
         := null;
-      Identification             : in     Arguments_Identification
+      Identification             : Arguments_Identification
         := Ident_By_Position;
-      Dependent_Binding_Object   : in     Smart_Pointers.Entity_Ptr
+      Dependent_Binding_Object   : Smart_Pointers.Entity_Ptr
         := null);
 
    procedure Invoke (Self : Request_Access; Invoke_Flags : Flags := 0);
@@ -262,6 +262,9 @@ package PolyORB.Requests is
       Error : in out Error_Container);
    --  Set the value of Self's result to Val
 
+   procedure Set_Exception (Self : Request_Access; Error : Error_Container);
+   pragma Inline (Set_Exception);
+
    procedure Set_Out_Args
      (Self           :        Request_Access;
       Error          : in out Error_Container;
@@ -274,6 +277,10 @@ package PolyORB.Requests is
 
    function Image (Req : Request) return String;
    --  For debugging purposes
+
+   procedure Reset_Request (Request : PolyORB.Requests.Request_Access);
+   --  Set request to a state where it can be re-issued: exception and
+   --  arguments status are reseted.
 
 private
 

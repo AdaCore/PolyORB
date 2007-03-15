@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
@@ -21,8 +21,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -71,36 +71,36 @@ package PortableInterceptor.ClientRequestInfo.Impl is
 
    function Get_Effective_Component
      (Self : access Object;
-      Id   : in     IOP.ComponentId)
+      Id   : IOP.ComponentId)
       return IOP.TaggedComponent;
 
---   function Get_Effective_Components
---     (Self : access Object;
---      Id   : in     IOP.ComponentId)
---      return IOP.TaggedComponentSeq;
+   function Get_Effective_Components
+     (Self : access Object;
+      Id   : IOP.ComponentId)
+      return IOP.TaggedComponentSeq;
 
    function Get_Request_Policy
      (Self     : access Object;
-      IDL_Type : in     CORBA.PolicyType)
+      IDL_Type : CORBA.PolicyType)
       return CORBA.Policy.Ref;
 
    procedure Add_Request_Service_Context
      (Self            : access Object;
-      Service_Context : in     IOP.ServiceContext;
-      Replace         : in     CORBA.Boolean);
+      Service_Context : IOP.ServiceContext;
+      Replace         : CORBA.Boolean);
 
    function Is_A
      (Self            : access Object;
-      Logical_Type_Id : in     String)
+      Logical_Type_Id : String)
       return Boolean;
 
    procedure Init
      (Self       : access Object;
-      Point      : in
+      Point      :
         PolyORB.CORBA_P.Interceptors.Client_Interception_Point;
-      Request    : in     PolyORB.Requests.Request_Access;
-      Request_Id : in     CORBA.Unsigned_Long;
-      Target     : in     CORBA.Object.Ref);
+      Request    : PolyORB.Requests.Request_Access;
+      Request_Id : CORBA.Unsigned_Long;
+      Target     : CORBA.Object.Ref);
    --  Implementation Note: This procedure initialize a ClientRequestInfo
    --  object. It is specific to PolyORB. You should not use it.
 
@@ -148,12 +148,12 @@ private
 
    function Get_Request_Service_Context
      (Self : access Object;
-      Id   : in     IOP.ServiceId)
+      Id   : IOP.ServiceId)
       return IOP.ServiceContext;
 
    function Get_Reply_Service_Context
      (Self : access Object;
-      Id   : in     IOP.ServiceId)
+      Id   : IOP.ServiceId)
       return IOP.ServiceContext;
 
 end PortableInterceptor.ClientRequestInfo.Impl;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2001 Free Software Foundation, Inc.             --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,14 +26,13 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 with Utils; use Utils;
 
-with Idl_Fe.Types; use Idl_Fe.Types;
 with Idl_Fe.Tree; use Idl_Fe.Tree;
 with Idl_Fe.Tree.Synthetic; use Idl_Fe.Tree.Synthetic;
 
@@ -42,17 +41,15 @@ pragma Elaborate_All (Ada_Be.Debug);
 
 package body Ada_Be.Identifiers is
 
-   --------------
-   --   Debug  --
-   --------------
-
    Flag : constant Natural
      := Ada_Be.Debug.Is_Active ("ada_be.identifiers");
    procedure O is new Ada_Be.Debug.Output (Flag);
 
-   function Ada_Full_Name
-     (Node : Node_Id)
-     return String is
+   -------------------
+   -- Ada_Full_Name --
+   -------------------
+
+   function Ada_Full_Name (Node : Node_Id) return String is
    begin
       pragma Debug
         (O ("Ada_Full_Name: enter (Node = " & Img (Node)
@@ -70,29 +67,27 @@ package body Ada_Be.Identifiers is
 
          when others =>
             declare
-               P_Node : constant Node_Id
-                 := Parent_Scope (Node);
+               P_Node    : constant Node_Id := Parent_Scope (Node);
+               Node_Name : constant String  := Ada_Name (Node);
             begin
                pragma Assert (Kind (P_Node) /= K_Repository);
 
                if Kind (P_Node) = K_Ben_Idl_File
-                 and then Is_Gen_Scope (Node) then
-                  return Ada_Name (Node);
+                 and then Is_Gen_Scope (Node)
+               then
+                  return Node_Name;
                else
-                  return Ada_Full_Name (P_Node)
-                    & "." & Ada_Name (Node);
+                  return Ada_Full_Name (P_Node) & "." & Node_Name;
                end if;
             end;
       end case;
    end Ada_Full_Name;
 
-   ----------------
-   --  Ada_Name  --
-   ----------------
-   function Ada_Name
-     (Node : Node_Id)
-     return String
-   is
+   --------------
+   -- Ada_Name --
+   --------------
+
+   function Ada_Name (Node : Node_Id) return String is
       Result : String
         := Name (Node);
       First : Integer := Result'First;
@@ -104,11 +99,24 @@ package body Ada_Be.Identifiers is
          First := First + 1;
       end loop;
 
-      for I in First .. Result'Last loop
-         if Result (I) = '_'
-           and then I < Result'Last
-           and then Result (I + 1) = '_' then
-            Result (I + 1) := 'U';
+      if NK = K_Operation
+        and then Original_Node (Node) /= No_Node
+        and then Kind (Original_Node (Node)) = K_Attribute
+      then
+         if Result (First) = 'g' then
+            Result (First) := 'G';
+         elsif Result (First) = 's' then
+            Result (First) := 'S';
+         else
+            raise Program_Error;
+         end if;
+      end if;
+
+      for J in First .. Result'Last loop
+         if Result (J) = '_'
+           and then J < Result'Last
+           and then Result (J + 1) = '_' then
+            Result (J + 1) := 'U';
          end if;
       end loop;
 

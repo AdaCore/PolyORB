@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -78,7 +78,7 @@ package PolyORB.Tasking.Profiles.No_Tasking.Threads is
       C                : PTT.Runnable_Controller_Access)
      return PTT.Thread_Access;
    --  This function has no sense in No_Tasking profile.
-   --  It simply raises a Tasking.Tasking_Profile_Error.
+   --  It simply raises a Tasking_Error.
 
    function Run_In_Task
      (TF               : access No_Tasking_Thread_Factory_Type;
@@ -88,7 +88,7 @@ package PolyORB.Tasking.Profiles.No_Tasking.Threads is
       P                : PTT.Parameterless_Procedure)
      return PTT.Thread_Access;
    --  This function has no sense in No_Tasking profile.
-   --  It simply raises a Tasking.Tasking_Profile_Error.
+   --  It simply raises a Tasking_Error.
 
    function Get_Current_Thread_Id
      (TF : access No_Tasking_Thread_Factory_Type)
@@ -108,15 +108,24 @@ package PolyORB.Tasking.Profiles.No_Tasking.Threads is
       T  :        PTT.Thread_Id;
       P  :        System.Any_Priority);
    pragma No_Return (Set_Priority);
-   --  Setting priority has no meaning under this profile,
-   --  raise PolyORB.Tasking.Tasking_Profile_Error.
+   --  Setting priority has no meaning under this profile, raise Tasking_Error
 
    function Get_Priority
      (TF : access No_Tasking_Thread_Factory_Type;
       T  :        PTT.Thread_Id)
      return System.Any_Priority;
-   --  Getting priority has no meaning under this profile,
-   --  raise PolyORB.Tasking.Tasking_Profile_Error.
+   --  Getting priority has no meaning under this profile, raise Tasking_Error
+
+   procedure Relative_Delay
+     (TF : access No_Tasking_Thread_Factory_Type; D : Duration);
+
+   function Awake_Count (TF : access No_Tasking_Thread_Factory_Type)
+     return Natural;
+   --  This function always return 1 under No_Tasking profile
+
+   function Independent_Count (TF : access No_Tasking_Thread_Factory_Type)
+     return Natural;
+   --  This function always return 0 under No_Tasking profile
 
 private
 

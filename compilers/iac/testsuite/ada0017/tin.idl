@@ -1,0 +1,12 @@
+interface i1 {
+  typedef string new_string;
+  typedef float New_Float; 
+  typedef new_string n2, tab[4][2];
+  typedef float f33 [120], f45 [4][5][6];
+ 
+  attribute string str;
+  attribute new_string S;
+  void min (in New_Float f1);
+  float Add (inout New_Float f1, in float f2); 
+  New_Float minus (in float f1, in float f2, out float r); 
+};

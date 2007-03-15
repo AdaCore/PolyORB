@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,36 +26,22 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with CORBA.Object;
-pragma Warnings (Off, CORBA.Object);
-
-with PortableServer;
-
 with CosEventComm.PullConsumer;
-
 with CosEventChannelAdmin;
 
-with CosEventChannelAdmin.ProxyPullSupplier.Helper;
-pragma Elaborate (CosEventChannelAdmin.ProxyPullSupplier.Helper);
-pragma Warnings (Off, CosEventChannelAdmin.ProxyPullSupplier.Helper);
-
-with CosEventChannelAdmin.ProxyPullSupplier.Skel;
-pragma Elaborate (CosEventChannelAdmin.ProxyPullSupplier.Skel);
-pragma Warnings (Off, CosEventChannelAdmin.ProxyPullSupplier.Skel);
-
-with CosEventChannelAdmin.ConsumerAdmin.Impl;
-
 with PolyORB.Log;
-
 with PolyORB.CORBA_P.Server_Tools;
 with PolyORB.Tasking.Mutexes;
 with PolyORB.Tasking.Semaphores;
 with PolyORB.Utils.Chained_Lists;
+
+with CosEventChannelAdmin.ProxyPullSupplier.Skel;
+pragma Warnings (Off, CosEventChannelAdmin.ProxyPullSupplier.Skel);
 
 package body CosEventChannelAdmin.ProxyPullSupplier.Impl is
 
@@ -70,8 +56,11 @@ package body CosEventChannelAdmin.ProxyPullSupplier.Impl is
 
    use PolyORB.Log;
    package L is new PolyORB.Log.Facility_Log ("proxypullsupplier");
-   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+   procedure O (Message : Standard.String; Level : Log_Level := Debug)
      renames L.Output;
+   function C (Level : Log_Level := Debug) return Boolean
+     renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    package Event_Queues is new PolyORB.Utils.Chained_Lists
      (CORBA.Any, CORBA."=");
@@ -112,7 +101,7 @@ package body CosEventChannelAdmin.ProxyPullSupplier.Impl is
 
    procedure Connect_Pull_Consumer
      (Self          : access Object;
-      Pull_Consumer : in     PullConsumer.Ref) is
+      Pull_Consumer : PullConsumer.Ref) is
    begin
       pragma Debug (O ("connect pull consumer to proxy pull supplier"));
       Ensure_Initialization;
@@ -187,7 +176,7 @@ package body CosEventChannelAdmin.ProxyPullSupplier.Impl is
 
    procedure Post
      (Self : access Object;
-      Data : in     CORBA.Any) is
+      Data : CORBA.Any) is
    begin
       pragma Debug (O ("post new data to proxy pull supplier"));
 

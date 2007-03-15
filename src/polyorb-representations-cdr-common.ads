@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -89,7 +89,7 @@ package PolyORB.Representations.CDR.Common is
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in     PolyORB.Types.Octet);
+      Data   : PolyORB.Types.Octet);
 
    function Unmarshall
      (Buffer : access Buffer_Type)
@@ -99,7 +99,7 @@ package PolyORB.Representations.CDR.Common is
 
    procedure Marshall_Latin_1_Char
      (Buffer : access Buffer_Type;
-      Data   : in     PolyORB.Types.Char);
+      Data   : PolyORB.Types.Char);
 
    function Unmarshall_Latin_1_Char
      (Buffer : access Buffer_Type)
@@ -113,7 +113,7 @@ package PolyORB.Representations.CDR.Common is
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in     PolyORB.Types.Boolean);
+      Data   : PolyORB.Types.Boolean);
 
    function Unmarshall
      (Buffer : access Buffer_Type)
@@ -127,7 +127,7 @@ package PolyORB.Representations.CDR.Common is
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in     PolyORB.Types.Unsigned_Short);
+      Data   : PolyORB.Types.Unsigned_Short);
 
    function Unmarshall
      (Buffer : access Buffer_Type)
@@ -141,7 +141,7 @@ package PolyORB.Representations.CDR.Common is
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in     PolyORB.Types.Unsigned_Long);
+      Data   : PolyORB.Types.Unsigned_Long);
 
    function Unmarshall
      (Buffer : access Buffer_Type)
@@ -155,7 +155,7 @@ package PolyORB.Representations.CDR.Common is
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in     PolyORB.Types.Unsigned_Long_Long);
+      Data   : PolyORB.Types.Unsigned_Long_Long);
 
    function Unmarshall
      (Buffer : access Buffer_Type)
@@ -169,7 +169,7 @@ package PolyORB.Representations.CDR.Common is
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in     PolyORB.Types.Short);
+      Data   : PolyORB.Types.Short);
 
    function Unmarshall
      (Buffer : access Buffer_Type)
@@ -183,7 +183,7 @@ package PolyORB.Representations.CDR.Common is
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in     PolyORB.Types.Long);
+      Data   : PolyORB.Types.Long);
 
    function Unmarshall
      (Buffer : access Buffer_Type)
@@ -197,7 +197,7 @@ package PolyORB.Representations.CDR.Common is
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in     PolyORB.Types.Long_Long);
+      Data   : PolyORB.Types.Long_Long);
 
    function Unmarshall
      (Buffer : access Buffer_Type)
@@ -211,7 +211,7 @@ package PolyORB.Representations.CDR.Common is
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in     PolyORB.Types.Float);
+      Data   : PolyORB.Types.Float);
 
    function Unmarshall
      (Buffer : access Buffer_Type)
@@ -225,7 +225,7 @@ package PolyORB.Representations.CDR.Common is
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in     PolyORB.Types.Double);
+      Data   : PolyORB.Types.Double);
 
    function Unmarshall
      (Buffer : access Buffer_Type)
@@ -239,7 +239,7 @@ package PolyORB.Representations.CDR.Common is
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in     PolyORB.Types.Long_Double);
+      Data   : PolyORB.Types.Long_Double);
 
    function Unmarshall
      (Buffer : access Buffer_Type)
@@ -249,7 +249,7 @@ package PolyORB.Representations.CDR.Common is
 
    procedure Marshall_Latin_1_String
      (Buffer : access Buffer_Type;
-      Data   : in     PolyORB.Types.String);
+      Data   : PolyORB.Types.String);
 
    function Unmarshall_Latin_1_String
      (Buffer : access Buffer_Type)
@@ -263,7 +263,7 @@ package PolyORB.Representations.CDR.Common is
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in     PolyORB.Types.Identifier);
+      Data   : PolyORB.Types.Identifier);
 
    function Unmarshall
      (Buffer : access Buffer_Type)
@@ -277,7 +277,7 @@ package PolyORB.Representations.CDR.Common is
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in     PolyORB.Types.RepositoryId);
+      Data   : PolyORB.Types.RepositoryId);
 
    function Unmarshall
      (Buffer : access Buffer_Type)
@@ -291,7 +291,7 @@ package PolyORB.Representations.CDR.Common is
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in     PolyORB.Any.ValueModifier);
+      Data   : PolyORB.Any.ValueModifier);
 
    function Unmarshall
      (Buffer : access Buffer_Type)
@@ -305,7 +305,7 @@ package PolyORB.Representations.CDR.Common is
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in     PolyORB.Any.Visibility);
+      Data   : PolyORB.Any.Visibility);
 
    function Unmarshall
      (Buffer : access Buffer_Type)
@@ -315,7 +315,7 @@ package PolyORB.Representations.CDR.Common is
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in     PolyORB.References.Ref'Class);
+      Data   : PolyORB.References.Ref'Class);
 
    procedure Unmarshall
      (Buffer : access Buffer_Type;
@@ -333,7 +333,7 @@ package PolyORB.Representations.CDR.Common is
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in     Stream_Element_Array);
+      Data   : Stream_Element_Array);
 
    function Unmarshall
      (Buffer : access Buffer_Type)
@@ -351,14 +351,14 @@ package PolyORB.Representations.CDR.Common is
 
       procedure Marshall
         (Buffer : access Buffer_Type;
-         Data   : in     F);
+         Data   : F);
 
       function Unmarshall
         (Buffer : access Buffer_Type)
         return F;
 
       function Fixed_To_Octets
-        (Data : in F)
+        (Data : F)
         return Stream_Element_Array;
 
       function Octets_To_Fixed
@@ -371,7 +371,7 @@ package PolyORB.Representations.CDR.Common is
 
    procedure Marshall_Latin_1_String
      (Buffer : access Buffer_Type;
-      Data   : in     Standard.String);
+      Data   : Standard.String);
 
    function Unmarshall_Latin_1_String
      (Buffer : access Buffer_Type)

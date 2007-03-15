@@ -57,5 +57,3 @@ package body PolyORB.Tasking.Threads.Annotations is
    end Get_Current_Thread_Notepad;
 
 end PolyORB.Tasking.Threads.Annotations;
-
-

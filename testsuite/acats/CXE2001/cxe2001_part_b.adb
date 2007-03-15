@@ -19,12 +19,10 @@ package body CXE2001_Part_B is
     Report.Result;
   end Test_Finished;
 
-
   procedure Set_Shared_Data (Value : Integer) is
   begin
     CXE2001_Shared.Shared_Data := Value;
   end Set_Shared_Data;
-
 
   procedure Increment_Counter is
   begin

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -37,6 +37,7 @@ with PolyORB.Binding_Data;
 with PolyORB.Components;
 with PolyORB.Errors;
 with PolyORB.ORB;
+with PolyORB.QoS;
 
 package PolyORB.References.Binding is
 
@@ -45,6 +46,7 @@ package PolyORB.References.Binding is
    procedure Bind
      (R          :        Ref'Class;
       Local_ORB  :        ORB.ORB_Access;
+      QoS        :        PolyORB.QoS.QoS_Parameters;
       Servant    :    out Components.Component_Access;
       Pro        :    out Binding_Data.Profile_Access;
       Local_Only :        Boolean;
@@ -65,6 +67,9 @@ package PolyORB.References.Binding is
    --  and the returned Servant will be an actual local servant
    --  (not a surrogate).
 
+   procedure Unbind (R : Ref'Class);
+   --  Dissociate R from its continuation
+
    procedure Get_Tagged_Profile
      (R         :        Ref;
       Tag       :        Binding_Data.Profile_Tag;
@@ -75,5 +80,13 @@ package PolyORB.References.Binding is
    --  proxy profile that designates R using this ORB as
    --  a proxy. If R has no profile matching Tag, and this
    --  ORB cannot behave as a proxy either, null is returned.
+
+   function Get_Preferred_Profile
+     (R            : Ref'Class;
+      Ignore_Local : Boolean)
+      return Binding_Data.Profile_Access;
+   --  Compute preferred profile which will be used in object binding
+   --  operation. If Ignore_Local is True then ignore local profile even
+   --  if it is a most preferred profile.
 
 end PolyORB.References.Binding;

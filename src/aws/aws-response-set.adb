@@ -1,31 +1,34 @@
 ------------------------------------------------------------------------------
---                              Ada Web Server                              --
 --                                                                          --
---                         Copyright (C) 2002-2003                          --
---                                ACT-Europe                                --
+--                           POLYORB COMPONENTS                             --
 --                                                                          --
---  Authors: Dmitriy Anisimkov - Pascal Obry                                --
+--                     A W S . R E S P O N S E . S E T                      --
 --                                                                          --
---  This library is free software; you can redistribute it and/or modify    --
---  it under the terms of the GNU General Public License as published by    --
---  the Free Software Foundation; either version 2 of the License, or (at   --
---  your option) any later version.                                         --
+--                                 B o d y                                  --
 --                                                                          --
---  This library is distributed in the hope that it will be useful, but     --
---  WITHOUT ANY WARRANTY; without even the implied warranty of              --
---  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU       --
---  General Public License for more details.                                --
+--         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
 --                                                                          --
---  You should have received a copy of the GNU General Public License       --
---  along with this library; if not, write to the Free Software Foundation, --
---  Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.          --
+-- PolyORB is free software; you  can  redistribute  it and/or modify it    --
+-- under terms of the  GNU General Public License as published by the  Free --
+-- Software Foundation;  either version 2,  or (at your option)  any  later --
+-- version. PolyORB is distributed  in the hope that it will be  useful,    --
+-- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
+-- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
+-- License  for more details.  You should have received  a copy of the GNU  --
+-- General Public License distributed with PolyORB; see file COPYING. If    --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
---  As a special exception, if other files instantiate generics from this   --
---  unit, or you link this unit with other files to produce an executable,  --
---  this  unit  does not  by itself cause  the resulting executable to be   --
---  covered by the GNU General Public License. This exception does not      --
---  however invalidate any other reasons why the executable file  might be  --
---  covered by the  GNU Public License.                                     --
+-- As a special exception,  if other files  instantiate  generics from this --
+-- unit, or you link  this unit with other files  to produce an executable, --
+-- this  unit  does not  by itself cause  the resulting  executable  to  be --
+-- covered  by the  GNU  General  Public  License.  This exception does not --
+-- however invalidate  any other reasons why  the executable file  might be --
+-- covered by the  GNU Public License.                                      --
+--                                                                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
+--                                                                          --
 ------------------------------------------------------------------------------
 
 with AWS.Translator;
@@ -45,8 +48,8 @@ package body AWS.Response.Set is
 
    procedure Add_Header
      (D     : in out Data;
-      Name  : in     String;
-      Value : in     String) is
+      Name  : String;
+      Value : String) is
    begin
       Headers.Set.Add (D.Header, Name, Value);
    end Add_Header;
@@ -57,9 +60,9 @@ package body AWS.Response.Set is
 
    procedure Authentication
      (D     : in out Data;
-      Realm : in     String;
-      Mode  : in     Authentication_Mode := Basic;
-      Stale : in     Boolean             := False)
+      Realm : String;
+      Mode  : Authentication_Mode := Basic;
+      Stale : Boolean             := False)
    is
       N : Positive := 1;
       --  The index for the update of WWW-Authenticate header values.
@@ -101,7 +104,7 @@ package body AWS.Response.Set is
 
    procedure Cache_Control
      (D     : in out Data;
-      Value : in     Messages.Cache_Option) is
+      Value : Messages.Cache_Option) is
    begin
       Headers.Set.Update
         (D.Header,
@@ -115,7 +118,7 @@ package body AWS.Response.Set is
 
    procedure Content_Length
      (D     : in out Data;
-      Value : in     Natural) is
+      Value : Natural) is
    begin
       D.Content_Length := Value;
    end Content_Length;
@@ -126,7 +129,7 @@ package body AWS.Response.Set is
 
    procedure Content_Type
      (D     : in out Data;
-      Value : in     String) is
+      Value : String) is
    begin
       Headers.Set.Update
         (D.Header,
@@ -140,7 +143,7 @@ package body AWS.Response.Set is
 
    procedure Filename
      (D     : in out Data;
-      Value : in     String) is
+      Value : String) is
    begin
       D.Filename       := To_Unbounded_String (Value);
       D.Mode           := File;
@@ -151,7 +154,7 @@ package body AWS.Response.Set is
    -- Is_Valid --
    --------------
 
-   function Is_Valid (D : in Data) return Boolean is
+   function Is_Valid (D : Data) return Boolean is
       use type Messages.Status_Code;
       Redirection_Code : Boolean;
    begin
@@ -186,7 +189,7 @@ package body AWS.Response.Set is
 
    procedure Location
      (D     : in out Data;
-      Value : in     String) is
+      Value : String) is
    begin
       Headers.Set.Update
         (D.Header,
@@ -200,7 +203,7 @@ package body AWS.Response.Set is
 
    procedure Message_Body
      (D     : in out Data;
-      Value : in     Streams.Stream_Element_Array) is
+      Value : Streams.Stream_Element_Array) is
    begin
       Utils.Free (D.Message_Body);
       D.Message_Body   := new Streams.Stream_Element_Array'(Value);
@@ -210,7 +213,7 @@ package body AWS.Response.Set is
 
    procedure Message_Body
      (D     : in out Data;
-      Value : in     Utils.Stream_Element_Array_Access) is
+      Value : Utils.Stream_Element_Array_Access) is
    begin
       Utils.Free (D.Message_Body);
       D.Message_Body   := Value;
@@ -220,26 +223,25 @@ package body AWS.Response.Set is
 
    procedure Message_Body
      (D     : in out Data;
-      Value : in     String) is
+      Value : String) is
    begin
       Message_Body (D, Translator.To_Stream_Element_Array (Value));
    end Message_Body;
 
    procedure Message_Body
      (D     : in out Data;
-      Value : in     Strings.Unbounded.Unbounded_String) is
+      Value : Strings.Unbounded.Unbounded_String) is
    begin
       Message_Body (D, To_String (Value));
    end Message_Body;
 
    procedure Message_Body
      (D     : in out Data;
-      Value : in     SOAP.Message.Response.Object) is
+      Value : SOAP.Message.Response.Object) is
    begin
       D.SOAP_Message := SOAP.Message.Response.Object'(Value);
       D.Mode := SOAP_Message;
    end Message_Body;
-
 
    ----------
    -- Mode --
@@ -247,7 +249,7 @@ package body AWS.Response.Set is
 
    procedure Mode
      (D     : in out Data;
-      Value : in     Data_Mode) is
+      Value : Data_Mode) is
    begin
       D.Mode := Value;
    end Mode;
@@ -257,7 +259,7 @@ package body AWS.Response.Set is
    -----------------
 
 --     procedure Read_Header
---       (Socket : in     Net.Socket_Type'Class;
+--       (Socket : Net.Socket_Type'Class;
 --        D      : in out Data) is
 --     begin
 --        pragma Warnings (Off);
@@ -273,7 +275,7 @@ package body AWS.Response.Set is
 
    procedure Status_Code
      (D     : in out Data;
-      Value : in     Messages.Status_Code) is
+      Value : Messages.Status_Code) is
    begin
       D.Status_Code := Value;
    end Status_Code;
@@ -284,8 +286,8 @@ package body AWS.Response.Set is
 
    procedure Stream
      (D              : in out Data;
-      Handle         : in     Resources.Streams.Stream_Access;
-      Content_Length : in     Content_Length_Type) is
+      Handle         : Resources.Streams.Stream_Access;
+      Content_Length : Content_Length_Type) is
    begin
       D.Stream         := Handle;
       D.Content_Length := Content_Length;
@@ -313,9 +315,9 @@ package body AWS.Response.Set is
 
    procedure Update_Header
      (D     : in out Data;
-      Name  : in     String;
-      Value : in     String;
-      N     : in     Positive := 1) is
+      Name  : String;
+      Value : String;
+      N     : Positive := 1) is
    begin
       Headers.Set.Update (D.Header, Name, Value, N);
    end Update_Header;

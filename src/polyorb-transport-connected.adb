@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -46,8 +46,11 @@ package body PolyORB.Transport.Connected is
    use PolyORB.Log;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.transport.connected");
-   procedure O (Message : in String; Level : Log_Level := Debug)
+   procedure O (Message : String; Level : Log_Level := Debug)
      renames L.Output;
+   function C (Level : Log_Level := Debug) return Boolean
+     renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    ------------------
    -- Handle_Event --
@@ -65,23 +68,36 @@ package body PolyORB.Transport.Connected is
    begin
       pragma Debug (O ("Handle_Event: Connected TAP AES"));
 
+      --  Create transport endpoint
+
       Accept_Connection
         (Connected_Transport_Access_Point'Class (H.TAP.all), New_TE);
-      Set_Allocation_Class (New_TE.all, Dynamic);
-      --  Create transport endpoint.
 
-      Binding_Objects.Setup_Binding_Object
-        (The_ORB => H.ORB,
-         TE      => New_TE,
-         FFC     => H.Filter_Factory_Chain.all,
-         Role    => ORB.Server,
-         BO_Ref  => New_TE.Dependent_Binding_Object);
-      --  Setup binding object.
+      if New_TE /= null then
+         Set_Allocation_Class (New_TE.all, Dynamic);
+
+         --  Build a binding object based on the newly-created endpoint
+
+         Binding_Objects.Setup_Binding_Object
+           (TE      => New_TE,
+            FFC     => H.Filter_Factory_Chain.all,
+            BO_Ref  => New_TE.Dependent_Binding_Object,
+            Pro     => null);
+         --  XXX Until bidirectional BOs are implemented,
+         --  We mark Server BOs as having a null Profile
+         --  cf. PolyORB.ORB.Find_Reusable_Binding_Object.
+
+         ORB.Register_Binding_Object
+           (H.ORB,
+            New_TE.Dependent_Binding_Object,
+            ORB.Server);
+      end if;
+
+      --  Continue monitoring the TAP's AES
 
       Emit_No_Reply
         (Component_Access (H.ORB),
          Monitor_Access_Point'(TAP => H.TAP));
-      --  Continue monitoring the TAP's AES.
    end Handle_Event;
 
    --------------------
@@ -113,22 +129,9 @@ package body PolyORB.Transport.Connected is
             TE.Max    := DE.Max;
          end;
 
-         if Is_Data_Available (Connected_Transport_Endpoint'Class (TE.all),
-                               Natural (TE.Max))
-         then
-            pragma Debug (O ("TE has " & TE.Max'Img
-                             & " bytes waiting, will read data"));
-
-            return Handle_Message
-              (TE, Data_Indication'(Data_Amount => TE.Max));
-         else
-            pragma Debug (O ("No enough data on TE, ORB will monitor TE"));
-
-            return Emit
-              (TE.Server, ORB.Iface.Monitor_Endpoint'
-               (TE => Transport_Endpoint_Access (TE)));
-         end if;
-
+         return Emit
+           (TE.Server, ORB.Iface.Monitor_Endpoint'
+              (TE => Transport_Endpoint_Access (TE)));
 
       elsif Msg in Data_Indication then
          pragma Debug (O ("Data received"));
@@ -140,24 +143,26 @@ package body PolyORB.Transport.Connected is
             Error : Error_Container;
          begin
 
-            if TE.In_Buf = null then
-               O ("Unexpected data (no buffer)");
-
-               Throw (Error, Comm_Failure_E,
-                      System_Exception_Members'
-                      (Minor => 0, Completed => Completed_Maybe));
-               --  Notify the ORB that the socket was disconnected.
-
-            else
+            if TE.In_Buf /= null then
                Read
                  (Transport_Endpoint'Class (TE.all), TE.In_Buf, Size, Error);
             end if;
 
-            if not Is_Error (Error) and then Size /= 0 then
+            if TE.In_Buf = null
+              or else (Size = 0 and then not Is_Error (Error))
+            then
+               Throw (Error, Comm_Failure_E,
+                      System_Exception_Members'
+                        (Minor => 0, Completed => Completed_Maybe));
+            end if;
+
+            if not Is_Error (Error) then
                return Emit (TE.Upper, Data_Indication'
                             (Data_Amount => Size));
+
             else
                return Filter_Error'(Error => Error);
+
             end if;
          end;
 
@@ -188,9 +193,12 @@ package body PolyORB.Transport.Connected is
          Close (Transport_Endpoint'Class (TE.all)'Access);
 
       else
+
          --  Must not happen
+
          raise Program_Error;
       end if;
+
       return Nothing;
    end Handle_Message;
 

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2004 Free Software Foundation, Inc.             --
+--         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
@@ -21,8 +21,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -31,8 +31,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -53,9 +53,9 @@ package PortableInterceptor.ORBInitInfo.Impl is
    --  raising exception in case of call object operations after
    --  initialization complete. XXX reword this comment
 
---   function Get_Arguments
---     (Self : access Object)
---      return CORBA.StringSeq;
+   function Get_Arguments
+     (Self : access Object)
+     return CORBA.IDL_SEQUENCES.StringSeq;
 
    function Get_ORB_Id (Self : access Object) return CORBA.String;
 
@@ -65,27 +65,27 @@ package PortableInterceptor.ORBInitInfo.Impl is
 
    procedure Register_Initial_Reference
      (Self : access Object;
-      Id   : in     PortableInterceptor.ORBInitInfo.ObjectId;
-      Obj  : in     CORBA.Object.Ref);
+      Id   : PortableInterceptor.ORBInitInfo.ObjectId;
+      Obj  : CORBA.Object.Ref);
 
    function Resolve_Initial_References
      (Self : access Object;
-      Id   : in     PortableInterceptor.ORBInitInfo.ObjectId)
+      Id   : PortableInterceptor.ORBInitInfo.ObjectId)
       return CORBA.Object.Ref;
 
    procedure Add_Client_Request_Interceptor
      (Self        : access Object;
-      Interceptor : in
+      Interceptor :
         PortableInterceptor.ClientRequestInterceptor.Local_Ref);
 
    procedure Add_Server_Request_Interceptor
      (Self        : access Object;
-      Interceptor : in
+      Interceptor :
         PortableInterceptor.ServerRequestInterceptor.Local_Ref);
 
    procedure Add_IOR_Interceptor
      (Self        : access Object;
-      Interceptor : in     PortableInterceptor.IORInterceptor.Local_Ref);
+      Interceptor : PortableInterceptor.IORInterceptor.Local_Ref);
 
    function Allocate_Slot_Id
      (Self : access Object)
@@ -93,12 +93,12 @@ package PortableInterceptor.ORBInitInfo.Impl is
 
    procedure Register_Policy_Factory
      (Self           : access Object;
-      IDL_Type       : in     CORBA.PolicyType;
-      Policy_Factory : in     PortableInterceptor.PolicyFactory.Local_Ref);
+      IDL_Type       : CORBA.PolicyType;
+      Policy_Factory : PortableInterceptor.PolicyFactory.Local_Ref);
 
    function Is_A
      (Self            : access Object;
-      Logical_Type_Id : in     String)
+      Logical_Type_Id : String)
       return Boolean;
 
 private

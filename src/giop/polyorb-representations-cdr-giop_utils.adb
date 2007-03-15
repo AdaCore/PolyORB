@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -39,8 +39,11 @@ package body PolyORB.Representations.CDR.GIOP_Utils is
 
    package L is
      new PolyORB.Log.Facility_Log ("polyorb.representations.cdr.giop_utils");
-   procedure O (Message : in String; Level : Log_Level := Debug)
+   procedure O (Message : String; Level : Log_Level := Debug)
      renames L.Output;
+   function C (Level : Log_Level := Debug) return Boolean
+     renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    --------------
    -- Marshall --
@@ -48,13 +51,18 @@ package body PolyORB.Representations.CDR.GIOP_Utils is
 
    procedure Marshall
      (Buffer         : access Buffers.Buffer_Type;
-      Representation : in     CDR_Representation'Class;
-      Data           : in     PolyORB.Any.NamedValue;
+      Representation : CDR_Representation'Class;
+      Data           : PolyORB.Any.NamedValue;
       Error          : in out Errors.Error_Container)
    is
+      use PolyORB.Any;
    begin
       pragma Debug (O ("Marshall (NamedValue) : enter"));
-      Marshall_From_Any (Representation, Buffer, Data.Argument, Error);
+      Marshall_From_Any
+        (Representation,
+         Buffer,
+         Get_Container (Data.Argument).all,
+         Error);
       pragma Debug (O ("Marshall (NamedValue) : end"));
    end Marshall;
 
@@ -64,14 +72,19 @@ package body PolyORB.Representations.CDR.GIOP_Utils is
 
    procedure Unmarshall
      (Buffer         : access Buffers.Buffer_Type;
-      Representation : in     CDR_Representation'Class;
-      Data           :    out PolyORB.Any.NamedValue;
+      Representation : CDR_Representation'Class;
+      Data           : in out PolyORB.Any.NamedValue;
       Error          : in out Errors.Error_Container)
    is
+      use PolyORB.Any;
    begin
       pragma Debug (O ("Unmarshall (NamedValue) : enter"));
 
-      Unmarshall_To_Any (Representation, Buffer, Data.Argument, Error);
+      Unmarshall_To_Any
+        (Representation,
+         Buffer,
+         Get_Container (Data.Argument).all,
+         Error);
 
       pragma Debug (O ("Unmarshall (NamedValue) : is_empty := "
                        & Boolean'Image (PolyORB.Any.Is_Empty

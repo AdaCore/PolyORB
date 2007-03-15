@@ -44,21 +44,18 @@ with PolyORB.Initialization;
 with PolyORB.Servants;
 with PolyORB.Types;
 with PolyORB.Utils.Report;
-with PolyORB.Parameters.File;
-pragma Warnings (Off, PolyORB.Parameters.File);
-with PolyORB.Log.Stderr;
-pragma Warnings (Off, PolyORB.Log.Stderr);
+
+with PolyORB.Setup.Base;
+pragma Warnings (Off, PolyORB.Setup.Base);
+
 with PolyORB.ORB.No_Tasking;
 pragma Warnings (Off, PolyORB.ORB.No_Tasking);
-pragma Elaborate_All (PolyORB.ORB.No_Tasking);
 
-with PolyORB.ORB_Controller.Basic;
-pragma Warnings (Off, PolyORB.ORB_Controller.Basic);
-pragma Elaborate_All (PolyORB.ORB_Controller.Basic);
+with PolyORB.ORB_Controller.Workers;
+pragma Warnings (Off, PolyORB.ORB_Controller.Workers);
 
 with PolyORB.Setup.Tasking.No_Tasking;
 pragma Warnings (Off, PolyORB.Setup.Tasking.No_Tasking);
-pragma Elaborate_All (PolyORB.Setup.Tasking.No_Tasking);
 
 with PolyORB.POA.Basic_POA;
 --  POA to be tested
@@ -398,7 +395,6 @@ procedure Test000 is
 
       use Test_Servant;
 
-
       S1  : My_Servant_Access;
       Root_POA : Obj_Adapter_Access;
 
@@ -411,7 +407,6 @@ procedure Test000 is
       S1 := new My_Servant;
       S1.Nb    := 1;
       S1.Name  := To_PolyORB_String ("Servant1");
-
 
       begin
          Root_POA := new PolyORB.POA.Basic_POA.Basic_Obj_Adapter;

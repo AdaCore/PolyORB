@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,10 +26,12 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
+
+with PortableServer.ServantActivator.Impl;
 
 package body PortableServer.ServantActivator is
 
@@ -38,19 +40,17 @@ package body PortableServer.ServantActivator is
    ---------------
 
    function Incarnate
-     (Self    : in Ref;
-      Oid     : in PortableServer.ObjectId;
-      Adapter : in PortableServer.POA_Forward.Ref)
-     return PortableServer.Servant
+     (Self    : Local_Ref;
+      Oid     : PortableServer.ObjectId;
+      Adapter : PortableServer.POA_Forward.Ref)
+      return PortableServer.Servant
    is
-      pragma Warnings (Off);
-      pragma Unreferenced (Self);
-      pragma Unreferenced (Oid);
-      pragma Unreferenced (Adapter);
-      pragma Warnings (On);
-
    begin
-      return null;
+      if CORBA.Object.Is_Nil (CORBA.Object.Ref (Self)) then
+         CORBA.Raise_Inv_Objref (CORBA.Default_Sys_Member);
+      end if;
+
+      return Impl.Incarnate (Impl.Object_Ptr (Entity_Of (Self)), Oid, Adapter);
    end Incarnate;
 
    -----------------
@@ -58,24 +58,25 @@ package body PortableServer.ServantActivator is
    -----------------
 
    procedure Etherealize
-     (Self                  : in Ref;
-      Oid                   : in PortableServer.ObjectId;
-      Adapter               : in PortableServer.POA_Forward.Ref;
-      Serv                  : in PortableServer.Servant;
-      Cleanup_In_Progress   : in CORBA.Boolean;
-      Remaining_Activations : in CORBA.Boolean)
+     (Self                  : Local_Ref;
+      Oid                   : PortableServer.ObjectId;
+      Adapter               : PortableServer.POA_Forward.Ref;
+      Serv                  : PortableServer.Servant;
+      Cleanup_In_Progress   : CORBA.Boolean;
+      Remaining_Activations : CORBA.Boolean)
    is
-      pragma Warnings (Off);
-      pragma Unreferenced (Self);
-      pragma Unreferenced (Oid);
-      pragma Unreferenced (Adapter);
-      pragma Unreferenced (Serv);
-      pragma Unreferenced (Cleanup_In_Progress);
-      pragma Unreferenced (Remaining_Activations);
-      pragma Warnings (On);
-
    begin
-      null;
+      if CORBA.Object.Is_Nil (CORBA.Object.Ref (Self)) then
+         CORBA.Raise_Inv_Objref (CORBA.Default_Sys_Member);
+      end if;
+
+      Impl.Etherealize
+        (Impl.Object_Ptr (Entity_Of (Self)),
+         Oid,
+         Adapter,
+         Serv,
+         Cleanup_In_Progress,
+         Remaining_Activations);
    end Etherealize;
 
 end PortableServer.ServantActivator;

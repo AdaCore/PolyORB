@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2005 Free Software Foundation, Inc.             --
+--         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -31,14 +31,16 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Streams;
 with Ada.Text_IO;
 
+with CORBA.IDL_SEQUENCES;
+with CORBA.Impl;
 with CORBA.Object;
 with CORBA.ORB;
 with CORBA.Policy;
 with PortableServer.POA.Helper;
 
+with Test.Activator.Impl;
 with Test.Echo.Helper;
 with Test.Echo.Impl;
 with Test.Factory.Impl;
@@ -47,74 +49,60 @@ package body Test_Support is
 
    function To_ObjectId (Item : in Wide_String) return PortableServer.ObjectId;
 
-   My_POA : PortableServer.POA.Ref;
-
-   ---------------
-   -- Incarnate --
-   ---------------
-
-   function Incarnate
-     (Self    : in Activator;
-      Oid     : in PortableServer.ObjectId;
-      Adapter : in PortableServer.POA_Forward.Ref)
-     return PortableServer.Servant
-   is
-      pragma Unreferenced (Self);
-
-      Srv : constant Test.Echo.Impl.Object_Ptr := new Test.Echo.Impl.Object;
-
-   begin
-      PortableServer.POA.Activate_Object_With_Id
-       (PortableServer.POA.Helper.To_Ref (Adapter),
-        Oid,
-        PortableServer.Servant (Srv));
-
-      return PortableServer.Servant (Srv);
-   end Incarnate;
+   My_POA : PortableServer.POA.Local_Ref;
 
    ----------------
    -- Initialize --
    ----------------
 
    procedure Initialize is
-      Root_POA : PortableServer.POA.Ref
-        := PortableServer.POA.Helper.To_Ref
+      Root_POA : PortableServer.POA.Local_Ref
+        := PortableServer.POA.Helper.To_Local_Ref
             (CORBA.ORB.Resolve_Initial_References
               (CORBA.ORB.To_CORBA_String ("RootPOA")));
 
       Policies : CORBA.Policy.PolicyList;
 
    begin
-      CORBA.Policy.IDL_Sequence_Policy.Append
+      CORBA.Policy.IDL_SEQUENCE_Policy.Append
        (Policies,
         CORBA.Policy.Ref
          (PortableServer.POA.Create_Lifespan_Policy
            (PortableServer.PERSISTENT)));
-      CORBA.Policy.IDL_Sequence_Policy.Append
+      CORBA.Policy.IDL_SEQUENCE_Policy.Append
        (Policies,
         CORBA.Policy.Ref
          (PortableServer.POA.Create_Id_Assignment_Policy
            (PortableServer.USER_ID)));
-      CORBA.Policy.IDL_Sequence_Policy.Append
+      CORBA.Policy.IDL_SEQUENCE_Policy.Append
        (Policies,
         CORBA.Policy.Ref
          (PortableServer.POA.Create_Implicit_Activation_Policy
            (PortableServer.NO_IMPLICIT_ACTIVATION)));
-      CORBA.Policy.IDL_Sequence_Policy.Append
+      CORBA.Policy.IDL_SEQUENCE_Policy.Append
        (Policies,
         CORBA.Policy.Ref
          (PortableServer.POA.Create_Request_Processing_Policy
            (PortableServer.USE_SERVANT_MANAGER)));
 
       My_POA :=
-        PortableServer.POA.Ref
+        PortableServer.POA.Local_Ref
          (PortableServer.POA.Create_POA
            (Root_POA,
             CORBA.To_CORBA_String ("Ring_POA"),
             PortableServer.POA.Get_The_POAManager (Root_POA),
             Policies));
 
-      PortableServer.POA.Set_Servant_Manager (My_POA, new Activator);
+      declare
+         Obj : constant Test.Activator.Impl.Object_Ptr
+           := new Test.Activator.Impl.Object;
+         Ref : Test.Activator.Local_Ref;
+
+      begin
+         Test.Activator.Set (Ref, CORBA.Impl.Object_Ptr (Obj));
+
+         PortableServer.POA.Set_Servant_Manager (My_POA, Ref);
+      end;
 
       declare
          Srv : constant Test.Factory.Impl.Object_Ptr
@@ -158,15 +146,16 @@ package body Test_Support is
      (Item : in Wide_String)
       return PortableServer.ObjectId
    is
-      use Ada.Streams;
+      use CORBA.IDL_SEQUENCES.IDL_SEQUENCE_Octet;
 
-      Result : PortableServer.ObjectId (1 .. Item'Length * 2);
+      Result : PortableServer.ObjectId;
+
    begin
       for J in Item'Range loop
-         Result (Result'First + 2 * Stream_Element_Offset (J - Item'First))
-           := Stream_Element (Wide_Character'Pos (Item (J)) / 256);
-         Result (Result'First + 2 * Stream_Element_Offset (J - Item'First) + 1)
-           := Stream_Element (Wide_Character'Pos (Item (J)) mod 256);
+         Append (CORBA.IDL_SEQUENCES.IDL_SEQUENCE_Octet.Sequence (Result),
+                 CORBA.Octet (Wide_Character'Pos (Item (J)) / 256));
+         Append (CORBA.IDL_SEQUENCES.IDL_SEQUENCE_Octet.Sequence (Result),
+                 CORBA.Octet (Wide_Character'Pos (Item (J)) mod 256));
       end loop;
 
       return Result;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -31,11 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PolyORB.Types;
-
 package body PolyORB.POA_Policies.Lifespan_Policy.Persistent is
-
-   use PolyORB.Types;
 
    ------------
    -- Create --
@@ -83,9 +79,9 @@ package body PolyORB.POA_Policies.Lifespan_Policy.Persistent is
       return "LIFESPAN_POLICY.PERSISTENT";
    end Policy_Id;
 
-   --------------------
-   -- Get_Time_Stamp --
-   --------------------
+   -------------------------
+   -- Get_Lifespan_Cookie --
+   -------------------------
 
    function Get_Lifespan_Cookie
      (Self : Persistent_Policy;

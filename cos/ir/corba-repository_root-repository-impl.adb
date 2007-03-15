@@ -1,35 +1,59 @@
-----------------------------------------------
---  This file has been generated automatically
---  by AdaBroker (http://adabroker.eu.org/)
-----------------------------------------------
+------------------------------------------------------------------------------
+--                                                                          --
+--                           POLYORB COMPONENTS                             --
+--                                                                          --
+--                  CORBA.REPOSITORY_ROOT.REPOSITORY.IMPL                   --
+--                                                                          --
+--                                 B o d y                                  --
+--                                                                          --
+--         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
+--                                                                          --
+-- PolyORB is free software; you  can  redistribute  it and/or modify it    --
+-- under terms of the  GNU General Public License as published by the  Free --
+-- Software Foundation;  either version 2,  or (at your option)  any  later --
+-- version. PolyORB is distributed  in the hope that it will be  useful,    --
+-- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
+-- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
+-- License  for more details.  You should have received  a copy of the GNU  --
+-- General Public License distributed with PolyORB; see file COPYING. If    --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
+--                                                                          --
+-- As a special exception,  if other files  instantiate  generics from this --
+-- unit, or you link  this unit with other files  to produce an executable, --
+-- this  unit  does not  by itself cause  the resulting  executable  to  be --
+-- covered  by the  GNU  General  Public  License.  This exception does not --
+-- however invalidate  any other reasons why  the executable file  might be --
+-- covered by the  GNU Public License.                                      --
+--                                                                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
+--                                                                          --
+------------------------------------------------------------------------------
 
 with CORBA.Object;
+with PortableServer;
 
-with CORBA.Repository_Root; use CORBA.Repository_Root;
 with CORBA.Repository_Root.FixedDef;
 with CORBA.Repository_Root.FixedDef.Impl;
 with CORBA.Repository_Root.ArrayDef.Impl;
 with CORBA.Repository_Root.ArrayDef;
 with CORBA.Repository_Root.SequenceDef;
 with CORBA.Repository_Root.SequenceDef.Impl;
-with CORBA.Repository_Root.IDLType;
 with CORBA.Repository_Root.WstringDef;
 with CORBA.Repository_Root.WstringDef.Impl;
 with CORBA.Repository_Root.StringDef;
 with CORBA.Repository_Root.StringDef.Impl;
 with CORBA.Repository_Root.PrimitiveDef;
 with CORBA.Repository_Root.PrimitiveDef.Impl;
-with CORBA.Repository_Root.Contained;
 with CORBA.Repository_Root.Contained.Impl;
 with CORBA.Repository_Root.IRObject.Impl;
+with CORBA.Repository_Root.Repository.Skel;
+pragma Warnings (Off, CORBA.Repository_Root.Repository.Skel);
 
 with PolyORB.Log;
 pragma Elaborate_All (PolyORB.Log);
 with PolyORB.CORBA_P.Server_Tools;
-with PortableServer;
-
-with CORBA.Repository_Root.Repository.Skel;
-pragma Warnings (Off, CORBA.Repository_Root.Repository.Skel);
 
 package body CORBA.Repository_Root.Repository.Impl is
 
@@ -40,12 +64,18 @@ package body CORBA.Repository_Root.Repository.Impl is
    use PolyORB.Log;
 
 --    package L is new PolyORB.Log.Facility_Log ("repository.impl");
---    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+--    procedure O (Message : Standard.String; Level : Log_Level := Debug)
 --      renames L.Output;
+--   function C (Level : Log_Level := Debug) return Boolean
+--     renames L.Enabled;
+--   pragma Unreferenced (C); --  For conditional pragma Debug
 
    package L2 is new PolyORB.Log.Facility_Log ("repository.impl_method_trace");
-   procedure O2 (Message : in Standard.String; Level : Log_Level := Debug)
+   procedure O2 (Message : Standard.String; Level : Log_Level := Debug)
      renames L2.Output;
+   function C2 (Level : Log_Level := Debug) return Boolean
+     renames L2.Enabled;
+   pragma Unreferenced (C2); --  For conditional pragma Debug
 
    -----------------
    --  To_Object  --
@@ -76,10 +106,9 @@ package body CORBA.Repository_Root.Repository.Impl is
       return Repository.Convert_Forward.To_Forward (Ref);
    end To_Forward;
 
-
    function lookup_id
      (Self : access Object;
-      search_id : in CORBA.RepositoryId)
+      search_id : CORBA.RepositoryId)
      return CORBA.Repository_Root.Contained.Ref
    is
       Result_Object : Contained.Impl.Object_Ptr;
@@ -91,7 +120,6 @@ package body CORBA.Repository_Root.Repository.Impl is
       Result_Object := Contained.Impl.Lookup_Id (Get_Contents (Self),
                                                  search_id);
 
-
       --  Return a nil_ref if not found
       if Result_Object = null then
          return Nil_Ref;
@@ -102,10 +130,9 @@ package body CORBA.Repository_Root.Repository.Impl is
 
    end lookup_id;
 
-
    function get_canonical_typecode
      (Self : access Object;
-      tc : in CORBA.TypeCode.Object)
+      tc : CORBA.TypeCode.Object)
      return CORBA.TypeCode.Object
    is
       pragma Warnings (Off);
@@ -120,13 +147,12 @@ package body CORBA.Repository_Root.Repository.Impl is
       return Result;
    end get_canonical_typecode;
 
-
    ---------------------
    --  get_primitive  --
    ---------------------
    function get_primitive
      (Self : access Object;
-      kind : in CORBA.Repository_Root.PrimitiveKind)
+      kind : CORBA.Repository_Root.PrimitiveKind)
      return CORBA.Repository_Root.PrimitiveDef_Forward.Ref
    is
       pragma Warnings (Off);
@@ -193,8 +219,6 @@ package body CORBA.Repository_Root.Repository.Impl is
                               IDL_Type,
                               kind);
 
-
-
       --  activate it
       PolyORB.CORBA_P.Server_Tools.Initiate_Servant
         (PortableServer.Servant (Obj), Result);
@@ -202,10 +226,9 @@ package body CORBA.Repository_Root.Repository.Impl is
       return PrimitiveDef.Convert_Forward.To_Forward (Result);
    end get_primitive;
 
-
    function create_string
      (Self : access Object;
-      bound : in CORBA.Unsigned_Long)
+      bound : CORBA.Unsigned_Long)
      return CORBA.Repository_Root.StringDef_Forward.Ref
    is
       pragma Warnings (Off);
@@ -229,10 +252,9 @@ package body CORBA.Repository_Root.Repository.Impl is
       return StringDef.Convert_Forward.To_Forward (Result);
    end create_string;
 
-
    function create_wstring
      (Self : access Object;
-      bound : in CORBA.Unsigned_Long)
+      bound : CORBA.Unsigned_Long)
      return CORBA.Repository_Root.WstringDef_Forward.Ref
    is
       pragma Warnings (Off);
@@ -256,11 +278,10 @@ package body CORBA.Repository_Root.Repository.Impl is
       return WstringDef.Convert_Forward.To_Forward (Result);
    end create_wstring;
 
-
    function create_sequence
      (Self : access Object;
-      bound : in CORBA.Unsigned_Long;
-      element_type : in CORBA.Repository_Root.IDLType.Ref)
+      bound : CORBA.Unsigned_Long;
+      element_type : CORBA.Repository_Root.IDLType.Ref)
      return CORBA.Repository_Root.SequenceDef_Forward.Ref
    is
       pragma Warnings (Off);
@@ -288,11 +309,10 @@ package body CORBA.Repository_Root.Repository.Impl is
       return SequenceDef.Convert_Forward.To_Forward (Result);
    end create_sequence;
 
-
    function create_array
      (Self : access Object;
-      length : in CORBA.Unsigned_Long;
-      element_type : in CORBA.Repository_Root.IDLType.Ref)
+      length : CORBA.Unsigned_Long;
+      element_type : CORBA.Repository_Root.IDLType.Ref)
      return CORBA.Repository_Root.ArrayDef_Forward.Ref
    is
       pragma Warnings (Off);
@@ -319,11 +339,10 @@ package body CORBA.Repository_Root.Repository.Impl is
       return ArrayDef.Convert_Forward.To_Forward (Result);
    end create_array;
 
-
    function create_fixed
      (Self : access Object;
-      IDL_digits : in CORBA.Unsigned_Short;
-      scale : in CORBA.Short)
+      IDL_digits : CORBA.Unsigned_Short;
+      scale : CORBA.Short)
      return CORBA.Repository_Root.FixedDef_Forward.Ref
    is
       pragma Warnings (Off);

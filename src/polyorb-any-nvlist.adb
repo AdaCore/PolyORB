@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,12 +26,10 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
-
-with Ada.Strings.Unbounded;
 
 with PolyORB.Log;
 
@@ -42,8 +40,11 @@ package body PolyORB.Any.NVList is
    use Internals;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.any.nvlist");
-   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+   procedure O (Message : Standard.String; Level : Log_Level := Debug)
      renames L.Output;
+   function C (Level : Log_Level := Debug) return Boolean
+     renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    --------------
    -- Add_Item --
@@ -51,9 +52,9 @@ package body PolyORB.Any.NVList is
 
    procedure Add_Item
      (Self       :    Ref;
-      Item_Name  : in Identifier;
-      Item       : in Any;
-      Item_Flags : in Flags) is
+      Item_Name  : Identifier;
+      Item       : Any;
+      Item_Flags : Flags) is
    begin
       pragma Debug (O ("Add_Item (4 params) : enter"));
 
@@ -138,21 +139,22 @@ package body PolyORB.Any.NVList is
       use NV_Lists;
 
       Obj : constant Object_Ptr := Object_Ptr (Entity_Of (NVList));
-      Result : Ada.Strings.Unbounded.Unbounded_String;
+      Result : PolyORB.Types.String := To_PolyORB_String ("");
+
    begin
       if Obj /= null then
          declare
             It : Iterator := First (Obj.List);
          begin
             while not Last (It) loop
-               Ada.Strings.Unbounded.Append (Result, Image (Value (It).all));
+               Result := Result & Image (Value (It).all);
                Next (It);
                if not Last (It) then
-                  Ada.Strings.Unbounded.Append (Result, ' ');
+                  Result := Result & " ";
                end if;
             end loop;
 
-            return Ada.Strings.Unbounded.To_String (Result);
+            return PolyORB.Types.To_Standard_String (Result);
          end;
       else
          return ("(null list)");

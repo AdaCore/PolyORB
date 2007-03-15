@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,15 +26,16 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 --  Implementation of Threads under the Full_Tasking profile.
 
-with System.Tasking;
+with System.Tasking.Utilities;
 
+with Ada.Real_Time;
 with Ada.Unchecked_Deallocation;
 with Ada.Unchecked_Conversion;
 
@@ -87,7 +88,6 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
    -- P_To_A_Task_Id --
    --------------------
 
-   pragma Style_Checks (Off); --  WAG: 5.02
    function P_To_A_Task_Id (TID : PTT.Thread_Id)
      return Ada.Task_Identification.Task_Id
    is
@@ -110,7 +110,6 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
       return PTT.To_Thread_Id
         (System.Tasking.To_Address (ATID_To_STID (ATID)));
    end A_To_P_Task_Id;
-   pragma Style_Checks (On);  --  WAG: 5.02
 
    ---------
    -- Run --
@@ -155,7 +154,7 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
       if Storage_Size = 0 then
          T.Stack_Size := PolyORB.Parameters.Get_Conf
            ("tasking",
-            "polyorb.tasking.threads.storage_size",
+            "storage_size",
             PTT.Default_Storage_Size);
       else
          T.Stack_Size := Storage_Size;
@@ -286,6 +285,48 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
       return Get_Priority_P.all (TF, T);
    end Get_Priority;
 
+   --------------------
+   -- Relative_Delay --
+   --------------------
+
+   procedure Relative_Delay
+     (TF : access Full_Tasking_Thread_Factory_Type; D : Duration)
+   is
+      pragma Unreferenced (TF);
+   begin
+      delay D;
+   end Relative_Delay;
+
+   -----------------
+   -- Awake_Count --
+   -----------------
+
+   function Awake_Count (TF : access Full_Tasking_Thread_Factory_Type)
+     return Natural
+   is
+   begin
+
+      --  If the environment task is not callable, we do not count it as awake
+
+      if TF.Environment_Task.Callable then
+         return TF.Environment_Task.Awake_Count;
+      else
+         return TF.Environment_Task.Awake_Count - 1;
+      end if;
+   end Awake_Count;
+
+   -----------------------
+   -- Independent_Count --
+   -----------------------
+
+   function Independent_Count (TF : access Full_Tasking_Thread_Factory_Type)
+     return Natural
+   is
+      pragma Unreferenced (TF);
+   begin
+      return System.Tasking.Utilities.Independent_Task_Count;
+   end Independent_Count;
+
    ----------------
    -- Initialize --
    ----------------
@@ -293,9 +334,13 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
    procedure Initialize;
 
    procedure Initialize is
+      use Ada.Real_Time;
+      Time_0 : constant Time := Time_Of (0, Time_Span_Zero);
    begin
+      PTT.Node_Boot_Time := To_Duration (Clock - Time_0);
       PTT.Register_Thread_Factory (PTT.Thread_Factory_Access
                                    (The_Thread_Factory));
+      The_Thread_Factory.Environment_Task := System.Tasking.Self;
    end Initialize;
 
    use PolyORB.Initialization;
@@ -310,5 +355,6 @@ begin
        Depends   => +"full_tasking.threads.priorities",
        Provides  => +"tasking.threads",
        Implicit  => False,
-       Init      => Initialize'Access));
+       Init      => Initialize'Access,
+       Shutdown  => null));
 end PolyORB.Tasking.Profiles.Full_Tasking.Threads;

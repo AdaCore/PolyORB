@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -58,123 +58,82 @@
 --  not see Constraint_Error raised.
 
 with Ada.Finalization;
+with Ada.Unchecked_Deallocation;
 
 generic
-
     type Element is private;
-
 package PolyORB.Sequences.Unbounded is
 
    pragma Preelaborate;
 
-   type Element_Array is array (Integer range <>) of Element;
+   type Element_Array is array (Positive range <>) of Element;
+   --  Can't be "of aliased Element" because Element may be an unconstrained
+   --  mutable record type.
+
+   --  The element array below has a null index range, so no elements are
+   --  ever actually initialized, and we can safely ignore a warning about an
+   --  implicit call to Initialize (for a controlled element type) possibly
+   --  causing a Program_Error depending on elaboration order.
+
+   pragma Warnings (Off);
+   Null_Element_Array : Element_Array (1 .. 0);
+   pragma Warnings (On);
+
+   type Element_Array_Access is access all Element_Array;
+   procedure Free is
+     new Ada.Unchecked_Deallocation (Element_Array, Element_Array_Access);
 
    type Sequence is private;
 
    function Null_Sequence return Sequence;
 
-   function Length (Source : in Sequence) return Natural;
-
-   type Element_Array_Access is access all Element_Array;
-
-   procedure Free (X : in out Element_Array_Access);
+   function Length (Source : Sequence) return Natural;
+   procedure Set_Length (Source : in out Sequence; Length : Natural);
 
    --------------------------------------------------------
    -- Conversion, Concatenation, and Selection functions --
    --------------------------------------------------------
 
-   function To_Sequence
-     (Source : in Element_Array)
-     return Sequence;
+   procedure Set (Item : in out Sequence; Source : Element_Array);
+   function To_Sequence (Source : Element_Array) return Sequence;
+   function To_Sequence (Length : Natural) return Sequence;
+   function To_Element_Array (Source : Sequence) return Element_Array;
 
-   procedure Set
-     (Item   : in out Sequence;
-      Source : in     Element_Array);
+   procedure Append (Source : in out Sequence; New_Item : Sequence);
+   procedure Append (Source : in out Sequence; New_Item : Element_Array);
+   procedure Append (Source : in out Sequence; New_Item : Element);
 
-   function To_Sequence
-     (Length : in Natural)
-     return Sequence;
+   function "&" (Left : Sequence;      Right : Sequence)      return Sequence;
+   function "&" (Left : Sequence;      Right : Element_Array) return Sequence;
+   function "&" (Left : Element_Array; Right : Sequence)      return Sequence;
+   function "&" (Left : Sequence;      Right : Element)       return Sequence;
+   function "&" (Left : Element;       Right : Sequence)      return Sequence;
 
-   function To_Element_Array
-     (Source : in Sequence)
-     return Element_Array;
-
-   procedure Append
-     (Source   : in out Sequence;
-      New_Item : in     Sequence);
-
-   procedure Append
-     (Source   : in out Sequence;
-      New_Item : in     Element_Array);
-
-   procedure Append
-     (Source   : in out Sequence;
-      New_Item : in     Element);
-
-   function "&"
-     (Left, Right : in Sequence)
-     return Sequence;
-
-   function "&"
-     (Left  : in Sequence;
-      Right : in Element_Array)
-     return Sequence;
-
-   function "&"
-     (Left  : in Element_Array;
-      Right : in Sequence)
-     return Sequence;
-
-   function "&"
-     (Left  : in Sequence;
-      Right : in Element)
-     return Sequence;
-
-   function "&"
-     (Left  : in Element;
-      Right : in Sequence)
-     return Sequence;
-
-   function Element_Of
-     (Source : in Sequence;
-      Index  : in Positive)
-     return Element;
-
-   function Get_Element
-     (Source : in Sequence;
-      Index  : in Positive)
-     return Element
-     renames Element_Of;
-   --  For compliance with CORBA specifications.
+   function Get_Element (Source : Sequence; Index : Positive) return Element;
 
    procedure Replace_Element
      (Source : in out Sequence;
-      Index  : in     Positive;
-      By     : in     Element);
+      Index  : Positive;
+      By     : Element);
 
    function Slice
-     (Source : in Sequence;
-      Low    : in Positive;
-      High   : in Natural)
-      return Element_Array;
+     (Source : Sequence;
+      Low    : Positive;
+      High   : Natural) return Element_Array;
 
    function "="
-     (Left, Right : in Sequence)
-     return Boolean;
+     (Left  : Sequence;
+      Right : Sequence) return Boolean;
 
    function "="
-     (Left  : in Element_Array;
-      Right : in Sequence)
-     return Boolean;
+     (Left  : Element_Array;
+      Right : Sequence) return Boolean;
 
    function "="
-     (Left  : in Sequence;
-      Right : in Element_Array)
-     return Boolean;
+     (Left  : Sequence;
+      Right : Element_Array) return Boolean;
 
-   function Is_Null
-     (Source : in Sequence)
-     return Boolean;
+   function Is_Null (Source : Sequence) return Boolean;
    --  Equivalent to (Source = Null_Sequence).
 
    ----------------------
@@ -182,110 +141,110 @@ package PolyORB.Sequences.Unbounded is
    ----------------------
 
    function Index
-     (Source  : in Sequence;
-      Pattern : in Element_Array;
-      Going   : in Direction := Forward)
-      return Natural;
+     (Source  : Sequence;
+      Pattern : Element_Array;
+      Going   : Direction := Forward) return Natural;
 
    function Count
-     (Source  : in Sequence;
-      Pattern : in Element_Array)
-      return Natural;
+     (Source  : Sequence;
+      Pattern : Element_Array) return Natural;
 
    -----------------------------------------
    -- Sequence transformation subprograms --
    -----------------------------------------
 
+   procedure Delete
+     (Source  : in out Sequence;
+      From    : Positive;
+      Through : Natural);
+
    function Replace_Slice
-     (Source : in Sequence;
-      Low    : in Positive;
-      High   : in Natural;
-      By     : in Element_Array)
-      return Sequence;
+     (Source : Sequence;
+      Low    : Positive;
+      High   : Natural;
+      By     : Element_Array) return Sequence;
 
    procedure Replace_Slice
      (Source : in out Sequence;
-      Low    : in     Positive;
-      High   : in     Natural;
-      By     : in     Element_Array);
+      Low    : Positive;
+      High   : Natural;
+      By     : Element_Array);
 
    function Insert
-     (Source   : in Sequence;
-      Before   : in Positive;
-      New_Item : in Element_Array)
-      return Sequence;
+     (Source   : Sequence;
+      Before   : Positive;
+      New_Item : Element_Array) return Sequence;
 
    procedure Insert
      (Source   : in out Sequence;
-      Before   : in     Positive;
-      New_Item : in     Element_Array);
+      Before   : Positive;
+      New_Item : Element_Array);
 
    function Overwrite
-     (Source   : in Sequence;
-      Position : in Positive;
-      New_Item : in Element_Array)
-      return Sequence;
+     (Source   : Sequence;
+      Position : Positive;
+      New_Item : Element_Array) return Sequence;
 
    procedure Overwrite
      (Source   : in out Sequence;
-      Position : in     Positive;
-      New_Item : in     Element_Array);
+      Position : Positive;
+      New_Item : Element_Array);
 
    function Delete
-     (Source  : in Sequence;
-      From    : in Positive;
-      Through : in Natural)
-      return Sequence;
-
-   procedure Delete
-     (Source  : in out Sequence;
-      From    : in     Positive;
-      Through : in     Natural);
+     (Source  : Sequence;
+      From    : Positive;
+      Through : Natural) return Sequence;
 
    -----------------------------------
    -- Sequence selector subprograms --
    -----------------------------------
 
    function Head
-     (Source : in Sequence;
-      Count  : in Natural;
-      Pad    : in Element)
-      return Sequence;
+     (Source : Sequence;
+      Count  : Natural;
+      Pad    : Element) return Sequence;
 
    procedure Head
      (Source : in out Sequence;
-      Count  : in     Natural;
-      Pad    : in     Element);
+      Count  : Natural;
+      Pad    : Element);
 
    function Tail
-     (Source : in Sequence;
-      Count  : in Natural;
-      Pad    : in Element)
-      return Sequence;
+     (Source : Sequence;
+      Count  : Natural;
+      Pad    : Element) return Sequence;
 
    procedure Tail
      (Source : in out Sequence;
-      Count  : in     Natural;
-      Pad    : in     Element);
+      Count  : Natural;
+      Pad    : Element);
 
    --------------------------------------
    -- Sequence constructor subprograms --
    --------------------------------------
 
    function "*"
-     (Left  : in Natural;
-      Right : in Element)
-     return Sequence;
+     (Left  : Natural;
+      Right : Element) return Sequence;
 
    function "*"
-     (Left  : in Natural;
-      Right : in Element_Array)
-     return Sequence;
+     (Left  : Natural;
+      Right : Element_Array) return Sequence;
 
    function "*"
-     (Left  : in Natural;
-      Right : in Sequence)
-     return Sequence;
+     (Left  : Natural;
+      Right : Sequence) return Sequence;
+
+   --------------------------------------
+   -- Accessor to stored element space --
+   --------------------------------------
+
+   type Element_Ptr is access all Element;
+
+   function Unchecked_Element_Of
+     (Source : access Sequence;
+      Index  : Positive) return Element_Ptr;
+   --  Return an access to the element at the specified index in Source
 
 private
 
@@ -293,21 +252,13 @@ private
 
    Prealloc_Length : constant := 5;
 
-   type Sequence is new Ada.Finalization.Controlled with
-      record
-         Length  : Natural;
-         Content : Element_Array_Access;
-      end record;
+   type Sequence is new Ada.Finalization.Controlled with record
+      Length  : Natural;
+      Content : Element_Array_Access;
+   end record;
 
-   procedure Initialize (Object : in out Sequence);
-   procedure Adjust (Object : in out Sequence);
-   procedure Finalize (Object : in out Sequence);
-
-   procedure Allocate
-     (Source : in out Sequence;
-      Length : in Natural);
-   --  Allocate Source.Content and set Source.Length to Length. Do not
-   --  release previous Source.Content.
+   procedure Initialize (X : in out Sequence);
+   procedure Adjust     (X : in out Sequence);
+   procedure Finalize   (X : in out Sequence);
 
 end PolyORB.Sequences.Unbounded;
-

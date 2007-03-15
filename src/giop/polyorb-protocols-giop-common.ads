@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -33,12 +33,12 @@
 
 with PolyORB.Buffers;
 with PolyORB.References;
-with PolyORB.Request_QoS.Service_Contexts;
+with PolyORB.QoS.Service_Contexts;
 with PolyORB.Types;
 
 package PolyORB.Protocols.GIOP.Common is
 
-   package PRQSC renames PolyORB.Request_QoS.Service_Contexts;
+   package PRQSC renames PolyORB.QoS.Service_Contexts;
 
    -----------------------
    -- Generic Marshsall --
@@ -72,14 +72,6 @@ package PolyORB.Protocols.GIOP.Common is
    -- Common Process Reply --
    --------------------------
 
-   type Reply_Status_Type is
-     (No_Exception,
-      User_Exception,
-      System_Exception,
-      Location_Forward,
-      Location_Forward_Perm,    -- 1.2 specific, but not implemented
-      Needs_Addressing_Mode);   -- 1.2 specific, but not implemented
-
    procedure Marshall
      (Buffer : access PolyORB.Buffers.Buffer_Type;
       Val    :        Reply_Status_Type);
@@ -90,10 +82,10 @@ package PolyORB.Protocols.GIOP.Common is
 
    procedure Common_Send_Reply
      (Sess           : access GIOP_Session;
-      Request        :        Requests.Request_Access;
-      Request_Id_Ptr : access Types.Unsigned_Long;
-      Reply_Stat_Ptr : access Reply_Status_Type;
+      Request        : Requests.Request_Access;
+      MCtx           : access GIOP_Message_Context'Class;
       Error          : in out Errors.Error_Container);
+   --  XXX documentation required!!!
 
    ------------------
    -- Locate Reply --
@@ -103,7 +95,7 @@ package PolyORB.Protocols.GIOP.Common is
      (Unknown_Object,
       Object_Here,
       Object_Forward,
-      Object_Forward_Perm,        --  not implemented, GIOP 1.2 only
+      Object_Forward_Perm,
       Loc_System_Exception,       --  not implemented, GIOP 1.2 only
       Loc_Need_Addressing_Mode);  --  not implemented, GIOP 1.2 only
 
@@ -117,9 +109,9 @@ package PolyORB.Protocols.GIOP.Common is
 
    procedure Common_Locate_Reply
      (Sess               : access GIOP_Session;
-      Locate_Request_Id  :        Types.Unsigned_Long;
-      Loc_Type           :        Locate_Reply_Type;
-      Forward_Ref        :        References.Ref;
+      MCtx               : access GIOP_Message_Context'Class;
+      Loc_Type           : Locate_Reply_Type;
+      Forward_Ref        : References.Ref;
       Error              : in out Errors.Error_Container);
 
    procedure Common_Process_Locate_Reply
@@ -133,7 +125,8 @@ package PolyORB.Protocols.GIOP.Common is
 
    procedure Common_Process_Abort_Request
      (Sess  : access GIOP_Session;
-      R     :        Request_Access;
+      R     : Request_Access;
+      MCtx  : access GIOP_Message_Context'Class;
       Error : in out Errors.Error_Container);
 
    ---------------------------
@@ -142,37 +135,34 @@ package PolyORB.Protocols.GIOP.Common is
 
    procedure Common_Reply_Received
      (Sess             : access GIOP_Session;
-      Request_Id       : in     Types.Unsigned_Long;
-      Reply_Status     : in     Reply_Status_Type;
-      Service_Contexts : in
-        PRQSC.QoS_GIOP_Service_Contexts_Parameter_Access);
+      Request_Id       : Types.Unsigned_Long;
+      Reply_Status     : Reply_Status_Type;
+      Service_Contexts : PRQSC.QoS_GIOP_Service_Contexts_Parameter_Access);
 
    --  Helper routines to replace Error Kind
 
    procedure Replace_Marshal_5_To_Bad_Param_23
      (Error  : in out Errors.Error_Container;
-      Status : in     PolyORB.Errors.Completion_Status);
-   --  If Error is Marshhall_E with minor code 5, replace it with
-   --  Bad_Param_E, with minor code 23 and set its status to Status,
-   --  else do nothing.
+      Status : PolyORB.Errors.Completion_Status);
+   --  If Error is Marshhall_E with minor code 5, replace it with Bad_Param_E,
+   --  with minor code 23 and set its status to Status, else do nothing.
 
    procedure Replace_Marshal_5_To_Inv_Objref_2
      (Error  : in out Errors.Error_Container;
-      Status : in     PolyORB.Errors.Completion_Status);
-   --  If Error is Marshhall_E with minor code 5, replace it with
-   --  Inv_Objref_E, with minor code 2, and set its status to Status,
-   --  else do nothing.
+      Status : PolyORB.Errors.Completion_Status);
+   --  If Error is Marshhall_E with minor code 5, replace it with Inv_Objref_E,
+   --  with minor code 2, and set its status to Status, else do nothing.
 
    ------------------------
    -- Overkill functions --
    ------------------------
 
-   --  need to be replaced !
+   --  Need to be replaced!
 
    procedure Copy
      (Buf_In  : PolyORB.Buffers.Buffer_Access;
       Buf_Out : PolyORB.Buffers.Buffer_Access;
       Count   : Types.Unsigned_Long);
-   --  copy Count bytes from a buffer to another one
+   --  Copy Count bytes from a buffer to another one
 
 end PolyORB.Protocols.GIOP.Common;

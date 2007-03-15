@@ -1,0 +1,2 @@
+valuetype StringValue string;
+valuetype WStringValue wstring;

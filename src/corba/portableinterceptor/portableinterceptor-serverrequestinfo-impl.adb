@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2004-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -31,22 +31,17 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Streams;
-with Ada.Unchecked_Conversion;
 with Ada.Unchecked_Deallocation;
 
-with CORBA;
 with PortableInterceptor.RequestInfo;
 
 with PolyORB.Annotations;
-with PolyORB.Binding_Data;
 with PolyORB.CORBA_P.Codec_Utils;
-with PolyORB.CORBA_P.Interceptors;
 with PolyORB.CORBA_P.Interceptors_Slots;
-with PolyORB.Objects;
 with PolyORB.POA;
+with PolyORB.QoS.Service_Contexts;
 with PolyORB.Representations.CDR.Common;
-with PolyORB.Request_QoS.Service_Contexts;
+with PolyORB.Request_QoS;
 
 package body PortableInterceptor.ServerRequestInfo.Impl is
 
@@ -58,13 +53,14 @@ package body PortableInterceptor.ServerRequestInfo.Impl is
 
    procedure Add_Reply_Service_Context
      (Self            : access Object;
-      Service_Context : in     IOP.ServiceContext;
-      Replace         : in     CORBA.Boolean)
+      Service_Context : IOP.ServiceContext;
+      Replace         : CORBA.Boolean)
    is
       use PolyORB.CORBA_P.Codec_Utils;
+      use PolyORB.QoS;
+      use PolyORB.QoS.Service_Contexts;
       use PolyORB.Representations.CDR.Common;
       use PolyORB.Request_QoS;
-      use PolyORB.Request_QoS.Service_Contexts;
       use Service_Context_Lists;
       use type Service_Id;
 
@@ -101,7 +97,9 @@ package body PortableInterceptor.ServerRequestInfo.Impl is
             Free (Value (Iter).Context_Data);
             Value (Iter).Context_Data :=
               new Encapsulation'
-              (To_Encapsulation (Service_Context.Context_Data));
+              (To_Encapsulation
+               (CORBA.IDL_SEQUENCES.IDL_SEQUENCE_Octet.Sequence
+                (Service_Context.Context_Data)));
 
             return;
          end if;
@@ -112,17 +110,22 @@ package body PortableInterceptor.ServerRequestInfo.Impl is
         (SCP.Service_Contexts,
          (Service_Id (Service_Context.Context_Id),
           new Encapsulation'
-          (To_Encapsulation (Service_Context.Context_Data))));
+          (To_Encapsulation
+           (CORBA.IDL_SEQUENCES.IDL_SEQUENCE_Octet.Sequence
+            (Service_Context.Context_Data)))));
    end Add_Reply_Service_Context;
 
    --------------------
    -- Get_Adapter_Id --
    --------------------
 
-   function Get_Adapter_Id (Self : access Object) return AdapterId is
+   function Get_Adapter_Id
+     (Self : access Object)
+     return CORBA.IDL_SEQUENCES.OctetSeq
+   is
       pragma Unreferenced (Self);
 
-      Result : AdapterId;
+      Result : CORBA.IDL_SEQUENCES.OctetSeq;
 
    begin
       raise Program_Error;
@@ -292,23 +295,10 @@ package body PortableInterceptor.ServerRequestInfo.Impl is
                                        Completed => CORBA.Completed_No));
       end if;
 
-      declare
-         use type Ada.Streams.Stream_Element_Offset;
-
-         Key : constant PolyORB.Objects.Object_Id_Access
-           := PolyORB.Binding_Data.Get_Object_Key (Self.Profile.all);
-         Id  : IDL_Sequence_Octet.Element_Array (1 .. Key'Length);
-
-         function To_Octet is new Ada.Unchecked_Conversion
-           (Ada.Streams.Stream_Element, CORBA.Octet);
-
-      begin
-         for J in Key'Range loop
-            Id (Integer (J - Key'First + 1)) := To_Octet (Key (J));
-         end loop;
-
-         return ObjectId (IDL_Sequence_Octet.To_Sequence (Id));
-      end;
+      return
+        PortableInterceptor.ObjectId
+        (PortableServer.Internals.To_PortableServer_ObjectId
+         (PolyORB.Binding_Data.Get_Object_Key (Self.Profile.all).all));
    end Get_Object_Id;
 
    ---------------------------
@@ -354,7 +344,7 @@ package body PortableInterceptor.ServerRequestInfo.Impl is
 
    function Get_Reply_Service_Context
      (Self : access Object;
-      Id   : in     IOP.ServiceId)
+      Id   : IOP.ServiceId)
       return IOP.ServiceContext
    is
    begin
@@ -445,7 +435,7 @@ package body PortableInterceptor.ServerRequestInfo.Impl is
 
    function Get_Server_Policy
      (Self   : access Object;
-      A_Type : in     CORBA.PolicyType)
+      A_Type : CORBA.PolicyType)
       return CORBA.Policy.Ref
    is
       pragma Unreferenced (Self);
@@ -482,12 +472,12 @@ package body PortableInterceptor.ServerRequestInfo.Impl is
 
    procedure Init
      (Self         : access Object;
-      Point        : in     Server_Interception_Point;
-      Servant      : in     PortableServer.Servant;
-      Request      : in     PolyORB.Requests.Request_Access;
-      Request_Id   : in     CORBA.Unsigned_Long;
-      Profile      : in     PolyORB.Binding_Data.Profile_Access;
-      Args_Present : in     Boolean)
+      Point        : Server_Interception_Point;
+      Servant      : PortableServer.Servant;
+      Request      : PolyORB.Requests.Request_Access;
+      Request_Id   : CORBA.Unsigned_Long;
+      Profile      : PolyORB.Binding_Data.Profile_Access;
+      Args_Present : Boolean)
    is
    begin
       RequestInfo.Impl.Init
@@ -505,7 +495,7 @@ package body PortableInterceptor.ServerRequestInfo.Impl is
 
    function Is_A
      (Self            : access Object;
-      Logical_Type_Id : in     Standard.String)
+      Logical_Type_Id : Standard.String)
       return Boolean
    is
       pragma Unreferenced (Self);
@@ -527,8 +517,8 @@ package body PortableInterceptor.ServerRequestInfo.Impl is
 
    procedure Set_Slot
      (Self : access Object;
-      Id   : in     PortableInterceptor.SlotId;
-      Data : in     CORBA.Any)
+      Id   : PortableInterceptor.SlotId;
+      Data : CORBA.Any)
    is
       use PolyORB.Annotations;
       use PolyORB.CORBA_P.Interceptors_Slots;
@@ -546,7 +536,7 @@ package body PortableInterceptor.ServerRequestInfo.Impl is
 
    function Target_Is_A
      (Self : access Object;
-      Id   : in     CORBA.RepositoryId)
+      Id   : CORBA.RepositoryId)
       return CORBA.Boolean
    is
    begin

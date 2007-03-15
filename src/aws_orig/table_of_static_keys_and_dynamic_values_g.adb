@@ -1,9 +1,35 @@
--------------------------------------------------------------------------------
---                                COPYRIGHT
---  (C) 1987 Swiss Federal Institute of Technology (EPFL).
---     Represented by A. Strohmeier EPFL-DI-LGL CH-1015 Lausanne Switzerland.
---     All Rights Reserved.
--------------------------------------------------------------------------------
+------------------------------------------------------------------------------
+--                                                                          --
+--                           POLYORB COMPONENTS                             --
+--                                                                          --
+--                TABLE_OF_STATIC_KEYS_AND_DYNAMIC_VALUES_G                 --
+--                                                                          --
+--                                 B o d y                                  --
+--                                                                          --
+--           Copyright (C) 2006, Free Software Foundation, Inc.             --
+--                                                                          --
+-- PolyORB is free software; you  can  redistribute  it and/or modify it    --
+-- under terms of the  GNU General Public License as published by the  Free --
+-- Software Foundation;  either version 2,  or (at your option)  any  later --
+-- version. PolyORB is distributed  in the hope that it will be  useful,    --
+-- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
+-- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
+-- License  for more details.  You should have received  a copy of the GNU  --
+-- General Public License distributed with PolyORB; see file COPYING. If    --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
+--                                                                          --
+-- As a special exception,  if other files  instantiate  generics from this --
+-- unit, or you link  this unit with other files  to produce an executable, --
+-- this  unit  does not  by itself cause  the resulting  executable  to  be --
+-- covered  by the  GNU  General  Public  License.  This exception does not --
+-- however invalidate  any other reasons why  the executable file  might be --
+-- covered by the  GNU Public License.                                      --
+--                                                                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
+--                                                                          --
+------------------------------------------------------------------------------
 
 --  TITLE:      GENERIC PACKAGE FOR ASSOCIATIVE TABLES.
 --  REVISION:   13-JUL-1992 Ph. Kipfer (PKR), File header format
@@ -15,14 +41,13 @@ package body Table_Of_Static_Keys_And_Dynamic_Values_G is
 
 --  LOCAL SUBPROGRAM:
    procedure Assign_Item (Destination : out Key_Type;
-                          Source : in Key_Type);
+                          Source : Key_Type);
    procedure Assign (Destination : out Key_Type;
-                     Source : in Key_Type) renames Assign_Item;
+                     Source : Key_Type) renames Assign_Item;
 
 --  LOCAL SUBPROGRAM:
-   procedure Destroy_Item  (Item : in Key_Type);
-   procedure Destroy (Item : in Key_Type) renames Destroy_Item;
-
+   procedure Destroy_Item  (Item : Key_Type);
+   procedure Destroy (Item : Key_Type) renames Destroy_Item;
 
    type Link_List_Type is array (Positive range <>) of Link_Type;
 
@@ -39,11 +64,11 @@ package body Table_Of_Static_Keys_And_Dynamic_Values_G is
 
 --  LOCAL SUBPROGRAM:
    procedure Create_And_Assign_Cell (Link : in out Link_Type;
-                                     Key : in Key_Type;
-                                     Value : in Value_Type);
+                                     Key : Key_Type;
+                                     Value : Value_Type);
    procedure Create_And_Assign_Cell (Link : in out Link_Type;
-                                     Key : in Key_Type;
-                                     Value : in Value_Type) is
+                                     Key : Key_Type;
+                                     Value : Value_Type) is
    --  LINK has in (out) mode for allowing access to LINK.VALUE.
    begin
       if Free_List.Count = 0 then
@@ -84,10 +109,10 @@ package body Table_Of_Static_Keys_And_Dynamic_Values_G is
    pragma Inline (Release);
 
 --  LOCAL SUBPROGRAM:
-   function Search_A_Key (Root : in Link_Type;
-                          Key : in Key_Type) return Link_Type;
-   function Search_A_Key (Root : in Link_Type;
-                          Key : in Key_Type) return Link_Type is
+   function Search_A_Key (Root : Link_Type;
+                          Key : Key_Type) return Link_Type;
+   function Search_A_Key (Root : Link_Type;
+                          Key : Key_Type) return Link_Type is
    --  Result points to the cell with key value searched for; when search
    --  fails, null value is returned.
       Ptr : Link_Type := Root;
@@ -106,8 +131,8 @@ package body Table_Of_Static_Keys_And_Dynamic_Values_G is
    pragma Inline (Search_A_Key);
 
 --  / LOCAL SUBPROGRAM:
-   function Search_Min (Root : in Link_Type) return Link_Type;
-   function Search_Min (Root : in Link_Type) return Link_Type is
+   function Search_Min (Root : Link_Type) return Link_Type;
+   function Search_Min (Root : Link_Type) return Link_Type is
    --  Result points to the first (smallest) cell in the table.
       Ptr : Link_Type := Root;
    begin
@@ -122,8 +147,8 @@ package body Table_Of_Static_Keys_And_Dynamic_Values_G is
    pragma Inline (Search_Min);
 
 --  / LOCAL SUBPROGRAM:
-   function Search_Max (Root : in Link_Type) return Link_Type;
-   function Search_Max (Root : in Link_Type) return Link_Type is
+   function Search_Max (Root : Link_Type) return Link_Type;
+   function Search_Max (Root : Link_Type) return Link_Type is
    --  Result points to the last (greatest) cell in the table.
       Ptr : Link_Type := Root;
    begin
@@ -137,15 +162,14 @@ package body Table_Of_Static_Keys_And_Dynamic_Values_G is
    end Search_Max;
    pragma Inline (Search_Max);
 
-
 --  / CONSTRUCTORS:
 
    procedure Assign (Destination : in out Table_Type;
-                     Source : in Table_Type) is
+                     Source : Table_Type) is
       procedure Copy_Subtree (Destination : in out Link_Type;
-                              Source : in Link_Type);
+                              Source : Link_Type);
       procedure Copy_Subtree (Destination : in out Link_Type;
-                              Source : in Link_Type) is
+                              Source : Link_Type) is
       begin
          if Source /= null then
             Create_And_Assign_Cell (Destination, Source.Key, Source.Value);
@@ -167,8 +191,8 @@ package body Table_Of_Static_Keys_And_Dynamic_Values_G is
    end Assign;
 
    procedure Insert (Table : in out Table_Type;
-                     Key : in Key_Type;
-                     Value : in Value_Type) is
+                     Key : Key_Type;
+                     Value : Value_Type) is
       Duplicate_Item : Boolean;
    begin --  INSERT
       Insert (Table, Key, Value, Duplicate_Item);
@@ -176,17 +200,17 @@ package body Table_Of_Static_Keys_And_Dynamic_Values_G is
    end Insert;
 
    procedure Insert (Table : in out Table_Type;
-                     Key : in Key_Type;
-                     Value : in Value_Type;
+                     Key : Key_Type;
+                     Value : Value_Type;
                      Duplicate_Item : out Boolean) is
       Depth_Increased : Boolean := False;
 
-      procedure Insert_Node (Key : in Key_Type;
-                             Value : in Value_Type;
+      procedure Insert_Node (Key : Key_Type;
+                             Value : Value_Type;
                              Subtree : in out Link_Type;
                              Depth_Increased : in out Boolean);
-      procedure Insert_Node (Key : in Key_Type;
-                             Value : in Value_Type;
+      procedure Insert_Node (Key : Key_Type;
+                             Value : Value_Type;
                              Subtree : in out Link_Type;
                              Depth_Increased : in out Boolean) is
 
@@ -324,8 +348,8 @@ package body Table_Of_Static_Keys_And_Dynamic_Values_G is
    end Insert;
 
    procedure Insert_Or_Replace_Value (Table : in out Table_Type;
-                                      Key : in Key_Type;
-                                      Value : in Value_Type) is
+                                      Key : Key_Type;
+                                      Value : Value_Type) is
       Ptr : constant Link_Type := Search_A_Key (Table.Root, Key);
       Junk : Boolean;
    begin
@@ -337,8 +361,8 @@ package body Table_Of_Static_Keys_And_Dynamic_Values_G is
    end Insert_Or_Replace_Value;
 
    procedure Replace_Value (Table : in out Table_Type;
-                            Key : in Key_Type;
-                            Value : in Value_Type;
+                            Key : Key_Type;
+                            Value : Value_Type;
                             Found : out Boolean) is
       Ptr : constant Link_Type := Search_A_Key (Table.Root, Key);
    begin
@@ -351,8 +375,8 @@ package body Table_Of_Static_Keys_And_Dynamic_Values_G is
    end Replace_Value;
 
    procedure Replace_Value (Table : in out Table_Type;
-                            Key : in Key_Type;
-                            Value : in Value_Type) is
+                            Key : Key_Type;
+                            Value : Value_Type) is
       Ptr : constant Link_Type := Search_A_Key (Table.Root, Key);
    begin
       if Ptr /= null then
@@ -485,8 +509,7 @@ package body Table_Of_Static_Keys_And_Dynamic_Values_G is
       end case;
    end Balance_Right;
 
-
-   procedure Remove (Table : in out Table_Type; Key : in Key_Type) is
+   procedure Remove (Table : in out Table_Type; Key : Key_Type) is
       Found : Boolean;
    begin --  REMOVE
       Remove (Table, Key, Found);
@@ -494,7 +517,7 @@ package body Table_Of_Static_Keys_And_Dynamic_Values_G is
    end Remove;
 
    procedure Remove (Table : in out Table_Type;
-                     Key : in Key_Type;
+                     Key : Key_Type;
                      Value : in out Value_Type) is
       Ptr : constant Link_Type := Search_A_Key (Table.Root, Key);
       Found : Boolean;
@@ -505,7 +528,7 @@ package body Table_Of_Static_Keys_And_Dynamic_Values_G is
    end Remove;
 
    procedure Remove (Table : in out Table_Type;
-                     Key : in Key_Type;
+                     Key : Key_Type;
                      Found : out Boolean) is
       Depth_Decreased : Boolean := False;
       Temp : Link_Type;
@@ -677,7 +700,7 @@ package body Table_Of_Static_Keys_And_Dynamic_Values_G is
    end Remove_Max;
 
    procedure Update_Value_Or_Exception_G (Table : in out Table_Type;
-                                    Key : in Key_Type) is
+                                    Key : Key_Type) is
       Link : constant Link_Type := Search_A_Key (Table.Root, Key);
    begin
       if Link = null then
@@ -687,7 +710,7 @@ package body Table_Of_Static_Keys_And_Dynamic_Values_G is
    end Update_Value_Or_Exception_G;
 
    procedure Update_Value_Or_Status_G (Table : in out Table_Type;
-                                       Key : in Key_Type;
+                                       Key : Key_Type;
                                        Found : out Boolean) is
       Link : constant Link_Type := Search_A_Key (Table.Root, Key);
    begin
@@ -701,24 +724,24 @@ package body Table_Of_Static_Keys_And_Dynamic_Values_G is
 
 --  QUERIES:
 
-   function Size (Table : in Table_Type) return Natural is
+   function Size (Table : Table_Type) return Natural is
    begin --  SIZE
       return Table.Count;
    end Size;
 
-   function Is_Empty (Table : in Table_Type) return Boolean is
+   function Is_Empty (Table : Table_Type) return Boolean is
    begin --  IS_EMPTY
       return Table.Count = 0;
    end Is_Empty;
 
-   function Is_Present (Table : in Table_Type;
-                        Key : in Key_Type) return Boolean is
+   function Is_Present (Table : Table_Type;
+                        Key : Key_Type) return Boolean is
    begin --  IS_PRESENT
       return Search_A_Key (Table.Root, Key) /= null;
    end Is_Present;
 
-   function Value (Table : in Table_Type;
-                   Key : in Key_Type) return Value_Type is
+   function Value (Table : Table_Type;
+                   Key : Key_Type) return Value_Type is
       Ptr : constant Link_Type := Search_A_Key (Table.Root, Key);
    begin --  GET_VALUE
       if Ptr = null then
@@ -727,8 +750,8 @@ package body Table_Of_Static_Keys_And_Dynamic_Values_G is
       return Ptr.Value;
    end Value;
 
-   procedure Get_Value (Table : in Table_Type;
-                        Key : in Key_Type;
+   procedure Get_Value (Table : Table_Type;
+                        Key : Key_Type;
                         Value : in out Value_Type) is
       Ptr : constant Link_Type := Search_A_Key (Table.Root, Key);
    begin --  GET_VALUE
@@ -738,7 +761,7 @@ package body Table_Of_Static_Keys_And_Dynamic_Values_G is
       Assign (Value, Ptr.Value);
    end Get_Value;
 
-   procedure Get_Min_Item (Table : in Table_Type;
+   procedure Get_Min_Item (Table : Table_Type;
                            Key : out Key_Type;
                            Value : in out Value_Type) is
       Current : Link_Type := Table.Root;
@@ -753,7 +776,7 @@ package body Table_Of_Static_Keys_And_Dynamic_Values_G is
       Assign (Value, Current.Value);
    end Get_Min_Item;
 
-   procedure Get_Max_Item (Table : in Table_Type;
+   procedure Get_Max_Item (Table : Table_Type;
                            Key : out Key_Type;
                            Value : in out Value_Type) is
       Current : Link_Type := Table.Root;
@@ -768,7 +791,7 @@ package body Table_Of_Static_Keys_And_Dynamic_Values_G is
       Assign (Value, Current.Value);
    end Get_Max_Item;
 
-   function Min_Key (Table : in Table_Type) return Key_Type is
+   function Min_Key (Table : Table_Type) return Key_Type is
       Current : Link_Type := Table.Root;
    begin --  GET_MIN_KEY
       if Current = null then
@@ -780,7 +803,7 @@ package body Table_Of_Static_Keys_And_Dynamic_Values_G is
       return Current.Key;
    end Min_Key;
 
-   procedure Get_Min_Key (Table : in Table_Type;
+   procedure Get_Min_Key (Table : Table_Type;
                           Key : out Key_Type) is
       Current : Link_Type := Table.Root;
    begin --  GET_MIN_KEY
@@ -793,7 +816,7 @@ package body Table_Of_Static_Keys_And_Dynamic_Values_G is
       Assign (Key, Current.Key);
    end Get_Min_Key;
 
-   function Max_Key (Table : in Table_Type) return Key_Type is
+   function Max_Key (Table : Table_Type) return Key_Type is
       Current : Link_Type := Table.Root;
    begin --  GET_MAX_KEY
       if Current = null then
@@ -805,7 +828,7 @@ package body Table_Of_Static_Keys_And_Dynamic_Values_G is
       return Current.Key;
    end Max_Key;
 
-   procedure Get_Max_Key (Table : in Table_Type;
+   procedure Get_Max_Key (Table : Table_Type;
                           Key : out Key_Type) is
       Current : Link_Type := Table.Root;
    begin --  GET_MAX_KEY
@@ -819,10 +842,10 @@ package body Table_Of_Static_Keys_And_Dynamic_Values_G is
    end Get_Max_Key;
 
 --  LOCAL SUBPROGRAM:
-   function Search_Less_Or_Equal (Root : in Link_Type;
-                                  Key : in Key_Type) return Link_Type;
-   function Search_Less_Or_Equal (Root : in Link_Type;
-                                  Key : in Key_Type) return Link_Type is
+   function Search_Less_Or_Equal (Root : Link_Type;
+                                  Key : Key_Type) return Link_Type;
+   function Search_Less_Or_Equal (Root : Link_Type;
+                                  Key : Key_Type) return Link_Type is
    --  Result points to the cell with key value less than or equal to KEY;
    --  when search fails, null value is returned.
       Ptr : Link_Type := Root;
@@ -851,10 +874,10 @@ package body Table_Of_Static_Keys_And_Dynamic_Values_G is
    pragma Inline (Search_Less_Or_Equal);
 
 --  / LOCAL SUBPROGRAM:
-   function Search_Less (Root : in Link_Type;
-                         Key : in Key_Type) return Link_Type;
-   function Search_Less (Root : in Link_Type;
-                         Key : in Key_Type) return Link_Type is
+   function Search_Less (Root : Link_Type;
+                         Key : Key_Type) return Link_Type;
+   function Search_Less (Root : Link_Type;
+                         Key : Key_Type) return Link_Type is
    --  Result points to the cell with key value less than KEY; when search
    --  fails, null value is returned.
       Ptr : Link_Type := Root;
@@ -881,10 +904,10 @@ package body Table_Of_Static_Keys_And_Dynamic_Values_G is
    pragma Inline (Search_Less);
 
 --  LOCAL SUBPROGRAM:
-   function Search_Greater_Or_Equal (Root : in Link_Type;
-                                     Key : in Key_Type) return Link_Type;
-   function Search_Greater_Or_Equal (Root : in Link_Type;
-                                     Key : in Key_Type) return Link_Type is
+   function Search_Greater_Or_Equal (Root : Link_Type;
+                                     Key : Key_Type) return Link_Type;
+   function Search_Greater_Or_Equal (Root : Link_Type;
+                                     Key : Key_Type) return Link_Type is
    --  Result points to the cell with key value greater than or equal to KEY;
    --  when search fails, null value is returned.
       Ptr : Link_Type := Root;
@@ -913,10 +936,10 @@ package body Table_Of_Static_Keys_And_Dynamic_Values_G is
    pragma Inline (Search_Greater_Or_Equal);
 
 --  / LOCAL SUBPROGRAM:
-   function Search_Greater (Root : in Link_Type;
-                            Key : in Key_Type) return Link_Type;
-   function Search_Greater (Root : in Link_Type;
-                            Key : in Key_Type) return Link_Type is
+   function Search_Greater (Root : Link_Type;
+                            Key : Key_Type) return Link_Type;
+   function Search_Greater (Root : Link_Type;
+                            Key : Key_Type) return Link_Type is
    --  Result points to the cell with key value greater than KEY; when search
    --  fails, null value is returned.
       Ptr : Link_Type := Root;
@@ -942,8 +965,7 @@ package body Table_Of_Static_Keys_And_Dynamic_Values_G is
    end Search_Greater;
    pragma Inline (Search_Greater);
 
-
-   procedure Get_Less_Item (Table : in Table_Type;
+   procedure Get_Less_Item (Table : Table_Type;
                             Key : in out Key_Type;
                             Value : in out Value_Type) is
       Ptr : constant Link_Type := Search_Less (Table.Root, Key);
@@ -955,7 +977,7 @@ package body Table_Of_Static_Keys_And_Dynamic_Values_G is
       Assign (Value, Ptr.Value);
    end Get_Less_Item;
 
-   procedure Get_Less_Or_Equal_Item (Table : in Table_Type;
+   procedure Get_Less_Or_Equal_Item (Table : Table_Type;
                                       Key : in out Key_Type;
                                       Value : in out Value_Type) is
       Ptr : constant Link_Type := Search_Less_Or_Equal (Table.Root, Key);
@@ -967,7 +989,7 @@ package body Table_Of_Static_Keys_And_Dynamic_Values_G is
       Assign (Value, Ptr.Value);
    end Get_Less_Or_Equal_Item;
 
-   procedure Get_Greater_Item (Table : in Table_Type;
+   procedure Get_Greater_Item (Table : Table_Type;
                                 Key : in out Key_Type;
                                 Value : in out Value_Type) is
       Ptr : constant Link_Type := Search_Greater (Table.Root, Key);
@@ -979,7 +1001,7 @@ package body Table_Of_Static_Keys_And_Dynamic_Values_G is
       Assign (Value, Ptr.Value);
    end Get_Greater_Item;
 
-   procedure Get_Greater_Or_Equal_Item (Table : in Table_Type;
+   procedure Get_Greater_Or_Equal_Item (Table : Table_Type;
                                          Key : in out Key_Type;
                                          Value : in out Value_Type) is
       Ptr : constant Link_Type := Search_Greater_Or_Equal (Table.Root, Key);
@@ -991,8 +1013,8 @@ package body Table_Of_Static_Keys_And_Dynamic_Values_G is
       Assign (Value, Ptr.Value);
    end Get_Greater_Or_Equal_Item;
 
-   function Less_Key (Table : in Table_Type;
-                      Key : in Key_Type) return Key_Type is
+   function Less_Key (Table : Table_Type;
+                      Key : Key_Type) return Key_Type is
       Ptr : constant Link_Type := Search_Less (Table.Root, Key);
    begin
       if Ptr = null then
@@ -1001,7 +1023,7 @@ package body Table_Of_Static_Keys_And_Dynamic_Values_G is
       return Ptr.Key;
    end Less_Key;
 
-   procedure Get_Less_Key (Table : in Table_Type;
+   procedure Get_Less_Key (Table : Table_Type;
                            Key : in out Key_Type) is
       Ptr : constant Link_Type := Search_Less (Table.Root, Key);
    begin
@@ -1011,7 +1033,7 @@ package body Table_Of_Static_Keys_And_Dynamic_Values_G is
       Assign (Key, Ptr.Key);
    end Get_Less_Key;
 
-   procedure Get_Less_Key (Table : in Table_Type;
+   procedure Get_Less_Key (Table : Table_Type;
                            Key : in out Key_Type;
                            Found : out Boolean) is
       Ptr : constant Link_Type := Search_Less (Table.Root, Key);
@@ -1024,8 +1046,8 @@ package body Table_Of_Static_Keys_And_Dynamic_Values_G is
       end if;
    end Get_Less_Key;
 
-   function Less_Or_Equal_Key (Table : in Table_Type;
-                               Key : in Key_Type) return Key_Type is
+   function Less_Or_Equal_Key (Table : Table_Type;
+                               Key : Key_Type) return Key_Type is
       Ptr : constant Link_Type := Search_Less_Or_Equal (Table.Root, Key);
    begin
       if Ptr = null then
@@ -1034,7 +1056,7 @@ package body Table_Of_Static_Keys_And_Dynamic_Values_G is
       return Ptr.Key;
    end Less_Or_Equal_Key;
 
-   procedure Get_Less_Or_Equal_Key (Table : in Table_Type;
+   procedure Get_Less_Or_Equal_Key (Table : Table_Type;
                                     Key : in out Key_Type) is
       Ptr : constant Link_Type := Search_Less_Or_Equal (Table.Root, Key);
    begin
@@ -1044,7 +1066,7 @@ package body Table_Of_Static_Keys_And_Dynamic_Values_G is
       Assign (Key, Ptr.Key);
    end Get_Less_Or_Equal_Key;
 
-   procedure Get_Less_Or_Equal_Key (Table : in Table_Type;
+   procedure Get_Less_Or_Equal_Key (Table : Table_Type;
                                     Key : in out Key_Type;
                                     Found : out Boolean) is
       Ptr : constant Link_Type := Search_Less_Or_Equal (Table.Root, Key);
@@ -1057,8 +1079,8 @@ package body Table_Of_Static_Keys_And_Dynamic_Values_G is
       end if;
    end Get_Less_Or_Equal_Key;
 
-   function Greater_Key (Table : in Table_Type;
-                         Key : in Key_Type) return Key_Type is
+   function Greater_Key (Table : Table_Type;
+                         Key : Key_Type) return Key_Type is
       Ptr : constant Link_Type := Search_Greater (Table.Root, Key);
    begin
       if Ptr = null then
@@ -1067,7 +1089,7 @@ package body Table_Of_Static_Keys_And_Dynamic_Values_G is
       return Ptr.Key;
    end Greater_Key;
 
-   procedure Get_Greater_Key (Table : in Table_Type;
+   procedure Get_Greater_Key (Table : Table_Type;
                               Key : in out Key_Type) is
       Ptr : constant Link_Type := Search_Greater (Table.Root, Key);
    begin
@@ -1077,7 +1099,7 @@ package body Table_Of_Static_Keys_And_Dynamic_Values_G is
       Assign (Key, Ptr.Key);
    end Get_Greater_Key;
 
-   procedure Get_Greater_Key (Table : in Table_Type;
+   procedure Get_Greater_Key (Table : Table_Type;
                               Key : in out Key_Type;
                               Found : out Boolean) is
       Ptr : constant Link_Type := Search_Greater (Table.Root, Key);
@@ -1090,8 +1112,8 @@ package body Table_Of_Static_Keys_And_Dynamic_Values_G is
       end if;
    end Get_Greater_Key;
 
-   function Greater_Or_Equal_Key (Table : in Table_Type;
-                                  Key : in Key_Type) return  Key_Type is
+   function Greater_Or_Equal_Key (Table : Table_Type;
+                                  Key : Key_Type) return  Key_Type is
       Ptr : constant Link_Type := Search_Greater_Or_Equal (Table.Root, Key);
    begin
       if Ptr = null then
@@ -1100,7 +1122,7 @@ package body Table_Of_Static_Keys_And_Dynamic_Values_G is
       return Ptr.Key;
    end Greater_Or_Equal_Key;
 
-   procedure Get_Greater_Or_Equal_Key (Table : in Table_Type;
+   procedure Get_Greater_Or_Equal_Key (Table : Table_Type;
                                        Key : in out Key_Type) is
       Ptr : constant Link_Type := Search_Greater_Or_Equal (Table.Root, Key);
    begin
@@ -1110,7 +1132,7 @@ package body Table_Of_Static_Keys_And_Dynamic_Values_G is
       Assign (Key, Ptr.Key);
    end Get_Greater_Or_Equal_Key;
 
-   procedure Get_Greater_Or_Equal_Key (Table : in Table_Type;
+   procedure Get_Greater_Or_Equal_Key (Table : Table_Type;
                                        Key : in out Key_Type;
                                        Found : out Boolean) is
       Ptr : constant Link_Type := Search_Greater_Or_Equal (Table.Root, Key);
@@ -1129,19 +1151,19 @@ package body Table_Of_Static_Keys_And_Dynamic_Values_G is
 
       --  / LOCAL SUBPROGRAM:
       procedure Conditional_Union (Destination : in out Table_Type;
-                                   Source : in Table_Type);
+                                   Source : Table_Type);
       procedure Conditional_Union (Destination : in out Table_Type;
-                                   Source : in Table_Type) is
+                                   Source : Table_Type) is
       --  All entries which are in SOURCE but not in DESTINATION are inserted
       --  into DESTINATION. DESTINATION and SOURCE must not access the same
       --  table.
-         procedure Action (Key : in Key_Type;
-                           Value : in Value_Type;
-                           Order_Number : in Positive;
+         procedure Action (Key : Key_Type;
+                           Value : Value_Type;
+                           Order_Number : Positive;
                            Continue : in out Boolean);
-         procedure Action (Key : in Key_Type;
-                           Value : in Value_Type;
-                           Order_Number : in Positive;
+         procedure Action (Key : Key_Type;
+                           Value : Value_Type;
+                           Order_Number : Positive;
                            Continue : in out Boolean) is
             pragma Warnings (Off, Order_Number);
             pragma Warnings (Off, Continue);
@@ -1156,18 +1178,18 @@ package body Table_Of_Static_Keys_And_Dynamic_Values_G is
 
       --   LOCAL SUBPROGRAM:
       procedure Unconditional_Union (Destination : in out Table_Type;
-                                     Source : in Table_Type);
+                                     Source : Table_Type);
       procedure Unconditional_Union (Destination : in out Table_Type;
-                                     Source : in Table_Type) is
+                                     Source : Table_Type) is
          --  All entries which are in SOURCE are inserted into DESTINATION or
          --  replace previous entries.
-         procedure Action (Key : in Key_Type;
-                           Value : in Value_Type;
-                           Order_Number : in Positive;
+         procedure Action (Key : Key_Type;
+                           Value : Value_Type;
+                           Order_Number : Positive;
                            Continue : in out Boolean);
-         procedure Action (Key : in Key_Type;
-                           Value : in Value_Type;
-                           Order_Number : in Positive;
+         procedure Action (Key : Key_Type;
+                           Value : Value_Type;
+                           Order_Number : Positive;
                            Continue : in out Boolean) is
             pragma Warnings (Off, Order_Number);
             pragma Warnings (Off, Continue);
@@ -1181,7 +1203,7 @@ package body Table_Of_Static_Keys_And_Dynamic_Values_G is
 
       procedure Union (Destination : in out Table_Type;
                        Left,
-                       Right : in Table_Type) is
+                       Right : Table_Type) is
       begin
          if Left.Root = Right.Root then
             if Destination.Root = Left.Root then
@@ -1202,20 +1224,20 @@ package body Table_Of_Static_Keys_And_Dynamic_Values_G is
 --  LOCAL SUBPROGRAM:
       procedure Local_Intersection (Destination : in out Table_Type;
                                     Left,
-                                    Right : in Table_Type);
+                                    Right : Table_Type);
       procedure Local_Intersection (Destination : in out Table_Type;
                                     Left,
-                                    Right : in Table_Type) is
+                                    Right : Table_Type) is
       --  DESTINATION must be an empty table. LEFT is traversed and each entry
       --  which is also in RIGHT is inserted into DESTINATION.
 
-         procedure Action (Key : in Key_Type;
-                           Value : in Value_Type;
-                           Order_Number : in Positive;
+         procedure Action (Key : Key_Type;
+                           Value : Value_Type;
+                           Order_Number : Positive;
                            Continue : in out Boolean);
-         procedure Action (Key : in Key_Type;
-                           Value : in Value_Type;
-                           Order_Number : in Positive;
+         procedure Action (Key : Key_Type;
+                           Value : Value_Type;
+                           Order_Number : Positive;
                            Continue : in out Boolean) is
             pragma Warnings (Off, Order_Number);
             pragma Warnings (Off, Continue);
@@ -1231,7 +1253,7 @@ package body Table_Of_Static_Keys_And_Dynamic_Values_G is
 
       procedure Intersection (Destination : in out Table_Type;
                               Left,
-                              Right : in Table_Type) is
+                              Right : Table_Type) is
          Local_Table : Table_Type;
       begin
          if Left.Root = Right.Root then
@@ -1254,19 +1276,19 @@ package body Table_Of_Static_Keys_And_Dynamic_Values_G is
       --   LOCAL SUBPROGRAM:
       procedure Local_Difference (Destination : in out Table_Type;
                                   Left,
-                                  Right : in Table_Type);
+                                  Right : Table_Type);
       procedure Local_Difference (Destination : in out Table_Type;
                                   Left,
-                                  Right : in Table_Type) is
+                                  Right : Table_Type) is
       --  DESTINATION must be an empty table. LEFT is traversed and each entry
       --  which is not in RIGHT is inserted into DESTINATION.
-         procedure Action (Key : in Key_Type;
-                           Value : in Value_Type;
-                           Order_Number : in Positive;
+         procedure Action (Key : Key_Type;
+                           Value : Value_Type;
+                           Order_Number : Positive;
                            Continue : in out Boolean);
-         procedure Action (Key : in Key_Type;
-                           Value : in Value_Type;
-                           Order_Number : in Positive;
+         procedure Action (Key : Key_Type;
+                           Value : Value_Type;
+                           Order_Number : Positive;
                            Continue : in out Boolean) is
             pragma Warnings (Off, Order_Number);
             pragma Warnings (Off, Continue);
@@ -1282,7 +1304,7 @@ package body Table_Of_Static_Keys_And_Dynamic_Values_G is
 
       procedure Difference (Destination : in out Table_Type;
                             Left,
-                            Right : in Table_Type) is
+                            Right : Table_Type) is
          Local_Table : Table_Type;
       begin
          if Left.Root = Right.Root then
@@ -1301,21 +1323,21 @@ package body Table_Of_Static_Keys_And_Dynamic_Values_G is
       --   LOCAL SUBPROGRAM:
       procedure Local_Symmetric_Difference (Destination : in out Table_Type;
                                             Left,
-                                            Right : in Table_Type);
+                                            Right : Table_Type);
       procedure Local_Symmetric_Difference (Destination : in out Table_Type;
                                             Left,
-                                            Right : in Table_Type) is
+                                            Right : Table_Type) is
       --  DESTINATION must be an empty table. LEFT is traversed and each entry
       --  which is not in RIGHT is inserted into DESTINATION. Then RIGHT is
       --  traversed and each entry which is not in LEFT is inserted into
       --  DESTINATION.
-         procedure Action_For_Left (Key : in Key_Type;
-                                    Value : in Value_Type;
-                                    Order_Number : in Positive;
+         procedure Action_For_Left (Key : Key_Type;
+                                    Value : Value_Type;
+                                    Order_Number : Positive;
                                     Continue : in out Boolean);
-         procedure Action_For_Left (Key : in Key_Type;
-                                    Value : in Value_Type;
-                                    Order_Number : in Positive;
+         procedure Action_For_Left (Key : Key_Type;
+                                    Value : Value_Type;
+                                    Order_Number : Positive;
                                     Continue : in out Boolean) is
             pragma Warnings (Off, Order_Number);
             pragma Warnings (Off, Continue);
@@ -1324,13 +1346,13 @@ package body Table_Of_Static_Keys_And_Dynamic_Values_G is
                Insert (Destination, Key, Value);
             end if;
          end Action_For_Left;
-         procedure Action_For_Right (Key : in Key_Type;
-                                     Value : in Value_Type;
-                                     Order_Number : in Positive;
+         procedure Action_For_Right (Key : Key_Type;
+                                     Value : Value_Type;
+                                     Order_Number : Positive;
                                      Continue : in out Boolean);
-         procedure Action_For_Right (Key : in Key_Type;
-                                     Value : in Value_Type;
-                                     Order_Number : in Positive;
+         procedure Action_For_Right (Key : Key_Type;
+                                     Value : Value_Type;
+                                     Order_Number : Positive;
                                      Continue : in out Boolean) is
             pragma Warnings (Off, Order_Number);
             pragma Warnings (Off, Continue);
@@ -1349,7 +1371,7 @@ package body Table_Of_Static_Keys_And_Dynamic_Values_G is
 
       procedure Symmetric_Difference (Destination : in out Table_Type;
                                       Left,
-                                      Right : in Table_Type) is
+                                      Right : Table_Type) is
          Local_Table : Table_Type;
       begin
          if Left.Root = Right.Root then
@@ -1366,16 +1388,16 @@ package body Table_Of_Static_Keys_And_Dynamic_Values_G is
       end Symmetric_Difference;
 
 --  LOCAL SUBPROGRAM:
-      procedure Fill_List (Table : in Table_Type;
+      procedure Fill_List (Table : Table_Type;
                            Link_List : in out Link_List_Type);
-      procedure Fill_List (Table : in Table_Type;
+      procedure Fill_List (Table : Table_Type;
                            Link_List : in out Link_List_Type) is
       --  Fills LINK_LIST with pointers to the items of TABLE according to
       --  order defined on them.
       --  Condition: LINK_LIST'LAST = TABLE.COUNT
          Index : Natural := 0;
-         procedure Traverse_Subtree (Link : in Link_Type);
-         procedure Traverse_Subtree (Link : in Link_Type) is
+         procedure Traverse_Subtree (Link : Link_Type);
+         procedure Traverse_Subtree (Link : Link_Type) is
          --  LINK points to root of subtree.
          begin --  TRAVERSE_SUBTREE
             if Link /= null then
@@ -1393,7 +1415,7 @@ package body Table_Of_Static_Keys_And_Dynamic_Values_G is
          Traverse_Subtree (Table.Root);
       end Fill_List;
 
-      function "=" (Left, Right : in Table_Type) return Boolean is
+      function "=" (Left, Right : Table_Type) return Boolean is
       --  Set equality; the LEFT and RIGHT tables contain entries with same
       --  values
          Left_Op_Link_List : Link_List_Type (1 .. Left.Count);
@@ -1421,7 +1443,7 @@ package body Table_Of_Static_Keys_And_Dynamic_Values_G is
          return True;
       end "=";
 
-      function "<" (Left, Right : in Table_Type) return Boolean is
+      function "<" (Left, Right : Table_Type) return Boolean is
       --  Strict set inclusion; to each entry in the LEFT table an entry with
       --  same value is associated in the RIGHT table, but the two sets are not
       --  identical.
@@ -1459,7 +1481,7 @@ package body Table_Of_Static_Keys_And_Dynamic_Values_G is
          return True;
       end "<";
 
-      function "<=" (Left, Right : in Table_Type) return Boolean is
+      function "<=" (Left, Right : Table_Type) return Boolean is
       --  Strict set inclusion; to each entry in the LEFT table an entry with
       --  same key is associated in the RIGHT table.
          Left_Op_Link_List : Link_List_Type (1 .. Left.Count);
@@ -1499,13 +1521,12 @@ package body Table_Of_Static_Keys_And_Dynamic_Values_G is
          return True;
       end "<=";
 
-      function ">" (Left, Right : in Table_Type) return Boolean is
+      function ">" (Left, Right : Table_Type) return Boolean is
       begin --  ">"
          return Right < Left;
       end ">";
 
-
-      function ">=" (Left, Right : in Table_Type) return Boolean is
+      function ">=" (Left, Right : Table_Type) return Boolean is
       begin --  ">="
          return Right <= Left;
       end ">=";
@@ -1514,11 +1535,11 @@ package body Table_Of_Static_Keys_And_Dynamic_Values_G is
 
 --  / ITERATORS:
 
-   procedure Traverse_Asc_G (Table : in Table_Type) is
+   procedure Traverse_Asc_G (Table : Table_Type) is
       Order_Number : Positive := 1;
       Continue : Boolean := True;
-      procedure Traverse_Subtree (Link : in Link_Type);
-      procedure Traverse_Subtree (Link : in Link_Type) is
+      procedure Traverse_Subtree (Link : Link_Type);
+      procedure Traverse_Subtree (Link : Link_Type) is
       begin
          if Link.Left /= null then
             Traverse_Subtree (Link.Left);
@@ -1537,11 +1558,11 @@ package body Table_Of_Static_Keys_And_Dynamic_Values_G is
       end if;
    end Traverse_Asc_G;
 
-   procedure Traverse_Desc_G (Table : in Table_Type) is
+   procedure Traverse_Desc_G (Table : Table_Type) is
       Order_Number : Positive := 1;
       Continue : Boolean := True;
-      procedure Traverse_Subtree (Link : in Link_Type);
-      procedure Traverse_Subtree (Link : in Link_Type) is
+      procedure Traverse_Subtree (Link : Link_Type);
+      procedure Traverse_Subtree (Link : Link_Type) is
       begin
          if Link.Right /= null then
             Traverse_Subtree (Link.Right);
@@ -1563,8 +1584,8 @@ package body Table_Of_Static_Keys_And_Dynamic_Values_G is
    procedure Traverse_Asc_And_Update_Value_G (Table : in out Table_Type) is
       Order_Number : Positive := 1;
       Continue : Boolean := True;
-      procedure Traverse_Subtree (Link : in Link_Type);
-      procedure Traverse_Subtree (Link : in Link_Type) is
+      procedure Traverse_Subtree (Link : Link_Type);
+      procedure Traverse_Subtree (Link : Link_Type) is
       begin
          if Link.Left /= null then
             Traverse_Subtree (Link.Left);
@@ -1586,8 +1607,8 @@ package body Table_Of_Static_Keys_And_Dynamic_Values_G is
    procedure Traverse_Desc_And_Update_Value_G (Table : in out Table_Type) is
       Order_Number : Positive := 1;
       Continue : Boolean := True;
-      procedure Traverse_Subtree (Link : in Link_Type);
-      procedure Traverse_Subtree (Link : in Link_Type) is
+      procedure Traverse_Subtree (Link : Link_Type);
+      procedure Traverse_Subtree (Link : Link_Type) is
       begin
          if Link.Right /= null then
             Traverse_Subtree (Link.Right);
@@ -1606,7 +1627,7 @@ package body Table_Of_Static_Keys_And_Dynamic_Values_G is
       end if;
    end Traverse_Desc_And_Update_Value_G;
 
-   procedure Disorder_Traverse_G (Table : in Table_Type) is
+   procedure Disorder_Traverse_G (Table : Table_Type) is
       Current : Link_Type;
       Insert_Position : Positive;
       Link_List : Link_List_Type (1 .. Table.Count);
@@ -1700,7 +1721,7 @@ package body Table_Of_Static_Keys_And_Dynamic_Values_G is
       Free_List.Count := 0;
    end Release_Free_List;
 
-   procedure Set_Max_Free_List_Size (Max_Free_List_Size : in Natural) is
+   procedure Set_Max_Free_List_Size (Max_Free_List_Size : Natural) is
       Nb_Of_Cells_For_System : constant Integer
         := Free_List.Count - Max_Free_List_Size;
       Temp : Link_Type;
@@ -1723,12 +1744,12 @@ package body Table_Of_Static_Keys_And_Dynamic_Values_G is
    end Free_List_Size;
 
    procedure Assign_Item (Destination : out Key_Type;
-                          Source : in Key_Type) is
+                          Source : Key_Type) is
    begin
       Destination := Source;
    end Assign_Item;
 
-   procedure Destroy_Item (Item : in Key_Type) is
+   procedure Destroy_Item (Item : Key_Type) is
    --  Mode of the parameter is artificial, but mode 'out' could raise
    --  CONSTRAINT_ERROR !
    begin
@@ -1741,6 +1762,5 @@ package body Table_Of_Static_Keys_And_Dynamic_Values_G is
    end Destroy_Item;
    pragma Inline (Assign_Item);
    pragma Inline (Destroy_Item);
-
 
 end Table_Of_Static_Keys_And_Dynamic_Values_G;

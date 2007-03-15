@@ -1,42 +1,41 @@
 ------------------------------------------------------------------------------
---                              Ada Web Server                              --
 --                                                                          --
---                         Copyright (C) 2000-2003                          --
---                                ACT-Europe                                --
+--                           POLYORB COMPONENTS                             --
 --                                                                          --
---  Authors: Dmitriy Anisimkov - Pascal Obry                                --
+--                           A W S . S E R V E R                            --
 --                                                                          --
---  This library is free software; you can redistribute it and/or modify    --
---  it under the terms of the GNU General Public License as published by    --
---  the Free Software Foundation; either version 2 of the License, or (at   --
---  your option) any later version.                                         --
+--                                 B o d y                                  --
 --                                                                          --
---  This library is distributed in the hope that it will be useful, but     --
---  WITHOUT ANY WARRANTY; without even the implied warranty of              --
---  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU       --
---  General Public License for more details.                                --
+--         Copyright (C) 2000-2006, Free Software Foundation, Inc.          --
 --                                                                          --
---  You should have received a copy of the GNU General Public License       --
---  along with this library; if not, write to the Free Software Foundation, --
---  Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.          --
+-- PolyORB is free software; you  can  redistribute  it and/or modify it    --
+-- under terms of the  GNU General Public License as published by the  Free --
+-- Software Foundation;  either version 2,  or (at your option)  any  later --
+-- version. PolyORB is distributed  in the hope that it will be  useful,    --
+-- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
+-- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
+-- License  for more details.  You should have received  a copy of the GNU  --
+-- General Public License distributed with PolyORB; see file COPYING. If    --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
---  As a special exception, if other files instantiate generics from this   --
---  unit, or you link this unit with other files to produce an executable,  --
---  this  unit  does not  by itself cause  the resulting executable to be   --
---  covered by the GNU General Public License. This exception does not      --
---  however invalidate any other reasons why the executable file  might be  --
---  covered by the  GNU Public License.                                     --
+-- As a special exception,  if other files  instantiate  generics from this --
+-- unit, or you link  this unit with other files  to produce an executable, --
+-- this  unit  does not  by itself cause  the resulting  executable  to  be --
+-- covered  by the  GNU  General  Public  License.  This exception does not --
+-- however invalidate  any other reasons why  the executable file  might be --
+-- covered by the  GNU Public License.                                      --
+--                                                                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
+--                                                                          --
 ------------------------------------------------------------------------------
-
-with Ada.Calendar;
-with Ada.Exceptions;
 
 with Ada.Text_IO;
 with Ada.Unchecked_Deallocation;
 
 with AWS.Config.Set;
 with AWS.Dispatchers.Callback;
-with AWS.Log;
 with AWS.Messages;
 with AWS.MIME;
 with AWS.OS_Lib;
@@ -45,7 +44,6 @@ with AWS.Session.Control;
 with AWS.Status;
 with AWS.Status.Translate_Table;
 with AWS.Templates;
-with AWS.Utils;
 with AWS.Object_Adapter;
 
 with PolyORB.Errors;
@@ -53,7 +51,6 @@ with PolyORB.ORB;
 with PolyORB.Setup;
 with PolyORB.Initialization;
 with PolyORB.Utils.Strings;
-with PolyORB.References;
 with PolyORB.Obj_Adapters;
 
 with PolyORB.Log;
@@ -75,8 +72,11 @@ package body AWS.Server is
 
    use PolyORB.Log;
    package L is new PolyORB.Log.Facility_Log ("aws.server");
-   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+   procedure O (Message : Standard.String; Level : Log_Level := Debug)
      renames L.Output;
+   function C (Level : Log_Level := Debug) return Boolean
+     renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    Security_Initialized : Boolean := False;
 
@@ -94,7 +94,7 @@ package body AWS.Server is
 
    procedure Start
      (The_Server : in out HTTP'Class;
-      Dispatcher : in     Dispatchers.Handler'Class);
+      Dispatcher : Dispatchers.Handler'Class);
    --  Start web server with current configuration.
 
    procedure Init_AWS;
@@ -138,7 +138,6 @@ package body AWS.Server is
       null;
    end Init_AWS;
 
-
    protected Counter is
 
       procedure Add;
@@ -160,7 +159,7 @@ package body AWS.Server is
    -- Config --
    ------------
 
-   function Config (The_Server : in HTTP'Class) return AWS.Config.Object is
+   function Config (The_Server : HTTP'Class) return AWS.Config.Object is
    begin
       return The_Server.Properties;
    end Config;
@@ -205,9 +204,9 @@ package body AWS.Server is
    ------------------------------------------
 
    procedure Default_Unexpected_Exception_Handler
-     (E      : in     Ada.Exceptions.Exception_Occurrence;
+     (E      : Ada.Exceptions.Exception_Occurrence;
       Log    : in out AWS.Log.Object;
-      Error  : in     Exceptions.Data;
+      Error  : Exceptions.Data;
       Answer : in out Response.Data)
    is
       use Ada.Exceptions;
@@ -272,7 +271,7 @@ package body AWS.Server is
 
    procedure Set
      (The_Server : in out HTTP'Class;
-      Dispatcher : in     Dispatchers.Handler'Class)
+      Dispatcher : Dispatchers.Handler'Class)
    is
       Old : Dispatchers.Handler_Class_Access := The_Server.Dispatcher;
 
@@ -291,7 +290,7 @@ package body AWS.Server is
    -- Set_Security --
    ------------------
 
-   procedure Set_Security (Certificate_Filename : in String) is
+   procedure Set_Security (Certificate_Filename : String) is
 
       pragma Warnings (Off);
       pragma Unreferenced (Certificate_Filename);
@@ -308,7 +307,7 @@ package body AWS.Server is
 
    procedure Set_Unexpected_Exception_Handler
      (The_Server : in out HTTP'Class;
-      Handler    : in     Exceptions.Unexpected_Exception_Handler) is
+      Handler    : Exceptions.Unexpected_Exception_Handler) is
    begin
       if The_Server.Shutdown then
          The_Server.Exception_Handler := Handler;
@@ -362,16 +361,16 @@ package body AWS.Server is
 
    procedure Start
      (The_Server                : in out HTTP'Class;
-      Name                      : in     String;
-      Callback                  : in     Response.Callback;
-      Max_Connection            : in     Positive  := Default.Max_Connection;
-      Admin_URI                 : in     String    := Default.Admin_URI;
-      Port                      : in     Positive  := Default.Server_Port;
-      Security                  : in     Boolean   := False;
-      Session                   : in     Boolean   := False;
-      Case_Sensitive_Parameters : in     Boolean   := True;
-      Upload_Directory          : in     String    := Default.Upload_Directory;
-      Line_Stack_Size           : in     Positive  := Default.Line_Stack_Size)
+      Name                      : String;
+      Callback                  : Response.Callback;
+      Max_Connection            : Positive  := Default.Max_Connection;
+      Admin_URI                 : String    := Default.Admin_URI;
+      Port                      : Positive  := Default.Server_Port;
+      Security                  : Boolean   := False;
+      Session                   : Boolean   := False;
+      Case_Sensitive_Parameters : Boolean   := True;
+      Upload_Directory          : String    := Default.Upload_Directory;
+      Line_Stack_Size           : Positive  := Default.Line_Stack_Size)
    is
    begin
       CNF.Set.Server_Name      (The_Server.Properties, Name);
@@ -395,8 +394,8 @@ package body AWS.Server is
 
    procedure Start
      (The_Server : in out HTTP'Class;
-      Callback   : in     Response.Callback;
-      Config     : in     AWS.Config.Object) is
+      Callback   : Response.Callback;
+      Config     : AWS.Config.Object) is
    begin
       The_Server.Properties := Config;
       Start (The_Server, Dispatchers.Callback.Create (Callback));
@@ -408,8 +407,8 @@ package body AWS.Server is
 
    procedure Start
      (The_Server : in out HTTP'Class;
-      Dispatcher : in     Dispatchers.Handler'Class;
-      Config     : in     AWS.Config.Object) is
+      Dispatcher : Dispatchers.Handler'Class;
+      Config     : AWS.Config.Object) is
    begin
       The_Server.Properties := Config;
       Start (The_Server, Dispatcher);
@@ -421,7 +420,7 @@ package body AWS.Server is
 
    procedure Start
      (The_Server : in out HTTP'Class;
-      Dispatcher : in     Dispatchers.Handler'Class)
+      Dispatcher : Dispatchers.Handler'Class)
    is
    begin
 
@@ -509,15 +508,14 @@ package body AWS.Server is
             Error);
 
          The_POA.Adapter_Activator := new Object_Adapter.AWS_AdapterActivator;
-         --  We set an Adapter Activator which will allow to bypass
-         --  subpath errors when searching the right POA
+
+         --  Set an Adapter Activator which will allow to bypass subpath
+         --  errors when looking for the right POA.
 
          if PolyORB.Errors.Found (Error) then
-            pragma Debug (O ("Start: unable to create a new POA", Critical));
-            null;
+            O ("Start: unable to create new POA", Critical);
          else
             pragma Debug (O ("Start: a new POA has been created"));
-
 
             PolyORB.POA_Manager.Basic_Manager.Activate
               (The_POA_Manager,
@@ -543,10 +541,8 @@ package body AWS.Server is
             else
                declare
                   use PolyORB.ORB;
-                  use PolyORB.Setup;
-                  use PolyORB.POA.Basic_POA;
                   use PolyORB.POA_Types;
-                  use PolyORB.Obj_Adapters;
+
                   Servant_Id : Object_Id_Access;
                begin
                   Servant_To_Id
@@ -578,8 +574,8 @@ package body AWS.Server is
 
    procedure Start_Error_Log
      (The_Server        : in out HTTP'Class;
-      Split_Mode        : in     Log.Split_Mode := Log.None;
-      Filename_Prefix   : in     String         := "")
+      Split_Mode        : Log.Split_Mode := Log.None;
+      Filename_Prefix   : String         := "")
    is
       use type AWS.Log.Split_Mode;
    begin
@@ -607,8 +603,8 @@ package body AWS.Server is
 
    procedure Start_Log
      (The_Server        : in out HTTP'Class;
-      Split_Mode        : in     Log.Split_Mode := Log.None;
-      Filename_Prefix   : in     String         := "")
+      Split_Mode        : Log.Split_Mode := Log.None;
+      Filename_Prefix   : String         := "")
    is
       use type AWS.Log.Split_Mode;
    begin
@@ -651,7 +647,7 @@ package body AWS.Server is
    -- Wait --
    ----------
 
-   procedure Wait (Mode : in Termination := No_Server) is
+   procedure Wait (Mode : Termination := No_Server) is
    begin
       case Mode is
          when No_Server =>
@@ -686,5 +682,6 @@ begin
       Depends   => +"poa",
       Provides  => Empty,
       Implicit  => False,
-      Init      => Init_AWS'Access));
+      Init      => Init_AWS'Access,
+      Shutdown  => null));
 end AWS.Server;

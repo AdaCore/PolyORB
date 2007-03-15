@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,15 +26,14 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Helper functions for CORBA servers. Note that using this unit implies
---  using the Portable Object Adapter.
+--  Helper functions for CORBA servers. Note that using this unit implies using
+--  the Portable Object Adapter.
 
-with CORBA.Object;
 with CORBA.ORB;
 with CORBA.Policy;
 
@@ -49,19 +48,22 @@ package body PolyORB.CORBA_P.Server_Tools is
    use PolyORB.Log;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.corba_p.server_tools");
-   procedure O (Message : in String; Level : Log_Level := Debug)
+   procedure O (Message : String; Level : Log_Level := Debug)
      renames L.Output;
+   function C (Level : Log_Level := Debug) return Boolean
+     renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
-   Root_POA : PortableServer.POA.Ref;
+   Root_POA : PortableServer.POA.Local_Ref;
 
    ------------------
    -- Get_Root_POA --
    ------------------
 
-   function Get_Root_POA return PortableServer.POA.Ref is
+   function Get_Root_POA return PortableServer.POA.Local_Ref is
    begin
       if PortableServer.POA.Is_Nil (Root_POA) then
-         Root_POA := PortableServer.POA.Helper.To_Ref
+         Root_POA := PortableServer.POA.Helper.To_Local_Ref
            (CORBA.ORB.Resolve_Initial_References
               (CORBA.ORB.To_CORBA_String ("RootPOA")));
       end if;
@@ -93,7 +95,7 @@ package body PolyORB.CORBA_P.Server_Tools is
    ----------------------
 
    procedure Initiate_Servant
-     (S : in PortableServer.Servant;
+     (S : PortableServer.Servant;
       R : out CORBA.Object.Ref'Class)
    is
    begin
@@ -113,11 +115,11 @@ package body PolyORB.CORBA_P.Server_Tools is
       Name : String;
       R    : out CORBA.Object.Ref'Class)
    is
-      use CORBA.Policy.IDL_Sequence_Policy;
+      use CORBA.Policy.IDL_SEQUENCE_Policy;
       use PortableServer.POA;
 
       Policies : CORBA.Policy.PolicyList;
-      Serv_POA : PortableServer.POA.Ref;
+      Serv_POA : PortableServer.POA.Local_Ref;
    begin
       Append (Policies,
               CORBA.Policy.Ref (Create_Request_Processing_Policy
@@ -137,7 +139,7 @@ package body PolyORB.CORBA_P.Server_Tools is
       Append (Policies,
               CORBA.Policy.Ref (Create_Lifespan_Policy
                                   (PortableServer.PERSISTENT)));
-      Serv_POA := PortableServer.POA.Helper.To_Ref
+      Serv_POA := PortableServer.POA.Helper.To_Local_Ref
         (PortableServer.POA.Create_POA
            (Get_Root_POA,
             CORBA.To_CORBA_String (Name),
@@ -156,7 +158,7 @@ package body PolyORB.CORBA_P.Server_Tools is
    --------------------------
 
    procedure Reference_To_Servant
-     (R : in CORBA.Object.Ref'Class;
+     (R : CORBA.Object.Ref'Class;
       S : out PortableServer.Servant)
    is
    begin
@@ -169,7 +171,7 @@ package body PolyORB.CORBA_P.Server_Tools is
    --------------------------
 
    procedure Servant_To_Reference
-     (S : in PortableServer.Servant;
+     (S : PortableServer.Servant;
       R : out CORBA.Object.Ref'Class) renames Initiate_Servant;
 
 end PolyORB.CORBA_P.Server_Tools;

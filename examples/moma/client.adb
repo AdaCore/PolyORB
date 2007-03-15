@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -37,7 +37,6 @@ with Ada.Command_Line;
 with Ada.Text_IO;
 
 with PolyORB.Setup.No_Tasking_Server;
-pragma Elaborate_All (PolyORB.Setup.No_Tasking_Server);
 pragma Warnings (Off, PolyORB.Setup.No_Tasking_Server);
 --  XXX do not change Tasking model for now, otherwise there is a risk
 --  of a race condition between producer and consumer ...
@@ -79,11 +78,14 @@ procedure Client is
 
    use PolyORB.Utils.Report;
 
-   Arg1               : String renames Ada.Command_Line.Argument (1);
-   Arg2               : String renames Ada.Command_Line.Argument (2);
-   Arg3               : String renames Ada.Command_Line.Argument (3);
+   Naming_StringRef     : MOMA.Types.String;
+
    Pool_Ref           : MOMA.Types.Ref := MOMA.Types.Nil_Ref;
+   Pool_StringRef     : MOMA.Types.String;
+
    Router_Ref         : MOMA.Types.Ref := MOMA.Types.Nil_Ref;
+   Router_StringRef   : MOMA.Types.String;
+
    MOMA_Factory       : Connection_Factory;
    MOMA_Connection    : MOMA.Connections.Connection;
    MOMA_Session       : MOMA.Sessions.Session;
@@ -389,6 +391,9 @@ procedure Client is
       Put_Line ("or    : client stor topic <IOR>");
       Put_Line (" where <IOR> is the IOR of a router");
       New_Line;
+      Put_Line ("or    : client <IOR>");
+      Put_Line (" shortcut for client full pool <IOR>");
+      New_Line;
       Put_Line ("or    : client <submode> <IOR1> <IOR2>");
       Put_Line (" where <submode> is in (sub, unsub)");
       Put_Line ("       <IOR1> is the IOR of the message pool to sub / unsub");
@@ -404,41 +409,62 @@ procedure Client is
    function Check_Arguments return Boolean;
 
    function Check_Arguments return Boolean is
+      Arg1 : String renames Ada.Command_Line.Argument (1);
+
    begin
+      if Argument_Count = 1 then
+         Scenario := Full;
+         Kind := Pool;
+         Pool_StringRef := To_MOMA_String (Arg1);
+         return True;
+      end if;
+
       if Argument_Count /= 3 then
          return False;
       end if;
 
-      if Arg1 = "full" then
-         Scenario := Full;
-      elsif Arg1 = "stor" then
-         Scenario := Stor;
-      elsif Arg1 = "retr" then
-         Scenario := Retr;
-      elsif Arg1 = "sub" then
-         Scenario := Sub;
-         Kind := Topic;
-         return True;
-      elsif Arg1 = "unsub" then
-         Scenario := Unsub;
-         Kind := Topic;
-         return True;
-      else
-         return False;
-      end if;
-
-      if Arg2 = "pool" then
-         Kind := Pool;
-      elsif Arg2 = "naming" then
-         Kind := Naming;
-      elsif Arg2 = "topic" then
-         Kind := Topic;
-         if Arg1 /= "stor" then
+      declare
+         Arg2 : String renames Ada.Command_Line.Argument (2);
+         Arg3 : String renames Ada.Command_Line.Argument (3);
+      begin
+         if Arg1 = "full" then
+            Scenario := Full;
+         elsif Arg1 = "stor" then
+            Scenario := Stor;
+         elsif Arg1 = "retr" then
+            Scenario := Retr;
+         elsif Arg1 = "sub" then
+            Scenario := Sub;
+            Kind := Topic;
+            return True;
+         elsif Arg1 = "unsub" then
+            Scenario := Unsub;
+            Kind := Topic;
+            return True;
+         else
             return False;
          end if;
-      else
-         return False;
-      end if;
+
+         if Arg2 = "pool" then
+            Kind := Pool;
+            Pool_StringRef := To_MOMA_String (Arg3);
+
+         elsif Arg2 = "naming" then
+            Kind := Naming;
+            Naming_StringRef := To_MOMA_String (Arg3);
+
+         elsif Arg2 = "topic" then
+            Kind := Topic;
+            Router_StringRef := To_MOMA_String (Arg3);
+            Pool_StringRef := To_MOMA_String (Arg2);
+
+            if Arg1 /= "stor" then
+               return False;
+            end if;
+         else
+            return False;
+         end if;
+      end;
 
       return True;
    end Check_Arguments;
@@ -462,20 +488,24 @@ begin
 
    case Kind is
       when Pool =>
-         MOMA.References.String_To_Reference (Arg3, Pool_Ref);
+         MOMA.References.String_To_Reference
+           (To_Standard_String (Pool_StringRef), Pool_Ref);
 
       when Naming =>
-         MOMA.References.Initialize_Naming_Service (Arg3);
+         MOMA.References.Initialize_Naming_Service
+           (To_Standard_String (Naming_StringRef));
          Pool_Ref := MOMA.References.Locate ("Pool_1");
          Kind := Pool;
 
       when Topic =>
-         MOMA.References.String_To_Reference (Arg3, Router_Ref);
+         MOMA.References.String_To_Reference
+           (To_Standard_String (Router_StringRef), Router_Ref);
 
          if Scenario = Sub
            or else Scenario = Unsub
          then
-            MOMA.References.String_To_Reference (Arg2, Pool_Ref);
+            MOMA.References.String_To_Reference
+              (To_Standard_String (Pool_StringRef), Pool_Ref);
          end if;
    end case;
 
@@ -557,5 +587,6 @@ begin
 
    Test_MText;
 
+   End_Report;
    --  XXX should destroy all structures here !
 end Client;

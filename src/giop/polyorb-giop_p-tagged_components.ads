@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -36,7 +36,9 @@
 with Ada.Streams;
 
 with PolyORB.Buffers;
+with PolyORB.Errors;
 with PolyORB.Objects;
+with PolyORB.QoS.Tagged_Components;
 with PolyORB.Types;
 with PolyORB.Utils.Chained_Lists;
 
@@ -50,26 +52,29 @@ package PolyORB.GIOP_P.Tagged_Components is
    -- Tagged_Component --
    ----------------------
 
-   type Tagged_Component (Tag : Tag_Value) is abstract tagged private;
+   type Tagged_Component (Tag : Tag_Value; At_Most_Once : Boolean)
+      is abstract tagged private;
 
    type Tagged_Component_Access is access all Tagged_Component'Class;
 
-   procedure Marshall
-     (C      : access Tagged_Component;
+   procedure Marshall_Component_Data
+     (Comp   : access Tagged_Component;
       Buffer : access Buffer_Type)
       is abstract;
-   --  Marshall tagged component
+   --  Marshall tagged component_data associated to component
 
-   procedure Unmarshall
-     (C      : access Tagged_Component;
-      Buffer : access Buffer_Type)
-      is abstract;
-   --  Unmarshall tagged component
+   procedure Unmarshall_Component_Data
+     (Comp   : access Tagged_Component;
+      Buffer : access Buffer_Type;
+      Error  : out PolyORB.Errors.Error_Container)
+     is abstract;
+   --  Unmarshall tagged component_data associated to component
 
-   procedure Release_Contents
-     (C : access Tagged_Component)
-      is abstract;
+   procedure Release_Contents (Comp : access Tagged_Component) is abstract;
    --  Free memory associated with component
+
+   function Duplicate (C : Tagged_Component) return Tagged_Component_Access
+     is abstract;
 
    ---------------------------
    -- Tagged_Component_List --
@@ -79,6 +84,9 @@ package PolyORB.GIOP_P.Tagged_Components is
 
    Null_Tagged_Component_List : constant Tagged_Component_List;
    --  Empty list
+
+   type Tagged_Component_Array is
+     array (Positive range <>) of Tagged_Component_Access;
 
    procedure Release_Contents (List : in out Tagged_Component_List);
    --  Free memory for all tags in List
@@ -91,7 +99,7 @@ package PolyORB.GIOP_P.Tagged_Components is
    function Unmarshall_Tagged_Component
      (Buffer     : access Buffer_Type)
      return Tagged_Component_List;
-   --  Unarshall Tagged Component List
+   --  Unmarshall tagged component List
 
    function Get_Component
      (List : Tagged_Component_List;
@@ -99,16 +107,45 @@ package PolyORB.GIOP_P.Tagged_Components is
      return Tagged_Component_Access;
    --  Search and return a component in a tagged component list
 
+   function Get_Components
+     (List : Tagged_Component_List;
+      Tag  : Tag_Value)
+     return Tagged_Component_Array;
+   --  Search and return all components with specified Tag in a tagged
+   --  component list.
+
    function Fetch_Components
      (Oid : access PolyORB.Objects.Object_Id)
      return Tagged_Component_List;
-   --  Return a Tagget_Component_List of all tagged components
-   --  configured for object represented by Oid.
+   --  Return a Tagget_Component_List of all tagged components configured for
+   --  object denoted by Oid.
 
    procedure Add
      (List : in out Tagged_Component_List;
-      C    :        Tagged_Component_Access);
-   --  Add a component in a tagged component list
+      Comp :        Tagged_Component_Access);
+   --  Add a component to a tagged component list
+
+   procedure Add
+     (List : in out Tagged_Component_List;
+      CL   :        Tagged_Component_List);
+   --  Add a list of components to a tagged component list
+
+   procedure Replace
+     (List : in out Tagged_Component_List;
+      C1   :        Tagged_Component_Access;
+      C2   :        Tagged_Component_Access);
+   --  Replace component C1 with component C2. C1 and C2 must have the
+   --  same tag.
+
+   procedure Remove
+     (List : in out Tagged_Component_List;
+      Comp :        Tagged_Component_Access);
+   --  Remove Comp from List
+
+   function Deep_Copy
+     (List : Tagged_Component_List)
+     return Tagged_Component_List;
+   --  Return a deep copy of List
 
    -------------------------
    -- Register components --
@@ -126,32 +163,6 @@ package PolyORB.GIOP_P.Tagged_Components is
       New_Empty_Component : New_Empty_Component_Func_Access;
       Fetch_Component     : Fetch_Component_Func_Access);
    --  Register tagged component with tag Tag
-
-   -----------------------
-   -- Unknown Component --
-   -----------------------
-
-   --  Unknown component is used when tag is unknown at unmarshalling time.
-   --  Users cannot access to unknown components data, but unknown
-   --  components can be remarshalled without being modified.
-
-   type Octet_Access is access all Ada.Streams.Stream_Element_Array;
-   --  Data in an unknow tagged component
-
-   type TC_Unknown_Component is
-     new Tagged_Component (Tag_Value'Last) with private;
-   type TC_Unknown_Component_Access is access all TC_Unknown_Component'Class;
-
-   procedure Marshall
-     (C      : access TC_Unknown_Component;
-      Buffer : access Buffer_Type);
-
-   procedure Unmarshall
-     (C      : access TC_Unknown_Component;
-      Buffer : access Buffer_Type);
-
-   procedure Release_Contents
-     (C : access TC_Unknown_Component);
 
    --------------
    -- Tag List --
@@ -188,15 +199,53 @@ package PolyORB.GIOP_P.Tagged_Components is
    Tag_Group                    : constant Tag_Value;
    Tag_INET_Sec_Trans           : constant Tag_Value;
 
-private
+   function Create_QoS_GIOP_Tagged_Components_List
+     (Components : Tagged_Component_List)
+      return PolyORB.QoS.Tagged_Components.GIOP_Tagged_Component_Lists.List;
 
-   type Tagged_Component (Tag : Tag_Value) is abstract tagged null record;
+   -----------------------
+   -- Unknown Component --
+   -----------------------
+
+   --  Unknown component is used when tag is unknown at unmarshalling time.
+   --  Users cannot access to unknown components data, but unknown
+   --  components can be remarshalled without being modified.
+
+   type Octet_Access is access all Ada.Streams.Stream_Element_Array;
+   --  Data in an unknow tagged component
+
+   Tag_Unknown                  : constant Tag_Value := Tag_Value'Last;
+   --  PolyORB specific value for Unknown tagged components
 
    type TC_Unknown_Component is
-     new Tagged_Component (Tag_Value'Last) with record
-        Unknown_Tag : Tag_Value;
-        Data : Octet_Access;
-     end record;
+     new Tagged_Component (Tag => Tag_Unknown, At_Most_Once => False)
+     with private;
+
+   type TC_Unknown_Component_Access is access all TC_Unknown_Component'Class;
+
+   procedure Marshall_Component_Data
+     (Comp   : access TC_Unknown_Component;
+      Buffer : access Buffer_Type);
+
+   procedure Unmarshall_Component_Data
+     (Comp   : access TC_Unknown_Component;
+      Buffer : access Buffer_Type;
+      Error  : out PolyORB.Errors.Error_Container);
+
+   function Create_Unknown_Component
+     (Unknown_Tag : Tag_Value;
+      Data        : Octet_Access)
+      return Tagged_Component_Access;
+
+   procedure Release_Contents (Comp : access TC_Unknown_Component);
+
+   function Duplicate
+     (Comp : TC_Unknown_Component) return Tagged_Component_Access;
+
+private
+
+   type Tagged_Component (Tag : Tag_Value; At_Most_Once : Boolean)
+      is abstract tagged null record;
 
    package Component_Lists is new
      PolyORB.Utils.Chained_Lists (Tagged_Component_Access);
@@ -208,6 +257,17 @@ private
 
    Null_Tagged_Component_List : constant Tagged_Component_List
      := Tagged_Component_List (Component_Lists.Empty);
+
+   procedure Marshall_Tagged_Component
+     (Buffer    : access Buffer_Type;
+      Component :        Tagged_Component_Access);
+   --  Marshall one tagged component
+
+   procedure Unmarshall_Tagged_Component
+     (Buffer : access Buffer_Type;
+      C      :    out Tagged_Component_Access;
+      Error  :    out PolyORB.Errors.Error_Container);
+   --  Unmarshall one tagged component
 
    --------------
    -- Tag List --
@@ -246,5 +306,12 @@ private
    --  Tag_Group : constant Tag_Value := 1413566211;
 
    Tag_INET_Sec_Trans           : constant Tag_Value := 123;
+
+   type TC_Unknown_Component is
+     new Tagged_Component (Tag => Tag_Unknown, At_Most_Once => False)
+     with record
+        Unknown_Tag : Tag_Value;
+        Data : Octet_Access;
+     end record;
 
 end PolyORB.GIOP_P.Tagged_Components;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -35,13 +35,14 @@ with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 
 package Ada_Be.Source_Streams is
 
-   Indent_Size : constant := 3;
-
-   type Compilation_Unit is private;
-   --  A complete compilation unit.
+   Indent_Size      : constant := 3;
 
    type Unit_Kind is (Unit_Spec, Unit_Body);
    --  The kind of a compilation unit
+
+   type Compilation_Unit (Kind : Unit_Kind := Unit_Spec) is limited private;
+   type Compilation_Unit_Access is access all Compilation_Unit;
+   --  A complete compilation unit
 
    type Library_Unit is array (Unit_Kind) of Compilation_Unit;
    --  A matching package declaration and package body
@@ -111,22 +112,20 @@ package Ada_Be.Source_Streams is
       Use_It       :        Boolean             := False;
       Elab_Control :        Elab_Control_Pragma := None;
       No_Warnings  :        Boolean             := False);
-   --  Add Dep to the semantic dependecies of Unit,
-   --  if it is not already present. If Use_It is true,
-   --  a "use" clause will be added for that unit.
-   --  Additionnally, an elaboration control pragma may
-   --  be inserted according to Elab_Control.
-   --  If No_Warnings is True, also emit a
-   --    pragma Warnings (Off, Withed_Unit) (useful e.g.
-   --  when no entities from the withed unit are referenced.)
+   --  Add Dep to the semantic dependecies of Unit, if it is not already
+   --  present. If Use_It is true, a "use" clause will be added for that unit.
+   --  Additionnally, an elaboration control pragma may be inserted according
+   --  to Elab_Control. If No_Warnings is True, also emit a
+   --    pragma Warnings (Off, Withed_Unit) (useful e.g. when no entities
+   --  from the withed unit are referenced.)
 
    --  If Add_With is called several times for the same unit:
-   --    - the unit is use'd if at least one call was made with
-   --      Use_It set to True;
-   --    - the elab control is set to Elaborate_All if any call
-   --      was made with Elab_Control = Elaborate_All,
-   --    - else the elab control is set to Elaborate if any call
-   --      was made with Elab_Control = Elaborate,
+   --    - the unit is use'd if at least one call was made with Use_It set to
+   --      True;
+   --    - the elab control is set to Elaborate_All if any call was made with
+   --      Elab_Control = Elaborate_All,
+   --    - else the elab control is set to Elaborate if any call was made with
+   --      Elab_Control = Elaborate,
    --    - else the elab control is set to None.
 
    procedure Add_Elaborate_Body
@@ -138,11 +137,14 @@ package Ada_Be.Source_Streams is
    --  Remove warning such as "Do not modify this file". Used for
    --  implementations.
 
-   function New_Package
-     (Name : String;
-      Kind : Unit_Kind)
-      return Compilation_Unit;
-   --  Prepare to generate a new compilation unit.
+   procedure New_Compilation_Unit
+     (CU                 : out Compilation_Unit;
+      Kind               : Unit_Kind;
+      Name               : String;
+      Corresponding_Spec : Compilation_Unit_Access := null);
+   --  Prepare to generate a new compilation unit. If Kind is Unit_Spec,
+   --  Corresponding_Spec is ignored and shall be null. If Kind is Unit_Body,
+   --  it shall be an access to the corresponding spec.
 
    procedure Set_Template_Mode
      (Unit : in out Compilation_Unit;
@@ -150,6 +152,17 @@ package Ada_Be.Source_Streams is
    --  Set Unit's template mode. When a unit is in template mode, code
    --  insertion is not taken into account to determine whether the unit
    --  is 'empty' for the purpose of procedure Generate.
+
+   procedure Set_Comment_Out_Mode
+     (Unit : in out Compilation_Unit;
+      Mode : Boolean);
+   --  Set Unit's comment out mode. While a unit is in comment out mode,
+   --  any generated code is output as comments, and any Add_With call is
+   --  ignored.
+
+   function Set_Output_Directory (Dir : String) return Boolean;
+   --  Set output directory to Dir. False is returned upon failure
+   --  (case of a non-existing directory).
 
    procedure Generate
      (Unit : Compilation_Unit;
@@ -225,6 +238,9 @@ private
       No_Warning        : Boolean    := False;
       --  If True, warnings are suppressed on the unit
 
+      Comment_Out_Mode  : Boolean    := False;
+      --  If True, all code inserted in the current diversion is commented out
+
       Template_Mode     : Boolean    := False;
       --  If True, code insertion in the current diversion does not cause
       --  it to become non-empty.
@@ -236,11 +252,14 @@ private
       Diversions        : Diversion_Set;
 
       case Kind is
+
          when Unit_Spec =>
             Elaborate_Body    : Boolean    := False;
             --  If True, a pragma Elaborate_Body is generated
-         when others =>
-            null;
+
+         when Unit_Body =>
+            Corresponding_Spec : Compilation_Unit_Access;
+
       end case;
    end record;
 

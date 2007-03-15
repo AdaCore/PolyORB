@@ -1,61 +1,10 @@
 include $(top_srcdir)/Makefile.common
 
 #
-# PolyORB's libraries
-#
-
-corba_lib=$(top_builddir)/src/corba/libpolyorb-corba.la
-
-giop_lib=$(top_builddir)/src/giop/libpolyorb-giop.la \
-         $(top_builddir)/src/giop/diop/libpolyorb-giop-diop.la \
-         $(top_builddir)/src/giop/iiop/libpolyorb-giop-iiop.la \
-         $(top_builddir)/src/giop/miop/libpolyorb-giop-miop.la
-
-moma_lib=$(top_builddir)/src/moma/libpolyorb-moma.la
-
-soap_lib=$(top_builddir)/src/soap/libpolyorb-soap.la 
-
-srp_lib=$(top_builddir)/src/srp/libpolyorb-srp.la
-
-web_common_lib=$(top_builddir)/src/web_common/libpolyorb-web_common.la
-
-POLYORB_LIBS = \
-             $(top_builddir)/src/libpolyorb.la \
-             @PROTO_LIBS@ \
-             @APPLI_LIBS@ \
-             @LIBS_LIBS@
-
-#
-# PolyORB's include files
-#
-
-corba_inc=-I$(top_srcdir)/src/corba -I$(top_builddir)/src/corba
-
-giop_inc=-I$(top_srcdir)/src/giop -I$(top_builddir)/src/giop \
-         -I$(top_srcdir)/src/giop/diop -I$(top_builddir)/src/giop/diop \
-         -I$(top_srcdir)/src/giop/iiop -I$(top_builddir)/src/giop/iiop \
-         -I$(top_srcdir)/src/giop/miop -I$(top_builddir)/src/giop/miop
-
-soap_inc=-I$(top_srcdir)/src/soap -I$(top_builddir)/src/soap
-
-srp_inc=-I$(top_srcdir)/src/srp -I$(top_builddir)/src/srp
-
-web_common_inc=-I$(top_srcdir)/src/web_common -I$(top_builddir)/src/web_common
-
-ir_inc=-I$(top_srcdir)/cos/ir -I$(top_builddir)/cos/ir
-
-POLYORB_INCS = -I$(srcdir) \
-               -I$(top_srcdir)/src -I$(top_builddir)/src \
-               @PROTO_INCS@ \
-               @APPLI_INCS@ \
-               @SERVICE_INCS@ \
-               @LIBS_INCS@
-
-#
 # Compilation flags
 #
 
-ADAFLAGS=	$(GNATFLAGS) $(COS_ADAFLAGS) $(POLYORB_INCS) $(XMLADA_INCS)
+ADAFLAGS+=	$(STD_ADAFLAGS) $(COS_ADAFLAGS) $(POLYORB_INCS) $(XMLADA_INCS)
 
 #
 # Compute source files to be compiled
@@ -67,13 +16,22 @@ ADA_SPECS = $(ADA_SPECS_WITH_BODY) $(ADA_SPECS_NO_BODY)
 
 ADA_ALIS = $(ADA_SPECS:.ads=.ali)
 
-ADA_LIBADD = $(ADA_SPECS:.ads=.lo)
+ADA_SOURCES = $(ADA_SPECS_NO_BODY) $(ADA_BODIES)
+
+#
+# Generate Ada source from IDL files
+#
+IDL_STAMPS = $(IDLS:.idl=.idl-stamp)
+
+$(IDL_STAMPS): $(IDLAC)
+
+$(GEN): $(IDL_STAMPS)
 
 #
 # File to be cleaned
 #
 
-CLEANFILES = b~*.* *.o *.ali
+CLEANFILES = b~*.* *.o *.ali $(IDL_STAMPS) $(GEN) $(GEN_BODIES)
 
 #
 # Local targets
@@ -105,18 +63,18 @@ install-data-local:
 	$(INSTALL) -d $(DESTDIR)$(alidir)
 	for f in $(ADA_SPECS) $(ADA_BODIES) $(ADA_ALIS); do \
           if test -f $$f; then \
-            $(INSTALL) -m 644 $$f $(DESTDIR)$(alidir); \
+            $(INSTALL) -m 444 $$f $(DESTDIR)$(alidir); \
           else \
-            $(INSTALL) -m 644  $(srcdir)/$$f $(DESTDIR)$(alidir); \
+            $(INSTALL) -m 444  $(srcdir)/$$f $(DESTDIR)$(alidir); \
           fi \
         done
 
 	$(INSTALL) -d $(DESTDIR)$(IDLdir)
-	for f in $(IDL); do \
+	for f in $(IDLS); do \
           if test -f $$f; then \
-            $(INSTALL) -m 644 $$f $(DESTDIR)$(IDLdir); \
+            $(INSTALL) -m 444 $$f $(DESTDIR)$(IDLdir); \
           else \
-            $(INSTALL) -m 644  $(srcdir)/$$f $(DESTDIR)$(IDLdir); \
+            $(INSTALL) -m 444  $(srcdir)/$$f $(DESTDIR)$(IDLdir); \
           fi \
         done
 

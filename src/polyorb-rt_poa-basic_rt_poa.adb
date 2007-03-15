@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -32,7 +32,6 @@
 ------------------------------------------------------------------------------
 
 with PolyORB.Log;
-with PolyORB.POA_Manager;
 with PolyORB.POA_Policies.Implicit_Activation_Policy;
 with PolyORB.Utils.Chained_Lists;
 
@@ -43,8 +42,11 @@ package body PolyORB.RT_POA.Basic_RT_POA is
    use PolyORB.POA;
 
    package L is new Log.Facility_Log ("polyorb.rt_poa.basic_rt_poa");
-   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+   procedure O (Message : Standard.String; Level : Log_Level := Debug)
      renames L.Output;
+   function C (Level : Log_Level := Debug) return Boolean
+     renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    type Oid_Information is record
       U_Oid                 : PolyORB.POA_Types.Unmarshalled_Oid;
@@ -193,7 +195,7 @@ package body PolyORB.RT_POA.Basic_RT_POA is
 
    procedure Get_Scheduling_Parameters
      (Self                     : access Basic_RT_Obj_Adapter;
-      Id                       : in     Object_Id_Access;
+      Id                       : Object_Id_Access;
       Model                    :    out Priority_Model;
       Server_ORB_Priority      :    out ORB_Priority;
       Server_External_Priority :    out External_Priority;
@@ -253,8 +255,8 @@ package body PolyORB.RT_POA.Basic_RT_POA is
    procedure Create_Object_Identification_With_Priority
      (Self                     : access Basic_RT_Obj_Adapter;
       Hint                     :        Object_Id_Access;
-      Server_ORB_Priority      : in     ORB_Priority;
-      Server_External_Priority : in     External_Priority;
+      Server_ORB_Priority      : ORB_Priority;
+      Server_External_Priority : External_Priority;
       U_Oid                    :    out Unmarshalled_Oid;
       Error                    : in out PolyORB.Errors.Error_Container)
    is
@@ -309,8 +311,8 @@ package body PolyORB.RT_POA.Basic_RT_POA is
      (Self                     : access Basic_RT_Obj_Adapter;
       P_Servant                :        Servants.Servant_Access;
       Hint                     :        Object_Id_Access;
-      Server_ORB_Priority      : in     ORB_Priority;
-      Server_External_Priority : in     External_Priority;
+      Server_ORB_Priority      : ORB_Priority;
+      Server_External_Priority : External_Priority;
       U_Oid                    :    out Unmarshalled_Oid;
       Error                    : in out PolyORB.Errors.Error_Container)
    is
@@ -382,6 +384,14 @@ package body PolyORB.RT_POA.Basic_RT_POA is
          Server_ORB_Priority,
          Server_External_Priority,
          Error);
+
+      if Self.Thread_Pool_Policy /= null then
+         --  Cache information on Thread_Pool_Policy in servant
+
+         Set_Servant_Lane (Self.Thread_Pool_Policy.all, P_Servant);
+
+      end if;
+
    end Activate_Object_With_Id_And_Priority;
 
 end PolyORB.RT_POA.Basic_RT_POA;

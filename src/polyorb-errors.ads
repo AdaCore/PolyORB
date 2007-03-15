@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2005 Free Software Foundation, Inc.             --
+--         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -34,8 +34,6 @@
 --  Errors management subsystem
 
 with Ada.Unchecked_Deallocation;
-
-with PolyORB.Any;
 with PolyORB.Smart_Pointers;
 with PolyORB.Types;
 
@@ -51,10 +49,9 @@ package PolyORB.Errors is
    --   - Exception Member.
 
    type Exception_Members is abstract tagged null record;
-   --  Base type for all PolyORB exception members. A member is a record
-   --  attached to an exception that allows the programmer to pass
-   --  arguments when an exception is raised. The default Member record is
-   --  abstract and empty but all other records will inherit from it.
+   --  Base type for all PolyORB exception members. A member is a
+   --  record attached to an exception that allows the programmer to
+   --  pass arguments when an exception is raised.
 
    type Exception_Members_Access is access all Exception_Members'Class;
 
@@ -72,35 +69,9 @@ package PolyORB.Errors is
    --  Characterize the completion state of the execution process when
    --  systeme exception has been raised.
 
-   To_Completion_Status :
-     constant array (PolyORB.Types.Unsigned_Long range 0 .. 2)
-         of Completion_Status
-     := (0 => Completed_Yes, 1 => Completed_No, 2 => Completed_Maybe);
-
-   To_Unsigned_Long :
-     constant array (Completion_Status) of PolyORB.Types.Unsigned_Long
-     := (Completed_Yes => 0, Completed_No => 1, Completed_Maybe => 2);
-
-   function From_Any
-     (Item : PolyORB.Any.Any)
-     return Completion_Status;
-
-   function To_Any
-     (Item : Completion_Status)
-     return Any.Any;
-
-   function TC_Completion_Status
-     return PolyORB.Any.TypeCode.Object;
-   --  The typecode for standard enumeration type completion_status.
-
    --  Null_Members
 
    type Null_Members is new Exception_Members with null record;
-
-   function To_Any
-     (Name   : Standard.String;
-      Member : Null_Members)
-     return PolyORB.Any.Any;
 
    Null_Member : constant Null_Members
      := Null_Members'(Exception_Members with null record);
@@ -111,17 +82,6 @@ package PolyORB.Errors is
       Minor     : PolyORB.Types.Unsigned_Long;
       Completed : Completion_Status;
    end record;
-
-   function System_Exception_TypeCode
-     (Name : Standard.String)
-     return PolyORB.Any.TypeCode.Object;
-   --  Return the TypeCode corresponding to the indicated
-   --  system exception name.
-
-   function To_Any
-     (Name   : Standard.String;
-      Member : System_Exception_Members)
-     return PolyORB.Any.Any;
 
    --  InvalidPolicy_Members
 
@@ -135,15 +95,19 @@ package PolyORB.Errors is
       Forward_Reference : PolyORB.Smart_Pointers.Ref;
    end record;
 
-   function To_Any
-     (Item : ForwardRequest_Members)
-      return PolyORB.Any.Any;
+   --  ForwardRequestPerm_Members
 
-   function From_Any
-     (Item : PolyORB.Any.Any)
-      return ForwardRequest_Members;
+   type ForwardRequestPerm_Members is new Exception_Members with record
+      Forward_Reference : PolyORB.Smart_Pointers.Ref;
+   end record;
 
-   function TC_ForwardRequest return PolyORB.Any.TypeCode.Object;
+   --  NeedsAddressingMode_Members
+
+   type Addressing_Mode is (Key, Profile, Reference);
+
+   type NeedsAddressingMode_Members is new Exception_Members with record
+      Mode : Addressing_Mode;
+   end record;
 
    ----------------
    -- ORB Errors --
@@ -197,6 +161,14 @@ package PolyORB.Errors is
 
       ForwardRequest_E,
 
+      --  Special error code for Fault Tolerant permanent location forwarding
+
+      ForwardRequestPerm_E,
+
+      --  Special error code for requesting GIOP addressing mode
+
+      NeedsAddressingMode_E,
+
       --  One to one mapping of POA exceptions.
 
       AdapterAlreadyExists_E,
@@ -240,21 +212,19 @@ package PolyORB.Errors is
    end record;
 
    function Found (Error : Error_Container) return Boolean;
-   --  True iff Error is not null.
+   --  True iff Error is not No_Error
 
    procedure Throw
      (Error  : in out Error_Container;
-      Kind   : in     Error_Id;
-      Member : in     Exception_Members'Class);
-   --  Generates an error whith Kind and Member information.
+      Kind   : Error_Id;
+      Member : Exception_Members'Class);
+   --  Generates an error whith Kind and Member information
 
    procedure Catch (Error : in out Error_Container);
-   --  Acknowledge Error and reset its content.
+   --  Acknowledge Error and reset its content
 
-   function Is_Error (Error : in Error_Container) return Boolean;
-   --  True iff Error is not No_Error;
-
-   function Error_To_Any (Error : in Error_Container) return PolyORB.Any.Any;
+   function Is_Error (Error : Error_Container) return Boolean;
+   --  True iff Error is not No_Error
 
    ------------------
    -- Exception Id --
@@ -264,20 +234,20 @@ package PolyORB.Errors is
    --  NameSpace:Root'Separator' .. Version
 
    PolyORB_Exc_NameSpace : constant String;
-   --  PolyORB exceptions namespace.
+   --  PolyORB exceptions namespace
 
    PolyORB_Exc_Root      : constant String;
-   --  PolyORB exceptions root.
+   --  PolyORB exceptions root
 
    PolyORB_Exc_Separator : constant String;
-   --  PolyORB exceptions separator.
+   --  PolyORB exceptions separator
 
    PolyORB_Exc_Prefix    : constant String;
    --  Concantenation of PolyORB_Exc_NameSpace, PolyORB_Root and
-   --  PolyORB_Separator.
+   --  PolyORB_Separator
 
    PolyORB_Exc_Version   : constant String;
-   --  PolyORB exceptions version.
+   --  PolyORB exceptions version
 
 private
 

@@ -1,31 +1,34 @@
 ------------------------------------------------------------------------------
---                              Ada Web Server                              --
 --                                                                          --
---                         Copyright (C) 2000-2003                          --
---                               ACT-Europe                                 --
+--                           POLYORB COMPONENTS                             --
 --                                                                          --
---  Authors: Dmitriy Anisimkov - Pascal Obry                                --
+--                           A W S . C O N F I G                            --
 --                                                                          --
---  This library is free software; you can redistribute it and/or modify    --
---  it under the terms of the GNU General Public License as published by    --
---  the Free Software Foundation; either version 2 of the License, or (at   --
---  your option) any later version.                                         --
+--                                 S p e c                                  --
 --                                                                          --
---  This library is distributed in the hope that it will be useful, but     --
---  WITHOUT ANY WARRANTY; without even the implied warranty of              --
---  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU       --
---  General Public License for more details.                                --
+--         Copyright (C) 2000-2006, Free Software Foundation, Inc.          --
 --                                                                          --
---  You should have received a copy of the GNU General Public License       --
---  along with this library; if not, write to the Free Software Foundation, --
---  Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.          --
+-- PolyORB is free software; you  can  redistribute  it and/or modify it    --
+-- under terms of the  GNU General Public License as published by the  Free --
+-- Software Foundation;  either version 2,  or (at your option)  any  later --
+-- version. PolyORB is distributed  in the hope that it will be  useful,    --
+-- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
+-- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
+-- License  for more details.  You should have received  a copy of the GNU  --
+-- General Public License distributed with PolyORB; see file COPYING. If    --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
---  As a special exception, if other files instantiate generics from this   --
---  unit, or you link this unit with other files to produce an executable,  --
---  this  unit  does not  by itself cause  the resulting executable to be   --
---  covered by the GNU General Public License. This exception does not      --
---  however invalidate any other reasons why the executable file  might be  --
---  covered by the  GNU Public License.                                     --
+-- As a special exception,  if other files  instantiate  generics from this --
+-- unit, or you link  this unit with other files  to produce an executable, --
+-- this  unit  does not  by itself cause  the resulting  executable  to  be --
+-- covered  by the  GNU  General  Public  License.  This exception does not --
+-- however invalidate  any other reasons why  the executable file  might be --
+-- covered by the  GNU Public License.                                      --
+--                                                                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
+--                                                                          --
 ------------------------------------------------------------------------------
 
 --  This package provide an easy way to handle server configuration options.
@@ -54,144 +57,144 @@ package AWS.Config is
    -- Per Server options --
    ------------------------
 
-   function Server_Name (O : in Object) return String;
+   function Server_Name (O : Object) return String;
    pragma Inline (Server_Name);
    --  This is the name of the server as set by AWS.Server.Start.
 
-   function WWW_Root (O : in Object) return String;
+   function WWW_Root (O : Object) return String;
    pragma Inline (WWW_Root);
    --  This is the root directory name for the server. This variable is not
    --  used internally by AWS. It is supposed to be used by the callback
    --  procedures who want to retrieve physical objects (images, Web
    --  pages...). The default value is the current working directory.
 
-   function Admin_URI (O : in Object) return String;
+   function Admin_URI (O : Object) return String;
    pragma Inline (Admin_URI);
    --  This is the name of the admin server page as set by AWS.Server.Start.
 
-   function Server_Host (O : in Object) return String;
+   function Server_Host (O : Object) return String;
    pragma Inline (Server_Host);
    --  This is the server host. Can be used if the computer has a more than
    --  one IP addresses. It is possible to have two servers at the same port
    --  on the same machine, both being binded on different IP addresses.
 
-   function Server_Port (O : in Object) return Positive;
+   function Server_Port (O : Object) return Positive;
    pragma Inline (Server_Port);
    --  This is the server port as set by the HTTP object declaration.
 
-   function Hotplug_Port (O : in Object) return Positive;
+   function Hotplug_Port (O : Object) return Positive;
    pragma Inline (Hotplug_Port);
    --  This is the hotplug communication port needed to register and
    --  un-register an hotplug module.
 
-   function Max_Connection (O : in Object) return Positive;
+   function Max_Connection (O : Object) return Positive;
    pragma Inline (Max_Connection);
    --  This is the max simultaneous connections as set by the HTTP object
    --  declaration.
 
-   function Accept_Queue_Size (O : in Object) return Positive;
+   function Accept_Queue_Size (O : Object) return Positive;
    pragma Inline (Accept_Queue_Size);
    --  This is the size of the queue for the incoming requests. Higher this
    --  value will be and less "connection refused" will be reported to the
    --  client.
 
-   function Log_File_Directory (O : in Object) return String;
+   function Log_File_Directory (O : Object) return String;
    pragma Inline (Log_File_Directory);
    --  This point to the directory where log files will be written. The
    --  directory returned will end with a directory separator.
 
-   function Log_Filename_Prefix (O : in Object) return String;
+   function Log_Filename_Prefix (O : Object) return String;
    pragma Inline (Log_Filename_Prefix);
    --  This is the prefix to use for the log filename.
 
-   function Log_Split_Mode (O : in Object) return String;
+   function Log_Split_Mode (O : Object) return String;
    pragma Inline (Log_Split_Mode);
    --  This is split mode for the log file. Possible values are : Each_Run,
    --  Daily, Monthly and None. Any other values will raise an exception.
 
-   function Error_Log_Filename_Prefix (O : in Object) return String;
+   function Error_Log_Filename_Prefix (O : Object) return String;
    pragma Inline (Error_Log_Filename_Prefix);
    --  This is the prefix to use for the log filename.
 
-   function Error_Log_Split_Mode (O : in Object) return String;
+   function Error_Log_Split_Mode (O : Object) return String;
    pragma Inline (Error_Log_Split_Mode);
    --  This is split mode for the log file. Possible values are : Each_Run,
    --  Daily, Monthly and None. Any other values will raise an exception.
 
-   function Upload_Directory (O : in Object) return String;
+   function Upload_Directory (O : Object) return String;
    pragma Inline (Upload_Directory);
    --  This point to the directory where uploaded files will be stored. The
    --  directory returned will end with a directory separator.
 
-   function Session (O : in Object) return Boolean;
+   function Session (O : Object) return Boolean;
    pragma Inline (Session);
    --  Returns True if the server session is activated.
 
-   function Cleaner_Wait_For_Client_Timeout (O : in Object) return Duration;
+   function Cleaner_Wait_For_Client_Timeout (O : Object) return Duration;
    pragma Inline (Cleaner_Wait_For_Client_Timeout);
    --  Number of seconds to timout on waiting for a client request.
    --  This is a timeout for regular cleaning task.
 
-   function Cleaner_Client_Header_Timeout (O : in Object) return Duration;
+   function Cleaner_Client_Header_Timeout (O : Object) return Duration;
    pragma Inline (Cleaner_Client_Header_Timeout);
    --  Number of seconds to timout on waiting for client header.
    --  This is a timeout for regular cleaning task.
 
-   function Cleaner_Client_Data_Timeout (O : in Object) return Duration;
+   function Cleaner_Client_Data_Timeout (O : Object) return Duration;
    pragma Inline (Cleaner_Client_Data_Timeout);
    --  Number of seconds to timout on waiting for client message body.
    --  This is a timeout for regular cleaning task.
 
-   function Cleaner_Server_Response_Timeout (O : in Object) return Duration;
+   function Cleaner_Server_Response_Timeout (O : Object) return Duration;
    pragma Inline (Cleaner_Server_Response_Timeout);
    --  Number of seconds to timout on waiting for client to accept answer.
    --  This is a timeout for regular cleaning task.
 
-   function Force_Wait_For_Client_Timeout (O : in Object) return Duration;
+   function Force_Wait_For_Client_Timeout (O : Object) return Duration;
    pragma Inline (Force_Wait_For_Client_Timeout);
    --  Number of seconds to timout on waiting for a client request.
    --  This is a timeout for urgent request when resources are missing.
 
-   function Force_Client_Header_Timeout (O : in Object) return Duration;
+   function Force_Client_Header_Timeout (O : Object) return Duration;
    pragma Inline (Force_Client_Header_Timeout);
    --  Number of seconds to timout on waiting for client header.
    --  This is a timeout for urgent request when resources are missing.
 
-   function Force_Client_Data_Timeout (O : in Object) return Duration;
+   function Force_Client_Data_Timeout (O : Object) return Duration;
    pragma Inline (Force_Client_Data_Timeout);
    --  Number of seconds to timout on waiting for client message body.
    --  This is a timeout for urgent request when resources are missing.
 
-   function Force_Server_Response_Timeout (O : in Object) return Duration;
+   function Force_Server_Response_Timeout (O : Object) return Duration;
    pragma Inline (Force_Server_Response_Timeout);
    --  Number of seconds to timout on waiting for client to accept answer.
    --  This is a timeout for urgent request when resources are missing.
 
-   function Send_Timeout (O : in Object) return Duration;
+   function Send_Timeout (O : Object) return Duration;
    pragma Inline (Send_Timeout);
    --  Number of seconds to timeout when sending chunck of data.
 
-   function Receive_Timeout (O : in Object) return Duration;
+   function Receive_Timeout (O : Object) return Duration;
    pragma Inline (Receive_Timeout);
    --  Number of seconds to timeout when receiving chunck of data.
 
-   function Status_Page (O : in Object) return String;
+   function Status_Page (O : Object) return String;
    pragma Inline (Status_Page);
    --  Filename for the status page.
 
-   function Up_Image (O : in Object) return String;
+   function Up_Image (O : Object) return String;
    pragma Inline (Up_Image);
    --  Filename for the up arrow image used in the status page.
 
-   function Down_Image (O : in Object) return String;
+   function Down_Image (O : Object) return String;
    pragma Inline (Down_Image);
    --  Filename for the down arrow image used in the status page.
 
-   function Logo_Image (O : in Object) return String;
+   function Logo_Image (O : Object) return String;
    pragma Inline (Logo_Image);
    --  Filename for the AWS logo image used in the status page.
 
-   function Security (O : in Object) return Boolean;
+   function Security (O : Object) return Boolean;
    pragma Inline (Security);
    --  Is the server working through th SSL
 
@@ -200,16 +203,16 @@ package AWS.Config is
    --  Returns the certificate to be used with the secure server. Returns the
    --  empty string if the server is not a secure one.
 
-   function Case_Sensitive_Parameters (O : in Object) return Boolean;
+   function Case_Sensitive_Parameters (O : Object) return Boolean;
    pragma Inline (Case_Sensitive_Parameters);
    --  HTTP parameters are case sensitive.
 
-   function Check_URL_Validity (O : in Object) return Boolean;
+   function Check_URL_Validity (O : Object) return Boolean;
    pragma Inline (Check_URL_Validity);
    --  Server have to check URI for validity. For example it checks that an
    --  URL does not reference a resource above the Web root.
 
-   function Line_Stack_Size (O : in Object) return Positive;
+   function Line_Stack_Size (O : Object) return Positive;
    pragma Inline (Line_Stack_Size);
    --  HTTP lines stack size.
 

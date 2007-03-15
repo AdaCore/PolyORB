@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -152,7 +152,6 @@ package body PortableServer.POA.GOA is
      (Group : PolyORB.Servants.Servant_Access;
       Oid   : PolyORB.Objects.Object_Id)
    is
-      use PolyORB.Errors;
       use PolyORB.Binding_Data;
       use PolyORB.Binding_Data.Local;
 
@@ -177,7 +176,6 @@ package body PortableServer.POA.GOA is
       Oid   : PolyORB.Objects.Object_Id)
    is
       use PolyORB.Servants.Group_Servants;
-      use PolyORB.Errors;
 
       It    : PolyORB.Servants.Group_Servants.Iterator;
       Error : Error_Container;
@@ -214,11 +212,10 @@ package body PortableServer.POA.GOA is
    -----------------------------
 
    function Create_Id_For_Reference
-     (Self    : in Ref;
-      The_Ref : in CORBA.Object.Ref)
+     (Self    : Ref;
+      The_Ref : CORBA.Object.Ref)
      return PortableServer.ObjectId
    is
-      use PolyORB.Errors;
       use PolyORB.POA;
       use PolyORB.POA_Types;
       use PolyORB.Servants;
@@ -228,7 +225,8 @@ package body PortableServer.POA.GOA is
       U_Oid : Unmarshalled_Oid;
       Error : Error_Container;
       GS    : constant Servant_Access
-        := Get_Group (CORBA.Object.To_PolyORB_Ref (The_Ref), True);
+        := Get_Group (CORBA.Object.Internals.To_PolyORB_Ref (The_Ref),
+                      True);
    begin
       if GS = null then
          declare
@@ -251,7 +249,7 @@ package body PortableServer.POA.GOA is
 
       begin
          Associate (GS, Oid);
-         return ObjectId (Oid);
+         return PortableServer.Internals.To_PortableServer_ObjectId (Oid);
       end;
    end Create_Id_For_Reference;
 
@@ -260,8 +258,8 @@ package body PortableServer.POA.GOA is
    ----------------------
 
    function Reference_To_Ids
-     (Self    : in Ref;
-      The_Ref : in CORBA.Object.Ref)
+     (Self    : Ref;
+      The_Ref : CORBA.Object.Ref)
      return IDs
    is
       pragma Warnings (Off);
@@ -274,7 +272,7 @@ package body PortableServer.POA.GOA is
       use PolyORB.Obj_Adapters.Group_Object_Adapter;
 
       GS : constant Servant_Access
-        := Get_Group (CORBA.Object.To_PolyORB_Ref (The_Ref));
+        := Get_Group (CORBA.Object.Internals.To_PolyORB_Ref (The_Ref));
    begin
       if GS = null then
          declare
@@ -287,8 +285,6 @@ package body PortableServer.POA.GOA is
       end if;
 
       declare
-         use PolyORB.Errors;
-
          It    : PolyORB.Servants.Group_Servants.Iterator;
          List  : Sequence := Null_Sequence;
          Error : Error_Container;
@@ -311,7 +307,8 @@ package body PortableServer.POA.GOA is
                   Oid := Get_Object_Key (Pro (J).all);
                   if Oid /= null then
                      Append (List,
-                             new ObjectId'(ObjectId (Oid.all)));
+                             PortableServer.Internals.
+                             To_PortableServer_ObjectId (Oid.all));
                      exit;
                   end if;
                end loop;
@@ -327,9 +324,9 @@ package body PortableServer.POA.GOA is
    ---------------------------------
 
    procedure Associate_Reference_With_Id
-     (Self : in Ref;
-      Ref  : in CORBA.Object.Ref;
-      Oid  : in PortableServer.ObjectId)
+     (Self : Ref;
+      Ref  : CORBA.Object.Ref;
+      Oid  : PortableServer.ObjectId)
    is
       pragma Warnings (Off);
       pragma Unreferenced (Self);
@@ -340,7 +337,7 @@ package body PortableServer.POA.GOA is
       use PolyORB.Obj_Adapters.Group_Object_Adapter;
 
       GS : constant Servant_Access
-        := Get_Group (CORBA.Object.To_PolyORB_Ref (Ref), True);
+        := Get_Group (CORBA.Object.Internals.To_PolyORB_Ref (Ref), True);
    begin
       if GS = null then
          declare
@@ -351,7 +348,7 @@ package body PortableServer.POA.GOA is
             Raise_NotAGroupObject (Member);
          end;
       end if;
-      Associate (GS, PolyORB.Objects.Object_Id (Oid));
+      Associate (GS, PortableServer.Internals.To_PolyORB_Object_Id (Oid));
    end Associate_Reference_With_Id;
 
    ------------------------------------
@@ -359,9 +356,9 @@ package body PortableServer.POA.GOA is
    ------------------------------------
 
    procedure Disassociate_Reference_With_Id
-     (Self : in Ref;
-      Ref  : in CORBA.Object.Ref;
-      Oid  : in PortableServer.ObjectId)
+     (Self : Ref;
+      Ref  : CORBA.Object.Ref;
+      Oid  : PortableServer.ObjectId)
    is
       pragma Warnings (Off);
       pragma Unreferenced (Self);
@@ -372,7 +369,7 @@ package body PortableServer.POA.GOA is
       use PolyORB.Obj_Adapters.Group_Object_Adapter;
 
       GS : constant Servant_Access
-        := Get_Group (CORBA.Object.To_PolyORB_Ref (Ref));
+        := Get_Group (CORBA.Object.Internals.To_PolyORB_Ref (Ref));
    begin
       if GS = null then
          declare
@@ -383,7 +380,7 @@ package body PortableServer.POA.GOA is
             Raise_NotAGroupObject (Member);
          end;
       end if;
-      Disassociate (GS, PolyORB.Objects.Object_Id (Oid));
+      Disassociate (GS, PortableServer.Internals.To_PolyORB_Object_Id (Oid));
    end Disassociate_Reference_With_Id;
 
 end PortableServer.POA.GOA;

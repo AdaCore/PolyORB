@@ -1,31 +1,34 @@
 ------------------------------------------------------------------------------
---                              Ada Web Server                              --
 --                                                                          --
---                            Copyright (C) 2002                            --
---                                ACT-Europe                                --
+--                           POLYORB COMPONENTS                             --
 --                                                                          --
---  Authors: Dmitriy Anisimkov - Pascal Obry                                --
+--                           S O A P . T Y P E S                            --
 --                                                                          --
---  This library is free software; you can redistribute it and/or modify    --
---  it under the terms of the GNU General Public License as published by    --
---  the Free Software Foundation; either version 2 of the License, or (at   --
---  your option) any later version.                                         --
+--                                 S p e c                                  --
 --                                                                          --
---  This library is distributed in the hope that it will be useful, but     --
---  WITHOUT ANY WARRANTY; without even the implied warranty of              --
---  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU       --
---  General Public License for more details.                                --
+--         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
 --                                                                          --
---  You should have received a copy of the GNU General Public License       --
---  along with this library; if not, write to the Free Software Foundation, --
---  Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.          --
+-- PolyORB is free software; you  can  redistribute  it and/or modify it    --
+-- under terms of the  GNU General Public License as published by the  Free --
+-- Software Foundation;  either version 2,  or (at your option)  any  later --
+-- version. PolyORB is distributed  in the hope that it will be  useful,    --
+-- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
+-- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
+-- License  for more details.  You should have received  a copy of the GNU  --
+-- General Public License distributed with PolyORB; see file COPYING. If    --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
---  As a special exception, if other files instantiate generics from this   --
---  unit, or you link this unit with other files to produce an executable,  --
---  this  unit  does not  by itself cause  the resulting executable to be   --
---  covered by the GNU General Public License. This exception does not      --
---  however invalidate any other reasons why the executable file  might be  --
---  covered by the  GNU Public License.                                     --
+-- As a special exception,  if other files  instantiate  generics from this --
+-- unit, or you link  this unit with other files  to produce an executable, --
+-- this  unit  does not  by itself cause  the resulting  executable  to  be --
+-- covered  by the  GNU  General  Public  License.  This exception does not --
+-- however invalidate  any other reasons why  the executable file  might be --
+-- covered by the  GNU Public License.                                      --
+--                                                                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
+--                                                                          --
 ------------------------------------------------------------------------------
 
 with Ada.Strings.Unbounded;
@@ -46,39 +49,39 @@ package SOAP.Types is
 
    type Object_Set is array (Positive range <>) of Object_Safe_Pointer;
 
-   function Image (O : in Object) return String;
+   function Image (O : Object) return String;
    --  Returns O value image.
 
-   function XML_Image (O : in Object) return String;
+   function XML_Image (O : Object) return String;
    --  Returns O value encoded for use by the Payload object or Response
    --  object.
 
-   function To_NamedValue (O : in Object'Class) return PolyORB.Any.NamedValue;
+   function To_NamedValue (O : Object'Class) return PolyORB.Any.NamedValue;
    --  general function that converts a SOAP object into a
    --  NamedValue. It calls To_Any to convert data
 
-   function From_NamedValue (NV : in PolyORB.Any.NamedValue)
+   function From_NamedValue (NV : PolyORB.Any.NamedValue)
                             return Object'Class;
    --  general function that converts a PolyORB NamedValue into a SOAP
    --  object. It calls To_Any to convert data
 
-   function To_Any (O : in Object'Class) return PolyORB.Any.Any;
+   function To_Any (Obj : Object'Class) return PolyORB.Any.Any;
    --  general function that converts a SOAP object into a PolyORB Any
 
-   function From_Any (Item : in PolyORB.Any.Any) return Object_Access;
+   function From_Any (Item : PolyORB.Any.Any) return Object_Access;
    --  general function that converts a PolyORB Any into a SOAP
    --  object, the name of which is set to "item"
 
-   function XML_Type (O : in Object) return String;
+   function XML_Type (O : Object) return String;
    --  Returns the XML type for the object.
 
-   function Name (O : in Object'Class) return String;
+   function Name (O : Object'Class) return String;
    --  Returns name for object O.
 
-   function "+" (O : in Object'Class) return Object_Safe_Pointer;
+   function "+" (O : Object'Class) return Object_Safe_Pointer;
    --  Allocate an object into the heap and return a safe pointer to it.
 
-   function "-" (O : in Object_Safe_Pointer) return Object'Class;
+   function "-" (O : Object_Safe_Pointer) return Object'Class;
    --  Returns the object associated with the safe pointer.
 
    type Scalar is abstract new Object with private;
@@ -96,12 +99,12 @@ package SOAP.Types is
 
    type XSD_Integer is new Scalar with private;
 
-   function Image     (O : in XSD_Integer) return String;
-   function XML_Image (O : in XSD_Integer) return String;
-   function XML_Type  (O : in XSD_Integer) return String;
+   function Image     (O : XSD_Integer) return String;
+   function XML_Image (O : XSD_Integer) return String;
+   function XML_Type  (O : XSD_Integer) return String;
 
-   function I (V : in Integer; Name : in String := "item") return XSD_Integer;
-   function V (O : in XSD_Integer) return Integer;
+   function I (V : Integer; Name : String := "item") return XSD_Integer;
+   function V (O : XSD_Integer) return Integer;
 
    -----------
    -- Float --
@@ -111,12 +114,12 @@ package SOAP.Types is
 
    type XSD_Float is new Scalar with private;
 
-   function Image     (O : in XSD_Float) return String;
-   function XML_Image (O : in XSD_Float) return String;
-   function XML_Type  (O : in XSD_Float) return String;
+   function Image     (O : XSD_Float) return String;
+   function XML_Image (O : XSD_Float) return String;
+   function XML_Type  (O : XSD_Float) return String;
 
-   function F (V : in Long_Float; Name : in String := "item") return XSD_Float;
-   function V (O : in XSD_Float) return Long_Float;
+   function F (V : Long_Float; Name : String := "item") return XSD_Float;
+   function V (O : XSD_Float) return Long_Float;
 
    ------------
    -- String --
@@ -126,17 +129,17 @@ package SOAP.Types is
 
    type XSD_String is new Scalar with private;
 
-   function Image     (O : in XSD_String) return String;
-   function XML_Image (O : in XSD_String) return String;
-   function XML_Type  (O : in XSD_String) return String;
+   function Image     (O : XSD_String) return String;
+   function XML_Image (O : XSD_String) return String;
+   function XML_Type  (O : XSD_String) return String;
 
    function S
-     (V      : in String;
-      Name   : in String  := "item";
-      Encode : in Boolean := True)
+     (V      : String;
+      Name   : String  := "item";
+      Encode : Boolean := True)
       return XSD_String;
 
-   function V (O : in XSD_String) return String;
+   function V (O : XSD_String) return String;
 
    -------------
    -- Boolean --
@@ -146,12 +149,12 @@ package SOAP.Types is
 
    type XSD_Boolean is new Scalar with private;
 
-   function Image     (O : in XSD_Boolean) return String;
-   function XML_Image (O : in XSD_Boolean) return String;
-   function XML_Type  (O : in XSD_Boolean) return String;
+   function Image     (O : XSD_Boolean) return String;
+   function XML_Image (O : XSD_Boolean) return String;
+   function XML_Type  (O : XSD_Boolean) return String;
 
-   function B (V : in Boolean; Name : in String  := "item") return XSD_Boolean;
-   function V (O : in XSD_Boolean) return Boolean;
+   function B (V : Boolean; Name : String  := "item") return XSD_Boolean;
+   function V (O : XSD_Boolean) return Boolean;
 
    -----------------
    -- TimeInstant --
@@ -161,20 +164,20 @@ package SOAP.Types is
 --
 --   type XSD_Time_Instant is new Scalar with private;
 --
---   function Image     (O : in XSD_Time_Instant) return String;
---   function XML_Image (O : in XSD_Time_Instant) return String;
---   function XML_Type  (O : in XSD_Time_Instant) return String;
+--   function Image     (O : XSD_Time_Instant) return String;
+--   function XML_Image (O : XSD_Time_Instant) return String;
+--   function XML_Type  (O : XSD_Time_Instant) return String;
 --
 --   subtype TZ is Integer range -11 .. +11;
 --   GMT : constant TZ := 0;
 --
 --   function T
---     (V        : in Ada.Calendar.Time;
---     Name     : in String        := "item";
---      Timezone : in TZ            := GMT)
+--     (V        : Ada.Calendar.Time;
+--     Name     : String        := "item";
+--      Timezone : TZ            := GMT)
 --     return XSD_Time_Instant;
 
---   function V (O : in XSD_Time_Instant) return Ada.Calendar.Time;
+--   function V (O : XSD_Time_Instant) return Ada.Calendar.Time;
    --  Returns a GMT date and time.
 
    --  TimeInstant has been disabled, since PolyORB does not have any
@@ -188,10 +191,10 @@ package SOAP.Types is
 
    type XSD_Null is new Scalar with private;
 
-   function XML_Image (O : in XSD_Null) return String;
-   function XML_Type  (O : in XSD_Null) return String;
+   function XML_Image (O : XSD_Null) return String;
+   function XML_Type  (O : XSD_Null) return String;
 
-   function N (Name : in String  := "item") return XSD_Null;
+   function N (Name : String  := "item") return XSD_Null;
 
    ------------
    -- Base64 --
@@ -201,16 +204,16 @@ package SOAP.Types is
 
    type SOAP_Base64 is new Scalar with private;
 
-   function Image     (O : in SOAP_Base64) return String;
-   function XML_Image (O : in SOAP_Base64) return String;
-   function XML_Type  (O : in SOAP_Base64) return String;
+   function Image     (O : SOAP_Base64) return String;
+   function XML_Image (O : SOAP_Base64) return String;
+   function XML_Type  (O : SOAP_Base64) return String;
 
    function B64
-     (V    : in String;
-      Name : in String := "item")
+     (V    : String;
+      Name : String := "item")
       return SOAP_Base64;
 
-   function V (O : in SOAP_Base64) return String;
+   function V (O : SOAP_Base64) return String;
 
    -----------
    -- Array --
@@ -221,22 +224,22 @@ package SOAP.Types is
 
    type SOAP_Array is new Composite with private;
 
-   function Image     (O : in SOAP_Array) return String;
-   function XML_Image (O : in SOAP_Array) return String;
-   function XML_Type  (O : in SOAP_Array) return String;
+   function Image     (O : SOAP_Array) return String;
+   function XML_Image (O : SOAP_Array) return String;
+   function XML_Type  (O : SOAP_Array) return String;
 
    function A
-     (V    : in Object_Set;
-      Name : in String)
+     (V    : Object_Set;
+      Name : String)
       return SOAP_Array;
 
-   function Size (O : in SOAP_Array) return Natural;
+   function Size (O : SOAP_Array) return Natural;
    --  Returns the number of item into the array
 
-   function V (O : in SOAP_Array; N : in Positive) return Object'Class;
+   function V (O : SOAP_Array; N : Positive) return Object'Class;
    --  Returns SOAP_Array item at position N
 
-   function V (O : in SOAP_Array) return Object_Set;
+   function V (O : SOAP_Array) return Object_Set;
 
    ------------
    -- Record --
@@ -244,49 +247,49 @@ package SOAP.Types is
 
    type SOAP_Record is new Composite with private;
 
-   function Image     (O : in SOAP_Record) return String;
-   function XML_Image (O : in SOAP_Record) return String;
-   function XML_Type  (O : in SOAP_Record) return String;
+   function Image     (O : SOAP_Record) return String;
+   function XML_Image (O : SOAP_Record) return String;
+   function XML_Type  (O : SOAP_Record) return String;
 
    function R
-     (V    : in Object_Set;
-      Name : in String)
+     (V    : Object_Set;
+      Name : String)
       return SOAP_Record;
 
-   function V (O : in SOAP_Record; Name : in String) return Object'Class;
+   function V (O : SOAP_Record; Name : String) return Object'Class;
    --  Returns SOAP_Record field named Name
 
-   function V (O : in SOAP_Record) return Object_Set;
+   function V (O : SOAP_Record) return Object_Set;
 
    ---------
    -- Get --
    ---------
 
-   function Get (O : in Object'Class) return Integer;
+   function Get (O : Object'Class) return Integer;
    --  Returns O value as an Integer. Raises Data_Error if O is not a SOAP
    --  Integer.
 
-   function Get (O : in Object'Class) return Long_Float;
+   function Get (O : Object'Class) return Long_Float;
    --  Returns O value as an Integer. Raises Data_Error if O is not a SOAP
    --  Float.
 
-   function Get (O : in Object'Class) return String;
+   function Get (O : Object'Class) return String;
    --  Returns O value as a String. Raises Data_Error if O is not a SOAP
    --  String.
 
-   function Get (O : in Object'Class) return Boolean;
+   function Get (O : Object'Class) return Boolean;
    --  Returns O value as a Boolean. Raises Data_Error if O is not a SOAP
    --  Boolean.
 
-   function Get (O : in Object'Class) return SOAP_Base64;
+   function Get (O : Object'Class) return SOAP_Base64;
    --  Returns O value as a SOAP Base64. Raises Data_Error if O is not a SOAP
    --  Base64 object.
 
-   function Get (O : in Object'Class) return SOAP_Record;
+   function Get (O : Object'Class) return SOAP_Record;
    --  Returns O value as a SOAP Struct. Raises Data_Error if O is not a SOAP
    --  Struct.
 
-   function Get (O : in Object'Class) return SOAP_Array;
+   function Get (O : Object'Class) return SOAP_Array;
    --  Returns O value as a SOAP Array. Raises Data_Error if O is not a SOAP
    --  Array.
 
@@ -360,10 +363,3 @@ private
    type SOAP_Record is new Composite with null record;
 
 end SOAP.Types;
-
-
-
-
-
-
-

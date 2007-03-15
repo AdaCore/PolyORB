@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -39,13 +39,15 @@ with PolyORB.Binding_Data;
 with PolyORB.CORBA_P.Exceptions;
 with PolyORB.CORBA_P.Interceptors_Hooks;
 with PolyORB.CORBA_P.Interceptors_Slots;
-with PolyORB.Errors;
+with PolyORB.Errors.Helper;
 with PolyORB.Exceptions;
 with PolyORB.Initialization;
 with PolyORB.POA;
+with PolyORB.QoS.Addressing_Modes;
+with PolyORB.QoS.Service_Contexts;
 with PolyORB.References;
 with PolyORB.Requests;
-with PolyORB.Request_QoS.Service_Contexts;
+with PolyORB.Request_QoS;
 with PolyORB.Smart_Pointers;
 with PolyORB.Tasking.Mutexes;
 with PolyORB.Tasking.Threads.Annotations;
@@ -66,15 +68,15 @@ package body PolyORB.CORBA_P.Interceptors is
 
    use PolyORB.Annotations;
    use PolyORB.CORBA_P.Interceptors_Slots;
+   use PolyORB.QoS.Service_Contexts;
    use PolyORB.Requests.Unsigned_Long_Flags;
-   use PolyORB.Request_QoS.Service_Contexts;
    use PolyORB.Tasking.Mutexes;
    use PolyORB.Tasking.Threads.Annotations;
 
    --  Client Interceptors
 
    function "="
-     (Left, Right : in PortableInterceptor.ClientRequestInterceptor.Local_Ref)
+     (Left, Right : PortableInterceptor.ClientRequestInterceptor.Local_Ref)
       return Boolean;
 
    package ClientRequestInterceptor_Lists is
@@ -84,24 +86,24 @@ package body PolyORB.CORBA_P.Interceptors is
    All_Client_Interceptors : ClientRequestInterceptor_Lists.List;
 
    procedure Client_Invoke
-     (Request : in PolyORB.Requests.Request_Access;
-      Flags   : in PolyORB.Requests.Flags);
+     (Request : PolyORB.Requests.Request_Access;
+      Flags   : PolyORB.Requests.Flags);
 
    function Create_Client_Request_Info
-     (Request    : in PolyORB.Requests.Request_Access;
-      Request_Id : in CORBA.Unsigned_Long;
-      Point      : in Client_Interception_Point;
-      Target     : in CORBA.Object.Ref)
+     (Request    : PolyORB.Requests.Request_Access;
+      Request_Id : CORBA.Unsigned_Long;
+      Point      : Client_Interception_Point;
+      Target     : CORBA.Object.Ref)
       return PortableInterceptor.ClientRequestInfo.Local_Ref;
 
    generic
       with procedure Operation
-        (Self : in PortableInterceptor.ClientRequestInterceptor.Local_Ref;
-         Info : in PortableInterceptor.ClientRequestInfo.Local_Ref);
+        (Self : PortableInterceptor.ClientRequestInterceptor.Local_Ref;
+         Info : PortableInterceptor.ClientRequestInfo.Local_Ref);
    procedure Call_Client_Request_Interceptor_Operation
-     (Self     : in     PortableInterceptor.ClientRequestInterceptor.Local_Ref;
-      Info     : in     PortableInterceptor.ClientRequestInfo.Local_Ref;
-      Forward  : in     Boolean;
+     (Self     : PortableInterceptor.ClientRequestInterceptor.Local_Ref;
+      Info     : PortableInterceptor.ClientRequestInfo.Local_Ref;
+      Forward  : Boolean;
       Excp_Inf : in out PolyORB.Any.Any);
 
    --  Server interceptors
@@ -116,7 +118,7 @@ package body PolyORB.CORBA_P.Interceptors is
    end record;
 
    function "="
-     (Left, Right : in PortableInterceptor.ServerRequestInterceptor.Local_Ref)
+     (Left, Right : PortableInterceptor.ServerRequestInterceptor.Local_Ref)
       return Boolean;
 
    package ServerRequestInterceptor_Lists is
@@ -127,36 +129,36 @@ package body PolyORB.CORBA_P.Interceptors is
 
    procedure Server_Invoke
      (Servant : access PolyORB.Smart_Pointers.Entity'Class;
-      Request : in     PolyORB.Requests.Request_Access;
-      Profile : in     PolyORB.Binding_Data.Profile_Access);
+      Request : PolyORB.Requests.Request_Access;
+      Profile : PolyORB.Binding_Data.Profile_Access);
 
    procedure Server_Intermediate
-     (Request        : in PolyORB.Requests.Request_Access;
-      From_Arguments : in Boolean);
+     (Request        : PolyORB.Requests.Request_Access;
+      From_Arguments : Boolean);
 
    function Create_Server_Request_Info
-     (Servant      : in PortableServer.Servant;
-      Request      : in PolyORB.Requests.Request_Access;
-      Request_Id   : in CORBA.Unsigned_Long;
-      Profile      : in PolyORB.Binding_Data.Profile_Access;
-      Point        : in Server_Interception_Point;
-      Args_Present : in Boolean)
+     (Servant      : PortableServer.Servant;
+      Request      : PolyORB.Requests.Request_Access;
+      Request_Id   : CORBA.Unsigned_Long;
+      Profile      : PolyORB.Binding_Data.Profile_Access;
+      Point        : Server_Interception_Point;
+      Args_Present : Boolean)
       return PortableInterceptor.ServerRequestInfo.Local_Ref;
 
    generic
       with procedure Operation
-        (Self : in PortableInterceptor.ServerRequestInterceptor.Local_Ref;
-         Info : in PortableInterceptor.ServerRequestInfo.Local_Ref);
+        (Self : PortableInterceptor.ServerRequestInterceptor.Local_Ref;
+         Info : PortableInterceptor.ServerRequestInfo.Local_Ref);
    procedure Call_Server_Request_Interceptor_Operation
-     (Self     : in     PortableInterceptor.ServerRequestInterceptor.Local_Ref;
-      Info     : in     PortableInterceptor.ServerRequestInfo.Local_Ref;
-      Forward  : in     Boolean;
+     (Self     : PortableInterceptor.ServerRequestInterceptor.Local_Ref;
+      Info     : PortableInterceptor.ServerRequestInfo.Local_Ref;
+      Forward  : Boolean;
       Excp_Inf : in out PolyORB.Any.Any);
 
    --  IOR interceptors
 
    function "="
-     (Left, Right : in PortableInterceptor.IORInterceptor.Local_Ref)
+     (Left, Right : PortableInterceptor.IORInterceptor.Local_Ref)
       return Boolean;
 
    package IORInterceptor_Lists is
@@ -166,12 +168,12 @@ package body PolyORB.CORBA_P.Interceptors is
    All_IOR_Interceptors : IORInterceptor_Lists.List;
 
    procedure POA_Create
-     (POA   : in     PolyORB.POA.Obj_Adapter_Access;
+     (POA   : PolyORB.POA.Obj_Adapter_Access;
       Error : in out PolyORB.Errors.Error_Container);
 
    --  ORB_Initializers
 
-   function "=" (Left, Right : in PortableInterceptor.ORBInitializer.Local_Ref)
+   function "=" (Left, Right : PortableInterceptor.ORBInitializer.Local_Ref)
      return Boolean;
 
    package Initializer_Ref_Lists is
@@ -183,7 +185,7 @@ package body PolyORB.CORBA_P.Interceptors is
    --  Internal subprograms
 
    function To_PolyORB_ForwardRequest_Members_Any
-     (Members : in PortableInterceptor.ForwardRequest_Members)
+     (Members : PortableInterceptor.ForwardRequest_Members)
       return PolyORB.Any.Any;
    pragma Inline (To_PolyORB_ForwardRequest_Members_Any);
    --  Converting PortableInterceptor::ForwardRequest_Members into
@@ -202,7 +204,7 @@ package body PolyORB.CORBA_P.Interceptors is
    ---------
 
    function "="
-     (Left, Right : in PortableInterceptor.ClientRequestInterceptor.Local_Ref)
+     (Left, Right : PortableInterceptor.ClientRequestInterceptor.Local_Ref)
       return Boolean
    is
    begin
@@ -213,7 +215,7 @@ package body PolyORB.CORBA_P.Interceptors is
    -- "=" --
    ---------
 
-   function "=" (Left, Right : in PortableInterceptor.IORInterceptor.Local_Ref)
+   function "=" (Left, Right : PortableInterceptor.IORInterceptor.Local_Ref)
      return Boolean
    is
    begin
@@ -225,7 +227,7 @@ package body PolyORB.CORBA_P.Interceptors is
    ---------
 
    function "="
-     (Left, Right : in PortableInterceptor.ORBInitializer.Local_Ref)
+     (Left, Right : PortableInterceptor.ORBInitializer.Local_Ref)
       return Boolean
    is
    begin
@@ -237,7 +239,7 @@ package body PolyORB.CORBA_P.Interceptors is
    ---------
 
    function "="
-     (Left, Right : in PortableInterceptor.ServerRequestInterceptor.Local_Ref)
+     (Left, Right : PortableInterceptor.ServerRequestInterceptor.Local_Ref)
       return Boolean
    is
    begin
@@ -249,7 +251,7 @@ package body PolyORB.CORBA_P.Interceptors is
    ------------------------------------
 
    procedure Add_Client_Request_Interceptor
-     (Interceptor : in PortableInterceptor.ClientRequestInterceptor.Local_Ref)
+     (Interceptor : PortableInterceptor.ClientRequestInterceptor.Local_Ref)
    is
    begin
       ClientRequestInterceptor_Lists.Append
@@ -261,7 +263,7 @@ package body PolyORB.CORBA_P.Interceptors is
    -------------------------
 
    procedure Add_IOR_Interceptor
-     (Interceptor : in PortableInterceptor.IORInterceptor.Local_Ref)
+     (Interceptor : PortableInterceptor.IORInterceptor.Local_Ref)
    is
    begin
       IORInterceptor_Lists.Append (All_IOR_Interceptors, Interceptor);
@@ -272,7 +274,7 @@ package body PolyORB.CORBA_P.Interceptors is
    ------------------------------------
 
    procedure Add_Server_Request_Interceptor
-     (Interceptor : in PortableInterceptor.ServerRequestInterceptor.Local_Ref)
+     (Interceptor : PortableInterceptor.ServerRequestInterceptor.Local_Ref)
    is
    begin
       ServerRequestInterceptor_Lists.Append
@@ -303,9 +305,9 @@ package body PolyORB.CORBA_P.Interceptors is
    -----------------------------------------------
 
    procedure Call_Client_Request_Interceptor_Operation
-     (Self     : in     PortableInterceptor.ClientRequestInterceptor.Local_Ref;
-      Info     : in     PortableInterceptor.ClientRequestInfo.Local_Ref;
-      Forward  : in     Boolean;
+     (Self     : PortableInterceptor.ClientRequestInterceptor.Local_Ref;
+      Info     : PortableInterceptor.ClientRequestInfo.Local_Ref;
+      Forward  : Boolean;
       Excp_Inf : in out PolyORB.Any.Any)
    is
    begin
@@ -420,9 +422,9 @@ package body PolyORB.CORBA_P.Interceptors is
    -----------------------------------------------
 
    procedure Call_Server_Request_Interceptor_Operation
-     (Self     : in     PortableInterceptor.ServerRequestInterceptor.Local_Ref;
-      Info     : in     PortableInterceptor.ServerRequestInfo.Local_Ref;
-      Forward  : in     Boolean;
+     (Self     : PortableInterceptor.ServerRequestInterceptor.Local_Ref;
+      Info     : PortableInterceptor.ServerRequestInfo.Local_Ref;
+      Forward  : Boolean;
       Excp_Inf : in out PolyORB.Any.Any)
    is
    begin
@@ -494,8 +496,8 @@ package body PolyORB.CORBA_P.Interceptors is
    -------------------
 
    procedure Client_Invoke
-     (Request : in PolyORB.Requests.Request_Access;
-      Flags   : in PolyORB.Requests.Flags)
+     (Request : PolyORB.Requests.Request_Access;
+      Flags   : PolyORB.Requests.Flags)
    is
       use ClientRequestInterceptor_Lists;
       use type PolyORB.Any.TypeCode.Object;
@@ -522,10 +524,9 @@ package body PolyORB.CORBA_P.Interceptors is
       Target  : CORBA.Object.Ref;
       TSC     : Slots_Note;
       Index   : Natural;
-      Cur_Req : PolyORB.Requests.Request_Access := Request;
 
    begin
-      CORBA.Object.Convert_To_CORBA_Ref (Request.Target, Target);
+      CORBA.Object.Internals.Convert_To_CORBA_Ref (Request.Target, Target);
 
       --  Getting thread scope slots information (allocating thread scope
       --  slots if it is not allocated), and make "logical copy" and place it
@@ -538,7 +539,7 @@ package body PolyORB.CORBA_P.Interceptors is
       end if;
 
       loop
-         Set_Note (Cur_Req.Notepad, TSC);
+         Set_Note (Request.Notepad, TSC);
 
          Rebuild_Request_Service_Contexts (Request);
 
@@ -550,14 +551,14 @@ package body PolyORB.CORBA_P.Interceptors is
             Call_Send_Request
               (Element (All_Client_Interceptors, J).all,
                Create_Client_Request_Info
-               (Cur_Req, Req_Id, Send_Request, Target),
+               (Request, Req_Id, Send_Request, Target),
                True,
-               Cur_Req.Exception_Info);
+               Request.Exception_Info);
 
             --  If got system or ForwardRequest exception then avoid call
             --  Send_Request on other Interceptors.
 
-            if not PolyORB.Any.Is_Empty (Cur_Req.Exception_Info) then
+            if not PolyORB.Any.Is_Empty (Request.Exception_Info) then
                Index := J;
                exit;
             end if;
@@ -565,38 +566,42 @@ package body PolyORB.CORBA_P.Interceptors is
 
          Rebuild_Request_QoS_Parameters (Request);
 
-         --  Avoid operation invocation if interceptor raise system exception.
+         --  Avoid operation invocation if interceptor raise system
+         --  exception.
 
          if Index = Length (All_Client_Interceptors) then
-            PolyORB.Requests.Invoke (Cur_Req, Flags);
+            PolyORB.Requests.Invoke (Request, Flags);
 
-            --  Restore request scope slots, because it may be changed during
-            --  invokation.
+            --  Restore request scope slots, because it may be changed
+            --  during invocation.
 
-            Set_Note (Cur_Req.Notepad, TSC);
+            Set_Note (Request.Notepad, TSC);
          end if;
 
          Rebuild_Request_Service_Contexts (Request);
          Rebuild_Reply_Service_Contexts (Request);
 
          for J in reverse 0 .. Index - 1 loop
-            if not PolyORB.Any.Is_Empty (Cur_Req.Exception_Info) then
-               if PolyORB.Any.Get_Type (Cur_Req.Exception_Info) =
-                 PolyORB.Errors.TC_ForwardRequest
+            if not PolyORB.Any.Is_Empty (Request.Exception_Info) then
+               if PolyORB.Any.Get_Type (Request.Exception_Info)
+                    = PolyORB.Errors.Helper.TC_ForwardRequest
+                 or else PolyORB.Any.Get_Type (Request.Exception_Info)
+                    = PolyORB.Errors.Helper.TC_NeedsAddressingMode
                then
                   Call_Receive_Other
                     (Element (All_Client_Interceptors, J).all,
                      Create_Client_Request_Info
-                     (Cur_Req, Req_Id, Receive_Other, Target),
+                     (Request, Req_Id, Receive_Other, Target),
                      True,
-                     Cur_Req.Exception_Info);
+                     Request.Exception_Info);
+
                else
                   Call_Receive_Exception
                     (Element (All_Client_Interceptors, J).all,
                      Create_Client_Request_Info
-                     (Cur_Req, Req_Id, Receive_Exception, Target),
+                     (Request, Req_Id, Receive_Exception, Target),
                      True,
-                     Cur_Req.Exception_Info);
+                     Request.Exception_Info);
                end if;
 
             else
@@ -608,69 +613,73 @@ package body PolyORB.CORBA_P.Interceptors is
                   Call_Receive_Reply
                     (Element (All_Client_Interceptors, J).all,
                      Create_Client_Request_Info
-                     (Cur_Req, Req_Id, Receive_Reply, Target),
+                     (Request, Req_Id, Receive_Reply, Target),
                      False,
-                     Cur_Req.Exception_Info);
+                     Request.Exception_Info);
                else
                   Call_Receive_Other
                     (Element (All_Client_Interceptors, J).all,
                      Create_Client_Request_Info
-                     (Cur_Req, Req_Id, Receive_Other, Target),
+                     (Request, Req_Id, Receive_Other, Target),
                      True,
-                     Cur_Req.Exception_Info);
+                     Request.Exception_Info);
                end if;
             end if;
          end loop;
 
-         exit when PolyORB.Any.Is_Empty (Cur_Req.Exception_Info)
-           or else PolyORB.Any.Get_Type (Cur_Req.Exception_Info) /=
-                     PolyORB.Errors.TC_ForwardRequest;
-
-         --  Reinvocation. Extract object reference from ForwardRequest
-         --  exception and reinitialize request.
+         exit when PolyORB.Any.Is_Empty (Request.Exception_Info)
+           or else (PolyORB.Any.Get_Type (Request.Exception_Info)
+                      /= PolyORB.Errors.Helper.TC_ForwardRequest
+             and then PolyORB.Any.Get_Type (Request.Exception_Info)
+                      /= PolyORB.Errors.Helper.TC_NeedsAddressingMode);
 
          --  XXX Reinvocation is possible iff request sync_scope is
          --  Sync_With_Server or Sync_With_Target. May be we add
          --  pragma Assert here?
 
-         declare
-            Members : constant PolyORB.Errors.ForwardRequest_Members
-              := PolyORB.Errors.From_Any (Cur_Req.Exception_Info);
-            Ref     : PolyORB.References.Ref;
-            Aux_Req : PolyORB.Requests.Request_Access;
-         begin
-            PolyORB.References.Set
-              (Ref,
-               Smart_Pointers.Entity_Of (Members.Forward_Reference));
+         if PolyORB.Any.Get_Type (Request.Exception_Info)
+              = PolyORB.Errors.Helper.TC_ForwardRequest
+         then
+            --  Reinvocation. Extract object reference from ForwardRequest
+            --  exception and reinitialize request.
 
-            PolyORB.Requests.Create_Request
-              (Target    => Ref,
-               Operation => Request.Operation.all,
-               Arg_List  => Request.Args,
-               Result    => Request.Result,
-               Exc_List  => Request.Exc_List,
-               Req       => Aux_Req,
-               Req_Flags => Request.Req_Flags);
+            declare
+               Members : constant PolyORB.Errors.ForwardRequest_Members
+                 := PolyORB.Errors.Helper.From_Any (Request.Exception_Info);
+               Ref     : PolyORB.References.Ref;
 
-            if Cur_Req /= Request then
-               PolyORB.Requests.Destroy_Request (Cur_Req);
-            end if;
+            begin
+               PolyORB.References.Set
+                 (Ref,
+                  Smart_Pointers.Entity_Of (Members.Forward_Reference));
 
-            Cur_Req := Aux_Req;
-         end;
+               PolyORB.Requests.Reset_Request (Request);
+            end;
+
+         else
+            --  Reinvocation. Set requested GIOP addressing mode and
+            --  reinitialize request.
+
+            declare
+               use PolyORB.QoS;
+               use PolyORB.QoS.Addressing_Modes;
+               use PolyORB.Request_QoS;
+
+               Members : constant PolyORB.Errors.NeedsAddressingMode_Members
+                 := PolyORB.Errors.Helper.From_Any (Request.Exception_Info);
+
+            begin
+               PolyORB.Requests.Reset_Request (Request);
+
+               Add_Request_QoS
+                 (Request,
+                  GIOP_Addressing_Mode,
+                  new QoS_GIOP_Addressing_Mode_Parameter'
+                  (Kind => GIOP_Addressing_Mode,
+                   Mode => Members.Mode));
+            end;
+         end if;
       end loop;
-
-      if Cur_Req /= Request then
-         --  Auxiliary request allocated, copy request results from it
-         --  to original request and destroy auxiliary request.
-
-         Request.Args           := Cur_Req.Args;
-         Request.Out_Args       := Cur_Req.Out_Args;
-         Request.Result         := Cur_Req.Result;
-         Request.Exception_Info := Cur_Req.Exception_Info;
-
-         PolyORB.Requests.Destroy_Request (Cur_Req);
-      end if;
 
       --  Restoring thread scope slots.
 
@@ -682,10 +691,10 @@ package body PolyORB.CORBA_P.Interceptors is
    --------------------------------
 
    function Create_Client_Request_Info
-     (Request    : in PolyORB.Requests.Request_Access;
-      Request_Id : in CORBA.Unsigned_Long;
-      Point      : in Client_Interception_Point;
-      Target     : in CORBA.Object.Ref)
+     (Request    : PolyORB.Requests.Request_Access;
+      Request_Id : CORBA.Unsigned_Long;
+      Point      : Client_Interception_Point;
+      Target     : CORBA.Object.Ref)
       return PortableInterceptor.ClientRequestInfo.Local_Ref
    is
       Info_Ptr : constant PortableInterceptor.ClientRequestInfo.Impl.Object_Ptr
@@ -707,12 +716,12 @@ package body PolyORB.CORBA_P.Interceptors is
    --------------------------------
 
    function Create_Server_Request_Info
-     (Servant      : in PortableServer.Servant;
-      Request      : in PolyORB.Requests.Request_Access;
-      Request_Id   : in CORBA.Unsigned_Long;
-      Profile      : in PolyORB.Binding_Data.Profile_Access;
-      Point        : in Server_Interception_Point;
-      Args_Present : in Boolean)
+     (Servant      : PortableServer.Servant;
+      Request      : PolyORB.Requests.Request_Access;
+      Request_Id   : CORBA.Unsigned_Long;
+      Profile      : PolyORB.Binding_Data.Profile_Access;
+      Point        : Server_Interception_Point;
+      Args_Present : Boolean)
       return PortableInterceptor.ServerRequestInfo.Local_Ref
    is
       Info_Ptr : constant PortableInterceptor.ServerRequestInfo.Impl.Object_Ptr
@@ -733,7 +742,7 @@ package body PolyORB.CORBA_P.Interceptors is
    ------------------------------------------
 
    function Is_Client_Request_Interceptor_Exists
-     (Name : in String)
+     (Name : String)
       return Boolean
    is
       Iter : ClientRequestInterceptor_Lists.Iterator
@@ -763,7 +772,7 @@ package body PolyORB.CORBA_P.Interceptors is
    -------------------------------
 
    function Is_IOR_Interceptor_Exists
-     (Name : in String)
+     (Name : String)
       return Boolean
    is
       Iter : IORInterceptor_Lists.Iterator
@@ -793,7 +802,7 @@ package body PolyORB.CORBA_P.Interceptors is
    ------------------------------------------
 
    function Is_Server_Request_Interceptor_Exists
-     (Name : in String)
+     (Name : String)
       return Boolean
    is
       Iter : ServerRequestInterceptor_Lists.Iterator
@@ -823,7 +832,7 @@ package body PolyORB.CORBA_P.Interceptors is
    ----------------
 
    procedure POA_Create
-     (POA   : in     PolyORB.POA.Obj_Adapter_Access;
+     (POA   : PolyORB.POA.Obj_Adapter_Access;
       Error : in out PolyORB.Errors.Error_Container)
    is
       Iter     : IORInterceptor_Lists.Iterator;
@@ -887,7 +896,7 @@ package body PolyORB.CORBA_P.Interceptors is
    ------------------------------
 
    procedure Register_ORB_Initializer
-     (Init : in PortableInterceptor.ORBInitializer.Local_Ref)
+     (Init : PortableInterceptor.ORBInitializer.Local_Ref)
    is
       use Initializer_Ref_Lists;
    begin
@@ -899,8 +908,8 @@ package body PolyORB.CORBA_P.Interceptors is
    -------------------------
 
    procedure Server_Intermediate
-     (Request        : in PolyORB.Requests.Request_Access;
-      From_Arguments : in Boolean)
+     (Request        : PolyORB.Requests.Request_Access;
+      From_Arguments : Boolean)
    is
       use ServerRequestInterceptor_Lists;
 
@@ -961,8 +970,8 @@ package body PolyORB.CORBA_P.Interceptors is
 
    procedure Server_Invoke
      (Servant : access PolyORB.Smart_Pointers.Entity'Class;
-      Request : in     PolyORB.Requests.Request_Access;
-      Profile : in     PolyORB.Binding_Data.Profile_Access)
+      Request : PolyORB.Requests.Request_Access;
+      Profile : PolyORB.Binding_Data.Profile_Access)
    is
       use ServerRequestInterceptor_Lists;
       use type PolyORB.Any.TypeCode.Object;
@@ -1062,8 +1071,10 @@ package body PolyORB.CORBA_P.Interceptors is
 
       for J in reverse 0 .. Note.Last_Interceptor - 1 loop
          if not PolyORB.Any.Is_Empty (Request.Exception_Info) then
-            if PolyORB.Any.Get_Type (Request.Exception_Info) =
-              PolyORB.Errors.TC_ForwardRequest
+            if PolyORB.Any.Get_Type (Request.Exception_Info)
+                 = PolyORB.Errors.Helper.TC_ForwardRequest
+              or else PolyORB.Any.Get_Type (Request.Exception_Info)
+                 = PolyORB.Errors.Helper.TC_NeedsAddressingMode
             then
                Call_Send_Other
                  (Element (All_Server_Interceptors, J).all,
@@ -1071,6 +1082,7 @@ package body PolyORB.CORBA_P.Interceptors is
                   (null, Request, Note.Request_Id, Profile, Send_Other, True),
                   True,
                   Request.Exception_Info);
+
             else
                Call_Send_Exception
                  (Element (All_Server_Interceptors, J).all,
@@ -1116,16 +1128,16 @@ package body PolyORB.CORBA_P.Interceptors is
    -------------------------------------------
 
    function To_PolyORB_ForwardRequest_Members_Any
-     (Members : in PortableInterceptor.ForwardRequest_Members)
+     (Members : PortableInterceptor.ForwardRequest_Members)
       return PolyORB.Any.Any
    is
    begin
       return
-        PolyORB.Errors.To_Any
+        PolyORB.Errors.Helper.To_Any
         (PolyORB.Errors.ForwardRequest_Members'
          (Forward_Reference =>
             PolyORB.Smart_Pointers.Ref
-          (CORBA.Object.To_PolyORB_Ref (Members.Forward))));
+          (CORBA.Object.Internals.To_PolyORB_Ref (Members.Forward))));
    end To_PolyORB_ForwardRequest_Members_Any;
 
    ----------------
@@ -1156,9 +1168,9 @@ begin
       (Name      => +"polyorb.corba_p.interceptors",
        Conflicts => Empty,
        Depends   => +"corba.request"
-       & "portablserver",
+       & "portableserver",
        Provides  => Empty,
        Implicit  => False,
-       Init      => Initialize'Access));
-
+       Init      => Initialize'Access,
+       Shutdown  => null));
 end PolyORB.CORBA_P.Interceptors;

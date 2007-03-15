@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -39,12 +39,17 @@ package PolyORB.GIOP_P.Code_Sets is
 
    type Code_Set_Id is new PolyORB.Types.Unsigned_Long;
 
-   --  Default Code_Set_Ids, as defined by the Open Software Foundation.
+   --  Code_Set_Ids, as defined by the Open Software Foundation.
 
-   Latin_1_Code_Set : constant Code_Set_Id := 16#00010001#;
-   UCS_2_Code_Set   : constant Code_Set_Id := 16#00010100#;
-   UTF_16_Code_Set  : constant Code_Set_Id := 16#00010109#;
-   UTF_8_Code_Set   : constant Code_Set_Id := 16#05010001#;
+   Latin_1_Code_Set       : constant Code_Set_Id := 16#00010001#;
+   UCS_2_Level_1_Code_Set : constant Code_Set_Id := 16#00010100#;
+   UCS_2_Level_2_Code_Set : constant Code_Set_Id := 16#00010101#;
+   UCS_2_Level_3_Code_Set : constant Code_Set_Id := 16#00010102#;
+   UCS_4_Level_1_Code_Set : constant Code_Set_Id := 16#00010104#;
+   UCS_4_Level_2_Code_Set : constant Code_Set_Id := 16#00010105#;
+   UCS_4_Level_3_Code_Set : constant Code_Set_Id := 16#00010106#;
+   UTF_16_Code_Set        : constant Code_Set_Id := 16#00010109#;
+   UTF_8_Code_Set         : constant Code_Set_Id := 16#05010001#;
 
    --  Fallback Code_Set_Ids, defined by the CORBA specifications.
 
@@ -55,7 +60,7 @@ package PolyORB.GIOP_P.Code_Sets is
 
    Ada95_Native_Character_Code_Set : constant Code_Set_Id := Latin_1_Code_Set;
    Ada95_Native_Wide_Character_Code_Set : constant Code_Set_Id
-     := UCS_2_Code_Set;
+     := UCS_2_Level_1_Code_Set;
 
    type Character_Set_Id is new PolyORB.Types.Unsigned_Short;
 
@@ -70,21 +75,21 @@ package PolyORB.GIOP_P.Code_Sets is
    --  Return program's native code set for Wide_Character type
 
    function Conversion_Char_Code_Sets return Code_Set_Id_List;
-   --  Return conversion code sets, supported for program's native
-   --  code set for Character type except fallback code set Returned
-   --  list must be deallocated by caller.
+   --  Return conversion code sets supported for program's native
+   --  code set for Character type, except fallback code set.
+   --  Returned list must not be deallocated.
 
    function Conversion_Wchar_Code_Sets return Code_Set_Id_List;
-   --  Return conversion code sets, supported for program's native
-   --  code set for Wide_Character type except fallback code set
-   --  Returned list must be deallocated by caller.
+   --  Return conversion code sets supported for program's native
+   --  code set for Wide_Character type, except fallback code set.
+   --  Returned list must not be deallocated.
 
    procedure Negotiate_Code_Set
-    (CNCS     : in     Code_Set_Id;
-     CCCS     : in     Code_Set_Id_List;
-     SNCS     : in     Code_Set_Id;
-     SCCS     : in     Code_Set_Id_List;
-     Fallback : in     Code_Set_Id;
+    (CNCS     : Code_Set_Id;
+     CCCS     : Code_Set_Id_List;
+     SNCS     : Code_Set_Id;
+     SCCS     : Code_Set_Id_List;
+     Fallback : Code_Set_Id;
      TCS      :    out Code_Set_Id;
      Error    : in out PolyORB.Errors.Error_Container);
    --  Proceed code set negotiation based on:

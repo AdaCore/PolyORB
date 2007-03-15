@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -43,19 +43,15 @@ with PolyORB.Errors;
 with PolyORB.Obj_Adapters.Simple;
 with PolyORB.Objects;
 with PolyORB.ORB.Iface;
-with PolyORB.References;
 with PolyORB.References.IOR;
 with PolyORB.Requests;
 with PolyORB.Servants;
-with PolyORB.Smart_Pointers;
 with PolyORB.Types;
 
 with PolyORB.Utils.Report;
 
 --  Our application object.
 with PolyORB.Test_Object_SOA;
-
-pragma Elaborate_All (PolyORB.ORB);
 
 package body PolyORB.Setup.Test_SOA is
 
@@ -155,7 +151,7 @@ package body PolyORB.Setup.Test_SOA is
             Add_Item
               (Args,
                To_PolyORB_String ("echoString"),
-               To_Any (To_PolyORB_String (Arg1)),
+               To_Any (Arg1),
                ARG_IN);
 
             Create_Request
@@ -195,5 +191,3 @@ package body PolyORB.Setup.Test_SOA is
    end Run_Test;
 
 end PolyORB.Setup.Test_SOA;
-
-

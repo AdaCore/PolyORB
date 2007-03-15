@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -34,7 +34,6 @@
 --  Base POA Manager concrete implementation.
 
 with PolyORB.Components;
-with PolyORB.POA_Types;
 with PolyORB.Requests;
 with PolyORB.Tasking.Mutexes;
 with PolyORB.Utils.Chained_Lists;
@@ -43,7 +42,6 @@ package PolyORB.POA_Manager.Basic_Manager is
 
    pragma Elaborate_Body;
 
-   use PolyORB.POA_Types;
    use PolyORB.Requests;
 
    type Basic_POA_Manager is new POAManager with private;
@@ -112,9 +110,8 @@ package PolyORB.POA_Manager.Basic_Manager is
    type Hold_Servant_Access is access all Hold_Servant;
 
    function Execute_Servant
-     (Obj : access Hold_Servant;
-      Msg :        PolyORB.Components.Message'Class)
-     return PolyORB.Components.Message'Class;
+     (Obj : not null access Hold_Servant;
+      Msg : Components.Message'Class) return Components.Message'Class;
    --  Implementation of the Hold_Servant servant
 
 private

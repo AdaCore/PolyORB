@@ -32,10 +32,8 @@
 ------------------------------------------------------------------------------
 
 with Ada.Numerics.Discrete_Random;
-pragma Elaborate (Ada.Numerics.Discrete_Random);
 
 with Random.Skel;
-pragma Elaborate (Random.Skel);
 pragma Warnings (Off, Random.Skel);
 --  No entity from Random.Skel is referenced.
 
@@ -71,4 +69,3 @@ begin
    l48_Random.Reset (l48_Gen);
    m48_Random.Reset (m48_Gen);
 end Random.Impl;
-

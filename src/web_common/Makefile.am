@@ -17,22 +17,20 @@ ADA_SPECS = $(ADA_SPECS_WITH_BODY) \
 	soap.ads
 
 ADA_BODIES = $(ADA_SPECS_WITH_BODY:.ads=.adb)
-
-
 ADA_LIBADD = $(ADA_SPECS:.ads=.lo)
+ADA_ALIS = $(ADA_SPECS:.ads=.ali)
 
+ali_HEADERS = $(ADA_SPECS) $(ADA_BODIES)
+ali_DATA = $(ADA_ALIS)
 lib_LTLIBRARIES = libpolyorb-web_common.la
+
 libpolyorb_web_common_la_SOURCES =
 libpolyorb_web_common_la_LIBADD = $(ADA_LIBADD)
 libpolyorb_web_common_la_LDFLAGS = -no-undefined -version-info $(LIBVERSIONINFO)
 
 CLEANFILES = *.ali
 
-ADAFLAGS = -i -I. -I$(srcdir) -I.. -I$(srcdir)/.. $(GNATFLAGS)
-
-install-data-local:
-	$(INSTALL) -d $(DESTDIR)$(alidir)
-	for f in $(srcdir)/*.ad[bs] *.ali; do $(INSTALL) -m 444 $$f $(DESTDIR)$(alidir); done
+ADAFLAGS+= -i -I. -I$(srcdir) -I.. -I$(srcdir)/.. $(STD_ADAFLAGS)
 
 ### DO NOT REMOVE THIS LINE, IT IS USED BY MAKEDEPEND ###
 aws-mime.lo: $(top_srcdir)/src/web_common/aws-mime.adb $(top_srcdir)/src/web_common/aws-mime.ads $(top_srcdir)/src/web_common/aws.ads

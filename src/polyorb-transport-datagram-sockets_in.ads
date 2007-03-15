@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2003-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2003-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -51,12 +51,12 @@ package PolyORB.Transport.Datagram.Sockets_In is
 
    procedure Init_Socket_In
      (SAP         : in out Socket_In_Access_Point;
-      Socket      : in     Socket_Type;
+      Socket      : Socket_Type;
       Address     : in out Sock_Addr_Type;
-      Update_Addr :        Boolean := True);
+      Update_Addr : Boolean := True);
    --  Init datagram socket socket
-   --  If Update_Addr is set, Address will be updated by the socket address
-   --  For multicast sockets, it will remove multicast address
+   --  If Update_Addr is set, Address will be updated with the assigned socket
+   --  address.
 
    function Create_Event_Source
      (TAP : access Socket_In_Access_Point)
@@ -70,7 +70,7 @@ package PolyORB.Transport.Datagram.Sockets_In is
 
    type Socket_In_Endpoint
      is new Datagram_Transport_Endpoint with private;
-   --  Datagram Socket End Point for reciving data
+   --  Datagram Socket Transport Endpoint for receiving data
 
    procedure Create
      (TE   : in out Socket_In_Endpoint;
@@ -78,24 +78,22 @@ package PolyORB.Transport.Datagram.Sockets_In is
       Addr :        Sock_Addr_Type);
 
    function Create_Event_Source
-     (TE : access Socket_In_Endpoint)
-      return Asynch_Ev.Asynch_Ev_Source_Access;
+     (TE : access Socket_In_Endpoint) return Asynch_Ev.Asynch_Ev_Source_Access;
 
    procedure Read
      (TE     : in out Socket_In_Endpoint;
-      Buffer :        Buffers.Buffer_Access;
+      Buffer : Buffers.Buffer_Access;
       Size   : in out Ada.Streams.Stream_Element_Count;
-      Error  :    out Errors.Error_Container);
+      Error  : out Errors.Error_Container);
    --  Read data from datagram socket
 
    procedure Write
      (TE     : in out Socket_In_Endpoint;
-      Buffer :        Buffers.Buffer_Access;
-      Error  :    out Errors.Error_Container);
+      Buffer : Buffers.Buffer_Access;
+      Error  : out Errors.Error_Container);
    pragma No_Return (Write);
-   --  Write data to datagram socket. This procedure should not be
-   --  used for read-only transport endpoints, Program_Error will be
-   --  raised at run-time.
+   --  A Socket_In_Endpoint is read-only, so this primitive operation raises
+   --  Program_Error.
 
    procedure Close (TE : access Socket_In_Endpoint);
 

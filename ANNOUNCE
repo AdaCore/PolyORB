@@ -1,3 +1,53 @@
+Announcing the release of PolyORB 2.0r
+======================================
+
+The PolyORB team is proud to announce the release of PolyORB 2.0r 
+ (http://polyorb.objectweb.org/ and http://libre.adacore.com/polyorb/).
+
+This new major release of PolyORB comes as the conclusion of a series of
+extensive reviews and reorganisations of the middleware components,
+improving the architecture's performances and flexibility. Development
+has taken place in both the generic core and the various application
+and protocol personalities.
+
+This release contains the PolyORB generic middleware and its CORBA and
+MOMA instances. In addition to the 1.x branch, it includes:
+
+* extended support for CORBA and GIOP specifications: bounded strings,
+  SSLIOP, DynamicAny, RT-CORBA 1.x;
+
+* reduction of the memory footprint and increased performance.
+
+The architecture has also been reviewed and reorganized, leading to
+the following enhancements:
+
+* support for multiple scheduling policies (Thread Pool,
+  Leader/Followers, Half Sync/Half Async patterns),
+
+* better modularity of the code, allowing for precise tuning of the
+  architecture to support new distribution mechanisms and Quality of
+  Service (QoS) policies (e.g. RT-CORBA, SSLIOP),
+
+* the core of PolyORB has been formally modelled, several
+  configurations have been formally verified, providing increasing
+  confidence in the code,
+
+* the determinism of the RT-CORBA implementation has been validated on
+  Solaris (using TCP/IP), and ORK and MarTE OS (protocol-less tests).
+
+See the NEWS file for an exhaustive list of changes.
+
+Other instantiations of PolyORB are available in the public PolyORB
+repository for testing purposes. Available instantiations include DSA
+(Distributed System Annex) and AWS (Ada Web Server).
+
+PolyORB is primarily developed by Jérôme Hugues, Thomas Vergnaud,
+Khaled Barbaria and Laurent Pautet (Télécom Paris), and Thomas Quinot
+(AdaCore). Fabrice Kordon (LIP6) also participates in the project.
+Vadim Godunko regularly contributes by submitting patches.
+
+----------------------------------------------------------------------
+
 Announcing the release of PolyORB 1.2r
 ======================================
 

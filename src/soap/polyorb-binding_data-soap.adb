@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -36,11 +36,13 @@
 with Ada.Streams;
 
 with PolyORB.Binding_Objects;
+with PolyORB.Buffers;
+with PolyORB.Errors;
 with PolyORB.Filters.HTTP;
 with PolyORB.Initialization;
-pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
-with PolyORB.ORB.Iface;
+with PolyORB.ORB;
+with PolyORB.Obj_Adapters;
 with PolyORB.Parameters;
 with PolyORB.Protocols;
 with PolyORB.Protocols.SOAP_Pr;
@@ -76,12 +78,29 @@ package body PolyORB.Binding_Data.SOAP is
    use PolyORB.Types;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.binding_data.soap");
-   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+   procedure O (Message : Standard.String; Level : Log_Level := Debug)
      renames L.Output;
+   function C (Level : Log_Level := Debug) return Boolean
+     renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    Preference : Profile_Preference;
    --  Global variable: the preference to be returned
    --  by Get_Profile_Preference for SOAP profiles.
+
+   function Profile_To_URI (P : Profile_Access) return String;
+
+   function URI_To_Profile (Str : String) return Profile_Access;
+
+   procedure Marshall_SOAP_Profile_Body
+     (Buf     : access Buffers.Buffer_Type;
+      Profile : Profile_Access);
+
+   function Unmarshall_SOAP_Profile_Body
+     (Buffer : access Buffers.Buffer_Type)
+    return  Profile_Access;
+
+   SOAP_URI_Prefix : constant String := "http://";
 
    -------------
    -- Release --
@@ -103,12 +122,16 @@ package body PolyORB.Binding_Data.SOAP is
      := (0 => Htt'Access, 1 => Pro'Access);
 
    procedure Bind_Profile
-     (Profile :     SOAP_Profile_Type;
-      The_ORB :     Components.Component_Access;
-      BO_Ref  : out Smart_Pointers.Ref;
-      Error   : out Errors.Error_Container)
+     (Profile : access SOAP_Profile_Type;
+      The_ORB :        Components.Component_Access;
+      QoS     :        PolyORB.QoS.QoS_Parameters;
+      BO_Ref  :    out Smart_Pointers.Ref;
+      Error   :    out Errors.Error_Container)
    is
+      pragma Unreferenced (QoS);
+
       use PolyORB.Components;
+      use PolyORB.Binding_Objects;
       use PolyORB.Errors;
       use PolyORB.Filters;
       use PolyORB.ORB;
@@ -127,11 +150,15 @@ package body PolyORB.Binding_Data.SOAP is
       Set_Allocation_Class (TE.all, Dynamic);
 
       Binding_Objects.Setup_Binding_Object
-        (ORB.ORB_Access (The_ORB),
-         TE,
+        (TE,
          SOAP_Factories,
-         ORB.Client,
-         BO_Ref);
+         BO_Ref,
+         Profile_Access (Profile));
+
+      ORB.Register_Binding_Object
+        (ORB.ORB_Access (The_ORB),
+         BO_Ref,
+         ORB.Client);
 
    exception
       when Sockets.Socket_Error =>
@@ -171,6 +198,20 @@ package body PolyORB.Binding_Data.SOAP is
    end Get_Profile_Preference;
 
    ------------------
+   -- Is_Colocated --
+   ------------------
+
+   function Is_Colocated
+     (Left  : SOAP_Profile_Type;
+      Right : Profile_Type'Class) return Boolean
+   is
+      use Sockets;
+   begin
+      return Right in SOAP_Profile_Type
+        and then Left.Address = SOAP_Profile_Type (Right).Address;
+   end Is_Colocated;
+
+   ------------------
    -- Get_URI_Path --
    ------------------
 
@@ -207,10 +248,11 @@ package body PolyORB.Binding_Data.SOAP is
       Oid : Objects.Object_Id)
      return Profile_Access
    is
-      use PolyORB.Transport.Connected.Sockets;
+      use PolyORB.Errors;
 
-      Result : constant Profile_Access :=
-        new SOAP_Profile_Type;
+      Error : Error_Container;
+
+      Result : constant Profile_Access := new SOAP_Profile_Type;
 
       TResult : SOAP_Profile_Type
         renames SOAP_Profile_Type (Result.all);
@@ -219,21 +261,18 @@ package body PolyORB.Binding_Data.SOAP is
       TResult.Object_Id := new Object_Id'(Oid);
       TResult.Address   := PF.Address;
 
-      declare
-         Oid_Translate : constant ORB.Iface.Oid_Translate :=
-           (PolyORB.Components.Message with Oid => TResult.Object_Id);
+      Obj_Adapters.Oid_To_Rel_URI
+        (PolyORB.ORB.Object_Adapter (Setup.The_ORB),
+         TResult.Object_Id,
+         TResult.URI_Path, Error);
 
-         M : constant PolyORB.Components.Message'Class :=
-           PolyORB.Components.Emit
-           (Port => Components.Component_Access (Setup.The_ORB),
-            Msg  => Oid_Translate);
+      if Found (Error) then
+         Catch (Error);
+         return null;
 
-         TM : ORB.Iface.URI_Translate renames ORB.Iface.URI_Translate (M);
-      begin
-         TResult.URI_Path := TM.Path;
-      end;
-
-      return  Result;
+      else
+         return Result;
+      end if;
    end Create_Profile;
 
    function Create_Profile
@@ -268,23 +307,37 @@ package body PolyORB.Binding_Data.SOAP is
 
          --  Fill Oid from URI for a local profile.
 
-         declare
-            URI_Translate : constant ORB.Iface.URI_Translate :=
-              (PolyORB.Components.Message with Path => TResult.URI_Path);
-
-            M : constant PolyORB.Components.Message'Class :=
-              PolyORB.Components.Emit
-              (Port => Components.Component_Access (Setup.The_ORB),
-               Msg  => URI_Translate);
-
-            TM : ORB.Iface.Oid_Translate renames ORB.Iface.Oid_Translate (M);
-         begin
-            TResult.Object_Id := TM.Oid;
-         end;
+         TResult.Object_Id
+           := PolyORB.Obj_Adapters.Rel_URI_To_Oid
+           (PolyORB.ORB.Object_Adapter (Setup.The_ORB),
+            PolyORB.Types.To_Standard_String (TResult.URI_Path));
       end if;
 
       return Result;
    end Create_Profile;
+
+   -----------------------
+   -- Duplicate_Profile --
+   -----------------------
+
+   function Duplicate_Profile
+     (P : SOAP_Profile_Type)
+     return Profile_Access
+   is
+      Result : constant Profile_Access := new SOAP_Profile_Type;
+
+      TResult : SOAP_Profile_Type
+        renames SOAP_Profile_Type (Result.all);
+
+      PP : SOAP_Profile_Type renames P;
+
+   begin
+      TResult.Object_Id := new Object_Id'(PP.Object_Id.all);
+      TResult.Address   := PP.Address;
+      TResult.URI_Path  := PP.URI_Path;
+
+      return Result;
+   end Duplicate_Profile;
 
    ----------------------
    -- Is_Local_Profile --
@@ -310,7 +363,6 @@ package body PolyORB.Binding_Data.SOAP is
       Profile : Profile_Access)
    is
       use PolyORB.Utils.Sockets;
-      use PolyORB.Buffers;
 
       SOAP_Profile : SOAP_Profile_Type renames SOAP_Profile_Type (Profile.all);
       Profile_Body : Buffer_Access := new Buffer_Type;
@@ -383,11 +435,7 @@ package body PolyORB.Binding_Data.SOAP is
    -- Profile_To_URI --
    --------------------
 
-   function Profile_To_URI
-     (P : Profile_Access)
-     return Types.String
-   is
-      use PolyORB.Types;
+   function Profile_To_URI (P : Profile_Access) return String is
       use PolyORB.Sockets;
       use PolyORB.Utils;
       use PolyORB.Utils.Strings;
@@ -397,32 +445,29 @@ package body PolyORB.Binding_Data.SOAP is
       pragma Debug (O ("SOAP Profile to URI"));
       return SOAP_URI_Prefix
         & Image (SOAP_Profile.Address.Addr) & ":"
-        & Trimmed_Image (Integer (SOAP_Profile.Address.Port))
-        & SOAP_Profile.URI_Path;
+        & Trimmed_Image (Long_Long (SOAP_Profile.Address.Port))
+        & To_Standard_String (SOAP_Profile.URI_Path);
    end Profile_To_URI;
 
    --------------------
    -- URI_To_Profile --
    --------------------
 
-   function URI_To_Profile
-     (Str : Types.String)
-     return Profile_Access
-   is
-      use PolyORB.Types;
+   function URI_To_Profile (Str : String) return Profile_Access is
       use PolyORB.Utils;
       use PolyORB.Utils.Strings;
       use PolyORB.Utils.Sockets;
 
-      Len    : constant Integer := Length (SOAP_URI_Prefix);
    begin
-      if Length (Str) > Len
-        and then To_String (Str) (1 .. Len) = SOAP_URI_Prefix then
+      if Str'Length > SOAP_URI_Prefix'Length
+        and then Str (Str'First .. Str'First + SOAP_URI_Prefix'Length - 1)
+        = SOAP_URI_Prefix
+      then
          declare
             Result  : constant Profile_Access := new SOAP_Profile_Type;
             TResult : SOAP_Profile_Type renames SOAP_Profile_Type (Result.all);
             S       : constant String
-              := To_Standard_String (Str) (Len + 1 .. Length (Str));
+              := Str (Str'First + SOAP_URI_Prefix'Length .. Str'Last);
             Index   : Integer := S'First;
             Index2  : Integer;
          begin
@@ -433,8 +478,7 @@ package body PolyORB.Binding_Data.SOAP is
                return null;
             end if;
             pragma Debug (O ("Address = " & S (Index .. Index2 - 1)));
-            TResult.Address.Addr := String_To_Addr
-              (To_PolyORB_String (S (Index .. Index2 - 1)));
+            TResult.Address.Addr := String_To_Addr (S (Index .. Index2 - 1));
             Index := Index2 + 1;
 
             Index2 := Find (S, Index, '/');
@@ -455,7 +499,6 @@ package body PolyORB.Binding_Data.SOAP is
          return null;
       end if;
    end URI_To_Profile;
-
 
    -----------
    -- Image --
@@ -495,9 +538,7 @@ package body PolyORB.Binding_Data.SOAP is
      (Profile : SOAP_Profile_Type)
      return PolyORB.Smart_Pointers.Entity_Ptr
    is
-      pragma Warnings (Off); --  WAG:3.15
       pragma Unreferenced (Profile);
-      pragma Warnings (On); --  WAG:3.15
    begin
       return PolyORB.Smart_Pointers.Entity_Ptr
         (PolyORB.ORB.Object_Adapter (PolyORB.Setup.The_ORB));
@@ -544,5 +585,6 @@ begin
        Depends   => +"sockets",
        Provides  => +"binding_factories",
        Implicit  => False,
-       Init      => Initialize'Access));
+       Init      => Initialize'Access,
+       Shutdown  => null));
 end PolyORB.Binding_Data.SOAP;

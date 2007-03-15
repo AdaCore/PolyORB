@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -52,34 +52,30 @@ package PolyORB.Representations.CDR is
    --  typecode).
 
    procedure Marshall_From_Any
-     (R      : in     CDR_Representation;
+     (R      : CDR_Representation;
       Buffer : access Buffers.Buffer_Type;
-      Data   : in     Any.Any;
+      CData  : Any.Any_Container'Class;
       Error  : in out Errors.Error_Container);
 
    procedure Unmarshall_To_Any
-     (R      : in     CDR_Representation;
+     (R      : CDR_Representation;
       Buffer : access Buffers.Buffer_Type;
-      Data   : in out Any.Any;
+      CData  : in out Any.Any_Container'Class;
       Error  : in out Errors.Error_Container);
-   --  Unmarshall the value of Result from Buffer. Result must have
-   --  a valid TypeCode, which defines what kind of value is unmarshalled.
-   --  If Result already has a value, then its memory location
-   --  will be reused. Otherwise, a new location will be allocated.
 
    --  XXX Encapsulation is also GIOP version dependent.
 
    --  'char' type
 
    procedure Marshall
-     (R      : in     CDR_Representation;
+     (R      : CDR_Representation;
       Buffer : access Buffers.Buffer_Type;
-      Data   : in     PolyORB.Types.Char;
+      Data   : PolyORB.Types.Char;
       Error  : in out Errors.Error_Container)
       is abstract;
 
    procedure Unmarshall
-     (R      : in     CDR_Representation;
+     (R      : CDR_Representation;
       Buffer : access Buffers.Buffer_Type;
       Data   :    out PolyORB.Types.Char;
       Error  : in out Errors.Error_Container)
@@ -88,14 +84,14 @@ package PolyORB.Representations.CDR is
    --  'wchar' type
 
    procedure Marshall
-     (R      : in     CDR_Representation;
+     (R      : CDR_Representation;
       Buffer : access Buffers.Buffer_Type;
-      Data   : in     PolyORB.Types.Wchar;
+      Data   : PolyORB.Types.Wchar;
       Error  : in out Errors.Error_Container)
       is abstract;
 
    procedure Unmarshall
-     (R      : in     CDR_Representation;
+     (R      : CDR_Representation;
       Buffer : access Buffers.Buffer_Type;
       Data   :    out PolyORB.Types.Wchar;
       Error  : in out Errors.Error_Container)
@@ -104,14 +100,14 @@ package PolyORB.Representations.CDR is
    --  'string' type
 
    procedure Marshall
-     (R      : in     CDR_Representation;
+     (R      : CDR_Representation;
       Buffer : access Buffers.Buffer_Type;
-      Data   : in     PolyORB.Types.String;
+      Data   : PolyORB.Types.String;
       Error  : in out Errors.Error_Container)
       is abstract;
 
    procedure Unmarshall
-     (R      : in     CDR_Representation;
+     (R      : CDR_Representation;
       Buffer : access Buffers.Buffer_Type;
       Data   :    out PolyORB.Types.String;
       Error  : in out Errors.Error_Container)
@@ -120,22 +116,22 @@ package PolyORB.Representations.CDR is
    --  'wstring' type
 
    procedure Marshall
-     (R      : in     CDR_Representation;
+     (R      : CDR_Representation;
       Buffer : access Buffers.Buffer_Type;
-      Data   : in     PolyORB.Types.Wide_String;
+      Data   : PolyORB.Types.Wide_String;
       Error  : in out Errors.Error_Container)
       is abstract;
 
    procedure Unmarshall
-     (R      : in     CDR_Representation;
+     (R      : CDR_Representation;
       Buffer : access Buffers.Buffer_Type;
       Data   :    out PolyORB.Types.Wide_String;
       Error  : in out Errors.Error_Container)
       is abstract;
 
    function Create_Representation
-     (Major : in Types.Octet;
-      Minor : in Types.Octet)
+     (Major : Types.Octet;
+      Minor : Types.Octet)
       return CDR_Representation_Access;
    --  Create Representation object for requested version
 
@@ -143,12 +139,12 @@ package PolyORB.Representations.CDR is
 
    procedure Marshall
      (Buffer         : access Buffers.Buffer_Type;
-      Representation : in     CDR_Representation'Class;
-      Data           : in     PolyORB.Any.Any);
+      Representation : CDR_Representation'Class;
+      Data           : PolyORB.Any.Any);
 
    function Unmarshall
      (Buffer         : access Buffers.Buffer_Type;
-      Representation : in     CDR_Representation'Class)
+      Representation : CDR_Representation'Class)
       return PolyORB.Any.Any;
 
 private
@@ -157,12 +153,12 @@ private
 
    procedure Marshall
      (Buffer         : access Buffers.Buffer_Type;
-      Representation : in     CDR_Representation'Class;
-      Data           : in     PolyORB.Any.TypeCode.Object);
+      Representation : CDR_Representation'Class;
+      Data           : PolyORB.Any.TypeCode.Object);
 
    function Unmarshall
      (Buffer         : access Buffers.Buffer_Type;
-      Representation : in     CDR_Representation'Class)
+      Representation : CDR_Representation'Class)
       return PolyORB.Any.TypeCode.Object;
 
    --  CDR Representation versions registry
@@ -171,8 +167,8 @@ private
       access function return CDR_Representation_Access;
 
    procedure Register_Factory
-     (Major   : in Types.Octet;
-      Minor   : in Types.Octet;
-      Factory : in CDR_Representation_Factory);
+     (Major   : Types.Octet;
+      Minor   : Types.Octet;
+      Factory : CDR_Representation_Factory);
 
 end PolyORB.Representations.CDR;

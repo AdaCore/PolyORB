@@ -1,0 +1,14 @@
+const string Apple = "abcdefghijklmnopqrstuvwxyz";
+const string Banana = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+const string Carrots = "0123456789";
+const string Lemon = "!#$%&()*+,-./:;<;>@[]^ _`{|}~";
+const string BlackCherry = "
+ \?'"";
+const string Starfruit = "377ÿ";
+const string PassionFruit = "ffÿ";
+const string Orange = "abcdefghijklmnopqrstuvwxyz";
+const string Dates = "a
+B";
+interface idlServer {
+ void Pumpkin();
+};

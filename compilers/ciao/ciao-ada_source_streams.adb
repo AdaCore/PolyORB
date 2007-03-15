@@ -155,7 +155,6 @@ package body CIAO.Ada_Source_Streams is
       return The_Package;
    end New_Package;
 
-
    procedure Generate
      (Unit : in Compilation_Unit;
       Is_Generic_Instanciation : Boolean := False;

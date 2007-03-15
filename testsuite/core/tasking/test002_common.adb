@@ -121,10 +121,7 @@ package body Test002_Common is
    -- Test_CV --
    -------------
 
-   procedure Test_CV
-   is
-      use PolyORB.Tasking.Threads;
-
+   procedure Test_CV is
    begin
       New_Test ("Condition Variables");
 

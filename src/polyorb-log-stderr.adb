@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2004 Free Software Foundation, Inc.             --
+--         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -66,8 +66,11 @@ package body PolyORB.Log.Stderr is
    procedure Initialize;
 
    procedure Initialize is
+      use type PolyORB.Log.Internals.Log_Hook_T;
    begin
-      PolyORB.Log.Internals.Log_Hook := Put_Line'Access;
+      if PolyORB.Log.Internals.Log_Hook = null then
+         PolyORB.Log.Internals.Log_Hook := Put_Line'Access;
+      end if;
    end Initialize;
 
    use PolyORB.Initialization;
@@ -79,8 +82,9 @@ begin
      (Module_Info'
       (Name      => +"log.stderr",
        Conflicts => Empty,
-       Depends   => Empty,
-       Provides  => +"log",
+       Depends   => +"parameters",
+       Provides  => +"log_sink",
        Implicit  => True,
-       Init      => Initialize'Access));
+       Init      => Initialize'Access,
+       Shutdown  => null));
 end PolyORB.Log.Stderr;

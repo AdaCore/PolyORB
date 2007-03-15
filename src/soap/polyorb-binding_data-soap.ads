@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -33,7 +33,6 @@
 
 --  Binding data concrete implementation for SOAP over HTTP.
 
-with PolyORB.Buffers;
 with PolyORB.Sockets;
 with PolyORB.Types;
 
@@ -52,10 +51,11 @@ package PolyORB.Binding_Data.SOAP is
    ----------------------------------------------------
 
    procedure Bind_Profile
-     (Profile :     SOAP_Profile_Type;
-      The_ORB :     Components.Component_Access;
-      BO_Ref  : out Smart_Pointers.Ref;
-      Error   : out Errors.Error_Container);
+     (Profile : access SOAP_Profile_Type;
+      The_ORB :        Components.Component_Access;
+      QoS     :        PolyORB.QoS.QoS_Parameters;
+      BO_Ref  :    out Smart_Pointers.Ref;
+      Error   :    out Errors.Error_Container);
 
    function Get_Profile_Tag
      (Profile : SOAP_Profile_Type)
@@ -66,6 +66,10 @@ package PolyORB.Binding_Data.SOAP is
      (Profile : SOAP_Profile_Type)
      return Profile_Preference;
    pragma Inline (Get_Profile_Preference);
+
+   function Is_Colocated
+     (Left  : SOAP_Profile_Type;
+      Right : Profile_Type'Class) return Boolean;
 
    -----------------------------------------------
    -- Supplementary operations of SOAP profiles --
@@ -104,32 +108,14 @@ package PolyORB.Binding_Data.SOAP is
       Oid : Objects.Object_Id)
      return Profile_Access;
 
+   function Duplicate_Profile
+     (P : SOAP_Profile_Type)
+     return Profile_Access;
+
    function Is_Local_Profile
      (PF : access SOAP_Profile_Factory;
       P  : access Profile_Type'Class)
       return Boolean;
-
-   -------------------------------------------
-   --  Profile representation subprograms   --
-   --  (used for the construction of IORs,  --
-   --   corbalocs and URIs).                --
-   -------------------------------------------
-
-   procedure Marshall_SOAP_Profile_Body
-     (Buf     : access Buffers.Buffer_Type;
-      Profile : Profile_Access);
-
-   function Unmarshall_SOAP_Profile_Body
-     (Buffer : access Buffers.Buffer_Type)
-    return  Profile_Access;
-
-   function Profile_To_URI
-     (P : Profile_Access)
-     return Types.String;
-
-   function URI_To_Profile
-     (Str : Types.String)
-     return Profile_Access;
 
 private
 
@@ -142,6 +128,4 @@ private
       Address : Sockets.Sock_Addr_Type;
    end record;
 
-   SOAP_URI_Prefix : constant Types.String
-     := PolyORB.Types.To_PolyORB_String ("http://");
 end PolyORB.Binding_Data.SOAP;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,14 +26,16 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Definition of the container type 'Any'
+--  Definition of the universal container/wrapper type 'Any'
 
 with Ada.Unchecked_Deallocation;
+with Ada.Strings.Superbounded;
+with Ada.Strings.Wide_Superbounded;
 
 with PolyORB.Smart_Pointers;
 with PolyORB.Types;
@@ -57,6 +59,48 @@ package PolyORB.Any is
      (A : Any)
      return Standard.String;
    --  For debugging purposes.
+
+   type Any_Container is tagged limited private;
+   type Any_Container_Ptr is access all Any_Container'Class;
+   --  The entity designated by an Any
+
+   function Image
+     (C : Any_Container'Class)
+     return Standard.String;
+   --  For debugging purposes.
+
+   -------------
+   -- Content --
+   -------------
+
+   --  Wrapper for an access to the stored value of an Any
+
+   type Content is abstract tagged private;
+   type Content_Ptr is access all Content'Class;
+
+   function Clone
+     (CC   : Content;
+      Into : Content_Ptr := null) return Content_Ptr is abstract;
+   --  Value copy primitive. If Into is null, storage is first allocated to
+   --  hold a new copy of the value designated by Content. Then, if the value
+   --  can be copied directly (i.e. either when Into was null and an adapted
+   --  new Content has been allocated, or when Into designates a Content of
+   --  the proper type), the value is assigned, and an access to the new copy
+   --  is returned (may be Into itself).
+   --  When Into is not null but does not support direct in-place assignment
+   --  of the value, no copy is performed, and null is returned.
+
+   procedure Finalize_Value (CC : in out Content) is abstract;
+   --  Deallocate the stored value
+
+   type No_Content is new Content with private;
+   --  Placeholder for a missing content
+
+   generic
+      type T is private;
+   function No_Wrap (X : access T) return Content'Class;
+   --  Dummy Wrap function for types that do not implement proper wrapping
+   --  (should never be called).
 
    ---------------
    -- TypeCodes --
@@ -128,8 +172,6 @@ package PolyORB.Any is
 
       type Object is private;
 
-      type Object_Ptr is access all Object;
-
       Bounds       : exception;
       BadKind      : exception;
       Bad_TypeCode : exception;
@@ -138,55 +180,50 @@ package PolyORB.Any is
       --  to raise proper exceptions or messages.
 
       function "="
-        (Left, Right : in Object)
+        (Left, Right : Object)
         return Boolean;
       --  TypeCode equality.
 
       function Equal
-        (Left, Right : in Object)
+        (Left, Right : Object)
         return Boolean
         renames "=";
 
       function Equivalent
-        (Left, Right : in Object)
+        (Left, Right : Object)
         return Boolean;
       --  Equivalence between two typecodes as defined in
       --  section 10.7.1 of the CORBA V2.3.
 
-      function Get_Compact_TypeCode
-        (Self : in Object)
-        return Object;
-      --  XXX not implemented, to be defined.
-
       function Kind
-        (Self : in Object)
+        (Self : Object)
         return TCKind;
       --  Return the kind of a typecode.
 
       function Id
-        (Self : in Object)
+        (Self : Object)
         return Types.RepositoryId;
       --  Return the Id associated with a typecode in case its kind is
       --  objref, struct, union, enum, alias, value, valueBox, native,
       --  abstract_interface or except. Raise BadKind else.
 
       function Name
-        (Self : in Object)
+        (Self : Object)
         return Types.Identifier;
       --  Return the name associated with a typecode in case its kind is
       --  objref, struct, union, enum, alias, value, valueBox, native,
       --  abstract_interface or except. Raise BadKind else.
 
       function Member_Count
-        (Self : in Object)
+        (Self : Object)
         return Types.Unsigned_Long;
       --  Return the number of members associated with a typecode in
       --  case its kind is struct, union, enum, value or except.
       --  Raise BadKind else.
 
       function Member_Name
-        (Self  : in Object;
-         Index : in Types.Unsigned_Long)
+        (Self  : Object;
+         Index : Types.Unsigned_Long)
         return Types.Identifier;
       --  Return the name of a given member associated with a typecode
       --  in case its kind is struct, union, enum, value or except.
@@ -194,8 +231,8 @@ package PolyORB.Any is
       --  If there is not enough members, Raise Bounds.
 
       function Member_Type
-        (Self  : in Object;
-         Index : in Types.Unsigned_Long)
+        (Self  : Object;
+         Index : Types.Unsigned_Long)
         return Object;
       --  Return the type of a given member associated with a typecode
       --  in case its kind is struct, union, value or except.
@@ -203,30 +240,30 @@ package PolyORB.Any is
       --  If there is not enough members, Raise Bounds.
 
       function Member_Label
-        (Self  : in Object;
-         Index : in Types.Unsigned_Long)
-        return Any;
+        (Self  : Object;
+         Index : Types.Unsigned_Long) return Any_Container_Ptr;
+      function Member_Label
+        (Self  : Object;
+         Index : Types.Unsigned_Long) return Any;
       --  Return the label of a given member associated with a typecode
       --  in case its kind is union.
       --  Raise BadKind else.
       --  If there is not enough members, Raise Bounds.
 
       function Enumerator_Name
-        (Self  : in Object;
-         Index : in Types.Unsigned_Long)
+        (Self  : Object;
+         Index : Types.Unsigned_Long)
         return Types.Identifier;
       --  Return the name of the Index'th enumerator in an enumeration.
       --  If there is not enough members, Raise Bounds.
 
-      function Discriminator_Type
-        (Self : in Object)
-        return Object;
+      function Discriminator_Type (Self : Object) return Object;
       --  Return the discriminator type associated with a typecode
       --  in case its kind is union.
       --  Raise BadKind else.
 
       function Default_Index
-        (Self : in Object)
+        (Self : Object)
         return Types.Long;
       --  Return the position of the default index in the parameters
       --  of a typecode in case its kind is union.
@@ -234,36 +271,36 @@ package PolyORB.Any is
       --  If there is no default index, return -1
 
       function Length
-        (Self : in Object)
+        (Self : Object)
         return Types.Unsigned_Long;
       --  Return the length associated with a typecode
       --  in case its kind is string, wide_string, sequence or array.
       --  Raise BadKind else.
 
       function Content_Type
-        (Self : in Object)
+        (Self : Object)
         return Object;
       --  Return the content type associated with a typecode
       --  in case its kind is sequence, array, valueBox or alias.
       --  Raise BadKind else.
 
       function Fixed_Digits
-        (Self : in Object)
+        (Self : Object)
         return Types.Unsigned_Short;
       --  Return the number of digits associated with a typecode
       --  in case its kind is fixed.
       --  Raise BadKind else.
 
       function Fixed_Scale
-        (Self : in Object)
+        (Self : Object)
         return Types.Short;
       --  Return the scale associated with a typecode
       --  in case its kind is fixed.
       --  Raise BadKind else.
 
       function Member_Visibility
-        (Self  : in Object;
-         Index : in Types.Unsigned_Long)
+        (Self  : Object;
+         Index : Types.Unsigned_Long)
         return Visibility;
       --  Return the visibility associated with a member of a typecode
       --  in case its kind is value.
@@ -271,14 +308,14 @@ package PolyORB.Any is
       --  If there is not enough members, Raise Bounds.
 
       function Type_Modifier
-        (Self : in Object)
+        (Self : Object)
         return ValueModifier;
       --  Return the type modifier associated with a typecode
       --  in case its kind is value.
       --  Raise BadKind else.
 
       function Concrete_Base_Type
-        (Self : in Object)
+        (Self : Object)
         return Object;
       --  Return the concrete base type associated with a typecode
       --  in case its kind is value.
@@ -289,42 +326,32 @@ package PolyORB.Any is
       -----------------
 
       function Member_Type_With_Label
-        (Self  : in Object;
-         Label : in Any)
-        return Object;
-      --  Return the type of a given member associated with an
-      --  union typecode for a given label. The index is the index
-      --  of the member among the members associated with Label. The
-      --  other members are not taken into account
-      --  Raise BadKind if Self is not an union typecode.
+        (Self  : Object;
+         Label : Any_Container'Class) return Object;
+      function Member_Type_With_Label
+        (Self  : Object;
+         Label : Any) return Object;
+      --  Return the type of a given member associated with an union typecode
+      --  for a given label. The index is the index of the member among the
+      --  members associated with Label. The other members are not taken into
+      --  account Raise BadKind if Self is not an union typecode.
       --  If there is not enough members, Raise Bounds.
 
-      function Member_Count_With_Label
-        (Self  : in Object;
-         Label : in Any)
-         return Types.Unsigned_Long;
-      pragma Unreferenced (Member_Count_With_Label);
-      --  Return the number of members associated with a typecode of
-      --  kind union for a given label.
-      --  Raise BadKind if Self is not an union typecode.
-
       function Get_Parameter
-        (Self  : in Object;
-         Index : in Types.Unsigned_Long)
-        return Any;
-      --  Return the parameter nb index in the list of Self's
-      --  parameters. Raise Out_Of_Bounds_Index exception if
-      --  this parameter does not exist
+        (Self  : Object;
+         Index : Types.Unsigned_Long) return Any_Container_Ptr;
+      --  Return the parameter nb index in the list of Self's parameters. Raise
+      --  Out_Of_Bounds_Index exception if this parameter does not exist.
 
       procedure Add_Parameter
         (Self  : in out Object;
-         Param : in     Any);
+         Param : Any);
       --  Add the parameter Param in the list of Self's
       --  parameters.
 
       procedure Set_Volatile
         (Self        : in out Object;
-         Is_Volatile : in     Boolean);
+         Is_Volatile : Boolean);
       pragma Unreferenced (Set_Volatile);
       --  Set to True if TypeCode is volatile, i.e. can be destroyed,
       --  False otherwise. Currently unused.
@@ -336,7 +363,7 @@ package PolyORB.Any is
 
       procedure Set_Kind
         (Self : out Object;
-         Kind : in  TCKind);
+         Kind : TCKind);
       --  Return a typecode of kind Kind, with an empty parameter list.
 
       --  Simple typecodes
@@ -386,9 +413,33 @@ package PolyORB.Any is
       function TC_Event              return TypeCode.Object;
 
       function Parameter_Count
-        (Self : in Object)
+        (Self : Object)
         return Types.Unsigned_Long;
-      --  Return the number of parameters in typecode Self.
+      --  Return the number of parameters in typecode Self
+
+      ----------------------------------------
+      -- Constructors for complex typecodes --
+      ----------------------------------------
+
+      type Any_Array is array (Natural range <>) of Any;
+      function Build_Complex_TC
+        (Base : TypeCode.Object;
+         Parameters : Any_Array)
+         return TypeCode.Object;
+      --  XXX need comment
+
+      function Build_Bounded_String_TC (Max : Positive)
+                                       return TypeCode.Object;
+      --  Build typcode for bounded strings
+
+      function Build_Bounded_Wide_String_TC (Max : Positive)
+                                            return TypeCode.Object;
+      --  Build typcode for bounded wide strings
+
+      function Build_Sequence_TC (Element_TC : TypeCode.Object; Max : Natural)
+                                  return TypeCode.Object;
+      --  Build typecode for bounded sequence (if Max > 0), for unbounded
+      --  sequence (if Max = 0).
 
       procedure Initialize;
 
@@ -396,24 +447,12 @@ package PolyORB.Any is
 
       pragma Inline (Kind);
 
-      -----------------------------------------------------
-      -- A list of typecode parameters (which are Any's) --
-      -----------------------------------------------------
-
-      --  NOTE: TypeCode internal chained list cannot be easily converted to
-      --  an instance of PolyORB.Utils.Chained_Lists : at this point, Any is
-      --  still the public view of a private type.
-
-      type Cell;
-      type Cell_Ptr is access all Cell;
-      type Cell is record
-         Parameter : Any;
-         Next      : Cell_Ptr;
-      end record;
+      --  Internally, the parameters of a typecode are stored using a
+      --  Default_Aggregate_Content, i.e. a dynamic table of Any_Containers.
 
       type Object is record
          Kind         : TCKind   := Tk_Void;
-         Parameters   : Cell_Ptr := null;
+         Parameters   : Content_Ptr;
          Is_Volatile  : Boolean  := False;
          Is_Destroyed : Boolean  := False;
       end record;
@@ -600,184 +639,255 @@ package PolyORB.Any is
    -- Any --
    ---------
 
-   function "="
-     (Left, Right : in Any)
-     return Boolean;
+   function "=" (Left, Right : Any_Container'Class) return Boolean;
+   function "=" (Left, Right : Any) return Boolean;
+   --  Equality on stored value
 
-   function Equal
-     (Left, Right : in Any)
-     return Boolean
-     renames "=";
+   function Get_Container (A : Any) return Any_Container_Ptr;
+   --  Get the container designated by A
 
-   function Compare_Any_Contents
-     (Left  : in Any;
-      Right : in Any)
-     return Boolean;
-   --  Check if two Anys are pointing to the same content object.
+   function Get_Value (C : Any_Container'Class) return Content_Ptr;
+   --  Retrieve a pointer to C's contents wrapper. This pointer shall not be
+   --  permanently saved.
 
-   function To_Any (Item : in Types.Short)              return Any;
-   function To_Any (Item : in Types.Long)               return Any;
-   function To_Any (Item : in Types.Long_Long)          return Any;
-   function To_Any (Item : in Types.Unsigned_Short)     return Any;
-   function To_Any (Item : in Types.Unsigned_Long)      return Any;
-   function To_Any (Item : in Types.Unsigned_Long_Long) return Any;
-   function To_Any (Item : in Types.Float)              return Any;
-   function To_Any (Item : in Types.Double)             return Any;
-   function To_Any (Item : in Types.Long_Double)        return Any;
-   function To_Any (Item : in Types.Boolean)            return Any;
-   function To_Any (Item : in Types.Char)               return Any;
-   function To_Any (Item : in Types.Wchar)              return Any;
-   function To_Any (Item : in Types.Octet)              return Any;
-   function To_Any (Item : in Any)                      return Any;
-   function To_Any (Item : in TypeCode.Object)          return Any;
-   function To_Any (Item : in Types.String)             return Any;
-   function To_Any (Item : in Types.Wide_String)        return Any;
+   procedure Set_Type (C : in out Any_Container'Class; TC : TypeCode.Object);
+   --  Set the type of C to TC
 
-   function From_Any (Item : in Any) return Types.Short;
-   function From_Any (Item : in Any) return Types.Long;
-   function From_Any (Item : in Any) return Types.Long_Long;
-   function From_Any (Item : in Any) return Types.Unsigned_Short;
-   function From_Any (Item : in Any) return Types.Unsigned_Long;
-   function From_Any (Item : in Any) return Types.Unsigned_Long_Long;
-   function From_Any (Item : in Any) return Types.Float;
-   function From_Any (Item : in Any) return Types.Double;
-   function From_Any (Item : in Any) return Types.Long_Double;
-   function From_Any (Item : in Any) return Types.Boolean;
-   function From_Any (Item : in Any) return Types.Char;
-   function From_Any (Item : in Any) return Types.Wchar;
-   function From_Any (Item : in Any) return Types.Octet;
-   function From_Any (Item : in Any) return Any;
-   function From_Any (Item : in Any) return TypeCode.Object;
-   function From_Any (Item : in Any) return Types.String;
-   function From_Any (Item : in Any) return Types.Wide_String;
+   procedure Set_Value (C : in out Any_Container'Class; CC : Content_Ptr);
+   --  Set the contents of C to CC. CC, and any associated storage, are
+   --  assumed to be externally managed and won't be deallocated by the Any
+   --  management subsystem.
 
-   function Get_Type
-     (The_Any : in Any)
-     return TypeCode.Object;
+   procedure Finalize_Value (C : in out Any_Container'Class);
+   --  Destroy the stored content wrapper for C, if non-null and non-foreign
 
-   function Unwind_Typedefs
-     (TC : in TypeCode.Object)
-     return TypeCode.Object;
-   --  Unwind any typedef (alias) from TC.
+   -----------------------
+   -- Aggregate_Content --
+   -----------------------
 
-   function Get_Unwound_Type
-     (The_Any : in Any)
-     return TypeCode.Object;
-   --  Return the actual type of The_Any, after resolution of
-   --  all typedef levels.
+   --  Abstract interface implemented by all aggregate contents wrappers
 
-   procedure Set_Type
-     (The_Any  : in out Any;
-      The_Type : in     TypeCode.Object);
+   type Aggregate_Content is abstract new Content with private;
+
+   function Get_Aggregate_Count
+     (ACC : Aggregate_Content) return Types.Unsigned_Long is abstract;
+   --  Return elements count
+
+   procedure Set_Aggregate_Count
+     (ACC    : in out Aggregate_Content;
+      Length : Types.Unsigned_Long) is abstract;
+   --  Ensure that ACC has appropriate storage allocated for the given element
+   --  count. For the case of a fixed-size aggregate container,
+   --  Constraint_Error is raised if Count does not match the proper aggregate
+   --  element count.
+
+   type Mechanism is (By_Reference, By_Value);
+
+   function Get_Aggregate_Element
+     (ACC   : access Aggregate_Content;
+      TC    : TypeCode.Object;
+      Index : Types.Unsigned_Long;
+      Mech  : access Mechanism) return Content'Class is abstract;
+   --  Return contents wrapper for one stored element.
+   --  Upon entry, if Mech is By_Reference, the caller requests access to
+   --  the stored element in order to update it; if it is By_Value, the caller
+   --  needs only the value of the stored element.
+   --
+   --  Upon exit, Mech is set to By_Value if the designated storage space is
+   --  provided by the ACC content wrapper (as opposed to the actual user data
+   --  space), in which case updates to the designated Content must be followed
+   --  by a call to Set_Aggregate_Element to reflect the update to the original
+   --  user data.
+   --
+   --  If Mech is By_Reference upon entry, No_Content may be returned, in which
+   --  case Mech must be By_Value upon exit.
+
+   procedure Set_Aggregate_Element
+     (ACC    : in out Aggregate_Content;
+      TC     : TypeCode.Object;
+      Index  : Types.Unsigned_Long;
+      From_C : in out Any_Container'Class);
+   --  Update contents wrapper for one stored element using value provided by
+   --  From_C. This may be called only in the case of an aggregate element that
+   --  is accessed by value (i.e. for which a previous Get_Aggregate_Element
+   --  returned with Mech set to By_Value upon exit).
+   --  A derived type of Aggregate_Content that may return elements by value
+   --  this primitive.
+   --
+   --  This operation may leave From_C unchanged (in which case the caller is
+   --  still responsible for deallocation of its contents) or make it empty
+   --  (in which case this responsibility is transferred to the owner of the
+   --  ACC aggregate). The latter case may only occur when From_C is not
+   --  foreign.
+
+   procedure Add_Aggregate_Element
+     (ACC : in out Aggregate_Content;
+      El : Any_Container_Ptr);
+   --  Add an element to ACC. This is not supported by default but may be
+   --  overridden by derived types.
+
+   -------------------
+   -- Set_Any_Value --
+   -------------------
+
+   procedure Set_Any_Value (X : Types.Short;
+                            C : in out Any_Container'Class);
+   procedure Set_Any_Value (X : Types.Long;
+                            C : in out Any_Container'Class);
+   procedure Set_Any_Value (X : Types.Long_Long;
+                            C : in out Any_Container'Class);
+   procedure Set_Any_Value (X : Types.Unsigned_Short;
+                            C : in out Any_Container'Class);
+   procedure Set_Any_Value (X : Types.Unsigned_Long;
+                            C : in out Any_Container'Class);
+   procedure Set_Any_Value (X : Types.Unsigned_Long_Long;
+                            C : in out Any_Container'Class);
+   procedure Set_Any_Value (X : Types.Float;
+                            C : in out Any_Container'Class);
+   procedure Set_Any_Value (X : Types.Double;
+                            C : in out Any_Container'Class);
+   procedure Set_Any_Value (X : Types.Long_Double;
+                            C : in out Any_Container'Class);
+   procedure Set_Any_Value (X : Types.Boolean;
+                            C : in out Any_Container'Class);
+   procedure Set_Any_Value (X : Types.Char;
+                            C : in out Any_Container'Class);
+   procedure Set_Any_Value (X : Types.Wchar;
+                            C : in out Any_Container'Class);
+   procedure Set_Any_Value (X : Types.Octet;
+                            C : in out Any_Container'Class);
+   procedure Set_Any_Value (X : Any;
+                            C : in out Any_Container'Class);
+   procedure Set_Any_Value (X : TypeCode.Object;
+                            C : in out Any_Container'Class);
+   procedure Set_Any_Value (X : Standard.String;
+                            C : in out Any_Container'Class);
+   procedure Set_Any_Value (X : Types.String;
+                            C : in out Any_Container'Class);
+   procedure Set_Any_Value (X : Types.Wide_String;
+                            C : in out Any_Container'Class);
+
+   procedure Set_Any_Value (X : String; Bound : Positive;
+                            C : in out Any_Container'Class);
+   procedure Set_Any_Value (X : Wide_String; Bound : Positive;
+                            C : in out Any_Container'Class);
+   --  Special variants for bounded string types
+
+   function To_Any (X : Types.Short)              return Any;
+   function To_Any (X : Types.Long)               return Any;
+   function To_Any (X : Types.Long_Long)          return Any;
+   function To_Any (X : Types.Unsigned_Short)     return Any;
+   function To_Any (X : Types.Unsigned_Long)      return Any;
+   function To_Any (X : Types.Unsigned_Long_Long) return Any;
+   function To_Any (X : Types.Float)              return Any;
+   function To_Any (X : Types.Double)             return Any;
+   function To_Any (X : Types.Long_Double)        return Any;
+   function To_Any (X : Types.Boolean)            return Any;
+   function To_Any (X : Types.Char)               return Any;
+   function To_Any (X : Types.Wchar)              return Any;
+   function To_Any (X : Types.Octet)              return Any;
+   function To_Any (X : Any)                      return Any;
+   function To_Any (X : TypeCode.Object)          return Any;
+   function To_Any (X : Standard.String)          return Any;
+   function To_Any (X : Types.String)             return Any;
+   function To_Any (X : Types.Wide_String)        return Any;
+
+   function Wrap (X : access Types.Short)              return Content'Class;
+   function Wrap (X : access Types.Long)               return Content'Class;
+   function Wrap (X : access Types.Long_Long)          return Content'Class;
+   function Wrap (X : access Types.Unsigned_Short)     return Content'Class;
+   function Wrap (X : access Types.Unsigned_Long)      return Content'Class;
+   function Wrap (X : access Types.Unsigned_Long_Long) return Content'Class;
+   function Wrap (X : access Types.Float)              return Content'Class;
+   function Wrap (X : access Types.Double)             return Content'Class;
+   function Wrap (X : access Types.Long_Double)        return Content'Class;
+   function Wrap (X : access Types.Boolean)            return Content'Class;
+   function Wrap (X : access Types.Char)               return Content'Class;
+   function Wrap (X : access Types.Wchar)              return Content'Class;
+   function Wrap (X : access Types.Octet)              return Content'Class;
+   function Wrap (X : access Any)                      return Content'Class;
+   function Wrap (X : access TypeCode.Object)          return Content'Class;
+   function Wrap (X : access Types.String)             return Content'Class;
+   function Wrap (X : access Types.Wide_String)        return Content'Class;
+   function Wrap (X : access Ada.Strings.Superbounded.Super_String)
+                                                       return Content'Class;
+   function Wrap (X : access Ada.Strings.Wide_Superbounded.Super_String)
+                                                       return Content'Class;
+
+   function From_Any (C : Any_Container'Class) return Types.Short;
+   function From_Any (C : Any_Container'Class) return Types.Long;
+   function From_Any (C : Any_Container'Class) return Types.Long_Long;
+   function From_Any (C : Any_Container'Class) return Types.Unsigned_Short;
+   function From_Any (C : Any_Container'Class) return Types.Unsigned_Long;
+   function From_Any (C : Any_Container'Class) return Types.Unsigned_Long_Long;
+   function From_Any (C : Any_Container'Class) return Types.Float;
+   function From_Any (C : Any_Container'Class) return Types.Double;
+   function From_Any (C : Any_Container'Class) return Types.Long_Double;
+   function From_Any (C : Any_Container'Class) return Types.Boolean;
+   function From_Any (C : Any_Container'Class) return Types.Char;
+   function From_Any (C : Any_Container'Class) return Types.Wchar;
+   function From_Any (C : Any_Container'Class) return Types.Octet;
+   function From_Any (C : Any_Container'Class) return Any;
+   function From_Any (C : Any_Container'Class) return TypeCode.Object;
+   function From_Any (C : Any_Container'Class) return Types.String;
+   function From_Any (C : Any_Container'Class) return Types.Wide_String;
+
+   function From_Any (C : Any_Container'Class) return Standard.String;
+   function From_Any (C : Any_Container'Class) return Standard.Wide_String;
+   --  Special variant operating on both bounded and unbounded string anys
+
+   function From_Any (A : Any) return Types.Short;
+   function From_Any (A : Any) return Types.Long;
+   function From_Any (A : Any) return Types.Long_Long;
+   function From_Any (A : Any) return Types.Unsigned_Short;
+   function From_Any (A : Any) return Types.Unsigned_Long;
+   function From_Any (A : Any) return Types.Unsigned_Long_Long;
+   function From_Any (A : Any) return Types.Float;
+   function From_Any (A : Any) return Types.Double;
+   function From_Any (A : Any) return Types.Long_Double;
+   function From_Any (A : Any) return Types.Boolean;
+   function From_Any (A : Any) return Types.Char;
+   function From_Any (A : Any) return Types.Wchar;
+   function From_Any (A : Any) return Types.Octet;
+   function From_Any (A : Any) return Any;
+   function From_Any (A : Any) return TypeCode.Object;
+   function From_Any (A : Any) return Types.String;
+   function From_Any (A : Any) return Types.Wide_String;
+
+   function From_Any (A : Any) return String;
+   function From_Any (A : Any) return Wide_String;
+
+   function Get_Type (A : Any) return TypeCode.Object;
+   function Get_Type (C : Any_Container'Class) return TypeCode.Object;
+   --  Accessors for the typecode of an Any
+
+   function Unwind_Typedefs (TC : TypeCode.Object) return TypeCode.Object;
+   --  Unwind any typedef (alias) from TC
+
+   function Get_Unwound_Type (The_Any : Any) return TypeCode.Object;
+   --  Return the actual type of The_Any, after resolution of all alias levels
+
+   procedure Set_Type (A : in out Any; TC : TypeCode.Object);
    --  Not in spec : change the type of an any without changing its
    --  value : to be used carefully
-
-   generic
-      with procedure Process
-        (The_Any  : in  Any;
-         Continue : out Boolean);
-   procedure Iterate_Over_Any_Elements (In_Any : in Any);
-   --  XXX Not implemented.
 
    function Get_Empty_Any
      (Tc : TypeCode.Object)
      return Any;
    --  Return an empty Any (with no value but a type).
 
-   function Get_Empty_Any_Aggregate
-     (Tc : TypeCode.Object)
-     return Any;
+   function Get_Empty_Any_Aggregate (TC : TypeCode.Object) return Any;
    --  Return an empty any aggregate
    --  puts its type to Tc
    --  If the underlying type for TC (with typedefs unwound)
    --  does not have an aggregate TCKind, this is equivalent
    --  to Get_Empty_Any.
 
-   function Is_Empty
-     (Any_Value : in Any)
-     return Boolean;
-   --  Not in spec : return true if the Any is empty, false
-   --  if it has a value.
+   function Is_Empty (A : Any) return Boolean;
+   function Is_Empty (C : Any_Container'Class) return Boolean;
+   --  True when A/C has null contents
 
-   --  These functions allows the user to set the value of an any
-   --  directly if he knows its kind. If a function is called on a bad
-   --  kind of any, a BAD_TYPECODE exception will be raised Note that
-   --  the Any can be empty. In this case, the value will be
-   --  created.
-
-   --  These functions should never be called outside a package
-   --  achieving the PolyORB's 'Representation' service.
-
-   procedure Set_Any_Value
-     (Any_Value : in out Any;
-      Value     : in     Types.Octet);
-
-   procedure Set_Any_Value
-     (Any_Value : in out Any;
-      Value     : in     Types.Short);
-
-   procedure Set_Any_Value
-     (Any_Value : in out Any;
-      Value     : in    Types.Long);
-
-   procedure Set_Any_Value
-     (Any_Value : in out Any;
-      Value     : in     Types.Long_Long);
-
-   procedure Set_Any_Value
-     (Any_Value : in out Any;
-      Value     : in     Types.Unsigned_Short);
-
-   procedure Set_Any_Value
-     (Any_Value : in out Any;
-      Value     : in     Types.Unsigned_Long);
-
-   procedure Set_Any_Value
-     (Any_Value : in out Any;
-      Value     : in     Types.Unsigned_Long_Long);
-
-   procedure Set_Any_Value
-     (Any_Value : in out Any;
-      Value     : in     Types.Boolean);
-
-   procedure Set_Any_Value
-     (Any_Value : in out Any;
-      Value     : in     Types.Char);
-
-   procedure Set_Any_Value
-     (Any_Value : in out Any;
-      Value     : in     Types.Wchar);
-
-   procedure Set_Any_Value
-     (Any_Value : in out Any;
-      Value     : in     Types.String);
-
-   procedure Set_Any_Value
-     (Any_Value : in out Any;
-      Value     : in     Types.Wide_String);
-
-   procedure Set_Any_Value
-     (Any_Value : in out Any;
-      Value     : in     Types.Float);
-
-   procedure Set_Any_Value
-     (Any_Value : in out Any;
-      Value     : in     Types.Double);
-
-   procedure Set_Any_Value
-     (Any_Value : in out Any;
-      Value     : in     Types.Long_Double);
-
-   procedure Set_Any_Value
-     (Any_Value : in out Any;
-      Value     : in     TypeCode.Object);
-
-   procedure Set_Any_Value
-     (Any_Value : in out Any;
-      Value     : in     Any);
-
-   procedure Set_Any_Aggregate_Value
-     (Any_Value : in out Any);
+   procedure Set_Any_Aggregate_Value (Agg_C : in out Any_Container'Class);
    --  This one is a bit special : it doesn't put any value but
    --  create the aggregate value if it does not exist.
 
@@ -786,14 +896,12 @@ package PolyORB.Any is
    --  of values, instead of one unique. It is used for structs,
    --  unions, enums, arrays, sequences, objref, values...
 
-   function Get_Aggregate_Count
-     (Value : Any)
-     return Types.Unsigned_Long;
+   function Get_Aggregate_Count (Value : Any) return Types.Unsigned_Long;
    --  Return the number of elements in an any aggregate
 
    procedure Add_Aggregate_Element
      (Value   : in out Any;
-      Element : in     Any);
+      Element : Any);
    --  Adds an element to an any aggregate
    --  This element is given as a typecode but only its value is
    --  added to the aggregate
@@ -801,22 +909,27 @@ package PolyORB.Any is
    function Get_Aggregate_Element
      (Value : Any;
       Tc    : TypeCode.Object;
-      Index : Types.Unsigned_Long)
-     return Any;
+      Index : Types.Unsigned_Long) return Any;
    --  Gets an element in an any agregate
    --  Return an any made of the typecode Tc and the value read in
    --  the aggregate. The first element has index 0.
 
-   procedure Copy_Any_Value
-     (Dest : Any;
-      Src  : Any);
-   --  Set the value of Dest from the value of Src (as
-   --  Set_Any_Value would do, but without the need to
-   --  know the precise type of Src). Dest and Src must be Any's
-   --  with identical typecodes. Dest may be empty.
-   --  This is not the same as Set_Any_Value (Dest, Src), which
-   --  sets the value of Dest (an Any which a Tk_Any type code)
-   --  to be Src (not the /value/ of Src).
+   procedure Copy_Any_Value (Dst : Any; Src : Any);
+   --  Set the value of Dest from a copy of the value of Src (as Set_Any_Value
+   --  would do, but without the need to know the precise type of Src). Dest
+   --  and Src must be Any's with identical typecodes.
+   --  If Dest is empty, new storage is allocated for it.
+   --  Note: This is not the same as Set_Any_Value (Dest, Src), which sets the
+   --  value of Dest (an Any which a TC_Any type code) to be Src (not just the
+   --  /value/ of Src).
+
+   procedure Move_Any_Value (Dst : Any; Src : Any);
+   --  Set the value of Dest to the value of Src, and make Src empty.
+   --  Dest and Src must be Any's with identical typecodes. Dst may be empty.
+
+   function Copy_Any (Src : Any) return Any;
+   --  Create a new Any with the same typecode as Src, and set its value to
+   --  a copy of Src's.
 
    ----------------
    -- NamedValue --
@@ -858,47 +971,29 @@ private
    -- Any --
    ---------
 
-   --  Any is implemented this way :
+   --  An Any is a smart reference-counted pointer to a container that holds:
    --   - one field for the typecode (TypeCode.Object)
    --   - one field for the value
    --
-   --  To be able to carry values of different types, the second
-   --  field is an Any_Content_Ptr which is  an access to any
-   --  type deriving from Content. Every basic types Foo that can be carried
-   --  into an Any should be associated to a child of Content (Content_Foo)
-   --  which contains a field of the Foo type.
+   --  To be able to carry values of different types, the second field is a
+   --  pointer to an Content wrapper, which encapsulates a pointer to the
+   --  actual stored data. For every elementary type that can be stored in an
+   --  Any, there exsists derived type of Any_Container with appropriate
+   --  accessors.
+   --
    --  For complex types (with several values, like structures, arrays...),
-   --  we use a special child of Content, Content_Aggregate, which has a field
-   --  pointing on a list of childs of Content; various methods are provided
+   --  we use a special wrapper, Content_Aggregate, which has a field
+   --  pointing on a list of stored objects; various methods are provided
    --  to manipulate this list.
 
    type Content is abstract tagged null record;
+   type No_Content is new Content with null record;
 
-   type Any_Content_Ptr is access all Content'Class;
-
-   procedure Deallocate
-     (Object : access Content);
-   --  Deallocate an Any_Content_Ptr.
-   --  Overridden for aggregates, since those have to
-   --  deallocate all the list of their elements.
-
-   function Duplicate
-     (Object : access Content)
-     return Any_Content_Ptr
-      is abstract;
-   --  Duplicate the data pointed by Object, making a deep copy
-
-   --  Frees an Any_Content_Ptr
-   procedure Deallocate_Any_Content is new Ada.Unchecked_Deallocation
-     (Content'Class, Any_Content_Ptr);
-
-   --  The content_TypeCode type is defined inside the TypeCode package
-   --  However, the corresponding deallocate function is here
-   --  This is due to the fact that the TypeCode.Object type is private
-   --  in package TypeCode which implies that Deallocate sould be private
-   --  too if it were declared there.
-   procedure Deallocate is new Ada.Unchecked_Deallocation
-     (TypeCode.Object, TypeCode.Object_Ptr);
+   function Clone
+     (CC   : No_Content;
+      Into : Content_Ptr := null) return Content_Ptr;
+   procedure Finalize_Value (CC : in out No_Content);
+   --  These operations should never be called on a No_Content value
 
    ------------------
    -- The Any type --
@@ -911,33 +1006,37 @@ private
          The_Type     : TypeCode.Object;
          --  TypeCode describing the data
 
-         The_Value    : Any_Content_Ptr;
-         --  Pointer to the actual value contained
+         The_Value    : Content_Ptr;
+         --  Pointer to the stored value, wrapper in a Content.
+         --  Null for an empty Any.
 
          Is_Finalized : Boolean := False;
-         --  Set to True in Finalize, used to detect double
-         --  finalization.
+         --  Set to True in Finalize, used to detect double finalization
+
+         Foreign      : Boolean := True;
+         --  If True, storage for The_Value and for the designated actual
+         --  stored value was provided by the client of PolyORB.Any, and must
+         --  not be deallocated upon finalization of the container. If False,
+         --  the storage was provided by the Any management routines, and is
+         --  deallocated when the container is destroyed.
 
       end record;
 
-   type Any_Container_Ptr is access all Any_Container;
-
-   procedure Finalize   (Self : in out Any_Container);
+   procedure Finalize (Self : in out Any_Container);
+   --  Finalize Container, deallocating associated resources if necessary
+   --  (this is not Ada finalization, but the Finalize primitive of the
+   --  Non_Controlled_Entity type).
 
    --  Some methods to deal with the Any fields.
 
-   procedure Set_Value
-     (Obj       : in Any;
-      The_Value : in Any_Content_Ptr);
-   pragma Inline (Set_Value);
-
-   function Get_Value
-     (Obj : Any)
-     return Any_Content_Ptr;
-   pragma Inline (Get_Value);
-
    --  Deallocation of Any pointers.
    procedure Deallocate is new Ada.Unchecked_Deallocation (Any, Any_Ptr);
+
+   -----------------------
+   -- Aggregate_Content --
+   -----------------------
+
+   type Aggregate_Content is abstract new Content with null record;
 
    ------------------
    -- Named_Value --
@@ -948,22 +1047,50 @@ private
    ARG_INOUT     : constant Flags := 2;
    IN_COPY_VALUE : constant Flags := 3;
 
-   ---------------------
-   -- Debugging hooks --
-   ---------------------
+   --------------------------------------------------------------------
+   -- Facilities for construction of generic elementary Any handlers --
+   --------------------------------------------------------------------
 
-   --  For debugging purposes, the body of this unit needs to call
-   --  Ada.Tags.External_Tag for any contents. However,
-   --  we do not want any dependence on Ada.Tags, because that would
-   --  prevent this unit from being preelaborate. Consequently, we
-   --  declare hooks to be initialized during elaboration.
+   generic
+      type T (<>) is private;
+      with function From_Any (C : Any_Container'Class) return T;
+   function From_Any_G (A : Any) return T;
+   --  Default From_Any
 
-   type Content_External_Tag_Hook is access
-     function (X : Content'Class)
-     return String;
+   generic
+      type T (<>) is private;
+      with function TC return TypeCode.Object;
+      with procedure Set_Any_Value (X : T; C : in out Any_Container'Class);
+   function To_Any_G (X : T) return Any;
+   --  Default To_Any
 
-   Content_External_Tag : Content_External_Tag_Hook := null;
-   --  Hooks to be set up by a child unit during PolyORB
-   --  initialization.
+   --  Generic Any container for elementary types
+
+   generic
+      type T (<>) is private;
+      Kind : TCKind;
+   package Elementary_Any is
+
+      type T_Content is new Content with private;
+      function Clone
+        (CC   : T_Content;
+         Into : Content_Ptr := null) return Content_Ptr;
+      procedure Finalize_Value (CC : in out T_Content);
+
+      function From_Any (C : Any_Container'Class) return T;
+      function From_Any is new From_Any_G (T, From_Any);
+      pragma Inline (From_Any);
+
+      procedure Set_Any_Value (X : T; C : in out Any_Container'Class);
+      --  Note: this assumes that C has the proper typecode
+
+      function Wrap (X : access T) return Content'Class;
+
+   private
+      type T_Ptr is access all T;
+      type T_Content is new Content with record
+         V : T_Ptr;
+      end record;
+   end Elementary_Any;
 
 end PolyORB.Any;

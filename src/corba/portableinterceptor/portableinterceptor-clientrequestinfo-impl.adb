@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2004-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -33,20 +33,26 @@
 
 with Ada.Unchecked_Deallocation;
 
-with CORBA;
 with PolyORB.Any;
+with PolyORB.Binding_Data;
+with PolyORB.Binding_Data_QoS;
+with PolyORB.Buffers;
 with PolyORB.CORBA_P.Codec_Utils;
-with PolyORB.CORBA_P.Interceptors;
+with PolyORB.QoS.Service_Contexts;
+with PolyORB.QoS.Tagged_Components;
+with PolyORB.References.Binding;
+with PolyORB.References.IOR;
 with PolyORB.Representations.CDR.Common;
-with PolyORB.Request_QoS.Service_Contexts;
+with PolyORB.Request_QoS;
+with PolyORB.Types;
 
 package body PortableInterceptor.ClientRequestInfo.Impl is
 
    use PolyORB.CORBA_P.Codec_Utils;
    use PolyORB.CORBA_P.Interceptors;
+   use PolyORB.QoS;
    use PolyORB.Representations.CDR.Common;
    use PolyORB.Request_QoS;
-   use PolyORB.Request_QoS.Service_Contexts;
 
    ---------------------------------
    -- Add_Request_Service_Context --
@@ -54,10 +60,11 @@ package body PortableInterceptor.ClientRequestInfo.Impl is
 
    procedure Add_Request_Service_Context
      (Self            : access Object;
-      Service_Context : in     IOP.ServiceContext;
-      Replace         : in     CORBA.Boolean)
+      Service_Context : IOP.ServiceContext;
+      Replace         : CORBA.Boolean)
    is
-      use Service_Context_Lists;
+      use PolyORB.QoS.Service_Contexts;
+      use PolyORB.QoS.Service_Contexts.Service_Context_Lists;
       use type Service_Id;
 
       procedure Free is
@@ -99,7 +106,9 @@ package body PortableInterceptor.ClientRequestInfo.Impl is
             Free (Value (Iter).Context_Data);
             Value (Iter).Context_Data :=
               new Encapsulation'
-              (To_Encapsulation (Service_Context.Context_Data));
+              (To_Encapsulation
+               (CORBA.IDL_SEQUENCES.IDL_SEQUENCE_Octet.Sequence
+                (Service_Context.Context_Data)));
 
             return;
          end if;
@@ -110,7 +119,9 @@ package body PortableInterceptor.ClientRequestInfo.Impl is
         (SCP.Service_Contexts,
          (Service_Id (Service_Context.Context_Id),
           new Encapsulation'
-          (To_Encapsulation (Service_Context.Context_Data))));
+          (To_Encapsulation
+           (CORBA.IDL_SEQUENCES.IDL_SEQUENCE_Octet.Sequence
+            (Service_Context.Context_Data)))));
    end Add_Request_Service_Context;
 
    -------------------
@@ -159,19 +170,122 @@ package body PortableInterceptor.ClientRequestInfo.Impl is
 
    function Get_Effective_Component
      (Self : access Object;
-      Id   : in     IOP.ComponentId)
+      Id   : IOP.ComponentId)
       return IOP.TaggedComponent
    is
-      pragma Unreferenced (Self);
-      pragma Unreferenced (Id);
+      use PolyORB.QoS.Tagged_Components;
+      use PolyORB.QoS.Tagged_Components.GIOP_Tagged_Component_Lists;
+      use type PolyORB.Types.Unsigned_Long;
 
-      Result : IOP.TaggedComponent;
-      pragma Warnings (Off, Result);
+      Profile : PolyORB.Binding_Data.Profile_Access;
+      QoS     : QoS_GIOP_Tagged_Components_Parameter_Access;
 
    begin
-      raise Program_Error;
-      return Result;
+      if Self.Point = Send_Poll then
+         CORBA.Raise_Bad_Inv_Order
+          (CORBA.Bad_Inv_Order_Members'(Minor     => 14,
+                                        Completed => CORBA.Completed_No));
+      end if;
+
+      Profile :=
+        PolyORB.References.Binding.Get_Preferred_Profile
+        (Self.Request.Target, True);
+
+      QoS :=
+        QoS_GIOP_Tagged_Components_Parameter_Access
+        (PolyORB.Binding_Data_QoS.Get_Profile_QoS
+         (Profile, GIOP_Tagged_Components));
+
+      if QoS /= null then
+         declare
+            Iter : Iterator := First (QoS.Components);
+
+         begin
+            while not Last (Iter) loop
+               if Value (Iter).Tag = Component_Id (Id) then
+                  return
+                    (Id,
+                     IOP.ComponentData
+                     (CORBA.IDL_SEQUENCES.IDL_SEQUENCE_Octet.To_Sequence
+                      (CORBA.IDL_SEQUENCES.IDL_SEQUENCE_Octet.To_Element_Array
+                       (To_Sequence (Value (Iter).Data.all)))));
+               end if;
+
+               Next (Iter);
+            end loop;
+         end;
+      end if;
+
+      CORBA.Raise_Bad_Param
+        (CORBA.Bad_Param_Members'(Minor     => 28,
+                                  Completed => CORBA.Completed_No));
    end Get_Effective_Component;
+
+   ------------------------------
+   -- Get_Effective_Components --
+   ------------------------------
+
+   function Get_Effective_Components
+     (Self : access Object;
+      Id   : IOP.ComponentId)
+      return IOP.TaggedComponentSeq
+   is
+      use IOP;
+      use PolyORB.QoS.Tagged_Components;
+      use PolyORB.QoS.Tagged_Components.GIOP_Tagged_Component_Lists;
+      use type PolyORB.Types.Unsigned_Long;
+
+      Profile : PolyORB.Binding_Data.Profile_Access;
+      QoS     : QoS_GIOP_Tagged_Components_Parameter_Access;
+      Result  : IOP.TaggedComponentSeq;
+
+   begin
+      if Self.Point = Send_Poll then
+         CORBA.Raise_Bad_Inv_Order
+          (CORBA.Bad_Inv_Order_Members'(Minor     => 14,
+                                        Completed => CORBA.Completed_No));
+      end if;
+
+      Profile :=
+        PolyORB.References.Binding.Get_Preferred_Profile
+        (Self.Request.Target, True);
+
+      QoS :=
+        QoS_GIOP_Tagged_Components_Parameter_Access
+        (PolyORB.Binding_Data_QoS.Get_Profile_QoS
+         (Profile, GIOP_Tagged_Components));
+
+      if QoS /= null then
+         declare
+            Iter : Iterator := First (QoS.Components);
+
+         begin
+            while not Last (Iter) loop
+               if Value (Iter).Tag = Component_Id (Id) then
+                  Append
+                    (Result,
+                     IOP.TaggedComponent'
+                     (Id,
+                      IOP.ComponentData
+                      (CORBA.IDL_SEQUENCES.IDL_SEQUENCE_Octet.To_Sequence
+                       (CORBA.IDL_SEQUENCES.IDL_SEQUENCE_Octet.To_Element_Array
+                        (To_Sequence (Value (Iter).Data.all))))));
+               end if;
+
+               Next (Iter);
+            end loop;
+         end;
+      end if;
+
+      if Length (Result) = 0 then
+         CORBA.Raise_Bad_Param
+           (CORBA.Bad_Param_Members'(Minor     => 28,
+                                     Completed => CORBA.Completed_No));
+
+      else
+         return Result;
+      end if;
+   end Get_Effective_Components;
 
    ---------------------------
    -- Get_Effective_Profile --
@@ -181,13 +295,48 @@ package body PortableInterceptor.ClientRequestInfo.Impl is
      (Self : access Object)
       return IOP.TaggedProfile
    is
-      pragma Unreferenced (Self);
-
-      Result : IOP.TaggedProfile;
-      pragma Warnings (Off, Result);
+      Profile : PolyORB.Binding_Data.Profile_Access;
+      Result  : IOP.TaggedProfile;
 
    begin
-      raise Program_Error;
+      Profile :=
+        PolyORB.References.Binding.Get_Preferred_Profile
+        (Self.Request.Target, True);
+
+      declare
+         Buffer  : PolyORB.Buffers.Buffer_Access
+           := new PolyORB.Buffers.Buffer_Type;
+         Success : Boolean;
+
+      begin
+         --  Marshall profile with IOR rules
+
+         PolyORB.References.IOR.Marshall_Profile (Buffer, Profile, Success);
+
+         if not Success then
+            raise Program_Error;
+         end if;
+
+         PolyORB.Buffers.Show (Buffer);
+         PolyORB.Buffers.Rewind (Buffer);
+
+         --  Unmarshall profile tag and profile data
+
+         Result.Tag :=
+           IOP.ProfileId
+           (PolyORB.Types.Unsigned_Long'
+            (PolyORB.Representations.CDR.Common.Unmarshall (Buffer)));
+
+         Result.Profile_Data :=
+           IOP.ProfileData
+           (CORBA.IDL_SEQUENCES.IDL_SEQUENCE_Octet.To_Sequence
+            (CORBA.IDL_SEQUENCES.IDL_SEQUENCE_Octet.To_Element_Array
+             (PolyORB.CORBA_P.Codec_Utils.To_Sequence
+              (PolyORB.Representations.CDR.Common.Unmarshall (Buffer)))));
+
+         PolyORB.Buffers.Release (Buffer);
+      end;
+
       return Result;
    end Get_Effective_Profile;
 
@@ -202,7 +351,8 @@ package body PortableInterceptor.ClientRequestInfo.Impl is
       Result : CORBA.Object.Ref;
 
    begin
-      CORBA.Object.Convert_To_CORBA_Ref (Self.Request.Target, Result);
+      CORBA.Object.Internals.Convert_To_CORBA_Ref
+        (Self.Request.Target, Result);
 
       return Result;
    end Get_Effective_Target;
@@ -312,7 +462,7 @@ package body PortableInterceptor.ClientRequestInfo.Impl is
 
    function Get_Reply_Service_Context
      (Self : access Object;
-      Id   : in     IOP.ServiceId)
+      Id   : IOP.ServiceId)
       return IOP.ServiceContext
    is
    begin
@@ -356,7 +506,7 @@ package body PortableInterceptor.ClientRequestInfo.Impl is
 
    function Get_Request_Policy
      (Self     : access Object;
-      IDL_Type : in     CORBA.PolicyType)
+      IDL_Type : CORBA.PolicyType)
       return CORBA.Policy.Ref
    is
       pragma Unreferenced (IDL_Type);
@@ -379,7 +529,7 @@ package body PortableInterceptor.ClientRequestInfo.Impl is
 
    function Get_Request_Service_Context
      (Self : access Object;
-      Id   : in     IOP.ServiceId)
+      Id   : IOP.ServiceId)
       return IOP.ServiceContext
    is
    begin
@@ -449,10 +599,10 @@ package body PortableInterceptor.ClientRequestInfo.Impl is
 
    procedure Init
      (Self       : access Object;
-      Point      : in     Client_Interception_Point;
-      Request    : in     PolyORB.Requests.Request_Access;
-      Request_Id : in     CORBA.Unsigned_Long;
-      Target     : in     CORBA.Object.Ref)
+      Point      : Client_Interception_Point;
+      Request    : PolyORB.Requests.Request_Access;
+      Request_Id : CORBA.Unsigned_Long;
+      Target     : CORBA.Object.Ref)
    is
    begin
       RequestInfo.Impl.Init
@@ -468,7 +618,7 @@ package body PortableInterceptor.ClientRequestInfo.Impl is
 
    function Is_A
      (Self            : access Object;
-      Logical_Type_Id : in     String)
+      Logical_Type_Id : String)
       return Boolean
    is
       pragma Unreferenced (Self);
@@ -484,10 +634,5 @@ package body PortableInterceptor.ClientRequestInfo.Impl is
           (Logical_Type_Id,
            PortableInterceptor.RequestInfo.Repository_Id);
    end Is_A;
-
---   function Get_Effective_Components
---     (Self : access Object;
---      Id   : in     IOP.ComponentId)
---      return IOP.TaggedComponentSeq;
 
 end PortableInterceptor.ClientRequestInfo.Impl;

@@ -31,9 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Idl_Fe.Types;          use Idl_Fe.Types;
-with Ada_Be.Source_Streams; use Ada_Be.Source_Streams;
-
 private package Ada_Be.Idl2Ada.Impl is
 
    Suffix : constant String := ".Impl";

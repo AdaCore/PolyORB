@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -36,7 +36,6 @@
 with Ada.Unchecked_Deallocation;
 
 with PolyORB.Initialization;
-pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
 with PolyORB.Log;
 with PolyORB.Utils.Strings;
@@ -48,8 +47,11 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Condition_Variables is
    package L is new PolyORB.Log.Facility_Log
      ("polyorb.tasking.profiles.full_tasking.condition_variables");
 
-   procedure O (Message : in String; Level : Log_Level := Debug)
+   procedure O (Message : String; Level : Log_Level := Debug)
      renames L.Output;
+   function C (Level : Log_Level := Debug) return Boolean
+     renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    -----------------------------------------------------------------
    -- Underlying protected object for Full_Tasking_Condition_Type --
@@ -132,9 +134,9 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Condition_Variables is
    ---------------
 
    procedure Broadcast
-     (C : access Full_Tasking_Condition_Type) is
+     (Cond : access Full_Tasking_Condition_Type) is
    begin
-      C.The_PO.Broadcast;
+      Cond.The_PO.Broadcast;
    end Broadcast;
 
    ------------
@@ -143,8 +145,7 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Condition_Variables is
 
    function Create
      (MF   : access Full_Tasking_Condition_Factory_Type;
-      Name : String := "")
-      return PTCV.Condition_Access
+      Name : String := "") return PTCV.Condition_Access
    is
       pragma Warnings (Off);
       pragma Unreferenced (MF);
@@ -152,48 +153,46 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Condition_Variables is
       --  XXX The use of Name is not yet implemented
       pragma Warnings (On);
 
-      C : constant Full_Tasking_Condition_Access
+      Cond : constant Full_Tasking_Condition_Access
         := new Full_Tasking_Condition_Type;
 
    begin
       pragma Debug (O ("Create"));
-      C.The_PO := new Condition_PO;
-      return PTCV.Condition_Access (C);
+      Cond.The_PO := new Condition_PO;
+      return PTCV.Condition_Access (Cond);
    end Create;
 
    -------------
    -- Destroy --
    -------------
 
+   procedure Free is new Ada.Unchecked_Deallocation
+     (PTCV.Condition_Type'Class, PTCV.Condition_Access);
+
+   procedure Free is new Ada.Unchecked_Deallocation
+     (Condition_PO, Condition_PO_Access);
+
    procedure Destroy
-     (MF : access Full_Tasking_Condition_Factory_Type;
-      C  : in out PTCV.Condition_Access)
+     (MF   : access Full_Tasking_Condition_Factory_Type;
+      Cond : in out PTCV.Condition_Access)
    is
       pragma Warnings (Off);
       pragma Unreferenced (MF);
       pragma Warnings (On);
 
-      procedure Free is new Ada.Unchecked_Deallocation
-        (PTCV.Condition_Type'Class, PTCV.Condition_Access);
-
-      procedure Free is new Ada.Unchecked_Deallocation
-        (Condition_PO, Condition_PO_Access);
-
    begin
       pragma Debug (O ("Destroy"));
-      Free (Full_Tasking_Condition_Access (C).The_PO);
-      Free (C);
+      Free (Full_Tasking_Condition_Access (Cond).The_PO);
+      Free (Cond);
    end Destroy;
 
    ------------
    -- Signal --
    ------------
 
-   procedure Signal
-     (C : access Full_Tasking_Condition_Type)
-   is
+   procedure Signal (Cond : access Full_Tasking_Condition_Type) is
    begin
-      C.The_PO.Signal;
+      Cond.The_PO.Signal;
    end Signal;
 
    ----------
@@ -201,12 +200,12 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Condition_Variables is
    ----------
 
    procedure Wait
-     (C : access Full_Tasking_Condition_Type;
-      M : access PTM.Mutex_Type'Class)
+     (Cond : access Full_Tasking_Condition_Type;
+      M    : access PTM.Mutex_Type'Class)
    is
    begin
       pragma Debug (O ("Wait: enter"));
-      C.The_PO.Release_Then_Wait (PTM.Mutex_Access (M));
+      Cond.The_PO.Release_Then_Wait (PTM.Mutex_Access (M));
       pragma Debug (O ("Wait: Leave"));
       PTM.Enter (M);
    end Wait;
@@ -235,5 +234,6 @@ begin
        Depends   => Empty,
        Provides  => +"tasking.condition_variables",
        Implicit  => False,
-       Init      => Initialize'Access));
+       Init      => Initialize'Access,
+       Shutdown  => null));
 end PolyORB.Tasking.Profiles.Full_Tasking.Condition_Variables;

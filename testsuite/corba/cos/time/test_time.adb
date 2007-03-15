@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -35,28 +35,16 @@ with Ada.Text_IO;
 
 with CORBA.Impl;
 with CORBA.ORB;
-pragma Elaborate_All (CORBA.ORB);  -- WAG:3.15
 
 with PortableServer;
 
-with CosTime.TimeService;
-pragma Elaborate_All (CosTime.TimeService);  -- WAG:3.15
-
 with CosTime.TimeService.Impl;
-
 with CosTime.TIO;
-pragma Elaborate_All (CosTime.TIO);  -- WAG:3.15
-
 with CosTime.UTO;
-pragma Elaborate_All (CosTime.UTO);  -- WAG:3.15
-
 with TimeBase;
 
 with PolyORB.CORBA_P.Server_Tools;
-pragma Elaborate_All (PolyORB.CORBA_P.Server_Tools);  -- WAG:3.15
-
 with PolyORB.Setup.Thread_Pool_Server;
-pragma Elaborate_All (PolyORB.Setup.Thread_Pool_Server);
 pragma Warnings (Off, PolyORB.Setup.Thread_Pool_Server);
 
 with PolyORB.Utils.Report;
@@ -85,7 +73,7 @@ procedure Test_Time is
    procedure Display (Time : in TIO.Ref);
 
    procedure Display (Time : in TIO.Ref) is
-      IT : constant IntervalT := get_time_interval (Time);
+      IT : constant IntervalT := Get_time_interval (Time);
    begin
       Put_Line ("Lower bound:" & TimeT'Image (IT.lower_bound));
       Put_Line ("Upper bound:" & TimeT'Image (IT.upper_bound));
@@ -99,9 +87,9 @@ procedure Test_Time is
 
    procedure Display (Time : in UTO.Ref) is
    begin
-      Put_Line ("Time:      " & TimeT'Image (get_time (Time)));
-      Put_Line ("Inaccuracy:" & InaccuracyT'Image (get_inaccuracy (Time)));
-      Put_Line ("Tdf:       " & TdfT'Image (get_tdf (Time)));
+      Put_Line ("Time:      " & TimeT'Image (Get_time (Time)));
+      Put_Line ("Inaccuracy:" & InaccuracyT'Image (Get_inaccuracy (Time)));
+      Put_Line ("Tdf:       " & TdfT'Image (Get_tdf (Time)));
    end Display;
 
 begin

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2004 Free Software Foundation, Inc.             --
+--         Copyright (C) 2004-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -35,29 +35,27 @@ with PolyORB.POA;
 
 package body PortableServer.POA.Helper is
 
-   ----------------------
-   -- Unchecked_To_Ref --
-   ----------------------
+   ----------------------------
+   -- Unchecked_To_Local_Ref --
+   ----------------------------
 
-   function Unchecked_To_Ref
-     (The_Ref : in CORBA.Object.Ref'Class)
-     return PortableServer.POA.Ref
+   function Unchecked_To_Local_Ref
+     (The_Ref : CORBA.Object.Ref'Class) return PortableServer.POA.Local_Ref
    is
-      Result : PortableServer.POA.Ref;
+      Result : PortableServer.POA.Local_Ref;
 
    begin
       Set (Result, CORBA.Object.Object_Of (The_Ref));
 
       return Result;
-   end Unchecked_To_Ref;
+   end Unchecked_To_Local_Ref;
 
-   ------------
-   -- To_Ref --
-   ------------
+   ------------------
+   -- To_Local_Ref --
+   ------------------
 
-   function To_Ref
-     (The_Ref : in CORBA.Object.Ref'Class)
-     return PortableServer.POA.Ref
+   function To_Local_Ref
+     (The_Ref : CORBA.Object.Ref'Class) return PortableServer.POA.Local_Ref
    is
    begin
       --  XXX This implementation should use the canonical code, as
@@ -75,7 +73,7 @@ package body PortableServer.POA.Helper is
          CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
       end if;
 
-      return Unchecked_To_Ref (The_Ref);
-   end To_Ref;
+      return Unchecked_To_Local_Ref (The_Ref);
+   end To_Local_Ref;
 
 end PortableServer.POA.Helper;

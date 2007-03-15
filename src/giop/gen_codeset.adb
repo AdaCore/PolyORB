@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2004 Free Software Foundation, Inc.             --
+--         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -38,11 +38,26 @@
 --  FTP server at ftp://ftp.opengroup.org/pub/code_set_registry/
 
 with Ada.Command_Line;
-with Ada.Integer_Text_IO; use Ada.Integer_Text_IO;
-with Ada.Text_IO;         use Ada.Text_IO;
+with Ada.Text_IO;
+with Ada.Streams;
+with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;
 with GNAT.Table;
 
 procedure Gen_Codeset is
+
+   package ATIO renames Ada.Text_IO;
+
+   Output : Ada.Streams.Stream_IO.File_Type;
+
+   procedure Put (S : String;  Width : Integer := 0);
+   generic
+      type T is range <>;
+   procedure Integer_Put (I : T; Width : Integer := 0);
+   procedure Put (C : Character);
+   procedure Put_Line (S : String);
+   procedure New_Line;
+   --  Same as ATIO.*, but reimplemented on top of Stream_IO and
+   --  always using UNIX-style line terminators.
 
    type Mode_Type is (Description, Compatibility);
 
@@ -84,11 +99,8 @@ procedure Gen_Codeset is
 
    procedure Generate_Compatibility_Data_Module;
 
-   procedure Put (Buffer :    out String;
-                  Value  : in     Code_Set_Id);
-
-   procedure Put (Buffer :    out String;
-                  Value  : in     Character_Set_Id);
+   procedure Put (Buffer : out String; Value : Code_Set_Id);
+   procedure Put (Buffer : out String; Value : Character_Set_Id);
 
    Pkg_Name : String renames Ada.Command_Line.Argument (2);
 
@@ -106,7 +118,7 @@ procedure Gen_Codeset is
    -- Add_Description --
    ---------------------
 
-   procedure Add_Description (Description : in     String;
+   procedure Add_Description (Description : String;
                               First       :    out Positive;
                               Last        :    out Natural)
    is
@@ -129,7 +141,7 @@ procedure Gen_Codeset is
       package Aux_Table is
         new GNAT.Table (Character_Set_Id, Natural, 1, 1024, 1024);
 
-      function Find (First : in Positive; Last : in Natural) return Natural;
+      function Find (First : Positive; Last : Natural) return Natural;
       --  Return first index of sequence of characters sets in Aux_Table
       --  what equal of sequence Character_Sets_Talbe (First .. Last).
 
@@ -137,7 +149,7 @@ procedure Gen_Codeset is
       -- Find --
       ----------
 
-      function Find (First : in Positive; Last : in Natural) return Natural is
+      function Find (First : Positive; Last : Natural) return Natural is
          Length : constant Natural := Last - First + 1;
          Found  : Boolean          := False;
       begin
@@ -201,6 +213,7 @@ procedure Gen_Codeset is
    ----------------------------------------
 
    procedure Generate_Compatibility_Data_Module is
+      procedure Put is new Integer_Put (Integer);
    begin
       Put_Line ("--  AUTOMATICALLY GENERATED, DO NOT EDIT!");
       Put_Line ("private package " & Pkg_Name & " is");
@@ -261,7 +274,7 @@ procedure Gen_Codeset is
       Put_Line (");");
       New_Line;
 
-      Put_Line ("end " & Pkg_Name & ";");
+      Put ("end " & Pkg_Name & ";");
    end Generate_Compatibility_Data_Module;
 
    --------------------------------------
@@ -269,6 +282,7 @@ procedure Gen_Codeset is
    --------------------------------------
 
    procedure Generate_Description_Data_Module is
+      procedure Put is new Integer_Put (Integer);
    begin
       Put_Line ("--  AUTOMATICALLY GENERATED, DO NOT EDIT!");
       Put_Line ("package " & Pkg_Name & " is");
@@ -323,8 +337,31 @@ procedure Gen_Codeset is
       Put (""";");
       New_Line;
 
-      Put_Line ("end " & Pkg_Name & ";");
+      Put ("end " & Pkg_Name & ";");
    end Generate_Description_Data_Module;
+
+   -----------------
+   -- Integer_Put --
+   -----------------
+
+   procedure Integer_Put (I : T; Width : Integer := 0) is
+      Img   : constant String := T'Image (I);
+      First : Integer := Img'First;
+   begin
+      if Img (First) = ' ' then
+         First := First + 1;
+      end if;
+      Put (Img (First .. Img'Last), Width);
+   end Integer_Put;
+
+   --------------
+   -- New_Line --
+   --------------
+
+   procedure New_Line is
+   begin
+      Put (ASCII.LF);
+   end New_Line;
 
    ----------------------
    -- Process_Code_Set --
@@ -339,7 +376,7 @@ procedure Gen_Codeset is
       Length              : Natural;
    begin
       for J in 1 .. 4 loop
-         Get_Line (Line, Last);
+         ATIO.Get_Line (Line, Last);
          Length := Last - Line'First + 1;
 
          if Length - Line'First + 1 > Short_Description'Length + 2
@@ -399,14 +436,46 @@ procedure Gen_Codeset is
    -- Put --
    ---------
 
-   procedure Put (Buffer :    out String;
-                  Value  : in     Character_Set_Id)
-   is
-      package Character_Set_Id_IO is new Integer_IO (Character_Set_Id);
-      use Character_Set_Id_IO;
+   procedure Put (S : String; Width : Integer := 0) is
+      use Ada.Streams;
+      Len : Integer := Width;
+
+   begin
+      if S'Length > Len then
+         Len := S'Length;
+      end if;
+      declare
+         SS : aliased String (1 .. Len) := (others => ' ');
+         subtype SEA is Stream_Element_Array
+                          (1 .. Stream_Element_Offset (Len));
+         Bytes : SEA;
+         for Bytes'Address use SS'Address;
+         pragma Import (Ada, Bytes);
+      begin
+         SS (Len - S'Length + 1 .. Len) := S;
+         Write (Output, Bytes);
+      end;
+   end Put;
+
+   ---------
+   -- Put --
+   ---------
+
+   procedure Put (C : Character) is
+   begin
+      Write (Output,
+        Ada.Streams.Stream_Element_Array'(0 => Character'Pos (C)));
+   end Put;
+
+   ---------
+   -- Put --
+   ---------
+
+   procedure Put (Buffer : out String; Value : Character_Set_Id) is
+      package IO is new Ada.Text_IO.Integer_IO (Character_Set_Id);
       Aux : Character;
    begin
-      Put (Buffer, Value, 16);
+      IO.Put (Buffer, Value, 16);
       if Buffer (Buffer'First + 1) = ' ' then
          Buffer (Buffer'First + 1 .. Buffer'First + 3) := "16#";
          for J in Buffer'First + 4 .. Buffer'Last - 1 loop
@@ -421,14 +490,11 @@ procedure Gen_Codeset is
    -- Put --
    ---------
 
-   procedure Put (Buffer :    out String;
-                  Value  : in     Code_Set_Id)
-   is
-      package Code_Set_Id_IO is new Integer_IO (Code_Set_Id);
-      use Code_Set_Id_IO;
+   procedure Put (Buffer : out String; Value : Code_Set_Id) is
+      package IO is new Ada.Text_IO.Integer_IO (Code_Set_Id);
       Aux : Character;
    begin
-      Put (Buffer, Value, 16);
+      IO.Put (Buffer, Value, 16);
       if Buffer (Buffer'First + 1) = ' ' then
          Buffer (Buffer'First + 1 .. Buffer'First + 3) := "16#";
          for J in Buffer'First + 4 .. Buffer'Last - 1 loop
@@ -439,18 +505,29 @@ procedure Gen_Codeset is
       end if;
    end Put;
 
+   --------------
+   -- Put_Line --
+   --------------
+
+   procedure Put_Line (S : String) is
+   begin
+      Put (S);
+      New_Line;
+   end Put_Line;
+
 --  Start of processing for Gen_Codeset
 
 begin
-   if Ada.Command_Line.Argument_Count /= 2
+   if Ada.Command_Line.Argument_Count /= 3
      or else (Ada.Command_Line.Argument (1) /= "-d"
      and then Ada.Command_Line.Argument (1) /= "-c")
    then
-      Put_Line (Standard_Error, "Usage:");
-      Put_Line (Standard_Error, "gen_codesets <data_switch> <package_name>");
-      Put_Line (Standard_Error, "<data_switch>:");
-      Put_Line (Standard_Error, "   -d  Code sets description");
-      Put_Line (Standard_Error, "   -c  Code sets compatibility");
+      ATIO.Put_Line (ATIO.Standard_Error, "Usage:");
+      ATIO.Put_Line (ATIO.Standard_Error,
+        "gen_codesets <data_switch> <package_name> <output_file>");
+      ATIO.Put_Line (ATIO.Standard_Error, "<data_switch>:");
+      ATIO.Put_Line (ATIO.Standard_Error, "   -d  Code sets description");
+      ATIO.Put_Line (ATIO.Standard_Error, "   -c  Code sets compatibility");
       Ada.Command_Line.Set_Exit_Status (1);
       return;
    end if;
@@ -461,12 +538,14 @@ begin
       Mode := Compatibility;
    end if;
 
-   while not End_Of_File (Standard_Input) loop
-      Get_Line (Line, Last);
+   while not ATIO.End_Of_File (ATIO.Standard_Input) loop
+      ATIO.Get_Line (Line, Last);
       if Line (First .. Last) = "start" then
          Process_Code_Set;
       end if;
    end loop;
+
+   Create (Output, Out_File, Ada.Command_Line.Argument (3));
 
    if Mode = Compatibility then
       Compact_Character_Sets_Table;

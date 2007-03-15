@@ -1,0 +1,4 @@
+interface bar {
+  typedef boolean array[10];
+
+};

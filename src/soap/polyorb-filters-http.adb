@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -58,13 +58,17 @@ package body PolyORB.Filters.HTTP is
    use PolyORB.Filters.Iface;
    use PolyORB.Log;
    use PolyORB.ORB;
+   use PolyORB.Types;
    use PolyORB.Utils;
 
    use String_Lists;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.filters.http");
-   procedure O (Message : in String; Level : Log_Level := Debug)
+   procedure O (Message : String; Level : Log_Level := Debug)
      renames L.Output;
+   function C (Level : Log_Level := Debug) return Boolean
+     renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    HTTP_Error : exception;
 
@@ -92,8 +96,8 @@ package body PolyORB.Filters.HTTP is
    -- Preparation of outgoing messages --
    --------------------------------------
 
-   function Image (I : Integer) return String
-     renames PolyORB.Utils.Trimmed_Image;
+   function Image (I : Long_Long) return String
+     renames PolyORB.Types.Trimmed_Image;
 
    procedure Prepare_Request
      (Buf : access Buffer_Type;
@@ -131,6 +135,7 @@ package body PolyORB.Filters.HTTP is
       pragma Warnings (On);
       Res : constant Filter_Access := new HTTP_Filter;
    begin
+      Initialize (HTTP_Filter (Res.all));
       Filt := Res;
    end Create;
 
@@ -171,8 +176,6 @@ package body PolyORB.Filters.HTTP is
       S : Components.Message'Class)
      return Components.Message'Class
    is
-      use PolyORB.Buffers;
-
       Res : Components.Null_Message;
    begin
       if False
@@ -310,8 +313,6 @@ package body PolyORB.Filters.HTTP is
      (F : access HTTP_Filter;
       S : Filters.Iface.Data_Indication)
    is
-      use PolyORB.Buffers;
-
       Data_Received : Stream_Element_Count
         := Stream_Element_Count (S.Data_Amount);
 
@@ -429,8 +430,6 @@ package body PolyORB.Filters.HTTP is
          pragma Debug (O ("Transferring entity"));
 
          declare
-            use PolyORB.Types;
-
             Data : PolyORB.Opaque.Opaque_Pointer;
             Data_Processed : Stream_Element_Count := Data_Received;
          begin
@@ -676,7 +675,8 @@ package body PolyORB.Filters.HTTP is
 
    function Image (V : HTTP_Version) return String is
    begin
-      return HTTP_Slash & Image (V.Major) & "." & Image (V.Minor);
+      return HTTP_Slash & Image (Long_Long (V.Major)) & "." &
+        Image (Long_Long (V.Minor));
    end Image;
 
    function Parse_Hex (S : String) return Natural is
@@ -906,8 +906,6 @@ package body PolyORB.Filters.HTTP is
 
    procedure Message_Complete (F : access HTTP_Filter)
    is
-      use PolyORB.Buffers;
-      use PolyORB.Types;
       use type PolyORB.Utils.Strings.String_Ptr;
    begin
       pragma Debug (O ("Message_Complete: enter"));
@@ -1064,7 +1062,6 @@ package body PolyORB.Filters.HTTP is
       RO : PolyORB.Filters.AWS_Interface.AWS_Request_Out)
    is
       use PolyORB.HTTP_Methods;
-      use PolyORB.Types;
 
       SOAP_Action : constant String
         := To_Standard_String (RO.SOAP_Action);
@@ -1114,7 +1111,8 @@ package body PolyORB.Filters.HTTP is
                  (Buf, Header (H_Content_Type, AWS.MIME.Appl_Form_Data));
             end if;
             Put_Line
-              (Buf, Header (H_Content_Length, Image (Length (RO.Data))));
+              (Buf, Header (H_Content_Length,
+                            Image (Long_Long (Length (RO.Data)))));
             New_Line (Buf);
             Put (Buf, To_Standard_String (RO.Data));
             --  XXX bad bad passing complete SOAP request
@@ -1196,7 +1194,8 @@ package body PolyORB.Filters.HTTP is
 
       Put_Line (Buf, Header
                   (H_Content_Length,
-                   Image (PolyORB.SOAP_P.Response.Content_Length (RD))));
+                   Image (Long_Long
+                          (PolyORB.SOAP_P.Response.Content_Length (RD)))));
 
       Put_Line (Buf, Header
                   (H_Content_Type,

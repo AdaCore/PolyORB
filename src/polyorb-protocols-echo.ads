@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -57,26 +57,28 @@ package PolyORB.Protocols.Echo is
       P : access Binding_Data.Profile_Type'Class);
 
    procedure Abort_Request (S : access Echo_Session; R : Request_Access);
-   --  These are just for show and do nothing.
+   --  These are just for show and do nothing
 
    procedure Send_Reply (S : access Echo_Session; R : Request_Access);
-   --  Send a reply to the user.
+   --  Send a reply to the user
 
    procedure Handle_Flush (S : access Echo_Session);
+   --  ???
 
    procedure Handle_Connect_Indication (S : access Echo_Session);
-   --  Send a greeting banner to user.
+   --  Send a greeting banner to user
 
    procedure Handle_Connect_Confirmation (S : access Echo_Session);
-   --  Setup client dialog.
+   --  Setup client dialog
 
    procedure Handle_Data_Indication
      (S : access Echo_Session;
       Data_Amount : Ada.Streams.Stream_Element_Count);
-   --  Handle data received from user.
+   --  Handle data received from user
 
-   procedure Handle_Disconnect (S : access Echo_Session);
-   --  Handle disconnection from user.
+   procedure Handle_Disconnect
+     (S : access Echo_Session; Error : Errors.Error_Container);
+   --  Handle disconnection from user
 
 private
 

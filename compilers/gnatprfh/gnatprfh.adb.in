@@ -1,3 +1,42 @@
+------------------------------------------------------------------------------
+--                                                                          --
+--                           POLYORB COMPONENTS                             --
+--                                                                          --
+--                             G N A T P R F H                              --
+--                                                                          --
+--                                 B o d y                                  --
+--                                                                          --
+--           Copyright (C) 2007, Free Software Foundation, Inc.             --
+--                                                                          --
+-- PolyORB is free software; you  can  redistribute  it and/or modify it    --
+-- under terms of the  GNU General Public License as published by the  Free --
+-- Software Foundation;  either version 2,  or (at your option)  any  later --
+-- version. PolyORB is distributed  in the hope that it will be  useful,    --
+-- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
+-- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
+-- License  for more details.  You should have received  a copy of the GNU  --
+-- General Public License distributed with PolyORB; see file COPYING. If    --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
+--                                                                          --
+-- As a special exception,  if other files  instantiate  generics from this --
+-- unit, or you link  this unit with other files  to produce an executable, --
+-- this  unit  does not  by itself cause  the resulting  executable  to  be --
+-- covered  by the  GNU  General  Public  License.  This exception does not --
+-- however invalidate  any other reasons why  the executable file  might be --
+-- covered by the  GNU Public License.                                      --
+--                                                                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
+--                                                                          --
+------------------------------------------------------------------------------
+
+--  Main driver for static perfect hash table generator
+
+pragma Style_Checks ("M2048");
+--  Configure substitutions may yield long lines
+--  @configure_input@
+
 with Ada.Command_Line; use Ada.Command_Line;
 with Ada.Text_IO;      use Ada.Text_IO;
 
@@ -13,9 +52,11 @@ procedure GNATPrfh is
 
    Filename : String_Access;
    K_To_V   : Float;
+   K, V     : Natural := 0;
    Pkg_Name : String_Access;
    Position : String_Access;
    Optim    : Optimization := Memory_Space;
+   Seed     : constant Natural := 4321;
 
    procedure Parse_Command_Line;
 
@@ -97,8 +138,6 @@ procedure GNATPrfh is
       if Position = null then
          Position := new String'(Default_Position);
       end if;
-
-      K_To_V := Default_K_To_V;
    end Parse_Command_Line;
 
 begin
@@ -119,19 +158,34 @@ begin
       return;
    end if;
 
-   Initialize (4321, K_To_V, Optim);
-
    if Filename'Length /= 0 then
       Open (File, In_File, Filename.all);
       Set_Input (File);
    end if;
 
+   Initialize (Seed, Default_K_To_V, Optim);
+
    while not End_Of_File (Current_Input) loop
       Get_Line (Buffer, Last);
       Insert (Buffer (1 .. Last));
+      K := K + 1;
    end loop;
 
-   Compute (Position.all);
+   V := 2 * K + 1;
+   loop
+      begin
+         Compute (Position.all);
+         exit;
+      exception when others =>
+         if Optim = CPU_Time then
+            raise;
+         end if;
+         V := V + 1;
+         K_To_V := Float (V) / Float (K);
+         Initialize (Seed, K_To_V, Optim);
+      end;
+   end loop;
+
    Produce (Pkg_Name.all);
 
 end GNATPrfh;

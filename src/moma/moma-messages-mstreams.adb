@@ -33,13 +33,15 @@
 
 package body MOMA.Messages.MStreams is
 
+   Not_Implemented : exception;
+
    ------------------
    -- Read_Boolean --
    ------------------
 
    function Read_Boolean return Boolean is
    begin
-      raise PolyORB.Not_Implemented;
+      raise Not_Implemented;
       pragma Warnings (Off);
       return Read_Boolean;
       pragma Warnings (On);
@@ -51,7 +53,7 @@ package body MOMA.Messages.MStreams is
 
    function Read_Char return Character is
    begin
-      raise PolyORB.Not_Implemented;
+      raise Not_Implemented;
       pragma Warnings (Off);
       return Read_Char;
       pragma Warnings (On);
@@ -63,7 +65,7 @@ package body MOMA.Messages.MStreams is
 
    function Read_Float return Float is
    begin
-      raise PolyORB.Not_Implemented;
+      raise Not_Implemented;
       pragma Warnings (Off);
       return Read_Float;
       pragma Warnings (On);
@@ -75,7 +77,7 @@ package body MOMA.Messages.MStreams is
 
    function Read_Integer return Integer is
    begin
-      raise PolyORB.Not_Implemented;
+      raise Not_Implemented;
       pragma Warnings (Off);
       return Read_Integer;
       pragma Warnings (On);
@@ -87,7 +89,7 @@ package body MOMA.Messages.MStreams is
 
    function Read_String return String is
    begin
-      raise PolyORB.Not_Implemented;
+      raise Not_Implemented;
       pragma Warnings (Off);
       return Read_String;
       pragma Warnings (On);

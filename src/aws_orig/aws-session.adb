@@ -1,42 +1,45 @@
 ------------------------------------------------------------------------------
---                              Ada Web Server                              --
 --                                                                          --
---                         Copyright (C) 2000-2003                          --
---                                ACT-Europe                                --
+--                           POLYORB COMPONENTS                             --
 --                                                                          --
---  Authors: Dmitriy Anisimkov - Pascal Obry                                --
+--                          A W S . S E S S I O N                           --
 --                                                                          --
---  This library is free software; you can redistribute it and/or modify    --
---  it under the terms of the GNU General Public License as published by    --
---  the Free Software Foundation; either version 2 of the License, or (at   --
---  your option) any later version.                                         --
+--                                 B o d y                                  --
 --                                                                          --
---  This library is distributed in the hope that it will be useful, but     --
---  WITHOUT ANY WARRANTY; without even the implied warranty of              --
---  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU       --
---  General Public License for more details.                                --
+--         Copyright (C) 2000-2007, Free Software Foundation, Inc.          --
 --                                                                          --
---  You should have received a copy of the GNU General Public License       --
---  along with this library; if not, write to the Free Software Foundation, --
---  Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.          --
+-- PolyORB is free software; you  can  redistribute  it and/or modify it    --
+-- under terms of the  GNU General Public License as published by the  Free --
+-- Software Foundation;  either version 2,  or (at your option)  any  later --
+-- version. PolyORB is distributed  in the hope that it will be  useful,    --
+-- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
+-- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
+-- License  for more details.  You should have received  a copy of the GNU  --
+-- General Public License distributed with PolyORB; see file COPYING. If    --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
---  As a special exception, if other files instantiate generics from this   --
---  unit, or you link this unit with other files to produce an executable,  --
---  this  unit  does not  by itself cause  the resulting executable to be   --
---  covered by the GNU General Public License. This exception does not      --
---  however invalidate any other reasons why the executable file  might be  --
---  covered by the  GNU Public License.                                     --
+-- As a special exception,  if other files  instantiate  generics from this --
+-- unit, or you link  this unit with other files  to produce an executable, --
+-- this  unit  does not  by itself cause  the resulting  executable  to  be --
+-- covered  by the  GNU  General  Public  License.  This exception does not --
+-- however invalidate  any other reasons why  the executable file  might be --
+-- covered by the  GNU Public License.                                      --
+--                                                                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
+--                                                                          --
 ------------------------------------------------------------------------------
 
 --  @@@ uses ada.calendar
 
-with Ada.Calendar;
 with Ada.Exceptions;
 with Ada.Streams.Stream_IO;
 with Ada.Strings.Unbounded;
 with Ada.Text_IO;
 
 with Table_Of_Static_Keys_And_Dynamic_Values_G;
+pragma Elaborate_All (Table_Of_Static_Keys_And_Dynamic_Values_G);
 
 with AWS.Default;
 with AWS.Containers.Key_Value;
@@ -66,7 +69,7 @@ package body AWS.Session is
 
    procedure Assign
      (Destination : in out Session_Node;
-      Source      : in     Session_Node);
+      Source      : Session_Node);
 
    procedure Destroy (Value : in out Session_Node);
    --  Release the Set associated with the Session_Node.
@@ -82,43 +85,43 @@ package body AWS.Session is
 
    protected Database is
 
-      entry Add_Session (SID : in ID);
+      entry Add_Session (SID : ID);
       --  Acdd a new session ID into the database.
 
       entry New_Session (SID : out ID);
       --  Add a new session SID into the database.
 
-      entry Delete_Session (SID : in ID);
+      entry Delete_Session (SID : ID);
       --  Removes session SID from the Tree.
 
-      function Session_Exist (SID : in ID) return Boolean;
+      function Session_Exist (SID : ID) return Boolean;
       --  Return True if session SID exist in the database.
 
-      procedure Touch_Session (SID : in ID);
+      procedure Touch_Session (SID : ID);
       --  Updates the session Time_Stamp to current time. Does nothing if SID
       --  does not exist.
 
       entry Key_Exist
-        (SID    : in     ID;
-         Key    : in     String;
+        (SID    : ID;
+         Key    : String;
          Result :    out Boolean);
       --  Result is set to True if Key_Name exist in session SID.
 
       entry Get_Value
-        (SID   : in     ID;
-         Key   : in     String;
+        (SID   : ID;
+         Key   : String;
          Value :    out Unbounded_String);
       --  Value is set with the value associated with the key Key_Name in
       --  session SID.
 
       entry Set_Value
-        (SID        : in ID;
-         Key, Value : in String);
+        (SID        : ID;
+         Key, Value : String);
       --  Add the pair key/value into the session SID.
 
       entry Remove_Key
-        (SID : in ID;
-         Key : in String);
+        (SID : ID;
+         Key : String);
       --  Removes Key from the session SID.
 
       entry Clean;
@@ -156,7 +159,7 @@ package body AWS.Session is
 
    procedure Assign
      (Destination : in out Session_Node;
-      Source      : in     Session_Node) is
+      Source      : Session_Node) is
    begin
       Destination.Time_Stamp := Source.Time_Stamp;
       Key_Value.Assign (Destination.Root, Source.Root);
@@ -167,7 +170,6 @@ package body AWS.Session is
    -------------
 
    task body Cleaner is
-      use Ada;
       use type Calendar.Time;
 
       Next_Run : Calendar.Time := Calendar.Clock + Session_Check_Interval;
@@ -214,8 +216,8 @@ package body AWS.Session is
       -----------
 
       procedure Start
-        (Session_Check_Interval : in Duration;
-         Session_Lifetime       : in Duration) is
+        (Session_Check_Interval : Duration;
+         Session_Lifetime       : Duration) is
       begin
          Server_Count := Server_Count + 1;
 
@@ -255,7 +257,7 @@ package body AWS.Session is
       -- Add_Session --
       -----------------
 
-      entry Add_Session (SID : in ID) when Lock = 0 is
+      entry Add_Session (SID : ID) when Lock = 0 is
          New_Node : Session_Node;
 
       begin
@@ -282,9 +284,9 @@ package body AWS.Session is
          Now : constant Calendar.Time := Calendar.Clock;
 
          procedure Process
-           (SID      : in     ID;
-            Session  : in     Session_Node;
-            Order    : in     Positive;
+           (SID      : ID;
+            Session  : Session_Node;
+            Order    : Positive;
             Continue : in out Boolean);
          --  Iterator callback
 
@@ -293,9 +295,9 @@ package body AWS.Session is
          -------------
 
          procedure Process
-           (SID      : in     ID;
-            Session  : in     Session_Node;
-            Order    : in     Positive;
+           (SID      : ID;
+            Session  : Session_Node;
+            Order    : Positive;
             Continue : in out Boolean)
          is
             pragma Warnings (Off, Order);
@@ -330,7 +332,7 @@ package body AWS.Session is
       -- Delete_Session --
       --------------------
 
-      entry Delete_Session (SID : in ID) when Lock = 0 is
+      entry Delete_Session (SID : ID) when Lock = 0 is
       begin
          Session_Set.Remove (Sessions, SID);
       exception
@@ -381,13 +383,13 @@ package body AWS.Session is
       ---------------
 
       entry Get_Value
-        (SID   : in     ID;
-         Key   : in     String;
+        (SID   : ID;
+         Key   : String;
          Value :    out Unbounded_String)
       when Lock = 0 is
 
          procedure Modify
-           (SID  : in     ID;
+           (SID  : ID;
             Node : in out Session_Node);
          --  Adjust time stamp and retreive the value associated to key.
 
@@ -398,7 +400,7 @@ package body AWS.Session is
          ------------
 
          procedure Modify
-           (SID  : in     ID;
+           (SID  : ID;
             Node : in out Session_Node) is
             pragma Warnings (Off, SID);
          begin
@@ -430,13 +432,13 @@ package body AWS.Session is
       ---------------
 
       entry Key_Exist
-        (SID    : in     ID;
-         Key    : in     String;
+        (SID    : ID;
+         Key    : String;
          Result :    out Boolean)
       when Lock = 0 is
 
          procedure Modify
-           (SID  : in     ID;
+           (SID  : ID;
             Node : in out Session_Node);
          --  Adjust time stamp and check if Key is present.
 
@@ -445,7 +447,7 @@ package body AWS.Session is
          ------------
 
          procedure Modify
-           (SID  : in     ID;
+           (SID  : ID;
             Node : in out Session_Node)
          is
             pragma Unreferenced (SID);
@@ -500,12 +502,12 @@ package body AWS.Session is
       ------------
 
       entry Remove_Key
-        (SID : in ID;
-         Key : in String) when Lock = 0
+        (SID : ID;
+         Key : String) when Lock = 0
       is
 
          procedure Modify
-           (SID  : in     ID;
+           (SID  : ID;
             Node : in out Session_Node);
          --  Adjust time stamp and removes key.
 
@@ -516,7 +518,7 @@ package body AWS.Session is
          ------------
 
          procedure Modify
-           (SID  : in     ID;
+           (SID  : ID;
             Node : in out Session_Node)
          is
             pragma Unreferenced (SID);
@@ -541,7 +543,7 @@ package body AWS.Session is
       -- Session_Exist --
       -------------------
 
-      function Session_Exist (SID : in ID) return Boolean is
+      function Session_Exist (SID : ID) return Boolean is
       begin
          return Session_Set.Is_Present (Sessions, SID);
       end Session_Exist;
@@ -551,12 +553,12 @@ package body AWS.Session is
       ---------------
 
       entry Set_Value
-        (SID        : in ID;
-         Key, Value : in String)
+        (SID        : ID;
+         Key, Value : String)
       when Lock = 0 is
 
          procedure Modify
-           (SID  : in     ID;
+           (SID  : ID;
             Node : in out Session_Node);
          --  Adjust time stamp and set key's value.
 
@@ -567,7 +569,7 @@ package body AWS.Session is
          ------------
 
          procedure Modify
-           (SID  : in     ID;
+           (SID  : ID;
             Node : in out Session_Node)
          is
             pragma Unreferenced (SID);
@@ -592,10 +594,10 @@ package body AWS.Session is
       -- Touch_Session --
       -------------------
 
-      procedure Touch_Session (SID : in ID) is
+      procedure Touch_Session (SID : ID) is
 
          procedure Modify
-           (Key  : in     ID;
+           (Key  : ID;
             Node : in out Session_Node);
 
          Found : Boolean;
@@ -605,7 +607,7 @@ package body AWS.Session is
          ------------
 
          procedure Modify
-           (Key  : in     ID;
+           (Key  : ID;
             Node : in out Session_Node)
          is
             pragma Unreferenced (Key);
@@ -638,7 +640,7 @@ package body AWS.Session is
    -- Delete --
    ------------
 
-   procedure Delete (SID : in ID) is
+   procedure Delete (SID : ID) is
    begin
       Database.Delete_Session (SID);
    end Delete;
@@ -656,14 +658,14 @@ package body AWS.Session is
    -- Exist --
    -----------
 
-   function Exist (SID : in ID) return Boolean is
+   function Exist (SID : ID) return Boolean is
    begin
       return Database.Session_Exist (SID);
    end Exist;
 
    function Exist
-     (SID : in ID;
-      Key : in String)
+     (SID : ID;
+      Key : String)
       return Boolean
    is
       Result : Boolean;
@@ -679,9 +681,9 @@ package body AWS.Session is
    procedure For_Every_Session is
 
       procedure Process
-        (Key      : in     ID;
-         Session  : in     Session_Node;
-         Order    : in     Positive;
+        (Key      : ID;
+         Session  : Session_Node;
+         Order    : Positive;
          Continue : in out Boolean);
       --  iterator callback
 
@@ -690,9 +692,9 @@ package body AWS.Session is
       -------------
 
       procedure Process
-        (Key      : in     ID;
-         Session  : in     Session_Node;
-         Order    : in     Positive;
+        (Key      : ID;
+         Session  : Session_Node;
+         Order    : Positive;
          Continue : in out Boolean)
       is
          Quit : Boolean := False;
@@ -724,17 +726,17 @@ package body AWS.Session is
    -- For_Every_Session_Data --
    ----------------------------
 
-   procedure For_Every_Session_Data (SID : in ID) is
+   procedure For_Every_Session_Data (SID : ID) is
 
       procedure Process
-        (Key      : in     String;
-         Value    : in     Unbounded_String;
-         Order    : in     Positive;
+        (Key      : String;
+         Value    : Unbounded_String;
+         Order    : Positive;
          Continue : in out Boolean);
       --  Key/Value iterator callback.
 
       procedure Start
-        (SID  : in     ID;
+        (SID  : ID;
          Node : in out Session_Node);
       --  Session iterator callback.
 
@@ -747,9 +749,9 @@ package body AWS.Session is
       -------------
 
       procedure Process
-        (Key      : in     String;
-         Value    : in     Unbounded_String;
-         Order    : in     Positive;
+        (Key      : String;
+         Value    : Unbounded_String;
+         Order    : Positive;
          Continue : in out Boolean)
       is
          Quit : Boolean := False;
@@ -771,7 +773,7 @@ package body AWS.Session is
       -----------
 
       procedure Start
-        (SID  : in     ID;
+        (SID  : ID;
          Node : in out Session_Node)
       is
          pragma Unreferenced (SID);
@@ -803,8 +805,8 @@ package body AWS.Session is
    ---------
 
    function Get
-     (SID : in ID;
-      Key : in String)
+     (SID : ID;
+      Key : String)
       return String
    is
       Value : Unbounded_String;
@@ -814,8 +816,8 @@ package body AWS.Session is
    end Get;
 
    function Get
-     (SID : in ID;
-      Key : in String)
+     (SID : ID;
+      Key : String)
       return Integer
    is
       Value : Unbounded_String;
@@ -828,8 +830,8 @@ package body AWS.Session is
    end Get;
 
    function Get
-     (SID : in ID;
-      Key : in String)
+     (SID : ID;
+      Key : String)
       return Float
    is
       Value : Unbounded_String;
@@ -842,8 +844,8 @@ package body AWS.Session is
    end Get;
 
    function Get
-     (SID : in ID;
-      Key : in String)
+     (SID : ID;
+      Key : String)
       return Boolean
    is
       Value : Unbounded_String;
@@ -873,7 +875,7 @@ package body AWS.Session is
    -- Image --
    -----------
 
-   function Image (SID : in ID) return String is
+   function Image (SID : ID) return String is
    begin
       return SID_Prefix & String (SID);
    end Image;
@@ -882,7 +884,7 @@ package body AWS.Session is
    -- Load --
    ----------
 
-   procedure Load (File_Name : in String) is
+   procedure Load (File_Name : String) is
       use Ada.Streams.Stream_IO;
       File       : File_Type;
       Stream_Ptr : Stream_Access;
@@ -921,8 +923,8 @@ package body AWS.Session is
    ------------
 
    procedure Remove
-     (SID : in ID;
-      Key : in String) is
+     (SID : ID;
+      Key : String) is
    begin
       Database.Remove_Key (SID, Key);
    end Remove;
@@ -931,7 +933,7 @@ package body AWS.Session is
    -- Save --
    ----------
 
-   procedure Save (File_Name : in String) is
+   procedure Save (File_Name : String) is
       use Ada.Streams.Stream_IO;
 
       File       : File_Type;
@@ -939,9 +941,9 @@ package body AWS.Session is
       Stream_Ptr : Stream_Access;
 
       procedure Process
-        (Key      : in     ID;
-         Value    : in     Session_Node;
-         Order    : in     Positive;
+        (Key      : ID;
+         Value    : Session_Node;
+         Order    : Positive;
          Continue : in out Boolean);
       --  Callback for each session node in the table.
 
@@ -950,18 +952,18 @@ package body AWS.Session is
       -------------
 
       procedure Process
-        (Key      : in     ID;
-         Value    : in     Session_Node;
-         Order    : in     Positive;
+        (Key      : ID;
+         Value    : Session_Node;
+         Order    : Positive;
          Continue : in out Boolean)
       is
          pragma Unreferenced (Order);
          pragma Unreferenced (Continue);
 
          procedure Process
-           (Key      : in     String;
-            Value    : in     Unbounded_String;
-            Order    : in     Positive;
+           (Key      : String;
+            Value    : Unbounded_String;
+            Order    : Positive;
             Continue : in out Boolean);
          --  Callback for each key/value pair for a specific session.
 
@@ -970,9 +972,9 @@ package body AWS.Session is
          -------------
 
          procedure Process
-           (Key      : in     String;
-            Value    : in     Unbounded_String;
-            Order    : in     Positive;
+           (Key      : String;
+            Value    : Unbounded_String;
+            Order    : Positive;
             Continue : in out Boolean)
          is
             pragma Unreferenced (Order);
@@ -1030,17 +1032,17 @@ package body AWS.Session is
    ---------
 
    procedure Set
-     (SID   : in ID;
-      Key   : in String;
-      Value : in String) is
+     (SID   : ID;
+      Key   : String;
+      Value : String) is
    begin
       Database.Set_Value (SID, Key, Value);
    end Set;
 
    procedure Set
-     (SID   : in ID;
-      Key   : in String;
-      Value : in Integer)
+     (SID   : ID;
+      Key   : String;
+      Value : Integer)
    is
       V : constant String := Integer'Image (Value);
    begin
@@ -1052,9 +1054,9 @@ package body AWS.Session is
    end Set;
 
    procedure Set
-     (SID   : in ID;
-      Key   : in String;
-      Value : in Float)
+     (SID   : ID;
+      Key   : String;
+      Value : Float)
    is
       V : constant String := Float'Image (Value);
    begin
@@ -1066,9 +1068,9 @@ package body AWS.Session is
    end Set;
 
    procedure Set
-     (SID   : in ID;
-      Key   : in String;
-      Value : in Boolean)
+     (SID   : ID;
+      Key   : String;
+      Value : Boolean)
    is
       V : String (1 .. 1);
    begin
@@ -1085,7 +1087,7 @@ package body AWS.Session is
    -- Set_Lifetime --
    ------------------
 
-   procedure Set_Lifetime (Seconds : in Duration) is
+   procedure Set_Lifetime (Seconds : Duration) is
    begin
       Session_Lifetime := Seconds;
    end Set_Lifetime;
@@ -1094,7 +1096,7 @@ package body AWS.Session is
    -- Touch --
    -----------
 
-   procedure Touch (SID : in ID) is
+   procedure Touch (SID : ID) is
    begin
       Database.Touch_Session (SID);
    end Touch;
@@ -1103,7 +1105,7 @@ package body AWS.Session is
    -- Value --
    -----------
 
-   function Value (SID : in String) return ID is
+   function Value (SID : String) return ID is
    begin
       if SID'Length /= ID'Length + SID_Prefix'Length
         or else

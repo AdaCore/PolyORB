@@ -6,30 +6,31 @@ PROG=iac
 
 all-local: $(PROG)
 
-PROG_FILES = nodes.ads nodes.adb
+PROG_FILES = frontend-nodes.ada backend-be_corba_ada-nodes.ada
 
-$(PROG_FILES): mknodes nodes.idl
-	@-./mknodes nodes >nodes.ada
-	gnatchop -w nodes.ada
+INCLUDES= -I. -I$(srcdir) -I$(srcdir)/../common_files
 
-mknodes : force
-	$(GNATMAKE) -m -gnata -I. -I$(srcdir) $@\
-		-cargs $(GNATFLAGS) -bargs $(BARGS)
+%.ada:%.idl mknodes
+	./mknodes $< >$@
+	gnatchop -w $@
 
-$(PROG): force $(PROG_FILES)
-	$(GNATMAKE) -m -gnata -I. -I$(srcdir) $@\
-		-cargs $(GNATFLAGS) -bargs $(BARGS)
+mknodes : force 
+	$(GNATMAKE) -m $(INCLUDES) $@ $(GNATMAKE_FLAGS)
+
+$(PROG): force mknodes $(PROG_FILES)
+	$(GNATMAKE) -m $(INCLUDES) $(PROG) $(GNATMAKE_FLAGS)
 
 tests: $(PROG)
 	(cd testsuite; $(MAKE) all)
 
-CLEANFILES = *.o *.ali b~*.ads b~*.adb
+CLEANFILES = *.o *.ali b~*.ads b~*.adb *~ backend-be_corba_ada-nodes.ad? \
+             frontend-nodes.ad?
 
 DISTCLEANFILES = $(PROG) mknodes
-
 
 force::
 
 install-exec-local:
 	$(INSTALL) -d $(DESTDIR)$(exec_prefix)/bin
 	$(INSTALL_PROGRAM) $(PROG) $(DESTDIR)$(exec_prefix)/bin/$(PROG)
+	cd $(DESTDIR)$(exec_prefix)/bin && $(RM) -f idlac && $(LN_S) $(PROG) idlac

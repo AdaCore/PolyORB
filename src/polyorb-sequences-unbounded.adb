@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,150 +26,120 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Unchecked_Deallocation;
-
 package body PolyORB.Sequences.Unbounded is
 
-   Initial_Size   : constant Natural := 3;
-   Increment_Size : constant Natural := 2;
+   Dummy_Element_Ptr : Element_Ptr;
+   pragma Warnings (Off, Dummy_Element_Ptr);
+   --  This variable is only used to provide a placeholder expression of type
+   --  Element that is preelaborable (but is never actually evaluated).
 
-   Null_Contents : Element_Array_Access;
+   Empty_Element_Array : aliased Element_Array :=
+                           (1 .. 0 => Dummy_Element_Ptr.all);
+   Empty : constant Element_Array_Access := Empty_Element_Array'Access;
 
-   function Get_Null_Contents return Element_Array_Access;
-   pragma Inline (Get_Null_Contents);
-   --  Obtain a pointer to a global zero-length element array.
+   ------------------------------------------------
+   -- SVM implementation for unbounded sequences --
+   ------------------------------------------------
 
-   procedure Reallocate
-     (Source : in out Sequence;
-      Length : in Natural);
-   --  See whether Source.Content should be extended. If so, then copy
-   --  old Source.Content (1 .. Source.Length) in new Source.Content and
-   --  deallocate previous Content.
+   procedure Run is new Sequences.Run (Element, Element_Array);
+   --  Core execution engine
 
-   function  Round (Length : Natural) return Natural;
-   --  Compute appropriate Length. If Length = 0, return 0. If not,
-   --  return Initial_Size + N * Increment_Size where N is the
-   --  smallest integer such that Length < Initial_Size + N * Increment_Size.
+   function Run_Copy
+     (Prog  : Program;
+      Left  : Element_Array;
+      Right : Element_Array := Null_Element_Array) return Sequence;
+   --  Execute Prog and return a new sequence containing the result
 
-   function Element_Array_Equal (Left, Right : Element_Array)
-     return Boolean;
-   --  Test two element_arrays are equal.
+   procedure Run_In_Place
+     (Prog  : Program;
+      Left  : in out Sequence;
+      Right : Element_Array := Null_Element_Array);
+   --  Execute Prog in-place on Left's storage
 
    -----------------------
-   -- Get_Null_Contents --
+   -- Local subprograms --
    -----------------------
 
-   function Get_Null_Contents return Element_Array_Access
-   is
-      Null_Element : Element;
-      pragma Warnings (Off, Null_Element);
-      --  Not initialised explicitly.
-   begin
-      if Null_Contents = null then
-         Null_Contents := new Element_Array'(1 .. 0 => Null_Element);
-      end if;
+   function Allocate (Length : Natural) return Element_Array_Access;
+   --  Return a newly allocated element array of the given length, except
+   --  if Length is 0, in which case Empty is returned.
 
-      pragma Assert (Null_Contents /= null);
+   function Array_Bounds (A : Element_Array) return Bounds;
+   --  Return (A'First, A'Last)
 
-      return Null_Contents;
-   end Get_Null_Contents;
+   function Sequence_Bounds (S : Sequence) return Bounds;
+   --  Return (1, Length (S))
 
-   -------------------------
-   -- Element_Array_Equal --
-   -------------------------
+   function "&" (Left, Right : Element_Array) return Sequence;
+   --  Return To_Sequence (Left & Right)
 
-   function Element_Array_Equal (Left, Right : Element_Array)
-     return Boolean is
-   begin
-      return Left'Length = Right'Length
-        and then Left (Left'Range) = Right (Right'Range);
-   end Element_Array_Equal;
-
-   ---------
-   -- "=" --
-   ---------
-
-   function "=" (Left, Right : in Sequence)
-     return Boolean is
-   begin
-      return Element_Array_Equal
-        (Left.Content (1 .. Left.Length),
-         Right.Content (1 .. Right.Length));
-   end "=";
-
-   ---------
-   -- "=" --
-   ---------
-
-   function "=" (Left : in Element_Array; Right : in Sequence)
-     return Boolean is
-   begin
-      return Element_Array_Equal
-        (Left,
-         Right.Content (1 .. Right.Length));
-   end "=";
-
-   ---------
-   -- "=" --
-   ---------
-
-   function "=" (Left : in Sequence; Right : in Element_Array)
-     return Boolean is
-   begin
-      return Element_Array_Equal
-        (Left.Content (1 .. Left.Length),
-         Right);
-   end "=";
+   function Count_Index
+     (Source  : Sequence;
+      Pattern : Element_Array;
+      What    : Search_Kind;
+      Going   : Direction := Forward) return Natural;
+   --  Common subprogram used to implement Count and Index, depending on
+   --  the What parameter.
 
    ---------
    -- "&" --
    ---------
 
-   function "&" (Left, Right : in Sequence)
-     return Sequence
-   is
+   function "&" (Left, Right : Element_Array) return Sequence is
+      Left_Bounds : constant Bounds := Array_Bounds (Left);
    begin
-      return To_Sequence
-        (Left.Content (1 .. Left.Length) &
-         Right.Content (1 .. Right.Length));
+      --  Replace a null-length slice of Left located right after the last
+      --  element with Right.
+
+      return Run_Copy
+        (Prog  =>
+           Replace_Slice
+             (0,
+              Left_Bounds,
+              Bounds'(Left_Bounds.Hi + 1, Left_Bounds.Hi),
+              Array_Bounds (Right)),
+         Left  => Left,
+         Right => Right);
    end "&";
 
    ---------
    -- "&" --
    ---------
 
-   function "&" (Left : in Sequence; Right : in Element_Array)
-     return Sequence
-   is
+   function "&" (Left, Right : Sequence) return Sequence is
    begin
-      return To_Sequence
-        (Left.Content (1 .. Left.Length) & Right);
+      return Left.Content (1 .. Left.Length)
+        & Right.Content (1 .. Right.Length);
    end "&";
 
    ---------
    -- "&" --
    ---------
 
-   function "&" (Left : in Element_Array; Right : in Sequence)
-     return Sequence
-   is
+   function "&" (Left : Sequence; Right : Element_Array) return Sequence is
    begin
-      return To_Sequence
-        (Left & Right.Content (1 .. Right.Length));
+      return Sequence'(Left.Content (1 .. Left.Length) & Right);
    end "&";
 
    ---------
    -- "&" --
    ---------
 
-   function "&" (Left : in Sequence; Right : in Element)
-     return Sequence
-   is
+   function "&" (Left : Element_Array; Right : Sequence) return Sequence is
+   begin
+      return Sequence'(Left & Right.Content (1 .. Right.Length));
+   end "&";
+
+   ---------
+   -- "&" --
+   ---------
+
+   function "&" (Left : Sequence; Right : Element) return Sequence is
    begin
       return Left & Element_Array'(1 => Right);
    end "&";
@@ -178,9 +148,7 @@ package body PolyORB.Sequences.Unbounded is
    -- "&" --
    ---------
 
-   function "&" (Left : in Element; Right : in Sequence)
-     return Sequence
-   is
+   function "&" (Left : Element; Right : Sequence) return Sequence is
    begin
       return Element_Array'(1 => Left) & Right;
    end "&";
@@ -189,9 +157,7 @@ package body PolyORB.Sequences.Unbounded is
    -- "*" --
    ---------
 
-   function "*" (Left : in Natural; Right : in Element)
-     return Sequence
-   is
+   function "*" (Left : Natural; Right : Element) return Sequence is
    begin
       return Left * Element_Array'(1 => Right);
    end "*";
@@ -200,54 +166,63 @@ package body PolyORB.Sequences.Unbounded is
    -- "*" --
    ---------
 
-   function "*" (Left : in Natural; Right : in Element_Array)
-     return Sequence
-   is
-      Length : constant Natural := Right'Length;
-      Index  : Natural := 1;
-      Result : Sequence;
-      pragma Warnings (Off, Result);
-      --  Default initialization.
+   function "*" (Left : Natural; Right : Element_Array) return Sequence is
    begin
-      if Left = 0 or else Right'Length = 0 then
-         return Result;
-      end if;
-
-      Allocate (Result, Left * Length);
-
-      for I in 1 .. Left loop
-         Result.Content (Index .. Index + Length - 1) := Right;
-         Index := Index + Length;
-      end loop;
-
-      return Result;
+      return Run_Copy
+        (Prog => Replicate (0, Left, Array_Bounds (Right)),
+         Left => Right);
    end "*";
 
    ---------
    -- "*" --
    ---------
 
-   function "*" (Left : in Natural; Right : in Sequence)
-     return Sequence
-   is
+   function "*" (Left : Natural; Right : Sequence) return Sequence is
    begin
-      return Left * Right.Content.all;
+      return Run_Copy
+        (Prog => Replicate (0, Left, Sequence_Bounds (Right)),
+         Left => Right.Content (1 .. Right.Length));
    end "*";
+
+   ---------
+   -- "=" --
+   ---------
+
+   function "=" (Left, Right : Sequence) return Boolean is
+      L : Natural renames Left.Length;
+   begin
+      return L = Right.Length
+        and then Left.Content (1 .. L) = Right.Content (1 .. L);
+   end "=";
+
+   ---------
+   -- "=" --
+   ---------
+
+   function "=" (Left : Element_Array; Right : Sequence) return Boolean is
+      L : Natural renames Right.Length;
+   begin
+      return Left'Length = L
+        and then Left = Right.Content (1 .. L);
+   end "=";
+
+   ---------
+   -- "=" --
+   ---------
+
+   function "=" (Left : Sequence; Right : Element_Array) return Boolean is
+   begin
+      return Right = Left;
+   end "=";
 
    ------------
    -- Adjust --
    ------------
 
-   procedure Adjust (Object : in out Sequence)
-   is
-      Content : Element_Array_Access;
-
+   procedure Adjust (X : in out Sequence) is
    begin
-      if Object.Content /= Get_Null_Contents then
-         Content := Object.Content;
-         Allocate (Object, Object.Length);
-         Object.Content (1 .. Object.Length)
-           := Content (1 .. Object.Length);
+      if X.Length > 0 then
+         X.Content := new Element_Array'(X.Content.all);
       end if;
    end Adjust;
 
@@ -255,32 +230,41 @@ package body PolyORB.Sequences.Unbounded is
    -- Allocate --
    --------------
 
-   procedure Allocate
-     (Source : in out Sequence;
-      Length : in Natural) is
+   function Allocate (Length : Natural) return Element_Array_Access is
    begin
       if Length > 0 then
-         Source.Content := new Element_Array (1 .. Round (Length));
+         return new Element_Array (1 .. Length);
       else
-         Source.Content := Get_Null_Contents;
+         return Empty;
       end if;
-      Source.Length := Length;
    end Allocate;
 
    ------------
    -- Append --
    ------------
 
-   procedure Append
-     (Source   : in out Sequence;
-      New_Item : in Sequence)
-   is
-      Old_Length  : constant Natural := Source.Length;
-
+   procedure Append (Source : in out Sequence; New_Item : Sequence) is
    begin
-      Reallocate (Source, Old_Length + New_Item.Length);
-      Source.Content (Old_Length + 1 .. Source.Length)
-        := New_Item.Content (1 .. New_Item.Length);
+      Append (Source, New_Item.Content (1 .. New_Item.Length));
+   end Append;
+
+   ------------
+   -- Append --
+   ------------
+
+   procedure Append (Source : in out Sequence; New_Item : Element_Array)
+   is
+      Left_Bounds : constant Bounds := Sequence_Bounds (Source);
+   begin
+      Run_In_Place
+        (Prog  =>
+           Replace_Slice
+             (0,
+              Left_Bounds,
+              Bounds'(Left_Bounds.Hi + 1, Left_Bounds.Hi),
+              Array_Bounds (New_Item)),
+         Left  => Source,
+         Right => New_Item);
    end Append;
 
    ------------
@@ -289,99 +273,56 @@ package body PolyORB.Sequences.Unbounded is
 
    procedure Append
      (Source   : in out Sequence;
-      New_Item : in Element_Array)
-   is
-      Old_Length  : constant Natural := Source.Length;
-
+      New_Item : Element) is
    begin
-      Reallocate (Source, Old_Length + New_Item'Length);
-      Source.Content (Old_Length + 1 .. Source.Length) := New_Item;
+      Append (Source, Element_Array'(1 => New_Item));
    end Append;
 
-   ------------
-   -- Append --
-   ------------
+   ------------------
+   -- Array_Bounds --
+   ------------------
 
-   procedure Append
-     (Source   : in out Sequence;
-      New_Item : in Element)
-   is
-      Old_Length  : constant Natural := Source.Length;
-
+   function Array_Bounds (A : Element_Array) return Bounds is
    begin
-      Reallocate (Source, Old_Length + 1);
-      Source.Content (Source.Length) := New_Item;
-   end Append;
+      return (Lo => A'First, Hi => A'Last);
+   end Array_Bounds;
 
    -----------
    -- Count --
    -----------
 
    function Count
-      (Source  : in Sequence;
-       Pattern : in Element_Array)
-       return Natural
+     (Source  : Sequence; Pattern : Element_Array) return Natural
    is
-      Match  : Natural := 0;
-      Offset : Natural;
-      Length : constant Natural := Pattern'Length;
-      First  : constant Integer := Pattern'First;
-
    begin
-      if Pattern'Length = 0 then
-         raise Pattern_Error;
-      end if;
-
-      for Index in 1 .. Source.Length - (Length - 1) loop
-         Offset := 0;
-         while Offset < Length loop
-            exit when Source.Content (Index + Offset)
-              /= Pattern (First + Offset);
-            Offset := Offset + 1;
-         end loop;
-
-         if Offset = Length then
-            Match := Match + 1;
-         end if;
-      end loop;
-
-      return Match;
+      return Count_Index (Source, Pattern, What => Return_Count);
    end Count;
 
-   ------------
-   -- Delete --
-   ------------
+   -----------------
+   -- Count_Index --
+   -----------------
 
-   function Delete
-     (Source  : in Sequence;
-      From    : in Positive;
-      Through : in Natural)
-      return Sequence
+   function Count_Index
+     (Source  : Sequence;
+      Pattern : Element_Array;
+      What    : Search_Kind;
+      Going   : Direction := Forward) return Natural
    is
-      Result : Sequence;
-      Length : Natural;
+      function Check_For_Pattern (Lo, Hi : Positive) return Boolean;
+
+      function Check_For_Pattern (Lo, Hi : Positive) return Boolean is
+      begin
+         return Source.Content (Lo .. Hi) = Pattern;
+      end Check_For_Pattern;
 
    begin
-      if From > Source.Length + 1
-        or else Through > Source.Length
-      then
-         raise Index_Error;
-      end if;
-
-      if Through < From then
-         Length := 0;
-      else
-         Length := Through - From + 1;
-      end if;
-
-      Allocate (Result, Source.Length - Length);
-      Result.Content (1 .. From - 1)
-        := Source.Content (1 .. From - 1);
-      Result.Content (From .. Result.Length) :=
-        Source.Content (Through + 1 .. Source.Length);
-
-      return Result;
-   end Delete;
+      return Sequences.Count_Index
+        (Check_Slice => Check_For_Pattern'Unrestricted_Access,
+         Source      => Sequence_Bounds (Source),
+         Pattern     => Array_Bounds (Pattern),
+         What        => What,
+         Going       => Going);
+   end Count_Index;
 
    ------------
    -- Delete --
@@ -389,125 +330,58 @@ package body PolyORB.Sequences.Unbounded is
 
    procedure Delete
      (Source  : in out Sequence;
-      From    : in Positive;
-      Through : in Natural)
+      From    : Positive;
+      Through : Natural)
    is
-      Old_Length  : constant Natural := Source.Length;
-      Old_Content : Element_Array_Access;
-      Reallocated : Boolean;
-
    begin
-      if Source.Content = null then
-         return;
-      end if;
-
-      if From > Old_Length + 1
-        or else Through > Old_Length
-      then
-         raise Index_Error;
-      end if;
-
-      if Through < From then
-         return;
-      end if;
-
-      Source.Length := Old_Length - (Through - From + 1);
-      Old_Content   := Source.Content;
-      Reallocated   := (Source.Content'Length /= Round (Source.Length));
-
-      if Reallocated then
-         Allocate (Source, Source.Length);
-         Source.Content (1 .. From - 1) := Old_Content (1 .. From - 1);
-      end if;
-
-      Source.Content (From .. Source.Length)
-        := Old_Content (Through + 1 .. Old_Length);
-
-      if Reallocated then
-         Free (Old_Content);
-
-      else
-         --  Force finalization.
-
-         declare
-            Null_Element : Element;
-            pragma Warnings (Off, Null_Element);
-            --  Null_Element is never assign a value.
-         begin
-            for I in Source.Length + 1 .. Old_Length loop
-               Source.Content (I) := Null_Element;
-            end loop;
-         end;
-      end if;
+      Replace_Slice
+        (Source,
+         Low  => From,
+         High => Through,
+         By   => Null_Element_Array);
    end Delete;
 
-   ----------------
-   -- Element_Of --
-   ----------------
+   ------------
+   -- Delete --
+   ------------
 
-   function Element_Of
-     (Source : in Sequence;
-      Index  : in Positive)
-      return Element is
+   function Delete
+     (Source  : Sequence;
+      From    : Positive;
+      Through : Natural) return Sequence
+   is
    begin
-      if Index > Source.Length then
-         raise Index_Error;
-      end if;
-
-      return Source.Content (Index);
-   end Element_Of;
+      return Replace_Slice
+        (Source,
+         Low  => From,
+         High => Through,
+         By   => Null_Element_Array);
+   end Delete;
 
    --------------
    -- Finalize --
    --------------
 
-   procedure Finalize (Object : in out Sequence) is
+   procedure Finalize (X : in out Sequence) is
    begin
-      Free (Object.Content);
+      if X.Content'Length > 0 then
+         Free (X.Content);
+      end if;
    end Finalize;
 
-   ----------
-   -- Free --
-   ----------
+   -----------------
+   -- Get_Element --
+   -----------------
 
-   procedure Free (X : in out Element_Array_Access) is
-      procedure Deallocate is new Ada.Unchecked_Deallocation
-        (Element_Array, Element_Array_Access);
+   function Get_Element
+     (Source : Sequence;
+      Index  : Positive) return Element is
    begin
-      if X /= Null_Contents then
-         Deallocate (X);
+      if Index > Source.Length then
+         raise Index_Error;
       end if;
-   end Free;
-
-   ----------
-   -- Head --
-   ----------
-
-   function Head
-     (Source : in Sequence;
-      Count  : in Natural;
-      Pad    : in Element)
-      return Sequence
-   is
-      Length : Natural;
-      Result : Sequence;
-
-   begin
-      Allocate (Result, Count);
-
-      if Source.Length < Count then
-         Length := Source.Length;
-      else
-         Length := Count;
-      end if;
-
-      Result.Content (1 .. Length) := Source.Content (1 .. Length);
-      for I in Length + 1 .. Count loop
-         Result.Content (I) := Pad;
-      end loop;
-
-      return Result;
-   end Head;
+      return Source.Content (Index);
+   end Get_Element;
 
    ----------
    -- Head --
@@ -515,16 +389,38 @@ package body PolyORB.Sequences.Unbounded is
 
    procedure Head
      (Source : in out Sequence;
-      Count  : in Natural;
-      Pad    : in Element)
+      Count  : Natural;
+      Pad    : Element)
    is
-      Old_Length : constant Natural := Source.Length;
-
    begin
-      Reallocate (Source, Count);
-      for I in Old_Length .. Count loop
-         Source.Content (I) := Pad;
-      end loop;
+      Run_In_Place
+        (Prog => Head_Tail
+           (0,
+            Sequence_Bounds (Source),
+            Count,
+            What => Head),
+         Left  => Source,
+         Right => Element_Array'(1 => Pad));
+   end Head;
+
+   ----------
+   -- Head --
+   ----------
+
+   function Head
+     (Source : Sequence;
+      Count  : Natural;
+      Pad    : Element) return Sequence
+   is
+   begin
+      return Run_Copy
+        (Prog => Head_Tail
+           (0,
+            Sequence_Bounds (Source),
+            Count,
+            What => Head),
+         Left  => Source.Content (1 .. Source.Length),
+         Right => Element_Array'(1 => Pad));
    end Head;
 
    -----------
@@ -532,67 +428,22 @@ package body PolyORB.Sequences.Unbounded is
    -----------
 
    function Index
-     (Source  : in Sequence;
-      Pattern : in Element_Array;
-      Going   : in Direction := Forward)
-      return Natural
+     (Source  : Sequence;
+      Pattern : Element_Array;
+      Going   : Direction := Forward) return Natural
    is
-      Shift  : Integer;
-      From   : Natural;
-      To     : Natural;
-
-      Offset : Natural;
-      Length : constant Natural := Pattern'Length;
-      First  : constant Integer := Pattern'First;
-
    begin
-      if Pattern'Length = 0 then
-         raise Pattern_Error;
-      end if;
-
-      if Source.Length < Length then
-         return 0;
-      end if;
-
-      if Going = Forward then
-         Shift := 1;
-         From  := 1;
-         To    := Source.Length - (Length - 1);
-      else
-         Shift := -1;
-         From  := Source.Length - (Length - 1);
-         To    := 1;
-      end if;
-
-      --  There is always at least one pass because Length <= Source.Length
-      loop
-         Offset := 0;
-         while Offset < Length loop
-            exit when Source.Content (From + Offset)
-              /= Pattern (First + Offset);
-            Offset := Offset + 1;
-         end loop;
-
-         if Offset = Length then
-            return From;
-         end if;
-
-         exit when From = To;
-         From := From + Shift;
-      end loop;
-
-      --  No match
-      return 0;
+      return Count_Index (Source, Pattern, Return_Index, Going);
    end Index;
 
    ----------------
    -- Initialize --
    ----------------
 
-   procedure Initialize (Object : in out Sequence) is
+   procedure Initialize (X : in out Sequence) is
    begin
-      Object.Length  := 0;
-      Object.Content := Get_Null_Contents;
+      X.Length  := 0;
+      X.Content := Allocate (0);
    end Initialize;
 
    ------------
@@ -600,15 +451,16 @@ package body PolyORB.Sequences.Unbounded is
    ------------
 
    function Insert
-     (Source   : in Sequence;
-      Before   : in Positive;
-      New_Item : in Element_Array)
-     return Sequence
+     (Source   : Sequence;
+      Before   : Positive;
+      New_Item : Element_Array) return Sequence
    is
-      Result : Sequence := Source;
    begin
-      Insert (Result, Before, New_Item);
-      return Result;
+      return Replace_Slice
+        (Source,
+         Low  => Before,
+         High => Before - 1,
+         By   => New_Item);
    end Insert;
 
    ------------
@@ -617,46 +469,34 @@ package body PolyORB.Sequences.Unbounded is
 
    procedure Insert
      (Source   : in out Sequence;
-      Before   : in Positive;
-      New_Item : in Element_Array)
+      Before   : Positive;
+      New_Item : Element_Array)
    is
-      Item_Length : constant Natural := New_Item'Length;
-      Old_Length  : constant Natural := Source.Length;
-      Old_Content : Element_Array_Access;
-      Reallocated : Boolean;
-
    begin
-      if Source.Length < Before then
-         raise Index_Error;
-      end if;
-
-      Source.Length := Old_Length + Item_Length;
-      Old_Content   := Source.Content;
-      Reallocated   := (Source.Content'Length /= Round (Source.Length));
-
-      if Reallocated then
-         Allocate (Source, Source.Length);
-         Source.Content (1 .. Before - 1) := Old_Content (1 .. Before - 1);
-      end if;
-
-      Source.Content (Before + Item_Length .. Source.Length)
-        := Old_Content (Before .. Old_Length);
-      Source.Content (Before .. Before + Item_Length - 1) := New_Item;
-
-      if Reallocated then
-         Free (Old_Content);
-      end if;
+      Replace_Slice
+        (Source,
+         Low  => Before,
+         High => Before - 1,
+         By   => New_Item);
    end Insert;
 
+   -------------
+   -- Is_Null --
+   -------------
+
+   function Is_Null (Source : Sequence) return Boolean is
+   begin
+      return Source.Length = 0;
+   end Is_Null;
+
    ------------
-   -- Is_Nul --
+   -- Length --
    ------------
 
-   function Is_Null (Source : in Sequence)
-                    return Boolean is
+   function Length (Source : Sequence) return Natural is
    begin
-      return Source = Null_Sequence;
-   end Is_Null;
+      return Source.Length;
+   end Length;
 
    -------------------
    -- Null_Sequence --
@@ -664,36 +504,8 @@ package body PolyORB.Sequences.Unbounded is
 
    function Null_Sequence return Sequence is
    begin
-      return (Ada.Finalization.Controlled with
-              Length  => 0,
-              Content => Get_Null_Contents);
+      return To_Sequence (0);
    end Null_Sequence;
-
-   ------------
-   -- Length --
-   ------------
-
-   function Length (Source : in Sequence) return Natural is
-   begin
-      return Source.Length;
-   end Length;
-
-   ---------------
-   -- Overwrite --
-   ---------------
-
-   function Overwrite
-     (Source   : in Sequence;
-      Position : in Positive;
-      New_Item : in Element_Array)
-      return Sequence
-   is
-      Result : Sequence := Source;
-
-   begin
-      Overwrite (Result, Position, New_Item);
-      return Result;
-   end Overwrite;
 
    ---------------
    -- Overwrite --
@@ -701,83 +513,33 @@ package body PolyORB.Sequences.Unbounded is
 
    procedure Overwrite
      (Source   : in out Sequence;
-      Position : in Positive;
-      New_Item : in Element_Array)
+      Position : Positive;
+      New_Item : Element_Array)
    is
-      Item_Length : constant Natural := New_Item'Length;
-      Old_Length  : constant Natural := Source.Length;
-      Old_Content : Element_Array_Access;
-      Reallocated : Boolean;
-
    begin
-      if Position > Source.Length + 1 then
-         raise Index_Error;
-      end if;
-
-      if Position + Item_Length > Old_Length then
-         Source.Length := Position + Item_Length;
-      end if;
-
-      Old_Content := Source.Content;
-      Reallocated := (Source.Content'Length /= Round (Source.Length));
-
-      if Reallocated then
-         Allocate (Source, Source.Length);
-         Source.Content (1 .. Position - 1) := Old_Content (1 .. Position - 1);
-         Free (Old_Content);
-      end if;
-
-      Source.Content (Position .. Position + Item_Length - 1) := New_Item;
+      Replace_Slice
+        (Source => Source,
+         Low    => Position,
+         High   => Position + New_Item'Length - 1,
+         By     => New_Item);
    end Overwrite;
 
-   ----------------
-   -- Reallocate --
-   ----------------
+   ---------------
+   -- Overwrite --
+   ---------------
 
-   procedure Reallocate
-     (Source : in out Sequence;
-      Length : in Natural)
+   function Overwrite
+     (Source   : Sequence;
+      Position : Positive;
+      New_Item : Element_Array) return Sequence
    is
-      Old_Content : Element_Array_Access := Source.Content;
-      Old_Length  : constant Natural := Source.Length;
-
-      Min_Length  : Natural;
-      --  The number of elements in the new allocation that
-      --  need to be copied from the old one.
-
    begin
-      if Length = 0 then
-         Source := Null_Sequence;
-         Free (Old_Content);
-      else
-         if Source.Length > Length then
-            Min_Length := Length;
-         else
-            Min_Length := Source.Length;
-         end if;
-
-         if Source.Content'Length /= Round (Length) then
-            Allocate (Source, Length);
-            Source.Content (1 .. Min_Length)
-              := Old_Content (1 .. Min_Length);
-            Free (Old_Content);
-         else
-            --  Force finalization (for the case where we have
-            --  shrunk then list).
-
-            declare
-               Null_Element : Element;
-               pragma Warnings (Off, Null_Element);
-               --  Null_Element is never assign a value.
-            begin
-               for I in Min_Length + 1 .. Old_Length loop
-                  Source.Content (I) := Null_Element;
-               end loop;
-            end;
-            Source.Length := Length;
-         end if;
-      end if;
-   end Reallocate;
+      return Replace_Slice
+        (Source,
+         Low  => Position,
+         High => Position + New_Item'Length - 1,
+         By   => New_Item);
+   end Overwrite;
 
    ---------------------
    -- Replace_Element --
@@ -785,8 +547,8 @@ package body PolyORB.Sequences.Unbounded is
 
    procedure Replace_Element
      (Source : in out Sequence;
-      Index  : in Positive;
-      By     : in Element) is
+      Index  : Positive;
+      By     : Element) is
    begin
       if Index > Source.Length then
          raise Index_Error;
@@ -800,17 +562,21 @@ package body PolyORB.Sequences.Unbounded is
    -------------------
 
    function Replace_Slice
-     (Source : in Sequence;
-      Low    : in Positive;
-      High   : in Natural;
-      By     : in Element_Array)
-      return Sequence
+     (Source : Sequence;
+      Low    : Positive;
+      High   : Natural;
+      By     : Element_Array) return Sequence
    is
-      Result    : Sequence := Source;
-
    begin
-      Replace_Slice (Result, Low, High, By);
-      return Result;
+      return Run_Copy
+        (Prog  =>
+           Replace_Slice
+             (0,
+              Sequence_Bounds (Source),
+              Bounds'(Low, High),
+              Array_Bounds (By)),
+         Left  => Source.Content (1 .. Source.Length),
+         Right => By);
    end Replace_Slice;
 
    -------------------
@@ -819,79 +585,75 @@ package body PolyORB.Sequences.Unbounded is
 
    procedure Replace_Slice
      (Source : in out Sequence;
-      Low    : in Positive;
-      High   : in Natural;
-      By     : in Element_Array)
+      Low    : Positive;
+      High   : Natural;
+      By     : Element_Array)
    is
-      By_Length   : constant Natural := By'Length;
-      Old_Length  : constant Natural := Source.Length;
-      Old_Content : Element_Array_Access;
-      Reallocated : Boolean;
-
    begin
-      if Low > Old_Length + 1
-        or else High > Old_Length
-      then
-         raise Index_Error;
-      end if;
-
-      if High < Low then
-         Insert (Source => Source, Before => Low, New_Item => By);
-         return;
-      end if;
-
-      Source.Length := Low - 1 + By_Length + Source.Length - High;
-      Old_Content   := Source.Content;
-      Reallocated   := (Source.Content'Length /= Round (Source.Length));
-
-      if Reallocated then
-         Allocate (Source, Source.Length);
-         Source.Content (1 .. Low - 1) := Old_Content (1 .. Low - 1);
-      end if;
-
-      Source.Content (Low + By_Length .. Source.Length)
-        := Old_Content (High + 1 .. Old_Length);
-      Source.Content (Low .. Low + By_Length - 1)
-        := By;
-
-      if Reallocated then
-         Free (Old_Content);
-
-      else
-         --  Force finalization
-
-         declare
-            Null_Element : Element;
-            pragma Warnings (Off, Null_Element);
-            --  Null_Element is never assign a value.
-         begin
-            for I in Old_Length + 1 .. Source.Length loop
-               Source.Content (I) := Null_Element;
-            end loop;
-         end;
-      end if;
+      Run_In_Place
+        (Prog  =>
+           Replace_Slice
+             (0,
+              Sequence_Bounds (Source),
+              Bounds'(Low, High),
+              Array_Bounds (By)),
+         Left  => Source,
+         Right => By);
    end Replace_Slice;
 
-   -----------
-   -- Round --
-   -----------
+   --------------
+   -- Run_Copy --
+   --------------
 
-   function Round (Length : Natural) return Natural
+   function Run_Copy
+     (Prog  : Program;
+      Left  : Element_Array;
+      Right : Element_Array := Null_Element_Array) return Sequence
    is
-      Times : Natural;
-
+      Result : constant Sequence := To_Sequence (Prog.Result_Length);
    begin
-      if Length = 0 then
-         return 0;
+      Run (Prog, Result.Content.all, Left, Right);
+      return Result;
+   end Run_Copy;
+
+   ------------------
+   -- Run_In_Place --
+   ------------------
+
+   procedure Run_In_Place
+     (Prog  : Program;
+      Left  : in out Sequence;
+      Right : Element_Array := Null_Element_Array)
+   is
+      Old_Contents : Element_Array_Access := Left.Content;
+      New_Contents : Element_Array_Access;
+
+      Old_Alloc : constant Natural := Old_Contents'Length;
+      New_Alloc : constant Natural := Round (Prog.Result_Length);
+   begin
+      if New_Alloc = Old_Alloc then
+         New_Contents := Old_Contents;
+      else
+         New_Contents := Allocate (New_Alloc);
       end if;
 
-      if Length <= Initial_Size then
-         return Initial_Size;
-      end if;
+      Run (Prog, New_Contents.all, Old_Contents (1 .. Left.Length), Right);
+      Left.Length := Prog.Result_Length;
+      Left.Content := New_Contents;
 
-      Times := ((Length - Initial_Size) / Increment_Size) + 1;
-      return Initial_Size + (Increment_Size * Times);
-   end Round;
+      if New_Contents /= Old_Contents and then Old_Contents'Length > 0 then
+         Free (Old_Contents);
+      end if;
+   end Run_In_Place;
+
+   ---------------------
+   -- Sequence_Bounds --
+   ---------------------
+
+   function Sequence_Bounds (S : Sequence) return Bounds is
+   begin
+      return (Lo => 1, Hi => S.Length);
+   end Sequence_Bounds;
 
    ---------
    -- Set --
@@ -899,27 +661,41 @@ package body PolyORB.Sequences.Unbounded is
 
    procedure Set
      (Item   : in out Sequence;
-      Source : in Element_Array) is
+      Source : Element_Array) is
    begin
       Item := To_Sequence (Source);
    end Set;
+
+   ----------------
+   -- Set_Length --
+   ----------------
+
+   procedure Set_Length (Source : in out Sequence; Length : Natural) is
+   begin
+      Run_In_Place
+        (Prog  => Head_Tail
+                    (0,
+                     Sequence_Bounds (Source),
+                     Length,
+                     What             => Head,
+                     Suppress_Padding => True),
+         Left  => Source,
+         Right => Empty_Element_Array);
+   end Set_Length;
 
    -----------
    -- Slice --
    -----------
 
    function Slice
-     (Source : in Sequence;
-      Low    : in Positive;
-      High   : in Natural)
-      return Element_Array is
+     (Source : Sequence;
+      Low    : Positive;
+      High   : Natural) return Element_Array
+   is
    begin
-      if Source.Length < Low
-        or else Source.Length < High
-      then
+      if Low > Source.Length + 1 or else High > Source.Length then
          raise Index_Error;
       end if;
-
       return Source.Content (Low .. High);
    end Slice;
 
@@ -927,71 +703,30 @@ package body PolyORB.Sequences.Unbounded is
    -- To_Element_Array --
    ----------------------
 
-   function To_Element_Array (Source : in Sequence) return Element_Array is
-      Null_Element : Element;
-      pragma Warnings (Off, Null_Element);
-      --  Not initialised explicitly.
+   function To_Element_Array (Source : Sequence) return Element_Array is
    begin
-      if Source.Content /= null then
-         return Source.Content (1 .. Source.Length);
-      else
-         return (1 .. 0 => Null_Element);
-      end if;
+      return Source.Content (1 .. Source.Length);
    end To_Element_Array;
 
    -----------------
    -- To_Sequence --
    -----------------
 
-   function To_Sequence (Source : in Element_Array)
-     return Sequence
-   is
-      Result : Sequence;
-
+   function To_Sequence (Source : Element_Array) return Sequence is
    begin
-      Allocate (Result, Source'Length);
-      Result.Content (1 .. Result.Length) := Source;
-      return Result;
+      return 1 * Source;
    end To_Sequence;
 
    -----------------
    -- To_Sequence --
    -----------------
 
-   function To_Sequence (Length : in Natural)
-     return Sequence
-   is
-      Result : Sequence;
-
+   function To_Sequence (Length : Natural) return Sequence is
    begin
-      Allocate (Result, Length);
-      return Result;
+      return (Ada.Finalization.Controlled with
+              Length  => Length,
+              Content => Allocate (Length));
    end To_Sequence;
-
-   ----------
-   -- Tail --
-   ----------
-
-   function Tail
-     (Source : in Sequence;
-      Count  : in Natural;
-      Pad    : in Element)
-      return Sequence
-   is
-      Result : Sequence;
-
-   begin
-      Allocate (Result, Count);
-
-      Result.Content (Result.Length - Count + 1 .. Result.Length)
-        := Source.Content (Source.Length - Count + 1 .. Source.Length);
-
-      for I in 1 .. Result.Length - Count loop
-         Result.Content (I) := Pad;
-      end loop;
-
-      return Result;
-   end Tail;
 
    ----------
    -- Tail --
@@ -999,11 +734,53 @@ package body PolyORB.Sequences.Unbounded is
 
    procedure Tail
      (Source : in out Sequence;
-      Count  : in Natural;
-      Pad    : in Element) is
+      Count  : Natural;
+      Pad    : Element)
+   is
    begin
-      Source := Tail (Source, Count, Pad);
+      Run_In_Place
+        (Prog => Head_Tail
+           (0,
+            Sequence_Bounds (Source),
+            Count,
+            What => Tail),
+         Left  => Source,
+         Right => Element_Array'(1 => Pad));
    end Tail;
 
-end PolyORB.Sequences.Unbounded;
+   ----------
+   -- Tail --
+   ----------
 
+   function Tail
+     (Source : Sequence;
+      Count  : Natural;
+      Pad    : Element) return Sequence
+   is
+   begin
+      return Run_Copy
+        (Prog => Head_Tail
+           (0,
+            Sequence_Bounds (Source),
+            Count,
+            What => Tail),
+         Left  => Source.Content (1 .. Source.Length),
+         Right => Element_Array'(1 => Pad));
+   end Tail;
+
+   --------------------------
+   -- Unchecked_Element_Of --
+   --------------------------
+
+   function Unchecked_Element_Of
+     (Source : access Sequence;
+      Index  : Positive) return Element_Ptr
+   is
+   begin
+      if Index > Source.Length then
+         raise Index_Error;
+      end if;
+      return Element_Ptr'(Source.Content (Index)'Unrestricted_Access);
+   end Unchecked_Element_Of;
+
+end PolyORB.Sequences.Unbounded;

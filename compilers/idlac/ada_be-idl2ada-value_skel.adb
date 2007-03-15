@@ -31,7 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Idl_Fe.Types;          use Idl_Fe.Types;
 with Idl_Fe.Tree;           use Idl_Fe.Tree;
 with Idl_Fe.Tree.Synthetic; use Idl_Fe.Tree.Synthetic;
 
@@ -139,7 +138,6 @@ package body Ada_Be.Idl2Ada.Value_Skel is
                 & ".Value_Skel.Is_A'Access);");
             NL (CU);
             Divert (CU, Visible_Declarations);
-
 
          when K_Operation =>
 

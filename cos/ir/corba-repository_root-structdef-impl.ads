@@ -1,7 +1,40 @@
-----------------------------------------------
---  This file has been generated automatically
---  by AdaBroker (http://adabroker.eu.org/)
-----------------------------------------------
+------------------------------------------------------------------------------
+--                                                                          --
+--                           POLYORB COMPONENTS                             --
+--                                                                          --
+--                  CORBA.REPOSITORY_ROOT.STRUCTDEF.IMPL                    --
+--                                                                          --
+--                                 S p e c                                  --
+--                                                                          --
+--           Copyright (C) 2006, Free Software Foundation, Inc.             --
+--                                                                          --
+-- This specification is derived from the CORBA Specification, and adapted  --
+-- for use with PolyORB. The copyright notice above, and the license        --
+-- provisions that follow apply solely to the contents neither explicitely  --
+-- nor implicitely specified by the CORBA Specification defined by the OMG. --
+--                                                                          --
+-- PolyORB is free software; you  can  redistribute  it and/or modify it    --
+-- under terms of the  GNU General Public License as published by the  Free --
+-- Software Foundation;  either version 2,  or (at your option)  any  later --
+-- version. PolyORB is distributed  in the hope that it will be  useful,    --
+-- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
+-- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
+-- License  for more details.  You should have received  a copy of the GNU  --
+-- General Public License distributed with PolyORB; see file COPYING. If    --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
+--                                                                          --
+-- As a special exception,  if other files  instantiate  generics from this --
+-- unit, or you link  this unit with other files  to produce an executable, --
+-- this  unit  does not  by itself cause  the resulting  executable  to  be --
+-- covered  by the  GNU  General  Public  License.  This exception does not --
+-- however invalidate  any other reasons why  the executable file  might be --
+-- covered by the  GNU Public License.                                      --
+--                                                                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
+--                                                                          --
+------------------------------------------------------------------------------
 
 with CORBA.Repository_Root.Container;
 with CORBA.Repository_Root.Contained;
@@ -47,7 +80,7 @@ package CORBA.Repository_Root.StructDef.Impl is
    --  Set the members attribute while putting the "type" field
    --  of the member to TC_Void
    procedure Initialize_Members (Self : access Object;
-                                 Seq : in StructMemberSeq);
+                                 Seq : StructMemberSeq);
 
    --  overload the get_type from IDLType
    function get_type
@@ -60,159 +93,159 @@ package CORBA.Repository_Root.StructDef.Impl is
 
    procedure set_members
      (Self : access Object;
-      To : in CORBA.Repository_Root.StructMemberSeq);
+      To : CORBA.Repository_Root.StructMemberSeq);
 
    function lookup
      (Self : access Object;
-      search_name : in CORBA.ScopedName)
+      search_name : CORBA.ScopedName)
      return CORBA.Repository_Root.Contained.Ref;
 
    function contents
      (Self : access Object;
-      limit_type : in CORBA.Repository_Root.DefinitionKind;
-      exclude_inherited : in CORBA.Boolean)
+      limit_type : CORBA.Repository_Root.DefinitionKind;
+      exclude_inherited : CORBA.Boolean)
      return CORBA.Repository_Root.ContainedSeq;
 
    function lookup_name
      (Self : access Object;
-      search_name : in CORBA.Identifier;
-      levels_to_search : in CORBA.Long;
-      limit_type : in CORBA.Repository_Root.DefinitionKind;
-      exclude_inherited : in CORBA.Boolean)
+      search_name : CORBA.Identifier;
+      levels_to_search : CORBA.Long;
+      limit_type : CORBA.Repository_Root.DefinitionKind;
+      exclude_inherited : CORBA.Boolean)
      return CORBA.Repository_Root.ContainedSeq;
 
    function describe_contents
      (Self : access Object;
-      limit_type : in CORBA.Repository_Root.DefinitionKind;
-      exclude_inherited : in CORBA.Boolean;
-      max_returned_objs : in CORBA.Long)
+      limit_type : CORBA.Repository_Root.DefinitionKind;
+      exclude_inherited : CORBA.Boolean;
+      max_returned_objs : CORBA.Long)
      return CORBA.Repository_Root.Container.DescriptionSeq;
 
    function create_module
      (Self : access Object;
-      id : in CORBA.RepositoryId;
-      name : in CORBA.Identifier;
-      version : in CORBA.Repository_Root.VersionSpec)
+      id : CORBA.RepositoryId;
+      name : CORBA.Identifier;
+      version : CORBA.Repository_Root.VersionSpec)
      return CORBA.Repository_Root.ModuleDef_Forward.Ref;
 
    function create_constant
      (Self : access Object;
-      id : in CORBA.RepositoryId;
-      name : in CORBA.Identifier;
-      version : in CORBA.Repository_Root.VersionSpec;
-      IDL_type : in CORBA.Repository_Root.IDLType_Forward.Ref;
-      value : in CORBA.Any)
+      id : CORBA.RepositoryId;
+      name : CORBA.Identifier;
+      version : CORBA.Repository_Root.VersionSpec;
+      IDL_type : CORBA.Repository_Root.IDLType_Forward.Ref;
+      value : CORBA.Any)
      return CORBA.Repository_Root.ConstantDef_Forward.Ref;
 
    function create_struct
      (Self : access Object;
-      id : in CORBA.RepositoryId;
-      name : in CORBA.Identifier;
-      version : in CORBA.Repository_Root.VersionSpec;
-      members : in CORBA.Repository_Root.StructMemberSeq)
+      id : CORBA.RepositoryId;
+      name : CORBA.Identifier;
+      version : CORBA.Repository_Root.VersionSpec;
+      members : CORBA.Repository_Root.StructMemberSeq)
      return CORBA.Repository_Root.StructDef_Forward.Ref;
 
    function create_union
      (Self : access Object;
-      id : in CORBA.RepositoryId;
-      name : in CORBA.Identifier;
-      version : in CORBA.Repository_Root.VersionSpec;
-      discriminator_type : in CORBA.Repository_Root.IDLType_Forward.Ref;
-      members : in CORBA.Repository_Root.UnionMemberSeq)
+      id : CORBA.RepositoryId;
+      name : CORBA.Identifier;
+      version : CORBA.Repository_Root.VersionSpec;
+      discriminator_type : CORBA.Repository_Root.IDLType_Forward.Ref;
+      members : CORBA.Repository_Root.UnionMemberSeq)
      return CORBA.Repository_Root.UnionDef_Forward.Ref;
 
    function create_enum
      (Self : access Object;
-      id : in CORBA.RepositoryId;
-      name : in CORBA.Identifier;
-      version : in CORBA.Repository_Root.VersionSpec;
-      members : in CORBA.Repository_Root.EnumMemberSeq)
+      id : CORBA.RepositoryId;
+      name : CORBA.Identifier;
+      version : CORBA.Repository_Root.VersionSpec;
+      members : CORBA.Repository_Root.EnumMemberSeq)
      return CORBA.Repository_Root.EnumDef_Forward.Ref;
 
    function create_alias
      (Self : access Object;
-      id : in CORBA.RepositoryId;
-      name : in CORBA.Identifier;
-      version : in CORBA.Repository_Root.VersionSpec;
-      original_type : in CORBA.Repository_Root.IDLType_Forward.Ref)
+      id : CORBA.RepositoryId;
+      name : CORBA.Identifier;
+      version : CORBA.Repository_Root.VersionSpec;
+      original_type : CORBA.Repository_Root.IDLType_Forward.Ref)
      return CORBA.Repository_Root.AliasDef_Forward.Ref;
 
    function create_interface
      (Self : access Object;
-      id : in CORBA.RepositoryId;
-      name : in CORBA.Identifier;
-      version : in CORBA.Repository_Root.VersionSpec;
-      base_interfaces : in CORBA.Repository_Root.InterfaceDefSeq;
-      is_abstract : in CORBA.Boolean)
+      id : CORBA.RepositoryId;
+      name : CORBA.Identifier;
+      version : CORBA.Repository_Root.VersionSpec;
+      base_interfaces : CORBA.Repository_Root.InterfaceDefSeq;
+      is_abstract : CORBA.Boolean)
      return CORBA.Repository_Root.InterfaceDef_Forward.Ref;
 
    function create_value
      (Self : access Object;
-      id : in CORBA.RepositoryId;
-      name : in CORBA.Identifier;
-      version : in CORBA.Repository_Root.VersionSpec;
-      is_custom : in CORBA.Boolean;
-      is_abstract : in CORBA.Boolean;
-      base_value : in CORBA.Repository_Root.ValueDef_Forward.Ref;
-      is_truncatable : in CORBA.Boolean;
-      abstract_base_values : in CORBA.Repository_Root.ValueDefSeq;
-      supported_interfaces : in CORBA.Repository_Root.InterfaceDefSeq;
-      initializers : in CORBA.Repository_Root.InitializerSeq)
+      id : CORBA.RepositoryId;
+      name : CORBA.Identifier;
+      version : CORBA.Repository_Root.VersionSpec;
+      is_custom : CORBA.Boolean;
+      is_abstract : CORBA.Boolean;
+      base_value : CORBA.Repository_Root.ValueDef_Forward.Ref;
+      is_truncatable : CORBA.Boolean;
+      abstract_base_values : CORBA.Repository_Root.ValueDefSeq;
+      supported_interfaces : CORBA.Repository_Root.InterfaceDefSeq;
+      initializers : CORBA.Repository_Root.InitializerSeq)
      return CORBA.Repository_Root.ValueDef_Forward.Ref;
 
    function create_value_box
      (Self : access Object;
-      id : in CORBA.RepositoryId;
-      name : in CORBA.Identifier;
-      version : in CORBA.Repository_Root.VersionSpec;
-      original_type_def : in CORBA.Repository_Root.IDLType_Forward.Ref)
+      id : CORBA.RepositoryId;
+      name : CORBA.Identifier;
+      version : CORBA.Repository_Root.VersionSpec;
+      original_type_def : CORBA.Repository_Root.IDLType_Forward.Ref)
      return CORBA.Repository_Root.ValueBoxDef_Forward.Ref;
 
    function create_exception
      (Self : access Object;
-      id : in CORBA.RepositoryId;
-      name : in CORBA.Identifier;
-      version : in CORBA.Repository_Root.VersionSpec;
-      members : in CORBA.Repository_Root.StructMemberSeq)
+      id : CORBA.RepositoryId;
+      name : CORBA.Identifier;
+      version : CORBA.Repository_Root.VersionSpec;
+      members : CORBA.Repository_Root.StructMemberSeq)
      return CORBA.Repository_Root.ExceptionDef_Forward.Ref;
 
    function create_native
      (Self : access Object;
-      id : in CORBA.RepositoryId;
-      name : in CORBA.Identifier;
-      version : in CORBA.Repository_Root.VersionSpec)
+      id : CORBA.RepositoryId;
+      name : CORBA.Identifier;
+      version : CORBA.Repository_Root.VersionSpec)
      return CORBA.Repository_Root.NativeDef_Forward.Ref;
 
    function create_abstract_interface
      (Self            : access Object;
-      id              : in     RepositoryId;
-      name            : in     Identifier;
-      version         : in     VersionSpec;
-      base_interfaces : in     AbstractInterfaceDefSeq)
+      id              : RepositoryId;
+      name            : Identifier;
+      version         : VersionSpec;
+      base_interfaces : AbstractInterfaceDefSeq)
       return AbstractInterfaceDef_Forward.Ref;
 
    function create_local_interface
      (Self            : access Object;
-      id              : in     RepositoryId;
-      name            : in     Identifier;
-      version         : in     VersionSpec;
-      base_interfaces : in     InterfaceDefSeq)
+      id              : RepositoryId;
+      name            : Identifier;
+      version         : VersionSpec;
+      base_interfaces : InterfaceDefSeq)
       return LocalInterfaceDef_Forward.Ref;
 
 --  Implementation Notes: create_ext_value commented out because of error
 --  in idlac/ALM (see CORBA_InterfaceRepository.idl)
 --   function create_ext_value
 --     (Self                 : access Object;
---      id                   : in RepositoryId;
---      name                 : in Identifier;
---      version              : in VersionSpec;
---      is_custom            : in CORBA.Boolean;
---      is_abstract          : in CORBA.Boolean;
---      base_value           : in ValueDef_Forward.Ref;
---      is_truncatable       : in CORBA.Boolean;
---      abstract_base_values : in ValueDefSeq;
---      supported_interfaces : in InterfaceDefSeq;
---      initializers         : in ExtInitializerSeq)
+--      id                   : RepositoryId;
+--      name                 : Identifier;
+--      version              : VersionSpec;
+--      is_custom            : CORBA.Boolean;
+--      is_abstract          : CORBA.Boolean;
+--      base_value           : ValueDef_Forward.Ref;
+--      is_truncatable       : CORBA.Boolean;
+--      abstract_base_values : ValueDefSeq;
+--      supported_interfaces : InterfaceDefSeq;
+--      initializers         : ExtInitializerSeq)
 --      return ExtValueDef_Forward.Ref;
 
 private
@@ -223,4 +256,3 @@ private
    end record;
 
 end CORBA.Repository_Root.StructDef.Impl;
-

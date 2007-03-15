@@ -1,5 +1,5 @@
 corba_dir = @IDLAC@
-dsa_dir   =
+dsa_dir   = gnatdist
 moma_dir  =
 giop_dir  =
 soap_dir  = gnatprfh 

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
@@ -21,8 +21,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -52,38 +52,38 @@ package RTPortableServer.POA is
    --  attached ThreadPoolPolicy doest not match the priority
    --  parameter.
 
-   type Local_Ref is new PortableServer.POA.Ref with private;
+   type Local_Ref is new PortableServer.POA.Local_Ref with private;
 
    function Create_Reference_With_Priority
-     (Self      : in Local_Ref;
-      Intf      : in CORBA.RepositoryId;
-      Priority  : in RTCORBA.Priority)
+     (Self      : Local_Ref;
+      Intf      : CORBA.RepositoryId;
+      Priority  : RTCORBA.Priority)
      return CORBA.Object.Ref;
 
    function Create_Reference_With_Id_And_Priority
-     (Self      : in Local_Ref;
-      Oid       : in PortableServer.ObjectId;
-      Intf      : in CORBA.RepositoryId;
-      Priority  : in RTCORBA.Priority)
+     (Self      : Local_Ref;
+      Oid       : PortableServer.ObjectId;
+      Intf      : CORBA.RepositoryId;
+      Priority  : RTCORBA.Priority)
      return CORBA.Object.Ref;
 
    function Activate_Object_With_Priority
-     (Self       : in Local_Ref;
-      P_Servant  : in PortableServer.Servant;
-      Priority   : in RTCORBA.Priority)
+     (Self       : Local_Ref;
+      P_Servant  : PortableServer.Servant;
+      Priority   : RTCORBA.Priority)
      return PortableServer.ObjectId;
 
    procedure Activate_Object_With_Id_And_Priority
-     (Self      : in Local_Ref;
-      Oid       : in PortableServer.ObjectId;
-      P_Servant : in PortableServer.Servant;
-      Priority  : in RTCORBA.Priority);
+     (Self      : Local_Ref;
+      Oid       : PortableServer.ObjectId;
+      P_Servant : PortableServer.Servant;
+      Priority  : RTCORBA.Priority);
 
    Repository_Id : constant Standard.String
      := "IDL:omg.org/RTPortableServer/POA:1.0";
 
 private
 
-   type Local_Ref is new PortableServer.POA.Ref with null record;
+   type Local_Ref is new PortableServer.POA.Local_Ref with null record;
 
 end RTPortableServer.POA;

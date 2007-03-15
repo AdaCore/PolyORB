@@ -6,11 +6,44 @@ COS_DIRS=$(top_builddir)/idls/cos/event
 
 COS_ADAFLAGS = -I$(COS_DIRS)
 
+IDLS = \
+	CosEventChannelAdmin.idl \
+	CosEventComm.idl \
+	CosTypedEventChannelAdmin.idl \
+	CosTypedEventComm.idl
+
+IDLAC_FLAGS = -s -I$(top_srcdir)/idls/cos/event
+
+vpath %.idl $(top_srcdir)/idls/cos/event
+vpath %.ads $(COS_DIRS)
+vpath %.adb $(COS_DIRS)
+
 #
 # Building libpolyorb-corba-cos-event-impl library
 #
 
+GEN_SPECS_WITH_BODY = \
+	coseventchanneladmin-consumeradmin-skel.ads \
+	coseventchanneladmin-eventchannel-skel.ads \
+	coseventchanneladmin-proxypullconsumer-skel.ads \
+	coseventchanneladmin-proxypullsupplier-skel.ads \
+	coseventchanneladmin-proxypushconsumer-skel.ads \
+	coseventchanneladmin-proxypushsupplier-skel.ads \
+	coseventchanneladmin-supplieradmin-skel.ads \
+	coseventcomm-pullconsumer-skel.ads \
+	coseventcomm-pullsupplier-skel.ads \
+	coseventcomm-pushconsumer-skel.ads \
+	coseventcomm-pushsupplier-skel.ads \
+	costypedeventchanneladmin-typedconsumeradmin-skel.ads \
+	costypedeventchanneladmin-typedeventchannel-skel.ads \
+	costypedeventchanneladmin-typedproxypullsupplier-skel.ads \
+	costypedeventchanneladmin-typedproxypushconsumer-skel.ads \
+	costypedeventchanneladmin-typedsupplieradmin-skel.ads \
+	costypedeventcomm-typedpullsupplier-skel.ads \
+	costypedeventcomm-typedpushconsumer-skel.ads
+
 ADA_SPECS_WITH_BODY = \
+	$(GEN_SPECS_WITH_BODY) \
 	coseventchanneladmin-consumeradmin-impl.ads \
 	coseventchanneladmin-eventchannel-impl.ads \
 	coseventchanneladmin-proxypullconsumer-impl.ads \

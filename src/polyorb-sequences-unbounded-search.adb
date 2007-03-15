@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2002 Free Software Foundation, Inc.             --
+--         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -38,15 +38,14 @@ package body PolyORB.Sequences.Unbounded.Search is
    -----------
 
    function Count
-     (Haystack : in Sequence;
-      Needle   : in Needle_Type)
-     return Natural
+     (Haystack : Sequence;
+      Needle   : Needle_Type) return Natural
    is
       Times  : Natural := 0;
 
    begin
       for Index in 1 .. Haystack.Length loop
-         if Match (Haystack.Content (Index), Needle) then
+         if Match (Get_Element (Haystack, Index), Needle) then
             Times := Times + 1;
          end if;
       end loop;
@@ -61,8 +60,7 @@ package body PolyORB.Sequences.Unbounded.Search is
    function Index
      (Haystack : PolyORB.Sequences.Unbounded.Sequence;
       Needle   : Needle_Type;
-      Going    : Direction := Forward)
-     return Natural
+      Going    : Direction := Forward) return Natural
    is
       Shift  : Integer;
       From   : Natural;
@@ -83,9 +81,10 @@ package body PolyORB.Sequences.Unbounded.Search is
          To    := 1;
       end if;
 
-      --  There is at least one pass because Haystack.Length /= 0.
+      --  There is at least one pass because Haystack.Length /= 0
+
       loop
-         if Match (Haystack.Content (From), Needle) then
+         if Match (Get_Element (Haystack, From), Needle) then
             return From;
          end if;
          exit when From = To;
@@ -93,25 +92,32 @@ package body PolyORB.Sequences.Unbounded.Search is
       end loop;
 
       --  No match
+
       return 0;
+
    end Index;
 
    ------------------
    -- Sub_Sequence --
    ------------------
+
    function Sub_Sequence
      (Haystack : Sequence;
-      Needle   : Needle_Type)
-      return Sequence
+      Needle   : Needle_Type) return Sequence
    is
       Result : Sequence := Null_Sequence;
    begin
       for Index in 1 .. Haystack.Length loop
-         if Match (Haystack.Content (Index), Needle) then
-            Append (Result, Haystack.Content (Index));
-         end if;
+         declare
+            El : Element renames Get_Element (Haystack, Index);
+         begin
+            if Match (El, Needle) then
+               Append (Result, El);
+            end if;
+         end;
       end loop;
 
       return Result;
    end Sub_Sequence;
+
 end PolyORB.Sequences.Unbounded.Search;

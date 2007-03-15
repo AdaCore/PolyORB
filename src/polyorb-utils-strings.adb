@@ -46,4 +46,56 @@ package body PolyORB.Utils.Strings is
       return new Standard.String'(S);
    end "+";
 
+   ----------------
+   -- To_Boolean --
+   ----------------
+
+   function To_Boolean (V : String) return Boolean is
+      VV : constant String := PolyORB.Utils.To_Lower (V);
+
+   begin
+      if VV'Length > 0 then
+         case VV (VV'First) is
+            when '0' | 'n' =>
+               return False;
+
+            when '1' | 'y' =>
+               return True;
+
+            when 'o' =>
+               if VV = "off" then
+                  return False;
+
+               elsif VV = "on" then
+                  return True;
+               end if;
+
+            when 'd' =>
+               if VV = "disable" then
+                  return False;
+               end if;
+
+            when 'e' =>
+               if VV = "enable" then
+                  return True;
+               end if;
+
+            when 'f' =>
+               if VV = "false" then
+                  return False;
+               end if;
+
+            when 't' =>
+               if VV = "true" then
+                  return True;
+               end if;
+
+            when others =>
+               null;
+         end case;
+      end if;
+
+      raise Constraint_Error;
+   end To_Boolean;
+
 end PolyORB.Utils.Strings;

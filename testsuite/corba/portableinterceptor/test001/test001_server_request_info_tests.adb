@@ -60,7 +60,7 @@ package body Test001_Server_Request_Info_Tests is
    begin
       --  XXX Not yet implemented in ServerRequestInfo
 
-      Output (Point, Operation, False, " (NO TEST)");
+      Output (Point, Operation, Pass_Not_Implemented, " (NO TEST)");
    end Test_Adapter_Id;
 
    -----------------------
@@ -78,7 +78,7 @@ package body Test001_Server_Request_Info_Tests is
    begin
       --  XXX Not yet implemented in ServerRequestInfo
 
-      Output (Point, Operation, False, " (NO TEST)");
+      Output (Point, Operation, Pass_Not_Implemented, " (NO TEST)");
    end Test_Adapter_Name;
 
    ------------------------------------
@@ -127,7 +127,7 @@ package body Test001_Server_Request_Info_Tests is
             Members : System_Exception_Members;
          begin
             Get_Members (E, Members);
-            if Members.Minor = 3 then
+            if Members.Minor = OMGVMCID + 3 then
                Output (Point, Operation, True, " (INV_POLICY)");
             else
                Output (Point, Operation, False);
@@ -170,7 +170,7 @@ package body Test001_Server_Request_Info_Tests is
             Members : System_Exception_Members;
          begin
             Get_Members (E, Members);
-            if not Valid and then Members.Minor = 14 then
+            if not Valid and then Members.Minor = OMGVMCID + 14 then
                Output (Point, Operation, True);
             else
                Output (Point, Operation, False);
@@ -185,7 +185,7 @@ package body Test001_Server_Request_Info_Tests is
             if Valid
               and then (Point = Send_Exception
                           or else Point = Send_Other)
-              and then Members.Minor = 1
+              and then Members.Minor = OMGVMCID + 1
             then
                Output (Point, Operation, True, " (NO_RESOURCES)");
             else
@@ -225,7 +225,7 @@ package body Test001_Server_Request_Info_Tests is
             Members : System_Exception_Members;
          begin
             Get_Members (E, Members);
-            if not Valid and then Members.Minor = 14 then
+            if not Valid and then Members.Minor = OMGVMCID + 14 then
                Output (Point, Operation, True);
             else
                Output (Point, Operation, False);
@@ -266,7 +266,7 @@ package body Test001_Server_Request_Info_Tests is
 
          begin
             Get_Members (E, Members);
-            if not Valid and then Members.Minor = 14 then
+            if not Valid and then Members.Minor = OMGVMCID + 14 then
                Output (Point, Operation, True);
             else
                Output (Point, Operation, False);
@@ -305,7 +305,7 @@ package body Test001_Server_Request_Info_Tests is
             Members : System_Exception_Members;
          begin
             Get_Members (E, Members);
-            if not Valid and then Members.Minor = 14 then
+            if not Valid and then Members.Minor = OMGVMCID + 14 then
                Output (Point, Operation, True);
             else
                Output (Point, Operation, False);
@@ -327,7 +327,7 @@ package body Test001_Server_Request_Info_Tests is
       Operation : constant String := "set_slot";
 
    begin
-      Set_Slot (Info, 100, Get_Empty_Any (TC_Null));
+      Set_Slot (Info, 100, CORBA.Internals.Get_Empty_Any (TC_Null));
       --  Operation must raise InvalidSlot exception because slot is not
       --  allocated. The slot allocation, Get_Slot/Set_Slot Requests and
       --  PICurrent operations tested in test002.
@@ -376,7 +376,7 @@ package body Test001_Server_Request_Info_Tests is
             Members : System_Exception_Members;
          begin
             Get_Members (E, Members);
-            if not Valid and then Members.Minor = 14 then
+            if not Valid and then Members.Minor = OMGVMCID + 14 then
                Output (Point, Operation, True);
             else
                Output (Point, Operation, False);
@@ -417,7 +417,7 @@ package body Test001_Server_Request_Info_Tests is
 
          begin
             Get_Members (E, Members);
-            if not Valid and then Members.Minor = 14 then
+            if not Valid and then Members.Minor = OMGVMCID + 14 then
                Output (Point, Operation, True);
             else
                Output (Point, Operation, False);

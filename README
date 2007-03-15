@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---         Copyright (C) 1999-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 1999-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -76,18 +76,20 @@ just-in-time creation of proxies between incompatible environments
 Installation
 ------------
 
-See INSTALL file for more details on supported platforms and
-installation process.
+See INSTALL file for more details on supported platforms and installation
+process.
 
 Documentation overview
 ----------------------
 
-FEATURES    : List PolyORB's features.
+README      : This file, first instructions.
 INSTALL     : Detail PolyORB installation process.
 NEWS        : Detail updates between PolyORB's releases.
-README      : This file, first instructions.
+              Includes listing of new features, fixed bugs and incompatible
+              changes in each release.
+FEATURES    : List PolyORB's features.
 src/ROADMAP : Overview of PolyORB source code.
-doc/*       : Documents describing PolyORB internals, including
+docs/*      : Documents describing PolyORB internals, including
               PolyORB User's Guide.
 
 Usage of PolyORB
@@ -116,7 +118,7 @@ e-mail at the address
 
 	polyorb-bugs@lists.adacore.com
 
-Please use the Problem Report Form in doc/PROBLEM-REPORT-FORM.
+Please use the Problem Report Form in docs/PROBLEM-REPORT-FORM.
 
 If you are interested in becoming a supported PolyORB user, you should
 send an email to sales@adacore.com.
@@ -140,6 +142,7 @@ contributors:
 * Nicolas Archambault
 * Fabien Azavant
 * Benjamin Bagland
+* Khaled Barbaria
 * Emmanuel Chavane
 * Karim Chine
 * Jean-Marie Cottin
@@ -157,16 +160,19 @@ contributors:
 * Laurent Kubler
 * Lionel Litty
 * Vincent Niebel
+* Pablo Oliveira
 * Pierre Palatin
 * Bertrand Paquet
 * Laurent Pautet
 * Sebastien Ponce
-* Jerome Roussel
 * Thomas Quinot
 * Nicolas Roche
+* Jerome Roussel
 * Nicolas Setton
 * Frank Singhoff 
 * Samuel Tardieu
+* Selvaratnam Senthuran 
 * Thomas Vergnaud
 * Florian Villoing
 * Guillaume Wisniewski
+* Bechir Zalila

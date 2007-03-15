@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -52,26 +52,26 @@ package PolyORB.Object_Maps.System is
 
    function Add
      (O_Map : access System_Object_Map;
-      Obj   : in     Object_Map_Entry_Access)
+      Obj   : Object_Map_Entry_Access)
      return Integer;
    --  Adds a new entry in the map, returning its index.
 
    procedure Add
      (O_Map : access System_Object_Map;
-      Obj   : in     Object_Map_Entry_Access;
-      Index : in     Integer);
+      Obj   : Object_Map_Entry_Access;
+      Index : Integer);
    --  Adds a new entry in the map at the given index.
 
    function Get_By_Id
-     (O_Map : in System_Object_Map;
-      Item  : in PolyORB.POA_Types.Unmarshalled_Oid)
+     (O_Map : System_Object_Map;
+      Item  : PolyORB.POA_Types.Unmarshalled_Oid)
      return Object_Map_Entry_Access;
    --  Given an Object_Id, look up the corresponding map entry.
    --  If not found, returns null.
 
    function Get_By_Servant
-     (O_Map  : in System_Object_Map;
-      Item   : in PolyORB.Servants.Servant_Access)
+     (O_Map  : System_Object_Map;
+      Item   : PolyORB.Servants.Servant_Access)
      return Object_Map_Entry_Access;
    --  Given a servant, looks for the corresponding map entry
    --  Doesn't check that the servant is only once in the map
@@ -79,7 +79,7 @@ package PolyORB.Object_Maps.System is
 
    function Remove_By_Id
      (O_Map : access System_Object_Map;
-      Item  : in     PolyORB.POA_Types.Unmarshalled_Oid)
+      Item  : PolyORB.POA_Types.Unmarshalled_Oid)
      return Object_Map_Entry_Access;
    --  Given an Object_Id, removes an entry from the map
    --  and returns it . A null value means

@@ -111,6 +111,15 @@ package body PolyORB.Transport is
       Destroy (TE.Upper);
    end Destroy;
 
+   -------------
+   -- Destroy --
+   -------------
+
+   procedure Destroy (TE : in out Transport_Endpoint_Access) is
+   begin
+      Components.Destroy (Components.Component_Access (TE));
+   end Destroy;
+
    ----------------
    -- Notepad_Of --
    ----------------

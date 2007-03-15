@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,13 +26,15 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Implementation of POSIX-like mutexes with full Ada
---  tasking. More comments can be found at polyorb-tasking-mutexes
+--  Implementation of POSIX-like mutexes with full Ada tasking.
+--  This variant uses GNAT-specific library facilities.
+
+with System.Task_Primitives;
 
 with PolyORB.Tasking.Mutexes;
 
@@ -71,11 +73,11 @@ package PolyORB.Tasking.Profiles.Full_Tasking.Mutexes is
 
 private
 
-   type Mutex_PO;
-   type Mutex_PO_Access is access Mutex_PO;
+   subtype Mutex_Lock is System.Task_Primitives.Lock;
+   type Mutex_Lock_Access is access Mutex_Lock;
 
    type Full_Tasking_Mutex_Type is new PTM.Mutex_Type with record
-      The_PO : Mutex_PO_Access;
+      The_Lock : Mutex_Lock_Access;
    end record;
 
    type Full_Tasking_Mutex_Factory_Type is

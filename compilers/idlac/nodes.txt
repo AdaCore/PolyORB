@@ -13,7 +13,7 @@
 --
 --    Accessors will have the name Field and Set_Field.
 --
---  $Id: //droopi/main/compilers/idlac/nodes.txt#12 $
+--  $Id$
 --
 
 START
@@ -64,23 +64,30 @@ Module <-- Forward
   Imported : Boolean
 
 Interface <-- Imports
-  Parents : Node_List
-  --  The ancestors of this interface.
+  Parents  : Node_List
+  --  The ancestors of this interface
   Contents : Node_List
-  Forward : Node_Id
-  Abst : Boolean
-  Local : Boolean
+  --  The declarations of this interface
+  Forward  : Node_Id
+  --  Forward declaration (if any) of this interface
+  Abst     : Boolean
+  --  Abstract interface
+  Local    : Boolean
+  --  Locality-constrained interface
+  Has_Non_Implicit_Inherited_Operations : Boolean := False
+  --  Set when this interface has operations for which stub bodies are
+  --  actually generated.
 
 Forward_Interface <-- Named
   Forward : Node_Id
-  --  After an IDL file is correctly parsed,
-  --  Forward designates the actual interface
-  --  corresponding to this forward declaration.
-  --  The Name and Parent_Scope of the forward
-  --  declaration must then be retrieved from
-  --  the actual declaration's Definition.
+  --  Actual interface corresponding to this forward declaration (set during
+  --  semantic analysis of the complete declaration).
+  --  The Name and Parent_Scope of the forward declaration must then be
+  --  retrieved from the full declaration's Definition
   Abst : Boolean
+  --  Abstract interface
   Local : Boolean
+  --  Locality-constrained interface
 
 ValueType <-- Imports
   Parents : Node_List
@@ -121,10 +128,9 @@ Operation <-- Scope
   Raises : Node_List
   Contexts : Node_List
   Is_Explicit_Self : Boolean := False
-  --  Determines whether the argument that determines the
-  --  target object for this operation is listed explicitly
-  --  in Parameters. Normally False for the standard
-  --  IDL -> Ada mapping. Intended for implementation of
+  --  Determines whether the argument that determines the target object for
+  --  this operation is listed explicitly in Parameters. Normally False for
+  --  the standard IDL -> Ada mapping. Intended for implementation of
   --  distributed objects in DSA personality.
   Is_Implicit_Inherited : Boolean := False
   --  Expansion attribute: this operation is inherited from
@@ -331,12 +337,10 @@ Ben_Idl_File <-- Scope
 
 Sequence_Instance <-- Named
   Sequence : Node_Id
-  --  The Sequence node for which this instance was
-  --  created.
+  --  The Sequence node for which this instance was created
 
 String_Instance <-- Named
-  --  An instance of CORBA.Bounded_Strings
-  --  or CORBA.Bounded_Wide_Strings
+  --  An instance of CORBA.Bounded_Strings or CORBA.Bounded_Wide_Strings
   Bound : Node_Id
   Is_Wide : Boolean
 

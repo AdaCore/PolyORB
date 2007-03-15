@@ -6,9 +6,12 @@ corba_exe=
 dsa_exe=client server
 moma_exe=
 
-EXAMPLE_GNATMAKE_FLAGS=-I$(srcdir) -I$(DSA_SRC)
+EXAMPLE_GNATMAKE_FLAGS=-I$(srcdir) -I$(top_builddir)/src/dsa -I$(DSA_SRC)
 server_FLAGS=	-Aserver.stubs
 client_FLAGS=	-Aclient.stubs
+
+polyorb-partition_elaboration.ali polyorb-partition_elaboration.o: polyorb-partition_elaboration.adb $(DSA_SRC)/polyorb-partition_elaboration.ads
+	$(GNATMAKE_FOR_TARGET) -u $(srcdir)/polyorb-partition_elaboration.adb $(GNATMAKE_FLAGS)
 
 rt.ali rt.o: rt.ads
 	$(GNATMAKE_FOR_TARGET) -u $(srcdir)/rt.ads $(GNATMAKE_FLAGS)
@@ -40,8 +43,8 @@ clean: clean-stubs clean-am
 clean-stubs:
 	rm -fr server.stubs client.stubs
 
-server: server.stubs/rci.ali server.stubs/polyorb-dsa_p-partitions.ali rt.ali matrices.ali
-client: client.stubs/rci.ali client.stubs/polyorb-dsa_p-partitions.ali rt.ali matrices.ali
+server: server.stubs/rci.ali server.stubs/polyorb-dsa_p-partitions.ali rt.ali matrices.ali polyorb-partition_elaboration.ali
+client: client.stubs/rci.ali client.stubs/polyorb-dsa_p-partitions.ali rt.ali matrices.ali polyorb-partition_elaboration.ali
 
 dsa-dummy.ads: ;
 

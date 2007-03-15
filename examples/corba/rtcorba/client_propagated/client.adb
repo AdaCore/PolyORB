@@ -48,46 +48,34 @@ with PolyORB.RTCORBA_P.Setup;
 --  Begin of PolyORB's setup
 
 with PolyORB.ORB.Thread_Pool;
-pragma Elaborate_All (PolyORB.ORB.Thread_Pool);
 pragma Warnings (Off, PolyORB.ORB.Thread_Pool);
 
 with PolyORB.Setup.Server;
-pragma Elaborate_All (PolyORB.Setup.Server);
 pragma Warnings (Off, PolyORB.Setup.Server);
 
 with PolyORB.ORB_Controller.Half_Sync_Half_Async;
 pragma Warnings (Off, PolyORB.ORB_Controller.Half_Sync_Half_Async);
-pragma Elaborate_All (PolyORB.ORB_Controller.Half_Sync_Half_Async);
 
 with PolyORB.Tasking.Profiles.Full_Tasking.Threads.Dynamic_Priorities;
-pragma Elaborate_All
-  (PolyORB.Tasking.Profiles.Full_Tasking.Threads.Dynamic_Priorities);
 pragma Warnings
   (Off, PolyORB.Tasking.Profiles.Full_Tasking.Threads.Dynamic_Priorities);
 
 with PolyORB.Tasking.Profiles.Full_Tasking.Threads;
-pragma Elaborate_All (PolyORB.Tasking.Profiles.Full_Tasking.Threads);
 pragma Warnings (Off, PolyORB.Tasking.Profiles.Full_Tasking.Threads);
 
 with PolyORB.Tasking.Profiles.Full_Tasking.Threads.Annotations;
-pragma Elaborate_All
-  (PolyORB.Tasking.Profiles.Full_Tasking.Threads.Annotations);
 pragma Warnings
   (Off, PolyORB.Tasking.Profiles.Full_Tasking.Threads.Annotations);
 
 with PolyORB.Tasking.Profiles.Full_Tasking.Mutexes;
-pragma Elaborate_All (PolyORB.Tasking.Profiles.Full_Tasking.Mutexes);
 pragma Warnings (Off, PolyORB.Tasking.Profiles.Full_Tasking.Mutexes);
 
 with PolyORB.Tasking.Profiles.Full_Tasking.Condition_Variables;
-pragma Elaborate_All
-  (PolyORB.Tasking.Profiles.Full_Tasking.Condition_Variables);
 pragma Warnings
   (Off, PolyORB.Tasking.Profiles.Full_Tasking.Condition_Variables);
 
-with PolyORB.Request_QoS.Priority;
-pragma Elaborate_All (PolyORB.Request_QoS.Priority);
-pragma Warnings (Off, PolyORB.Request_QoS.Priority);
+with PolyORB.QoS.Priority;
+pragma Warnings (Off, PolyORB.QoS.Priority);
 
 --  End of PolyORB's setup
 

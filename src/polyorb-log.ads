@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -67,6 +67,11 @@ package PolyORB.Log is
       --  to resume normal operation.
       );
 
+   --  Generic package providing logging support for one facility.
+   --  Note: the user is responsible for ensuring that the lifetime of any
+   --  instance of the generic is no less than that of library package
+   --  PolyORB.Log.
+
    generic
       Facility :  String;
    package Facility_Log is
@@ -74,10 +79,15 @@ package PolyORB.Log is
       --  NOTE: these procedures are not thread safe.
 
       procedure Output
-        (Message : in String;
+        (Message : String;
          Level   : Log_Level := Debug);
-      --  Log Message when Level is at least equal to the user-requested
-      --  level for Facility.
+      --  Log Message when Level is at least equal to the user-requested level
+      --  for Facility.
+
+      function Enabled (Level : Log_Level := Debug) return Boolean;
+      pragma Inline (Enabled);
+      --  True when Level is at least equal to the user-requested level
+      --  for Facility.
 
    end Facility_Log;
 
@@ -87,18 +97,6 @@ package PolyORB.Log is
 
    Log_Section       : constant String    := "log";
    Default_Log_Level : constant Log_Level := Notice;
-
-   type Configuration_Hook is access
-     function (Section, Key, Default : String)
-              return String;
-
-   Get_Conf_Hook : Configuration_Hook := null;
-   --  When a configuration subsystem is initialized, it may
-   --  set this pointer to a function allowing the logging subsystem
-   --  to retrieve the logging level associated with a given
-   --  facility. The configuration values must be in the
-   --  section named by Log_Section, and the keys used are
-   --  the facility names.
 
    package Internals is
 
@@ -113,5 +111,13 @@ package PolyORB.Log is
       Log_Hook : Log_Hook_T;
 
    end Internals;
+
+private
+
+   procedure Flush;
+   --  During early initialization (before the logging and configuration
+   --  modules are properly initialized), messages are stored in a buffer.
+   --  This procedure is called when logging is initialized to process
+   --  buffered messages.
 
 end PolyORB.Log;

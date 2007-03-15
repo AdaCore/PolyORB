@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2004 Free Software Foundation, Inc.             --
+--         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -53,7 +53,7 @@ package body CORBA.PolicyManager is
 
    function Is_A
      (Self            : access Object;
-      Logical_Type_Id : in     Standard.String)
+      Logical_Type_Id : Standard.String)
      return Boolean
    is
       pragma Unreferenced (Self);
@@ -72,8 +72,8 @@ package body CORBA.PolicyManager is
    --------------------------
 
    function Get_Policy_Overrides
-     (Self : in Local_Ref;
-      TS   : in CORBA.Policy.PolicyTypeSeq)
+     (Self : Local_Ref;
+      TS   : CORBA.Policy.PolicyTypeSeq)
      return CORBA.Policy.PolicyList
    is
       Self_Ref : CORBA.Object.Ref := CORBA.Object.Ref (Self);
@@ -88,7 +88,7 @@ package body CORBA.PolicyManager is
 
    function Get_Policy_Overrides
      (Self : access Object;
-      TS   : in     CORBA.Policy.PolicyTypeSeq)
+      TS   : CORBA.Policy.PolicyTypeSeq)
      return CORBA.Policy.PolicyList
    is
       Npad   : Notepad_Access;
@@ -113,9 +113,9 @@ package body CORBA.PolicyManager is
    --------------------------
 
    procedure Set_Policy_Overrides
-     (Self     : in Local_Ref;
-      Policies : in CORBA.Policy.PolicyList;
-      Set_Add  : in SetOverrideType)
+     (Self     : Local_Ref;
+      Policies : CORBA.Policy.PolicyList;
+      Set_Add  : SetOverrideType)
    is
       Self_Ref : CORBA.Object.Ref := CORBA.Object.Ref (Self);
 
@@ -129,8 +129,8 @@ package body CORBA.PolicyManager is
 
    procedure Set_Policy_Overrides
      (Self     : access Object;
-      Policies : in     CORBA.Policy.PolicyList;
-      Set_Add  : in     CORBA.SetOverrideType)
+      Policies : CORBA.Policy.PolicyList;
+      Set_Add  : CORBA.SetOverrideType)
    is
       Npad    : Notepad_Access;
       Note    : Policy_Manager_Note;
@@ -195,5 +195,6 @@ begin
        Depends   => +"corba.initial_references",
        Provides  => Empty,
        Implicit  => False,
-       Init      => Deferred_Initialization'Access));
+       Init      => Deferred_Initialization'Access,
+       Shutdown  => null));
 end CORBA.PolicyManager;

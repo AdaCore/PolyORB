@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -33,10 +33,8 @@
 
 with Ada.Unchecked_Deallocation;
 
-with PolyORB.Components;
 with PolyORB.Log;
 with PolyORB.ORB.Iface;
-with PolyORB.Requests;
 with PolyORB.Servants.Iface;
 with PolyORB.Setup;
 
@@ -49,8 +47,11 @@ package body PolyORB.POA_Manager.Basic_Manager is
 
    package L is new PolyORB.Log.Facility_Log
      ("polyorb.poa_manager.basic_manager");
-   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+   procedure O (Message : Standard.String; Level : Log_Level := Debug)
      renames L.Output;
+   function C (Level : Log_Level := Debug) return Boolean
+     renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    procedure Do_Wait_For_Completion  (Self : access Basic_POA_Manager);
    --  Wait for completion
@@ -114,7 +115,7 @@ package body PolyORB.POA_Manager.Basic_Manager is
 
    procedure Hold_Requests
      (Self                : access Basic_POA_Manager;
-      Wait_For_Completion :        Boolean;
+      Wait_For_Completion : Boolean;
       Error               : in out PolyORB.Errors.Error_Container)
    is
    begin
@@ -360,7 +361,6 @@ package body PolyORB.POA_Manager.Basic_Manager is
    --------------
 
    procedure Finalize (Self : in out Basic_POA_Manager) is
-      use PolyORB.Requests;
       use Requests_Queues;
       use POA_Lists;
 
@@ -423,14 +423,13 @@ package body PolyORB.POA_Manager.Basic_Manager is
    ---------------------
 
    function Execute_Servant
-     (Obj : access Hold_Servant;
-      Msg :        PolyORB.Components.Message'Class)
-     return PolyORB.Components.Message'Class
+     (Obj : not null access Hold_Servant;
+      Msg : Components.Message'Class) return Components.Message'Class
    is
       use Requests_Queues;
 
       S            : constant Hold_Servant_Access := Hold_Servant_Access (Obj);
-      Null_Message : PolyORB.Components.Null_Message;
+      Null_Message : Components.Null_Message;
 
    begin
       if Msg in Execute_Request then

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -66,20 +66,18 @@ package PolyORB.Protocols is
       Session :    out Filter_Access)
       is abstract;
    --  Create a Session for protocol Proto using filter Lower.
-   --  Request_Watcher should not be created here, it will
-   --  be positioned by the thread policy, if necessary.
 
    --------------------------------------------------
    -- Primitives needed with some tasking policies --
    --------------------------------------------------
 
    procedure Set_Task_Info
-     (S : in Session_Access;
+     (S : Session_Access;
       N :    PolyORB.Annotations.Notepad_Access);
    --  Set the notes associated with session
 
    function Get_Task_Info
-     (S : in Session_Access)
+     (S : Session_Access)
       return PolyORB.Annotations.Notepad_Access;
    --  Return the notes  associated with session.
 
@@ -129,8 +127,11 @@ package PolyORB.Protocols is
       is abstract;
    --  Invoked when some data arrives for session S.
 
-   procedure Handle_Disconnect (S : access Session) is abstract;
-   --  Invoked when the underlying connection is closed.
+   procedure Handle_Disconnect
+     (S : access Session; Error : Errors.Error_Container) is abstract;
+   --  Invoked when the underlying connection is closed. Any pending request
+   --  must be marked as completed, and the corresponding target reference
+   --  must be unbound.
 
    procedure Handle_Unmarshall_Arguments
      (S     : access Session;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -31,21 +31,17 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with MOMA.Destinations;
 with MOMA.Messages;
-with PolyORB.MOMA_P.Provider.Topic_Datas;
 
 with PolyORB.Any.NVList;
 with PolyORB.Errors;
 with PolyORB.Log;
-with PolyORB.Requests;
 with PolyORB.Types;
 
 package body PolyORB.MOMA_P.Provider.Routers is
 
    use MOMA.Destinations;
    use MOMA.Messages;
-   use PolyORB.MOMA_P.Provider.Topic_Datas;
 
    use PolyORB.Any;
    use PolyORB.Log;
@@ -53,8 +49,11 @@ package body PolyORB.MOMA_P.Provider.Routers is
    use PolyORB.Types;
 
    package L is new PolyORB.Log.Facility_Log ("moma.provider.routers");
-   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+   procedure O (Message : Standard.String; Level : Log_Level := Debug)
      renames L.Output;
+   function C (Level : Log_Level := Debug) return Boolean
+     renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    --  Actual functions implemented by the servant.
 
@@ -121,6 +120,24 @@ package body PolyORB.MOMA_P.Provider.Routers is
      return PolyORB.MOMA_P.Provider.Topic_Datas.Destination_List.List;
    --  Return a copy of the list Self.Routers.List.
 
+   Message_S : constant PolyORB.Types.Identifier
+     := To_PolyORB_String ("Message");
+
+   Result_S : constant PolyORB.Types.Identifier
+     := To_PolyORB_String ("Result");
+
+   From_Router_Id_S : constant PolyORB.Types.Identifier
+     := To_PolyORB_String ("From_Router_Id");
+
+   Router_S : constant PolyORB.Types.Identifier
+     := To_PolyORB_String ("Router");
+
+   Topic_S  : constant PolyORB.Types.Identifier
+     := To_PolyORB_String ("Topic");
+
+   Pool_S : constant PolyORB.Types.Identifier
+     := To_PolyORB_String ("Pool");
+
    ----------------
    -- Add_Router --
    ----------------
@@ -178,14 +195,14 @@ package body PolyORB.MOMA_P.Provider.Routers is
       or else  Method = "Route" then
          PolyORB.Any.NVList.Add_Item
             (Result,
-             (Name      => To_PolyORB_String ("Message"),
+             (Name      => Message_S,
               Argument  => PolyORB.Any.Get_Empty_Any
                               (MOMA.Messages.TC_MOMA_Message),
               Arg_Modes => PolyORB.Any.ARG_IN));
          if Method = "Route" then
             PolyORB.Any.NVList.Add_Item
                (Result,
-                (Name      => To_PolyORB_String ("From_Router_Id"),
+                (Name      => From_Router_Id_S,
                  Argument  => PolyORB.Any.Get_Empty_Any
                               (TypeCode.TC_String),
                  Arg_Modes => PolyORB.Any.ARG_IN));
@@ -194,22 +211,23 @@ package body PolyORB.MOMA_P.Provider.Routers is
       elsif Method = "Register" then
          PolyORB.Any.NVList.Add_Item
             (Result,
-             (Name      => To_PolyORB_String ("Router"),
+             (Name      => Router_S,
               Argument  => PolyORB.Any.Get_Empty_Any
                               (MOMA.Destinations.TC_MOMA_Destination),
               Arg_Modes => PolyORB.Any.ARG_IN));
 
       elsif Method = "Subscribe"
-      or else Method = "Unsubscribe" then
+        or else Method = "Unsubscribe"
+      then
          PolyORB.Any.NVList.Add_Item
             (Result,
-             (Name      => To_PolyORB_String ("Topic"),
+             (Name      => Topic_S,
               Argument  => PolyORB.Any.Get_Empty_Any
                               (MOMA.Destinations.TC_MOMA_Destination),
               Arg_Modes => PolyORB.Any.ARG_IN));
          PolyORB.Any.NVList.Add_Item
             (Result,
-             (Name      => To_PolyORB_String ("Pool"),
+             (Name      => Pool_S,
               Argument  => PolyORB.Any.Get_Empty_Any
                               (MOMA.Destinations.TC_MOMA_Destination),
               Arg_Modes => PolyORB.Any.ARG_IN));
@@ -432,12 +450,12 @@ package body PolyORB.MOMA_P.Provider.Routers is
 
       PolyORB.Any.NVList.Add_Item
         (Arg_List,
-         To_PolyORB_String ("Router"),
+         Router_S,
          To_Any (Destination),
          PolyORB.Any.ARG_IN);
 
       Result
-        := (Name      => To_PolyORB_String ("Result"),
+        := (Name      => Result_S,
             Argument  => PolyORB.Any.Get_Empty_Any
             (MOMA.Destinations.TC_MOMA_Destination),
             Arg_Modes => 0);
@@ -473,18 +491,18 @@ package body PolyORB.MOMA_P.Provider.Routers is
 
       PolyORB.Any.NVList.Add_Item
         (Arg_List,
-         To_PolyORB_String ("Message"),
+         Message_S,
          Message,
          PolyORB.Any.ARG_IN);
 
       PolyORB.Any.NVList.Add_Item
         (Arg_List,
-         To_PolyORB_String ("From_Router_Id"),
+         From_Router_Id_S,
          PolyORB.Any.To_Any (PolyORB.Types.String (Get_Id (Self.all))),
          PolyORB.Any.ARG_IN);
 
       Result
-        := (Name      => To_PolyORB_String ("Result"),
+        := (Name      => Result_S,
             Argument  => PolyORB.Any.Get_Empty_Any (PolyORB.Any.TC_Void),
             Arg_Modes => 0);
 
@@ -537,12 +555,12 @@ package body PolyORB.MOMA_P.Provider.Routers is
 
       PolyORB.Any.NVList.Add_Item
         (Arg_List,
-         To_PolyORB_String ("Message"),
+         Message_S,
          Message,
          PolyORB.Any.ARG_IN);
 
       Result
-        := (Name      => To_PolyORB_String ("Result"),
+        := (Name      => Result_S,
             Argument  => PolyORB.Any.Get_Empty_Any (PolyORB.Any.TC_Void),
             Arg_Modes => 0);
 

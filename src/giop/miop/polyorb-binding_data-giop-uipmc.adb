@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -34,23 +34,18 @@
 --  Binding data concrete implementation for MIOP.
 
 with PolyORB.Binding_Data.GIOP.INET;
-with PolyORB.Binding_Objects;
-with PolyORB.Filters.MIOP.MIOP_Out;
 with PolyORB.GIOP_P.Tagged_Components;
+with PolyORB.GIOP_P.Transport_Mechanisms.UIPMC;
 with PolyORB.Initialization;
 with PolyORB.Log;
 with PolyORB.MIOP_P.Tagged_Components;
-with PolyORB.MIOP_P.Groups;
-with PolyORB.ORB;
 with PolyORB.Obj_Adapters;
 with PolyORB.Parameters;
-with PolyORB.Protocols.GIOP.UIPMC;
 with PolyORB.References.Corbaloc;
 with PolyORB.References.IOR;
 with PolyORB.Servants;
 with PolyORB.Servants.Group_Servants;
-with PolyORB.Transport.Datagram.Sockets_Out;
-with PolyORB.Transport.Datagram.Sockets_In;
+with PolyORB.Sockets;
 with PolyORB.Utils.Strings;
 with PolyORB.Utils.Sockets;
 
@@ -59,19 +54,22 @@ with PolyORB.Setup.UIPMC;
 package body PolyORB.Binding_Data.GIOP.UIPMC is
 
    use PolyORB.Binding_Data.GIOP.INET;
+   use PolyORB.GIOP_P.Transport_Mechanisms;
+   use PolyORB.GIOP_P.Transport_Mechanisms.UIPMC;
    use PolyORB.Log;
    use PolyORB.Objects;
    use PolyORB.MIOP_P.Groups;
    use PolyORB.References.Corbaloc;
    use PolyORB.References.IOR;
-   use PolyORB.Transport.Datagram.Sockets_Out;
-   use PolyORB.Transport.Datagram.Sockets_In;
    use PolyORB.Types;
 
    package L is new PolyORB.Log.Facility_Log
      ("polyorb.binding_data.giop.uipmc");
-   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+   procedure O (Message : Standard.String; Level : Log_Level := Debug)
      renames L.Output;
+   function C (Level : Log_Level := Debug) return Boolean
+     renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    UIPMC_Corbaloc_Prefix : constant String := "miop";
 
@@ -81,76 +79,6 @@ package body PolyORB.Binding_Data.GIOP.UIPMC is
 
    function Profile_To_Corbaloc (P : Profile_Access) return String;
    function Corbaloc_To_Profile (Str : String) return Profile_Access;
-
-   ------------------
-   -- Bind_Profile --
-   ------------------
-
-   Mou : aliased PolyORB.Filters.MIOP.MIOP_Out.MIOP_Out_Factory;
-   Pro : aliased PolyORB.Protocols.GIOP.UIPMC.UIPMC_Protocol;
-
-   MIOP_Factories : constant PolyORB.Filters.Factory_Array
-     := (0 => Mou'Access, 1 => Pro'Access);
-
-   procedure Bind_Profile
-     (Profile :     UIPMC_Profile_Type;
-      The_ORB :     Components.Component_Access;
-      BO_Ref  : out Smart_Pointers.Ref;
-      Error   : out Errors.Error_Container)
-   is
-      use PolyORB.Components;
-      use PolyORB.Errors;
-      use PolyORB.Filters;
-      use PolyORB.ORB;
-      use PolyORB.Parameters;
-      use PolyORB.Protocols;
-      use PolyORB.Protocols.GIOP.UIPMC;
-      use PolyORB.Sockets;
-
-      Sock        : Socket_Type;
-      Remote_Addr : constant Sock_Addr_Type := Profile.Address;
-      TTL         : constant Natural
-        := Natural (Get_Conf ("miop", "polyorb.miop.ttl", Default_TTL));
-
-      TE          : constant Transport.Transport_Endpoint_Access
-        := new Socket_Out_Endpoint;
-
-   begin
-      pragma Debug (O ("Bind UIPMC profile: enter"));
-
-      Create_Socket (Socket => Sock,
-                     Family => Family_Inet,
-                     Mode => Socket_Datagram);
-
-      Set_Socket_Option
-        (Sock,
-         Socket_Level,
-         (Reuse_Address, True));
-
-      Set_Socket_Option
-        (Sock,
-         IP_Protocol_For_IP_Level,
-         (Multicast_TTL, TTL));
-
-      Create (Socket_Out_Endpoint (TE.all), Sock, Remote_Addr);
-
-      Set_Allocation_Class (TE.all, Dynamic);
-
-      Binding_Objects.Setup_Binding_Object
-        (ORB.ORB_Access (The_ORB),
-         TE,
-         MIOP_Factories,
-         ORB.Client,
-         BO_Ref);
-
-      pragma Debug (O ("Bind UIPMC profile: leave"));
-
-   exception
-      when Sockets.Socket_Error =>
-         Throw (Error, Comm_Failure_E,
-                System_Exception_Members'
-                (Minor => 0, Completed => Completed_Maybe));
-   end Bind_Profile;
 
    ---------------------
    -- Get_Profile_Tag --
@@ -191,8 +119,12 @@ package body PolyORB.Binding_Data.GIOP.UIPMC is
    is
       pragma Unreferenced (ORB);
 
+      MF : constant Transport_Mechanism_Factory_Access
+        := new UIPMC_Transport_Mechanism_Factory;
+
    begin
-      PF.Address := Address_Of (Socket_In_Access_Point (TAP.all));
+      Create_Factory (MF.all, TAP);
+      Append (PF.Mechanisms, MF);
    end Create_Factory;
 
    --------------------
@@ -245,8 +177,15 @@ package body PolyORB.Binding_Data.GIOP.UIPMC is
          TResult.Version_Major := UIPMC_Version_Major;
          TResult.Version_Minor := UIPMC_Version_Minor;
          TResult.Object_Id     := Oid_Access;
-         TResult.Address       := PF.Address;
          TResult.Components    := Null_Tagged_Component_List;
+
+         --  Create transport mechanism
+
+         Append
+           (TResult.Mechanisms,
+            Create_Transport_Mechanism
+            (UIPMC_Transport_Mechanism_Factory
+             (Element (PF.Mechanisms, 0).all.all)));
 
          TC_G_I.G_I := To_Group_Info (Oid_Access);
          TResult.G_I := TC_G_I.G_I'Access;
@@ -254,26 +193,32 @@ package body PolyORB.Binding_Data.GIOP.UIPMC is
          --  Add specific tagged component of type Tag_Group
 
          Add (TResult.Components, Tagged_Component_Access (TC_G_I));
+
          return Result;
       end;
-
    end Create_Profile;
 
-   ----------------------
-   -- Is_Local_Profile --
-   ----------------------
+   -----------------------
+   -- Duplicate_Profile --
+   -----------------------
 
-   function Is_Local_Profile
-     (PF : access UIPMC_Profile_Factory;
-      P  : access Profile_Type'Class)
-      return Boolean
-   is
-      use type PolyORB.Sockets.Sock_Addr_Type;
+   function Duplicate_Profile (P : UIPMC_Profile_Type) return Profile_Access is
+      Result : constant Profile_Access := new UIPMC_Profile_Type;
+
+      TResult : UIPMC_Profile_Type renames UIPMC_Profile_Type (Result.all);
 
    begin
-      return P.all in UIPMC_Profile_Type
-        and then UIPMC_Profile_Type (P.all).Address = PF.Address;
-   end Is_Local_Profile;
+      TResult.Version_Major := P.Version_Major;
+      TResult.Version_Minor := P.Version_Minor;
+      TResult.Object_Id     := new Object_Id'(P.Object_Id.all);
+      TResult.Components    :=
+        PolyORB.GIOP_P.Tagged_Components.Deep_Copy (P.Components);
+      TResult.Mechanisms    := Deep_Copy (P.Mechanisms);
+      TResult.G_I           :=
+        new PolyORB.MIOP_P.Groups.Group_Info'(P.G_I.all);
+
+      return Result;
+   end Duplicate_Profile;
 
    ---------------------------------
    -- Marshall_UIPMC_Profile_Body --
@@ -285,7 +230,12 @@ package body PolyORB.Binding_Data.GIOP.UIPMC is
    is
    begin
       Common_Marshall_Profile_Body
-        (Buf, Profile, UIPMC_Profile_Type (Profile.all).Address, False);
+        (Buf,
+         Profile,
+         Address_Of
+         (UIPMC_Transport_Mechanism
+          (Element (UIPMC_Profile_Type (Profile.all).Mechanisms, 0).all.all)),
+         False);
    end Marshall_UIPMC_Profile_Body;
 
    -----------------------------------
@@ -299,16 +249,22 @@ package body PolyORB.Binding_Data.GIOP.UIPMC is
       use PolyORB.GIOP_P.Tagged_Components;
       use PolyORB.MIOP_P.Tagged_Components;
 
-      Result  : Profile_Access := new UIPMC_Profile_Type;
-      TResult : UIPMC_Profile_Type renames UIPMC_Profile_Type (Result.all);
-
-      Temp_Ref       : Tagged_Component_Access;
+      Result   : Profile_Access := new UIPMC_Profile_Type;
+      TResult  : UIPMC_Profile_Type renames UIPMC_Profile_Type (Result.all);
+      Address  : Sockets.Sock_Addr_Type;
+      Temp_Ref : Tagged_Component_Access;
 
    begin
       pragma Debug (O ("Unmarshall_UIPMC_Profile_body: enter"));
 
       Common_Unmarshall_Profile_Body
-        (Buffer, Result, TResult.Address, False, True);
+        (Buffer, Result, Address, False, True);
+
+      --  Create transport mechanism
+
+      Append
+        (UIPMC_Profile_Type (Result.all).Mechanisms,
+         Create_Transport_Mechanism (Address));
 
       if TResult.Version_Major /= UIPMC_Version_Major then
          Destroy_Profile (Result);
@@ -346,7 +302,6 @@ package body PolyORB.Binding_Data.GIOP.UIPMC is
       use PolyORB.GIOP_P.Tagged_Components;
       use PolyORB.MIOP_P.Tagged_Components;
       use PolyORB.Sockets;
-      use PolyORB.Types;
       use PolyORB.Utils;
 
       UIPMC_Profile : UIPMC_Profile_Type
@@ -370,12 +325,16 @@ package body PolyORB.Binding_Data.GIOP.UIPMC is
             return "";
          end if;
 
-         return UIPMC_Corbaloc_Prefix &
-           Trimmed_Image (Integer (UIPMC_Profile.Version_Major)) & "."
-           & Trimmed_Image (Integer (UIPMC_Profile.Version_Minor)) & "@"
+         return UIPMC_Corbaloc_Prefix
+           & ":" & Trimmed_Image (Unsigned_Long_Long
+                                  (UIPMC_Profile.Version_Major)) & "."
+           & Trimmed_Image (Unsigned_Long_Long
+                            (UIPMC_Profile.Version_Minor)) & "@"
            & S & "/"
-           & Image (UIPMC_Profile.Address.Addr) & ":"
-           & Trimmed_Image (Integer (UIPMC_Profile.Address.Port));
+           & Image
+           (Address_Of
+            (UIPMC_Transport_Mechanism
+             (Element (UIPMC_Profile.Mechanisms, 0).all.all)));
       end;
    end Profile_To_Corbaloc;
 
@@ -386,13 +345,13 @@ package body PolyORB.Binding_Data.GIOP.UIPMC is
    function Corbaloc_To_Profile (Str : String) return Profile_Access is
       use PolyORB.GIOP_P.Tagged_Components;
       use PolyORB.MIOP_P.Tagged_Components;
-      use PolyORB.Types;
       use PolyORB.Utils;
       use PolyORB.Utils.Sockets;
 
       Result  : Profile_Access := new UIPMC_Profile_Type;
       TResult : UIPMC_Profile_Type
         renames UIPMC_Profile_Type (Result.all);
+      Address : Sockets.Sock_Addr_Type;
       S       : String renames Str;
       Index   : Integer := S'First;
       Index2  : Integer;
@@ -450,15 +409,17 @@ package body PolyORB.Binding_Data.GIOP.UIPMC is
          return null;
       end if;
       pragma Debug (O ("Address = " & S (Index .. Index2 - 1)));
-      TResult.Address.Addr := String_To_Addr
-        (To_PolyORB_String (S (Index .. Index2 - 1)));
+      Address.Addr := String_To_Addr (S (Index .. Index2 - 1));
       Index := Index2 + 1;
 
       pragma Debug (O ("Port = " & S (Index .. S'Last)));
-      TResult.Address.Port
-        := PolyORB.Sockets.Port_Type'Value (S (Index .. S'Last));
+      Address.Port := PolyORB.Sockets.Port_Type'Value (S (Index .. S'Last));
 
       TResult.Object_Id := To_Object_Id (TResult.G_I.all);
+
+      --  Create transport mechanism
+
+      Append (TResult.Mechanisms, Create_Transport_Mechanism (Address));
 
       pragma Debug (O ("UIPMC corbaloc to profile: leave"));
       return Result;
@@ -475,12 +436,17 @@ package body PolyORB.Binding_Data.GIOP.UIPMC is
    begin
       if Prof.G_I /= null then
          return "Address : "
-           & Image (Prof.Address)
+           & Image
+           (Address_Of
+            (UIPMC_Transport_Mechanism
+             (Element (Prof.Mechanisms, 0).all.all)))
            & ", Group : "
            & Image (Prof.G_I.all);
       else
          return "Address : "
-           & Image (Prof.Address)
+           & Image (Address_Of
+           (UIPMC_Transport_Mechanism
+            (Element (Prof.Mechanisms, 0).all.all)))
            & ", no group information";
       end if;
    end Image;
@@ -514,7 +480,10 @@ package body PolyORB.Binding_Data.GIOP.UIPMC is
          Default => "0");
 
    begin
-      Preference := Preference_Default + Profile_Preference'Value
+      --  XXX we impose a slight preference penalty to UIPMC to favor IIOP
+      --  by default. See F501-004.
+
+      Preference := Preference_Default - 1 + Profile_Preference'Value
         (Preference_Offset);
       Register
        (Tag_UIPMC,
@@ -539,5 +508,6 @@ begin
        Depends   => +"sockets",
        Provides  => +"binding_factories",
        Implicit  => False,
-       Init      => Initialize'Access));
+       Init      => Initialize'Access,
+       Shutdown  => null));
 end PolyORB.Binding_Data.GIOP.UIPMC;

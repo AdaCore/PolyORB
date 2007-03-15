@@ -1,31 +1,34 @@
 ------------------------------------------------------------------------------
---                              Ada Web Server                              --
 --                                                                          --
---                         Copyright (C) 2000-2002                          --
---                                ACT-Europe                                --
+--                           POLYORB COMPONENTS                             --
 --                                                                          --
---  Authors: Dmitriy Anisimkov - Pascal Obry                                --
+--                A W S . C O N T A I N E R S . T A B L E S                 --
 --                                                                          --
---  This library is free software; you can redistribute it and/or modify    --
---  it under the terms of the GNU General Public License as published by    --
---  the Free Software Foundation; either version 2 of the License, or (at   --
---  your option) any later version.                                         --
+--                                 S p e c                                  --
 --                                                                          --
---  This library is distributed in the hope that it will be useful, but     --
---  WITHOUT ANY WARRANTY; without even the implied warranty of              --
---  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU       --
---  General Public License for more details.                                --
+--         Copyright (C) 2000-2007, Free Software Foundation, Inc.          --
 --                                                                          --
---  You should have received a copy of the GNU General Public License       --
---  along with this library; if not, write to the Free Software Foundation, --
---  Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.          --
+-- PolyORB is free software; you  can  redistribute  it and/or modify it    --
+-- under terms of the  GNU General Public License as published by the  Free --
+-- Software Foundation;  either version 2,  or (at your option)  any  later --
+-- version. PolyORB is distributed  in the hope that it will be  useful,    --
+-- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
+-- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
+-- License  for more details.  You should have received  a copy of the GNU  --
+-- General Public License distributed with PolyORB; see file COPYING. If    --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
---  As a special exception, if other files instantiate generics from this   --
---  unit, or you link this unit with other files to produce an executable,  --
---  this  unit  does not  by itself cause  the resulting executable to be   --
---  covered by the GNU General Public License. This exception does not      --
---  however invalidate any other reasons why the executable file  might be  --
---  covered by the  GNU Public License.                                     --
+-- As a special exception,  if other files  instantiate  generics from this --
+-- unit, or you link  this unit with other files  to produce an executable, --
+-- this  unit  does not  by itself cause  the resulting  executable  to  be --
+-- covered  by the  GNU  General  Public  License.  This exception does not --
+-- however invalidate  any other reasons why  the executable file  might be --
+-- covered by the  GNU Public License.                                      --
+--                                                                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
+--                                                                          --
 ------------------------------------------------------------------------------
 
 with Ada.Strings.Unbounded;
@@ -33,6 +36,7 @@ with Ada.Strings.Unbounded;
 with GNAT.Dynamic_Tables;
 
 with Table_Of_Strings_And_Static_Values_G;
+pragma Elaborate_All (Table_Of_Strings_And_Static_Values_G);
 
 package AWS.Containers.Tables is
 
@@ -47,58 +51,58 @@ package AWS.Containers.Tables is
    type VString_Array is array (Positive range <>)
      of Ada.Strings.Unbounded.Unbounded_String;
 
-   function Count (Table : in Table_Type) return Natural;
+   function Count (Table : Table_Type) return Natural;
    --  Returns the number of item in Table.
 
-   function Name_Count (Table : in Table_Type) return Natural;
+   function Name_Count (Table : Table_Type) return Natural;
    --  Returns the number of unique key name in Table.
 
-   function Count (Table : in Table_Type; Name : in String) return Natural;
+   function Count (Table : Table_Type; Name : String) return Natural;
    --  Returns the number of value for Key Name in Table. It returns
    --  0 if Key does not exist.
 
-   function Exist (Table : in Table_Type; Name : in String) return Boolean;
+   function Exist (Table : Table_Type; Name : String) return Boolean;
    --  Returns True if Key exist in Table.
 
    function Get
-     (Table : in Table_Type;
-      Name  : in String;
-      N     : in Positive := 1)
+     (Table : Table_Type;
+      Name  : String;
+      N     : Positive := 1)
       return String;
    --  Returns the Nth value associated with Key into Table. Returns
    --  the emptry string if key does not exist.
 
    function Get_Name
-     (Table : in Table_Type;
-      N     : in Positive := 1)
+     (Table : Table_Type;
+      N     : Positive := 1)
       return String;
    --  Returns the Nth Name in Table or the empty string if there is
    --  no parameter with this number.
 
    function Get_Value
-     (Table : in Table_Type;
-      N     : in Positive := 1)
+     (Table : Table_Type;
+      N     : Positive := 1)
       return String;
    --  Returns the Nth Value in Table or the empty string if there is
    --  no parameter with this number.
 
    function Get
-     (Table : in Table_Type;
-      N     : in Positive)
+     (Table : Table_Type;
+      N     : Positive)
       return Element;
    --  Return N'th name/value pair.
 
    function Get_Names
-     (Table : in Table_Type;
-      Sort  : in Boolean := False)
+     (Table : Table_Type;
+      Sort  : Boolean := False)
       return VString_Array;
    --  Returns array of unique key names. If Sort is True, the returned names
    --  array is sorted in alphabetical order. This is of course slightly
    --  slower than returning unsorted results.
 
    function Get_Values
-     (Table : in Table_Type;
-      Name  : in String)
+     (Table : Table_Type;
+      Name  : String)
       return VString_Array;
    --  Returns all values for the specified parameter key name.
 
@@ -147,9 +151,9 @@ private
    end record;
 
    function Internal_Get
-     (Table : in Table_Type;
-      Name  : in String;
-      N     : in Natural)
+     (Table : Table_Type;
+      Name  : String;
+      N     : Natural)
       return String;
    pragma Inline (Internal_Get);
    --  Returns the Nth value associated with Key into Table. Returns
@@ -157,7 +161,7 @@ private
    --  the values as inserted in the tree for Key.
 
    function Normalize_Name
-     (Name : in String; To_Upper : in Boolean)
+     (Name : String; To_Upper : Boolean)
       return String;
    --  Returns Name in upper case if To_Upper is set to True and it returns
    --  Name unchanged otherwise.

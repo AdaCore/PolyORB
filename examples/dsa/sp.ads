@@ -44,5 +44,3 @@ package SP is
 
    Shared_Record : Shared_Record_T;
 end SP;
-
-

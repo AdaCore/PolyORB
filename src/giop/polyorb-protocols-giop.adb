@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -31,21 +31,17 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Streams;
-
 with PolyORB.Annotations;
-with PolyORB.Binding_Data;
-with PolyORB.Buffers;
 with PolyORB.Components;
+with PolyORB.Errors.Helper;
 with PolyORB.Protocols.GIOP.Common;
 with PolyORB.GIOP_P.Exceptions;
 with PolyORB.Log;
-with PolyORB.ORB;
 with PolyORB.Parameters;
+with PolyORB.References.Binding;
 with PolyORB.Representations.CDR.Common;
 with PolyORB.Representations.CDR.GIOP_Utils;
 with PolyORB.Servants.Iface;
-with PolyORB.Types;
 
 package body PolyORB.Protocols.GIOP is
 
@@ -58,20 +54,19 @@ package body PolyORB.Protocols.GIOP is
    use PolyORB.Representations.CDR;
    use PolyORB.Representations.CDR.Common;
    use PolyORB.Representations.CDR.GIOP_Utils;
+   use PolyORB.Tasking.Mutexes;
    use PolyORB.Types;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.protocols.giop");
-   procedure O (Message : in String; Level : Log_Level := Debug)
+   procedure O (Message : String; Level : Log_Level := Debug)
      renames L.Output;
+   function C (Level : Log_Level := Debug) return Boolean
+     renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
-   type GIOP_Implem_Desc is record
-      Func    : GIOP_Create_Implem_Func;
-      Version : GIOP_Version;
-   end record;
-
-   GIOP_Implem_List : array (1 .. Max_GIOP_Implem) of GIOP_Implem_Desc;
-
-   Nb_Implem : Natural range  0 .. Max_GIOP_Implem := 0;
+   GIOP_Factories : array (GIOP_Version) of GIOP_Factory;
+   --  It is assumed this array is written once at initialization
+   --  time, read many during partition lifetime, no mutex is required.
 
    ------------
    -- Create --
@@ -97,11 +92,11 @@ package body PolyORB.Protocols.GIOP is
 
    procedure Initialize
      (Conf                  : access GIOP_Conf;
-      Version               : in     GIOP_Version;
-      Permitted_Sync_Scopes : in     PolyORB.Requests.Flags;
-      Locate_Then_Request   : in     Boolean;
-      Section               : in     String;
-      Prefix                : in     String)
+      Version               : GIOP_Version;
+      Permitted_Sync_Scopes : PolyORB.Requests.Flags;
+      Locate_Then_Request   : Boolean;
+      Section               : String;
+      Prefix                : String)
    is
       use PolyORB.Parameters;
       use PolyORB.Utils;
@@ -114,57 +109,37 @@ package body PolyORB.Protocols.GIOP is
       pragma Debug (O ("Permitted sync scope" & Permitted_Sync_Scopes'Img));
       Conf.Permitted_Sync_Scopes := Permitted_Sync_Scopes;
 
-      Conf.GIOP_Def_Ver.Minor :=
-        Types.Octet
+      Conf.GIOP_Def_Ver := To_GIOP_Version
         (Get_Conf
          (Section,
           Prefix & ".default_version.minor",
-          Integer (Version.Minor)));
+          Integer (To_Minor_GIOP (Version))));
 
-      Conf.GIOP_Def_Ver.Major :=
-        Types.Octet
-        (Get_Conf
-         (Section,
-          Prefix & ".default_version.major",
-          Integer (Version.Major)));
+      for J in GIOP_Version'Range loop
+         if Get_Conf
+           (Section,
+            Prefix & ".1." &
+            Trimmed_Image (Unsigned_Long_Long (To_Minor_GIOP (J)))
+            & ".enable",
+            True)
+           and then GIOP_Factories (J) /= null
+         then
+            pragma Debug (O ("Enable GIOP Version : 1."
+                             & Trimmed_Image (Unsigned_Long_Long
+                                              (To_Minor_GIOP (J)))));
 
-      for J in 1 .. Nb_Implem loop
-         if Get_Conf (Section,
-                      Prefix
-                      & "."
-                      & Trimmed_Image
-                      (Integer (GIOP_Implem_List (J).Version.Major))
-                      & "."
-                      & Trimmed_Image
-                      (Integer (GIOP_Implem_List (J).Version.Minor))
-                      & ".enable", True) then
+            Conf.GIOP_Implems (J) := GIOP_Factories (J).all;
+            Conf.GIOP_Implems (J).Version := J;
+            Conf.GIOP_Implems (J).Section := To_PolyORB_String (Section);
+            Conf.GIOP_Implems (J).Prefix := To_PolyORB_String (Prefix);
 
-            pragma Debug (O ("Enable GIOP Version : "
-                             & GIOP_Implem_List (J).Version.Major'Img
-                             & "."
-                             & GIOP_Implem_List (J).Version.Minor'Img));
+            Initialize_Implem (Conf.GIOP_Implems (J));
 
-            Conf.Nb_Implem := Conf.Nb_Implem + 1;
-
-            declare
-               Impl : constant GIOP_Implem_Access
-                 := GIOP_Implem_List (J).Func.all;
-            begin
-               Conf.GIOP_Implem_List (Conf.Nb_Implem) := Impl;
-
-               Impl.Version := GIOP_Implem_List (J).Version;
-
-               Impl.Section := To_PolyORB_String (Section);
-               Impl.Prefix := To_PolyORB_String (Prefix);
-
-               Initialize_Implem (Impl);
-
-               Impl.Locate_Then_Request :=
-                 Get_Conf (Section,
-                           Get_Conf_Chain (Impl)
-                           & ".locate_then_request",
-                           Locate_Then_Request);
-            end;
+            Conf.GIOP_Implems (J).Locate_Then_Request :=
+              Get_Conf (Section,
+                        Get_Conf_Chain (Conf.GIOP_Implems (J))
+                        & ".locate_then_request",
+                        Locate_Then_Request);
          end if;
       end loop;
    end Initialize;
@@ -177,6 +152,7 @@ package body PolyORB.Protocols.GIOP is
      (S : in out GIOP_Session) is
    begin
       pragma Debug (O ("Initializing GIOP session"));
+      Tasking.Mutexes.Create (S.Mutex);
       S.Buffer_In  := new Buffer_Type;
    end Initialize;
 
@@ -184,15 +160,17 @@ package body PolyORB.Protocols.GIOP is
    -- Destroy --
    -------------
 
-   procedure Destroy
-     (S : in out GIOP_Session)
-   is
+   procedure Destroy (S : in out GIOP_Session) is
    begin
       pragma Debug (O ("Destroying GIOP session"));
+      pragma Assert (S.State = Not_Initialized);
 
-      pragma Assert (Pend_Req_List.Length (S.Pending_Reqs) = 0);
-      --  XXX Check the session has no pending requests.
-      --  What if there is one ? Should we emit an error message ?
+      --  We assume that this session has already been disconnected.
+      --  All pending requests have been flushed, and its state has been
+      --  reset to Not_Initialized.
+
+      Pend_Req_Tables.Deallocate (S.Pending_Reqs);
+      Destroy (S.Mutex);
 
       if S.Buffer_In /= null then
          Release (S.Buffer_In);
@@ -227,30 +205,23 @@ package body PolyORB.Protocols.GIOP is
 
          when Expect_Header =>
 
-            Unmarshall_Global_GIOP_Header (Sess.Buffer_In, Version);
-
-            if Sess.Implem = null then
-               Get_GIOP_Implem (Sess, Version);
-            elsif Version /= Sess.Implem.Version then
-               raise GIOP_Error;
-            end if;
-
-            Unmarshall_GIOP_Header (Sess.Implem, Sess);
+            Unmarshall_Global_GIOP_Header (Sess, Sess.Buffer_In, Version);
+            Unmarshall_GIOP_Header (Sess.Implem, Sess.MCtx, Sess.Buffer_In);
 
             Sess.State := Expect_Body;
 
             pragma Debug (O ("GIOP Header OK, ask for body, size :"
-                             & Sess.Ctx.Message_Size'Img));
+                             & Sess.MCtx.Message_Size'Img));
 
-            if Sess.Ctx.Message_Size = 0 then
+            if Sess.MCtx.Message_Size = 0 then
                Process_Message (Sess.Implem, Sess);
             else
                Emit_No_Reply
                  (Port => Lower (Sess),
                   Msg  => GIOP_Data_Expected'
-                  (In_Buf => Sess.Buffer_In,
-                   Max    => Stream_Element_Count (Sess.Ctx.Message_Size),
-                   State  => Sess.State));
+                    (In_Buf => Sess.Buffer_In,
+                     Max    => Stream_Element_Count (Sess.MCtx.Message_Size),
+                     State  => Sess.State));
             end if;
 
          when Expect_Body =>
@@ -315,8 +286,7 @@ package body PolyORB.Protocols.GIOP is
    -- Handle_Connect_Confirmation --
    ---------------------------------
 
-   procedure Handle_Connect_Confirmation
-     (Sess : access GIOP_Session) is
+   procedure Handle_Connect_Confirmation (Sess : access GIOP_Session) is
    begin
       pragma Debug (O ("Handle_Connect_Confirmation"));
       pragma Assert (Sess.State = Not_Initialized);
@@ -337,13 +307,32 @@ package body PolyORB.Protocols.GIOP is
    -----------------------
 
    procedure Handle_Disconnect
-     (Sess : access GIOP_Session) is
+     (Sess : access GIOP_Session; Error : Errors.Error_Container)
+   is
+      use Pend_Req_Tables;
+      P     : Pending_Request_Access;
+      ORB   : constant ORB_Access := ORB_Access (Sess.Server);
+
    begin
       pragma Debug (O ("Handle_Disconnect"));
 
       if Sess.Buffer_In /= null then
          Release (Sess.Buffer_In);
       end if;
+
+      for J in First (Sess.Pending_Reqs) .. Last (Sess.Pending_Reqs) loop
+         if Sess.Pending_Reqs.Table /= null
+           and then Sess.Pending_Reqs.Table (J) /= null
+         then
+            P := Sess.Pending_Reqs.Table (J);
+            Sess.Pending_Reqs.Table (J) := null;
+            Set_Exception (P.Req, Error);
+            References.Binding.Unbind (P.Req.Target);
+            Emit_No_Reply (Component_Access (ORB),
+                           Servants.Iface.Executed_Request'(Req => P.Req));
+            Free (P);
+         end if;
+      end loop;
 
       Sess.State := Not_Initialized;
    end Handle_Disconnect;
@@ -376,6 +365,7 @@ package body PolyORB.Protocols.GIOP is
       New_Pending_Req.Req := R;
       New_Pending_Req.Target_Profile := Profile_Access (Pro);
 
+      Enter (Sess.Mutex);
       if Is_Set (Sync_None, R.Req_Flags)
         or else Is_Set (Sync_With_Transport, R.Req_Flags)
       then
@@ -385,46 +375,44 @@ package body PolyORB.Protocols.GIOP is
          --  information now.
 
          New_Pending_Req.Request_Id := Get_Request_Id (Sess);
+         Leave (Sess.Mutex);
          Send_Request (Sess.Implem, Sess, New_Pending_Req, Error);
          Free (New_Pending_Req);
 
          if Found (Error) then
-            R.Exception_Info := Error_To_Any (Error);
+            Set_Exception (R, Error);
             Catch (Error);
 
-            declare
-               ORB : constant ORB_Access := ORB_Access (Sess.Server);
-            begin
-               Emit_No_Reply
-                 (Component_Access (ORB),
-                  Servants.Iface.Executed_Request'(Req => R));
-            end;
+            --  Since this is a oneway called, this request will return to the
+            --  caller immediately; no need to generate an Executed_Request
+            --  message at this point (see PolyORB.Protocols.Invoke_Request).
+
          end if;
 
          return;
       end if;
 
-      --  Two-way call: a reply is expected, we store the pending
-      --  request.
+      --  Two-way call: a reply is expected, we store the pending request
 
       if Sess.Implem.Locate_Then_Request then
          New_Pending_Req.Locate_Req_Id := Get_Request_Id (Sess);
          Add_Pending_Request (Sess, New_Pending_Req);
+         Leave (Sess.Mutex);
          Locate_Object (Sess.Implem, Sess, New_Pending_Req, Error);
       else
          Add_Pending_Request (Sess, New_Pending_Req);
+         Leave (Sess.Mutex);
          Send_Request (Sess.Implem, Sess, New_Pending_Req, Error);
       end if;
 
       if Found (Error) then
-         Remove_Pending_Request
-           (Sess, New_Pending_Req.Request_Id, Success);
+         Remove_Pending_Request (Sess, New_Pending_Req.Request_Id, Success);
 
          if not Success then
             raise GIOP_Error;
          end if;
 
-         R.Exception_Info := Error_To_Any (Error);
+         Set_Exception (R, Error);
          Catch (Error);
 
          declare
@@ -478,6 +466,41 @@ package body PolyORB.Protocols.GIOP is
       null;
    end Cancel_Pending_Request;
 
+   -------------------
+   -- Locate_Object --
+   -------------------
+
+   procedure Locate_Object
+     (Sess  : access GIOP_Session;
+      Profile : Binding_Data.Profile_Access;
+      Error : in out Errors.Error_Container)
+   is
+      use PolyORB.Errors;
+      use Unsigned_Long_Flags;
+
+      New_Pending_Req : Pending_Request_Access;
+
+   begin
+      if not Sess.Implem.Locate_Then_Request then
+         return;
+      end if;
+
+      New_Pending_Req := new Pending_Request;
+
+      New_Pending_Req.Req := new PolyORB.Requests.Request;
+      --  We build an empty request to store any exception sent back
+      --  by the remote note.
+
+      New_Pending_Req.Target_Profile := Profile;
+
+      Enter (Sess.Mutex);
+      New_Pending_Req.Locate_Req_Id := Get_Request_Id (Sess);
+      Add_Pending_Request (Sess, New_Pending_Req);
+      Leave (Sess.Mutex);
+
+      Locate_Object (Sess.Implem, Sess, New_Pending_Req, Error);
+   end Locate_Object;
+
    ------------------
    -- Emit Message --
    ------------------
@@ -485,11 +508,12 @@ package body PolyORB.Protocols.GIOP is
    procedure Emit_Message
      (Implem : access GIOP_Implem;
       S      : access Session'Class;
-      Buffer :        Buffer_Access;
+      MCtx   : access GIOP_Message_Context'Class;
+      Buffer : Buffer_Access;
       Error  : in out Errors.Error_Container)
    is
       pragma Warnings (Off);
-      pragma Unreferenced (Implem);
+      pragma Unreferenced (Implem, MCtx);
       pragma Warnings (On);
 
       use PolyORB.Filters.Iface;
@@ -541,18 +565,20 @@ package body PolyORB.Protocols.GIOP is
           State  => Sess.State));
    end Expect_GIOP_Header;
 
-   ----------------------------
-   -- Unmarshall_GIOP_Header --
-   ----------------------------
+   -----------------------------------
+   -- Unmarshall_Global_GIOP_Header --
+   -----------------------------------
 
    procedure Unmarshall_Global_GIOP_Header
-     (Buffer  : access Buffer_Type;
-      Version :    out GIOP_Version)
+     (Sess    : access GIOP_Session;
+      Buffer  : access Buffer_Type;
+      Version : out GIOP_Version)
    is
       use Octet_Flags;
 
       Message_Magic : Stream_Element_Array (Magic'Range);
       Flags         : Types.Octet;
+      Version_Data : Types.Octet;
    begin
       --  Get Endianness
       --  This code works only if the endianness bit dont move
@@ -566,7 +592,7 @@ package body PolyORB.Protocols.GIOP is
          Set_Endianness (Buffer, Big_Endian);
       end if;
 
-      --  Begining of GIOP message is byte-ordering independent
+      --  Beginning of GIOP message is byte-ordering independent
 
       --  Magic
 
@@ -580,13 +606,26 @@ package body PolyORB.Protocols.GIOP is
       end if;
 
       --  Get GIOP Message version
-      Version.Major := Unmarshall (Buffer);
-      Version.Minor := Unmarshall (Buffer);
+
+      Version_Data := Unmarshall (Buffer);
+      pragma Assert (Version_Data = 1);
+      --  Major
+
+      Version_Data := Unmarshall (Buffer);
+      --  Minor
+      pragma Debug (O (Version_Data'Img));
+
+      Version := To_GIOP_Version (Integer (Version_Data));
 
       pragma Debug (O ("Received GIOP message, version:"
-                       & Version.Major'Img
-                       & "."
-                       & Version.Minor'Img));
+                       & GIOP_Version'Image (Version)));
+
+      if Sess.Implem = null then
+         Get_GIOP_Implem (Sess, Version);
+
+      elsif Version /= Sess.Implem.Version then
+         raise GIOP_Error;
+      end if;
    end Unmarshall_Global_GIOP_Header;
 
    ---------------------------------
@@ -595,8 +634,8 @@ package body PolyORB.Protocols.GIOP is
 
    procedure Marshall_Global_GIOP_Header
      (Sess   : access GIOP_Session;
-      Buffer : access PolyORB.Buffers.Buffer_Type)
-   is
+      MCtx   : access GIOP_Message_Context'Class;
+      Buffer : access PolyORB.Buffers.Buffer_Type) is
    begin
       --  Magic
 
@@ -606,13 +645,12 @@ package body PolyORB.Protocols.GIOP is
 
       --  Version
 
-      Marshall (Buffer, Sess.Implem.Version.Major);
-      Marshall (Buffer, Sess.Implem.Version.Minor);
+      Marshall (Buffer, Types.Octet (1));
+      Marshall (Buffer, To_Minor_GIOP (Sess.Implem.Version));
 
       --  Implem-specific data
 
-      Marshall_GIOP_Header (Sess.Implem, Sess, Buffer);
-
+      Marshall_GIOP_Header (Sess.Implem, Sess, MCtx, Buffer);
    end Marshall_Global_GIOP_Header;
 
    ------------------------------
@@ -622,7 +660,7 @@ package body PolyORB.Protocols.GIOP is
    procedure Unmarshall_Argument_List
      (Implem              : access GIOP_Implem;
       Buffer              :        Buffer_Access;
-      Representation      : in     CDR_Representation'Class;
+      Representation      : CDR_Representation'Class;
       Args                : in out Any.NVList.Ref;
       Direction           :        Any.Flags;
       First_Arg_Alignment :        Buffers.Alignment_Type;
@@ -652,8 +690,11 @@ package body PolyORB.Protocols.GIOP is
            or else Arg.Arg_Modes = Direction
            or else Arg.Arg_Modes = ARG_INOUT
          then
-            Unmarshall_To_Any (Representation, Buffer, Arg.Argument, Error);
-
+            Unmarshall_To_Any
+              (Representation,
+               Buffer,
+               Get_Container (Arg.Argument).all,
+               Error);
             if Found (Error) then
                return;
             end if;
@@ -670,7 +711,7 @@ package body PolyORB.Protocols.GIOP is
    procedure Marshall_Argument_List
      (Implem              : access GIOP_Implem;
       Buffer              :        Buffer_Access;
-      Representation      : in     CDR_Representation'Class;
+      Representation      : CDR_Representation'Class;
       Args                : in out Any.NVList.Ref;
       Direction           :        Any.Flags;
       First_Arg_Alignment :        Buffers.Alignment_Type;
@@ -690,16 +731,17 @@ package body PolyORB.Protocols.GIOP is
 
    begin
       if List_Of (Args) = null then
-         --  Do not fail if there is no argument to marshall, for
-         --  instance if we build an acknowledge response (in
-         --  Sync_With_Server mode) prior to reading arguments.
+
+         --  Do not fail if there is no argument to marshall, for instance in
+         --  the case of a simple acknowledgement (in Sync_With_Server mode)
+         --  that is sent prior to reading arguments.
 
          return;
       end if;
 
       It := First (List_Of (Args).all);
 
-      pragma Assert (Direction = ARG_IN or Direction = ARG_OUT);
+      pragma Assert (Direction = ARG_IN or else Direction = ARG_OUT);
 
       if not Last (It) then
          Pad_Align (Buffer, First_Arg_Alignment);
@@ -733,9 +775,10 @@ package body PolyORB.Protocols.GIOP is
 
    procedure Unmarshall_System_Exception_To_Any
      (Buffer :        Buffer_Access;
-      Repr   : in     Representations.CDR.CDR_Representation'Class;
+      Repr   : Representations.CDR.CDR_Representation'Class;
       Info   :    out Any.Any)
    is
+      use PolyORB.Any;
       use PolyORB.Errors;
       use PolyORB.GIOP_P.Exceptions;
 
@@ -747,13 +790,12 @@ package body PolyORB.Protocols.GIOP is
    begin
       Info := Any.Get_Empty_Any
         (PolyORB.GIOP_P.Exceptions.System_Exception_TypeCode (Exception_Name));
-      Unmarshall_To_Any (Repr, Buffer, Info, Error);
+      Unmarshall_To_Any (Repr, Buffer, Get_Container (Info).all, Error);
 
       if Found (Error) then
-         Info := Error_To_Any (Error);
+         Info := Helper.Error_To_Any (Error);
          Catch (Error);
       end if;
-
    end Unmarshall_System_Exception_To_Any;
 
    --  Version management
@@ -764,13 +806,12 @@ package body PolyORB.Protocols.GIOP is
 
    procedure Global_Register_GIOP_Version
      (Version : GIOP_Version;
-      Implem  : GIOP_Create_Implem_Func) is
+      Implem  : GIOP_Factory) is
    begin
-      if Implem /= null then
-         Nb_Implem := Nb_Implem + 1;
-         GIOP_Implem_List (Nb_Implem)
-           := GIOP_Implem_Desc'(Version => Version, Func => Implem);
-      end if;
+      pragma Assert (Implem /= null);
+      pragma Assert (GIOP_Factories (Version) = null);
+
+      GIOP_Factories (Version) := Implem;
    end Global_Register_GIOP_Version;
 
    ---------------------
@@ -784,21 +825,11 @@ package body PolyORB.Protocols.GIOP is
       use PolyORB.Utils;
 
    begin
-      pragma Debug (O ("Looking up implementation for version "
-                       & Trimmed_Image (Integer (Version.Major))
-                       & "."
-                       & Trimmed_Image (Integer (Version.Minor))));
+      pragma Debug (O ("Looking up implementation for "
+                       & GIOP_Version'Image (Version)));
 
-      for J in 1 .. Sess.Conf.Nb_Implem loop
-         if Sess.Conf.GIOP_Implem_List (J).Version = Version then
-
-            Sess.Implem := Sess.Conf.GIOP_Implem_List (J);
-            Initialize_Session (Sess.Implem, Sess);
-            return;
-         end if;
-      end loop;
-
-      raise GIOP_Unknown_Version;
+      Sess.Implem := Sess.Conf.GIOP_Implems (Version);
+      Initialize_Session (Sess.Implem, Sess);
    end Get_GIOP_Implem;
 
    -------------------------
@@ -811,27 +842,30 @@ package body PolyORB.Protocols.GIOP is
       Req     :    out Pending_Request;
       Success :    out Boolean)
    is
-      use Pend_Req_List;
+      use Pend_Req_Tables;
 
-      It : Iterator := First (Sess.Pending_Reqs);
       PRA : Pending_Request_Access;
    begin
       pragma Debug (O ("Retrieving pending request with id"
                        & Types.Unsigned_Long'Image (Id)));
 
-      while not Last (It) loop
-         if Pending_Request_Access (Value (It).all).Request_Id = Id then
-            PRA := Pending_Request_Access (Value (It).all);
-            Remove (Sess.Pending_Reqs, It);
+      Success := False;
+      Enter (Sess.Mutex);
+
+      for J in First (Sess.Pending_Reqs) .. Last (Sess.Pending_Reqs) loop
+         if Sess.Pending_Reqs.Table (J) /= null
+           and then Sess.Pending_Reqs.Table (J).Request_Id = Id
+         then
+            PRA := Sess.Pending_Reqs.Table (J);
+            Sess.Pending_Reqs.Table (J) := null;
             Req := PRA.all;
             Free (PRA);
             Success := True;
-            return;
+            exit;
          end if;
-         Next (It);
       end loop;
 
-      Success := False;
+      Leave (Sess.Mutex);
    end Get_Pending_Request;
 
    -----------------------------------
@@ -844,24 +878,25 @@ package body PolyORB.Protocols.GIOP is
       Req     :    out Pending_Request_Access;
       Success :    out Boolean)
    is
-      use Pend_Req_List;
-
-      It : Iterator := First (Sess.Pending_Reqs);
-
+      use Pend_Req_Tables;
    begin
       pragma Debug (O ("Retrieving pending request with locate id"
                        & Types.Unsigned_Long'Image (Id)));
 
-      while not Last (It) loop
-         if Pending_Request_Access (Value (It).all).Locate_Req_Id = Id then
-            Req := Pending_Request_Access (Value (It).all);
+      Success := False;
+      Enter (Sess.Mutex);
+
+      for J in First (Sess.Pending_Reqs) .. Last (Sess.Pending_Reqs) loop
+         if Sess.Pending_Reqs.Table (J) /= null
+           and then Sess.Pending_Reqs.Table (J).Locate_Req_Id = Id
+         then
+            Req := Sess.Pending_Reqs.Table (J);
             Success := True;
-            return;
+            exit;
          end if;
-         Next (It);
       end loop;
 
-      Success := False;
+      Leave (Sess.Mutex);
    end Get_Pending_Request_By_Locate;
 
    ----------------------------
@@ -873,26 +908,29 @@ package body PolyORB.Protocols.GIOP is
       Id      :        Types.Unsigned_Long;
       Success :    out Boolean)
    is
-      use Pend_Req_List;
+      use Pend_Req_Tables;
 
-      It : Iterator := First (Sess.Pending_Reqs);
       PRA : Pending_Request_Access;
    begin
       pragma Debug (O ("Retrieving pending request with id"
                        & Types.Unsigned_Long'Image (Id)));
 
-      while not Last (It) loop
-         if Pending_Request_Access (Value (It).all).Request_Id = Id then
-            PRA := Pending_Request_Access (Value (It).all);
-            Remove (Sess.Pending_Reqs, It);
+      Success := False;
+      Enter (Sess.Mutex);
+
+      for J in First (Sess.Pending_Reqs) .. Last (Sess.Pending_Reqs) loop
+         if Sess.Pending_Reqs.Table (J) /= null
+           and then Sess.Pending_Reqs.Table (J).Request_Id = Id
+         then
+            PRA := Sess.Pending_Reqs.Table (J);
+            Sess.Pending_Reqs.Table (J) := null;
             Free (PRA);
             Success := True;
-            return;
+            exit;
          end if;
-         Next (It);
       end loop;
 
-      Success := False;
+      Leave (Sess.Mutex);
    end Remove_Pending_Request;
 
    --------------------------------------
@@ -901,30 +939,32 @@ package body PolyORB.Protocols.GIOP is
 
    procedure Remove_Pending_Request_By_Locate
      (Sess    : access GIOP_Session;
-      Id      : in     Types.Unsigned_Long;
+      Id      : Types.Unsigned_Long;
       Success :    out Boolean)
    is
-      use Pend_Req_List;
+      use Pend_Req_Tables;
 
-      It  : Iterator := First (Sess.Pending_Reqs);
       PRA : Pending_Request_Access;
-
    begin
       pragma Debug (O ("Removing pending request with locate id"
                        & Types.Unsigned_Long'Image (Id)));
 
-      while not Last (It) loop
-         if Pending_Request_Access (Value (It).all).Locate_Req_Id = Id then
-            PRA := Pending_Request_Access (Value (It).all);
-            Remove (Sess.Pending_Reqs, It);
+      Success := False;
+      Enter (Sess.Mutex);
+
+      for J in First (Sess.Pending_Reqs) .. Last (Sess.Pending_Reqs) loop
+         if Sess.Pending_Reqs.Table (J) /= null
+           and then Sess.Pending_Reqs.Table (J).Locate_Req_Id = Id
+         then
+            PRA := Sess.Pending_Reqs.Table (J);
+            Sess.Pending_Reqs.Table (J) := null;
             Free (PRA);
             Success := True;
-            return;
+            exit;
          end if;
-         Next (It);
       end loop;
 
-      Success := False;
+      Leave (Sess.Mutex);
    end Remove_Pending_Request_By_Locate;
 
    -------------------------
@@ -933,19 +973,27 @@ package body PolyORB.Protocols.GIOP is
 
    procedure Add_Pending_Request
      (Sess     : access GIOP_Session;
-      Pend_Req : in     Pending_Request_Access)
+      Pend_Req : Pending_Request_Access)
    is
-      use Pend_Req_List;
-
-      Request_Id : constant Types.Unsigned_Long := Get_Request_Id (Sess);
+      use Pend_Req_Tables;
+      Request_Id : Types.Unsigned_Long;
    begin
-      pragma Debug (O ("Adding pending request with id"
-                       & Request_Id'Img));
+      Request_Id := Get_Request_Id (Sess);
+      pragma Debug (O ("Adding pending request with id" & Request_Id'Img));
       Set_Note
         (Pend_Req.Req.Notepad,
          Request_Note'(Annotations.Note with Id => Request_Id));
       Pend_Req.Request_Id := Request_Id;
-      Append (Sess.Pending_Reqs, Pend_Req);
+
+      for J in First (Sess.Pending_Reqs) .. Last (Sess.Pending_Reqs) loop
+         if Sess.Pending_Reqs.Table (J) = null then
+            Sess.Pending_Reqs.Table (J) := Pend_Req;
+            return;
+         end if;
+      end loop;
+
+      Increment_Last (Sess.Pending_Reqs);
+      Sess.Pending_Reqs.Table (Last (Sess.Pending_Reqs)) := Pend_Req;
    end Add_Pending_Request;
 
    --------------------
@@ -953,15 +1001,10 @@ package body PolyORB.Protocols.GIOP is
    --------------------
 
    function Get_Request_Id
-     (Sess : access GIOP_Session)
-     return Types.Unsigned_Long
+     (Sess : access GIOP_Session) return Types.Unsigned_Long
    is
-      R : Types.Unsigned_Long;
+      R : constant Types.Unsigned_Long := Sess.Req_Index;
    begin
-
-      --  XXX should we protect Sess.Req_Index against concurrent accesses ?
-
-      R := Sess.Req_Index;
       Sess.Req_Index := Sess.Req_Index + 1;
       return R;
    end Get_Request_Id;
@@ -978,10 +1021,8 @@ package body PolyORB.Protocols.GIOP is
 
    begin
       return To_Standard_String (Implem.Prefix)
-        & "."
-        & Trimmed_Image (Integer (Implem.Version.Major))
-        & "."
-        & Trimmed_Image (Integer (Implem.Version.Minor));
+        & ".1."
+        & Trimmed_Image (Unsigned_Long_Long (To_Minor_GIOP (Implem.Version)));
    end Get_Conf_Chain;
 
 end PolyORB.Protocols.GIOP;

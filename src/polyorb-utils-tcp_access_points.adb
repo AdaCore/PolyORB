@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2003-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -47,53 +47,59 @@ package body PolyORB.Utils.TCP_Access_Points is
    -----------------------
 
    procedure Initialize_Socket
-     (DAP       : in out Access_Point_Info;
-      Address   : in     Sockets.Inet_Addr_Type := Any_Inet_Addr;
-      Port_Hint : in     Port_Type)
+     (API       : in out Access_Point_Info;
+      Address   : Sockets.Inet_Addr_Type := Any_Inet_Addr;
+      Port_Hint : Port_Interval)
    is
-      Port : Port_Type := Port_Hint;
-
    begin
-      Create_Socket (DAP.Socket);
+      Create_Socket (API.Socket);
 
-      DAP.Address :=
-        Sock_Addr_Type'(Addr => Address,
-                        Port => Port,
+      API.Address :=
+        Sock_Addr_Type'(Addr   => Address,
+                        Port   => Port_Hint.Lo,
                         Family => Family_Inet);
 
       --  Allow reuse of local addresses
 
       Set_Socket_Option
-        (DAP.Socket,
+        (API.Socket,
          Socket_Level,
          (Reuse_Address, True));
 
-      if DAP.SAP = null then
-         DAP.SAP := new Socket_Access_Point;
+      if API.SAP = null then
+         API.SAP := new Socket_Access_Point;
       end if;
 
       loop
-         DAP.Address.Port := Port;
          begin
             Create
-              (Socket_Access_Point (DAP.SAP.all),
-               DAP.Socket,
-               DAP.Address);
+              (Socket_Access_Point (API.SAP.all),
+               API.Socket,
+               API.Address);
             exit;
          exception
             when Sockets.Socket_Error =>
-               Port := Port + 1;
-               if Port = Port_Hint then
+
+               --  If a specific port range was given, try next port in range
+
+               if API.Address.Port /= Any_Port
+                 and then API.Address.Port < Port_Hint.Hi
+               then
+                  API.Address.Port := API.Address.Port + 1;
+               else
                   raise;
-                  --  Argh! we tried every possible value and
-                  --  wrapped. Bail out.
                end if;
+
          end;
       end loop;
 
-      if DAP.PF /= null then
+      --  Create profile factory
+
+      if API.PF /= null then
          Create_Factory
-           (DAP.PF.all, DAP.SAP, Components.Component_Access (Setup.The_ORB));
+           (API.PF.all,
+            API.SAP,
+            Components.Component_Access (Setup.The_ORB));
       end if;
    end Initialize_Socket;
 

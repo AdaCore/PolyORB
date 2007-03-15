@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -38,18 +38,16 @@
 --  XXX The latter should be moved away to a Ada_Be.Idl2Ada.Stubs
 --  child unit one day.
 
-with Ada.Characters.Handling;
+with Ada.Characters.Conversions;
 with Ada.Strings.Unbounded;
 with Ada.Unchecked_Deallocation;
 
-with Idl_Fe.Types;          use Idl_Fe.Types;
 with Idl_Fe.Tree;           use Idl_Fe.Tree;
 with Idl_Fe.Tree.Synthetic; use Idl_Fe.Tree.Synthetic;
 
 with Idlac_Flags;           use Idlac_Flags;
 
 with Ada_Be.Identifiers;    use Ada_Be.Identifiers;
-with Ada_Be.Source_Streams; use Ada_Be.Source_Streams;
 with Ada_Be.Temporaries;    use Ada_Be.Temporaries;
 with Ada_Be.Debug;
 pragma Elaborate_All (Ada_Be.Debug);
@@ -64,7 +62,7 @@ with Ada_Be.Idl2Ada.IR_Info;
 with Ada_Be.Mappings;       use Ada_Be.Mappings;
 with Ada_Be.Mappings.CORBA; use Ada_Be.Mappings.CORBA;
 
-with Errors;                use Errors;
+with Idlac_Errors;          use Idlac_Errors;
 with Utils;                 use Utils;
 
 with Ada.Strings.Fixed;     use Ada.Strings.Fixed;
@@ -78,9 +76,12 @@ package body Ada_Be.Idl2Ada is
    -- The current state of the code generator --
    ---------------------------------------------
 
-   type Library_Unit_Data is array (Unit_Kind) of Compilation_Unit;
+   type Library_Unit_Data is array (Unit_Kind) of aliased Compilation_Unit;
 
-   type Scope_State is record
+   procedure New_Library_Unit (Name : String; LU : out Library_Unit_Data);
+   --  Create a spec and associated body for the named unit
+
+   type Scope_State is limited record
       Stubs, Skel, Helper, IR_Info, Impl,
         Value_Skel, Delegate : Library_Unit_Data;
    end record;
@@ -119,10 +120,11 @@ package body Ada_Be.Idl2Ada is
 
    procedure Gen_ValueType_Stubs_Body
      (CU : in out Compilation_Unit;
-      Node : in Node_Id);
+      Node : Node_Id);
 
    procedure Gen_Module_Init_Prelude
-     (CU : in out Compilation_Unit);
+     (CU              : in out Compilation_Unit;
+      With_Dependency : String := "");
 
    procedure Gen_Module_Init_Postlude
      (CU : in out Compilation_Unit);
@@ -131,34 +133,32 @@ package body Ada_Be.Idl2Ada is
    -- Specialised generation subprograms --
    ----------------------------------------
 
-   function Access_Type_Name (Node : in Node_Id)
-     return String;
+   function Access_Type_Name (Node : Node_Id) return String;
    --  Generates a name for an access to objet type.
-   --  The rule used is to take the ada_type_name,
-   --  replacing '.' with '_', and appending "_Access".
-   --  Should be in expansion, but it would require too much work
-   --  to do it now.
+   --  The rule used is to take the ada_type_name, replacing '.' with '_', and
+   --  appending "_Access". Should be in expansion, but it would require too
+   --  much work to do it now.
 
    procedure Gen_Repository_Id
-     (Node : in     Node_Id;
+     (Node : Node_Id;
       CU   : in out Compilation_Unit);
    --  Generate the RepositoryId for an entity.
 
    procedure Gen_Is_A
-     (Node       : in Node_Id;
+     (Node       : Node_Id;
       Stubs_Spec : in out Compilation_Unit;
       Stubs_Body : in out Compilation_Unit);
    --  Generate code for Repository_Id and Is_A
    --  object reference operation.
 
    procedure Gen_Local_Impl_Is_A
-     (Node      : in Node_Id;
+     (Node      : Node_Id;
       Impl_Spec : in out Compilation_Unit;
       Impl_Body : in out Compilation_Unit);
    --  Generate code for Is_A local object implementation operation.
 
    procedure Gen_Local_Is_A_Type_Checks
-     (Node : in Node_Id;
+     (Node : Node_Id;
       CU   : in out Compilation_Unit);
    --  Generate a return statement with a list of Logical_Type_Id checks.
 
@@ -183,13 +183,9 @@ package body Ada_Be.Idl2Ada is
      (CU   : in out Compilation_Unit;
       Node : Node_Id);
 
-   function TC_Name
-     (Node : Node_Id)
-      return String;
-
    procedure Gen_Convert_Forward_Declaration
      (CU : in out Compilation_Unit;
-      Node : in Node_Id);
+      Node : Node_Id);
    --  Generate package Convert if necessary for
    --  valuetypes and interfaces.
 
@@ -197,28 +193,47 @@ package body Ada_Be.Idl2Ada is
    -- End of internal subprograms declarations --
    ----------------------------------------------
 
+   ----------------------
+   -- Conditional_Call --
+   ----------------------
+
+   function Conditional_Call
+     (Func      : String;
+      Only_When : Boolean;
+      Expr      : String) return String is
+   begin
+      if Only_When then
+         return Func & " (" & Expr & ")";
+      else
+         return Expr;
+      end if;
+   end Conditional_Call;
+
+   --------------
+   -- Generate --
+   --------------
+
    procedure Generate
-     (Use_Mapping :    Ada_Be.Mappings.Mapping_Type'Class;
-      Node        : in Node_Id;
-      Implement   :    Boolean                            := False;
-      Intf_Repo   :    Boolean                            := False;
-      To_Stdout   :    Boolean                            := False)
+     (Use_Mapping : Ada_Be.Mappings.Mapping_Type'Class;
+      Node        : Node_Id;
+      Implement   : Boolean                            := False;
+      Intf_Repo   : Boolean                            := False;
+      To_Stdout   : Boolean                            := False)
    is
       S_Node : Node_Id;
       It : Node_Iterator;
    begin
       pragma Assert (Is_Repository (Node));
 
-      Mapping :=
-        new Mappings.CORBA.CORBA_Mapping_Type'Class'
-        (CORBA_Mapping_Type'Class (Use_Mapping));
+      Mapping := new Mappings.CORBA.CORBA_Mapping_Type'Class'
+                       (CORBA_Mapping_Type'Class (Use_Mapping));
+
       Init (It, Contents (Node));
       while not Is_End (It) loop
          Get_Next_Node (It, S_Node);
          if Generate_Code (S_Node) then
-            Gen_Scope
-              (S_Node, Implement, Intf_Repo, To_Stdout,
-               Current_Scope => null);
+            Gen_Scope (S_Node, Implement, Intf_Repo, To_Stdout,
+                       Current_Scope => null);
          end if;
       end loop;
 
@@ -299,29 +314,18 @@ package body Ada_Be.Idl2Ada is
       Delegate_Name   :     String;
       St              : out Scope_State)
    is
+      pragma Warnings (Off, St);
+      --  Never assigned a (global) value, but all components are assigned
+
    begin
-      St :=
-        (Stubs =>
-           (Unit_Spec => New_Package (Stubs_Name, Unit_Spec),
-            Unit_Body => New_Package (Stubs_Name, Unit_Body)),
-         Skel =>
-           (Unit_Spec => New_Package (Skel_Name, Unit_Spec),
-            Unit_Body => New_Package (Skel_Name, Unit_Body)),
-         Helper =>
-           (Unit_Spec => New_Package (Helper_Name, Unit_Spec),
-            Unit_Body => New_Package (Helper_Name, Unit_Body)),
-         IR_Info =>
-           (Unit_Spec => New_Package (IR_Info_Name, Unit_Spec),
-            Unit_Body => New_Package (IR_Info_Name, Unit_Body)),
-         Impl =>
-           (Unit_Spec => New_Package (Impl_Name, Unit_Spec),
-            Unit_Body => New_Package (Impl_Name, Unit_Body)),
-         Value_Skel =>
-           (Unit_Spec => New_Package (Value_Skel_Name, Unit_Spec),
-            Unit_Body => New_Package (Value_Skel_Name, Unit_Body)),
-         Delegate =>
-           (Unit_Spec => New_Package (Delegate_Name, Unit_Spec),
-            Unit_Body => New_Package (Delegate_Name, Unit_Body)));
+      New_Library_Unit (Stubs_Name,      St.Stubs);
+      New_Library_Unit (Skel_Name,       St.Skel);
+      New_Library_Unit (Helper_Name,     St.Helper);
+      New_Library_Unit (Skel_Name,       St.Skel);
+      New_Library_Unit (IR_Info_Name,    St.IR_Info);
+      New_Library_Unit (Impl_Name,       St.Impl);
+      New_Library_Unit (Value_Skel_Name, St.Value_Skel);
+      New_Library_Unit (Delegate_Name,   St.Delegate);
    end Initialize_Scope_State;
 
    ---------------------
@@ -368,9 +372,10 @@ package body Ada_Be.Idl2Ada is
       end if;
 
       if In_Scope = null then
-         Gen_Module_Init_Prelude (S.Helper (Unit_Body));
-
+         Gen_Module_Init_Prelude
+           (S.Helper (Unit_Body), With_Dependency => "any");
          Gen_Module_Init_Prelude (S.Skel (Unit_Body));
+         Gen_Module_Init_Prelude (S.Stubs (Unit_Body));
 
          if Intf_Repo then
             IR_Info.Gen_Spec_Prelude (S.IR_Info (Unit_Spec));
@@ -483,9 +488,8 @@ package body Ada_Be.Idl2Ada is
       end if;
 
       Gen_Module_Init_Postlude (S.Helper (Unit_Body));
-      Add_Elaborate_Body (S.Helper (Unit_Spec), S.Helper (Unit_Body));
-
       Gen_Module_Init_Postlude (S.Skel (Unit_Body));
+      Gen_Module_Init_Postlude (S.Stubs (Unit_Body));
       Add_Elaborate_Body (S.Skel (Unit_Spec), S.Skel (Unit_Body));
 
       if Intf_Repo then
@@ -526,13 +530,12 @@ package body Ada_Be.Idl2Ada is
 
    procedure Gen_ValueType_Stubs_Body
      (CU   : in out Compilation_Unit;
-      Node : in Node_Id) is
+      Node : Node_Id) is
    begin
       case Kind (Node) is
          when K_Operation =>
             declare
-               Op_Name : constant String
-                 := Ada_Operation_Name (Node);
+               Op_Name : constant String := Ada_Operation_Name (Node);
                Is_Function : constant Boolean
                  := Kind (Operation_Type (Node)) /= K_Void;
                Original_VT_Name : constant String
@@ -737,9 +740,11 @@ package body Ada_Be.Idl2Ada is
 
          --  Really starting a new gen scope
 
-         Gen_Module_Init_Prelude (S.Helper (Unit_Body));
+         Gen_Module_Init_Prelude
+           (S.Helper (Unit_Body), With_Dependency => "any");
          if Skel_Required then
             Gen_Module_Init_Prelude (S.Skel (Unit_Body));
+            Gen_Module_Init_Prelude (S.Stubs (Unit_Body));
          end if;
 
          if Intf_Repo then
@@ -762,88 +767,98 @@ package body Ada_Be.Idl2Ada is
                Decl_Node : Node_Id;
             begin
                Init (It, Contents (Node));
+
                while not Is_End (It) loop
                   Get_Next_Node (It, Decl_Node);
 
                   if Is_Gen_Scope (Decl_Node) then
 
-                     --  Ensure current unit has a non-empty spec, if the
-                     --  mapping prescribes that it has a child package.
+                     if Generate_Client_Code then
+                        --  Ensure current unit has a non-empty spec, if the
+                        --  mapping prescribes that it has a child package.
 
-                     if Kind (Node) /= K_Repository
-                       and then Kind (Node) /= K_Ben_Idl_File
-                     then
-                        NL (S.Stubs (Unit_Spec));
-                        Put (S.Stubs (Unit_Spec), "--  ");
-                        case Kind (Decl_Node) is
-                           when K_Module =>
-                              Put (S.Stubs (Unit_Spec), "Module ");
-                           when K_Interface =>
-                              Put (S.Stubs (Unit_Spec), "Interface ");
-                           when K_ValueType =>
-                              Put (S.Stubs (Unit_Spec), "ValueType ");
-                           when others =>
-                              --  Never happens
-                              raise Program_Error;
-                        end case;
-                        PL (S.Stubs (Unit_Spec), Name (Decl_Node));
+                        if Kind (Node) /= K_Repository
+                          and then Kind (Node) /= K_Ben_Idl_File
+                        then
+                           NL (S.Stubs (Unit_Spec));
+                           Put (S.Stubs (Unit_Spec), "--  ");
+                           case Kind (Decl_Node) is
+                              when K_Module =>
+                                 Put (S.Stubs (Unit_Spec), "Module ");
+                              when K_Interface =>
+                                 Put (S.Stubs (Unit_Spec), "Interface ");
+                              when K_ValueType =>
+                                 Put (S.Stubs (Unit_Spec), "ValueType ");
+                              when others =>
+                                 --  Never happens
+                                 raise Program_Error;
+                           end case;
+                           PL (S.Stubs (Unit_Spec), Name (Decl_Node));
+                        end if;
                      end if;
 
                      Gen_Scope
                        (Decl_Node, Implement, Intf_Repo, To_Stdout,
                         Current_Scope => S);
+
                   else
-                     if Kind (Decl_Node) = K_Forward_Interface then
-                        Helper.Gen_Forward_Interface_Spec
-                          (S.Helper (Unit_Spec), Decl_Node);
-                        Helper.Gen_Forward_Interface_Body
-                          (S.Helper (Unit_Body), Decl_Node);
-                     end if;
+                     if Generate_Client_Code then
+                        if Kind (Decl_Node) = K_Forward_Interface then
+                           Helper.Gen_Forward_Interface_Spec
+                             (S.Helper (Unit_Spec), Decl_Node);
+                           Helper.Gen_Forward_Interface_Body
+                             (S.Helper (Unit_Body), Decl_Node);
+                        end if;
 
-                     Gen_Node_Stubs_Spec     (S.Stubs (Unit_Spec), Decl_Node);
-                     Gen_Node_Stubs_Body_Dyn (S.Stubs (Unit_Body), Decl_Node);
+                        Gen_Node_Stubs_Spec
+                          (S.Stubs (Unit_Spec), Decl_Node);
+                        Gen_Node_Stubs_Body_Dyn
+                          (S.Stubs (Unit_Body), Decl_Node);
 
-                     --  Exception declarations cause generation of Get_Members
-                     --  procedure.
+                        --  Exception declarations cause generation of
+                        --  Get_Members procedure.
 
-                     Helper.Gen_Node_Spec (S.Helper (Unit_Spec), Decl_Node);
-                     Helper.Gen_Node_Body (S.Helper (Unit_Body), Decl_Node);
+                        Helper.Gen_Node_Spec (S.Helper (Unit_Spec), Decl_Node);
+                        Helper.Gen_Node_Body (S.Helper (Unit_Body), Decl_Node);
 
-                     if Intf_Repo then
-                        IR_Info.Gen_Node_Spec
-                          (S.IR_Info (Unit_Spec), Decl_Node);
-                        IR_Info.Gen_Node_Body
-                          (S.IR_Info (Unit_Body), Decl_Node);
+                        if Intf_Repo then
+                           IR_Info.Gen_Node_Spec
+                             (S.IR_Info (Unit_Spec), Decl_Node);
+                           IR_Info.Gen_Node_Body
+                             (S.IR_Info (Unit_Body), Decl_Node);
+                        end if;
                      end if;
                   end if;
                end loop;
 
-               if Kind (Node) = K_Module then
-
+               if Kind (Node) = K_Module
+                 and then Generate_Client_Code
+               then
                   Gen_Repository_Id (Node, S.Stubs (Unit_Spec));
 
                   if Intf_Repo then
                      IR_Info.Gen_Node_Spec (S.IR_Info (Unit_Spec), Node);
                      IR_Info.Gen_Node_Body (S.IR_Info (Unit_Body), Node);
                   end if;
-
                end if;
-
             end;
 
          when K_Interface =>
 
             --  Object reference type
 
-            Gen_Client_Stub_Type_Declaration
-              (S.Stubs (Unit_Spec), Node);
+            if Generate_Client_Code then
+               Gen_Client_Stub_Type_Declaration (S.Stubs (Unit_Spec), Node);
 
-            Helper.Gen_Node_Spec (S.Helper (Unit_Spec), Node);
-            Helper.Gen_Node_Body (S.Helper (Unit_Body), Node);
+               Helper.Gen_Node_Spec (S.Helper (Unit_Spec), Node);
+               Helper.Gen_Node_Body (S.Helper (Unit_Body), Node);
+            end if;
 
             if not Abst (Node) then
 
-               if not Local (Node) then
+               if not Local (Node)
+                 and then Generate_Server_Code
+               then
                   Skel.Gen_Node_Spec
                     (S.Skel (Unit_Spec), Node, Is_Delegate => False);
                   Skel.Gen_Node_Body
@@ -875,8 +890,7 @@ package body Ada_Be.Idl2Ada is
                   NL (S.Delegate (Unit_Spec));
                   PL (S.Delegate (Unit_Spec), "type Object (<>) is");
                   PL (S.Delegate (Unit_Spec),
-                      "  new PortableServer.Servant_Base"
-                      & " with private;");
+                      "  new PortableServer.Servant_Base with private;");
                   PL (S.Delegate (Unit_Spec),
                       "type Object_Ptr is access all Object'Class;");
                   NL (S.Delegate (Unit_Spec));
@@ -925,29 +939,39 @@ package body Ada_Be.Idl2Ada is
                end if;
             end if;
 
+            if Generate_Client_Code then
+               Gen_Node_Stubs_Body_Dyn (S.Stubs (Unit_Body), Node);
+            end if;
+
             declare
                It   : Node_Iterator;
                Export_Node : Node_Id;
             begin
                Init (It, Contents (Node));
+
                while not Is_End (It) loop
                   Get_Next_Node (It, Export_Node);
+
                   if Is_Gen_Scope (Export_Node) then
                      Gen_Scope
                        (Export_Node, Implement, Intf_Repo,
                         To_Stdout, Current_Scope => S);
-                  else
-                     Gen_Node_Stubs_Spec
-                       (S.Stubs (Unit_Spec), Export_Node);
 
-                     Gen_Node_Stubs_Body_Dyn
-                       (S.Stubs (Unit_Body), Export_Node);
+                  else
+                     if Generate_Client_Code then
+                        Gen_Node_Stubs_Spec
+                          (S.Stubs (Unit_Spec), Export_Node);
+                        Gen_Node_Stubs_Body_Dyn
+                          (S.Stubs (Unit_Body), Export_Node);
+                     end if;
 
                      --  No code produced per-node in skeleton spec
 
                      if not Abst (Node) then
 
-                        if not Local (Node) then
+                        if not Local (Node)
+                          and then Generate_Server_Code
+                        then
                            Skel.Gen_Node_Body
                              (S.Skel (Unit_Body), Export_Node,
                               Is_Delegate => False);
@@ -974,8 +998,12 @@ package body Ada_Be.Idl2Ada is
                         end if;
                      end if;
 
-                     Helper.Gen_Node_Spec (S.Helper (Unit_Spec), Export_Node);
-                     Helper.Gen_Node_Body (S.Helper (Unit_Body), Export_Node);
+                     if Generate_Client_Code then
+                        Helper.Gen_Node_Spec
+                          (S.Helper (Unit_Spec), Export_Node);
+                        Helper.Gen_Node_Body
+                          (S.Helper (Unit_Body), Export_Node);
+                     end if;
 
                      if Intf_Repo then
                         IR_Info.Gen_Node_Spec
@@ -992,14 +1020,18 @@ package body Ada_Be.Idl2Ada is
                end loop;
             end;
 
-            Gen_Repository_Id (Node, S.Stubs (Unit_Spec));
-
-            if Local (Node) then
+            if Implement and then Local (Node) then
                Gen_Local_Impl_Is_A
                  (Node, S.Impl (Unit_Spec), S.Impl (Unit_Body));
-            else
-               Gen_Is_A (Node, S.Stubs (Unit_Spec), S.Stubs (Unit_Body));
-               Gen_Local_Is_A (S.Stubs (Unit_Body), Node);
+            end if;
+
+            if Generate_Client_Code then
+               Gen_Repository_Id (Node, S.Stubs (Unit_Spec));
+
+               if not Local (Node) then
+                  Gen_Is_A (Node, S.Stubs (Unit_Spec), S.Stubs (Unit_Body));
+                  Gen_Local_Is_A (S.Stubs (Unit_Body), Node);
+               end if;
             end if;
 
             if Intf_Repo then
@@ -1007,10 +1039,14 @@ package body Ada_Be.Idl2Ada is
                IR_Info.Gen_Node_Body (S.IR_Info (Unit_Body), Node);
             end if;
 
-            Gen_Convert_Forward_Declaration (S.Stubs (Unit_Spec), Node);
+            if Generate_Client_Code then
+               Gen_Convert_Forward_Declaration (S.Stubs (Unit_Spec), Node);
+            end if;
 
             if not Abst (Node) then
-               if not Local (Node) then
+               if not Local (Node)
+                 and then Generate_Server_Code
+               then
                   Skel.Gen_Body_Common_End
                     (S.Skel (Unit_Body), Node, Is_Delegate => False);
                end if;
@@ -1034,11 +1070,11 @@ package body Ada_Be.Idl2Ada is
       end if;
 
       Gen_Module_Init_Postlude (S.Helper (Unit_Body));
-      Add_Elaborate_Body (S.Helper (Unit_Spec), S.Helper (Unit_Body));
 
       --  Local objects do not have a skeleton
 
       if Skel_Required then
+         Gen_Module_Init_Postlude (S.Stubs (Unit_Body));
          Gen_Module_Init_Postlude (S.Skel (Unit_Body));
          Add_Elaborate_Body (S.Skel (Unit_Spec), S.Skel (Unit_Body));
       end if;
@@ -1059,6 +1095,7 @@ package body Ada_Be.Idl2Ada is
       declare
          Is_Abstract_Node : Boolean := False;
          --  No skel and impl packages are generated for abstract interfaces
+
       begin
          if Kind (Node) = K_Interface then
             Is_Abstract_Node := Abst (Node);
@@ -1097,7 +1134,7 @@ package body Ada_Be.Idl2Ada is
    -------------------------
 
    procedure Gen_Repository_Id
-     (Node : in     Node_Id;
+     (Node : Node_Id;
       CU   : in out Compilation_Unit)
    is
    begin
@@ -1112,7 +1149,7 @@ package body Ada_Be.Idl2Ada is
    --------------
 
    procedure Gen_Is_A
-     (Node       : in Node_Id;
+     (Node       : Node_Id;
       Stubs_Spec : in out Compilation_Unit;
       Stubs_Body : in out Compilation_Unit) is
       NK : constant Node_Kind
@@ -1142,8 +1179,6 @@ package body Ada_Be.Idl2Ada is
 
       --  Implementation
 
-      Add_With (Stubs_Body, "CORBA.Object");
-
       NL (Stubs_Body);
       PL (Stubs_Body, "--  The visible Is_A object reference");
       PL (Stubs_Body, "--  operation (a dispatching operation");
@@ -1159,22 +1194,23 @@ package body Ada_Be.Idl2Ada is
       PL (Stubs_Body, "begin");
       II (Stubs_Body);
       PL (Stubs_Body, "return False");
-      NL (Stubs_Body);
-      PL (Stubs_Body, "  or else Is_A (Logical_Type_Id)");
       II (Stubs_Body);
       PL (Stubs_Body,
           "--  Locally check class membership for this interface");
       DI (Stubs_Body);
       NL (Stubs_Body);
-      PL (Stubs_Body, "  or else CORBA.Object.Is_A");
-      PL (Stubs_Body,
-          "           (CORBA.Object.Ref (Self), Logical_Type_Id);");
+      PL (Stubs_Body, "  or else Is_A (Logical_Type_Id)");
 
+      Add_With (Stubs_Body, "CORBA.Object");
       II (Stubs_Body);
       PL (Stubs_Body,
           "--  Fall back to a remote membership check (may involve");
       PL (Stubs_Body,
           "--  an actual request invocation on Self).");
+      NL (Stubs_Body);
+      PL (Stubs_Body, "  or else CORBA.Object.Is_A");
+      PL (Stubs_Body,
+          "           (CORBA.Object.Ref (Self), Logical_Type_Id);");
       DI (Stubs_Body);
 
       NL (Stubs_Body);
@@ -1187,11 +1223,13 @@ package body Ada_Be.Idl2Ada is
    --------------------------------
 
    procedure Gen_Local_Is_A_Type_Checks
-     (Node : in Node_Id;
+     (Node : Node_Id;
       CU   : in out Compilation_Unit)
    is
    begin
       --  An instance of a type verifies Is_A for that type...
+
+      Add_With (CU, "CORBA");
 
       PL (CU, "return CORBA.Is_Equivalent");
       PL (CU, "  (Logical_Type_Id,");
@@ -1245,7 +1283,7 @@ package body Ada_Be.Idl2Ada is
    -------------------------
 
    procedure Gen_Local_Impl_Is_A
-     (Node      : in Node_Id;
+     (Node      : Node_Id;
       Impl_Spec : in out Compilation_Unit;
       Impl_Body : in out Compilation_Unit) is
       NK : constant Node_Kind
@@ -1254,23 +1292,18 @@ package body Ada_Be.Idl2Ada is
       pragma Assert (NK = K_Interface);
       --  Declaration
 
-      Add_With (Impl_Body, "CORBA",
-                Use_It => False);
-
       Divert (Impl_Spec, Visible_Declarations);
       NL (Impl_Spec);
       PL (Impl_Spec, "function Is_A");
-      PL (Impl_Spec, "  (Self : access Object;");
-      PL (Impl_Spec, "   Logical_Type_Id : Standard.String)");
-      PL (Impl_Spec, "  return Boolean;");
+      PL (Impl_Spec, "  (Self            : access Object;");
+      PL (Impl_Spec, "   Logical_Type_Id : Standard.String) return Boolean;");
 
       --  Implementation
 
       NL (Impl_Body);
       PL (Impl_Body, "function Is_A");
-      PL (Impl_Body, "  (Self : access Object;");
-      PL (Impl_Body, "   Logical_Type_Id : Standard.String)");
-      PL (Impl_Body, "  return Boolean");
+      PL (Impl_Body, "  (Self            : access Object;");
+      PL (Impl_Body, "   Logical_Type_Id : Standard.String) return Boolean");
       PL (Impl_Body, "is");
       PL (Impl_Body, "begin");
       II (Impl_Body);
@@ -1287,7 +1320,7 @@ package body Ada_Be.Idl2Ada is
 
    procedure Gen_Local_Is_A
      (CU   : in out Compilation_Unit;
-      Node : in Node_Id)
+      Node : Node_Id)
    is
       NK : constant Node_Kind
         := Kind (Node);
@@ -1346,14 +1379,13 @@ package body Ada_Be.Idl2Ada is
                   --  Add_With (CU, "CORBA.AbstractBase");
                   --  Put (CU, "CORBA.AbstractBase.Ref");
                   --  See CORBA Spec v2.3, chapter 6 on abstract interface
-                  --  semantics, it explains why abstract interfaces
-                  --  should inherit directly from CORBA.AbstractBase.Ref
-                  --  and not from CORBA.Object.Ref
-                  --  However, I leave it like that because
-                  --  it requires a lot of code rewriting,
-                  --  all the current support for abstract interfaces is wrong
-                  --  (mainly because abstract interfaces can refer
-                  --  to valutypes).
+                  --  semantics, it explains why abstract interfaces should
+                  --  inherit directly from CORBA.AbstractBase.Ref and not from
+                  --  CORBA.Object.Ref However, I leave it like that because it
+                  --  requires a lot of code rewriting, all the current support
+                  --  for abstract interfaces is wrong (mainly because abstract
+                  --  interfaces can refer to valutypes).
+
                else
                   Add_With (CU, "CORBA.Object");
                   Put (CU, "CORBA.Object.Ref");
@@ -1365,7 +1397,7 @@ package body Ada_Be.Idl2Ada is
 
             when others =>
                raise Program_Error;
-               --  Never happens.
+               --  Never happens
 
          end case;
 
@@ -1376,9 +1408,8 @@ package body Ada_Be.Idl2Ada is
       end if;
 
       PL (CU, " with null record;");
-      --  The type is not produced as a private extension
-      --  declaration, because we may need to use it as
-      --  a generic actual parameter to instanciate
+      --  The type is not produced as a private extension declaration, because
+      --  we may need to use it as a generic actual parameter to instanciate
       --  CORBA.Forward.
 
    end Gen_Client_Stub_Type_Declaration;
@@ -1389,24 +1420,24 @@ package body Ada_Be.Idl2Ada is
 
    procedure Gen_Convert_Forward_Declaration
      (CU : in out Compilation_Unit;
-      Node : in Node_Id) is
+      Node : Node_Id) is
       Forward_Node : Node_Id;
    begin
       pragma Assert ((Kind (Node) = K_Interface)
                      or else (Kind (Node) = K_ValueType));
       Forward_Node := Forward (Node);
       if Forward_Node /= No_Node then
-         --  This interface has a forward declaration.
+
+         --  This interface has a forward declaration
 
          NL (CU);
          PL (CU, "package Convert_Forward is");
+         Add_With (CU, Ada_Full_Name (Parent_Scope (Forward_Node)));
          Put (CU, "  new "
               & Ada_Full_Name (Forward_Node)
               & ".Convert ("
               & Ada_Type_Defining_Name (Mapping, Node)
               & ");");
-         Add_With (CU, Ada_Full_Name
-                   (Definition (Node).Parent_Scope));
       end if;
    end Gen_Convert_Forward_Declaration;
 
@@ -1419,24 +1450,24 @@ package body Ada_Be.Idl2Ada is
       Node      : Node_Id;
       Full_View : Boolean)
    is
-      Primary_Parent : constant Node_Id
-        := Idl_Fe.Tree.Synthetic.Primary_Parent (Node);
+      Primary_Parent : constant Node_Id :=
+                         Idl_Fe.Tree.Synthetic.Primary_Parent (Node);
    begin
+
+      --  No skel package is generated for abstract interfaces
+
       pragma Assert (Kind (Node) = K_Interface);
       pragma Assert (not Abst (Node));
-      --  No skel package is generated for abstract interfaces.
 
       NL (CU);
       PL (CU, "type Object is");
       if Primary_Parent = No_Node then
          if Local (Node) then
             Add_With (CU, "CORBA.Local");
-            Put (CU, "  ");
-            Put (CU, "new CORBA.Local.Object");
+            Put (CU, "  new CORBA.Local.Object");
          else
             Add_With (CU, "PortableServer");
-            Put (CU, "  ");
-            Put (CU, "new PortableServer.Servant_Base");
+            Put (CU, "  new PortableServer.Servant_Base");
          end if;
       else
          declare
@@ -1456,18 +1487,17 @@ package body Ada_Be.Idl2Ada is
                             & Impl.Suffix,
                             Use_It => False,
                             Elab_Control => Elaborate_All);
-                  --  Make it so that the skeleton unit for
-                  --  an interface is elaborated after those
-                  --  of all its parents.
+                  --  Make it so that the skeleton unit for an interface is
+                  --  elaborated after those of all its parents.
                end if;
             end loop;
          end;
       end if;
+
       if Full_View then
          PL (CU, " with record");
          II (CU);
-         PL (CU, "--  Insert components to hold the state");
-         PL (CU, "--  of the implementation object.");
+         PL (CU, "--  Insert components for implementation object state");
          PL (CU, "null;");
          DI (CU);
          PL (CU, "end record;");
@@ -1476,6 +1506,7 @@ package body Ada_Be.Idl2Ada is
          NL (CU);
          PL (CU, "type Object_Ptr is access all Object'Class;");
       end if;
+
    end Gen_Object_Servant_Declaration;
 
    procedure Gen_When_Clause
@@ -1501,8 +1532,7 @@ package body Ada_Be.Idl2Ada is
 
          if Multiple_Labels then
             pragma Assert (Label_Node /= No_Node);
-            --  The null label is the "default:"
-            --  one, and must have its own case.
+            --  The null label is the "default" one, and must have its own case
 
             if not First_Label then
                PL (CU, " |");
@@ -1528,11 +1558,13 @@ package body Ada_Be.Idl2Ada is
    procedure Gen_When_Others_Clause
      (CU : in out Compilation_Unit) is
    begin
+
+      --  All cases might already have been covered by explicit when clauses,
+      --  in which case the compiler notes that this "when others" clause is
+      --  redundant: disable warnings here.
+
       NL (CU);
       PL (CU, "pragma Warnings (Off);");
-      --  All cases might already have been covered
-      --  by explicit when clauses.
-
       PL (CU, "when others =>");
       II (CU);
       PL (CU, "null;");
@@ -1610,9 +1642,9 @@ package body Ada_Be.Idl2Ada is
                 & " is "
                 & Ada_Name (Node)
                 & "_Value_Box.Box_Ref;");
-            --  I tried to put a "with null record", but
-            --  primitives of CORBA.Value.Box have to be overriden.
-            --  More simple with a subtype.
+            --  XXX Using a derived type would require overriding primtives
+            --  of CORBA.Value.Box, which was deemed "impractical". But are we
+            --  allowed to use a subtype instead?
 
          when K_State_Member =>
             null;
@@ -1626,19 +1658,40 @@ package body Ada_Be.Idl2Ada is
               (CU, "Value_Ref'Class", Node);
             PL (CU, ";");
 
-
          when K_Operation =>
 
-            if not Is_Implicit_Inherited (Node) then
+            declare
+               Implicit    : constant Boolean := Is_Implicit_Inherited (Node);
+               Original_If : constant Node_Id := Original_Parent_Scope (Node);
+            begin
+
+               --  Generate operation declaration (commented out if it is
+               --  implicitly inherited from parent type).
+
+               Set_Comment_Out_Mode (CU, Implicit);
                Gen_Operation_Profile
-                 (CU, Node, "in " & Ada_Type_Defining_Name
-                  (Mapping, Parent_Scope (Node)));
+                 (CU, Node, Ada_Type_Defining_Name
+                              (Mapping, Parent_Scope (Node)));
                PL (CU, ";");
-               if Original_Node (Node) = No_Node then
-                  --  A real (not expanded) operation
+               Set_Comment_Out_Mode (CU, False);
+
+               if not Implicit and then Original_Node (Node) = No_Node then
+
+                  --  A real operation (coming from the IDL source)
+
                   Gen_Repository_Id (Node, CU);
                end if;
-            end if;
+
+               if Original_If /= Parent_Scope (Node) then
+                  Put (CU, "--  ");
+                  if Implicit then
+                     Put (CU, "Implicitly i");
+                  else
+                     Put (CU, "I");
+                  end if;
+                  PL (CU, "nherited from " & Ada_Full_Name (Original_If));
+               end if;
+            end;
 
          when K_Attribute =>
             declare
@@ -1656,13 +1709,18 @@ package body Ada_Be.Idl2Ada is
 
             Add_With (CU, "Ada.Exceptions");
             Add_With (CU, "CORBA", Elab_Control => Elaborate_All);
+
+            --  Exception declaration
+
             NL (CU);
             PL (CU, Ada_Name (Node) & " : exception;");
---             PL (CU, Repository_Id_Name (Node)
---                 & " : constant CORBA.RepositoryId");
---             PL (CU, "  := CORBA.To_CORBA_String ("""
---                 & Idl_Repository_Id (Node) & """);");
+
+            --  Repository id
+
             Gen_Repository_Id (Node, CU);
+
+            --  Members accessor
+
             NL (CU);
             PL (CU, "procedure Get_Members");
             PL (CU, "  (From : Ada.Exceptions.Exception_Occurrence;");
@@ -1689,7 +1747,9 @@ package body Ada_Be.Idl2Ada is
             end;
 
          when K_Enum =>
+
             --  Type declaration
+
             NL (CU);
             PL (CU, "type " & Ada_Name (Node) & " is");
 
@@ -1744,11 +1804,12 @@ package body Ada_Be.Idl2Ada is
                           := not Is_Empty (Array_Bounds (Decl_Node));
                      begin
                         NL (CU);
-                        if Is_Ref
-                          and then not Is_Array then
-                           --  A typedef where the <type_spec>
-                           --  denotes an interface type, and
-                           --  which is not an array declaration.
+                        if Is_Ref and then not Is_Array then
+
+                           --  A typedef where the <type_spec> denotes an
+                           --  interface type, and which is not an array
+                           --  declaration.
+
                            Put (CU, "subtype ");
                         else
                            Put (CU, "type ");
@@ -1940,7 +2001,8 @@ package body Ada_Be.Idl2Ada is
             Gen_Node_Stubs_Spec (CU, Constant_Type (Node));
             NL (CU);
             Put (CU, "  := ");
-            Gen_Constant_Value (CU, Expression (Node));
+            Gen_Constant_Value (CU,
+              Expr => Expression (Node), Typ => Constant_Type (Node));
             PL (CU, ";");
 
          when K_ValueBase =>
@@ -1968,11 +2030,11 @@ package body Ada_Be.Idl2Ada is
 
    end Gen_Node_Stubs_Spec;
 
-   -------------------------
-   -- Gen_Node_Stubs_Body --
-   -------------------------
+   -------------
+   -- Justify --
+   -------------
 
-   function Justify (S : in String; Max : in Integer) return String
+   function Justify (S : String; Max : Integer) return String
    is
       WS : String (1 .. 50);
    begin
@@ -1983,17 +2045,20 @@ package body Ada_Be.Idl2Ada is
       return Head (WS, Max);
    end Justify;
 
+   ----------------------------
+   -- Gen_Forward_Conversion --
+   ----------------------------
+
    procedure Gen_Forward_Conversion
      (CU        : in out Compilation_Unit;
-      T_Node    : in     Node_Id;
-      Direction : in     String;
-      What      : in     String)
+      T_Node    : Node_Id;
+      Direction : String;
+      What      : String)
    is
       NT : Node_Id := T_Node;
    begin
       --  XXX the following loop is dubious.
-      --  Most likely, it runs exactly once every
-      --  time.
+      --  Most likely, it runs exactly once every time.
       while Kind (NT) = K_Scoped_Name loop
          NT := Value (NT);
       end loop;
@@ -2031,7 +2096,18 @@ package body Ada_Be.Idl2Ada is
             null;
 
          when K_Interface  =>
-            null;
+
+            --  Declare constant used by stubs for the name of the Result
+            --  NamedValue
+
+            if not Local (Node)
+              and then Has_Non_Implicit_Inherited_Operations (Node)
+            then
+               NL (CU);
+               Add_With (CU, "PolyORB.Types");
+               PL (CU, T_Result_Name & " : constant PolyORB.Types.Identifier");
+               PL (CU, "  := PolyORB.Types.To_PolyORB_String (""Result"");");
+            end if;
 
          when K_Forward_Interface =>
             null;
@@ -2062,17 +2138,15 @@ package body Ada_Be.Idl2Ada is
             end if;
 
             declare
-               O_Name      : constant String
-                 := Ada_Operation_Name (Node);
-               O_Type      : constant Node_Id
-                 := Operation_Type (Node);
-               Org_O_Type  : constant Node_Id
-                 := Original_Operation_Type (Node);
-               Is_Function : constant Boolean
-                 := Kind (O_Type) /= K_Void;
+               O_Name        : constant String  := Ada_Operation_Name (Node);
+               O_Type        : constant Node_Id := Operation_Type (Node);
+               Org_O_Type    : constant Node_Id
+                                 := Original_Operation_Type (Node);
+               Is_Function   : constant Boolean := Kind (O_Type) /= K_Void;
+               Decls_Div     : constant Diversion := Current_Diversion (CU);
 
                procedure Gen_Object_Self_Nil_Check;
-               --  Generate object reference nil check.
+               --  Generate object reference nil check
 
                -------------------------------
                -- Gen_Object_Self_Nil_Check --
@@ -2094,8 +2168,8 @@ package body Ada_Be.Idl2Ada is
                Add_With (CU, "CORBA",
                          Use_It       => True,
                          Elab_Control => Elaborate_All);
-               Add_With (CU, "CORBA.Object");
 
+               Divert (CU, Operation_Body);
                Gen_Operation_Profile
                  (CU, Node,
                   Ada_Type_Defining_Name (Mapping, Parent_Scope (Node)));
@@ -2105,6 +2179,9 @@ package body Ada_Be.Idl2Ada is
                II (CU);
 
                if Local (Parent_Scope (Node)) then
+
+                  --  Case of a local interface
+
                   declare
                      Impl_U_Name : constant String
                        := Client_Stubs_Unit_Name (Mapping, Parent_Scope (Node))
@@ -2112,6 +2189,7 @@ package body Ada_Be.Idl2Ada is
 
                   begin
                      Add_With (CU, Impl_U_Name);
+                     Add_With (CU, "CORBA.Object");
 
                      PL (CU, T_Self_Ref & " : CORBA.Object.Ref");
                      PL (CU, "  := CORBA.Object.Ref ("
@@ -2151,22 +2229,67 @@ package body Ada_Be.Idl2Ada is
 
                         end loop;
                      end;
+
+                     if not Is_Function
+                       and then Kind (Org_O_Type) /= K_Void
+                     then
+                        PL (CU, ",");
+                        II (CU);
+                        Put (CU, "Returns");
+                        DI (CU);
+                     end if;
+
                      PL (CU, ");");
                   end;
 
                else
+
+                  --  Case of an unconstrained interface
+
                   declare
-                     Response_Expected : constant Boolean
-                       := not Is_Oneway (Node);
-                     Raise_Something   : constant Boolean
-                       := not Is_Empty (Raises (Node));
+                     Response_Expected : constant Boolean :=
+                                           not Is_Oneway (Node);
+                     Raise_Something   : constant Boolean :=
+                                           not Is_Empty (Raises (Node));
 
                   begin
                      Add_With (CU, "PolyORB.CORBA_P.Exceptions");
                      Add_With (CU, "PolyORB.CORBA_P.Interceptors_Hooks");
                      Add_With (CU, "PolyORB.Any.NVList");
                      Add_With (CU, "PolyORB.Requests");
-                     Add_With (CU, "PolyORB.Types");
+
+                     --  Prepare return Any
+
+                     if Kind (Org_O_Type) /= K_Void then
+                        Put (CU, T_Result & " : "
+                             & Ada_Type_Name (Org_O_Type));
+
+                        if Is_Function then
+                           PL (CU, ";");
+
+                           --  Kill warning about unreferenced variable (it is
+                           --  accessed only through the wrapper below).
+
+                           PL (CU, "pragma Warnings (Off, " & T_Result & ");");
+                        else
+                           PL (CU, " renames Returns;");
+
+                           --  Kill warning on out arg that is never explicitly
+                           --  assigned.
+
+                           PL (CU, "pragma Warnings (Off, Returns);");
+                        end if;
+
+                        PL (CU, T_Arg_CC & T_Result
+                            & " : aliased PolyORB.Any.Content'Class"
+                            & " :=");
+                        II (CU);
+                        Helper.Gen_Wrap_Call (CU, Org_O_Type, T_Result);
+                        DI (CU);
+                        PL (CU, ";");
+                     end if;
+
+                     --  Prepare argument Anys
 
                      declare
                         It   : Node_Iterator;
@@ -2178,71 +2301,54 @@ package body Ada_Be.Idl2Ada is
                            if not Is_Returns (P_Node) then
 
                               declare
-                                 Arg_Name    : constant String
-                                   := Ada_Name (Declarator (P_Node));
-                                 P_Typ       : constant Node_Id
-                                   := Param_Type (P_Node);
-                                 Helper_Name : constant String
-                                   := Helper_Unit (P_Typ);
-                                 Unit, Typ   : ASU.Unbounded_String;
+                                 Arg_Name    : constant String :=
+                                               Ada_Name (Declarator (P_Node));
+                                 P_Typ       : constant Node_Id :=
+                                                 Param_Type (P_Node);
+                                 Helper_Name : constant String :=
+                                                 Helper_Unit (P_Typ);
 
                               begin
                                  Add_With (CU, Helper_Name);
-                                 PL (CU, T_Arg_Name & Arg_Name
+                                 Divert (CU, Decls_Div);
+                                 NL (CU);
+                                 PL (CU, O_Name & T_Arg_Name & Arg_Name
                                      & " : PolyORB.Types.Identifier");
                                  PL (CU,
                                      "  := PolyORB.Types.To_PolyORB_String ("""
                                      & Arg_Name & """);");
+                                 Divert (CU, Operation_Body);
 
-                                 PL (CU,
-                                     T_Argument & Arg_Name & " : CORBA.Any");
-                                 if Mode (P_Node) /= Mode_Out then
-                                    if Kind (P_Typ) = K_Scoped_Name
-                                      and then S_Type (P_Typ)
-                                        = Parent_Scope
-                                        (Parent_Scope (Declarator (P_Node)))
-                                    then
-                                       Map_Type_Name
-                                         (Mapping, P_Typ, Unit, Typ);
+                                 PL (CU, T_Arg_CC & Arg_Name
+                                     & " : aliased PolyORB.Any.Content'Class"
+                                     & " :=");
+                                 II (CU);
+                                 Helper.Gen_Wrap_Call (CU, P_Typ, Arg_Name);
+                                 DI (CU);
+                                 PL (CU, ";");
 
-                                       PL (CU,
-                                           "  := " & Helper_Name & ".To_Any");
-                                       Put (CU, "  (");
-                                       Put (CU, -Typ);
-                                       Put (CU, " (");
-                                       Gen_Forward_Conversion
-                                         (CU, P_Typ, "From_Forward", Arg_Name);
-                                       PL (CU, "));");
-                                    else
-                                       PL (CU,
-                                           "  := " & Helper_Name & ".To_Any");
-                                       Put (CU, "  (");
-                                       Gen_Forward_Conversion
-                                         (CU, P_Typ, "From_Forward", Arg_Name);
-                                       PL (CU, ");");
-                                    end if;
-                                 else
-                                    declare
-                                       TC_Helper_Name   : constant String
-                                         := Ada_Helper_Unit_Name
-                                         (Mapping, P_Typ);
-                                    begin
-                                       Add_With (CU, TC_Helper_Name);
-                                       PL (CU, "  := CORBA.Get_Empty_Any");
-                                       II (CU);
-                                       PL (CU, "("
-                                         & Ada_Full_TC_Name (P_Typ) & ");");
-                                       DI (CU);
-                                    end;
+                                 Add_With (CU, TC_Unit (P_Typ));
+                                 PL (CU, T_Arg_Any & Arg_Name
+                                     & " : CORBA.Any :="
+                                     & " CORBA.Internals.Get_Wrapper_Any ("
+                                     & Ada_Full_TC_Name (P_Typ) & ", "
+                                     & T_Arg_CC & Arg_Name
+                                     & "'Unchecked_Access);");
+
+                                 --  Kill warning on out arg that is never
+                                 --  explicitly assigned.
+
+                                 if Mode (P_Node) /= Mode_In then
+                                    PL (CU, "pragma Warnings (Off, "
+                                        & Arg_Name & ");");
                                  end if;
                               end;
                            end if;
                         end loop;
                      end;
-
                      NL (CU);
-                     PL (CU, T_Operation_Name & " : constant Standard.String");
-                     PL (CU, "  := """ & Idl_Operation_Id (Node) & """;");
+
+                     Add_With (CU, "CORBA.Object");
                      PL (CU, T_Self_Ref & " : CORBA.Object.Ref");
                      PL (CU, "  := CORBA.Object.Ref ("
                          & Self_For_Operation (Mapping, Node) & ");");
@@ -2251,16 +2357,7 @@ package body Ada_Be.Idl2Ada is
                          & " : PolyORB.Requests.Request_Access;");
 
                      PL (CU, T_Arg_List & " : PolyORB.Any.NVList.Ref;");
-
-                     if Raise_Something then
-                        Add_With (CU, "CORBA.ExceptionList");
-                        PL (CU, T_Excp_List
-                          & " : CORBA.ExceptionList.Ref;");
-                     end if;
-
-                     PL (CU, T_Result & " : PolyORB.Any.NamedValue;");
-                     PL (CU, T_Result_Name
-                         & " : CORBA.String := To_CORBA_String (""Result"");");
+                     PL (CU, T_Result & "_NV : PolyORB.Any.NamedValue;");
 
                      DI (CU);
                      PL (CU, "begin");
@@ -2269,6 +2366,7 @@ package body Ada_Be.Idl2Ada is
                      Gen_Object_Self_Nil_Check;
 
                      PL (CU, "--  Create argument list");
+                     NL (CU);
                      PL (CU, "PolyORB.Any.NVList.Create");
                      PL (CU, "  (" & T_Arg_List & ");");
 
@@ -2283,15 +2381,23 @@ package body Ada_Be.Idl2Ada is
 
                            if not Is_Returns (P_Node) then
                               declare
-                                 Arg_Name : constant String
-                                   := Ada_Name (Declarator (P_Node));
+                                 Arg_Name : constant String :=
+                                              Ada_Name (Declarator (P_Node));
                               begin
                                  PL (CU, "PolyORB.Any.NVList.Add_Item");
                                  PL (CU, "  (" & T_Arg_List & ",");
                                  II (CU);
-                                 PL (CU, T_Arg_Name & Arg_Name & ",");
-                                 PL (CU, "CORBA.Internals.To_PolyORB_Any ("
-                                     & T_Argument & Arg_Name & "),");
+                                 PL (CU, O_Name & T_Arg_Name
+                                     & Arg_Name & ",");
+
+                                 PL (CU,
+                                     Conditional_Call
+                                       (Func      => "PolyORB.Any.Copy_Any",
+                                        Only_When => not Response_Expected,
+                                        Expr      =>
+                                          "CORBA.Internals.To_PolyORB_Any ("
+                                            & T_Arg_Any & Arg_Name & ")"));
+                                 PL (CU, ",");
                               end;
 
                               case Mode (P_Node) is
@@ -2318,56 +2424,70 @@ package body Ada_Be.Idl2Ada is
                         while not Is_End (It) loop
                            Get_Next_Node (It, R_Node);
                            E_Node := Value (R_Node);
-                           Add_With
-                             (CU, Ada_Helper_Unit_Name (Mapping, E_Node));
+
                            if First then
+                              Divert (CU, Decls_Div);
                               NL (CU);
-                              PL (CU, "--  Create exceptions list.");
+
+                              Add_With (CU, "CORBA.ExceptionList");
+                              PL (CU, O_Name & T_Excp_List
+                                  & " : CORBA.ExceptionList.Ref;");
+                              Divert (CU, Deferred_Initialization);
+                              NL (CU);
+                              PL (CU, "--  Exceptions list for " & O_Name);
                               NL (CU);
                               PL (CU, "CORBA.ExceptionList.Create_List ("
-                                  & T_Excp_List & ");");
+                                  & O_Name & T_Excp_List & ");");
                               First := False;
                            end if;
 
+                           Helper.Add_Helper_Dependency (CU, TC_Unit (E_Node));
                            PL (CU, "CORBA.ExceptionList.Add");
-                           PL (CU, "  (" & T_Excp_List & ",");
+                           PL (CU, "  (" & O_Name & T_Excp_List & ",");
                            II (CU);
-                           PL (CU, TC_Name (E_Node) & ");");
+                           PL (CU, Ada_Full_TC_Name (E_Node) & ");");
                            DI (CU);
-
                         end loop;
                      end;
+                     Divert (CU, Operation_Body);
 
                      NL (CU);
                      PL (CU, "--  Set result type (maybe void)");
                      NL (CU);
-                     PL (CU, T_Result);
-                     PL (CU, "  := (Name => PolyORB.Types.Identifier ("
-                         & T_Result_Name & "),");
-                     PL (CU, "      Argument => "
-                         & "CORBA.Internals.To_PolyORB_Any ");
+                     PL (CU, T_Result & "_NV :=");
+                     PL (CU, " (Name     => " & T_Result_Name & ",");
+                     PL (CU, "  Argument => CORBA.Internals.To_PolyORB_Any (");
 
-                     Add_With (CU, Ada_Helper_Unit_Name (Mapping, Org_O_Type));
-                     PL (CU, "  (Get_Empty_Any ("
-                         & TC_Name (Org_O_Type) & ")),");
+                     Add_With (CU, TC_Unit (Org_O_Type));
                      II (CU);
+                     PL (CU, "CORBA.Internals.Get_Empty_Any ("
+                         & Ada_Full_TC_Name (Org_O_Type) & ")),");
                      PL (CU, "Arg_Modes => 0);");
                      DI (CU);
+                     if Kind (Org_O_Type) /= K_Void then
+                        PL (CU, "PolyORB.Any.Set_Value ("
+                          & "PolyORB.Any.Get_Container ("
+                          & T_Result & "_NV.Argument).all, "
+                          & T_Arg_CC & T_Result & "'Unrestricted_Access);");
+                     end if;
                      NL (CU);
 
                      PL (CU, "PolyORB.Requests.Create_Request");
-                     PL (CU, "  (Target    => CORBA.Object.To_PolyORB_Ref");
+                     PL (CU, "  (Target    => CORBA.Object.Internals."
+                         & "To_PolyORB_Ref");
                      II (CU);
                      PL (CU, "  (CORBA.Object.Ref ("
                          & Self_For_Operation (Mapping, Node) & ")),");
-                     PL (CU, "Operation => " & T_Operation_Name & ",");
+                     PL (CU, "Operation => """ & Idl_Operation_Id (Node)
+                         & """,");
                      PL (CU, "Arg_List  => " & T_Arg_List & ",");
-                     PL (CU, "Result    => " & T_Result & ",");
+                     PL (CU, "Result    => " & T_Result & "_NV,");
 
                      if Raise_Something then
                         PL (CU,
-                            "Exc_List  => CORBA.ExceptionList.To_PolyORB_Ref ("
-                            & T_Excp_List & "),");
+                            "Exc_List  => CORBA.ExceptionList.Internals."
+                            & "To_PolyORB_Ref ("
+                            & O_Name & T_Excp_List & "),");
                      end if;
 
                      if Response_Expected then
@@ -2382,25 +2502,11 @@ package body Ada_Be.Idl2Ada is
                      NL (CU);
                      PL (CU,
                          "PolyORB.CORBA_P.Interceptors_Hooks.Client_Invoke");
-                     PL (CU, "  (" & T_Request & ',');
-                     II (CU);
-                     PL (CU, "PolyORB.Requests.Flags (0));");
-                     DI (CU);
+                     PL (CU, "  (" & T_Request
+                         & ", PolyORB.Requests.Flags (0));");
 
-                     PL (CU, "if not PolyORB.Any.Is_Empty (" & T_Request
-                         & ".Exception_Info) then");
-                     II (CU);
-                     PL (CU, T_Result & ".Argument := "
-                         & T_Request & ".Exception_Info;");
-                     PL (CU, "PolyORB.Requests.Destroy_Request"
-                         & " (" & T_Request & ");");
-                     PL (CU, "PolyORB.CORBA_P.Exceptions.Raise_From_Any"
-                         & " (" & T_Result & ".Argument);");
-                     NL (CU);
-                     PL (CU, "--  Not reached");
-                     NL (CU);
-                     DI (CU);
-                     PL (CU, "end if;");
+                     PL (CU, "PolyORB.CORBA_P.Exceptions."
+                         & "Request_Raise_Occurrence (" & T_Request & ");");
 
                      PL (CU, "PolyORB.Requests.Destroy_Request ("
                          & T_Request & ");");
@@ -2408,129 +2514,23 @@ package body Ada_Be.Idl2Ada is
                      if Response_Expected then
 
                         NL (CU);
-                        PL (CU, "--  Request has been synchronously invoked.");
+                        PL (CU, "--  Request has been synchronously invoked");
+                        NL (CU);
 
-                        declare
-                           It     : Node_Iterator;
-                           P_Node : Node_Id;
-                           First  : Boolean := True;
-                        begin
-                           if Kind (Org_O_Type) /= K_Void then
-                              NL (CU);
-                              PL (CU, "--  Retrieve return value");
-                              NL (CU);
+                        if Kind (Org_O_Type) /= K_Void
+                          and then Is_Function
+                        then
+                           PL (CU, "return " & T_Result & ";");
+                        end if;
 
-                              if Is_Function then
-                                 Put (CU, "return ");
-                              else
-                                 Put (CU, "Returns := ");
-                              end if;
-
-                              declare
-                                 Prefix : constant String
-                                   := Helper_Unit (Org_O_Type);
-                                 Unit, Typ : ASU.Unbounded_String;
-                              begin
-                                 Add_With (CU, Prefix);
-
-                                 if not Is_Function
-                                   and then Kind (O_Type) = K_Scoped_Name
-                                   and then S_Type (O_Type)
-                                     = Parent_Scope (Node)
-                                 then
-                                    Map_Type_Name (Mapping, O_Type, Unit, Typ);
-                                    Put (CU, (-Typ) & "'Class (");
-
-                                    Gen_Forward_Conversion
-                                         (CU, Org_O_Type,
-                                          "To_Forward",
-                                          Prefix & ".From_Any"
-                                          & ASCII.LF
-                                          & "  (CORBA.Internals.To_CORBA_Any ("
-                                          & T_Result & ".Argument)))");
-                                 else
-                                    Gen_Forward_Conversion
-                                      (CU, Org_O_Type,
-                                       "To_Forward",
-                                       Prefix & ".From_Any"
-                                       & ASCII.LF
-                                       & "  (CORBA.Internals.To_CORBA_Any ("
-                                       & T_Result & ".Argument))");
-                                 end if;
-
-                                 PL (CU, ";");
-                              end;
-                           end if;
-
-                           Init (It, Parameters (Node));
-                           while not Is_End (It) loop
-                              Get_Next_Node (It, P_Node);
-
-                              if not Is_Returns (P_Node) then
-
-                                 if Mode (P_Node) =  Mode_Inout
-                                   or else Mode (P_Node) = Mode_Out
-                                 then
-                                    if First then
-                                       NL (CU);
-                                       PL (CU,
-                                           "--  Retrieve 'out' argument "
-                                             & "values.");
-                                       NL (CU);
-                                       First := False;
-                                    end if;
-
-                                    declare
-                                       Arg_Name : constant String
-                                         := Ada_Name (Declarator (P_Node));
-                                       T_Node : constant Node_Id
-                                         := Param_Type (P_Node);
-                                       Unit, Typ : ASU.Unbounded_String;
-                                    begin
-                                       Put (CU, Arg_Name & " := ");
-
-                                       if Kind (T_Node) = K_Scoped_Name
-                                         and then S_Type (T_Node)
-                                           = Parent_Scope
-                                           (Parent_Scope (Declarator (P_Node)))
-                                       then
-                                          Map_Type_Name
-                                            (Mapping, T_Node, Unit, Typ);
-                                          Put (CU, -Typ);
-                                          Put (CU, "'Class (");
-
-                                          Gen_Forward_Conversion
-                                            (CU, Param_Type (P_Node),
-                                             "To_Forward",
-                                             Helper_Unit (Param_Type (P_Node))
-                                             & ".From_Any"
-                                             & ASCII.LF & "  ("
-                                             & T_Argument
-                                             & Arg_Name);
-                                          Put (CU, ")");
-                                       else
-                                          Gen_Forward_Conversion
-                                            (CU, Param_Type (P_Node),
-                                             "To_Forward",
-                                             Helper_Unit (Param_Type (P_Node))
-                                             & ".From_Any"
-                                             & ASCII.LF & "  ("
-                                             & T_Argument
-                                             & Arg_Name);
-                                       end if;
-
-                                       PL (CU, ");");
-                                    end;
-                                 end if;
-                              end if;
-                           end loop;
-                        end;
                      end if;
                   end;
                end if;
 
                DI (CU);
                PL (CU, "end " & O_Name & ";");
+               Divert (CU, Decls_Div);
+               Undivert (CU, Operation_Body);
             end;
 
          when K_Exception =>
@@ -2558,7 +2558,7 @@ package body Ada_Be.Idl2Ada is
 
    procedure Gen_Initializer_Profile
      (CU : in out Compilation_Unit;
-      Return_Type : in String;
+      Return_Type : String;
       Node : Node_Id) is
    begin
       pragma Assert (Kind (Node) = K_Initializer);
@@ -2593,9 +2593,7 @@ package body Ada_Be.Idl2Ada is
          end if;
          NL (CU);
          II (CU);
-         Put (CU,
-              "return "
-              & Return_Type);
+         Put (CU, "return " & Return_Type);
          DI (CU);
       end;
    end Gen_Initializer_Profile;
@@ -2606,10 +2604,10 @@ package body Ada_Be.Idl2Ada is
 
    procedure Gen_Operation_Profile
      (CU          : in out Compilation_Unit;
-      Node        : in     Node_Id;
-      Object_Type : in     String;
-      With_Name   : in     Boolean          := True;
-      Is_Delegate : in     Boolean          := False)
+      Node        : Node_Id;
+      Object_Type : String;
+      With_Name   : Boolean          := True;
+      Is_Delegate : Boolean          := False)
    is
       First : Boolean := True;
    begin
@@ -2629,9 +2627,9 @@ package body Ada_Be.Idl2Ada is
                Put (CU, "function ");
             end if;
 
-            --  In .value_skel, we need the profile
-            --  of the subprogram without the name, to create
-            --  an access to subprogram type
+            --  In Value_Skel, we need the profile of the subprogram without
+            --  the name, to create an access to subprogram type
+
             if With_Name then
                Put (CU, Ada_Operation_Name (Node));
             end if;
@@ -2686,13 +2684,11 @@ package body Ada_Be.Idl2Ada is
                   if Kind (O_Type) = K_Scoped_Name
                     and then S_Type (O_Type) = Parent_Scope (Node)
                   then
-                     --  An operation of an interface is a
-                     --  primitive operation of the tagged type
-                     --  that maps this interface. If it has
-                     --  other formal parameters that are object
-                     --  references of the same interface type, then
-                     --  these formals must not be controlling.
-                     --  (Ada RTF issue #2459).
+                     --  An operation of an interface is a primitive operation
+                     --  of the tagged type that maps this interface. If it has
+                     --  other formal parameters that are object references of
+                     --  the same interface type, then these formals must not
+                     --  be controlling (Ada RTF issue #2459).
 
                      Put (CU, "'Class");
                   end if;
@@ -2716,8 +2712,7 @@ package body Ada_Be.Idl2Ada is
             end case;
 
             declare
-               T_Node : constant Node_Id
-                 := Param_Type (Node);
+               T_Node : constant Node_Id := Param_Type (Node);
                Unit, Typ : ASU.Unbounded_String;
             begin
                Map_Type_Name (Mapping, T_Node, Unit, Typ);
@@ -2729,14 +2724,12 @@ package body Ada_Be.Idl2Ada is
                  (Parent_Scope (Declarator (Node)))
                then
 
-                  --  An operation of an interface is a
-                  --  primitive operation of the tagged type
-                  --  that maps this interface. If it has
-                  --  other formal parameters that are object
-                  --  references of the same interface type, then
-                  --  these formals must not be controlling.
-                  --  (Ada RTF issue #2459).
-                  --  (see above) --  FIXME: code duplication.
+                  --  An operation of an interface is primitive operation of
+                  --  the tagged type that maps this interface. If it has other
+                  --  formal parameters that are object references of the same
+                  --  interface type, then these formals must not be
+                  --  controlling. (Ada RTF issue #2459) (see above).
+                  --  FIXME: code duplication.
 
                   Put (CU, "'Class");
                end if;
@@ -2866,140 +2859,14 @@ package body Ada_Be.Idl2Ada is
       return -Typ;
    end Ada_Type_Name;
 
-   -------------
-   -- TC_Name --
-   -------------
+   ----------------------
+   -- Ada_Full_TC_Name --
+   ----------------------
 
-   function TC_Name
-     (Node : Node_Id)
-     return String
-   is
-      NK : constant Node_Kind
-        := Kind (Node);
+   function Ada_Full_TC_Name (Node : Node_Id) return String is
    begin
-
-      case NK is
-
-         when
-           K_Forward_Interface |
-           K_Forward_ValueType =>
-            return TC_Name (Forward (Node));
-
-         when
-           K_Interface         |
-           K_ValueType         |
-
-           K_Enum              |
-           K_Union             |
-           K_Struct            |
-           K_Exception         |
-           K_Boxed_ValueType   |
-
-           K_Sequence_Instance |
-           K_String_Instance =>
-
-            return
-              Ada_Helper_Unit_Name (Mapping, Node) & ".TC_" & Ada_Name (Node);
-
-         when K_Declarator =>
-            declare
-               P : constant Node_Id := Parent (Node);
-            begin
-               if Kind (P) = K_Type_Declarator then
-                  declare
-                     T_Node : constant Node_Id := T_Type (P);
-                  begin
-                     case Kind (T_Node) is
-                        when
-                          K_Interface         |
-                          K_Forward_Interface |
-                          K_ValueType         |
-                          K_Scoped_Name       |
-                          K_Forward_ValueType =>
-                           return TC_Name (T_Node);
-                        when others =>
-                           return Ada_Helper_Unit_Name (Mapping, Node) & ".TC_"
-                             & Ada_Name (Node);
-                     end case;
-                  end;
-               else
-                  return
-                    Ada_Helper_Unit_Name (Mapping, Node)
-                      & ".TC_" & Ada_Name (Node);
-               end if;
-            end;
-
-         when K_Scoped_Name =>
-            return TC_Name (Value (Node));
-
-         when K_Void =>
-            return "CORBA.TC_Void";
-
-         when K_Short =>
-            return "CORBA.TC_Short";
-
-         when K_Long =>
-            return "CORBA.TC_Long";
-
-         when K_Long_Long =>
-            return "CORBA.TC_Long_Long";
-
-         when K_Unsigned_Short =>
-            return "CORBA.TC_Unsigned_Short";
-
-         when K_Unsigned_Long =>
-            return "CORBA.TC_Unsigned_Long";
-
-         when K_Unsigned_Long_Long =>
-            return "CORBA.TC_Unsigned_Long_Long";
-
-         when K_Char =>
-            return "CORBA.TC_Char";
-
-         when K_Wide_Char =>
-            return "CORBA.TC_Wchar";
-
-         when K_Boolean =>
-            return "CORBA.TC_Boolean";
-
-         when K_Float =>
-            return "CORBA.TC_Float";
-
-         when K_Double =>
-            return "CORBA.TC_Double";
-
-         when K_Long_Double =>
-            return "CORBA.TC_Long_Double";
-
-         when K_String =>
-            return "CORBA.TC_String";
-
-         when K_Wide_String =>
-            return "CORBA.TC_Wide_String";
-
-         when K_Octet =>
-            return "CORBA.TC_Octet";
-
-         when K_Any =>
-            return "CORBA.TC_Any";
-
-         when K_Object =>
-            return "CORBA.Object.Helper.TC_Object";
-
-         when others =>
-            --  Improper use: node N is not
-            --  mapped to an Ada type.
-
-            Error
-              ("This is TC_Name : A " & Node_Kind'Image (NK)
-               & " does not denote a type.",
-               Fatal, Get_Location (Node));
-
-            --  Keep the compiler happy.
-            raise Program_Error;
-
-      end case;
-   end TC_Name;
+      return TC_Unit (Node) & "." & Ada_TC_Name (Node);
+   end Ada_Full_TC_Name;
 
    -----------------
    -- Helper_Unit --
@@ -3024,19 +2891,18 @@ package body Ada_Be.Idl2Ada is
                                 or else Kind (P_T_Type) = K_Object);
             begin
                if Is_Ref then
-                  --  This node is mapped to a subtype of the
-                  --  original reference type: use that type's
-                  --  From_Any and To_Any.
+                  --  This node is mapped to a subtype of the original
+                  --  reference type: use that type's From_Any and To_Any.
                   return Helper_Unit (P_T_Type);
                else
-                  return Ada_Helper_Unit_Name (Mapping, Node);
+                  return Helper_Unit (Parent_Scope (Node));
                end if;
             end;
 
          when
            K_Forward_Interface |
            K_Forward_ValueType =>
-            return Helper_Unit (Forward (Node));
+            return Helper_Unit (Parent_Scope (Node));
             --  Different from Ada_Helper_Name (Node).
 
          when K_Scoped_Name =>
@@ -3048,11 +2914,20 @@ package body Ada_Be.Idl2Ada is
       end case;
    end Helper_Unit;
 
+   -------------
+   -- TC_Unit --
+   -------------
+
+   function TC_Unit (Node : Node_Id) return String is
+   begin
+      return Ada_Helper_Unit_Name (Mapping, Node);
+   end TC_Unit;
+
    ----------------------
    -- Access_Type_Name --
    ----------------------
 
-   function Access_Type_Name (Node : in Node_Id) return String is
+   function Access_Type_Name (Node : Node_Id) return String is
       Name : String := Ada_Type_Name (Node);
    begin
       for I in Name'Range loop
@@ -3062,6 +2937,10 @@ package body Ada_Be.Idl2Ada is
       end loop;
       return Name & "_Access";
    end Access_Type_Name;
+
+   ---------------------
+   -- Add_With_Entity --
+   ---------------------
 
    procedure Add_With_Entity
      (CU : in out Compilation_Unit;
@@ -3077,7 +2956,7 @@ package body Ada_Be.Idl2Ada is
    -- represent attributes:                               --
    -- given an attribute Foo of an interface, the "get"   --
    -- and "set" operations will be generated with         --
-   -- Ada_Operation_Names "get_Foo" and "set_Foo", and    --
+   -- Ada_Operation_Names "Get_Foo" and "Set_Foo", and    --
    -- Idl_Operation_Ids "_get_Foo" and "_set_Foo".        --
    ---------------------------------------------------------
 
@@ -3109,11 +2988,11 @@ package body Ada_Be.Idl2Ada is
    end Repository_Id_Name;
 
    procedure Gen_Constant_Value
-     (CU : in out Compilation_Unit;
-      Node : Node_Id)
+     (CU   : in out Compilation_Unit;
+      Expr : Node_Id;
+      Typ  : Node_Id)
    is
-      Value : constant Constant_Value_Ptr
-        := Expr_Value (Node);
+      Value : constant Constant_Value_Ptr := Expr_Value (Expr);
    begin
       case Value.Kind is
          when
@@ -3125,24 +3004,24 @@ package body Ada_Be.Idl2Ada is
            C_ULongLong       |
            C_Octet           |
            C_General_Integer =>
-            Put (CU, Img (Integer_Value (Node)));
+            Put (CU, Img (Integer_Value (Expr)));
 
          when C_Char =>
             Put (CU, "'" & Value.Char_Value & "'");
 
          when C_WChar =>
-            Put (CU, Ada.Characters.Handling.To_String
+            Put (CU, Ada.Characters.Conversions.To_String
                  ("'" & Value.WChar_Value & "'"));
 
          when C_Boolean =>
-            Put (CU, Img (Boolean_Value (Node)));
+            Put (CU, Img (Boolean_Value (Expr)));
 
          when
            C_Float         |
            C_Double        |
            C_LongDouble    |
            C_General_Float =>
-            Put (CU, Img (Float_Value (Node)));
+            Put (CU, Img (Float_Value (Expr)));
 
          when
            C_Fixed         |
@@ -3173,23 +3052,24 @@ package body Ada_Be.Idl2Ada is
             end;
 
          when C_String =>
-            Add_With (CU, "CORBA", Elab_Control => Elaborate);
-            Put (CU, "CORBA.To_CORBA_String ("""
-                 & String_Value (Node) & """)");
+            Add_With (CU, "CORBA", Elab_Control => Elaborate_All);
+            Put (CU, Library_Unit_Name (Mapping, Typ)
+                 & ".To_CORBA_String ("""
+                 & String_Value (Expr) & """)");
 
          when C_WString =>
-            Add_With (CU, "CORBA", Elab_Control => Elaborate);
-            Put (CU, "CORBA.To_CORBA_Wide_String ("""
-                 & Ada.Characters.Handling.To_String
-                 (WString_Value (Node)) & """)");
+            Put (CU, Library_Unit_Name (Mapping, Typ)
+                 & ".To_CORBA_Wide_String ("""
+                 & Ada.Characters.Conversions.To_String
+                 (WString_Value (Expr)) & """)");
 
          when C_Enum =>
-            Put (CU, Ada_Full_Name (Enum_Value (Node)));
+            Put (CU, Ada_Full_Name (Enum_Value (Expr)));
 
          when C_No_Kind =>
             Error
               ("Constant without a kind.",
-               Fatal, Get_Location (Node));
+               Fatal, Get_Location (Expr));
       end case;
 
    end Gen_Constant_Value;
@@ -3198,19 +3078,19 @@ package body Ada_Be.Idl2Ada is
    -- Ada_TC_Name --
    -----------------
 
-   function Ada_TC_Name
-     (Node : Node_Id)
-     return String
-   is
+   function Ada_TC_Name (Node : Node_Id) return String is
       NK : constant Node_Kind := Kind (Node);
       Prefix : constant String := "TC_";
    begin
       case NK is
          when
-           K_Interface         |
            K_Forward_Interface |
+           K_Forward_ValueType =>
+            return Ada_TC_Name (Forward (Node));
+
+         when
+           K_Interface         |
            K_ValueType         |
-           K_Forward_ValueType |
            K_Sequence_Instance |
            K_String_Instance   |
            K_Enum              |
@@ -3245,7 +3125,7 @@ package body Ada_Be.Idl2Ada is
             return Prefix & "Char";
 
          when K_Wide_Char =>
-            return Prefix & "Wide_Char";
+            return Prefix & "Wchar";
 
          when K_Boolean =>
             return Prefix & "Boolean";
@@ -3274,37 +3154,31 @@ package body Ada_Be.Idl2Ada is
          when K_Any =>
             return Prefix & "Any";
 
+         when K_Void =>
+            return Prefix & "Void";
+
          when others =>
-            --  Improper use: node N is not
-            --  mapped to an Ada type.
+            --  Improper use: node N is not mapped to an Ada type
 
             Error
               ("No TypeCode for " & Node_Kind'Image (NK) & " nodes.",
                Fatal, Get_Location (Node));
 
-            --  Keep the compiler happy.
+            --  Keep the compiler happy
+
             raise Program_Error;
 
       end case;
    end Ada_TC_Name;
-
-   ----------------------
-   -- Ada_Full_TC_Name --
-   ----------------------
-
-   function Ada_Full_TC_Name
-     (Node : Node_Id)
-     return String is
-   begin
-      return Ada_Helper_Unit_Name (Mapping, Node) & "." & Ada_TC_Name (Node);
-   end Ada_Full_TC_Name;
 
    -----------------------------
    -- Gen_Module_Init_Prelude --
    -----------------------------
 
    procedure Gen_Module_Init_Prelude
-     (CU : in out Compilation_Unit) is
+     (CU              : in out Compilation_Unit;
+      With_Dependency : String := "")
+   is
    begin
       Set_Template_Mode (CU, True);
       Divert (CU, Deferred_Initialization);
@@ -3314,7 +3188,12 @@ package body Ada_Be.Idl2Ada is
       II (CU);
       Divert (CU, Initialization_Dependencies);
       II (CU); II (CU); II (CU);
-      PL (CU, "Empty");
+
+      if With_Dependency'Length /= 0 then
+         PL (CU, "+""" & With_Dependency & """");
+      else
+         PL (CU, "Empty");
+      end if;
 
       Divert (CU, Visible_Declarations);
       Set_Template_Mode (CU, False);
@@ -3324,8 +3203,7 @@ package body Ada_Be.Idl2Ada is
    -- Gen_Module_Init_Postlude --
    ------------------------------
 
-   procedure Gen_Module_Init_Postlude
-     (CU : in out Compilation_Unit) is
+   procedure Gen_Module_Init_Postlude (CU : in out Compilation_Unit) is
    begin
       Set_Template_Mode (CU, True);
       Divert (CU, Deferred_Initialization);
@@ -3362,16 +3240,26 @@ package body Ada_Be.Idl2Ada is
       PL (CU, " Conflicts => Empty,");
       PL (CU, " Depends   =>");
       Undivert (CU, Initialization_Dependencies);
-      --  The creation of type codes requires the handling of
-      --  'Any' types, which are controlled and use soft links
-      --  to guard concurrent access to their internal structures.
+
       PL (CU, " ,");
       PL (CU, " Provides  => Empty,");
       PL (CU, " Implicit  => False,");
-      PL (CU, " Init      => Deferred_Initialization'Access));");
+      PL (CU, " Init      => Deferred_Initialization'Access,");
+      PL (CU, " Shutdown  => null));");
       DI (CU);
       DI (CU);
       PL (CU, "end;");
    end Gen_Module_Init_Postlude;
+
+   ----------------------
+   -- New_Library_Unit --
+   ----------------------
+
+   procedure New_Library_Unit (Name : String; LU : out Library_Unit_Data) is
+   begin
+      New_Compilation_Unit (LU (Unit_Spec), Unit_Spec, Name);
+      New_Compilation_Unit (LU (Unit_Body), Unit_Body, Name,
+                            LU (Unit_Spec)'Unchecked_Access);
+   end New_Library_Unit;
 
 end Ada_Be.Idl2Ada;

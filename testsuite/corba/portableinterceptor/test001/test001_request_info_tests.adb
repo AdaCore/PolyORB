@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -38,7 +38,6 @@ with Dynamic;
 with IOP;
 with Messaging;
 
-with Test001_Globals;
 with Test001_Interface.Helper;
 
 package body Test001_Request_Info_Tests is
@@ -92,7 +91,7 @@ package body Test001_Request_Info_Tests is
             Members : System_Exception_Members;
          begin
             Get_Members (E, Members);
-            if Valid and then Members.Minor = 1 then
+            if Valid and then Members.Minor = OMGVMCID + 1 then
                Output (Point, Operation, True, " (NO_RESOURCES)");
             else
                Output (Point, Operation, False);
@@ -104,7 +103,7 @@ package body Test001_Request_Info_Tests is
             Members : System_Exception_Members;
          begin
             Get_Members (E, Members);
-            if not Valid and then Members.Minor = 14 then
+            if not Valid and then Members.Minor = OMGVMCID + 14 then
                Output (Point, Operation, True);
             else
                Output (Point, Operation, False);
@@ -148,7 +147,7 @@ package body Test001_Request_Info_Tests is
             Members : System_Exception_Members;
          begin
             Get_Members (E, Members);
-            if Valid and then Members.Minor = 1 then
+            if Valid and then Members.Minor = OMGVMCID + 1 then
                Output (Point, Operation, True, " (NO_RESOURCES)");
             else
                Output (Point, Operation, False);
@@ -160,7 +159,7 @@ package body Test001_Request_Info_Tests is
             Members : System_Exception_Members;
          begin
             Get_Members (E, Members);
-            if not Valid and then Members.Minor = 14 then
+            if not Valid and then Members.Minor = OMGVMCID + 14 then
                Output (Point, Operation, True);
             else
                Output (Point, Operation, False);
@@ -203,7 +202,7 @@ package body Test001_Request_Info_Tests is
             Members : System_Exception_Members;
          begin
             Get_Members (E, Members);
-            if Valid and then Members.Minor = 1 then
+            if Valid and then Members.Minor = OMGVMCID + 1 then
                Output (Point, Operation, True, " (NO_RESOURCES)");
             else
                Output (Point, Operation, False);
@@ -215,7 +214,7 @@ package body Test001_Request_Info_Tests is
             Members : System_Exception_Members;
          begin
             Get_Members (E, Members);
-            if not Valid and then Members.Minor = 14 then
+            if not Valid and then Members.Minor = OMGVMCID + 14 then
                Output (Point, Operation, True);
             else
                Output (Point, Operation, False);
@@ -257,7 +256,7 @@ package body Test001_Request_Info_Tests is
             Members : System_Exception_Members;
          begin
             Get_Members (E, Members);
-            if not Valid and then Members.Minor = 14 then
+            if not Valid and then Members.Minor = OMGVMCID + 14 then
                Output (Point, Operation, True);
             else
                Output (Point, Operation, False);
@@ -296,7 +295,7 @@ package body Test001_Request_Info_Tests is
                Members : System_Exception_Members;
             begin
                Get_Members (E, Members);
-               if Valid or else Members.Minor /= 14 then
+               if Valid or else Members.Minor /= OMGVMCID + 14 then
                   Output (Point, Operation, False);
                   return;
                end if;
@@ -307,7 +306,7 @@ package body Test001_Request_Info_Tests is
                Members : System_Exception_Members;
             begin
                Get_Members (E, Members);
-               if not Valid or else Members.Minor /= 26 then
+               if not Valid or else Members.Minor /= OMGVMCID + 26 then
                   Output (Point, Operation, False);
                   return;
                end if;
@@ -365,7 +364,7 @@ package body Test001_Request_Info_Tests is
                Members : System_Exception_Members;
             begin
                Get_Members (E, Members);
-               if Valid or else Members.Minor /= 14 then
+               if Valid or else Members.Minor /= OMGVMCID + 14 then
                   Output (Point, Operation, False);
                   return;
                end if;
@@ -376,7 +375,7 @@ package body Test001_Request_Info_Tests is
                Members : System_Exception_Members;
             begin
                Get_Members (E, Members);
-               if not Valid or else Members.Minor /= 26 then
+               if not Valid or else Members.Minor /= OMGVMCID + 26 then
                   Output (Point, Operation, False);
                   return;
                end if;
@@ -496,7 +495,7 @@ package body Test001_Request_Info_Tests is
 
          begin
             Get_Members (E, Members);
-            if Valid and then Members.Minor = 1 then
+            if Valid and then Members.Minor = OMGVMCID + 1 then
                Output (Point, Operation, True, " (NO_RESOURCES)");
             else
                Output (Point, Operation, False);
@@ -509,7 +508,7 @@ package body Test001_Request_Info_Tests is
 
          begin
             Get_Members (E, Members);
-            if not Valid and then Members.Minor = 14 then
+            if not Valid and then Members.Minor = OMGVMCID + 14 then
                Output (Point, Operation, True);
             else
                Output (Point, Operation, False);
@@ -632,7 +631,7 @@ package body Test001_Request_Info_Tests is
 
          begin
             Get_Members (E, Members);
-            if not Valid and then Members.Minor = 14 then
+            if not Valid and then Members.Minor = OMGVMCID + 14 then
                Output (Point, Operation, True);
             else
                Output (Point, Operation, False);
@@ -676,7 +675,7 @@ package body Test001_Request_Info_Tests is
 
          begin
             Get_Members (E, Members);
-            if Valid and then Members.Minor = 1 then
+            if Valid and then Members.Minor = OMGVMCID + 1 then
                Output (Point, Operation, True, " (NO_RESOURCES)");
             else
                Output (Point, Operation, False);
@@ -689,7 +688,7 @@ package body Test001_Request_Info_Tests is
             Members : System_Exception_Members;
          begin
             Get_Members (E, Members);
-            if not Valid and then Members.Minor = 14 then
+            if not Valid and then Members.Minor = OMGVMCID + 14 then
                Output (Point, Operation, True);
             else
                Output (Point, Operation, False);
@@ -755,7 +754,7 @@ package body Test001_Request_Info_Tests is
             Members : System_Exception_Members;
          begin
             Get_Members (E, Members);
-            if not Valid and then Members.Minor = 14 then
+            if not Valid and then Members.Minor = OMGVMCID + 14 then
                Output (Point, Operation, True);
             else
                Output (Point, Operation, False);

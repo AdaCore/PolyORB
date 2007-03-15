@@ -139,4 +139,3 @@ package body PolyORB.Setup.Test_POA is
    end Initialize_Test_Object;
 
 end PolyORB.Setup.Test_POA;
-

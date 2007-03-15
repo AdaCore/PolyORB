@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2005 Free Software Foundation, Inc.             --
+--         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -42,7 +42,6 @@ with Test.Factory;
 
 with PolyORB.Setup.Client;
 pragma Warnings (Off, PolyORB.Setup.Client);
-pragma Elaborate_All (PolyORB.Setup.Client);
 
 with PolyORB.Utils.Report;
 
@@ -116,7 +115,7 @@ begin
       for J in 1 .. Test.Factory.Length (Sequence) loop
          Aux :=
            Test.Echo.Echo_String
-           (Test.Factory.Element_Of (Sequence, J),
+           (Test.Factory.Get_Element (Sequence, J),
             CORBA.To_CORBA_String ("AAAA"));
       end loop;
       Finish := Clock;
@@ -128,11 +127,19 @@ begin
                 ((Finish - Start) / Test.Factory.Length (Sequence)));
       Output ("Bench #1", True);
 
+      --  Create one reference for next bench.
+      --  Also finalize the references created for previous bench, to ensure
+      --  that the associated binding objects (protocol stack and transport
+      --  endpoints) are torn down. This is necessary to start from a clean
+      --  situation and provide a meaningful measurement for the 2nd test.
+
+      Sequence :=
+        Test.Factory.Create_References (Factory, 1);
       Start := Clock;
       for J in 1 .. Requests_To_Send loop
          Aux :=
            Test.Echo.Echo_String
-           (Test.Factory.Element_Of
+           (Test.Factory.Get_Element
             (Sequence, 1),
             CORBA.To_CORBA_String ("AAAA"));
       end loop;
@@ -151,7 +158,7 @@ begin
       for J in 1 .. Test.Factory.Length (Sequence) loop
          Aux :=
            Test.Echo.Echo_String
-           (Test.Factory.Element_Of (Sequence, J),
+           (Test.Factory.Get_Element (Sequence, J),
             CORBA.To_CORBA_String ("AAAA"));
       end loop;
       Finish := Clock;

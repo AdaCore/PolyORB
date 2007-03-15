@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -33,15 +33,11 @@
 
 with Ada.Streams; use Ada.Streams;
 
-with PolyORB.Any;
-with PolyORB.Any.NVList;
 with PolyORB.Binding_Data.Local;
-with PolyORB.Buffers;
 with PolyORB.Filters;
 with PolyORB.Filters.Iface;
 with PolyORB.Log;
 with PolyORB.Obj_Adapters;
-with PolyORB.Objects;
 with PolyORB.ORB;
 with PolyORB.ORB.Iface;
 with PolyORB.References;
@@ -49,26 +45,24 @@ with PolyORB.Requests;
 with PolyORB.Representations.SRP;
 with PolyORB.Smart_Pointers;
 with PolyORB.Utils;
-with PolyORB.Utils.SRP;
-with PolyORB.Types;
 
 package body PolyORB.Protocols.SRP is
 
    use PolyORB.Any;
    use PolyORB.Components;
-   use PolyORB.Filters;
    use PolyORB.Filters.Iface;
    use PolyORB.Log;
    use PolyORB.ORB;
    use PolyORB.ORB.Iface;
    use PolyORB.Representations.SRP;
-   use PolyORB.Requests;
    use PolyORB.Types;
-   use PolyORB.Utils.SRP;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.protocols.srp");
-   procedure O (Message : in String; Level : Log_Level := Debug)
+   procedure O (Message : String; Level : Log_Level := Debug)
      renames L.Output;
+   function C (Level : Log_Level := Debug) return Boolean
+     renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    Rep : constant Rep_SRP_Access := new Rep_SRP;
 
@@ -242,12 +236,7 @@ package body PolyORB.Protocols.SRP is
    -- Send_Reply --
    ----------------
 
-   procedure Send_Reply (S : access SRP_Session; R : Request_Access)
-   is
-      use Buffers;
-      use PolyORB.Objects;
-      use Representations.SRP;
-
+   procedure Send_Reply (S : access SRP_Session; R : Request_Access) is
       SRP_Info : Split_SRP;
       B : Buffer_Access renames S.Buffer_Out;
    begin
@@ -345,7 +334,10 @@ package body PolyORB.Protocols.SRP is
    -- Handle_Disconnect --
    -----------------------
 
-   procedure Handle_Disconnect (S : access SRP_Session) is
+   procedure Handle_Disconnect
+     (S : access SRP_Session; Error : Errors.Error_Container)
+   is
+      pragma Unreferenced (Error);
    begin
       pragma Debug (O ("Received disconnect."));
 
@@ -375,9 +367,7 @@ package body PolyORB.Protocols.SRP is
 
    procedure Unmarshall_Request_Message (Buffer : access Buffer_Type;
                                          Oid    : access Object_Id;
-                                         Method : access Types.String)
-   is
-      use PolyORB.Objects;
+                                         Method : access Types.String) is
    begin
       Method.all := Unmarshall (Buffer);
 

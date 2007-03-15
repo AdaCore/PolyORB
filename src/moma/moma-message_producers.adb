@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -32,7 +32,7 @@
 ------------------------------------------------------------------------------
 
 with MOMA.Messages.MExecutes;
-with MOMA.Types;
+with MOMA.Runtime;
 
 with PolyORB.MOMA_P.Exceptions;
 with PolyORB.MOMA_P.Provider.Message_Producer;
@@ -43,6 +43,9 @@ with PolyORB.Log;
 with PolyORB.Minimal_Servant.Tools;
 with PolyORB.References;
 with PolyORB.Requests;
+with PolyORB.Request_QoS;
+with PolyORB.QoS.Priority;
+with PolyORB.Tasking.Priorities;
 with PolyORB.Types;
 
 package body MOMA.Message_Producers is
@@ -59,8 +62,11 @@ package body MOMA.Message_Producers is
    use PolyORB.Types;
 
    package L is new PolyORB.Log.Facility_Log ("moma.message_producers");
-   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+   procedure O (Message : Standard.String; Level : Log_Level := Debug)
      renames L.Output;
+   function C (Level : Log_Level := Debug) return Boolean
+     renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    procedure Response_Handler
      (Req :        PolyORB.Requests.Request;
@@ -106,8 +112,6 @@ package body MOMA.Message_Producers is
       use PolyORB.Errors;
       use PolyORB.References;
 
-      use MOMA.Types;
-
       MOMA_Obj : constant PolyORB.MOMA_P.Provider.Message_Producer.Object_Acc
         := new PolyORB.MOMA_P.Provider.Message_Producer.Object;
 
@@ -118,10 +122,12 @@ package body MOMA.Message_Producers is
 
       Error : Error_Container;
    begin
-      Initiate_Servant (MOMA_Obj,
-                        PolyORB.Types.String (MOMA.Types.MOMA_Type_Id),
-                        MOMA_Ref,
-                        Error);
+      Initiate_Servant
+        (MOMA_Obj,
+         MOMA.Runtime.MOMA_OA,
+         PolyORB.Types.String (MOMA.Types.MOMA_Type_Id),
+         MOMA_Ref,
+         Error);
 
       if Found (Error) then
          PolyORB.MOMA_P.Exceptions.Raise_From_Error (Error);
@@ -142,12 +148,9 @@ package body MOMA.Message_Producers is
       Mesg_Pool  : MOMA.Types.String)
      return Message_Producer
    is
-      use MOMA.Types;
-
       use PolyORB.Annotations;
       use PolyORB.Call_Back;
       use PolyORB.References;
-      use PolyORB.Types;
 
       Producer : MOMA.Message_Producers.Message_Producer;
 
@@ -271,7 +274,6 @@ package body MOMA.Message_Producers is
       CBH : access PolyORB.Call_Back.Call_Back_Handler)
    is
       use PolyORB.Annotations;
-      use PolyORB.Any;
       use PolyORB.Call_Back;
 
       Message : MExecute := Create_Execute_Message;
@@ -354,6 +356,8 @@ package body MOMA.Message_Producers is
      (Servant : MOMA.Types.Ref;
       Message : MOMA.Messages.Message'Class)
    is
+      use type PolyORB.Tasking.Priorities.External_Priority;
+
       Argument_Mesg : PolyORB.Any.Any := MOMA.Messages.To_Any (Message);
       Request       : PolyORB.Requests.Request_Access;
       Arg_List      : PolyORB.Any.NVList.Ref;
@@ -379,10 +383,25 @@ package body MOMA.Message_Producers is
          Result    => Result,
          Req       => Request);
 
+      if MOMA.Messages.Get_Priority (Message) /= Invalid_Priority then
+         declare
+            Prio_QoS : PolyORB.QoS.QoS_Parameter_Access;
+
+         begin
+            Prio_QoS := new PolyORB.QoS.Priority.QoS_Static_Priority;
+            PolyORB.QoS.Priority.QoS_Static_Priority (Prio_QoS.all).EP
+              := MOMA.Messages.Get_Priority (Message);
+
+            PolyORB.Request_QoS.Add_Request_QoS
+              (Request,
+               PolyORB.QoS.Static_Priority,
+               Prio_QoS);
+         end;
+      end if;
+
       PolyORB.Requests.Invoke (Request);
 
       PolyORB.Requests.Destroy_Request (Request);
-
    end Send_To_MOM;
 
    -----------------
@@ -413,23 +432,23 @@ package body MOMA.Message_Producers is
       declare
          Method_Name : constant String
            := MOMA.Types.To_Standard_String
-           (Get_String (Element_Of (Parameter_Map, 1)));
+           (Get_String (Get_Element (Parameter_Map, 1)));
 
          Result_TypeCode  : constant PolyORB.Any.TypeCode.Object
-           := Get_Type (Element_Of (Parameter_Map, 2).Value);
+           := Get_Type (Get_Element (Parameter_Map, 2).Value);
       begin
          pragma Debug (O ("Method name : " & Method_Name));
 
          PolyORB.Any.NVList.Create (Arg_List);
 
          for J in 3 .. Length (Parameter_Map)  loop
-            pragma Debug (O ("Argument : " & PolyORB.Types.To_Standard_String
+            pragma Debug (O ("Argument: " & PolyORB.Types.To_Standard_String
                              (PolyORB.Any.From_Any
-                              (Element_Of (Parameter_Map, J).Value))));
+                              (Get_Element (Parameter_Map, J).Value))));
 
             PolyORB.Any.NVList.Add_Item (Arg_List,
                                          To_PolyORB_String ("Message"),
-                                         Element_Of (Parameter_Map, J).Value,
+                                         Get_Element (Parameter_Map, J).Value,
                                          PolyORB.Any.ARG_IN);
          end loop;
 

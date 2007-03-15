@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,13 +26,14 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 with PolyORB.CORBA_P.Policy;
 with PolyORB.CORBA_P.Policy_Management;
+with PortableServer.Helper;
 with PolyORB.Initialization;
 with PolyORB.Smart_Pointers;
 with PolyORB.Utils.Strings;
@@ -42,12 +43,13 @@ package body PortableServer.IdUniquenessPolicy is
    use CORBA;
    use CORBA.Policy;
    use CORBA.TypeCode;
+   use PortableServer.Helper;
    use PolyORB.CORBA_P.Policy;
    use PolyORB.CORBA_P.Policy_Management;
 
    function Create_IdUniquenessPolicy
-     (The_Type : in CORBA.PolicyType;
-      Value    : in CORBA.Any)
+     (The_Type : CORBA.PolicyType;
+      Value    : CORBA.Any)
      return CORBA.Policy.Ref;
 
    ------------
@@ -55,7 +57,7 @@ package body PortableServer.IdUniquenessPolicy is
    ------------
 
    function To_Ref
-     (The_Ref : in CORBA.Object.Ref'Class)
+     (The_Ref : CORBA.Object.Ref'Class)
      return Ref
    is
       use type CORBA.PolicyType;
@@ -108,8 +110,8 @@ package body PortableServer.IdUniquenessPolicy is
    -------------------------------
 
    function Create_IdUniquenessPolicy
-     (The_Type : in CORBA.PolicyType;
-      Value    : in CORBA.Any)
+     (The_Type : CORBA.PolicyType;
+      Value    : CORBA.Any)
      return CORBA.Policy.Ref
    is
    begin
@@ -121,9 +123,9 @@ package body PortableServer.IdUniquenessPolicy is
 
       declare
          Index : CORBA.Any
-           := CORBA.Get_Aggregate_Element (Value,
-                                           CORBA.TC_Unsigned_Long,
-                                           CORBA.Unsigned_Long (0));
+           := CORBA.Internals.Get_Aggregate_Element (Value,
+                                                     CORBA.TC_Unsigned_Long,
+                                                     CORBA.Unsigned_Long (0));
          Position : constant CORBA.Unsigned_Long := CORBA.From_Any (Index);
       begin
          if Position not in
@@ -176,5 +178,6 @@ begin
        Depends   => Empty,
        Provides  => Empty,
        Implicit  => False,
-       Init      => Deferred_Initialization'Access));
+       Init      => Deferred_Initialization'Access,
+       Shutdown  => null));
 end PortableServer.IdUniquenessPolicy;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2001 Free Software Foundation, Inc.             --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
@@ -31,8 +31,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -41,24 +41,28 @@ with PortableServer.ServantManager;
 
 package PortableServer.ServantActivator is
 
-   type Ref is new PortableServer.ServantManager.Ref with private;
+   type Local_Ref is new PortableServer.ServantManager.Local_Ref with private;
 
    function Incarnate
-     (Self    : in Ref;
-      Oid     : in PortableServer.ObjectId;
-      Adapter : in PortableServer.POA_Forward.Ref)
-     return PortableServer.Servant;
+     (Self    : Local_Ref;
+      Oid     : PortableServer.ObjectId;
+      Adapter : PortableServer.POA_Forward.Ref)
+      return PortableServer.Servant;
 
    procedure Etherealize
-     (Self                  : in Ref;
-      Oid                   : in PortableServer.ObjectId;
-      Adapter               : in PortableServer.POA_Forward.Ref;
-      Serv                  : in PortableServer.Servant;
-      Cleanup_In_Progress   : in CORBA.Boolean;
-      Remaining_Activations : in CORBA.Boolean);
+     (Self                  : Local_Ref;
+      Oid                   : PortableServer.ObjectId;
+      Adapter               : PortableServer.POA_Forward.Ref;
+      Serv                  : PortableServer.Servant;
+      Cleanup_In_Progress   : CORBA.Boolean;
+      Remaining_Activations : CORBA.Boolean);
+
+   Repository_Id : constant Standard.String
+     := "IDL:omg.org/PortableServer/ServantActivator:1.0";
 
 private
 
-   type Ref is new PortableServer.ServantManager.Ref with null record;
+   type Local_Ref is
+     new PortableServer.ServantManager.Local_Ref with null record;
 
 end PortableServer.ServantActivator;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2004 Free Software Foundation, Inc.             --
+--         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
@@ -21,8 +21,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -31,8 +31,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -159,20 +159,20 @@ package CORBA.Repository_Root is
 
    --  typedef InterfaceDefSeq
 
-   package IDL_Sequence_CORBA_InterfaceDef_Forward is
+   package IDL_SEQUENCE_CORBA_InterfaceDef_Forward is
       new CORBA.Sequences.Unbounded (InterfaceDef_Forward.Ref);
 
    type InterfaceDefSeq is
-      new IDL_Sequence_CORBA_InterfaceDef_Forward.Sequence;
+      new IDL_SEQUENCE_CORBA_InterfaceDef_Forward.Sequence;
 
    package ValueDef_Forward is new CORBA.Forward;
 
    --  typedef ValueDefSeq
 
-   package IDL_Sequence_CORBA_ValueDef_Forward is
+   package IDL_SEQUENCE_CORBA_ValueDef_Forward is
       new CORBA.Sequences.Unbounded (ValueDef_Forward.Ref);
 
-   type ValueDefSeq is new IDL_Sequence_CORBA_ValueDef_Forward.Sequence;
+   type ValueDefSeq is new IDL_SEQUENCE_CORBA_ValueDef_Forward.Sequence;
 
    package ValueBoxDef_Forward is new CORBA.Forward;
 
@@ -180,41 +180,41 @@ package CORBA.Repository_Root is
 
    --  typedef AbstractInterfaceDefSeq
 
-   package IDL_Sequence_CORBA_AbstractInterfaceDef_Forward is
+   package IDL_SEQUENCE_CORBA_AbstractInterfaceDef_Forward is
       new CORBA.Sequences.Unbounded (AbstractInterfaceDef_Forward.Ref);
 
    type AbstractInterfaceDefSeq is
-      new IDL_Sequence_CORBA_AbstractInterfaceDef_Forward.Sequence;
+      new IDL_SEQUENCE_CORBA_AbstractInterfaceDef_Forward.Sequence;
 
    package LocalInterfaceDef_Forward is new CORBA.Forward;
 
    --  typedef LocalInterfaceDefSeq
 
-   package IDL_Sequence_CORBA_LocalInterfaceDef_Forward is
+   package IDL_SEQUENCE_CORBA_LocalInterfaceDef_Forward is
       new CORBA.Sequences.Unbounded (LocalInterfaceDef_Forward.Ref);
 
    type LocalInterfaceDefSeq is
-      new IDL_Sequence_CORBA_LocalInterfaceDef_Forward.Sequence;
+      new IDL_SEQUENCE_CORBA_LocalInterfaceDef_Forward.Sequence;
 
    package ExtInterfaceDef_Forward is new CORBA.Forward;
 
    --  typedef ExtInterfaceDefSeq
 
-   package IDL_Sequence_CORBA_ExtInterfaceDef_Forward is
+   package IDL_SEQUENCE_CORBA_ExtInterfaceDef_Forward is
       new CORBA.Sequences.Unbounded (ExtInterfaceDef_Forward.Ref);
 
    type ExtInterfaceDefSeq is
-      new IDL_Sequence_CORBA_ExtInterfaceDef_Forward.Sequence;
+      new IDL_SEQUENCE_CORBA_ExtInterfaceDef_Forward.Sequence;
 
    package ExtValueDef_Forward is new CORBA.Forward;
 
    --  typedef ExtValueDefSeq
 
-   package IDL_Sequence_CORBA_ExtValueDef_Forward is
+   package IDL_SEQUENCE_CORBA_ExtValueDef_Forward is
       new CORBA.Sequences.Unbounded (ExtValueDef_Forward.Ref);
 
    type ExtValueDefSeq is
-      new IDL_Sequence_CORBA_ExtValueDef_Forward.Sequence;
+      new IDL_SEQUENCE_CORBA_ExtValueDef_Forward.Sequence;
 
    --  ExtAbstractInterfaceDef forward declaration
 
@@ -222,11 +222,11 @@ package CORBA.Repository_Root is
 
    --  typedef ExtAbstractInterfaceDefSeq
 
-   package IDL_Sequence_CORBA_ExtAbstractInterfaceDef_Forward is
+   package IDL_SEQUENCE_CORBA_ExtAbstractInterfaceDef_Forward is
       new CORBA.Sequences.Unbounded (ExtAbstractInterfaceDef_Forward.Ref);
 
    type ExtAbstractInterfaceDefSeq is
-      new IDL_Sequence_CORBA_ExtAbstractInterfaceDef_Forward.Sequence;
+      new IDL_SEQUENCE_CORBA_ExtAbstractInterfaceDef_Forward.Sequence;
 
    --  ExtLocalInterfaceDef forward declaration
 
@@ -234,19 +234,19 @@ package CORBA.Repository_Root is
 
    --  typedef ExtLocalInterfaceDefSeq
 
-   package IDL_Sequence_CORBA_ExtLocalInterfaceDef_Forward is
+   package IDL_SEQUENCE_CORBA_ExtLocalInterfaceDef_Forward is
       new CORBA.Sequences.Unbounded (ExtLocalInterfaceDef_Forward.Ref);
 
    type ExtLocalInterfaceDefSeq is
-      new IDL_Sequence_CORBA_ExtLocalInterfaceDef_Forward.Sequence;
+      new IDL_SEQUENCE_CORBA_ExtLocalInterfaceDef_Forward.Sequence;
 
    --  typedef ContainedSeq
 
-   package IDL_Sequence_CORBA_Contained_Forward is
+   package IDL_SEQUENCE_CORBA_Contained_Forward is
       new CORBA.Sequences.Unbounded (Contained_Forward.Ref);
 
    type ContainedSeq is
-      new IDL_Sequence_CORBA_Contained_Forward.Sequence;
+      new IDL_SEQUENCE_CORBA_Contained_Forward.Sequence;
 
    --  struct StructMember
 
@@ -258,11 +258,11 @@ package CORBA.Repository_Root is
 
    --  typedef StructMemberSeq
 
-   package IDL_Sequence_CORBA_StructMember is
+   package IDL_SEQUENCE_CORBA_StructMember is
       new CORBA.Sequences.Unbounded (StructMember);
 
    type StructMemberSeq is
-      new IDL_Sequence_CORBA_StructMember.Sequence;
+      new IDL_SEQUENCE_CORBA_StructMember.Sequence;
 
    --  struct Initializer
 
@@ -273,11 +273,11 @@ package CORBA.Repository_Root is
 
    --  typedef InitializerSeq
 
-   package IDL_Sequence_CORBA_Initializer is
+   package IDL_SEQUENCE_CORBA_Initializer is
       new CORBA.Sequences.Unbounded (Initializer);
 
    type InitializerSeq is
-      new IDL_Sequence_CORBA_Initializer.Sequence;
+      new IDL_SEQUENCE_CORBA_Initializer.Sequence;
 
    --  struct UnionMember
 
@@ -300,11 +300,11 @@ package CORBA.Repository_Root is
 
    --  typedef ExcDescriptionSeq
 
-   package IDL_Sequence_CORBA_ExceptionDescription is
+   package IDL_SEQUENCE_CORBA_ExceptionDescription is
       new CORBA.Sequences.Unbounded (ExceptionDescription);
 
    type ExcDescriptionSeq is
-      new IDL_Sequence_CORBA_ExceptionDescription.Sequence;
+      new IDL_SEQUENCE_CORBA_ExceptionDescription.Sequence;
 
    --  struct ExtInitializer
 
@@ -316,26 +316,26 @@ package CORBA.Repository_Root is
 
    --  typedef ExtInitializerSeq
 
-   package IDL_Sequence_CORBA_ExtInitializer is
+   package IDL_SEQUENCE_CORBA_ExtInitializer is
       new CORBA.Sequences.Unbounded (ExtInitializer);
 
    type ExtInitializerSeq is
-      new IDL_Sequence_CORBA_ExtInitializer.Sequence;
+      new IDL_SEQUENCE_CORBA_ExtInitializer.Sequence;
 
    --  typedef UnionMemberSeq
 
-   package IDL_Sequence_CORBA_UnionMember is
+   package IDL_SEQUENCE_CORBA_UnionMember is
       new CORBA.Sequences.Unbounded (UnionMember);
 
-   type UnionMemberSeq is new IDL_Sequence_CORBA_UnionMember.Sequence;
+   type UnionMemberSeq is new IDL_SEQUENCE_CORBA_UnionMember.Sequence;
 
    --  typedef EnumMemberSeq
 
-   package IDL_Sequence_CORBA_Identifier is
+   package IDL_SEQUENCE_CORBA_Identifier is
       new CORBA.Sequences.Unbounded (CORBA.Identifier);
 
    type EnumMemberSeq is
-      new IDL_Sequence_CORBA_Identifier.Sequence;
+      new IDL_SEQUENCE_CORBA_Identifier.Sequence;
 
    --  enum PrimitiveKind
 
@@ -447,11 +447,11 @@ package CORBA.Repository_Root is
 
    --  typedef ParDescriptionSeq
 
-   package IDL_Sequence_CORBA_ParameterDescription is
+   package IDL_SEQUENCE_CORBA_ParameterDescription is
       new CORBA.Sequences.Unbounded (ParameterDescription);
 
    type ParDescriptionSeq is
-      new IDL_Sequence_CORBA_ParameterDescription.Sequence;
+      new IDL_SEQUENCE_CORBA_ParameterDescription.Sequence;
 
    --  typedef ContextIdentifier
 
@@ -459,18 +459,18 @@ package CORBA.Repository_Root is
 
    --  typedef ContextIdSeq
 
-   package IDL_Sequence_CORBA_ContextIdentifier is
+   package IDL_SEQUENCE_CORBA_ContextIdentifier is
       new CORBA.Sequences.Unbounded (ContextIdentifier);
 
-   type ContextIdSeq is new IDL_Sequence_CORBA_ContextIdentifier.Sequence;
+   type ContextIdSeq is new IDL_SEQUENCE_CORBA_ContextIdentifier.Sequence;
 
    --  typedef ExceptionDefSeq
 
-   package IDL_Sequence_CORBA_ExceptionDef_Forward is
+   package IDL_SEQUENCE_CORBA_ExceptionDef_Forward is
       new CORBA.Sequences.Unbounded (ExceptionDef_Forward.Ref);
 
    type ExceptionDefSeq is
-      new IDL_Sequence_CORBA_ExceptionDef_Forward.Sequence;
+      new IDL_SEQUENCE_CORBA_ExceptionDef_Forward.Sequence;
 
    --  struct OperationDescription
 
@@ -488,34 +488,34 @@ package CORBA.Repository_Root is
 
    --  typedef RepositoryIdSeq
 
-   package IDL_Sequence_CORBA_RepositoryId is
+   package IDL_SEQUENCE_CORBA_RepositoryId is
       new CORBA.Sequences.Unbounded (RepositoryId);
 
-   type RepositoryIdSeq is new IDL_Sequence_CORBA_RepositoryId.Sequence;
+   type RepositoryIdSeq is new IDL_SEQUENCE_CORBA_RepositoryId.Sequence;
 
    --  typedef OpDescriptionSeq
 
-   package IDL_Sequence_CORBA_OperationDescription is
+   package IDL_SEQUENCE_CORBA_OperationDescription is
       new CORBA.Sequences.Unbounded (OperationDescription);
 
    type OpDescriptionSeq is
-      new IDL_Sequence_CORBA_OperationDescription.Sequence;
+      new IDL_SEQUENCE_CORBA_OperationDescription.Sequence;
 
    --  typedef AttrDescriptionSeq
 
-   package IDL_Sequence_CORBA_AttributeDescription is
+   package IDL_SEQUENCE_CORBA_AttributeDescription is
       new CORBA.Sequences.Unbounded (AttributeDescription);
 
    type AttrDescriptionSeq is
-      new IDL_Sequence_CORBA_AttributeDescription.Sequence;
+      new IDL_SEQUENCE_CORBA_AttributeDescription.Sequence;
 
    --  typedef ExtAttrDescriptionSeq
 
-   package IDL_Sequence_CORBA_ExtAttributeDescription is
+   package IDL_SEQUENCE_CORBA_ExtAttributeDescription is
       new CORBA.Sequences.Unbounded (ExtAttributeDescription);
 
    type ExtAttrDescriptionSeq is
-      new IDL_Sequence_CORBA_ExtAttributeDescription.Sequence;
+      new IDL_SEQUENCE_CORBA_ExtAttributeDescription.Sequence;
 
    --  struct InterfaceDescription
 
@@ -556,10 +556,10 @@ package CORBA.Repository_Root is
 
    --  typedef ValueMemberSeq
 
-   package IDL_Sequence_CORBA_ValueMember is
+   package IDL_SEQUENCE_CORBA_ValueMember is
       new CORBA.Sequences.Unbounded (ValueMember);
 
-   type ValueMemberSeq is new IDL_Sequence_CORBA_ValueMember.Sequence;
+   type ValueMemberSeq is new IDL_SEQUENCE_CORBA_ValueMember.Sequence;
 
    --  struct ValueDescription
 

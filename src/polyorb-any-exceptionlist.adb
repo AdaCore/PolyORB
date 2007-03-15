@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,13 +26,12 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 with PolyORB.Log;
-with PolyORB.Smart_Pointers;
 
 package body PolyORB.Any.ExceptionList is
 
@@ -41,8 +40,11 @@ package body PolyORB.Any.ExceptionList is
    use Exception_Lists;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.any.exceptionlist");
-   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+   procedure O (Message : Standard.String; Level : Log_Level := Debug)
      renames L.Output;
+   function C (Level : Log_Level := Debug) return Boolean
+     renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    --------------
    -- Finalize --
@@ -70,7 +72,7 @@ package body PolyORB.Any.ExceptionList is
    -- Get_Count --
    ---------------
 
-   function Get_Count (Self : in Ref) return PolyORB.Types.Unsigned_Long is
+   function Get_Count (Self : Ref) return PolyORB.Types.Unsigned_Long is
       Obj : constant Object_Ptr := Object_Ptr (Entity_Of (Self));
 
    begin
@@ -85,7 +87,7 @@ package body PolyORB.Any.ExceptionList is
    -- Add --
    ---------
 
-   procedure Add (Self : in Ref; Exc : in PolyORB.Any.TypeCode.Object) is
+   procedure Add (Self : Ref; Exc : PolyORB.Any.TypeCode.Object) is
    begin
       Exception_Lists.Append (Object_Ptr (Entity_Of (Self)).List, Exc);
    end Add;
@@ -95,8 +97,8 @@ package body PolyORB.Any.ExceptionList is
    ----------
 
    function Item
-     (Self  : in Ref;
-      Index : in PolyORB.Types.Unsigned_Long)
+     (Self  : Ref;
+      Index : PolyORB.Types.Unsigned_Long)
       return PolyORB.Any.TypeCode.Object
    is
       Obj : constant Object_Ptr := Object_Ptr (Entity_Of (Self));
@@ -119,8 +121,8 @@ package body PolyORB.Any.ExceptionList is
    ------------
 
    procedure Remove
-     (Self  : in Ref;
-      Index : in PolyORB.Types.Unsigned_Long)
+     (Self  : Ref;
+      Index : PolyORB.Types.Unsigned_Long)
    is
       Obj : constant Object_Ptr := Object_Ptr (Entity_Of (Self));
       It : Iterator := First (Obj.List);
@@ -152,8 +154,8 @@ package body PolyORB.Any.ExceptionList is
    -------------------------
 
    function Search_Exception_Id
-     (Self : in Ref;
-      Name : in PolyORB.Types.String)
+     (Self : Ref;
+      Name : PolyORB.Types.String)
      return PolyORB.Types.Unsigned_Long
    is
       Obj : constant Object_Ptr := Object_Ptr (Entity_Of (Self));

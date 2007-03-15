@@ -1,5 +1,5 @@
 EXAMPLES_ROOT=	../../..
-idl=	echo
+IDLS=echo.idl
 
 corba_exe=test000
 

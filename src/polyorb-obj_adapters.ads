@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -37,11 +37,11 @@
 with PolyORB.Annotations;
 with PolyORB.Any;
 with PolyORB.Any.NVList;
-with PolyORB.Components;
 with PolyORB.Errors;
 with PolyORB.Objects;
-with PolyORB.Servants;
+with PolyORB.QoS;
 with PolyORB.References;
+with PolyORB.Servants;
 with PolyORB.Smart_Pointers;
 with PolyORB.Types;
 
@@ -56,11 +56,6 @@ package PolyORB.Obj_Adapters is
 
    procedure Destroy (OA : access Obj_Adapter);
    --  Finalize OA
-
-   procedure Set_ORB
-     (OA      : access Obj_Adapter;
-      The_ORB :        Components.Component_Access);
-   --  Set the ORB whose OA is attached to
 
    --------------------------------------
    -- Interface to application objects --
@@ -93,6 +88,15 @@ package PolyORB.Obj_Adapters is
       is abstract;
    --  If Id is user defined associated with Id, return user identifier
    --  component of Id, else raise an error.
+
+   procedure Get_QoS
+     (OA    : access Obj_Adapter;
+      Id    :        Objects.Object_Id;
+      QoS   :    out PolyORB.QoS.QoS_Parameters;
+      Error : in out PolyORB.Errors.Error_Container)
+      is abstract;
+   --  Return the QoS information managed by object adapter OA, for
+   --  object denoted by Id.
 
    ----------------------------------------------------
    -- Interface to ORB (acting on behalf of clients) --
@@ -145,7 +149,7 @@ package PolyORB.Obj_Adapters is
 
    function Rel_URI_To_Oid
      (OA  : access Obj_Adapter;
-      URI : Types.String) return Objects.Object_Id_Access;
+      URI : String) return Objects.Object_Id_Access;
 
    --  Convert an object id from/to its representation as a relative URI. A
    --  default implementation of these functions is provided; actual object
@@ -195,13 +199,9 @@ private
 
    type Obj_Adapter is abstract new Smart_Pointers.Non_Controlled_Entity with
       record
-         ORB     : Components.Component_Access;
-         --  The ORB the OA is attached to. Needs to be cast into an ORB_Access
-         --  when used.
-
          Notepad : aliased Annotations.Notepad;
-         --  OA's notepad. The user must ensure there is no race condition when
-         --  accessing it.
+         --  OA's notepad. The user is responsible for ensuring protection
+         --  against incorrect concurrent accesses.
       end record;
 
 end PolyORB.Obj_Adapters;

@@ -55,8 +55,8 @@ package PolyORB.Tasking.Profiles.No_Tasking.Condition_Variables is
    procedure Wait
      (C : access No_Tasking_Condition_Type;
       M : access PTM.Mutex_Type'Class);
-   --  Have no sense in this profile (would block the only task
-   --  that can run), so raise PolyORB.Tasking.Tasking_Profile_Error
+   --  Have no sense in this profile (would block the only task that can run),
+   --  so raise Tasking_Error.
 
    procedure Signal
      (C : access No_Tasking_Condition_Type);

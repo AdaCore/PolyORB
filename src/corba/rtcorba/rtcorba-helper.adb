@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2004 Free Software Foundation, Inc.             --
+--         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,16 +26,14 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 with PolyORB.Utils.Strings;
 with PolyORB.Initialization;
 pragma Elaborate_All (PolyORB.Initialization);
-
-with CORBA;
 
 package body RTCORBA.Helper is
 
@@ -44,7 +42,7 @@ package body RTCORBA.Helper is
    --------------
 
    function From_Any
-     (Item : in CORBA.Any)
+     (Item : CORBA.Any)
      return RTCORBA.Priority
    is
       Result : constant CORBA.Short := CORBA.From_Any (Item);
@@ -58,13 +56,13 @@ package body RTCORBA.Helper is
    ------------
 
    function To_Any
-     (Item : in RTCORBA.Priority)
+     (Item : RTCORBA.Priority)
      return CORBA.Any
    is
       Result : CORBA.Any := CORBA.To_Any (CORBA.Short (Item));
 
    begin
-      CORBA.Set_Type (Result, TC_Priority);
+      CORBA.Internals.Set_Type (Result, TC_Priority);
       return Result;
    end To_Any;
 
@@ -98,8 +96,9 @@ begin
      (Module_Info'
       (Name      => +"RTCORBA.Helper",
        Conflicts => Empty,
-       Depends   => Empty,
+       Depends   => +"any",
        Provides  => Empty,
        Implicit  => False,
-       Init      => Deferred_Initialization'Access));
+       Init      => Deferred_Initialization'Access,
+       Shutdown  => null));
 end RTCORBA.Helper;

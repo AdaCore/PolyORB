@@ -5,7 +5,7 @@ valuetype Val {
   //state
   public long longMbr;
   public short shtMbr;
-  
+
 // initializer
   factory init(in long longMbr, in short shrMbr);
 };

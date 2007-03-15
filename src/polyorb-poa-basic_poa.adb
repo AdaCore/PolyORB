@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -34,7 +34,6 @@
 --  Basic POA implementation.
 
 with Ada.Streams;
-with Ada.Unchecked_Conversion;
 
 with PolyORB.Log;
 with PolyORB.References.IOR;
@@ -46,8 +45,11 @@ package body PolyORB.POA.Basic_POA is
    use PolyORB.Types;
 
    package L is new Log.Facility_Log ("polyorb.poa.basic_poa");
-   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+   procedure O (Message : Standard.String; Level : Log_Level := Debug)
      renames L.Output;
+   function C (Level : Log_Level := Debug) return Boolean
+     renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    ----------------
    -- Create_POA --
@@ -100,20 +102,12 @@ package body PolyORB.POA.Basic_POA is
       end if;
 
       declare
-         U_Oid : Unmarshalled_Oid;
-
          Obj_OA : Obj_Adapter_Access;
          Error  : PolyORB.Errors.Error_Container;
 
       begin
-         Oid_To_U_Oid (Oid.all, U_Oid, Error);
-         if Found (Error) then
-            Catch (Error);
-            return False;
-         end if;
-
          Find_POA (OA,
-                   To_Standard_String (U_Oid.Creator),
+                   Get_Creator (Oid.all),
                    False,
                    Obj_OA,
                    Error);
@@ -194,17 +188,15 @@ package body PolyORB.POA.Basic_POA is
       end if;
 
       declare
-         Oid_Data : aliased Object_Id :=
-                      Objects.Hex_String_To_Oid (
-                        To_Standard_String (U_Oid.Id));
-         type SEA_Access is access all Ada.Streams.Stream_Element_Array;
-         function As_SEA_Access is new Ada.Unchecked_Conversion
-           (Object_Id_Access, SEA_Access);
+         use Ada.Streams;
+         Oid_Data : aliased Stream_Element_Array :=
+                      Stream_Element_Array (
+                        Objects.Hex_String_To_Oid (
+                          To_Standard_String (U_Oid.Id)));
       begin
          pragma Debug (O ("PTR: Oid data length:"
                           & Integer'Image (Oid_Data'Length)));
-         Ref := References.IOR.Opaque_To_Object
-           (As_SEA_Access (Oid_Data'Unchecked_Access));
+         Ref := References.IOR.Opaque_To_Object (Oid_Data'Access);
       end;
    end Proxy_To_Ref;
 

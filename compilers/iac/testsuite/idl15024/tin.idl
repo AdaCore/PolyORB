@@ -1,0 +1,15 @@
+interface A {
+  enum E { E1, E2, E3 }; // line 1
+  enum BadE { E3, E4, E5 }; // Error: E3 is already introduced
+                            // into the A scope in line 1 above
+};
+interface C {
+  enum AnotherE { E1, E2, E3 };
+};
+interface D : C, A {
+  union U switch ( E ) {
+    case A::E1 : boolean b;// OK.
+    case E2 : long l; // Error: E2 is ambiguous (notwithstanding
+                      // the switch type specification!!)
+  };
+};

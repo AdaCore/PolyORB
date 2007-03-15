@@ -1,9 +1,39 @@
+------------------------------------------------------------------------------
+--                                                                          --
+--                           POLYORB COMPONENTS                             --
+--                                                                          --
+--               CORBA.REPOSITORY_ROOT.EXTINTERFACEDEF.IMPL                 --
+--                                                                          --
+--                                 B o d y                                  --
+--                                                                          --
+--           Copyright (C) 2006, Free Software Foundation, Inc.             --
+--                                                                          --
+-- PolyORB is free software; you  can  redistribute  it and/or modify it    --
+-- under terms of the  GNU General Public License as published by the  Free --
+-- Software Foundation;  either version 2,  or (at your option)  any  later --
+-- version. PolyORB is distributed  in the hope that it will be  useful,    --
+-- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
+-- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
+-- License  for more details.  You should have received  a copy of the GNU  --
+-- General Public License distributed with PolyORB; see file COPYING. If    --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
+--                                                                          --
+-- As a special exception,  if other files  instantiate  generics from this --
+-- unit, or you link  this unit with other files  to produce an executable, --
+-- this  unit  does not  by itself cause  the resulting  executable  to  be --
+-- covered  by the  GNU  General  Public  License.  This exception does not --
+-- however invalidate  any other reasons why  the executable file  might be --
+-- covered by the  GNU Public License.                                      --
+--                                                                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
+--                                                                          --
+------------------------------------------------------------------------------
 
-with CORBA.Repository_Root.ExtAttributeDef;
 with CORBA.Repository_Root.IDLType;
 with CORBA.Repository_Root.InterfaceAttrExtension;
 with CORBA.Repository_Root.ExtInterfaceDef.Skel;
-pragma Elaborate (CORBA.Repository_Root.ExtInterfaceDef.Skel);
 pragma Warnings (Off, CORBA.Repository_Root.ExtInterfaceDef.Skel);
 
 package body CORBA.Repository_Root.ExtInterfaceDef.Impl is
@@ -14,13 +44,13 @@ package body CORBA.Repository_Root.ExtInterfaceDef.Impl is
 
    function create_ext_attribute
      (Self           : access Object;
-      id             : in     RepositoryId;
-      name           : in     Identifier;
-      version        : in     VersionSpec;
-      IDL_type       : in     IDLType.Ref;
-      mode           : in     AttributeMode;
-      get_exceptions : in     ExceptionDefSeq;
-      set_exceptions : in     ExceptionDefSeq)
+      id             : RepositoryId;
+      name           : Identifier;
+      version        : VersionSpec;
+      IDL_type       : IDLType.Ref;
+      mode           : AttributeMode;
+      get_exceptions : ExceptionDefSeq;
+      set_exceptions : ExceptionDefSeq)
       return ExtAttributeDef.Ref
    is
    begin
@@ -58,18 +88,18 @@ package body CORBA.Repository_Root.ExtInterfaceDef.Impl is
 
       procedure Init
         (Self                        : access Object'Class;
-         Real_Object                 : in     IRObject.Impl.Object_Ptr;
-         Def_Kind                    : in     DefinitionKind;
-         Id                          : in     RepositoryId;
-         Name                        : in     Identifier;
-         Version                     : in     VersionSpec;
-         Defined_In                  : in     Container_Forward.Ref;
+         Real_Object                 : IRObject.Impl.Object_Ptr;
+         Def_Kind                    : DefinitionKind;
+         Id                          : RepositoryId;
+         Name                        : Identifier;
+         Version                     : VersionSpec;
+         Defined_In                  : Container_Forward.Ref;
          Contents                    : in
            Contained.Impl.Contained_Seq.Sequence;
-         Contained_View              : in     Contained.Impl.Object_Ptr;
-         IDLType_View                : in     IDLType.Impl.Object_Ptr;
-         Base_Interfaces             : in     InterfaceDefSeq;
-         Is_Abstract                 : in     Boolean;
+         Contained_View              : Contained.Impl.Object_Ptr;
+         IDLType_View                : IDLType.Impl.Object_Ptr;
+         Base_Interfaces             : InterfaceDefSeq;
+         Is_Abstract                 : Boolean;
          InterfaceAttrExtension_View : in
            InterfaceAttrExtension.Impl.Object_Ptr)
       is

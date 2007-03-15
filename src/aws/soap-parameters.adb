@@ -1,37 +1,38 @@
 ------------------------------------------------------------------------------
---                              Ada Web Server                              --
 --                                                                          --
---                         Copyright (C) 2000-2001                          --
---                                ACT-Europe                                --
+--                           POLYORB COMPONENTS                             --
 --                                                                          --
---  Authors: Dmitriy Anisimkov - Pascal Obry                                --
+--                      S O A P . P A R A M E T E R S                       --
 --                                                                          --
---  This library is free software; you can redistribute it and/or modify    --
---  it under the terms of the GNU General Public License as published by    --
---  the Free Software Foundation; either version 2 of the License, or (at   --
---  your option) any later version.                                         --
+--                                 B o d y                                  --
 --                                                                          --
---  This library is distributed in the hope that it will be useful, but     --
---  WITHOUT ANY WARRANTY; without even the implied warranty of              --
---  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU       --
---  General Public License for more details.                                --
+--         Copyright (C) 2000-2006, Free Software Foundation, Inc.          --
 --                                                                          --
---  You should have received a copy of the GNU General Public License       --
---  along with this library; if not, write to the Free Software Foundation, --
---  Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.          --
+-- PolyORB is free software; you  can  redistribute  it and/or modify it    --
+-- under terms of the  GNU General Public License as published by the  Free --
+-- Software Foundation;  either version 2,  or (at your option)  any  later --
+-- version. PolyORB is distributed  in the hope that it will be  useful,    --
+-- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
+-- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
+-- License  for more details.  You should have received  a copy of the GNU  --
+-- General Public License distributed with PolyORB; see file COPYING. If    --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
---  As a special exception, if other files instantiate generics from this   --
---  unit, or you link this unit with other files to produce an executable,  --
---  this  unit  does not  by itself cause  the resulting executable to be   --
---  covered by the GNU General Public License. This exception does not      --
---  however invalidate any other reasons why the executable file  might be  --
---  covered by the  GNU Public License.                                     --
+-- As a special exception,  if other files  instantiate  generics from this --
+-- unit, or you link  this unit with other files  to produce an executable, --
+-- this  unit  does not  by itself cause  the resulting  executable  to  be --
+-- covered  by the  GNU  General  Public  License.  This exception does not --
+-- however invalidate  any other reasons why  the executable file  might be --
+-- covered by the  GNU Public License.                                      --
+--                                                                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
+--                                                                          --
 ------------------------------------------------------------------------------
 
 with Ada.Tags;
 with Ada.Exceptions;
-
-with SOAP.Types;
 
 package body SOAP.Parameters is
 
@@ -41,7 +42,7 @@ package body SOAP.Parameters is
    -- "&" --
    ---------
 
-   function "&" (P : in List; O : in Types.Object'Class) return List is
+   function "&" (P : List; O : Types.Object'Class) return List is
       NP : List := P;
    begin
       NP.N := NP.N + 1;
@@ -53,7 +54,7 @@ package body SOAP.Parameters is
    -- "+" --
    ---------
 
-   function "+" (O : in Types.Object'Class) return List is
+   function "+" (O : Types.Object'Class) return List is
       P : List;
    begin
       P.V (1) := Types."+" (O);
@@ -66,8 +67,8 @@ package body SOAP.Parameters is
    --------------
 
    function Argument
-     (P    : in List;
-      Name : in String)
+     (P    : List;
+      Name : String)
       return Types.Object'Class
    is
       use type Types.Object_Safe_Pointer;
@@ -88,8 +89,8 @@ package body SOAP.Parameters is
    --------------
 
    function Argument
-     (P : in List;
-      N : in Positive)
+     (P : List;
+      N : Positive)
       return Types.Object'Class
    is
       use type Types.Object_Safe_Pointer;
@@ -101,7 +102,7 @@ package body SOAP.Parameters is
    -- Argument_Count --
    --------------------
 
-   function Argument_Count (P : in List) return Natural is
+   function Argument_Count (P : List) return Natural is
    begin
       return P.N;
    end Argument_Count;
@@ -110,7 +111,7 @@ package body SOAP.Parameters is
    -- Check --
    -----------
 
-   procedure Check (P : in List; N : in Natural) is
+   procedure Check (P : List; N : Natural) is
    begin
       if P.N /= N then
          Exceptions.Raise_Exception
@@ -123,7 +124,7 @@ package body SOAP.Parameters is
    -- Check_Array --
    -----------------
 
-   procedure Check_Array (P : in List; Name : in String) is
+   procedure Check_Array (P : List; Name : String) is
       O : Types.Object'Class := Argument (P, Name);
    begin
       if O not in Types.SOAP_Array then
@@ -138,7 +139,7 @@ package body SOAP.Parameters is
    -- Check_Base64 --
    ------------------
 
-   procedure Check_Base64 (P : in List; Name : in String) is
+   procedure Check_Base64 (P : List; Name : String) is
       O : Types.Object'Class := Argument (P, Name);
    begin
       if O not in Types.SOAP_Base64 then
@@ -153,7 +154,7 @@ package body SOAP.Parameters is
    -- Check_Boolean --
    -------------------
 
-   procedure Check_Boolean (P : in List; Name : in String) is
+   procedure Check_Boolean (P : List; Name : String) is
       O : Types.Object'Class := Argument (P, Name);
    begin
       if O not in Types.XSD_Boolean then
@@ -168,7 +169,7 @@ package body SOAP.Parameters is
    -- Check_Float --
    -----------------
 
-   procedure Check_Float (P : in List; Name : in String) is
+   procedure Check_Float (P : List; Name : String) is
       O : Types.Object'Class := Argument (P, Name);
    begin
       if O not in Types.XSD_Float then
@@ -183,7 +184,7 @@ package body SOAP.Parameters is
    -- Check_Integer --
    -------------------
 
-   procedure Check_Integer (P : in List; Name : in String) is
+   procedure Check_Integer (P : List; Name : String) is
       O : Types.Object'Class := Argument (P, Name);
    begin
       if O not in Types.XSD_Integer then
@@ -198,7 +199,7 @@ package body SOAP.Parameters is
    -- Check_Null --
    ----------------
 
-   procedure Check_Null (P : in List; Name : in String) is
+   procedure Check_Null (P : List; Name : String) is
       O : Types.Object'Class := Argument (P, Name);
    begin
       if O not in Types.XSD_Null then
@@ -213,7 +214,7 @@ package body SOAP.Parameters is
    -- Check_Record --
    ------------------
 
-   procedure Check_Record (P : in List; Name : in String) is
+   procedure Check_Record (P : List; Name : String) is
       O : Types.Object'Class := Argument (P, Name);
    begin
       if O not in Types.SOAP_Record then
@@ -228,7 +229,7 @@ package body SOAP.Parameters is
    -- Check_Time_Instant --
    ------------------------
 
---     procedure Check_Time_Instant (P : in List; Name : in String) is
+--     procedure Check_Time_Instant (P : List; Name : String) is
 --        O : Types.Object'Class := Argument (P, Name);
 --     begin
 --        if O not in Types.XSD_Time_Instant then
@@ -246,7 +247,7 @@ package body SOAP.Parameters is
    -- Exist --
    -----------
 
-   function Exist (P : in List; Name : in String) return Boolean is
+   function Exist (P : List; Name : String) return Boolean is
       use type Types.Object_Safe_Pointer;
    begin
       for K in 1 .. P.N loop
@@ -262,37 +263,37 @@ package body SOAP.Parameters is
    -- Get --
    ---------
 
-   function Get (P : in List; Name : in String) return Integer is
+   function Get (P : List; Name : String) return Integer is
    begin
       return Types.Get (Argument (P, Name));
    end Get;
 
-   function Get (P : in List; Name : in String) return Long_Float is
+   function Get (P : List; Name : String) return Long_Float is
    begin
       return Types.Get (Argument (P, Name));
    end Get;
 
-   function Get (P : in List; Name : in String) return String is
+   function Get (P : List; Name : String) return String is
    begin
       return Types.Get (Argument (P, Name));
    end Get;
 
-   function Get (P : in List; Name : in String) return Boolean is
+   function Get (P : List; Name : String) return Boolean is
    begin
       return Types.Get (Argument (P, Name));
    end Get;
 
-   function Get (P : in List; Name : in String) return Types.SOAP_Base64 is
+   function Get (P : List; Name : String) return Types.SOAP_Base64 is
    begin
       return Types.Get (Argument (P, Name));
    end Get;
 
-   function Get (P : in List; Name : in String) return Types.SOAP_Record is
+   function Get (P : List; Name : String) return Types.SOAP_Record is
    begin
       return Types.Get (Argument (P, Name));
    end Get;
 
-   function Get (P : in List; Name : in String) return Types.SOAP_Array is
+   function Get (P : List; Name : String) return Types.SOAP_Array is
    begin
       return Types.Get (Argument (P, Name));
    end Get;

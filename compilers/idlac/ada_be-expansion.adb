@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -31,7 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Idl_Fe.Types;          use Idl_Fe.Types;
 with Idl_Fe.Tree;           use Idl_Fe.Tree;
 with Idl_Fe.Tree.Synthetic; use Idl_Fe.Tree.Synthetic;
 with Idl_Fe.Tree.Low_Level; use Idl_Fe.Tree.Low_Level;
@@ -41,7 +40,7 @@ with Ada_Be.Identifiers;    use Ada_Be.Identifiers;
 with Ada_Be.Debug;
 pragma Elaborate_All (Ada_Be.Debug);
 
-with Errors;                use Errors;
+with Idlac_Errors;          use Idlac_Errors;
 with Utils;                 use Utils;
 
 with Ada.Characters.Handling;
@@ -56,56 +55,58 @@ package body Ada_Be.Expansion is
    Flag : constant Natural := Ada_Be.Debug.Is_Active ("ada_be.expansion");
    procedure O is new Ada_Be.Debug.Output (Flag);
 
+   ------------------
+   -- Shared state --
+   ------------------
+
+   In_Sequence_Type : Boolean := False;
+   --  Set in Expand_Sequence during expansion of the sequence type
+
    ------------------------------------
    -- Internal expansion subprograms --
    ------------------------------------
 
-   procedure Expand_Node (Node : in Node_Id);
-   --  Generic function that calls the more specific ones
-   --  according to the type of the node
+   procedure Expand_Node (Node : Node_Id);
+   --  Expand node according to its type (using the type-specific routines
+   --  below).
 
    --  Specific expansion subprograms
 
-   procedure Expand_Module
-     (Node : in Node_Id);
-   procedure Expand_Ben_Idl_File
-     (Node : in Node_Id);
-   --  Expand all subnodes.
+   procedure Expand_Module (Node : Node_Id);
+   procedure Expand_Ben_Idl_File (Node : Node_Id);
+   --  Expand all subnodes
 
    procedure Expand_Interface
-     (Node : in Node_Id);
-   --  First expand all subnodes,
-   --  then copy inherited methods and attributes
-   --  from ancestors.
+     (Node : Node_Id);
+   --  First expand all subnodes, then copy inherited methods and attributes
+   --  from ancestors
 
    procedure Expand_ValueType
-     (Node : in Node_Id);
-   --  First expand all subnodes,
-   --  then copy inherited methods and attributes
+     (Node : Node_Id);
+   --  First expand all subnodes, then copy inherited methods and attributes
    --  from ancestors and supported interfaces
 
    procedure Expand_Boxed_ValueType
-     (Node : in Node_Id);
+     (Node : Node_Id);
    --  Expand the type of a boxed value (sequence for example)
 
    procedure Expand_Attribute
-     (Node : in Node_Id);
-   --  Expand an attribute into the corresponding _get_
-   --  and _set_ operations.
+     (Node : Node_Id);
+   --  Expand an attribute into the corresponding _get_ and _set_ operations
 
    procedure Expand_State_Member
-     (Node : in Node_Id);
+     (Node : Node_Id);
    --  Expand a State_Member :
-   --  1. splits it if there are several declarators
+   --  1. Split it if there are several declarators;
    --  2. Creates the corresponding _get_ and _set_ operations.
 
    procedure Expand_Attribute_Or_State_Member
-     (Node : in Node_Id;
-      The_Type : in Node_Id;
-      Declarators : in Node_List;
-      Is_Readable : in Boolean;
-      Is_Writable : in Boolean);
-   --  code factorization for the 2 preceding operations
+     (Node        : Node_Id;
+      The_Type    : Node_Id;
+      Declarators : Node_List;
+      Is_Readable : Boolean;
+      Is_Writable : Boolean);
+   --  Code factorization for the two subprograms above
 
    procedure Expand_Operation
      (Node : Node_Id);
@@ -120,7 +121,7 @@ package body Ada_Be.Expansion is
    --  Expand Param_Type.
 
    procedure Expand_Exception
-     (Node : in Node_Id);
+     (Node : Node_Id);
    --  Expand an exception into a _Members struct.
 
    procedure Expand_Type_Declarator
@@ -196,13 +197,12 @@ package body Ada_Be.Expansion is
    -- Utility routines --
    ----------------------
 
-   subtype Location is Errors.Location;
+   subtype Location is Idlac_Errors.Location;
 
-   Current_Position_In_List : Node_Id
-     := No_Node;
+   Current_Position_In_List : Node_Id := No_Node;
    procedure Expand_Node_List
-     (List : in Node_List;
-      Set_Current_Position : in Boolean);
+     (List : Node_List;
+      Set_Current_Position : Boolean);
    --  Expand a whole list of nodes
    --  The global variable Current_Position_In_List is set
    --  before each node is expanded.
@@ -222,44 +222,41 @@ package body Ada_Be.Expansion is
    function Has_Out_Formals
      (Node : Node_Id)
      return Boolean;
-   --  True if Node (K_Operation) has "out" or "in out"
-   --  formal parameters.
+   --  True if Node (K_Operation) has "out" or "in out" formal parameters
 
    function Is_Ada_Keyword (Name : String) return Boolean;
    --  Check whether Name is an Ada 95 keyword
 
    procedure Recursive_Copy_Operations
      (Into                        : in out Node_List;
-      Parent                      : in     Node_Id;
-      From                        :        Node_Id;
-      Implicit_Inherited          :        Boolean;
-      Directly_Supported          :        Boolean;
-      Oldest_Supporting_ValueType :        Node_Id;
+      Parent                      : Node_Id;
+      From                        : Node_Id;
+      Implicit_Inherited          : Boolean;
+      Directly_Supported          : Boolean;
+      Oldest_Supporting_ValueType : Node_Id;
       Parents_Seen                : in out Node_List);
-   --  Recursively copy all operations from K_Interface
-   --  or K_ValueType
-   --  node From and all its ancestors into Into.
-   --  Ancestors are appended to the Parents_Seen list
-   --  as they are explored, and will not be explored twice.
+   --  Recursively copy all operations from K_Interface or K_ValueType node
+   --  From and all its ancestors into Into. Ancestors are appended to the
+   --  Parents_Seen list as they are explored, and will not be explored twice.
 
-   --  The Parent_Scope for the copies is set to Parent,
-   --  and the Is_Implicit_Inherited attribute is set
-   --  to Implicit_Inherited.
+   --  The Parent_Scope for the copies is set to Parent, and the
+   --  Is_Implicit_Inherited attribute is set to Implicit_Inherited.
 
-   --  Directly_Supported and Oldest_Supporting_ValueType
-   --  are valuetype attributes. See nodes.txt for their
-   --  meaning
+   --  Directly_Supported and Oldest_Supporting_ValueType are valuetype
+   --  attributes. See nodes.txt for their meaning.
 
-   function Is_CORBA_IR_Entity (Node : in Node_Id) return Boolean;
+   function Is_CORBA_PolicyList (Node : Node_Id) return Boolean;
+   --  Return True iff Node denotes CORBA::PolicyList
+
+   function Is_CORBA_IR_Entity (Node : Node_Id) return Boolean;
    --  Return True iff Node denotes one entity from CORBA Interface Repository.
 
-   --------------------------------------------------
-   --  Subprogram bodies from here
-   --------------------------------------------------
+   function Is_CORBA_Sequence (Node : Node_Id) return Boolean;
+   --  Return True iff Node is a sequence type declared in the CORBA module,
+   --  in which case its mapped type is reparented under the
+   --  CORBA.IDL_SEQUENCES package.
 
-   -----------------------------------------------------------------
-   --  Predefined CORBA entities, which processed by special way  --
-   -----------------------------------------------------------------
+   --  Predefined CORBA entities requiring specific processing
 
    CORBA_TypeCode_Node : Node_Id := No_Node;
    --  Declaration of CORBA::TypeCode
@@ -268,22 +265,22 @@ package body Ada_Be.Expansion is
    --  of existence of forward declaration in used orb.idl or TypeCode.idl
    --  file.
 
+   -----------------------
+   -- Subprogram bodies --
+   -----------------------
+
    -----------------
    -- Expand_Node --
    -----------------
 
-   procedure Expand_Node (Node : in Node_Id) is
+   procedure Expand_Node (Node : Node_Id) is
       NK : constant Node_Kind := Kind (Node);
    begin
-      pragma Debug (O ("Expanding node : "
-                       & Node_Kind'Image (NK)));
-
-      --  If node has already been expanded, this is a bug
-
       if Expanded (Node) then
-         Error ("Node " & Node_Kind'Image (NK) & " already expanded",
-                Fatal, Get_Location (Node));
+         return;
       end if;
+
+      pragma Debug (O ("Expanding node : " & Node_Kind'Image (NK)));
 
       --  Set node expanded early to catch infinite loops as well
 
@@ -390,7 +387,6 @@ package body Ada_Be.Expansion is
       end case;
    end Expand_Node;
 
-
    -------------------------------------------
    --  and now one procedure per node type  --
    -------------------------------------------
@@ -399,22 +395,22 @@ package body Ada_Be.Expansion is
    --  Expand_Repository --
    ------------------------
 
-   Unknown_Filename : constant Errors.String_Ptr
+   Unknown_Filename : constant Idlac_Errors.String_Ptr
      := new String'("<unknown file>.idl");
 
-   procedure  Expand_Repository (Node : in Node_Id) is
+   procedure  Expand_Repository (Node : Node_Id) is
 
       Iterator : Node_Iterator;
 
       type Header_Num is range 0 .. 1024;
       function Hash is new GNAT.HTable.Hash (Header_Num);
-      function Hash (A : Errors.String_Ptr) return Header_Num;
-      function Hash (A : Errors.String_Ptr) return Header_Num is
+      function Hash (A : Idlac_Errors.String_Ptr) return Header_Num;
+      function Hash (A : Idlac_Errors.String_Ptr) return Header_Num is
       begin
          return Hash (A.all);
       end Hash;
-      function Equals (A, B : Errors.String_Ptr) return Boolean;
-      function Equals (A, B : Errors.String_Ptr) return Boolean is
+      function Equals (A, B : Idlac_Errors.String_Ptr) return Boolean;
+      function Equals (A, B : Idlac_Errors.String_Ptr) return Boolean is
       begin
          return A.all = B.all;
       end Equals;
@@ -422,7 +418,7 @@ package body Ada_Be.Expansion is
         (Header_Num,
          Node_Id,
          No_Node,
-         Errors.String_Ptr,
+         Idlac_Errors.String_Ptr,
          Hash,
          Equals);
 
@@ -438,8 +434,8 @@ package body Ada_Be.Expansion is
       while not Is_End (Iterator) loop
          declare
             Current : Node_Id;
-            Loc : Errors.Location;
-            Filename : Errors.String_Ptr;
+            Loc : Idlac_Errors.Location;
+            Filename : Idlac_Errors.String_Ptr;
 
             Idl_File_Node : Node_Id;
             Success : Boolean;
@@ -562,18 +558,77 @@ package body Ada_Be.Expansion is
    -- Expand_Module --
    -------------------
 
-   procedure Expand_Module (Node : in Node_Id) is
-      CORBA_IR_Root_Node : Node_Id;
-      Success            : Boolean;
+   procedure Expand_Module (Node : Node_Id) is
+
+      procedure Relocate (Parent : Node_Id; Node : Node_Id);
+      --  Reparent Node and its named subnodes to the new Parent
+
+      procedure Relocate (Parent : Node_Id; Node : Node_Id) is
+         Has_Named_Subnodes : Boolean;
+         Named_Subnodes     : Node_Iterator;
+         Success            : Boolean;
+
+      begin
+         Push_Scope (Parent);
+
+         Append_Node_To_Contents (Parent, Node);
+
+         if Is_Named (Node) then
+
+            --  Rattach current node
+
+            if Definition (Node) /= null then
+               Success := Add_Identifier (Node, Name (Node));
+               pragma Assert (Success);
+            end if;
+
+            if Is_Enum (Node) then
+               Has_Named_Subnodes := True;
+               Init (Named_Subnodes, Enumerators (Node));
+               --  Attach all enumerators of the current node
+
+            end if;
+
+         elsif Is_Type_Declarator (Node) then
+            Has_Named_Subnodes := True;
+            Init (Named_Subnodes, Declarators (Node));
+            --  Attach all declarators of the current node
+
+         end if;
+
+         --  If the current node has named subnodes, rattach
+         --  them now.
+
+         if Has_Named_Subnodes then
+            declare
+               Dcl_Node : Node_Id;
+
+            begin
+               while not Is_End (Named_Subnodes) loop
+                  Get_Next_Node (Named_Subnodes, Dcl_Node);
+                  Success := Add_Identifier (Dcl_Node, Name (Dcl_Node));
+                  pragma Assert (Success);
+               end loop;
+            end;
+         end if;
+
+         Pop_Scope;
+      end Relocate;
+
+      CORBA_IR_Root_Node   : Node_Id;
+      CORBA_Sequences_Node : Node_Id;
+      CORBA_Policy_Node    : Node_Id;
+      Success              : Boolean;
+
    begin
       pragma Assert (Kind (Node) = K_Module);
 
       Push_Scope (Node);
 
-      --  Allocate CORBA.Repository_Root node and rattach all entities
-      --  of the Interface Repository to it
-
       if Name (Node) = "CORBA" then
+         --  Allocate CORBA.Repository_Root node for rattachment all entities
+         --  of the Interface Repository to it
+
          CORBA_IR_Root_Node := Make_Module (No_Location);
          Set_Default_Repository_Id (CORBA_IR_Root_Node);
          Set_Initial_Current_Prefix (CORBA_IR_Root_Node);
@@ -583,18 +638,26 @@ package body Ada_Be.Expansion is
 
          Append_Node_To_Contents (Node, CORBA_IR_Root_Node);
 
-         Push_Scope (CORBA_IR_Root_Node);
+         --  Allocate CORBA.IDL_SEQUENCES node for rattach all sequences to it
+
+         CORBA_Sequences_Node := Make_Module (No_Location);
+         Set_Default_Repository_Id (CORBA_Sequences_Node);
+         Set_Initial_Current_Prefix (CORBA_Sequences_Node);
+
+         Success := Add_Identifier (CORBA_Sequences_Node, "IDL_SEQUENCES");
+         pragma Assert (Success);
+
+         Append_Node_To_Contents (Node, CORBA_Sequences_Node);
 
          declare
             CORBA_Contents     : constant Node_List := Contents (Node);
             New_CORBA_Contents : Node_List;
             Iterator           : Node_Iterator;
             Current            : Node_Id;
-            Success            : Boolean;
-            Has_Named_Subnodes : Boolean;
-            Named_Subnodes     : Node_Iterator;
+
          begin
             Init (Iterator, CORBA_Contents);
+
             while not Is_End (Iterator) loop
                Get_Next_Node (Iterator, Current);
 
@@ -607,49 +670,22 @@ package body Ada_Be.Expansion is
                   CORBA_TypeCode_Node := Current;
                end if;
 
+               if Kind (Current) = K_Interface
+                 and then Ada_Name (Current) = "Policy"
+               then
+                  CORBA_Policy_Node := Current;
+               end if;
+
                --  Relocate CORBA Interface Repository entities
 
                if Is_CORBA_IR_Entity (Current) then
-                  Append_Node_To_Contents (CORBA_IR_Root_Node, Current);
+                  Relocate (CORBA_IR_Root_Node, Current);
 
-                  if Is_Named (Current) then
+               elsif Is_CORBA_Sequence (Current) then
+                  Relocate (CORBA_Sequences_Node, Current);
 
-                     --  Rattach current node
-
-                     if Definition (Current) /= null then
-                        Success := Add_Identifier (Current, Name (Current));
-                        pragma Assert (Success);
-                     end if;
-
-                     if Is_Enum (Current) then
-                        Has_Named_Subnodes := True;
-                        Init (Named_Subnodes, Enumerators (Current));
-                        --  Attach all enumerators of the current node
-
-                     end if;
-
-                  elsif Is_Type_Declarator (Current) then
-                     Has_Named_Subnodes := True;
-                     Init (Named_Subnodes, Declarators (Current));
-                     --  Attach all declarators of the current node
-
-                  end if;
-
-                  --  If the current node has named subnodes, rattach
-                  --  them now.
-
-                  if Has_Named_Subnodes then
-                     declare
-                        Dcl_Node : Node_Id;
-                     begin
-                        while not Is_End (Named_Subnodes) loop
-                           Get_Next_Node (Named_Subnodes, Dcl_Node);
-                           Success := Add_Identifier
-                             (Dcl_Node, Name (Dcl_Node));
-                           pragma Assert (Success);
-                        end loop;
-                     end;
-                  end if;
+               elsif Is_CORBA_PolicyList (Current) then
+                  Relocate (CORBA_Policy_Node, Current);
 
                else
                   Append_Node (New_CORBA_Contents, Current);
@@ -658,8 +694,6 @@ package body Ada_Be.Expansion is
 
             Set_Contents (Node, New_CORBA_Contents);
          end;
-
-         Pop_Scope;
       end if;
 
       Expand_Node_List (Contents (Node), True);
@@ -670,7 +704,7 @@ package body Ada_Be.Expansion is
    --  Expand_Ben_Idl_File --
    --------------------------
 
-   procedure Expand_Ben_Idl_File (Node : in Node_Id) is
+   procedure Expand_Ben_Idl_File (Node : Node_Id) is
    begin
       pragma Assert (Kind (Node) = K_Ben_Idl_File);
       Push_Scope (Node);
@@ -678,18 +712,17 @@ package body Ada_Be.Expansion is
       Pop_Scope;
    end Expand_Ben_Idl_File;
 
-
    ---------------------------------
    --  Recursive_Copy_Operations  --
    ---------------------------------
 
    procedure Recursive_Copy_Operations
      (Into                        : in out Node_List;
-      Parent                      : in     Node_Id;
-      From                        :        Node_Id;
-      Implicit_Inherited          :        Boolean;
-      Directly_Supported          :        Boolean;
-      Oldest_Supporting_ValueType :        Node_Id;
+      Parent                      : Node_Id;
+      From                        : Node_Id;
+      Implicit_Inherited          : Boolean;
+      Directly_Supported          : Boolean;
+      Oldest_Supporting_ValueType : Node_Id;
       Parents_Seen                : in out Node_List)
    is
       Ops_It : Node_Iterator;
@@ -716,14 +749,20 @@ package body Ada_Be.Expansion is
          then
             New_O_Node := Copy_Node (O_Node);
             Set_Parent_Scope (New_O_Node, Parent);
+
             Set_Is_Implicit_Inherited
               (New_O_Node, Implicit_Inherited);
+            if not Implicit_Inherited then
+               Set_Has_Non_Implicit_Inherited_Operations (Parent, True);
+            end if;
+
             Set_Is_Directly_Supported
               (New_O_Node, Directly_Supported);
             if Oldest_Supporting_ValueType /= No_Node then
                Set_Oldest_Supporting_ValueType
                  (New_O_Node, Oldest_Supporting_ValueType);
             end if;
+
             Append_Node (Into, New_O_Node);
          end if;
       end loop;
@@ -748,7 +787,7 @@ package body Ada_Be.Expansion is
    ----------------------
 
    procedure Expand_Interface
-     (Node : in Node_Id)
+     (Node : Node_Id)
    is
       Export_List : Node_List;
 
@@ -806,7 +845,7 @@ package body Ada_Be.Expansion is
    -- Expand_ValueType --
    ----------------------
 
-   procedure Expand_ValueType (Node : in Node_Id) is
+   procedure Expand_ValueType (Node : Node_Id) is
       Export_List  : Node_List;
       It           : Node_Iterator;
       I_Node       : Node_Id;
@@ -886,7 +925,7 @@ package body Ada_Be.Expansion is
    -- Expand_Attribute --
    ----------------------
 
-   procedure Expand_Attribute (Node : in Node_Id) is
+   procedure Expand_Attribute (Node : Node_Id) is
    begin
       pragma Assert (Kind (Node) = K_Attribute);
 
@@ -904,7 +943,7 @@ package body Ada_Be.Expansion is
    -------------------------
 
    procedure Expand_State_Member
-     (Node : in Node_Id) is
+     (Node : Node_Id) is
       Declarators : Node_List;
       It : Node_Iterator;
       Current_Decl : Node_Id;
@@ -964,11 +1003,11 @@ package body Ada_Be.Expansion is
    ----------------------------------------
 
    procedure Expand_Attribute_Or_State_Member
-     (Node : in Node_Id;
-      The_Type : in Node_Id;
-      Declarators : in Node_List;
-      Is_Readable : in Boolean;
-      Is_Writable : in Boolean)
+     (Node : Node_Id;
+      The_Type : Node_Id;
+      Declarators : Node_List;
+      Is_Readable : Boolean;
+      Is_Writable : Boolean)
    is
       Exports_List : Node_List := Nil_List;
       --  The exports list of the interface
@@ -1104,7 +1143,7 @@ package body Ada_Be.Expansion is
    end Expand_Attribute_Or_State_Member;
 
    procedure Expand_Operation
-     (Node : in Node_Id)
+     (Node : Node_Id)
    is
       Loc : constant Location := Get_Location (Node);
    begin
@@ -1128,48 +1167,60 @@ package body Ada_Be.Expansion is
 
             Success : Boolean;
          begin
+
+            --  Create an identifier in the operation's scope
+
             Push_Scope (Node);
             Success := Add_Identifier (Decl_Node, "Returns");
             pragma Assert (Success);
             Pop_Scope;
-            --  Create an identifier in the operation's scope
+
+            --  Make the operation void. The actual operation type can be
+            --  retrieved from the Void_Node's Original_Node attribute.
 
             Replace_Node (Operation_Type_Node, Void_Node);
-            --  Make the operation void. The actual operation
-            --  type is Void_Node's Original_Node.
+
+            --  Create a new parameter node
 
             Set_Mode (Param_Node, Mode_Out);
             Set_Param_Type (Param_Node, Operation_Type_Node);
             Set_Declarator (Param_Node, Decl_Node);
             Set_Is_Returns (Param_Node, True);
             Set_Parent (Decl_Node, Param_Node);
-            --  Create a new parameter node
 
-            Set_Parameters
-              (Node, Append_Node
-               (Parameters (Node), Param_Node));
             --  Insert it in the operation parameter list
+
+            Set_Parameters (Node, Append_Node (Parameters (Node), Param_Node));
          end;
       end if;
 
-      --  If this operation is defined in valuetype,
-      --  set its "Oldest_Supporting_ValueType" attribute
+      --  If this operation is defined in a valuetype, set its
+      --  "Oldest_Supporting_ValueType" attribute
+
       if Kind (Parent_Scope (Node)) = K_ValueType then
          Set_Oldest_Supporting_ValueType
            (Node, Parent_Scope (Node));
       end if;
 
+      --  If this operation is not implicitly inherited, note it in the
+      --  enclosing interface.
+
+      if Kind (Parent_Scope (Node)) = K_Interface
+        and then not Is_Implicit_Inherited (Node)
+      then
+         Set_Has_Non_Implicit_Inherited_Operations (Parent_Scope (Node), True);
+      end if;
    end Expand_Operation;
 
    procedure Expand_Param
-     (Node : in Node_Id) is
+     (Node : Node_Id) is
    begin
       Expand_Node (Param_Type (Node));
       Expand_Node (Declarator (Node));
    end Expand_Param;
 
    procedure Expand_Exception
-     (Node : in Node_Id)
+     (Node : Node_Id)
    is
       Loc : constant Location := Get_Location (Node);
    begin
@@ -1318,8 +1369,11 @@ package body Ada_Be.Expansion is
         := Make_Scoped_Name (Loc);
       Seq_Inst_Node : constant Node_Id
         := Make_Sequence_Instance (Loc);
+      Prev_In_Sequence_Type : constant Boolean := In_Sequence_Type;
    begin
+      In_Sequence_Type := True;
       Expand_Node (Sequence_Type (Node));
+      In_Sequence_Type := Prev_In_Sequence_Type;
 
       Add_Identifier_With_Renaming
         (Seq_Inst_Node,
@@ -1442,7 +1496,7 @@ package body Ada_Be.Expansion is
    ------------------------------
 
    procedure Expand_Boxed_ValueType
-     (Node : in Node_Id) is
+     (Node : Node_Id) is
    begin
       Expand_Node (Boxed_Type (Node));
    end Expand_Boxed_ValueType;
@@ -1636,17 +1690,20 @@ package body Ada_Be.Expansion is
    -----------------------
 
    procedure Expand_Scoped_Name (Node : Node_Id) is
-      V                   : constant Node_Id := Value (Node);
+      V              : constant Node_Id := Value (Node);
+      V_Scope        : Node_Id;
+      This_Gen_Scope : constant Node_Id := Get_Current_Gen_Scope;
+
       Forward_Declaration : Node_Id;
 
-      function Create_Forward_Declaration (Node : in Node_Id) return Node_Id;
+      function Create_Forward_Declaration (Node : Node_Id) return Node_Id;
       --  Create forward decalaration node for specified declaration
 
       --------------------------------
       -- Create_Forward_Declaration --
       --------------------------------
 
-      function Create_Forward_Declaration (Node : in Node_Id) return Node_Id is
+      function Create_Forward_Declaration (Node : Node_Id) return Node_Id is
          Result : Node_Id;
       begin
          pragma Assert (Kind (Node) = K_Interface);
@@ -1663,6 +1720,7 @@ package body Ada_Be.Expansion is
       end Create_Forward_Declaration;
 
    begin
+
       --  Special processing of CORBA::TypeCode: we always refer to
       --  the full interface declaration
 
@@ -1679,65 +1737,57 @@ package body Ada_Be.Expansion is
          return;
       end if;
 
-      Forward_Declaration := Forward (V);
-      if Forward_Declaration = No_Node then
+      --  Check whether the value of this scoped name is within a child
+      --  scope of the current scope.
 
-         --  If there is no explicit forward declaration, check whether an
-         --  implicit one is necessary to avoid a circular dependency between
-         --  Ada units.
+      V_Scope := Parent_Scope (V);
+      loop
+         exit when V_Scope = No_Node or else V_Scope = This_Gen_Scope;
+         V_Scope := Parent_Scope (V_Scope);
+      end loop;
 
-         if Kind (Get_Current_Scope) = K_Struct
-           and then Parent_Scope (V) = Parent_Scope (Get_Current_Scope)
-         then
+      if (Kind (This_Gen_Scope) = K_Interface
+          and then Has_Interface_Component (V, This_Gen_Scope)
+          and then In_Sequence_Type)
+         or else V_Scope = This_Gen_Scope
+      then
+
+         --  If the value of this scoped name is within a child scope of
+         --  the current scope, a forward declaration is necessary. Also,
+         --  if the value of this scoped name denotes the current interface,
+         --  or has a component whose type is the current interface, a
+         --  forward declaration is necessary if it is used as the item type
+         --  for a sequence, because the instantiation of the sequences
+         --  generic would otherwise cause freezing.
+
+         Forward_Declaration := Forward (V);
+         if Forward_Declaration = No_Node then
+
+            --  If there is no explicit forward declaration, create one to
+            --  avoid a circular dependency between Ada units, and insert
+            --  it immediately before the complete interface declaration.
+
+            Forward_Declaration := Create_Forward_Declaration (V);
+
             declare
-               Enclosing_Scope : constant Node_Id
-                 := Parent_Scope (Get_Current_Scope);
+               Enclosing_Scope : constant Node_Id := Parent_Scope (V);
                Enclosing_List  : Node_List := Contents (Enclosing_Scope);
             begin
-               Forward_Declaration := Create_Forward_Declaration (V);
                Insert_Before
                  (List   => Enclosing_List,
                   Node   => Forward_Declaration,
-                  Before => Get_Current_Scope);
+                  Before => V);
                Set_Contents (Enclosing_Scope, Enclosing_List);
-
-               Set_Value (Node, Forward_Declaration);
             end;
-
-         elsif Kind (Get_Current_Scope) = K_Module
-           and then Parent_Scope (V) = Get_Current_Scope
-         then
-            Forward_Declaration := Create_Forward_Declaration (V);
-            Insert_Before_Current (Forward_Declaration);
-
-            Set_Value (Node, Forward_Declaration);
          end if;
 
-         return;
+         --  Now we are assured that a forward declaration exists: fix up
+         --  the scoped name to denote the forward instead of the complete
+         --  declaration.
+
+         Set_Value (Node, Forward_Declaration);
+
       end if;
-
-      --  Check whether V is within the current scope
-
-      declare
-         Current_Scope : Node_Id := Get_Current_Scope;
-         Par_Scope     : Node_Id := Parent_Scope (V);
-      begin
-         if Kind (Current_Scope) = K_Struct then
-            --  Unwind one scope level because structure by itself is scope
-
-            Current_Scope := Parent_Scope (Current_Scope);
-         end if;
-
-         while not (Par_Scope = Current_Scope
-            or else Par_Scope = No_Node)
-         loop
-            Par_Scope := Parent_Scope (Par_Scope);
-         end loop;
-
-         if Par_Scope = Current_Scope then
-            Set_Value (Node, Forward_Declaration);
-         end if;
-      end;
    end Expand_Scoped_Name;
 
    -----------------------
@@ -1827,8 +1877,8 @@ package body Ada_Be.Expansion is
    ----------------------
 
    procedure Expand_Node_List
-     (List : in Node_List;
-      Set_Current_Position : in Boolean)
+     (List : Node_List;
+      Set_Current_Position : Boolean)
    is
       It : Node_Iterator;
       Node : Node_Id;
@@ -1836,7 +1886,7 @@ package body Ada_Be.Expansion is
       Init (It, List);
 
       while not Is_End (It) loop
-         Get_Next_Node (It, Node);
+         Node := Get_Node (It);
 
          if Set_Current_Position then
             Current_Position_In_List := Node;
@@ -1845,6 +1895,10 @@ package body Ada_Be.Expansion is
          end if;
          Expand_Node (Node);
 
+         --  Go to the next position only after Node has been expanded,
+         --  as this expansion may have inserted new nodes in List.
+
+         Next (It);
       end loop;
 
       if Set_Current_Position then
@@ -1866,8 +1920,8 @@ package body Ada_Be.Expansion is
                  & Sequence_Type_Name (Sequence_Type (Node));
             else
                return "SEQUENCE_"
-                 & Sequence_Type_Name (Sequence_Type (Node))
-                 & "_" & Img (Integer_Value (Bound (Node)));
+                 & Img (Integer_Value (Bound (Node)))
+                 & "_" & Sequence_Type_Name (Sequence_Type (Node));
             end if;
 
          when K_Scoped_Name =>
@@ -2092,7 +2146,7 @@ package body Ada_Be.Expansion is
          --  new String'("CORBA.Visibility"),              --  typedef
          new String'("CORBA.WstringDef"));                 --  interface
 
-   function Is_CORBA_IR_Entity (Node : in Node_Id) return Boolean is
+   function Is_CORBA_IR_Entity (Node : Node_Id) return Boolean is
       NK : constant Node_Kind := Kind (Node);
 
       N  : Node_Id := Node;
@@ -2133,5 +2187,100 @@ package body Ada_Be.Expansion is
 
       return False;
    end Is_CORBA_IR_Entity;
+
+   -------------------------
+   -- Is_CORBA_PolicyList --
+   -------------------------
+
+   --  CORBA::PolicyList relocated to CORBA.Policy package
+
+   CORBA_PolicyList_Names : constant array (Positive range <>) of String_Access
+     := (1 => new String'("CORBA.PolicyList"));
+
+   function Is_CORBA_PolicyList (Node : Node_Id) return Boolean is
+      N : Node_Id;
+
+   begin
+      if Kind (Node) /= K_Type_Declarator then
+         return False;
+      end if;
+
+      declare
+         List : constant Node_List := Declarators (Node);
+         Iter : Node_Iterator;
+
+      begin
+         Init (Iter, List);
+         Get_Next_Node (Iter, N);
+      end;
+
+      declare
+         Name : constant String := Ada_Full_Name (N);
+
+      begin
+         for J in CORBA_PolicyList_Names'Range loop
+            if CORBA_PolicyList_Names (J).all = Name then
+               return True;
+            end if;
+         end loop;
+      end;
+
+      return False;
+   end Is_CORBA_PolicyList;
+
+   -----------------------
+   -- Is_CORBA_Sequence --
+   -----------------------
+
+   --  CORBA 3.0 sequences relocated to CORBA.IDL_SEQUENCES package
+
+   CORBA_Sequences_Names : constant array (Positive range <>) of String_Access
+     := (new String'("CORBA.AnySeq"),
+         new String'("CORBA.BooleanSeq"),
+         new String'("CORBA.CharSeq"),
+         new String'("CORBA.WCharSeq"),
+         new String'("CORBA.OctetSeq"),
+         new String'("CORBA.ShortSeq"),
+         new String'("CORBA.UShortSeq"),
+         new String'("CORBA.LongSeq"),
+         new String'("CORBA.ULongSeq"),
+         new String'("CORBA.LongLongSeq"),
+         new String'("CORBA.ULongLongSeq"),
+         new String'("CORBA.FloatSeq"),
+         new String'("CORBA.DoubleSeq"),
+         new String'("CORBA.LongDoubleSeq"),
+         new String'("CORBA.StringSeq"),
+         new String'("CORBA.WStringSeq"));
+
+   function Is_CORBA_Sequence (Node : Node_Id) return Boolean is
+      N : Node_Id;
+
+   begin
+      if Kind (Node) /= K_Type_Declarator then
+         return False;
+      end if;
+
+      declare
+         List : constant Node_List := Declarators (Node);
+         Iter : Node_Iterator;
+
+      begin
+         Init (Iter, List);
+         Get_Next_Node (Iter, N);
+      end;
+
+      declare
+         Name : constant String := Ada_Full_Name (N);
+
+      begin
+         for J in CORBA_Sequences_Names'Range loop
+            if CORBA_Sequences_Names (J).all = Name then
+               return True;
+            end if;
+         end loop;
+      end;
+
+      return False;
+   end Is_CORBA_Sequence;
 
 end Ada_Be.Expansion;

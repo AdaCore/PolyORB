@@ -92,11 +92,11 @@ package PolyORB.Components is
    --  Emit message Msg on Port. The expected reply must be
    --  Null_Message, and will be discarded.
 
-   procedure Destroy (C : in out Component);
-   --  Destroy component C.
+   procedure Destroy (Comp : in out Component);
+   --  Destroy component Comp
 
-   procedure Destroy (C : in out Component_Access);
-   --  Destroy the component designated by C and deallocate it.
+   procedure Destroy (Comp : in out Component_Access);
+   --  Destroy the component designated by Comp and deallocate it.
 
    -------------------------
    -- Component factories --

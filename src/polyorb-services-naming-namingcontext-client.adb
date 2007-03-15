@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2002 Free Software Foundation, Inc.             --
+--         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -56,7 +56,6 @@ package body PolyORB.Services.Naming.NamingContext.Client is
    --   use PolyORB.Services.Naming.BindingIterator;
    use PolyORB.Services.Naming.Helper;
    use PolyORB.Services.Naming.NamingContext.Helper;
-   use PolyORB.Services.Naming.Helper;
 
    ----------
    -- Bind --
@@ -64,8 +63,8 @@ package body PolyORB.Services.Naming.NamingContext.Client is
 
    procedure Bind
      (Self : PolyORB.Services.Naming.NamingContext.Ref;
-      N    : in Name;
-      Obj  : in PolyORB.References.Ref)
+      N    : Name;
+      Obj  : PolyORB.References.Ref)
    is
       Arg_Name_N : PolyORB.Types.Identifier
         := PolyORB.Types.To_PolyORB_String ("n");
@@ -145,8 +144,8 @@ package body PolyORB.Services.Naming.NamingContext.Client is
 
    procedure Rebind
      (Self : PolyORB.Services.Naming.NamingContext.Ref;
-      N    : in Name;
-      Obj  : in PolyORB.References.Ref)
+      N    : Name;
+      Obj  : PolyORB.References.Ref)
    is
       Arg_Name_n : PolyORB.Types.Identifier
         := PolyORB.Types.To_PolyORB_String ("n");
@@ -225,8 +224,8 @@ package body PolyORB.Services.Naming.NamingContext.Client is
 
    procedure Bind_Context
      (Self : PolyORB.Services.Naming.NamingContext.Ref;
-      N    : in Name;
-      Nc   : in NamingContext.Ref)
+      N    : Name;
+      Nc   : NamingContext.Ref)
    is
       Arg_Name_n : PolyORB.Types.Identifier
         := PolyORB.Types.To_PolyORB_String ("n");
@@ -308,8 +307,8 @@ package body PolyORB.Services.Naming.NamingContext.Client is
 
    procedure Rebind_Context
      (Self : PolyORB.Services.Naming.NamingContext.Ref;
-      N    : in Name;
-      Nc   : in NamingContext.Ref)
+      N    : Name;
+      Nc   : NamingContext.Ref)
    is
       Arg_Name_n : PolyORB.Types.Identifier
         := PolyORB.Types.To_PolyORB_String ("n");
@@ -388,7 +387,7 @@ package body PolyORB.Services.Naming.NamingContext.Client is
 
    function Resolve
      (Self : PolyORB.Services.Naming.NamingContext.Ref;
-      N    : in Name)
+      N    : Name)
      return PolyORB.References.Ref
    is
       Arg_Name_n : PolyORB.Types.Identifier
@@ -463,7 +462,7 @@ package body PolyORB.Services.Naming.NamingContext.Client is
 
    procedure Unbind
      (Self : PolyORB.Services.Naming.NamingContext.Ref;
-      N    : in Name)
+      N    : Name)
    is
       Arg_Name_n : PolyORB.Types.Identifier
         := PolyORB.Types.To_PolyORB_String ("n");
@@ -583,7 +582,7 @@ package body PolyORB.Services.Naming.NamingContext.Client is
 
    function Bind_New_Context
      (Self : PolyORB.Services.Naming.NamingContext.Ref;
-      N    : in Name)
+      N    : Name)
      return NamingContext.Ref
    is
       Arg_Name_n : PolyORB.Types.Identifier
@@ -711,7 +710,7 @@ package body PolyORB.Services.Naming.NamingContext.Client is
 
 --     procedure list
 --       (Self : PolyORB.Services.Naming.Ref;
---        how_many : in CORBA.Unsigned_Long;
+--        how_many : CORBA.Unsigned_Long;
 --        bl : out BindingList;
 --        bi : out BindingIterator_Forward.Ref)
 --     is

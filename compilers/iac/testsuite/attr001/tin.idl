@@ -1,0 +1,12 @@
+interface MyInt {
+   exception e1 {};
+   exception e2 {};
+   exception e3 {};
+   exception e4 {};
+
+   readonly attribute long a1, a2 raises (e1);
+   attribute long a3, a4 getraises (e1, e2);
+   attribute long a5, a6 setraises (e3, e4);
+   attribute long a7, a8 getraises (e1, e2) setraises (e3, e4);
+   readonly attribute long a9, a10 raises (e1, e2, e3, e4);
+};

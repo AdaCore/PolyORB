@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -43,17 +43,17 @@ package PolyORB.CORBA_P.Initial_References is
    --  Allocator type
 
    procedure Register_Initial_Reference
-     (Id        : in Standard.String;
-      Allocator : in Create_Ptr);
+     (Id        : Standard.String;
+      Allocator : Create_Ptr);
    --  Register (Id, Allocator) tuple
 
    procedure Register_Initial_Reference
-     (Id  : in Standard.String;
-      Ref : in CORBA.Object.Ref);
+     (Id  : Standard.String;
+      Ref : CORBA.Object.Ref);
    --  Register (Id, Ref) tuple
 
    function Resolve_Initial_References
-     (Id : in Standard.String)
+     (Id : Standard.String)
      return CORBA.Object.Ref;
    --  Return a valid reference to an object if Id has been previously
    --  registred.

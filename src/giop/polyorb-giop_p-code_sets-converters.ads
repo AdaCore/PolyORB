@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -47,28 +47,28 @@ package PolyORB.GIOP_P.Code_Sets.Converters is
    type Converter_Access is access all Converter'Class;
 
    procedure Marshall
-     (C      : in     Converter;
+     (C      : Converter;
       Buffer : access Buffers.Buffer_Type;
-      Data   : in     Types.Char;
+      Data   : Types.Char;
       Error  : in out Errors.Error_Container)
       is abstract;
 
    procedure Marshall
-     (C      : in     Converter;
+     (C      : Converter;
       Buffer : access Buffers.Buffer_Type;
-      Data   : in     Types.String;
+      Data   : Types.String;
       Error  : in out Errors.Error_Container)
       is abstract;
 
    procedure Unmarshall
-     (C      : in     Converter;
+     (C      : Converter;
       Buffer : access Buffers.Buffer_Type;
       Data   :    out Types.Char;
       Error  : in out Errors.Error_Container)
       is abstract;
 
    procedure Unmarshall
-     (C      : in     Converter;
+     (C      : Converter;
       Buffer : access Buffers.Buffer_Type;
       Data   :    out Types.String;
       Error  : in out Errors.Error_Container)
@@ -82,55 +82,55 @@ package PolyORB.GIOP_P.Code_Sets.Converters is
    --  Use GIOP 1.2 semantics for wchar types
 
    procedure Marshall
-     (C      : in     Wide_Converter;
+     (C      : Wide_Converter;
       Buffer : access Buffers.Buffer_Type;
-      Data   : in     Types.Wchar;
+      Data   : Types.Wchar;
       Error  : in out Errors.Error_Container)
       is abstract;
 
    procedure Marshall
-     (C      : in     Wide_Converter;
+     (C      : Wide_Converter;
       Buffer : access Buffers.Buffer_Type;
-      Data   : in     Types.Wide_String;
+      Data   : Types.Wide_String;
       Error  : in out Errors.Error_Container)
       is abstract;
 
    procedure Unmarshall
-     (C      : in     Wide_Converter;
+     (C      : Wide_Converter;
       Buffer : access Buffers.Buffer_Type;
       Data   :    out Types.Wchar;
       Error  : in out Errors.Error_Container)
       is abstract;
 
    procedure Unmarshall
-     (C      : in     Wide_Converter;
+     (C      : Wide_Converter;
       Buffer : access Buffers.Buffer_Type;
       Data   :    out Types.Wide_String;
       Error  : in out Errors.Error_Container)
       is abstract;
 
    function Get_Converter
-     (Native_Code_Set : in Code_Set_Id;
-      Target_Code_Set : in Code_Set_Id)
+     (Native_Code_Set : Code_Set_Id;
+      Target_Code_Set : Code_Set_Id)
       return Converter_Access;
    --  Return converter for processing conversion between
    --  corresponding code sets for char data.
 
    function Get_Converter
-     (Native_Code_Set : in Code_Set_Id;
-      Target_Code_Set : in Code_Set_Id)
+     (Native_Code_Set : Code_Set_Id;
+      Target_Code_Set : Code_Set_Id)
       return Wide_Converter_Access;
    --  Return converter for processing conversion between
    --  corresponding code sets for wchar data.
 
    function Supported_Char_Conversion_Code_Sets
-     (Code_Set : in Code_Set_Id)
+     (Code_Set : Code_Set_Id)
       return Code_Set_Id_List;
    --  Return list of Code_Set_Id supported as conversion code set for
    --  defined native code set of char data.
 
    function Supported_Wchar_Conversion_Code_Sets
-     (Code_Set : in Code_Set_Id)
+     (Code_Set : Code_Set_Id)
       return Code_Set_Id_List;
    --  Return list of Code_Set_Id supported as conversion code set for
    --  defined native code set of wchar data.
@@ -144,27 +144,27 @@ private
      access function return Wide_Converter_Access;
 
    procedure Register_Native_Code_Set
-     (Code_Set : in Code_Set_Id;
-      Native   : in Converter_Factory;
-      Fallback : in Converter_Factory);
+     (Code_Set : Code_Set_Id;
+      Native   : Converter_Factory;
+      Fallback : Converter_Factory);
    --  Register native code set
 
    procedure Register_Conversion_Code_Set
-     (Native     : in Code_Set_Id;
-      Conversion : in Code_Set_Id;
-      Factory    : in Converter_Factory);
+     (Native     : Code_Set_Id;
+      Conversion : Code_Set_Id;
+      Factory    : Converter_Factory);
    --  Register additional conversion code set
 
    procedure Register_Native_Code_Set
-     (Code_Set : in Code_Set_Id;
-      Native   : in Wide_Converter_Factory;
-      Fallback : in Wide_Converter_Factory);
+     (Code_Set : Code_Set_Id;
+      Native   : Wide_Converter_Factory;
+      Fallback : Wide_Converter_Factory);
    --  Register native code set
 
    procedure Register_Conversion_Code_Set
-     (Native     : in Code_Set_Id;
-      Conversion : in Code_Set_Id;
-      Factory    : in Wide_Converter_Factory);
+     (Native     : Code_Set_Id;
+      Conversion : Code_Set_Id;
+      Factory    : Wide_Converter_Factory);
    --  Register additional conversion code set
 
    type Converter is abstract tagged null record;
@@ -177,40 +177,52 @@ private
 
    procedure Marshall
      (Buffer    : access Buffers.Buffer_Type;
-      Data      : in     Types.Unsigned_Short;
-      Alignment : in     Buffers.Alignment_Type);
+      Data      : Types.Unsigned_Short;
+      Alignment : Buffers.Alignment_Type);
    --  Marshall Unsigned_Short as big endian value with specified Alignment
 
    function Unmarshall
      (Buffer    : access Buffers.Buffer_Type;
-      Alignment : in     Buffers.Alignment_Type)
+      Alignment : Buffers.Alignment_Type)
       return Types.Unsigned_Short;
    --  Unmarshall Unsigned_Short as big endian value with specified Alignment
+
+   procedure Marshall
+     (Buffer    : access Buffers.Buffer_Type;
+      Data      : Types.Unsigned_Long;
+      Alignment : Buffers.Alignment_Type);
+   --  Marshall Unsigned_Long as big endian value with specified Alignment
+
+   function Unmarshall
+     (Buffer    : access Buffers.Buffer_Type;
+      Alignment : Buffers.Alignment_Type)
+      return Types.Unsigned_Long;
+   --  Unmarshall Unsigned_Long as big endian value with specified Alignment
 
    --  Ada95 data converters
 
    type ISO88591_Native_Converter is new Converter with null record;
 
    procedure Marshall
-     (C      : in     ISO88591_Native_Converter;
+     (C      : ISO88591_Native_Converter;
       Buffer : access Buffers.Buffer_Type;
-      Data   : in     Types.Char;
+      Data   : Types.Char;
       Error  : in out Errors.Error_Container);
 
    procedure Marshall
-     (C      : in     ISO88591_Native_Converter;
+     (C      : ISO88591_Native_Converter;
       Buffer : access Buffers.Buffer_Type;
-      Data   : in     Types.String;
+      Data   : Types.String;
       Error  : in out Errors.Error_Container);
 
    procedure Unmarshall
-     (C      : in     ISO88591_Native_Converter;
+     (C      : ISO88591_Native_Converter;
       Buffer : access Buffers.Buffer_Type;
       Data   :    out Types.Char;
       Error  : in out Errors.Error_Container);
 
    procedure Unmarshall
-     (C      : in     ISO88591_Native_Converter;
+     (C      : ISO88591_Native_Converter;
       Buffer : access Buffers.Buffer_Type;
       Data   :    out Types.String;
       Error  : in out Errors.Error_Container);
@@ -218,25 +230,25 @@ private
    type ISO88591_UTF8_Converter is new Converter with null record;
 
    procedure Marshall
-     (C      : in     ISO88591_UTF8_Converter;
+     (C      : ISO88591_UTF8_Converter;
       Buffer : access Buffers.Buffer_Type;
-      Data   : in     Types.Char;
+      Data   : Types.Char;
       Error  : in out Errors.Error_Container);
 
    procedure Marshall
-     (C      : in     ISO88591_UTF8_Converter;
+     (C      : ISO88591_UTF8_Converter;
       Buffer : access Buffers.Buffer_Type;
-      Data   : in     Types.String;
+      Data   : Types.String;
       Error  : in out Errors.Error_Container);
 
    procedure Unmarshall
-     (C      : in     ISO88591_UTF8_Converter;
+     (C      : ISO88591_UTF8_Converter;
       Buffer : access Buffers.Buffer_Type;
       Data   :    out Types.Char;
       Error  : in out Errors.Error_Container);
 
    procedure Unmarshall
-     (C      : in     ISO88591_UTF8_Converter;
+     (C      : ISO88591_UTF8_Converter;
       Buffer : access Buffers.Buffer_Type;
       Data   :    out Types.String;
       Error  : in out Errors.Error_Container);
@@ -244,25 +256,25 @@ private
    type UCS2_Native_Wide_Converter is new Wide_Converter with null record;
 
    procedure Marshall
-     (C      : in     UCS2_Native_Wide_Converter;
+     (C      : UCS2_Native_Wide_Converter;
       Buffer : access Buffers.Buffer_Type;
-      Data   : in     Types.Wchar;
+      Data   : Types.Wchar;
       Error  : in out Errors.Error_Container);
 
    procedure Marshall
-     (C      : in     UCS2_Native_Wide_Converter;
+     (C      : UCS2_Native_Wide_Converter;
       Buffer : access Buffers.Buffer_Type;
-      Data   : in     Types.Wide_String;
+      Data   : Types.Wide_String;
       Error  : in out Errors.Error_Container);
 
    procedure Unmarshall
-     (C      : in     UCS2_Native_Wide_Converter;
+     (C      : UCS2_Native_Wide_Converter;
       Buffer : access Buffers.Buffer_Type;
       Data   :    out Types.Wchar;
       Error  : in out Errors.Error_Container);
 
    procedure Unmarshall
-     (C      : in     UCS2_Native_Wide_Converter;
+     (C      : UCS2_Native_Wide_Converter;
       Buffer : access Buffers.Buffer_Type;
       Data   :    out Types.Wide_String;
       Error  : in out Errors.Error_Container);
@@ -270,25 +282,25 @@ private
    type UCS2_UTF16_Wide_Converter is new Wide_Converter with null record;
 
    procedure Marshall
-     (C      : in     UCS2_UTF16_Wide_Converter;
+     (C      : UCS2_UTF16_Wide_Converter;
       Buffer : access Buffers.Buffer_Type;
-      Data   : in     Types.Wchar;
+      Data   : Types.Wchar;
       Error  : in out Errors.Error_Container);
 
    procedure Marshall
-     (C      : in     UCS2_UTF16_Wide_Converter;
+     (C      : UCS2_UTF16_Wide_Converter;
       Buffer : access Buffers.Buffer_Type;
-      Data   : in     Types.Wide_String;
+      Data   : Types.Wide_String;
       Error  : in out Errors.Error_Container);
 
    procedure Unmarshall
-     (C      : in     UCS2_UTF16_Wide_Converter;
+     (C      : UCS2_UTF16_Wide_Converter;
       Buffer : access Buffers.Buffer_Type;
       Data   :    out Types.Wchar;
       Error  : in out Errors.Error_Container);
 
    procedure Unmarshall
-     (C      : in     UCS2_UTF16_Wide_Converter;
+     (C      : UCS2_UTF16_Wide_Converter;
       Buffer : access Buffers.Buffer_Type;
       Data   :    out Types.Wide_String;
       Error  : in out Errors.Error_Container);

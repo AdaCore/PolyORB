@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2001 Free Software Foundation, Inc.             --
+--         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
@@ -21,8 +21,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -31,8 +31,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -44,20 +44,25 @@ package CORBA.Forward is
    pragma Elaborate_Body;
 
    type Ref is new CORBA.Object.Ref with null record;
+   --  A forward reference to some object
+
+   --  Package Convert is instantiated once the real (full) reference type
+   --  declaration has been encountered.
 
    generic
-
       type Ref_Type is new CORBA.Object.Ref with private;
+      --  The full reference type corresponding to this forward type
 
    package Convert is
 
-      function From_Forward
-        (The_Forward : in Ref)
-        return Ref_Type;
+      --  Conversion between the forward reference type Ref and the full
+      --  reference type Ref_Type.
 
-      function To_Ref (The_Forward : in Ref) return Ref_Type
+      function From_Forward (The_Forward : Ref) return Ref_Type;
+      function To_Ref (The_Forward : Ref) return Ref_Type
         renames From_Forward;
-      function To_Forward   (The_Ref : in Ref_Type) return Ref;
+
+      function To_Forward (The_Ref : Ref_Type) return Ref;
 
    end Convert;
 

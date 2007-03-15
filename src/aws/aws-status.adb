@@ -1,31 +1,34 @@
 ------------------------------------------------------------------------------
---                              Ada Web Server                              --
 --                                                                          --
---                         Copyright (C) 2000-2003                          --
---                                ACT-Europe                                --
+--                           POLYORB COMPONENTS                             --
 --                                                                          --
---  Authors: Dmitriy Anisimkov - Pascal Obry                                --
+--                           A W S . S T A T U S                            --
 --                                                                          --
---  This library is free software; you can redistribute it and/or modify    --
---  it under the terms of the GNU General Public License as published by    --
---  the Free Software Foundation; either version 2 of the License, or (at   --
---  your option) any later version.                                         --
+--                                 B o d y                                  --
 --                                                                          --
---  This library is distributed in the hope that it will be useful, but     --
---  WITHOUT ANY WARRANTY; without even the implied warranty of              --
---  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU       --
---  General Public License for more details.                                --
+--         Copyright (C) 2000-2006, Free Software Foundation, Inc.          --
 --                                                                          --
---  You should have received a copy of the GNU General Public License       --
---  along with this library; if not, write to the Free Software Foundation, --
---  Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.          --
+-- PolyORB is free software; you  can  redistribute  it and/or modify it    --
+-- under terms of the  GNU General Public License as published by the  Free --
+-- Software Foundation;  either version 2,  or (at your option)  any  later --
+-- version. PolyORB is distributed  in the hope that it will be  useful,    --
+-- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
+-- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
+-- License  for more details.  You should have received  a copy of the GNU  --
+-- General Public License distributed with PolyORB; see file COPYING. If    --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
---  As a special exception, if other files instantiate generics from this   --
---  unit, or you link this unit with other files to produce an executable,  --
---  this  unit  does not  by itself cause  the resulting executable to be   --
---  covered by the GNU General Public License. This exception does not      --
---  however invalidate any other reasons why the executable file  might be  --
---  covered by the  GNU Public License.                                     --
+-- As a special exception,  if other files  instantiate  generics from this --
+-- unit, or you link  this unit with other files  to produce an executable, --
+-- this  unit  does not  by itself cause  the resulting  executable  to  be --
+-- covered  by the  GNU  General  Public  License.  This exception does not --
+-- however invalidate  any other reasons why  the executable file  might be --
+-- covered by the  GNU Public License.                                      --
+--                                                                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
+--                                                                          --
 ------------------------------------------------------------------------------
 
 with Ada.Strings;
@@ -42,7 +45,7 @@ package body AWS.Status is
    -- Authorization_CNonce --
    --------------------------
 
-   function Authorization_CNonce (D : in Data) return String is
+   function Authorization_CNonce (D : Data) return String is
    begin
       return To_String (D.Auth_CNonce);
    end Authorization_CNonce;
@@ -51,7 +54,7 @@ package body AWS.Status is
    -- Authorization_Mode --
    ------------------------
 
-   function Authorization_Mode (D : in Data) return Authorization_Type is
+   function Authorization_Mode (D : Data) return Authorization_Type is
    begin
       return D.Auth_Mode;
    end Authorization_Mode;
@@ -60,7 +63,7 @@ package body AWS.Status is
    -- Authorization_Name --
    ------------------------
 
-   function Authorization_Name (D : in Data) return String is
+   function Authorization_Name (D : Data) return String is
    begin
       return To_String (D.Auth_Name);
    end Authorization_Name;
@@ -69,7 +72,7 @@ package body AWS.Status is
    -- Authorization_NC --
    ----------------------
 
-   function Authorization_NC (D : in Data) return String is
+   function Authorization_NC (D : Data) return String is
    begin
       return To_String (D.Auth_NC);
    end Authorization_NC;
@@ -78,7 +81,7 @@ package body AWS.Status is
    -- Authorization_Nonce --
    -------------------------
 
-   function Authorization_Nonce (D : in Data) return String is
+   function Authorization_Nonce (D : Data) return String is
    begin
       return To_String (D.Auth_Nonce);
    end Authorization_Nonce;
@@ -87,7 +90,7 @@ package body AWS.Status is
    -- Authorization_Password --
    ----------------------------
 
-   function Authorization_Password (D : in Data) return String is
+   function Authorization_Password (D : Data) return String is
    begin
       return To_String (D.Auth_Password);
    end Authorization_Password;
@@ -96,7 +99,7 @@ package body AWS.Status is
    -- Authorization_QOP --
    -----------------------
 
-   function Authorization_QOP (D : in Data) return String is
+   function Authorization_QOP (D : Data) return String is
    begin
       return To_String (D.Auth_QOP);
    end Authorization_QOP;
@@ -105,7 +108,7 @@ package body AWS.Status is
    -- Authorization_Realm --
    -------------------------
 
-   function Authorization_Realm (D : in Data) return String is
+   function Authorization_Realm (D : Data) return String is
    begin
       return To_String (D.Auth_Realm);
    end Authorization_Realm;
@@ -114,7 +117,7 @@ package body AWS.Status is
    -- Authorization_Response --
    ----------------------------
 
-   function Authorization_Response (D : in Data) return String is
+   function Authorization_Response (D : Data) return String is
    begin
       return To_String (D.Auth_Response);
    end Authorization_Response;
@@ -123,7 +126,7 @@ package body AWS.Status is
    -- Binary_Data --
    -----------------
 
-   function Binary_Data (D : in Data) return Stream_Element_Array is
+   function Binary_Data (D : Data) return Stream_Element_Array is
    begin
       return D.Binary_Data.all;
    end Binary_Data;
@@ -132,7 +135,7 @@ package body AWS.Status is
    -- Check_Digest --
    ------------------
 
-   function Check_Digest (D : in Data; Password : in String) return Boolean is
+   function Check_Digest (D : Data; Password : String) return Boolean is
 
       function Get_Nonce return String;
       --  returns Nonce for the Digest authentication without "qop"
@@ -175,7 +178,7 @@ package body AWS.Status is
    -- Connection --
    ----------------
 
-   function Connection (D : in Data) return String is
+   function Connection (D : Data) return String is
    begin
       return Headers.Get (D.Header, Messages.Connection_Token);
    end Connection;
@@ -184,7 +187,7 @@ package body AWS.Status is
    -- Content_Length --
    --------------------
 
-   function Content_Length (D : in Data) return Natural is
+   function Content_Length (D : Data) return Natural is
    begin
       return D.Content_Length;
    end Content_Length;
@@ -193,7 +196,7 @@ package body AWS.Status is
    -- Content_Type --
    ------------------
 
-   function Content_Type (D : in Data) return String is
+   function Content_Type (D : Data) return String is
    begin
       return Headers.Get (D.Header, Messages.Content_Type_Token);
    end Content_Type;
@@ -202,7 +205,7 @@ package body AWS.Status is
    -- Has_Session --
    -----------------
 
-   function Has_Session (D : in Data) return Boolean is
+   function Has_Session (D : Data) return Boolean is
       use type AWS.Session.ID;
    begin
       return D.Session_ID /= AWS.Session.No_Session;
@@ -212,7 +215,7 @@ package body AWS.Status is
    -- Header --
    ------------
 
-   function Header (D : in Data) return Headers.List is
+   function Header (D : Data) return Headers.List is
    begin
       return D.Header;
    end Header;
@@ -221,7 +224,7 @@ package body AWS.Status is
    -- Host --
    ----------
 
-   function Host (D : in Data) return String is
+   function Host (D : Data) return String is
    begin
       return Headers.Get (D.Header, Messages.Host_Token);
    end Host;
@@ -230,7 +233,7 @@ package body AWS.Status is
    -- HTTP_Version --
    ------------------
 
-   function HTTP_Version (D : in Data) return String is
+   function HTTP_Version (D : Data) return String is
    begin
       return To_String (D.HTTP_Version);
    end HTTP_Version;
@@ -239,7 +242,7 @@ package body AWS.Status is
    -- If_Modified_Since --
    -----------------------
 
-   function If_Modified_Since (D : in Data) return String is
+   function If_Modified_Since (D : Data) return String is
    begin
       return Headers.Get (D.Header, Messages.If_Modified_Since_Token);
    end If_Modified_Since;
@@ -248,7 +251,7 @@ package body AWS.Status is
    -- Is_SOAP --
    -------------
 
-   function Is_SOAP (D : in Data) return Boolean is
+   function Is_SOAP (D : Data) return Boolean is
    begin
       return D.SOAP_Action;
    end Is_SOAP;
@@ -257,7 +260,7 @@ package body AWS.Status is
    -- Keep_Alive --
    ----------------
 
-   function Keep_Alive (D : in Data) return Boolean is
+   function Keep_Alive (D : Data) return Boolean is
    begin
       return D.Keep_Alive;
    end Keep_Alive;
@@ -266,7 +269,7 @@ package body AWS.Status is
    -- Method --
    ------------
 
-   function Method (D : in Data) return Request_Method is
+   function Method (D : Data) return Request_Method is
    begin
       return D.Method;
    end Method;
@@ -275,7 +278,7 @@ package body AWS.Status is
    -- Multipart_Boundary --
    ------------------------
 
-   function Multipart_Boundary (D : in Data) return String is
+   function Multipart_Boundary (D : Data) return String is
       use Headers;
    begin
       --  Get the Boundary value from the Contant_Type header value.
@@ -291,7 +294,7 @@ package body AWS.Status is
    -- Parameters --
    ----------------
 
-   function Parameters (D : in Data) return AWS.Parameters.List is
+   function Parameters (D : Data) return AWS.Parameters.List is
    begin
       return D.Parameters;
    end Parameters;
@@ -300,7 +303,7 @@ package body AWS.Status is
    -- Payload --
    -------------
 
-   function Payload (D : in Data) return String is
+   function Payload (D : Data) return String is
       pragma Warnings (Off);
       pragma Unreferenced (D);
       pragma Warnings (On);
@@ -309,7 +312,7 @@ package body AWS.Status is
 --      return To_String (D.Payload);
    end Payload;
 
-   function Payload (D : in Data) return SOAP.Message.Payload.Object is
+   function Payload (D : Data) return SOAP.Message.Payload.Object is
    begin
       return D.SOAP_Payload;
    end Payload;
@@ -318,7 +321,7 @@ package body AWS.Status is
    -- Peername --
    --------------
 
-   function Peername (D : in Data) return String is
+   function Peername (D : Data) return String is
    begin
       return To_String (D.Peername);
    end Peername;
@@ -327,7 +330,7 @@ package body AWS.Status is
    -- Referer --
    -------------
 
-   function Referer (D : in Data) return String is
+   function Referer (D : Data) return String is
    begin
       return Headers.Get (D.Header, Messages.Referer_Token);
    end Referer;
@@ -336,7 +339,7 @@ package body AWS.Status is
    -- Session --
    -------------
 
-   function Session (D : in Data) return AWS.Session.ID is
+   function Session (D : Data) return AWS.Session.ID is
    begin
       return D.Session_ID;
    end Session;
@@ -345,7 +348,7 @@ package body AWS.Status is
    -- Session_Created --
    ---------------------
 
-   function Session_Created (D : in Data) return Boolean is
+   function Session_Created (D : Data) return Boolean is
    begin
       return D.Session_Created;
    end Session_Created;
@@ -354,7 +357,7 @@ package body AWS.Status is
    -- SOAPAction --
    ----------------
 
-   function SOAPAction (D : in Data) return String is
+   function SOAPAction (D : Data) return String is
       Result : constant String :=
          Headers.Get (D.Header, Messages.SOAPAction_Token);
    begin
@@ -372,7 +375,7 @@ package body AWS.Status is
    -- Socket --
    ------------
 
---     function Socket (D : in Data) return Net.Socket_Type'Class is
+--     function Socket (D : Data) return Net.Socket_Type'Class is
 --     begin
 --        return D.Socket.all;
 --     end Socket;
@@ -381,12 +384,12 @@ package body AWS.Status is
    -- URI --
    ---------
 
-   function URI (D : in Data) return String is
+   function URI (D : Data) return String is
    begin
       return URL.URL (D.URI);
    end URI;
 
-   function URI (D : in Data) return URL.Object
+   function URI (D : Data) return URL.Object
    is
    begin
       return D.URI;
@@ -396,7 +399,7 @@ package body AWS.Status is
    -- User_Agent --
    ----------------
 
-   function User_Agent (D : in Data) return String is
+   function User_Agent (D : Data) return String is
    begin
       return Headers.Get (D.Header, Messages.User_Agent_Token);
    end User_Agent;

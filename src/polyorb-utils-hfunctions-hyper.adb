@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -52,24 +52,23 @@ package body PolyORB.Utils.HFunctions.Hyper is
      return Natural
    is
       Result : Long_Long_Integer := 0;
-
-      G : Generator;
+      G : aliased Generator;
    begin
 
-      Reset (G, Seed_Type (Seed));
+      Reset (G'Access, Seed_Type (Seed));
 
       --  Loop
 
       for J in S'Range loop
          Result := (Result
-                    + Long_Long_Integer (Random.Random (G))
+                    + Long_Long_Integer (Random.Random (G'Access))
                     * Long_Long_Integer (Character'Pos (S (J))))
            mod Long_Long_Integer (Prime);
       end loop;
 
       --  Final
 
-      return Natural (Result mod  Long_Long_Integer (Size));
+      return Natural (Result mod Long_Long_Integer (Size));
    end Hash_Hyper;
 
    ----------

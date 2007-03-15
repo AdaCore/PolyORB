@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2004 Free Software Foundation, Inc.             --
+--         Copyright (C) 2004-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -59,61 +59,44 @@ with PolyORB.Utils.Report;
 
 with PolyORB.ORB.Thread_Pool;
 pragma Warnings (Off, PolyORB.ORB.Thread_Pool);
-pragma Elaborate_All (PolyORB.ORB.Thread_Pool);
 
 with PolyORB.ORB_Controller.Half_Sync_Half_Async;
 pragma Warnings (Off, PolyORB.ORB_Controller.Half_Sync_Half_Async);
-pragma Elaborate_All (PolyORB.ORB_Controller.Half_Sync_Half_Async);
 
 with PolyORB.Request_Scheduler.Servant_Lane;
 pragma Warnings (Off, PolyORB.Request_Scheduler.Servant_Lane);
-pragma Elaborate_All (PolyORB.Request_Scheduler.Servant_Lane);
 
 with PolyORB.Tasking.Profiles.Full_Tasking.Threads.Dynamic_Priorities;
-pragma Elaborate_All
-  (PolyORB.Tasking.Profiles.Full_Tasking.Threads.Dynamic_Priorities);
 pragma Warnings
   (Off, PolyORB.Tasking.Profiles.Full_Tasking.Threads.Dynamic_Priorities);
 
 with PolyORB.Tasking.Profiles.Full_Tasking.Threads;
-pragma Elaborate_All (PolyORB.Tasking.Profiles.Full_Tasking.Threads);
 pragma Warnings (Off, PolyORB.Tasking.Profiles.Full_Tasking.Threads);
 
 with PolyORB.Tasking.Profiles.Full_Tasking.Threads.Annotations;
-pragma Elaborate_All
-  (PolyORB.Tasking.Profiles.Full_Tasking.Threads.Annotations);
 pragma Warnings
   (Off, PolyORB.Tasking.Profiles.Full_Tasking.Threads.Annotations);
 
 with PolyORB.Tasking.Profiles.Full_Tasking.Mutexes;
-pragma Elaborate_All (PolyORB.Tasking.Profiles.Full_Tasking.Mutexes);
 pragma Warnings (Off, PolyORB.Tasking.Profiles.Full_Tasking.Mutexes);
 
 with PolyORB.Tasking.Profiles.Full_Tasking.Condition_Variables;
-pragma Elaborate_All
-  (PolyORB.Tasking.Profiles.Full_Tasking.Condition_Variables);
 pragma Warnings
   (Off, PolyORB.Tasking.Profiles.Full_Tasking.Condition_Variables);
 
-with PolyORB.Parameters.File;
-pragma Warnings (Off, PolyORB.Parameters.File);
-pragma Elaborate_All (PolyORB.Parameters.File);
+with PolyORB.Setup.Base;
+pragma Warnings (Off, PolyORB.Setup.Base);
 
 with PolyORB.Setup.OA.Basic_RT_POA;
 pragma Warnings (Off, PolyORB.Setup.OA.Basic_RT_POA);
-pragma Elaborate_All (PolyORB.Setup.OA.Basic_RT_POA);
 
 with PolyORB.Setup.IIOP;
-pragma Elaborate_All (PolyORB.Setup.IIOP);
 pragma Warnings (Off, PolyORB.Setup.IIOP);
 
 with PolyORB.Setup.Access_Points.IIOP;
-pragma Elaborate_All (PolyORB.Setup.Access_Points.IIOP);
 pragma Warnings (Off, PolyORB.Setup.Access_Points.IIOP);
 
 with PolyORB.GIOP_P.Tagged_Components.Policies.Priority_Model_Policy;
-pragma Elaborate_All
-  (PolyORB.GIOP_P.Tagged_Components.Policies.Priority_Model_Policy);
 pragma Warnings
   (Off, PolyORB.GIOP_P.Tagged_Components.Policies.Priority_Model_Policy);
 
@@ -124,7 +107,7 @@ procedure Server is
    use Ada.Text_IO;
 
    use CORBA.ORB;
-   use CORBA.Policy.IDL_Sequence_Policy;
+   use CORBA.Policy.IDL_SEQUENCE_Policy;
 
    use PortableServer;
    use PortableServer.POA;
@@ -150,7 +133,7 @@ begin
    declare
       RT_ORB : RTCORBA.RTORB.Local_Ref;
 
-      Root_POA : PortableServer.POA.Ref;
+      Root_POA : PortableServer.POA.Local_Ref;
 
       --  Variables for Child_POA #1
 
@@ -193,7 +176,7 @@ begin
 
       Ref_Server_3 : CORBA.Object.Ref;
 
-      Implicit_Activation_Policy : CORBA.Policy.Ref
+      No_Implicit_Activation_Policy : CORBA.Policy.Ref
         := CORBA.Policy.Ref
         (Create_Implicit_Activation_Policy (NO_IMPLICIT_ACTIVATION));
 
@@ -209,7 +192,7 @@ begin
 
       --  Retrieve Root POA
 
-      Root_POA := PortableServer.POA.Helper.To_Ref
+      Root_POA := PortableServer.POA.Helper.To_Local_Ref
         (CORBA.ORB.Resolve_Initial_References
          (CORBA.ORB.To_CORBA_String ("RootPOA")));
 
@@ -275,7 +258,7 @@ begin
       Echo.Impl.Object (Obj_Server_1.all).Priority := Default_Priority_1;
 
       Ref_Server_1 := PortableServer.POA.Servant_To_Reference
-        (PortableServer.POA.Ref (Child_POA_Server_1),
+        (PortableServer.POA.Local_Ref (Child_POA_Server_1),
          PortableServer.Servant (Obj_Server_1));
 
       Output ("Implicit activation of an object with these policies", True);
@@ -337,7 +320,7 @@ begin
       Echo.Impl.Object (Obj_Server_2.all).Priority := Default_Priority_2;
 
       Ref_Server_2 := PortableServer.POA.Servant_To_Reference
-        (PortableServer.POA.Ref (Child_POA_Server_2),
+        (PortableServer.POA.Local_Ref (Child_POA_Server_2),
          PortableServer.Servant (Obj_Server_2));
 
       Output ("Implicit activation of an object with these policies", True);
@@ -396,7 +379,7 @@ begin
       Append (Policies_3,
               CORBA.Policy.Ref (Thread_Pool_Policy_Ref_3));
 
-      Append (Policies_3, Implicit_Activation_Policy);
+      Append (Policies_3, No_Implicit_Activation_Policy);
 
       Child_POA_Server_3 := RTPortableServer.POA.Helper.To_Local_Ref
         (PortableServer.POA.Create_POA
@@ -425,7 +408,7 @@ begin
          --  Call Servant_To_Reference
 
          Ref_Server_3 := PortableServer.POA.Id_To_Reference
-           (PortableServer.POA.Ref (Child_POA_Server_3), Oid);
+           (PortableServer.POA.Local_Ref (Child_POA_Server_3), Oid);
 
          --  Building array of objects for client processing
 

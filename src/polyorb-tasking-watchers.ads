@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2002 Free Software Foundation, Inc.             --
+--         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -75,26 +75,26 @@ package PolyORB.Tasking.Watchers is
 
    procedure Differ
      (W : in out Watcher_Type;
-      V : in Version_Id);
+      V : Version_Id);
 
-   procedure Differ (W : in Watcher_Access; V : in Version_Id);
+   procedure Differ (W : Watcher_Access; V : Version_Id);
    pragma Inline (Differ);
 
    --  Await until W's version differs from V. V must be a Version
    --  value obtained from a previous call to Lookup on the same watcher.
 
    procedure Lookup
-     (W : in Watcher_Type;
+     (W : Watcher_Type;
       V : out Version_Id);
 
-   procedure Lookup (W : in Watcher_Access; V : out Version_Id);
+   procedure Lookup (W : Watcher_Access; V : out Version_Id);
    pragma Inline (Lookup);
    --  Fetch W's version.
 
    procedure Update
      (W : in out Watcher_Type);
 
-   procedure Update (W : in Watcher_Access);
+   procedure Update (W : Watcher_Access);
    pragma Inline (Update);
    --  Increment  version
 
@@ -118,7 +118,6 @@ private
 
       Await_Count : Integer;
       --  Number of tasks waiting on Differ.
-
 
       --  Several conditions used by the algorithm :
 

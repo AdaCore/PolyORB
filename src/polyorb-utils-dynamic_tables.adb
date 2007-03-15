@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -38,12 +38,16 @@ with Ada.Unchecked_Deallocation;
 
 package body PolyORB.Utils.Dynamic_Tables is
 
-   Table_First : constant Integer := Integer (Table_Low_Bound);
-   --  Subscript of the first entry in the currently allocated table
-
    -----------------------
    -- Local Subprograms --
    -----------------------
+
+   function Table_First return Integer;
+   pragma Inline (Table_First);
+   --  Subscript of the first entry in the currently allocated table
+   --  Note: the value here is a conversion to Integer of a generic formal,
+   --  which is not preelaborable in Ada 2005 as the actual might involve a
+   --  function call. So, we cannot use a constant here.
 
    procedure Reallocate (T : in out Instance);
    --  Reallocate the existing table according to the current value stored
@@ -89,7 +93,7 @@ package body PolyORB.Utils.Dynamic_Tables is
    -- First --
    -----------
 
-   function First (T : in Instance) return Table_Index_Type is
+   function First (T : Instance) return Table_Index_Type is
       pragma Unreferenced (T);
 
    begin
@@ -137,16 +141,42 @@ package body PolyORB.Utils.Dynamic_Tables is
 
          Reallocate (T);
       end if;
+
+      T.P.Initialized := True;
    end Initialize;
+
+   -----------------
+   -- Initialized --
+   -----------------
+
+   function Initialized (T : Instance) return Boolean is
+   begin
+      return T.P.Initialized;
+   end Initialized;
 
    ----------
    -- Last --
    ----------
 
-   function Last (T : in Instance) return Table_Index_Type is
+   function Last (T : Instance) return Table_Index_Type is
    begin
       return Table_Index_Type (T.P.Last_Val);
    end Last;
+
+   ---------------
+   -- Duplicate --
+   ---------------
+
+   function Duplicate (T : Instance) return Instance is
+      Result : Instance;
+
+   begin
+      Initialize (Result);
+      Set_Last (Result, Last (T));
+      Result.Table.all := T.Table.all;
+
+      return Result;
+   end Duplicate;
 
    ----------------
    -- Reallocate --
@@ -207,5 +237,14 @@ package body PolyORB.Utils.Dynamic_Tables is
          Reallocate (T);
       end if;
    end Set_Last;
+
+   -----------------
+   -- Table_First --
+   -----------------
+
+   function Table_First return Integer is
+   begin
+      return Integer (Table_Low_Bound);
+   end Table_First;
 
 end PolyORB.Utils.Dynamic_Tables;

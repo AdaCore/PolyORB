@@ -1,1 +1,1 @@
-SUBDIRS = naming event time
+SUBDIRS = naming event notification time

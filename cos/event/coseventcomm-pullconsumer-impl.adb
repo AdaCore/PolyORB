@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,31 +26,19 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with CORBA.Impl;
-pragma Warnings (Off, CORBA.Impl);
-
-with PortableServer;
-
-with CosEventComm.PullConsumer.Helper;
-pragma Elaborate (CosEventComm.PullConsumer.Helper);
-pragma Warnings (Off, CosEventComm.PullConsumer.Helper);
-
-with CosEventComm.PullConsumer.Skel;
-pragma Elaborate (CosEventComm.PullConsumer.Skel);
-pragma Warnings (Off, CosEventComm.PullConsumer.Skel);
-
 with CosEventChannelAdmin;
-
-with CosEventChannelAdmin.ProxyPullSupplier;
 
 with PolyORB.CORBA_P.Server_Tools;
 with PolyORB.Tasking.Mutexes;
 with PolyORB.Log;
+
+with CosEventComm.PullConsumer.Skel;
+pragma Warnings (Off, CosEventComm.PullConsumer.Skel);
 
 package body CosEventComm.PullConsumer.Impl is
 
@@ -62,8 +50,11 @@ package body CosEventComm.PullConsumer.Impl is
 
    use PolyORB.Log;
    package L is new PolyORB.Log.Facility_Log ("pullconsumer");
-   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+   procedure O (Message : Standard.String; Level : Log_Level := Debug)
      renames L.Output;
+   function C (Level : Log_Level := Debug) return Boolean
+     renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    type Pull_Consumer_Record is record
       This  : Object_Ptr;
@@ -95,7 +86,7 @@ package body CosEventComm.PullConsumer.Impl is
 
    procedure Connect_Proxy_Pull_Supplier
      (Self  : access Object;
-      Proxy : in ProxyPullSupplier.Ref)
+      Proxy : ProxyPullSupplier.Ref)
    is
       My_Ref : PullConsumer.Ref;
 

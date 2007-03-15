@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -32,33 +32,21 @@
 ------------------------------------------------------------------------------
 
 with CORBA.Impl;
-pragma Warnings (Off, CORBA.Impl);
 
 with CosEventChannelAdmin;
-
 with CosEventChannelAdmin.ProxyPushSupplier;
 
-with CosEventComm.PushConsumer.Helper;
 with CosEventComm.PushConsumer.Skel;
 
 with CosTypedEventChannelAdmin.TypedEventChannel;
-with CosTypedEventChannelAdmin.TypedEventChannel.Helper;
-with CosTypedEventChannelAdmin.TypedEventChannel.Impl;
-
-with CosTypedEventComm.TypedPushConsumer.Helper;
-pragma Elaborate (CosTypedEventComm.TypedPushConsumer.Helper);
-pragma Warnings (Off, CosTypedEventComm.TypedPushConsumer.Helper);
-
-with CosTypedEventComm.TypedPushConsumer.Skel;
-pragma Elaborate (CosTypedEventComm.TypedPushConsumer.Skel);
-pragma Warnings (Off, CosTypedEventComm.TypedPushConsumer.Skel);
-
-with PortableServer;
 
 with PolyORB.CORBA_P.Server_Tools;
+with PolyORB.Log;
 with PolyORB.Tasking.Mutexes;
 with PolyORB.Tasking.Semaphores;
-with PolyORB.Log;
+
+with CosTypedEventComm.TypedPushConsumer.Skel;
+pragma Warnings (Off, CosTypedEventComm.TypedPushConsumer.Skel);
 
 package body CosTypedEventComm.TypedPushConsumer.Impl is
 
@@ -74,8 +62,11 @@ package body CosTypedEventComm.TypedPushConsumer.Impl is
 
    use PolyORB.Log;
    package L is new PolyORB.Log.Facility_Log ("typedpushconsumer");
-   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+   procedure O (Message : Standard.String; Level : Log_Level := Debug)
      renames L.Output;
+   function C (Level : Log_Level := Debug) return Boolean
+     renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    type Typed_Push_Consumer_Record is record
       This    : Object_Ptr;
@@ -135,11 +126,9 @@ package body CosTypedEventComm.TypedPushConsumer.Impl is
 
    procedure Push
      (Self : access Object;
-      Data : in     CORBA.Any)
+      Data : CORBA.Any)
    is
-      pragma Warnings (Off); --  WAG:3.14
       pragma Unreferenced (Self, Data);
-      pragma Warnings (On);  --  WAG:3.14
    begin
       pragma Debug (O ("trying to push new data to Typed PushConsumer"));
       pragma Debug (O ("no need to use generic push in Typed PushConsumer"));
@@ -147,6 +136,7 @@ package body CosTypedEventComm.TypedPushConsumer.Impl is
       Ensure_Initialization;
 
       --  No need to implement push in TypedPushConsumer
+
       raise Program_Error;
    end Push;
 
@@ -176,7 +166,6 @@ package body CosTypedEventComm.TypedPushConsumer.Impl is
          ProxyPushSupplier.disconnect_push_supplier (Peer);
       end if;
    end Disconnect_Push_Consumer;
-
 
    ------------
    -- Create --

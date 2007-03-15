@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,21 +26,18 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with MOMA.Destinations;
 with MOMA.Messages.MAnys;
 with MOMA.Messages.MBytes;
 with MOMA.Messages.MExecutes;
 with MOMA.Messages.MMaps;
 with MOMA.Messages.MTexts;
-with MOMA.Types;
 
 with PolyORB.Initialization;
-pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
 --  with PolyORB.Log;
 with PolyORB.Types;
@@ -54,7 +51,7 @@ package body MOMA.Messages is
    --  use PolyORB.Log;
 
    --  package L is new PolyORB.Log.Facility_Log ("moma.messages");
-   --  procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+   --  procedure O (Message : Standard.String; Level : Log_Level := Debug)
    --    renames L.Output;
 
    -----------------
@@ -355,7 +352,7 @@ package body MOMA.Messages is
    ------------------------
    -- Get_Property_Names --
    ------------------------
-   --  ???
+
    function Get_Property_Names return Integer is
    begin
       return 0;
@@ -689,9 +686,11 @@ begin
         (Module_Info'
          (Name      => +"MOMA.Messages",
           Conflicts => Empty,
-          Depends   => +"MOMA.Destinations",
+          Depends   => +"MOMA.Destinations"
+          & "any",
           Provides  => Empty,
           Implicit  => False,
-          Init      => Initialize'Access));
+          Init      => Initialize'Access,
+          Shutdown  => null));
    end;
 end MOMA.Messages;

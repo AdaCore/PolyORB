@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -46,6 +46,7 @@ with CORBA.Object;
 with CORBA.ORB;
 
 with CosNaming.NamingContext;
+with CosNaming.NamingContextExt;
 
 with PolyORB.Utils.Report;
 
@@ -58,9 +59,8 @@ procedure Test_Naming_CORBA is
 
    use CosNaming;
    use CosNaming.NamingContext;
+   use CosNaming.NamingContextExt;
    use PolyORB.Utils.Report;
-
-   Root_Context : CosNaming.NamingContext.Ref;
 
 begin
    New_Test ("CORBA COS Naming");
@@ -74,11 +74,6 @@ begin
       return;
    end if;
 
-   CORBA.ORB.String_To_Object
-     (CORBA.To_CORBA_String (Ada.Command_Line.Argument (1)), Root_Context);
-
-   Output ("Retrieve Root_Context", True);
-
    --
    --  Test 1 : bind 1 object, lookup and then destroy
    --
@@ -86,21 +81,43 @@ begin
    declare
       Obj_Name : CosNaming.Name;
       Rcvd_Ref : CORBA.Object.Ref;
-      --  pragma Unreferenced (Rcvd_Ref);
-      pragma Warnings (Off, Rcvd_Ref); --  WAG:5.02 DB08-008
-      --  Assigned but never read
+      pragma Unreferenced (Rcvd_Ref);
+      Root_Context : CosNaming.NamingContext.Ref;
 
    begin
+      New_Test ("Bind 1 object, lookup and then destroy");
+
+      CORBA.ORB.String_To_Object
+        (CORBA.To_CORBA_String (Ada.Command_Line.Argument (1)), Root_Context);
+
+      Output ("Retrieve Root_Context", True);
+
       Append (Obj_Name, NameComponent'(Id => To_CORBA_String ("object1"),
                                        Kind => To_CORBA_String ("")));
-      bind (Root_Context, Obj_Name,
-            CORBA.Object.Ref (Root_Context));
+
+      bind (Root_Context, Obj_Name, CORBA.Object.Ref (Root_Context));
 
       Output ("Bind Object", True);
+
+      begin
+         bind (Root_Context, Obj_Name, CORBA.Object.Ref (Root_Context));
+
+         Output ("Bind Object (raise Already Bound)", False);
+      exception
+         when AlreadyBound =>
+            Output ("Bind Object (raise Already Bound)", True);
+
+         when others =>
+            Output ("Bind Object (raise Already Bound)", False);
+      end;
 
       Rcvd_Ref := resolve (Root_Context, Obj_Name);
 
       Output ("Resolve Object", True);
+
+      rebind (Root_Context, Obj_Name, CORBA.Object.Ref (Root_Context));
+
+      Output ("Rebind Object", True);
 
       unbind (Root_Context, Obj_Name);
 
@@ -113,6 +130,65 @@ begin
       exception
          when CosNaming.NamingContext.NotFound =>
             Output ("Resolve unbound reference raise NotFound", True);
+      end;
+   end;
+
+   --
+   --  Test 2 : bind 1 object, lookup and then destroy
+   --
+
+   declare
+      Obj_Name : CosNaming.Name;
+      Rcvd_Ref : CORBA.Object.Ref;
+      pragma Unreferenced (Rcvd_Ref);
+      Root_Context : CosNaming.NamingContextExt.Ref;
+
+   begin
+      New_Test ("NamingContextExt tests");
+
+      CORBA.ORB.String_To_Object
+        (CORBA.To_CORBA_String (Ada.Command_Line.Argument (1)), Root_Context);
+
+      Output ("Retrieve Root_Context", True);
+
+      Append (Obj_Name, NameComponent'(Id => To_CORBA_String ("object1"),
+                                       Kind => To_CORBA_String ("id1")));
+
+      Append (Obj_Name, NameComponent'(Id => To_CORBA_String ("object2"),
+                                       Kind => To_CORBA_String ("")));
+
+      Append (Obj_Name, NameComponent'(Id => To_CORBA_String ("object3"),
+                                       Kind => To_CORBA_String ("id3")));
+
+      declare
+         The_String : constant String
+           := To_String (CosNaming.NamingContextExt.To_String
+                         (Root_Context, Obj_Name));
+      begin
+         Output ("NamingContextExt::To_String",
+                 The_String = "object1.id1/object2/object3.id3");
+      end;
+
+      declare
+         Obj_Name2 : constant CosNaming.Name
+           := To_Name (Root_Context,
+                       CosNaming.NamingContextExt.To_String
+                       (Root_Context, Obj_Name));
+      begin
+         Output ("NamingContextExt::To_Name", Obj_Name2 = Obj_Name);
+      end;
+
+      declare
+         The_String : constant String
+           := CosNaming.NamingContextExt.To_String
+              (CosNaming.NamingContextExt.To_Url
+               (Root_Context,
+                CosNaming.NamingContextExt.To_CORBA_String
+                (":myhost.mydomain.com"),
+                CosNaming.NamingContextExt.To_CORBA_String ("ppp/ppp")));
+      begin
+         Output ("NamingContextExt::To_Url",
+                 The_String = "%3amyhost.mydomain.com/ppp%2fppp");
       end;
    end;
 

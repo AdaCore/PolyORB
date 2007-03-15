@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -34,37 +34,36 @@
 --  Binding data concrete implementation for DIOP.
 
 with PolyORB.Binding_Data.GIOP.INET;
-with PolyORB.Binding_Objects;
-with PolyORB.Filters;
+with PolyORB.GIOP_P.Transport_Mechanisms.DIOP;
 with PolyORB.Initialization;
 with PolyORB.Log;
 with PolyORB.ORB;
 with PolyORB.Parameters;
-with PolyORB.Protocols.GIOP.DIOP;
 with PolyORB.References.Corbaloc;
 with PolyORB.References.IOR;
 with PolyORB.Setup;
-with PolyORB.Transport.Datagram.Sockets_In;
-with PolyORB.Transport.Datagram.Sockets_Out;
+with PolyORB.Sockets;
 with PolyORB.Utils.Strings;
 
 package body PolyORB.Binding_Data.GIOP.DIOP is
 
    use PolyORB.Binding_Data.GIOP.INET;
    use PolyORB.GIOP_P.Tagged_Components;
+   use PolyORB.GIOP_P.Transport_Mechanisms;
+   use PolyORB.GIOP_P.Transport_Mechanisms.DIOP;
    use PolyORB.Log;
    use PolyORB.Objects;
    use PolyORB.References.IOR;
    use PolyORB.References.Corbaloc;
-   use PolyORB.Transport.Datagram;
-   use PolyORB.Transport.Datagram.Sockets_In;
-   use PolyORB.Transport.Datagram.Sockets_Out;
    use PolyORB.Types;
 
    package L is
       new PolyORB.Log.Facility_Log ("polyorb.binding_data.giop.diop");
-   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+   procedure O (Message : Standard.String; Level : Log_Level := Debug)
      renames L.Output;
+   function C (Level : Log_Level := Debug) return Boolean
+     renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    DIOP_Corbaloc_Prefix : constant String := "diop";
 
@@ -74,61 +73,6 @@ package body PolyORB.Binding_Data.GIOP.DIOP is
 
    function Profile_To_Corbaloc (P : Profile_Access) return String;
    function Corbaloc_To_Profile (Str : String) return Profile_Access;
-
-   ------------------
-   -- Bind_Profile --
-   ------------------
-
-   --  Factories
-
-   Pro : aliased PolyORB.Protocols.GIOP.DIOP.DIOP_Protocol;
-   DIOP_Factories : constant Filters.Factory_Array
-     := (0 => Pro'Access);
-
-   procedure Bind_Profile
-     (Profile :     DIOP_Profile_Type;
-      The_ORB :     Components.Component_Access;
-      BO_Ref  : out Smart_Pointers.Ref;
-      Error   : out Errors.Error_Container)
-   is
-      use PolyORB.Components;
-      use PolyORB.Errors;
-      use PolyORB.Filters;
-      use PolyORB.Protocols;
-      use PolyORB.Protocols.GIOP;
-      use PolyORB.Protocols.GIOP.DIOP;
-      use PolyORB.ORB;
-      use PolyORB.Sockets;
-
-      Sock        : Socket_Type;
-      Remote_Addr : constant Sock_Addr_Type := Profile.Address;
-      TE          : constant Transport.Transport_Endpoint_Access :=
-        new Socket_Out_Endpoint;
-
-   begin
-      pragma Debug (O ("Bind DIOP profile: enter"));
-
-      Create_Socket (Socket => Sock,
-                     Family => Family_Inet,
-                     Mode => Socket_Datagram);
-
-      Create (Socket_Out_Endpoint (TE.all), Sock, Remote_Addr);
-      Set_Allocation_Class (TE.all, Dynamic);
-
-      Binding_Objects.Setup_Binding_Object
-        (ORB.ORB_Access (The_ORB),
-         TE,
-         DIOP_Factories,
-         ORB.Client,
-         BO_Ref);
-
-      pragma Debug (O ("Bind DIOP profile: leave"));
-
-   exception
-      when Sockets.Socket_Error =>
-         Throw (Error, Comm_Failure_E, System_Exception_Members'
-                (Minor => 0, Completed => Completed_Maybe));
-   end Bind_Profile;
 
    ---------------------
    -- Get_Profile_Tag --
@@ -166,8 +110,12 @@ package body PolyORB.Binding_Data.GIOP.DIOP is
    is
       pragma Unreferenced (ORB);
 
+      MF : constant Transport_Mechanism_Factory_Access
+        := new DIOP_Transport_Mechanism_Factory;
+
    begin
-      PF.Address := Address_Of (Socket_In_Access_Point (TAP.all));
+      Create_Factory (MF.all, TAP);
+      Append (PF.Mechanisms, MF);
    end Create_Factory;
 
    --------------------
@@ -186,26 +134,37 @@ package body PolyORB.Binding_Data.GIOP.DIOP is
       TResult.Version_Major := DIOP_Version_Major;
       TResult.Version_Minor := DIOP_Version_Minor;
       TResult.Object_Id     := new Object_Id'(Oid);
-      TResult.Address       := PF.Address;
       TResult.Components    := Null_Tagged_Component_List;
+
+      --  Create transport mechanism
+
+      Append
+        (TResult.Mechanisms,
+         Create_Transport_Mechanism
+         (DIOP_Transport_Mechanism_Factory
+          (Element (PF.Mechanisms, 0).all.all)));
+
       return Result;
    end Create_Profile;
 
-   ----------------------
-   -- Is_Local_Profile --
-   ----------------------
+   -----------------------
+   -- Duplicate_Profile --
+   -----------------------
 
-   function Is_Local_Profile
-     (PF : access DIOP_Profile_Factory;
-      P  : access Profile_Type'Class)
-      return Boolean
-   is
-      use type PolyORB.Sockets.Sock_Addr_Type;
+   function Duplicate_Profile (P : DIOP_Profile_Type) return Profile_Access is
+      Result : constant Profile_Access := new DIOP_Profile_Type;
+
+      TResult : DIOP_Profile_Type renames DIOP_Profile_Type (Result.all);
 
    begin
-      return P.all in DIOP_Profile_Type
-        and then DIOP_Profile_Type (P.all).Address = PF.Address;
-   end Is_Local_Profile;
+      TResult.Version_Major := P.Version_Major;
+      TResult.Version_Minor := P.Version_Minor;
+      TResult.Object_Id     := new Object_Id'(P.Object_Id.all);
+      TResult.Components    := Deep_Copy (P.Components);
+      TResult.Mechanisms    := Deep_Copy (P.Mechanisms);
+
+      return Result;
+   end Duplicate_Profile;
 
    --------------------------------
    -- Marshall_DIOP_Profile_Body --
@@ -217,7 +176,12 @@ package body PolyORB.Binding_Data.GIOP.DIOP is
    is
    begin
       Common_Marshall_Profile_Body
-        (Buf, Profile, DIOP_Profile_Type (Profile.all).Address, True);
+        (Buf,
+         Profile,
+         Address_Of
+         (DIOP_Transport_Mechanism
+          (Element (DIOP_Profile_Type (Profile.all).Mechanisms, 0).all.all)),
+         True);
    end Marshall_DIOP_Profile_Body;
 
    ----------------------------------
@@ -229,10 +193,16 @@ package body PolyORB.Binding_Data.GIOP.DIOP is
       return Profile_Access
    is
       Result  : constant Profile_Access := new DIOP_Profile_Type;
+      Address : PolyORB.Sockets.Sock_Addr_Type;
 
    begin
-      Common_Unmarshall_Profile_Body
-        (Buffer, Result, DIOP_Profile_Type (Result.all).Address, True, False);
+      Common_Unmarshall_Profile_Body (Buffer, Result, Address, True, False);
+
+      --  Create transport mechanism
+
+      Append
+        (DIOP_Profile_Type (Result.all).Mechanisms,
+         Create_Transport_Mechanism (Address));
 
       return Result;
    end Unmarshall_DIOP_Profile_Body;
@@ -244,7 +214,9 @@ package body PolyORB.Binding_Data.GIOP.DIOP is
    function Image (Prof : DIOP_Profile_Type) return String is
    begin
       return "Address : "
-        & PolyORB.Sockets.Image (Prof.Address)
+        & PolyORB.Sockets.Image
+        (Address_Of
+         (DIOP_Transport_Mechanism (Element (Prof.Mechanisms, 0).all.all)))
         & ", Object_Id : "
         & PolyORB.Objects.Image (Prof.Object_Id.all);
    end Image;
@@ -256,8 +228,13 @@ package body PolyORB.Binding_Data.GIOP.DIOP is
    function Profile_To_Corbaloc (P : Profile_Access) return String is
    begin
       pragma Debug (O ("DIOP Profile to corbaloc"));
-      return Common_IIOP_DIOP_Profile_To_Corbaloc
-        (P, DIOP_Profile_Type (P.all).Address, DIOP_Corbaloc_Prefix);
+      return
+        Common_IIOP_DIOP_Profile_To_Corbaloc
+        (P,
+         Address_Of
+         (DIOP_Transport_Mechanism
+          (Element (DIOP_Profile_Type (P.all).Mechanisms, 0).all.all)),
+         DIOP_Corbaloc_Prefix);
    end Profile_To_Corbaloc;
 
    -------------------------
@@ -265,11 +242,19 @@ package body PolyORB.Binding_Data.GIOP.DIOP is
    -------------------------
 
    function Corbaloc_To_Profile (Str : String) return Profile_Access is
-      Result : Profile_Access := new DIOP_Profile_Type;
+      Result  : Profile_Access := new DIOP_Profile_Type;
+      Address : Sockets.Sock_Addr_Type;
+
    begin
       Common_IIOP_DIOP_Corbaloc_To_Profile
-        (Str, DIOP_Version_Major, DIOP_Version_Minor, Result,
-         DIOP_Profile_Type (Result.all).Address);
+        (Str, DIOP_Version_Major, DIOP_Version_Minor, Result, Address);
+
+      --  Create transport mechanism
+
+      Append
+        (DIOP_Profile_Type (Result.all).Mechanisms,
+         Create_Transport_Mechanism (Address));
+
       return Result;
    end Corbaloc_To_Profile;
 
@@ -302,7 +287,10 @@ package body PolyORB.Binding_Data.GIOP.DIOP is
          Default => "0");
 
    begin
-      Preference := Preference_Default + Profile_Preference'Value
+      --  XXX we impose a slight preference penalty to DIOP to favor IIOP
+      --  by default. See F501-004.
+
+      Preference := Preference_Default - 1 + Profile_Preference'Value
         (Preference_Offset);
       Register
        (Tag_DIOP,
@@ -327,5 +315,6 @@ begin
        Depends   => +"sockets",
        Provides  => +"binding_factories",
        Implicit  => False,
-       Init      => Initialize'Access));
+       Init      => Initialize'Access,
+       Shutdown  => null));
 end PolyORB.Binding_Data.GIOP.DIOP;

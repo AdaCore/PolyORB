@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
@@ -21,8 +21,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -31,8 +31,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -42,9 +42,8 @@
 
 with CORBA.AbstractBase;
 with CORBA.Impl;
-
 with CORBA.Sequences.Unbounded;
-pragma Elaborate (CORBA.Sequences.Unbounded);
+pragma Elaborate_All (CORBA.Sequences.Unbounded);
 
 package CORBA.ContextList is
 
@@ -58,16 +57,16 @@ package CORBA.ContextList is
 
    procedure Finalize (Obj : in out Object);
 
-   function Get_Count (Self : in Ref) return CORBA.Unsigned_Long;
+   function Get_Count (Self : Ref) return CORBA.Unsigned_Long;
 
-   procedure Add (Self : in Ref; Exc : in CORBA.String);
+   procedure Add (Self : Ref; Exc : CORBA.String);
 
    function Item
-     (Self  : in Ref;
-      Index : in CORBA.Unsigned_Long)
+     (Self  : Ref;
+      Index : CORBA.Unsigned_Long)
      return CORBA.String;
 
-   procedure Remove (Self : in Ref; Index : in CORBA.Unsigned_Long);
+   procedure Remove (Self : Ref; Index : CORBA.Unsigned_Long);
 
    function Create_Object return Object_Ptr;
 

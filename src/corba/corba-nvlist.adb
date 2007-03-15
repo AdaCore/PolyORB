@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -39,13 +39,13 @@ package body CORBA.NVList is
 
    procedure Add_Item
      (Self       :    Ref;
-      Item_Name  : in Identifier;
-      Item       : in CORBA.Any;
-      Item_Flags : in Flags)
+      Item_Name  : Identifier;
+      Item       : CORBA.Any;
+      Item_Flags : Flags)
    is
    begin
       PolyORB.Any.NVList.Add_Item
-        (To_PolyORB_Ref (Self),
+        (Internals.To_PolyORB_Ref (Self),
          PolyORB.Types.Identifier (Item_Name),
          CORBA.Internals.To_PolyORB_Any (Item),
          PolyORB.Any.Flags (Item_Flags));
@@ -53,7 +53,7 @@ package body CORBA.NVList is
 
    procedure Add_Item
      (Self :    Ref;
-      Item : in CORBA.NamedValue)
+      Item : CORBA.NamedValue)
    is
    begin
       Add_Item (Self, Item.Name, Item.Argument, Item.Arg_Modes);
@@ -65,7 +65,9 @@ package body CORBA.NVList is
 
    function Get_Count (Self : Ref) return CORBA.Long is
    begin
-      return CORBA.Long (PolyORB.Any.NVList.Get_Count (To_PolyORB_Ref (Self)));
+      return CORBA.Long
+        (PolyORB.Any.NVList.Get_Count
+         (Internals.To_PolyORB_Ref (Self)));
    end Get_Count;
 
    ----------
@@ -79,30 +81,6 @@ package body CORBA.NVList is
    begin
       null;
    end Free;
-
-   --------------------
-   -- To_PolyORB_Ref --
-   --------------------
-
-   function To_PolyORB_Ref (Self : Ref) return PolyORB.Any.NVList.Ref is
-      Res : PolyORB.Any.NVList.Ref;
-
-   begin
-      PolyORB.Any.NVList.Set (Res, Entity_Of (Self));
-      return Res;
-   end To_PolyORB_Ref;
-
-   ------------------
-   -- To_CORBA_Ref --
-   ------------------
-
-   function To_CORBA_Ref (Self : PolyORB.Any.NVList.Ref) return Ref is
-      Res : Ref;
-
-   begin
-      Set (Res, PolyORB.Any.NVList.Entity_Of (Self));
-      return Res;
-   end To_CORBA_Ref;
 
    ----------------
    -- Initialize --
@@ -118,19 +96,72 @@ package body CORBA.NVList is
       Set (Self, PolyORB.Any.NVList.Entity_Of (Res));
    end Initialize;
 
-   ----------
-   -- Item --
-   ----------
+   package body Internals is
 
-   function Item (Self : Ref; Index : CORBA.Long) return CORBA.NamedValue is
-      use PolyORB.Any.NVList.Internals;
-      use PolyORB.Any.NVList.Internals.NV_Lists;
+      --------------------
+      -- Clone_Out_Args --
+      --------------------
 
-   begin
-      return
-        To_CORBA_NV
-        (Element
-         (List_Of (To_PolyORB_Ref (Self)).all, Integer (Index)).all);
-   end Item;
+      procedure Clone_Out_Args (Self : Ref) is
+         use PolyORB.Any.NVList.Internals;
+         use PolyORB.Any.NVList.Internals.NV_Lists;
+
+         It : Iterator;
+      begin
+         It := First (List_Of (To_PolyORB_Ref (Self)).all);
+         while not Last (It) loop
+            declare
+               use PolyORB.Any;
+               NV : PolyORB.Any.NamedValue renames Value (It).all;
+            begin
+               if        NV.Arg_Modes = PolyORB.Any.ARG_OUT
+                 or else NV.Arg_Modes = PolyORB.Any.ARG_INOUT
+               then
+                  NV.Argument := Copy_Any (NV.Argument);
+               end if;
+            end;
+            Next (It);
+         end loop;
+      end Clone_Out_Args;
+
+      ----------
+      -- Item --
+      ----------
+
+      function Item (Self : Ref; Index : CORBA.Long) return CORBA.NamedValue is
+         use PolyORB.Any.NVList.Internals;
+         use PolyORB.Any.NVList.Internals.NV_Lists;
+      begin
+         return
+           To_CORBA_NV
+           (Element
+            (List_Of (To_PolyORB_Ref (Self)).all, Integer (Index)).all);
+      end Item;
+
+      ------------------
+      -- To_CORBA_Ref --
+      ------------------
+
+      function To_CORBA_Ref (Self : PolyORB.Any.NVList.Ref) return Ref is
+         Res : Ref;
+
+      begin
+         Set (Res, PolyORB.Any.NVList.Entity_Of (Self));
+         return Res;
+      end To_CORBA_Ref;
+
+      --------------------
+      -- To_PolyORB_Ref --
+      --------------------
+
+      function To_PolyORB_Ref (Self : Ref) return PolyORB.Any.NVList.Ref is
+         Res : PolyORB.Any.NVList.Ref;
+
+      begin
+         PolyORB.Any.NVList.Set (Res, Entity_Of (Self));
+         return Res;
+      end To_PolyORB_Ref;
+
+   end Internals;
 
 end CORBA.NVList;

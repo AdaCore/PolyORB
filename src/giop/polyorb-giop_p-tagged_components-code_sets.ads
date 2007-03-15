@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2004 Free Software Foundation, Inc.             --
+--         Copyright (C) 2004-2006 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -42,20 +42,28 @@ package PolyORB.GIOP_P.Tagged_Components.Code_Sets is
       Conversion_Code_Sets : GIOP_P.Code_Sets.Code_Set_Id_List;
    end record;
 
-   type TC_Code_Sets is new Tagged_Component (Tag_Code_Sets) with record
-      For_Char_Data  : Code_Set_Component;
-      For_Wchar_Data : Code_Set_Component;
-   end record;
+   type TC_Code_Sets is new Tagged_Component
+     (Tag => Tag_Code_Sets, At_Most_Once => False)
+     with record
+        For_Char_Data  : Code_Set_Component;
+        For_Wchar_Data : Code_Set_Component;
+     end record;
+   --  Note: the at-most-once semantics of this component is not
+   --  specified in the CORBA specification, par. 13.10.2.4, use
+   --  default value.
 
-   procedure Marshall
+   procedure Marshall_Component_Data
      (C      : access TC_Code_Sets;
       Buffer : access Buffer_Type);
 
-   procedure Unmarshall
+   procedure Unmarshall_Component_Data
      (C      : access TC_Code_Sets;
-      Buffer : access Buffer_Type);
+      Buffer : access Buffer_Type;
+      Error  : out PolyORB.Errors.Error_Container);
 
    procedure Release_Contents
      (C : access TC_Code_Sets);
+
+   function Duplicate (C : TC_Code_Sets) return Tagged_Component_Access;
 
 end PolyORB.GIOP_P.Tagged_Components.Code_Sets;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -58,7 +58,7 @@ package PolyORB.Representations.SRP is
    -- Part taken from AWS (Ada Web Server) --
    ------------------------------------------
 
-   function Decode_URL (Str : in String) return String;
+   function Decode_URL (Str : String) return String;
    --  The translations are:
    --     +     should be changed to a space
    --     %xy   should be replaced by the character whose code is xy
@@ -67,10 +67,10 @@ package PolyORB.Representations.SRP is
                           return String;
    --  Encode Data using the base64 algorithm
 
-   function Base64_Encode (Data : in String) return String;
+   function Base64_Encode (Data : String) return String;
    --  Same as above but takes a string as input
 
-   function Base64_Decode (B64_Data : in String)
+   function Base64_Decode (B64_Data : String)
                           return Ada.Streams.Stream_Element_Array;
    --  Decode B64_Data using the base64 algorithm
 
@@ -82,7 +82,7 @@ package PolyORB.Representations.SRP is
 
    --  Encodes the entire string
    function Encode_String
-     (Str : in String; Also_Escape : String := "/") return String;
+     (Str : String; Also_Escape : String := "/") return String;
 
    -------------------
    -- UNMARSHALLING --
@@ -136,7 +136,7 @@ package PolyORB.Representations.SRP is
 
    procedure Marshall
      (Buffer   : access Buffer_Type;
-      Info_SRP : in Split_SRP);
+      Info_SRP : Split_SRP);
 
    procedure Marshall
      (Buffer : access Buffer_Type;
@@ -156,59 +156,59 @@ package PolyORB.Representations.SRP is
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in PolyORB.Types.Unsigned_Short);
+      Data   : PolyORB.Types.Unsigned_Short);
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in PolyORB.Types.Unsigned_Long);
+      Data   : PolyORB.Types.Unsigned_Long);
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in PolyORB.Types.Short);
+      Data   : PolyORB.Types.Short);
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in PolyORB.Types.Long);
+      Data   : PolyORB.Types.Long);
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in Standard.String);
+      Data   : Standard.String);
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in PolyORB.Types.String);
+      Data   : PolyORB.Types.String);
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in Stream_Element_Array);
+      Data   : Stream_Element_Array);
 
    procedure Marshall
-     (Buffer : access Buffer_Type;
-      Data   : in PolyORB.Any.Any);
-
-   procedure Marshall
-     (Buffer : access Buffer_Type;
-      Data   : in PolyORB.Any.TypeCode.Object);
-
-   procedure Marshall_From_Any
-     (R      : in     Rep_SRP;
-      Buffer : access Buffers.Buffer_Type;
-      Data   : in     Any.Any;
-      Error  : in out Errors.Error_Container);
-
-   procedure Marshall_From_Any
      (Buffer : access Buffer_Type;
       Data   : PolyORB.Any.Any);
 
-   procedure Unmarshall_To_Any
-     (R      : in     Rep_SRP;
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Data   : PolyORB.Any.TypeCode.Object);
+
+   procedure Marshall_From_Any
+     (R      : Rep_SRP;
       Buffer : access Buffers.Buffer_Type;
-      Data   : in out Any.Any;
+      Data   : Any.Any_Container'Class;
+      Error  : in out Errors.Error_Container);
+
+   procedure Marshall_From_Any
+     (Buffer : access Buffer_Type;
+      Data   : PolyORB.Any.Any_Container'Class);
+
+   procedure Unmarshall_To_Any
+     (R      : Rep_SRP;
+      Buffer : access Buffers.Buffer_Type;
+      Data   : in out Any.Any_Container'Class;
       Error  : in out Errors.Error_Container);
 
    procedure Unmarshall_To_Any
      (Buffer : access Buffer_Type;
-      Result : in out PolyORB.Any.Any);
+      Result : in out PolyORB.Any.Any_Container'Class);
 
    --  The following methods are specific to Rep_SRP and are
    --  here only to facilitate testing of other parts of the ORB.
@@ -236,7 +236,7 @@ package PolyORB.Representations.SRP is
    --  Unmarshall a string terminated by a CR/LF sequence.
 
    function Unmarshall_To_Any
-     (R      : in     Rep_SRP;
+     (R      : Rep_SRP;
       Buffer : access Buffers.Buffer_Type) return Any.Any;
 
    --  Temporary procedure. Should be replaces by Marshall_From_Any when

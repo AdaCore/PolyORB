@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -47,6 +47,10 @@ package body PolyORB.Binding_Data.SRP is
    use PolyORB.Transport;
    use PolyORB.Transport.Connected.Sockets;
 
+   ---------------
+   -- Duplicate --
+   ---------------
+
    procedure Duplicate
      (P1 : SRP_Profile_Type; P2 : out SRP_Profile_Type) is
    begin
@@ -58,6 +62,10 @@ package body PolyORB.Binding_Data.SRP is
       end if;
    end Duplicate;
 
+   -------------
+   -- Release --
+   -------------
+
    procedure Release (P : in out SRP_Profile_Type)
    is
    begin
@@ -68,16 +76,23 @@ package body PolyORB.Binding_Data.SRP is
    SRP_Factories : constant Filters.Factory_Array
      := (0 => Pro'Access);
 
+   ------------------
+   -- Bind_Profile --
+   ------------------
+
    procedure Bind_Profile
-     (Profile :     SRP_Profile_Type;
-      The_ORB :     Components.Component_Access;
-      BO_Ref  : out Smart_Pointers.Ref;
-      Error   : out Errors.Error_Container)
+     (Profile : access SRP_Profile_Type;
+      The_ORB :        Components.Component_Access;
+      QoS     :        PolyORB.QoS.QoS_Parameters;
+      BO_Ref  :    out Smart_Pointers.Ref;
+      Error   :    out Errors.Error_Container)
    is
+      pragma Unreferenced (QoS);
+
+      use PolyORB.Binding_Objects;
       use PolyORB.Components;
       use PolyORB.Errors;
       use PolyORB.ORB;
-      use PolyORB.Sockets;
 
       S : Socket_Type;
       Remote_Addr : Sock_Addr_Type := Profile.Address;
@@ -92,11 +107,15 @@ package body PolyORB.Binding_Data.SRP is
       --  Create (P'Access, Filters.Filter_Access (Session));
 
       Binding_Objects.Setup_Binding_Object
-        (ORB.ORB_Access (The_ORB),
-         TE,
+        (TE,
          SRP_Factories,
-         ORB.Client,
-         BO_Ref);
+         BO_Ref,
+         Profile_Access (Profile));
+
+      ORB.Register_Binding_Object
+        (ORB.ORB_Access (The_ORB),
+         BO_Ref,
+         ORB.Client);
 
    exception
       when Sockets.Socket_Error =>
@@ -104,6 +123,10 @@ package body PolyORB.Binding_Data.SRP is
                 System_Exception_Members'
                 (Minor => 0, Completed => Completed_Maybe));
    end Bind_Profile;
+
+   ---------------------
+   -- Get_Profile_Tag --
+   ---------------------
 
    function Get_Profile_Tag
      (Profile : SRP_Profile_Type)
@@ -115,6 +138,10 @@ package body PolyORB.Binding_Data.SRP is
       return Tag_SRP;
    end Get_Profile_Tag;
 
+   ----------------------------
+   -- Get_Profile_Preference --
+   ----------------------------
+
    function Get_Profile_Preference
      (Profile : SRP_Profile_Type)
      return Profile_Preference is
@@ -124,6 +151,10 @@ package body PolyORB.Binding_Data.SRP is
       pragma Warnings (On);
       return Preference_Default;
    end Get_Profile_Preference;
+
+   --------------------
+   -- Create_Factory --
+   --------------------
 
    procedure Create_Factory
      (PF : out SRP_Profile_Factory;
@@ -136,6 +167,10 @@ package body PolyORB.Binding_Data.SRP is
       pragma Warnings (On);
       PF.Address := Address_Of (Socket_Access_Point (TAP.all));
    end Create_Factory;
+
+   --------------------
+   -- Create_Profile --
+   --------------------
 
    function Create_Profile
      (PF  : access SRP_Profile_Factory;
@@ -153,6 +188,32 @@ package body PolyORB.Binding_Data.SRP is
       return  Result;
    end Create_Profile;
 
+   -----------------------
+   -- Duplicate_Profile --
+   -----------------------
+
+   function Duplicate_Profile
+     (P : SRP_Profile_Type)
+     return Profile_Access
+   is
+      Result : constant Profile_Access := new SRP_Profile_Type;
+
+      TResult : SRP_Profile_Type
+        renames SRP_Profile_Type (Result.all);
+
+      PP : SRP_Profile_Type renames P;
+
+   begin
+      TResult.Object_Id := new Object_Id'(PP.Object_Id.all);
+      TResult.Address   := PP.Address;
+
+      return Result;
+   end Duplicate_Profile;
+
+   ----------------------
+   -- Is_Local_Profile --
+   ----------------------
+
    function Is_Local_Profile
      (PF : access SRP_Profile_Factory;
       P  : access Profile_Type'Class)
@@ -162,22 +223,42 @@ package body PolyORB.Binding_Data.SRP is
         and then SRP_Profile_Type (P.all).Address = PF.Address;
    end Is_Local_Profile;
 
+   -----------
+   -- Image --
+   -----------
+
    function Image (Prof : SRP_Profile_Type) return String is
    begin
       return "Address : " & Image (Prof.Address) &
         ", Object_Id : " & PolyORB.Objects.Image (Prof.Object_Id.all);
    end Image;
 
+   ------------
+   -- Get_OA --
+   ------------
+
    function Get_OA
      (Profile : SRP_Profile_Type)
      return PolyORB.Smart_Pointers.Entity_Ptr
    is
-      pragma Warnings (Off); --  WAG:3.15
       pragma Unreferenced (Profile);
-      pragma Warnings (On); --  WAG:3.15
    begin
       return PolyORB.Smart_Pointers.Entity_Ptr
         (PolyORB.ORB.Object_Adapter (PolyORB.Setup.The_ORB));
    end Get_OA;
+
+   ------------------
+   -- Is_Colocated --
+   ------------------
+
+   function Is_Colocated
+     (Left  : SRP_Profile_Type;
+      Right : Profile_Type'Class) return Boolean
+   is
+      use PolyORB.Types;
+   begin
+      return Right in SRP_Profile_Type'Class
+        and then Left.Address = SRP_Profile_Type (Right).Address;
+   end Is_Colocated;
 
 end PolyORB.Binding_Data.SRP;

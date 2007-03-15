@@ -1,31 +1,34 @@
 ------------------------------------------------------------------------------
---                              Ada Web Server                              --
 --                                                                          --
---                         Copyright (C) 2000-2002                          --
---                                ACT-Europe                                --
+--                           POLYORB COMPONENTS                             --
 --                                                                          --
---  Authors: Dmitriy Anisimkov - Pascal Obry                                --
+--                           A W S . S E R V E R                            --
 --                                                                          --
---  This library is free software; you can redistribute it and/or modify    --
---  it under the terms of the GNU General Public License as published by    --
---  the Free Software Foundation; either version 2 of the License, or (at   --
---  your option) any later version.                                         --
+--                                 S p e c                                  --
 --                                                                          --
---  This library is distributed in the hope that it will be useful, but     --
---  WITHOUT ANY WARRANTY; without even the implied warranty of              --
---  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU       --
---  General Public License for more details.                                --
+--         Copyright (C) 2000-2006, Free Software Foundation, Inc.          --
 --                                                                          --
---  You should have received a copy of the GNU General Public License       --
---  along with this library; if not, write to the Free Software Foundation, --
---  Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.          --
+-- PolyORB is free software; you  can  redistribute  it and/or modify it    --
+-- under terms of the  GNU General Public License as published by the  Free --
+-- Software Foundation;  either version 2,  or (at your option)  any  later --
+-- version. PolyORB is distributed  in the hope that it will be  useful,    --
+-- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
+-- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
+-- License  for more details.  You should have received  a copy of the GNU  --
+-- General Public License distributed with PolyORB; see file COPYING. If    --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
---  As a special exception, if other files instantiate generics from this   --
---  unit, or you link this unit with other files to produce an executable,  --
---  this  unit  does not  by itself cause  the resulting executable to be   --
---  covered by the GNU General Public License. This exception does not      --
---  however invalidate any other reasons why the executable file  might be  --
---  covered by the  GNU Public License.                                     --
+-- As a special exception,  if other files  instantiate  generics from this --
+-- unit, or you link  this unit with other files  to produce an executable, --
+-- this  unit  does not  by itself cause  the resulting  executable  to  be --
+-- covered  by the  GNU  General  Public  License.  This exception does not --
+-- however invalidate  any other reasons why  the executable file  might be --
+-- covered by the  GNU Public License.                                      --
+--                                                                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
+--                                                                          --
 ------------------------------------------------------------------------------
 
 with Ada.Calendar;
@@ -60,8 +63,8 @@ package AWS.Server is
 
    procedure Start
      (The_Server : in out HTTP'Class;
-      Callback   : in     Response.Callback;
-      Config     : in     AWS.Config.Object);
+      Callback   : Response.Callback;
+      Config     : AWS.Config.Object);
    --  Start server using a full configuration object. With this routine it is
    --  possible to control all features of the server. A simplified version of
    --  Start is also provided below with the most common options.
@@ -70,8 +73,8 @@ package AWS.Server is
 
    procedure Start
      (The_Server : in out HTTP'Class;
-      Dispatcher : in     Dispatchers.Handler'Class;
-      Config     : in     AWS.Config.Object);
+      Dispatcher : Dispatchers.Handler'Class;
+      Config     : AWS.Config.Object);
    --  Idem, but using the dispatcher tagged type instead of callback. See
    --  AWS.Services.Dispatchers and AWS.Dispatchers hierarchies for built-in
    --  services and interface to build your own dispatcher models.
@@ -81,16 +84,16 @@ package AWS.Server is
 
    procedure Start
      (The_Server                : in out HTTP'Class;
-      Name                      : in     String;
-      Callback                  : in     Response.Callback;
-      Max_Connection            : in     Positive  := Default.Max_Connection;
-      Admin_URI                 : in     String    := Default.Admin_URI;
-      Port                      : in     Positive  := Default.Server_Port;
-      Security                  : in     Boolean   := False;
-      Session                   : in     Boolean   := False;
-      Case_Sensitive_Parameters : in     Boolean   := True;
-      Upload_Directory          : in     String    := Default.Upload_Directory;
-      Line_Stack_Size           : in     Positive  := Default.Line_Stack_Size);
+      Name                      : String;
+      Callback                  : Response.Callback;
+      Max_Connection            : Positive  := Default.Max_Connection;
+      Admin_URI                 : String    := Default.Admin_URI;
+      Port                      : Positive  := Default.Server_Port;
+      Security                  : Boolean   := False;
+      Session                   : Boolean   := False;
+      Case_Sensitive_Parameters : Boolean   := True;
+      Upload_Directory          : String    := Default.Upload_Directory;
+      Line_Stack_Size           : Positive  := Default.Line_Stack_Size);
    --  Start the Web server. Max_Connection is the number of simultaneous
    --  connections the server's will handle (the number of slots in AWS).
    --  Name is just a string used to identify the server. This is used
@@ -116,7 +119,7 @@ package AWS.Server is
 
    type Termination is (No_Server, Q_Key_Pressed, Forever);
 
-   procedure Wait (Mode : in Termination := No_Server);
+   procedure Wait (Mode : Termination := No_Server);
    --  The purpose of this procedure is to control the main procedure
    --  termination. This procedure will return only when no server are running
    --  (No_Server mode) or the 'q' key has been pressed. If mode is set to
@@ -126,12 +129,12 @@ package AWS.Server is
    -- Server configuration --
    --------------------------
 
-   function Config (The_Server : in HTTP'Class) return AWS.Config.Object;
+   function Config (The_Server : HTTP'Class) return AWS.Config.Object;
    --  Returns configuration object for The_Server.
 
    procedure Set_Unexpected_Exception_Handler
      (The_Server : in out HTTP'Class;
-      Handler    : in     Exceptions.Unexpected_Exception_Handler);
+      Handler    : Exceptions.Unexpected_Exception_Handler);
    --  Set the unexpected exception handler. It is called whenever an
    --  unrecoverable error has been detected. The default handler just display
    --  (on standard output) an error message with the location of the
@@ -140,13 +143,13 @@ package AWS.Server is
 
    procedure Set
      (The_Server : in out HTTP'Class;
-      Dispatcher : in     Dispatchers.Handler'Class);
+      Dispatcher : Dispatchers.Handler'Class);
    --  Dynamically associate a new dispatcher object to the server. With the
    --  feature it is possible to change server behavior at runtime. The
    --  complete set of callback procedures will be changed when calling this
    --  routine.
 
-   procedure Set_Security (Certificate_Filename : in String);
+   procedure Set_Security (Certificate_Filename : String);
    --  Set security option for AWS. Certificate_Filename is the name of a file
    --  containing a certificate and the private key. This must be called
    --  before starting the first secure server. After that the call will have
@@ -165,8 +168,8 @@ package AWS.Server is
 
    procedure Start_Log
      (The_Server      : in out HTTP'Class;
-      Split_Mode      : in     Log.Split_Mode := Log.None;
-      Filename_Prefix : in     String         := "");
+      Split_Mode      : Log.Split_Mode := Log.None;
+      Filename_Prefix : String         := "");
    --  Activate server's logging activity. See AWS.Log.
 
    procedure Stop_Log (The_Server : in out HTTP'Class);
@@ -174,8 +177,8 @@ package AWS.Server is
 
    procedure Start_Error_Log
      (The_Server      : in out HTTP'Class;
-      Split_Mode      : in     Log.Split_Mode := Log.None;
-      Filename_Prefix : in     String         := "");
+      Split_Mode      : Log.Split_Mode := Log.None;
+      Filename_Prefix : String         := "");
    --  Activate server's logging activity. See AWS.Log.
 
    procedure Stop_Error_Log (The_Server : in out HTTP'Class);
@@ -183,15 +186,12 @@ package AWS.Server is
 
    type HTTP_Access is access all HTTP;
 
-
-
-
 private
 
    procedure Default_Unexpected_Exception_Handler
-     (E      : in     Ada.Exceptions.Exception_Occurrence;
+     (E      : Ada.Exceptions.Exception_Occurrence;
       Log    : in out AWS.Log.Object;
-      Error  : in     Exceptions.Data;
+      Error  : Exceptions.Data;
       Answer : in out Response.Data);
    --  Default unexpected exception handler.
 
@@ -245,7 +245,5 @@ private
       --  Exception handle used for unexpected errors found on the server
       --  implementation.
    end record;
-
-
 
 end AWS.Server;

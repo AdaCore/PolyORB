@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---         Copyright (C) 1999-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 1999-2007 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -29,25 +29,9 @@
 
 This file details the compilation and installation of PolyORB.
 
-For more details about supported platforms or platform specific
-information, please refer to PolyORB User's Guide.
-
-Build requirements
-------------------
-
-Ada 95 compiler:
-  GNAT Pro 5.02a1 or later
-  GCC 3.4.1       or later
-
-Optional: XML/Ada (http://libre.adacore.com/xmlada/) if you want to
-build the SOAP protocol personality.
-
-Note: per construction, the macro 'configure' uses to find your GNAT
-compiler looks first to the executables 'gnatgcc', then 'adagcc' and
-finally to 'gcc' to find out which Ada compiler to use. You should be
-very careful with your path and executables if you have multiple GNAT
-versions installed. See below explanations on the ADA environment
-variable if you need to override the default guess.
+For more details about build requirements, supported compilers,
+supported platforms and platform-specific information, please refer
+to the PolyORB User's Guide.
 
 Build instructions
 ------------------
@@ -84,10 +68,15 @@ Available options for the 'configure' script include:
       e.g.   --with-proto-perso="giop soap" to build both the GIOP 
              and SOAP personalities
 
-  --with-services="...": CORBA COS services to build
-      Available services: event, ir, naming, time
-      e.g.  --with-services="event naming" to build only
+  --with-corba-services="...": CORBA COS services to build
+      Available services: event, ir, naming, notification, time
+      e.g.  --with-corba-services="event naming" to build only
       COS Event and COS Naming.	
+
+  --with-openssl[=ARG]: build SSL support and SSL dependent features,
+    including the IIOP/SSLIOP personality
+
+  --help: list all options available
 
 By default, only the CORBA and GIOP personalities are built, no CORBA
 Services are built.
@@ -107,4 +96,3 @@ in your PATH, and configure picks the wrong one, you can indicate
 what compiler should be used with the following syntax:
 
 ADA=/path/to/good/compiler/gcc ./configure [options]
-

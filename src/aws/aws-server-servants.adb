@@ -1,3 +1,36 @@
+------------------------------------------------------------------------------
+--                                                                          --
+--                           POLYORB COMPONENTS                             --
+--                                                                          --
+--                  A W S . S E R V E R . S E R V A N T S                   --
+--                                                                          --
+--                                 B o d y                                  --
+--                                                                          --
+--           Copyright (C) 2006, Free Software Foundation, Inc.             --
+--                                                                          --
+-- PolyORB is free software; you  can  redistribute  it and/or modify it    --
+-- under terms of the  GNU General Public License as published by the  Free --
+-- Software Foundation;  either version 2,  or (at your option)  any  later --
+-- version. PolyORB is distributed  in the hope that it will be  useful,    --
+-- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
+-- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
+-- License  for more details.  You should have received  a copy of the GNU  --
+-- General Public License distributed with PolyORB; see file COPYING. If    --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
+--                                                                          --
+-- As a special exception,  if other files  instantiate  generics from this --
+-- unit, or you link  this unit with other files  to produce an executable, --
+-- this  unit  does not  by itself cause  the resulting  executable  to  be --
+-- covered  by the  GNU  General  Public  License.  This exception does not --
+-- however invalidate  any other reasons why  the executable file  might be --
+-- covered by the  GNU Public License.                                      --
+--                                                                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
+--                                                                          --
+------------------------------------------------------------------------------
+
 with Ada.Streams;
 
 with AWS.Status;
@@ -9,14 +42,15 @@ with SOAP.Types;
 with SOAP.Message.Payload;
 with SOAP.Parameters;
 
-with PolyORB.Errors;
+with PolyORB.Errors.Helper;
 with PolyORB.Any.NVList;
 with PolyORB.Requests;
 with PolyORB.Objects;
+with PolyORB.Obj_Adapters;
+with PolyORB.ORB;
 with PolyORB.Servants.Iface;
 with PolyORB.Types;
 with PolyORB.Setup;
-with PolyORB.ORB.Iface;
 with PolyORB.Log;
 with PolyORB.References;
 with PolyORB.Binding_Data;
@@ -26,16 +60,17 @@ package body AWS.Server.Servants is
    use PolyORB.Log;
    package L is
      new PolyORB.Log.Facility_Log ("aws.server");
-   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+   procedure O (Message : Standard.String; Level : Log_Level := Debug)
      renames L.Output;
+   function C (Level : Log_Level := Debug) return Boolean
+     renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
    --  the polyorb logging facility
-
 
    procedure Request_Handler
      (PolyORB_Servant : access HTTP'Class;
-      PolyORB_Request : in PolyORB.Requests.Request_Access);
+      PolyORB_Request : PolyORB.Requests.Request_Access);
    --  handles the requests made to the servants.  Replaces protocol_handler
-
 
    ---------------------
    -- Request_Handler --
@@ -43,9 +78,10 @@ package body AWS.Server.Servants is
 
    procedure Request_Handler
      (PolyORB_Servant : access AWS.Server.HTTP'Class;
-      PolyORB_Request : in PolyORB.Requests.Request_Access)
+      PolyORB_Request : PolyORB.Requests.Request_Access)
    is
       use PolyORB.Errors;
+      use PolyORB.Errors.Helper;
 
       HTTP_10      : constant String := "HTTP/1.0";
 
@@ -63,7 +99,6 @@ package body AWS.Server.Servants is
       procedure Integrate_Context;
 
       procedure Integrate_Data;
-
 
       ---------------------
       -- Extract_Context --
@@ -100,6 +135,7 @@ package body AWS.Server.Servants is
 
          HTTP_Method : Request_Method;
          Number_Of_Args : Long;
+         URI_Path : PolyORB.Types.String;
 
          The_Oid : PolyORB.Objects.Object_Id_Access;
 --         The_Reference : PolyORB.References.Ref;
@@ -123,24 +159,19 @@ package body AWS.Server.Servants is
             end loop;
          end;
 
+         Obj_Adapters.Oid_To_Rel_URI
+           (PolyORB.ORB.Object_Adapter (Setup.The_ORB),
+            The_Oid,
+            URI_Path,
+            Error);
+
+         if Found (Error) then
+            Catch (Error);
+            return;
+         end if;
+
          declare
-            use PolyORB.Types;
-            use PolyORB.Any.NVList;
-            use PolyORB.Setup;
-            use PolyORB.ORB.Iface;
-
-            Oid_Translate : constant ORB.Iface.Oid_Translate :=
-              (PolyORB.Components.Message with Oid => The_Oid);
-
-            M : constant PolyORB.Components.Message'Class :=
-              PolyORB.Components.Emit
-              (Port => Components.Component_Access (Setup.The_ORB),
-               Msg  => Oid_Translate);
-
-            TM : ORB.Iface.URI_Translate renames
-              ORB.Iface.URI_Translate (M);
-
-            URI : constant String := To_String (TM.Path);
+            URI : constant String := To_String (URI_Path);
          begin
             Parameters.Set.Reset (P_List);
             pragma Debug
@@ -289,7 +320,8 @@ package body AWS.Server.Servants is
                         Get_Empty_Any (TC_Null));
 
          elsif Mode (AWS_Response) = File then
-            pragma Debug (O ("Integrate_Data: byte sequence response (file)"));
+            pragma Debug (O ("Integrate_Data:"
+                             & " byte sequence response (file)"));
             declare
                Sq_Type : PolyORB.Any.TypeCode.Object
                  := PolyORB.Any.TypeCode.TC_Sequence;
@@ -391,7 +423,6 @@ package body AWS.Server.Servants is
 
    end Request_Handler;
 
-
    ---------------------
    -- Execute_Servant --
    ---------------------
@@ -415,7 +446,8 @@ package body AWS.Server.Servants is
             pragma Debug (O ("Execute_Servant: processing a Web request"));
             Request_Handler (S, R);
 
-            pragma Debug (O ("Execute_Servant: executed, setting out args"));
+            pragma Debug (O ("Execute_Servant:"
+                             & " executed, setting out args"));
             Set_Out_Args (R, Error);
 
             if Found (Error) then
@@ -450,7 +482,8 @@ package body AWS.Server.Servants is
             pragma Debug (O ("Execute_Servant: processing a SOAP request"));
             Request_Handler (S, R);
 
-            pragma Debug (O ("Execute_Servant: executed, setting out args"));
+            pragma Debug (O ("Execute_Servant:"
+                             & " executed, setting out args"));
             Set_Out_Args (R, Error);
 
             if Found (Error) then
@@ -467,4 +500,3 @@ package body AWS.Server.Servants is
    end Execute_Servant;
 
 end AWS.Server.Servants;
-

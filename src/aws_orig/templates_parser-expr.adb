@@ -1,29 +1,34 @@
 ------------------------------------------------------------------------------
---                             Templates Parser                             --
 --                                                                          --
---                        Copyright (C) 1999 - 2002                         --
---                               Pascal Obry                                --
+--                           POLYORB COMPONENTS                             --
 --                                                                          --
---  This library is free software; you can redistribute it and/or modify    --
---  it under the terms of the GNU General Public License as published by    --
---  the Free Software Foundation; either version 2 of the License, or (at   --
---  your option) any later version.                                         --
+--                                 E X P R                                  --
 --                                                                          --
---  This library is distributed in the hope that it will be useful, but     --
---  WITHOUT ANY WARRANTY; without even the implied warranty of              --
---  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU       --
---  General Public License for more details.                                --
+--                                 B o d y                                  --
 --                                                                          --
---  You should have received a copy of the GNU General Public License       --
---  along with this library; if not, write to the Free Software Foundation, --
---  Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.          --
+--         Copyright (C) 1999-2006, Free Software Foundation, Inc.          --
 --                                                                          --
---  As a special exception, if other files instantiate generics from this   --
---  unit, or you link this unit with other files to produce an executable,  --
---  this  unit  does not  by itself cause  the resulting executable to be   --
---  covered by the GNU General Public License. This exception does not      --
---  however invalidate any other reasons why the executable file  might be  --
---  covered by the  GNU Public License.                                     --
+-- PolyORB is free software; you  can  redistribute  it and/or modify it    --
+-- under terms of the  GNU General Public License as published by the  Free --
+-- Software Foundation;  either version 2,  or (at your option)  any  later --
+-- version. PolyORB is distributed  in the hope that it will be  useful,    --
+-- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
+-- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
+-- License  for more details.  You should have received  a copy of the GNU  --
+-- General Public License distributed with PolyORB; see file COPYING. If    --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
+--                                                                          --
+-- As a special exception,  if other files  instantiate  generics from this --
+-- unit, or you link  this unit with other files  to produce an executable, --
+-- this  unit  does not  by itself cause  the resulting  executable  to  be --
+-- covered  by the  GNU  General  Public  License.  This exception does not --
+-- however invalidate  any other reasons why  the executable file  might be --
+-- covered by the  GNU Public License.                                      --
+--                                                                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
+--                                                                          --
 ------------------------------------------------------------------------------
 
 with Ada.Text_IO;
@@ -32,17 +37,17 @@ separate (Templates_Parser)
 
 package body Expr is
 
-   function Is_Op (O : in String) return Boolean;
+   function Is_Op (O : String) return Boolean;
    --  Returns True is O is a binary operator.
 
-   function Is_U_Op (O : in String) return Boolean;
+   function Is_U_Op (O : String) return Boolean;
    --  Returns True is O is an unary operator.
 
    -----------
    -- Image --
    -----------
 
-   function Image (O : in Ops) return String is
+   function Image (O : Ops) return String is
    begin
       case O is
          when O_And   => return "and";
@@ -57,7 +62,7 @@ package body Expr is
       end case;
    end Image;
 
-   function Image (O : in U_Ops) return String is
+   function Image (O : U_Ops) return String is
    begin
       case O is
          when O_Not   => return "not";
@@ -68,7 +73,7 @@ package body Expr is
    -- Is_Op --
    -----------
 
-   function Is_Op (O : in String) return Boolean is
+   function Is_Op (O : String) return Boolean is
    begin
       if O = "and" then
          return True;
@@ -106,7 +111,7 @@ package body Expr is
    -- Is_U_Op --
    -------------
 
-   function Is_U_Op (O : in String) return Boolean is
+   function Is_U_Op (O : String) return Boolean is
    begin
       if O = "not" then
          return True;
@@ -119,7 +124,7 @@ package body Expr is
    -- Parse --
    -----------
 
-   function Parse (Expression : in String) return Tree is
+   function Parse (Expression : String) return Tree is
 
       Index : Natural := Expression'First;
 
@@ -127,7 +132,7 @@ package body Expr is
       --  Returns next token. Set Index to the last analysed position in
       --  Expression.
 
-      function No_Quote (Str : in String) return String;
+      function No_Quote (Str : String) return String;
       --  Removes quotes around Str. If Str (Str'First) and Str (Str'Last)
       --  are quotes return Str (Str'First + 1 ..  Str'Last - 1) otherwise
       --  return Str as-is.
@@ -137,7 +142,6 @@ package body Expr is
       ---------------
 
       function Get_Token return String is
-         use Strings;
          K, I  : Natural;
       begin
          if Index > Expression'Last then
@@ -232,7 +236,7 @@ package body Expr is
       -- No_Quote --
       --------------
 
-      function No_Quote (Str : in String) return String is
+      function No_Quote (Str : String) return String is
       begin
          if Str (Str'First) = '"' and then Str (Str'Last) = '"' then
             return Str (Str'First + 1 .. Str'Last - 1);
@@ -286,7 +290,6 @@ package body Expr is
             return new Node'(Var, Build (No_Quote (L_Tok)));
          end if;
 
-
       else
          if Index > Expression'Last then
             --  This is the latest token
@@ -311,7 +314,7 @@ package body Expr is
    -- Print_Tree --
    ----------------
 
-   procedure Print_Tree (E : in Tree) is
+   procedure Print_Tree (E : Tree) is
    begin
       case E.Kind is
          when Value =>
@@ -373,7 +376,7 @@ package body Expr is
    -- Value --
    -----------
 
-   function Value (O : in String) return Ops is
+   function Value (O : String) return Ops is
    begin
       if O = "and" then
          return O_And;
@@ -408,7 +411,7 @@ package body Expr is
       end if;
    end Value;
 
-   function Value (O : in String) return U_Ops is
+   function Value (O : String) return U_Ops is
    begin
       if O = "not" then
          return O_Not;

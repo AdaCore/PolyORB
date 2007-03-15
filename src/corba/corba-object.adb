@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,43 +26,60 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  The following subprograms still have to be implemented :
---     Get_Policy
---     Non_Existent
-
+with PolyORB.Any.NVList;
+with PolyORB.CORBA_P.Exceptions;
+with PolyORB.CORBA_P.Interceptors_Hooks;
 with PolyORB.CORBA_P.Local;
 with PolyORB.CORBA_P.Names;
 with PolyORB.Initialization;
-with PolyORB.Log;
+with PolyORB.Requests;
 with PolyORB.Smart_Pointers;
+with PolyORB.Types; use PolyORB.Types;
 with PolyORB.Utils.HFunctions.Mul;
 with PolyORB.Utils.Strings;
 
-with CORBA.AbstractBase;
 with CORBA.Object.Helper;
 with CORBA.ORB;
 
 package body CORBA.Object is
 
-   use PolyORB.Log;
    use PolyORB.Smart_Pointers;
-
-   package L is new PolyORB.Log.Facility_Log ("corba.object");
-   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
-     renames L.Output;
-   pragma Warnings (Off);
-   pragma Unreferenced (O);
-   pragma Warnings (On);
 
    type Internal_Object is new PolyORB.Smart_Pointers.Entity with record
       The_Object : PolyORB.Objects.Object_Id_Access;
    end record;
    type Internal_Object_Access is access all Internal_Object;
+
+   --  Client stub for remote calls implementing predefined CORBA::Object
+   --  operations
+
+   RPC_Result_Name   : constant PolyORB.Types.Identifier
+                         := To_PolyORB_String ("Result");
+
+   RPC_Is_A_Op_Name  : constant Standard.String := "_is_a";
+   RPC_Is_A_Arg_Name : constant PolyORB.Types.Identifier :=
+                         To_PolyORB_String ("Type_Id");
+
+   function RPC_Is_A
+     (Self            : Ref;
+      Logical_Type_Id : Standard.String) return CORBA.Boolean;
+   --  Client stub for remote call for class membership determination.
+   --  Note: The body of RPC_Is_A is essneitally a copy of generated code.
+
+   RPC_Non_Existent_Op_Name : constant Standard.String := "_non_existent";
+
+   function RPC_Non_Existent (Self : Ref) return CORBA.Boolean;
+   --  Client stub for remote call for object (non)existence test.
+   --  Note: The body of RPC_Non_Existent is essneitally a copy of generated
+   --  code, with a specific added exception handler for the OBJEXT_NOT_EXIST
+   --  case (where True is returned, and no exception is raised).
+
+   RPC_Interface_Op_Name : constant Standard.String := "_interface";
 
    ----------
    -- Hash --
@@ -87,18 +104,13 @@ package body CORBA.Object is
    -------------------
 
    function Get_Interface
-     (Self : in Ref)
+     (Self : Ref)
      return CORBA.Object.Ref'Class
    is
-      Operation_Name   : constant CORBA.Identifier
-        := CORBA.To_CORBA_String ("get_interface");
+      Request          : PolyORB.Requests.Request_Access;
+      Arg_List         : PolyORB.Any.NVList.Ref;
+      Result           : PolyORB.Any.NamedValue;
 
-      Request          : CORBA.Request.Object;
-      Ctx              : constant CORBA.Context.Ref
-        := CORBA.Context.Nil_Ref;
-      Arg_List         : CORBA.NVList.Ref;
-      Result           : CORBA.NamedValue;
-      Result_Name      : CORBA.String := To_CORBA_String ("Result");
    begin
       if Is_Nil (Self) then
          CORBA.Raise_Inv_Objref (Default_Sys_Member);
@@ -109,26 +121,32 @@ package body CORBA.Object is
                                                    Completed => Completed_No));
       end if;
 
-      --  Create argument list (empty)
+      PolyORB.Any.NVList.Create (Arg_List);
 
-      CORBA.ORB.Create_List (0, Arg_List);
+      --  No arguments
 
-      --  Set result type (maybe void)
-
-      Result := (Name      => CORBA.Identifier (Result_Name),
-                 Argument  => Get_Empty_Any (TC_Object),
+      Result := (Name      => RPC_Result_Name,
+                 Argument  =>
+                   CORBA.Internals.To_PolyORB_Any (
+                     CORBA.Internals.Get_Empty_Any (TC_Object)),
                  Arg_Modes => 0);
 
-      CORBA.Object.Create_Request
-        (Self, Ctx, Operation_Name, Arg_List, Result, Request, 0);
+      PolyORB.Requests.Create_Request
+        (Target    => CORBA.Object.Internals.To_PolyORB_Ref (Self),
+         Operation => RPC_Interface_Op_Name,
+         Arg_List  => Arg_List,
+         Result    => Result,
+         Req       => Request);
 
-      CORBA.Request.Invoke (Request, 0);
+      PolyORB.CORBA_P.Interceptors_Hooks.Client_Invoke
+        (Request, PolyORB.Requests.Flags (0));
 
-      --  Request has been synchronously invoked.
+      PolyORB.CORBA_P.Exceptions.Request_Raise_Occurrence (Request);
 
-      --  Retrieve return value.
+      PolyORB.Requests.Destroy_Request (Request);
 
-      return CORBA.Object.Helper.From_Any (Result.Argument);
+      return CORBA.Object.Helper.From_Any
+        (CORBA.Internals.To_CORBA_Any (Result.Argument));
    end Get_Interface;
 
    --------------
@@ -136,95 +154,128 @@ package body CORBA.Object is
    --------------
 
    function RPC_Is_A
-     (Self            : in Ref;
-      Logical_Type_Id : in Standard.String)
-     return CORBA.Boolean;
-   --  Perform a remote call on Self (a reference that designates
-   --  a CORBA object) for class membership determination.
-   --  Note: the body of RPC_Is_A is a copy of generated code.
-
-   function RPC_Is_A
-     (Self            : in Ref;
-      Logical_Type_Id : in Standard.String)
-     return CORBA.Boolean
+     (Self            : Ref;
+      Logical_Type_Id : Standard.String) return CORBA.Boolean
    is
-      Operation_Name   : constant CORBA.Identifier
-        := CORBA.To_CORBA_String ("_is_a");
+      Request          : PolyORB.Requests.Request_Access;
+      Arg_List         : PolyORB.Any.NVList.Ref;
+      Result           : PolyORB.Any.NamedValue;
 
-      Arg_Name_Type_Id : CORBA.Identifier
-        := To_CORBA_String ("Type_Id");
-      Request          : CORBA.Request.Object;
-      Ctx              : constant CORBA.Context.Ref
-        := CORBA.Context.Nil_Ref;
-      Argument_Type_Id : CORBA.Any := CORBA.To_Any
-        (To_CORBA_String (Logical_Type_Id));
-      Arg_List         : CORBA.NVList.Ref;
-      Result           : CORBA.NamedValue;
-      Result_Name      : CORBA.String := To_CORBA_String ("Result");
    begin
-      if Is_Nil (Self) then
-         CORBA.Raise_Inv_Objref (Default_Sys_Member);
-      end if;
 
-      --  Create argument list
+      --  Self has already been checked to be non-nil
 
-      CORBA.ORB.Create_List (0, Arg_List);
-      CORBA.NVList.Add_Item
+      PolyORB.Any.NVList.Create (Arg_List);
+      PolyORB.Any.NVList.Add_Item
         (Arg_List,
-         Arg_Name_Type_Id,
-         Argument_Type_Id,
-         CORBA.ARG_IN);
+         RPC_Is_A_Arg_Name,
+         PolyORB.Any.To_Any (Logical_Type_Id),
+         PolyORB.Any.ARG_IN);
 
-      --  Set result type (maybe void)
+      Result :=
+        (Name      => RPC_Result_Name,
+         Argument  => PolyORB.Any.Get_Empty_Any (PolyORB.Any.TC_Boolean),
+         Arg_Modes => 0);
 
-      Result
-        := (Name      => CORBA.Identifier (Result_Name),
-            Argument  => Get_Empty_Any (CORBA.TC_Boolean),
-            Arg_Modes => 0);
+      PolyORB.Requests.Create_Request
+        (Target    => CORBA.Object.Internals.To_PolyORB_Ref (Self),
+         Operation => RPC_Is_A_Op_Name,
+         Arg_List  => Arg_List,
+         Result    => Result,
+         Req       => Request);
 
-      CORBA.Object.Create_Request
-        (Self, Ctx, Operation_Name, Arg_List, Result, Request, 0);
+      PolyORB.CORBA_P.Interceptors_Hooks.Client_Invoke
+        (Request, PolyORB.Requests.Flags (0));
 
-      CORBA.Request.Invoke (Request, 0);
+      PolyORB.CORBA_P.Exceptions.Request_Raise_Occurrence (Request);
 
-      --  Request has been synchronously invoked.
+      PolyORB.Requests.Destroy_Request (Request);
 
-      --  Retrieve return value.
-
-      return CORBA.From_Any (Result.Argument);
+      return PolyORB.Any.From_Any (Result.Argument);
    end RPC_Is_A;
+
+   ----------------------
+   -- RPC_Non_Existent --
+   ----------------------
+
+   function RPC_Non_Existent (Self : Ref) return CORBA.Boolean is
+      Request          : PolyORB.Requests.Request_Access;
+      Arg_List         : PolyORB.Any.NVList.Ref;
+      Result           : PolyORB.Any.NamedValue;
+
+   begin
+
+      --  Self has already been checked to be non-nil
+
+      PolyORB.Any.NVList.Create (Arg_List);
+
+      --  No arguments
+
+      Result :=
+        (Name      => RPC_Result_Name,
+         Argument  => PolyORB.Any.Get_Empty_Any (PolyORB.Any.TC_Boolean),
+         Arg_Modes => 0);
+
+      PolyORB.Requests.Create_Request
+        (Target    => CORBA.Object.Internals.To_PolyORB_Ref (Self),
+         Operation => RPC_Non_Existent_Op_Name,
+         Arg_List  => Arg_List,
+         Result    => Result,
+         Req       => Request);
+
+      --  Special case: for a non-existent object, return True instead of
+      --  raising OBJECT_NOT_EXIST.
+
+      begin
+         PolyORB.CORBA_P.Interceptors_Hooks.Client_Invoke
+           (Request, PolyORB.Requests.Flags (0));
+
+         PolyORB.CORBA_P.Exceptions.Request_Raise_Occurrence (Request);
+
+         PolyORB.Requests.Destroy_Request (Request);
+
+         return PolyORB.Any.From_Any (Result.Argument);
+
+      exception
+         when CORBA.Object_Not_Exist =>
+            return True;
+      end;
+   end RPC_Non_Existent;
 
    ----------
    -- Is_A --
    ----------
 
    function Is_A
-     (Self            : in Ref;
-      Logical_Type_Id : in Standard.String)
-     return CORBA.Boolean
-   is
+     (Self            : Ref;
+      Logical_Type_Id : Standard.String) return CORBA.Boolean is
    begin
       if Is_Nil (Self) then
          CORBA.Raise_Inv_Objref (Default_Sys_Member);
       end if;
 
+      --  Any object is a CORBA::Object
+
       if Is_Equivalent
         (Logical_Type_Id,
          PolyORB.CORBA_P.Names.OMG_RepositoryId ("CORBA/Object"))
-      --  Any object Is_A CORBA::Object.
       then
          return True;
       end if;
 
       if PolyORB.CORBA_P.Local.Is_Local (Self) then
+
+         --  For true CORBA local objects, call corresponding local subprogram
+
          if PolyORB.CORBA_P.Local.Is_CORBA_Local (Self) then
-            --  For true CORBA local objects call corresponding subprogram.
             return PolyORB.CORBA_P.Local.Is_A
-                    (PolyORB.CORBA_P.Local.Local_Object_Base_Ref
-                      (Entity_Of (Self)),
-                     Logical_Type_Id);
+              (PolyORB.CORBA_P.Local.Local_Object_Base_Ref
+                 (Entity_Of (Self)),
+               Logical_Type_Id);
+
+         --  Neutral core object
+
          else
-            --  Neutral core object.
             Raise_No_Implement (No_Implement_Members'
                                 (Minor     => 3,
                                  Completed => Completed_No));
@@ -232,23 +283,20 @@ package body CORBA.Object is
          end if;
       end if;
 
-      if Is_Equivalent
-        (Logical_Type_Id,
-         PolyORB.References.Type_Id_Of
-         (To_PolyORB_Ref (Self)))
       --  Any object is of the class of its actual (i. e. most derived) type.
 
+      if Is_Equivalent (Logical_Type_Id,
+                        PolyORB.References.Type_Id_Of
+                          (Internals.To_PolyORB_Ref (Self)))
       then
          return True;
       end if;
 
-      --  If class membership cannot be determined locally,
-      --  perform a remote call on the object.
+      --  If class membership cannot be determined locally, perform a remote
+      --  call on the object. An exception may be raised (and propagated to the
+      --  caller) if communication cannot be established to the remote ORB.
 
       return RPC_Is_A (Self, Logical_Type_Id);
-   exception
-      when others =>
-         return False;
    end Is_A;
 
    -------------------
@@ -280,7 +328,7 @@ package body CORBA.Object is
       begin
          Set (Left, Entity_Of (Self));
          Set (Right, Entity_Of (Other_Object));
-         return Is_Same_Object (Left, Right);
+         return Is_Equivalent (Left, Right);
       end;
    end Is_Equivalent;
 
@@ -288,7 +336,7 @@ package body CORBA.Object is
    -- Is_Nil --
    ------------
 
-   function Is_Nil (Self : in Ref) return CORBA.Boolean is
+   function Is_Nil (Self : Ref) return CORBA.Boolean is
    begin
       return Is_Nil (PolyORB.Smart_Pointers.Ref (Self));
    end Is_Nil;
@@ -303,11 +351,7 @@ package body CORBA.Object is
          CORBA.Raise_Inv_Objref (Default_Sys_Member);
       end if;
 
-      if PolyORB.CORBA_P.Local.Is_Local (Self) then
-         return False;
-      end if;
-
-      raise Program_Error;
+      return RPC_Non_Existent (Self);
    end Non_Existent;
 
    --------------------
@@ -315,13 +359,13 @@ package body CORBA.Object is
    --------------------
 
    procedure Create_Request
-     (Self      : in     Ref;
-      Ctx       : in     CORBA.Context.Ref;
-      Operation : in     Identifier;
-      Arg_List  : in     CORBA.NVList.Ref;
+     (Self      : Ref;
+      Ctx       : CORBA.Context.Ref;
+      Operation : Identifier;
+      Arg_List  : CORBA.NVList.Ref;
       Result    : in out NamedValue;
       Request   :    out CORBA.Request.Object;
-      Req_Flags : in     Flags) is
+      Req_Flags : Flags) is
    begin
       if Is_Nil (Self) then
          CORBA.Raise_Inv_Objref (Default_Sys_Member);
@@ -347,15 +391,15 @@ package body CORBA.Object is
    --------------------
 
    procedure Create_Request
-     (Self      : in     Ref;
-      Ctx       : in     CORBA.Context.Ref;
-      Operation : in     Identifier;
-      Arg_List  : in     CORBA.NVList.Ref;
+     (Self      : Ref;
+      Ctx       : CORBA.Context.Ref;
+      Operation : Identifier;
+      Arg_List  : CORBA.NVList.Ref;
       Result    : in out NamedValue;
-      Exc_List  : in     ExceptionList.Ref;
-      Ctxt_List : in     ContextList.Ref;
+      Exc_List  : ExceptionList.Ref;
+      Ctxt_List : ContextList.Ref;
       Request   :    out CORBA.Request.Object;
-      Req_Flags : in     Flags) is
+      Req_Flags : Flags) is
    begin
       if Is_Nil (Self) then
          CORBA.Raise_Inv_Objref (Default_Sys_Member);
@@ -378,6 +422,15 @@ package body CORBA.Object is
          Req_Flags);
    end Create_Request;
 
+   ---------------
+   -- Duplicate --
+   ---------------
+
+   procedure Duplicate (Self : in out Ref) is
+   begin
+      Duplicate (PolyORB.Smart_Pointers.Ref (Self));
+   end Duplicate;
+
    -------------
    -- Release --
    -------------
@@ -392,7 +445,7 @@ package body CORBA.Object is
    ----------------------
 
    function  Object_To_String
-     (Obj : in CORBA.Object.Ref'Class)
+     (Obj : CORBA.Object.Ref'Class)
      return CORBA.String is
    begin
       --  Object locality checked inside CORBA.ORB.
@@ -400,80 +453,51 @@ package body CORBA.Object is
       return CORBA.ORB.Object_To_String (Obj);
    end Object_To_String;
 
---    --------------------------
---    -- Set_Policy_Overrides --
---    --------------------------
+   package body Internals is
 
---    procedure Set_Policy_Overrides
---      (Self     : in Ref;
---       Policies :    CORBA.Policy.PolicyList;
---       Set_Add  :    SetOverrideType)
---    is
---    begin
---       null;
---    end Set_Policy_Overrides;
+      -----------------------
+      -- To_PolyORB_Object --
+      -----------------------
 
-   --  XXX remove
---    ---------------------
---    -- To_CORBA_Object --
---    ---------------------
+      function To_PolyORB_Object
+        (R : Ref)
+        return PolyORB.Objects.Object_Id
+      is
+      begin
+         return Internal_Object_Access (Entity_Of (R)).The_Object.all;
+      end To_PolyORB_Object;
 
---    function To_CORBA_Object
---      (O : in PolyORB.Objects.Object_Id)
---      return Ref
---    is
---       Result : Ref;
---       Internal : Internal_Object_Access;
---    begin
---       Internal := new Internal_Object;
---       Internal.The_Object := new PolyORB.Objects.Object_Id'(O);
+      --------------------
+      -- To_PolyORB_Ref --
+      --------------------
 
---       PolyORB.Smart_Pointers.Set
---         (PolyORB.Smart_Pointers.Ref (Result),
---          Entity_Ptr (Internal));
---       return Result;
---    end To_CORBA_Object;
+      function To_PolyORB_Ref (R : Ref) return PolyORB.References.Ref is
+      begin
+         return PolyORB.References.Ref (R);
+--        is
+--           E : constant PolyORB.Smart_Pointers.Entity_Ptr
+--             := Entity_Of (R);
+--           Result : PolyORB.References.Ref;
+--        begin
+--           PolyORB.References.Set (Result, E);
+--           return Result;
+      end To_PolyORB_Ref;
 
-   -----------------------
-   -- To_PolyORB_Object --
-   -----------------------
+      --------------------------
+      -- Convert_To_CORBA_Ref --
+      --------------------------
 
-   function To_PolyORB_Object
-     (R : in Ref)
-     return PolyORB.Objects.Object_Id
-   is
-   begin
-      return Internal_Object_Access (Entity_Of (R)).The_Object.all;
-   end To_PolyORB_Object;
+      procedure Convert_To_CORBA_Ref
+        (Neutral_Ref : PolyORB.References.Ref;
+         CORBA_Ref   : in out CORBA.Object.Ref'Class)
+      is
+         E : constant PolyORB.Smart_Pointers.Entity_Ptr
+           := PolyORB.References.Entity_Of (Neutral_Ref);
+      begin
+         Set (CORBA_Ref, E);
+      end Convert_To_CORBA_Ref;
 
-   --------------------
-   -- To_PolyORB_Ref --
-   --------------------
-
-   function To_PolyORB_Ref (R : in Ref)
-     return PolyORB.References.Ref
-   is
-      E : constant PolyORB.Smart_Pointers.Entity_Ptr
-        := Entity_Of (R);
-      Result : PolyORB.References.Ref;
-   begin
-      PolyORB.References.Set (Result, E);
-      return Result;
-   end To_PolyORB_Ref;
-
-   --------------------------
-   -- Convert_To_CORBA_Ref --
-   --------------------------
-
-   procedure Convert_To_CORBA_Ref
-     (Neutral_Ref : in     PolyORB.References.Ref;
-      CORBA_Ref   : in out CORBA.Object.Ref'Class)
-   is
-      E : constant PolyORB.Smart_Pointers.Entity_Ptr
-        := PolyORB.References.Entity_Of (Neutral_Ref);
-   begin
-      Set (CORBA_Ref, E);
-   end Convert_To_CORBA_Ref;
+   end Internals;
 
    ---------------
    -- TC_Object --
@@ -514,5 +538,6 @@ begin
        Depends   => +"corba" & "any",
        Provides  => Empty,
        Implicit  => False,
-       Init      => Initialize'Access));
+       Init      => Initialize'Access,
+       Shutdown  => null));
 end CORBA.Object;

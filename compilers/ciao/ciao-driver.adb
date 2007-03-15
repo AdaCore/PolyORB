@@ -575,7 +575,6 @@ exception
       Set_Output (Standard_Error);
       New_Line;
 
-
       Put ("Unexpected bug in ");
       Put_CIAO_Version;
       New_Line;

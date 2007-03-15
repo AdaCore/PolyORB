@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -93,7 +93,6 @@ with PortableServer;
 with PolyORB.CORBA_P.Server_Tools;
 
 with PolyORB.Setup.Thread_Pool_Server;
-pragma Elaborate_All (PolyORB.Setup.Thread_Pool_Server);
 pragma Warnings (Off, PolyORB.Setup.Thread_Pool_Server);
 
 with GNAT.OS_Lib;
@@ -102,7 +101,6 @@ with TypedTest_Interface;
 with TypedTest_Interface.Helper;
 with TypedTest_Interface.Impl;
 --  Mutually Agreed Interface between Consumers and Suppliers
-
 
 procedure TypedTest_Event is
 
@@ -253,7 +251,6 @@ procedure TypedTest_Event is
             raise Syntax_Error;
       end case;
    end Connect_Entity;
-
 
    -----------------------------
    -- Get_Typed_Object_Entity --
@@ -465,7 +462,7 @@ procedure TypedTest_Event is
       loop
          BindingIterator.next_one (Iter, B, Done);
          exit when not Done;
-         NC := Element_Of (B.binding_name, 1);
+         NC := Get_Element (B.binding_name, 1);
          if NC.id = Id then
             for K in Image'Range loop
                if NC.kind = Image (K) then

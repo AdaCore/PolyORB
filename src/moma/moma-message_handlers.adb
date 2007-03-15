@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -31,17 +31,15 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with MOMA.Messages;
 with MOMA.Destinations;
-with PolyORB.MOMA_P.Provider.Message_Handler;
-with MOMA.Types;
+with MOMA.Runtime;
 
-with PolyORB.Annotations;
 with PolyORB.Any.NVList;
 with PolyORB.Errors;
 with PolyORB.Log;
 with PolyORB.Minimal_Servant.Tools;
 with PolyORB.MOMA_P.Exceptions;
+with PolyORB.MOMA_P.Provider.Message_Handler;
 with PolyORB.References;
 with PolyORB.Requests;
 with PolyORB.Types;
@@ -51,7 +49,6 @@ package body MOMA.Message_Handlers is
    use MOMA.Messages;
    use MOMA.Message_Consumers;
    use MOMA.Destinations;
-   use MOMA.Types;
 
    use PolyORB.Annotations;
    use PolyORB.Any;
@@ -63,8 +60,11 @@ package body MOMA.Message_Handlers is
 
    package L is
       new PolyORB.Log.Facility_Log ("moma.message_handlers");
-   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+   procedure O (Message : Standard.String; Level : Log_Level := Debug)
      renames L.Output;
+   function C (Level : Log_Level := Debug) return Boolean
+     renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    procedure Register_To_Servant (Self : access Message_Handler);
    --  Register the Message_Handler or change the Behavior,
@@ -101,10 +101,12 @@ package body MOMA.Message_Handlers is
       Error : Error_Container;
 
    begin
-      Initiate_Servant (Servant,
-                        PolyORB.Types.String (MOMA.Types.MOMA_Type_Id),
-                        Servant_Ref,
-                        Error);
+      Initiate_Servant
+        (Servant,
+         MOMA.Runtime.MOMA_OA,
+         PolyORB.Types.String (MOMA.Types.MOMA_Type_Id),
+         Servant_Ref,
+         Error);
 
       if Found (Error) then
          PolyORB.MOMA_P.Exceptions.Raise_From_Error (Error);
@@ -229,7 +231,7 @@ package body MOMA.Message_Handlers is
 
    procedure Set_Behavior
      (Self           : access Message_Handler;
-      New_Behavior   : in     MOMA.Types.Call_Back_Behavior)
+      New_Behavior   : MOMA.Types.Call_Back_Behavior)
    is
       Previous_Behavior :
         constant MOMA.Types.Call_Back_Behavior := Self.Behavior;
@@ -257,7 +259,7 @@ package body MOMA.Message_Handlers is
 
    procedure Set_Handler
      (Self                    : access Message_Handler;
-      New_Handler_Procedure   : in     Handler;
+      New_Handler_Procedure   : Handler;
       Handle_Behavior         :        Boolean := False) is
    begin
       Self.Handler_Procedure := New_Handler_Procedure;
@@ -273,7 +275,7 @@ package body MOMA.Message_Handlers is
 
    procedure Set_Notifier
      (Self                    : access Message_Handler;
-      New_Notifier_Procedure  : in     Notifier;
+      New_Notifier_Procedure  : Notifier;
       Notify_Behavior         : Boolean := False) is
    begin
       Self.Notifier_Procedure := New_Notifier_Procedure;

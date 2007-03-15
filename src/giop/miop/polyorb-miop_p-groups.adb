@@ -66,7 +66,6 @@ package body PolyORB.MIOP_P.Groups is
       use PolyORB.Buffers;
       use PolyORB.Objects;
       use PolyORB.Representations.CDR.Common;
-      use PolyORB.Types;
 
       Buffer : Buffer_Access := new Buffer_Type;
       Oid : PolyORB.Objects.Object_Id_Access;

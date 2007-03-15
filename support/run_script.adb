@@ -33,6 +33,22 @@
 
 --  Wrapper to run shell scripts under Windows.
 
+--  This runs the script with the same name as its own executable file without
+--  the .exe extension. For example, we copy run_script.exe to
+--  native_linker.exe. When native_linker.exe runs, it runs the script called
+--  native_linker using an appropriate Unix-like shell, passing along all
+--  arguments. The native_linker will start with something like "#! /bin/sh" in
+--  the usual Unix convention. If we're running under cygwin, then this:
+--      native_linker.exe arg1 arg2
+--  will run something like this:
+--      C:\cygwin\bin\sh.exe C:/.../support/native-linker arg1 arg2
+
+--  This is needed because we sometimes pass something like this:
+--    --LINK=../../support/native-linker
+--  to gnatlink, where native-linker is a shell script starting with
+--  "#! /bin/sh". But on windows, gnatlink is a windows program, and therefore
+--  does not understand the "#!"  convention.
+
 with Ada.Command_Line;
 with Ada.Text_IO;
 with GNAT.OS_Lib;
@@ -56,6 +72,9 @@ procedure Run_Script is
    function Cygwin_Resolve (Filename : String) return String;
    --  Resolve a name relative to Cygwin mount points to the
    --  corresponding native path.
+
+   function Strip_Exe (Filename : String) return String;
+   --  Strip the ".exe" extension off the end of Filename
 
    -------------------
    -- All_Arguments --
@@ -127,64 +146,92 @@ procedure Run_Script is
       return Filename;
    end Cygwin_Resolve;
 
+   ---------------
+   -- Strip_Exe --
+   ---------------
+
+   function Strip_Exe (Filename : String) return String is
+   begin
+      if
+        Filename'Length < 4
+        or else Filename (Filename'Last - 3 .. Filename'Last) /= ".exe"
+      then
+         Put_Line ("run_script: " & Filename & " should end in '.exe'");
+         OS_Exit (-1);
+      end if;
+
+      return Filename (Filename'First .. Filename'Last - 4);
+   end Strip_Exe;
+
    Self : constant String := Format_Pathname (Command_Name, UNIX);
-   Script_Last : Integer;
+   --  Name of this executable file
+
+   Script_Name : constant String := Strip_Exe (Self);
+   --  Name of this executable with ".exe" removed.
+
    Script : Ada.Text_IO.File_Type;
 
    Line : String (1 .. 256);
    First, Last : Integer;
 
 begin
-   if Self'Length >= 4 and then Self (Self'Last - 3 .. Self'Last) = ".exe" then
-      Script_Last := Self'Last - 4;
-   else
-      Script_Last := Self'Last;
-   end if;
-   Open (Script, In_file, Self (Self'First .. Script_Last));
+   begin
+      Open (Script, In_file, Script_Name);
+   exception
+      when Name_Error | Use_Error =>
+         Put_Line ("run_script: cannot open " & Script_Name);
+         OS_Exit (-1);
+   end;
    Get_Line (Script, Line, Last);
-   if Last >= 2 and then Line (1 .. 2) = "#!" then
-      First := 3;
-      while First < Last
-        and then (Line (First) = ' ' or else Line (First) = ASCII.HT)
-      loop
-         First := First + 1;
-      end loop;
-
-      declare
-         Interp_Command : constant String := Line (First .. Last);
-         Args : constant Argument_List_Access
-           := Argument_String_To_List (Interp_Command);
-
-         New_Args : constant Argument_List
-           := Args (Args'First + 1 .. Args'Last)
-            & new String'(Self (Self'First .. Script_Last))
-            & All_Arguments;
-
-         Interp : String renames Args (Args'First).all;
-         Interp_Path : String_Access;
-
-      begin
-         Interp_Path := Locate_Exec_On_Path (Interp);
-
-         if Interp_Path = null then
-            Interp_Path := Locate_Exec_On_Path (Cygwin_Resolve (Interp));
-         end if;
-
-         if Interp_Path = null then
-            Interp_Path := Locate_Exec_On_Path (MinGW_Resolve (Interp));
-         end if;
-
-         if Interp_Path = null then
-            Put_Line ("Interp = """ & Interp & """ not found ");
-            Put_Line ("Tried:");
-            Put_Line ("  normal resolv = " & Interp);
-            Put_Line ("  for Cygwin    = " & Cygwin_Resolve (Interp));
-            Put_Line ("  for MinGW     = " & MinGW_Resolve (Interp));
-            OS_Exit (-1);
-         end if;
-
-         OS_Exit (Spawn (Interp_Path.all, New_Args));
-      end;
+   if Last < 2 or else Line (1 .. 2) /= "#!" then
+      Put_Line ("run_script: file " & Script_Name & " must start with '#!'");
+      Put_Line ("found '" & Line (Line'First .. Last) & "'");
+      OS_Exit (-1);
    end if;
+
+   First := 3;
+   while First < Last
+     and then (Line (First) = ' ' or else Line (First) = ASCII.HT)
+   loop
+      First := First + 1;
+   end loop;
+
+   declare
+      Interp_Command : constant String := Line (First .. Last);
+      Args : constant Argument_List_Access
+        := Argument_String_To_List (Interp_Command);
+
+      New_Args : constant Argument_List
+        := Args (Args'First + 1 .. Args'Last)
+         & new String'(Script_Name)
+         & All_Arguments;
+
+      Interp : String renames Args (Args'First).all;
+      Interp_Path : String_Access;
+
+   begin
+      Interp_Path := Locate_Exec_On_Path (Interp);
+
+      if Interp_Path = null then
+         Interp_Path := Locate_Exec_On_Path (Cygwin_Resolve (Interp));
+      end if;
+
+      if Interp_Path = null then
+         Interp_Path := Locate_Exec_On_Path (MinGW_Resolve (Interp));
+      end if;
+
+      if Interp_Path = null then
+         Put_Line ("run_script: Interp = """ & Interp & """ not found ");
+         Put_Line ("Tried:");
+         Put_Line ("  normal resolv = " & Interp);
+         Put_Line ("  for Cygwin    = " & Cygwin_Resolve (Interp));
+         Put_Line ("  for MinGW     = " & MinGW_Resolve (Interp));
+         OS_Exit (-1);
+      end if;
+
+      OS_Exit (Spawn (Interp_Path.all, New_Args));
+   end;
+
+   --  Can't get here!
 
 end Run_Script;

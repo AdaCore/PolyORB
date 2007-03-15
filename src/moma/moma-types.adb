@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,13 +26,12 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 with PolyORB.Initialization;
-pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
 with PolyORB.Log;
 with PolyORB.Utils.Strings;
@@ -43,14 +42,17 @@ package body MOMA.Types is
    use PolyORB.Log;
 
    package L is new PolyORB.Log.Facility_Log ("moma.types");
-   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+   procedure O (Message : Standard.String; Level : Log_Level := Debug)
      renames L.Output;
+   function C (Level : Log_Level := Debug) return Standard.Boolean
+     renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    --------------
    -- From_Any --
    --------------
 
-   function From_Any (Item : in MOMA.Types.Any) return Map_Element
+   function From_Any (Item : MOMA.Types.Any) return Map_Element
    is
       Index  : PolyORB.Any.Any;
       Result : Map_Element;
@@ -72,7 +74,7 @@ package body MOMA.Types is
    end From_Any;
 
    function From_Any
-     (Item : in MOMA.Types.Any)
+     (Item : MOMA.Types.Any)
      return IDL_SEQUENCE_Map_Element.Sequence
    is
       use IDL_SEQUENCE_Map_Element;
@@ -97,7 +99,7 @@ package body MOMA.Types is
       return To_Sequence (Result);
    end From_Any;
 
-   function From_Any (Item : in MOMA.Types.Any) return Map
+   function From_Any (Item : MOMA.Types.Any) return Map
    is
       Result : IDL_SEQUENCE_Map_Element.Sequence := From_Any (Item);
    begin
@@ -105,7 +107,7 @@ package body MOMA.Types is
       return Map (Result);
    end From_Any;
 
-   function From_Any (Item : in MOMA.Types.Any) return Destination_Type
+   function From_Any (Item : MOMA.Types.Any) return Destination_Type
    is
       Index : Any := Get_Aggregate_Element (Item,
                                             TC_Unsigned_Long,
@@ -115,64 +117,64 @@ package body MOMA.Types is
       return Destination_Type'Val (Position);
    end From_Any;
 
-   function From_Any (Item : in Any) return Short is
+   function From_Any (Item : Any) return Short is
    begin
       return Short
         (PolyORB.Types.Short'(PolyORB.Any.From_Any (Item)));
    end From_Any;
 
-   function From_Any (Item : in Any) return Long is
+   function From_Any (Item : Any) return Long is
    begin
       return Long
         (PolyORB.Types.Long'(PolyORB.Any.From_Any (Item)));
    end From_Any;
 
-   function From_Any (Item : in Any) return Unsigned_Short is
+   function From_Any (Item : Any) return Unsigned_Short is
    begin
       return Unsigned_Short
         (PolyORB.Types.Unsigned_Short'(PolyORB.Any.From_Any (Item)));
    end From_Any;
 
-   function From_Any (Item : in Any) return Unsigned_Long is
+   function From_Any (Item : Any) return Unsigned_Long is
    begin
       return Unsigned_Long
         (PolyORB.Types.Unsigned_Long'(PolyORB.Any.From_Any (Item)));
    end From_Any;
 
-   function From_Any (Item : in Any) return MOMA.Types.Float is
+   function From_Any (Item : Any) return MOMA.Types.Float is
    begin
       return MOMA.Types.Float
         (PolyORB.Types.Float'(PolyORB.Any.From_Any (Item)));
    end From_Any;
 
-   function From_Any (Item : in Any) return Double is
+   function From_Any (Item : Any) return Double is
    begin
       return Double
         (PolyORB.Types.Double'(PolyORB.Any.From_Any (Item)));
    end From_Any;
 
-   function From_Any (Item : in Any) return Boolean is
+   function From_Any (Item : Any) return Boolean is
    begin
       return Boolean
         (PolyORB.Types.Boolean'(PolyORB.Any.From_Any (Item)));
    end From_Any;
 
-   function From_Any (Item : in Any) return Char is
+   function From_Any (Item : Any) return Char is
    begin
       return Char
         (PolyORB.Types.Char'(PolyORB.Any.From_Any (Item)));
    end From_Any;
 
-   function From_Any (Item : in Any) return Byte is
+   function From_Any (Item : Any) return Byte is
    begin
       return Byte
         (PolyORB.Types.Octet'(PolyORB.Any.From_Any (Item)));
    end From_Any;
 
-   function From_Any (Item : in Any) return Any
+   function From_Any (Item : Any) return Any
      renames PolyORB.Any.From_Any;
 
-   function From_Any (Item : in Any) return MOMA.Types.String is
+   function From_Any (Item : Any) return MOMA.Types.String is
    begin
       return MOMA.Types.String
         (PolyORB.Types.String'(PolyORB.Any.From_Any (Item)));
@@ -182,7 +184,7 @@ package body MOMA.Types is
    -- To_Any --
    ------------
 
-   function To_Any (Item : in Map_Element) return MOMA.Types.Any
+   function To_Any (Item : Map_Element) return MOMA.Types.Any
    is
       Result : Any := Get_Empty_Any_Aggregate (TC_Map_Element);
 
@@ -195,7 +197,7 @@ package body MOMA.Types is
    end To_Any;
 
    function To_Any
-     (Item : in IDL_SEQUENCE_Map_Element.Sequence)
+     (Item : IDL_SEQUENCE_Map_Element.Sequence)
      return MOMA.Types.Any
    is
       use IDL_SEQUENCE_Map_Element;
@@ -216,7 +218,7 @@ package body MOMA.Types is
       return Result;
    end To_Any;
 
-   function To_Any (Item : in Map) return MOMA.Types.Any
+   function To_Any (Item : Map) return MOMA.Types.Any
    is
       Result : Any := To_Any (IDL_SEQUENCE_Map_Element.Sequence (Item));
    begin
@@ -225,7 +227,7 @@ package body MOMA.Types is
       return Result;
    end To_Any;
 
-   function To_Any (Item : in Destination_Type) return MOMA.Types.Any
+   function To_Any (Item : Destination_Type) return MOMA.Types.Any
    is
       Result : Any := Get_Empty_Any_Aggregate (TC_Destination_Type);
    begin
@@ -235,55 +237,55 @@ package body MOMA.Types is
       return Result;
    end To_Any;
 
-   function To_Any (Item : in Short) return Any is
+   function To_Any (Item : Short) return Any is
    begin
       return PolyORB.Any.To_Any (PolyORB.Types.Short (Item));
    end To_Any;
 
-   function To_Any (Item : in Long) return Any is
+   function To_Any (Item : Long) return Any is
    begin
       return PolyORB.Any.To_Any (PolyORB.Types.Long (Item));
    end To_Any;
 
-   function To_Any (Item : in Unsigned_Short) return Any is
+   function To_Any (Item : Unsigned_Short) return Any is
    begin
       return PolyORB.Any.To_Any (PolyORB.Types.Unsigned_Short (Item));
    end To_Any;
 
-   function To_Any (Item : in Unsigned_Long) return Any is
+   function To_Any (Item : Unsigned_Long) return Any is
    begin
       return PolyORB.Any.To_Any (PolyORB.Types.Unsigned_Long (Item));
    end To_Any;
 
-   function To_Any (Item : in MOMA.Types.Float) return Any is
+   function To_Any (Item : MOMA.Types.Float) return Any is
    begin
       return PolyORB.Any.To_Any (PolyORB.Types.Float (Item));
    end To_Any;
 
-   function To_Any (Item : in Double) return Any is
+   function To_Any (Item : Double) return Any is
    begin
       return PolyORB.Any.To_Any (PolyORB.Types.Double (Item));
    end To_Any;
 
-   function To_Any (Item : in Boolean) return Any is
+   function To_Any (Item : Boolean) return Any is
    begin
       return PolyORB.Any.To_Any (PolyORB.Types.Boolean (Item));
    end To_Any;
 
-   function To_Any (Item : in Char) return Any is
+   function To_Any (Item : Char) return Any is
    begin
       return PolyORB.Any.To_Any (PolyORB.Types.Char (Item));
    end To_Any;
 
-   function To_Any (Item : in Byte) return Any is
+   function To_Any (Item : Byte) return Any is
    begin
       return PolyORB.Any.To_Any (PolyORB.Types.Octet (Item));
    end To_Any;
 
-   function To_Any (Item : in Any) return Any
+   function To_Any (Item : Any) return Any
      renames PolyORB.Any.To_Any;
 
-   function To_Any (Item : in MOMA.Types.String) return Any is
+   function To_Any (Item : MOMA.Types.String) return Any is
    begin
       return PolyORB.Any.To_Any (PolyORB.Types.String (Item));
    end To_Any;
@@ -630,7 +632,6 @@ package body MOMA.Types is
 
    procedure Initialize is
       use PolyORB.Utils.Strings;
-      use PolyORB.Types;
 
    begin
 
@@ -714,9 +715,10 @@ begin
         (Module_Info'
          (Name      => +"MOMA.Types",
           Conflicts => Empty,
-          Depends   => Empty,
+          Depends   => +"any",
           Provides  => Empty,
           Implicit  => False,
-          Init      => Initialize'Access));
+          Init      => Initialize'Access,
+          Shutdown  => null));
    end;
 end MOMA.Types;

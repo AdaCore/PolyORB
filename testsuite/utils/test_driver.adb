@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Wrapper to launch PolyORB's testsuite.
+--  Wrapper to launch PolyORB's testsuite
 
 with Ada.Exceptions;
 with Ada.Text_IO;
@@ -47,7 +47,6 @@ with PolyORB.Initialization;
 
 with PolyORB.Log.Stderr;
 pragma Warnings (Off, PolyORB.Log.Stderr);
-pragma Elaborate_All (PolyORB.Log.Stderr);
 
 procedure Test_Driver is
 
@@ -76,6 +75,8 @@ procedure Test_Driver is
    To_Do          : Action;
    Output         : TSO_Access;
    Item           : String_Access;
+   Configuration_Base_Dir : String_Access;
+   Position : Integer := -1;
 
    ---------
    -- Run --
@@ -83,19 +84,22 @@ procedure Test_Driver is
 
    procedure Run is
    begin
-      --  Execute test_driver ..
+      --  Execute test_driver
+
       Open (Test_Suite_Output'Class (Output.all));
       Log (Test_Suite_Output'Class (Output.all), "Test driver launched.");
 
       case To_Do is
          when Run_Scenario =>
             Test_Suite.Scenarios.Run_Scenario
-              (Item.all, 1,
+              (Item.all, Position,
+               Configuration_Base_Dir.all,
                Test_Suite_Output'Class (Output.all));
 
          when Run_All_Scenarios =>
             Test_Suite.Scenarios.Run_All_Scenarios
               (Item.all,
+               Configuration_Base_Dir.all,
                Test_Suite_Output'Class (Output.all));
       end case;
 
@@ -121,21 +125,16 @@ procedure Test_Driver is
    -- Scan_Command_Line --
    -----------------------
 
-   procedure Scan_Command_Line
-   is
-      No_Output : exception;
-
+   procedure Scan_Command_Line is
    begin
       loop
-         case Getopt ("scenario: full: output:") is
+         case Getopt ("scenario: full: output: config: position:") is
             when ASCII.NUL =>
                exit;
 
-            when 's' =>
-               if Full_Switch = "scenario" then
-                  To_Do := Run_Scenario;
-                  Item := new String '(Parameter);
-                  Scan_Succesful := True;
+            when 'c' =>
+               if Full_Switch = "config" then
+                  Configuration_Base_Dir := new String '(Parameter);
                end if;
 
             when 'f' =>
@@ -149,11 +148,26 @@ procedure Test_Driver is
                if Full_Switch = "output" then
                   if Parameter = "text" then
                      Output := new Text_Output;
+
                   elsif Parameter = "file" then
                      Output := new File_Output;
+
                   else
-                     raise No_Output;
+                     Put_Line (Standard_Error, "Invalid output: " & Parameter);
+                     raise Constraint_Error;
                   end if;
+               end if;
+
+            when 's' =>
+               if Full_Switch = "scenario" then
+                  To_Do := Run_Scenario;
+                  Item := new String '(Parameter);
+                  Scan_Succesful := True;
+               end if;
+
+            when 'p' =>
+               if Full_Switch = "position" then
+                  Position := Integer'Value (Parameter);
                end if;
 
             when others =>
@@ -167,18 +181,13 @@ procedure Test_Driver is
 
       when Invalid_Parameter =>
          Put_Line (Standard_Error, "No parameter for " & Full_Switch);
-
-      when No_Output =>
-         Put_Line (Standard_Error, "No output defined.");
-
    end Scan_Command_Line;
 
    -----------
    -- Usage --
    -----------
 
-   procedure Usage
-   is
+   procedure Usage is
       Filename : constant String := GNAT.Source_Info.File;
       Executable_Name : constant String
         := Filename (Filename'First .. Filename'Last - 4);
@@ -186,15 +195,21 @@ procedure Test_Driver is
    begin
       New_Line;
       Put_Line (Standard_Error, "Usage: " & Executable_Name
-                & " -scenario scenario_file|-full directory"
-                & " -output file|text,");
+                & " -scenario scenario_file [-position integer]"
+                & "|-full directory"
+                & " -output file|text -config dir,");
       Put_Line (Standard_Error,
                 "  -scenario scenario_file : plays scenario_file,");
+      Put_Line (Standard_Error,
+                "  -position integer : plays only test #position");
       Put_Line (Standard_Error,
                 "  -full     directory     : plays all scenarios" &
                 " in directory.");
       Put_Line (Standard_Error,
                 "  -output   file|text     : output to stdout or files");
+      Put_Line (Standard_Error,
+                "  -config   dir           : directory for scenario files ");
+
       New_Line;
    end Usage;
 
@@ -205,8 +220,7 @@ begin
 
    Scan_Command_Line;
 
-   if Scan_Succesful
-     and then Output /= null then
+   if Scan_Succesful and then Output /= null then
       Run;
    else
       Usage;

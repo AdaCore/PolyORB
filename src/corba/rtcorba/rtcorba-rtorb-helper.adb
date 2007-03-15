@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2004 Free Software Foundation, Inc.             --
+--         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -35,7 +35,6 @@ with PolyORB.Utils.Strings;
 with PolyORB.Initialization;
 pragma Elaborate_All (PolyORB.Initialization);
 with PolyORB.Exceptions;
-with PolyORB.Any;
 
 package body RTCORBA.RTORB.Helper is
 
@@ -44,7 +43,7 @@ package body RTCORBA.RTORB.Helper is
    ----------------------------
 
    function Unchecked_To_Local_Ref
-     (The_Ref : in CORBA.Object.Ref'Class)
+     (The_Ref : CORBA.Object.Ref'Class)
      return RTCORBA.RTORB.Local_Ref
    is
       Result : RTCORBA.RTORB.Local_Ref;
@@ -60,7 +59,7 @@ package body RTCORBA.RTORB.Helper is
    ------------------
 
    function To_Local_Ref
-     (The_Ref : in CORBA.Object.Ref'Class)
+     (The_Ref : CORBA.Object.Ref'Class)
      return RTCORBA.RTORB.Local_Ref
    is
    begin
@@ -84,7 +83,7 @@ package body RTCORBA.RTORB.Helper is
    --------------
 
    function From_Any
-     (Item : in CORBA.Any)
+     (Item : CORBA.Any)
      return RTCORBA.RTORB.InvalidThreadpool_Members
    is
       pragma Unreferenced (Item);
@@ -100,13 +99,13 @@ package body RTCORBA.RTORB.Helper is
    ------------
 
    function To_Any
-     (Item : in RTCORBA.RTORB.InvalidThreadpool_Members)
+     (Item : RTCORBA.RTORB.InvalidThreadpool_Members)
      return CORBA.Any
    is
       pragma Unreferenced (Item);
 
       Result : CORBA.Any :=
-        CORBA.Get_Empty_Any_Aggregate (TC_InvalidThreadpool);
+        CORBA.Internals.Get_Empty_Any_Aggregate (TC_InvalidThreadpool);
 
    begin
       return Result;
@@ -117,11 +116,13 @@ package body RTCORBA.RTORB.Helper is
    --------------------------------------
 
    procedure Raise_InvalidThreadpool_From_Any
-     (Item : in PolyORB.Any.Any);
+     (Item    : PolyORB.Any.Any;
+      Message : Standard.String);
    pragma No_Return (Raise_InvalidThreadpool_From_Any);
 
    procedure Raise_InvalidThreadpool_From_Any
-     (Item : in PolyORB.Any.Any)
+     (Item    : PolyORB.Any.Any;
+      Message : Standard.String)
    is
       Members : constant InvalidThreadpool_Members
         := From_Any (CORBA.Internals.To_CORBA_Any (Item));
@@ -129,7 +130,8 @@ package body RTCORBA.RTORB.Helper is
    begin
       PolyORB.Exceptions.User_Raise_Exception
         (InvalidThreadpool'Identity,
-         Members);
+         Members,
+         Message);
    end Raise_InvalidThreadpool_From_Any;
 
    -----------------------------
@@ -137,7 +139,7 @@ package body RTCORBA.RTORB.Helper is
    -----------------------------
 
    procedure Raise_InvalidThreadpool
-     (Members : in InvalidThreadpool_Members)
+     (Members : InvalidThreadpool_Members)
    is
    begin
       PolyORB.Exceptions.User_Raise_Exception
@@ -176,8 +178,10 @@ begin
      (Module_Info'
       (Name      => +"RTCORBA.RTORB.Helper",
        Conflicts => Empty,
-       Depends   => +"exceptions",
+       Depends   => +"any"
+       & "exceptions",
        Provides  => Empty,
        Implicit  => False,
-       Init      => Deferred_Initialization'Access));
+       Init      => Deferred_Initialization'Access,
+       Shutdown  => null));
 end RTCORBA.RTORB.Helper;

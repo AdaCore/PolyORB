@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2004 Free Software Foundation, Inc.             --
+--         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -40,20 +40,20 @@
 package Idl_Fe.Files is
 
    procedure Add_Search_Path
-    (Path    : in     String;
-     Success :    out Boolean);
+    (Path    : String;
+     Success : out Boolean);
    --  Add IDL files search path. If path don't exists or not a direcotry
    --  then Success is False.
 
-   function Locate_IDL_File (File_Name : in String) return String;
+   function Locate_IDL_File (File_Name : String) return String;
    --  Search file in search paths and return file path. Return empty
    --  string if file not found. Append IDL file suffix if it absent.
 
-   function Locate_IDL_Specification (Scoped_Name : in String) return String;
+   function Locate_IDL_Specification (Scoped_Name : String) return String;
    --  Convert Scoped_Name to file name and search file in search paths.
    --  Return file path if found and empty string else.
 
-   function Preprocess_File (File_Name : in String) return String;
+   function Preprocess_File (File_Name : String) return String;
    --  Call the C++ preprocessor for processing defined file. Return
    --  file name of temporary file or empty string if something failed.
 

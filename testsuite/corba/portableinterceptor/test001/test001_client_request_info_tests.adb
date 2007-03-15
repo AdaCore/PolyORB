@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2004 Free Software Foundation, Inc.             --
+--         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,15 +26,15 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 with CORBA.Object;
 with CORBA.Policy;
+with IOP;
 
-with Test001_Globals;
 with Test001_Interface.Helper;
 
 package body Test001_Client_Request_Info_Tests is
@@ -72,7 +72,7 @@ package body Test001_Client_Request_Info_Tests is
             Members : System_Exception_Members;
          begin
             Get_Members (E, Members);
-            if not Valid and then Members.Minor = 14 then
+            if not Valid and then Members.Minor = OMGVMCID + 14 then
                Output (Point, Operation, True);
             else
                Output (Point, Operation, False);
@@ -91,14 +91,25 @@ package body Test001_Client_Request_Info_Tests is
      (Point : in     Client_Interception_Point;
       Info  : in     PortableInterceptor.ClientRequestInfo.Local_Ref)
    is
-      pragma Unreferenced (Info);
+      use type IOP.ProfileId;
 
       Operation : constant String := "effective_profile";
 
-   begin
-      --  XXX Not yet implemented in ClientRequestInfo
+      Profile   : IOP.TaggedProfile;
 
-      Output (Point, Operation, False, " (NO TEST)");
+   begin
+      Profile := Get_Effective_Profile (Info);
+
+      if Profile.Tag /= IOP.Tag_Internet_IOP then
+         Output (Point, Operation, False);
+
+      else
+         Output (Point, Operation, True);
+      end if;
+
+   exception
+      when others =>
+         Output (Point, Operation, False);
    end Test_Effective_Profile;
 
    ---------------------------
@@ -131,17 +142,66 @@ package body Test001_Client_Request_Info_Tests is
    ----------------------------------
 
    procedure Test_Get_Effective_Component
-     (Point : in     Client_Interception_Point;
-      Info  : in     PortableInterceptor.ClientRequestInfo.Local_Ref)
+     (Point : Client_Interception_Point;
+      Info  : PortableInterceptor.ClientRequestInfo.Local_Ref)
    is
-      pragma Unreferenced (Info);
+      use type IOP.ComponentId;
 
       Operation : constant String := "get_effective_component";
+      Valid     : constant Boolean := Point /= Send_Poll;
+      Aux       : IOP.TaggedComponent;
 
    begin
-      --  XXX Not yet implemented in ClientRequestInfo
+      begin
+         Aux := Get_Effective_Component (Info, IOP.Tag_Code_Sets);
 
-      Output (Point, Operation, False, " (NO TEST)");
+         if not Valid then
+            Output (Point, Operation, False);
+            return;
+
+         elsif Aux.Tag /= IOP.Tag_Code_Sets then
+            Output (Point, Operation, False);
+            return;
+         end if;
+
+      exception
+         when E : Bad_Inv_Order =>
+            declare
+               Members : System_Exception_Members;
+            begin
+               Get_Members (E, Members);
+               if Valid or else Members.Minor /= OMGVMCID + 14 then
+                  Output (Point, Operation, False);
+                  return;
+               end if;
+            end;
+
+         when others =>
+            Output (Point, Operation, False);
+            return;
+      end;
+
+      begin
+         Aux := Get_Effective_Component (Info, IOP.Tag_Null_Tag);
+
+         Output (Point, Operation, False);
+
+      exception
+         when E : Bad_Param =>
+            declare
+               Members : System_Exception_Members;
+            begin
+               Get_Members (E, Members);
+               if Members.Minor = OMGVMCID + 28 then
+                  Output (Point, Operation, True);
+               else
+                  Output (Point, Operation, False);
+               end if;
+            end;
+
+         when others =>
+            Output (Point, Operation, False);
+      end;
    end Test_Get_Effective_Component;
 
    -----------------------------------
@@ -152,14 +212,67 @@ package body Test001_Client_Request_Info_Tests is
      (Point : in     Client_Interception_Point;
       Info  : in     PortableInterceptor.ClientRequestInfo.Local_Ref)
    is
-      pragma Unreferenced (Info);
+      use type IOP.ComponentId;
 
       Operation : constant String := "get_effective_components";
+      Valid     : constant Boolean := Point /= Send_Poll;
+      Aux       : IOP.TaggedComponentSeq;
 
    begin
-      --  XXX Not yet implemented in ClientRequestInfo
+      begin
+         Aux := Get_Effective_Components (Info, IOP.Tag_Code_Sets);
 
-      Output (Point, Operation, False, " (NO TEST)");
+         if not Valid then
+            Output (Point, Operation, False);
+            return;
+
+         elsif IOP.Length (Aux) /= 1 then
+            Output (Point, Operation, False);
+            return;
+
+         elsif IOP.Get_Element (Aux, 1).Tag /= IOP.Tag_Code_Sets then
+            Output (Point, Operation, False);
+            return;
+         end if;
+
+      exception
+         when E : Bad_Inv_Order =>
+            declare
+               Members : System_Exception_Members;
+            begin
+               Get_Members (E, Members);
+               if Valid or else Members.Minor /= OMGVMCID + 14 then
+                  Output (Point, Operation, False);
+                  return;
+               end if;
+            end;
+
+         when others =>
+            Output (Point, Operation, False);
+            return;
+      end;
+
+      begin
+         Aux := Get_Effective_Components (Info, IOP.Tag_Null_Tag);
+
+         Output (Point, Operation, False);
+
+      exception
+         when E : Bad_Param =>
+            declare
+               Members : System_Exception_Members;
+            begin
+               Get_Members (E, Members);
+               if Members.Minor = OMGVMCID + 28 then
+                  Output (Point, Operation, True);
+               else
+                  Output (Point, Operation, False);
+               end if;
+            end;
+
+         when others =>
+            Output (Point, Operation, False);
+      end;
    end Test_Get_Effective_Components;
 
    -----------------------------
@@ -194,7 +307,7 @@ package body Test001_Client_Request_Info_Tests is
             Members : System_Exception_Members;
          begin
             Get_Members (E, Members);
-            if Valid and then Members.Minor = 2 then
+            if Valid and then Members.Minor = OMGVMCID + 2 then
                Output (Point, Operation, True, " (INV_POLICY)");
             else
                Output (Point, Operation, False);
@@ -206,7 +319,7 @@ package body Test001_Client_Request_Info_Tests is
             Members : System_Exception_Members;
          begin
             Get_Members (E, Members);
-            if not Valid and then Members.Minor = 14 then
+            if not Valid and then Members.Minor = OMGVMCID + 14 then
                Output (Point, Operation, True);
             else
                Output (Point, Operation, False);
@@ -246,7 +359,7 @@ package body Test001_Client_Request_Info_Tests is
             Members : System_Exception_Members;
          begin
             Get_Members (E, Members);
-            if not Valid and then Members.Minor = 14 then
+            if not Valid and then Members.Minor = OMGVMCID + 14 then
                Output (Point, Operation, True);
             else
                Output (Point, Operation, False);
@@ -284,7 +397,7 @@ package body Test001_Client_Request_Info_Tests is
             Members : System_Exception_Members;
          begin
             Get_Members (E, Members);
-            if not Valid and then Members.Minor = 14 then
+            if not Valid and then Members.Minor = OMGVMCID + 14 then
                Output (Point, Operation, True);
             else
                Output (Point, Operation, False);

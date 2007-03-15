@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -48,21 +48,23 @@ package PolyORB.Representations is
    type Representation_Access is access all Representation;
 
    procedure Marshall_From_Any
-     (R      : in     Representation;
+     (R      : Representation;
       Buffer : access Buffers.Buffer_Type;
-      Data   : in     Any.Any;
-      Error  : in out Errors.Error_Container)
-     is abstract;
+      Data   : Any.Any_Container'Class;
+      Error  : in out Errors.Error_Container) is abstract;
+   --  Store a representation of Data into Buffer according to representation
+   --  convention R.
 
    procedure Unmarshall_To_Any
-     (R      : in     Representation;
+     (R      : Representation;
       Buffer : access Buffers.Buffer_Type;
-      Data   : in out Any.Any;
-      Error  : in out Errors.Error_Container)
-     is abstract;
+      Data   : in out Any.Any_Container'Class;
+      Error  : in out Errors.Error_Container) is abstract;
+   --  Set the value of Data from the representation stored in Buffer according
+   --  to representation convetion R.
 
    procedure Release (R : in out Representation);
-   --  Deallocate the content of R
+   --  Deallocate resources associated with the given representation engine
 
 private
 

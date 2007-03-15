@@ -31,7 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Idl_Fe.Types;          use Idl_Fe.Types;
 with Idl_Fe.Tree;           use Idl_Fe.Tree;
 with Idl_Fe.Tree.Synthetic;           use Idl_Fe.Tree.Synthetic;
 
@@ -220,6 +219,5 @@ package body Ada_Be.Idl2Ada.Value_Impl is
 
       end case;
    end Gen_Node_Body;
-
 
 end Ada_Be.Idl2Ada.Value_Impl;

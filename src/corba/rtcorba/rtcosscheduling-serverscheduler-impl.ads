@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2005 Free Software Foundation, Inc.             --
+--         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
@@ -21,8 +21,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -51,18 +51,18 @@ package RTCosScheduling.ServerScheduler.Impl is
 
    function Create_POA
      (Self         : access Object;
-      Parent       : in PortableServer.POA.Ref;
-      Adapter_Name : in CORBA.String;
-      A_POAManager : in PortableServer.POAManager.Ref;
-      Policies     : in CORBA.Policy.PolicyList)
-     return PortableServer.POA.Ref;
+      Parent       : PortableServer.POA.Local_Ref;
+      Adapter_Name : CORBA.String;
+      A_POAManager : PortableServer.POAManager.Local_Ref;
+      Policies     : CORBA.Policy.PolicyList)
+     return PortableServer.POA.Local_Ref;
    --  Implementation Note: this function may use any POA RT policies,
    --  as listed in ServerScheduler configuration file.
 
    procedure Schedule_Object
      (Self : access Object;
-      Obj  : in CORBA.Object.Ref;
-      Name : in CORBA.String);
+      Obj  : CORBA.Object.Ref;
+      Name : CORBA.String);
 
    function Is_A
      (Self            : access Object;

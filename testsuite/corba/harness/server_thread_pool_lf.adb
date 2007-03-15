@@ -34,21 +34,16 @@
 with Server_Common;
 
 with PolyORB.ORB.Thread_Pool;
-pragma Elaborate_All (PolyORB.ORB.Thread_Pool);
 pragma Warnings (Off, PolyORB.ORB.Thread_Pool);
 
 with PolyORB.Setup.Server;
-pragma Elaborate_All (PolyORB.Setup.Server);
 pragma Warnings (Off, PolyORB.Setup.Server);
 
 with PolyORB.Setup.Tasking.Full_Tasking;
-pragma Elaborate_All (PolyORB.Setup.Tasking.Full_Tasking);
 pragma Warnings (Off, PolyORB.Setup.Tasking.Full_Tasking);
 
 with PolyORB.ORB_Controller.Leader_Followers;
 pragma Warnings (Off, PolyORB.ORB_Controller.Leader_Followers);
-pragma Elaborate_All (PolyORB.ORB_Controller.Leader_Followers);
-
 
 procedure Server_Thread_Pool_LF is
 begin

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,10 +26,12 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
+
+with PortableServer.ServantLocator.Impl;
 
 package body PortableServer.ServantLocator is
 
@@ -38,27 +40,25 @@ package body PortableServer.ServantLocator is
    ---------------
 
    procedure Preinvoke
-     (Self       : in  Ref;
-      Oid        : in  ObjectId;
-      Adapter    : in  PortableServer.POA_Forward.Ref;
-      Operation  : in  CORBA.Identifier;
+     (Self       :     Local_Ref;
+      Oid        :     ObjectId;
+      Adapter    :     PortableServer.POA_Forward.Ref;
+      Operation  :     CORBA.Identifier;
       The_Cookie : out Cookie;
       Returns    : out Servant)
    is
-      pragma Warnings (Off); --  WAG:3.15
-      pragma Unreferenced (Self);
-      pragma Unreferenced (Oid);
-      pragma Unreferenced (Adapter);
-      pragma Unreferenced (Operation);
-      pragma Warnings (On); --  WAG:3.15
-
-      Result_Cookie : constant Cookie_Base :=
-        Cookie_Base'(Root_Cookie with null record);
-
    begin
-      The_Cookie := new Cookie_Base'(Result_Cookie);
-      Returns := null;
+      if CORBA.Object.Is_Nil (CORBA.Object.Ref (Self)) then
+         CORBA.Raise_Inv_Objref (CORBA.Default_Sys_Member);
+      end if;
 
+      Impl.Preinvoke
+       (Impl.Object_Ptr (Entity_Of (Self)),
+        Oid,
+        Adapter,
+        Operation,
+        The_Cookie,
+        Returns);
    end Preinvoke;
 
    ----------------
@@ -66,24 +66,25 @@ package body PortableServer.ServantLocator is
    ----------------
 
    procedure Postinvoke
-     (Self        : in Ref;
-      Oid         : in ObjectId;
-      Adapter     : in PortableServer.POA_Forward.Ref;
-      Operation   : in CORBA.Identifier;
-      The_Cookie  : in Cookie;
-      The_Servant : in Servant)
+     (Self        : Local_Ref;
+      Oid         : ObjectId;
+      Adapter     : PortableServer.POA_Forward.Ref;
+      Operation   : CORBA.Identifier;
+      The_Cookie  : Cookie;
+      The_Servant : Servant)
    is
-      pragma Warnings (Off); --  WAG:3.15
-      pragma Unreferenced (Self);
-      pragma Unreferenced (Oid);
-      pragma Unreferenced (Adapter);
-      pragma Unreferenced (Operation);
-      pragma Unreferenced (The_Cookie);
-      pragma Unreferenced (The_Servant);
-      pragma Warnings (On); --  WAG:3.15
-
    begin
-      null;
+      if CORBA.Object.Is_Nil (CORBA.Object.Ref (Self)) then
+         CORBA.Raise_Inv_Objref (CORBA.Default_Sys_Member);
+      end if;
+
+      Impl.Postinvoke
+       (Impl.Object_Ptr (Entity_Of (Self)),
+        Oid,
+        Adapter,
+        Operation,
+        The_Cookie,
+        The_Servant);
    end Postinvoke;
 
 end PortableServer.ServantLocator;

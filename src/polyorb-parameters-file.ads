@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -38,12 +38,10 @@ package PolyORB.Parameters.File is
    PolyORB_Conf_Default_Filename  : constant String := "polyorb.conf";
    PolyORB_Conf_Filename_Variable : constant String := "POLYORB_CONF";
 
-   Syntax_Error      : exception;
-
    --  PolyORB supports a global runtime configuration file.
    --  By default, the location of this file is Default_Filename.
    --  This default value can be overridden by setting the environment
-   --  named by Filename_Variable.
+   --  named by PolyORB_Conf_Filename_Variable.
    --
    --  The syntax of the configuration file is:
    --  - empty lines and lines that have a '#' in column 1 are
@@ -59,7 +57,7 @@ package PolyORB.Parameters.File is
    --  Assignments that occur before the first section declaration
    --  are relative to section [environment].
    --  Section and variable names are case sensitive.
-
+   --
    --  A variable Var.Iable in section [Sec] can be overridden by
    --  setting environment variable "POLYORB_SEC_VAR_IABLE"
    --  (see Make_Env_Name in body).
@@ -67,9 +65,9 @@ package PolyORB.Parameters.File is
    --  starts with "file:", the contents of the file is used instead.
 
    procedure Load_Configuration_File (Conf_File_Name : String);
-   --  Load Conf_File_Name configuration file.
+   --  Load Conf_File_Name configuration file
 
    function Configuration_File_Name return String;
-   --  Return PolyORB Configuration file name.
+   --  Return PolyORB Configuration file name
 
 end PolyORB.Parameters.File;

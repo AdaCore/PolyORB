@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,117 +26,124 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 with PolyORB.Any;
-pragma Elaborate_All (PolyORB.Any); --  WAG:3.15
 
 package PolyORB.Services.Naming.NamingContext.Helper is
 
    pragma Elaborate_Body;
 
    function Unchecked_To_Ref
-     (The_Ref : in PolyORB.References.Ref)
+     (The_Ref : PolyORB.References.Ref)
      return PolyORB.Services.Naming.NamingContext.Ref;
 
    function To_Ref
-     (The_Ref : in PolyORB.References.Ref)
+     (The_Ref : PolyORB.References.Ref)
      return PolyORB.Services.Naming.NamingContext.Ref;
 
    --  NamingContext Type.
    TC_NamingContext : PolyORB.Any.TypeCode.Object
      := PolyORB.Any.TypeCode.TC_Object;
 
-   function From_Any (Item : in PolyORB.Any.Any)
+   function From_Any (Item : PolyORB.Any.Any)
       return NamingContext.Ref;
 
    function To_Any
-     (Item : in NamingContext.Ref)
+     (Item : NamingContext.Ref)
      return PolyORB.Any.Any;
 
    --  NotFound exception.
    TC_NotFoundReason : PolyORB.Any.TypeCode.Object :=
       PolyORB.Any.TypeCode.TC_Enum;
 
-   function From_Any (Item : in PolyORB.Any.Any)
+   function From_Any (Item : PolyORB.Any.Any)
       return NamingContext.NotFoundReason;
 
    function To_Any
-     (Item : in NamingContext.NotFoundReason)
+     (Item : NamingContext.NotFoundReason)
      return PolyORB.Any.Any;
 
    TC_NotFound : PolyORB.Any.TypeCode.Object :=
       PolyORB.Any.TypeCode.TC_Except;
 
-   function From_Any (Item : in PolyORB.Any.Any)
+   function From_Any (Item : PolyORB.Any.Any)
       return NamingContext.NotFound_Members;
 
    function To_Any
-     (Item : in NamingContext.NotFound_Members)
+     (Item : NamingContext.NotFound_Members)
      return PolyORB.Any.Any;
 
    procedure Raise_NotFound_From_Any
-     (Item : in PolyORB.Any.Any);
+     (Item    : PolyORB.Any.Any;
+      Message : Standard.String);
    pragma No_Return (Raise_NotFound_From_Any);
 
    --  CannotProceed exception.
    TC_CannotProceed : PolyORB.Any.TypeCode.Object :=
       PolyORB.Any.TypeCode.TC_Except;
 
-   function From_Any (Item : in PolyORB.Any.Any)
+   function From_Any (Item : PolyORB.Any.Any)
       return NamingContext.CannotProceed_Members;
 
    function To_Any
-     (Item : in NamingContext.CannotProceed_Members)
+     (Item : NamingContext.CannotProceed_Members)
      return PolyORB.Any.Any;
+
    procedure Raise_CannotProceed_From_Any
-     (Item : in PolyORB.Any.Any);
+     (Item    : PolyORB.Any.Any;
+      Message : Standard.String);
    pragma No_Return (Raise_CannotProceed_From_Any);
 
    --  InvalidName exception.
    TC_InvalidName : PolyORB.Any.TypeCode.Object :=
       PolyORB.Any.TypeCode.TC_Except;
 
-   function From_Any (Item : in PolyORB.Any.Any)
+   function From_Any (Item : PolyORB.Any.Any)
       return NamingContext.InvalidName_Members;
 
    function To_Any
-     (Item : in NamingContext.InvalidName_Members)
+     (Item : NamingContext.InvalidName_Members)
      return PolyORB.Any.Any;
+
    procedure Raise_InvalidName_From_Any
-     (Item : in PolyORB.Any.Any);
+     (Item    : PolyORB.Any.Any;
+      Message : Standard.String);
    pragma No_Return (Raise_InvalidName_From_Any);
 
    --  AlreadyBound exception.
    TC_AlreadyBound : PolyORB.Any.TypeCode.Object :=
       PolyORB.Any.TypeCode.TC_Except;
 
-   function From_Any (Item : in PolyORB.Any.Any)
+   function From_Any (Item : PolyORB.Any.Any)
       return NamingContext.AlreadyBound_Members;
 
    function To_Any
-     (Item : in NamingContext.AlreadyBound_Members)
+     (Item : NamingContext.AlreadyBound_Members)
      return PolyORB.Any.Any;
+
    procedure Raise_AlreadyBound_From_Any
-     (Item : in PolyORB.Any.Any);
+     (Item    : PolyORB.Any.Any;
+      Message : Standard.String);
    pragma No_Return (Raise_AlreadyBound_From_Any);
 
    --  NotEmpty exception.
    TC_NotEmpty : PolyORB.Any.TypeCode.Object :=
       PolyORB.Any.TypeCode.TC_Except;
 
-   function From_Any (Item : in PolyORB.Any.Any)
+   function From_Any (Item : PolyORB.Any.Any)
       return NamingContext.NotEmpty_Members;
 
    function To_Any
-     (Item : in NamingContext.NotEmpty_Members)
+     (Item : NamingContext.NotEmpty_Members)
      return PolyORB.Any.Any;
 
    procedure Raise_NotEmpty_From_Any
-     (Item : in PolyORB.Any.Any);
+     (Item    : PolyORB.Any.Any;
+      Message : Standard.String);
    pragma No_Return (Raise_NotEmpty_From_Any);
 
 end PolyORB.Services.Naming.NamingContext.Helper;

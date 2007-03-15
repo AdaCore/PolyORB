@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2004-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -41,19 +41,21 @@ with PolyORB.Any.NVList;
 with PolyORB.CORBA_P.Codec_Utils;
 with PolyORB.CORBA_P.Exceptions;
 with PolyORB.CORBA_P.Interceptors_Slots;
-with PolyORB.Errors;
+with PolyORB.Errors.Helper;
+with PolyORB.QoS.Service_Contexts;
 with PolyORB.References;
-with PolyORB.Request_QoS.Service_Contexts;
+with PolyORB.Request_QoS;
 with PolyORB.Smart_Pointers;
 
 package body PortableInterceptor.RequestInfo.Impl is
 
    use Dynamic;
    use PolyORB.CORBA_P.Codec_Utils;
+   use PolyORB.QoS;
+   use PolyORB.QoS.Service_Contexts;
    use PolyORB.Request_QoS;
-   use PolyORB.Request_QoS.Service_Contexts;
 
-   function To_CORBA_ParameterMode (Mode : in PolyORB.Any.Flags)
+   function To_CORBA_ParameterMode (Mode : PolyORB.Any.Flags)
       return CORBA.Repository_Root.ParameterMode;
    --  Convert PolyORB parameter mode flag to CORBA::ParameterMode.
 
@@ -139,7 +141,7 @@ package body PortableInterceptor.RequestInfo.Impl is
 
       declare
          Members : PolyORB.Errors.ForwardRequest_Members
-           := PolyORB.Errors.From_Any (Self.Request.Exception_Info);
+           := PolyORB.Errors.Helper.From_Any (Self.Request.Exception_Info);
          Ref     : PolyORB.References.Ref;
          Result  : CORBA.Object.Ref;
       begin
@@ -147,7 +149,7 @@ package body PortableInterceptor.RequestInfo.Impl is
            (Ref,
             PolyORB.Smart_Pointers.Entity_Of (Members.Forward_Reference));
 
-         CORBA.Object.Convert_To_CORBA_Ref (Ref, Result);
+         CORBA.Object.Internals.Convert_To_CORBA_Ref (Ref, Result);
 
          return Result;
       end;
@@ -184,7 +186,7 @@ package body PortableInterceptor.RequestInfo.Impl is
 
    function Get_Reply_Service_Context
      (Self : access Object;
-      Id   : in     IOP.ServiceId)
+      Id   : IOP.ServiceId)
       return IOP.ServiceContext
    is
       use Service_Context_Lists;
@@ -199,7 +201,12 @@ package body PortableInterceptor.RequestInfo.Impl is
          Iter := First (SCP.Service_Contexts);
          while not Last (Iter) loop
             if Value (Iter).Context_Id = Service_Id (Id) then
-               return (Id, To_Sequence (Value (Iter).Context_Data.all));
+               return
+                 (Id,
+                  IOP.ContextData
+                  (CORBA.IDL_SEQUENCES.IDL_SEQUENCE_Octet.To_Sequence
+                   (CORBA.IDL_SEQUENCES.IDL_SEQUENCE_octet.To_Element_Array
+                    (To_Sequence (Value (Iter).Context_Data.all)))));
             end if;
             Next (Iter);
          end loop;
@@ -234,6 +241,12 @@ package body PortableInterceptor.RequestInfo.Impl is
       then
          return Location_Forward;
 
+      elsif
+        PolyORB.CORBA_P.Exceptions.Is_Needs_Addressing_Mode
+          (Self.Request.Exception_Info)
+      then
+         return Transport_Retry;
+
       else
          return User_Exception;
 
@@ -258,7 +271,7 @@ package body PortableInterceptor.RequestInfo.Impl is
 
    function Get_Request_Service_Context
      (Self : access Object;
-      Id   : in     IOP.ServiceId)
+      Id   : IOP.ServiceId)
       return IOP.ServiceContext
    is
       use Service_Context_Lists;
@@ -273,7 +286,12 @@ package body PortableInterceptor.RequestInfo.Impl is
          Iter := First (SCP.Service_Contexts);
          while not Last (Iter) loop
             if Value (Iter).Context_Id = Service_Id (Id) then
-               return (Id, To_Sequence (Value (Iter).Context_Data.all));
+               return
+                 (Id,
+                  IOP.ContextData
+                  (CORBA.IDL_SEQUENCES.IDL_SEQUENCE_Octet.To_Sequence
+                   (CORBA.IDL_SEQUENCES.IDL_SEQUENCE_octet.To_Element_Array
+                    (To_Sequence (Value (Iter).Context_Data.all)))));
             end if;
             Next (Iter);
          end loop;
@@ -325,7 +343,7 @@ package body PortableInterceptor.RequestInfo.Impl is
 
    function Get_Slot
      (Self : access Object;
-      Id   : in     SlotId)
+      Id   : SlotId)
       return CORBA.Any
    is
       use PolyORB.Annotations;
@@ -372,7 +390,7 @@ package body PortableInterceptor.RequestInfo.Impl is
 
    function Is_A
      (Self            : access Object;
-      Logical_Type_Id : in     String)
+      Logical_Type_Id : String)
       return Boolean
    is
       pragma Unreferenced (Self);
@@ -391,8 +409,8 @@ package body PortableInterceptor.RequestInfo.Impl is
 
    procedure Init
      (Self       : access Object;
-      Request    : in     PolyORB.Requests.Request_Access;
-      Request_Id : in     CORBA.Unsigned_Long)
+      Request    : PolyORB.Requests.Request_Access;
+      Request_Id : CORBA.Unsigned_Long)
    is
    begin
       Self.Request    := Request;
@@ -403,7 +421,7 @@ package body PortableInterceptor.RequestInfo.Impl is
    -- To_CORBA_ParameterMode --
    ----------------------------
 
-   function To_CORBA_ParameterMode (Mode : in PolyORB.Any.Flags)
+   function To_CORBA_ParameterMode (Mode : PolyORB.Any.Flags)
       return CORBA.Repository_Root.ParameterMode
    is
       use type PolyORB.Any.Flags;

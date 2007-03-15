@@ -1,9 +1,16 @@
 //File: RTCosScheduling.idl
 #ifndef _RT_COS_SCHEDULING_
 #define _RT_COS_SCHEDULING_
-#include <orb.idl>
 
+#ifdef _PRE_3_0_COMPILER_
+#pragma prefix "omg.org"
+
+#include <orb.idl>
 #include <PortableServer.idl>
+#else
+import ::CORBA;
+import ::PortableServer;
+#endif
 
 // IDL
 module RTCosScheduling {
@@ -23,7 +30,7 @@ module RTCosScheduling {
       in PortableServer::POA parent,
       in string adapter_name,
       in PortableServer::POAManager a_POAManager,
-      in CORBA::Policy::PolicyList policies)
+      in CORBA::PolicyList policies)
         raises (PortableServer::POA::AdapterAlreadyExists,
                 PortableServer::POA::InvalidPolicy);
 
@@ -32,4 +39,4 @@ module RTCosScheduling {
 
   };
 };
-#endif  // _RT_COS_SCHEDULING_IDL_
+#endif // _RT_COS_SCHEDULING_IDL_

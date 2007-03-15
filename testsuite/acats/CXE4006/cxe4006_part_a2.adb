@@ -43,7 +43,6 @@ package body CXE4006_Part_A2 is
     Callee := Part_A2_Spec;
   end Single_Controlling_Operand;
 
-
   -- pass thru procedure
   procedure Call_B (
       X           : in out Root_Tagged_Type'Class;

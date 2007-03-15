@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -43,8 +43,11 @@ package body PolyORB.Asynch_Ev.Sockets is
 
    package L is new PolyORB.Log.Facility_Log
      ("polyorb.asynch_ev.sockets");
-   procedure O (Message : in String; Level : Log_Level := Debug)
+   procedure O (Message : String; Level : Log_Level := Debug)
      renames L.Output;
+   function C (Level : Log_Level := Debug) return Boolean
+     renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    ------------
    -- Create --
@@ -68,6 +71,15 @@ package body PolyORB.Asynch_Ev.Sockets is
       Close_Selector (AEM.Selector);
    end Destroy;
 
+   -----------------
+   -- Has_Sources --
+   -----------------
+
+   function Has_Sources (AEM : Socket_Event_Monitor) return Boolean is
+   begin
+      return not Source_Lists.Is_Empty (AEM.Sources);
+   end Has_Sources;
+
    ---------------------
    -- Register_Source --
    ---------------------
@@ -87,7 +99,7 @@ package body PolyORB.Asynch_Ev.Sockets is
 
       Set (AEM.Monitored_Set, Socket_Event_Source (AES.all).Socket);
       Source_Lists.Append (AEM.Sources, AES);
-      pragma Debug (O ("Register_Source: Sources'Length:="
+      pragma Debug (O ("Register_Source: Sources'Length ="
                        & Integer'Image (Source_Lists.Length (AEM.Sources))));
       AES.Monitor := Asynch_Ev_Monitor_Access (AEM);
 
@@ -100,15 +112,24 @@ package body PolyORB.Asynch_Ev.Sockets is
    -----------------------
 
    procedure Unregister_Source
-     (AEM : in out Socket_Event_Monitor;
-      AES :        Asynch_Ev_Source_Access) is
+     (AEM     : in out Socket_Event_Monitor;
+      AES     : Asynch_Ev_Source_Access;
+      Success : out Boolean) is
    begin
       pragma Debug (O ("Unregister_Source: enter"));
-      Clear (AEM.Monitored_Set, Socket_Event_Source (AES.all).Socket);
-      Source_Lists.Remove (AEM.Sources, AES);
-      pragma Debug (O ("Unregister_Source: Sources'Length:="
-                       & Integer'Image (Source_Lists.Length (AEM.Sources))));
-      pragma Debug (O ("Unregister_Source: leave"));
+      if not Is_Set (AEM.Monitored_Set,
+                     Socket_Event_Source (AES.all).Socket)
+      then
+         Success := False;
+      else
+         Clear (AEM.Monitored_Set, Socket_Event_Source (AES.all).Socket);
+         Source_Lists.Remove (AEM.Sources, AES);
+         pragma Debug (O ("Unregister_Source: Sources'Length:="
+                          & Source_Lists.Length (AEM.Sources)'Img));
+         Success := True;
+      end if;
+      pragma Debug (O ("Unregister_Source: leave, Success: "
+        & Success'Img));
    end Unregister_Source;
 
    -------------------
@@ -138,7 +159,7 @@ package body PolyORB.Asynch_Ev.Sockets is
       PolyORB.Sockets.Empty (W_Set);
 
       if T = Constants.Forever then
-         --  Convert special value of Timeout.
+         --  Convert special value of Timeout
          T := PolyORB.Sockets.Forever;
       end if;
 
@@ -153,11 +174,12 @@ package body PolyORB.Asynch_Ev.Sockets is
                        & Selector_Status'Image (Status)));
 
       if Status = Completed then
+         pragma Debug (O ("Iterate over source list"));
+
          declare
             It : Source_Lists.Iterator := First (AEM.Sources);
          begin
             while not Source_Lists.Last (It) loop
-               pragma Debug (O ("Iterate over source list"));
 
                declare
                   S : Asynch_Ev_Source_Access renames Value (It).all;
@@ -190,7 +212,6 @@ package body PolyORB.Asynch_Ev.Sockets is
       pragma Debug (O ("Check_Sources: end"));
 
       return Result (1 .. Last);
-
    end Check_Sources;
 
    -------------------------

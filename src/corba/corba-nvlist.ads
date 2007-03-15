@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
@@ -21,8 +21,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -31,8 +31,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -45,14 +45,14 @@ package CORBA.NVList is
 
    procedure Add_Item
      (Self       :    Ref;
-      Item_Name  : in Identifier;
-      Item       : in CORBA.Any;
-      Item_Flags : in Flags);
+      Item_Name  : Identifier;
+      Item       : CORBA.Any;
+      Item_Flags : Flags);
    --  Create a NamedValue and add it to this NVList
 
    procedure Add_Item
      (Self : Ref;
-      Item : in CORBA.NamedValue);
+      Item : CORBA.NamedValue);
    --  Add a NamedValue to this NVList
 
    function Get_Count (Self : Ref) return CORBA.Long;
@@ -63,14 +63,24 @@ package CORBA.NVList is
    --  Implementation Note: As per the IDL-to-Ada mapping, Free and
    --  Free_Memory are no-ops.
 
-   ------------------------------------------
-   -- The following is specific to PolyORB --
-   ------------------------------------------
+   package Internals is
 
-   function Item (Self : Ref; Index : CORBA.Long) return CORBA.NamedValue;
+      --  Internal implementation subprograms. These shall not be used outside
+      --  of PolyORB.
 
-   function To_PolyORB_Ref (Self : Ref) return PolyORB.Any.NVList.Ref;
-   function To_CORBA_Ref (Self : PolyORB.Any.NVList.Ref) return Ref;
+      function Item (Self : Ref; Index : CORBA.Long) return CORBA.NamedValue;
+
+      function To_PolyORB_Ref (Self : Ref) return PolyORB.Any.NVList.Ref;
+      function To_CORBA_Ref (Self : PolyORB.Any.NVList.Ref) return Ref;
+      pragma Inline (To_PolyORB_Ref);
+      pragma Inline (To_CORBA_Ref);
+
+      procedure Clone_Out_Args (Self : Ref);
+      --  For any NV in Self that has mode out or in out, replace the Argument
+      --  component with a by-value copy of the original one (thus ensuring
+      --  that the value remains valid even after exiting the current scope).
+
+   end Internals;
 
 private
 
@@ -80,7 +90,5 @@ private
    pragma Inline (Add_Item);
    pragma Inline (Get_Count);
    pragma Inline (Free);
-   pragma Inline (To_PolyORB_Ref);
-   pragma Inline (To_CORBA_Ref);
 
 end CORBA.NVList;

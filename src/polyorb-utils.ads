@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -61,22 +61,19 @@ package PolyORB.Utils is
    function URI_Encode
      (S           : String;
       Also_Escape : String := "/") return String;
-   --  Return S with special characters replaced by "%" "hexdigit" "hexdigit"
-   --  if these characters need to be escaped in URIs, except for spaces
-   --  which are replaced by '+'. Any character in Also_Escape is considered
-   --  as special.
+   --  Implement the encoding scheme defined in the RFC 2396.
+   --  Return S with special characters replaced by "%" "hexdigit"
+   --  "hexdigit" if these characters need to be escaped in URIs. Any
+   --  character in Also_Escape is considered as special.
 
    function URI_Decode (S : String) return String;
-   --  Return S with any %xy sequence replaced with
-   --  the character whose hexadecimal representation
-   --  is xy, and any '+' characters replaced by spaces.
+   --  Implement the decoding scheme defined in the RFC 2396.
+   --  Return S with any %xy sequence replaced with the character
+   --  whose hexadecimal representation is xy.
 
    -----------------------
    -- String operations --
    -----------------------
-
-   function Trimmed_Image (I : Integer) return String;
-   --  Return Integer'Image (I) without a leading space
 
    type Direction_Type is private;
 
@@ -142,6 +139,6 @@ private
    --  Direction_Type value 0 does not make sense
 
    pragma Inline (Hex_Value, SEA_To_Hex_String, Hex_String_To_SEA,
-                  URI_Encode, URI_Decode, Trimmed_Image, Find_Skip);
+                  URI_Encode, URI_Decode, Find_Skip);
 
 end PolyORB.Utils;

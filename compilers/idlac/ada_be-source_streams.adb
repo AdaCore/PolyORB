@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,17 +26,22 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 with Ada.Characters.Handling; use Ada.Characters.Handling;
 with Ada.Characters.Latin_1; use Ada.Characters.Latin_1;
-with Ada.Text_IO;
+
+with GNAT.OS_Lib;
+with GNAT.Directory_Operations;
 
 with Ada_Be.Debug;
 pragma Elaborate_All (Ada_Be.Debug);
+
+with Output;
+with Platform;
 
 package body Ada_Be.Source_Streams is
 
@@ -58,6 +63,8 @@ package body Ada_Be.Source_Streams is
       Next : Dependency;
    end record;
 
+   Output_Directory : Unbounded_String;
+
    -----------------------
    -- Local subprograms --
    -----------------------
@@ -71,13 +78,17 @@ package body Ada_Be.Source_Streams is
      return Boolean;
    --  True if library unit U1 is an ancestor of U2.
 
+   function Find_Dep
+     (Unit            : String;
+      Context_Clauses : Dependency) return Dependency;
+   --  Retrieve the node for Unit in the given context clauses list (null if
+   --  not found).
+
    -----------------
    -- Is_Ancestor --
    -----------------
 
    function Is_Ancestor (U1 : String; U2 : String) return Boolean is
-      use Ada.Characters.Handling;
-
       LU1 : constant String := To_Lower (U1) & ".";
       LU2 : constant String := To_Lower (U2);
    begin
@@ -98,17 +109,18 @@ package body Ada_Be.Source_Streams is
       Elab_Control :        Elab_Control_Pragma := None;
       No_Warnings  :        Boolean             := False)
    is
-      Dep_Node : Dependency := Unit.Context_Clause;
-      LU_Name : constant String
-        := Unit.Library_Unit_Name.all;
+      Dep_Node : Dependency;
+      LU_Name : constant String := Unit.Library_Unit_Name.all;
    begin
       if False
         or else Dep = "Standard"
         or else Dep = LU_Name
+        or else Unit.Comment_Out_Mode
       then
          --  No need to with oneself. If Dep is an ancestor of Unit, register
          --  it (even though no 'with' clause will be emitted) for the sake of
-         --  elaboration control.
+         --  elaboration control. If in comment out mode, ignore dependency as
+         --  well.
          return;
       end if;
 
@@ -128,29 +140,30 @@ package body Ada_Be.Source_Streams is
          raise Program_Error;
       end if;
 
-      while Dep_Node /= null and then Dep_Node.Library_Unit.all /= Dep loop
-         Dep_Node := Dep_Node.Next;
-      end loop;
+      Dep_Node := Find_Dep (Dep, Unit.Context_Clause);
 
       if Dep_Node = null then
-         Dep_Node := new Dependency_Node'
+         Unit.Context_Clause := new Dependency_Node'
            (Library_Unit => new String'(Dep),
-            Use_It => Use_It,
+            Use_It       => Use_It,
             Elab_Control => Elab_Control,
-            No_Warnings => No_Warnings,
-            Next => Unit.Context_Clause);
-         Unit.Context_Clause := Dep_Node;
+            No_Warnings  => No_Warnings,
+            Next         => Unit.Context_Clause);
+
       else
-         Dep_Node.Use_It
-           := Dep_Node.Use_It or else Use_It;
-         Dep_Node.No_Warnings
-           := Dep_Node.No_Warnings and then No_Warnings;
+         Dep_Node.Use_It      := Dep_Node.Use_It or else Use_It;
+         Dep_Node.No_Warnings := Dep_Node.No_Warnings and then No_Warnings;
+
          if Elab_Control = Elaborate_All
-           or else Dep_Node.Elab_Control = Elaborate_All then
+           or else Dep_Node.Elab_Control = Elaborate_All
+         then
             Dep_Node.Elab_Control := Elaborate_All;
+
          elsif Elab_Control = Elaborate
-           or else Dep_Node.Elab_Control = Elaborate then
+           or else Dep_Node.Elab_Control = Elaborate
+         then
             Dep_Node.Elab_Control := Elaborate;
+
          else
             Dep_Node.Elab_Control := None;
          end if;
@@ -282,30 +295,42 @@ package body Ada_Be.Source_Streams is
       CU.Diversions (D) := Empty_Diversion;
    end Undivert;
 
-   -----------------
-   -- New_Package --
-   -----------------
+   --------------------------
+   -- New_Compilation_Unit --
+   --------------------------
 
-   function New_Package
-     (Name : String;
-      Kind : Unit_Kind)
-     return Compilation_Unit
+   procedure New_Compilation_Unit
+     (CU                 : out Compilation_Unit;
+      Kind               : Unit_Kind;
+      Name               : String;
+      Corresponding_Spec : Compilation_Unit_Access := null)
    is
-      The_Package : Compilation_Unit (Kind => Kind);
+      Res : Compilation_Unit (Kind);
+      pragma Warnings (Off, Res);
+      --  Used to provide defaults for all components, and an appropriate
+      --  discriminant.
    begin
-      The_Package.Library_Unit_Name := new String'(Name);
+      CU := Res;
+      CU.Library_Unit_Name := new String'(Name);
       for D in Predefined_Diversions loop
-         The_Package.Diversions (D).Indent_Level := 1;
+         CU.Diversions (D).Indent_Level := 1;
       end loop;
-      return The_Package;
-   end New_Package;
+
+      if Kind = Unit_Spec then
+         pragma Assert (Corresponding_Spec = null);
+         null;
+      else
+         pragma Assert (Corresponding_Spec /= null);
+         CU.Corresponding_Spec := Corresponding_Spec;
+      end if;
+   end New_Compilation_Unit;
 
    --------------
    -- Generate --
    --------------
 
    procedure Generate
-     (Unit : in Compilation_Unit;
+     (Unit : Compilation_Unit;
       Is_Generic_Instanciation : Boolean := False;
       To_Stdout : Boolean := False)
    is
@@ -342,129 +367,147 @@ package body Ada_Be.Source_Streams is
          return Result;
       end Ada_File_Name;
 
-      use Ada.Text_IO;
+      use Output;
 
-      procedure Emit_Standard_Header
-        (File        : in File_Type;
-         User_Edited : in Boolean := False);
+      procedure Emit_Standard_Header (User_Edited : Boolean := False);
       --  Generate boilerplate header. If User_Edited is False, include a
       --  warning that the file is generated automatically and should not
       --  be modified by hand.
 
-      procedure Emit_Source_Code (File : in File_Type);
+      procedure Emit_Source_Code;
       --  Generate the source text
 
       --------------------------
       -- Emit_Standard_Header --
       --------------------------
 
-      procedure Emit_Standard_Header
-        (File        : in File_Type;
-         User_Edited : in Boolean := False)
-      is
+      procedure Emit_Standard_Header (User_Edited : Boolean := False) is
       begin
-         Put_Line (File, "-------------------------------------------------");
-         Put_Line (File, "--  This file has been generated automatically");
-         Put_Line (File, "--  by IDLAC (http://libre.adacore.com/polyorb/)");
-         if not User_Edited then
-            Put_Line (File, "--");
-            Put_Line (File, "--  Do NOT hand-modify this file, as your");
-            Put_Line (File, "--  changes will be lost when you re-run the");
-            Put_Line (File, "--  IDL to Ada compiler.");
-         end if;
-         Put_Line (File, "-------------------------------------------------");
+         Write_Line ("-------------------------------------------------");
+         Write_Line ("--  This file has been generated automatically");
+         Write_Line ("--  by IDLAC version " & Platform.Version & ".");
 
-         --  XXX To be removed later on
-         Put_Line (File, "pragma Style_Checks (Off);");
-         New_Line (File);
+         if not User_Edited then
+            Write_Line ("--");
+            Write_Line ("--  Do NOT hand-modify this file, as your");
+            Write_Line ("--  changes will be lost when you re-run the");
+            Write_Line ("--  IDL to Ada compiler.");
+         end if;
+
+         Write_Line ("-------------------------------------------------");
+
+         --  Disable style checks (N), and set maximum line length to the
+         --  largest allowed value (M32766).
+
+         Write_Line ("pragma Style_Checks (""NM32766"");");
+         Write_Eol;
       end Emit_Standard_Header;
 
       ----------------------
       -- Emit_Source_Code --
       ----------------------
 
-      procedure Emit_Source_Code (File : in File_Type) is
-         Dep_Node : Dependency := Unit.Context_Clause;
-
+      procedure Emit_Source_Code is
+         Dep_Node      : Dependency := Unit.Context_Clause;
+         Spec_Dep_Node : Dependency;
       begin
          while Dep_Node /= null loop
-            if (not Is_Ancestor
-                (Dep_Node.Library_Unit.all,
-                 Unit.Library_Unit_Name.all))
-              or else Dep_Node.Elab_Control /= None
-            then
-               Put_Line (File, "with " & Dep_Node.Library_Unit.all & ";");
+            if Unit.Kind = Unit_Body then
+               Spec_Dep_Node := Find_Dep
+                                  (Dep_Node.Library_Unit.all,
+                                   Unit.Corresponding_Spec.Context_Clause);
             end if;
 
-            if Dep_Node.Use_It then
-               Put_Line (File, " use " & Dep_Node.Library_Unit.all & ";");
+            if Dep_Node.Elab_Control /= None
+              or else (Spec_Dep_Node = null
+                and then not Is_Ancestor (Dep_Node.Library_Unit.all,
+                                          Unit.Library_Unit_Name.all))
+            then
+               Write_Line ("with " & Dep_Node.Library_Unit.all & ";");
+            end if;
+
+            if Dep_Node.Use_It
+              and then (Spec_Dep_Node = null or else not Spec_Dep_Node.Use_It)
+            then
+               Write_Line (" use " & Dep_Node.Library_Unit.all & ";");
             end if;
 
             case Dep_Node.Elab_Control is
                when Elaborate_All =>
-                  Put_Line (File, "pragma Elaborate_All ("
+                  Write_Line ("pragma Elaborate_All ("
                             & Dep_Node.Library_Unit.all & ");");
                when Elaborate =>
-                  Put_Line (File, "pragma Elaborate ("
+                  Write_Line ("pragma Elaborate ("
                             & Dep_Node.Library_Unit.all & ");");
                when None =>
                   null;
             end case;
 
             if Dep_Node.No_Warnings then
-               Put_Line (File, "pragma Warnings (Off, "
+               Write_Line ("pragma Warnings (Off, "
                          & Dep_Node.Library_Unit.all & ");");
             end if;
             Dep_Node := Dep_Node.Next;
          end loop;
 
          if Unit.Context_Clause /= null then
-            New_Line (File);
+            Write_Eol;
          end if;
 
          if not Unit.Diversions (Generic_Formals).Empty then
-            Put_Line (File, "generic");
-            Put (File, To_String
+            Write_Line ("generic");
+            Write_Str (To_String
                  (Unit.Diversions (Generic_Formals).Library_Item));
-            New_Line (File);
+            Write_Eol;
          end if;
 
-         Put (File, "package ");
+         Write_Str ("package ");
          if Unit.Kind = Unit_Body then
-            Put (File, "body ");
+            Write_Str ("body ");
          end if;
-         Put_Line (File, Unit.Library_Unit_Name.all & " is");
+         Write_Line (Unit.Library_Unit_Name.all & " is");
 
          if Unit.Kind = Unit_Spec and then Unit.Elaborate_Body then
-            New_Line (File);
-            Put_Line (File, "   pragma Elaborate_Body;");
+            Write_Eol;
+            Write_Line ("   pragma Elaborate_Body;");
          end if;
 
          if not Unit.Diversions (Visible_Declarations).Empty then
-            Put (File, To_String
+            Write_Str (To_String
                  (Unit.Diversions (Visible_Declarations).Library_Item));
          end if;
 
          if not Unit.Diversions (Private_Declarations).Empty then
-            New_Line (File);
-            Put_Line (File, "private");
-            Put (File, To_String
+            Write_Eol;
+            Write_Line ("private");
+            Write_Str (To_String
                  (Unit.Diversions (Private_Declarations).Library_Item));
          end if;
 
          if not Unit.Diversions (Elaboration).Empty then
-            New_Line (File);
-            Put_Line (File, "begin");
-            Put (File, To_String (Unit.Diversions (Elaboration).Library_Item));
+            Write_Eol;
+            Write_Line ("begin");
+            Write_Str (To_String (Unit.Diversions (Elaboration).Library_Item));
          end if;
 
          if not Is_Generic_Instanciation then
-            New_Line (File);
-            Put_Line (File, "end " & Unit.Library_Unit_Name.all & ";");
+            Write_Eol;
+            Write_Line ("end " & Unit.Library_Unit_Name.all & ";");
          end if;
       end Emit_Source_Code;
 
-      --  Start of processing for Generate
+      use GNAT.OS_Lib;
+
+      File_Name : Unbounded_String;
+      --  Name of output file
+
+      File : File_Descriptor;
+      --  Output file descriptor
+
+      Success : Boolean;
+      --  Status returned upon closing File
+
+   --  Start of processing for Generate
 
    begin
       if Is_Empty (Unit) then
@@ -472,19 +515,28 @@ package body Ada_Be.Source_Streams is
       end if;
 
       if To_Stdout then
-         Emit_Standard_Header (Current_Output, Unit.No_Warning);
-         Emit_Source_Code (Current_Output);
+         File := Standout;
       else
-         declare
-            File_Name : constant String
-              := Ada_File_Name (Unit.Library_Unit_Name.all, Unit.Kind);
-            File : File_Type;
-         begin
-            Create (File, Out_File, File_Name);
-            Emit_Standard_Header (File, Unit.No_Warning);
-            Emit_Source_Code (File);
-            Close (File);
-         end;
+         File_Name := Output_Directory
+                        & Ada_File_Name
+                            (Unit.Library_Unit_Name.all, Unit.Kind);
+         File := Create_File (To_String (File_Name), Fmode => Binary);
+         if File = Invalid_FD then
+            raise Program_Error with
+              "cannot create output file " & To_String (File_Name);
+         end if;
+      end if;
+
+      Set_Output (File);
+      Emit_Standard_Header (Unit.No_Warning);
+      Emit_Source_Code;
+
+      if not To_Stdout then
+         Close (File, Status => Success);
+         if not Success then
+            raise Program_Error with
+              "failed to close " & To_String (File_Name);
+         end if;
       end if;
    end Generate;
 
@@ -501,27 +553,43 @@ package body Ada_Be.Source_Streams is
          * Unit.Diversions (Unit.Current_Diversion).Indent_Level)
         := (others => ' ');
       LF_Pos : Integer;
+      Non_Space_Seen : Boolean := False;
+      At_BOL : Boolean renames Unit.Diversions (Unit.Current_Diversion).At_BOL;
    begin
       if not Unit.Template_Mode then
          Unit.Diversions (Unit.Current_Diversion).Empty := False;
       end if;
+
+      --  If in comment-out mode, output comment marker at beginning of line
+
       if Unit.Diversions (Unit.Current_Diversion).At_BOL then
-         Append
-           (Unit.Diversions (Unit.Current_Diversion).Library_Item,
-            Indent_String);
-         Unit.Diversions (Unit.Current_Diversion).At_BOL := False;
+         if Unit.Comment_Out_Mode then
+            Append
+              (Unit.Diversions (Unit.Current_Diversion).Library_Item, "--  ");
+         end if;
       end if;
 
+      --  Determine whether the provided text contains a linefeed, and if so,
+      --  wheter there is any non-space character before the linefeed.
+
       LF_Pos := Text'First;
-      while LF_Pos <= Text'Last
-        and then Text (LF_Pos) /= ASCII.LF
-      loop
+      while LF_Pos <= Text'Last and then Text (LF_Pos) /= ASCII.LF loop
+         if Text (LF_Pos) /= ' ' then
+            Non_Space_Seen := True;
+         end if;
          LF_Pos := LF_Pos + 1;
       end loop;
 
-      Append
-        (Unit.Diversions (Unit.Current_Diversion).Library_Item,
-         Text (Text'First .. LF_Pos - 1));
+      --  Do not output indentation if we know we are generating an empty line
+
+      if At_BOL and then (Non_Space_Seen or else LF_Pos > Text'Last) then
+         Append (Unit.Diversions (Unit.Current_Diversion).Library_Item,
+                 Indent_String);
+      end if;
+
+      Append (Unit.Diversions (Unit.Current_Diversion).Library_Item,
+              Text (Text'First .. LF_Pos - 1));
+      At_BOL := False;
 
       --  LF seen?
 
@@ -600,6 +668,36 @@ package body Ada_Be.Source_Streams is
       return True;
    end Is_Empty;
 
+   --------------------------
+   -- Set_Output_Directory --
+   --------------------------
+
+   function Set_Output_Directory (Dir : String) return Boolean is
+      Sep : Character renames GNAT.Directory_Operations.Dir_Separator;
+   begin
+      if not GNAT.OS_Lib.Is_Directory (Dir) then
+         return False;
+      end if;
+
+      Output_Directory := To_Unbounded_String (Dir);
+      if Dir (Dir'Last) /= Sep then
+         Append (Output_Directory, Sep);
+      end if;
+      return True;
+   end Set_Output_Directory;
+
+   --------------------------
+   -- Set_Comment_Out_Mode --
+   --------------------------
+
+   procedure Set_Comment_Out_Mode
+     (Unit : in out Compilation_Unit;
+      Mode : Boolean)
+   is
+   begin
+      Unit.Comment_Out_Mode := Mode;
+   end Set_Comment_Out_Mode;
+
    -----------------------
    -- Set_Template_Mode --
    -----------------------
@@ -611,5 +709,21 @@ package body Ada_Be.Source_Streams is
    begin
       Unit.Template_Mode := Mode;
    end Set_Template_Mode;
+
+   --------------
+   -- Find_Dep --
+   --------------
+
+   function Find_Dep
+     (Unit            : String;
+      Context_Clauses : Dependency) return Dependency
+   is
+      D : Dependency := Context_Clauses;
+   begin
+      while D /= null and then D.Library_Unit.all /= Unit loop
+         D := D.Next;
+      end loop;
+      return D;
+   end Find_Dep;
 
 end Ada_Be.Source_Streams;

@@ -39,6 +39,19 @@ package PolyORB.Utils.Strings is
 
    pragma Preelaborate;
 
+   -----------------
+   -- Conversions --
+   -----------------
+
+   function To_Boolean (V : String) return Boolean;
+   --  Convert a String value to a Boolean value according to the following
+   --  interpretation rules:
+   --  * True if the value starts with '1' or 'Y' or 'y',
+   --    or is "on" or "enable" or "true"
+   --  * False if the value starts with '0' or 'n' or 'N',
+   --    or is "off" or "disable" or "false" or empty.
+   --  Constraint_Error is raised if the value is set to anything else.
+
    --------------------
    -- String Pointer --
    --------------------

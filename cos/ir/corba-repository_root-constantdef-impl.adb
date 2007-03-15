@@ -1,19 +1,48 @@
+------------------------------------------------------------------------------
+--                                                                          --
+--                           POLYORB COMPONENTS                             --
+--                                                                          --
+--                 CORBA.REPOSITORY_ROOT.CONSTANTDEF.IMPL                   --
+--                                                                          --
+--                                 B o d y                                  --
+--                                                                          --
+--           Copyright (C) 2006, Free Software Foundation, Inc.             --
+--                                                                          --
+-- PolyORB is free software; you  can  redistribute  it and/or modify it    --
+-- under terms of the  GNU General Public License as published by the  Free --
+-- Software Foundation;  either version 2,  or (at your option)  any  later --
+-- version. PolyORB is distributed  in the hope that it will be  useful,    --
+-- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
+-- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
+-- License  for more details.  You should have received  a copy of the GNU  --
+-- General Public License distributed with PolyORB; see file COPYING. If    --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
+--                                                                          --
+-- As a special exception,  if other files  instantiate  generics from this --
+-- unit, or you link  this unit with other files  to produce an executable, --
+-- this  unit  does not  by itself cause  the resulting  executable  to  be --
+-- covered  by the  GNU  General  Public  License.  This exception does not --
+-- however invalidate  any other reasons why  the executable file  might be --
+-- covered by the  GNU Public License.                                      --
+--                                                                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
+--                                                                          --
+------------------------------------------------------------------------------
+
 pragma Style_Checks (Off);
 
-with CORBA.Repository_Root; use CORBA.Repository_Root;
-with CORBA.Repository_Root.IDLType;
-with CORBA.Repository_Root.IDLType.Impl;
-with CORBA.Repository_Root.Helper;
-with CORBA.Repository_Root.IRObject.Impl;
-
-with PolyORB.CORBA_P.Server_Tools;
 with PortableServer;
 
+with CORBA.Repository_Root.IDLType.Impl;
+with CORBA.Repository_Root.Helper;
 with CORBA.Repository_Root.ConstantDef.Skel;
 pragma Warnings (Off, CORBA.Repository_Root.ConstantDef.Skel);
 
-package body CORBA.Repository_Root.ConstantDef.Impl is
+with PolyORB.CORBA_P.Server_Tools;
 
+package body CORBA.Repository_Root.ConstantDef.Impl is
 
    -----------------
    --  To_Object  --
@@ -79,7 +108,6 @@ package body CORBA.Repository_Root.ConstantDef.Impl is
           (Obj)));
    end get_type;
 
-
    function get_type_def
      (Self : access Object)
      return CORBA.Repository_Root.IDLType.Ref
@@ -88,14 +116,12 @@ package body CORBA.Repository_Root.ConstantDef.Impl is
       return Self.Type_Def;
    end get_type_def;
 
-
    procedure set_type_def
      (Self : access Object;
-      To : in CORBA.Repository_Root.IDLType.Ref) is
+      To : CORBA.Repository_Root.IDLType.Ref) is
    begin
       Self.Type_Def := To;
    end set_type_def;
-
 
    function get_value
      (Self : access Object)
@@ -105,10 +131,9 @@ package body CORBA.Repository_Root.ConstantDef.Impl is
       return Self.Value;
    end get_value;
 
-
    procedure set_value
      (Self : access Object;
-      To : in CORBA.Any) is
+      To : CORBA.Any) is
       use CORBA.Typecode;
    begin
       if CORBA.Get_Type (Self.Value) = Get_Type (Self)
@@ -141,6 +166,5 @@ package body CORBA.Repository_Root.ConstantDef.Impl is
                  Value => CORBA.Repository_Root.Helper.To_Any (Desc));
       return Result;
    end describe;
-
 
 end CORBA.Repository_Root.ConstantDef.Impl;

@@ -35,7 +35,7 @@
 --  This package does NOT register the tasking profile,
 
 with PolyORB.Parameters;
-pragma Elaborate_All (PolyORB.Parameters); --  WAG:3.15
+pragma Elaborate_All (PolyORB.Parameters);
 
 package Test000_Common is
 

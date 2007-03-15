@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -43,7 +43,7 @@ package body PolyORB.Dynamic_Dict is
    -- a String key.                                      --
    --------------------------------------------------------
 
-   package Perfect_Htable is
+   package Perfect_HTable is
       new PolyORB.Utils.HTables.Perfect
      (Value,
       PolyORB.Utils.HFunctions.Hyper.Hash_Hyper_Parameters,
@@ -51,7 +51,7 @@ package body PolyORB.Dynamic_Dict is
       PolyORB.Utils.HFunctions.Hyper.Hash,
       PolyORB.Utils.HFunctions.Hyper.Next_Hash_Parameters);
 
-   use Perfect_Htable;
+   use Perfect_HTable;
 
    T : Table_Instance;
 
@@ -73,6 +73,21 @@ package body PolyORB.Dynamic_Dict is
       Initialize (T);
       T_Initialized := True;
    end Ensure_Initialization;
+
+   --------------
+   -- For_Each --
+   --------------
+
+   procedure For_Each (Action : Dict_Action) is
+      It : Iterator;
+   begin
+      Ensure_Initialization;
+      It := First (T);
+      while not Last (It) loop
+         Action (K => Key (It), V => Perfect_HTable.Value (It));
+         Next (It);
+      end loop;
+   end For_Each;
 
    ------------
    -- Lookup --

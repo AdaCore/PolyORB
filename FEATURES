@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---         Copyright (C) 1999-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 1999-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -54,7 +54,7 @@ middleware.
 
 - ORB Controller's policy to control concurrency patterns used to
   synchronize the middleware internal threads:
-  - Basic;
+  - Workers;
   - Half Sync/Half Async;
   - Leader/Followers;
   - No Tasking.
@@ -73,7 +73,8 @@ the OMG's specifications, that supports:
 - Dynamic Skeleton Interface (DSI), 
 
 It also provides an implementation of the CORBA Portable Object
-Adapter (POA); CORBA PortableInterceptors; and RT-CORBA 1.1.
+Adapter (POA); CORBA DynamicAny, CORBA PortableInterceptors interfaces; and
+RT-CORBA 1.1 and the RTCosScheduling Service.
 
 CORBA Services
 --------------
@@ -82,6 +83,7 @@ PolyORB implements the following CORBA COS Services:
 - Event, 
 - Interface Repository, 
 - Naming,
+- Notification, 
 - Time.
 
 Note that the current COS Naming implementation does not support
@@ -125,6 +127,12 @@ IIOP-level interoperability with other ORBs have been tested with
   - omniORB 4.0
   - OpenORB 1.3.0
   - VisiBroker 4.5
+
+SSLIOP
+------
+
+PolyORB proposes an implementation of the SSLIOP protocol. It provides
+support for data encryption for GIOP requests.
 
 MIOP/UIPMC
 ----------

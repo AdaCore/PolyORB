@@ -52,7 +52,6 @@ begin
     end if;
   end;
 
-
   -- do the record type tests now
   declare
     I_Data : CXE4002_Common.Record_Data;

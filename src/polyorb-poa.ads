@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -58,6 +58,7 @@ with PolyORB.POA_Policies.Servant_Retention_Policy;
 with PolyORB.POA_Policies.Lifespan_Policy;
 with PolyORB.POA_Policies.Implicit_Activation_Policy;
 with PolyORB.POA_Types;
+with PolyORB.QoS;
 with PolyORB.Servants;
 with PolyORB.Tasking.Mutexes;
 with PolyORB.Types;
@@ -85,7 +86,7 @@ package PolyORB.POA is
       Name                       : String_Ptr;
       --  The POA's name. If this is null, the object has been destroyed
 
-      Boot_Time                  : Time_Stamp;
+      Boot_Time                  : Duration;
       --  Creation date of this POA
 
       Absolute_Address           : String_Ptr;
@@ -173,8 +174,8 @@ package PolyORB.POA is
 
    procedure Destroy
      (Self                : access Obj_Adapter;
-      Etherealize_Objects : in     Types.Boolean;
-      Wait_For_Completion : in     Types.Boolean);
+      Etherealize_Objects : Types.Boolean;
+      Wait_For_Completion : Types.Boolean);
    --  Destroys recursively the POA and all his descendants
 
    procedure Create_Object_Identification
@@ -198,7 +199,7 @@ package PolyORB.POA is
 
    procedure Deactivate_Object
      (Self  : access Obj_Adapter;
-      Oid   : in     Object_Id;
+      Oid   : Object_Id;
       Error : in out PolyORB.Errors.Error_Container);
    --  Deactivates an object from the Active Object Map (requires the RETAIN
    --  policy). In case a ServantManager is used, calls its etherealize
@@ -208,7 +209,7 @@ package PolyORB.POA is
 
    procedure Servant_To_Id
      (Self      : access Obj_Adapter;
-      P_Servant : in     Servants.Servant_Access;
+      P_Servant : Servants.Servant_Access;
       Oid       :    out Object_Id_Access;
       Error     : in out PolyORB.Errors.Error_Container);
 
@@ -279,6 +280,12 @@ package PolyORB.POA is
       User_Id :    out Objects.Object_Id_Access;
       Error   : in out PolyORB.Errors.Error_Container);
 
+   procedure Get_QoS
+     (OA    : access Obj_Adapter;
+      Id    :        Objects.Object_Id;
+      QoS   :    out PolyORB.QoS.QoS_Parameters;
+      Error : in out PolyORB.Errors.Error_Container);
+
    function Get_Empty_Arg_List
      (OA     : access Obj_Adapter;
       Oid    : access Objects.Object_Id;
@@ -307,7 +314,7 @@ package PolyORB.POA is
    -----------------------
 
    procedure Copy_Obj_Adapter
-     (From : in     Obj_Adapter;
+     (From : Obj_Adapter;
       To   : access Obj_Adapter);
    --  Copy values from one Obj_Adapter to another (Obj_Adapter is limited)
 
@@ -326,7 +333,7 @@ package PolyORB.POA is
 
    function Rel_URI_To_Oid
      (OA  : access Obj_Adapter;
-      URI :        Types.String)
+      URI :        String)
      return Object_Id_Access;
    --  Convert an object id from its representation as a relative URI
 

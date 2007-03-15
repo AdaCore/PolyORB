@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -35,7 +35,6 @@ with PolyORB.Components;
 with PolyORB.Filters;
 with PolyORB.Filters.Iface;
 with PolyORB.Initialization;
-pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
 with PolyORB.Jobs;
 with PolyORB.Log;
@@ -51,18 +50,19 @@ package body PolyORB.ORB.Thread_Per_Request is
    ------------------------
 
    use PolyORB.Asynch_Ev;
-   use PolyORB.Components;
    use PolyORB.Filters;
    use PolyORB.Filters.Iface;
    use PolyORB.Log;
    use PolyORB.Tasking.Condition_Variables;
    use PolyORB.Tasking.Threads;
-   use PolyORB.Transport;
 
    package L is new PolyORB.Log.Facility_Log
      ("polyorb.orb.thread_per_request");
-   procedure O (Message : in String; Level : Log_Level := Debug)
+   procedure O (Message : String; Level : Log_Level := Debug)
      renames L.Output;
+   function C (Level : Log_Level := Debug) return Boolean
+     renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    type Request_Runnable is new Runnable with record
       A_Job : Jobs.Job_Access;
@@ -73,6 +73,8 @@ package body PolyORB.ORB.Thread_Per_Request is
 
    procedure Run (R : access Request_Runnable);
 
+   procedure Initialize;
+
    -----------------------------
    -- Handle_Close_Connection --
    -----------------------------
@@ -81,11 +83,7 @@ package body PolyORB.ORB.Thread_Per_Request is
      (P   : access Thread_Per_Request_Policy;
       TE  :        Transport_Endpoint_Access)
    is
-      pragma Warnings (Off);
-      pragma Unreferenced (P);
-      pragma Unreferenced (TE);
-      pragma Warnings (On);
-
+      pragma Unreferenced (P, TE);
    begin
       null;
    end Handle_Close_Connection;
@@ -97,17 +95,13 @@ package body PolyORB.ORB.Thread_Per_Request is
    procedure Handle_New_Client_Connection
      (P   : access Thread_Per_Request_Policy;
       ORB :        ORB_Access;
-      C   :        Active_Connection)
+      AC  :        Active_Connection)
    is
-      pragma Warnings (Off);
       pragma Unreferenced (P, ORB);
-      pragma Warnings (On);
-
    begin
       pragma Debug (O ("New client connection"));
 
-      Components.Emit_No_Reply
-        (Component_Access (C.TE),
+      Components.Emit_No_Reply (Component_Access (AC.TE),
          Connect_Confirmation'(null record));
    end Handle_New_Client_Connection;
 
@@ -118,17 +112,13 @@ package body PolyORB.ORB.Thread_Per_Request is
    procedure Handle_New_Server_Connection
      (P   : access Thread_Per_Request_Policy;
       ORB :        ORB_Access;
-      C   :        Active_Connection)
+      AC  :        Active_Connection)
    is
-      pragma Warnings (Off);
       pragma Unreferenced (P, ORB);
-      pragma Warnings (On);
-
    begin
       pragma Debug (O ("New server connection. "));
 
-      Components.Emit_No_Reply
-        (Component_Access (C.TE),
+      Components.Emit_No_Reply (Component_Access (AC.TE),
          Connect_Indication'(null record));
    end Handle_New_Server_Connection;
 
@@ -141,15 +131,13 @@ package body PolyORB.ORB.Thread_Per_Request is
       ORB :        ORB_Access;
       RJ  : access Request_Job'Class)
    is
-      pragma Warnings (Off);
-      pragma Unreferenced (P);
-      pragma Unreferenced (ORB);
-      pragma Warnings (On);
+      pragma Unreferenced (P, ORB);
 
       R : constant Runnable_Access := new Request_Runnable;
 
       T : Thread_Access;
-      pragma Unreferenced (T); -- WAG:5.02
+      pragma Unreferenced (T);
+      --  T is assigned but never read
 
    begin
       pragma Debug (O ("Handle_Request_Execution : Run Job"));
@@ -159,7 +147,6 @@ package body PolyORB.ORB.Thread_Per_Request is
         (Get_Thread_Factory,
          R => R,
          C => new Request_Runnable_Controller);
-
    end Handle_Request_Execution;
 
    ----------
@@ -168,21 +155,17 @@ package body PolyORB.ORB.Thread_Per_Request is
 
    procedure Idle
      (P         : access Thread_Per_Request_Policy;
-      This_Task :        PolyORB.Task_Info.Task_Info;
+      This_Task : in out PolyORB.Task_Info.Task_Info;
       ORB       :        ORB_Access)
    is
-      pragma Warnings (Off);
-      pragma Unreferenced (P);
-      pragma Unreferenced (ORB);
-      pragma Warnings (On);
+      pragma Unreferenced (P, ORB);
 
       package PTI  renames PolyORB.Task_Info;
-
    begin
 
-      --  In Thread_Per_Request policy, only one task is executing
-      --  ORB.Run. However, it can be set to idle while another thread
-      --  modifies ORB internals.
+      --  In Thread_Per_Request policy, only one task is executing ORB.Run.
+      --  However, it can be set to idle while another thread modifies
+      --  ORB internals.
 
       pragma Debug (O ("Thread "
                        & Image (PTI.Id (This_Task))
@@ -195,6 +178,15 @@ package body PolyORB.ORB.Thread_Per_Request is
                        & " is leaving Idle state"));
    end Idle;
 
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize is
+   begin
+      Setup.The_Tasking_Policy := new Thread_Per_Request_Policy;
+   end Initialize;
+
    ------------------------------
    -- Queue_Request_To_Handler --
    ------------------------------
@@ -204,10 +196,7 @@ package body PolyORB.ORB.Thread_Per_Request is
       ORB :        ORB_Access;
       Msg :        Message'Class)
    is
-      pragma Warnings (Off);
       pragma Unreferenced (P);
-      pragma Warnings (On);
-
    begin
       Emit_No_Reply (Component_Access (ORB), Msg);
    end Queue_Request_To_Handler;
@@ -221,8 +210,7 @@ package body PolyORB.ORB.Thread_Per_Request is
 
       --  Running Job
 
-      pragma Debug (O ("Thread "
-        & Image (Current_Task)
+      pragma Debug (O ("Thread " & Image (Current_Task)
                        & " is executing a job"));
 
       Run_Request (Request_Job (R.A_Job.all)'Access);
@@ -231,21 +219,9 @@ package body PolyORB.ORB.Thread_Per_Request is
 
       Jobs.Free (R.A_Job);
 
-      pragma Debug (O ("Thread "
-        & Image (Current_Task)
-        & " has executed and destroyed a job"));
+      pragma Debug (O ("Thread " & Image (Current_Task)
+                       & " has executed and destroyed a job"));
    end Run;
-
-   ----------------
-   -- Initialize --
-   ----------------
-
-   procedure Initialize;
-
-   procedure Initialize is
-   begin
-      Setup.The_Tasking_Policy := new Thread_Per_Request_Policy;
-   end Initialize;
 
    use PolyORB.Initialization;
    use PolyORB.Initialization.String_Lists;
@@ -259,5 +235,6 @@ begin
        Depends   => +"tasking.condition_variables",
        Provides  => +"orb.tasking_policy",
        Implicit  => False,
-       Init      => Initialize'Access));
+       Init      => Initialize'Access,
+       Shutdown  => null));
 end PolyORB.ORB.Thread_Per_Request;

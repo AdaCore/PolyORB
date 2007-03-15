@@ -35,7 +35,6 @@ with Ada.Text_IO; use Ada.Text_IO;
 with System.Address_Image;
 with Ada.Real_Time; use Ada.Real_Time;
 
-
 package body RCI is
 
    type String_Ptr is access all String;
@@ -140,7 +139,6 @@ package body RCI is
    end Check_Back_RAS;
 
    function echoString_Delayed (S : String; Seconds : Integer) return String is
-      use Ada.Real_Time;
    begin
       delay until Clock + To_Time_Span (Duration (Seconds));
       return echoString (S);

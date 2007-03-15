@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -35,9 +35,9 @@ with PolyORB.Binding_Data;
 with PolyORB.Components;
 with PolyORB.Errors;
 with PolyORB.Initialization;
-pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
 with PolyORB.Lanes;
+with PolyORB.Log;
 with PolyORB.References.Binding;
 with PolyORB.RT_POA_Policies.Priority_Model_Policy;
 with PolyORB.RT_POA_Policies.Thread_Pool_Policy;
@@ -48,6 +48,15 @@ with PolyORB.Tasking.Priorities;
 with PolyORB.Utils.Strings;
 
 package body PolyORB.Request_Scheduler.Servant_Lane is
+   use PolyORB.Log;
+
+   package L is new PolyORB.Log.Facility_Log
+     ("polyorb.request_scheduler.servant_lane");
+   procedure O (Message : String; Level : Log_Level := Debug)
+     renames L.Output;
+   function C (Level : Log_Level := Debug) return Boolean
+     renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    ---------------------------
    -- Try_Queue_Request_Job --
@@ -59,10 +68,9 @@ package body PolyORB.Request_Scheduler.Servant_Lane is
       Target :        PolyORB.References.Ref)
      return Boolean
    is
-      pragma Warnings (Off); --  WAG:3.15
       pragma Unreferenced (Self);
-      pragma Warnings (On);  --  WAG:3.15
 
+      use PolyORB.Errors;
       use PolyORB.Lanes;
       use PolyORB.Servants;
 
@@ -72,32 +80,36 @@ package body PolyORB.Request_Scheduler.Servant_Lane is
       Error : Errors.Error_Container;
 
    begin
+      pragma Debug (O ("Try_Queue_Request_Job: enter"));
+
       --  First test wether the target is a local servant
       --  managed by a RT-POA.
 
       References.Binding.Bind
         (Target,
-         PolyORB.Setup.The_ORB,
+         PolyORB.Setup.The_ORB, (others => null),
          Surrogate, Pro, False, Error);
       --  XXX Should remove dependency on The_ORB
+
+      if Found (Error) then
+         Catch (Error);
+         return False;
+      end if;
 
       if Surrogate.all in Servant'Class then
          declare
             use PolyORB.RT_POA_Policies.Priority_Model_Policy;
             use PolyORB.RT_POA_Policies.Thread_Pool_Policy;
-            use PolyORB.Lanes;
 
             To_Lane : constant Lane_Root_Access
               := Get_Servant_Lane
               (PolyORB.Servants.Servant_Access (Surrogate));
 
          begin
-
             if To_Lane /= null then
                --  Queue request to the lane attached to servant
 
                declare
-                  use PolyORB.Errors;
                   use PolyORB.Tasking.Priorities;
 
                   Model : Priority_Model;
@@ -115,17 +127,23 @@ package body PolyORB.Request_Scheduler.Servant_Lane is
 
                   if Found (Error) then
                      Catch (Error);
+                     pragma Debug (O ("No priority information"));
+                     pragma Debug (O ("Try_Queue_Request_Job: leave"));
+
                      return False;
                   end if;
 
                   Queue_Job (To_Lane, Job, Server_External_Priority);
-
+                  pragma Debug (O ("Job queued"));
+                  pragma Debug (O ("Try_Queue_Request_Job: leave"));
                   return True;
                end;
             end if;
          end;
       end if;
 
+      pragma Debug (O ("No lane attached to servant, cannot queue job"));
+      pragma Debug (O ("Try_Queue_Request_Job: leave"));
       return False;
    end Try_Queue_Request_Job;
 
@@ -137,9 +155,7 @@ package body PolyORB.Request_Scheduler.Servant_Lane is
      (RCF : access Request_Scheduler_Servant_Lane_Factory)
      return Request_Scheduler_Access
    is
-      pragma Warnings (Off); --  WAG:3.15
       pragma Unreferenced (RCF);
-      pragma Warnings (On);  --  WAG:3.15
 
    begin
       return new Request_Scheduler_Servant_Lane;
@@ -168,5 +184,6 @@ begin
        Depends   => Empty,
        Provides  => +"request_scheduler",
        Implicit  => False,
-       Init      => Initialize'Access));
+       Init      => Initialize'Access,
+       Shutdown  => null));
 end PolyORB.Request_Scheduler.Servant_Lane;

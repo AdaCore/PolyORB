@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -63,18 +63,47 @@ package body PolyORB.Binding_Data.Local is
    end Create_Local_Profile;
 
    ------------------
+   -- Is_Colocated --
+   ------------------
+
+   function Is_Colocated
+     (Left  : Local_Profile_Type;
+      Right : Profile_Type'Class) return Boolean
+   is
+      pragma Unreferenced (Left);
+   begin
+      return Right in Local_Profile_Type'Class;
+   end Is_Colocated;
+
+   -----------------------
+   -- Duplicate_Profile --
+   -----------------------
+
+   function Duplicate_Profile
+     (P : Local_Profile_Type)
+     return Profile_Access
+   is
+      Result : constant Profile_Access := new Local_Profile_Type;
+      TResult : Local_Profile_Type renames Local_Profile_Type (Result.all);
+
+   begin
+      TResult.Object_Id := new Object_Id'(P.Object_Id.all);
+
+      return Result;
+   end Duplicate_Profile;
+
+   ------------------
    -- Bind_Profile --
    -------------------
 
    procedure Bind_Profile
-     (Profile :     Local_Profile_Type;
-      The_ORB :     Components.Component_Access;
-      BO_Ref  : out Smart_Pointers.Ref;
-      Error   : out Errors.Error_Container)
+     (Profile : access Local_Profile_Type;
+      The_ORB :        Components.Component_Access;
+      QoS     :        PolyORB.QoS.QoS_Parameters;
+      BO_Ref  :    out Smart_Pointers.Ref;
+      Error   :    out Errors.Error_Container)
    is
-      pragma Warnings (Off); -- WAG:3.15
-      pragma Unreferenced (Profile, The_ORB, BO_Ref, Error);
-      pragma Warnings (On); -- WAG:3.15
+      pragma Unreferenced (Profile, The_ORB, QoS, BO_Ref, Error);
 
    begin
       raise Program_Error;
@@ -141,9 +170,7 @@ package body PolyORB.Binding_Data.Local is
      (Profile : Local_Profile_Type)
      return PolyORB.Smart_Pointers.Entity_Ptr
    is
-      pragma Warnings (Off); --  WAG:3.15
       pragma Unreferenced (Profile);
-      pragma Warnings (On); --  WAG:3.15
    begin
       return PolyORB.Smart_Pointers.Entity_Ptr
         (PolyORB.ORB.Object_Adapter (PolyORB.Setup.The_ORB));

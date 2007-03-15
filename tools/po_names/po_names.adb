@@ -46,7 +46,6 @@ with PolyORB.References.IOR;
 with PolyORB.Types;
 
 with PolyORB.Setup.No_Tasking_Server;
-pragma Elaborate_All (PolyORB.Setup.No_Tasking_Server);
 pragma Warnings (Off, PolyORB.Setup.No_Tasking_Server);
 
 with PolyORB.Services.Naming.NamingContext.Servant;
@@ -82,7 +81,7 @@ begin
    --  Output its reference
 
    Ada.Text_IO.Put_Line
-     ("POLYORB_CORBA_NAMING_IOR=" &
+     ("POLYORB_CORBA_NAME_SERVICE=" &
       PolyORB.References.IOR.Object_To_String (NC_Ref));
 
    --  Run node as a stand alone server

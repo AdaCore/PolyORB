@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -72,7 +72,7 @@ package PolyORB.Transport is
      (TAP : access Transport_Access_Point)
      return Asynch_Ev.Asynch_Ev_Source_Access
       is abstract;
-   --  Create a view of TAP as an asyncrhonous event source. The AES_Note
+   --  Create a view of TAP as an asynchronous event source. The AES_Note
    --  on the newly-created event source must be associated to TAP's
    --  event handler.
 
@@ -127,7 +127,7 @@ package PolyORB.Transport is
      (TE : access Transport_Endpoint)
      return Asynch_Ev.Asynch_Ev_Source_Access
       is abstract;
-   --  Create a view of TE as an asyncrhonous event source. The AES_Note
+   --  Create a view of TE as an asynchronous event source. The AES_Note
    --  on the newly-created event source must be associated to TE's
    --  event handler.
 
@@ -154,6 +154,10 @@ package PolyORB.Transport is
 
    procedure Destroy (TE : in out Transport_Endpoint);
    --  Destroy any resources allocated to TE.
+
+   procedure Destroy (TE : in out Transport_Endpoint_Access);
+   --  Destroy TE and the protocol stack built upon it, recursively.
+   --  Deallocate TE. On return, TE is null.
 
 private
 

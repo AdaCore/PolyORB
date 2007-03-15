@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2002 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,24 +26,21 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Idl_Fe.Types;          use Idl_Fe.Types;
 with Idl_Fe.Tree;           use Idl_Fe.Tree;
 
 with Ada_Be.Identifiers;    use Ada_Be.Identifiers;
 
 package body Ada_Be.Idl2Ada.Impl is
 
-   use Ada_Be.Source_Streams;
-
    procedure Gen_Node_Spec
      (CU          : in out Compilation_Unit;
-      Node        :        Node_Id;
-      Is_Delegate :        Boolean          := False)
+      Node        : Node_Id;
+      Is_Delegate : Boolean := False)
    is
    begin
 
@@ -59,6 +56,7 @@ package body Ada_Be.Idl2Ada.Impl is
                Gen_Operation_Profile
                  (CU, Node, "access Wrapped", Is_Delegate => True);
                PL (CU, ";");
+
             elsif not Is_Implicit_Inherited (Node) then
                Gen_Operation_Profile (CU, Node, "access Object");
                PL (CU, ";");
@@ -73,7 +71,8 @@ package body Ada_Be.Idl2Ada.Impl is
 
    procedure Gen_Node_Body
      (CU   : in out Compilation_Unit;
-      Node : Node_Id) is
+      Node : Node_Id)
+   is
    begin
       case Kind (Node) is
 
@@ -83,15 +82,15 @@ package body Ada_Be.Idl2Ada.Impl is
 
          when K_Operation =>
 
-            --  implicitly inherited operation are not overriden by default
+            --  Implicitly inherited operation are not overridden by default
+
             if Is_Implicit_Inherited (Node) then
                return;
             end if;
 
-
             declare
-               Is_Function : constant Boolean
-                 := Kind (Operation_Type (Node)) /= K_Void;
+               Is_Function : constant Boolean :=
+                               Kind (Operation_Type (Node)) /= K_Void;
             begin
                NL (CU);
                Gen_Operation_Profile (CU, Node, "access Object");
@@ -105,6 +104,7 @@ package body Ada_Be.Idl2Ada.Impl is
                else
                   PL (CU, " is");
                end if;
+
                PL (CU, "begin");
                II (CU);
                NL (CU);

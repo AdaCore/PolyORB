@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -34,46 +34,45 @@
 with Ada.Text_IO;
 
 with PolyORB.Initialization;
-pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
-with PolyORB.Log;
 with PolyORB.Utils.Strings;
+with PolyORB.Utils.Configuration_File;
 
 package body PolyORB.Parameters.File is
 
    use Ada.Text_IO;
 
    use PolyORB.Utils.Strings;
+   use PolyORB.Utils.Configuration_File.Configuration_Table;
 
-   -------
-   -- O --
-   -------
+   --------------------------------------------------------
+   -- Table of configuration parameters loaded from file --
+   --------------------------------------------------------
 
-   procedure O (S : String);
-   pragma Inline (O);
-   --  Output a diagnostic or error message.
+   Configuration_Table : Table_Instance;
 
-   --  Note: We are currently initializing structures on which
-   --  PolyORB.Log.Facility_Log depends. Thus we cannot instantiate
-   --  this package and use PolyORB.Log.Internals.Put_Line instead.
+   ----------------------
+   -- File data source --
+   ----------------------
 
-   Debug : constant Boolean := True;
+   type File_Source is new Parameters_Source with null record;
 
-   procedure O (S : String) is
-   begin
-      if Debug then
-         PolyORB.Log.Internals.Put_Line (S);
-      end if;
-   end O;
+   function Get_Conf
+     (Source       : access File_Source;
+      Section, Key : String) return String;
+
+   The_File_Source : aliased File_Source;
 
    ---------------------
    -- Fetch_From_File --
    ---------------------
 
-   function Fetch_From_File (Key : String) return String;
+   function Fetch_From_File (Value : String) return String;
+   --  Given a value of the form "file:<filename>", return the first line
+   --  of the named file.
 
-   function Fetch_From_File (Key : String) return String is
-      Filename : constant String := Key (Key'First + 5 .. Key'Last);
+   function Fetch_From_File (Value : String) return String is
+      Filename : constant String := Value (Value'First + 5 .. Value'Last);
       File     : File_Type;
       Result   : String (1 .. 1024);
       Last     : Natural;
@@ -88,102 +87,35 @@ package body PolyORB.Parameters.File is
          return "";
    end Fetch_From_File;
 
+   --------------
+   -- Get_Conf --
+   --------------
+
+   function Get_Conf
+     (Source       : access File_Source;
+      Section, Key : String) return String
+   is
+      pragma Unreferenced (Source);
+
+      V : constant String_Ptr :=
+            Lookup (Configuration_Table, Make_Global_Key (Section, Key), null);
+
+   begin
+      if V /= null then
+         return V.all;
+      else
+         return "";
+      end if;
+   end Get_Conf;
+
    -----------------------------
    -- Load_Configuration_File --
    -----------------------------
 
    procedure Load_Configuration_File (Conf_File_Name : String) is
-      Current_Section : String_Ptr := null;
-      Current_Line : Integer := 0;
-
-      procedure Set_Current_Section (S : String);
-      --  Enter a new section named S
-
-      procedure Set_Current_Section (S : String) is
-      begin
-         Free (Current_Section);
-         Current_Section := +S;
-      end Set_Current_Section;
-
-      Conf_File : File_Type;
-
-      Line : String (1 .. 1_024);
-      Last : Integer;
-
-      use PolyORB.Utils;
-
    begin
-      pragma Debug (O ("Loading configuration from " & Conf_File_Name));
-
-      begin
-         Open (Conf_File, In_File, Conf_File_Name);
-      exception
-         when Name_Error =>
-            --  No configuration file
-
-            pragma Debug (O ("No " & Conf_File_Name & " configuration file."));
-            return;
-      end;
-
-      while not End_Of_File (Conf_File) loop
-         Get_Line (Conf_File, Line, Last);
-         Current_Line := Current_Line + 1;
-
-         if Last - Line'First >= 0 then
-            case Line (Line'First) is
-               when '#' =>
-                  null;
-
-               when '[' =>
-                  declare
-                     Bra : constant Integer := Line'First;
-                     Ket : constant Integer
-                       := Find (Line (Line'First .. Last), Bra, ']');
-                  begin
-                     if False
-                       or else Ket > Last
-                       or else Ket = Bra + 1
-                       or else Ket /= Last
-                     then
-                        O ("Syntax error on line" &
-                           Integer'Image (Current_Line) &
-                           ": " & Line (Line'First .. Last));
-                        raise Syntax_Error;
-                     end if;
-
-                     Set_Current_Section (Line (Bra + 1 .. Ket - 1));
-                  end;
-
-               when others =>
-                  declare
-                     Eq : constant Integer
-                       := Find (Line (Line'First .. Last),
-                                Line'First, '=');
-                  begin
-                     if Current_Section = null then
-                        O ("Assignment out of any section on line" &
-                           Integer'Image (Current_Line) &
-                           ": " & Line (Line'First .. Last));
-                        raise Syntax_Error;
-                     end if;
-
-                     if Eq not in Line'First + 1 .. Last - 1 then
-                        O ("Syntax error on line" &
-                           Integer'Image (Current_Line) &
-                           ": " & Line (Line'First .. Last));
-                        raise Syntax_Error;
-                     end if;
-
-                     Set_Conf
-                       (Section => Current_Section.all,
-                        Key     => Line (Line'First .. Eq - 1),
-                        Value   => Line (Eq + 1 .. Last));
-                  end;
-            end case;
-         end if;
-      end loop;
-
-      Close (Conf_File);
+      PolyORB.Utils.Configuration_File.Load_Configuration_Table
+        (Conf_File_Name, Configuration_Table);
    end Load_Configuration_File;
 
    -----------------------------
@@ -192,8 +124,12 @@ package body PolyORB.Parameters.File is
 
    function Configuration_File_Name return String is
    begin
-      return Get_Env (PolyORB_Conf_Filename_Variable,
-                      PolyORB_Conf_Default_Filename);
+      --  The key and section here are chosen so that the associated
+      --  environment variable (in the context of the Parameters.Environment
+      --  data source) is POLYORB_CONF.
+
+      return Get_Conf (Section => "conf", Key => "",
+                       Default => PolyORB_Conf_Default_Filename);
    end Configuration_File_Name;
 
    ----------------
@@ -204,24 +140,28 @@ package body PolyORB.Parameters.File is
 
    procedure Initialize is
    begin
+      Initialize (Configuration_Table);
       Load_Configuration_File (Configuration_File_Name);
-      --  Load PolyORB's configuration file
+      Register_Source (The_File_Source'Access);
 
       Fetch_From_File_Hook := Fetch_From_File'Access;
    end Initialize;
 
    use PolyORB.Initialization;
    use PolyORB.Initialization.String_Lists;
-   use PolyORB.Utils.Strings;
 
 begin
    Register_Module
      (Module_Info'
       (Name      => +"parameters.file",
        Conflicts => Empty,
-       Depends   => +"parameters.environment?"
-       & "log?",
-       Provides  => +"parameters",
+       Depends   => Empty
+         & "parameters.command_line?"
+         & "parameters.environment?"
+         & "parameters.overrides?"
+         & "utils.configuration_file",
+       Provides  => +"parameters_sources",
        Implicit  => True,
-       Init      => Initialize'Access));
+       Init      => Initialize'Access,
+       Shutdown  => null));
 end PolyORB.Parameters.File;

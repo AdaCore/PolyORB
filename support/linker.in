@@ -1,5 +1,8 @@
 #! /bin/sh
 
+# Wrapper for libtool used as linker
+# @configure_input@
+
 NATIVE_ADA="@ADA@"
 CROSS_ADA="@ADA_FOR_TARGET@"
 

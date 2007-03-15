@@ -37,7 +37,3 @@ package AWS is
    HTTP_Version : constant String := "HTTP/1.1";
 
 end AWS;
-
-
-
-

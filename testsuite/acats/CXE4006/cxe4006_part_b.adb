@@ -1,5 +1,4 @@
 
-
 -----------------------------------------------------------------------------
 
 with CXE4006_Part_A1;
@@ -46,7 +45,6 @@ package body CXE4006_Part_B is
     Callee := Part_B_Spec;
 
   end Single_Controlling_Operand;
-
 
   -- this procedure will pass all the parameters along to
   -- partition A CXE4006_Part_A1.Make_Dispatching_Call_With.

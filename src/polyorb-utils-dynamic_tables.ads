@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -115,16 +115,20 @@ package PolyORB.Utils.Dynamic_Tables is
    --  previously allocated larger table). Init must be called before using
    --  the table. Init is convenient in reestablishing a table for new use.
 
+   function Initialized (T : Instance) return Boolean;
+   pragma Inline (Initialized);
+   --  Return True iff T has been initialized
+
    First_Index : constant Table_Index_Type := Table_Low_Bound;
    --  Export First as synonym for Low_Bound (parallel with use of Last)
 
-   function First (T : in Instance) return Table_Index_Type;
+   function First (T : Instance) return Table_Index_Type;
    pragma Inline (First);
    --  Returns the 'First value of the table, basically this function
    --  returns First_Index. This function is a facility to access this
    --  value.
 
-   function Last (T : in Instance) return Table_Index_Type;
+   function Last (T : Instance) return Table_Index_Type;
    pragma Inline (Last);
    --  Returns the current value of the last used entry in the table,
    --  which can then be used as a subscript for Table. Note that the
@@ -159,20 +163,25 @@ package PolyORB.Utils.Dynamic_Tables is
    --  Allocate room for Num Table_Component_Type in table T,
    --  eventually reallocate T.
 
+   function Duplicate (T : Instance) return Instance;
+   --  Return a copy of T
+
    procedure Deallocate (T : in out Instance);
    --  Deallocate T instance
 
 private
 
    type Table_Private is record
-      Max : Integer;
+      Initialized : Boolean := False;
+
+      Max : Integer := 0;
       --  Subscript of the maximum entry in the currently allocated table
 
       Length : Integer := 0;
       --  Number of entries in currently allocated table. The value of zero
       --  ensures that we initially allocate the table.
 
-      Last_Val : Integer;
+      Last_Val : Integer := 0;
       --  Current value of Last
    end record;
 

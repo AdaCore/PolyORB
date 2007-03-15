@@ -34,11 +34,13 @@
 with CORBA;
 with IOP.Codec;
 with PortableInterceptor;
-with PortableServer;
 
 with Test001_Interface;
 
 package Test001_Globals is
+
+   Pass_Not_Implemented : Boolean := True;
+   --  Iff set to True then all non implemented tests successfully passed.
 
    type Interception_Point is
      (Send_Request,
@@ -85,13 +87,5 @@ package Test001_Globals is
       Operation : in String;
       Status    : in Boolean;
       Comment   : in String := "");
-
-   function To_PortableInterceptor_ObjectId
-     (Value : in PortableServer.ObjectId)
-      return PortableInterceptor.ObjectId;
-
-   function To_PortableServer_ObjectId
-     (Value : in PortableInterceptor.ObjectId)
-      return PortableServer.ObjectId;
 
 end Test001_Globals;

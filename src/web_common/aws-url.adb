@@ -1,42 +1,42 @@
 ------------------------------------------------------------------------------
---                              Ada Web Server                              --
 --                                                                          --
---                         Copyright (C) 2000-2002                          --
---                                ACT-Europe                                --
+--                           POLYORB COMPONENTS                             --
 --                                                                          --
---  Authors: Dmitriy Anisimkov - Pascal Obry                                --
+--                              A W S . U R L                               --
 --                                                                          --
---  This library is free software; you can redistribute it and/or modify    --
---  it under the terms of the GNU General Public License as published by    --
---  the Free Software Foundation; either version 2 of the License, or (at   --
---  your option) any later version.                                         --
+--                                 B o d y                                  --
 --                                                                          --
---  This library is distributed in the hope that it will be useful, but     --
---  WITHOUT ANY WARRANTY; without even the implied warranty of              --
---  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU       --
---  General Public License for more details.                                --
+--         Copyright (C) 2000-2006, Free Software Foundation, Inc.          --
 --                                                                          --
---  You should have received a copy of the GNU General Public License       --
---  along with this library; if not, write to the Free Software Foundation, --
---  Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.          --
+-- PolyORB is free software; you  can  redistribute  it and/or modify it    --
+-- under terms of the  GNU General Public License as published by the  Free --
+-- Software Foundation;  either version 2,  or (at your option)  any  later --
+-- version. PolyORB is distributed  in the hope that it will be  useful,    --
+-- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
+-- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
+-- License  for more details.  You should have received  a copy of the GNU  --
+-- General Public License distributed with PolyORB; see file COPYING. If    --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
---  As a special exception, if other files instantiate generics from this   --
---  unit, or you link this unit with other files to produce an executable,  --
---  this  unit  does not  by itself cause  the resulting executable to be   --
---  covered by the GNU General Public License. This exception does not      --
---  however invalidate any other reasons why the executable file  might be  --
---  covered by the  GNU Public License.                                     --
+-- As a special exception,  if other files  instantiate  generics from this --
+-- unit, or you link  this unit with other files  to produce an executable, --
+-- this  unit  does not  by itself cause  the resulting  executable  to  be --
+-- covered  by the  GNU  General  Public  License.  This exception does not --
+-- however invalidate  any other reasons why  the executable file  might be --
+-- covered by the  GNU Public License.                                      --
+--                                                                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
+--                                                                          --
 ------------------------------------------------------------------------------
 
---  with Ada.Text_IO;
 with Ada.Characters.Handling;
 with Ada.Strings.Fixed;
 with Ada.Strings.Maps;
 
---  with AWS.Messages;
 with AWS.Utils;
-pragma Elaborate_All (AWS.Utils); --  WAG:3.15
-
+pragma Elaborate_All (AWS.Utils);
 with AWS.URL.Raise_URL_Error;
 
 with PolyORB.Utils;
@@ -49,11 +49,11 @@ package body AWS.URL is
 
    Not_Escaped : constant Escape_Code := "  ";
 
-   function Code (C : in Character) return Escape_Code;
+   function Code (C : Character) return Escape_Code;
    pragma Inline (Code);
    --  Returns hexadecimal code for character C.
 
-   function Normalize (Path : in Unbounded_String) return Unbounded_String;
+   function Normalize (Path : Unbounded_String) return Unbounded_String;
    --  Returns Path with all possible occurences of parent and current
    --  directories removed. Does not raise exception.
 
@@ -62,8 +62,8 @@ package body AWS.URL is
    --------------
 
    function Abs_Path
-     (URL    : in Object;
-      Encode : in Boolean := False)
+     (URL    : Object;
+      Encode : Boolean := False)
       return String
    is
       Result : constant String
@@ -80,7 +80,7 @@ package body AWS.URL is
    -- Code --
    ----------
 
-   function Code (C : in Character) return Escape_Code is
+   function Code (C : Character) return Escape_Code is
    begin
       return Utils.Hex (Character'Pos (C));
    end Code;
@@ -99,7 +99,7 @@ package body AWS.URL is
    -- Decode --
    ------------
 
-   function Decode (Str : in String) return String is
+   function Decode (Str : String) return String is
       Res : String (1 .. Str'Length);
       K   : Natural := 0;
       I   : Positive := Str'First;
@@ -137,7 +137,7 @@ package body AWS.URL is
    -- Encode --
    ------------
 
-   function Encode (Str : in String) return String is
+   function Encode (Str : String) return String is
       Res : String (1 .. Str'Length * 3);
       K   : Natural := 0;
    begin
@@ -169,8 +169,8 @@ package body AWS.URL is
    ----------
 
    function File
-     (URL    : in Object;
-      Encode : in Boolean := False)
+     (URL    : Object;
+      Encode : Boolean := False)
       return String is
    begin
       if Encode then
@@ -184,27 +184,25 @@ package body AWS.URL is
    -- Host --
    ----------
 
-   function Host (URL : in Object) return String is
+   function Host (URL : Object) return String is
    begin
       return To_String (URL.Host);
    end Host;
-
 
    --------------
    -- Protocol --
    --------------
 
-   function Protocol (URL : in Object) return String is
+   function Protocol (URL : Object) return String is
    begin
       return To_String (URL.Protocol);
    end Protocol;
-
 
    --------------
    -- Is_Valid --
    --------------
 
-   function Is_Valid (URL : in Object) return Boolean is
+   function Is_Valid (URL : Object) return Boolean is
    begin
       return URL.Status = Valid;
    end Is_Valid;
@@ -213,7 +211,7 @@ package body AWS.URL is
    -- Normalize --
    ---------------
 
-   function Normalize (Path : in Unbounded_String) return Unbounded_String is
+   function Normalize (Path : Unbounded_String) return Unbounded_String is
       URL_Path : Unbounded_String := Path;
 
       K : Natural;
@@ -273,8 +271,8 @@ package body AWS.URL is
    ----------------
 
    function Parameters
-     (URL    : in Object;
-      Encode : in Boolean := False)
+     (URL    : Object;
+      Encode : Boolean := False)
       return String is
    begin
       if Encode then
@@ -289,9 +287,9 @@ package body AWS.URL is
    -----------
 
    function Parse
-      (URL            : in String;
-       Check_Validity : in Boolean := True;
-       Normalize      : in Boolean := False)
+      (URL            : String;
+       Check_Validity : Boolean := True;
+       Normalize      : Boolean := False)
        return Object
    is
 --      HTTP_Token  : constant String := "http://";
@@ -304,7 +302,7 @@ package body AWS.URL is
 
       O : Object;
 
-      procedure Parse (URL : in String; Protocol_Specified : in Boolean);
+      procedure Parse (URL : String; Protocol_Specified : Boolean);
       --  Parse URL, the URL must not contain the HTTP_Token prefix.
       --  Protocol_Specified is set to True when the protocol (http:// or
       --  https:// prefix) was specified. This is used to raise ambiguity
@@ -314,14 +312,14 @@ package body AWS.URL is
       -- Parse --
       -----------
 
-      procedure Parse (URL : in String;  Protocol_Specified : in Boolean) is
+      procedure Parse (URL : String;  Protocol_Specified : Boolean) is
 
          function "+"
-           (S : in String)
+           (S : String)
             return Unbounded_String
             renames To_Unbounded_String;
 
-         procedure Parse_Path_File (Start : in Positive);
+         procedure Parse_Path_File (Start : Positive);
          --  Parse Path and File URL information starting at position Start in
          --  URL.
 
@@ -332,7 +330,7 @@ package body AWS.URL is
          -- Parse_Path_File --
          ---------------------
 
-         procedure Parse_Path_File (Start : in Positive) is
+         procedure Parse_Path_File (Start : Positive) is
             PF : constant String := URL (Start .. URL'Last);
             I3 : constant Natural
               := Strings.Fixed.Index (PF, "/", Strings.Backward);
@@ -492,7 +490,6 @@ package body AWS.URL is
 
          --  Checks for prefix
 
-
          Parse (L3_URL (L3_URL'First .. P), True);
       end;
 
@@ -560,7 +557,7 @@ package body AWS.URL is
    -- Password --
    --------------
 
-   function Password (URL : in Object) return String is
+   function Password (URL : Object) return String is
    begin
       return To_String (URL.Password);
    end Password;
@@ -570,8 +567,8 @@ package body AWS.URL is
    ----------
 
    function Path
-     (URL    : in Object;
-      Encode : in Boolean := False)
+     (URL    : Object;
+      Encode : Boolean := False)
       return String is
    begin
       if Encode then
@@ -586,8 +583,8 @@ package body AWS.URL is
    -----------------------------
 
    function Pathname_And_Parameters
-     (URL    : in Object;
-      Encode : in Boolean := False)
+     (URL    : Object;
+      Encode : Boolean := False)
       return String is
    begin
       return Pathname (URL, Encode) & Parameters (URL, Encode);
@@ -597,12 +594,12 @@ package body AWS.URL is
    -- Port --
    ----------
 
-   function Port (URL : in Object) return Positive is
+   function Port (URL : Object) return Positive is
    begin
       return URL.Port;
    end Port;
 
-   function Port (URL : in Object) return String is
+   function Port (URL : Object) return String is
       P_Image : constant String := Positive'Image (URL.Port);
    begin
       return P_Image (2 .. P_Image'Last);
@@ -612,7 +609,7 @@ package body AWS.URL is
    -- Protocol_Name --
    -------------------
 
-   function Protocol_Name (URL : in Object) return String is
+   function Protocol_Name (URL : Object) return String is
    begin
       if URL.Security then
          return "https";
@@ -626,8 +623,8 @@ package body AWS.URL is
    -----------
 
    function Query
-     (URL    : in Object;
-      Encode : in Boolean := False)
+     (URL    : Object;
+      Encode : Boolean := False)
       return String
    is
       P : constant String := Parameters (URL, Encode);
@@ -639,7 +636,7 @@ package body AWS.URL is
    -- Security --
    --------------
 
-   function Security (URL : in Object) return Boolean is
+   function Security (URL : Object) return Boolean is
    begin
       return URL.Security;
    end Security;
@@ -649,8 +646,8 @@ package body AWS.URL is
    ---------
 
    function URI
-     (URL    : in Object;
-      Encode : in Boolean := False)
+     (URL    : Object;
+      Encode : Boolean := False)
      return String
    is
    begin
@@ -665,7 +662,7 @@ package body AWS.URL is
    -- URL --
    ---------
 
-   function URL (URL : in Object) return String is
+   function URL (URL : Object) return String is
 
       function Port return String;
       pragma Inline (Port);
@@ -736,7 +733,7 @@ package body AWS.URL is
    -- User --
    ----------
 
-   function User (URL : in Object) return String is
+   function User (URL : Object) return String is
    begin
       return To_String (URL.User);
    end User;

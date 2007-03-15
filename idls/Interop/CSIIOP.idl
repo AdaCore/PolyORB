@@ -10,136 +10,136 @@
 #include <IOP.idl>
 #include <CSI.idl>
 #else
-//PolyORB:NI:import ::IOP;
-//PolyORB:NI:import ::CSI;
+import ::IOP;
+import ::CSI;
 #endif // _PRE_3_0_COMPILER_
     
-//PolyORB:NI:module CSIIOP {
-//PolyORB:NI:
-//PolyORB:NI:#ifndef _PRE_3_0_COMPILER_
-//PolyORB:NI:    typeprefix CSIIOP "omg.org";
-//PolyORB:NI:#endif // _PRE_3_0_COMPILER_
-//PolyORB:NI:
-//PolyORB:NI:    // Association options
-//PolyORB:NI:    
-//PolyORB:NI:    typedef unsigned short AssociationOptions;
-//PolyORB:NI:   
-//PolyORB:NI:    const AssociationOptions NoProtection = 1;
-//PolyORB:NI:    const AssociationOptions Integrity = 2;     
-//PolyORB:NI:    const AssociationOptions Confidentiality = 4; 
-//PolyORB:NI:    const AssociationOptions DetectReplay = 8;     
-//PolyORB:NI:    const AssociationOptions DetectMisordering = 16;
-//PolyORB:NI:    const AssociationOptions EstablishTrustInTarget = 32; 
-//PolyORB:NI:    const AssociationOptions EstablishTrustInClient = 64;
-//PolyORB:NI:    const AssociationOptions NoDelegation = 128;
-//PolyORB:NI:    const AssociationOptions SimpleDelegation = 256; 
-//PolyORB:NI:    const AssociationOptions CompositeDelegation = 512;
-//PolyORB:NI:    const AssociationOptions IdentityAssertion = 1024;
-//PolyORB:NI:    const AssociationOptions DelegationByClient = 2048;
-//PolyORB:NI:    
-//PolyORB:NI:    // The high order 20-bits of each ServiceConfigurationSyntax constant
-//PolyORB:NI:    // shall contain the Vendor Minor Codeset ID (VMCID) of the
-//PolyORB:NI:    // organization that defined the syntax. The low order 12 bits shall
-//PolyORB:NI:    // contain the organization-scoped syntax identifier. The high-order 20
-//PolyORB:NI:    // bits of all syntaxes defined by the OMG shall contain the VMCID
-//PolyORB:NI:    // allocated to the OMG (that is, 0x4F4D0).
-//PolyORB:NI:
-//PolyORB:NI:    typedef unsigned long ServiceConfigurationSyntax;
-//PolyORB:NI:
-//PolyORB:NI:    const ServiceConfigurationSyntax SCS_GeneralNames = CSI::OMGVMCID | 0;
-//PolyORB:NI:    const ServiceConfigurationSyntax SCS_GSSExportedName = CSI::OMGVMCID | 1;
-//PolyORB:NI:      
-//PolyORB:NI:    typedef sequence <octet> ServiceSpecificName;
-//PolyORB:NI:
-//PolyORB:NI:    // The name field of the ServiceConfiguration structure identifies a
-//PolyORB:NI:    // privilege authority in the format identified in the syntax field. If the
-//PolyORB:NI:    // syntax is SCS_GeneralNames, the name field contains an ASN.1 (BER)
-//PolyORB:NI:    // SEQUENCE [1..MAX] OF GeneralName, as defined by the type GeneralNames in
-//PolyORB:NI:    // [IETF RFC 2459]. If the syntax is SCS_GSSExportedName, the name field 
-//PolyORB:NI:    // contains a GSS exported name encoded according to the rules in 
-//PolyORB:NI:    // [IETF RFC 2743] Section 3.2, "Mechanism-Independent Exported Name
-//PolyORB:NI:    // Object Format," p. 84.
-//PolyORB:NI:
-//PolyORB:NI:    struct ServiceConfiguration {
-//PolyORB:NI:	ServiceConfigurationSyntax syntax;
-//PolyORB:NI:        ServiceSpecificName name;
-//PolyORB:NI:    };
-//PolyORB:NI:
-//PolyORB:NI:    typedef sequence <ServiceConfiguration> ServiceConfigurationList;
-//PolyORB:NI:
-//PolyORB:NI:    // The body of the TAG_NULL_TAG component is a sequence of octets of
-//PolyORB:NI:    // length 0.
-//PolyORB:NI:
-//PolyORB:NI:    // type used to define AS layer functionality within a compound mechanism
-//PolyORB:NI:    // definition
-//PolyORB:NI:      
-//PolyORB:NI:    struct AS_ContextSec {
-//PolyORB:NI:        AssociationOptions target_supports;
-//PolyORB:NI:        AssociationOptions target_requires;
-//PolyORB:NI:        CSI::OID client_authentication_mech;
-//PolyORB:NI:	CSI::GSS_NT_ExportedName target_name;
-//PolyORB:NI:    };
-//PolyORB:NI:
-//PolyORB:NI:    // type used to define SAS layer functionality within a compound mechanism
-//PolyORB:NI:    // definition
-//PolyORB:NI: 
-//PolyORB:NI:    struct SAS_ContextSec {
-//PolyORB:NI:	AssociationOptions target_supports;
-//PolyORB:NI:	AssociationOptions target_requires;
-//PolyORB:NI:	ServiceConfigurationList  privilege_authorities;
-//PolyORB:NI:	CSI::OIDList supported_naming_mechanisms;
-//PolyORB:NI:	CSI::IdentityTokenType supported_identity_types;
-//PolyORB:NI:    };
-//PolyORB:NI:
-//PolyORB:NI:    // type used in the body of a TAG_CSI_SEC_MECH_LIST component to
-//PolyORB:NI:    // describe a compound mechanism
-//PolyORB:NI:      
-//PolyORB:NI:    struct CompoundSecMech {
-//PolyORB:NI:	AssociationOptions target_requires;
-//PolyORB:NI:	IOP::TaggedComponent transport_mech;
-//PolyORB:NI:	AS_ContextSec as_context_mech;
-//PolyORB:NI:	SAS_ContextSec sas_context_mech;
-//PolyORB:NI:    };
-//PolyORB:NI:
-//PolyORB:NI:    typedef sequence <CompoundSecMech> CompoundSecMechanisms;
-//PolyORB:NI:
-//PolyORB:NI:    // type corresponding to the body of a TAG_CSI_SEC_MECH_LIST 
-//PolyORB:NI:    // component
-//PolyORB:NI:      
-//PolyORB:NI:    struct CompoundSecMechList {
-//PolyORB:NI:	boolean stateful;
-//PolyORB:NI:	CompoundSecMechanisms  mechanism_list;
-//PolyORB:NI:    };
-//PolyORB:NI:
-//PolyORB:NI:    struct TransportAddress {
-//PolyORB:NI:	string host_name;
-//PolyORB:NI:	unsigned short port;
-//PolyORB:NI:    };
-//PolyORB:NI:
-//PolyORB:NI:    typedef sequence <TransportAddress> TransportAddressList;
-//PolyORB:NI:
-//PolyORB:NI:    // Tagged component for configuring SECIOP as a CSIv2 transport mechanism
-//PolyORB:NI:
-//PolyORB:NI:    const IOP::ComponentId TAG_SECIOP_SEC_TRANS = 35;
-//PolyORB:NI:
-//PolyORB:NI:    struct SECIOP_SEC_TRANS {
-//PolyORB:NI:	AssociationOptions target_supports;
-//PolyORB:NI:	AssociationOptions target_requires;
-//PolyORB:NI:	CSI::OID mech_oid;
-//PolyORB:NI:	CSI::GSS_NT_ExportedName target_name;
-//PolyORB:NI:	TransportAddressList addresses;
-//PolyORB:NI:    };
-//PolyORB:NI:
-//PolyORB:NI:    // tagged component for configuring TLS/SSL as a CSIv2 transport mechanism
-//PolyORB:NI:
-//PolyORB:NI:    const IOP::ComponentId TAG_TLS_SEC_TRANS = 36;
-//PolyORB:NI:
-//PolyORB:NI:    struct TLS_SEC_TRANS {
-//PolyORB:NI:	AssociationOptions target_supports;
-//PolyORB:NI:	AssociationOptions target_requires;
-//PolyORB:NI:	TransportAddressList addresses;
-//PolyORB:NI:    };
-//PolyORB:NI:
-//PolyORB:NI:}; //CSIIOP
+module CSIIOP {
+
+#ifndef _PRE_3_0_COMPILER_
+    typeprefix CSIIOP "omg.org";
+#endif // _PRE_3_0_COMPILER_
+
+    // Association options
+    
+    typedef unsigned short AssociationOptions;
+   
+    const AssociationOptions NoProtection = 1;
+    const AssociationOptions Integrity = 2;     
+    const AssociationOptions Confidentiality = 4; 
+    const AssociationOptions DetectReplay = 8;     
+    const AssociationOptions DetectMisordering = 16;
+    const AssociationOptions EstablishTrustInTarget = 32; 
+    const AssociationOptions EstablishTrustInClient = 64;
+    const AssociationOptions NoDelegation = 128;
+    const AssociationOptions SimpleDelegation = 256; 
+    const AssociationOptions CompositeDelegation = 512;
+    const AssociationOptions IdentityAssertion = 1024;
+    const AssociationOptions DelegationByClient = 2048;
+    
+    // The high order 20-bits of each ServiceConfigurationSyntax constant
+    // shall contain the Vendor Minor Codeset ID (VMCID) of the
+    // organization that defined the syntax. The low order 12 bits shall
+    // contain the organization-scoped syntax identifier. The high-order 20
+    // bits of all syntaxes defined by the OMG shall contain the VMCID
+    // allocated to the OMG (that is, 0x4F4D0).
+
+    typedef unsigned long ServiceConfigurationSyntax;
+
+    const ServiceConfigurationSyntax SCS_GeneralNames = CSI::OMGVMCID | 0;
+    const ServiceConfigurationSyntax SCS_GSSExportedName = CSI::OMGVMCID | 1;
+      
+    typedef sequence <octet> ServiceSpecificName;
+
+    // The name field of the ServiceConfiguration structure identifies a
+    // privilege authority in the format identified in the syntax field. If the
+    // syntax is SCS_GeneralNames, the name field contains an ASN.1 (BER)
+    // SEQUENCE [1..MAX] OF GeneralName, as defined by the type GeneralNames in
+    // [IETF RFC 2459]. If the syntax is SCS_GSSExportedName, the name field 
+    // contains a GSS exported name encoded according to the rules in 
+    // [IETF RFC 2743] Section 3.2, "Mechanism-Independent Exported Name
+    // Object Format," p. 84.
+
+    struct ServiceConfiguration {
+	ServiceConfigurationSyntax syntax;
+        ServiceSpecificName name;
+    };
+
+    typedef sequence <ServiceConfiguration> ServiceConfigurationList;
+
+    // The body of the TAG_NULL_TAG component is a sequence of octets of
+    // length 0.
+
+    // type used to define AS layer functionality within a compound mechanism
+    // definition
+      
+    struct AS_ContextSec {
+        AssociationOptions target_supports;
+        AssociationOptions target_requires;
+        CSI::OID client_authentication_mech;
+	CSI::GSS_NT_ExportedName target_name;
+    };
+
+    // type used to define SAS layer functionality within a compound mechanism
+    // definition
+ 
+    struct SAS_ContextSec {
+	AssociationOptions target_supports;
+	AssociationOptions target_requires;
+	ServiceConfigurationList  privilege_authorities;
+	CSI::OIDList supported_naming_mechanisms;
+	CSI::IdentityTokenType supported_identity_types;
+    };
+
+    // type used in the body of a TAG_CSI_SEC_MECH_LIST component to
+    // describe a compound mechanism
+      
+    struct CompoundSecMech {
+	AssociationOptions target_requires;
+	IOP::TaggedComponent transport_mech;
+	AS_ContextSec as_context_mech;
+	SAS_ContextSec sas_context_mech;
+    };
+
+    typedef sequence <CompoundSecMech> CompoundSecMechanisms;
+
+    // type corresponding to the body of a TAG_CSI_SEC_MECH_LIST 
+    // component
+      
+    struct CompoundSecMechList {
+	boolean stateful;
+	CompoundSecMechanisms  mechanism_list;
+    };
+
+    struct TransportAddress {
+	string host_name;
+	unsigned short port;
+    };
+
+    typedef sequence <TransportAddress> TransportAddressList;
+
+    // Tagged component for configuring SECIOP as a CSIv2 transport mechanism
+
+    const IOP::ComponentId TAG_SECIOP_SEC_TRANS = 35;
+
+    struct SECIOP_SEC_TRANS {
+	AssociationOptions target_supports;
+	AssociationOptions target_requires;
+	CSI::OID mech_oid;
+	CSI::GSS_NT_ExportedName target_name;
+	TransportAddressList addresses;
+    };
+
+    // tagged component for configuring TLS/SSL as a CSIv2 transport mechanism
+
+    const IOP::ComponentId TAG_TLS_SEC_TRANS = 36;
+
+    struct TLS_SEC_TRANS {
+	AssociationOptions target_supports;
+	AssociationOptions target_requires;
+	TransportAddressList addresses;
+    };
+
+}; //CSIIOP
 
 #endif // _CSIIOP_IDL_

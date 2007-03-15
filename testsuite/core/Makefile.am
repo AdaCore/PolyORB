@@ -1,14 +1,3 @@
-AUTOMAKE_OPTIONS = foreign no-dependencies
-ACLOCAL_AMFLAGS = -I support
-
-corba_dir =
-dsa_dir   =
-moma_dir  =
-
-giop_dir  =
-soap_dir  =
-srp_dir   =
-
 SUBDIRS = \
 	any \
 	chained_lists \
@@ -20,9 +9,5 @@ SUBDIRS = \
 	poa \
 	random \
 	sync_policies \
-	tasking
-
-CLEANFILES = config-stamp
-
-depend:
-	cd src && ${MAKE} depend
+	tasking \
+	uri_encoding

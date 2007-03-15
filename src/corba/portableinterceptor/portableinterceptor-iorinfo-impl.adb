@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2004 Free Software Foundation, Inc.             --
+--         Copyright (C) 2004-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,13 +26,18 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Streams;
+
 with PolyORB.Annotations;
+with PolyORB.CORBA_P.Codec_Utils;
 with PolyORB.CORBA_P.Policy_Management;
+with PolyORB.Obj_Adapter_QoS;
+with PolyORB.QoS.Tagged_Components;
 
 package body PortableInterceptor.IORInfo.Impl is
 
@@ -42,12 +47,31 @@ package body PortableInterceptor.IORInfo.Impl is
 
    procedure Add_IOR_Component
      (Self        : access Object;
-      A_Component : in     IOP.TaggedComponent)
+      A_Component :        IOP.TaggedComponent)
    is
-      pragma Unreferenced (Self);
-      pragma Unreferenced (A_Component);
+      use PolyORB.Obj_Adapter_QoS;
+      use PolyORB.QoS;
+      use PolyORB.QoS.Tagged_Components;
+      use PolyORB.QoS.Tagged_Components.GIOP_Tagged_Component_Lists;
+
+      QoS : QoS_GIOP_Tagged_Components_Parameter_Access
+        := QoS_GIOP_Tagged_Components_Parameter_Access
+        (Get_Object_Adapter_QoS (Self.POA, GIOP_Tagged_Components));
+
    begin
-      raise Program_Error;
+      if QoS = null then
+         QoS := new QoS_GIOP_Tagged_Components_Parameter;
+         Set_Object_Adapter_QoS
+           (Self.POA, GIOP_Tagged_Components, QoS_Parameter_Access (QoS));
+      end if;
+
+      Append
+        (QoS.Components,
+         (Component_Id (A_Component.Tag),
+          new Ada.Streams.Stream_Element_Array'
+          (PolyORB.CORBA_P.Codec_Utils.To_Encapsulation
+           (CORBA.IDL_SEQUENCES.IDL_SEQUENCE_Octet.Sequence
+            (A_Component.Component_Data)))));
    end Add_IOR_Component;
 
    ----------------------------------
@@ -56,14 +80,21 @@ package body PortableInterceptor.IORInfo.Impl is
 
    procedure Add_IOR_Component_To_Profile
      (Self        : access Object;
-      A_Component : in     IOP.TaggedComponent;
-      Profile_Id  : in     IOP.ProfileId)
+      A_Component : IOP.TaggedComponent;
+      Profile_Id  : IOP.ProfileId)
    is
-      pragma Unreferenced (Self);
-      pragma Unreferenced (A_Component);
-      pragma Unreferenced (Profile_Id);
+      use type IOP.ProfileId;
+
    begin
-      raise Program_Error;
+      if Profile_Id /= IOP.Tag_Internet_IOP then
+         CORBA.Raise_Bad_Param
+           (CORBA.System_Exception_Members'
+            (CORBA.IDL_Exception_Members with
+               Minor  => 29,
+               Completed => CORBA.Completed_No));
+      end if;
+
+      Add_IOR_Component (Self, A_Component);
    end Add_IOR_Component_To_Profile;
 
 --   --------------------------
@@ -100,7 +131,7 @@ package body PortableInterceptor.IORInfo.Impl is
 
    function Get_Effective_Policy
      (Self     : access Object;
-      IDL_Type : in     CORBA.PolicyType)
+      IDL_Type : CORBA.PolicyType)
       return CORBA.Policy.Ref
    is
       use PolyORB.CORBA_P.Policy_Management;
@@ -150,7 +181,7 @@ package body PortableInterceptor.IORInfo.Impl is
 
    procedure Init
      (Self : access Object;
-      POA  : in     PolyORB.POA.Obj_Adapter_Access)
+      POA  : PolyORB.POA.Obj_Adapter_Access)
    is
    begin
       Self.POA := POA;
@@ -162,7 +193,7 @@ package body PortableInterceptor.IORInfo.Impl is
 
    function Is_A
      (Self            : access Object;
-      Logical_Type_Id : in     Standard.String)
+      Logical_Type_Id : Standard.String)
       return Boolean
    is
       pragma Unreferenced (Self);
@@ -181,7 +212,7 @@ package body PortableInterceptor.IORInfo.Impl is
 --
 --   procedure Set_Current_Factory
 --     (Self : access Object;
---      To   : in     ObjectReferenceFactory.Abstract_Value_Ref)
+--      To   : ObjectReferenceFactory.Abstract_Value_Ref)
 --   is
 --   begin
 --      raise Program_Error;

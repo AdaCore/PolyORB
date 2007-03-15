@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,35 +26,21 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with CORBA.Impl;
-pragma Warnings (Off, CORBA.Impl);
-
 with CosTypedEventChannelAdmin.TypedEventChannel;
-
-with CosTypedEventChannelAdmin.TypedSupplierAdmin;
 with CosTypedEventChannelAdmin.TypedSupplierAdmin.Impl;
-
-with CosTypedEventChannelAdmin.TypedConsumerAdmin;
 with CosTypedEventChannelAdmin.TypedConsumerAdmin.Impl;
-
-with CosTypedEventChannelAdmin.TypedEventChannel.Helper;
-pragma Elaborate (CosTypedEventChannelAdmin.TypedEventChannel.Helper);
-pragma Warnings (Off, CosTypedEventChannelAdmin.TypedEventChannel.Helper);
-
-with CosTypedEventChannelAdmin.TypedEventChannel.Skel;
-pragma Elaborate (CosTypedEventChannelAdmin.TypedEventChannel.Skel);
-pragma Warnings (Off, CosTypedEventChannelAdmin.TypedEventChannel.Skel);
-
-with PortableServer;
 
 with PolyORB.CORBA_P.Server_Tools;
 with PolyORB.Dynamic_Dict;
 with PolyORB.Log;
+
+with CosTypedEventChannelAdmin.TypedEventChannel.Skel;
+pragma Warnings (Off, CosTypedEventChannelAdmin.TypedEventChannel.Skel);
 
 package body CosTypedEventChannelAdmin.TypedEventChannel.Impl is
 
@@ -63,8 +49,11 @@ package body CosTypedEventChannelAdmin.TypedEventChannel.Impl is
 
    use PolyORB.Log;
    package L is new PolyORB.Log.Facility_Log ("typedeventchannel");
-   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+   procedure O (Message : Standard.String; Level : Log_Level := Debug)
      renames L.Output;
+   function C (Level : Log_Level := Debug) return Boolean
+     renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    package InterfaceTable is new PolyORB.Dynamic_Dict (Interface_Ptr);
 
@@ -100,12 +89,8 @@ package body CosTypedEventChannelAdmin.TypedEventChannel.Impl is
    -- Destroy --
    -------------
 
-   procedure Destroy
-     (Self : access Object)
-   is
-      pragma Warnings (Off); --  WAG:3.14
+   procedure Destroy (Self : access Object) is
       pragma Unreferenced (Self);
-      pragma Warnings (On);  --  WAG:3.14
    begin
       null;
    end Destroy;
@@ -149,7 +134,7 @@ package body CosTypedEventChannelAdmin.TypedEventChannel.Impl is
 
    function Post
       (Self : access Object;
-      uses_interface : in  CosTypedEventChannelAdmin.Key)
+      uses_interface : CosTypedEventChannelAdmin.Key)
       return CORBA.Object.Ref
    is
       Ref : CORBA.Object.Ref;
@@ -166,7 +151,7 @@ package body CosTypedEventChannelAdmin.TypedEventChannel.Impl is
 
    function Pull
       (Self : access Object;
-      uses_interface : in  CosTypedEventChannelAdmin.Key)
+      uses_interface : CosTypedEventChannelAdmin.Key)
       return CORBA.Object.Ref
    is
       Ref : CORBA.Object.Ref;
@@ -181,8 +166,8 @@ package body CosTypedEventChannelAdmin.TypedEventChannel.Impl is
    -- Register --
    --------------
 
-   procedure Register (RepositoryID : in CosTypedEventChannelAdmin.Key;
-                      Create_Ptr : in Interface_Ptr) is
+   procedure Register (RepositoryID : CosTypedEventChannelAdmin.Key;
+                      Create_Ptr : Interface_Ptr) is
    begin
       pragma Debug (O ("register a mutually agreed interface in "&
                        "typed eventchannel interfacetable"));
@@ -194,7 +179,7 @@ package body CosTypedEventChannelAdmin.TypedEventChannel.Impl is
    ------------
 
    function Lookup
-     (RepositoryID : in CosTypedEventChannelAdmin.Key)
+     (RepositoryID : CosTypedEventChannelAdmin.Key)
      return Interface_Ptr
    is
       Create_Ptr : Interface_Ptr;

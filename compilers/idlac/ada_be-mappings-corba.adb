@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -33,7 +33,7 @@
 
 --  The CORBA personality IDL mapping.
 
-with Errors;                        use Errors;
+with Idlac_Errors;                  use Idlac_Errors;
 
 with Idl_Fe.Tree;                   use Idl_Fe.Tree;
 with Idl_Fe.Tree.Synthetic;         use Idl_Fe.Tree.Synthetic;
@@ -53,36 +53,31 @@ package body Ada_Be.Mappings.CORBA is
 
    function Ada_Helper_Unit_Name
      (Mapping : access CORBA_Mapping_Type;
-      Node    : in     Node_Id)
+      Node    : Node_Id)
      return String
    is
       NK : constant Node_Kind := Kind (Node);
    begin
       case NK is
-         when
-           K_Interface | K_ValueType =>
+         when K_Module | K_Interface | K_ValueType | K_Ben_Idl_File =>
             if Is_Well_Known_Node (Node) then
                return Fetch_Helper_Unit_Name (Node);
             else
                return Client_Stubs_Unit_Name (Mapping, Node) & Helper_Suffix;
             end if;
 
-         when
-           K_Forward_Interface | K_Forward_ValueType =>
-            return Parent_Scope_Name (Node) & Helper_Suffix;
+         when K_Forward_Interface | K_Forward_ValueType =>
+            return Ada_Helper_Unit_Name (Mapping, Forward (Node));
 
          when
            K_Sequence_Instance |
            K_String_Instance   |
+           K_Declarator        |
            K_Enum              |
            K_Union             |
            K_Struct            |
-           K_Exception         |
-           K_Declarator        =>
-
-            return Client_Stubs_Unit_Name
-              (Mapping, Parent_Scope (Node))
-              & Helper_Suffix;
+           K_Exception         =>
+            null;
 
          when K_Scoped_Name =>
             return Ada_Helper_Unit_Name (Mapping, Value (Node));
@@ -120,6 +115,8 @@ package body Ada_Be.Mappings.CORBA is
             --  Keep the compiler happy.
             raise Program_Error;
       end case;
+      return Client_Stubs_Unit_Name (Mapping, Parent_Scope (Node))
+               & Helper_Suffix;
    end Ada_Helper_Unit_Name;
 
    ----------------------------
@@ -128,7 +125,7 @@ package body Ada_Be.Mappings.CORBA is
 
    function Ada_Type_Defining_Name
      (Mapping : access CORBA_Mapping_Type;
-      Node    : in     Node_Id)
+      Node    : Node_Id)
       return String
    is
       NK : constant Node_Kind := Kind (Node);
@@ -174,6 +171,10 @@ package body Ada_Be.Mappings.CORBA is
    is
       NK : constant Node_Kind := Kind (Node);
    begin
+      if Is_Well_Known_Node (Node) then
+         return Fetch_Unit_Name (Node);
+      end if;
+
       case NK is
          when
            K_Interface    |
@@ -265,46 +266,32 @@ package body Ada_Be.Mappings.CORBA is
 
    function Code_Generation_Suppressed
      (Mapping : access CORBA_Mapping_Type;
-      Node    : in     Node_Id)
+      Node    : Node_Id)
       return Boolean
    is
       pragma Unreferenced (Mapping);
 
-      function Have_Prefix
-        (Name   : in String;
-         Prefix : in String)
-         return Boolean;
-      --  Return True iff Name has Prefix
+      function Has_Period_Delimited_Prefix
+        (Name   : String;
+         Prefix : String) return Boolean;
+      --  Return True iff Name has Prefix, matching only complete
+      --  period-separated elements.
 
-      -----------------
-      -- Have_Prefix --
-      -----------------
+      ---------------------------------
+      -- Has_Period_Delimited_Prefix --
+      ---------------------------------
 
-      function Have_Prefix
-        (Name   : in String;
-         Prefix : in String)
-         return Boolean
+      function Has_Period_Delimited_Prefix
+        (Name   : String;
+         Prefix : String) return Boolean
       is
          Length : constant Natural := Prefix'Length;
       begin
-         if Name'Length < Length then
-            return False;
-         end if;
-
-         if Name (Name'First .. Name'First + Length - 1) /= Prefix then
-            return False;
-         end if;
-
-         if Name'Length = Length then
-            return True;
-         end if;
-
-         if Name (Name'First + Length) = '.' then
-            return True;
-         end if;
-
-         return False;
-      end Have_Prefix;
+         return Name'Length >= Length
+           and then Name (Name'First .. Name'First + Length - 1) = Prefix
+           and then (Name'Length = Length
+                     or else Name (Name'First + Length) = '.');
+      end Has_Period_Delimited_Prefix;
 
    begin
       pragma Assert (Kind (Node) = K_Ben_Idl_File
@@ -315,21 +302,13 @@ package body Ada_Be.Mappings.CORBA is
          Name : constant String := Ada_Full_Name (Node);
 
       begin
-         if Have_Prefix (Name, "CORBA") then
-            --  By default all CORBA modules are predefined, except
-            --  for the following:
+         --  By default all CORBA modules are predefined, except
+         --  for CORBA.Repository_Root.
 
-            --  CORBA.Repository_Root
-
-            if Have_Prefix (Name, "CORBA.Repository_Root") then
-               return False;
-            end if;
-
-            return True;
-         end if;
+         return Has_Period_Delimited_Prefix (Name, "CORBA")
+           and then not Has_Period_Delimited_Prefix (Name,
+                          "CORBA.Repository_Root");
       end;
-
-      return False;
    end Code_Generation_Suppressed;
 
    -------------------
@@ -338,37 +317,35 @@ package body Ada_Be.Mappings.CORBA is
 
    procedure Map_Type_Name
      (Self : access CORBA_Mapping_Type;
-      Node : in     Node_Id;
-      Unit :    out ASU.Unbounded_String;
-      Typ  :    out ASU.Unbounded_String)
+      Node : Node_Id;
+      Unit : out ASU.Unbounded_String;
+      Typ  : out ASU.Unbounded_String)
    is
+      use Ada.Strings.Unbounded;
       NK : constant Node_Kind := Kind (Node);
    begin
-      if Is_Well_Known_Node (Node) then
-         Unit := +Fetch_Unit_Name (Node);
-
-      else
-         Unit := +Library_Unit_Name (Self, Node);
-      end if;
+      Unit := +Library_Unit_Name (Self, Node);
 
       case NK is
          when
            K_Interface         |
            K_ValueType         =>
-            Typ := +(Library_Unit_Name (Self, Node)
-                     & "." & Ada_Type_Defining_Name (Self, Node));
+            Typ := Unit & "." & Ada_Type_Defining_Name (Self, Node);
          when
            K_Forward_Interface |
            K_Forward_ValueType =>
-            Typ := +(Library_Unit_Name (Self, Node)
-                     & "." & Ada_Name (Node)
-                     & "." & Ada_Type_Defining_Name (Self, Node));
+            Typ := Unit & "." & Ada_Name (Node)
+                     & "." & Ada_Type_Defining_Name (Self, Node);
 
          when K_Sequence_Instance =>
             Typ := +(Ada_Full_Name (Node) & ".Sequence");
 
          when K_String_Instance =>
-            Typ := +(Ada_Full_Name (Node) & ".Bounded_String");
+            if Is_Wide (Node) then
+               Typ := +(Ada_Full_Name (Node) & ".Bounded_Wide_String");
+            else
+               Typ := +(Ada_Full_Name (Node) & ".Bounded_String");
+            end if;
 
          when
            K_Enum            |
@@ -404,7 +381,7 @@ package body Ada_Be.Mappings.CORBA is
             Typ := +"CORBA.Char";
 
          when K_Wide_Char =>
-            Typ := +"CORBA.Wide_Char";
+            Typ := +"CORBA.Wchar";
 
          when K_Boolean =>
             Typ := +"CORBA.Boolean";
@@ -434,15 +411,15 @@ package body Ada_Be.Mappings.CORBA is
             Typ := +"CORBA.Any";
 
          when others =>
-            --  Improper use: node N is not
-            --  mapped to an Ada type.
+            --  Improper use: node N is not mapped to an Ada type
 
             Error
               ("This Ada_Type_Name : A " & Node_Kind'Image (NK)
                & " does not denote a type.",
                Fatal, Get_Location (Node));
 
-            --  Keep the compiler happy.
+            --  Keep the compiler happy
+
             raise Program_Error;
 
       end case;
@@ -450,8 +427,7 @@ package body Ada_Be.Mappings.CORBA is
 
    function Calling_Stubs_Type
      (Self : access CORBA_Mapping_Type;
-      Node : Idl_Fe.Types.Node_Id)
-     return String
+      Node : Idl_Fe.Types.Node_Id) return String
    is
       pragma Warnings (Off);
       pragma Unreferenced (Self);
@@ -459,10 +435,13 @@ package body Ada_Be.Mappings.CORBA is
    begin
       if Abst (Node) then
          return "Abstract_Ref";
-      elsif Local (Node) then
+
+      elsif Kind (Node) = K_Interface and then Local (Node) then
          return "Local_Ref";
+
       elsif Is_Well_Known_Node (Node) then
          return Fetch_Calling_Stubs_Type_Name (Node);
+
       else
          return "Ref";
       end if;
@@ -478,9 +457,10 @@ package body Ada_Be.Mappings.CORBA is
       pragma Warnings (On);
    begin
       pragma Assert (Is_Gen_Scope (Node));
+
+      --  For CORBA, all Gen_Scopes are generated in child packages
+
       return True;
-      --  For CORBA, all Gen_Scopes are generated in
-      --  separate child packages.
    end Generate_Scope_In_Child_Package;
 
 end Ada_Be.Mappings.CORBA;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -33,13 +33,9 @@
 
 with Ada.Tags;
 
-with PolyORB.Any.NVList;
-with PolyORB.Components;
 with PolyORB.Log;
-with PolyORB.Objects;
 with PolyORB.ORB.Iface;
 with PolyORB.Protocols.Iface;
-with PolyORB.References;
 with PolyORB.Requests;
 with PolyORB.Servants.Iface;
 with PolyORB.Setup;
@@ -50,17 +46,20 @@ package body PolyORB.Servants.Group_Servants is
    use PolyORB.Any.NVList;
    use PolyORB.Components;
    use PolyORB.Errors;
+   use PolyORB.Log;
    use PolyORB.Setup;
    use PolyORB.Tasking.Mutexes;
    use PolyORB.Types;
 
-   package TPL renames Target_List_Package;
-
    package L is
       new PolyORB.Log.Facility_Log ("polyorb.servants.group_servants");
-   procedure O (Message : in Standard.String;
-                Level : Log.Log_Level := Log.Debug)
+   procedure O (Message : Standard.String; Level : Log.Log_Level := Log.Debug)
      renames L.Output;
+   function C (Level : Log_Level := Debug) return Boolean
+     renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
+
+   package TPL renames Target_List_Package;
 
    ---------------------------------
    -- Handle_Unmarshall_Arguments --
@@ -99,11 +98,10 @@ package body PolyORB.Servants.Group_Servants is
 
             declare
                use PolyORB.Any;
-               use PolyORB.Any.NVList;
                use PolyORB.Any.NVList.Internals.NV_Lists;
 
                It : PolyORB.Any.NVList.Internals.NV_Lists.Iterator
-                 := First (Internals.List_Of
+                 := First (PolyORB.Any.NVList.Internals.List_Of
                            (Unmarshall_Arguments (Msg).Args).all);
             begin
                while not Last (It) loop
@@ -111,7 +109,7 @@ package body PolyORB.Servants.Group_Servants is
                     or else Value (It).Arg_Modes = ARG_INOUT
                   then
                      Leave (Self.Mutex);
-                     raise Not_Oneway_Request;
+                     raise Constraint_Error;
                   end if;
 
                   Next (It);
@@ -121,7 +119,6 @@ package body PolyORB.Servants.Group_Servants is
             --  Unmarshall arguments from protocol stack
 
             declare
-               use PolyORB.Any.NVList;
                use PolyORB.Any.NVList.Internals.NV_Lists;
 
                Reply : constant Message'Class := Emit (Self.Args_Src, Msg);
@@ -133,11 +130,12 @@ package body PolyORB.Servants.Group_Servants is
                                 or else Reply in Arguments_Error);
 
                if Reply in Unmarshalled_Arguments then
-                  pragma Debug (O ("Arguments unmarshalled, copying it..."));
+                  pragma Debug (O ("Arguments unmarshalled, copying"));
                   Req_Args := Unmarshalled_Arguments (Reply).Args;
 
                   Create (Self.Args);
-                  It := First (Internals.List_Of (Req_Args).all);
+                  It := First (PolyORB.Any.NVList.Internals.List_Of
+                                 (Req_Args).all);
                   while not Last (It) loop
                      Add_Item (Self.Args, Value (It).all);
                      Next (It);
@@ -179,10 +177,9 @@ package body PolyORB.Servants.Group_Servants is
             --  Copy arguments (or error) and send it
 
             if not Found (Self.Error) then
-               pragma Debug (O ("Copy previously unmarshalled arguments"));
+               pragma Debug (O ("Get previously unmarshalled arguments"));
                declare
                   use PolyORB.Any;
-                  use PolyORB.Any.NVList;
                   use PolyORB.Any.NVList.Internals.NV_Lists;
 
                   Req_Args : Ref := Unmarshall_Arguments (Msg).Args;
@@ -191,15 +188,17 @@ package body PolyORB.Servants.Group_Servants is
                begin
                   pragma Assert (Get_Count (Self.Args) = Get_Count (Req_Args));
 
-                  It1 := First (Internals.List_Of (Self.Args).all);
-                  It2 := First (Internals.List_Of (Req_Args).all);
+                  It1 := First (PolyORB.Any.NVList.Internals.List_Of
+                                  (Self.Args).all);
+                  It2 := First (PolyORB.Any.NVList.Internals.List_Of
+                                  (Req_Args).all);
 
                   while not Last (It1) loop
                      pragma Assert (Value (It1).Name = Value (It2).Name);
                      pragma Assert (Value (It1).Arg_Modes
                                     = Value (It2).Arg_Modes);
 
-                     Copy_Any_Value (Value (It2).Argument,
+                     Move_Any_Value (Value (It2).Argument,
                                      Value (It1).Argument);
                      Next (It1);
                      Next (It2);
@@ -227,16 +226,14 @@ package body PolyORB.Servants.Group_Servants is
    ---------------------
 
    function Execute_Servant
-     (Self : access Group_Servant;
-      Msg  :        Components.Message'Class)
+     (Self : not null access Group_Servant;
+      Msg  : Components.Message'Class)
       return Components.Message'Class
    is
       use PolyORB.Requests;
       use PolyORB.ORB;
       use PolyORB.Any;
-      use PolyORB.Setup;
       use PolyORB.ORB.Iface;
-      use PolyORB.Any.NVList;
       use PolyORB.Servants.Iface;
       use Unsigned_Long_Flags;
 
@@ -271,7 +268,7 @@ package body PolyORB.Servants.Group_Servants is
          Leave (Self.Group_Lock);
          Leave (Self.Mutex);
 
-         raise Not_Oneway_Request;
+         raise Constraint_Error;
       end if;
 
       if Self.State = Wait_Other then
@@ -396,7 +393,7 @@ package body PolyORB.Servants.Group_Servants is
       Enter (Self.Group_Lock);
 
       TPL.Append (Self.Target_List, Ref);
-      pragma Debug (O ("Group Length :" & TPL.Length (Self.Target_List)'Img));
+      pragma Debug (O ("Group size:" & TPL.Length (Self.Target_List)'Img));
 
       Leave (Self.Group_Lock);
    end Register;
@@ -412,14 +409,14 @@ package body PolyORB.Servants.Group_Servants is
       use PolyORB.References;
 
    begin
-      pragma Debug (O ("Unregister on group servant : "
+      pragma Debug (O ("Unregister on group servant: "
                        & PolyORB.Objects.Image (Self.Oid.all)));
       pragma Debug (O ("Ref : " & PolyORB.References.Image (Ref)));
 
       Enter (Self.Group_Lock);
 
       TPL.Remove (Self.Target_List, Ref);
-      pragma Debug (O ("Group Length :" & TPL.Length (Self.Target_List)'Img));
+      pragma Debug (O ("Group size:" & TPL.Length (Self.Target_List)'Img));
 
       Leave (Self.Group_Lock);
    end Unregister;
@@ -556,7 +553,7 @@ package body PolyORB.Servants.Group_Servants is
    -- Value --
    -----------
 
-   function Value (It : in Iterator) return PolyORB.References.Ref is
+   function Value (It : Iterator) return PolyORB.References.Ref is
    begin
       return TPL.Value (It.It).all;
    end Value;
@@ -574,7 +571,7 @@ package body PolyORB.Servants.Group_Servants is
    -- Last --
    ----------
 
-   function Last (It : in Iterator) return Boolean is
+   function Last (It : Iterator) return Boolean is
    begin
       return TPL.Last (It.It);
    end Last;

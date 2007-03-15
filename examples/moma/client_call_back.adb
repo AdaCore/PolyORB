@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -118,11 +118,9 @@ begin
    --  Argument check
 
    if Argument_Count /= 1 then
-      Put_Line ("usage : client <IOR>");
+      Put_Line ("usage : client_call_back <IOR>");
       return;
    end if;
-
-   Put_Line ("Initialize");
 
    --  Initialize MOMA
 
@@ -186,7 +184,6 @@ begin
    Set_Behavior (MOMA_Handler_Acc, Handle);
    Output ("Set behavior and procedures", True);
 
-   Put_Line ("Send messages");
    Send_MByte (MOMA_Producer, 1);
    --  Message 1 is handled.
    --  Behavior is set to Notify by current Handle procedure.
@@ -252,20 +249,20 @@ begin
    --  Test #7
 
    Message_Id := Receive_MByte (MOMA_Consumer);
-   Output ("Receive message " & MOMA.Types.Byte'Image (Message_Id),
+   Output ("Receive message" & MOMA.Types.Byte'Image (Message_Id),
       Message_Id = MOMA.Types.Byte (3));
 
    Message_Id := Receive_MByte (MOMA_Consumer);
-   Output ("Receive message " & MOMA.Types.Byte'Image (Message_Id),
+   Output ("Receive message" & MOMA.Types.Byte'Image (Message_Id),
       Message_Id = MOMA.Types.Byte (4));
 
    Message_Id := Receive_MByte (MOMA_Consumer);
-   Output ("Receive message " & MOMA.Types.Byte'Image (Message_Id),
+   Output ("Receive message" & MOMA.Types.Byte'Image (Message_Id),
       Message_Id = MOMA.Types.Byte (6));
 
    --  XXX should destroy all structures here !
 
    Output ("Test #7", True);
-   Output ("End of tests", True);
+   End_Report;
 
 end Client_Call_Back;

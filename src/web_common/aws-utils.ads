@@ -1,31 +1,34 @@
 ------------------------------------------------------------------------------
---                              Ada Web Server                              --
 --                                                                          --
---                         Copyright (C) 2000-2003                          --
---                                ACT-Europe                                --
+--                           POLYORB COMPONENTS                             --
 --                                                                          --
---  Authors: Dmitriy Anisimkov - Pascal Obry                                --
+--                            A W S . U T I L S                             --
 --                                                                          --
---  This library is free software; you can redistribute it and/or modify    --
---  it under the terms of the GNU General Public License as published by    --
---  the Free Software Foundation; either version 2 of the License, or (at   --
---  your option) any later version.                                         --
+--                                 S p e c                                  --
 --                                                                          --
---  This library is distributed in the hope that it will be useful, but     --
---  WITHOUT ANY WARRANTY; without even the implied warranty of              --
---  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU       --
---  General Public License for more details.                                --
+--         Copyright (C) 2000-2006, Free Software Foundation, Inc.          --
 --                                                                          --
---  You should have received a copy of the GNU General Public License       --
---  along with this library; if not, write to the Free Software Foundation, --
---  Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.          --
+-- PolyORB is free software; you  can  redistribute  it and/or modify it    --
+-- under terms of the  GNU General Public License as published by the  Free --
+-- Software Foundation;  either version 2,  or (at your option)  any  later --
+-- version. PolyORB is distributed  in the hope that it will be  useful,    --
+-- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
+-- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
+-- License  for more details.  You should have received  a copy of the GNU  --
+-- General Public License distributed with PolyORB; see file COPYING. If    --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
---  As a special exception, if other files instantiate generics from this   --
---  unit, or you link this unit with other files to produce an executable,  --
---  this  unit  does not  by itself cause  the resulting executable to be   --
---  covered by the GNU General Public License. This exception does not      --
---  however invalidate any other reasons why the executable file  might be  --
---  covered by the  GNU Public License.                                     --
+-- As a special exception,  if other files  instantiate  generics from this --
+-- unit, or you link  this unit with other files  to produce an executable, --
+-- this  unit  does not  by itself cause  the resulting  executable  to  be --
+-- covered  by the  GNU  General  Public  License.  This exception does not --
+-- however invalidate  any other reasons why  the executable file  might be --
+-- covered by the  GNU Public License.                                      --
+--                                                                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
+--                                                                          --
 ------------------------------------------------------------------------------
 
 with Ada.Streams;
@@ -47,33 +50,33 @@ package AWS.Utils is
    function Random return Random_Integer;
    --  Returns a random integer number.
 
-   function Image (N : in Natural) return String;
+   function Image (N : Natural) return String;
    --  return image of N without the leading blank.
 
-   function Image (D : in Duration) return String;
+   function Image (D : Duration) return String;
    --  return image of N without the leading blank and with only 2 decimals
    --  numbers.
 
-   function Hex (V : in Natural; Width : in Natural := 0) return String;
+   function Hex (V : Natural; Width : Natural := 0) return String;
    --  Returns the hexadecimal string representation of the decimal
    --  number V. if Width /= 0, the result will have exactly Width characters
    --  eventually padded with leading 0 or trimmed on the right.
 
-   function Hex_Value (Hex : in String) return Natural;
+   function Hex_Value (Hex : String) return Natural;
    --  Returns the value for the hexadecimal number Hex. Raises
    --  Constraint_Error is Hex is not an hexadecimal number.
 
-   function Is_Number (S : in String) return Boolean;
+   function Is_Number (S : String) return Boolean;
    --  Returns True is S contains only decimal digits and is not empty.
 
-   function Get_MD5 (Data : in String) return MD5.Digest_String;
+   function Get_MD5 (Data : String) return MD5.Digest_String;
    --  Returns the MD5 digest value for the Data string.
 
-   function Quote (Str : in String) return String;
+   function Quote (Str : String) return String;
    pragma Inline (Quote);
    --  Returns Str with character '"' added at the start and the end.
 
-   function CRLF_2_Spaces (Str : in String) return String;
+   function CRLF_2_Spaces (Str : String) return String;
    --  Returns an str in a single line. All CR and LF are converted to spaces,
    --  trailing spaces are removed.
 

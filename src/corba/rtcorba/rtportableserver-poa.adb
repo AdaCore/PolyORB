@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -92,9 +92,9 @@ package body RTPortableServer.POA is
    ------------------------------------
 
    function Create_Reference_With_Priority
-     (Self      : in Local_Ref;
-      Intf      : in CORBA.RepositoryId;
-      Priority  : in RTCORBA.Priority)
+     (Self      : Local_Ref;
+      Intf      : CORBA.RepositoryId;
+      Priority  : RTCORBA.Priority)
      return CORBA.Object.Ref
    is
       use PolyORB.Errors;
@@ -134,7 +134,7 @@ package body RTPortableServer.POA is
             P_Result);
          --  Obtain object reference
 
-         CORBA.Object.Convert_To_CORBA_Ref (P_Result, C_Result);
+         CORBA.Object.Internals.Convert_To_CORBA_Ref (P_Result, C_Result);
          return C_Result;
       end;
    end Create_Reference_With_Priority;
@@ -144,10 +144,10 @@ package body RTPortableServer.POA is
    -------------------------------------------
 
    function Create_Reference_With_Id_And_Priority
-     (Self      : in Local_Ref;
-      Oid       : in PortableServer.ObjectId;
-      Intf      : in CORBA.RepositoryId;
-      Priority  : in RTCORBA.Priority)
+     (Self      : Local_Ref;
+      Oid       : PortableServer.ObjectId;
+      Intf      : CORBA.RepositoryId;
+      Priority  : RTCORBA.Priority)
      return CORBA.Object.Ref
    is
       use PolyORB.Errors;
@@ -160,7 +160,9 @@ package body RTPortableServer.POA is
 
       U_Oid : PolyORB.POA_Types.Unmarshalled_Oid;
 
-      OOid : Object_Id_Access := new Object_Id'(Object_Id (Oid));
+      OOid : Object_Id_Access
+        := new Object_Id'
+        (PortableServer.Internals.To_PolyORB_Object_Id (Oid));
 
    begin
       PolyORB.RT_POA.Create_Object_Identification_With_Priority
@@ -181,7 +183,6 @@ package body RTPortableServer.POA is
          A_Oid : aliased PolyORB.POA_Types.Object_Id
            := PolyORB.POA_Types.U_Oid_To_Oid (U_Oid);
 
-
          P_Result : PolyORB.References.Ref;
          C_Result : CORBA.Object.Ref;
       begin
@@ -192,7 +193,8 @@ package body RTPortableServer.POA is
             P_Result);
          --  Obtain object reference
 
-         CORBA.Object.Convert_To_CORBA_Ref (P_Result, C_Result);
+         CORBA.Object.Internals.Convert_To_CORBA_Ref (P_Result, C_Result);
+
          return C_Result;
       end;
    end Create_Reference_With_Id_And_Priority;
@@ -202,9 +204,9 @@ package body RTPortableServer.POA is
    -----------------------------------
 
    function Activate_Object_With_Priority
-     (Self       : in Local_Ref;
-      P_Servant  : in PortableServer.Servant;
-      Priority   : in RTCORBA.Priority)
+     (Self       : Local_Ref;
+      P_Servant  : PortableServer.Servant;
+      Priority   : RTCORBA.Priority)
      return PortableServer.ObjectId
    is
       use PortableServer;
@@ -236,7 +238,7 @@ package body RTPortableServer.POA is
            := PolyORB.POA_Types.U_Oid_To_Oid (U_Oid);
 
       begin
-         return PortableServer.ObjectId (Oid);
+         return PortableServer.Internals.To_PortableServer_ObjectId (Oid);
       end;
    end Activate_Object_With_Priority;
 
@@ -245,10 +247,10 @@ package body RTPortableServer.POA is
    ------------------------------------------
 
    procedure Activate_Object_With_Id_And_Priority
-     (Self      : in Local_Ref;
-      Oid       : in PortableServer.ObjectId;
-      P_Servant : in PortableServer.Servant;
-      Priority  : in RTCORBA.Priority)
+     (Self      : Local_Ref;
+      Oid       : PortableServer.ObjectId;
+      P_Servant : PortableServer.Servant;
+      Priority  : RTCORBA.Priority)
    is
       use PortableServer;
       use PolyORB.Errors;
@@ -261,7 +263,7 @@ package body RTPortableServer.POA is
       U_Oid : PolyORB.POA_Types.Unmarshalled_Oid;
 
       A_Oid : aliased PolyORB.POA_Types.Object_Id
-        := PolyORB.POA_Types.Object_Id (Oid);
+        := PortableServer.Internals.To_PolyORB_Object_Id (Oid);
 
    begin
       PolyORB.RT_POA.Activate_Object_With_Id_And_Priority

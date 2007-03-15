@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,20 +26,18 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 with PolyORB.CORBA_P.Server_Tools;
 
-with CosTime.UTO.Impl;
-
-with PortableServer;
 with Time_Utils;
 
+with CosTime.UTO.Impl;
+
 with CosTime.TIO.Skel;
-pragma Elaborate (CosTime.TIO.Skel);
 pragma Warnings (Off, CosTime.TIO.Skel);
 
 package body CosTime.TIO.Impl is
@@ -51,8 +49,8 @@ package body CosTime.TIO.Impl is
    type UTO_Ptr is access UTO.Impl.Object;
 
    procedure Do_Overlap
-     (A_Interval : in IntervalT;
-      B_Interval : in IntervalT;
+     (A_Interval : IntervalT;
+      B_Interval : IntervalT;
       Returns    : out OverlapType;
       Overlaps   : out IntervalT);
 
@@ -61,8 +59,8 @@ package body CosTime.TIO.Impl is
    ----------------
 
    procedure Do_Overlap
-     (A_Interval : in IntervalT;
-      B_Interval : in IntervalT;
+     (A_Interval : IntervalT;
+      B_Interval : IntervalT;
       Returns    : out OverlapType;
       Overlaps   : out IntervalT)
    is
@@ -112,19 +110,19 @@ package body CosTime.TIO.Impl is
 
    procedure overlaps
      (Self : access Object;
-      interval : in CosTime.TIO.Ref;
+      interval : CosTime.TIO.Ref;
       overlap : out CosTime.TIO.Ref;
       Returns : out OverlapType)
    is
       pragma Warnings (Off);
       A_Interval : IntervalT renames Self.Interval;
-      B_Interval : constant IntervalT := get_time_interval (interval);
+      B_Interval : constant IntervalT := Get_time_interval (interval);
       --  XXX is it necessary ?
       pragma Warnings (On);
       Result     : constant TIO_Ptr := new Object;
    begin
       Do_Overlap (A_Interval => Self.Interval,
-                  B_Interval => get_time_interval (interval),
+                  B_Interval => Get_time_interval (interval),
                   Overlaps   => Result.Interval,
                   Returns    => Returns);
       PolyORB.CORBA_P.Server_Tools.Initiate_Servant
@@ -137,12 +135,12 @@ package body CosTime.TIO.Impl is
 
    procedure spans
      (Self : access Object;
-      time : in CosTime.UTO.Ref;
+      time : CosTime.UTO.Ref;
       overlap : out CosTime.TIO.Ref;
       Returns : out OverlapType)
    is
-      Tim        : constant TimeT       := UTO.get_time (time);
-      Ina        : constant InaccuracyT := UTO.get_inaccuracy (time);
+      Tim        : constant TimeT       := UTO.Get_time (time);
+      Ina        : constant InaccuracyT := UTO.Get_inaccuracy (time);
       B_Interval : constant IntervalT   := (lower_bound => Tim - Ina,
                                             upper_bound => Tim + Ina);
       Result     : constant TIO_Ptr := new Object;

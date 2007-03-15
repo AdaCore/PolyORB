@@ -20,6 +20,12 @@ dnl Look for GNATCHOP program
 AC_DEFUN([AM_PROG_GNATCHOP],
 [AC_CHECK_PROG(GNATCHOP, gnatchop, gnatchop)])
 
+dnl Usage: AM_PROG_GNATLS
+dnl Look for GNATLS program
+
+AC_DEFUN([AM_PROG_GNATLS],
+[AC_CHECK_PROG(GNATLS, gnatls, gnatls)])
+
 dnl Usage: AM_TRY_ADA(gnatmake, filename, content, pragmas, success, failure)
 dnl Compile, bind and link an Ada program and report its success or failure
 
@@ -31,15 +37,16 @@ EOF
 cat > conftest/gnat.adc <<EOF
 [$4]
 EOF
-ac_try="cd conftest && $GNATCHOP -q src.ada && $1 $2 > /dev/null 2>../conftest.out"
-if AC_TRY_EVAL(ac_try); then
-  ifelse([$5], , :, [rm -rf conftest*
-  $5])
+dnl The ":" lines below ensure that neither branch of the "if" is empty
+if AC_TRY_COMMAND([cd conftest && $GNATCHOP -q src.ada && $1 $2 > /dev/null 2>../conftest.out])
+then
+  : Success
+  $5
 else
-  ifelse([$6], , :, [ rm -rf conftest*
-  $6])
+  : Failure
+  $6
 fi
-rm -f conftest*])
+rm -fr conftest*])
 
 dnl Usage: AM_TRY_ADA_CONFPRAGMA(pragma, success, failure)
 dnl Check whether a given configuration pragma is supported.
@@ -49,6 +56,14 @@ AC_DEFUN([AM_TRY_ADA_CONFPRAGMA],
 AM_TRY_ADA($GNATMAKE_FOR_TARGET,[check.adb],
 [procedure Check is begin null; end Check;],[$1],[$2],[$3])])
 
+dnl Usage: AM_TRY_ADA_COMPILER_SWITCH(switch, success, failure)
+dnl Check whether a given compiler command line switch is supported.
+
+AC_DEFUN([AM_TRY_ADA_COMPILER_SWITCH],
+[AC_REQUIRE([AM_CROSS_PROG_GNATMAKE])
+AM_TRY_ADA([$GNATMAKE_FOR_TARGET $1],[check.adb],
+[procedure Check is begin null; end Check;],[],[$2],[$3])])
+
 dnl Usage: AM_PROG_WORKING_ADA
 dnl Try to compile a simple Ada program to test the compiler installation
 dnl (especially the standard libraries such as Ada.Text_IO)
@@ -56,6 +71,7 @@ dnl (especially the standard libraries such as Ada.Text_IO)
 AC_DEFUN([AM_PROG_WORKING_ADA],
 [AC_REQUIRE([AM_PROG_ADA])
 AC_REQUIRE([AM_PROG_GNATCHOP])
+AC_REQUIRE([AM_PROG_GNATLS])
 AC_MSG_CHECKING([if the$crossflagmsg Ada compiler works])
 AM_TRY_ADA([$ADA -c],[check.adb],
 [with Ada.Text_IO;
@@ -72,7 +88,6 @@ dnl Check that GNAT is at least as recent as date (YYMMDD)
 
 AC_DEFUN([AM_ADA_PREREQ],
 [AC_REQUIRE([AM_PROG_WORKING_ADA])
-AC_CHECK_PROG(GNATLS, gnatls, gnatls)
 AC_CHECK_PROG(SED, sed, sed)
 AC_MSG_CHECKING([if the Ada compiler is recent enough])
 am_gnatls_date=`$GNATLS -v | $SED -ne 's/^GNATLS .*(\(.*\)).*$/\1/p'`
@@ -120,15 +135,11 @@ dnl Look for an Ada make
 
 AC_DEFUN([AM_PROG_GNATMAKE],
 [AC_REQUIRE([AC_PROG_CC])
-AC_CHECK_PROGS(GNATMAKE, gnatmake gnatgcc adagcc gcc)
-if test -z "$GNATMAKE"; then
-  AC_MSG_RESULT([  Tentatively using $ADA as a make])
-  GNATMAKE="$ADA"
-fi])
+AC_CHECK_PROGS(GNATMAKE, gnatmake)])
 
 dnl Usage: AM_CROSS_PROG_GNATMAKE
 dnl Look for gnatmake for the target (same as the host one if host and
-dnl target are equal)
+dnl target are equal). Sets GNATMAKE_FOR_TARGET and GNAT_DRIVER_FOR_TARGET.
 
 AC_DEFUN([AM_CROSS_PROG_GNATMAKE],
 [AC_REQUIRE([AM_PROG_WORKING_ADA])
@@ -137,6 +148,22 @@ AC_DEFUN([AM_CROSS_PROG_GNATMAKE],
    AC_SUBST(GNATMAKE_FOR_TARGET)
  else
    AC_CHECK_PROGS(GNATMAKE_FOR_TARGET, [$target_alias-$GNATMAKE $target-$GNATMAKE])
+ fi
+ GNAT_DRIVER_FOR_TARGET=`echo $GNATMAKE_FOR_TARGET | sed 's/make$//'`
+ AC_SUBST(GNAT_DRIVER_FOR_TARGET)
+])
+
+dnl Usage: AM_CROSS_PROG_GNATLS
+dnl Look for gnatls for the target (same as the host one if host and
+dnl target are equal)
+
+AC_DEFUN([AM_CROSS_PROG_GNATLS],
+[AC_REQUIRE([AM_PROG_WORKING_ADA])
+ if test $host = $target; then
+   GNATLS_FOR_TARGET=$GNATLS
+   AC_SUBST(GNATLS_FOR_TARGET)
+ else
+   AC_CHECK_PROGS(GNATLS_FOR_TARGET, [$target_alias-$GNATLS $target-$GNATLS])
  fi
 ])
 
@@ -153,6 +180,28 @@ AC_DEFUN([AM_CROSS_PROG_CC],
    AC_CHECK_PROGS(CC_FOR_TARGET, [$target_alias-$CC $target-$CC])
  fi
 ])
+
+dnl Usage: AM_HAS_GNAT_PROJECT(project)
+dnl Check whether a given project file is available, and set
+dnl HAVE_GNAT_PROJECT_<project> to "yes" or "no" accordingly.
+
+AC_DEFUN([AM_HAS_GNAT_PROJECT],
+[AC_REQUIRE([AM_CROSS_PROG_GNATMAKE])
+AC_MSG_CHECKING([whether GNAT project $1.gpr is available])
+mkdir conftest
+cat > conftest/check.gpr <<EOF
+with "[$1]";
+project Check is for Source_Files use (); end Check;
+EOF
+if AC_TRY_COMMAND([cd conftest && $GNAT_DRIVER_FOR_TARGET ls -Pcheck system.ads > /dev/null 2>../conftest.out])
+then
+  HAVE_GNAT_PROJECT_$1=yes
+else
+  HAVE_GNAT_PROJECT_$1=no
+fi
+AC_MSG_RESULT($HAVE_GNAT_PROJECT_$1)
+AC_SUBST(HAVE_GNAT_PROJECT_$1)
+rm -fr conftest])
 
 dnl Usage: AM_HAS_GNAT_SOCKETS_COPY
 dnl Determine whether GNAT.Sockets has a Copy operation.
@@ -214,7 +263,9 @@ GNAT_PERFECT_HASH_GENERATORS="GNAT.Perfect_Hash_Generators"],
 GNAT_PERFECT_HASH_GENERATORS="GNAT.Perfect_Hash.Generators"])
 AC_SUBST(GNAT_PERFECT_HASH_GENERATORS)])
 
-dnl AM_HAS_PRAGMA_PROFILE_RAVENSCAR
+dnl Usage: AM_HAS_PRAGMA_PROFILE_RAVENSCAR
+dnl Test whether pragma Profile (Ravenscar) is supported (if not we use
+dnl pragma Ravenscar).
 
 AC_DEFUN([AM_HAS_PRAGMA_PROFILE_RAVENSCAR],
 [AC_REQUIRE([AM_CROSS_PROG_GNATMAKE])
@@ -226,6 +277,9 @@ PRAGMA_PROFILE_RAVENSCAR="pragma Profile (Ravenscar);"],
 PRAGMA_PROFILE_RAVENSCAR="pragma Ravenscar;"])
 AC_SUBST(PRAGMA_PROFILE_RAVENSCAR)])
 
+dnl Usage: AM_HAS_PRAGMA_PROFILE_WARNINGS
+dnl Test whether pragma Profile_Warnings (Ravenscar) is supported.
+
 AC_DEFUN([AM_HAS_PRAGMA_PROFILE_WARNINGS],
 [AC_REQUIRE([AM_CROSS_PROG_GNATMAKE])
 AC_MSG_CHECKING([whether pragma Profile_Warnings (Ravenscar) is supported])
@@ -235,3 +289,78 @@ DISABLE_PROFILE_WARNINGS=""],
 [AC_MSG_RESULT(no)
 DISABLE_PROFILE_WARNINGS="--  "])
 AC_SUBST(DISABLE_PROFILE_WARNINGS)])
+
+dnl Usage: AM_HAS_PRAGMA_SUPPRESS_VALIDITY_CHECK
+dnl WAG:5.04
+dnl Determine whether pragma Suppress (Validity_Check) can be used to
+dnl disable validity checks. If not, we use pragma Suppress (Range_Check)
+dnl instead.
+
+AC_DEFUN([AM_HAS_PRAGMA_SUPPRESS_VALIDITY_CHECK],
+[AC_REQUIRE([AM_CROSS_PROG_GNATMAKE])
+AC_MSG_CHECKING([whether pragma Suppress (Validity_Check) is supported])
+AM_TRY_ADA_CONFPRAGMA([pragma Suppress (Validity_Check);],
+[AC_MSG_RESULT(yes)
+SUPPRESS_VALIDITY_USE_VALIDITY=""
+SUPPRESS_VALIDITY_USE_RANGE="--  "],
+[AC_MSG_RESULT(no)
+SUPPRESS_VALIDITY_USE_VALIDITY="--  "
+SUPPRESS_VALIDITY_USE_RANGE=""])
+AC_SUBST(SUPPRESS_VALIDITY_USE_VALIDITY)
+AC_SUBST(SUPPRESS_VALIDITY_USE_RANGE)])
+
+dnl Usage: AM_HAS_STYLESW_YG
+dnl Test whether the style checking switch -gnatyg (apply GNAT style checks)
+dnl is supported.
+
+AC_DEFUN([AM_HAS_STYLESW_YG],
+[AC_REQUIRE([AM_CROSS_PROG_GNATMAKE])
+AC_MSG_CHECKING([whether GNAT style checks are available])
+AM_TRY_ADA_COMPILER_SWITCH([-gnatyg],
+[AC_MSG_RESULT(yes)
+STYLE_SWITCH="-gnatyg"],
+[AC_MSG_RESULT(no, falling back to -gnaty)
+STYLE_SWITCH="-gnaty"])
+AC_SUBST(STYLE_SWITCH)])
+
+dnl Usage: AM_SUPPORT_RPC_ABORTION
+dnl For GNAT 5 or later with ZCX, we cannot support RPC abortion. In this
+dbl case, RPC execution may fail even when not aborted. Remove this feature
+dnl except when user really wants it to be enabled. When we can provide
+dnl this feature with SJLJ exception model and when the user really wants
+dnl it, then build GLADE with SJLJ model being the default.
+
+AC_DEFUN([AM_SUPPORT_RPC_ABORTION],
+[AC_REQUIRE([AM_CROSS_PROG_GNATLS])
+GNAT_RTS_FLAG="";
+am_gnat_major_version=`$GNATLS_FOR_TARGET -v | $SED -ne 's/^GNATLS [[^0-9]]*\(.\).*$/\1/p'`
+am_system_ads=`$GNATLS_FOR_TARGET -a -s system.ads`
+am_gnatlib_dir=`dirname $am_system_ads`
+am_gnatlib_dir=`dirname $am_gnatlib_dir`
+am_gnat_zcx_by_default=`$SED -ne 's/ZCX_By_Default.*:= *\(.*\);$/\1/p' \
+  $am_system_ads`
+if test -z "$am_gnat_zcx_by_default"; then
+  am_gnat_zcx_by_default=False
+fi
+if test $am_gnat_major_version -ge "5"; then
+  if test $am_gnat_zcx_by_default = "True"; then
+    if test $SUPPORT_RPC_ABORTION = "True"; then
+      if test -f $am_gnatlib_dir/rts-sjlj/adainclude/system.ads; then
+        GNAT_RTS_FLAG="--RTS=rts-sjlj"
+        am_gnat_zcx_by_default="False"
+      fi
+    else
+      SUPPORT_RPC_ABORTION="False"
+    fi
+  else
+    SUPPORT_RPC_ABORTION="True"
+  fi
+else
+  SUPPORT_RPC_ABORTION="True"
+fi
+if test $am_gnat_zcx_by_default = "True"; then
+  EXCEPTION_MODEL="zcx"
+else
+  EXCEPTION_MODEL="sjlj"
+fi
+])

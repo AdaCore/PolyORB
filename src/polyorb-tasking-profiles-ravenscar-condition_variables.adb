@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -33,11 +33,6 @@
 
 --  Implementation of synchronisation objects under the ravenscar profile
 
-with PolyORB.Tasking.Profiles.Ravenscar.Threads;
-
-with PolyORB.Initialization;
-pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
-
 with PolyORB.Log;
 with PolyORB.Utils.Strings;
 
@@ -47,8 +42,11 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Condition_Variables is
 
    package L is new PolyORB.Log.Facility_Log
      ("polyorb.tasking.profiles.ravenscar.condition_variables");
-   procedure O (Message : in String; Level : Log_Level := Debug)
+   procedure O (Message : String; Level : Log_Level := Debug)
      renames L.Output;
+   function C (Level : Log_Level := Debug) return Boolean
+     renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    package PTM renames PolyORB.Tasking.Mutexes;
    package PTCV renames PolyORB.Tasking.Condition_Variables;
@@ -121,12 +119,12 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Condition_Variables is
    -- Broadcast --
    ---------------
 
-   procedure Broadcast (C : access Ravenscar_Condition_Type) is
+   procedure Broadcast (Cond : access Ravenscar_Condition_Type) is
       To_Free : Thread_Queue;
 
    begin
       pragma Debug (O ("Broadcast"));
-      The_Condition_PO_Arr (C.Id).Broadcast (To_Free);
+      The_Condition_PO_Arr (Cond.Id).Broadcast (To_Free);
       for J in To_Free'Range loop
          if To_Free (J).Is_Waiting then
             Resume (To_Free (J).Sync);
@@ -150,16 +148,16 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Condition_Variables is
       --  XXX The use of names is not implemented yet.
 
       Index : Condition_Index_Type;
-      C     : Ravenscar_Condition_Access;
+      Cond  : Ravenscar_Condition_Access;
 
    begin
       pragma Debug (O ("Create"));
       Condition_Index_Manager.Get (Index);
-      C := The_Condition_Pool (Index)'Access;
-      C.Id := Index;
-      The_Condition_PO_Arr (C.Id).Initialize (C.Id);
+      Cond := The_Condition_Pool (Index)'Access;
+      Cond.Id := Index;
+      The_Condition_PO_Arr (Cond.Id).Initialize (Cond.Id);
 
-      return Condition_Access (C);
+      return Condition_Access (Cond);
    end Create;
 
    -------------
@@ -167,8 +165,8 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Condition_Variables is
    -------------
 
    procedure Destroy
-     (MF : access Ravenscar_Condition_Factory_Type;
-      C  : in out Condition_Access)
+     (MF   : access Ravenscar_Condition_Factory_Type;
+      Cond : in out Condition_Access)
    is
       pragma Warnings (Off);
       pragma Unreferenced (MF);
@@ -176,7 +174,7 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Condition_Variables is
 
    begin
       pragma Debug (O ("Destroy"));
-      Condition_Index_Manager.Release (Ravenscar_Condition_Access (C).Id);
+      Condition_Index_Manager.Release (Ravenscar_Condition_Access (Cond).Id);
    end Destroy;
 
    ------------------
@@ -328,13 +326,13 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Condition_Variables is
    -- Signal --
    ------------
 
-   procedure Signal (C : access Ravenscar_Condition_Type) is
+   procedure Signal (Cond : access Ravenscar_Condition_Type) is
       Someone_Is_Waiting : Boolean;
       To_Free            : Synchro_Index_Type;
 
    begin
       pragma Debug (O ("Signal"));
-      The_Condition_PO_Arr (C.Id).Signal (Someone_Is_Waiting, To_Free);
+      The_Condition_PO_Arr (Cond.Id).Signal (Someone_Is_Waiting, To_Free);
 
       if Someone_Is_Waiting then
          Resume (To_Free);
@@ -346,15 +344,15 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Condition_Variables is
    ----------
 
    procedure Wait
-     (C : access Ravenscar_Condition_Type;
-      M : access PTM.Mutex_Type'Class)
+     (Cond : access Ravenscar_Condition_Type;
+      M    : access PTM.Mutex_Type'Class)
    is
       S : Synchro_Index_Type;
 
    begin
       pragma Debug (O ("Wait"));
       S := Prepare_Suspend;
-      The_Condition_PO_Arr (C.Id).Prepare_Wait (S);
+      The_Condition_PO_Arr (Cond.Id).Prepare_Wait (S);
       PTM.Leave (M);
       Suspend (S);
       PTM.Enter (M);
@@ -372,5 +370,6 @@ begin
        Depends   => Empty,
        Provides  => +"tasking.condition_variables",
        Implicit  => False,
-       Init      => Initialize'Access));
+       Init      => Initializer,
+       Shutdown  => null));
 end PolyORB.Tasking.Profiles.Ravenscar.Condition_Variables;

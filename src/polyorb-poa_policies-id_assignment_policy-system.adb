@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -38,7 +38,6 @@ with PolyORB.POA_Types;
 with PolyORB.POA_Policies.Lifespan_Policy;
 with PolyORB.Tasking.Mutexes;
 with PolyORB.Types;
-with PolyORB.Utils;
 
 package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
 
@@ -49,8 +48,11 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
 
    package L is new Log.Facility_Log
      ("polyorb.poa_policies.id_assignement_policy.system");
-   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+   procedure O (Message : Standard.String; Level : Log_Level := Debug)
      renames L.Output;
+   function C (Level : Log_Level := Debug) return Boolean
+     renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    ------------
    -- Create --
@@ -182,7 +184,8 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
             The_Entry := new Object_Map_Entry;
             The_Entry.Oid
               := PolyORB.POA_Types.Create_Id
-              (Name             => PolyORB.Utils.Trimmed_Image (Index),
+             (Name             => PolyORB.Types.Trimmed_Image
+                                   (Long_Long (Index)),
                System_Generated => True,
                Persistency_Flag =>
                  Get_Lifespan_Cookie (POA.Lifespan_Policy.all, OA),
@@ -210,7 +213,8 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
 
          The_Entry.Oid
            := PolyORB.POA_Types.Create_Id
-           (Name             => PolyORB.Utils.Trimmed_Image (Index),
+           (Name             => PolyORB.Types.Trimmed_Image
+                                 (Long_Long (Index)),
             System_Generated => True,
             Persistency_Flag =>
               Get_Lifespan_Cookie (POA.Lifespan_Policy.all, OA),
@@ -220,7 +224,7 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
       end if;
 
       pragma Debug (O ("Object Name is '"
-                       & PolyORB.Utils.Trimmed_Image (Index)
+                       & PolyORB.Types.Trimmed_Image (Long_Long (Index))
                        & "'"));
 
       U_Oid := The_Entry.Oid.all;
@@ -238,10 +242,8 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
       U_Oid : out Unmarshalled_Oid;
       Error : in out PolyORB.Errors.Error_Container)
    is
-      pragma Warnings (Off); -- WAG:3.15
       pragma Unreferenced (Self);
       pragma Unreferenced (OA);
-      pragma Warnings (On); -- WAG:3.15
 
    begin
       PolyORB.POA_Types.Oid_To_U_Oid (Oid, U_Oid, Error);
@@ -257,9 +259,7 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
       Result : out Object_Id_Access;
       Error  : in out PolyORB.Errors.Error_Container)
    is
-      pragma Warnings (Off); -- WAG:3.15
       pragma Unreferenced (Self, Error);
-      pragma Warnings (On); -- WAG:3.15
    begin
       Result := new Object_Id'(Oid.all);
    end Object_Identifier;

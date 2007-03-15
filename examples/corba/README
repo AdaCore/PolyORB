@@ -10,3 +10,5 @@ This directory contains CORBA examples.
  random/        : random test, see http://www.random.org/corba.html for more
                   details.
  send/          : test MIOP implementeation
+ secure_echo/   : simple echo program with enabled security and a set of
+                  demonstration configuration files

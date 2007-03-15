@@ -33,10 +33,8 @@
 
 with Output;
 
-with PolyORB.Buffers;
 with PolyORB.Representations.CDR.Common;
 with PolyORB.Types;
-with PolyORB.Utils;
 
 package body PolyORB.GIOP_P.Tagged_Components.Policies.Print is
 
@@ -49,7 +47,6 @@ package body PolyORB.GIOP_P.Tagged_Components.Policies.Print is
 
       use Output;
 
-      use PolyORB.Buffers;
       use PolyORB.Representations.CDR.Common;
       use PolyORB.Types;
       use PolyORB.Utils;
@@ -62,7 +59,7 @@ package body PolyORB.GIOP_P.Tagged_Components.Policies.Print is
          It : Policy_Value_Seq.Iterator
            := First (TC.Policies);
          P_Type : PolyORB.Types.Unsigned_Long;
-         Counter : Natural := 1;
+         Counter : Long_Long := 1;
 
       begin
          Inc_Indent;

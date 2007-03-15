@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,97 +26,70 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Any conversion subprograms for unbounded sequences.
-
-with PolyORB.Any;
+--  Any conversion subprograms for unbounded sequences
 
 package body PolyORB.Sequences.Unbounded.CORBA_Helper is
 
-   use CORBA;
+   ------------------------------
+   -- Element_From_Any_Wrapper --
+   ------------------------------
 
-   The_Element_TC, The_Sequence_TC : CORBA.TypeCode.Object;
-   Initialized : Boolean := False;
+   function Element_From_Any_Wrapper (Item : PolyORB.Any.Any) return Element is
+   begin
+      return Element_From_Any (CORBA.Internals.To_CORBA_Any (Item));
+   end Element_From_Any_Wrapper;
+
+   ----------------------------
+   -- Element_To_Any_Wrapper --
+   ----------------------------
+
+   function Element_To_Any_Wrapper (Item : Element) return PolyORB.Any.Any is
+   begin
+      return CORBA.Internals.To_PolyORB_Any (Element_To_Any (Item));
+   end Element_To_Any_Wrapper;
 
    --------------
    -- From_Any --
    --------------
 
    function From_Any (Item : CORBA.Any) return Sequence is
-      Len : constant Integer
-        := Integer
-        (CORBA.Unsigned_Long'
-         (CORBA.From_Any (CORBA.Get_Aggregate_Element
-                          (Item, TC_Unsigned_Long, CORBA.Unsigned_Long'(0)))));
-
-      Result : Sequence;
-
    begin
-      Allocate (Result, Len);
-      for J in Result.Content'First .. Result.Content'First + Len - 1 loop
-         Result.Content (J) := Element_From_Any
-           (Get_Aggregate_Element
-            (Item, The_Element_TC,
-             CORBA.Unsigned_Long (1 + J - Result.Content'First)));
-      end loop;
-      return Result;
+      return Neutral_Helper.From_Any (CORBA.Internals.To_PolyORB_Any (Item));
    end From_Any;
 
    ----------------
    -- Initialize --
    ----------------
 
-   procedure Initialize (Element_TC : CORBA.TypeCode.Object) is
+   procedure Initialize
+     (Element_TC, Sequence_TC : CORBA.TypeCode.Object)
+   is
+      use CORBA.TypeCode.Internals;
    begin
-      if Initialized then
-         return;
-      end if;
-
-      The_Element_TC  := Element_TC;
-      The_Sequence_TC
-        := CORBA.TypeCode.Internals.To_CORBA_Object
-        (PolyORB.Any.TypeCode.TC_Sequence);
-
-      TypeCode.Internals.Add_Parameter
-        (The_Sequence_TC, To_Any (CORBA.Unsigned_Long'(0)));
-      --  Unbounded sequence : bound is 0
-
-      TypeCode.Internals.Add_Parameter
-        (The_Sequence_TC, To_Any (The_Element_TC));
-      --  Element type
-
-      Initialized := True;
+      Neutral_Helper.Initialize
+        (Element_TC  => To_PolyORB_Object (Element_TC),
+         Sequence_TC => To_PolyORB_Object (Sequence_TC));
    end Initialize;
-
-   -----------------
-   -- Sequence_TC --
-   -----------------
-
-   function Sequence_TC return CORBA.TypeCode.Object is
-   begin
-      pragma Assert (Initialized);
-      return The_Sequence_TC;
-   end Sequence_TC;
 
    ------------
    -- To_Any --
    ------------
 
-   function To_Any  (Item : Sequence) return CORBA.Any is
-      Result : CORBA.Any := Get_Empty_Any_Aggregate (Sequence_TC);
-
+   function To_Any (Item : Sequence) return CORBA.Any is
    begin
-      Add_Aggregate_Element
-        (Result, To_Any (CORBA.Unsigned_Long (Item.Length)));
-
-      for J in Item.Content'First .. Item.Content'First + Item.Length - 1 loop
-         Add_Aggregate_Element (Result, Element_To_Any (Item.Content (J)));
-      end loop;
-      return Result;
+      return CORBA.Internals.To_CORBA_Any (Neutral_Helper.To_Any (Item));
    end To_Any;
+
+   ----------
+   -- Wrap --
+   ----------
+
+   function Wrap (X : access Sequence) return PolyORB.Any.Content'Class
+     renames Neutral_Helper.Wrap;
 
 end PolyORB.Sequences.Unbounded.CORBA_Helper;

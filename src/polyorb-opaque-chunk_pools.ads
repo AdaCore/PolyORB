@@ -33,7 +33,6 @@
 
 --  Pools of memory chunks, with associated client metadata.
 
-
 with PolyORB.Utils.Chained_Lists;
 
 generic
@@ -117,4 +116,3 @@ private
    end record;
 
 end PolyORB.Opaque.Chunk_Pools;
-

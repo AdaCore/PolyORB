@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2004 Free Software Foundation, Inc.             --
+--         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -43,17 +43,15 @@ with PolyORB.References;
 
 with PolyORB.Setup.Client;
 pragma Warnings (Off, PolyORB.Setup.Client);
-pragma Elaborate_All (Polyorb.Setup.Client);
 
 with PolyORB.Initialization;
 
 with PolyORB.Binding_Data.Print;
 
-with PolyORB.Utils;
+with PolyORB.Types; use PolyORB.Types;
 
 with PO_CatRef_Setup;
 pragma Warnings (Off, PO_CatRef_Setup);
-pragma Elaborate_All (PO_CatRef_Setup);
 
 procedure PO_CatRef is
 
@@ -65,7 +63,6 @@ procedure PO_CatRef is
    use PolyORB.Binding_Data;
 
    use PolyORB.Binding_Data.Print;
-   use PolyORB.Utils;
 
    Obj_Ref : Ref;
 
@@ -83,7 +80,14 @@ begin
    Put_Line ("Parsing stringified reference", Ada.Command_Line.Argument (1));
    New_Line;
 
-   String_To_Object (Ada.Command_Line.Argument (1), Obj_Ref);
+   begin
+      String_To_Object (Ada.Command_Line.Argument (1), Obj_Ref);
+   exception
+      when others =>
+         Put_Line ("Error", "Invalid reference !");
+         Flush;
+         return;
+   end;
 
    if Is_Nil (Obj_Ref) then
       Put_Line ("Error", "Null reference !");
@@ -103,7 +107,7 @@ begin
       New_Line;
 
       for J in Profiles'Range loop
-         Put_Line ("Profile number", Trimmed_Image (J));
+         Put_Line ("Profile number", Trimmed_Image (Long_Long (J)));
          Print_Profile (Profiles (J));
          New_Line;
       end loop;

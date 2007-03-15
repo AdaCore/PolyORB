@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -31,12 +31,47 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with PolyORB.Initialization;
+with PolyORB.Utils.Strings;
+
+with CORBA.Object;
 with CORBA.ORB;
 with CORBA.Repository_Root.Repository.Helper;
+with PolyORB.CORBA_P.IR_Hooks;
 
 package body PolyORB.CORBA_P.IR_Tools is
 
+   function Get_Interface_Definition
+     (Id : in CORBA.RepositoryId)
+      return CORBA.Object.Ref'Class;
+   --  Actual implementation of the Interface Repository hook routine
+   --  to be used when the Interface Repository is available.
+
+   procedure Initialize;
+
    Repo_Root_Ref : CORBA.Repository_Root.Repository.Ref;
+
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize is
+   begin
+      PolyORB.CORBA_P.IR_Hooks.Get_Interface_Definition :=
+        Get_Interface_Definition'Access;
+   end Initialize;
+
+   ------------------------------
+   -- Get_Interface_Definition --
+   ------------------------------
+
+   function Get_Interface_Definition
+     (Id : in CORBA.RepositoryId)
+      return CORBA.Object.Ref'Class
+   is
+   begin
+      return CORBA.Repository_Root.Repository.lookup_id (Get_IR_Root, Id);
+   end Get_Interface_Definition;
 
    -----------------
    -- Get_IR_Root --
@@ -54,4 +89,20 @@ package body PolyORB.CORBA_P.IR_Tools is
       return Repo_Root_Ref;
    end Get_IR_Root;
 
+begin
+   declare
+      use PolyORB.Initialization;
+      use PolyORB.Initialization.String_Lists;
+      use PolyORB.Utils.Strings;
+   begin
+      Register_Module
+        (Module_Info'
+         (Name       => +"corba_p.ir_tools",
+          Conflicts => Empty,
+          Depends   => Empty,
+          Provides  => Empty,
+          Implicit  => False,
+          Init      => Initialize'Access,
+          Shutdown  => null));
+   end;
 end PolyORB.CORBA_P.IR_Tools;

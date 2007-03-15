@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,23 +26,19 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PortableServer;
+with Time_Utils;
+
+with PolyORB.CORBA_P.Server_Tools;
 
 with CosTime.TIO.Impl;
 
 with CosTime.UTO.Skel;
-pragma Elaborate (CosTime.UTO.Skel);
 pragma Warnings (Off, CosTime.UTO.Skel);
-
-with TimeBase;
-with Time_Utils;
-
-with PolyORB.CORBA_P.Server_Tools;
 
 package body CosTime.UTO.Impl is
 
@@ -77,18 +73,18 @@ package body CosTime.UTO.Impl is
 
    function compare_time
      (Self            : access Object;
-      comparison_type : in ComparisonType;
-      uto             : in Ref)
+      comparison_type : ComparisonType;
+      uto             : Ref)
      return TimeComparison
    is
-      Other_Time : constant TimeT := get_time (uto);
-      Other_Tdf  : constant TdfT  := get_tdf (uto);
+      Other_Time : constant TimeT := Get_time (uto);
+      Other_Tdf  : constant TdfT  := Get_tdf (uto);
    begin
       if comparison_type = MidC then
          return Compare (Self.Time + Self.Tdf, Other_Time + Other_Tdf);
       else
          declare
-            Other_Inaccuracy : constant InaccuracyT := get_inaccuracy (uto);
+            Other_Inaccuracy : constant InaccuracyT := Get_inaccuracy (uto);
             Comp_Low         : constant TimeComparison :=
               Compare (Self.Time - Self.Inaccuracy + Self.Tdf,
                        Other_Time - Other_Inaccuracy + Other_Tdf);
@@ -180,10 +176,10 @@ package body CosTime.UTO.Impl is
 
    function time_to_interval
      (Self : access Object;
-      uto  : in     Ref)
+      uto  : Ref)
      return TIO_Forward.Ref
    is
-      Other_Time : constant TimeT   := get_time (uto);
+      Other_Time : constant TimeT   := Get_time (uto);
       Result     : constant TIO_Ptr := new CosTime.TIO.Impl.Object;
       R          : TIO_Forward.Ref;
    begin

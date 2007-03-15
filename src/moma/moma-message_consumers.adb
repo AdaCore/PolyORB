@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -31,6 +31,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with MOMA.Runtime;
+
 with PolyORB.MOMA_P.Provider.Message_Consumer;
 
 with PolyORB.Any.NVList;
@@ -38,6 +40,9 @@ with PolyORB.Errors;
 with PolyORB.Minimal_Servant.Tools;
 with PolyORB.MOMA_P.Exceptions;
 with PolyORB.Requests;
+with PolyORB.Request_QoS;
+with PolyORB.QoS.Priority;
+with PolyORB.Tasking.Priorities;
 with PolyORB.Types;
 
 package body MOMA.Message_Consumers is
@@ -88,10 +93,12 @@ package body MOMA.Message_Consumers is
       --  XXX Session is to be used to 'place' the receiver
       --  using session position in the POA
 
-      Initiate_Servant (MOMA_Obj,
-                        PolyORB.Types.String (MOMA.Types.MOMA_Type_Id),
-                        MOMA_Ref,
-                        Error);
+      Initiate_Servant
+        (MOMA_Obj,
+         MOMA.Runtime.MOMA_OA,
+         PolyORB.Types.String (MOMA.Types.MOMA_Type_Id),
+         MOMA_Ref,
+         Error);
 
       if Found (Error) then
          PolyORB.MOMA_P.Exceptions.Raise_From_Error (Error);
@@ -158,9 +165,12 @@ package body MOMA.Message_Consumers is
    -------------
 
    function Receive
-     (Self : Message_Consumer)
+     (Self : Message_Consumer;
+      Priority : MOMA.Types.Priority := MOMA.Types.Invalid_Priority)
      return MOMA.Messages.Message'Class
    is
+      use type PolyORB.Tasking.Priorities.External_Priority;
+
       Argument_Mesg : PolyORB.Any.Any := PolyORB.Any.To_Any
         (To_PolyORB_String (""));
       --  XXX Temporary hack, should pass message filter ... or not ?
@@ -187,6 +197,21 @@ package body MOMA.Message_Consumers is
          Arg_List  => Arg_List,
          Result    => Result,
          Req       => Request);
+
+      if Priority /= MOMA.Types.Invalid_Priority then
+         declare
+            Prio_QoS      : PolyORB.QoS.QoS_Parameter_Access;
+         begin
+            Prio_QoS := new PolyORB.QoS.Priority.QoS_Static_Priority;
+            PolyORB.QoS.Priority.QoS_Static_Priority (Prio_QoS.all).EP
+              := Priority;
+
+            PolyORB.Request_QoS.Add_Request_QoS
+              (Request,
+               PolyORB.QoS.Static_Priority,
+               Prio_QoS);
+         end;
+      end if;
 
       PolyORB.Requests.Invoke (Request);
 
@@ -240,4 +265,3 @@ package body MOMA.Message_Consumers is
    end Set_Ref;
 
 end MOMA.Message_Consumers;
-

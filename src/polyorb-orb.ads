@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -34,17 +34,19 @@
 --  The ORB core module: main loop and scheduler.
 --  Role: * to coordinate operation of the various subsystems.
 --        * to gateway asynchronous external events to the
---          syncrhonous messaging architecture used within PolyORB.
+--          synchronous messaging architecture used within PolyORB.
 
 with PolyORB.Annotations;
 with PolyORB.Asynch_Ev;
 with PolyORB.Binding_Data;
+with PolyORB.Binding_Objects;
 with PolyORB.Components;
 with PolyORB.Filters;
 with PolyORB.Jobs;
+with PolyORB.ORB_Controller;
 with PolyORB.Obj_Adapters;
 with PolyORB.Objects;
-with PolyORB.ORB_Controller;
+with PolyORB.QoS;
 with PolyORB.References;
 with PolyORB.Requests;
 with PolyORB.Smart_Pointers;
@@ -57,6 +59,7 @@ package PolyORB.ORB is
 
    package PAE renames PolyORB.Asynch_Ev;
    package PBD renames PolyORB.Binding_Data;
+   package PBO renames PolyORB.Binding_Objects;
    package PC  renames PolyORB.Components;
    package PF  renames PolyORB.Filters;
    package PJ  renames PolyORB.Jobs;
@@ -116,7 +119,7 @@ package PolyORB.ORB is
    procedure Handle_New_Server_Connection
      (P   : access Tasking_Policy_Type;
       ORB :        ORB_Access;
-      C   :        Active_Connection)
+      AC  :        Active_Connection)
       is abstract;
    --  Create the necessary processing resources for newly-created
    --  communication endpoint AS on server side.
@@ -130,7 +133,7 @@ package PolyORB.ORB is
    procedure Handle_New_Client_Connection
      (P   : access Tasking_Policy_Type;
       ORB :        ORB_Access;
-      C   :        Active_Connection)
+      AC  :        Active_Connection)
       is abstract;
    --  Create the necessary processing resources for newly-created
    --  communication endpoint AS on client side.
@@ -146,7 +149,7 @@ package PolyORB.ORB is
 
    procedure Idle
      (P         : access Tasking_Policy_Type;
-      This_Task :        PolyORB.Task_Info.Task_Info;
+      This_Task : in out PolyORB.Task_Info.Task_Info;
       ORB       :        ORB_Access)
       is abstract;
    --  Called by a task that has nothing to do in order to
@@ -181,6 +184,14 @@ package PolyORB.ORB is
 
    procedure Create (ORB : in out ORB_Type);
    --  Initialize a newly-allocated ORB object.
+
+   function Find_Reusable_Binding_Object
+     (ORB : access ORB_Type;
+      Pro : Binding_Data.Profile_Access;
+      QoS : PolyORB.QoS.QoS_Parameters) return Smart_Pointers.Ref;
+   --  Try to find a binding object with a profile compatible with Pro, to
+   --  determine if it can be reused for binding Pro. Return a reference to a
+   --  Binding Object if found, or a nil reference if not.
 
    procedure Run
      (ORB            : access ORB_Type;
@@ -244,6 +255,19 @@ package PolyORB.ORB is
    --  A filter chain is instanciated using Chain, and associated
    --  with TE.
 
+   procedure Unregister_Binding_Object
+     (ORB : Components.Component_Access; It : PBO.BO_Lists.Iterator);
+   --  Unregister a Binding Object from the ORB. "It" is an iterator pointing
+   --  to the position of the BO in the ORB.Binding_Objects list.
+
+   package BO_Ref_Lists is
+     new PolyORB.Utils.Chained_Lists (Smart_Pointers.Ref, Smart_Pointers."=");
+   subtype BO_Ref_List is BO_Ref_Lists.List;
+   --  A list of References to Binding Objects
+
+   function Get_Binding_Objects (ORB : access ORB_Type) return BO_Ref_List;
+   --  Return a list of references to the BOs owned by this ORB
+
    procedure Set_Object_Adapter
      (ORB : access ORB_Type;
       OA  :        Obj_Adapters.Obj_Adapter_Access);
@@ -259,7 +283,7 @@ package PolyORB.ORB is
    procedure Create_Reference
      (ORB : access ORB_Type;
       Oid : access Objects.Object_Id;
-      Typ : in     String;
+      Typ : String;
       Ref :    out References.Ref);
    --  Create an object reference that designates object Oid
    --  within this ORB.
@@ -318,23 +342,18 @@ private
    type ORB_Type (Tasking_Policy : access Tasking_Policy_Type'Class;
                   ORB_Controller :        POC.ORB_Controller_Access)
    is new PolyORB.Components.Component with record
-
       Transport_Access_Points : TAP_List;
-      --  The set of transport access points managed by this ORB.
+      --  The set of transport access points managed by this ORB
 
-      Polling : Boolean;
-      --  True if, and only if, one task is blocked waiting
-      --  for external events on an Asynchronous Event Monitor.
-      --  XXX This flag is for debug purpose only, keep it for a while
-      --  to test implementation consistency.
+      Binding_Objects : PBO.BO_List;
+      --  The set of binding objects managed by this ORB
 
       Obj_Adapter : Obj_Adapters.Obj_Adapter_Access;
-      --  The object adapter that manages objects registered
-      --  with this ORB.
+      --  The object adapter that manages objects registered with this ORB
 
       Notepad : aliased Annotations.Notepad;
-      --  ORB's notepad. The user must ensure there is no race
-      --  condition when accessing it.
+      --  ORB's notepad. The user must ensure there is no race condition when
+      --  accessing it.
    end record;
 
 end PolyORB.ORB;

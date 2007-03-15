@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,12 +26,12 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  all_types dynamic client.
+--  all_types dynamic client
 
 pragma Style_Checks (Off);
 
@@ -66,20 +66,27 @@ procedure DynClient is
    pragma Warnings (Off);
 
    Myall_Types : CORBA.Object.Ref;
-   One_Shot : Boolean := Ada.Command_Line.Argument_Count /= 2
+   One_Shot    : constant Boolean
+     := Ada.Command_Line.Argument_Count /= 2
      or else Boolean'Value (Ada.Command_Line.Argument (2));
 
+   -----------------
+   -- EchoBoolean --
+   -----------------
+
    function EchoBoolean
-     (Self : in CORBA.Object.Ref;
-      Arg : in CORBA.Boolean)
-     return CORBA.Boolean is
+     (Self : CORBA.Object.Ref;
+      Arg  : CORBA.Boolean)
+      return CORBA.Boolean
+   is
       Operation_Name : CORBA.Identifier := To_CORBA_String ("echoBoolean");
-      Arg_Name : CORBA.Identifier := To_CORBA_String ("arg");
-      Request : CORBA.Request.Object;
-      Ctx : CORBA.Context.Ref := CORBA.Context.Nil_Ref;
-      Arg_List : CORBA.NVList.Ref;
-      Result_Name : CORBA.String := To_CORBA_String ("Result");
-      Result : CORBA.NamedValue;
+      Arg_Name       : CORBA.Identifier := To_CORBA_String ("arg");
+      Request        : CORBA.Request.Object;
+      Ctx            : constant CORBA.Context.Ref := CORBA.Context.Nil_Ref;
+      Arg_List       : CORBA.NVList.Ref;
+      Result_Name    : CORBA.String := To_CORBA_String ("Result");
+      Result         : CORBA.NamedValue;
+
    begin
       --  creating the argument list
       CORBA.ORB.Create_List (0, Arg_List);
@@ -88,11 +95,11 @@ procedure DynClient is
                              To_Any (Arg),
                              CORBA.ARG_IN);
       --  setting the result type
-      Result := (Name => Identifier (Result_Name),
-                 Argument => Get_Empty_Any (CORBA.TC_Boolean),
+      Result := (Name      => Identifier (Result_Name),
+                 Argument  => Internals.Get_Empty_Any (CORBA.TC_Boolean),
                  Arg_Modes => 0);
       --  creating a request
-      CORBA.Object.Create_Request (Myall_Types,
+      CORBA.Object.Create_Request (Self,
                                    Ctx,
                                    Operation_Name,
                                    Arg_List,
@@ -105,18 +112,24 @@ procedure DynClient is
       return From_Any (Result.Argument);
    end EchoBoolean;
 
+   ---------------
+   -- EchoShort --
+   ---------------
+
    function EchoShort
-     (Self : in CORBA.Object.Ref;
-      Arg : in CORBA.Short)
-     return CORBA.Short is
+     (Self : CORBA.Object.Ref;
+      Arg  : CORBA.Short)
+      return CORBA.Short
+   is
       Operation_Name : CORBA.Identifier := To_CORBA_String ("echoShort");
-      Arg_Name : CORBA.Identifier := To_CORBA_String ("arg");
-      Request : CORBA.Request.Object;
-      Ctx : CORBA.Context.Ref := CORBA.Context.Nil_Ref;
-      Argument : CORBA.Any;
-      Arg_List : CORBA.NVList.Ref;
-      Result : CORBA.NamedValue;
-      Result_Name : CORBA.String := To_CORBA_String ("Result");
+      Arg_Name       : CORBA.Identifier := To_CORBA_String ("arg");
+      Request        : CORBA.Request.Object;
+      Ctx            : constant CORBA.Context.Ref := CORBA.Context.Nil_Ref;
+      Argument       : CORBA.Any;
+      Arg_List       : CORBA.NVList.Ref;
+      Result         : CORBA.NamedValue;
+      Result_Name    : CORBA.String := To_CORBA_String ("Result");
+
    begin
       --  creating the argument list
       CORBA.ORB.Create_List (0, Arg_List);
@@ -126,11 +139,11 @@ procedure DynClient is
                              Argument,
                              CORBA.ARG_IN);
       --  setting the result type
-      Result := (Name => Identifier (Result_Name),
-                 Argument => Get_Empty_Any (CORBA.TC_Short),
+      Result := (Name      => Identifier (Result_Name),
+                 Argument  => Internals.Get_Empty_Any (CORBA.TC_Short),
                  Arg_Modes => 0);
       --  creating a request
-      CORBA.Object.Create_Request (Myall_Types,
+      CORBA.Object.Create_Request (Self,
                                    Ctx,
                                    Operation_Name,
                                    Arg_List,
@@ -143,18 +156,24 @@ procedure DynClient is
       return From_Any (Result.Argument);
    end EchoShort;
 
+   --------------
+   -- EchoLong --
+   --------------
+
    function EchoLong
-     (Self : in CORBA.Object.Ref;
-      Arg : in CORBA.Long)
-     return CORBA.Long is
+     (Self : CORBA.Object.Ref;
+      Arg  : CORBA.Long)
+      return CORBA.Long
+   is
       Operation_Name : CORBA.Identifier := To_CORBA_String ("echoLong");
-      Arg_Name : CORBA.Identifier := To_CORBA_String ("arg");
-      Request : CORBA.Request.Object;
-      Ctx : CORBA.Context.Ref := CORBA.Context.Nil_Ref;
-      Argument : CORBA.Any;
-      Arg_List : CORBA.NVList.Ref;
-      Result : CORBA.NamedValue;
-      Result_Name : CORBA.String := To_CORBA_String ("Result");
+      Arg_Name       : CORBA.Identifier := To_CORBA_String ("arg");
+      Request        : CORBA.Request.Object;
+      Ctx            : constant CORBA.Context.Ref := CORBA.Context.Nil_Ref;
+      Argument       : CORBA.Any;
+      Arg_List       : CORBA.NVList.Ref;
+      Result         : CORBA.NamedValue;
+      Result_Name    : CORBA.String := To_CORBA_String ("Result");
+
    begin
       --  creating the argument list
       CORBA.ORB.Create_List (0, Arg_List);
@@ -164,11 +183,11 @@ procedure DynClient is
                              Argument,
                              CORBA.ARG_IN);
       --  setting the result type
-      Result := (Name => Identifier (Result_Name),
-                 Argument => Get_Empty_Any (CORBA.TC_Long),
+      Result := (Name      => Identifier (Result_Name),
+                 Argument  => Internals.Get_Empty_Any (CORBA.TC_Long),
                  Arg_Modes => 0);
       --  creating a request
-      CORBA.Object.Create_Request (Myall_Types,
+      CORBA.Object.Create_Request (Self,
                                    Ctx,
                                    Operation_Name,
                                    Arg_List,
@@ -181,18 +200,24 @@ procedure DynClient is
       return From_Any (Result.Argument);
    end EchoLong;
 
+   ----------------
+   -- EchoUShort --
+   ----------------
+
    function EchoUShort
-     (Self : in CORBA.Object.Ref;
-      Arg : in CORBA.Unsigned_Short)
-     return CORBA.Unsigned_Short is
+     (Self : CORBA.Object.Ref;
+      Arg  : CORBA.Unsigned_Short)
+      return CORBA.Unsigned_Short
+   is
       Operation_Name : CORBA.Identifier := To_CORBA_String ("echoUShort");
-      Arg_Name : CORBA.Identifier := To_CORBA_String ("arg");
-      Request : CORBA.Request.Object;
-      Ctx : CORBA.Context.Ref := CORBA.Context.Nil_Ref;
-      Argument : CORBA.Any;
-      Arg_List : CORBA.NVList.Ref;
-      Result : CORBA.NamedValue;
-      Result_Name : CORBA.String := To_CORBA_String ("Result");
+      Arg_Name       : CORBA.Identifier := To_CORBA_String ("arg");
+      Request        : CORBA.Request.Object;
+      Ctx            : constant CORBA.Context.Ref := CORBA.Context.Nil_Ref;
+      Argument       : CORBA.Any;
+      Arg_List       : CORBA.NVList.Ref;
+      Result         : CORBA.NamedValue;
+      Result_Name    : CORBA.String := To_CORBA_String ("Result");
+
    begin
       --  creating the argument list
       CORBA.ORB.Create_List (0, Arg_List);
@@ -202,11 +227,11 @@ procedure DynClient is
                              Argument,
                              CORBA.ARG_IN);
       --  setting the result type
-      Result := (Name => Identifier (Result_Name),
-                 Argument => Get_Empty_Any (CORBA.TC_Unsigned_Short),
+      Result := (Name      => Identifier (Result_Name),
+                 Argument  => Internals.Get_Empty_Any (CORBA.TC_Unsigned_Short),
                  Arg_Modes => 0);
       --  creating a request
-      CORBA.Object.Create_Request (Myall_Types,
+      CORBA.Object.Create_Request (Self,
                                    Ctx,
                                    Operation_Name,
                                    Arg_List,
@@ -219,18 +244,24 @@ procedure DynClient is
       return From_Any (Result.Argument);
    end EchoUShort;
 
+   ---------------
+   -- EchoULong --
+   ---------------
+
    function EchoULong
-     (Self : in CORBA.Object.Ref;
-      Arg : in CORBA.Unsigned_Long)
-     return CORBA.Unsigned_Long is
+     (Self : CORBA.Object.Ref;
+      Arg  : CORBA.Unsigned_Long)
+      return CORBA.Unsigned_Long
+   is
       Operation_Name : CORBA.Identifier := To_CORBA_String ("echoULong");
-      Arg_Name : CORBA.Identifier := To_CORBA_String ("arg");
-      Request : CORBA.Request.Object;
-      Ctx : CORBA.Context.Ref := CORBA.Context.Nil_Ref;
-      Argument : CORBA.Any;
-      Arg_List : CORBA.NVList.Ref;
-      Result : CORBA.NamedValue;
-      Result_Name : CORBA.String := To_CORBA_String ("Result");
+      Arg_Name       : CORBA.Identifier := To_CORBA_String ("arg");
+      Request        : CORBA.Request.Object;
+      Ctx            : constant CORBA.Context.Ref := CORBA.Context.Nil_Ref;
+      Argument       : CORBA.Any;
+      Arg_List       : CORBA.NVList.Ref;
+      Result         : CORBA.NamedValue;
+      Result_Name    : CORBA.String := To_CORBA_String ("Result");
+
    begin
       --  creating the argument list
       CORBA.ORB.Create_List (0, Arg_List);
@@ -240,11 +271,11 @@ procedure DynClient is
                              Argument,
                              CORBA.ARG_IN);
       --  setting the result type
-      Result := (Name => Identifier (Result_Name),
-                 Argument => Get_Empty_Any (CORBA.TC_Unsigned_Long),
+      Result := (Name      => Identifier (Result_Name),
+                 Argument  => Internals.Get_Empty_Any (CORBA.TC_Unsigned_Long),
                  Arg_Modes => 0);
       --  creating a request
-      CORBA.Object.Create_Request (Myall_Types,
+      CORBA.Object.Create_Request (Self,
                                    Ctx,
                                    Operation_Name,
                                    Arg_List,
@@ -257,18 +288,24 @@ procedure DynClient is
       return From_Any (Result.Argument);
    end EchoULong;
 
+   ---------------
+   -- EchoFloat --
+   ---------------
+
    function EchoFloat
-     (Self : in CORBA.Object.Ref;
-      Arg : in CORBA.Float)
-     return CORBA.Float is
+     (Self : CORBA.Object.Ref;
+      Arg  : CORBA.Float)
+      return CORBA.Float
+   is
       Operation_Name : CORBA.Identifier := To_CORBA_String ("echoFloat");
-      Arg_Name : CORBA.Identifier := To_CORBA_String ("arg");
-      Request : CORBA.Request.Object;
-      Ctx : CORBA.Context.Ref := CORBA.Context.Nil_Ref;
-      Argument : CORBA.Any;
-      Arg_List : CORBA.NVList.Ref;
-      Result : CORBA.NamedValue;
-      Result_Name : CORBA.String := To_CORBA_String ("Result");
+      Arg_Name       : CORBA.Identifier := To_CORBA_String ("arg");
+      Request        : CORBA.Request.Object;
+      Ctx            : constant CORBA.Context.Ref := CORBA.Context.Nil_Ref;
+      Argument       : CORBA.Any;
+      Arg_List       : CORBA.NVList.Ref;
+      Result         : CORBA.NamedValue;
+      Result_Name    : CORBA.String := To_CORBA_String ("Result");
+
    begin
       --  creating the argument list
       CORBA.ORB.Create_List (0, Arg_List);
@@ -278,11 +315,11 @@ procedure DynClient is
                              Argument,
                              CORBA.ARG_IN);
       --  setting the result type
-      Result := (Name => Identifier (Result_Name),
-                 Argument => Get_Empty_Any (CORBA.TC_Float),
+      Result := (Name      => Identifier (Result_Name),
+                 Argument  => Internals.Get_Empty_Any (CORBA.TC_Float),
                  Arg_Modes => 0);
       --  creating a request
-      CORBA.Object.Create_Request (Myall_Types,
+      CORBA.Object.Create_Request (Self,
                                    Ctx,
                                    Operation_Name,
                                    Arg_List,
@@ -295,18 +332,24 @@ procedure DynClient is
       return From_Any (Result.Argument);
    end EchoFloat;
 
+   ----------------
+   -- EchoDouble --
+   ----------------
+
    function EchoDouble
-     (Self : in CORBA.Object.Ref;
-      Arg : in CORBA.Double)
-     return CORBA.Double is
+     (Self : CORBA.Object.Ref;
+      Arg  : CORBA.Double)
+      return CORBA.Double
+   is
       Operation_Name : CORBA.Identifier := To_CORBA_String ("echoDouble");
-      Arg_Name : CORBA.Identifier := To_CORBA_String ("arg");
-      Request : CORBA.Request.Object;
-      Ctx : CORBA.Context.Ref := CORBA.Context.Nil_Ref;
-      Argument : CORBA.Any;
-      Arg_List : CORBA.NVList.Ref;
-      Result : CORBA.NamedValue;
-      Result_Name : CORBA.String := To_CORBA_String ("Result");
+      Arg_Name       : CORBA.Identifier := To_CORBA_String ("arg");
+      Request        : CORBA.Request.Object;
+      Ctx            : constant CORBA.Context.Ref := CORBA.Context.Nil_Ref;
+      Argument       : CORBA.Any;
+      Arg_List       : CORBA.NVList.Ref;
+      Result         : CORBA.NamedValue;
+      Result_Name    : CORBA.String := To_CORBA_String ("Result");
+
    begin
       --  creating the argument list
       CORBA.ORB.Create_List (0, Arg_List);
@@ -316,11 +359,11 @@ procedure DynClient is
                              Argument,
                              CORBA.ARG_IN);
       --  setting the result type
-      Result := (Name => Identifier (Result_Name),
-                 Argument => Get_Empty_Any (CORBA.TC_Double),
+      Result := (Name      => Identifier (Result_Name),
+                 Argument  => Internals.Get_Empty_Any (CORBA.TC_Double),
                  Arg_Modes => 0);
       --  creating a request
-      CORBA.Object.Create_Request (Myall_Types,
+      CORBA.Object.Create_Request (Self,
                                    Ctx,
                                    Operation_Name,
                                    Arg_List,
@@ -333,18 +376,24 @@ procedure DynClient is
       return From_Any (Result.Argument);
    end EchoDouble;
 
+   --------------
+   -- EchoChar --
+   --------------
+
    function EchoChar
-     (Self : in CORBA.Object.Ref;
-      Arg : in CORBA.Char)
-     return CORBA.Char is
+     (Self : CORBA.Object.Ref;
+      Arg  : CORBA.Char)
+      return CORBA.Char
+   is
       Operation_Name : CORBA.Identifier := To_CORBA_String ("echoChar");
-      Arg_Name : CORBA.Identifier := To_CORBA_String ("arg");
-      Request : CORBA.Request.Object;
-      Ctx : CORBA.Context.Ref := CORBA.Context.Nil_Ref;
-      Argument : CORBA.Any;
-      Arg_List : CORBA.NVList.Ref;
-      Result : CORBA.NamedValue;
-      Result_Name : CORBA.String := To_CORBA_String ("Result");
+      Arg_Name       : CORBA.Identifier := To_CORBA_String ("arg");
+      Request        : CORBA.Request.Object;
+      Ctx            : constant CORBA.Context.Ref := CORBA.Context.Nil_Ref;
+      Argument       : CORBA.Any;
+      Arg_List       : CORBA.NVList.Ref;
+      Result         : CORBA.NamedValue;
+      Result_Name    : CORBA.String := To_CORBA_String ("Result");
+
    begin
       --  creating the argument list
       CORBA.ORB.Create_List (0, Arg_List);
@@ -354,11 +403,11 @@ procedure DynClient is
                              Argument,
                              CORBA.ARG_IN);
       --  setting the result type
-      Result := (Name => Identifier (Result_Name),
-                 Argument => Get_Empty_Any (CORBA.TC_Char),
+      Result := (Name      => Identifier (Result_Name),
+                 Argument  => Internals.Get_Empty_Any (CORBA.TC_Char),
                  Arg_Modes => 0);
       --  creating a request
-      CORBA.Object.Create_Request (Myall_Types,
+      CORBA.Object.Create_Request (Self,
                                    Ctx,
                                    Operation_Name,
                                    Arg_List,
@@ -371,18 +420,24 @@ procedure DynClient is
       return From_Any (Result.Argument);
    end EchoChar;
 
+   ---------------
+   -- EchoOctet --
+   ---------------
+
    function EchoOctet
-     (Self : in CORBA.Object.Ref;
-      Arg : in CORBA.Octet)
-     return CORBA.Octet is
+     (Self : CORBA.Object.Ref;
+      Arg  : CORBA.Octet)
+      return CORBA.Octet
+   is
       Operation_Name : CORBA.Identifier := To_CORBA_String ("echoOctet");
-      Arg_Name : CORBA.Identifier := To_CORBA_String ("arg");
-      Request : CORBA.Request.Object;
-      Ctx : CORBA.Context.Ref := CORBA.Context.Nil_Ref;
-      Argument : CORBA.Any;
-      Arg_List : CORBA.NVList.Ref;
-      Result : CORBA.NamedValue;
-      Result_Name : CORBA.String := To_CORBA_String ("Result");
+      Arg_Name       : CORBA.Identifier := To_CORBA_String ("arg");
+      Request        : CORBA.Request.Object;
+      Ctx            : constant CORBA.Context.Ref := CORBA.Context.Nil_Ref;
+      Argument       : CORBA.Any;
+      Arg_List       : CORBA.NVList.Ref;
+      Result         : CORBA.NamedValue;
+      Result_Name    : CORBA.String := To_CORBA_String ("Result");
+
    begin
       --  creating the argument list
       CORBA.ORB.Create_List (0, Arg_List);
@@ -393,10 +448,10 @@ procedure DynClient is
                              CORBA.ARG_IN);
       --  setting the result type
       Result := (Name => Identifier (Result_Name),
-                 Argument => Get_Empty_Any (CORBA.TC_Octet),
+                 Argument => Internals.Get_Empty_Any (CORBA.TC_Octet),
                  Arg_Modes => 0);
       --  creating a request
-      CORBA.Object.Create_Request (Myall_Types,
+      CORBA.Object.Create_Request (Self,
                                    Ctx,
                                    Operation_Name,
                                    Arg_List,
@@ -409,18 +464,24 @@ procedure DynClient is
       return From_Any (Result.Argument);
    end EchoOctet;
 
+   ----------------
+   -- EchoString --
+   ----------------
+
    function EchoString
-     (Self : in CORBA.Object.Ref;
-      Arg : in CORBA.String)
-      return CORBA.String is
+     (Self : CORBA.Object.Ref;
+      Arg  : CORBA.String)
+      return CORBA.String
+   is
       Operation_Name : CORBA.Identifier := To_CORBA_String ("echoString");
-      Arg_Name : CORBA.Identifier := To_CORBA_String ("arg");
-      Request : CORBA.Request.Object;
-      Ctx : CORBA.Context.Ref := CORBA.Context.Nil_Ref;
-      Argument : CORBA.Any;
-      Arg_List : CORBA.NVList.Ref;
-      Result : CORBA.NamedValue;
-      Result_Name : CORBA.String := To_CORBA_String ("Result");
+      Arg_Name       : CORBA.Identifier := To_CORBA_String ("arg");
+      Request        : CORBA.Request.Object;
+      Ctx            : constant CORBA.Context.Ref := CORBA.Context.Nil_Ref;
+      Argument       : CORBA.Any;
+      Arg_List       : CORBA.NVList.Ref;
+      Result         : CORBA.NamedValue;
+      Result_Name    : CORBA.String := To_CORBA_String ("Result");
+
    begin
       --  creating the argument list
       CORBA.ORB.Create_List (0, Arg_List);
@@ -430,11 +491,11 @@ procedure DynClient is
                              Argument,
                              CORBA.ARG_IN);
       --  setting the result type
-      Result := (Name => Identifier (Result_Name),
-                 Argument => Get_Empty_Any (CORBA.TC_String),
+      Result := (Name      => Identifier (Result_Name),
+                 Argument  => Internals.Get_Empty_Any (CORBA.TC_String),
                  Arg_Modes => 0);
       --  creating a request
-      CORBA.Object.Create_Request (Myall_Types,
+      CORBA.Object.Create_Request (Self,
                                    Ctx,
                                    Operation_Name,
                                    Arg_List,
@@ -447,18 +508,24 @@ procedure DynClient is
       return From_Any (Result.Argument);
    end EchoString;
 
+   -------------
+   -- EchoRef --
+   -------------
+
    function EchoRef
-     (Self : in CORBA.Object.Ref;
-      Arg : in CORBA.Object.Ref)
-      return CORBA.Object.Ref is
+     (Self : CORBA.Object.Ref;
+      Arg  : CORBA.Object.Ref)
+      return CORBA.Object.Ref
+   is
       Operation_Name : CORBA.Identifier := To_CORBA_String ("echoRef");
-      Arg_Name : CORBA.Identifier := To_CORBA_String ("arg");
-      Request : CORBA.Request.Object;
-      Ctx : CORBA.Context.Ref := CORBA.Context.Nil_Ref;
-      Argument : CORBA.Any;
-      Arg_List : CORBA.NVList.Ref;
-      Result : CORBA.NamedValue;
-      Result_Name : CORBA.String := To_CORBA_String ("Result");
+      Arg_Name       : CORBA.Identifier := To_CORBA_String ("arg");
+      Request        : CORBA.Request.Object;
+      Ctx            : constant CORBA.Context.Ref := CORBA.Context.Nil_Ref;
+      Argument       : CORBA.Any;
+      Arg_List       : CORBA.NVList.Ref;
+      Result         : CORBA.NamedValue;
+      Result_Name    : CORBA.String := To_CORBA_String ("Result");
+
    begin
       --  creating the argument list
       CORBA.ORB.Create_List (0, Arg_List);
@@ -468,12 +535,12 @@ procedure DynClient is
                              Argument,
                              CORBA.ARG_IN);
       --  setting the result type
-      Result := (Name => Identifier (Result_Name),
-                 Argument => Get_Empty_Any
+      Result := (Name      => Identifier (Result_Name),
+                 Argument  => Internals.Get_Empty_Any
                  (CORBA.Object.Helper.TC_Object),
                  Arg_Modes => 0);
       --  creating a request
-      CORBA.Object.Create_Request (Myall_Types,
+      CORBA.Object.Create_Request (Self,
                                    Ctx,
                                    Operation_Name,
                                    Arg_List,
@@ -483,22 +550,27 @@ procedure DynClient is
       --  sending message
       CORBA.Request.Invoke (Request, 0);
       --  getting the answer
-      return CORBA.Object.Helper.From_Any
-        (Result.Argument);
+      return CORBA.Object.Helper.From_Any (Result.Argument);
    end EchoRef;
 
+   ---------------
+   -- EchoColor --
+   ---------------
+
    function EchoColor
-     (Self : in CORBA.Object.Ref;
-      Arg : in all_types.Color)
-      return all_types.Color is
+     (Self : CORBA.Object.Ref;
+      Arg  : all_types.Color)
+      return all_types.Color
+   is
       Operation_Name : CORBA.Identifier := To_CORBA_String ("echoColor");
-      Arg_Name : CORBA.Identifier := To_CORBA_String ("arg");
-      Request : CORBA.Request.Object;
-      Ctx : CORBA.Context.Ref := CORBA.Context.Nil_Ref;
-      Argument : CORBA.Any;
-      Arg_List : CORBA.NVList.Ref;
-      Result : CORBA.NamedValue;
-      Result_Name : CORBA.String := To_CORBA_String ("Result");
+      Arg_Name       : CORBA.Identifier := To_CORBA_String ("arg");
+      Request        : CORBA.Request.Object;
+      Ctx            : constant CORBA.Context.Ref := CORBA.Context.Nil_Ref;
+      Argument       : CORBA.Any;
+      Arg_List       : CORBA.NVList.Ref;
+      Result         : CORBA.NamedValue;
+      Result_Name    : CORBA.String := To_CORBA_String ("Result");
+
    begin
       --  creating the argument list
       CORBA.ORB.Create_List (0, Arg_List);
@@ -508,11 +580,12 @@ procedure DynClient is
                              Argument,
                              CORBA.ARG_IN);
       --  setting the result type
-      Result := (Name => Identifier (Result_Name),
-                 Argument => CORBA.Get_Empty_Any (all_types.Helper.TC_Color),
+      Result := (Name      => Identifier (Result_Name),
+                 Argument  =>
+                   Internals.Get_Empty_Any (all_types.Helper.TC_Color),
                  Arg_Modes => 0);
       --  creating a request
-      CORBA.Object.Create_Request (Myall_Types,
+      CORBA.Object.Create_Request (Self,
                                    Ctx,
                                    Operation_Name,
                                    Arg_List,
@@ -522,22 +595,27 @@ procedure DynClient is
       --  sending message
       CORBA.Request.Invoke (Request, 0);
       --  getting the answer
-      return all_types.Helper.From_Any
-        (Result.Argument);
+      return all_types.Helper.From_Any (Result.Argument);
    end EchoColor;
 
+   ---------------
+   -- EchoMoney --
+   ---------------
+
    function EchoMoney
-     (Self : in CORBA.Object.Ref;
-      Arg : in all_types.Money)
-      return all_types.Money is
+     (Self : CORBA.Object.Ref;
+      Arg  : all_types.Money)
+      return all_types.Money
+   is
       Operation_Name : CORBA.Identifier := To_CORBA_String ("echoMoney");
-      Arg_Name : CORBA.Identifier := To_CORBA_String ("arg");
-      Request : CORBA.Request.Object;
-      Ctx : CORBA.Context.Ref := CORBA.Context.Nil_Ref;
-      Argument : CORBA.Any;
-      Arg_List : CORBA.NVList.Ref;
-      Result : CORBA.NamedValue;
-      Result_Name : CORBA.String := To_CORBA_String ("Result");
+      Arg_Name       : CORBA.Identifier := To_CORBA_String ("arg");
+      Request        : CORBA.Request.Object;
+      Ctx            : constant CORBA.Context.Ref := CORBA.Context.Nil_Ref;
+      Argument       : CORBA.Any;
+      Arg_List       : CORBA.NVList.Ref;
+      Result         : CORBA.NamedValue;
+      Result_Name    : CORBA.String := To_CORBA_String ("Result");
+
    begin
       --  creating the argument list
       CORBA.ORB.Create_List (0, Arg_List);
@@ -547,11 +625,12 @@ procedure DynClient is
                              Argument,
                              CORBA.ARG_IN);
       --  setting the result type
-      Result := (Name => Identifier (Result_Name),
-                 Argument => CORBA.Get_Empty_Any (all_types.Helper.TC_Money),
+      Result := (Name      => Identifier (Result_Name),
+                 Argument  =>
+                   Internals.Get_Empty_Any (all_types.Helper.TC_Money),
                  Arg_Modes => 0);
       --  creating a request
-      CORBA.Object.Create_Request (Myall_Types,
+      CORBA.Object.Create_Request (Self,
                                    Ctx,
                                    Operation_Name,
                                    Arg_List,
@@ -561,22 +640,27 @@ procedure DynClient is
       --  sending message
       CORBA.Request.Invoke (Request, 0);
       --  getting the answer
-      return all_types.Helper.From_Any
-        (Result.Argument);
+      return all_types.Helper.From_Any (Result.Argument);
    end EchoMoney;
 
+   ---------------
+   -- EchoArray --
+   ---------------
+
    function EchoArray
-     (Self : in CORBA.Object.Ref;
-      Arg : in all_types.Simple_Array)
-     return all_types.Simple_Array is
+     (Self : CORBA.Object.Ref;
+      Arg  : all_types.Simple_Array)
+      return all_types.Simple_Array
+   is
       Operation_Name : CORBA.Identifier := To_CORBA_String ("echoArray");
-      Arg_Name : CORBA.Identifier := To_CORBA_String ("arg");
-      Request : CORBA.Request.Object;
-      Ctx : CORBA.Context.Ref := CORBA.Context.Nil_Ref;
-      Argument : CORBA.Any;
-      Arg_List : CORBA.NVList.Ref;
-      Result : CORBA.NamedValue;
-      Result_Name : CORBA.String := To_CORBA_String ("Result");
+      Arg_Name       : CORBA.Identifier := To_CORBA_String ("arg");
+      Request        : CORBA.Request.Object;
+      Ctx            : constant CORBA.Context.Ref := CORBA.Context.Nil_Ref;
+      Argument       : CORBA.Any;
+      Arg_List       : CORBA.NVList.Ref;
+      Result         : CORBA.NamedValue;
+      Result_Name    : CORBA.String := To_CORBA_String ("Result");
+
    begin
       --  creating the argument list
       CORBA.ORB.Create_List (0, Arg_List);
@@ -586,11 +670,12 @@ procedure DynClient is
                              Argument,
                              CORBA.ARG_IN);
       --  setting the result type
-      Result := (Name => Identifier (Result_Name),
-                 Argument => Get_Empty_Any (all_types.Helper.TC_Simple_Array),
+      Result := (Name      => Identifier (Result_Name),
+                 Argument  =>
+                   Internals.Get_Empty_Any (all_types.Helper.TC_Simple_Array),
                  Arg_Modes => 0);
       --  creating a request
-      CORBA.Object.Create_Request (Myall_Types,
+      CORBA.Object.Create_Request (Self,
                                    Ctx,
                                    Operation_Name,
                                    Arg_List,
@@ -600,22 +685,27 @@ procedure DynClient is
       --  sending message
       CORBA.Request.Invoke (Request, 0);
       --  getting the answer
-      return all_types.Helper.From_Any
-        (Result.Argument);
+      return all_types.Helper.From_Any (Result.Argument);
    end EchoArray;
 
+   ----------------
+   -- EchoMatrix --
+   ----------------
+
    function EchoMatrix
-     (Self : in CORBA.Object.Ref;
-      Arg : in all_types.Matrix)
-     return all_types.Matrix is
+     (Self : CORBA.Object.Ref;
+      Arg  : all_types.Matrix)
+      return all_types.Matrix
+   is
       Operation_Name : CORBA.Identifier := To_CORBA_String ("echoMatrix");
-      Arg_Name : CORBA.Identifier := To_CORBA_String ("arg");
-      Request : CORBA.Request.Object;
-      Ctx : CORBA.Context.Ref := CORBA.Context.Nil_Ref;
-      Argument : CORBA.Any;
-      Arg_List : CORBA.NVList.Ref;
-      Result : CORBA.NamedValue;
-      Result_Name : CORBA.String := To_CORBA_String ("Result");
+      Arg_Name       : CORBA.Identifier := To_CORBA_String ("arg");
+      Request        : CORBA.Request.Object;
+      Ctx            : constant CORBA.Context.Ref := CORBA.Context.Nil_Ref;
+      Argument       : CORBA.Any;
+      Arg_List       : CORBA.NVList.Ref;
+      Result         : CORBA.NamedValue;
+      Result_Name    : CORBA.String := To_CORBA_String ("Result");
+
    begin
       --  creating the argument list
       CORBA.ORB.Create_List (0, Arg_List);
@@ -625,11 +715,12 @@ procedure DynClient is
                              Argument,
                              CORBA.ARG_IN);
       --  setting the result type
-      Result := (Name => Identifier (Result_Name),
-                 Argument => Get_Empty_Any (all_types.Helper.TC_Matrix),
+      Result := (Name      => Identifier (Result_Name),
+                 Argument  =>
+                   Internals.Get_Empty_Any (all_types.Helper.TC_Matrix),
                  Arg_Modes => 0);
       --  creating a request
-      CORBA.Object.Create_Request (Myall_Types,
+      CORBA.Object.Create_Request (Self,
                                    Ctx,
                                    Operation_Name,
                                    Arg_List,
@@ -639,22 +730,27 @@ procedure DynClient is
       --  sending message
       CORBA.Request.Invoke (Request, 0);
       --  getting the answer
-      return all_types.Helper.From_Any
-        (Result.Argument);
+      return all_types.Helper.From_Any (Result.Argument);
    end EchoMatrix;
 
+   -------------------
+   -- EchoBigMatrix --
+   -------------------
+
    function EchoBigMatrix
-     (Self : in CORBA.Object.Ref;
-      Arg : in all_types.BigMatrix)
-     return all_types.BigMatrix is
+     (Self : CORBA.Object.Ref;
+      Arg  : all_types.BigMatrix)
+      return all_types.BigMatrix
+   is
       Operation_Name : CORBA.Identifier := To_CORBA_String ("echoBigMatrix");
-      Arg_Name : CORBA.Identifier := To_CORBA_String ("arg");
-      Request : CORBA.Request.Object;
-      Ctx : CORBA.Context.Ref := CORBA.Context.Nil_Ref;
-      Argument : CORBA.Any;
-      Arg_List : CORBA.NVList.Ref;
-      Result : CORBA.NamedValue;
-      Result_Name : CORBA.String := To_CORBA_String ("Result");
+      Arg_Name       : CORBA.Identifier := To_CORBA_String ("arg");
+      Request        : CORBA.Request.Object;
+      Ctx            : constant CORBA.Context.Ref := CORBA.Context.Nil_Ref;
+      Argument       : CORBA.Any;
+      Arg_List       : CORBA.NVList.Ref;
+      Result         : CORBA.NamedValue;
+      Result_Name    : CORBA.String := To_CORBA_String ("Result");
+
    begin
       --  creating the argument list
       CORBA.ORB.Create_List (0, Arg_List);
@@ -664,11 +760,12 @@ procedure DynClient is
                              Argument,
                              CORBA.ARG_IN);
       --  setting the result type
-      Result := (Name => Identifier (Result_Name),
-                 Argument => Get_Empty_Any (all_types.Helper.TC_BigMatrix),
+      Result := (Name      => Identifier (Result_Name),
+                 Argument  =>
+                   Internals.Get_Empty_Any (all_types.Helper.TC_BigMatrix),
                  Arg_Modes => 0);
       --  creating a request
-      CORBA.Object.Create_Request (Myall_Types,
+      CORBA.Object.Create_Request (Self,
                                    Ctx,
                                    Operation_Name,
                                    Arg_List,
@@ -678,22 +775,27 @@ procedure DynClient is
       --  sending message
       CORBA.Request.Invoke (Request, 0);
       --  getting the answer
-      return all_types.Helper.From_Any
-        (Result.Argument);
+      return all_types.Helper.From_Any (Result.Argument);
    end EchoBigMatrix;
 
+   ----------------
+   -- EchoStruct --
+   ----------------
+
    function EchoStruct
-     (Self : in CORBA.Object.Ref;
-      Arg : in all_types.Simple_Struct)
-      return all_types.Simple_Struct is
+     (Self : CORBA.Object.Ref;
+      Arg  : all_types.Simple_Struct)
+      return all_types.Simple_Struct
+   is
       Operation_Name : CORBA.Identifier := To_CORBA_String ("echoStruct");
-      Arg_Name : CORBA.Identifier := To_CORBA_String ("arg");
-      Request : CORBA.Request.Object;
-      Ctx : CORBA.Context.Ref := CORBA.Context.Nil_Ref;
-      Argument : CORBA.Any;
-      Arg_List : CORBA.NVList.Ref;
-      Result : CORBA.NamedValue;
-      Result_Name : CORBA.String := To_CORBA_String ("Result");
+      Arg_Name       : CORBA.Identifier := To_CORBA_String ("arg");
+      Request        : CORBA.Request.Object;
+      Ctx            : constant CORBA.Context.Ref := CORBA.Context.Nil_Ref;
+      Argument       : CORBA.Any;
+      Arg_List       : CORBA.NVList.Ref;
+      Result         : CORBA.NamedValue;
+      Result_Name    : CORBA.String := To_CORBA_String ("Result");
+
    begin
       --  creating the argument list
       CORBA.ORB.Create_List (0, Arg_List);
@@ -703,11 +805,12 @@ procedure DynClient is
                              Argument,
                              CORBA.ARG_IN);
       --  setting the result type
-      Result := (Name => Identifier (Result_Name),
-                 Argument => Get_Empty_Any (all_types.Helper.TC_Simple_Struct),
+      Result := (Name      => Identifier (Result_Name),
+                 Argument  =>
+                   Internals.Get_Empty_Any (all_types.Helper.TC_Simple_Struct),
                  Arg_Modes => 0);
       --  creating a request
-      CORBA.Object.Create_Request (Myall_Types,
+      CORBA.Object.Create_Request (Self,
                                    Ctx,
                                    Operation_Name,
                                    Arg_List,
@@ -717,22 +820,27 @@ procedure DynClient is
       --  sending message
       CORBA.Request.Invoke (Request, 0);
       --  getting the answer
-      return all_types.Helper.From_Any
-        (Result.Argument);
+      return all_types.Helper.From_Any (Result.Argument);
    end EchoStruct;
 
+   ---------------------
+   -- EchoArrayStruct --
+   ---------------------
+
    function EchoArrayStruct
-     (Self : in CORBA.Object.Ref;
-      Arg : in all_types.array_struct)
-      return all_types.array_struct is
+     (Self : CORBA.Object.Ref;
+      Arg  : all_types.array_struct)
+      return all_types.array_struct
+   is
       Operation_Name : CORBA.Identifier := To_CORBA_String ("echoArrayStruct");
-      Arg_Name : CORBA.Identifier := To_CORBA_String ("arg");
-      Request : CORBA.Request.Object;
-      Ctx : CORBA.Context.Ref := CORBA.Context.Nil_Ref;
-      Argument : CORBA.Any;
-      Arg_List : CORBA.NVList.Ref;
-      Result : CORBA.NamedValue;
-      Result_Name : CORBA.String := To_CORBA_String ("Result");
+      Arg_Name       : CORBA.Identifier := To_CORBA_String ("arg");
+      Request        : CORBA.Request.Object;
+      Ctx            : constant CORBA.Context.Ref := CORBA.Context.Nil_Ref;
+      Argument       : CORBA.Any;
+      Arg_List       : CORBA.NVList.Ref;
+      Result         : CORBA.NamedValue;
+      Result_Name    : CORBA.String := To_CORBA_String ("Result");
+
    begin
       --  creating the argument list
       CORBA.ORB.Create_List (0, Arg_List);
@@ -742,11 +850,12 @@ procedure DynClient is
                              Argument,
                              CORBA.ARG_IN);
       --  setting the result type
-      Result := (Name => Identifier (Result_Name),
-                 Argument => Get_Empty_Any (all_types.Helper.TC_array_struct),
+      Result := (Name      => Identifier (Result_Name),
+                 Argument  =>
+                   Internals.Get_Empty_Any (all_types.Helper.TC_array_struct),
                  Arg_Modes => 0);
       --  creating a request
-      CORBA.Object.Create_Request (Myall_Types,
+      CORBA.Object.Create_Request (Self,
                                    Ctx,
                                    Operation_Name,
                                    Arg_List,
@@ -756,22 +865,27 @@ procedure DynClient is
       --  sending message
       CORBA.Request.Invoke (Request, 0);
       --  getting the answer
-      return all_types.Helper.From_Any
-        (Result.Argument);
+      return all_types.Helper.From_Any (Result.Argument);
    end EchoArrayStruct;
 
+   ---------------
+   -- EchoUnion --
+   ---------------
+
    function EchoUnion
-     (Self : in CORBA.Object.Ref;
-      Arg : in all_types.myUnion)
-      return all_types.myUnion is
+     (Self : CORBA.Object.Ref;
+      Arg  : all_types.myUnion)
+      return all_types.myUnion
+   is
       Operation_Name : CORBA.Identifier := To_CORBA_String ("echoUnion");
-      Arg_Name : CORBA.Identifier := To_CORBA_String ("arg");
-      Request : CORBA.Request.Object;
-      Ctx : CORBA.Context.Ref := CORBA.Context.Nil_Ref;
-      Argument : CORBA.Any;
-      Arg_List : CORBA.NVList.Ref;
-      Result : CORBA.NamedValue;
-      Result_Name : CORBA.String := To_CORBA_String ("Result");
+      Arg_Name       : CORBA.Identifier := To_CORBA_String ("arg");
+      Request        : CORBA.Request.Object;
+      Ctx            : constant CORBA.Context.Ref := CORBA.Context.Nil_Ref;
+      Argument       : CORBA.Any;
+      Arg_List       : CORBA.NVList.Ref;
+      Result         : CORBA.NamedValue;
+      Result_Name    : CORBA.String := To_CORBA_String ("Result");
+
    begin
       --  creating the argument list
       CORBA.ORB.Create_List (0, Arg_List);
@@ -781,11 +895,12 @@ procedure DynClient is
                              Argument,
                              CORBA.ARG_IN);
       --  setting the result type
-      Result := (Name => Identifier (Result_Name),
-                 Argument => Get_Empty_Any (all_types.Helper.TC_Myunion),
+      Result := (Name      => Identifier (Result_Name),
+                 Argument  =>
+                   Internals.Get_Empty_Any (all_types.Helper.TC_Myunion),
                  Arg_Modes => 0);
       --  creating a request
-      CORBA.Object.Create_Request (Myall_Types,
+      CORBA.Object.Create_Request (Self,
                                    Ctx,
                                    Operation_Name,
                                    Arg_List,
@@ -795,22 +910,28 @@ procedure DynClient is
       --  sending message
       CORBA.Request.Invoke (Request, 0);
       --  getting the answer
-      return all_types.Helper.From_Any
-        (Result.Argument);
+      return all_types.Helper.From_Any (Result.Argument);
    end EchoUnion;
 
+   -------------------------
+   -- EchoUnionEnumSwitch --
+   -------------------------
+
    function EchoUnionEnumSwitch
-     (Self : in CORBA.Object.Ref;
-      Arg : in all_types.myUnionEnumSwitch)
-      return all_types.myUnionEnumSwitch is
-      Operation_Name : CORBA.Identifier := To_CORBA_String ("echoUnionEnumSwitch");
-      Arg_Name : CORBA.Identifier := To_CORBA_String ("arg");
-      Request : CORBA.Request.Object;
-      Ctx : CORBA.Context.Ref := CORBA.Context.Nil_Ref;
-      Argument : CORBA.Any;
-      Arg_List : CORBA.NVList.Ref;
-      Result : CORBA.NamedValue;
-      Result_Name : CORBA.String := To_CORBA_String ("Result");
+     (Self : CORBA.Object.Ref;
+      Arg  : all_types.myUnionEnumSwitch)
+      return all_types.myUnionEnumSwitch
+   is
+      Operation_Name : CORBA.Identifier
+        := To_CORBA_String ("echoUnionEnumSwitch");
+      Arg_Name       : CORBA.Identifier := To_CORBA_String ("arg");
+      Request        : CORBA.Request.Object;
+      Ctx            : constant CORBA.Context.Ref := CORBA.Context.Nil_Ref;
+      Argument       : CORBA.Any;
+      Arg_List       : CORBA.NVList.Ref;
+      Result         : CORBA.NamedValue;
+      Result_Name    : CORBA.String := To_CORBA_String ("Result");
+
    begin
       --  creating the argument list
       CORBA.ORB.Create_List (0, Arg_List);
@@ -820,11 +941,13 @@ procedure DynClient is
                              Argument,
                              CORBA.ARG_IN);
       --  setting the result type
-      Result := (Name => Identifier (Result_Name),
-                 Argument => Get_Empty_Any (all_types.Helper.TC_MyunionEnumSwitch),
+      Result := (Name      => Identifier (Result_Name),
+                 Argument  =>
+                   Internals.Get_Empty_Any
+                   (all_types.Helper.TC_MyunionEnumSwitch),
                  Arg_Modes => 0);
       --  creating a request
-      CORBA.Object.Create_Request (Myall_Types,
+      CORBA.Object.Create_Request (Self,
                                    Ctx,
                                    Operation_Name,
                                    Arg_List,
@@ -834,22 +957,27 @@ procedure DynClient is
       --  sending message
       CORBA.Request.Invoke (Request, 0);
       --  getting the answer
-      return all_types.Helper.From_Any
-        (Result.Argument);
+      return all_types.Helper.From_Any (Result.Argument);
    end EchoUnionEnumSwitch;
 
+   -------------------
+   -- EchoUsequence --
+   -------------------
+
    function EchoUsequence
-     (Self : in CORBA.Object.Ref;
-      Arg : in all_types.U_sequence)
-      return all_types.U_sequence is
+     (Self : CORBA.Object.Ref;
+      Arg  : all_types.U_sequence)
+      return all_types.U_sequence
+   is
       Operation_Name : CORBA.Identifier := To_CORBA_String ("echoUsequence");
-      Arg_Name : CORBA.Identifier := To_CORBA_String ("arg");
-      Request : CORBA.Request.Object;
-      Ctx : CORBA.Context.Ref := CORBA.Context.Nil_Ref;
-      Argument : CORBA.Any;
-      Arg_List : CORBA.NVList.Ref;
-      Result : CORBA.NamedValue;
-      Result_Name : CORBA.String := To_CORBA_String ("Result");
+      Arg_Name       : CORBA.Identifier := To_CORBA_String ("arg");
+      Request        : CORBA.Request.Object;
+      Ctx            : constant CORBA.Context.Ref := CORBA.Context.Nil_Ref;
+      Argument       : CORBA.Any;
+      Arg_List       : CORBA.NVList.Ref;
+      Result         : CORBA.NamedValue;
+      Result_Name    : CORBA.String := To_CORBA_String ("Result");
+
    begin
       --  creating the argument list
       CORBA.ORB.Create_List (0, Arg_List);
@@ -859,11 +987,12 @@ procedure DynClient is
                              Argument,
                              CORBA.ARG_IN);
       --  setting the result type
-      Result := (Name => Identifier (Result_Name),
-                 Argument => Get_Empty_Any (all_types.Helper.TC_U_sequence),
+      Result := (Name      => Identifier (Result_Name),
+                 Argument  =>
+                   Internals.Get_Empty_Any (all_types.Helper.TC_U_sequence),
                  Arg_Modes => 0);
       --  creating a request
-      CORBA.Object.Create_Request (Myall_Types,
+      CORBA.Object.Create_Request (Self,
                                    Ctx,
                                    Operation_Name,
                                    Arg_List,
@@ -873,22 +1002,27 @@ procedure DynClient is
       --  sending message
       CORBA.Request.Invoke (Request, 0);
       --  getting the answer
-      return all_types.Helper.From_Any
-        (Result.Argument);
+      return all_types.Helper.From_Any (Result.Argument);
    end EchoUsequence;
 
+   -------------------
+   -- EchoBsequence --
+   -------------------
+
    function EchoBsequence
-     (Self : in CORBA.Object.Ref;
-      Arg : in all_types.B_sequence)
-      return all_types.B_sequence is
+     (Self : CORBA.Object.Ref;
+      Arg  : all_types.B_sequence)
+      return all_types.B_sequence
+   is
       Operation_Name : CORBA.Identifier := To_CORBA_String ("echoBsequence");
-      Arg_Name : CORBA.Identifier := To_CORBA_String ("arg");
-      Request : CORBA.Request.Object;
-      Ctx : CORBA.Context.Ref := CORBA.Context.Nil_Ref;
-      Argument : CORBA.Any;
-      Arg_List : CORBA.NVList.Ref;
-      Result : CORBA.NamedValue;
-      Result_Name : CORBA.String := To_CORBA_String ("Result");
+      Arg_Name       : CORBA.Identifier := To_CORBA_String ("arg");
+      Request        : CORBA.Request.Object;
+      Ctx            : constant CORBA.Context.Ref := CORBA.Context.Nil_Ref;
+      Argument       : CORBA.Any;
+      Arg_List       : CORBA.NVList.Ref;
+      Result         : CORBA.NamedValue;
+      Result_Name    : CORBA.String := To_CORBA_String ("Result");
+
    begin
       --  creating the argument list
       CORBA.ORB.Create_List (0, Arg_List);
@@ -898,11 +1032,12 @@ procedure DynClient is
                              Argument,
                              CORBA.ARG_IN);
       --  setting the result type
-      Result := (Name => Identifier (Result_Name),
-                 Argument => Get_Empty_Any (all_types.Helper.TC_B_sequence),
+      Result := (Name      => Identifier (Result_Name),
+                 Argument  =>
+                   Internals.Get_Empty_Any (all_types.Helper.TC_B_sequence),
                  Arg_Modes => 0);
       --  creating a request
-      CORBA.Object.Create_Request (Myall_Types,
+      CORBA.Object.Create_Request (Self,
                                    Ctx,
                                    Operation_Name,
                                    Arg_List,
@@ -912,21 +1047,26 @@ procedure DynClient is
       --  sending message
       CORBA.Request.Invoke (Request, 0);
       --  getting the answer
-      return all_types.Helper.From_Any
-        (Result.Argument);
+      return all_types.Helper.From_Any (Result.Argument);
    end EchoBsequence;
 
+   -----------------
+   -- Set_MyColor --
+   -----------------
+
    procedure Set_MyColor
-     (Self : in CORBA.Object.Ref;
-      Arg : in all_types.Color) is
+     (Self : CORBA.Object.Ref;
+      Arg  : all_types.Color)
+   is
       Operation_Name : CORBA.Identifier := To_CORBA_String ("_set_myColor");
-      Arg_Name : CORBA.Identifier := To_CORBA_String ("arg");
-      Request : CORBA.Request.Object;
-      Ctx : CORBA.Context.Ref := CORBA.Context.Nil_Ref;
-      Argument : CORBA.Any;
-      Arg_List : CORBA.NVList.Ref;
-      Result : CORBA.NamedValue;
-      Result_Name : CORBA.String := To_CORBA_String ("Result");
+      Arg_Name       : CORBA.Identifier := To_CORBA_String ("arg");
+      Request        : CORBA.Request.Object;
+      Ctx            : constant CORBA.Context.Ref := CORBA.Context.Nil_Ref;
+      Argument       : CORBA.Any;
+      Arg_List       : CORBA.NVList.Ref;
+      Result         : CORBA.NamedValue;
+      Result_Name    : CORBA.String := To_CORBA_String ("Result");
+
    begin
       --  creating the argument list
       CORBA.ORB.Create_List (0, Arg_List);
@@ -936,11 +1076,11 @@ procedure DynClient is
                              Argument,
                              CORBA.ARG_IN);
       --  setting the result type
-      Result := (Name => Identifier (Result_Name),
-                 Argument => Get_Empty_Any (CORBA.TC_Void),
+      Result := (Name      => Identifier (Result_Name),
+                 Argument  => Internals.Get_Empty_Any (CORBA.TC_Void),
                  Arg_Modes => 0);
       --  creating a request
-      CORBA.Object.Create_Request (Myall_Types,
+      CORBA.Object.Create_Request (Self,
                                    Ctx,
                                    Operation_Name,
                                    Arg_List,
@@ -951,23 +1091,28 @@ procedure DynClient is
       CORBA.Request.Invoke (Request, 0);
    end Set_MyColor;
 
-   function Get_MyColor (Self : in CORBA.Object.Ref)
-      return all_types.Color is
+   -----------------
+   -- Get_MyColor --
+   -----------------
+
+   function Get_MyColor (Self : CORBA.Object.Ref) return all_types.Color is
       Operation_Name : CORBA.Identifier := To_CORBA_String ("_get_myColor");
-      Request : CORBA.Request.Object;
-      Ctx : CORBA.Context.Ref := CORBA.Context.Nil_Ref;
-      Arg_List : CORBA.NVList.Ref;
-      Result : CORBA.NamedValue;
-      Result_Name : CORBA.String := To_CORBA_String ("Result");
+      Request        : CORBA.Request.Object;
+      Ctx            : constant CORBA.Context.Ref := CORBA.Context.Nil_Ref;
+      Arg_List       : CORBA.NVList.Ref;
+      Result         : CORBA.NamedValue;
+      Result_Name    : CORBA.String := To_CORBA_String ("Result");
+
    begin
       --  creating the argument list
       CORBA.ORB.Create_List (0, Arg_List);
       --  setting the result type
-      Result := (Name => Identifier (Result_Name),
-                 Argument => Get_Empty_Any (all_types.Helper.TC_Color),
+      Result := (Name      => Identifier (Result_Name),
+                 Argument  =>
+                   Internals.Get_Empty_Any (all_types.Helper.TC_Color),
                  Arg_Modes => 0);
       --  creating a request
-      CORBA.Object.Create_Request (Myall_Types,
+      CORBA.Object.Create_Request (Self,
                                    Ctx,
                                    Operation_Name,
                                    Arg_List,
@@ -977,27 +1122,30 @@ procedure DynClient is
       --  sending message
       CORBA.Request.Invoke (Request, 0);
       --  getting the answer
-      return all_types.Helper.From_Any
-        (Result.Argument);
+      return all_types.Helper.From_Any (Result.Argument);
    end Get_MyColor;
 
-   function Get_Counter (Self : in CORBA.Object.Ref)
-      return CORBA.Long is
+   -----------------
+   -- Get_Counter --
+   -----------------
+
+   function Get_Counter (Self : CORBA.Object.Ref) return CORBA.Long is
       Operation_Name : CORBA.Identifier := To_CORBA_String ("_get_Counter");
-      Request : CORBA.Request.Object;
-      Ctx : CORBA.Context.Ref := CORBA.Context.Nil_Ref;
-      Arg_List : CORBA.NVList.Ref;
-      Result : CORBA.NamedValue;
-      Result_Name : CORBA.String := To_CORBA_String ("Result");
+      Request        : CORBA.Request.Object;
+      Ctx            : constant CORBA.Context.Ref := CORBA.Context.Nil_Ref;
+      Arg_List       : CORBA.NVList.Ref;
+      Result         : CORBA.NamedValue;
+      Result_Name    : CORBA.String := To_CORBA_String ("Result");
+
    begin
       --  creating the argument list
       CORBA.ORB.Create_List (0, Arg_List);
       --  setting the result type
-      Result := (Name => Identifier (Result_Name),
-                 Argument => Get_Empty_Any (CORBA.TC_Long),
+      Result := (Name      => Identifier (Result_Name),
+                 Argument  => Internals.Get_Empty_Any (CORBA.TC_Long),
                  Arg_Modes => 0);
       --  creating a request
-      CORBA.Object.Create_Request (Myall_Types,
+      CORBA.Object.Create_Request (Self,
                                    Ctx,
                                    Operation_Name,
                                    Arg_List,
@@ -1010,18 +1158,24 @@ procedure DynClient is
       return From_Any (Result.Argument);
    end Get_Counter;
 
+   -------------------
+   -- TestException --
+   -------------------
+
    procedure TestException
-     (Self : in CORBA.Object.Ref;
-      Arg : in CORBA.Long) is
+     (Self : CORBA.Object.Ref;
+      Arg  : CORBA.Long)
+   is
       Operation_Name : CORBA.Identifier := To_CORBA_String ("testException");
-      Arg_Name : CORBA.Identifier := To_CORBA_String ("arg");
-      Request : CORBA.Request.Object;
-      Ctx : CORBA.Context.Ref := CORBA.Context.Nil_Ref;
-      Argument : CORBA.Any;
-      Arg_List : CORBA.NVList.Ref;
-      Excp_List : CORBA.ExceptionList.Ref;
-      Result_Name : CORBA.String := To_CORBA_String ("Result");
-      Result : CORBA.NamedValue;
+      Arg_Name       : CORBA.Identifier := To_CORBA_String ("arg");
+      Request        : CORBA.Request.Object;
+      Ctx            : constant CORBA.Context.Ref := CORBA.Context.Nil_Ref;
+      Argument       : CORBA.Any;
+      Arg_List       : CORBA.NVList.Ref;
+      Excp_List      : CORBA.ExceptionList.Ref;
+      Result_Name    : CORBA.String := To_CORBA_String ("Result");
+      Result         : CORBA.NamedValue;
+
    begin
       --  creating the argument list
       CORBA.ORB.Create_List (0, Arg_List);
@@ -1035,11 +1189,11 @@ procedure DynClient is
       CORBA.ExceptionList.Add (Excp_List,
                                all_types.Helper.TC_My_Exception);
       --  setting the result type
-      Result := (Name => Identifier (Result_Name),
-                 Argument => Get_Empty_Any (CORBA.TC_Void),
+      Result := (Name      => Identifier (Result_Name),
+                 Argument  => Internals.Get_Empty_Any (CORBA.TC_Void),
                  Arg_Modes => 0);
       --  creating a request
-      CORBA.Object.Create_Request (Myall_Types,
+      CORBA.Object.Create_Request (Self,
                                    Ctx,
                                    Operation_Name,
                                    Arg_List,
@@ -1052,18 +1206,25 @@ procedure DynClient is
       CORBA.Request.Invoke (Request, 0);
    end TestException;
 
+   --------------------------
+   -- TestUnknownException --
+   --------------------------
+
    procedure TestUnknownException
-     (Self : in CORBA.Object.Ref;
-      Arg : in CORBA.Long) is
-      Operation_Name : CORBA.Identifier := To_CORBA_String ("testUnknownException");
-      Arg_Name : CORBA.Identifier := To_CORBA_String ("arg");
-      Request : CORBA.Request.Object;
-      Ctx : CORBA.Context.Ref := CORBA.Context.Nil_Ref;
-      Argument : CORBA.Any;
-      Arg_List : CORBA.NVList.Ref;
-      Excp_List : CORBA.ExceptionList.Ref;
-      Result_Name : CORBA.String := To_CORBA_String ("Result");
-      Result : CORBA.NamedValue;
+     (Self : CORBA.Object.Ref;
+      Arg  : CORBA.Long)
+   is
+      Operation_Name : CORBA.Identifier
+        := To_CORBA_String ("testUnknownException");
+      Arg_Name       : CORBA.Identifier := To_CORBA_String ("arg");
+      Request        : CORBA.Request.Object;
+      Ctx            : constant CORBA.Context.Ref := CORBA.Context.Nil_Ref;
+      Argument       : CORBA.Any;
+      Arg_List       : CORBA.NVList.Ref;
+      Excp_List      : CORBA.ExceptionList.Ref;
+      Result_Name    : CORBA.String := To_CORBA_String ("Result");
+      Result         : CORBA.NamedValue;
+
    begin
       --  creating the argument list
       CORBA.ORB.Create_List (0, Arg_List);
@@ -1077,11 +1238,11 @@ procedure DynClient is
       CORBA.ExceptionList.Add (Excp_List,
                                all_types.Helper.TC_My_Exception);
       --  setting the result type
-      Result := (Name => Identifier (Result_Name),
-                 Argument => Get_Empty_Any (CORBA.TC_Void),
+      Result := (Name      => Identifier (Result_Name),
+                 Argument  => Internals.Get_Empty_Any (CORBA.TC_Void),
                  Arg_Modes => 0);
       --  creating a request
-      CORBA.Object.Create_Request (Myall_Types,
+      CORBA.Object.Create_Request (Self,
                                    Ctx,
                                    Operation_Name,
                                    Arg_List,
@@ -1112,7 +1273,7 @@ begin
 
    loop
       --  boolean
-      Output ("test boolean", EchoBoolean (Myall_Types, True) = True);
+      Output ("test boolean", EchoBoolean (Myall_Types, True));
 
       --  short
       Output ("test short", EchoShort (Myall_Types, 123) = 123);
@@ -1163,12 +1324,13 @@ begin
 
       --  array
       declare
-         X : all_types.simple_array := (2, 3, 5, 7, 11);
+         X : constant all_types.simple_array := (2, 3, 5, 7, 11);
       begin
          Output ("test simple array", EchoArray (Myall_Types, X) = X);
       end;
+
       declare
-         M : all_types.matrix
+         M : constant all_types.matrix
            := ((165, 252, 375), (377, 145, 222), (202, 477, 147));
       begin
          Output ("test multi-dimensional array",
@@ -1183,6 +1345,7 @@ begin
          Output ("test struct",
                  EchoStruct (Myall_Types, Test_Struct) = Test_Struct);
       end;
+
       declare
          Test_Struct : constant array_struct
            := (A => (0, 1, 2, 3, 4, 5, 6, 7, 8, 9), B => 65533);
@@ -1228,24 +1391,25 @@ begin
          X : U_sequence := U_sequence (IDL_SEQUENCE_Short.Null_sequence);
       begin
          X := X & 1 & 2 & 3 & 4 & 5;
-         Output ("test unbounded sequence",  EchoUsequence (Myall_Types, X) = X);
+         Output ("test unbounded sequence",
+                 EchoUsequence (Myall_Types, X) = X);
       end;
 
       --  Bounded sequences
       declare
-         X : B_sequence := B_sequence (IDL_SEQUENCE_Short_10.Null_sequence);
+         X : B_sequence := B_sequence (IDL_SEQUENCE_10_short.Null_sequence);
       begin
          X := X & 1 & 2 & 3 & 4 & 5 & 6;
-         Output ("test bounded sequence",  EchoBsequence (Myall_Types, X) = X);
+         Output ("test bounded sequence", EchoBsequence (Myall_Types, X) = X);
       end;
 
       --  Attributes
       Set_MyColor (Myall_Types, Green);
       Output ("test attribute", Get_MyColor (Myall_Types) = Green);
       declare
-         Counter_First_Value : CORBA.Long
+         Counter_First_Value  : constant CORBA.Long
            := get_Counter (Myall_Types);
-         Counter_Second_Value : CORBA.Long
+         Counter_Second_Value : constant CORBA.Long
            := get_Counter (Myall_Types);
       begin
          Output ("test read-only attribute",
@@ -1257,20 +1421,25 @@ begin
          Ok : Boolean;
       begin
          Ok := False;
+
          declare
-            Member : UnknownUserException_Members;
+            Member        : UnknownUserException_Members;
             Actual_Member : My_Exception_Members;
+
          begin
             testException (Myall_Types, 2485);
+
          exception
             when E : UnknownUserException =>
                Get_Members (E, Member);
                Actual_Member :=
                  all_types.Helper.From_Any (Member.IDL_Exception);
                Ok := (Actual_Member.Info = 2485);
+
             when others =>
               null;
          end;
+
          Output ("test user exception", Ok);
       end;
 
@@ -1278,11 +1447,10 @@ begin
          Ok : Boolean;
       begin
          Ok := False;
-         declare
-            Member : UnknownUserException_Members;
-            Actual_Member : My_Exception_Members;
+
          begin
             testUnknownException (Myall_Types, 2485);
+
          exception
             when CORBA.UNKNOWN =>
                Ok := True;

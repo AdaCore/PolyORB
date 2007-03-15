@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -32,31 +32,26 @@
 ------------------------------------------------------------------------------
 
 with Ada.Unchecked_Conversion;
-with Ada.Streams;
 
-with PolyORB.Any;
-with PolyORB.Buffers;
 with PolyORB.Fixed_Point;
 with PolyORB.Log;
-with PolyORB.Opaque;
-with PolyORB.References;
 with PolyORB.References.IOR;
-with PolyORB.Types;
 with PolyORB.Utils.Buffers;
 
 package body PolyORB.Representations.CDR.Common is
 
    use PolyORB.Any;
-   use PolyORB.Buffers;
    use PolyORB.Log;
-   use PolyORB.Opaque;
    use PolyORB.Types;
    use PolyORB.Utils.Buffers;
 
    package L is
       new PolyORB.Log.Facility_Log ("polyorb.representations.cdr.common");
-   procedure O (Message : in String; Level : Log_Level := Debug)
+   procedure O (Message : String; Level : Log_Level := Debug)
       renames L.Output;
+   function C (Level : Log_Level := Debug) return Boolean
+     renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    --------------------------------
    -- Types conversion functions --
@@ -137,7 +132,7 @@ package body PolyORB.Representations.CDR.Common is
       Marshall
         (Buffer,
          PolyORB.Types.Boolean
-         (Endianness (Buffer.all) = Little_Endian));
+         (Endianness (Buffer) = Little_Endian));
       --  An encapsulation starts with a Boolean value
       --  which is True if the remainder of the buffer is
       --  Little_Endian, and False otherwise.
@@ -172,9 +167,9 @@ package body PolyORB.Representations.CDR.Common is
 
    --  procedure Marshall_From_Any
    --    (Buffer          : access Buffer_Type;
-   --     Data            : in     PolyORB.Any.Any;
+   --     Data            : PolyORB.Any.Any;
    --     Marshalled_List : in out False_List;
-   --     Depth           : in     PolyORB.Types.Long)
+   --     Depth           : PolyORB.Types.Long)
    --  is
    --     Success : Boolean;
    --  begin
@@ -225,7 +220,7 @@ package body PolyORB.Representations.CDR.Common is
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in     PolyORB.Types.Boolean)
+      Data   : PolyORB.Types.Boolean)
    is
    begin
       pragma Debug (O ("Marshall (Boolean) : enter"));
@@ -238,7 +233,7 @@ package body PolyORB.Representations.CDR.Common is
 
    procedure Marshall_Latin_1_Char
      (Buffer : access Buffer_Type;
-      Data   : in     PolyORB.Types.Char)
+      Data   : PolyORB.Types.Char)
    is
    begin
       pragma Debug (O ("Marshall (Char) : enter"));
@@ -250,7 +245,7 @@ package body PolyORB.Representations.CDR.Common is
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in     PolyORB.Types.Octet)
+      Data   : PolyORB.Types.Octet)
    is
    begin
       pragma Debug (O ("Marshall (Octet) : enter"));
@@ -263,7 +258,7 @@ package body PolyORB.Representations.CDR.Common is
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in     PolyORB.Types.Unsigned_Short)
+      Data   : PolyORB.Types.Unsigned_Short)
    is
    begin
       pragma Debug (O ("Marshall (UShort) : enter"));
@@ -279,7 +274,7 @@ package body PolyORB.Representations.CDR.Common is
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in     PolyORB.Types.Unsigned_Long)
+      Data   : PolyORB.Types.Unsigned_Long)
    is
    begin
       pragma Debug (O ("Marshall (ULong) : enter"));
@@ -297,7 +292,7 @@ package body PolyORB.Representations.CDR.Common is
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in     PolyORB.Types.Unsigned_Long_Long)
+      Data   : PolyORB.Types.Unsigned_Long_Long)
    is
    begin
       pragma Debug (O ("Marshall (ULongLong) : enter"));
@@ -319,7 +314,7 @@ package body PolyORB.Representations.CDR.Common is
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in     PolyORB.Types.Long_Long)
+      Data   : PolyORB.Types.Long_Long)
    is
    begin
       pragma Debug (O ("Marshall (LongLong) : enter"));
@@ -331,7 +326,7 @@ package body PolyORB.Representations.CDR.Common is
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in     PolyORB.Types.Long)
+      Data   : PolyORB.Types.Long)
    is
    begin
       pragma Debug (O ("Marshall (Long) : enter"));
@@ -343,7 +338,7 @@ package body PolyORB.Representations.CDR.Common is
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in     PolyORB.Types.Short)
+      Data   : PolyORB.Types.Short)
    is
    begin
       pragma Debug (O ("Marshall (Short) : enter"));
@@ -355,7 +350,7 @@ package body PolyORB.Representations.CDR.Common is
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in     PolyORB.Types.Float)
+      Data   : PolyORB.Types.Float)
    is
    begin
       pragma Debug (O ("Marshall (Float) : enter"));
@@ -367,7 +362,7 @@ package body PolyORB.Representations.CDR.Common is
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in     PolyORB.Types.Double)
+      Data   : PolyORB.Types.Double)
    is
       Buf : constant Double_Buf := To_Double_Buf (Data);
 
@@ -382,7 +377,7 @@ package body PolyORB.Representations.CDR.Common is
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in     PolyORB.Types.Long_Double)
+      Data   : PolyORB.Types.Long_Double)
    is
       --  FIXME LONG DOUBLE
       --   Buf : Long_Double_Buf := To_Long_Double_Buf (Data);
@@ -397,7 +392,7 @@ package body PolyORB.Representations.CDR.Common is
 
    procedure Marshall_Latin_1_String
      (Buffer : access Buffer_Type;
-      Data   : in     Standard.String)
+      Data   : Standard.String)
    is
       Str : Stream_Element_Array (1 .. Data'Length);
       for Str'Address use Data'Address;
@@ -417,7 +412,7 @@ package body PolyORB.Representations.CDR.Common is
 
    procedure Marshall_Latin_1_String
      (Buffer : access Buffer_Type;
-      Data   : in     PolyORB.Types.String)
+      Data   : PolyORB.Types.String)
    is
    begin
       pragma Debug (O ("Marshall (PolyORB.Types.String) : enter"));
@@ -430,7 +425,7 @@ package body PolyORB.Representations.CDR.Common is
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in     PolyORB.Types.Identifier)
+      Data   : PolyORB.Types.Identifier)
    is
    begin
       pragma Debug (O ("Marshall (Identifier) : enter"));
@@ -442,7 +437,7 @@ package body PolyORB.Representations.CDR.Common is
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in     PolyORB.Types.RepositoryId)
+      Data   : PolyORB.Types.RepositoryId)
    is
    begin
       pragma Debug (O ("Marshall (RepositoryId) : enter"));
@@ -454,7 +449,7 @@ package body PolyORB.Representations.CDR.Common is
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in     PolyORB.Any.ValueModifier)
+      Data   : PolyORB.Any.ValueModifier)
    is
    begin
       pragma Debug (O ("Marshall (ValueModifier) : enter"));
@@ -466,7 +461,7 @@ package body PolyORB.Representations.CDR.Common is
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in     PolyORB.Any.Visibility)
+      Data   : PolyORB.Any.Visibility)
    is
    begin
       pragma Debug (O ("Marshall (Visibility) : enter"));
@@ -478,7 +473,7 @@ package body PolyORB.Representations.CDR.Common is
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in     Stream_Element_Array)
+      Data   : Stream_Element_Array)
    is
    begin
       pragma Debug (O ("Marshall (Encapsulation) : enter"));
@@ -489,7 +484,7 @@ package body PolyORB.Representations.CDR.Common is
 
    --  procedure Marshall
    --    (Buffer : access Buffer_Type;
-   --     Data   : in Encapsulation) is
+   --     Data   : Encapsulation) is
    --  begin
    --     pragma Debug (O ("Marshall (Encapsulation) : enter"));
    --     Marshall (Buffer, PolyORB.Types.Unsigned_Long (Data'Length));
@@ -501,7 +496,7 @@ package body PolyORB.Representations.CDR.Common is
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in     PolyORB.References.Ref'Class) is
+      Data   : PolyORB.References.Ref'Class) is
    begin
       --  !!!!!!!!!!!!!!!!!
       --  FIXME: I've just noticed that abstract interfaces must be
@@ -533,7 +528,7 @@ package body PolyORB.Representations.CDR.Common is
 
 --         --  4. Call the interface marshalling function
 --      else
-      References.IOR.Marshall_IOR (Buffer, References.Ref'(Data));
+      References.IOR.Marshall_IOR (Buffer, References.Ref (Data));
 --      end if;
    end Marshall;
 
@@ -708,59 +703,68 @@ package body PolyORB.Representations.CDR.Common is
    end Unmarshall;
 
    function Unmarshall
-     (Buffer : access Buffer_Type)
-     return PolyORB.Types.Unsigned_Short
+     (Buffer : access Buffer_Type) return PolyORB.Types.Unsigned_Short
    is
-      Octets : constant Stream_Element_Array
-        := Align_Unmarshall_Big_Endian_Copy (Buffer, 2, 2);
-
+      package FSU is new Fixed_Size_Unmarshall (Size => 2, Alignment => 2);
+      Z : constant FSU.AZ := FSU.Align_Unmarshall (Buffer);
    begin
-      pragma Debug (O ("Unmarshall (UShort) : enter & end"));
-      return PolyORB.Types.Unsigned_Short (Octets (Octets'First)) * 256 +
-        PolyORB.Types.Unsigned_Short (Octets (Octets'First + 1));
+      if Endianness (Buffer) = Big_Endian then
+         return Types.Unsigned_Short (Z (0)) * 256
+              + Types.Unsigned_Short (Z (1));
+      else
+         return Types.Unsigned_Short (Z (1)) * 256
+              + Types.Unsigned_Short (Z (0));
+      end if;
    end Unmarshall;
 
    function Unmarshall
-     (Buffer : access Buffer_Type)
-     return PolyORB.Types.Unsigned_Long
+     (Buffer : access Buffer_Type) return PolyORB.Types.Unsigned_Long
    is
-      Octets : constant Stream_Element_Array
-        := Align_Unmarshall_Big_Endian_Copy (Buffer, 4, 4);
-
+      package FSU is new Fixed_Size_Unmarshall (Size => 4, Alignment => 4);
+      Z : constant FSU.AZ := FSU.Align_Unmarshall (Buffer);
    begin
-      pragma Debug (O ("Unmarshall (ULong) : enter & end"));
-      return PolyORB.Types.Unsigned_Long (Octets (Octets'First)) * 256**3
-        + PolyORB.Types.Unsigned_Long (Octets (Octets'First + 1)) * 256**2
-        + PolyORB.Types.Unsigned_Long (Octets (Octets'First + 2)) * 256
-        + PolyORB.Types.Unsigned_Long (Octets (Octets'First + 3));
-      --  Hard-coded expression will be optimized by the compiler
-      --  as shifts+adds.
+      if Endianness (Buffer) = Big_Endian then
+         return Types.Unsigned_Long (Z (0)) * 256**3
+              + Types.Unsigned_Long (Z (1)) * 256**2
+              + Types.Unsigned_Long (Z (2)) * 256
+              + Types.Unsigned_Long (Z (3));
+      else
+         return Types.Unsigned_Long (Z (3)) * 256**3
+              + Types.Unsigned_Long (Z (2)) * 256**2
+              + Types.Unsigned_Long (Z (1)) * 256
+              + Types.Unsigned_Long (Z (0));
+      end if;
    end Unmarshall;
 
    function Unmarshall
-     (Buffer : access Buffer_Type)
-     return PolyORB.Types.Unsigned_Long_Long
+     (Buffer : access Buffer_Type) return PolyORB.Types.Unsigned_Long_Long
    is
-      Octets : constant Stream_Element_Array
-        := Align_Unmarshall_Big_Endian_Copy (Buffer, 8, 8);
-
+      package FSU is new Fixed_Size_Unmarshall (Size => 8, Alignment => 8);
+      Z : constant FSU.AZ := FSU.Align_Unmarshall (Buffer);
    begin
-      pragma Debug (O ("Unmarshall (ULongLong) : enter & end"));
-      return PolyORB.Types.Unsigned_Long_Long (Octets (Octets'First)) * 256**7
-        + PolyORB.Types.Unsigned_Long_Long (Octets (Octets'First + 1)) * 256**6
-        + PolyORB.Types.Unsigned_Long_Long (Octets (Octets'First + 2)) * 256**5
-        + PolyORB.Types.Unsigned_Long_Long (Octets (Octets'First + 3)) * 256**4
-        + PolyORB.Types.Unsigned_Long_Long (Octets (Octets'First + 4)) * 256**3
-        + PolyORB.Types.Unsigned_Long_Long (Octets (Octets'First + 5)) * 256**2
-        + PolyORB.Types.Unsigned_Long_Long (Octets (Octets'First + 6)) * 256
-        + PolyORB.Types.Unsigned_Long_Long (Octets (Octets'First + 7));
-      --  Hard-coded expression will be optimized by the compiler
-      --  as shifts+adds.
+      if Endianness (Buffer) = Big_Endian then
+         return Types.Unsigned_Long_Long (Z (0)) * 256**7
+              + Types.Unsigned_Long_Long (Z (1)) * 256**6
+              + Types.Unsigned_Long_Long (Z (2)) * 256**5
+              + Types.Unsigned_Long_Long (Z (3)) * 256**4
+              + Types.Unsigned_Long_Long (Z (4)) * 256**3
+              + Types.Unsigned_Long_Long (Z (5)) * 256**2
+              + Types.Unsigned_Long_Long (Z (6)) * 256
+              + Types.Unsigned_Long_Long (Z (7));
+      else
+         return Types.Unsigned_Long_Long (Z (7)) * 256**7
+              + Types.Unsigned_Long_Long (Z (6)) * 256**6
+              + Types.Unsigned_Long_Long (Z (5)) * 256**5
+              + Types.Unsigned_Long_Long (Z (4)) * 256**4
+              + Types.Unsigned_Long_Long (Z (3)) * 256**3
+              + Types.Unsigned_Long_Long (Z (2)) * 256**2
+              + Types.Unsigned_Long_Long (Z (1)) * 256
+              + Types.Unsigned_Long_Long (Z (0));
+      end if;
    end Unmarshall;
 
    function Unmarshall
-     (Buffer : access Buffer_Type)
-     return PolyORB.Types.Long_Long
+     (Buffer : access Buffer_Type) return PolyORB.Types.Long_Long
    is
    begin
       pragma Debug (O ("Unmarshall (LongLong) : enter & end"));
@@ -956,7 +960,7 @@ package body PolyORB.Representations.CDR.Common is
       Length : constant PolyORB.Types.Unsigned_Long := Unmarshall (Buffer);
 
    begin
-      pragma Debug (O ("Unmarshall (Encapsulation): length is" & Length'Img));
+      pragma Debug (O ("Unmarshall (Encapsulation): length" & Length'Img));
       declare
          E : Stream_Element_Array (1 .. Stream_Element_Offset (Length));
       begin
@@ -992,7 +996,7 @@ package body PolyORB.Representations.CDR.Common is
 
       procedure Marshall
         (Buffer : access Buffer_Type;
-         Data   : in     F)
+         Data   : F)
       is
       begin
          Align_Marshall_Copy (Buffer, Fixed_To_Octets (Data), 1);
@@ -1026,7 +1030,7 @@ package body PolyORB.Representations.CDR.Common is
       -- Fixed_To_Octets --
       ---------------------
 
-      function Fixed_To_Octets (Data : in F) return Stream_Element_Array is
+      function Fixed_To_Octets (Data : F) return Stream_Element_Array is
          use PolyORB.Fixed_Point;
          use FPC;
 

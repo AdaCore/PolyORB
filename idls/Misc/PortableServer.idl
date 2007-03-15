@@ -36,7 +36,7 @@ module PortableServer {
     local interface POA;                          // forward declaration
     typedef sequence<POA> POAList; 
     native Servant;
-//PolyORB:IL:    typedef CORBA::OctetSeq ObjectId;
+    typedef CORBA::OctetSeq ObjectId;
     exception ForwardRequest {
         Object forward_reference;
     };
@@ -146,14 +146,14 @@ module PortableServer {
     local interface ServantManager{ };
     
     local interface ServantActivator : ServantManager {
-//PolyORB:IL:        Servant incarnate (     in ObjectId oid,
-//PolyORB:IL:                                in POA      adapter)
-//PolyORB:IL:                                    raises (ForwardRequest);
-//PolyORB:IL:        void etherealize (      in ObjectId oid, 
-//PolyORB:IL:                                in POA      adapter,
-//PolyORB:IL:                                in Servant  serv,
-//PolyORB:IL:                                in boolean  cleanup_in_progress,
-//PolyORB:IL:                                in boolean  remaining_activations);
+        Servant incarnate (     in ObjectId oid,
+                                in POA      adapter)
+                                    raises (ForwardRequest);
+        void etherealize (      in ObjectId oid, 
+                                in POA      adapter,
+                                in Servant  serv,
+                                in boolean  cleanup_in_progress,
+                                in boolean  remaining_activations);
     };
     
     local interface ServantLocator : ServantManager {
@@ -229,36 +229,36 @@ module PortableServer {
 	  raises (WrongPolicy);
         
         // object activation and deactivation
-//PolyORB:IL:        ObjectId        activate_object(in Servant p_servant)
-//PolyORB:IL:	  raises (ServantAlreadyActive, WrongPolicy);
-//PolyORB:IL:        void activate_object_with_id(in ObjectId    id,
-//PolyORB:IL:                                     in Servant     p_servant)
-//PolyORB:IL:	  raises (ServantAlreadyActive, 
-//PolyORB:IL:		  ObjectAlreadyActive,  
-//PolyORB:IL:		  WrongPolicy);
-//PolyORB:IL:        void deactivate_object(      in ObjectId oid) 
-//PolyORB:IL:	  raises (ObjectNotActive, WrongPolicy);
+        ObjectId        activate_object(in Servant p_servant)
+	  raises (ServantAlreadyActive, WrongPolicy);
+        void activate_object_with_id(in ObjectId    id,
+                                     in Servant     p_servant)
+	  raises (ServantAlreadyActive, 
+		  ObjectAlreadyActive,  
+		  WrongPolicy);
+        void deactivate_object(      in ObjectId oid) 
+	  raises (ObjectNotActive, WrongPolicy);
         
         // reference creation operations
         Object create_reference (    in CORBA::RepositoryId intf)
 	  raises (WrongPolicy);
-//PolyORB:IL:        Object create_reference_with_id (
-//PolyORB:IL:                                    in ObjectId             oid,
-//PolyORB:IL:                                    in CORBA::RepositoryId  intf);
+        Object create_reference_with_id (
+                                    in ObjectId             oid,
+                                    in CORBA::RepositoryId  intf);
         
         // Identity mapping operations:
-//PolyORB:IL:        ObjectId servant_to_id(     in Servant              p_servant) 
-//PolyORB:IL:	  raises (ServantNotActive, WrongPolicy);
+        ObjectId servant_to_id(     in Servant              p_servant) 
+	  raises (ServantNotActive, WrongPolicy);
         Object servant_to_reference(in Servant              p_servant) 
 	  raises (ServantNotActive, WrongPolicy);
         Servant reference_to_servant(in Object              reference)
 	  raises(ObjectNotActive, WrongAdapter, WrongPolicy);
-//PolyORB:IL:        ObjectId reference_to_id(   in Object               reference)
-//PolyORB:IL:	  raises (WrongAdapter, WrongPolicy);
-//PolyORB:IL:        Servant id_to_servant(      in ObjectId             oid)
-//PolyORB:IL:	  raises (ObjectNotActive, WrongPolicy);
-//PolyORB:IL:        Object id_to_reference(     in ObjectId             oid)
-//PolyORB:IL:	  raises (ObjectNotActive, WrongPolicy);
+        ObjectId reference_to_id(   in Object               reference)
+	  raises (WrongAdapter, WrongPolicy);
+        Servant id_to_servant(      in ObjectId             oid)
+	  raises (ObjectNotActive, WrongPolicy);
+        Object id_to_reference(     in ObjectId             oid)
+	  raises (ObjectNotActive, WrongPolicy);
 
 //PolyORB:NI:        readonly attribute CORBA::OctetSeq id;
 //PolyORB:NI:        readonly attribute POAManagerFactory the_POAManagerFactory;
@@ -268,9 +268,9 @@ module PortableServer {
     local interface Current : CORBA::Current {
         exception   NoContext { };
         POA         get_POA()       raises (NoContext);
-//PolyORB:IL:        ObjectId    get_object_id() raises (NoContext);
-//PolyORB:NI:        Object      get_reference() raises (NoContext);
-//PolyORB:NI:        Servant     get_servant()   raises (NoContext);
+        ObjectId    get_object_id() raises (NoContext);
+        Object      get_reference() raises (NoContext);
+        Servant     get_servant()   raises (NoContext);
     };
 };
 #endif // _PORTABLE_SERVER_IDL_

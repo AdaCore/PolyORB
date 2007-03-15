@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2002 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,31 +26,37 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 package body CORBA.Context is
 
+   -------------------
+   -- Set_One_Value --
+   -------------------
+
    procedure Set_One_Value
-     (Self      : in Ref;
-      Prop_Name : in Identifier;
-      Value     : in CORBA.String)
+     (Self      : Ref;
+      Prop_Name : Identifier;
+      Value     : CORBA.String)
    is
-      pragma Warnings (Off);
       pragma Unreferenced
         (Self,
          Prop_Name,
          Value);
-      pragma Warnings (On);
    begin
-      null;
+      CORBA.Raise_No_Implement (CORBA.Default_Sys_Member);
    end Set_One_Value;
 
+   ----------------
+   -- Set_Values --
+   ----------------
+
    procedure Set_Values
-     (Self   : in Ref;
-      Values : in CORBA.NVList.Ref)
+     (Self   : Ref;
+      Values : CORBA.NVList.Ref)
    is
       pragma Warnings (Off);
       pragma Unreferenced
@@ -58,23 +64,25 @@ package body CORBA.Context is
          Values);
       pragma Warnings (On);
    begin
-      null;
+      CORBA.Raise_No_Implement (CORBA.Default_Sys_Member);
    end Set_Values;
 
+   ----------------
+   -- Get_Values --
+   ----------------
+
    procedure Get_Values
-     (Self        : in     Ref;
-      Start_Scope : in     Identifier;
-      This_Object : in     Boolean := True;
-      Prop_Name   : in     Identifier;
+     (Self        : Ref;
+      Start_Scope : Identifier;
+      This_Object : Boolean := True;
+      Prop_Name   : Identifier;
       Values      :    out CORBA.NVList.Ref)
    is
-      pragma Warnings (Off);
       pragma Unreferenced
         (Self,
          Start_Scope,
          This_Object,
          Prop_Name);
-      pragma Warnings (On);
 
       Dummy : CORBA.NVList.Ref;
       pragma Warnings (Off, Dummy);
@@ -82,31 +90,36 @@ package body CORBA.Context is
 
    begin
       Values := Dummy;
+      CORBA.Raise_No_Implement (CORBA.Default_Sys_Member);
    end Get_Values;
 
+   -------------------
+   -- Delete_Values --
+   -------------------
+
    procedure Delete_Values
-     (Self      : in Ref;
-      Prop_Name : in Identifier)
+     (Self      : Ref;
+      Prop_Name : Identifier)
    is
-      pragma Warnings (Off);
       pragma Unreferenced
         (Self,
          Prop_Name);
-      pragma Warnings (On);
    begin
-      null;
+      CORBA.Raise_No_Implement (CORBA.Default_Sys_Member);
    end Delete_Values;
 
+   ------------------
+   -- Create_Child --
+   ------------------
+
    procedure Create_Child
-     (Self      : in     Ref;
-      Ctx_Name  : in     Identifier;
+     (Self      : Ref;
+      Ctx_Name  : Identifier;
       Child_Ctx :    out Ref)
    is
-      pragma Warnings (Off);
       pragma Unreferenced
         (Self,
          Ctx_Name);
-      pragma Warnings (On);
 
       Dummy : Ref;
       pragma Warnings (Off, Dummy);
@@ -114,19 +127,22 @@ package body CORBA.Context is
 
    begin
       Child_Ctx := Dummy;
+      CORBA.Raise_No_Implement (CORBA.Default_Sys_Member);
    end Create_Child;
 
+   ------------
+   -- Delete --
+   ------------
+
    procedure Delete
-     (Self      : in Ref;
-      Del_Flags : in Flags)
+     (Self      : Ref;
+      Del_Flags : Flags)
    is
-      pragma Warnings (Off);
       pragma Unreferenced
         (Self,
          Del_Flags);
-      pragma Warnings (On);
    begin
-      null;
+      CORBA.Raise_No_Implement (CORBA.Default_Sys_Member);
    end Delete;
 
 end CORBA.Context;

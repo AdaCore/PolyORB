@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -80,10 +80,9 @@ package PolyORB.Buffers is
       E      :        Endianness_Type);
    pragma Inline (Set_Endianness);
    --  Set the endianness of Buffer.
+   --  XXX This should be moved to CDR.
 
-   function Endianness
-     (Buffer : Buffer_Type)
-     return Endianness_Type;
+   function Endianness (Buffer : access Buffer_Type) return Endianness_Type;
    pragma Inline (Endianness);
    --  Return the endianness of Buffer.
    --  XXX This should be moved to CDR.
@@ -121,7 +120,7 @@ package PolyORB.Buffers is
    --  is Amount.
 
    procedure Copy_Data
-     (From : in Buffer_Type;
+     (From : Buffer_Type;
       Into :    Reservation);
    --  Fill reservation Into using the data from From.
    --  The position and length of From and Into must match.
@@ -229,17 +228,31 @@ package PolyORB.Buffers is
 
    procedure Extract_Data
      (Buffer      : access Buffer_Type;
-      Data        :    out Opaque.Opaque_Pointer;
-      Size        :        Ada.Streams.Stream_Element_Count;
-      Use_Current :        Boolean := True;
-      At_Position :        Ada.Streams.Stream_Element_Offset := 0);
-   --  Retrieve Size elements from Buffer. If Use_Current,
-   --  the extraction starts at the current position in the
-   --  buffer, else it starts at At_Position.
+      Data        : out Opaque.Opaque_Pointer;
+      Size        : Ada.Streams.Stream_Element_Count;
+      Use_Current : Boolean := True;
+      At_Position : Ada.Streams.Stream_Element_Offset := 0);
 
-   --  On return, Data contains an access to the retrieved
-   --  Data, and if Use_Current, then the CDR current position
-   --  is advanced by Size.
+   procedure Partial_Extract_Data
+     (Buffer      : access Buffer_Type;
+      Data        : out Opaque.Opaque_Pointer;
+      Size        : in out Ada.Streams.Stream_Element_Count;
+      Use_Current : Boolean := True;
+      At_Position : Ada.Streams.Stream_Element_Offset := 0;
+      Partial     : Boolean := True);
+
+   --  The two procedures above retrieve Size elements of contiguous data from
+   --  Buffer. If Use_Current is True, the extraction starts at the current
+   --  position in the buffer, else it starts at At_Position.
+   --
+   --  For the Partial version, if Partial is True, less data may be returned
+   --  than requested, in which case Size is adjusted accordingly. If Partial
+   --  is False, the behaviour is the same as Extract_Data.
+   --
+   --  On return, Data contains an access to the retrieved Data, and if
+   --  Use_Current is True, then the CDR current position is advanced by Size.
+   --  Constraint_Error is raised if less than Size elements of contiguous data
+   --  are available and Partial is not True.
 
    function CDR_Position
      (Buffer : access Buffer_Type)
@@ -392,16 +405,13 @@ private
       --  extended towards the end of the chunk if necessary.
 
       procedure Extract_Data
-        (Iovec_Pool :     Iovec_Pool_Type;
+        (Iovec_Pool : in out Iovec_Pool_Type;
          Data       : out Opaque.Opaque_Pointer;
          Offset     :     Ada.Streams.Stream_Element_Offset;
-         Size       :     Ada.Streams.Stream_Element_Count);
-      --  Retrieve exactly Size octets of data from
-      --  Iovec_Pool starting at Offset.
-      --  The data must be stored contiguously.
-      --  If there are not Size octets of data
-      --  contiguously stored in Iovec_Pool at Offset,
-      --  then exception Constraint_Error is raised.
+         Size       : in out Ada.Streams.Stream_Element_Count);
+      --  Retrieve at most Size octets of contiguous data from Iovec_Pool,
+      --  starting at Offset. The effective amount of available contiguous
+      --  data available at this position is returned in Size.
 
       procedure Release
         (Iovec_Pool : in out Iovec_Pool_Type);
@@ -420,7 +430,7 @@ private
       procedure Send_Iovec_Pool
         (Iovec_Pool : access Iovec_Pool_Type;
          Length     :        Ada.Streams.Stream_Element_Count);
-      --  Write Length elements of the contents of Iovec_Pool onto S.
+      --  Write Length elements of the contents of Iovec_Pool onto V
 
       ---------------------------------------
       -- Low-level interfaces to the octet --
@@ -477,6 +487,14 @@ private
          --  last allocated element of the chunk. In this
          --  second case, Last_Chunk is set to an access
          --  that designates the storage chunk.
+
+         Last_Extract_Iovec        : Positive := 1;
+         Last_Extract_Iovec_Offset : System.Storage_Elements.Storage_Offset
+                                       := 0;
+         --  In order to speed up data extraction in the usual case,
+         --  the index of the iovec from which data was extracted in
+         --  the last call to Extract_Data, and the offset of the
+         --  first element in that iovec, are cached in these components.
       end record;
 
    end Iovec_Pools;

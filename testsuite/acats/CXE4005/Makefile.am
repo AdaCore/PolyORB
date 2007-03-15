@@ -63,4 +63,3 @@ clean-stubs:
 	rm -fr part1.stubs part2.stubs
 
 include $(srcdir)/../../Makefile.common
-

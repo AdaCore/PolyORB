@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -48,15 +48,15 @@ package PolyORB.Representations.Test is
    --  following two subprograms.
 
    procedure Marshall_From_Any
-     (R      : in     Rep_Test;
+     (R      : Rep_Test;
       Buffer : access Buffers.Buffer_Type;
-      Data   : in     Any.Any;
+      Data   : Any.Any_Container'Class;
       Error  : in out Errors.Error_Container);
 
    procedure Unmarshall_To_Any
-     (R      : in     Rep_Test;
+     (R      : Rep_Test;
       Buffer : access Buffers.Buffer_Type;
-      Data   : in out Any.Any;
+      Data   : in out Any.Any_Container'Class;
       Error  : in out Errors.Error_Container);
 
    --  The following methods are specific to Rep_Test and are
@@ -73,13 +73,13 @@ package PolyORB.Representations.Test is
    --  Unmarshall one character.
 
    procedure Marshall_String
-     (R : in     Rep_Test;
+     (R : Rep_Test;
       B : access Buffer_Type;
       S : String);
    --  Marshall a string.
 
    function Unmarshall_String
-     (R : in     Rep_Test;
+     (R : Rep_Test;
       B : access Buffer_Type)
      return String;
    --  Unmarshall a string terminated by a CR/LF sequence.

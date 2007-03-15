@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -45,8 +45,11 @@ package body CORBA.ServerRequest is
    use PolyORB.Log;
 
    package L is new PolyORB.Log.Facility_Log ("corba.serverrequest");
-   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+   procedure O (Message : Standard.String; Level : Log_Level := Debug)
      renames L.Output;
+   function C (Level : Log_Level := Debug) return Boolean
+     renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    ---------------
    -- Operation --
@@ -65,7 +68,7 @@ package body CORBA.ServerRequest is
       use PolyORB.Errors;
 
       PolyORB_Args : PolyORB.Any.NVList.Ref
-        := CORBA.NVList.To_PolyORB_Ref (NV);
+        := CORBA.NVList.Internals.To_PolyORB_Ref (NV);
       Error : Error_Container;
 
    begin
@@ -76,7 +79,7 @@ package body CORBA.ServerRequest is
          PolyORB.CORBA_P.Exceptions.Raise_From_Error (Error);
       end if;
 
-      NV := CORBA.NVList.To_CORBA_Ref (PolyORB_Args);
+      NV := CORBA.NVList.Internals.To_CORBA_Ref (PolyORB_Args);
 
       if Server_Intermediate /= null then
          Server_Intermediate (PolyORB.Requests.Request_Access (O), True);
@@ -93,9 +96,13 @@ package body CORBA.ServerRequest is
       Error : Error_Container;
 
    begin
+
+      --  Need to copy the Any value here, because it may be living on the
+      --  caller's stack.
+
       PolyORB.Requests.Set_Result
         (PolyORB.Requests.Request_Access (O),
-         CORBA.Internals.To_PolyORB_Any (Val),
+         PolyORB.Any.Copy_Any (CORBA.Internals.To_PolyORB_Any (Val)),
          Error);
 
       if Found (Error) then

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -34,7 +34,6 @@
 --  Binding data concrete implementation for IIOP.
 
 with PolyORB.Buffers;
-with PolyORB.Sockets;
 with PolyORB.Types;
 
 package PolyORB.Binding_Data.GIOP.IIOP is
@@ -49,16 +48,7 @@ package PolyORB.Binding_Data.GIOP.IIOP is
       Oid :        Objects.Object_Id)
       return Profile_Access;
 
-   procedure Bind_Profile
-     (Profile :     IIOP_Profile_Type;
-      The_ORB :     Components.Component_Access;
-      BO_Ref  : out Smart_Pointers.Ref;
-      Error   : out Errors.Error_Container);
-
-   function Is_Local_Profile
-     (PF : access IIOP_Profile_Factory;
-      P  : access Profile_Type'Class)
-      return Boolean;
+   function Duplicate_Profile (P : IIOP_Profile_Type) return Profile_Access;
 
    function Get_Profile_Tag (Profile : IIOP_Profile_Type) return Profile_Tag;
    pragma Inline (Get_Profile_Tag);
@@ -88,20 +78,35 @@ package PolyORB.Binding_Data.GIOP.IIOP is
      return PolyORB.Smart_Pointers.Entity_Ptr;
    pragma Inline (Get_OA);
 
+   procedure Add_Transport_Mechanism_Factory
+     (PF : in out IIOP_Profile_Factory;
+      MF :
+       PolyORB.GIOP_P.Transport_Mechanisms.Transport_Mechanism_Factory_Access);
+   --  Add Transport Mechanism Factory to Profile Factory
+
+   procedure Disable_Unprotected_Invocations
+     (PF : in out IIOP_Profile_Factory);
+   --  Disable unprotected invocations
+
+   type Fetch_QoS_Callback is
+     access procedure (P : access IIOP_Profile_Type);
+
+   Security_Fetch_QoS : Fetch_QoS_Callback := null;
+
+   type Fetch_Tagged_Component_Callback is
+     access function
+     (OA : PolyORB.Objects.Object_Id)
+      return PolyORB.GIOP_P.Tagged_Components.Tagged_Component_Access;
+
+   Security_Fetch_Tagged_Component : Fetch_Tagged_Component_Callback := null;
+
 private
 
    IIOP_Version_Major : constant Types.Octet := 1;
    IIOP_Version_Minor : constant Types.Octet := 2;
 
-   type IIOP_Profile_Type is new GIOP_Profile_Type with record
+   type IIOP_Profile_Type is new GIOP_Profile_Type with null record;
 
-      --  Socket information
-
-      Address       : Sockets.Sock_Addr_Type;
-   end record;
-
-   type IIOP_Profile_Factory is new GIOP_Profile_Factory with record
-      Address : Sockets.Sock_Addr_Type;
-   end record;
+   type IIOP_Profile_Factory is new GIOP_Profile_Factory with null record;
 
 end PolyORB.Binding_Data.GIOP.IIOP;

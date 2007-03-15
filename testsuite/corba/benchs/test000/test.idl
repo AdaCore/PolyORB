@@ -1,5 +1,8 @@
 
+import ::PortableServer;
+
 module Test {
+
     interface Echo {
         string Echo_String (in string Value);
     };
@@ -12,4 +15,7 @@ module Test {
 
         void Shutdown ();
     };
+
+    local interface Activator : PortableServer::ServantActivator { };
+
 };

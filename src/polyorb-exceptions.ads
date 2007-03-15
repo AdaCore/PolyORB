@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -65,32 +65,35 @@ package PolyORB.Exceptions is
    ---------------------
 
    procedure User_Get_Members
-     (Occurrence : in  Ada.Exceptions.Exception_Occurrence;
+     (Occurrence : Ada.Exceptions.Exception_Occurrence;
       Members    : out Exception_Members'Class);
    --  Extract members from User exception occurence
 
    procedure User_Purge_Members
-     (Occurrence : in Ada.Exceptions.Exception_Occurrence);
+     (Occurrence : Ada.Exceptions.Exception_Occurrence);
    --  Forget exception members associated with an exception occurrence
 
    procedure User_Raise_Exception
-     (Id      : in Ada.Exceptions.Exception_Id;
-      Members : in Exception_Members'Class);
+     (Id      : Ada.Exceptions.Exception_Id;
+      Members : Exception_Members'Class;
+      Message : Standard.String := "");
    pragma No_Return (User_Raise_Exception);
    --  Raise a user exception with the specified members.
 
    procedure Raise_User_Exception_From_Any
      (Repository_Id : PolyORB.Types.RepositoryId;
-      Occurence     : PolyORB.Any.Any);
+      Occurence     : PolyORB.Any.Any;
+      Message       : Standard.String := "");
 
    type Raise_From_Any_Procedure is
-     access procedure (Occurrence : PolyORB.Any.Any);
+     access procedure (Occurrence : PolyORB.Any.Any;
+                       Message    : Standard.String);
 
    procedure Default_Raise_From_Any (Occurrence : PolyORB.Any.Any);
 
    procedure Register_Exception
-     (TC     : in PolyORB.Any.TypeCode.Object;
-      Raiser : in Raise_From_Any_Procedure);
+     (TC     : PolyORB.Any.TypeCode.Object;
+      Raiser : Raise_From_Any_Procedure);
    --  Associate the TypeCode for a user-defined exception with
    --  a procedure that raises an occurrence of that exception,
    --  given an Any with that TypeCode.
@@ -107,13 +110,21 @@ package PolyORB.Exceptions is
    -- Exception utility functions --
    ---------------------------------
 
-   function Occurrence_To_Name
-     (Occurrence : Ada.Exceptions.Exception_Occurrence)
-      return PolyORB.Types.RepositoryId;
+   function Exception_Name (Repository_Id : Standard.String)
+     return Standard.String;
+   --  Return the name of an exception from its repository ID
 
-   function Exception_Name
-     (Repository_Id : Standard.String)
-      return Standard.String;
-   --  Return the name of an exception from its repository ID.
+   procedure Exception_Name_To_Error_Id
+     (Name     :     String;
+      Is_Error : out Boolean;
+      Id       : out Error_Id);
+   --  Convert an exception name into a PolyORB's Error Id
+
+   function Get_ExcepId_By_Name (Name : Standard.String)
+     return Ada.Exceptions.Exception_Id;
+   --  Returns the exception id from its name
+
+   function Occurrence_To_Name
+     (Occurrence : Ada.Exceptions.Exception_Occurrence) return String;
 
 end PolyORB.Exceptions;

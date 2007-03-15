@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -33,7 +33,6 @@
 
 with Ada.Streams;
 
-with PolyORB.Buffers;
 with PolyORB.Log;
 with PolyORB.Representations.CDR.Common;
 with PolyORB.Utils.Sockets;
@@ -55,8 +54,11 @@ package body PolyORB.Binding_Data.GIOP.INET is
    package L is
       new PolyORB.Log.Facility_Log
      ("polyorb.binding_data.giop.common_sockets");
-   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+   procedure O (Message : Standard.String; Level : Log_Level := Debug)
      renames L.Output;
+   function C (Level : Log_Level := Debug) return Boolean
+     renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    ------------------------------------------
    -- Common_IIOP_DIOP_Corbaloc_To_Profile --
@@ -119,8 +121,7 @@ package body PolyORB.Binding_Data.GIOP.INET is
             return;
          end if;
          pragma Debug (O ("Address = " & S (Index .. Index2)));
-         Address.Addr :=
-           String_To_Addr (To_PolyORB_String (S (Index .. Index2)));
+         Address.Addr := String_To_Addr (S (Index .. Index2));
 
          if Colon < Slash then
             if Colon + 1 < Slash then
@@ -147,8 +148,8 @@ package body PolyORB.Binding_Data.GIOP.INET is
 
       declare
          Oid_Str : constant String := URI_Decode (S (Index .. S'Last));
-         Oid     : Object_Id (Stream_Element_Offset (Index)
-                           .. Stream_Element_Offset (S'Last));
+         Oid     : Object_Id (Stream_Element_Offset (Oid_Str'First)
+                           .. Stream_Element_Offset (Oid_Str'Last));
          pragma Import (Ada, Oid);
          for Oid'Address use Oid_Str (Oid_Str'First)'Address;
       begin
@@ -189,10 +190,10 @@ package body PolyORB.Binding_Data.GIOP.INET is
       pragma Debug (O ("Common_IIOP_DIOP_Profile_To_Corbaloc"));
 
       return Prefix & ":" &
-        Trimmed_Image (Integer (GIOP_Profile.Version_Major)) & "." &
-        Trimmed_Image (Integer (GIOP_Profile.Version_Minor)) & "@" &
+        Trimmed_Image (Unsigned_Long_Long (GIOP_Profile.Version_Major)) & "." &
+        Trimmed_Image (Unsigned_Long_Long (GIOP_Profile.Version_Minor)) & "@" &
         Image (Address.Addr) & ":" &
-        Trimmed_Image (Integer (Address.Port)) & "/" &
+        Trimmed_Image (Long_Long (Address.Port)) & "/" &
         URI_Encode (Oid_Str, Also_Escape => No_Escape);
    end Common_IIOP_DIOP_Profile_To_Corbaloc;
 
@@ -202,9 +203,9 @@ package body PolyORB.Binding_Data.GIOP.INET is
 
    procedure Common_Marshall_Profile_Body
      (Buffer             : access Buffer_Type;
-      Profile            : in     Profile_Access;
-      Address            : in     Sockets.Sock_Addr_Type;
-      Marshall_Object_Id : in     Boolean)
+      Profile            : Profile_Access;
+      Address            : Sockets.Sock_Addr_Type;
+      Marshall_Object_Id : Boolean)
    is
       GIOP_Profile : GIOP_Profile_Type'Class
         renames GIOP_Profile_Type'Class (Profile.all);
@@ -257,10 +258,10 @@ package body PolyORB.Binding_Data.GIOP.INET is
 
    procedure Common_Unmarshall_Profile_Body
      (Buffer                       : access Buffer_Type;
-      Profile                      : in     Profile_Access;
+      Profile                      : Profile_Access;
       Address                      : in out Sockets.Sock_Addr_Type;
-      Unmarshall_Object_Id         : in     Boolean;
-      Unmarshall_Tagged_Components : in     Boolean)
+      Unmarshall_Object_Id         : Boolean;
+      Unmarshall_Tagged_Components : Boolean)
    is
       TResult        : GIOP_Profile_Type'Class
         renames GIOP_Profile_Type'Class (Profile.all);

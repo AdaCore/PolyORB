@@ -46,6 +46,8 @@ package PolyORB.Asynch_Ev.Sockets is
 
    procedure Destroy (AEM : in out Socket_Event_Monitor);
 
+   function Has_Sources (AEM : Socket_Event_Monitor) return Boolean;
+
    type Socket_Event_Source is new Asynch_Ev_Source with private;
 
    procedure Register_Source
@@ -54,8 +56,9 @@ package PolyORB.Asynch_Ev.Sockets is
       Success :    out Boolean);
 
    procedure Unregister_Source
-     (AEM : in out Socket_Event_Monitor;
-      AES :        Asynch_Ev_Source_Access);
+     (AEM     : in out Socket_Event_Monitor;
+      AES     : Asynch_Ev_Source_Access;
+      Success : out Boolean);
 
    function Check_Sources
      (AEM     : access Socket_Event_Monitor;

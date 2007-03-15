@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -45,8 +45,11 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.User is
 
    package L is new Log.Facility_Log
      ("polyorb.poa_policies.id_assignement_policy.user");
-   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+   procedure O (Message : Standard.String; Level : Log_Level := Debug)
      renames L.Output;
+   function C (Level : Log_Level := Debug) return Boolean
+     renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    ------------
    -- Create --
@@ -167,10 +170,8 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.User is
       U_Oid : out Unmarshalled_Oid;
       Error : in out PolyORB.Errors.Error_Container)
    is
-      pragma Warnings (Off); -- WAG:3.15
       pragma Unreferenced (Self);
       pragma Unreferenced (Error);
-      pragma Warnings (On); -- WAG:3.15
 
       use PolyORB.POA_Policies.Lifespan_Policy;
       use PolyORB.Types;
@@ -198,9 +199,7 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.User is
       Error  : in out PolyORB.Errors.Error_Container)
    is
       use PolyORB.Errors;
-      pragma Warnings (Off); -- WAG:3.15
       pragma Unreferenced (Self);
-      pragma Warnings (On); -- WAG:3.15
       U_Oid : Unmarshalled_Oid;
    begin
       Oid_To_U_Oid (Oid.all, U_Oid, Error);

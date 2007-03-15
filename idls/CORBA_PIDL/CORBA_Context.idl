@@ -2,7 +2,7 @@
 // From CORBA 3.0, Chapter 4
 
 //PolyORB:NI: Context is not actually implemented. Context API is provided
-//by CORBA personality, but do nothing.
+//by CORBA personality, but not implemented, any call will raise NO_IMPLEMENT.
 
   interface Context {			// PIDL
     void set_one_value (

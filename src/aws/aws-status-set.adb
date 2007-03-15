@@ -1,31 +1,34 @@
 ------------------------------------------------------------------------------
---                              Ada Web Server                              --
 --                                                                          --
---                         Copyright (C) 2000-2003                          --
---                                ACT-Europe                                --
+--                           POLYORB COMPONENTS                             --
 --                                                                          --
---  Authors: Dmitriy Anisimkov - Pascal Obry                                --
+--                       A W S . S T A T U S . S E T                        --
 --                                                                          --
---  This library is free software; you can redistribute it and/or modify    --
---  it under the terms of the GNU General Public License as published by    --
---  the Free Software Foundation; either version 2 of the License, or (at   --
---  your option) any later version.                                         --
+--                                 B o d y                                  --
 --                                                                          --
---  This library is distributed in the hope that it will be useful, but     --
---  WITHOUT ANY WARRANTY; without even the implied warranty of              --
---  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU       --
---  General Public License for more details.                                --
+--         Copyright (C) 2000-2006, Free Software Foundation, Inc.          --
 --                                                                          --
---  You should have received a copy of the GNU General Public License       --
---  along with this library; if not, write to the Free Software Foundation, --
---  Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.          --
+-- PolyORB is free software; you  can  redistribute  it and/or modify it    --
+-- under terms of the  GNU General Public License as published by the  Free --
+-- Software Foundation;  either version 2,  or (at your option)  any  later --
+-- version. PolyORB is distributed  in the hope that it will be  useful,    --
+-- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
+-- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
+-- License  for more details.  You should have received  a copy of the GNU  --
+-- General Public License distributed with PolyORB; see file COPYING. If    --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
---  As a special exception, if other files instantiate generics from this   --
---  unit, or you link this unit with other files to produce an executable,  --
---  this  unit  does not  by itself cause  the resulting executable to be   --
---  covered by the GNU General Public License. This exception does not      --
---  however invalidate any other reasons why the executable file  might be  --
---  covered by the  GNU Public License.                                     --
+-- As a special exception,  if other files  instantiate  generics from this --
+-- unit, or you link  this unit with other files  to produce an executable, --
+-- this  unit  does not  by itself cause  the resulting  executable  to  be --
+-- covered  by the  GNU  General  Public  License.  This exception does not --
+-- however invalidate  any other reasons why  the executable file  might be --
+-- covered by the  GNU Public License.                                      --
+--                                                                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
+--                                                                          --
 ------------------------------------------------------------------------------
 
 with AWS.Parameters.Set;
@@ -51,16 +54,16 @@ package body AWS.Status.Set is
 --        Header_Value : constant String
 --          := AWS.Headers.Get (D.Header, Messages.Authorization_Token);
 
---     procedure Named_Value (Name, Value : in String; Quit : in out Boolean);
+--     procedure Named_Value (Name, Value : String; Quit : in out Boolean);
 
---        procedure Value (Item : in String; Quit : in out Boolean);
+--        procedure Value (Item : String; Quit : in out Boolean);
 
 --        -----------------
 --        -- Named_Value --
 --        -----------------
 
 --        procedure Named_Value
---          (Name, Value : in String;
+--          (Name, Value : String;
 --           Quit        : in out Boolean)
 --        is
 
@@ -74,7 +77,7 @@ package body AWS.Status.Set is
 --           Attribute : Digest_Attribute;
 
 --           function "+"
---             (Item : in String)
+--             (Item : String)
 --              return Unbounded_String
 --             renames To_Unbounded_String;
 
@@ -117,7 +120,7 @@ package body AWS.Status.Set is
 --        -- Value --
 --        -----------
 
---        procedure Value (Item : in String; Quit : in out Boolean) is
+--        procedure Value (Item : String; Quit : in out Boolean) is
 --           Upper_Item : constant String
 --             := Ada.Characters.Handling.To_Upper (Item);
 --        begin
@@ -171,7 +174,7 @@ package body AWS.Status.Set is
 
    procedure Binary
      (D         : in out Data;
-      Parameter : in     Stream_Element_Array) is
+      Parameter : Stream_Element_Array) is
    begin
       D.Binary_Data := new Stream_Element_Array'(Parameter);
    end Binary;
@@ -194,7 +197,7 @@ package body AWS.Status.Set is
 
    procedure Keep_Alive
      (D    : in out Data;
-      Flag : in     Boolean) is
+      Flag : Boolean) is
    begin
       D.Keep_Alive := Flag;
    end Keep_Alive;
@@ -203,7 +206,7 @@ package body AWS.Status.Set is
    -- Parameters --
    ----------------
 
-   procedure Parameters (D : in out Data; Set : in AWS.Parameters.List) is
+   procedure Parameters (D : in out Data; Set : AWS.Parameters.List) is
    begin
       D.Parameters := Set;
    end Parameters;
@@ -214,7 +217,7 @@ package body AWS.Status.Set is
 
    procedure Payload
      (D       : in out Data;
-      Payload : in     SOAP.Message.Payload.Object) is
+      Payload : SOAP.Message.Payload.Object) is
    begin
       D.SOAP_Payload := Payload;
       D.SOAP_Action := True;
@@ -226,7 +229,7 @@ package body AWS.Status.Set is
 
    procedure Peername
      (D        : in out Data;
-      Peername : in     String) is
+      Peername : String) is
    begin
       D.Peername := To_Unbounded_String (Peername);
    end Peername;
@@ -237,9 +240,9 @@ package body AWS.Status.Set is
 
    procedure Request
      (D            : in out Data;
-      Method       : in     Request_Method;
-      URI          : in     String;
-      HTTP_Version : in     String) is
+      Method       : Request_Method;
+      URI          : String;
+      HTTP_Version : String) is
    begin
       D.Method       := Method;
       D.URI          := URL.Parse (URI, False, False);

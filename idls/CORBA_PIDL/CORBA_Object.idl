@@ -17,7 +17,7 @@
 
         boolean is_nil();
 
-//PolyORB:NI:        Object duplicate ();
+        Object duplicate ();
 
         void release ();
 
@@ -44,28 +44,28 @@
             in    Flags             req_flag
         );
 
-//PolyORB:NI:        Policy get_policy (
-//PolyORB:NI:            in PolicyType           policy_type
-//PolyORB:NI:        );
-//PolyORB:NI:
-//PolyORB:NI:        DomainManagersList get_domain_managers ();
-//PolyORB:NI:
-//PolyORB:NI:        Object set_policy_overrides(
-//PolyORB:NI:            in PolicyList           policies,
-//PolyORB:NI:            in SetOverrideType      set_add
-//PolyORB:NI:        ) raises(InvalidPolicies);
-//PolyORB:NI:
-//PolyORB:NI:        Policy get_client_policy(
-//PolyORB:NI:            in PolicyType           type
-//PolyORB:NI:        );
-//PolyORB:NI:
-//PolyORB:NI:        PolicyList get_policy_overrides(
-//PolyORB:NI:            in PolicyTypeSeq        types
-//PolyORB:NI:        );
-//PolyORB:NI:
-//PolyORB:NI:        boolean validate_connection(
-//PolyORB:NI:            out PolicyList          inconsistent_policies
-//PolyORB:NI:        );
-//PolyORB:NI:
+        Policy get_policy (
+            in PolicyType           policy_type
+        );
+
+        DomainManagersList get_domain_managers ();
+
+        Object set_policy_overrides(
+            in PolicyList           policies,
+            in SetOverrideType      set_add
+        ) raises(InvalidPolicies);
+
+        Policy get_client_policy(
+            in PolicyType           type
+        );
+
+        PolicyList get_policy_overrides(
+            in PolicyTypeSeq        types
+        );
+
+//PolyORB:IL:        boolean validate_connection(
+//PolyORB:IL:            out PolicyList          inconsistent_policies
+//PolyORB:IL:        );
+
 //PolyORB:NI:        Object get_component ();
     };

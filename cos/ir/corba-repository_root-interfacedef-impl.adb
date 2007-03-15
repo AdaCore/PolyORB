@@ -1,28 +1,50 @@
+------------------------------------------------------------------------------
+--                                                                          --
+--                           POLYORB COMPONENTS                             --
+--                                                                          --
+--                 CORBA.REPOSITORY_ROOT.INTERFACEDEF.IMPL                  --
+--                                                                          --
+--                                 B o d y                                  --
+--                                                                          --
+--         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
+--                                                                          --
+-- PolyORB is free software; you  can  redistribute  it and/or modify it    --
+-- under terms of the  GNU General Public License as published by the  Free --
+-- Software Foundation;  either version 2,  or (at your option)  any  later --
+-- version. PolyORB is distributed  in the hope that it will be  useful,    --
+-- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
+-- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
+-- License  for more details.  You should have received  a copy of the GNU  --
+-- General Public License distributed with PolyORB; see file COPYING. If    --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
+--                                                                          --
+-- As a special exception,  if other files  instantiate  generics from this --
+-- unit, or you link  this unit with other files  to produce an executable, --
+-- this  unit  does not  by itself cause  the resulting  executable  to  be --
+-- covered  by the  GNU  General  Public  License.  This exception does not --
+-- however invalidate  any other reasons why  the executable file  might be --
+-- covered by the  GNU Public License.                                      --
+--                                                                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
+--                                                                          --
+------------------------------------------------------------------------------
+
 pragma Style_Checks (Off);
 
-----------------------------------------------
---  This file has been generated automatically
---  by AdaBroker (http://adabroker.eu.org/)
-----------------------------------------------
-
 with CORBA.ORB;
+with PortableServer;
 
-with CORBA.Repository_Root; use CORBA.Repository_Root;
-with CORBA.Repository_Root.IRObject.Impl;
-with CORBA.Repository_Root.Contained;
-with CORBA.Repository_Root.OperationDef;
+with CORBA.Repository_Root.Helper;
 with CORBA.Repository_Root.OperationDef.Impl;
-with CORBA.Repository_Root.AttributeDef;
 with CORBA.Repository_Root.AttributeDef.Impl;
-with CORBA.Repository_Root.IDLType;
 with CORBA.Repository_Root.InterfaceDef.Skel;
 pragma Warnings (Off, CORBA.Repository_Root.InterfaceDef.Skel);
-with CORBA.Repository_Root.Helper;
 
 with PolyORB.Log;
 pragma Elaborate_All (PolyORB.Log);
 with PolyORB.CORBA_P.Server_Tools;
-with PortableServer;
 
 package body CORBA.Repository_Root.InterfaceDef.Impl is
 
@@ -33,16 +55,21 @@ package body CORBA.Repository_Root.InterfaceDef.Impl is
    use PolyORB.Log;
 
    package L is new PolyORB.Log.Facility_Log ("interfacedef.impl");
-   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+   procedure O (Message : Standard.String; Level : Log_Level := Debug)
      renames L.Output;
+   function C (Level : Log_Level := Debug) return Boolean
+     renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    package L2 is new PolyORB.Log.Facility_Log ("interfacedef.impl_method_trace");
-   procedure O2 (Message : in Standard.String; Level : Log_Level := Debug)
+   procedure O2 (Message : Standard.String; Level : Log_Level := Debug)
      renames L2.Output;
+   function C2 (Level : Log_Level := Debug) return Boolean
+     renames L2.Enabled;
+   pragma Unreferenced (C2); --  For conditional pragma Debug
 
-
-   package IntDef renames IDL_Sequence_CORBA_InterfaceDef_Forward;
-   package IdSeq renames IDL_Sequence_CORBA_RepositoryId;
+   package IntDef renames IDL_SEQUENCE_CORBA_InterfaceDef_Forward;
+   package IdSeq renames IDL_SEQUENCE_CORBA_RepositoryId;
 
    ------------
    --  INIT  --
@@ -87,7 +114,6 @@ package body CORBA.Repository_Root.InterfaceDef.Impl is
       pragma Debug (O2 ("init  end"));
    end Init;
 
-
    -----------------
    --  To_Object  --
     -----------------
@@ -129,8 +155,6 @@ package body CORBA.Repository_Root.InterfaceDef.Impl is
       return Self.IDLType_View;
    end Get_IDLType_View;
 
-
-
    function get_base_interfaces
      (Self : access Object)
      return CORBA.Repository_Root.InterfaceDefSeq
@@ -139,14 +163,12 @@ package body CORBA.Repository_Root.InterfaceDef.Impl is
       return Self.Base_Interfaces;
    end get_base_interfaces;
 
-
    procedure set_base_interfaces
      (Self : access Object;
-      To : in CORBA.Repository_Root.InterfaceDefSeq) is
+      To : CORBA.Repository_Root.InterfaceDefSeq) is
    begin
       Self.Base_Interfaces := To;
    end set_base_interfaces;
-
 
    function get_is_abstract
      (Self : access Object)
@@ -156,18 +178,16 @@ package body CORBA.Repository_Root.InterfaceDef.Impl is
       return Self.Is_Abstract;
    end get_is_abstract;
 
-
    procedure set_is_abstract
      (Self : access Object;
-      To : in CORBA.Boolean) is
+      To : CORBA.Boolean) is
    begin
       Self.Is_Abstract := To;
    end set_is_abstract;
 
-
    function is_a
      (Self : access Object;
-      interface_id : in CORBA.RepositoryId)
+      interface_id : CORBA.RepositoryId)
      return CORBA.Boolean
    is
       Result : CORBA.Boolean;
@@ -177,33 +197,31 @@ package body CORBA.Repository_Root.InterfaceDef.Impl is
       return Result;
    end is_a;
 
-
    function describe_interface
      (Self : access Object)
      return CORBA.Repository_Root.InterfaceDef.FullInterfaceDescription
    is
+      pragma Unreferenced (Self);
+
       Result : CORBA.Repository_Root.InterfaceDef.FullInterfaceDescription;
       pragma Warnings (Off, Result);
-      --  XXX Never assigned a value (need to implement describe_interface).
-
-      pragma Warnings (Off); -- WAG:3.14
-      pragma Unreferenced (Self);
-      pragma Warnings (On);  -- WAG:3.14
+      --  Dummy value, use default initialization
    begin
 
       --  Insert implementation of describe_interface
+      --  XXX not implemented yet
 
+      raise Program_Error;
       return Result;
    end describe_interface;
 
-
    function create_attribute
      (Self : access Object;
-      id : in CORBA.RepositoryId;
-      name : in CORBA.Identifier;
-      version : in CORBA.Repository_Root.VersionSpec;
-      IDL_type : in CORBA.Repository_Root.IDLType.Ref;
-      mode : in CORBA.Repository_Root.AttributeMode)
+      id : CORBA.RepositoryId;
+      name : CORBA.Identifier;
+      version : CORBA.Repository_Root.VersionSpec;
+      IDL_type : CORBA.Repository_Root.IDLType.Ref;
+      mode : CORBA.Repository_Root.AttributeMode)
      return CORBA.Repository_Root.AttributeDef.Ref
    is
    begin
@@ -239,17 +257,16 @@ package body CORBA.Repository_Root.InterfaceDef.Impl is
       end;
    end create_attribute;
 
-
    function create_operation
      (Self       : access Object;
-      id         : in CORBA.RepositoryId;
-      name       : in CORBA.Identifier;
-      version    : in CORBA.Repository_Root.VersionSpec;
-      IDL_result : in CORBA.Repository_Root.IDLType.Ref;
-      mode       : in CORBA.Repository_Root.OperationMode;
-      params     : in CORBA.Repository_Root.ParDescriptionSeq;
-      exceptions : in CORBA.Repository_Root.ExceptionDefSeq;
-      contexts   : in CORBA.Repository_Root.ContextIdSeq)
+      id         : CORBA.RepositoryId;
+      name       : CORBA.Identifier;
+      version    : CORBA.Repository_Root.VersionSpec;
+      IDL_result : CORBA.Repository_Root.IDLType.Ref;
+      mode       : CORBA.Repository_Root.OperationMode;
+      params     : CORBA.Repository_Root.ParDescriptionSeq;
+      exceptions : CORBA.Repository_Root.ExceptionDefSeq;
+      contexts   : CORBA.Repository_Root.ContextIdSeq)
      return CORBA.Repository_Root.OperationDef.Ref
    is
    begin
@@ -300,14 +317,12 @@ package body CORBA.Repository_Root.InterfaceDef.Impl is
       return Contained.Impl.Get_Id (Self.Contained_View);
    end get_id;
 
-
    procedure set_id
      (Self : access Object;
-      To : in CORBA.RepositoryId) is
+      To : CORBA.RepositoryId) is
    begin
       Contained.Impl.Set_Id (Self.Contained_View, To);
    end set_id;
-
 
    function get_name
      (Self : access Object)
@@ -317,14 +332,12 @@ package body CORBA.Repository_Root.InterfaceDef.Impl is
       return Contained.Impl.Get_Name (Self.Contained_View);
    end get_name;
 
-
    procedure set_name
      (Self : access Object;
-      To : in CORBA.Identifier) is
+      To : CORBA.Identifier) is
    begin
       Contained.Impl.Set_Name (Self.Contained_View, To);
    end set_name;
-
 
    function get_version
      (Self : access Object)
@@ -334,14 +347,12 @@ package body CORBA.Repository_Root.InterfaceDef.Impl is
       return Contained.Impl.Get_Version (Self.Contained_View);
    end get_version;
 
-
    procedure set_version
      (Self : access Object;
-      To : in CORBA.Repository_Root.VersionSpec) is
+      To : CORBA.Repository_Root.VersionSpec) is
    begin
       Contained.Impl.Set_Version (Self.Contained_View, To);
    end set_version;
-
 
    function get_defined_in
      (Self : access Object)
@@ -351,7 +362,6 @@ package body CORBA.Repository_Root.InterfaceDef.Impl is
        return Contained.Impl.Get_Defined_In (Self.Contained_View);
    end get_defined_in;
 
-
    function get_absolute_name
      (Self : access Object)
       return CORBA.ScopedName
@@ -360,7 +370,6 @@ package body CORBA.Repository_Root.InterfaceDef.Impl is
       return Contained.Impl.Get_Absolute_Name (Self.Contained_View);
    end get_absolute_name;
 
-
    function get_containing_repository
      (Self : access Object)
      return CORBA.Repository_Root.Repository_Forward.Ref
@@ -368,7 +377,6 @@ package body CORBA.Repository_Root.InterfaceDef.Impl is
    begin
       return Contained.Impl.Get_Containing_Repository (Self.Contained_View);
    end get_containing_repository;
-
 
    function describe
      (Self : access Object)
@@ -389,19 +397,17 @@ package body CORBA.Repository_Root.InterfaceDef.Impl is
       return Result;
    end describe;
 
-
    procedure move
      (Self : access Object;
-      new_container : in CORBA.Repository_Root.Container_Forward.Ref;
-      new_name : in CORBA.Identifier;
-      new_version : in CORBA.Repository_Root.VersionSpec) is
+      new_container : CORBA.Repository_Root.Container_Forward.Ref;
+      new_name : CORBA.Identifier;
+      new_version : CORBA.Repository_Root.VersionSpec) is
    begin
       Contained.Impl.Move (Self.Contained_View,
                            New_Container,
                            New_Name,
                            New_Version);
    end move;
-
 
    ------------------------------
    --  inherited from IDLType  --
@@ -437,4 +443,3 @@ package body CORBA.Repository_Root.InterfaceDef.Impl is
    end Get_RepositoryIdSeq;
 
 end CORBA.Repository_Root.InterfaceDef.Impl;
-

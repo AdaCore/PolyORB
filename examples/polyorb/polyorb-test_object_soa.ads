@@ -72,4 +72,3 @@ package PolyORB.Test_Object_SOA is
    pragma Inline (If_Desc);
 
 end PolyORB.Test_Object_SOA;
-

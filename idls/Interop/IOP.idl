@@ -1,5 +1,9 @@
 // File: IOP.idl
 // From CORBA 3.0: Chapter 13, ORB Interoperability Achitecture
+
+// PolyORB:WAGCORBA This file has been updated to take into acocunt OMG
+// Issue 5232 (anonymous sequence types are deprecated).
+
 #ifndef _IOP_IDL_
 #define _IOP_IDL_
 
@@ -25,11 +29,13 @@ module IOP {
     const ProfileId                 TAG_MULTIPLE_COMPONENTS = 1;
     const ProfileId                 TAG_SCCP_IOP = 2;
 
+    typedef CORBA::OctetSeq ProfileData;
+
     struct TaggedProfile {
         ProfileId                   tag;
-        sequence <octet>            profile_data;
+        ProfileData profile_data;
     };
-    
+    typedef sequence <TaggedProfile> TaggedProfileSeq ;
    
     // The IOR
 
@@ -37,7 +43,7 @@ module IOP {
     // object-specific protocol profiles, plus a type ID.
     struct IOR {
         string                      type_id;
-        sequence <TaggedProfile>    profiles;
+        TaggedProfileSeq            profiles;
     };
     
 
@@ -48,16 +54,14 @@ module IOP {
     // This would be encapsulated in a TaggedProfile.
 
     typedef unsigned long ComponentId;
-
+    typedef CORBA::OctetSeq ComponentData;
     struct TaggedComponent {
         ComponentId                 tag;
-        sequence <octet>            component_data;
+        ComponentData              component_data;
     };
 
-//PolyORB:WACORBA: IOP::TaggedComponentSeq used in several specifications, but
-//missed in original OMG IOP specification
     typedef sequence <TaggedComponent> TaggedComponentSeq;
-//PolyORB:WACORBA:
+    typedef CORBA::OctetSeq ObjectKey;
 
     typedef sequence <TaggedComponent> MultipleComponentProfile;
 
@@ -106,10 +110,12 @@ module IOP {
 
     // Service Contexts
 
+    typedef CORBA::OctetSeq ContextData;
+
     typedef unsigned long       ServiceId;
     struct ServiceContext {
         ServiceId               context_id;
-        sequence <octet>        context_data;
+        ContextData             context_data;
     };
     typedef sequence <ServiceContext> ServiceContextList;
     const ServiceId             TransactionService          = 0;
@@ -137,16 +143,16 @@ module IOP {
         exception FormatMismatch {};
         exception TypeMismatch {};
 
-//PolyORB:IL:        CORBA::OctetSeq encode (in any data)
-//PolyORB:IL:            raises (InvalidTypeForEncoding);
-//PolyORB:IL:        any decode (in CORBA::OctetSeq data)
-//PolyORB:IL:            raises (FormatMismatch);
-//PolyORB:IL:        CORBA::OctetSeq encode_value (in any data)
-//PolyORB:IL:            raises (InvalidTypeForEncoding);
-//PolyORB:IL:        any decode_value (
-//PolyORB:IL:            in CORBA::OctetSeq data,
-//PolyORB:IL:            in CORBA::TypeCode tc)
-//PolyORB:IL:            raises (FormatMismatch, TypeMismatch);
+        CORBA::OctetSeq encode (in any data)
+            raises (InvalidTypeForEncoding);
+        any decode (in CORBA::OctetSeq data)
+            raises (FormatMismatch);
+        CORBA::OctetSeq encode_value (in any data)
+            raises (InvalidTypeForEncoding);
+        any decode_value (
+            in CORBA::OctetSeq data,
+            in CORBA::TypeCode tc)
+            raises (FormatMismatch, TypeMismatch);
     };
 
     // Codec Factory

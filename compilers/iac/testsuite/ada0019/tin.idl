@@ -1,0 +1,7 @@
+interface TestService2 {
+
+  typedef short index_type;
+
+  TestService2 getChild(in index_type index);
+};
+    

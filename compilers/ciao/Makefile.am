@@ -1,5 +1,5 @@
 # include $(srcdir)/../Makefile.common
-GNATFLAGS=	-g -O0 -gnatfa -fstack-check -gnaty -gnatwa -Wall
+ADAFLAGS+=	-g -O0 -gnatfa -fstack-check -gnaty -gnatwa -Wall
 
 ASIS_INCLUDES=	$(HOME)/gnat-3.15w/asis
 ASIS_LIBS=	-L$(HOME)/gnat-3.15w/asis -lasis
@@ -14,8 +14,7 @@ ciao: force $(TREE_FILES)
 	-I../idlac \
 	-I$(ASIS_INCLUDES) \
 	-o $@ ciao-driver.adb \
-	-cargs $(GNATFLAGS) \
-	-bargs $(BARGS) \
+	$(GNATMAKE_FLAGS)
 	-largs $(ASIS_LIBS)
 
 CLEANFILES = *.o *.ali b~*.ads b~*.adb

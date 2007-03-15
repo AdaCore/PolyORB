@@ -77,4 +77,3 @@ package body MOMA.Messages.MAnys is
    end Image;
 
 end MOMA.Messages.MAnys;
-

@@ -4,9 +4,7 @@
 --                                                                          --
 --                         I D L _ F E . T Y P E S                          --
 --                                                                          --
---                                 S p e c                                  --
---                                                                          --
---         Copyright (C) 2001-2002 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +14,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,8 +24,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -38,7 +36,7 @@
 with Ada.Unchecked_Deallocation;
 with Interfaces;
 
-with Errors;
+with Idlac_Errors;
 
 package Idl_Fe.Types is
 
@@ -62,7 +60,7 @@ package Idl_Fe.Types is
    type Param_Mode is (Mode_In, Mode_Inout, Mode_Out);
 
    --  To manipulate the location of a node
-   subtype Location is Errors.Location;
+   subtype Location is Idlac_Errors.Location;
    procedure Set_Location (N : Node_Id;
                            Loc : Location);
    function Get_Location (N : Node_Id) return Location;
@@ -73,7 +71,6 @@ package Idl_Fe.Types is
          Major : Interfaces.Unsigned_16;
          Minor : Interfaces.Unsigned_16;
       end record;
-
 
    ----------------------------------
    --  Management of const values  --
@@ -201,12 +198,11 @@ package Idl_Fe.Types is
    type Constant_Value_Ptr is access Constant_Value;
 
    --  to duplicate a constant_value_ptr
-   function Duplicate (C : in Constant_Value_Ptr)
+   function Duplicate (C : Constant_Value_Ptr)
                        return Constant_Value_Ptr;
 
    --  to deallocate a constant_value_ptr
    procedure Free (C : in out Constant_Value_Ptr);
-
 
    ---------------------------------
    -- A useful list of root nodes --
@@ -268,17 +264,17 @@ package Idl_Fe.Types is
 
    --  Appends a node at the end of a list.
    procedure Append_Node (List : in out Node_List;
-                          Node : in Node_Id);
+                          Node : Node_Id);
 
    --  Appends a node at the end of a list.
-   function Append_Node (List : in Node_List;
+   function Append_Node (List : Node_List;
                          Node : Node_Id) return Node_List;
 
    procedure Remove_Node
      (List : in out Node_List;
       Node : Node_Id);
    function Remove_Node
-     (List : in Node_List;
+     (List : Node_List;
       Node : Node_Id)
      return Node_List;
    --  Remove the first occurrence of Node from List
@@ -293,7 +289,7 @@ package Idl_Fe.Types is
    --  Insert Node into List immediately after the first
    --  occurrence of After.
    procedure Insert_After
-     (List : in Node_List;
+     (List : Node_List;
       Node : Node_Id;
       After : Node_Id);
 
@@ -311,7 +307,7 @@ package Idl_Fe.Types is
    procedure Free (List : in out Node_List);
 
    --  computes the length of the list
-   function Get_Length (List : in Node_List) return Integer;
+   function Get_Length (List : Node_List) return Integer;
 
    --  Function that take a node list and remove all the redondant items
    --  returns the resulting node list
@@ -320,7 +316,7 @@ package Idl_Fe.Types is
 
    procedure Merge_List
      (Into : in out Node_List;
-      From : in Node_List);
+      From : Node_List);
    --  Appends all nodes of list From to list Into, unless they are
    --  in it already.
 
@@ -385,10 +381,10 @@ package Idl_Fe.Types is
    --  some methods to take forward declarations and implementations
    --  into account
 
-   procedure Add_Int_Val_Forward (Node : in Node_Id);
+   procedure Add_Int_Val_Forward (Node : Node_Id);
    --  To add a forward declaration in the list
 
-   procedure Add_Int_Val_Definition (Node : in Node_Id);
+   procedure Add_Int_Val_Definition (Node : Node_Id);
    --  To take an implementation into account and remove the
    --  corresponding forward declaration from the list.
 
@@ -398,7 +394,7 @@ package Idl_Fe.Types is
 
    function Is_Redefinable
      (Name  : String;
-      Loc   : Errors.Location;
+      Loc   : Idlac_Errors.Location;
       Scope : Node_Id := No_Node)
      return Boolean;
    --  Check if the name is redefinable in Scope or in the current scope
@@ -408,7 +404,7 @@ package Idl_Fe.Types is
 
    function Find_Identifier_Definition
      (Name : String;
-      Loc  : Errors.Location)
+      Loc  : Idlac_Errors.Location)
      return Identifier_Definition_Acc;
    --  Find the definition associated with the usage occurence of
    --  identifier Name located at Loc.
@@ -416,7 +412,7 @@ package Idl_Fe.Types is
 
    function Find_Identifier_Node
      (Name : String;
-      Loc  : Errors.Location)
+      Loc  : Idlac_Errors.Location)
      return Node_Id;
    --  Find the node associated with the usage occurence of
    --  identifier Name located at Loc.
@@ -459,13 +455,13 @@ package Idl_Fe.Types is
    --  If this identifier is not defined, returns a null pointer.
 
    procedure Add_Definition_To_Imported
-     (Definition : in Identifier_Definition_Acc;
-      Scope : in Node_Id);
+     (Definition : Identifier_Definition_Acc;
+      Scope : Node_Id);
    --  Add the imported definition to the given scope imported table.
 
    procedure Find_Identifier_In_Inheritance
-     (Name : in String;
-      Scope : in Node_Id;
+     (Name : String;
+      Scope : Node_Id;
       List : in out Node_List);
    --  Find the identifier in the scope's parents (in each one recursively)
    --  add the different definitions to the node list
@@ -521,7 +517,6 @@ package Idl_Fe.Types is
    --  dimensional array type.The idea is to mimic the normal Ada semantics for
    --  arrays as closely as possible with the one additional capability of
    --  dynamically modifying the value of the Last attribute.
-
 
    --  we are defining the type of the table
    type Table_Type is
@@ -580,7 +575,7 @@ package Idl_Fe.Types is
    --  reduces the size of the table, then logically entries are removed
    --  from the table. If Set_Last increases the size of the table, then
    --  new entries are logically added to the table.
-   procedure Set_Last (T : in out Table; New_Val : in Uniq_Id);
+   procedure Set_Last (T : in out Table; New_Val : Uniq_Id);
 
    --  Adds 1 to Last (same as Set_Last (Last + 1).
    procedure Increment_Last (T : in out Table);
@@ -590,7 +585,7 @@ package Idl_Fe.Types is
 
    --  Adds Num to T.Last_val, and returns the old value of T.Last_Val + 1.
    procedure Allocate (T : in out Table;
-                       Num : in Integer := 1;
+                       Num : Integer := 1;
                        Result : out Uniq_Id);
 
    -------------------------------------------------
@@ -631,7 +626,7 @@ private
 
    --  The hashing function. Takes an identifier and return its hash
    --  value
-   function Hash (Str : in String) return Hash_Value_Type;
+   function Hash (Str : String) return Hash_Value_Type;
 
    ---------------
    -- Node list --

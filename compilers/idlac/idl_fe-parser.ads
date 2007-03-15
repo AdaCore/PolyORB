@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -33,7 +33,7 @@
 
 with Idl_Fe.Lexer; use Idl_Fe.Lexer;
 with Idl_Fe.Types; use Idl_Fe.Types;
-with Errors;
+with Idlac_Errors;
 with Ada.Unchecked_Deallocation;
 
 package Idl_Fe.Parser is
@@ -88,17 +88,16 @@ private
    function View_Next_Next_Token return Idl_Token;
 
    --  Returns the location of the current_token
-   function Get_Token_Location return Errors.Location;
+   function Get_Token_Location return Idlac_Errors.Location;
 
    --  Returns the location of the previous token
-   function Get_Previous_Token_Location return Errors.Location;
+   function Get_Previous_Token_Location return Idlac_Errors.Location;
 
    --  Returns the location of the previous token
-   function Get_Previous_Previous_Token_Location return Errors.Location;
+   function Get_Previous_Previous_Token_Location return Idlac_Errors.Location;
 
    --  Returns the location of the current_token
-   function Get_Next_Token_Location return Errors.Location;
-
+   function Get_Next_Token_Location return Idlac_Errors.Location;
 
    --  The next three methods unreference a pointer without any
    --  verification. that's because the verification is useless
@@ -152,7 +151,6 @@ private
 --    --  Frees all the set of already used values
 --    procedure Release_All_Used_Values;
 
-
    --------------------------
    --  Parsing of the idl  --
    --------------------------
@@ -165,8 +163,8 @@ private
    --  <specification> ::= <import>* <definition>+
 
    procedure Parse_Specification
-     (Repository         : in Node_Id;
-      Called_From_Import : in Boolean);
+     (Repository         : Node_Id;
+      Called_From_Import : Boolean);
 
    --  Rule 2
    --  <definition> ::= <type_dcl> ";"
@@ -175,7 +173,7 @@ private
    --               |   <interface> ";"
    --               |   <module> ";"
    --               |   <value> ";"
-   --               |   <type_id_dcl> ";"      -- not implemented
+   --               |   <type_id_dcl> ";"
    --               |   <type_prefix_dcl> ";"
    --               |   <event> ";"            -- not implemented
    --               |   <component> ";"        -- not implemented
@@ -350,14 +348,14 @@ private
    --                          "{" <export>* "}"
    procedure Parse_End_Value_Dcl (Result : out Node_Id;
                                   Success : out Boolean;
-                                  Custom : in Boolean;
-                                  Abst : in Boolean);
+                                  Custom : Boolean;
+                                  Abst : Boolean);
 
    --  Rule Value7
    --  <end_value_forward_dcl> ::= <identifier>
    procedure Parse_End_Value_Forward_Dcl (Result : out Node_Id;
                                           Success : out Boolean;
-                                          Abst : in Boolean);
+                                          Abst : Boolean);
 
    --  Rule Value8
    --  <end_value_box_dcl> ::= <identifier> <type_spec>
@@ -429,7 +427,7 @@ private
    --  Rule 29
    --  <const_exp> ::= <or_expr>
    procedure Parse_Const_Exp (Result : out Node_Id;
-                              Constant_Type : in Node_Id;
+                              Constant_Type : Node_Id;
                               Success : out Boolean);
 
    --  Rule 30
@@ -439,7 +437,7 @@ private
    --  <or_expr> ::= <xor_expr> { "|" <xor_expr> }*
    procedure Parse_Or_Expr (Result : out Node_Id;
                             Success : out Boolean;
-                            Expr_Type : in Constant_Value_Ptr);
+                            Expr_Type : Constant_Value_Ptr);
 
    --  Rule 31
    --  <xor_expr> ::= <and_expr>
@@ -448,7 +446,7 @@ private
    --  <xor_expr> ::= <and_expr> { "^" <and_expr> }*
    procedure Parse_Xor_Expr (Result : out Node_Id;
                              Success : out Boolean;
-                             Expr_Type : in Constant_Value_Ptr);
+                             Expr_Type : Constant_Value_Ptr);
 
    --  Rule 32
    --  <and_expr> ::= <shift_expr>
@@ -457,7 +455,7 @@ private
    --  <and_expr> ::= <shift_expr> { "&" <shift_expr> }*
    procedure Parse_And_Expr (Result : out Node_Id;
                              Success : out Boolean;
-                             Expr_Type : in Constant_Value_Ptr);
+                             Expr_Type : Constant_Value_Ptr);
 
    --  Rule 33
    --  <shift_expr> ::= <add_expr>
@@ -467,7 +465,7 @@ private
    --  <shift_expr> ::= <add_expr> { { ">>" | "<<" } <add_expr> }*
    procedure Parse_Shift_Expr (Result : out Node_Id;
                                Success : out Boolean;
-                               Expr_Type : in Constant_Value_Ptr);
+                               Expr_Type : Constant_Value_Ptr);
 
    --  Rule 34
    --  <add_expr> ::= <mult_expr>
@@ -477,7 +475,7 @@ private
    --  <add_expr> ::= <mult_expr> { { "+" | "-" } <mult_expr> }*
    procedure Parse_Add_Expr (Result : out Node_Id;
                              Success : out Boolean;
-                             Expr_Type : in Constant_Value_Ptr);
+                             Expr_Type : Constant_Value_Ptr);
 
    --  Rule 35
    --  <mult_expr> ::= <unary_expr>
@@ -488,7 +486,7 @@ private
    --  <mult_expr> ::= <unary_expr> { { "*" | "/" | "%" } <unary_expr> }*
    procedure Parse_Mult_Expr (Result : out Node_Id;
                               Success : out Boolean;
-                              Expr_Type : in Constant_Value_Ptr);
+                              Expr_Type : Constant_Value_Ptr);
 
    --  Rule 36
    --  <unary_expr> ::= <unary_operator> <primary_expr>
@@ -497,7 +495,7 @@ private
    --  <unary_operator> ::= "+" | "-" | "~"
    procedure Parse_Unary_Expr (Result : out Node_Id;
                                Success : out Boolean;
-                               Expr_Type : in Constant_Value_Ptr);
+                               Expr_Type : Constant_Value_Ptr);
 
    --  Rule 38
    --  <primary_expr> ::= <scoped_name>
@@ -505,7 +503,7 @@ private
    --                 |   "(" <const_expr> ")"
    procedure Parse_Primary_Expr (Result : out Node_Id;
                                  Success : out Boolean;
-                                 Expr_Type : in Constant_Value_Ptr);
+                                 Expr_Type : Constant_Value_Ptr);
 
    --  Rule 39
    --  <literal> ::= <integer_literal>
@@ -518,14 +516,14 @@ private
    --            | <boolean_literal>
    procedure Parse_Literal (Result : out Node_Id;
                             Success : out Boolean;
-                            Expr_Type : in Constant_Value_Ptr);
+                            Expr_Type : Constant_Value_Ptr);
 
    --  Rule 40
    --  <boolean_literal> ::= "TRUE"
    --                    | "FALSE"
    procedure Parse_Boolean_Literal (Result : out Node_Id;
                                     Success : out Boolean;
-                                    Expr_Type : in Constant_Value_Ptr);
+                                    Expr_Type : Constant_Value_Ptr);
 
    --  Rule 41
    --  <positive_int_const> ::= <const_exp>
@@ -591,26 +589,26 @@ private
    --  Rule 49
    --  <declarators> ::= <declarator> { "," <declarator> }*
    procedure Parse_Declarators (Result : out Node_List;
-                                Parent : in Node_Id;
+                                Parent : Node_Id;
                                 Success : out Boolean);
 
    --  Rule 50
    --  <declarator> ::= <simple_declarator>
    --               |   <complex_declarator>
    procedure Parse_Declarator (Result : out Node_Id;
-                               Parent : in Node_Id;
+                               Parent : Node_Id;
                                Success : out Boolean);
 
    --  Rule 51
    --  <simple_declarator> ::= <identifier>
    procedure Parse_Simple_Declarator (Result : out Node_Id;
-                                      Parent : in Node_Id;
+                                      Parent : Node_Id;
                                       Success : out Boolean);
 
    --  Rule 52
    --  <complex_declarator> ::= <array_declarator>
    procedure Parse_Complex_Declarator (Result : out Node_Id;
-                                       Parent : in Node_Id;
+                                       Parent : Node_Id;
                                        Success : out Boolean);
 
    --  Rule 53
@@ -734,28 +732,28 @@ private
    --  Rule 74
    --  <switch_body> ::= <case>+
    procedure Parse_Switch_Body (Result : out Node_List;
-                                Switch_Type : in Node_Id;
+                                Switch_Type : Node_Id;
                                 Default_Index : out Long_Integer;
                                 Success : out Boolean);
 
    --  Rule 75
    --  <case> ::= <case_label>+ <element_spec> ";"
    procedure Parse_Case (Result : out Node_Id;
-                         Switch_Type : in Node_Id;
+                         Switch_Type : Node_Id;
                          Success : out Boolean);
 
    --  Rule 76
    --  <case_label> ::= "case" <const_exp> ":"
    --                 | "default ":"
    procedure Parse_Case_Label (Result : out Node_Id;
-                               Switch_Type : in Node_Id;
+                               Switch_Type : Node_Id;
                                Success : out Boolean);
 
    --  Rule 77
    --  <element_spec> ::= <type_spec> <declarator>
    procedure Parse_Element_Spec (Element_Type : out Node_Id;
                                  Element_Decl : out Node_Id;
-                                 Parent : in Node_Id;
+                                 Parent : Node_Id;
                                  Success : out Boolean);
 
    --  Rule 78
@@ -790,14 +788,13 @@ private
    --  Rule 83
    --  <array_declarator> ::= <identifier> <fixed_array_size>+
    procedure Parse_Array_Declarator (Result : out Node_Id;
-                                     Parent : in Node_Id;
+                                     Parent : Node_Id;
                                      Success : out Boolean);
 
    --  Rule 84
    --  <fixed_array_size> ::= "[" <positive_int_const> "]"
    procedure Parse_Fixed_Array_Size (Result : out Node_Id;
                                      Success : out Boolean);
-
 
    --  Rule 85:
    --  <attr_dcl> ::= <readonly_attr_spec>
@@ -899,8 +896,8 @@ private
 
    --  Rule 100
    --  <import> ::= "import" <imported_scope> ";"
-   procedure Parse_Import (Repository : in     Node_Id;
-                           Success    :    out Boolean);
+   procedure Parse_Import (Repository : Node_Id;
+                           Success    : out Boolean);
 
    --  Rule 101
    --  <imported_scope> ::= <scoped_name> | <string_literal>
@@ -908,7 +905,7 @@ private
 
    --  Rule 102
    --  <type_id_dcl> ::= "typeid" <scoped_name> <string_literal>
-   --  Not implemented
+   procedure Parse_Type_Id_Dcl (Success : out Boolean);
 
    --  Rule 103
    --  <type_prefix_dcl> ::= "typeprefix" <scoped_name> <string_literal>
@@ -957,7 +954,7 @@ private
    --  <exception_list> ::= "(" <scoped_name> { "," <scoped_name> }* ")"
    procedure Parse_Exception_List (Result : out Node_List;
                                    Success : out Boolean;
-                                   Statement : in String);
+                                   Statement : String);
 
    --  Rules 112 .. 138 corresponded to CORBA components specification what
    --  can't currently supported.
@@ -972,8 +969,8 @@ private
    --  This method verifies that there is no operation or
    --  attributes in the new imported interface that clashes
    --  with the already imported ones.
-   function Interface_Is_Importable (Int : in Node_Id;
-                                     Scope : in Node_Id)
+   function Interface_Is_Importable (Int : Node_Id;
+                                     Scope : Node_Id)
                                      return Boolean;
 
    --------------------------
@@ -990,13 +987,13 @@ private
 
    --  gives the digit value correponding to an hexadecimal
    --  character
-   function Hexa_Char_To_Digit (C : in Character)
+   function Hexa_Char_To_Digit (C : Character)
                                 return Integer;
 
    --  parse the character C at the beginning of the string S
    --  Offset is the number of character used in the string S
    --  For example, if S = "\12etc...", Result = LF and Offset = 3
-   procedure Get_Char_Literal (S : in String;
+   procedure Get_Char_Literal (S : String;
                                Result : out Idl_Character;
                                Offset : out Integer);
 
@@ -1004,7 +1001,7 @@ private
    --  Offset is the number of character used in the string S
    --  For example, if S = "\u1a2etc...", Result = <1a2> and
    --  Offset = 4
-   procedure Get_Wide_Char_Literal (S : in String;
+   procedure Get_Wide_Char_Literal (S : String;
                                     Result : out Idl_Wide_Character;
                                     Offset : out Integer);
 
@@ -1018,27 +1015,27 @@ private
    --  parsing of an integer
    procedure Parse_Integer_Literal (Result : out Node_Id;
                                     Success : out Boolean;
-                                    Expr_Type : in Constant_Value_Ptr);
+                                    Expr_Type : Constant_Value_Ptr);
 
    --  parsing of a string
    procedure Parse_String_Literal (Result : out Node_Id;
                                    Success : out Boolean;
-                                   Expr_Type : in Constant_Value_Ptr);
+                                   Expr_Type : Constant_Value_Ptr);
 
    --  parsing of a wide string
    procedure Parse_Wide_String_Literal (Result : out Node_Id;
                                         Success : out Boolean;
-                                        Expr_Type : in Constant_Value_Ptr);
+                                        Expr_Type : Constant_Value_Ptr);
 
    --  parsing of a char
    procedure Parse_Char_Literal (Result : out Node_Id;
                                  Success : out Boolean;
-                                 Expr_Type : in Constant_Value_Ptr);
+                                 Expr_Type : Constant_Value_Ptr);
 
    --  parsing of a wide char
    procedure Parse_Wide_Char_Literal (Result : out Node_Id;
                                       Success : out Boolean;
-                                      Expr_Type : in Constant_Value_Ptr);
+                                      Expr_Type : Constant_Value_Ptr);
 
    --  parsing of float
    function Get_Float_Literal return Idl_Float;
@@ -1046,12 +1043,12 @@ private
    --  parsing of a float
    procedure Parse_Floating_Pt_Literal (Result : out Node_Id;
                                         Success : out Boolean;
-                                        Expr_Type : in Constant_Value_Ptr);
+                                        Expr_Type : Constant_Value_Ptr);
 
    --  parsing of a fixed point number
    procedure Parse_Fixed_Pt_Literal (Result : out Node_Id;
                                      Success : out Boolean;
-                                     Expr_Type : in Constant_Value_Ptr);
+                                     Expr_Type : Constant_Value_Ptr);
 
    --  Checks the range of an expression value in case of
    --  integer or float type. If the range is not respected,
@@ -1060,14 +1057,14 @@ private
    --  Full indicates whether signed and unsigned types should be
    --  distinguished or not
    procedure Check_Value_Range (Node : in out Node_Id;
-                                Full : in Boolean);
+                                Full : Boolean);
 
    --  checks that the value contained by value is compatible with
    --  the type of value_type.
    --  If the value and type are not compatible, raises an error
    procedure Check_Expr_Value
-      (Value : in Constant_Value_Ptr;
-       Value_Type : in Constant_Value_Ptr);
+      (Value : Constant_Value_Ptr;
+       Value_Type : Constant_Value_Ptr);
 
    --  CORBA V2.3 - 3.12.4
    --
@@ -1079,8 +1076,7 @@ private
    --
    --  This procedure raises an error if S does not respect these
    --  constraints.
-   procedure Check_Context_String (S : in String);
-
+   procedure Check_Context_String (S : String);
 
    ---------------------------------
    --  evaluation of expressions  --
@@ -1108,41 +1104,40 @@ private
    --    R is the result
    --    Left and right are the operands
    procedure Fixed_Add (Res : in out Constant_Value_Ptr;
-                        Left, Right : in Constant_Value_Ptr);
+                        Left, Right : Constant_Value_Ptr);
 
    --  subtraction of two fixed integer :
    --    R is the result
    --    Left and right are the operands
    procedure Fixed_Sub (Res : in out Constant_Value_Ptr;
-                        Left, Right : in Constant_Value_Ptr);
+                        Left, Right : Constant_Value_Ptr);
 
    --  multiplication of two fixed integer :
    --    R is the result
    --    Left and right are the operands
    procedure Fixed_Mul (Res : in out Constant_Value_Ptr;
-                        Left, Right : in Constant_Value_Ptr);
+                        Left, Right : Constant_Value_Ptr);
 
    --  division of two fixed integer :
    --    R is the result
    --    Left and right are the operands
    procedure Fixed_Div (Res : in out Constant_Value_Ptr;
-                        Left, Right : in Constant_Value_Ptr);
+                        Left, Right : Constant_Value_Ptr);
 
    --  identity for a fixed integer :
    --    R is the result
    --    operand is the operand
    procedure Fixed_Id (Res : in out Constant_Value_Ptr;
-                       Operand : in Constant_Value_Ptr);
+                       Operand : Constant_Value_Ptr);
 
    --  inversion of a fixed integer :
    --    R is the result
    --    operand is the operand
    procedure Fixed_Neg (Res : in out Constant_Value_Ptr;
-                        Operand : in Constant_Value_Ptr);
+                        Operand : Constant_Value_Ptr);
 
    --  not operator between two Idl_Integer
    function "not" (X : Idl_Integer) return Idl_Integer;
-
 
    ------------------------------
    --  To resume after errors  --

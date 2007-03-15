@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2004 Free Software Foundation, Inc.             --
+--         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -61,7 +61,8 @@ package body PolyORB.CORBA_P.Interceptors_Slots is
    procedure Allocate_Slots
      (Note : in out Slots_Note)
    is
-      Empty : CORBA.Any := CORBA.Get_Empty_Any (CORBA.TC_Null);
+      Empty : CORBA.Any := CORBA.Internals.Get_Empty_Any (CORBA.TC_Null);
+
    begin
       Note.Slots := Null_Sequence;
 
@@ -77,8 +78,8 @@ package body PolyORB.CORBA_P.Interceptors_Slots is
    --------------
 
    function Get_Slot
-     (Note : in Slots_Note;
-      Id   : in SlotId)
+     (Note : Slots_Note;
+      Id   : SlotId)
       return CORBA.Any
    is
    begin
@@ -106,7 +107,7 @@ package body PolyORB.CORBA_P.Interceptors_Slots is
    -- Is_Allocated --
    ------------------
 
-   function Is_Allocated (Note : in Slots_Note) return Boolean is
+   function Is_Allocated (Note : Slots_Note) return Boolean is
    begin
       return Note.Allocated;
    end Is_Allocated;
@@ -117,8 +118,8 @@ package body PolyORB.CORBA_P.Interceptors_Slots is
 
    procedure Set_Slot
      (Note : in out Slots_Note;
-      Id   : in     SlotId;
-      Data : in     CORBA.Any)
+      Id   : SlotId;
+      Data : CORBA.Any)
    is
    begin
       pragma Assert (Note.Allocated);

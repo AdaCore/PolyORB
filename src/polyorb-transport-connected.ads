@@ -54,8 +54,8 @@ package PolyORB.Transport.Connected is
      (TAP :     Connected_Transport_Access_Point;
       TE  : out Transport_Endpoint_Access)
       is abstract;
-   --  Accept a pending new connection on TAP and create
-   --  a new associated TE.
+   --  Accept a pending new connection on TAP and create a new associated
+   --  TE. In case of error, TE is null on return.
 
    ---------------
    -- End Point --

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,13 +26,12 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 with PolyORB.Any;
-pragma Elaborate_All (PolyORB.Any); --  WAG:3.15
 
 with PolyORB.References;
 
@@ -43,88 +42,88 @@ package PolyORB.Services.Naming.Helper is
    --  Istring type.
    TC_Istring : PolyORB.Any.TypeCode.Object := PolyORB.Any.TypeCode.TC_Alias;
 
-   function From_Any (Item : in PolyORB.Any.Any)
+   function From_Any (Item : PolyORB.Any.Any)
       return Istring;
 
-   function To_Any (Item : in Istring)
+   function To_Any (Item : Istring)
      return PolyORB.Any.Any;
 
    --  NameComponent type.
    TC_NameComponent : PolyORB.Any.TypeCode.Object :=
       PolyORB.Any.TypeCode.TC_Struct;
 
-   function From_Any (Item : in PolyORB.Any.Any)
+   function From_Any (Item : PolyORB.Any.Any)
       return NameComponent;
 
    function To_Any
-     (Item : in NameComponent)
+     (Item : NameComponent)
      return PolyORB.Any.Any;
 
    --  Sequence of NameComponent type.
    TC_SEQUENCE_NameComponent : PolyORB.Any.TypeCode.Object
      := PolyORB.Any.TypeCode.TC_Sequence;
 
-   function From_Any (Item : in PolyORB.Any.Any)
+   function From_Any (Item : PolyORB.Any.Any)
       return SEQUENCE_NameComponent.Sequence;
 
    function To_Any
-     (Item : in SEQUENCE_NameComponent.Sequence)
+     (Item : SEQUENCE_NameComponent.Sequence)
      return PolyORB.Any.Any;
 
    --  Name type.
    TC_Name : PolyORB.Any.TypeCode.Object := PolyORB.Any.TypeCode.TC_Alias;
 
-   function From_Any (Item : in PolyORB.Any.Any)
+   function From_Any (Item : PolyORB.Any.Any)
       return Name;
 
-   function To_Any (Item : in Name)
+   function To_Any (Item : Name)
      return PolyORB.Any.Any;
 
    --  BindingType type.
    TC_BindingType : PolyORB.Any.TypeCode.Object :=
       PolyORB.Any.TypeCode.TC_Enum;
 
-   function From_Any (Item : in PolyORB.Any.Any)
+   function From_Any (Item : PolyORB.Any.Any)
       return BindingType;
 
-   function To_Any (Item : in BindingType)
+   function To_Any (Item : BindingType)
      return PolyORB.Any.Any;
 
    --  Binding type.
    TC_Binding : PolyORB.Any.TypeCode.Object :=
       PolyORB.Any.TypeCode.TC_Struct;
 
-   function From_Any (Item : in PolyORB.Any.Any)
+   function From_Any (Item : PolyORB.Any.Any)
       return Binding;
 
-   function To_Any (Item : in Binding)
+   function To_Any (Item : Binding)
      return PolyORB.Any.Any;
 
    --  Sequence Binding type.
    TC_SEQUENCE_Binding : PolyORB.Any.TypeCode.Object
      := PolyORB.Any.TypeCode.TC_Sequence;
 
-   function From_Any (Item : in PolyORB.Any.Any)
+   function From_Any (Item : PolyORB.Any.Any)
       return SEQUENCE_Binding.Sequence;
 
-   function To_Any (Item : in SEQUENCE_Binding.Sequence)
+   function To_Any (Item : SEQUENCE_Binding.Sequence)
      return PolyORB.Any.Any;
 
    --  BindingList type.
    TC_BindingList : PolyORB.Any.TypeCode.Object
      := PolyORB.Any.TypeCode.TC_Alias;
 
-   function From_Any (Item : in PolyORB.Any.Any)
+   function From_Any (Item : PolyORB.Any.Any)
       return BindingList;
 
    function To_Any
-     (Item : in BindingList)
+     (Item : BindingList)
      return PolyORB.Any.Any;
 
    TC_Object : PolyORB.Any.TypeCode.Object
      := PolyORB.Any.TypeCode.TC_Object;
 
-   function To_Any (Item : in PolyORB.References.Ref)
+   function To_Any (Item : PolyORB.References.Ref)
                     return PolyORB.Any.Any;
 
 end PolyORB.Services.Naming.Helper;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -39,6 +39,9 @@
 --  required in the Ravenscar profile.
 
 with System;
+with System.Tasking;
+
+with PolyORB.Initialization;
 
 with PolyORB.Tasking.Threads;
 with PolyORB.Tasking.Profiles.Ravenscar.Index_Manager;
@@ -90,16 +93,14 @@ package PolyORB.Tasking.Profiles.Ravenscar.Threads is
       Default_Priority : System.Any_Priority := System.Default_Priority;
       Storage_Size     : Natural := 0;
       R                : Runnable_Access;
-      C                : Runnable_Controller_Access)
-     return Thread_Access;
+      RC               : Runnable_Controller_Access) return Thread_Access;
 
    function Run_In_Task
      (TF               : access Ravenscar_Thread_Factory_Type;
       Name             : String := "";
       Default_Priority : System.Any_Priority := System.Default_Priority;
       Storage_Size     : Natural := 0;
-      P                : Parameterless_Procedure)
-     return Thread_Access;
+      P                : Parameterless_Procedure) return Thread_Access;
 
    function Get_Current_Thread_Id
      (TF : access Ravenscar_Thread_Factory_Type)
@@ -121,6 +122,15 @@ package PolyORB.Tasking.Profiles.Ravenscar.Threads is
      (TF : access Ravenscar_Thread_Factory_Type;
       T  :        PTT.Thread_Id)
      return System.Any_Priority;
+
+   procedure Relative_Delay
+     (TF : access Ravenscar_Thread_Factory_Type; D : Duration);
+
+   function Awake_Count (TF : access Ravenscar_Thread_Factory_Type)
+     return Natural;
+
+   function Independent_Count (TF : access Ravenscar_Thread_Factory_Type)
+     return Natural;
 
    -------------------------------------------------
    --  Ravenscar specific synchronization objects --
@@ -215,7 +225,10 @@ package PolyORB.Tasking.Profiles.Ravenscar.Threads is
 private
 
    type Ravenscar_Thread_Factory_Type is new Thread_Factory_Type
-     with null record;
+   with record
+      Environment_Task : System.Tasking.Task_Id;
+      --  The environment task
+   end record;
 
    The_Thread_Factory : constant Ravenscar_Thread_Factory_Access
      := new Ravenscar_Thread_Factory_Type;
@@ -232,5 +245,8 @@ private
    end record;
 
    procedure Initialize;
+
+   Initializer : constant PolyORB.Initialization.Initializer :=
+                   Initialize'Access;
 
 end PolyORB.Tasking.Profiles.Ravenscar.Threads;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -30,6 +30,8 @@
 --                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
+
+with MOMA.Runtime;
 
 with PolyORB.MOMA_P.Provider.Message_Pool;
 with PolyORB.MOMA_P.Provider.Routers;
@@ -49,8 +51,11 @@ package body MOMA.Configuration.Server is
    use MOMA.Types;
 
    package L is new PolyORB.Log.Facility_Log ("moma.configuration.server");
-   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+   procedure O (Message : Standard.String; Level : Log_Level := Debug)
      renames L.Output;
+   function C (Level : Log_Level := Debug) return Boolean
+     renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    -------------------------
    -- Create_Message_Pool --
@@ -69,10 +74,12 @@ package body MOMA.Configuration.Server is
       pragma Debug (O ("Creating Message Pool "
                        & To_Standard_String (Get_Name (Pool))));
 
-      Initiate_Servant (MOMA_Obj,
-                        PolyORB.Types.String (MOMA_Type_Id),
-                        Ref,
-                        Error);
+      Initiate_Servant
+        (MOMA_Obj,
+         MOMA.Runtime.MOMA_OA,
+         PolyORB.Types.String (MOMA_Type_Id),
+         Ref,
+         Error);
 
       if Found (Error) then
          PolyORB.MOMA_P.Exceptions.Raise_From_Error (Error);
@@ -98,10 +105,12 @@ package body MOMA.Configuration.Server is
    begin
       pragma Debug (O ("Creating Router"));
 
-      Initiate_Servant (Router,
-                        PolyORB.Types.String (MOMA_Type_Id),
-                        Ref,
-                        Error);
+      Initiate_Servant
+        (Router,
+         MOMA.Runtime.MOMA_OA,
+         PolyORB.Types.String (MOMA_Type_Id),
+         Ref,
+         Error);
 
       if Found (Error) then
          PolyORB.MOMA_P.Exceptions.Raise_From_Error (Error);

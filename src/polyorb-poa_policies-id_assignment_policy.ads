@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -63,7 +63,7 @@ package PolyORB.POA_Policies.Id_Assignment_Policy is
       Oid    : Object_Id_Access;
       Result : out Object_Id_Access;
       Error  : in out PolyORB.Errors.Error_Container) is abstract;
-   --  Return the Object_Id stored in Oid. Note that Result is a newly
-   --  allocated variable that must be deallocated.
+   --  Return the ObjectId stored in Oid. Note that Result is a newly
+   --  allocated variable that must be deallocated by the caller after use.
 
 end PolyORB.POA_Policies.Id_Assignment_Policy;

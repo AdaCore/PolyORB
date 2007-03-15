@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,136 +26,46 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with CORBA.Impl;
 with CORBA.ORB;
 with CORBA.Policy;
 
 with PortableServer.POA.Helper;
 
+with PolyORB.Smart_Pointers;
 with PolyORB.Utils.Report;
 
 with Echo.Helper;
-with Echo.Impl;
+with Test_NullActivator.Impl;
+with Test_SimpleActivator.Impl;
 
 package body Test_ServantActivator is
 
    use CORBA;
    use PolyORB.Utils.Report;
 
-   ---------------
-   -- Incarnate --
-   ---------------
-
-   Null_Activator_Incarnate_Called : Boolean := False;
-
-   function Incarnate
-     (Self    : in Null_Activator_Ref;
-      Oid     : in PortableServer.ObjectId;
-      Adapter : in PortableServer.POA_Forward.Ref)
-     return PortableServer.Servant
-   is
-      pragma Warnings (Off); --  WAG:3.15
-      pragma Unreferenced (Self, Oid, Adapter);
-      pragma Warninfs (On); --  WAG:3.15
-
-   begin
-      Null_Activator_Incarnate_Called := True;
-
-      return null;
-   end Incarnate;
-
-   Simple_Activator_Incarnate_Called : Boolean := False;
-
-   function Incarnate
-     (Self    : in Simple_Activator_Ref;
-      Oid     : in PortableServer.ObjectId;
-      Adapter : in PortableServer.POA_Forward.Ref)
-     return PortableServer.Servant
-   is
-      pragma Warnings (Off); --  WAG:3.15
-      pragma Unreferenced (Self);
-      pragma Warninfs (On); --  WAG:3.15
-
-      Obj : constant CORBA.Impl.Object_Ptr := new Echo.Impl.Object;
-
-      package Convert is new
-        PortableServer.POA_Forward.Convert (PortableServer.POA.Ref);
-
-      POA : constant PortableServer.POA.Ref := Convert.To_Ref (Adapter);
-
-   begin
-      Simple_Activator_Incarnate_Called := True;
-
-      PortableServer.POA.Activate_Object_With_Id
-        (POA,
-         Oid,
-         PortableServer.Servant (Obj));
-
-      return PortableServer.Servant (Obj);
-   end Incarnate;
-
-   -----------------
-   -- Etherealize --
-   -----------------
-
-   procedure Etherealize
-     (Self                  : in Null_Activator_Ref;
-      Oid                   : in PortableServer.ObjectId;
-      Adapter               : in PortableServer.POA_Forward.Ref;
-      Serv                  : in PortableServer.Servant;
-      Cleanup_In_Progress   : in CORBA.Boolean;
-      Remaining_Activations : in CORBA.Boolean)
-   is
-      pragma Warnings (Off); --  WAG:3.15
-      pragma Unreferenced (Self, Oid, Adapter, Serv);
-      pragma Unreferenced (Cleanup_In_Progress, Remaining_Activations);
-      pragma Warninfs (On); --  WAG:3.15
-
-   begin
-      null;
-   end Etherealize;
-
-   Simple_Activator_Etherealize_Called : Boolean := False;
-
-   procedure Etherealize
-     (Self                  : in Simple_Activator_Ref;
-      Oid                   : in PortableServer.ObjectId;
-      Adapter               : in PortableServer.POA_Forward.Ref;
-      Serv                  : in PortableServer.Servant;
-      Cleanup_In_Progress   : in CORBA.Boolean;
-      Remaining_Activations : in CORBA.Boolean)
-   is
-      pragma Warnings (Off); --  WAG:3.15
-      pragma Unreferenced (Self, Oid, Adapter, Serv);
-      pragma Unreferenced (Cleanup_In_Progress, Remaining_Activations);
-      pragma Warninfs (On); --  WAG:3.15
-
-   begin
-      Simple_Activator_Etherealize_Called := True;
-   end Etherealize;
-
    -------------------------------
    -- Run_Test_ServantActivator --
    -------------------------------
 
-   procedure Run_Test_ServantActivator
-   is
-      use CORBA.Policy.IDL_Sequence_Policy;
+   procedure Run_Test_ServantActivator is
+      use CORBA.Policy.IDL_SEQUENCE_Policy;
       use PortableServer.POA;
 
-      Null_Activator : constant Null_Activator_Access :=
-        new Null_Activator_Ref;
+      Null_Activator_Obj : constant Test_NullActivator.Impl.Object_Ptr
+        := new Test_NullActivator.Impl.Object;
+      Null_Activator : Test_NullActivator.Local_Ref;
 
-      Simple_Activator : constant Simple_Activator_Access :=
-        new Simple_Activator_Ref;
+      Simple_Activator_Obj : constant Test_SimpleActivator.Impl.Object_Ptr
+        := new Test_SimpleActivator.Impl.Object;
+      Simple_Activator : Test_SimpleActivator.Local_Ref;
 
-      Root_POA : constant PortableServer.POA.Ref :=
-        PortableServer.POA.Helper.To_Ref
+      Root_POA : constant PortableServer.POA.Local_Ref :=
+        PortableServer.POA.Helper.To_Local_Ref
         (CORBA.ORB.Resolve_Initial_References
          (CORBA.ORB.To_CORBA_String ("RootPOA")));
 
@@ -175,8 +85,8 @@ package body Test_ServantActivator is
         (Create_Request_Processing_Policy
          (PortableServer.USE_SERVANT_MANAGER));
 
-      Child_POA : PortableServer.POA.Ref;
-      Child_POA2 : PortableServer.POA.Ref;
+      Child_POA : PortableServer.POA.Local_Ref;
+      Child_POA2 : PortableServer.POA.Local_Ref;
 
    begin
       New_Test ("Servant Activator");
@@ -189,7 +99,7 @@ package body Test_ServantActivator is
 
       --  Register a Child POA
 
-      Child_POA := PortableServer.POA.Ref
+      Child_POA := PortableServer.POA.Local_Ref
         (PortableServer.POA.Create_POA
          (Root_POA,
           CORBA.To_CORBA_String ("Child_POA"),
@@ -209,10 +119,16 @@ package body Test_ServantActivator is
              To_CORBA_String (Echo.Repository_Id)));
 
          Result : CORBA.String;
+         pragma Unreferenced (Result);
+         --  To kill "variable "Result" is assigned but never read" warning
       begin
+         pragma Warnings (Off); --  WAG:GCC3.4.3
          Result := Echo.echoString
            (Obj_Ref,
             To_CORBA_String ("Hello Ada World !"));
+         pragma Warnings (On); --  WAG:GCC3.4.3
+         --  XXX This is to kill warning "pragma Unreferenced given
+         --  for "Result""
 
          Output ("Non existant object found !", False);
       exception
@@ -222,6 +138,9 @@ package body Test_ServantActivator is
 
       --  Set Null Servant Activator
 
+      Test_NullActivator.Set
+       (Null_Activator,
+        PolyORB.Smart_Pointers.Entity_Ptr (Null_Activator_Obj));
       PortableServer.POA.Set_Servant_Manager (Child_POA, Null_Activator);
 
       --  Test Null Servant Activator Incarnate primitive is called
@@ -235,10 +154,16 @@ package body Test_ServantActivator is
              To_CORBA_String (Echo.Repository_Id)));
 
          Result : CORBA.String;
+         pragma Unreferenced (Result);
+         --  To kill "variable "Result" is assigned but never read" warning
       begin
+         pragma Warnings (Off); --  WAG:GCC3.4.3
          Result := Echo.echoString
            (Obj_Ref,
             To_CORBA_String ("Hello Ada World !"));
+         pragma Warnings (On); --  WAG:GCC3.4.3
+         --  XXX This is to kill warning "pragma Unreferenced given
+         --  for "Result""
 
       exception
          when CORBA.Object_Not_Exist =>
@@ -247,7 +172,7 @@ package body Test_ServantActivator is
 
       --  Register a second Child POA
 
-      Child_POA2 := PortableServer.POA.Ref
+      Child_POA2 := PortableServer.POA.Local_Ref
         (PortableServer.POA.Create_POA
          (Root_POA,
           CORBA.To_CORBA_String ("Child_POA2"),
@@ -267,10 +192,16 @@ package body Test_ServantActivator is
              To_CORBA_String (Echo.Repository_Id)));
 
          Result : CORBA.String;
+         pragma Unreferenced (Result);
+         --  To kill "variable "Result" is assigned but never read" warning
       begin
+         pragma Warnings (Off); --  WAG:GCC3.4.3
          Result := Echo.echoString
            (Obj_Ref,
             To_CORBA_String ("Hello Ada World !"));
+         pragma Warnings (On); --  WAG:GCC3.4.3
+         --  XXX This is to kill warning "pragma Unreferenced given
+         --  for "Result""
 
          Output ("Non existant object found !", False);
       exception
@@ -280,6 +211,9 @@ package body Test_ServantActivator is
 
       --  Set Simple Servant Activator
 
+      Test_SimpleActivator.Set
+       (Simple_Activator,
+        PolyORB.Smart_Pointers.Entity_Ptr (Simple_Activator_Obj));
       PortableServer.POA.Set_Servant_Manager (Child_POA2, Simple_Activator);
 
       --  Test Simple Servant Activator Incarnate primitive is called
@@ -293,10 +227,16 @@ package body Test_ServantActivator is
              To_CORBA_String (Echo.Repository_Id)));
 
          Result : CORBA.String;
+         pragma Unreferenced (Result);
+         --  To kill "variable "Result" is assigned but never read" warning
       begin
+         pragma Warnings (Off); --  WAG:GCC3.4.3
          Result := Echo.echoString
            (Obj_Ref,
             To_CORBA_String ("Hello Ada World !"));
+         pragma Warnings (On); --  WAG:GCC3.4.3
+         --  XXX This is to kill warning "pragma Unreferenced given
+         --  for "Result""
 
          Output ("Simple Activator called",
                  Simple_Activator_Incarnate_Called);
@@ -308,7 +248,6 @@ package body Test_ServantActivator is
          when CORBA.Object_Not_Exist =>
             Output ("No servant created !", False);
       end;
-
    end Run_Test_ServantActivator;
 
 end Test_ServantActivator;

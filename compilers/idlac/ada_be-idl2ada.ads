@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -33,17 +33,18 @@
 
 with Idl_Fe.Types; use Idl_Fe.Types;
 with Ada_Be.Source_Streams; use Ada_Be.Source_Streams;
+pragma Elaborate_All (Ada_Be.Source_Streams);
 
 with Ada_Be.Mappings.CORBA;
 
 package Ada_Be.Idl2Ada is
 
    procedure Generate
-     (Use_Mapping :    Ada_Be.Mappings.Mapping_Type'Class;
-      Node        : in Node_Id;
-      Implement   :    Boolean                            := False;
-      Intf_Repo   :    Boolean                            := False;
-      To_Stdout   :    Boolean                            := False);
+     (Use_Mapping : Ada_Be.Mappings.Mapping_Type'Class;
+      Node        : Node_Id;
+      Implement   : Boolean                            := False;
+      Intf_Repo   : Boolean                            := False;
+      To_Stdout   : Boolean                            := False);
    --  Generate the Ada mapping of the IDL tree
    --  rooted at Node.
    --  If Implement is true, produce only a template
@@ -109,11 +110,18 @@ private
    --  package that contains the mapping of
    --  the entity defined by Node.
 
-   function Helper_Unit
-     (Node : Node_Id)
-     return String;
-   --  The name of the Helper unit containing To_Any and
-   --  From_Any for type Node.
+   function Helper_Unit (Node : Node_Id) return String;
+   --  The name of the Helper unit containing helper subprograms for Node
+   --  (including From_Any and To_Any).
+
+   function TC_Unit (Node : Node_Id) return String;
+   --  The name of the Helper unit containing the TypeCode for Node
+
+   function Conditional_Call
+     (Func      : String;
+      Only_When : Boolean;
+      Expr      : String) return String;
+   --  Return Func (Expr) if Only_When is true, Expr otherwise
 
    procedure Gen_When_Clause
      (CU   : in out Compilation_Unit;
@@ -130,10 +138,10 @@ private
 
    procedure Gen_Operation_Profile
      (CU          : in out Compilation_Unit;
-      Node        : in     Node_Id;
-      Object_Type : in     String;
-      With_Name   : in     Boolean          := True;
-      Is_Delegate : in     Boolean          := False);
+      Node        : Node_Id;
+      Object_Type : String;
+      With_Name   : Boolean          := True;
+      Is_Delegate : Boolean          := False);
    --  Generate the profile for an K_Operation node,
    --  with the Self formal parameter mode and type taken
    --  from the Object_Type string.
@@ -144,7 +152,7 @@ private
 
    procedure Gen_Initializer_Profile
      (CU : in out Compilation_Unit;
-      Return_Type : in String;
+      Return_Type : String;
       Node : Node_Id);
    --  Generate the profile for an K_Initializer node,
    --  with the specified Return_Type
@@ -157,9 +165,11 @@ private
    --  Node.
 
    procedure Gen_Constant_Value
-     (CU : in out Compilation_Unit;
-      Node : Node_Id);
-   --  Generate the representation of a constant expression.
+     (CU   : in out Compilation_Unit;
+      Expr : Node_Id;
+      Typ  : Node_Id);
+   --  Generate the representation of a constant expression. Expr is the
+   --  expression node, and Typ is the IDL type of the expression.
 
    procedure Gen_Node_Default
      (CU   : in out Compilation_Unit;
@@ -169,9 +179,10 @@ private
 
    procedure Gen_Forward_Conversion
      (CU        : in out Compilation_Unit;
-      T_Node    : in     Node_Id;
-      Direction : in     String;
-      What      : in     String);
+      T_Node    : Node_Id;
+      Direction : String;
+      What      : String);
+   pragma Unreferenced (Gen_Forward_Conversion);
    --  Generate a call to a forward <-> actual reference conversion,
    --  if necessary.
 
@@ -179,16 +190,23 @@ private
    -- Text handling --
    -------------------
 
-   function Justify (S : in String; Max : in Integer) return String;
+   function Justify (S : String; Max : Integer) return String;
 
-   --------------------------------------------------------
-   -- Diversions for packages with module initialization --
-   --------------------------------------------------------
+   ---------------------
+   -- User diversions --
+   ---------------------
 
-   Deferred_Initialization     : constant Source_Streams.Diversion
-     := Source_Streams.Allocate_User_Diversion;
+   Deferred_Initialization : constant Source_Streams.Diversion
+                               := Source_Streams.Allocate_User_Diversion;
+   --  Body of initialization subprogram
+
    Initialization_Dependencies : constant Source_Streams.Diversion
-     := Source_Streams.Allocate_User_Diversion;
+                                   := Source_Streams.Allocate_User_Diversion;
+   --  List of initialization dependencies
+
+   Operation_Body : constant Source_Streams.Diversion
+                      := Source_Streams.Allocate_User_Diversion;
+   --  Body of operation stub
 
    ------------------------------------------
    -- The current language mapping variant --

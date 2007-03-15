@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -46,8 +46,11 @@ package body PolyORB.Components is
    use PolyORB.Log;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.components");
-   procedure O (Message : in String; Level : Log_Level := Debug)
+   procedure O (Message : String; Level : Log_Level := Debug)
      renames L.Output;
+   function C (Level : Log_Level := Debug) return Boolean
+     renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    -------------
    -- Connect --
@@ -102,30 +105,28 @@ package body PolyORB.Components is
    -- Destroy --
    -------------
 
-   procedure Destroy (C : in out Component) is
-      pragma Warnings (Off); --  WAG:3.15
-      pragma Unreferenced (C);
-      pragma Warnings (On);  --  WAG:3.15
-
+   procedure Destroy (Comp : in out Component) is
+      pragma Unreferenced (Comp);
    begin
       null;
    end Destroy;
 
-   procedure Destroy (C : in out Component_Access)
+   procedure Destroy (Comp : in out Component_Access)
    is
-      procedure Free is
-         new Ada.Unchecked_Deallocation
+      procedure Free is new Ada.Unchecked_Deallocation
         (Component'Class, Component_Access);
    begin
-      pragma Debug
-        (O ("Destroying component " & Ada.Tags.External_Tag (C'Tag)));
-      pragma Assert (C /= null);
-      pragma Assert (C.Allocation_Class = Dynamic);
-      --  Thou shalt not attempt to dynamically destroy a
-      --  non-dynamically-allocated Component.
+      pragma Debug (O ("Destroying component "
+        & Ada.Tags.External_Tag (Comp'Tag)));
 
-      Destroy (C.all);
-      Free (C);
+      --  Thou shalt not attempt to dynamically destroy a component that
+      --  was not dynamically allocated.
+
+      pragma Assert (Comp /= null);
+      pragma Assert (Comp.Allocation_Class = Dynamic);
+
+      Destroy (Comp.all);
+      Free (Comp);
    end Destroy;
 
    --------------------------

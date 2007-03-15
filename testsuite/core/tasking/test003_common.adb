@@ -127,8 +127,6 @@ package body Test003_Common is
    -------------
 
    procedure Test_AM is
-      use PolyORB.Tasking.Threads;
-
    begin
       New_Test ("Tasks entering/leaving Advanced Mutex");
 

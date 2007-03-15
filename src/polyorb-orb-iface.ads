@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -36,7 +36,6 @@
 with PolyORB.Components;
 with PolyORB.Requests;
 with PolyORB.Transport;
-with PolyORB.Types;
 
 package PolyORB.ORB.Iface is
 
@@ -59,25 +58,6 @@ package PolyORB.ORB.Iface is
    end record;
    --  Request that TE be removed from the set of endpoints
    --  managed by the ORB.
-
-   type Oid_Translate is new Components.Message with record
-      Oid : Objects.Object_Id_Access;
-   end record;
-   --  When sent by middleware core to object adapter:
-   --    Request that Oid be translated into a relative URI.
-   --    The expected reply is URI_Translate.
-   --  When replied by object adapter to middleware core:
-   --    Returns relative URI translated to object id.
-
-   type URI_Translate is new Components.Message with record
-      Path : Types.String;
-   end record;
-   --  When sent by middleware core to object adapter:
-   --    Request that Path (a relative URI) be translated into
-   --    an object id.
-   --    The expected reply is Oid_Translate.
-   --  When replied by object adapter to middleware core:
-   --    Returns object id translated to relative URI.
 
    type Monitor_Access_Point is new Components.Message with record
       TAP : Transport.Transport_Access_Point_Access;

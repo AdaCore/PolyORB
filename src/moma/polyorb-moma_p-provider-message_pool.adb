@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -35,14 +35,10 @@
 
 with MOMA.Destinations;
 with MOMA.Messages;
-with MOMA.Types;
-
-with PolyORB.MOMA_P.Provider.Warehouse;
 
 with PolyORB.Any.NVList;
 with PolyORB.Errors;
 with PolyORB.Log;
-with PolyORB.Requests;
 with PolyORB.Types;
 
 package body PolyORB.MOMA_P.Provider.Message_Pool is
@@ -56,18 +52,21 @@ package body PolyORB.MOMA_P.Provider.Message_Pool is
    use PolyORB.Types;
 
    package L is new PolyORB.Log.Facility_Log ("moma.provider.message_pool");
-   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+   procedure O (Message : Standard.String; Level : Log_Level := Debug)
      renames L.Output;
+   function C (Level : Log_Level := Debug) return Boolean
+     renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    --  Actual functions implemented by the servant.
 
    procedure Publish
      (Self    : access Object;
-      Message : in     PolyORB.Any.Any);
+      Message : PolyORB.Any.Any);
 
    function Get
      (Self       : access Object;
-      Message_Id : in     MOMA.Types.String)
+      Message_Id : MOMA.Types.String)
      return PolyORB.Any.Any;
 
    procedure Register_Handler
@@ -82,13 +81,28 @@ package body PolyORB.MOMA_P.Provider.Message_Pool is
      return PolyORB.Any.NVList.Ref;
    --  Parameters part of the interface description.
 
+   Message_S : constant PolyORB.Types.Identifier
+     := To_PolyORB_String ("Message");
+
+   Message_Id_S : constant PolyORB.Types.Identifier
+     := To_PolyORB_String ("Message_Id");
+
+   Message_Handler_S : constant PolyORB.Types.Identifier
+     := To_PolyORB_String ("Message_Handler");
+
+   Behavior_S : constant PolyORB.Types.Identifier
+     := To_PolyORB_String ("Behavior");
+
+   Result_S : constant PolyORB.Types.Identifier
+     := To_PolyORB_String ("Result");
+
    ------------
    -- Invoke --
    ------------
 
    procedure Invoke
      (Self : access Object;
-      Req  : in     PolyORB.Requests.Request_Access)
+      Req  : PolyORB.Requests.Request_Access)
    is
       Args : PolyORB.Any.NVList.Ref;
       use PolyORB.Any.NVList.Internals;
@@ -107,7 +121,7 @@ package body PolyORB.MOMA_P.Provider.Message_Pool is
          --  Publish
 
          Add_Item (Args,
-                   (Name      => To_PolyORB_String ("Message"),
+                   (Name      => Message_S,
                     Argument  => Get_Empty_Any (TC_MOMA_Message),
                     Arg_Modes => PolyORB.Any.ARG_IN));
          Arguments (Req, Args, Error);
@@ -125,7 +139,7 @@ package body PolyORB.MOMA_P.Provider.Message_Pool is
          --  Get
 
          Add_Item (Args,
-                   (Name => To_PolyORB_String ("Message_Id"),
+                   (Name => Message_Id_S,
                     Argument => Get_Empty_Any (TypeCode.TC_String),
                     Arg_Modes => PolyORB.Any.ARG_IN));
          Arguments (Req, Args, Error);
@@ -189,13 +203,9 @@ package body PolyORB.MOMA_P.Provider.Message_Pool is
    ---------------------------
 
    function Get_Parameter_Profile
-     (Method : String)
+    (Method : String)
      return PolyORB.Any.NVList.Ref
    is
-      use PolyORB.Any;
-      use PolyORB.Any.NVList;
-      use PolyORB.Types;
-
       Result : PolyORB.Any.NVList.Ref;
    begin
       PolyORB.Any.NVList.Create (Result);
@@ -203,25 +213,25 @@ package body PolyORB.MOMA_P.Provider.Message_Pool is
 
       if Method = "Publish" then
          Add_Item (Result,
-                   (Name => To_PolyORB_String ("Message"),
+                   (Name => Message_S,
                     Argument => Get_Empty_Any (TC_MOMA_Message),
                     Arg_Modes => ARG_IN));
 
       elsif Method = "Get" then
          Add_Item (Result,
-                   (Name => To_PolyORB_String ("Message_Id"),
+                   (Name => Message_Id_S,
                     Argument => Get_Empty_Any (TypeCode.TC_String),
                     Arg_Modes => ARG_IN));
 
       elsif Method = "Register_Handler" then
          Add_Item
            (Result,
-            (Name => To_PolyORB_String ("Message_Handler"),
+            (Name => Message_Handler_S,
              Argument => Get_Empty_Any (MOMA.Destinations.TC_MOMA_Destination),
              Arg_Modes => ARG_IN));
 
          Add_Item (Result,
-                   (Name => To_PolyORB_String ("Behavior"),
+                   (Name => Behavior_S,
                     Argument => Get_Empty_Any (TypeCode.TC_String),
                     Arg_Modes => ARG_IN));
 
@@ -257,7 +267,7 @@ package body PolyORB.MOMA_P.Provider.Message_Pool is
 
    procedure Publish
      (Self    : access Object;
-      Message : in     PolyORB.Any.Any)
+      Message : PolyORB.Any.Any)
    is
       Temp : constant String := Integer'Image (Self.Message_Id);
       Key  : constant String := "M" & Temp (2 .. Temp'Last);
@@ -284,11 +294,11 @@ package body PolyORB.MOMA_P.Provider.Message_Pool is
             PolyORB.Any.NVList.Create (Arg_List);
 
             PolyORB.Any.NVList.Add_Item (Arg_List,
-                                         To_PolyORB_String ("Message"),
+                                         Message_S,
                                          Message,
                                          PolyORB.Any.ARG_IN);
             Result :=
-              (Name      => To_PolyORB_String ("Result"),
+              (Name      => Result_S,
                Argument  => PolyORB.Any.Get_Empty_Any (PolyORB.Any.TC_Void),
                Arg_Modes => 0);
 
@@ -333,7 +343,7 @@ package body PolyORB.MOMA_P.Provider.Message_Pool is
                PolyORB.Any.NVList.Create (Arg_List);
 
                Result :=
-                 (Name      => To_PolyORB_String ("Result"),
+                 (Name      => Result_S,
                   Argument  => PolyORB.Any.Get_Empty_Any (PolyORB.Any.TC_Void),
                   Arg_Modes => 0);
 
@@ -359,7 +369,7 @@ package body PolyORB.MOMA_P.Provider.Message_Pool is
 
    function Get
      (Self       : access Object;
-      Message_Id : in     MOMA.Types.String)
+      Message_Id : MOMA.Types.String)
      return PolyORB.Any.Any
    is
       Result : PolyORB.Any.Any;

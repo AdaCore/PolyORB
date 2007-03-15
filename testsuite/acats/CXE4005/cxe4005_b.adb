@@ -146,7 +146,6 @@ begin  -- CXE4005_B
                         " a normal package");
   end;
 
-
   -- Check that Program_Error is raised if the tag of the actual
   -- parameter identifies a tagged type declared in the body of a
   -- remote call interface package.
@@ -171,7 +170,6 @@ begin  -- CXE4005_B
                         " class wide type designated type declared in a" &
                         " package body");
   end;
-
 
   -- Check that in a dispatching call with two controlling operands
   -- where the two remote access-to-class-wide values originated
@@ -239,7 +237,6 @@ begin  -- CXE4005_B
                         " packages within the same partition" &
                         " resulted in an unexpected exception");
   end;
-
 
   -- finish up
   CXE4005_Part_A1.Quit;

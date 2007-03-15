@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -31,27 +31,16 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with CORBA.Object;
-pragma Warnings (Off, CORBA.Object);
-
 with CosEventChannelAdmin;
 
 with CosEventComm;
-with CosEventComm.PushSupplier;
-
-with CosTypedEventChannelAdmin.TypedProxyPushConsumer.Helper;
-pragma Elaborate (CosTypedEventChannelAdmin.TypedProxyPushConsumer.Helper);
-pragma Warnings (Off, CosTypedEventChannelAdmin.TypedProxyPushConsumer.Helper);
-
-with CosTypedEventChannelAdmin.TypedProxyPushConsumer.Skel;
-pragma Elaborate (CosTypedEventChannelAdmin.TypedProxyPushConsumer.Skel);
-pragma Warnings (Off, CosTypedEventChannelAdmin.TypedProxyPushConsumer.Skel);
-
-with PortableServer;
 
 with PolyORB.CORBA_P.Server_Tools;
 with PolyORB.Log;
 with PolyORB.Tasking.Mutexes;
+
+with CosTypedEventChannelAdmin.TypedProxyPushConsumer.Skel;
+pragma Warnings (Off, CosTypedEventChannelAdmin.TypedProxyPushConsumer.Skel);
 
 package body CosTypedEventChannelAdmin.TypedProxyPushConsumer.Impl is
 
@@ -65,8 +54,11 @@ package body CosTypedEventChannelAdmin.TypedProxyPushConsumer.Impl is
 
    use PolyORB.Log;
    package L is new PolyORB.Log.Facility_Log ("typedproxypushconsumer");
-   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+   procedure O (Message : Standard.String; Level : Log_Level := Debug)
      renames L.Output;
+   function C (Level : Log_Level := Debug) return Boolean
+     renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    type TypedProxy_Push_Consumer_Record is record
       This   : Object_Ptr;
@@ -100,7 +92,7 @@ package body CosTypedEventChannelAdmin.TypedProxyPushConsumer.Impl is
 
    procedure Connect_Push_Supplier
      (Self          : access Object;
-      Push_Supplier : in     CosEventComm.PushSupplier.Ref) is
+      Push_Supplier : CosEventComm.PushSupplier.Ref) is
    begin
       pragma Debug (O ("connect pushsupplier to typedproxy push consumer"));
 
@@ -172,19 +164,16 @@ package body CosTypedEventChannelAdmin.TypedProxyPushConsumer.Impl is
    -- Push --
    ----------
 
-   procedure Push
-     (Self : access Object;
-      Data : in     CORBA.Any)
-   is
-      pragma Warnings (Off); --  WAG:3.14
+   procedure Push (Self : access Object; Data : CORBA.Any) is
       pragma Unreferenced (Self, Data);
-      pragma Warnings (On);  --  WAG:3.14
    begin
       pragma Debug (O ("attempt to push new data to typed pushconsumer"));
       pragma Debug (O ("no need to use generic push in typed pushconsumer"));
+
       Ensure_Initialization;
 
       --  No need to implement push in Typed PushConsumer
+
       raise Program_Error;
    end Push;
 

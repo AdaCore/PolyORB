@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2003-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -39,13 +39,13 @@ with PolyORB.Protocols.SOAP_Pr;
 
 with PolyORB.Parameters;
 with PolyORB.Initialization;
-pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
 with PolyORB.ORB;
 with PolyORB.Protocols;
 with PolyORB.Sockets;
 with PolyORB.Transport.Connected.Sockets;
 with PolyORB.Utils.Strings;
+with PolyORB.Utils.Socket_Access_Points;
 with PolyORB.Utils.TCP_Access_Points;
 
 package body PolyORB.Setup.Access_Points.SOAP is
@@ -54,6 +54,7 @@ package body PolyORB.Setup.Access_Points.SOAP is
    use PolyORB.ORB;
    use PolyORB.Sockets;
    use PolyORB.Transport.Connected.Sockets;
+   use PolyORB.Utils.Socket_Access_Points;
    use PolyORB.Utils.TCP_Access_Points;
 
    --  The SOAP access point
@@ -91,12 +92,11 @@ package body PolyORB.Setup.Access_Points.SOAP is
       if Get_Conf ("access_points", "soap", True) then
 
          declare
-            Port : constant Port_Type
-              := Port_Type
-              (Get_Conf
-               ("soap",
-                "polyorb.protocols.soap.default_port",
-                8080));
+            Port_Hint : constant Port_Interval := To_Port_Interval
+                          (Get_Conf
+                           ("soap",
+                            "polyorb.protocols.soap.default_port",
+                            (Integer (Any_Port), Integer (Any_Port))));
 
             Addr : constant Inet_Addr_Type
               := Inet_Addr (String'(Get_Conf
@@ -105,7 +105,7 @@ package body PolyORB.Setup.Access_Points.SOAP is
                                      Image (No_Inet_Addr))));
 
          begin
-            Initialize_Socket (SOAP_Access_Point, Addr, Port);
+            Initialize_Socket (SOAP_Access_Point, Addr, Port_Hint);
 
             Register_Access_Point
               (ORB    => The_ORB,
@@ -130,5 +130,6 @@ begin
        Depends   => +"orb",
        Provides  => +"access_points",
        Implicit  => False,
-       Init      => Initialize_Access_Points'Access));
+       Init      => Initialize_Access_Points'Access,
+       Shutdown  => null));
 end PolyORB.Setup.Access_Points.SOAP;

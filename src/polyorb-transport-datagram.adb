@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -36,15 +36,17 @@ with PolyORB.Log;
 with PolyORB.Filters;
 with PolyORB.Filters.Iface;
 with PolyORB.ORB.Iface;
-with PolyORB.Transport.Handlers;
 
 package body PolyORB.Transport.Datagram is
 
    use PolyORB.Log;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.transport.datagram");
-   procedure O (Message : in String; Level : Log_Level := Debug)
+   procedure O (Message : String; Level : Log_Level := Debug)
      renames L.Output;
+   function C (Level : Log_Level := Debug) return Boolean
+     renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    ---------------------
    -- Create_Endpoint --
@@ -88,11 +90,19 @@ package body PolyORB.Transport.Datagram is
          pragma Debug (O ("Create and register Endpoint"));
 
          Binding_Objects.Setup_Binding_Object
-           (The_ORB => H.ORB,
-            TE      => New_TE,
+           (TE      => New_TE,
             FFC     => H.Filter_Factory_Chain.all,
-            Role    => ORB.Server,
-            BO_Ref  => New_TE.Dependent_Binding_Object);
+            BO_Ref  => New_TE.Dependent_Binding_Object,
+            Pro     => null);
+         --  XXX Until bidirectional BOs are implemented,
+         --  We mark Server BOs as having a null Profile
+         --  cf. PolyORB.ORB.Find_Reusable_Binding_Object.
+
+         ORB.Register_Binding_Object
+           (H.ORB,
+            New_TE.Dependent_Binding_Object,
+            ORB.Server);
+
          --  Setup binding object
       end if;
    end Handle_Event;
@@ -138,23 +148,25 @@ package body PolyORB.Transport.Datagram is
             Size : Ada.Streams.Stream_Element_Count := TE.Max;
             Error : Errors.Error_Container;
          begin
-            if TE.In_Buf = null then
-               O ("Unexpected data (no buffer)");
-
-               Throw (Error, Comm_Failure_E,
-                      System_Exception_Members'
-                      (Minor => 0, Completed => Completed_Maybe));
-               --  Notify the ORB that the socket is closed
-
-            else
+            if TE.In_Buf /= null then
                Read
                  (Transport_Endpoint'Class (TE.all), TE.In_Buf, Size, Error);
             end if;
 
-            if not Is_Error (Error) and then Size /= 0 then
+            if TE.In_Buf = null
+              or else (Size = 0 and then not Is_Error (Error))
+            then
+               Throw (Error, Comm_Failure_E,
+                      System_Exception_Members'
+                      (Minor => 0, Completed => Completed_Maybe));
+            end if;
+
+            if not Is_Error (Error) then
                return Emit (TE.Upper, Data_Indication'(Data_Amount => Size));
+
             else
                return Filter_Error'(Error => Error);
+
             end if;
          end;
 
@@ -165,6 +177,7 @@ package body PolyORB.Transport.Datagram is
             Write
               (Transport_Endpoint'Class (TE.all),
                Data_Out (Msg).Out_Buf, Error);
+
             if Errors.Is_Error (Error) then
                return Filter_Error'(Error => Error);
             end if;

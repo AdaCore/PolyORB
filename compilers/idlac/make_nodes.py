@@ -124,10 +124,14 @@ f.sort ()
 for name in f:
     type = typess [name]
     kinds = fields [name]
-    spec.append ("   function %s (N : Node_Id) return %s;" % (name, type))
-    spec.append ("   procedure Set_%s (N : Node_Id; V : %s);" % (name, type))
+    spec.append ("   function %s" % (name,));
+    spec.append ("     (N : Node_Id) return %s;" % (type,))
+    spec.append ("   procedure Set_%s" % (name,))
+    spec.append ("     (N : Node_Id; V : %s);" % (type,))
 
-    body.append ("   function %s (N : Node_Id) return %s is" % (name, type))
+    body.append ("   function %s" % (name,))
+    body.append ("     (N : Node_Id) return %s" % (type,))
+    body.append ("   is")
     body.append ("      Node : constant Node_Access := Nodes_Table.Table (N);")
     body.append ("   begin")
     for k in range (len (kinds)):
@@ -146,7 +150,8 @@ for name in f:
     body.append ("      return Node.%s;" % name)
     body.append ("   end %s;" % name)
     body.append ("")
-    body.append ("   procedure Set_%s (N : Node_Id; V : %s)" % (name, type))
+    body.append ("   procedure Set_%s" % (name,))
+    body.append ("     (N : Node_Id; V : %s)" % (type,))
     body.append ("   is")
     body.append ("      Node : constant Node_Access := Nodes_Table.Table (N);")
     body.append ("   begin")

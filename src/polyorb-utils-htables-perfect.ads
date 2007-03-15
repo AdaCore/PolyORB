@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2006 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -51,18 +51,15 @@ generic
 
    type Hash_Parameters is private;
 
-   with function Default_Hash_Parameters
-     return Hash_Parameters;
+   with function Default_Hash_Parameters return Hash_Parameters;
 
    with function Hash
      (Key   : String;
       Param : Hash_Parameters;
-      Size  : Natural)
-     return Natural;
+      Size  : Natural) return Natural;
 
    with function Next_Hash_Parameters
-     (Param : Hash_Parameters)
-     return Hash_Parameters;
+     (Param : Hash_Parameters) return Hash_Parameters;
 
 package PolyORB.Utils.HTables.Perfect is
 
@@ -77,25 +74,23 @@ package PolyORB.Utils.HTables.Perfect is
       T : Table_Access;
    end record;
 
-   Default_Max   : constant := 10;
+   Default_Max : constant := 10;
 
    procedure Initialize
      (T      : out Table_Instance;
       HParam :     Hash_Parameters := Default_Hash_Parameters;
       Max    :     Natural := Default_Max);
    --  Initialize the hash table.
-   --  HParam are the hash function parameters,
-   --  Max is the max number of elements to store.
+   --  HParam are the hash function parameters, Max is the maximum number
+   --  of elements to store.
 
-   procedure Finalize
-     (T : in out Table_Instance);
-   --  Finalize the hash table.
+   procedure Finalize (T : in out Table_Instance);
+   --  Finalize the hash table
 
    function Lookup
      (T           : Table_Instance;
       Key         : String;
-      Error_Value : Item)
-      return Item;
+      Error_Value : Item) return Item;
    --  Find Key in hash table and return its associated Item.
    --  When Key does not exist, the function returns Error_Value.
 
@@ -107,20 +102,19 @@ package PolyORB.Utils.HTables.Perfect is
    --  Key is the string to hash and Value its associated Item.
    --  If Key already exists, nothing is done.
 
-   --  Note : this procedure may reorganize or extend, when necessary,
-   --  the table or the sub_tables, leading to amortized O (1)
-   --  complexity only.
+   --  Note: this procedure may reorganize or extend, when necessary, the table
+   --  or the sub_tables, leading to amortized O (1) complexity only.
 
    procedure Delete
      (T   : Table_Instance;
       Key : String);
-   --  Delete key in hash table. In case of a non-existing Key, Delete
-   --  ignores deletion. Key is the string to hash. This procedure only put
-   --  the flag Used to False. Deallocations appears only after reorganisation
-   --  of the table or a sub-table (procedure Insert)
+   --  Delete key in hash table. Does nothing if Key is not present in T.
+   --  This procedure only unsets the entry's Used flag; deallocation is
+   --  actually performed only after the table or a sub-table is reorganized
+   --  (procedure Insert).
 
    function Is_Empty (T : Table_Instance) return Boolean;
-   --  True iff T has no element.
+   --  True if, and only if, T has no element
 
    -----------------------------------------
    -- Iterator on Table_Instance elements --
@@ -131,48 +125,36 @@ package PolyORB.Utils.HTables.Perfect is
    --  This Iterator type provides a way to traverse the hash tables
    --  and access the elements stored in the hash table.
 
-   --  Note that, per construction of this hash table, the user cannot
-   --  know the order in which the iterator traverses the elements.
-   --  Hence, the traversal order implied by First, Next and Last
-   --  refers to the order in which the elements are found when
-   --  traversing Table_Instance internals sequentially. Hence it is
-   --  implementation defined.
+   --  Note that elements are traversed in an implementation-defined arbitrary
+   --  order.
 
-   function First (T : Table_Instance)
-                  return Iterator;
-   --  Return an Iterator placed on the first non null element found
-   --  in T.  If there is no such element, the Iterator is placed
-   --  outside T bounds.
+   function First (T : Table_Instance) return Iterator;
+   --  Return an Iterator placed on the first non null element found in T.
+   --  If there is no such element, the Iterator is placed outside the bounds
+   --  of T.
 
-   function Value (I : Iterator)
-                  return Item;
-   --  Return the Item on which I is placed.
+   function Value (I : Iterator) return Item;
+   --  Return the Item on which I is placed
 
-   function Key (I : Iterator)
-                  return String;
-   --  Return the Item's key on which I is placed.
+   function Key (I : Iterator) return String;
+   --  Return the Key of the item on which I is placed
 
-   function Last (I : Iterator)
-                 return Boolean;
-   --  True if I is on the last element of the Table_Instance on which
+   function Last (I : Iterator) return Boolean;
+   --  True if I is past the last element of the Table_Instance on which
    --  it operates.
 
    procedure Next (I : in out Iterator);
    --  Jump to the next non null element of the Table_Instance on which
-   --  I operates.
+   --  it operates.
 
 private
-   --  A Hash table is the agregation of an Hash_Table index table
-   --  (non-generic) and and an array of item (generic) which contains
-   --  the values stored.  The Hash_Table type is an index table that
-   --  contains the actual position of an Item in the array of item.
 
-   --  As described in the Dietzfelbinger algorithm, the Hash Table is
-   --  divided into several tables, each of which contains several
+   --  A hash table containts a non-generic index of type Hash_Table and an
+   --  an array of (generic) items providing the stored values.
+
+   --  As described in the Dietzfelbinger algorithm, the Hash Table is divided
+   --  into several sub-tables, each of which contains indices for several
    --  items.
-
-   --  The Hash_Table index uses different structures to map an
-   --  element to its associated item.
 
    --  Element type
 
@@ -242,13 +224,13 @@ private
 
    type Table is record
       HTable : Hash_Table;
+      --  Index associating key values to indices in Items
+
       Items  : Item_Array;
+      --  Stored item values
    end record;
-   --  Table is the agregation of an Hash_Table (non-generic) and
-   --  and an array (generic) which contains the Values associated
-   --  with the Keys. We can note that HTable.Elements.all and Items.all
-   --  have the same size. Indeed if a Key is stored in HTable.Elements(i)
-   --  then his value is stored in Items(HTable.Elements(i).Item_Index)
+
+   --  Note: HTable.Elements.all and Items.all have the same length.
 
    type Iterator is record
       On_Table : Table_Instance;

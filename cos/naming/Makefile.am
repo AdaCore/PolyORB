@@ -10,25 +10,25 @@ COS_ADAFLAGS=-I$(COS_DIRS)
 # Building libpolyorb-corba-cos-naming-impl library
 #
 
+vpath %.ads $(COS_DIRS)
+vpath %.adb $(COS_DIRS)
+
+GEN_SPECS_WITH_BODY = \
+	cosnaming-bindingiterator-skel.ads \
+	cosnaming-namingcontext-skel.ads \
+	cosnaming-namingcontextext-skel.ads
+
 ADA_SPECS_WITH_BODY = \
-  cosnaming-bindingiterator-impl.ads \
-  cosnaming-namingcontext-impl.ads \
-  polyorb-corba_p-naming_tools.ads
+	cosnaming-bindingiterator-impl.ads \
+	cosnaming-namingcontext-impl.ads \
+	cosnaming-namingcontextext-impl.ads \
+	polyorb-corba_p-naming_tools.ads
 
 lib_LTLIBRARIES = libpolyorb-corba-cos-naming-impl.la
 
 libpolyorb_corba_cos_naming_impl_la_SOURCES =
 libpolyorb_corba_cos_naming_impl_la_LIBADD  = $(ADA_LIBADD)
 libpolyorb_corba_cos_naming_impl_la_LDFLAGS = -no-undefined -version-info $(LIBVERSIONINFO)
-
-#
-# Executables to be compiled
-#
-
-corba_exe=po_cos_naming po_cos_naming_shell
-ir_exe=ir_ab_names
-
-FORCE=	force
 
 IDL=$(srcdir)/File.idl
 
@@ -56,11 +56,6 @@ file-impl.ads
 CLEANFILES += $(GEN) stamp-gen
 
 $(GEN): stamp-gen
-stamp-gen: $(IDL) $(IDLAC)
-	$(IDLAC) $(IDL)
+stamp-gen: $(IDL) $(IDLAC_bin)
+	$(IDLAC_WRAPPER) --idlac=$(IDLAC_bin) $(IDL)
 	touch stamp-gen
-
-$(ir_exe): force_ir
-
-force_ir: force
-	cd ../ir && $(MAKE)

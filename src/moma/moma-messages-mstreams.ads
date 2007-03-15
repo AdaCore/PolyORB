@@ -96,4 +96,3 @@ package MOMA.Messages.MStreams is
    procedure Set_String (Value : String);
 
 end MOMA.Messages.MStreams;
-

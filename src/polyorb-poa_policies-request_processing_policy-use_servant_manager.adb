@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---   POLYORB.POA_POLICIES.REQUEST_PROCESSING_POLICY.USE_SERVANT_MANAGER     --
+--                                 B O D Y                                  --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -84,25 +84,6 @@ is
       return "REQUEST_PROCESSING_POLICY.USE__SERVANT_MANAGER";
    end Policy_Id;
 
-   ---------------------
-   -- Etherealize_All --
-   ---------------------
-
-   procedure Etherealize_All
-     (Self  : Use_Servant_Manager_Policy;
-      OA    : PolyORB.POA_Types.Obj_Adapter_Access;
-      U_Oid : Unmarshalled_Oid)
-   is
-      pragma Warnings (Off);
-      pragma Unreferenced (Self);
-      pragma Unreferenced (OA);
-      pragma Unreferenced (U_Oid);
-      pragma Warnings (On);
-
-   begin
-      null;
-   end Etherealize_All;
-
    -------------------
    -- Id_To_Servant --
    -------------------
@@ -151,11 +132,9 @@ is
       Servant :        Servants.Servant_Access;
       Error   : in out PolyORB.Errors.Error_Container)
    is
-      pragma Warnings (Off); --  WAG:3.15
       pragma Unreferenced (Self);
       pragma Unreferenced (OA);
       pragma Unreferenced (Servant);
-      pragma Warnings (On); --  WAG:3.15
 
    begin
       Throw (Error,
@@ -173,10 +152,8 @@ is
       Servant :    out Servants.Servant_Access;
       Error   : in out PolyORB.Errors.Error_Container)
    is
-      pragma Warnings (Off); --  WAG:3.15
       pragma Unreferenced (Self);
       pragma Unreferenced (OA);
-      pragma Warnings (On); --  WAG:3.15
 
    begin
       Servant := null;
@@ -194,10 +171,8 @@ is
      (Self  :        Use_Servant_Manager_Policy;
       Error : in out PolyORB.Errors.Error_Container)
    is
-      pragma Warnings (Off); --  WAG:3.15
       pragma Unreferenced (Self);
       pragma Unreferenced (Error);
-      pragma Warnings (On); --  WAG:3.15
    begin
       null;
    end Ensure_Servant_Manager;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2004 Free Software Foundation, Inc.             --
+--         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,26 +26,26 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Unchecked_Deallocation;
-
 with PolyORB.Annotations;
 with PolyORB.Log;
-with PolyORB.Types;
 
 package body PolyORB.Request_QoS is
 
    use PolyORB.Annotations;
    use PolyORB.Log;
-   use PolyORB.Types;
+   use PolyORB.QoS;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.request_qos");
-   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+   procedure O (Message : Standard.String; Level : Log_Level := Debug)
      renames L.Output;
+   function C (Level : Log_Level := Debug) return Boolean
+     renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    Call_Back_Array : array (QoS_Kind'Range) of Fetch_QoS_CB;
 
@@ -65,9 +65,9 @@ package body PolyORB.Request_QoS is
    -------------------
 
    procedure Add_Reply_QoS
-     (Req  : in PR.Request_Access;
-      Kind : in QoS_Kind;
-      QoS  : in QoS_Parameter_Access)
+     (Req  : PolyORB.Requests.Request_Access;
+      Kind : QoS_Kind;
+      QoS  : QoS_Parameter_Access)
    is
       Note : QoS_Note;
 
@@ -87,9 +87,9 @@ package body PolyORB.Request_QoS is
    ---------------------
 
    procedure Add_Request_QoS
-     (Req  : in PR.Request_Access;
-      Kind : in QoS_Kind;
-      QoS  : in QoS_Parameter_Access)
+     (Req  : PolyORB.Requests.Request_Access;
+      Kind : QoS_Kind;
+      QoS  : QoS_Parameter_Access)
    is
       Note : QoS_Note;
 
@@ -121,8 +121,8 @@ package body PolyORB.Request_QoS is
    -----------------------------
 
    function Extract_Reply_Parameter
-     (Kind : in QoS_Kind;
-      Req  : in PolyORB.Requests.Request_Access)
+     (Kind : QoS_Kind;
+      Req  : PolyORB.Requests.Request_Access)
       return QoS_Parameter_Access
    is
       Note : QoS_Note;
@@ -138,8 +138,8 @@ package body PolyORB.Request_QoS is
    -------------------------------
 
    function Extract_Request_Parameter
-     (Kind : in QoS_Kind;
-      Req  : in PolyORB.Requests.Request_Access)
+     (Kind : QoS_Kind;
+      Req  : PolyORB.Requests.Request_Access)
       return QoS_Parameter_Access
    is
       Note : QoS_Note;
@@ -155,11 +155,12 @@ package body PolyORB.Request_QoS is
    ---------------
 
    function Fetch_QoS
-     (Ref : in PolyORB.References.Ref)
+     (Ref : PolyORB.References.Ref)
       return QoS_Parameters
    is
       Result      : QoS_Parameters;
       A_Parameter : QoS_Parameter_Access;
+
    begin
       pragma Debug (O ("Fetch_Qos: enter"));
 
@@ -185,7 +186,7 @@ package body PolyORB.Request_QoS is
    -------------------
 
    function Get_Reply_QoS
-     (Req : in PR.Request_Access)
+     (Req : PolyORB.Requests.Request_Access)
       return QoS_Parameters
    is
       Note : QoS_Note;
@@ -199,7 +200,7 @@ package body PolyORB.Request_QoS is
    ---------------------
 
    function Get_Request_QoS
-     (Req : in PR.Request_Access)
+     (Req : PolyORB.Requests.Request_Access)
       return QoS_Parameters
    is
       Note : QoS_Note;
@@ -208,29 +209,11 @@ package body PolyORB.Request_QoS is
       return Note.Request_QoS;
    end Get_Request_QoS;
 
-   -----------
-   -- Image --
-   -----------
-
-   function Image (QoS : in QoS_Parameters) return String is
-      Result : PolyORB.Types.String := To_PolyORB_String ("");
-
-   begin
-      for J in QoS'Range loop
-         if QoS (J) /= null then
-            Result := Result
-              & To_PolyORB_String (QoS_Kind'Image (QoS (J).Kind) & ",");
-         end if;
-      end loop;
-
-      return To_Standard_String (Result);
-   end Image;
-
    --------------
    -- Register --
    --------------
 
-   procedure Register (Kind : in QoS_Kind; CB : in Fetch_QoS_CB) is
+   procedure Register (Kind : QoS_Kind; CB : Fetch_QoS_CB) is
    begin
       pragma Debug (O ("Registering call back for "
                        & QoS_Kind'Image (Kind)));
@@ -239,38 +222,13 @@ package body PolyORB.Request_QoS is
       Call_Back_Array (Kind) := CB;
    end Register;
 
-   -------------
-   -- Release --
-   -------------
-
-   procedure Release (QoS : in out QoS_Parameter_Access) is
-      procedure Free is
-        new Ada.Unchecked_Deallocation
-        (QoS_Parameter'Class, QoS_Parameter_Access);
-   begin
-      if QoS /= null then
-         Release_Contents (QoS);
-         Free (QoS);
-      end if;
-   end Release;
-
-   ----------------------
-   -- Release_Contents --
-   ----------------------
-
-   procedure Release_Contents (QoS : access QoS_Parameter) is
-      pragma Unreferenced (QoS);
-   begin
-      null;
-   end Release_Contents;
-
    -------------------
    -- Set_Reply_QoS --
    -------------------
 
    procedure Set_Reply_QoS
-     (Req : in PR.Request_Access;
-      QoS : in QoS_Parameters)
+     (Req : PolyORB.Requests.Request_Access;
+      QoS : QoS_Parameters)
    is
       Note : QoS_Note;
 
@@ -285,8 +243,8 @@ package body PolyORB.Request_QoS is
    ---------------------
 
    procedure Set_Request_QoS
-     (Req : in PR.Request_Access;
-      QoS : in QoS_Parameters)
+     (Req : PolyORB.Requests.Request_Access;
+      QoS : QoS_Parameters)
    is
       Note : QoS_Note;
 

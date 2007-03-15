@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,16 +26,13 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with MOMA.Types;
-
 with PolyORB.Any.ObjRef;
 with PolyORB.Initialization;
-pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
 with PolyORB.References;
 with PolyORB.Types;
@@ -258,10 +255,8 @@ package body MOMA.Destinations is
 
    procedure Initialize;
 
-   procedure Initialize
-   is
+   procedure Initialize is
       use PolyORB.Utils.Strings;
-      use PolyORB.Types;
 
       T : PolyORB.Any.TypeCode.Object := PolyORB.Any.TypeCode.TC_Object;
 
@@ -289,7 +284,7 @@ package body MOMA.Destinations is
 
       PolyORB.Any.TypeCode.Add_Parameter
         (T,
-         To_Any (To_PolyORB_String ("plop")));
+         To_Any (To_PolyORB_String ("destination")));
 
       PolyORB.Any.TypeCode.Add_Parameter
         (TC_MOMA_Destination,
@@ -322,6 +317,7 @@ begin
           Depends   => +"MOMA.Types",
           Provides  => Empty,
           Implicit  => False,
-          Init      => Initialize'Access));
+          Init      => Initialize'Access,
+          Shutdown  => null));
    end;
 end MOMA.Destinations;

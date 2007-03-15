@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2004 Free Software Foundation, Inc.             --
+--         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -41,8 +41,8 @@ package body PortableInterceptor.IORInterceptor_3_0.Impl is
 
    procedure Adapter_Manager_State_Changed
      (Self  : access Object;
-      Id    : in     AdapterManagerId;
-      State : in     AdapterState)
+      Id    : AdapterManagerId;
+      State : AdapterState)
    is
       pragma Unreferenced (Self);
       pragma Unreferenced (Id);
@@ -57,8 +57,8 @@ package body PortableInterceptor.IORInterceptor_3_0.Impl is
 --
 --   procedure Adapter_State_Changed
 --     (Self      : access Object;
---      Templates : in     ObjectReferenceTemplate.Abstract_Value_Ref;
---      State     : in     AdapterState)
+--      Templates : ObjectReferenceTemplate.Abstract_Value_Ref;
+--      State     : AdapterState)
 --   is
 --      pragma Unreferenced (Self);
 --      pragma Unreferenced (Templates);
@@ -73,7 +73,7 @@ package body PortableInterceptor.IORInterceptor_3_0.Impl is
 
    procedure Components_Established
      (Self : access Object;
-      Info : in     PortableInterceptor.IORInfo.Local_Ref)
+      Info : PortableInterceptor.IORInfo.Local_Ref)
    is
       pragma Unreferenced (Self);
       pragma Unreferenced (Info);
@@ -87,7 +87,7 @@ package body PortableInterceptor.IORInterceptor_3_0.Impl is
 
    function Is_A
      (Self            : access Object;
-      Logical_Type_Id : in     Standard.String)
+      Logical_Type_Id : Standard.String)
       return Boolean
    is
       pragma Unreferenced (Self);

@@ -15,7 +15,6 @@ package CXE4006_Part_B is
       Test_Number : in     Integer;
       Callee      :    out Type_Decl_Location);
 
-
   procedure Wrapped_Around (
       X           : in out Root_Tagged_Type'Class;
       Test_Number : in     Integer;

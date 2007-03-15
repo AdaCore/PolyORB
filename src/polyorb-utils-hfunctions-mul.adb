@@ -105,7 +105,3 @@ package body PolyORB.Utils.HFunctions.Mul is
    end Next_Hash_Parameters;
 
 end PolyORB.Utils.HFunctions.Mul;
-
-
-
-

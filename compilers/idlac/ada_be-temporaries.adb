@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2004 Free Software Foundation, Inc.             --
+--         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -73,6 +73,24 @@ package body Ada_Be.Temporaries is
       return "Argument_" & Suffix & '_';
    end T_Argument;
 
+   ---------------
+   -- T_Arg_Any --
+   ---------------
+
+   function T_Arg_Any return String is
+   begin
+      return "Arg_Any_" & Suffix & '_';
+   end T_Arg_Any;
+
+   --------------
+   -- T_Arg_CC --
+   --------------
+
+   function T_Arg_CC return String is
+   begin
+      return "Arg_CC_" & Suffix & '_';
+   end T_Arg_CC;
+
    ----------------
    -- T_Arg_List --
    ----------------
@@ -88,8 +106,17 @@ package body Ada_Be.Temporaries is
 
    function T_Arg_Name return String is
    begin
-      return "Arg_Name_" & Suffix & '_';
+      return "_Arg_Name_" & Suffix & '_';
    end T_Arg_Name;
+
+   ---------------
+   -- T_Content --
+   ---------------
+
+   function T_Content return String is
+   begin
+      return "Content_" & Suffix & '_';
+   end T_Content;
 
    -------------------------
    -- T_Exception_Repo_Id --
@@ -106,7 +133,7 @@ package body Ada_Be.Temporaries is
 
    function T_Excp_List return String is
    begin
-      return "Excp_List_" & Suffix;
+      return "_Excp_List_" & Suffix;
    end T_Excp_List;
 
    -----------
@@ -136,6 +163,15 @@ package body Ada_Be.Temporaries is
       return "Object_" & Suffix;
    end T_Impl_Object_Ptr;
 
+   ---------------
+   -- T_Indices --
+   ---------------
+
+   function T_Indices return String is
+   begin
+      return "Indices_" & Suffix & "_";
+   end T_Indices;
+
    ---------
    -- T_J --
    ---------
@@ -146,6 +182,24 @@ package body Ada_Be.Temporaries is
    end T_J;
 
    ---------------
+   -- T_Helpers --
+   ---------------
+
+   function T_Helpers return String is
+   begin
+      return "Helpers_" & Suffix & '_';
+   end T_Helpers;
+
+   ---------------
+   -- T_Lengths --
+   ---------------
+
+   function T_Lengths return String is
+   begin
+      return "Lengths_" & Suffix & '_';
+   end T_Lengths;
+
+   ---------------
    -- T_Members --
    ---------------
 
@@ -154,14 +208,14 @@ package body Ada_Be.Temporaries is
       return "Members_" & Suffix;
    end T_Members;
 
-   ----------------------
-   -- T_Operation_Name --
-   ----------------------
+   -----------
+   -- T_Ptr --
+   -----------
 
-   function T_Operation_Name return String is
+   function T_Ptr return String is
    begin
-      return "Operation_Name_" & Suffix;
-   end T_Operation_Name;
+      return "Ptr_" & Suffix & "_";
+   end T_Ptr;
 
    ---------------
    -- T_Request --

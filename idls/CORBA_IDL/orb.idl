@@ -64,7 +64,7 @@ typeprefix CORBA "omg.org"
 // Forward references, alphabetically
 //PolyORB:NI:    interface ConstructionPolicy;        // Chapter  4, CORBA_DomainManager.idl
     local interface Current;             // Chapter  4, CORBA_Current.idl
-//PolyORB:NI:    interface DomainManager;             // Chapter  4, CORBA_DomainManager.idl
+    interface DomainManager;             // Chapter  4, CORBA_DomainManager.idl
     interface Policy;                    // Chapter  4, CORBA_Policy.idl
 //PolyORB:NI:    local interface PollableSet;         // Chapter  7, CORBA_Pollable.idl
 //PolyORB:NI:    abstract valuetype CustomMarshal;    // Chapter  5, CORBA_valuetype.idl
@@ -114,7 +114,7 @@ typeprefix CORBA "omg.org"
 // Chapter 4: ORB Interface
 #include <CORBA_Current.idl>
 #include <CORBA_Policy.idl>
-//PolyORB:NI:#include <CORBA_DomainManager.idl>
+#include <CORBA_DomainManager.idl>
 
 // Chapter 7: Pollable
 //PolyORB:NI:#include <CORBA_Pollable.idl>
@@ -128,7 +128,7 @@ typeprefix CORBA "omg.org"
 
 // Chapter 5: Value Type Semantics
 //PolyORB:NI:#include <CORBA_CustomMarshal.idl>
-//PolyORB:NI:#include <CORBA_Stream.idl>
+#include <CORBA_Stream.idl>
 
 //----------------------------------------------------------------------------
 //PolyORB:AB: This code is copied from CORBA Pseudo IDL specification,

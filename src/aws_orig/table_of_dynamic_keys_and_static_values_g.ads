@@ -1,9 +1,35 @@
--------------------------------------------------------------------------------
---                               COPYRIGHT                                   --
--- (C) 1987 Swiss Federal Institute of Technology (EPFL).                    --
---    Represented by A. Strohmeier EPFL-DI-LGL CH-1015 Lausanne Switzerland. --
---    All Rights Reserved.                                                   --
--------------------------------------------------------------------------------
+------------------------------------------------------------------------------
+--                                                                          --
+--                           POLYORB COMPONENTS                             --
+--                                                                          --
+--                TABLE_OF_DYNAMIC_KEYS_AND_STATIC_VALUES_G                 --
+--                                                                          --
+--                                 S p e c                                  --
+--                                                                          --
+--           Copyright (C) 2006, Free Software Foundation, Inc.             --
+--                                                                          --
+-- PolyORB is free software; you  can  redistribute  it and/or modify it    --
+-- under terms of the  GNU General Public License as published by the  Free --
+-- Software Foundation;  either version 2,  or (at your option)  any  later --
+-- version. PolyORB is distributed  in the hope that it will be  useful,    --
+-- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
+-- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
+-- License  for more details.  You should have received  a copy of the GNU  --
+-- General Public License distributed with PolyORB; see file COPYING. If    --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
+--                                                                          --
+-- As a special exception,  if other files  instantiate  generics from this --
+-- unit, or you link  this unit with other files  to produce an executable, --
+-- this  unit  does not  by itself cause  the resulting  executable  to  be --
+-- covered  by the  GNU  General  Public  License.  This exception does not --
+-- however invalidate  any other reasons why  the executable file  might be --
+-- covered by the  GNU Public License.                                      --
+--                                                                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
+--                                                                          --
+------------------------------------------------------------------------------
 
 --  TITLE:      GENERIC PACKAGE FOR ASSOCIATIVE TABLES.
 --  REVISION:   13-JUL-1992 Ph. Kipfer (PKR), File header format
@@ -16,7 +42,7 @@ generic
    --  Defines ordering of keys.
    with function Equals (Left, Right : Key_Type) return Boolean;
    --  Defines equality between keys.
-   with procedure Assign (Destination : in out Key_Type; Source : in Key_Type);
+   with procedure Assign (Destination : in out Key_Type; Source : Key_Type);
    --  Assigns SOURCE to DESTINATION. If needed, DESTINATION has to be
    --  destroyed
    --  before assignement, since ASSIGN is called without a previous call to
@@ -133,7 +159,6 @@ package Table_Of_Dynamic_Keys_And_Static_Values_G is
    --  (i.e. by a call to INSERT), an element is recovered from the free list
    --  if it is not empty. Otherwise, new space is taken from the system.
 
-
    type Table_Type is limited private;
 
    Duplicate_Item_Error,
@@ -142,14 +167,14 @@ package Table_Of_Dynamic_Keys_And_Static_Values_G is
 
    --  CONSTRUCTORS:
 
-   procedure Assign (Destination : in out Table_Type; Source : in Table_Type);
+   procedure Assign (Destination : in out Table_Type; Source : Table_Type);
    --  OVERVIEW:
    --    Begins by a call to DESTROY (DESTINATION) and then copies SOURCE into
    --  DESTINATION. Note the "in out" mode of the formal parameter DESTINATION.
 
    procedure Insert (Table : in out Table_Type;
-                     Key : in Key_Type;
-                     Value : in Value_Type);
+                     Key : Key_Type;
+                     Value : Value_Type);
    --  OVERVIEW:
    --    Inserts the couple (KEY, VALUE) into TABLE.
    --  ERROR:
@@ -157,8 +182,8 @@ package Table_Of_Dynamic_Keys_And_Static_Values_G is
    --  DUPLICATE_ITEM_ERROR is raised.
 
    procedure Insert (Table : in out Table_Type;
-                     Key : in Key_Type;
-                     Value : in Value_Type;
+                     Key : Key_Type;
+                     Value : Value_Type;
                      Duplicate_Item : out Boolean);
    --  OVERVIEW:
    --    Inserts the couple (KEY, VALUE) into TABLE. No action is taken and no
@@ -166,15 +191,15 @@ package Table_Of_Dynamic_Keys_And_Static_Values_G is
    --  except that DUPLICATE_ITEM is set to true.
 
    procedure Insert_Or_Replace_Value (Table : in out Table_Type;
-                                      Key : in Key_Type;
-                                      Value : in Value_Type);
+                                      Key : Key_Type;
+                                      Value : Value_Type);
    --  OVERVIEW:
    --    Inserts the couple (KEY, VALUE) into TABLE if there is no entry with
    --  this key. Otherwise the given VALUE replaces the previous one.
 
    procedure Replace_Value (Table : in out Table_Type;
-                            Key : in Key_Type;
-                            Value : in Value_Type);
+                            Key : Key_Type;
+                            Value : Value_Type);
    --  OVERVIEW:
    --    An entry having key KEY is searched for in TABLE. The given VALUE then
    --  replaces the previous one.
@@ -183,8 +208,8 @@ package Table_Of_Dynamic_Keys_And_Static_Values_G is
    --  MISSING_ITEM_ERROR is raised.
 
    procedure Replace_Value (Table : in out Table_Type;
-                            Key : in Key_Type;
-                            Value : in Value_Type;
+                            Key : Key_Type;
+                            Value : Value_Type;
                             Found : out Boolean);
    --  OVERVIEW:
    --    An entry having key KEY is searched for in TABLE. The given
@@ -193,9 +218,9 @@ package Table_Of_Dynamic_Keys_And_Static_Values_G is
    --  is set to false.
 
    procedure Remove (Table : in out Table_Type;
-                     Key : in Key_Type);
+                     Key : Key_Type);
    procedure Remove (Table : in out Table_Type;
-                     Key : in Key_Type;
+                     Key : Key_Type;
                      Value : out Value_Type);
    --  OVERVIEW:
    --    Removes the entry with key KEY from TABLE and returns in
@@ -205,9 +230,8 @@ package Table_Of_Dynamic_Keys_And_Static_Values_G is
    --  MISSING_ITEM_ERROR is raised. In this case the value of the actual
    --  parameter VALUE is left unchanged.
 
-
    procedure Remove (Table : in out Table_Type;
-                     Key : in Key_Type;
+                     Key : Key_Type;
                      Found : out Boolean);
    --  OVERVIEW:
    --    Removes the entry with key KEY from TABLE. No action is taken
@@ -241,10 +265,10 @@ package Table_Of_Dynamic_Keys_And_Static_Values_G is
    --  values of the actual parameters KEY and VALUE are left unchanged.
 
    generic
-      with procedure Modify (Key : in Key_Type;
+      with procedure Modify (Key : Key_Type;
                              Value : in out Value_Type) is <>;
    procedure Update_Value_Or_Exception_G (Table : in out Table_Type;
-                                          Key : in Key_Type);
+                                          Key : Key_Type);
    --  OVERVIEW:
    --    An entry with key KEY is searched for in TABLE. The associated item
    --  is then passed to procedure MODIFY for modification of its value part.
@@ -252,10 +276,10 @@ package Table_Of_Dynamic_Keys_And_Static_Values_G is
    --    Raises MISSING_ITEM_ERROR if KEY is not in TABLE.
 
    generic
-      with procedure Modify (Key : in Key_Type;
+      with procedure Modify (Key : Key_Type;
                              Value : in out Value_Type) is <>;
    procedure Update_Value_Or_Status_G (Table : in out Table_Type;
-                                       Key : in Key_Type;
+                                       Key : Key_Type;
                                        Found : out Boolean);
    --  OVERVIEW:
    --    An entry with key KEY is searched for in TABLE. The associated item
@@ -265,23 +289,23 @@ package Table_Of_Dynamic_Keys_And_Static_Values_G is
 
    --  QUERIES:
 
-   function Size (Table : in Table_Type) return Natural;
+   function Size (Table : Table_Type) return Natural;
    --  OVERVIEW:
    --    Returns the number of entries currently in TABLE.
 
-   function Is_Empty (Table : in Table_Type) return Boolean;
+   function Is_Empty (Table : Table_Type) return Boolean;
    --  OVERVIEW:
    --    Returns TRUE if and only if the TABLE is empty.
 
-   function Is_Present (Table : in Table_Type;
-                        Key : in Key_Type) return Boolean;
+   function Is_Present (Table : Table_Type;
+                        Key : Key_Type) return Boolean;
    --  OVERVIEW:
    --    Returns TRUE if and only if an ITEM with key KEY is in TABLE.
 
-   function Value (Table : in Table_Type; Key : in Key_Type) return Value_Type;
+   function Value (Table : Table_Type; Key : Key_Type) return Value_Type;
 
-   procedure Get_Value (Table : in Table_Type;
-                        Key : in Key_Type;
+   procedure Get_Value (Table : Table_Type;
+                        Key : Key_Type;
                         Value : out Value_Type);
    --  OVERVIEW:
    --    Gives the VALUE associated with KEY in TABLE.
@@ -289,7 +313,7 @@ package Table_Of_Dynamic_Keys_And_Static_Values_G is
    --    Raises MISSING_ITEM_ERROR if KEY is not found in TABLE. In this case
    --  the value of the actual parameter VALUE is left unchanged.
 
-   procedure Get_Min_Item (Table : in Table_Type;
+   procedure Get_Min_Item (Table : Table_Type;
                            Key : in out Key_Type;
                            Value : out Value_Type);
    --  OVERVIEW:
@@ -298,7 +322,7 @@ package Table_Of_Dynamic_Keys_And_Static_Values_G is
    --   Raises EMPTY_STRUCTURE_ERROR if TABLE is empty. In this case the values
    --  of the actual parameters KEY and VALUE are left unchanged.
 
-   procedure Get_Max_Item (Table : in Table_Type;
+   procedure Get_Max_Item (Table : Table_Type;
                            Key : in out Key_Type;
                            Value : out Value_Type);
    --  OVERVIEW:
@@ -307,25 +331,25 @@ package Table_Of_Dynamic_Keys_And_Static_Values_G is
    --   Raises EMPTY_STRUCTURE_ERROR if TABLE is empty. In this case the values
    --  of the actual parameters KEY and VALUE are left unchanged.
 
-   function Min_Key (Table : in Table_Type) return Key_Type;
+   function Min_Key (Table : Table_Type) return Key_Type;
 
-   procedure Get_Min_Key (Table : in Table_Type; Key : in out Key_Type);
+   procedure Get_Min_Key (Table : Table_Type; Key : in out Key_Type);
    --  OVERVIEW:
    --    Gives the smallest KEY of TABLE.
    --  ERROR:
    --    Raises EMPTY_STRUCTURE_ERROR if TABLE is empty. In this case the value
    --  of the actual parameter KEY is left unchanged.
 
-   function Max_Key (Table : in Table_Type) return Key_Type;
+   function Max_Key (Table : Table_Type) return Key_Type;
 
-   procedure Get_Max_Key (Table : in Table_Type; Key : in out Key_Type);
+   procedure Get_Max_Key (Table : Table_Type; Key : in out Key_Type);
    --  OVERVIEW:
    --    Gives the biggest KEY of TABLE.
    --  ERROR:
    --    Raises EMPTY_STRUCTURE_ERROR if TABLE is empty. In this case the value
    --  of the actual parameter KEY is left unchanged.
 
-   procedure Get_Less_Item (Table : in Table_Type;
+   procedure Get_Less_Item (Table : Table_Type;
                             Key : in out Key_Type;
                             Value : out Value_Type);
    --  OVERVIEW:
@@ -336,7 +360,7 @@ package Table_Of_Dynamic_Keys_And_Static_Values_G is
    --  entry in the table. In this case the values of the actual parameters KEY
    --  and VALUE are left unchanged.
 
-   procedure Get_Less_Or_Equal_Item (Table : in Table_Type;
+   procedure Get_Less_Or_Equal_Item (Table : Table_Type;
                                      Key : in out Key_Type;
                                      Value : out Value_Type);
    --  OVERVIEW:
@@ -347,7 +371,7 @@ package Table_Of_Dynamic_Keys_And_Static_Values_G is
    --  entry in the table. In this case the values of the actual parameters KEY
    --  and VALUE are left unchanged.
 
-   procedure Get_Greater_Item (Table : in Table_Type;
+   procedure Get_Greater_Item (Table : Table_Type;
                                Key : in out Key_Type;
                                Value : out Value_Type);
    --  OVERVIEW:
@@ -358,7 +382,7 @@ package Table_Of_Dynamic_Keys_And_Static_Values_G is
    --  entry in the table. In this case the values of the actual parameters KEY
    --  and VALUE are left unchanged.
 
-   procedure Get_Greater_Or_Equal_Item (Table : in Table_Type;
+   procedure Get_Greater_Or_Equal_Item (Table : Table_Type;
                                         Key : in out Key_Type;
                                         Value : out Value_Type);
    --  OVERVIEW:
@@ -369,10 +393,10 @@ package Table_Of_Dynamic_Keys_And_Static_Values_G is
    --  entry in the table. In this case the values of the actual parameters KEY
    --  and VALUE are left unchanged.
 
-   function Less_Key (Table : in Table_Type;
-                      Key : in Key_Type) return Key_Type;
+   function Less_Key (Table : Table_Type;
+                      Key : Key_Type) return Key_Type;
 
-   procedure Get_Less_Key (Table : in Table_Type;
+   procedure Get_Less_Key (Table : Table_Type;
                            Key : in out Key_Type);
    --  OVERVIEW:
    --    Gives the greatest key less than the value of the parameter KEY.
@@ -381,7 +405,7 @@ package Table_Of_Dynamic_Keys_And_Static_Values_G is
    --  entry in the table. In this case the value of the actual parameter KEY
    --  is left unchanged.
 
-   procedure Get_Less_Key (Table : in Table_Type;
+   procedure Get_Less_Key (Table : Table_Type;
                            Key : in out Key_Type;
                            Found : out Boolean);
    --  OVERVIEW:
@@ -390,10 +414,10 @@ package Table_Of_Dynamic_Keys_And_Static_Values_G is
    --  FALSE depending on success of search. The value of the actual parameter
    --  KEY is left unchanged if FOUND is set to FALSE.
 
-   function Less_Or_Equal_Key (Table : in Table_Type; Key : in Key_Type)
+   function Less_Or_Equal_Key (Table : Table_Type; Key : Key_Type)
      return Key_Type;
 
-   procedure Get_Less_Or_Equal_Key (Table : in Table_Type;
+   procedure Get_Less_Or_Equal_Key (Table : Table_Type;
                                     Key : in out Key_Type);
    --  OVERVIEW:
    --    Gives the greatest key less than or equal to the value of the
@@ -403,7 +427,7 @@ package Table_Of_Dynamic_Keys_And_Static_Values_G is
    --  entry in the table. In this case the value of the actual parameter KEY
    --  is left unchanged.
 
-   procedure Get_Less_Or_Equal_Key (Table : in Table_Type;
+   procedure Get_Less_Or_Equal_Key (Table : Table_Type;
                                     Key : in out Key_Type;
                                     Found : out Boolean);
    --  OVERVIEW:
@@ -412,10 +436,10 @@ package Table_Of_Dynamic_Keys_And_Static_Values_G is
    --  TRUE or FALSE depending on success of search. The value of the actual
    --  parameter KEY is left unchanged if FOUND is set to FALSE.
 
-   function Greater_Key (Table : in Table_Type;
-                         Key : in Key_Type) return Key_Type;
+   function Greater_Key (Table : Table_Type;
+                         Key : Key_Type) return Key_Type;
 
-   procedure Get_Greater_Key (Table : in Table_Type;
+   procedure Get_Greater_Key (Table : Table_Type;
                               Key : in out Key_Type);
    --  OVERVIEW:
    --    Gives the smallest key greater than the value of the parameter
@@ -425,7 +449,7 @@ package Table_Of_Dynamic_Keys_And_Static_Values_G is
    --  entry in the table. In this case the value of the actual parameter KEY
    --  is left unchanged.
 
-   procedure Get_Greater_Key (Table : in Table_Type;
+   procedure Get_Greater_Key (Table : Table_Type;
                               Key : in out Key_Type;
                               Found : out Boolean);
    --  OVERVIEW:
@@ -434,10 +458,10 @@ package Table_Of_Dynamic_Keys_And_Static_Values_G is
    --  FALSE depending on success of search. The value of the actual parameter
    --  KEY is left unchanged if FOUND is set to FALSE.
 
-   function Greater_Or_Equal_Key (Table : in Table_Type;
-                                  Key : in Key_Type) return Key_Type;
+   function Greater_Or_Equal_Key (Table : Table_Type;
+                                  Key : Key_Type) return Key_Type;
 
-   procedure Get_Greater_Or_Equal_Key (Table : in Table_Type;
+   procedure Get_Greater_Or_Equal_Key (Table : Table_Type;
                                        Key : in out Key_Type);
    --  OVERVIEW:
    --    Returns the smallest key greater than or equal to the value of
@@ -447,7 +471,7 @@ package Table_Of_Dynamic_Keys_And_Static_Values_G is
    --  entry in the table. In this case the value of the actual parameter KEY
    --  is left unchanged.
 
-   procedure Get_Greater_Or_Equal_Key (Table : in Table_Type;
+   procedure Get_Greater_Or_Equal_Key (Table : Table_Type;
                                        Key : in out Key_Type;
                                        Found : out Boolean);
    --  OVERVIEW:
@@ -462,71 +486,70 @@ package Table_Of_Dynamic_Keys_And_Static_Values_G is
 
       procedure Union (Destination : in out Table_Type;
                        Left,
-                         Right : in Table_Type);
+                         Right : Table_Type);
       --  OVERVIEW:
       --    Union of LEFT and RIGHT. If a key is both in LEFT and RIGHT, the
       --  value is taken from LEFT.
 
       procedure Intersection (Destination : in out Table_Type;
                               Left,
-                                Right : in Table_Type);
+                                Right : Table_Type);
       --  OVERVIEW:
       --    Intersection of LEFT and RIGHT. The items are taken from LEFT.
 
       procedure Difference (Destination : in out Table_Type;
                             Left,
-                              Right : in Table_Type);
+                              Right : Table_Type);
       --  OVERVIEW:
       --    Set difference of LEFT and RIGHT. An item is in the resulting table
       --  if it is in LEFT and if there is no item with same key in RIGHT.
 
       procedure Symmetric_Difference (Destination : in out Table_Type;
                                       Left,
-                                        Right : in Table_Type);
+                                        Right : Table_Type);
       --  OVERVIEW:
       --    Symmetric set difference of LEFT and RIGHT. An item is in the
       --  resulting table if it is in LEFT but there is no item with same key
       --  in RIGHT or if it is in RIGHT but there is no item with same key in
       --  LEFT.
 
-      function "=" (Left, Right : in Table_Type) return Boolean;
+      function "=" (Left, Right : Table_Type) return Boolean;
       --  OVERVIEW:
       --    Set equality; the LEFT and RIGHT tables contain entries with same
       --  keys.
 
-      function "<" (Left, Right : in Table_Type) return Boolean;
+      function "<" (Left, Right : Table_Type) return Boolean;
       --  OVERVIEW:
       --    Strict set inclusion; to each item in the LEFT table an item with
       --  same key is associated in the RIGHT table, but the two sets are not
       --  identical.
 
-      function "<=" (Left, Right : in Table_Type) return Boolean;
+      function "<=" (Left, Right : Table_Type) return Boolean;
       --  OVERVIEW:
       --    Set inclusion; to each entry in the LEFT table an entry with same
       --  key is associated in the RIGHT table.
 
-      function ">" (Left, Right : in Table_Type) return Boolean;
+      function ">" (Left, Right : Table_Type) return Boolean;
       --  OVERVIEW:
       --   Strict set inclusion; to each entry in the RIGHT table an entry with
       --  same key is associated in the LEFT table, but the two sets are not
       --  identical.
 
-      function ">=" (Left, Right : in Table_Type) return Boolean;
+      function ">=" (Left, Right : Table_Type) return Boolean;
       --  OVERVIEW:
       --    Set inclusion; to each entry in the RIGHT table an entry with same
       --  key is associated in the LEFT table.
 
    end Set_Operations_G;
 
-
    --  ITERATORS:
 
    generic
-      with procedure Action (Key : in Key_Type;
-                             Value : in Value_Type;
-                             Order_Number : in Positive;
+      with procedure Action (Key : Key_Type;
+                             Value : Value_Type;
+                             Order_Number : Positive;
                              Continue : in out Boolean) is <>;
-   procedure Traverse_Asc_G (Table : in Table_Type);
+   procedure Traverse_Asc_G (Table : Table_Type);
    --  OVERVIEW:
    --    The entries in TABLE are visited in ascending order of their key
    --  values. Procedure ACTION is applied on each entry within TABLE.
@@ -538,13 +561,12 @@ package Table_Of_Dynamic_Keys_And_Static_Values_G is
    --    For your actual procedure  ACTION, you must not use a procedure
    --  which modifies the traversed table.
 
-
    generic
-      with procedure Action (Key : in Key_Type;
-                             Value : in Value_Type;
-                             Order_Number : in Positive;
+      with procedure Action (Key : Key_Type;
+                             Value : Value_Type;
+                             Order_Number : Positive;
                              Continue : in out Boolean) is <>;
-   procedure Traverse_Desc_G (Table : in Table_Type);
+   procedure Traverse_Desc_G (Table : Table_Type);
    --  OVERVIEW:
    --    The entries in TABLE are visited in descending order of their key
    --  values. Procedure ACTION is applied on each entry within TABLE.
@@ -557,9 +579,9 @@ package Table_Of_Dynamic_Keys_And_Static_Values_G is
    --  which modifies the traversed table.
 
    generic
-      with procedure Modify (Key : in Key_Type;
+      with procedure Modify (Key : Key_Type;
                              Value : in out Value_Type;
-                             Order_Number : in Positive;
+                             Order_Number : Positive;
                              Continue : in out Boolean) is <>;
    procedure Traverse_Asc_And_Update_Value_G (Table : in out Table_Type);
    --  OVERVIEW:
@@ -575,9 +597,9 @@ package Table_Of_Dynamic_Keys_And_Static_Values_G is
    --  modifies the traversed table.
 
    generic
-      with procedure Modify (Key : in Key_Type;
+      with procedure Modify (Key : Key_Type;
                              Value : in out Value_Type;
-                             Order_Number : in Positive;
+                             Order_Number : Positive;
                              Continue : in out Boolean) is <>;
    procedure Traverse_Desc_And_Update_Value_G (Table : in out Table_Type);
    --  OVERVIEW:
@@ -593,11 +615,11 @@ package Table_Of_Dynamic_Keys_And_Static_Values_G is
    --  modifies the traversed table.
 
    generic
-      with procedure Action (Key : in Key_Type;
-                             Value : in Value_Type;
-                             Order_Number : in Positive;
+      with procedure Action (Key : Key_Type;
+                             Value : Value_Type;
+                             Order_Number : Positive;
                              Continue : in out Boolean) is <>;
-   procedure Disorder_Traverse_G (Table : in Table_Type);
+   procedure Disorder_Traverse_G (Table : Table_Type);
    --  OVERVIEW:
    --    The entries in TABLE are visited in disorder of their key values.
    --  procedure ACTION is applied on each entry within TABLE.
@@ -614,9 +636,9 @@ package Table_Of_Dynamic_Keys_And_Static_Values_G is
    --  which modifies the traversed table.
 
    generic
-      with procedure Modify (Key : in Key_Type;
+      with procedure Modify (Key : Key_Type;
                              Value : in out Value_Type;
-                             Order_Number : in Positive;
+                             Order_Number : Positive;
                              Continue : in out Boolean) is <>;
    procedure Disorder_Traverse_And_Update_Value_G (Table : in out Table_Type);
    --  OVERVIEW:
@@ -644,14 +666,12 @@ package Table_Of_Dynamic_Keys_And_Static_Values_G is
    --    Releases all items from the free list giving their space back to the
    --  system.
 
-
-   procedure Set_Max_Free_List_Size (Max_Free_List_Size : in Natural);
+   procedure Set_Max_Free_List_Size (Max_Free_List_Size : Natural);
    --  OVERVIEW:
    --    Sets the maximum length of the internal free list which is 0 by
    --  default.
    --  If parameter MAX_FREE_LIST_SIZE is smaller than the current size
    --  of the list, the items in excess are returned to the system.
-
 
    function Free_List_Size return Natural;
    --  OVERVIEW:
@@ -683,4 +703,3 @@ private
       end record;
 
 end Table_Of_Dynamic_Keys_And_Static_Values_G;
-

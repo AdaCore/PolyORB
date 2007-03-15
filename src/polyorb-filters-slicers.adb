@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -46,8 +46,11 @@ package body PolyORB.Filters.Slicers is
    use PolyORB.Log;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.filters.slicers");
-   procedure O (Message : in String; Level : Log_Level := Debug)
+   procedure O (Message : String; Level : Log_Level := Debug)
      renames L.Output;
+   function C (Level : Log_Level := Debug) return Boolean
+     renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    ------------
    -- Create --
@@ -60,8 +63,6 @@ package body PolyORB.Filters.Slicers is
       pragma Warnings (Off);
       pragma Unreferenced (Fact);
       pragma Warnings (On);
-
-      use PolyORB.Components;
 
       Res : constant Filter_Access := new Slicer_Filter;
    begin
@@ -117,7 +118,7 @@ package body PolyORB.Filters.Slicers is
             if F.In_Buf = null
               or else Data_Received > F.Data_Expected
             then
-               raise Unexpected_Data;
+               raise Program_Error;
                --  This exception will be propagated to the ORB.
             end if;
 

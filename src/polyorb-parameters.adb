@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -33,91 +33,31 @@
 
 --  PolyORB runtime configuration facility
 
-with PolyORB.Dynamic_Dict;
-with PolyORB.Log;
+with PolyORB.Initialization;
+with PolyORB.Utils;
+with PolyORB.Utils.Chained_Lists;
 with PolyORB.Utils.Strings;
+
+pragma Elaborate_All (PolyORB.Initialization);
 
 package body PolyORB.Parameters is
 
-   use PolyORB.Utils.Strings;
+   procedure Initialize;
+   --  Complete the initialization of the configuration parameters framework,
+   --  after all sources have been initialized.
 
-   -------
-   -- O --
-   -------
+   package Source_Lists is
+     new PolyORB.Utils.Chained_Lists (Parameters_Source_Access);
 
-   procedure O (S : String);
-   pragma Inline (O);
-   --  Output a diagnostic or error message.
-
-   --  Note: We are currently initializing structures on which
-   --  PolyORB.Log.Facility_Log depends. Thus we cannot instantiate
-   --  this package and use PolyORB.Log.Internals.Put_Line instead.
-
-   Debug : constant Boolean := True;
-
-   procedure O (S : String) is
-   begin
-      if Debug then
-         PolyORB.Log.Internals.Put_Line (S);
-      end if;
-   end O;
-
-   --------------------------------------------
-   -- The configuration variables dictionary --
-   --------------------------------------------
-
-   package Variables is
-      new PolyORB.Dynamic_Dict (Value => String_Ptr);
+   Sources : Source_Lists.List;
+   --  Manage an ordered list of configuration parameter sources. When looking
+   --  up the value of a parameter, the first match is returned, hence sources
+   --  closer to the head of the list take precendence over subsequent ones.
 
    function Fetch (Key : String) return String;
    --  Get the string from a file (if Key starts with file: and the file
    --  exists, otherwise it is an empty string), or the string itself
    --  otherwise.
-
-   function Make_Global_Key (Section, Key : String) return String;
-   --  Build Dynamic Dict key from (Section, Key) tuple
-
-   function Make_Env_Name (Section, Key : String) return String;
-   --  Build environment variable from (Section, Key) tuple
-
-   function To_Boolean (V : String) return Boolean;
-   --  Convert a String value to a Boolean value according
-   --  to the rules indicated in the spec for boolean configuration
-   --  variables.
-
-   ---------------------
-   -- Make_Global_Key --
-   ---------------------
-
-   function Make_Global_Key (Section, Key : String) return String is
-   begin
-      return "[" & Section & "]" & Key;
-   end Make_Global_Key;
-
-   -------------------
-   -- Make_Env_Name --
-   -------------------
-
-   function Make_Env_Name (Section, Key : String) return String is
-      Result : String := "POLYORB_"
-        & PolyORB.Utils.To_Upper (Section & "_" & Key);
-
-   begin
-      for J in Result'Range loop
-         case Result (J) is
-            when
-              '0' .. '9' |
-              'A' .. 'Z' |
-              'a' .. 'z' |
-              '_'        =>
-               null;
-            when others =>
-               Result (J) := '_';
-         end case;
-      end loop;
-
-      return Result;
-   end Make_Env_Name;
 
    -----------
    -- Fetch --
@@ -135,153 +75,161 @@ package body PolyORB.Parameters is
       end if;
    end Fetch;
 
-   ----------------
-   -- To_Boolean --
-   ----------------
-
-   function To_Boolean (V : String) return Boolean is
-      VV : constant String := PolyORB.Utils.To_Lower (V);
-
-   begin
-      if VV'Length > 0 then
-         case VV (VV'First) is
-            when '0' | 'n' =>
-               return False;
-
-            when '1' | 'y' =>
-               return True;
-
-            when 'o' =>
-               if VV = "off" then
-                  return False;
-               elsif VV = "on" then
-                  return True;
-               end if;
-
-            when 'd' =>
-               if VV = "disable" then
-                  return False;
-               end if;
-
-            when 'e' =>
-               if VV = "enable" then
-                  return True;
-               end if;
-
-            when 'f' =>
-               if VV = "false" then
-                  return False;
-               end if;
-
-            when 't' =>
-               if VV = "true" then
-                  return True;
-               end if;
-
-            when others =>
-               null;
-         end case;
-      end if;
-
-      raise Constraint_Error;
-   end To_Boolean;
-
-   --------------
-   -- Get_Conf --
-   --------------
+   -----------------------
+   -- Get_Conf (String) --
+   -----------------------
 
    function Get_Conf
      (Section, Key : String;
-      Default      : String := "")
-     return String
+      Default      : String := "") return String
    is
-      From_Env : constant String
-        := Get_Env (Make_Env_Name (Section, Key));
-
-      Default_Value : aliased String := Default;
-
+      use Source_Lists;
+      It : Iterator := First (Sources);
    begin
-      if From_Env /= "" then
-         return Fetch (From_Env);
-      else
-         return Fetch
-           (Variables.Lookup
-            (Make_Global_Key (Section, Key),
-             String_Ptr'(Default_Value'Unchecked_Access)).all);
-      end if;
+      while not Last (It) loop
+         declare
+            V : constant String := Get_Conf (Value (It).all, Section, Key);
+         begin
+            if V'Length > 0 then
+               return Fetch (V);
+            end if;
+         end;
+         Next (It);
+      end loop;
+      return Default;
    end Get_Conf;
 
+   ------------------------
+   -- Get_Conf (Boolean) --
+   ------------------------
+
    function Get_Conf
      (Section, Key : String;
-      Default      : Boolean := False)
-     return Boolean
+      Default      : Boolean := False) return Boolean
    is
       Default_Value : constant array (Boolean'Range) of
         String (1 .. 1) := (False => "0", True => "1");
    begin
-      return To_Boolean (Get_Conf (Section, Key, Default_Value (Default)));
+      return Utils.Strings.To_Boolean
+        (Get_Conf (Section, Key, Default_Value (Default)));
    end Get_Conf;
+
+   -------------------------
+   -- Get_Conf (Duration) --
+   -------------------------
 
    function Get_Conf
      (Section, Key : String;
-      Default      : Integer := 0)
-     return Integer
+      Default      : Duration := 0.0) return Duration
+   is
+      Milliseconds : constant Natural :=
+                       Get_Conf (Section, Key, Natural (Default * 1000));
+   begin
+      return Duration (Milliseconds) / 1000.0;
+   end Get_Conf;
+
+   ------------------------
+   -- Get_Conf (Integer) --
+   ------------------------
+
+   function Get_Conf
+     (Section, Key : String;
+      Default      : Integer := 0) return Integer
    is
    begin
       return Integer'Value (Get_Conf (Section, Key, Integer'Image (Default)));
    end Get_Conf;
 
-   -------------
-   -- Get_Env --
-   -------------
+   -------------------------
+   -- Get_Conf (Interval) --
+   -------------------------
 
-   function Get_Env
-     (Key     : String;
-      Default : String := "")
-     return String
-   is
-   begin
-      if Fetch_From_Env_Hook /= null then
-         return Fetch_From_Env_Hook.all (Key, Default);
-      else
-         return Default;
-      end if;
-   end Get_Env;
-
-   --------------
-   -- Set_Conf --
-   --------------
-
-   procedure Set_Conf
+   function Get_Conf
      (Section, Key : String;
-      Value        : String)
+      Default      : Interval := (0, 0)) return Interval
    is
-      K : constant String := Make_Global_Key (Section, Key);
-      P : String_Ptr := Variables.Lookup (K, null);
+      Default_Str : constant String := Default.Lo'Img & "-" & Default.Hi'Img;
+      --  Default value as a string
+
+      Str_Value : String renames Get_Conf (Section, Key, Default_Str);
+      --  Effective value as a string
+
+      Hyphen : Integer := Str_Value'Last + 1;
+      --  Index of hyphen in Str_Value, or Str_Value'Last + 1 if none
+
+      Result : Interval;
 
    begin
-      pragma Debug (O (K & "=" & Value));
-      if P /= null then
-         Variables.Unregister (K);
-         Free (P);
+      --  Find hyphen in Str_Value
+
+      for J in Str_Value'Range loop
+         if Str_Value (J) = '-' then
+            if J = Str_Value'First or else J = Str_Value'Last then
+               --  Malformed interval: if hyphen is present, it must be
+               --  preceded and followed by bounds.
+
+               raise Constraint_Error;
+            end if;
+            Hyphen := J;
+            exit;
+         end if;
+      end loop;
+
+      --  Set result
+
+      Result.Lo := Integer'Value (Str_Value (Str_Value'First .. Hyphen - 1));
+
+      --  If Hyphen is present, high bound is given explicitly, else we have
+      --  a plain integer literal, and treat it as a single-value interval.
+
+      if Hyphen < Str_Value'Last then
+         Result.Hi := Integer'Value (Str_Value (Hyphen + 1 .. Str_Value'Last));
+      else
+         Result.Hi := Result.Lo;
       end if;
 
-      Variables.Register (K, +Value);
-   end Set_Conf;
+      return Result;
+   end Get_Conf;
 
    ----------------
    -- Initialize --
    ----------------
 
-   procedure Set_Hooks is
+   procedure Initialize is
    begin
-      PolyORB.Log.Get_Conf_Hook := Get_Conf'Access;
-   end Set_Hooks;
+      PolyORB.Initialization.Get_Conf_Hook := Get_Conf'Access;
+   end Initialize;
 
-   -----------
-   -- Reset --
-   -----------
+   ---------------------
+   -- Make_Global_Key --
+   ---------------------
 
-   procedure Reset renames Variables.Reset;
+   function Make_Global_Key (Section, Key : String) return String is
+   begin
+      return "[" & Section & "]" & Key;
+   end Make_Global_Key;
 
+   ---------------------
+   -- Register_Source --
+   ---------------------
+
+   procedure Register_Source (Source : Parameters_Source_Access) is
+   begin
+      Source_Lists.Append (Sources, Source);
+   end Register_Source;
+
+   use PolyORB.Initialization;
+   use PolyORB.Initialization.String_Lists;
+   use PolyORB.Utils.Strings;
+
+begin
+   Register_Module
+     (Module_Info'
+      (Name      => +"parameters",
+       Conflicts => Empty,
+       Depends   => +"parameters_sources?",
+       Provides  => Empty,
+       Implicit  => True,
+       Init      => Initialize'Access,
+       Shutdown  => null));
 end PolyORB.Parameters;

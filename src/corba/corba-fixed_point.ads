@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2001 Free Software Foundation, Inc.             --
+--         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
@@ -21,8 +21,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -31,22 +31,74 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  this subpackage is used for the implementation of the any type
---  in case of a fixed point numeric value.
---  It defines generic methods to manipulate this kind of any.
+--  This unit provides generic helper routines for fixed point numeric types
+
+with Ada.Streams;
+
+with PolyORB.Any;
+with PolyORB.Types;
 
 generic
    type F is delta <> digits <>;
-
 package CORBA.Fixed_Point is
 
-   function To_Any (Item : in F)  return Any;
+   function To_Any (Item : F)  return Any;
+   function From_Any (Item : Any) return F;
 
-   function From_Any (Item : in Any) return F;
+   function Wrap (X : access F) return PolyORB.Any.Content'Class;
+
+private
+
+   use type PolyORB.Types.Unsigned_Long;
+
+   Fixed_Content_Count : constant PolyORB.Types.Unsigned_Long :=
+                           (F'Digits + 2) / 2;
+
+   type F_Ptr is access all F;
+   subtype F_Repr is Ada.Streams.Stream_Element_Array
+     (0 .. Ada.Streams.Stream_Element_Offset (Fixed_Content_Count - 1));
+
+   type Fixed_Content is new PolyORB.Any.Aggregate_Content with record
+      V          : F_Ptr;
+
+      Repr_Cache : F_Repr;
+      --  We cache a representation of a fixed point value as an array of
+      --  BCD octets, similar to the CDR encoding. This allows efficient
+      --  access to these octets as aggregate elements. Modifications to
+      --  the cache are reflected to V.all upon setting the last element of
+      --  the array.
+
+   end record;
+
+   function Clone
+     (ACC  : Fixed_Content;
+      Into : PolyORB.Any.Content_Ptr := null) return PolyORB.Any.Content_Ptr;
+
+   procedure Finalize_Value
+     (ACC : in out Fixed_Content);
+
+   function Get_Aggregate_Element
+     (ACC   : access Fixed_Content;
+      TC    : PolyORB.Any.TypeCode.Object;
+      Index : PolyORB.Types.Unsigned_Long;
+      Mech  : access PolyORB.Any.Mechanism) return PolyORB.Any.Content'Class;
+
+   procedure Set_Aggregate_Element
+     (ACC    : in out Fixed_Content;
+      TC     : PolyORB.Any.TypeCode.Object;
+      Index  : PolyORB.Types.Unsigned_Long;
+      From_C : in out PolyORB.Any.Any_Container'Class);
+
+   function Get_Aggregate_Count
+     (ACC : Fixed_Content) return PolyORB.Types.Unsigned_Long;
+
+   procedure Set_Aggregate_Count
+     (ACC   : in out Fixed_Content;
+      Count : PolyORB.Types.Unsigned_Long);
 
 end CORBA.Fixed_Point;

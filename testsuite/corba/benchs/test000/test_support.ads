@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PortableServer.ServantActivator;
-
 with Test.Echo;
 
 package Test_Support is
@@ -42,14 +40,5 @@ package Test_Support is
    procedure Preallocate (Count : in Natural);
 
    function To_Object_Reference (Id : in Natural) return Test.Echo.Ref;
-
-private
-
-   type Activator is new PortableServer.ServantActivator.Ref with null record;
-
-   function Incarnate (Self    : in Activator;
-                       Oid     : in PortableServer.ObjectId;
-                       Adapter : in PortableServer.POA_Forward.Ref)
-     return PortableServer.Servant;
 
 end Test_Support;

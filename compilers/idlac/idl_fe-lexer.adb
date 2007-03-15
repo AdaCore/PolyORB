@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -150,10 +150,10 @@ package body Idl_Fe.Lexer is
    -- Low-level string processing --
    ---------------------------------
 
-   Current_Location : Errors.Location;
+   Current_Location : Idlac_Errors.Location;
    --  The current location in the parsed file
 
-   Current_Token_Location : Errors.Location;
+   Current_Token_Location : Idlac_Errors.Location;
    --  The current_token location
 
    Current_Line_Len : Natural;
@@ -179,8 +179,8 @@ package body Idl_Fe.Lexer is
 
    type State_Item is record
       Idl_File_Name          : GNAT.OS_Lib.String_Access;
-      Current_Location       : Errors.Location;
-      Current_Token_Location : Errors.Location;
+      Current_Location       : Idlac_Errors.Location;
+      Current_Token_Location : Idlac_Errors.Location;
       Current_Line_Len       : Natural;
       Line                   : Line_Type;
       Offset                 : Natural;
@@ -264,7 +264,7 @@ package body Idl_Fe.Lexer is
    -- Get_Real_Location --
    -----------------------
 
-   function Get_Real_Location return Errors.Location is
+   function Get_Real_Location return Idlac_Errors.Location is
    begin
       pragma Debug (O ("Get_Real_Location: Line = " &
                        Natural'Image (Current_Location.Line) &
@@ -642,7 +642,6 @@ package body Idl_Fe.Lexer is
       Tok := T_Error;
    end Is_Idl_Keyword;
 
-
    --------------------------------------
    -- Scanners for chars, identifiers, --
    --  numerics, string literals, and  --
@@ -665,9 +664,9 @@ package body Idl_Fe.Lexer is
                Result := T_Lit_Char;
             when ''' =>
                if View_Next_Next_Char /= ''' then
-                  Errors.Error ("Invalid character: '\', "
+                  Idlac_Errors.Error ("Invalid character: '\', "
                                 & "it should probably be '\\'",
-                                Errors.Error,
+                                Idlac_Errors.Error,
                                 Get_Real_Location);
                   Result := T_Error;
                else
@@ -685,12 +684,12 @@ package body Idl_Fe.Lexer is
                if Is_Octal_Digit_Character (View_Next_Char) then
                   Go_To_End_Of_Char;
                   Set_End_Mark;
-                  Errors.Error ("Too much octal digits in "
+                  Idlac_Errors.Error ("Too much octal digits in "
                                 & "character "
                                 & Get_Marked_Text
                                 & ", maximum is 3 in a char "
                                 & "definition",
-                                Errors.Error,
+                                Idlac_Errors.Error,
                                 Get_Real_Location);
                   Result := T_Error;
                else
@@ -705,12 +704,12 @@ package body Idl_Fe.Lexer is
                   if Is_Hexa_Digit_Character (View_Next_Char) then
                      Go_To_End_Of_Char;
                      Set_End_Mark;
-                     Errors.Error ("Too much hexadecimal digits "
+                     Idlac_Errors.Error ("Too much hexadecimal digits "
                                    & "in character "
                                    & Get_Marked_Text
                                    & ", maximum is 2 in a char "
                                    & "definition",
-                                   Errors.Error,
+                                   Idlac_Errors.Error,
                                    Get_Real_Location);
                      Result := T_Error;
                   else
@@ -719,10 +718,10 @@ package body Idl_Fe.Lexer is
                else
                   Go_To_End_Of_Char;
                   Set_End_Mark;
-                  Errors.Error ("Invalid hexadecimal character " &
+                  Idlac_Errors.Error ("Invalid hexadecimal character " &
                                 "code: "
                                 & Get_Marked_Text,
-                                Errors.Error,
+                                Idlac_Errors.Error,
                                 Get_Real_Location);
                   Result := T_Error;
                end if;
@@ -742,12 +741,12 @@ package body Idl_Fe.Lexer is
                      Go_To_End_Of_Char;
                      Set_End_Mark;
                      if Wide then
-                        Errors.Error ("Too much hexadecimal "
+                        Idlac_Errors.Error ("Too much hexadecimal "
                                       & "digits in character "
                                       & Get_Marked_Text
                                       & ", maximum is 4 in a "
                                       & "unicode char definition",
-                                      Errors.Error,
+                                      Idlac_Errors.Error,
                                       Get_Real_Location);
                      end if;
                      Result := T_Error;
@@ -758,51 +757,51 @@ package body Idl_Fe.Lexer is
                   Go_To_End_Of_Char;
                   Set_End_Mark;
                   if Wide then
-                     Errors.Error ("Invalid unicode character " &
+                     Idlac_Errors.Error ("Invalid unicode character " &
                                    "code: "
                                    & Get_Marked_Text,
-                                   Errors.Error,
+                                   Idlac_Errors.Error,
                                    Get_Real_Location);
                   end if;
                   Result := T_Error;
                end if;
                if not Wide then
-                  Errors.Error ("Unicode character is not " &
+                  Idlac_Errors.Error ("Unicode character is not " &
                                              "allowed in a non wide " &
                                              "character.",
-                                             Errors.Error,
+                                             Idlac_Errors.Error,
                                              Get_Real_Location);
                   Result := T_Error;
                end if;
             when '8' | '9' | 'A' .. 'F' | LC_C .. LC_E =>
                Go_To_End_Of_Char;
                Set_End_Mark;
-               Errors.Error ("Invalid octal character code: "
+               Idlac_Errors.Error ("Invalid octal character code: "
                              & Get_Marked_Text
                              & ". For hexadecimal codes, " &
                              "use \xhh",
-                             Errors.Error,
+                             Idlac_Errors.Error,
                              Get_Real_Location);
                Result := T_Error;
             when others =>
                Go_To_End_Of_Char;
                Set_End_Mark;
-               Errors.Error ("Invalid definition of character: "
+               Idlac_Errors.Error ("Invalid definition of character: "
                              & Get_Marked_Text,
-                             Errors.Error,
+                             Idlac_Errors.Error,
                              Get_Real_Location);
                Result := T_Error;
          end case;
       elsif Get_Current_Char = ''' then
          if View_Next_Char = ''' then
-            Errors.Error ("Invalid character: ''', "
+            Idlac_Errors.Error ("Invalid character: ''', "
                           & "it should probably be '\''",
-                          Errors.Error,
+                          Idlac_Errors.Error,
                           Get_Real_Location);
             Result := T_Error;
          else
-            Errors.Error ("Invalid character: ''",
-                          Errors.Error,
+            Idlac_Errors.Error ("Invalid character: ''",
+                          Idlac_Errors.Error,
                           Get_Real_Location);
             return T_Error;
          end if;
@@ -812,15 +811,14 @@ package body Idl_Fe.Lexer is
       Set_End_Mark;
       if Next_Char /= ''' then
          Go_To_End_Of_Char;
-         Errors.Error ("Invalid character: '"
+         Idlac_Errors.Error ("Invalid character: '"
                        & Get_Marked_Text & "'",
-                       Errors.Error,
+                       Idlac_Errors.Error,
                        Get_Real_Location);
          Result := T_Error;
       end if;
       return Result;
    end Scan_Char;
-
 
    -----------------
    -- Scan_String --
@@ -850,10 +848,10 @@ package body Idl_Fe.Lexer is
                         Skip_Char;
                      else
                         Go_To_End_Of_String;
-                        Errors.Error
+                        Idlac_Errors.Error
                           ("A string literal may not contain"
                            & " the character '\0'",
-                           Errors.Error,
+                           Idlac_Errors.Error,
                            Get_Real_Location);
                         return T_Error;
                      end if;
@@ -865,9 +863,9 @@ package body Idl_Fe.Lexer is
                         Skip_Char;
                      else
                         Go_To_End_Of_String;
-                        Errors.Error
+                        Idlac_Errors.Error
                           ("bad hexadecimal character in string",
-                           Errors.Error,
+                           Idlac_Errors.Error,
                            Get_Real_Location);
                         return T_Error;
                      end if;
@@ -878,40 +876,40 @@ package body Idl_Fe.Lexer is
                      else
                         Go_To_End_Of_String;
                         if Wide then
-                           Errors.Error
+                           Idlac_Errors.Error
                              ("bad unicode character in string",
-                              Errors.Error,
+                              Idlac_Errors.Error,
                               Get_Real_Location);
                         else
-                           Errors.Error
+                           Idlac_Errors.Error
                              ("bad unicode character in string. " &
                               "Anyway, it is not allowed in a non " &
                               "wide string.",
-                              Errors.Error,
+                              Idlac_Errors.Error,
                               Get_Real_Location);
                         end if;
                         return T_Error;
                      end if;
                      if not Wide then
-                        Errors.Error
+                        Idlac_Errors.Error
                           ("Unicode characters are not allowed " &
                            "in a non wide string.",
-                           Errors.Error,
+                           Idlac_Errors.Error,
                            Get_Real_Location);
                      end if;
                   when others =>
                      Go_To_End_Of_String;
-                     Errors.Error
+                     Idlac_Errors.Error
                        ("bad escape sequence in string",
-                        Errors.Error,
+                        Idlac_Errors.Error,
                         Get_Real_Location);
                      return T_Error;
                end case;
             when LF =>
                if Several_Lines = False then
-                  Errors.Error
+                  Idlac_Errors.Error
                     ("A String may not go over several lines",
-                     Errors.Error,
+                     Idlac_Errors.Error,
                      Get_Real_Location);
                   Several_Lines := True;
                end if;
@@ -921,16 +919,16 @@ package body Idl_Fe.Lexer is
       end loop;
    exception
       when Ada.Text_IO.End_Error =>
-         Errors.Error ("unexpected end of file in the middle "
+         Idlac_Errors.Error ("unexpected end of file in the middle "
                        & "of a string, you probably forgot the "
                        & Quotation
                        & " at the end of a string",
-                       Errors.Fatal,
+                       Idlac_Errors.Fatal,
                        Get_Real_Location);
 
          --  Not reached
 
-         raise Errors.Fatal_Error;
+         raise Idlac_Errors.Fatal_Error;
    end Scan_String;
 
    ---------------------
@@ -953,7 +951,7 @@ package body Idl_Fe.Lexer is
             when T_Error  =>
                return T_Error;
             when others =>
-               raise Errors.Internal_Error;
+               raise Idlac_Errors.Internal_Error;
          end case;
       elsif not Is_Escaped
         and Get_Current_Char = 'L'
@@ -966,7 +964,7 @@ package body Idl_Fe.Lexer is
             when T_Error  =>
                return T_Error;
             when others =>
-               raise Errors.Internal_Error;
+               raise Idlac_Errors.Internal_Error;
          end case;
       else
          while Is_Identifier_Character (View_Next_Char)
@@ -984,9 +982,9 @@ package body Idl_Fe.Lexer is
             when Is_Identifier =>
                return T_Identifier;
             when Bad_Case =>
-               Errors.Error
+               Idlac_Errors.Error
                  ("Bad identifier or bad case for IDL keyword.",
-                  Errors.Error,
+                  Idlac_Errors.Error,
                   Get_Real_Location);
                return Tok;
          end case;
@@ -1082,8 +1080,8 @@ package body Idl_Fe.Lexer is
          Skip_Char;
          return Scan_Identifier (True);
       else
-         Errors.Error ("Invalid character '_' in identifier",
-                       Errors.Error, Get_Real_Location);
+         Idlac_Errors.Error ("Invalid character '_' in identifier",
+                       Idlac_Errors.Error, Get_Real_Location);
          return T_Error;
       end if;
    end Scan_Underscore;
@@ -1125,20 +1123,20 @@ package body Idl_Fe.Lexer is
               or else To_Lower (Get_Marked_Text) = "ifndef"
               or else To_Lower (Get_Marked_Text) = "include"
               or else To_Lower (Get_Marked_Text) = "error" then
-               Errors.Error
+               Idlac_Errors.Error
                  ("cannot handle preprocessor directive in "
                   & "lexer, please run cpp first.",
-                  Errors.Error,
+                  Idlac_Errors.Error,
                   Get_Real_Location);
                Skip_Line;
             elsif To_Lower (Get_Marked_Text) = "pragma" then
                Pragma_State := True;
                return True;
             else
-               Errors.Error
+               Idlac_Errors.Error
                  ("Uunknow preprocessor directive: "
                   & Get_Marked_Text & ".",
-                  Errors.Error,
+                  Idlac_Errors.Error,
                   Get_Real_Location);
                Skip_Line;
             end if;
@@ -1155,7 +1153,18 @@ package body Idl_Fe.Lexer is
                                New_Line_Number,
                                Last);
                Current_Location.Col := Last;
-               Current_Location.Line := New_Line_Number - 1;
+
+               --  GCC-4.1's C preprocessor output "built-in" section with
+               --  line number 0, so we need to check and workaround this
+               --  situation
+
+               if New_Line_Number /= 0 then
+                  Current_Location.Line := New_Line_Number - 1;
+
+               else
+                  Current_Location.Line := 0;
+               end if;
+
                Skip_Spaces;
                case View_Next_Char is
                   when Quotation =>
@@ -1169,7 +1178,7 @@ package body Idl_Fe.Lexer is
                      declare
                         use GNAT.OS_Lib;
                         use GNAT.Directory_Operations;
-                        use Errors;
+                        use Idlac_Errors;
                         use Ada.Strings.Fixed;
                         use Ada.Strings.Maps;
                         use Ada.Strings;
@@ -1190,13 +1199,13 @@ package body Idl_Fe.Lexer is
                         if Text'Length < 4
                           or else Text (Text'Last - 3 .. Text'Last) /= ".idl"
                         then
-                           Errors.Error
+                           Idlac_Errors.Error
                              ("An IDL file name must have a " &
                               Ada.Characters.Latin_1.Quotation &
                               ".idl" &
                               Ada.Characters.Latin_1.Quotation &
                               " extension.",
-                              Errors.Error,
+                              Idlac_Errors.Error,
                               Get_Real_Location);
                         end if;
 
@@ -1226,7 +1235,7 @@ package body Idl_Fe.Lexer is
                               null;
                            when others =>
                               --  Unexpected preprocessor output, bail out
-                              raise Errors.Internal_Error;
+                              raise Idlac_Errors.Internal_Error;
                         end case;
                         Skip_Spaces;
                      end loop;
@@ -1235,7 +1244,7 @@ package body Idl_Fe.Lexer is
                      null;
                   when others =>
                      --  Unexpected preprocessor output, bail out
-                     raise Errors.Internal_Error;
+                     raise Idlac_Errors.Internal_Error;
                end case;
             end;
          when LF =>
@@ -1243,8 +1252,8 @@ package body Idl_Fe.Lexer is
             return False;
          when others =>
             pragma Debug (O ("Scan_Preprocessor: bad preprocessor line"));
-            Errors.Error ("bad preprocessor line",
-                                       Errors.Error,
+            Idlac_Errors.Error ("bad preprocessor line",
+                                       Idlac_Errors.Error,
                                        Get_Real_Location);
             Skip_Line;
       end case;
@@ -1266,8 +1275,8 @@ package body Idl_Fe.Lexer is
       end if;
 
       if Filename'Length = 0 then
-         Errors.Error ("Missing IDL file as argument",
-                       Errors.Fatal,
+         Idlac_Errors.Error ("Missing IDL file as argument",
+                       Idlac_Errors.Fatal,
                        Get_Real_Location);
          return;
       end if;
@@ -1280,7 +1289,7 @@ package body Idl_Fe.Lexer is
          use Ada.Strings.Maps;
          use Ada.Strings;
 
-         use Errors;
+         use Idlac_Errors;
 
          Separator : Natural;
 
@@ -1466,16 +1475,16 @@ package body Idl_Fe.Lexer is
                end if;
             when others =>
                if Get_Current_Char >= ' ' then
-                  Errors.Error ("Invalid character '"
+                  Idlac_Errors.Error ("Invalid character '"
                                 & Get_Current_Char
                                 & "'",
-                                Errors.Error,
+                                Idlac_Errors.Error,
                                 Get_Real_Location);
                else
-                  Errors.Error
+                  Idlac_Errors.Error
                     ("Invalid character, ASCII code "
                      & Natural'Image (Character'Pos (Get_Current_Char)),
-                     Errors.Error,
+                     Idlac_Errors.Error,
                      Get_Real_Location);
                end if;
                return T_Error;
@@ -1492,7 +1501,7 @@ package body Idl_Fe.Lexer is
       -- Get_Lexer_Location --
       ------------------------
 
-      function Get_Lexer_Location return Errors.Location is
+      function Get_Lexer_Location return Idlac_Errors.Location is
       begin
          pragma Debug (O ("Get_Lexer_Location: filename is " &
                           Current_Token_Location.Filename.all));

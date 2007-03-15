@@ -1,31 +1,34 @@
 ------------------------------------------------------------------------------
---                              Ada Web Server                              --
 --                                                                          --
---                         Copyright (C) 2000-2001                          --
---                                ACT-Europe                                --
+--                           POLYORB COMPONENTS                             --
 --                                                                          --
---  Authors: Dmitriy Anisimkov - Pascal Obry                                --
+--                  POLYORB.SOAP_P.MESSAGE.RESPONSE.ERROR                   --
 --                                                                          --
---  This library is free software; you can redistribute it and/or modify    --
---  it under the terms of the GNU General Public License as published by    --
---  the Free Software Foundation; either version 2 of the License, or (at   --
---  your option) any later version.                                         --
+--                                 B o d y                                  --
 --                                                                          --
---  This library is distributed in the hope that it will be useful, but     --
---  WITHOUT ANY WARRANTY; without even the implied warranty of              --
---  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU       --
---  General Public License for more details.                                --
+--         Copyright (C) 2000-2006, Free Software Foundation, Inc.          --
 --                                                                          --
---  You should have received a copy of the GNU General Public License       --
---  along with this library; if not, write to the Free Software Foundation, --
---  Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.          --
+-- PolyORB is free software; you  can  redistribute  it and/or modify it    --
+-- under terms of the  GNU General Public License as published by the  Free --
+-- Software Foundation;  either version 2,  or (at your option)  any  later --
+-- version. PolyORB is distributed  in the hope that it will be  useful,    --
+-- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
+-- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
+-- License  for more details.  You should have received  a copy of the GNU  --
+-- General Public License distributed with PolyORB; see file COPYING. If    --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
---  As a special exception, if other files instantiate generics from this   --
---  unit, or you link this unit with other files to produce an executable,  --
---  this  unit  does not  by itself cause  the resulting executable to be   --
---  covered by the GNU General Public License. This exception does not      --
---  however invalidate any other reasons why the executable file  might be  --
---  covered by the  GNU Public License.                                     --
+-- As a special exception,  if other files  instantiate  generics from this --
+-- unit, or you link  this unit with other files  to produce an executable, --
+-- this  unit  does not  by itself cause  the resulting  executable  to  be --
+-- covered  by the  GNU  General  Public  License.  This exception does not --
+-- however invalidate  any other reasons why  the executable file  might be --
+-- covered by the  GNU Public License.                                      --
+--                                                                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
+--                                                                          --
 ------------------------------------------------------------------------------
 
 with PolyORB.Any; use PolyORB.Any;
@@ -57,8 +60,7 @@ package body PolyORB.SOAP_P.Message.Response.Error is
       End_Faultstring);
    pragma Warnings (On);
 
-
-   function Fault_Code (Name, Subname : in String) return Faultcode;
+   function Fault_Code (Name, Subname : String) return Faultcode;
    --  Returns the Faultcode for Name and Subname. If Subname is empty it
    --  returns Name otherwise it returns Name & '.' & Subname.
 
@@ -67,8 +69,8 @@ package body PolyORB.SOAP_P.Message.Response.Error is
    -----------
 
    function Build
-     (Faultcode   : in Error.Faultcode;
-      Faultstring : in String)
+     (Faultcode   : Error.Faultcode;
+      Faultstring : String)
      return Object
    is
       use SOAP_P.Types;
@@ -101,7 +103,7 @@ package body PolyORB.SOAP_P.Message.Response.Error is
    -- Client --
    ------------
 
-   function Client (Subname : in String := "") return Faultcode is
+   function Client (Subname : String := "") return Faultcode is
    begin
       return Fault_Code (Client_Faultcode, Subname);
    end Client;
@@ -110,7 +112,7 @@ package body PolyORB.SOAP_P.Message.Response.Error is
    -- Fault_Code --
    ----------------
 
-   function Fault_Code (Name, Subname : in String) return Faultcode is
+   function Fault_Code (Name, Subname : String) return Faultcode is
    begin
       if Subname = "" then
          return Faultcode (Name);
@@ -124,7 +126,7 @@ package body PolyORB.SOAP_P.Message.Response.Error is
    -- From --
    ----------
 
-   function From (P : in Message.Payload.Object) return Object
+   function From (P : Message.Payload.Object) return Object
    is
       pragma Warnings (Off);
       pragma Unreferenced (P);
@@ -142,7 +144,7 @@ package body PolyORB.SOAP_P.Message.Response.Error is
    -- Is_Error --
    --------------
 
-   function Is_Error (E : in Object) return Boolean
+   function Is_Error (E : Object) return Boolean
    is
       pragma Warnings (Off);
       pragma Unreferenced (E);
@@ -155,7 +157,7 @@ package body PolyORB.SOAP_P.Message.Response.Error is
    -- Must_Understand --
    ---------------------
 
-   function Must_Understand (Subname : in String := "") return Faultcode is
+   function Must_Understand (Subname : String := "") return Faultcode is
    begin
       return Fault_Code (Must_Understand_Faultcode, Subname);
    end Must_Understand;
@@ -164,7 +166,7 @@ package body PolyORB.SOAP_P.Message.Response.Error is
    -- Server --
    ------------
 
-   function Server (Subname : in String := "") return Faultcode is
+   function Server (Subname : String := "") return Faultcode is
    begin
       return Fault_Code (Server_Faultcode, Subname);
    end Server;
@@ -173,7 +175,7 @@ package body PolyORB.SOAP_P.Message.Response.Error is
    -- Version_Mismatch --
    ----------------------
 
-   function Version_Mismatch (Subname : in String := "") return Faultcode is
+   function Version_Mismatch (Subname : String := "") return Faultcode is
    begin
       return Fault_Code (Version_Mismatch_Faultcode, Subname);
    end Version_Mismatch;
@@ -182,7 +184,7 @@ package body PolyORB.SOAP_P.Message.Response.Error is
    -- XML_Image --
    ---------------
 
-   function XML_Image (E : in Object) return Unbounded_String is
+   function XML_Image (E : Object) return Unbounded_String is
       NL           : constant String := ASCII.CR & ASCII.LF;
       Message_Body : Unbounded_String;
 
