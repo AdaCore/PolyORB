@@ -3641,7 +3641,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
 
                --  Interfaces are CORBA.Object
 
-               return RE (RE_Wrap_3);
+               return RE (RE_Wrap_3, Withed);
             end;
 
          when others =>
