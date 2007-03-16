@@ -26,7 +26,7 @@ polyorb_ug_TEXINFOS = polyorb_ug_ref.texi \
 polyorb-corba_p-corbaloc.ads: $(top_srcdir)/src/corba/polyorb-corba_p-corbaloc.ads
 	cp -f $< .
 
-polyorb-corba_p-naming_tools.ads: $(top_srcdir)/cos/naming/polyorb-corba_p-naming_tools.ads
+polyorb-corba_p-naming_tools.ads: $(top_srcdir)/idls/cos/naming/polyorb-corba_p-naming_tools.ads
 	cp -f $< .
 
 polyorb-corba_p-server_tools.ads: $(top_srcdir)/src/corba/polyorb-corba_p-server_tools.ads
@@ -55,16 +55,15 @@ server.adb: $(top_srcdir)/examples/corba/echo/server.adb
 
 dsa_client.adb: $(top_srcdir)/examples/dsa/echo/client.adb
 	cp -f $< ./dsa_client.adb
-	
+
 dsa_server.ads: $(top_srcdir)/examples/dsa/echo/server.ads
 	cp -f $< ./dsa_server.ads
-	
+
 dsa_server.adb: $(top_srcdir)/examples/dsa/echo/server.adb
 	cp -f $< ./dsa_server.adb
-	
+
 dsa_echo-cfg.ads: $(top_srcdir)/examples/dsa/echo/echo.cfg
 	cp -f $< ./dsa_echo-cfg.ads
-
 
 polyorb_ug_ref.texi: polyorb_ug_ref.bbl
 	@${SED} -e 's/~/ /g' \
