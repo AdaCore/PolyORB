@@ -50,7 +50,7 @@ AC_DEFUN([AM_WITH_OPENSSL],
             LDFLAGS="$save_LDFLAGS"
             SSL_LDFLAGS=""
         fi
-        SSL_LDFLAGS="${SSL_LDFLAGS}-lssl -lcrypto"
+        SSL_LDFLAGS="${SSL_LDFLAGS}-lssl -lcrypto ${SSL_LIBDL}"
         # Note that order is important here (-lssl must come before
         # -lcrypto), since some undefined symbols in libssl are provided
         # by libcrypto.
