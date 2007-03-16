@@ -1243,8 +1243,6 @@ src/polyorb-filters.ads
 src/polyorb-fixed_point.adb
 src/polyorb-fixed_point.ads
 src/polyorb-if_descriptors.ads
-src/polyorb-initialization-exceptions.adb
-src/polyorb-initialization-exceptions.ads
 src/polyorb-initialization.adb
 src/polyorb-initialization.ads
 src/polyorb-jobs.adb

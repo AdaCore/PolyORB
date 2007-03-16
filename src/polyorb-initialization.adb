@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,9 +31,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Automatic initialization of PolyORB subsystems.
+--  Automatic initialization of PolyORB subsystems
 
-with PolyORB.Initialization.Exceptions;
 with PolyORB.Log;
 with PolyORB.Utils.Chained_Lists;
 
@@ -120,8 +119,9 @@ package body PolyORB.Initialization is
    -- Internal subprograms --
    --------------------------
 
-   procedure Raise_Program_Error (Msg : String)
-      renames Exceptions.Raise_Program_Error;
+   procedure Raise_Program_Error (Msg : String);
+   pragma No_Return (Raise_Program_Error);
+   --  Raise Program_Error with the given exception message
 
    procedure Check_Conflicts;
    --  For each module, check that it does not conflict
@@ -306,6 +306,15 @@ package body PolyORB.Initialization is
            ("Conflict: " & Name & " already registered.");
       end if;
    end Check_Duplicate;
+
+   -------------------------
+   -- Raise_Program_Error --
+   -------------------------
+
+   procedure Raise_Program_Error (Msg : String) is
+   begin
+      raise Program_Error with Msg;
+   end Raise_Program_Error;
 
    --------------------------
    -- Resolve_Dependencies --
