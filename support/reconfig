@@ -84,7 +84,7 @@ echo "Running autoconf"
 autoconf
 
 echo "Running automake"
-automake --add-missing
+automake --add-missing --copy
 
 echo "Generating IDL tree accessors"
 (cd compilers/idlac && python make_nodes.py nodes.txt > nodes.ada \
