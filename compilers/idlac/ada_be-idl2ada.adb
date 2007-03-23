@@ -3192,7 +3192,7 @@ package body Ada_Be.Idl2Ada is
       if With_Dependency'Length /= 0 then
          PL (CU, "+""" & With_Dependency & """");
       else
-         PL (CU, "Empty");
+         PL (CU, "PolyORB.Initialization.String_Lists.Empty");
       end if;
 
       Divert (CU, Visible_Declarations);
@@ -3237,12 +3237,12 @@ package body Ada_Be.Idl2Ada is
       PL (CU, "  (Module_Info'");
       II (CU);
       PL (CU, "(Name      => +""" & Name (CU) & """,");
-      PL (CU, " Conflicts => Empty,");
+      PL (CU, " Conflicts => PolyORB.Initialization.String_Lists.Empty,");
       PL (CU, " Depends   =>");
       Undivert (CU, Initialization_Dependencies);
 
       PL (CU, " ,");
-      PL (CU, " Provides  => Empty,");
+      PL (CU, " Provides  => PolyORB.Initialization.String_Lists.Empty,");
       PL (CU, " Implicit  => False,");
       PL (CU, " Init      => Deferred_Initialization'Access,");
       PL (CU, " Shutdown  => null));");
