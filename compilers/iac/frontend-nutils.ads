@@ -99,8 +99,8 @@ package Frontend.Nutils is
    function Get_Original_Type_Declarator (E : Node_Id) return Node_Id;
    --  This function returns the Original type declarator
    --  corresponding to the IDL node E. The original type declarator
-   --  is a simple or a complex declarator for which, the type
-   --  specifier is *not* a scoped name.
+   --  is a complex declarator, or a simple declarator for which the
+   --  type specifier is *not* a scoped name.
 
    function Get_Original_Type_Declaration (E : Node_Id) return Node_Id;
    --  This function returns the type declaration node corresponding

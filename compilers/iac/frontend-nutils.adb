@@ -455,7 +455,7 @@ package body Frontend.Nutils is
       N : Node_Id;
    begin
       case Kind (E) is
-         when K_Complex_Declarator | K_Simple_Declarator =>
+         when K_Simple_Declarator =>
             N := Type_Spec (Declaration (E));
 
             if Kind (N) = K_Scoped_Name then
