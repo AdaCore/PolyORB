@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -1690,60 +1690,72 @@ package body Analyzer is
                end if;
 
                --  When E is not a declaration, cast to signed
-               --  integers and then to unsigned integers. When E is a
+               --  integers or else to unsigned integers. When E is a
                --  declaration, cast to the exact type.
 
-               for B in False .. True loop
-                  case RV.K is
-                     when K_Octet =>
-                        if In_Range (I, S, FO, LO) then
-                           RV := Convert (RV, KT);
-                        end if;
+               declare
+                  Conversion_Succcessful : Boolean := False;
+               begin
+                  for B in False .. True loop
+                     case KT is
+                        when K_Octet =>
+                           if In_Range (I, S, FO, LO) then
+                              RV := Convert (RV, KT);
+                              Conversion_Succcessful := True;
+                           end if;
 
-                     when K_Short =>
-                        if In_Range (I, S, FS, LS) then
-                           RV := Convert (RV, KT);
-                        end if;
+                        when K_Short =>
+                           if In_Range (I, S, FS, LS) then
+                              RV := Convert (RV, KT);
+                              Conversion_Succcessful := True;
+                           end if;
 
-                     when K_Long =>
-                        if In_Range (I, S, FL, LL) then
-                           RV := Convert (RV, KT);
-                        end if;
+                        when K_Long =>
+                           if In_Range (I, S, FL, LL) then
+                              RV := Convert (RV, KT);
+                              Conversion_Succcessful := True;
+                           end if;
 
-                     when K_Long_Long =>
-                        if In_Range (I, S, FLL, LLL) then
-                           RV := Convert (RV, KT);
-                        end if;
+                        when K_Long_Long =>
+                           if In_Range (I, S, FLL, LLL) then
+                              RV := Convert (RV, KT);
+                              Conversion_Succcessful := True;
+                           end if;
 
-                     when K_Unsigned_Short =>
-                        if In_Range (I, S, FUS, LUS) then
-                           RV := Convert (RV, KT);
-                        end if;
+                        when K_Unsigned_Short =>
+                           if In_Range (I, S, FUS, LUS) then
+                              RV := Convert (RV, KT);
+                              Conversion_Succcessful := True;
+                           end if;
 
-                     when K_Unsigned_Long =>
-                        if In_Range (I, S, FUL, LUL) then
-                           RV := Convert (RV, KT);
-                        end if;
+                        when K_Unsigned_Long =>
+                           if In_Range (I, S, FUL, LUL) then
+                              RV := Convert (RV, KT);
+                              Conversion_Succcessful := True;
+                           end if;
 
-                     when K_Unsigned_Long_Long =>
-                        if In_Range (I, S, FULL, LULL) then
-                           RV := Convert (RV, KT);
-                        end if;
+                        when K_Unsigned_Long_Long =>
+                           if In_Range (I, S, FULL, LULL) then
+                              RV := Convert (RV, KT);
+                              Conversion_Succcessful := True;
+                           end if;
 
-                     when others =>
-                        null;
-                  end case;
+                        when others =>
+                           null;
+                     end case;
 
-                  exit when K = K_Constant_Declaration;
+                     exit when K = K_Constant_Declaration
+                       or else Conversion_Succcessful;
 
-                  --  Switch to unsigned integers
+                     --  Switch to unsigned integers
 
-                  if KT = K_Long_Long then
-                     KT := K_Unsigned_Long_Long;
-                  else
-                     KT := K_Unsigned_Long;
-                  end if;
-               end loop;
+                     if KT = K_Long_Long then
+                        KT := K_Unsigned_Long_Long;
+                     elsif KT /= K_Unsigned_Long_Long then
+                        KT := K_Unsigned_Long;
+                     end if;
+                  end loop;
+               end;
 
                --  Cast cannot be performed. Output an error message
                --  according to the performed operation: exact cast,
@@ -1860,16 +1872,30 @@ package body Analyzer is
          S : Short_Short;
          F : Long_Long;
          L : Unsigned_Long_Long)
-        return Boolean is
+        return Boolean
+      is
+         Minus_F : Unsigned_Long_Long;
       begin
          if S < 0 then
-            if F < 0
-              and then I <= Unsigned_Long_Long (-F)
-            then
-               return True;
+            if F < 0 then
+               --  If F is equal to FLL (the lowest Long_Long), doing
+               --  directly Unsigned_Long_Long (-F) will cause an
+               --  overflow error because converting FLL to LLL + 1 is
+               --  occured before the type conversion to
+               --  Unsigned_Long_Long. The instructions below
+               --  work-around this problem.
+
+               Minus_F := Unsigned_Long_Long (-(F + 1));
+               Minus_F := Minus_F + 1;
+
+               if I <= Minus_F then
+                  return True;
+               end if;
             end if;
+
             return False;
          end if;
+
          return I <= L;
       end In_Range;
 
