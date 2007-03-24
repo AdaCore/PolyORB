@@ -420,7 +420,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
          I := FEN.Identifier (Entity);
       end if;
 
-      Result := Make_Defining_Identifier (IDL_Name (I));
+      Result := Make_Defining_Identifier (To_Ada_Name (IDL_Name (I)));
 
       if Present (BE_Node (I))
         and then Present (Stub_Node (BE_Node (I)))

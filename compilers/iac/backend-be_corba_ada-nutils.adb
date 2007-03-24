@@ -61,6 +61,9 @@ package body Backend.BE_CORBA_Ada.Nutils is
    Forwarded_Entities : List_Id;
    --  This list contains the forwarded entities
 
+   Ada_KW_Prefix : constant String := "%ada_kw%";
+   --  Prefix used to "mark" ada keywords
+
    No_Depth : constant Int := -1;
    package Entity_Stack is
       new GNAT.Table (Entity_Stack_Entry, Int, No_Depth + 1, 10, 10);
@@ -2129,13 +2132,23 @@ package body Backend.BE_CORBA_Ada.Nutils is
    begin
       if T in Keyword_Type then
          Set_Str_To_Name_Buffer (Image (T));
-         Set_Name_Table_Byte (Name_Find, Byte (Token_Type'Pos (T) + 1));
-
       else
          Set_Str_To_Name_Buffer (I);
       end if;
 
       Token_Image (T) := Name_Find;
+
+      --  Mark Ada keywords
+
+      if T in Keyword_Type then
+         --  We don't "mark" the keyword name but instead a custom
+         --  string ("%ada_kw%<keyword>" to avoid calshing with other
+         --  marked names.
+
+         Set_Str_To_Name_Buffer (Ada_KW_Prefix);
+         Get_Name_String_And_Append (Token_Image (T));
+         Set_Name_Table_Byte (Name_Find, Byte (Token_Type'Pos (T) + 1));
+      end if;
    end New_Token;
 
    ------------------
@@ -2469,9 +2482,10 @@ package body Backend.BE_CORBA_Ada.Nutils is
    -----------------
 
    function To_Ada_Name (N : Name_Id) return Name_Id is
-      First : Natural := 1;
-      Name  : Name_Id;
-      V     : Byte;
+      First    : Natural := 1;
+      Name     : Name_Id;
+      Low_Name : Name_Id;
+      V        : Byte;
    begin
       Get_Name_String (N);
 
@@ -2495,13 +2509,16 @@ package body Backend.BE_CORBA_Ada.Nutils is
       end if;
 
       Name := Name_Find;
+      Low_Name := To_Lower (Name);
 
       --  If the identifier collides with an Ada reserved word insert
       --  "IDL_" string before the identifier.
 
-      V := Get_Name_Table_Byte (Name);
+      Set_Str_To_Name_Buffer (Ada_KW_Prefix);
+      Get_Name_String_And_Append (Low_Name);
+      V := Get_Name_Table_Byte (Name_Find);
 
-      if V > 0 then
+      if V > 0  then
          Set_Str_To_Name_Buffer ("IDL_");
          Get_Name_String_And_Append (Name);
          Name := Name_Find;

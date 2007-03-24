@@ -117,6 +117,9 @@ package Backend.BE_CORBA_Ada.Nutils is
       Tok_Task,            -- TASK
       Tok_Type,            -- TYPE
       Tok_Subtype,         -- SUBTYPE
+      Tok_Interface,       -- INTERFACE
+      Tok_Overriding,      -- OVERRIDING
+      Tok_Synchronized,    -- SYNCHRONIZED
       Tok_Use,             -- USE
 
       Tok_Function,        -- FUNCTION
