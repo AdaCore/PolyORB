@@ -149,13 +149,13 @@ package Backend.BE_CORBA_Ada.Runtime is
       RU_PolyORB_Aligned_Types_Sequences_Bounded,
       RU_PolyORB_Aligned_Types_Sequences_Unbounded,
       RU_PolyORB_Opaque,
+      RU_PolyORB_Std,
+      RU_PolyORB_Std_ASCII,
       RU_PolyORB_Utils,
       RU_PolyORB_Utils_Strings,
       RU_PolyORB_Utils_Strings_Lists,
       RU_PortableServer,
-      RU_PortableServer_Internals,
-      RU_Standard,
-      RU_Standard_ASCII);
+      RU_PortableServer_Internals);
 
    --  Runtime Entities
 
@@ -557,6 +557,12 @@ package Backend.BE_CORBA_Ada.Runtime is
       RE_CORBA_Helper_1,            --  PolyORB.Sequences.Bounded.CORBA_Helper
       RE_CORBA_Helper_2,            --  PolyORB.Sequences.Unbounded.
       --                                   CORBA_Helper
+      RE_Boolean_2,                 --  PolyORB.Std.Boolean
+      RE_Integer,                   --  PolyORB.Std.Integer
+      RE_Natural,                   --  PolyORB.Std.Natural
+      RE_Positive,                  --  PolyORB.Std.Positive
+      RE_String_2,                  --  PolyORB.Std.String
+      RE_Nul,                       --  PolyORB.Std.ASCII.Nul
       RE_Identifier,                --  PolyORB.Types.Identifier
       RE_Long_1,                    --  PolyORB.Types.Long
       RE_Long_Long_1,               --  PolyORB.Types.Long_Long
@@ -597,13 +603,7 @@ package Backend.BE_CORBA_Ada.Runtime is
       RE_Register_Skeleton,         --  PortableServer.Internals.
       --                                   Register_Skeleton
       RE_Servant,                   --  PortableServer.Servant
-      RE_Servant_Base,              --  PortableServer.Servant_Base
-      RE_Nul,                       --  Standard.ASCII.Nul
-      RE_Boolean_2,                 --  Standard.Boolean
-      RE_Integer,                   --  Standard.Integer
-      RE_Natural,                   --  Standard.Natural
-      RE_Positive,                  --  Standard.Positive
-      RE_String_2);                 --  Standard.String
+      RE_Servant_Base);             --  PortableServer.Servant_Base
 
    subtype CORBA_Predefined_RU is RU_Id range
      RU_CORBA_Object .. RU_CORBA_TypeCode;
@@ -1124,6 +1124,12 @@ package Backend.BE_CORBA_Ada.Runtime is
            RU_PolyORB_Sequences_Bounded_CORBA_Helper,
          RE_CORBA_Helper_2            =>
            RU_PolyORB_Sequences_Unbounded_CORBA_Helper,
+         RE_Boolean_2                 => RU_PolyORB_Std,
+         RE_Positive                  => RU_PolyORB_Std,
+         RE_Integer                   => RU_PolyORB_Std,
+         RE_Natural                   => RU_PolyORB_Std,
+         RE_String_2                  => RU_PolyORB_Std,
+         RE_Nul                       => RU_PolyORB_Std_ASCII,
          RE_Identifier                => RU_PolyORB_Types,
          RE_Long_1                    => RU_PolyORB_Types,
          RE_Short_1                   => RU_PolyORB_Types,
@@ -1149,13 +1155,7 @@ package Backend.BE_CORBA_Ada.Runtime is
          RE_Empty                     => RU_PolyORB_Utils_Strings_Lists,
          RE_Register_Skeleton         => RU_PortableServer_Internals,
          RE_Servant                   => RU_PortableServer,
-         RE_Servant_Base              => RU_PortableServer,
-         RE_Nul                       => RU_Standard_ASCII,
-         RE_Boolean_2                 => RU_Standard,
-         RE_Positive                  => RU_Standard,
-         RE_Integer                   => RU_Standard,
-         RE_Natural                   => RU_Standard,
-         RE_String_2                  => RU_Standard);
+         RE_Servant_Base              => RU_PortableServer);
 
    procedure Initialize;
 

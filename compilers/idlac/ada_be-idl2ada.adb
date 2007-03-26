@@ -1138,9 +1138,10 @@ package body Ada_Be.Idl2Ada is
       CU   : in out Compilation_Unit)
    is
    begin
+      Add_With (CU, "PolyORB.Std");
       NL (CU);
       PL (CU, Repository_Id_Name (Node)
-          & " : constant Standard.String");
+          & " : constant PolyORB.Std.String");
       PL (CU, "  := """ & Idl_Repository_Id (Node) & """;");
    end Gen_Repository_Id;
 
@@ -1167,13 +1168,13 @@ package body Ada_Be.Idl2Ada is
       PL (Stubs_Spec, "  (Self : "
           & Ada_Type_Defining_Name (Mapping, Node)
           & ";");
-      PL (Stubs_Spec, "   Logical_Type_Id : Standard.String)");
+      PL (Stubs_Spec, "   Logical_Type_Id : PolyORB.Std.String)");
       PL (Stubs_Spec, "  return CORBA.Boolean;");
 
       Divert (Stubs_Spec, Private_Declarations);
       NL (Stubs_Spec);
       PL (Stubs_Spec, "function Is_A");
-      PL (Stubs_Spec, "  (Logical_Type_Id : Standard.String)");
+      PL (Stubs_Spec, "  (Logical_Type_Id : PolyORB.Std.String)");
       PL (Stubs_Spec, "  return CORBA.Boolean;");
       Divert (Stubs_Spec, Visible_Declarations);
 
@@ -1188,7 +1189,7 @@ package body Ada_Be.Idl2Ada is
       PL (Stubs_Body, "  (Self : "
           & Ada_Type_Defining_Name (Mapping, Node)
           & ";");
-      PL (Stubs_Body, "   Logical_Type_Id : Standard.String)");
+      PL (Stubs_Body, "   Logical_Type_Id : PolyORB.Std.String)");
       PL (Stubs_Body, "  return CORBA.Boolean");
       PL (Stubs_Body, "is");
       PL (Stubs_Body, "begin");
@@ -1296,14 +1297,16 @@ package body Ada_Be.Idl2Ada is
       NL (Impl_Spec);
       PL (Impl_Spec, "function Is_A");
       PL (Impl_Spec, "  (Self            : access Object;");
-      PL (Impl_Spec, "   Logical_Type_Id : Standard.String) return Boolean;");
+      PL (Impl_Spec, "   Logical_Type_Id : PolyORB.Std.String) "
+                   & "return Boolean;");
 
       --  Implementation
 
       NL (Impl_Body);
       PL (Impl_Body, "function Is_A");
       PL (Impl_Body, "  (Self            : access Object;");
-      PL (Impl_Body, "   Logical_Type_Id : Standard.String) return Boolean");
+      PL (Impl_Body, "   Logical_Type_Id : PolyORB.Std.String) "
+                   & "return Boolean");
       PL (Impl_Body, "is");
       PL (Impl_Body, "begin");
       II (Impl_Body);
@@ -1334,7 +1337,7 @@ package body Ada_Be.Idl2Ada is
       PL (CU, "--  this interface.");
       NL (CU);
       PL (CU, "function Is_A");
-      PL (CU, "  (Logical_Type_Id : Standard.String)");
+      PL (CU, "  (Logical_Type_Id : PolyORB.Std.String)");
       PL (CU, "  return CORBA.Boolean");
       PL (CU, "is");
       PL (CU, "begin");

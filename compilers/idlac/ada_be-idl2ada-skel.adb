@@ -384,6 +384,7 @@ package body Ada_Be.Idl2Ada.Skel is
       Divert (CU, Operation_Body);
       NL (CU);
       Add_With (CU, "CORBA.ServerRequest");
+      Add_With (CU, "PolyORB.Std");
       PL (CU, "procedure Invoke");
       PL (CU, "  (Self : PortableServer.Servant;");
       II (CU);
@@ -391,7 +392,7 @@ package body Ada_Be.Idl2Ada.Skel is
       DI (CU);
       PL (CU, "is");
       II (CU);
-      PL (CU, "Operation : constant Standard.String");
+      PL (CU, "Operation : constant PolyORB.Std.String");
       PL (CU, "   := CORBA.To_Standard_String");
       PL (CU, "        (CORBA.ServerRequest.Operation");
       PL (CU, "         (Request.all));");

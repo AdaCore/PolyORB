@@ -1484,6 +1484,7 @@ src/polyorb-sockets.ads
 src/polyorb-sockets_initialization.adb
 src/polyorb-sockets_initialization.ads
 src/polyorb-storage_pools.ads
+src/polyorb-std.ads
 src/polyorb-task_info.adb
 src/polyorb-task_info.ads
 src/polyorb-tasking-advanced_mutexes.adb

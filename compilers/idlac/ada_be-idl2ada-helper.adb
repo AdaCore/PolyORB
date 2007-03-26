@@ -1248,10 +1248,11 @@ package body Ada_Be.Idl2Ada.Helper is
    is
    begin
       Add_With (CU, "PolyORB.Any");
-      PL (CU, "");
-      PL (CU, "procedure " & Raise_From_Any_Name (Node));
-      PL (CU, "  (Item    : PolyORB.Any.Any;");
-      Put (CU, "   Message : Standard.String)");
+      Add_With (CU, "PolyORB.Std");
+      PL  (CU, "");
+      PL  (CU, "procedure " & Raise_From_Any_Name (Node));
+      PL  (CU, "  (Item    : PolyORB.Any.Any;");
+      Put (CU, "   Message : PolyORB.Std.String)");
    end Gen_Raise_From_Any_Profile;
 
    -----------------------
@@ -1488,6 +1489,7 @@ package body Ada_Be.Idl2Ada.Helper is
 
       PL (CU, "use PolyORB.Log;");
       PL (CU, "use PolyORB.Any;");
+      PL (CU, "use PolyORB.Std;");
       PL (CU, "use PolyORB.CORBA_P.Value.Helper;");
       PL (CU, "use CORBA.Value;");
 
@@ -1495,7 +1497,7 @@ package body Ada_Be.Idl2Ada.Helper is
       PL (CU, "--  Logging for this package.");
       PL (CU, "package L is new PolyORB.Log.Facility_Log (""" & Name (CU)
           & """);");
-      PL (CU, "procedure O (Message : Standard.String; Level :" &
+      PL (CU, "procedure O (Message : PolyORB.Std.String; Level :" &
           " Log_Level := Debug)");
       PL (CU, "  renames L.Output;");
       NL (CU);

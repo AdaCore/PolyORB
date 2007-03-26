@@ -224,7 +224,7 @@ package body Backend.BE_CORBA_Ada.Runtime is
            (To_Spec_Name (Fully_Qualified_Name (RUD (U))), Int (RUD (U)));
       end loop;
 
-      Declare_Subunit (RUD (RU_Standard_ASCII));
+      Declare_Subunit (RUD (RU_PolyORB_Std_ASCII));
       Declare_Subunit (RUD (RU_CORBA_Internals));
       Declare_Subunit (RUD (RU_CORBA_TypeCode));
       Declare_Subunit (RUD (RU_CORBA_TypeCode_Internals));
@@ -270,11 +270,6 @@ package body Backend.BE_CORBA_Ada.Runtime is
         (RUD (RU_CORBA_IDL_Sequences_IDL_SEQUENCE_String));
       Declare_Subunit
         (RUD (RU_CORBA_IDL_Sequences_IDL_SEQUENCE_Wide_String));
-
-      --  Package Standard is not a subunit but it has to be handled
-      --  in a specific way as well as subunit.
-
-      Declare_Subunit (RUD (RU_Standard));
 
       for E in RE_Id loop
          Set_Str_To_Name_Buffer (RE_Id'Image (E));
