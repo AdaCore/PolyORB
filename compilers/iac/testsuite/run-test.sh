@@ -2,11 +2,11 @@
 # This script runs the test given to the command line and displays the
 # result
 
-# There are 3 test categories :
+# There are 4 test categories :
 # 1 - Frontend tests    : IDL tree tests
 # 2 - IDL errors tests
-# 2 - Ada Backend tests : Single File tests and multi files tests
-# 3 - Types Backend tests
+# 3 - Ada Backend tests : Single File tests and multi files tests
+# 4 - Types Backend tests
 
 # The test category is given in the command line :
 # run_test.sh <test>:<category>
