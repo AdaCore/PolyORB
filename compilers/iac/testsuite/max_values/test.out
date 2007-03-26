@@ -1,0 +1,23 @@
+module max_values {
+ typedef long Integer;
+ typedef long Natural;
+ typedef long Positive;
+ typedef short Integer_8;
+ typedef short Integer_16;
+ typedef long Integer_32;
+ typedef long long Integer_64;
+ const max_values::Integer INTEGER_MIN = -2147483648;
+ const max_values::Integer INTEGER_MAX = 2147483647;
+ const max_values::Integer_8 INTEGER_8_MIN = -128;
+ const max_values::Integer_8 INTEGER_8_MAX = 127;
+ const max_values::Integer_16 INTEGER_16_MIN = -32768;
+ const max_values::Integer_16 INTEGER_16_MAX = 32767;
+ const max_values::Integer_32 INTEGER_32_MIN = -2147483648;
+ const max_values::Integer_32 INTEGER_32_MAX = 2147483647;
+ const max_values::Integer_64 INTEGER_64_MIN = -9223372036854775808;
+ const max_values::Integer_64 INTEGER_64_MAX = 9223372036854775807;
+ const max_values::Natural NATURAL_MIN = 0;
+ const max_values::Natural NATURAL_MAX = 2147483647;
+ const max_values::Positive POSITIVE_MIN = 1;
+ const max_values::Positive POSITIVE_MAX = 2147483647;
+};

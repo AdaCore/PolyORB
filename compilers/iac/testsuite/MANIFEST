@@ -60,7 +60,7 @@ idl07053/tin.idl:idl_errors
 #iac003/tin.idl
 #iac004/tin.idl
 #iac005/tin.idl
-max_values/tin.idl:idl_backend
+max_values/tin.idl:idl_frontend
 reserved_words/tin.idl:ada_backend
 # Tests from vsorb
 test001/tin.idl:idl_frontend
