@@ -1,0 +1,60 @@
+// This test ensures that the IDL to Ada compiler does not generate
+// code that conflicts with Ada reserved words.
+
+// Per the IDL-to-Ada mapping rules, all such words should be prefixed
+// by "IDL_"
+
+module ada_reserved_words {
+
+  // Here is the list of Ada 2005 reserved key words, per Ada2005 RM, 2.9
+
+  // abort	else	new	return	
+  // abs	elsif	not	reverse	
+  // abstract	end	null	 	
+  // accept	entry	 	select	
+  // access	exception	of	separate	
+  // aliased	exit	or	subtype	
+  // all	 	others	synchronized	
+  // and	for	out	 	
+  // array	function	overriding	tagged	
+  // at	 	 	task	
+  //  	generic	package	terminate	
+  // begin	goto	pragma	then	
+  // body	 	private	type	
+  // 	if	procedure	 	
+  // case	in	protected	until	
+  // constant	interface	 	use	
+  // 	is	raise	 	
+  // declare	 	range	when	
+  // delay	limited	record	while	
+  // delta	loop	rem	with	
+  // digits	 	renames	 	
+  // do	        mod	requeue	xor
+
+  // The following are Ada reserved words that are also IDL reserved words
+  // abstract, exception, out,private, case, in, interface,
+
+  enum kw {abort, else, new, return,
+	   abs, elsif, not, reverse, 
+	   end, null, 
+	   accept, entry, select, 
+	   access, of, separate, 
+	   aliased, exit, or, subtype, 
+	   all, others, synchronized, 
+	   and, for, 
+	   array, function, overriding, tagged, 
+	   at, task, 
+	   generic, package, terminate, 
+	   begin, goto, pragma, then, 
+	   body, type, 
+	   if, procedure,  
+	   protected, until, 
+	   constant, use, 
+	   is, raise,  
+	   declare, range, when, 
+	   delay, limited, record, while, 
+	   delta, loop, rem, with, 
+	   digits,renames,  
+	   do, mod, requeue, xor};
+
+};
