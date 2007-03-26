@@ -31,9 +31,6 @@ module ada_reserved_words {
   // digits	 	renames	 	
   // do	        mod	requeue	xor
 
-  // The following are Ada reserved words that are also IDL reserved words
-  // abstract, exception, out,private, case, in, interface,
-
   enum kw {abort, else, new, return,
 	   abs, elsif, not, reverse, 
 	   end, null, 
@@ -56,5 +53,11 @@ module ada_reserved_words {
 	   delta, loop, rem, with, 
 	   digits,renames,  
 	   do, mod, requeue, xor};
+
+  // The following are Ada reserved words that are also IDL reserved
+  // words, we prefix them with '_' so that the IDL-to-Ada compiler
+  // accepts these declarations.
+
+  enum kw2 { _abstract, _exception, _out, _private, _case, _in, _interface};
 
 };
