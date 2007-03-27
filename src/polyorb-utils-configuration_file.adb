@@ -31,6 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Directories;
 with Ada.Text_IO;
 
 with PolyORB.Initialization;
@@ -166,24 +167,23 @@ package body PolyORB.Utils.Configuration_File is
       use PolyORB.Utils;
 
    begin
-      pragma Debug (O ("Loading configuration from "
-                       & Configuration_Filename));
 
       --  Reset the table and the sections list
 
       Reset_Table (Table);
       Reset_Sections_List;
 
-      begin
-         Open (Conf_File, In_File, Configuration_Filename);
-      exception
-         when Name_Error =>
-            --  No configuration file
+      if not Ada.Directories.Exists (Configuration_Filename) then
 
-            pragma Debug (O ("No " & Configuration_Filename
-                             & " configuration file."));
-            return;
-      end;
+         pragma Debug (O ("No " & Configuration_Filename
+                          & " configuration file."));
+         return;
+      end if;
+
+      pragma Debug (O ("Loading configuration from "
+                       & Configuration_Filename));
+
+      Open (Conf_File, In_File, Configuration_Filename);
 
       while not End_Of_File (Conf_File) loop
          Get_Line (Conf_File, Line, Last);
