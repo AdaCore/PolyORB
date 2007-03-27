@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -181,8 +181,9 @@ private
       --  Number of entries in currently allocated table. The value of zero
       --  ensures that we initially allocate the table.
 
-      Last_Val : Integer := 0;
-      --  Current value of Last
+      Last_Val : Integer := Integer (Table_Low_Bound) - 1;
+      --  Current value of Last (table is initially empty)
+
    end record;
 
 end PolyORB.Utils.Dynamic_Tables;
