@@ -27,6 +27,29 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+* PolyORB 2.3
+=============
+
+This release contains the PolyORB generic middleware, and its CORBA
+and DSA instanciations. In addition to the 2.2 release, it includes:
+
+New features
+------------
+
+See the features-23 file.
+
+Bug fixes
+---------
+
+The CDR unmarshalling for TypeCode objects of kind Union was incorrect.
+(G326-004)
+
+IDLAC would generate incorrect code when an IDL file declared a constant
+called "Standard". (G322-037)
+
+IDLAC would generate incorrect code when an IDL file declared a type
+called "Empty". (G322-036)
+
 * PolyORB 2.2 (branched on 2007-01-10)
 ======================================
 
@@ -35,6 +58,8 @@ generic middleware. In addition to the 2.1 release, it includes:
 
 New features
 ------------
+
+See the features-22 file.
 
 New applicative personality: dsa (Ada Distributed Systems Annex).
 
@@ -109,12 +134,12 @@ CORBA.Is_Equivalent has been fixed to correctly determine when two references
 designate the same remote object (same remote node and same object key).
 (10124)
 
-PortableServer.POA.Reference_To_Id would raise an exception in the case of
-a POA with the USE_DEFAULT_SERVANT request processing policy. (10070)
-
 The From_Any function generated for sequences of discriminated unions would
 raise CONSTRAINT_ERROR on sequence elements with a discriminant value other
 than the default one. (10087)
+
+PortableServer.POA.Reference_To_Id would raise an exception in the case of
+a POA with the USE_DEFAULT_SERVANT request processing policy. (10070)
 
 Incompatible changes
 --------------------
