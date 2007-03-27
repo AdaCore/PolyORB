@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -1110,13 +1110,18 @@ package body PolyORB.Representations.CDR is
          when TC_Union_Id =>
             Result := PolyORB.Any.TypeCode.TC_Union;
             declare
-               Complex_Encap : aliased Encapsulation
-                 := Unmarshall (Buffer);
+               Complex_Encap : aliased Encapsulation := Unmarshall (Buffer);
                Complex_Buffer : aliased Buffer_Type;
+
                Id, Name, Member_Name : PolyORB.Types.String;
-               Nb, Default_Index : PolyORB.Types.Unsigned_Long;
+               Nb : PolyORB.Types.Unsigned_Long;
+
+               --  Parameters for union TypeCode
+
+               Default_Index : PolyORB.Types.Long;
                Discriminator_Type, Member_Type : PolyORB.Any.TypeCode.Object;
                Member_Label : PolyORB.Any.Any;
+
                E : Error_Container;
             begin
                Decapsulate (Complex_Encap'Access, Complex_Buffer'Access);
@@ -1153,7 +1158,7 @@ package body PolyORB.Representations.CDR is
                      Member_Type :=
                        Unmarshall (Complex_Buffer'Access, Representation);
                      PolyORB.Any.TypeCode.Add_Parameter
-                       (Result, Member_Label);
+                       (Result, To_Any (Member_Label));
                      PolyORB.Any.TypeCode.Add_Parameter
                        (Result, To_Any (Member_Type));
                      PolyORB.Any.TypeCode.Add_Parameter
