@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -241,8 +241,12 @@ package body PolyORB.Any is
 
    --  A list of Any contents (for construction of aggregates)
 
-   package Content_Tables is
-     new PolyORB.Utils.Dynamic_Tables (Any_Container_Ptr, Integer, 0, 8, 100);
+   package Content_Tables is new PolyORB.Utils.Dynamic_Tables
+     (Table_Component_Type => Any_Container_Ptr,
+      Table_Index_Type     => Integer,
+      Table_Low_Bound      => 0,
+      Table_Initial        => 8,
+      Table_Increment      => 100);
    subtype Content_Table is Content_Tables.Instance;
 
    --  For complex types that could be defined in IDL, a Aggregate_Content
@@ -823,7 +827,7 @@ package body PolyORB.Any is
                       renames Default_Aggregate_Content (New_CC_P.all);
       begin
          Set_Last (New_CC.V, Last (CC.V));
-         for J in Content_Tables.First_Index .. Last (New_CC.V) loop
+         for J in First (New_CC.V) .. Last (New_CC.V) loop
 
             --  Create a new any container, referenced by this aggregate
 
@@ -1122,14 +1126,20 @@ package body PolyORB.Any is
 
    procedure Deep_Deallocate (Table : in out Content_Table) is
       use Content_Tables;
-
    begin
       pragma Debug (O ("Deep_Deallocate: enter"));
 
       if Initialized (Table) then
          for J in First (Table) .. Last (Table) loop
-            Smart_Pointers.Dec_Usage
-              (Smart_Pointers.Entity_Ptr (Table.Table (J)));
+
+            --  If we are aborting during initialisation of the aggregate,
+            --  not all elements might have been initialized at this point,
+            --  so we need to test explicitly against null.
+
+            if Table.Table (J) /= null then
+               Smart_Pointers.Dec_Usage
+                 (Smart_Pointers.Entity_Ptr (Table.Table (J)));
+            end if;
          end loop;
       end if;
 
@@ -1590,8 +1600,7 @@ package body PolyORB.Any is
 
                   declare
                      I : Types.Unsigned_Long := 2;
-                     C : constant Types.Unsigned_Long
-                       := Parameter_Count (TC);
+                     C : constant Types.Unsigned_Long := Parameter_Count (TC);
                   begin
                      while I < C loop
                         if I > 2 then
@@ -1608,6 +1617,37 @@ package body PolyORB.Any is
                   end;
                   Result := Result & To_PolyORB_String (" }");
 
+                  return To_Standard_String (Result);
+
+               when Tk_Union =>
+
+                  Result := Result
+                    & "union ("
+                    & Image (TypeCode.Object'
+                              (From_Any (Get_Parameter (TC, 2).all)))
+                    & " :="
+                    & Types.Long'Image (From_Any (Get_Parameter (TC, 3).all))
+                    & To_PolyORB_String (") {");
+
+                  declare
+                     I : Types.Unsigned_Long := 4;
+                     C : constant Types.Unsigned_Long := Parameter_Count (TC);
+                  begin
+                     while I < C loop
+                        if I > 4 then
+                           Result := Result & ", ";
+                        end if;
+
+                        Result := Result & To_PolyORB_String
+                          ("case " & Image (Get_Parameter (TC, I).all) & ": "
+                           & Image (TypeCode.Object'
+                             (From_Any (Get_Parameter (TC, I + 1).all))) & " ")
+                           & Types.String'
+                          (From_Any (Get_Parameter (TC, I + 2).all));
+                        I := I + 3;
+                     end loop;
+                  end;
+                  Result := Result & To_PolyORB_String (" }");
                   return To_Standard_String (Result);
 
                when others =>
