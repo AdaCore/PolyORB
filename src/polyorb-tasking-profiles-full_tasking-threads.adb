@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -301,11 +301,9 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
    -- Awake_Count --
    -----------------
 
-   function Awake_Count (TF : access Full_Tasking_Thread_Factory_Type)
-     return Natural
-   is
+   function Awake_Count
+     (TF : access Full_Tasking_Thread_Factory_Type) return Natural is
    begin
-
       --  If the environment task is not callable, we do not count it as awake
 
       if TF.Environment_Task.Callable then
@@ -319,8 +317,8 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
    -- Independent_Count --
    -----------------------
 
-   function Independent_Count (TF : access Full_Tasking_Thread_Factory_Type)
-     return Natural
+   function Independent_Count
+     (TF : access Full_Tasking_Thread_Factory_Type) return Natural
    is
       pragma Unreferenced (TF);
    begin
@@ -335,12 +333,23 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
 
    procedure Initialize is
       use Ada.Real_Time;
+      use System.Tasking;
+
       Time_0 : constant Time := Time_Of (0, Time_Span_Zero);
+
+      TID : Task_Id;
+      --  Task identifier used to climb up task tree until we reach the
+      --  environment task.
+
    begin
       PTT.Node_Boot_Time := To_Duration (Clock - Time_0);
       PTT.Register_Thread_Factory (PTT.Thread_Factory_Access
                                    (The_Thread_Factory));
-      The_Thread_Factory.Environment_Task := System.Tasking.Self;
+      TID := System.Tasking.Self;
+      while TID.Common.Parent /= null loop
+         TID := TID.Common.Parent;
+      end loop;
+      The_Thread_Factory.Environment_Task := TID;
    end Initialize;
 
    use PolyORB.Initialization;
