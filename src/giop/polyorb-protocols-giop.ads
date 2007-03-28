@@ -107,7 +107,8 @@ package PolyORB.Protocols.GIOP is
 
    procedure Handle_Data_Indication
      (Sess        : access GIOP_Session;
-      Data_Amount :        Stream_Element_Count);
+      Data_Amount : Stream_Element_Count;
+      Error       : in out Errors.Error_Container);
 
    procedure Handle_Disconnect
      (Sess : access GIOP_Session; Error : Errors.Error_Container);

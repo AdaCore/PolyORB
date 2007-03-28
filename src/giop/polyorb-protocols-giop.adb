@@ -192,11 +192,14 @@ package body PolyORB.Protocols.GIOP is
 
    procedure Handle_Data_Indication
      (Sess        : access GIOP_Session;
-      Data_Amount :        Stream_Element_Count)
+      Data_Amount : Stream_Element_Count;
+      Error       : in out Errors.Error_Container)
    is
       pragma Warnings (Off);
       pragma Unreferenced (Data_Amount);
       pragma Warnings (On);
+
+      use Errors;
 
       Version : GIOP_Version;
    begin
@@ -231,8 +234,17 @@ package body PolyORB.Protocols.GIOP is
             Process_Message (Sess.Implem, Sess);
 
          when others =>
-            raise GIOP_Error;
+            Throw
+              (Error,
+               Comm_Failure_E,
+               System_Exception_Members'(0, Completed_Maybe));
       end case;
+   exception
+      when others =>
+         Throw
+           (Error,
+            Comm_Failure_E,
+            System_Exception_Members'(0, Completed_Maybe));
    end Handle_Data_Indication;
 
    ---------------------------------

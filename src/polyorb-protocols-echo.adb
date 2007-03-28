@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -199,8 +199,9 @@ package body PolyORB.Protocols.Echo is
    end Free;
 
    procedure Handle_Data_Indication
-     (S : access Echo_Session;
-      Data_Amount : Ada.Streams.Stream_Element_Count)
+     (S           : access Echo_Session;
+      Data_Amount : Ada.Streams.Stream_Element_Count;
+      Error       : in out Errors.Error_Container)
    is
       use Binding_Data.Local;
       use Objects;
@@ -208,7 +209,7 @@ package body PolyORB.Protocols.Echo is
 
    begin
       pragma Warnings (Off);
-      pragma Unreferenced (Data_Amount);
+      pragma Unreferenced (Data_Amount, Error);
       pragma Warnings (On);
       pragma Debug (O ("Received data on echo service..."));
       pragma Debug (Buffers.Show (S.Buffer));

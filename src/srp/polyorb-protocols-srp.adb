@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -310,12 +310,13 @@ package body PolyORB.Protocols.SRP is
    ----------------------------
 
    procedure Handle_Data_Indication
-     (S : access SRP_Session;
-      Data_Amount : Stream_Element_Count)
+     (S           : access SRP_Session;
+      Data_Amount : Stream_Element_Count;
+      Error       : in out Errors.Error_Container)
    is
    begin
       pragma Warnings (Off);
-      pragma Unreferenced (Data_Amount);
+      pragma Unreferenced (Data_Amount, Error);
       pragma Warnings (On);
 
       pragma Debug (O ("Received data on SRP service..."));

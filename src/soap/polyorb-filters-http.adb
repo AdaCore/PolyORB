@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -77,8 +77,8 @@ package body PolyORB.Filters.HTTP is
    -----------------------------------------
 
    procedure Handle_Data_Indication
-     (F : access HTTP_Filter;
-      S : Filters.Iface.Data_Indication);
+     (F     : access HTTP_Filter;
+      S     : Filters.Iface.Data_Indication);
    --  Process a Data_Indication message from lower layers.
 
    procedure Process_Line

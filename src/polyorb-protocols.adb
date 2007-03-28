@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -104,7 +104,11 @@ package body PolyORB.Protocols is
 
       elsif S in Data_Indication then
          Handle_Data_Indication
-           (Session_Access (Sess), Data_Indication (S).Data_Amount);
+           (Session_Access (Sess), Data_Indication (S).Data_Amount, Error);
+
+         if Found (Error) then
+            return Filter_Error'(Error => Error);
+         end if;
 
       elsif S in Unmarshall_Arguments then
          declare
@@ -125,9 +129,8 @@ package body PolyORB.Protocols is
          Handle_Flush (Session_Access (Sess));
 
       elsif S in Set_Server then
-         Sess.Server := Set_Server (S).Server;
-         Sess.Dependent_Binding_Object
-           := Set_Server (S).Binding_Object;
+         Sess.Server                   := Set_Server (S).Server;
+         Sess.Dependent_Binding_Object := Set_Server (S).Binding_Object;
 
       elsif S in Execute_Request then
 

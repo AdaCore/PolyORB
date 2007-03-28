@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -309,9 +309,11 @@ package body PolyORB.Protocols.SOAP_Pr is
    end Handle_Unmarshall_Arguments;
 
    procedure Handle_Data_Indication
-     (S : access SOAP_Session;
-      Data_Amount : Ada.Streams.Stream_Element_Count)
+     (S           : access SOAP_Session;
+      Data_Amount : Ada.Streams.Stream_Element_Count;
+      Error       : in out Errors.Error_Container)
    is
+      pragma Unreferenced (Error);
    begin
       if S.Role = Server then
          declare
@@ -358,7 +360,7 @@ package body PolyORB.Protocols.SOAP_Pr is
             Args : Any.NVList.Ref;
             --  Nil (not initialised).
 
-            Error : PolyORB.Errors.Error_Container;
+            Unmarshall_Error : PolyORB.Errors.Error_Container;
 
             use PolyORB.Errors;
 
@@ -373,7 +375,7 @@ package body PolyORB.Protocols.SOAP_Pr is
 
             Result.Name := To_PolyORB_String ("Result");
 
-            Handle_Unmarshall_Arguments (S, Args, Error);
+            Handle_Unmarshall_Arguments (S, Args, Unmarshall_Error);
 
             --  As SOAP is a self-described protocol, we can set the argument
             --  list without waiting for the someone to tell us how to do it.
@@ -390,12 +392,12 @@ package body PolyORB.Protocols.SOAP_Pr is
                Dependent_Binding_Object =>
                  Smart_Pointers.Entity_Ptr (S.Dependent_Binding_Object));
 
-            if Found (Error) then
-               System_Exception_Members (Error.Member.all).Completed :=
-                 Completed_No;
-               Set_Exception (Req, Error);
+            if Found (Unmarshall_Error) then
+               System_Exception_Members
+                 (Unmarshall_Error.Member.all).Completed := Completed_No;
+               Set_Exception (Req, Unmarshall_Error);
                Req.Completed := True;
-               Catch (Error);
+               Catch (Unmarshall_Error);
             end if;
 
             S.Target := Types.To_PolyORB_String ("");
