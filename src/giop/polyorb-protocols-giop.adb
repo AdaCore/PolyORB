@@ -231,6 +231,8 @@ package body PolyORB.Protocols.GIOP is
             end if;
 
          when Expect_Body =>
+            pragma Debug (O ("Received GIOP message body"));
+            pragma Debug (Show (Sess.Buffer_In));
             Process_Message (Sess.Implem, Sess);
 
          when others =>
