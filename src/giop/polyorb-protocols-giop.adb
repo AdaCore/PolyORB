@@ -32,6 +32,7 @@
 ------------------------------------------------------------------------------
 
 with PolyORB.Annotations;
+with PolyORB.Binding_Data.GIOP;
 with PolyORB.Components;
 with PolyORB.Errors.Helper;
 with PolyORB.Protocols.GIOP.Common;
@@ -109,7 +110,9 @@ package body PolyORB.Protocols.GIOP is
       pragma Debug (O ("Permitted sync scope" & Permitted_Sync_Scopes'Img));
       Conf.Permitted_Sync_Scopes := Permitted_Sync_Scopes;
 
-      Conf.GIOP_Def_Ver := To_GIOP_Version
+      --  ??? The following assumes that the GIOP major version is always 1
+
+      Conf.GIOP_Default_Version := To_GIOP_Version
         (Get_Conf
          (Section,
           Prefix & ".default_version.minor",
@@ -287,6 +290,8 @@ package body PolyORB.Protocols.GIOP is
    ---------------------------------
 
    procedure Handle_Connect_Confirmation (Sess : access GIOP_Session) is
+      use PolyORB.Binding_Data.GIOP;
+      use PolyORB.Binding_Objects;
    begin
       pragma Debug (O ("Handle_Connect_Confirmation"));
       pragma Assert (Sess.State = Not_Initialized);
@@ -294,9 +299,14 @@ package body PolyORB.Protocols.GIOP is
       Sess.Role := Client;
 
       if Sess.Implem = null then
-         --  Initialize session with default GIOP version
+         --  Initialize session with GIOP version specified by the profile
+         --  used to create the session.
 
-         Get_GIOP_Implem (Sess, Sess.Conf.GIOP_Def_Ver);
+         Get_GIOP_Implem
+           (Sess,
+            Get_GIOP_Version
+              (GIOP_Profile_Type'Class
+                (Get_Profile (Sess.Dependent_Binding_Object).all)));
       end if;
 
       Expect_GIOP_Header (Sess);
