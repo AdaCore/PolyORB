@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -67,8 +67,8 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.IIOP is
 
    Sli            : aliased PolyORB.Filters.Slicers.Slicer_Factory;
    Pro            : aliased PolyORB.Protocols.GIOP.IIOP.IIOP_Protocol;
-   IIOP_Factories : constant PolyORB.Filters.Factory_Array
-     := (0 => Sli'Access, 1 => Pro'Access);
+   IIOP_Factories : constant PolyORB.Filters.Factory_Array :=
+                      (0 => Sli'Access, 1 => Pro'Access);
 
    procedure Bind_Mechanism
      (Mechanism : IIOP_Transport_Mechanism;
@@ -87,7 +87,8 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.IIOP is
 
    begin
       if Profile.all
-        not in PolyORB.Binding_Data.GIOP.IIOP.IIOP_Profile_Type then
+        not in PolyORB.Binding_Data.GIOP.IIOP.IIOP_Profile_Type
+      then
          Throw (Error, Comm_Failure_E,
                 System_Exception_Members'
                 (Minor => 0, Completed => Completed_Maybe));
@@ -99,7 +100,7 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.IIOP is
             Sock        : Socket_Type;
             Remote_Addr : Sock_Addr_Type := Value (Iter).all;
             TE          : constant PolyORB.Transport.Transport_Endpoint_Access
-              := new Socket_Endpoint;
+                            := new Socket_Endpoint;
 
          begin
             Create_Socket (Sock);
@@ -129,9 +130,7 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.IIOP is
 
          Next (Iter);
 
-         if not Last (Iter)
-           and then Found (Error)
-         then
+         if not Last (Iter) and then Found (Error) then
             Catch (Error);
          end if;
       end loop;
