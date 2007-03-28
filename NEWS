@@ -42,7 +42,7 @@ Bug fixes
 ---------
 
 The client side GIOP version selection mechanism was incorrect. Version
-1.2 was always assumes, even when the server reference specified a
+1.2 was always assumed, even when the server reference specified a
 different version. (G323-025)
 
 The CDR unmarshalling for TypeCode objects of kind Union was incorrect.
