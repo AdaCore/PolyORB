@@ -535,7 +535,7 @@ GNAT and the @code{GNAT.Sockets} package are available.}
 @noindent
 Ada compiler: 
 @itemize @bullet
-@item GNAT Pro 5.03a1 or later
+@item GNAT Pro 5.04a1 or later
 @item GNAT GPL 2006  or later
 @item FSF GCC 4.1.1 or later
 @end itemize
