@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -41,30 +41,27 @@ package PolyORB.Log is
 
    type Log_Level is
      (Unknown,
-      --  The log level for this facility has not been defined yet.
+      --  The log level for this facility has not been defined yet
 
       Debug,
-      --  Developer interest only, should never be displayed
-      --  in a production environment.
+      --  Developer interest only, should never be displayed in a production
+      --  environment.
 
       Info,
-      --  Informational message indicating progress of normal
-      --  operation.
+      --  Informational message indicating progress of normal operation
 
       Notice,
-      --  Notesworthy message in normal operation.
+      --  Notesworthy message in normal operation
 
       Warning,
-      --  Indication that a condition may be abnormal
-      --  and requires attention.
+      --  Indication that a condition may be abnormal and requires attention
 
       Error,
-      --  Indication that an abnormal condition has been identified.
+      --  Indication that an abnormal condition has been identified
 
       Critical
-      --  Indication that an abnormal condition has been
-      --  identified, and that immediate attention is required
-      --  to resume normal operation.
+      --  Indication that an abnormal condition has been identified, and that
+      --  immediate attention is required to resume normal operation.
       );
 
    --  Generic package providing logging support for one facility.
@@ -76,7 +73,7 @@ package PolyORB.Log is
       Facility :  String;
    package Facility_Log is
 
-      --  NOTE: these procedures are not thread safe.
+      --  NOTE: these procedures are not thread safe
 
       procedure Output
         (Message : String;
@@ -96,7 +93,11 @@ package PolyORB.Log is
    ------------------------------------------------------
 
    Log_Section       : constant String    := "log";
-   Default_Log_Level : constant Log_Level := Notice;
+
+   Default_Log_Level : Log_Level          := Notice;
+   --  Log level associated with a facility when none is specified by the
+   --  user. This can be overridden by setting the "default" parameter in the
+   --  Log_Section configuration section.
 
    package Internals is
 
@@ -118,6 +119,7 @@ private
    --  During early initialization (before the logging and configuration
    --  modules are properly initialized), messages are stored in a buffer.
    --  This procedure is called when logging is initialized to process
-   --  buffered messages.
+   --  buffered messages. It also sets Default_Log_Level from the configuration
+   --  file, if an explicit value is provided.
 
 end PolyORB.Log;
