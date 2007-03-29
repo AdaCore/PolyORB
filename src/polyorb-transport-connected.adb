@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -74,8 +74,6 @@ package body PolyORB.Transport.Connected is
         (Connected_Transport_Access_Point'Class (H.TAP.all), New_TE);
 
       if New_TE /= null then
-         Set_Allocation_Class (New_TE.all, Dynamic);
-
          --  Build a binding object based on the newly-created endpoint
 
          Binding_Objects.Setup_Binding_Object

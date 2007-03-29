@@ -106,7 +106,6 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.IIOP is
             Create_Socket (Sock);
             Connect_Socket (Sock, Remote_Addr);
             Create (Socket_Endpoint (TE.all), Sock);
-            Set_Allocation_Class (TE.all, Dynamic);
 
             Binding_Objects.Setup_Binding_Object
               (TE,

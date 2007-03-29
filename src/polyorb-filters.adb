@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -103,10 +103,9 @@ package body PolyORB.Filters is
    begin
       for J in Factories'Range loop
          Create (Fact => Factories (J), Filt => F);
-         Set_Allocation_Class (F.all, Dynamic);
+
          pragma Debug (O ("Created filter of type "
                           & Ada.Tags.External_Tag (F'Tag)));
-         --  Create new filter.
 
          Connect_Lower (F, Component_Access (Lower_F));
 

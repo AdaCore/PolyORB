@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -109,7 +109,6 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.SSLIOP is
       Create_Socket (Sock);
       Connect_Socket (Sock, Binding_Context, SSL_Sock, Remote_Addr);
       Create (SSL_Endpoint (TE.all), SSL_Sock);
-      Set_Allocation_Class (TE.all, Dynamic);
 
       Binding_Objects.Setup_Binding_Object
         (TE,

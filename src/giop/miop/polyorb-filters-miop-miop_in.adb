@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -67,7 +67,6 @@ package body PolyORB.Filters.MIOP.MIOP_In is
 
       Res : constant Filter_Access := new MIOP_In_Filter;
    begin
-      Set_Allocation_Class (Res.all, Dynamic);
       MIOP_In_Filter (Res.all).In_Buf := null;
       MIOP_In_Filter (Res.all).MIOP_Buf := new Buffer_Type;
       MIOP_In := Res;

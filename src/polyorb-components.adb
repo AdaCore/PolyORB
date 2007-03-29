@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -63,6 +63,31 @@ package body PolyORB.Components is
       Port := Target;
    end Connect;
 
+   -------------
+   -- Destroy --
+   -------------
+
+   procedure Destroy (Comp : in out Component) is
+      pragma Unreferenced (Comp);
+   begin
+      null;
+   end Destroy;
+
+   -------------
+   -- Destroy --
+   -------------
+
+   procedure Destroy (Comp : in out Component_Access) is
+      procedure Free is new Ada.Unchecked_Deallocation
+        (Component'Class, Component_Access);
+   begin
+      pragma Debug (O ("Destroying component "
+        & Ada.Tags.External_Tag (Comp'Tag)));
+
+      Destroy (Comp.all);
+      Free (Comp);
+   end Destroy;
+
    ----------
    -- Emit --
    ----------
@@ -100,44 +125,5 @@ package body PolyORB.Components is
       pragma Assert (Reply in Null_Message);
       null;
    end Emit_No_Reply;
-
-   -------------
-   -- Destroy --
-   -------------
-
-   procedure Destroy (Comp : in out Component) is
-      pragma Unreferenced (Comp);
-   begin
-      null;
-   end Destroy;
-
-   procedure Destroy (Comp : in out Component_Access)
-   is
-      procedure Free is new Ada.Unchecked_Deallocation
-        (Component'Class, Component_Access);
-   begin
-      pragma Debug (O ("Destroying component "
-        & Ada.Tags.External_Tag (Comp'Tag)));
-
-      --  Thou shalt not attempt to dynamically destroy a component that
-      --  was not dynamically allocated.
-
-      pragma Assert (Comp /= null);
-      pragma Assert (Comp.Allocation_Class = Dynamic);
-
-      Destroy (Comp.all);
-      Free (Comp);
-   end Destroy;
-
-   --------------------------
-   -- Set_Allocation_Class --
-   --------------------------
-
-   procedure Set_Allocation_Class
-     (C   : in out Component'Class;
-      CAC :        Component_Allocation_Class) is
-   begin
-      C.Allocation_Class := CAC;
-   end Set_Allocation_Class;
 
 end PolyORB.Components;

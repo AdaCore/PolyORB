@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -102,7 +102,6 @@ package body PolyORB.Binding_Data.SRP is
       Create_Socket (S);
       Connect_Socket (S, Remote_Addr);
       Create (Socket_Endpoint (TE.all), S);
-      Set_Allocation_Class (TE.all, Dynamic);
 
       --  Create (P'Access, Filters.Filter_Access (Session));
 

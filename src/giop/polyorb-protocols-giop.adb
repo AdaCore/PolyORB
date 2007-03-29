@@ -84,7 +84,6 @@ package body PolyORB.Protocols.GIOP is
       Session := new GIOP_Session;
       pragma Debug (O ("Create GIOP Session"));
       Initialize (GIOP_Session (Session.all));
-      Set_Allocation_Class (Session.all, Dynamic);
    end Create;
 
    ----------------

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -85,9 +85,7 @@ package body PolyORB.Transport.Datagram is
 
    begin
       if New_TE /= null then
-         Set_Allocation_Class (New_TE.all, Dynamic);
-
-         pragma Debug (O ("Create and register Endpoint"));
+         pragma Debug (O ("Create and register endpoint"));
 
          Binding_Objects.Setup_Binding_Object
            (TE      => New_TE,

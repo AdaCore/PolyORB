@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -49,15 +49,6 @@ package PolyORB.Components is
 
    type Component is abstract tagged limited private;
    type Component_Access is access all Component'Class;
-
-   type Component_Allocation_Class is
-     (Auto, Dynamic);
-
-   procedure Set_Allocation_Class
-     (C   : in out Component'Class;
-      CAC :        Component_Allocation_Class);
-   --  Set C's allocation class to be CAC.
-   --  Its current class must be Auto (the default).
 
    function Handle_Message
      (C : access Component;
@@ -106,13 +97,7 @@ package PolyORB.Components is
 
 private
 
-   pragma Inline (Set_Allocation_Class);
-
    type Null_Message is new Message with null record;
-
-   type Component is
-     abstract tagged limited record
-        Allocation_Class : Component_Allocation_Class := Auto;
-     end record;
+   type Component is abstract tagged limited null record;
 
 end PolyORB.Components;

@@ -81,7 +81,6 @@ package body PolyORB.Protocols.Echo is
       --  This should be factored in PolyORB.Protocols.
 
       Session := new Echo_Session;
-      Set_Allocation_Class (Session.all, Dynamic);
 
       --  That is Echo-specific. Or is it?
 

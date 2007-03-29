@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -65,24 +65,28 @@ package body PolyORB.Filters.Fragmenter is
      (Fact   : access Fragmenter_Factory;
       Fragmenter : out Filter_Access)
    is
+      pragma Unreferenced (Fact);
+
       Res : constant Filter_Access := new Fragmenter_Filter;
    begin
-      pragma Warnings (Off);
-      pragma Unreferenced (Fact);
-      pragma Warnings (On);
-      Set_Allocation_Class (Res.all, Dynamic);
       Fragmenter_Filter (Res.all).Data_Expected := 0;
+
       --  Create buffer for lower filter
+
       Fragmenter_Filter (Res.all).Socket_Buf := new Buffer_Type;
+
       Fragmenter := Res;
    end Create;
 
-   --  copy data between buffer
-   --  do not change CDR_Position of destination buffer
    procedure Copy
      (From : access Buffer_Type;
       To   : access Buffer_Type;
       Len  :        Ada.Streams.Stream_Element_Count);
+   --  Copy data from From to To, leaving CDR position of To unchanged
+
+   ----------
+   -- Copy --
+   ----------
 
    procedure Copy
      (From : access Buffer_Type;

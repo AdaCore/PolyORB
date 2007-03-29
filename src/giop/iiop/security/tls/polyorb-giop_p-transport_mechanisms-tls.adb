@@ -141,7 +141,6 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.TLS is
 
             TE := new TLS_Endpoint;
             Create (TLS_Endpoint (TE.all), TLS_Sock);
-            Set_Allocation_Class (TE.all, Dynamic);
 
             Binding_Objects.Setup_Binding_Object
               (TE,
