@@ -49,18 +49,16 @@ with PolyORB.Security.Credentials.TLS;
 with PolyORB.Sockets;
 with PolyORB.TLS;
 with PolyORB.Transport.Connected.Sockets.TLS;
+with PolyORB.Utils.Sockets;
 with PolyORB.Utils.Strings;
 
 package body PolyORB.GIOP_P.Transport_Mechanisms.TLS is
 
---   use PolyORB.Binding_Data.GIOP.IIOP;
    use PolyORB.Components;
    use PolyORB.Errors;
    use PolyORB.GIOP_P.Tagged_Components;
    use PolyORB.GIOP_P.Tagged_Components.TLS_Sec_Trans;
    use PolyORB.GIOP_P.Tagged_Components.TLS_Sec_Trans.Sock_Addr_Lists;
---   use PolyORB.GIOP_P.Transport_Mechanisms.IIOP;
---   use PolyORB.Parameters;
    use PolyORB.QoS;
    use PolyORB.QoS.Transport_Contexts;
    use PolyORB.Security.Credentials;
@@ -132,7 +130,7 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.TLS is
             Remote_Addr := Value (Iter).all;
 
             Create_Socket (Sock);
-            Connect_Socket (Sock, Remote_Addr);
+            Utils.Sockets.Connect_Socket (Sock, Remote_Addr);
 
             TLS_Sock := Create_Invocation_Socket (Creds);
 

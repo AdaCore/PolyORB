@@ -31,16 +31,27 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Helper subprograms to set up access points based on TCP sockets
---  for a PolyORB server.
+--  Utility routines to set up TCP listening sockets
+
+with Ada.Exceptions;
 
 with PolyORB.Components;
+with PolyORB.Log;
 with PolyORB.Setup;
 with PolyORB.Transport.Connected.Sockets;
 
 package body PolyORB.Utils.TCP_Access_Points is
 
+   use PolyORB.Log;
    use PolyORB.Transport.Connected.Sockets;
+
+   package L is new PolyORB.Log.Facility_Log
+     ("polyorb.utils.tcp_access_points");
+   procedure O (Message : String; Level : Log_Level := Debug)
+     renames L.Output;
+   function C (Level : Log_Level := Debug) return Boolean
+     renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    -----------------------
    -- Initialize_Socket --
@@ -78,7 +89,7 @@ package body PolyORB.Utils.TCP_Access_Points is
                API.Address);
             exit;
          exception
-            when Sockets.Socket_Error =>
+            when E : Sockets.Socket_Error =>
 
                --  If a specific port range was given, try next port in range
 
@@ -87,6 +98,8 @@ package body PolyORB.Utils.TCP_Access_Points is
                then
                   API.Address.Port := API.Address.Port + 1;
                else
+                  O ("bind failed: " & Ada.Exceptions.Exception_Message (E),
+                     Notice);
                   raise;
                end if;
 

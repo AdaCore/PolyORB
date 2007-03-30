@@ -39,6 +39,7 @@ with PolyORB.Initialization;
 with PolyORB.ORB;
 with PolyORB.Protocols.GIOP.IIOP;
 with PolyORB.Transport.Connected.Sockets;
+with PolyORB.Utils.Sockets;
 with PolyORB.Utils.Strings;
 
 package body PolyORB.GIOP_P.Transport_Mechanisms.IIOP is
@@ -104,7 +105,7 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.IIOP is
 
          begin
             Create_Socket (Sock);
-            Connect_Socket (Sock, Remote_Addr);
+            Utils.Sockets.Connect_Socket (Sock, Remote_Addr);
             Create (Socket_Endpoint (TE.all), Sock);
 
             Binding_Objects.Setup_Binding_Object
@@ -124,7 +125,7 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.IIOP is
             when Sockets.Socket_Error =>
                Throw (Error, Comm_Failure_E,
                       System_Exception_Members'
-                      (Minor => 0, Completed => Completed_Maybe));
+                      (Minor => 0, Completed => Completed_No));
          end;
 
          Next (Iter);

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -32,6 +32,8 @@
 ------------------------------------------------------------------------------
 
 --  Datagram Socket Access Point and End Point to recieve data from network
+
+with Ada.Exceptions;
 
 with System.Storage_Elements;
 
@@ -183,7 +185,9 @@ package body PolyORB.Transport.Datagram.Sockets_In is
       begin
          Receive_Buffer (Buffer, Size, Data_Received);
       exception
-         when PolyORB.Sockets.Socket_Error =>
+         when E : Sockets.Socket_Error =>
+            O ("receive failed: " & Ada.Exceptions.Exception_Message (E),
+               Notice);
             Throw (Error, Comm_Failure_E,
                    System_Exception_Members'
                    (Minor => 0, Completed => Completed_Maybe));

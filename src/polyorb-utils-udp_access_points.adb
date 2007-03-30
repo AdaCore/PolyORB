@@ -33,14 +33,26 @@
 
 --  Helper subprograms to set up access points based on UDP sockets
 
+with Ada.Exceptions;
+
 with PolyORB.Components;
+with PolyORB.Log;
 with PolyORB.Setup;
 with PolyORB.Transport.Datagram.Sockets_In;
 
 package body PolyORB.Utils.UDP_Access_Points is
 
    use PolyORB.Binding_Data;
+   use PolyORB.Log;
    use PolyORB.Sockets;
+
+   package L is new PolyORB.Log.Facility_Log
+     ("polyorb.utils.udp_access_points");
+   procedure O (Message : String; Level : Log_Level := Debug)
+     renames L.Output;
+   function C (Level : Log_Level := Debug) return Boolean
+     renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    procedure Initialize_Socket (API : in out UDP_Access_Point_Info);
    pragma Inline (Initialize_Socket);
@@ -136,7 +148,7 @@ package body PolyORB.Utils.UDP_Access_Points is
                API.Address);
             exit;
          exception
-            when PolyORB.Sockets.Socket_Error =>
+            when E : Sockets.Socket_Error =>
 
                --  If a specific port range was given, try next port in range
 
@@ -145,9 +157,10 @@ package body PolyORB.Utils.UDP_Access_Points is
                then
                   API.Address.Port := API.Address.Port + 1;
                else
+                  O ("bind failed: " & Ada.Exceptions.Exception_Message (E),
+                     Notice);
                   raise;
                end if;
-
          end;
       end loop;
 

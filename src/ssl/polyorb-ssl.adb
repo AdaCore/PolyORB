@@ -38,6 +38,8 @@ with PolyORB.Initialization;
 with PolyORB.Platform.SSL_Linker_Options;
 pragma Warnings (Off, PolyORB.Platform.SSL_Linker_Options);
 --  No entity referenced
+
+with PolyORB.Utils.Sockets;
 with PolyORB.Utils.Strings;
 
 package body PolyORB.SSL is
@@ -404,7 +406,7 @@ package body PolyORB.SSL is
       Address : in out Sockets.Sock_Addr_Type)
    is
    begin
-      Sockets.Connect_Socket (Sock, Address);
+      Utils.Sockets.Connect_Socket (Sock, Address);
 
       Socket := Thin.SSL_new (Context);
       if Socket = null then

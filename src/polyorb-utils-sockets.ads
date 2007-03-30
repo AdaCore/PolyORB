@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -39,11 +39,9 @@ with PolyORB.Sockets;
 package PolyORB.Utils.Sockets is
 
    function String_To_Addr
-     (Str : Standard.String)
-     return PolyORB.Sockets.Inet_Addr_Type;
-   --  Convert a string to an inet address
-   --  String can be a numerical IP (eg: 127.0.0.1)
-   --  or a stringified address (eg: localhost)
+     (Str : Standard.String) return PolyORB.Sockets.Inet_Addr_Type;
+   --  Convert an IP address in dotted decimal form or a host name into
+   --  an Inet_Addr_Type value.
 
    procedure Marshall_Socket
      (Buffer : access PolyORB.Buffers.Buffer_Type;
@@ -54,5 +52,11 @@ package PolyORB.Utils.Sockets is
      (Buffer : access PolyORB.Buffers.Buffer_Type;
       Sock   :    out PolyORB.Sockets.Sock_Addr_Type);
    --  Unmarshall socket address and port from a buffer
+
+   procedure Connect_Socket
+     (Sock        : PolyORB.Sockets.Socket_Type;
+      Remote_Addr : in out PolyORB.Sockets.Sock_Addr_Type);
+   --  Front-end to PolyORB.Sockets.Connect_Socket, handles production
+   --  of log trace if the operation fails.
 
 end PolyORB.Utils.Sockets;

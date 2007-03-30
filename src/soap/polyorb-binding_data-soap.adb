@@ -57,8 +57,8 @@ with PolyORB.Representations.CDR.Common;
 --  say that the notion of IOR is cross-platform!).
 
 with PolyORB.Transport.Connected.Sockets;
-with PolyORB.Utils.Strings;
 with PolyORB.Utils.Sockets;
+with PolyORB.Utils.Strings;
 with PolyORB.Log;
 
 with AWS.URL;
@@ -141,11 +141,11 @@ package body PolyORB.Binding_Data.SOAP is
       Sock : Socket_Type;
       Remote_Addr : Sock_Addr_Type := Profile.Address;
       TE   : constant Transport.Transport_Endpoint_Access :=
-        new Socket_Endpoint;
+               new Socket_Endpoint;
 
    begin
       Create_Socket (Sock);
-      Connect_Socket (Sock, Remote_Addr);
+      Utils.Sockets.Connect_Socket (Sock, Remote_Addr);
       Create (Socket_Endpoint (TE.all), Sock);
 
       Binding_Objects.Setup_Binding_Object

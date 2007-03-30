@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,39 +31,43 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PolyORB.Types;
+with Ada.Exceptions;
+
+with PolyORB.Log;
 with PolyORB.Representations.CDR.Common;
+with PolyORB.Types;
 
 package body PolyORB.Utils.Sockets is
 
    use PolyORB.Buffers;
+   use PolyORB.Log;
    use PolyORB.Sockets;
    use PolyORB.Representations.CDR.Common;
 
+   package L is new PolyORB.Log.Facility_Log ("polyorb.utils.sockets");
+   procedure O (Message : String; Level : Log_Level := Debug)
+     renames L.Output;
+   function C (Level : Log_Level := Debug) return Boolean
+     renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
+
    --------------------
-   -- String_To_Addr --
+   -- Connect_Socket --
    --------------------
 
-   function String_To_Addr (Str : Standard.String) return Inet_Addr_Type is
-      use PolyORB.Types;
-
-      Hostname_Seen : Boolean := False;
+   procedure Connect_Socket
+     (Sock        : PolyORB.Sockets.Socket_Type;
+      Remote_Addr : in out PolyORB.Sockets.Sock_Addr_Type) is
    begin
-      for J in Str'Range loop
-         if Str (J) not in '0' .. '9'
-           and then Str (J) /= '.'
-         then
-            Hostname_Seen := True;
-            exit;
-         end if;
-      end loop;
-
-      if Hostname_Seen then
-         return Addresses (Get_Host_By_Name (Str), 1);
-      else
-         return Inet_Addr (Str);
-      end if;
-   end String_To_Addr;
+      pragma Debug
+        (O ("connect socket" & Image (Sock) & " to " & Image (Remote_Addr)));
+      PolyORB.Sockets.Connect_Socket (Sock, Remote_Addr);
+   exception
+      when E : PolyORB.Sockets.Socket_Error =>
+         O ("connect to " & Image (Remote_Addr) & " failed: "
+            & Ada.Exceptions.Exception_Message (E), Notice);
+         raise;
+   end Connect_Socket;
 
    ---------------------
    -- Marshall_Socket --
@@ -97,5 +101,30 @@ package body PolyORB.Utils.Sockets is
       Sock.Addr := String_To_Addr (Addr_Image);
       Sock.Port := Port_Type (Port);
    end Unmarshall_Socket;
+
+   --------------------
+   -- String_To_Addr --
+   --------------------
+
+   function String_To_Addr (Str : Standard.String) return Inet_Addr_Type is
+      use PolyORB.Types;
+
+      Hostname_Seen : Boolean := False;
+   begin
+      for J in Str'Range loop
+         if Str (J) not in '0' .. '9'
+           and then Str (J) /= '.'
+         then
+            Hostname_Seen := True;
+            exit;
+         end if;
+      end loop;
+
+      if Hostname_Seen then
+         return Addresses (Get_Host_By_Name (Str), 1);
+      else
+         return Inet_Addr (Str);
+      end if;
+   end String_To_Addr;
 
 end PolyORB.Utils.Sockets;

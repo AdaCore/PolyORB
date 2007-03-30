@@ -39,6 +39,7 @@ with PolyORB.ORB;
 with PolyORB.Protocols.SRP;
 with PolyORB.Setup;
 with PolyORB.Transport.Connected.Sockets;
+with PolyORB.Utils.Sockets;
 
 package body PolyORB.Binding_Data.SRP is
 
@@ -96,11 +97,10 @@ package body PolyORB.Binding_Data.SRP is
 
       S : Socket_Type;
       Remote_Addr : Sock_Addr_Type := Profile.Address;
-      TE : constant Transport_Endpoint_Access
-        := new Socket_Endpoint;
+      TE : constant Transport_Endpoint_Access := new Socket_Endpoint;
    begin
       Create_Socket (S);
-      Connect_Socket (S, Remote_Addr);
+      Utils.Sockets.Connect_Socket (S, Remote_Addr);
       Create (Socket_Endpoint (TE.all), S);
 
       --  Create (P'Access, Filters.Filter_Access (Session));

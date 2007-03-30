@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -231,8 +231,8 @@ package body PolyORB.Transport.Connected.Sockets is
          Receive_Buffer (Buffer, Size, Data_Received);
       exception
          when E : PolyORB.Sockets.Socket_Error =>
-            pragma Debug (O ("Read: got "
-                             & Ada.Exceptions.Exception_Information (E)));
+            O ("receive failed: " & Ada.Exceptions.Exception_Message (E),
+               Notice);
             Throw
               (Error, Comm_Failure_E,
                System_Exception_Members'
@@ -303,8 +303,8 @@ package body PolyORB.Transport.Connected.Sockets is
          Send_Buffer (Buffer);
       exception
          when E : PolyORB.Sockets.Socket_Error =>
-            pragma Debug (O ("Write: got "
-                             & Ada.Exceptions.Exception_Information (E)));
+            O ("send failed: " & Ada.Exceptions.Exception_Message (E),
+               Notice);
             Throw
               (Error, Comm_Failure_E, System_Exception_Members'
                 (Minor => 0, Completed => Completed_Maybe));

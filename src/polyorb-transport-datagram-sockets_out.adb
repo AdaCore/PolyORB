@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -32,6 +32,8 @@
 ------------------------------------------------------------------------------
 
 --  Datagram Socket End Point to send data to network
+
+with Ada.Exceptions;
 
 with PolyORB.Log;
 
@@ -122,7 +124,9 @@ package body PolyORB.Transport.Datagram.Sockets_Out is
       begin
          PolyORB.Sockets.Send_Socket (TE.Socket, Data, Last, TE.Addr);
       exception
-         when PolyORB.Sockets.Socket_Error =>
+         when E : Sockets.Socket_Error =>
+            O ("send failed: " & Ada.Exceptions.Exception_Information (E),
+               Notice);
             Throw (Error, Comm_Failure_E,
                    System_Exception_Members'
                    (Minor => 0, Completed => Completed_Maybe));
