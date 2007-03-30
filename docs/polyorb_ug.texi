@@ -2006,6 +2006,7 @@ distribution.
 @menu
 * Configuring PolyORB::
 * Configuring GIOP protocol stack for PolyORB::
+* Configuring Security services for PolyORB::
 * Command line arguments::
 @end menu
 
@@ -2032,6 +2033,204 @@ information on PolyORB's configuration.
 The GIOP protocol is separated from the CORBA application
 personality. See @ref{Configuring the GIOP personality} for more
 information on GIOP's configuration.
+
+@c -------------------------------------------------------------------   
+@node Configuring Security services for PolyORB
+@subsection Configuring Security services for PolyORB
+@c -------------------------------------------------------------------   
+
+@noindent 
+PolyORB provides support for some elements of the CORBA Security
+mechanisms. This sections lists the corresponding configuration
+parameters.
+
+@subsubsection Supported mechasnisms
+
+@noindent
+PolyORB provides support for the following security mechanisms:
+
+@enumerate
+@item SSL/TLS protected transport;
+
+@item GSSUP (user/password) authentication mechanism;
+
+@item identity assertion and backward trust evaluation.
+@end enumerate
+
+@subsubsection Compile-time configuration
+
+To enable security support applications must "with" one of the
+predefined setup packages:
+
+@enumerate
+@item @code{PolyORB.Setup.Secure_Client} - for client side support only;
+
+@item @code{PolyORB.Setup.Secure_Server} - for both client and server 
+side support.
+@end enumerate
+
+@subsubsection Run-time configuration
+
+@enumerate
+@item Capsule configuration
+
+This section details the configuration parameters for capsule
+configuration.
+
+@smallexample
+[security_manager]
+# List of sections for configure client's credentials
+#own_credentials=my_credentials
+#
+# Client requires integrity proteced messages
+#integrity_required=true
+#
+# Client requires confiodentiality protected messages
+#confidentiality_required=true
+#
+# Client requires security association to detect replay (not supported
+for now)
+#detect_replay_required=true
+#
+# Client requires security association to detect message sequence
+errors (not
+# supported for now)
+#detect_misordering_required=true
+#
+# Client requires target authentication
+#establish_trust_in_target_required=true
+#
+# Client requires client authentication (usually not applicable at
+all)
+#establish_trust_in_client_required=true
+#
+# (rare useful)
+#identity_assertion_required=true
+#
+# (rare useful)
+#delegation_by_client_required=true
+@end smallexample
+
+@item Credentials configuration
+
+This section details configuration parameters for defining program's
+credentials. Depending on used mechanisms for transport and
+authentication layers, credentials configuration section may define
+configuration only for one transport mechanism and/or one
+authentication mechanism.
+
+@smallexample
+#[my_credentials]
+#
+# TLS protected transport mechanism used as transport mechanism
+#transport_credentials_type=tls
+#
+# Connection method. Available methods: tls1, ssl3, ssl2
+#tls.method=tls1
+#
+# Certificate file name
+#tls.certificate_file=my.crt
+#
+# Certificate chain file name
+#tls.certificate_chain_file=
+#
+# Private key file name
+#tls.private_key_file=my.key
+#
+# Name of file, at which CA certificates for verification purposes are
+#located
+#tls.certificate_authority_file=root.crt
+#
+# Name of directory, at which CA certificates for verification
+#purposes are
+# located
+#tls.certificate_authority_path=
+#
+# List of available ciphers
+#tls.ciphers=ALL
+#
+# Verify peer certificate
+#tls.verify_peer=true
+#
+# Fail if client don't provide ceritificate (server only)
+#tls.verify_fail_if_no_peer_certificate=true
+#
+# GSSUP (user/password) mechanism as authentication mechanism
+#authentication_credentials_type=gssup
+#
+# User name
+#gssup.username=username@@domain
+#
+# User password
+#gssup.password=password
+#
+# Target name for which user/password pair is applicable
+#gssup.target_name=@@domain
+@end smallexample
+
+@item POA configuration
+
+This section details configuration parameters for defining security
+characteristics of objects managed by POA. POA's name is used as
+section name.
+
+@smallexample
+#[MySecurePOA]
+#
+# Unprotected invocations is allowed
+#unprotected_invocation_allowed=true
+#
+# Section name for configuration of used protected transport mechanism
+#(if any)
+#transport_mechanism=tlsiop
+#
+# Section name for configuration of used authentication mechanism (if
+#any)
+#authentication_mechanism=my_gssup
+#
+# Target require client authentication at authentication layer (in
+#addition
+# to authentication at transport layer)
+#authentication_required=true
+#
+# Name of file for backward trust evalutation rules
+#backward_trust_rules_file=file.btr
+#
+# Section name for configuration of authorization tokens authority
+#privilege_authorities=
+@end smallexample
+
+@item TLS protected transport mechanism configuration
+
+This section details configuration parameters for the TLS protected
+transport mechanism. Section name for mechanism configuration is
+defined in POA configuration.
+
+@smallexample
+[tlsiop]
+# List of access points
+#addresses=127.0.0.1:3456
+@end smallexample
+
+@item GSSUP authentication mechanism
+
+This section details configuration parameters for the GSSUP
+auithentication mechanism. Section name for mechanism configuration
+defined in POA configuration.
+
+@smallexample
+#[my_gssup]
+#
+# Authentication mechanism
+#mechanism=gssup
+#
+# Target name
+#gssup.target_name=@@domain
+#
+# User name/password mapping file
+#gssup.passwd_file=passwd.pwd
+@end smallexample
+@end enumerate
 
 @c -------------------------------------------------------------------   
 @node Command line arguments
