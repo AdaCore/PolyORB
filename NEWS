@@ -41,6 +41,9 @@ See the features-23 file.
 Bug fixes
 ---------
 
+Parsing of PolyORB's specific command line parameters in po_cos_naming
+was not working. This has been corrected. (G326-002)
+
 The client side GIOP version selection mechanism was incorrect. Version
 1.2 was always assumed, even when the server reference specified a
 different version. (G323-025)
