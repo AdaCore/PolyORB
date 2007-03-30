@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  The ORB core module.
+--  The ORB core module
 
 with Ada.Exceptions;
 with Ada.Tags;
@@ -54,7 +54,8 @@ with PolyORB.Tasking.Threads;
 with PolyORB.Transport.Handlers;
 with PolyORB.Utils.Strings;
 
---  The following units are used just to register initialization modules.
+--  The following units are with'd only so that they register initialization
+--  modules.
 
 pragma Warnings (Off, PolyORB.Any.Initialization);
 pragma Warnings (Off, PolyORB.Smart_Pointers.Initialization);
@@ -112,24 +113,27 @@ package body PolyORB.ORB is
    procedure Insert_Source
      (ORB : access ORB_Type;
       AES :        PolyORB.Asynch_Ev.Asynch_Ev_Source_Access);
-   --  Insert AES in the set of asynchronous event sources
-   --  monitored by ORB. The caller must not hold the ORB lock.
+   --  Insert AES in the set of asynchronous event sources monitored by ORB.
+   --  The caller must not hold the ORB lock.
 
    procedure Delete_Source
      (ORB : access ORB_Type;
       AES : in out Asynch_Ev_Source_Access);
-   --  Delete AES from the set of asynchronous event sources
-   --  monitored by ORB. AES is destroyed.
-   --  The caller must not hold the ORB lock.
+   --  Delete AES from the set of asynchronous event sources monitored by ORB.
+   --  AES is destroyed. The caller must not hold the ORB lock.
 
    --------------------------------------------
    -- Annotations used by the ORB internally --
    --------------------------------------------
 
+   --  Transport access point note
+
    type TAP_Note is new Note with record
       Profile_Factory : Binding_Data.Profile_Factory_Access;
       AES             : Asynch_Ev.Asynch_Ev_Source_Access;
    end record;
+
+   --  Transport endpoint note
 
    type TE_Note is new Note with record
       AES : Asynch_Ev.Asynch_Ev_Source_Access;
@@ -147,9 +151,8 @@ package body PolyORB.ORB is
       pragma Unreferenced (ORB);
 
    begin
-      --  Note: this function will be completed when implementing support
-      --  for multiple ORB instances, as mandated by the CORBA
-      --  personality.
+      --  Note: this function will be completed when implementing support for
+      --  multiple ORB instances, as mandated by the CORBA personality.
 
       null;
    end Create;
@@ -177,8 +180,8 @@ package body PolyORB.ORB is
 
       It := First (ORB.Binding_Objects);
 
-      --  Loops through all the BO registered in ORB, and tries to find one
-      --  reusable by profile Pro.
+      --  Loop through all the BOs registered in ORB, and try to find one
+      --  that can be reused.
 
       All_Binding_Objects :
       while not Last (It) loop
@@ -220,7 +223,7 @@ package body PolyORB.ORB is
       end loop All_Binding_Objects;
 
       Leave_ORB_Critical_Section (ORB.ORB_Controller);
-      pragma Debug (O ("Find_Reusable_Binding_Object: leave "));
+      pragma Debug (O ("Find_Reusable_Binding_Object: leave"));
 
       --  If no reusable Binding Object has been found, Result is a nil
       --  Reference.
@@ -232,9 +235,9 @@ package body PolyORB.ORB is
    -- The ORB main loop --
    -----------------------
 
-   --  This is the main loop for all general-purpose ORB tasks. This
-   --  function MUST NOT be called recursively. Exceptions may not be
-   --  propagated from within ORB critical section.
+   --  This is the main loop for all general-purpose ORB tasks. This subprogram
+   --  must not be called recursively. Exceptions must not be propagated from
+   --  within ORB critical section.
 
    ------------------
    -- Perform_Work --
@@ -245,11 +248,10 @@ package body PolyORB.ORB is
       This_Task : in out Task_Info.Task_Info);
    pragma Inline (Perform_Work);
    --  Perform one item of work from Q.
-   --  Precondition: This function must be called from within ORB
-   --  critical section.
-   --  Postcondition: On exit, we reenter ORB critical section
-   --  Note: task running this function may exit ORB critical section
-   --  to perform on item.
+   --  Precondition:  Must be called from within ORB critical section.
+   --  Postcondition: On exit, ORB critical section has been reasserted.
+   --  Note: tasks running this function may exit ORB critical section
+   --  temporarily.
 
    procedure Perform_Work
      (ORB       : access ORB_Type;
@@ -290,7 +292,8 @@ package body PolyORB.ORB is
    --  Check ORB's AES attached to A_Monitor for any incoming event.
    --  Precondition:  Must be called from within ORB critical section.
    --  Postcondition: On exit, ORB critical section has been reasserted.
-   --  Note: tasks running this function may exit ORB critical section.
+   --  Note: tasks running this function may exit ORB critical section
+   --  temporarily.
 
    procedure Try_Check_Sources
      (ORB       : access ORB_Type;
@@ -308,12 +311,12 @@ package body PolyORB.ORB is
       Leave_ORB_Critical_Section (ORB.ORB_Controller);
 
       declare
-         Events : constant AES_Array
-           := Check_Sources (Selector (This_Task),
-                             Task_Info.Timeout (This_Task));
-         --  This_Task will block on this action until an
-         --  event occurs on one source monitors by A_Monitor,
-         --  or Abort_Check_Sources is called on A_Monitor.
+         Events : constant AES_Array :=
+                    Check_Sources
+                      (Selector (This_Task), Task_Info.Timeout (This_Task));
+         --  This_Task will block on this action until an event occurs on a
+         --  source monitored by A_Monitor, or Abort_Check_Sources is called
+         --  on A_Monitor.
 
       begin
 
@@ -378,10 +381,10 @@ package body PolyORB.ORB is
       Set_Polling (This_Task, May_Poll);
 
       if Exit_Condition.Task_Info /= null then
-         Exit_Condition.Task_Info.all := This_Task'Unchecked_Access;
-         --  This pointer must be reset to null before exiting Run
-         --  so as to not leave a dangling reference.
+         --  This pointer must be reset to null before exiting Run so as to
+         --  not leave a dangling reference.
 
+         Exit_Condition.Task_Info.all := This_Task'Unchecked_Access;
       end if;
 
       Register_Task (ORB.ORB_Controller, This_Task'Unchecked_Access);
@@ -401,17 +404,16 @@ package body PolyORB.ORB is
 
             when Blocked =>
 
-               --  This task will block on event sources, waiting for
-               --  incoming events.
+               --  This task will block on event sources, waiting for events
 
                Try_Check_Sources (ORB, This_Task);
 
             when Idle =>
 
-               --  This task is going idle. We are still inside the
-               --  ORB critical section at this point. The tasking
-               --  policy will release it while we are idle, and
-               --  re-assert it before returning.
+               --  This task is going idle. We are still inside the ORB
+               --  critical section at this point. The tasking policy will
+               --  release it while we are idle, and re-assert it before
+               --  returning.
 
                Idle (ORB.Tasking_Policy, This_Task, ORB_Access (ORB));
                Notify_Event
@@ -421,14 +423,13 @@ package body PolyORB.ORB is
 
             when Terminated =>
 
-               --  This task has reached its exit condition.
-               --  We may leave ORB main loop.
+               --  This task has reached its exit condition: leave main loop
 
                exit Main_Loop;
 
             when Unscheduled =>
 
-               --  This task is still unscheduled, this should not happen
+               --  This task is still unscheduled, this should not happen!
 
                raise Program_Error;
 
@@ -499,11 +500,8 @@ package body PolyORB.ORB is
       Enter_ORB_Critical_Section (ORB.ORB_Controller);
 
       if Is_A_Job_Pending (ORB.ORB_Controller) then
-
          Job := Get_Pending_Job (ORB.ORB_Controller);
-
          Leave_ORB_Critical_Section (ORB.ORB_Controller);
-
          Run (Job);
 
       else
@@ -523,7 +521,8 @@ package body PolyORB.ORB is
 
       pragma Debug (O ("Shutdown: enter"));
 
-      --  Stop accepting incoming connections.
+      --  Stop accepting incoming connections
+
       --  XXX TBD
 
       --  Shutdown the ORB
@@ -557,7 +556,6 @@ package body PolyORB.ORB is
      return Binding_Data.Profile_Factory_Access
    is
       N : TAP_Note;
-
    begin
       Get_Note (Notepad_Of (TAP).all, N);
       return N.Profile_Factory;
@@ -573,8 +571,8 @@ package body PolyORB.ORB is
       Chain :        PF.Factories_Access;
       PF    :        PBD.Profile_Factory_Access)
    is
-      New_AES : constant Asynch_Ev_Source_Access
-        := Create_Event_Source (TAP);
+      New_AES : constant Asynch_Ev_Source_Access :=
+                  Create_Event_Source (TAP);
       A_Note  : AES_Note;
 
    begin
@@ -616,8 +614,7 @@ package body PolyORB.ORB is
 
    function Is_Profile_Local
      (ORB : access ORB_Type;
-      P   : access Binding_Data.Profile_Type'Class)
-     return Boolean
+      P   : access Binding_Data.Profile_Type'Class) return Boolean
    is
    begin
       if P.all in Binding_Data.Local.Local_Profile_Type then
@@ -660,10 +657,10 @@ package body PolyORB.ORB is
       BO   :        Smart_Pointers.Ref;
       Role :        Endpoint_Role)
    is
-      TE      : constant Transport.Transport_Endpoint_Access
-        := Binding_Objects.Get_Endpoint (BO);
-      New_AES    : constant Asynch_Ev_Source_Access
-        := Create_Event_Source (TE);
+      TE         : constant Transport.Transport_Endpoint_Access :=
+                     Binding_Objects.Get_Endpoint (BO);
+      New_AES    : constant Asynch_Ev_Source_Access :=
+                     Create_Event_Source (TE);
       --  New_AES is null for output-only endpoints
 
       A_Note  : AES_Note;
@@ -674,7 +671,7 @@ package body PolyORB.ORB is
 
       declare
          BO_Acc : constant Binding_Object_Access :=
-           Binding_Object_Access (Smart_Pointers.Entity_Of (BO));
+                    Binding_Object_Access (Smart_Pointers.Entity_Of (BO));
          It : BO_Lists.Iterator;
       begin
 
@@ -688,8 +685,8 @@ package body PolyORB.ORB is
 
          It := BO_Lists.First (ORB.Binding_Objects);
 
-         --  Set in BO the reference to its position on list so that it can
-         --  remove itself properly at finalization.
+         --  Record in BO a reference to its position on the list so that it
+         --  can remove itself properly at finalization.
 
          Register_Reference_Information
                                  (BO => BO_Acc,
@@ -798,8 +795,8 @@ package body PolyORB.ORB is
    function Object_Adapter (ORB : access ORB_Type)
      return Obj_Adapters.Obj_Adapter_Access is
    begin
-      --  Per construction, ORB.Obj_Adapter is a read-only
-      --  component. No critical section is required.
+      --  Per construction, ORB.Obj_Adapter is a read-only component.
+      --  No critical section is required.
 
       return ORB.Obj_Adapter;
    end Object_Adapter;
@@ -822,9 +819,8 @@ package body PolyORB.ORB is
       pragma Assert (AES /= null);
 
       declare
-         Monitors : constant Monitor_Array
-           := Get_Monitors (ORB.ORB_Controller);
-
+         Monitors : constant Monitor_Array :=
+                      Get_Monitors (ORB.ORB_Controller);
          Success : Boolean := False;
       begin
          for J in Monitors'Range loop
@@ -846,19 +842,19 @@ package body PolyORB.ORB is
          if not Success then
 
             --  Create a new monitor and register the source
+
             pragma Debug (O ("Creating new monitor"));
 
             declare
-               New_AEM : constant Asynch_Ev_Monitor_Access
-                 := AEM_Factory_Of (AES.all).all;
+               New_AEM : constant Asynch_Ev_Monitor_Access :=
+                           AEM_Factory_Of (AES.all).all;
             begin
                pragma Debug (O ("AEM: "
                                 & Ada.Tags.External_Tag (New_AEM.all'Tag)));
                Create (New_AEM.all);
 
-               --  In this situation, there could not be a task
-               --  polling on this monitor, there is no need to
-               --  disable polling.
+               --  In this situation, no task can be polling this monitor yet,
+               --  so no need to disable polling.
 
                Register_Source (New_AEM, AES, Success);
                pragma Assert (Success);
@@ -1038,9 +1034,9 @@ package body PolyORB.ORB is
             end if;
          end;
 
-         --  At this point, the server has been contacted, a binding
-         --  has been created, a servant manager has been reached.
-         --  We are about to send the request to the target.
+         --  At this point, the server has been contacted, a binding has been
+         --  created, a servant manager has been reached. We are about to send
+         --  the request to the target.
 
          if Is_Set (Sync_With_Server, J.Request.Req_Flags)
            and then Is_Profile_Local (J.ORB, Pro)
