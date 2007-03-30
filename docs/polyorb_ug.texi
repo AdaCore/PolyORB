@@ -1763,8 +1763,10 @@ proposes a convenient way to store initial references to the Naming
 Service.
 
 @smallexample
-Usage:
-        po_cos_naming [-file <filename>] : output COS Naming IOR to 'filename'
+Usage: po_cos_naming
+ -file <filename> : output COS Naming IOR to 'filename'
+ -help : print this help
+ [PolyORB command line configuration variables]
 @end smallexample
 
 @c -------------------------------------------------------------------
