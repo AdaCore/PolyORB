@@ -33,10 +33,9 @@
 
 --  Stand-alone server with a CORBA COS Naming's Root Context
 
+with Ada.Command_Line;
 with Ada.Text_IO;
 with Ada.Strings.Unbounded;
-
-with GNAT.Command_Line;
 
 with CORBA.Object;
 with CORBA.ORB;
@@ -57,7 +56,6 @@ procedure PO_COS_Naming is
 
    Print_To_File : Boolean := False;
    Filename : Ada.Strings.Unbounded.Unbounded_String;
-   Scan_Succesful : Boolean := False;
 
    procedure Scan_Command_Line;
    --  Scan the command line
@@ -70,35 +68,20 @@ procedure PO_COS_Naming is
    -----------------------
 
    procedure Scan_Command_Line is
-      use GNAT.Command_Line;
+      use Ada.Command_Line;
    begin
-      loop
-         case Getopt ("file:") is
-            when ASCII.NUL =>
-               exit;
+      if Argument_Count > 0 then
+         for J in 1 .. Argument_Count loop
+            if Argument (J) = "-file" then
+               Print_To_File := True;
+               Filename := Ada.Strings.Unbounded.To_Unbounded_String
+                 (Argument (J + 1));
 
-            when 'f' =>
-               if Full_Switch = "file" then
-                  Print_To_File := True;
-                  Filename := Ada.Strings.Unbounded.To_Unbounded_String
-                    (Parameter);
-               end if;
-
-            when others =>
-               raise Program_Error;
-         end case;
-      end loop;
-
-      Scan_Succesful := True;
-
-   exception
-      when Invalid_Switch =>
-         Put_Line (Standard_Error, "Error: Invalid Switch " & Full_Switch);
-         Usage;
-
-      when Invalid_Parameter =>
-         Put_Line (Standard_Error, "Error: No parameter for " & Full_Switch);
-         Usage;
+            elsif Argument (J) = "-help" then
+               Usage;
+            end if;
+         end loop;
+      end if;
    end Scan_Command_Line;
 
    -----------
@@ -109,7 +92,12 @@ procedure PO_COS_Naming is
    begin
       New_Line;
       Put_Line (Standard_Error, "Usage: po_cos_naming"
-                & " -file <filename> : output COS Naming IOR to 'filename'");
+                & ASCII.LF
+                & " -file <filename> : output COS Naming IOR to 'filename'"
+                & ASCII.LF
+                & " -help : print this help"
+                & ASCII.LF
+                & " [PolyORB command line configuration variables]");
       New_Line;
    end Usage;
 
@@ -120,10 +108,6 @@ procedure PO_COS_Naming is
 
 begin
    Scan_Command_Line;
-   if not Scan_Succesful then
-      return;
-   end if;
-
    CORBA.ORB.Initialize ("ORB");
 
    Root_NC := CosNaming.NamingContextExt.Impl.Create;
