@@ -60,7 +60,8 @@ package body PolyORB.Utils.Sockets is
       Remote_Addr : in out PolyORB.Sockets.Sock_Addr_Type) is
    begin
       pragma Debug
-        (O ("connect socket" & Image (Sock) & " to " & Image (Remote_Addr)));
+        (O ("connect socket" & Image (Sock)
+            & " to " & Image (Remote_Addr)));
       PolyORB.Sockets.Connect_Socket (Sock, Remote_Addr);
    exception
       when E : PolyORB.Sockets.Socket_Error =>
