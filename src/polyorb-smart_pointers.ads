@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -216,5 +216,18 @@ private
    Entity_External_Tag : Entity_External_Tag_Hook := null;
    Ref_External_Tag    : Ref_External_Tag_Hook := null;
    --  Hooks to be set up by a child unit during PolyORB initialization
+
+   --  Determination of whether to trace smart pointers event for a specific
+   --  entity type: in [smart_pointers] section, whether type T is traced
+   --  is determined by parameter T.trace, or if not set, by default.trace.
+   --  By default event is traced.
+
+   Trace_Section : constant String := "smart_pointers";
+   Trace_Suffix  : constant String := ".trace";
+
+   Default_Trace : Boolean := True;
+
+   function Get_Trace (Entity_Type : String) return Boolean;
+   --  Return indication of whether to trace events for the given entity type
 
 end PolyORB.Smart_Pointers;

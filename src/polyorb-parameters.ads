@@ -35,7 +35,7 @@
 
 package PolyORB.Parameters is
 
-   pragma Elaborate_Body;
+   pragma Preelaborate;
 
    function Get_Conf
      (Section, Key : String;
@@ -109,5 +109,10 @@ private
    --  to be loaded indirectly from a file; this is independent of the use of a
    --  PolyORB configuration file as a source of configuration parameters (but
    --  both facilities are provided by the PolyORB.Parameters.File package).
+
+   procedure Initialize;
+   --  Complete the initialization of the configuration parameters framework,
+   --  after all sources have been initialized.
+   --  See PolyORB.Parameters.Initialization.
 
 end PolyORB.Parameters;

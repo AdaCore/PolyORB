@@ -45,6 +45,7 @@ with PolyORB.Initialization;
 
 with PolyORB.Log;
 with PolyORB.ORB.Iface;
+with PolyORB.Parameters.Initialization;
 with PolyORB.References.Binding;
 with PolyORB.Request_QoS;
 with PolyORB.Servants.Iface;
@@ -58,6 +59,7 @@ with PolyORB.Utils.Strings;
 --  modules.
 
 pragma Warnings (Off, PolyORB.Any.Initialization);
+pragma Warnings (Off, PolyORB.Parameters.Initialization);
 pragma Warnings (Off, PolyORB.Smart_Pointers.Initialization);
 
 package body PolyORB.ORB is

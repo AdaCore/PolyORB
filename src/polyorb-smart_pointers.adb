@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -34,6 +34,7 @@
 with Ada.Unchecked_Deallocation;
 
 with PolyORB.Log;
+with PolyORB.Parameters;
 
 package body PolyORB.Smart_Pointers is
 
@@ -50,6 +51,14 @@ package body PolyORB.Smart_Pointers is
    procedure Unchecked_Inc_Usage (Obj : Entity_Ptr);
    --  Internal procedure to increment Obj's usage counter. This must be
    --  called with the proper lock held.
+
+   type Event_Kind_Type is (Inc_Usage, Dec_Usage);
+   --  Smart pointer events that can be traced
+
+   procedure Trace_Event
+     (Event_Kind : Event_Kind_Type;
+      Obj        : Entity_Ptr);
+   --  Produce debugging trace for the indicated event on Obj, if applicable
 
    ------------
    -- Adjust --
@@ -82,15 +91,10 @@ package body PolyORB.Smart_Pointers is
 
    begin
       pragma Assert (Obj.Counter /= -1);
-      pragma Debug (O ("Dec_Usage: Obj is a "
-                       & Entity_External_Tag (Obj.all)));
-
       pragma Assert (Counter_Lock /= null);
       Entity_Lock (Obj.all);
-      pragma Debug (O ("Dec_Usage: Counter"
-                       & Natural'Image (Obj.Counter)
-                       & " ->"
-                       & Natural'Image (Obj.Counter - 1)));
+
+      pragma Debug (Trace_Event (Dec_Usage, Obj));
       Obj.Counter := Obj.Counter - 1;
 
       if Obj.Counter = 0 then
@@ -109,11 +113,11 @@ package body PolyORB.Smart_Pointers is
          end if;
 
          Free (Obj);
+
+         pragma Debug (O ("Dec_Usage: deallocation done"));
       else
          Entity_Unlock (Obj.all);
       end if;
-
-      pragma Debug (O ("Leaving Dec_Usage"));
    end Dec_Usage;
 
    -----------------
@@ -229,6 +233,18 @@ package body PolyORB.Smart_Pointers is
    end Finalize;
 
    ---------------
+   -- Get_Trace --
+   ---------------
+
+   function Get_Trace (Entity_Type : String) return Boolean is
+   begin
+      return Parameters.Get_Conf
+        (Section => Trace_Section,
+         Key     => Entity_Type & Trace_Suffix,
+         Default => Default_Trace);
+   end Get_Trace;
+
+   ---------------
    -- Inc_Usage --
    ---------------
 
@@ -339,6 +355,27 @@ package body PolyORB.Smart_Pointers is
       pragma Debug (O ("Set: leave."));
    end Set;
 
+   -----------------
+   -- Trace_Event --
+   -----------------
+
+   procedure Trace_Event
+     (Event_Kind : Event_Kind_Type;
+      Obj        : Entity_Ptr)
+   is
+      Entity_Kind : constant String := Entity_External_Tag (Obj.all);
+      Event_Values : constant array (Event_Kind_Type) of Integer :=
+                       (Inc_Usage => +1, Dec_Usage => -1);
+   begin
+      if Get_Trace (Entity_Kind) then
+         O (Event_Kind'Img & ": "
+              & Entity_Kind
+              & Natural'Image (Obj.Counter)
+              & " ->"
+              & Natural'Image (Obj.Counter + Event_Values (Event_Kind)));
+      end if;
+   end Trace_Event;
+
    -------------------------
    -- Unchecked_Inc_Usage --
    -------------------------
@@ -346,14 +383,7 @@ package body PolyORB.Smart_Pointers is
    procedure Unchecked_Inc_Usage (Obj : Entity_Ptr) is
    begin
       pragma Assert (Obj.Counter /= -1);
-
-      pragma Debug (O ("Inc_Usage: Obj is a "
-                       & Entity_External_Tag (Obj.all)));
-
-      pragma Debug (O ("Inc_Usage: Counter"
-                       & Natural'Image (Obj.Counter)
-                       & " ->"
-                       & Natural'Image (Obj.Counter + 1)));
+      pragma Debug (Trace_Event (Inc_Usage, Obj));
       Obj.Counter := Obj.Counter + 1;
    end Unchecked_Inc_Usage;
 

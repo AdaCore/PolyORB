@@ -34,17 +34,10 @@
 --  PolyORB runtime configuration facility
 
 with PolyORB.Initialization;
-with PolyORB.Utils;
 with PolyORB.Utils.Chained_Lists;
 with PolyORB.Utils.Strings;
 
-pragma Elaborate_All (PolyORB.Initialization);
-
 package body PolyORB.Parameters is
-
-   procedure Initialize;
-   --  Complete the initialization of the configuration parameters framework,
-   --  after all sources have been initialized.
 
    package Source_Lists is
      new PolyORB.Utils.Chained_Lists (Parameters_Source_Access);
@@ -218,18 +211,4 @@ package body PolyORB.Parameters is
       Source_Lists.Append (Sources, Source);
    end Register_Source;
 
-   use PolyORB.Initialization;
-   use PolyORB.Initialization.String_Lists;
-   use PolyORB.Utils.Strings;
-
-begin
-   Register_Module
-     (Module_Info'
-      (Name      => +"parameters",
-       Conflicts => Empty,
-       Depends   => +"parameters_sources?",
-       Provides  => Empty,
-       Implicit  => True,
-       Init      => Initialize'Access,
-       Shutdown  => null));
 end PolyORB.Parameters;
