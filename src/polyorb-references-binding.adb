@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -112,7 +112,7 @@ package body PolyORB.References.Binding is
       --  First check whether the reference is already bound,
       --  and in that case reuse the binding object.
 
-      pragma Debug (O ("Bind: Check for already bound reference."));
+      pragma Debug (O ("Bind: Check for already bound reference"));
 
       Get_Binding_Info (R, QoS, Existing_Servant, Existing_Profile);
 
@@ -123,7 +123,7 @@ package body PolyORB.References.Binding is
          then
             Servant := Existing_Servant;
             Pro := Existing_Profile;
-            pragma Debug (O ("Bind: The reference is already bound."));
+            pragma Debug (O ("Bind: The reference is already bound"));
          end if;
 
          return;
