@@ -474,13 +474,6 @@ package body CORBA.Object is
       function To_PolyORB_Ref (R : Ref) return PolyORB.References.Ref is
       begin
          return PolyORB.References.Ref (R);
---        is
---           E : constant PolyORB.Smart_Pointers.Entity_Ptr
---             := Entity_Of (R);
---           Result : PolyORB.References.Ref;
---        begin
---           PolyORB.References.Set (Result, E);
---           return Result;
       end To_PolyORB_Ref;
 
       --------------------------
