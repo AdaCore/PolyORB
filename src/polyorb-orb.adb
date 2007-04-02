@@ -188,16 +188,28 @@ package body PolyORB.ORB is
       All_Binding_Objects :
       while not Last (It) loop
 
-         --  XXX Check that the profile has been set.
-         --  Until bidirectionnal BO are implemented we cannot reuse the server
-         --  BOs as client BOs and inversely. So for the moment, server BOs
-         --  have a null profile and are not handled here. This check shall be
-         --  removed once bidirectionnal BO are implemented.
-
          declare
             BO_Acc : Binding_Object_Access renames Value (It).all;
+            End_Iterator : BO_Lists.Iterator;
          begin
-            if Get_Profile (BO_Acc) /= null then
+            if not Valid (BO_Acc) then
+
+               --  Mark binding object as not referenced anymore
+
+               Register_Reference_Information
+                 (BO_Acc, Component_Access (ORB), End_Iterator);
+
+               --  Now we can safely purge it from the list
+
+               Remove (ORB.Binding_Objects, It);
+
+            elsif Get_Profile (BO_Acc) /= null then
+
+               --  Until bidirectionnal BO are implemented we cannot reuse the
+               --  server BOs as client BOs and inversely. So for the moment,
+               --  server BOs have a null profile and are not handled here.
+               --  This check shall be removed once bidirectional BO are
+               --  implemented.
 
                if Same_Node (Pro.all, Get_Profile (BO_Acc).all)
                     and then
@@ -758,15 +770,27 @@ package body PolyORB.ORB is
    -------------------------------
 
    procedure Unregister_Binding_Object
-     (ORB  : Components.Component_Access;
-      It   :        PBO.BO_Lists.Iterator)
+     (ORB : Components.Component_Access;
+      BO  : Binding_Object_Access)
    is
       ORB_Acc : constant ORB_Access := ORB_Access (ORB);
-      Variable_It : BO_Lists.Iterator := It;
+      It      : BO_Lists.Iterator;
    begin
       pragma Debug (O ("Unregister_Binding_Object: enter"));
       Enter_ORB_Critical_Section (ORB_Acc.ORB_Controller);
-      BO_Lists.Remove (ORB_Acc.Binding_Objects, Variable_It);
+
+      --  Obtain position of BO in Binding_Objects within critical section,
+      --  as it might be changed by Find_Reusable_Binding_Object.
+
+      It := Get_Referenced_At (BO);
+
+      --  If BO is still referenced, remove it now
+
+      if not BO_Lists.Last (It) then
+         pragma Debug (O ("removing binding object"));
+         BO_Lists.Remove (ORB_Acc.Binding_Objects, It);
+      end if;
+
       Leave_ORB_Critical_Section (ORB_Acc.ORB_Controller);
       pragma Debug (O ("Unregister_Binding_Object: leave"));
    end Unregister_Binding_Object;

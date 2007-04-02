@@ -35,11 +35,13 @@
 
 with Ada.Tags;
 
+with PolyORB.Filters.Iface;
 with PolyORB.Log;
 
 package body PolyORB.Filters is
 
    use PolyORB.Components;
+   use PolyORB.Filters.Iface;
    use PolyORB.Log;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.filters");
@@ -120,5 +122,36 @@ package body PolyORB.Filters is
 
       Top := F;
    end Create_Filter_Chain;
+
+   --------------------
+   -- Handle_Message --
+   --------------------
+
+   function Handle_Message
+     (F : access Filter; Msg : Message'Class) return Components.Message'Class
+   is
+   begin
+      --  Implement default progagation behaviour
+
+      if False
+        or else Msg in Data_Indication
+        or else Msg in Connect_Indication
+        or else Msg in Connect_Confirmation
+        or else Msg in Disconnect_Indication
+        or else Msg in Set_Server
+      then
+         return Emit (F.Upper, Msg);
+
+      elsif False
+        or else Msg in Data_Out
+        or else Msg in Disconnect_Request
+        or else Msg in Check_Validity
+      then
+         return Emit (F.Lower, Msg);
+
+      else
+         raise Program_Error;
+      end if;
+   end Handle_Message;
 
 end PolyORB.Filters;

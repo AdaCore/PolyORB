@@ -72,7 +72,8 @@ package body PolyORB.Binding_Objects is
       --  First remove the reference to this BO from its ORB so that is does
       --  not get reused while being finalized.
 
-      PolyORB.ORB.Unregister_Binding_Object (X.Referenced_In, X.Referenced_At);
+      PolyORB.ORB.Unregister_Binding_Object
+        (X.Referenced_In, X'Unchecked_Access);
 
       --  Notify protocol stack that it is about to be dismantled
 
@@ -133,6 +134,17 @@ package body PolyORB.Binding_Objects is
    begin
       return BO.Profile;
    end Get_Profile;
+
+   -----------------------
+   -- Get_Referenced_At --
+   -----------------------
+
+   function Get_Referenced_At
+     (BO : Binding_Object_Access) return BO_Lists.Iterator
+   is
+   begin
+      return BO.Referenced_At;
+   end Get_Referenced_At;
 
    ------------------------------------
    -- Register_Reference_Information --
@@ -213,5 +225,19 @@ package body PolyORB.Binding_Objects is
    begin
       return BO.Notepad'Access;
    end Notepad_Of;
+
+   -----------
+   -- Valid --
+   -----------
+
+   function Valid (BO : Binding_Object_Access) return Boolean is
+      use Components;
+      use Filters.Iface;
+
+      Reply : constant Message'Class :=
+                Emit (Component_Access (BO.Top), Check_Validity'(null record));
+   begin
+      return Reply in Components.Null_Message;
+   end Valid;
 
 end PolyORB.Binding_Objects;

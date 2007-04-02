@@ -256,9 +256,9 @@ package PolyORB.ORB is
    --  with TE.
 
    procedure Unregister_Binding_Object
-     (ORB : Components.Component_Access; It : PBO.BO_Lists.Iterator);
-   --  Unregister a Binding Object from the ORB. "It" is an iterator pointing
-   --  to the position of the BO in the ORB.Binding_Objects list.
+     (ORB : Components.Component_Access;
+      BO  : Binding_Objects.Binding_Object_Access);
+   --  Unregister a Binding Object from the ORB
 
    package BO_Ref_Lists is
      new PolyORB.Utils.Chained_Lists (Smart_Pointers.Ref, Smart_Pointers."=");

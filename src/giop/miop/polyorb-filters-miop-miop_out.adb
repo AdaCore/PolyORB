@@ -111,8 +111,7 @@ package body PolyORB.Filters.MIOP.MIOP_Out is
 
    function Handle_Message
      (F : access MIOP_Out_Filter;
-      S : Components.Message'Class)
-     return Components.Message'Class
+      S : Components.Message'Class) return Components.Message'Class
    is
       use PolyORB.Types;
 
@@ -229,23 +228,8 @@ package body PolyORB.Filters.MIOP.MIOP_Out is
             end if;
          end;
 
-      elsif False
-        or else S in Data_Indication
-        or else S in Connect_Indication
-        or else S in Connect_Confirmation
-        or else S in Disconnect_Indication
-        or else S in Set_Server
-      then
-         return Emit (F.Upper, S);
-
-      elsif False
-        or else S in Data_Expected'Class
-        or else S in Disconnect_Request
-      then
-         return Emit (F.Lower, S);
-
       else
-         raise Program_Error;
+         return Filters.Handle_Message (Filters.Filter (F.all)'Access, S);
       end if;
 
       return Res;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -114,7 +114,7 @@ private
    end record;
 
    package Binding_Info_Lists is
-     new PolyORB.Utils.Chained_Lists (Binding_Info);
+     new Utils.Chained_Lists (Binding_Info, Doubly_Chained => True);
 
    procedure Get_Binding_Info
      (R   :     Ref'Class;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -75,7 +75,7 @@ package PolyORB.Binding_Objects is
 
    procedure Register_Reference_Information
      (BO            : Binding_Object_Access;
-      Referenced_In : Components.Component_Access; -- The ORB
+      Referenced_In : Components.Component_Access;
       Referenced_At : BO_Lists.Iterator);
    --  Register reference information into the Binding Object BO so that it can
    --  remove itself from the ORB binding object list at finalisation.
@@ -93,11 +93,22 @@ package PolyORB.Binding_Objects is
       return Annotations.Notepad_Access;
    --  Returns the notepad of given Binding Object
 
+   function Get_Referenced_At
+     (BO : Binding_Object_Access) return BO_Lists.Iterator;
+   --  Return an iterator denoting the position of BO in the ORB's list of
+   --  active binding objects (as set by Register_Reference_Information).
+
+   function Valid (BO : Binding_Object_Access) return Boolean;
+   --  True if BO can be used to forward requests to an object
+
 private
    type Binding_Object is
      new Smart_Pointers.Non_Controlled_Entity with record
          Transport_Endpoint : Transport.Transport_Endpoint_Access;
+         --  Bottom of the binding object: a transport endpoint
+
          Top : Filters.Filter_Access;
+         --  Top of the binding object: a protocol session
 
          Profile : Binding_Data.Profile_Access;
          --  The Profile associated with this Binding Object. This profile is
@@ -110,6 +121,8 @@ private
          Referenced_At : BO_Lists.Iterator;
          --  The position of this Binding Object in the Binding_Objects list of
          --  the ORB referencing this Binding Object.
+         --  Note: this component must be accessed under the protection of the
+         --  critical section of the Referenced_In ORB.
 
          Notepad : aliased Annotations.Notepad;
          --  Binding_Object's notepad. The user is responsible for ensuring

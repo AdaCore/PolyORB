@@ -173,8 +173,7 @@ package body PolyORB.Filters.HTTP is
 
    function Handle_Message
      (F : access HTTP_Filter;
-      S : Components.Message'Class)
-     return Components.Message'Class
+      S : Components.Message'Class) return Components.Message'Class
    is
       Res : Components.Null_Message;
    begin
@@ -219,8 +218,8 @@ package body PolyORB.Filters.HTTP is
 
          declare
             Buf : Buffer_Access := new Buffer_Type;
-            RD : constant PolyORB.SOAP_P.Response.Data
-              := AWS_Response_Out (S).Data;
+            RD  : constant PolyORB.SOAP_P.Response.Data :=
+                    AWS_Response_Out (S).Data;
          begin
             case PolyORB.SOAP_P.Response.Mode (RD) is
                when PolyORB.SOAP_P.Response.Header =>
@@ -233,20 +232,11 @@ package body PolyORB.Filters.HTTP is
             Release (Buf);
          end;
 
-      elsif False
-        or else S in Set_Server
-        or else S in Disconnect_Indication
-      then
-         return Emit (F.Upper, S);
-
-      elsif S in Disconnect_Request then
-         return Emit (F.Lower, S);
-
       elsif S in AWS_Get_SOAP_Action then
          return AWS_SOAP_Action'(SOAP_Action => F.SOAP_Action);
 
       else
-         raise Program_Error;
+         return Filters.Handle_Message (Filters.Filter (F.all)'Access, S);
       end if;
 
       return Res;

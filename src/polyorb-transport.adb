@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,14 +26,14 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Abstract transport service access points and
---  communication endpoints.
+--  Abstract transport service access points and communication endpoints
 
+with PolyORB.Filters.Iface;
 with PolyORB.ORB.Iface;
 
 package body PolyORB.Transport is
@@ -57,8 +57,8 @@ package body PolyORB.Transport is
 
    function Handle_Message
      (TAP : access Transport_Access_Point;
-      Msg :        Components.Message'Class)
-     return Components.Message'Class is
+      Msg :        Components.Message'Class) return Components.Message'Class
+   is
    begin
       raise Program_Error;
       --  Small is beautiful.
@@ -71,6 +71,46 @@ package body PolyORB.Transport is
       --  Keep the compiler happy.
 
       pragma Warnings (On);
+   end Handle_Message;
+
+   -------------------
+   -- Handle_Mesage --
+   -------------------
+
+   function Handle_Message
+     (TE  : access Transport_Endpoint;
+      Msg :        Components.Message'Class) return Components.Message'Class
+   is
+      use Filters.Iface;
+   begin
+      if Msg in Check_Validity then
+         if TE.Closed then
+            declare
+               use Errors;
+               Reply : Filter_Error;
+            begin
+               Throw (Reply.Error, Comm_Failure_E,
+                 System_Exception_Members'
+                  (Minor => 0, Completed => Completed_No));
+               return Reply;
+            end;
+         else
+            declare
+               Reply : Components.Null_Message;
+            begin
+               return Reply;
+            end;
+         end if;
+
+      elsif False
+        or else Msg in Connect_Indication
+        or else Msg in Connect_Confirmation
+      then
+         return Emit (TE.Upper, Msg);
+
+      else
+         raise Program_Error;
+      end if;
    end Handle_Message;
 
    -----------

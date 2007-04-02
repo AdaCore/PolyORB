@@ -262,11 +262,8 @@ package body PolyORB.Protocols is
             Send_Reply (Session_Access (Sess), Acknowledge_Request (S).Req);
          end if;
 
-      elsif S in Disconnect_Request then
-         return Emit (Lower (Sess), S);
-
       else
-         raise Program_Error;
+         return Filters.Handle_Message (Filters.Filter (Sess.all)'Access, S);
       end if;
 
       return Nothing;
