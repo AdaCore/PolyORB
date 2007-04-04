@@ -49,9 +49,9 @@ package body PolyORB.Utils.TCP_Access_Points is
      ("polyorb.utils.tcp_access_points");
    procedure O (Message : String; Level : Log_Level := Debug)
      renames L.Output;
-   function C (Level : Log_Level := Debug) return Boolean
-     renames L.Enabled;
-   pragma Unreferenced (C); --  For conditional pragma Debug
+   --  function C (Level : Log_Level := Debug) return Boolean
+   --    renames L.Enabled;
+   --  pragma Unreferenced (C); --  For conditional pragma Debug
 
    -----------------------
    -- Initialize_Socket --
