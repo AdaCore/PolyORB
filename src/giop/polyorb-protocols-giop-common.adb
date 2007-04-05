@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -246,7 +246,7 @@ package body PolyORB.Protocols.GIOP.Common is
                       Any.TypeCode.Id
                       (Any.Get_Type (CORBA_Occurence)));
             Marshall_From_Any
-              (Sess.Repr.all,
+              (Sess.Repr,
                Buffer_Out,
                Get_Container (CORBA_Occurence).all,
                Error);
@@ -270,7 +270,7 @@ package body PolyORB.Protocols.GIOP.Common is
             end if;
 
             Marshall_From_Any
-              (Sess.Repr.all,
+              (Sess.Repr,
                Buffer_Out,
                Get_Container (Request.Result.Argument).all,
                Error);
@@ -300,7 +300,7 @@ package body PolyORB.Protocols.GIOP.Common is
             Marshall_Argument_List
               (Sess.Implem,
                Buffer_Out,
-               Sess.Repr.all,
+               Sess.Repr,
                Request.Args,
                PolyORB.Any.ARG_OUT,
                Data_Alignment,
@@ -711,7 +711,7 @@ package body PolyORB.Protocols.GIOP.Common is
             end if;
 
             Unmarshall_To_Any
-              (Sess.Repr.all,
+              (Sess.Repr,
                Sess.Buffer_In,
                Get_Container (Current_Req.Req.Result.Argument).all,
                Error);
@@ -727,7 +727,7 @@ package body PolyORB.Protocols.GIOP.Common is
 
             else
                Unmarshall_Argument_List
-                 (Sess.Implem, Sess.Buffer_In, Sess.Repr.all,
+                 (Sess.Implem, Sess.Buffer_In, Sess.Repr,
                   Current_Req.Req.Args, PolyORB.Any.ARG_OUT,
                   Arguments_Alignment, Error);
 
@@ -752,7 +752,7 @@ package body PolyORB.Protocols.GIOP.Common is
             Align_Position (Sess.Buffer_In, Sess.Implem.Data_Alignment);
 
             Unmarshall_System_Exception_To_Any
-              (Sess.Buffer_In, Sess.Repr.all, Current_Req.Req.Exception_Info);
+              (Sess.Buffer_In, Sess.Repr, Current_Req.Req.Exception_Info);
 
             Expect_GIOP_Header (Sess);
             Emit_No_Reply
@@ -826,7 +826,7 @@ package body PolyORB.Protocols.GIOP.Common is
                     (Any.ExceptionList.Item
                      (Current_Req.Req.Exc_List, Except_Index));
                   Unmarshall_To_Any
-                    (Sess.Repr.all,
+                    (Sess.Repr,
                      Sess.Buffer_In,
                      Get_Container (Current_Req.Req.Exception_Info).all,
                      Error);

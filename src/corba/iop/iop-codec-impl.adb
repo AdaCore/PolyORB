@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -74,7 +74,7 @@ package body IOP.Codec.Impl is
 
    begin
       Decapsulate (Data_Enc'Access, Buffer);
-      Result := Unmarshall (Buffer, Self.Representation.all);
+      Result := Unmarshall (Buffer, Self.Representation);
       Release (Buffer);
 
       return CORBA.Internals.To_CORBA_Any (Result);
@@ -101,7 +101,7 @@ package body IOP.Codec.Impl is
    begin
       Decapsulate (Data_Enc'Access, Buffer);
       Unmarshall_To_Any
-        (Self.Representation.all,
+        (Self.Representation,
          Buffer,
          Get_Container (Result).all,
          Error);
@@ -132,7 +132,7 @@ package body IOP.Codec.Impl is
       Start_Encapsulation (Buffer);
       Marshall
         (Buffer,
-         Self.Representation.all,
+         Self.Representation,
          CORBA.Internals.To_PolyORB_Any (Data));
       Result := To_Sequence (Encapsulate (Buffer));
       Release (Buffer);
@@ -158,7 +158,7 @@ package body IOP.Codec.Impl is
    begin
       Start_Encapsulation (Buffer);
       Marshall_From_Any
-        (Self.Representation.all,
+        (Self.Representation,
          Buffer,
          Get_Container (CORBA.Internals.To_PolyORB_Any (Data)).all,
          Error);

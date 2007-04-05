@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -1409,7 +1409,7 @@ package body PolyORB.Representations.SRP is
    -----------------------
 
    procedure Marshall_From_Any
-     (R      : Rep_SRP;
+     (R      : access Rep_SRP;
       Buffer : access Buffers.Buffer_Type;
       Data   : Any.Any_Container'Class;
       Error  : in out Errors.Error_Container)
@@ -1740,7 +1740,7 @@ package body PolyORB.Representations.SRP is
    -----------------------
 
    procedure Unmarshall_To_Any
-     (R      : Rep_SRP;
+     (R      : access Rep_SRP;
       Buffer : access Buffers.Buffer_Type;
       Data   : in out Any.Any_Container'Class;
       Error  : in out Errors.Error_Container)
@@ -2308,7 +2308,7 @@ package body PolyORB.Representations.SRP is
    -----------------------
 
    function Unmarshall_To_Any
-     (R      : Rep_SRP;
+     (R      : access Rep_SRP;
       Buffer : access Buffers.Buffer_Type) return Any.Any
    is
       Data  : Any.Any;

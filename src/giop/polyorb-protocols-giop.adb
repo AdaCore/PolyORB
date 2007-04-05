@@ -264,7 +264,7 @@ package body PolyORB.Protocols.GIOP is
       pragma Assert (Sess.State = Waiting_Unmarshalling);
 
       Unmarshall_Argument_List
-        (Sess.Implem, Sess.Buffer_In, Sess.Repr.all, Args,
+        (Sess.Implem, Sess.Buffer_In, Sess.Repr, Args,
          PolyORB.Any.ARG_IN, Sess.Implem.Data_Alignment, Error);
 
       if Found (Error) then
@@ -620,8 +620,8 @@ package body PolyORB.Protocols.GIOP is
       --  Magic
 
       for J in Message_Magic'Range loop
-         Message_Magic (J) := Stream_Element
-           (Types.Octet'(Unmarshall (Buffer)));
+         Message_Magic (J) :=
+           Stream_Element (Types.Octet'(Unmarshall (Buffer)));
       end loop;
 
       if Message_Magic /= Magic then
@@ -636,7 +636,6 @@ package body PolyORB.Protocols.GIOP is
 
       Version_Data := Unmarshall (Buffer);
       --  Minor
-      pragma Debug (O (Version_Data'Img));
 
       Version := To_GIOP_Version (Integer (Version_Data));
 
@@ -683,7 +682,7 @@ package body PolyORB.Protocols.GIOP is
    procedure Unmarshall_Argument_List
      (Implem              : access GIOP_Implem;
       Buffer              :        Buffer_Access;
-      Representation      : CDR_Representation'Class;
+      Representation      : access CDR_Representation'Class;
       Args                : in out Any.NVList.Ref;
       Direction           :        Any.Flags;
       First_Arg_Alignment :        Buffers.Alignment_Type;
@@ -734,7 +733,7 @@ package body PolyORB.Protocols.GIOP is
    procedure Marshall_Argument_List
      (Implem              : access GIOP_Implem;
       Buffer              :        Buffer_Access;
-      Representation      : CDR_Representation'Class;
+      Representation      : access CDR_Representation'Class;
       Args                : in out Any.NVList.Ref;
       Direction           :        Any.Flags;
       First_Arg_Alignment :        Buffers.Alignment_Type;
@@ -798,7 +797,7 @@ package body PolyORB.Protocols.GIOP is
 
    procedure Unmarshall_System_Exception_To_Any
      (Buffer :        Buffer_Access;
-      Repr   : Representations.CDR.CDR_Representation'Class;
+      Repr   : access Representations.CDR.CDR_Representation'Class;
       Info   :    out Any.Any)
    is
       use PolyORB.Any;

@@ -1596,58 +1596,53 @@ package body PolyORB.Any is
                when
                  Tk_Struct             |
                  Tk_Except             =>
-                  Result := Result & To_PolyORB_String (" {");
+                  Result := Result & " { ";
 
                   declare
                      I : Types.Unsigned_Long := 2;
                      C : constant Types.Unsigned_Long := Parameter_Count (TC);
                   begin
                      while I < C loop
-                        if I > 2 then
-                           Result := Result & ", ";
-                        end if;
-                        Result := Result & To_PolyORB_String
-                          (" " & Image
+                        Result := Result &
+                          " " & Image
                            (TypeCode.Object'
-                            (From_Any (Get_Parameter (TC, I).all))) & " ")
+                            (From_Any (Get_Parameter (TC, I).all))) & " "
                           & Types.String'
-                          (From_Any (Get_Parameter (TC, I + 1).all));
+                             (From_Any (Get_Parameter (TC, I + 1).all))
+                          & "; ";
                         I := I + 2;
                      end loop;
                   end;
-                  Result := Result & To_PolyORB_String (" }");
+                  Result := Result & "}";
 
                   return To_Standard_String (Result);
 
                when Tk_Union =>
-
                   Result := Result
-                    & "union ("
+                    & " ("
                     & Image (TypeCode.Object'
                               (From_Any (Get_Parameter (TC, 2).all)))
                     & " :="
                     & Types.Long'Image (From_Any (Get_Parameter (TC, 3).all))
-                    & To_PolyORB_String (") {");
+                    & ") { ";
 
                   declare
                      I : Types.Unsigned_Long := 4;
                      C : constant Types.Unsigned_Long := Parameter_Count (TC);
                   begin
                      while I < C loop
-                        if I > 4 then
-                           Result := Result & ", ";
-                        end if;
-
-                        Result := Result & To_PolyORB_String
-                          ("case " & Image (Get_Parameter (TC, I).all) & ": "
-                           & Image (TypeCode.Object'
-                             (From_Any (Get_Parameter (TC, I + 1).all))) & " ")
-                           & Types.String'
-                          (From_Any (Get_Parameter (TC, I + 2).all));
+                        Result := Result &
+                          "case " & Image (Get_Parameter (TC, I).all) & ": "
+                          & Image (TypeCode.Object'
+                             (From_Any (Get_Parameter (TC, I + 1).all))) & " "
+                          & Types.String'
+                             (From_Any (Get_Parameter (TC, I + 2).all))
+                          & "; ";
                         I := I + 3;
                      end loop;
                   end;
-                  Result := Result & To_PolyORB_String (" }");
+                  Result := Result & "}";
+
                   return To_Standard_String (Result);
 
                when others =>

@@ -348,7 +348,8 @@ private
    procedure Marshall_Argument_List
      (Implem              : access GIOP_Implem;
       Buffer              : Buffers.Buffer_Access;
-      Representation      : Representations.CDR.CDR_Representation'Class;
+      Representation      : access
+                              Representations.CDR.CDR_Representation'Class;
       Args                : in out Any.NVList.Ref;
       Direction           : Any.Flags;
       First_Arg_Alignment : Buffers.Alignment_Type;
@@ -361,7 +362,8 @@ private
    procedure Unmarshall_Argument_List
      (Implem              : access GIOP_Implem;
       Buffer              : Buffers.Buffer_Access;
-      Representation      : Representations.CDR.CDR_Representation'Class;
+      Representation      : access
+                              Representations.CDR.CDR_Representation'Class;
       Args                : in out Any.NVList.Ref;
       Direction           : Any.Flags;
       First_Arg_Alignment : Buffers.Alignment_Type;
@@ -377,8 +379,7 @@ private
       S       : access Session'Class;
       R       : Request_Access;
       MCtx    : access GIOP_Message_Context'Class;
-      Buffer  : access PolyORB.Buffers.Buffer_Type)
-      is abstract;
+      Buffer  : access PolyORB.Buffers.Buffer_Type) is abstract;
 
    --  GIOP Implem management
 
@@ -577,9 +578,9 @@ private
    ---------------------------------
 
    procedure Unmarshall_System_Exception_To_Any
-     (Buffer : PolyORB.Buffers.Buffer_Access;
-      Repr   : PolyORB.Representations.CDR.CDR_Representation'Class;
-      Info   :    out Any.Any);
+     (Buffer : Buffers.Buffer_Access;
+      Repr   : access Representations.CDR.CDR_Representation'Class;
+      Info   : out Any.Any);
 
    function Get_Conf_Chain (Implem : access GIOP_Implem'Class) return String;
 

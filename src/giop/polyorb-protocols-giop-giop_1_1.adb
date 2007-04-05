@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -580,7 +580,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
       Marshall_Latin_1_String (Buffer, Nobody_Principal);
 
       Marshall_Argument_List
-        (Sess.Implem, Buffer, Sess.Repr.all, R.Req.Args, PolyORB.Any.ARG_IN,
+        (Sess.Implem, Buffer, Sess.Repr, R.Req.Args, PolyORB.Any.ARG_IN,
          Sess.Implem.Data_Alignment, Error);
 
       if Found (Error) then
@@ -645,7 +645,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
    procedure Marshall_Argument_List
      (Implem              : access GIOP_Implem_1_1;
       Buffer              :        Buffers.Buffer_Access;
-      Representation      : CDR_Representation'Class;
+      Representation      : access CDR_Representation'Class;
       Args                : in out Any.NVList.Ref;
       Direction           :        Any.Flags;
       First_Arg_Alignment :        Buffers.Alignment_Type;

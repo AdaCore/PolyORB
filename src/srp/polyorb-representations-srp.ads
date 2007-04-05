@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -191,7 +191,7 @@ package PolyORB.Representations.SRP is
       Data   : PolyORB.Any.TypeCode.Object);
 
    procedure Marshall_From_Any
-     (R      : Rep_SRP;
+     (R      : access Rep_SRP;
       Buffer : access Buffers.Buffer_Type;
       Data   : Any.Any_Container'Class;
       Error  : in out Errors.Error_Container);
@@ -201,7 +201,7 @@ package PolyORB.Representations.SRP is
       Data   : PolyORB.Any.Any_Container'Class);
 
    procedure Unmarshall_To_Any
-     (R      : Rep_SRP;
+     (R      : access Rep_SRP;
       Buffer : access Buffers.Buffer_Type;
       Data   : in out Any.Any_Container'Class;
       Error  : in out Errors.Error_Container);
@@ -236,7 +236,7 @@ package PolyORB.Representations.SRP is
    --  Unmarshall a string terminated by a CR/LF sequence.
 
    function Unmarshall_To_Any
-     (R      : Rep_SRP;
+     (R      : access Rep_SRP;
       Buffer : access Buffers.Buffer_Type) return Any.Any;
 
    --  Temporary procedure. Should be replaces by Marshall_From_Any when
