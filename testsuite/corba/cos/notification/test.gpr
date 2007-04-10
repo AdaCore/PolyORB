@@ -1,4 +1,4 @@
-with "polyorb", "test_common";
+with "polyorb", "test_common", "cos_notification";
 
 project test is
 
