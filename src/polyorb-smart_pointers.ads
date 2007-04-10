@@ -46,23 +46,21 @@ package PolyORB.Smart_Pointers is
    type Unsafe_Entity is abstract tagged limited private;
 
    procedure Finalize (X : in out Unsafe_Entity);
-   --  Unsafe_Entity is the base type of all objects that can be
-   --  referenced. It contains a Counter, which is the number of
-   --  references to this object, and is automatically destroyed when
-   --  the counter reaches 0. Before the entity is destroyed,
-   --  the Finalize operation is called. NOTE however that
-   --  Unsafe_Entity is *not* a controlled type: Finalize
-   --  is *only* called when an Entity is destroyed as a result
-   --  of its reference counter dropping to 0.
+   --  Unsafe_Entity is the base type of all objects that can be referenced.
+   --  It contains a Counter, which is the number of references to this
+   --  object, and is automatically destroyed when the counter reaches 0.
+   --  Before the entity is destroyed, the Finalize operation is called.
+   --  NOTE however that Unsafe_Entity is *not* a controlled type: Finalize
+   --  is *only* called when an Entity is destroyed as a result of its
+   --  reference counter dropping to 0.
 
    type Entity_Ptr is access all Unsafe_Entity'Class;
 
    procedure Entity_Lock (X : in out Unsafe_Entity);
    procedure Entity_Unlock (X : in out Unsafe_Entity);
-   --  Lock/unlock operations to be overloaded by derived types
-   --  if they need to be made task-safe. These operations must
-   --  guarantee mutual exclusion on accesses to the reference
-   --  counter.
+   --  Lock/unlock operations to be overloaded by derived types if they need
+   --  to be made task-safe. These operations must guarantee mutual exclusion
+   --  on accesses to the reference counter.
 
    function Reference_Counter (Obj : Unsafe_Entity) return Integer;
    --  Return the value of Obj's reference counter.
@@ -90,17 +88,16 @@ package PolyORB.Smart_Pointers is
 
    procedure Initialize (X : in out Entity);
    --  An entity that is a controlled object. Contrary to
-   --  Non_Controlled_Entity, the Finalize operation is called
-   --  whenever the entity is finalized.
+   --  Non_Controlled_Entity, the Finalize operation is called whenever the
+   --  entity is finalized.
 
    ---------
    -- Ref --
    ---------
 
    type Ref is new Ada.Finalization.Controlled with private;
-   --  The base type of all references. This type is often derived
-   --  but never extended. It contains one field, which designates
-   --  the referenced object.
+   --  The base type of all references. This type is often derived but never
+   --  extended. It contains one field, which designates the referenced object.
 
    procedure Adjust     (The_Ref : in out Ref);
    procedure Finalize   (The_Ref : in out Ref);
@@ -122,21 +119,13 @@ package PolyORB.Smart_Pointers is
    --  reference to be reconstructed from a saved Entity_Ptr value, ensuring
    --  that the designated entity is not being finalized.
 
-   procedure Unref (The_Ref : in out Ref)
-     renames Finalize;
+   procedure Unref (The_Ref : in out Ref) renames Finalize;
+   procedure Release (The_Ref : in out Ref) renames Finalize;
 
    function Is_Nil (The_Ref : Ref) return Boolean;
    --  True iff The_Ref is a nil reference
 
-   function Is_Null (The_Ref : Ref) return Boolean
-     renames Is_Nil;
-
-   procedure Duplicate (The_Ref : in out Ref)
-     renames Adjust;
-   pragma Unreferenced (Duplicate);
-
-   procedure Release (The_Ref : in out Ref);
-   --  Reset The_Ref to nil
+   function Is_Null (The_Ref : Ref) return Boolean renames Is_Nil;
 
    function Entity_Of (The_Ref : Ref) return Entity_Ptr;
    --  Return the entity designated by The_Ref
@@ -164,6 +153,8 @@ private
    type Unsafe_Entity is abstract tagged limited record
       Counter : Integer := 0;
       --  Reference counter.
+      --  If set to -1, no reference counting is performed for this entity:
+      --  Inc_Usage and Dec_Usage are both no-ops in that case.
    end record;
 
    ----------------------

@@ -90,7 +90,12 @@ package body PolyORB.Smart_Pointers is
         (Unsafe_Entity'Class, Entity_Ptr);
 
    begin
-      pragma Assert (Obj.Counter /= -1);
+      if Obj.Counter = -1 then
+         --  Entity is not reference-counted
+
+         return;
+      end if;
+
       pragma Assert (Counter_Lock /= null);
       Entity_Lock (Obj.all);
 
@@ -176,13 +181,10 @@ package body PolyORB.Smart_Pointers is
    -- Finalize --
    --------------
 
-   procedure Finalize
-     (X : in out Unsafe_Entity)
-   is
+   procedure Finalize (X : in out Unsafe_Entity) is
       pragma Warnings (Off);
       pragma Unreferenced (X);
       pragma Warnings (On);
-
    begin
       null;
    end Finalize;
@@ -191,8 +193,7 @@ package body PolyORB.Smart_Pointers is
    -- Finalize --
    --------------
 
-   procedure Finalize
-     (X : in out Entity_Controller) is
+   procedure Finalize (X : in out Entity_Controller) is
    begin
       Finalize (X.E.all);
    end Finalize;
@@ -250,6 +251,12 @@ package body PolyORB.Smart_Pointers is
 
    procedure Inc_Usage (Obj : Entity_Ptr) is
    begin
+      if Obj.Counter = -1 then
+         --  Entity is not reference-counted
+
+         return;
+      end if;
+
       Entity_Lock (Obj.all);
       Unchecked_Inc_Usage (Obj);
       Entity_Unlock (Obj.all);
@@ -300,16 +307,6 @@ package body PolyORB.Smart_Pointers is
       return Obj.Counter;
    end Reference_Counter;
 
-   -------------
-   -- Release --
-   -------------
-
-   procedure Release
-     (The_Ref : in out Ref) is
-   begin
-      The_Ref := (Ada.Finalization.Controlled with A_Ref => null);
-   end Release;
-
    ------------------
    -- Reuse_Entity --
    ------------------
@@ -346,13 +343,9 @@ package body PolyORB.Smart_Pointers is
      (The_Ref    : in out Ref;
       The_Entity :        Entity_Ptr) is
    begin
-      pragma Debug (O ("Set: enter."));
-
       Finalize (The_Ref);
       The_Ref.A_Ref := The_Entity;
       Adjust (The_Ref);
-
-      pragma Debug (O ("Set: leave."));
    end Set;
 
    -----------------
