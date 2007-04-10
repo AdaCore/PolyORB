@@ -50,9 +50,9 @@ package body PolyORB.Utils.UDP_Access_Points is
      ("polyorb.utils.udp_access_points");
    procedure O (Message : String; Level : Log_Level := Debug)
      renames L.Output;
-   function C (Level : Log_Level := Debug) return Boolean
-     renames L.Enabled;
-   pragma Unreferenced (C); --  For conditional pragma Debug
+   --  function C (Level : Log_Level := Debug) return Boolean
+   --    renames L.Enabled;
+   --  pragma Unreferenced (C); --  For conditional pragma Debug
 
    procedure Initialize_Socket (API : in out UDP_Access_Point_Info);
    pragma Inline (Initialize_Socket);
