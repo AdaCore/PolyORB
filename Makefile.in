@@ -629,19 +629,33 @@ ${test_targets}: %/build-test:
 	ADA_PROJECT_PATH=${top_builddir}/projects:${top_srcdir}/projects:$$ADA_PROJECT_PATH \
 	  ${GNATMAKE} "-XTest_Dir=$*" -P ${top_srcdir}/$*/test.gpr ${GNATMAKE_FLAGS}
 
-# active_test_dirs is the set of all tests to run, based on the configured
-# personalities.
-active_test_dirs :=
+# Set active_tests to a subset of test_targets -- remove the ones that are for
+# application personalities that were not configured. Note: examples/polyorb
+# and testsuite/core are built unconditionally, independent of personalities.
 
-ifeq "${filter corba, ${APPLI_LIST}}" "corba"
-active_test_dirs += \
-	examples/corba/all_functions \
-	examples/corba/all_types
+active_tests := ${test_targets}
+
+ifneq "${filter corba, ${APPLI_LIST}}" "corba"
+  active_tests := ${filter-out examples/corba/%,${active_tests}}
+  active_tests := ${filter-out testsuite/corba/%,${active_tests}}
+  active_tests := ${filter-out examples/bbs/%,${active_tests}}
 endif
 
-#???active_tests := ${patsubst %,%/build-test,${active_test_dirs}}
-#???For now, activate tests independent of personalities.
-active_tests := ${test_targets}
+ifneq "${filter dsa, ${APPLI_LIST}}" "dsa"
+  active_tests := ${filter-out examples/dsa/%,${active_tests}}
+  active_tests := ${filter-out testsuite/acats/%,${active_tests}}
+  active_tests := ${filter-out examples/bbs/%,${active_tests}}
+endif
+
+ifneq "${filter moma, ${APPLI_LIST}}" "moma"
+  active_tests := ${filter-out examples/moma/%,${active_tests}}
+  active_tests := ${filter-out examples/corba/all_types/%,${active_tests}}
+endif
+
+ifneq "${filter aws, ${APPLI_LIST}}" "aws"
+  active_tests := ${filter-out examples/aws/%,${active_tests}}
+endif
+
 #???The following need some extra options; disable for now:
 skip_tests := examples/bbs \
               examples/aws \
@@ -658,6 +672,7 @@ skip_tests := examples/bbs \
               testsuite/corba/portableinterceptor/test004
 skip_tests := ${patsubst %,%/build-test,${skip_tests}}
 active_tests := ${filter-out ${skip_tests},${active_tests}}
+
 active_tests := ${sort ${active_tests}}
 
 .PHONY: print_active_tests
