@@ -625,13 +625,16 @@ test_targets := ${sort ${test_targets}}
 
 .PHONY: ${test_targets}
 ${test_targets}: %/build-test:
-	@echo Doing $@
 	ADA_PROJECT_PATH=${top_builddir}/projects:${top_srcdir}/projects:$$ADA_PROJECT_PATH \
 	  ${GNATMAKE} "-XTest_Dir=$*" -P ${top_srcdir}/$*/test.gpr ${GNATMAKE_FLAGS}
 
 # Set active_tests to a subset of test_targets -- remove the ones that are for
 # application personalities that were not configured. Note: examples/polyorb
 # and testsuite/core are built unconditionally, independent of personalities.
+# Note that two tests are for multiple personalities: examples/bbs is built
+# only if we are configured for both corba and dsa, and
+# examples/corba/all_types is built only if we are configured for both corba
+# and moma.
 
 active_tests := ${test_targets}
 
@@ -656,10 +659,8 @@ ifneq "${filter aws, ${APPLI_LIST}}" "aws"
   active_tests := ${filter-out examples/aws/%,${active_tests}}
 endif
 
-#???The following need some extra options; disable for now:
+#???The following are disabled for now, because of minor build problems:
 skip_tests := examples/bbs \
-              examples/aws \
-              examples/corba/rtcorba/dhb \
               examples/corba/secure_echo \
               examples/dsa \
               testsuite/acats/CXE1001 \
