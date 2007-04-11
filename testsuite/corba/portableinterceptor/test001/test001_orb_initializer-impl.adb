@@ -31,7 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with CORBA.IDL_SEQUENCES;
 with CORBA.Impl;
 with PolyORB.Utils.Report;
 

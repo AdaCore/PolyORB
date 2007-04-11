@@ -75,7 +75,7 @@ begin
 
          --  Retrieve Root POA
 
-         Root_POA := PortableServer.POA.Helper.To_Ref
+         Root_POA := PortableServer.POA.Helper.To_Local_Ref
            (CORBA.ORB.Resolve_Initial_References
             (CORBA.ORB.To_CORBA_String ("RootPOA")));
 

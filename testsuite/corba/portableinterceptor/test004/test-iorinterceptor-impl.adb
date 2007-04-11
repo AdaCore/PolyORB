@@ -31,7 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with CORBA.IDL_SEQUENCES;
 with CORBA.ORB;
 with IOP.Codec;
 with IOP.CodecFactory.Helper;
