@@ -661,16 +661,13 @@ endif
 
 #???The following are disabled for now, because of minor build problems:
 skip_tests := examples/bbs \
-              examples/corba/secure_echo \
               examples/dsa \
               testsuite/acats/CXE1001 \
               testsuite/acats/CXE2001 \
               testsuite/acats/CXE4001 \
               testsuite/acats/CXE4002 \
               testsuite/acats/CXE4005 \
-              testsuite/acats/CXE4006 \
-              testsuite/corba/portableinterceptor/test001 \
-              testsuite/corba/portableinterceptor/test004
+              testsuite/acats/CXE4006
 skip_tests := ${patsubst %,%/build-test,${skip_tests}}
 active_tests := ${filter-out ${skip_tests},${active_tests}}
 
