@@ -428,7 +428,7 @@ package body CORBA.Object is
 
    procedure Duplicate (Self : in out Ref) is
    begin
-      Duplicate (PolyORB.Smart_Pointers.Ref (Self));
+      Adjust (PolyORB.Smart_Pointers.Ref (Self));
    end Duplicate;
 
    -------------
