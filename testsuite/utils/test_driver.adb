@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -37,6 +37,7 @@ with Ada.Exceptions;
 with Ada.Text_IO;
 
 with GNAT.Command_Line;
+with GNAT.OS_Lib;
 with GNAT.Source_Info;
 
 with Test_Suite.Scenarios;
@@ -44,6 +45,9 @@ with Test_Suite.Output.File;
 with Test_Suite.Output.Text;
 
 with PolyORB.Initialization;
+
+with PolyORB.Parameters.Initialization;
+pragma Warnings (Off, PolyORB.Parameters.Initialization);
 
 with PolyORB.Log.Stderr;
 pragma Warnings (Off, PolyORB.Log.Stderr);
@@ -83,6 +87,7 @@ procedure Test_Driver is
    ---------
 
    procedure Run is
+      Result : Boolean;
    begin
       --  Execute test_driver
 
@@ -94,17 +99,31 @@ procedure Test_Driver is
             Test_Suite.Scenarios.Run_Scenario
               (Item.all, Position,
                Configuration_Base_Dir.all,
-               Test_Suite_Output'Class (Output.all));
+               Test_Suite_Output'Class (Output.all),
+               Result);
 
          when Run_All_Scenarios =>
             Test_Suite.Scenarios.Run_All_Scenarios
               (Item.all,
                Configuration_Base_Dir.all,
-               Test_Suite_Output'Class (Output.all));
+               Test_Suite_Output'Class (Output.all),
+               Result);
       end case;
 
       Log (Test_Suite_Output'Class (Output.all), "Test driver exited.");
+      if Result then
+         Log (Test_Suite_Output'Class (Output.all), "No test failed.");
+      else
+         Log (Test_Suite_Output'Class (Output.all), "Some tests failed.");
+      end if;
+
       Close (Test_Suite_Output'Class (Output.all));
+
+      if Result then
+         GNAT.OS_Lib.OS_Exit (0);
+      else
+         GNAT.OS_Lib.OS_Exit (1);
+      end if;
 
    exception
       when E : others =>
@@ -119,6 +138,7 @@ procedure Test_Driver is
                 " with information: "
                 & Ada.Exceptions.Exception_Information (E));
          Close (Test_Suite_Output'Class (Output.all));
+         GNAT.OS_Lib.OS_Exit (1);
    end Run;
 
    -----------------------

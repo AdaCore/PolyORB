@@ -41,14 +41,18 @@ package Test_Suite.Scenarios is
      (Scenario_File : String;
       Position      : Integer := -1;
       Configuration_Dir : String;
-      Output        : Test_Suite_Output'Class);
+      Output        : Test_Suite_Output'Class;
+      Test_Success   : out Boolean);
    --  Run scenario file Scenario_File. If Position is greater than
    --  -1, executes only test at #position position in Scenario_File.
+   --  On exit, set Test_Success according to test output.
 
    procedure Run_All_Scenarios
      (Directory_Name : String;
       Configuration_Dir : String;
-      Output         : Test_Suite_Output'Class);
+      Output         : Test_Suite_Output'Class;
+      Test_Success : out Boolean);
    --  Run recursively all scenarios in Directory_Name directory
+   --  On exit, set Test_Success according to test output.
 
 end Test_Suite.Scenarios;

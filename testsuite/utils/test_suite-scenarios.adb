@@ -51,7 +51,8 @@ package body Test_Suite.Scenarios is
      (Scenario_File : String;
       Position      : Integer := -1;
       Configuration_Dir : String;
-      Output        : Test_Suite_Output'Class)
+      Output        : Test_Suite_Output'Class;
+      Test_Success  : out Boolean)
    is
       use PolyORB.Parameters;
       use PolyORB.Parameters.File;
@@ -142,12 +143,14 @@ package body Test_Suite.Scenarios is
                  & Natural'Image (Count) & " tests passed, with"
                  & Natural'Image (Expected_Failed_Tests)
                  & " expected failed tests");
+            Test_Success := True;
          else
             Log (Output, "FAILED:"
                  & Natural'Image (Count - Failed_Tests)
                  & " out of" & Natural'Image (Count) & " tests passed, with"
                  & Natural'Image (Expected_Failed_Tests)
                  & " expected failed tests");
+            Test_Success := False;
          end if;
 
          Separator (Output);
@@ -172,7 +175,8 @@ package body Test_Suite.Scenarios is
    procedure Run_All_Scenarios
      (Directory_Name : String;
       Configuration_Dir : String;
-      Output         : Test_Suite_Output'Class)
+      Output         : Test_Suite_Output'Class;
+      Test_Success : out Boolean)
    is
       Scenarios : Natural := 0;
 
@@ -187,8 +191,11 @@ package body Test_Suite.Scenarios is
          Quit          : in out Boolean)
       is
          pragma Unreferenced (Index);
+         Test_Output : Boolean;
       begin
-         Run_Scenario (Scenario_File, -1, Configuration_Dir, Output);
+         Run_Scenario
+           (Scenario_File, -1, Configuration_Dir, Output, Test_Output);
+         Test_Success := Test_Success and Test_Output;
          Scenarios := Scenarios + 1;
          Quit := False;
       end Run_Scenario_Wrapper;
@@ -197,6 +204,8 @@ package body Test_Suite.Scenarios is
         GNAT.Directory_Operations.Iteration.Find (Run_Scenario_Wrapper);
 
    begin
+      Test_Success := True;
+
       Log (Output, "Running all scenario from: " & Directory_Name);
       Separator (Output);
 
