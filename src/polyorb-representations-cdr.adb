@@ -176,7 +176,6 @@ package body PolyORB.Representations.CDR is
            and then Value (Iter).Minor = Minor
          then
             Result := Value (Iter).Factory.all;
-            Initialize (Result.TC_Map);
             return Result;
          end if;
 
@@ -1096,8 +1095,12 @@ package body PolyORB.Representations.CDR is
 
       --  No mapping required for a simple typecode at the outermost level
 
-      if Representation.Current_Complex = -1 and then not Complex then
-         return;
+      if Representation.Current_Complex = -1 then
+         if not Complex then
+            return;
+         end if;
+
+         Initialize (T);
       end if;
 
       Increment_Last (T);
