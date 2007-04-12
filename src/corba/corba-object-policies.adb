@@ -331,6 +331,8 @@ package body CORBA.Object.Policies is
             Catch (Error);
             return;
          end if;
+      else
+         Result := True;
       end if;
    end Validate_Connection;
 
