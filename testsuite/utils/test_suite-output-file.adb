@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2003-2007 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -157,6 +157,7 @@ package body Test_Suite.Output.File is
    exception
       when E : others =>
          Put_Line ("Got " & Ada.Exceptions.Exception_Information (E));
+         Put_Line ("when manipulating context " & Name);
          Put_Line ("Going back to Initial_Dir !!");
          Change_Dir (To_String (Initial_Dir));
          raise;
