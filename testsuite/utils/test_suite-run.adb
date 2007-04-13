@@ -188,10 +188,6 @@ package body Test_Suite.Run is
             Test_Result := False;
 
             Close (Fd);
-            if Exec_In_Base_Dir then
-               Change_Dir (Initial_Dir);
-            end if;
-
             return Test_Result;
 
          when GNAT.Expect.Invalid_Process =>
@@ -201,8 +197,7 @@ package body Test_Suite.Run is
             Log (Output, "==> Invalid process <==");
             Test_Result := False;
 
-            Change_Dir (Initial_Dir);
-
+            Close (Fd);
             return Test_Result;
       end;
 
@@ -224,7 +219,6 @@ package body Test_Suite.Run is
       --  Clean up
 
       Close (Fd);
-
       return Test_Result;
 
    exception
