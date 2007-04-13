@@ -610,13 +610,14 @@ used.
 @noindent
 PolyORB's documentation and examples are built separately.
 
-After building PolyORB, simply run make in the @file{examples} (resp.
-@file{docs}) directory to build the examples (resp. the
-documentation). The build process will only build examples that
-correspond to the personalities you configured. Note that some examples
-require the CORBA COS Naming service to be enabled (using
-@command{--enable-corba-services="naming"} on the @command{configure}
+To build the examples, run @command{make examples} in the root
+directory.  The build process will only build examples that correspond
+to the personalities you configured. Note that some examples require the
+CORBA COS Naming and IR services to be enabled (using
+@command{--enable-corba-services="naming ir"} on the @command{configure}
 command line).
+
+Similarly, to build the documentation, run @command{make docs}.
 
 You may install PolyORB's documentation in a standard location using
 @command{make install}.
