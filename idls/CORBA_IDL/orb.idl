@@ -179,5 +179,9 @@ typeprefix CORBA "omg.org"
 
 };
 
+#undef Context
+#undef Object
+#undef ValueBase
+
 #endif // _ORB_IDL_
 
