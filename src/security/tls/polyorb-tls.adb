@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -38,6 +38,10 @@ with Interfaces.C.Strings;
 with PolyORB.Initialization;
 with PolyORB.Log;
 with PolyORB.Utils.Strings;
+
+with PolyORB.Platform.SSL_Linker_Options;
+pragma Warnings (Off, PolyORB.Platform.SSL_Linker_Options);
+--  No entity referenced
 
 package body PolyORB.TLS is
 
