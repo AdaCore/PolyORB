@@ -134,18 +134,19 @@ package body PolyORB.Filters is
       --  Implement default progagation behaviour
 
       if False
-        or else Msg in Data_Indication
-        or else Msg in Connect_Indication
-        or else Msg in Connect_Confirmation
-        or else Msg in Disconnect_Indication
-        or else Msg in Set_Server
+        or else Msg in Data_Indication'Class
+        or else Msg in Connect_Indication'Class
+        or else Msg in Connect_Confirmation'Class
+        or else Msg in Disconnect_Indication'Class
+        or else Msg in Set_Server'Class
       then
          return Emit (F.Upper, Msg);
 
       elsif False
-        or else Msg in Data_Out
-        or else Msg in Disconnect_Request
-        or else Msg in Check_Validity
+        or else Msg in Data_Expected'Class
+        or else Msg in Data_Out'Class
+        or else Msg in Disconnect_Request'Class
+        or else Msg in Check_Validity'Class
       then
          return Emit (F.Lower, Msg);
 
