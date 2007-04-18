@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
@@ -82,19 +82,16 @@ package CORBA.ExceptionList is
       --  used outside of PolyORB.
 
       function To_PolyORB_Ref
-        (Self : Ref)
-        return PolyORB.Any.ExceptionList.Ref;
+        (Self : Ref) return PolyORB.Any.ExceptionList.Ref;
 
       function To_CORBA_Ref
-        (Self : PolyORB.Any.ExceptionList.Ref)
-        return Ref;
+        (Self : PolyORB.Any.ExceptionList.Ref) return Ref;
 
    end Internals;
 
 private
 
-   Nil_Ref : constant Ref
-     := (CORBA.AbstractBase.Ref with null record);
+   Nil_Ref : constant Ref := (CORBA.AbstractBase.Ref with null record);
 
    pragma Inline
      (Get_Count,

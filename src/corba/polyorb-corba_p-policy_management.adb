@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -113,9 +113,9 @@ package body PolyORB.CORBA_P.Policy_Management is
 
    procedure Check_Compatibility
      (Policies : Policy_List;
-      Indexes  :    out CORBA.Short)
+      Indexes  :    out CORBA.Unsigned_Short)
    is
-      use type CORBA.Short;
+      use type CORBA.Unsigned_Short;
 
    begin
       Indexes := 0;
@@ -127,7 +127,7 @@ package body PolyORB.CORBA_P.Policy_Management is
             Policy_Registry (J).Compatibility_Check
               (Policies (J),
                Policies,
-               CORBA.Unsigned_Short (Indexes));
+               Indexes);
 
             if Indexes /= 0 then
                return;

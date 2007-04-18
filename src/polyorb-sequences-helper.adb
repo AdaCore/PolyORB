@@ -43,7 +43,7 @@ package body PolyORB.Sequences.Helper is
    --  Global data
 
    Initialized : Boolean := False;
-   Sequence_TC, Element_TC : PolyORB.Any.TypeCode.Object;
+   Sequence_TC, Element_TC : PolyORB.Any.TypeCode.Local_Ref;
 
    -----------
    -- Clone --
@@ -126,7 +126,7 @@ package body PolyORB.Sequences.Helper is
 
    function Get_Aggregate_Element
      (ACC   : access Sequence_Content;
-      TC    : PolyORB.Any.TypeCode.Object;
+      TC    : PolyORB.Any.TypeCode.Local_Ref;
       Index : PolyORB.Types.Unsigned_Long;
       Mech  : access PolyORB.Any.Mechanism) return PolyORB.Any.Content'Class
    is
@@ -150,7 +150,7 @@ package body PolyORB.Sequences.Helper is
    ----------------
 
    procedure Initialize
-     (Element_TC, Sequence_TC : PolyORB.Any.TypeCode.Object)
+     (Element_TC, Sequence_TC : PolyORB.Any.TypeCode.Local_Ref)
    is
    begin
       Helper.Element_TC  := Element_TC;
@@ -177,7 +177,7 @@ package body PolyORB.Sequences.Helper is
 
    procedure Set_Aggregate_Element
      (ACC    : in out Sequence_Content;
-      TC     : TypeCode.Object;
+      TC     : TypeCode.Local_Ref;
       Index  : Types.Unsigned_Long;
       From_C : in out Any_Container'Class)
    is

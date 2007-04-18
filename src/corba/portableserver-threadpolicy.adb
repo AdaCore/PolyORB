@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -176,7 +176,7 @@ begin
      (Module_Info'
       (Name      => +"portableserver.threadpolicy",
        Conflicts => Empty,
-       Depends   => Empty,
+       Depends   => +"PortableServer.Helper",
        Provides  => Empty,
        Implicit  => False,
        Init      => Deferred_Initialization'Access,

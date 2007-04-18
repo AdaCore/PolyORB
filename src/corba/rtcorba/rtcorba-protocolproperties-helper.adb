@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---   P O L Y O R B . S E Q U E N C E S . U N B O U N D E D . H E L P E R    --
+--    R T C O R B A . P R O T O C O L P R O P E R T I E S . H E L P E R     --
 --                                                                          --
---                                 S p e c                                  --
+--                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2007, Free Software Foundation, Inc.          --
+--           Copyright (C) 2007, Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,40 +31,70 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Any conversion subprograms for unbounded sequences
+pragma Style_Checks ("NM32766");
 
+with PolyORB.Utils.Strings;
+with PolyORB.Initialization;
+pragma Elaborate_All (PolyORB.Initialization);
 with PolyORB.Any;
-with PolyORB.Sequences.Helper;
 
-generic
-   with function Element_From_Any (Item : PolyORB.Any.Any) return Element;
-   with function Element_To_Any   (Item : Element) return PolyORB.Any.Any;
-   with function Element_Wrap (X : access Element)
-     return PolyORB.Any.Content'Class;
+package body RTCORBA.ProtocolProperties.Helper is
 
-package PolyORB.Sequences.Unbounded.Helper is
+   function Unchecked_To_Local_Ref
+     (The_Ref : CORBA.Object.Ref'Class)
+     return RTCORBA.ProtocolProperties.Local_Ref
+   is
+      Result : RTCORBA.ProtocolProperties.Local_Ref;
+   begin
+      Set (Result,
+           CORBA.Object.Object_Of (The_Ref));
+      return Result;
+   end Unchecked_To_Local_Ref;
 
-   function From_Any (Item : PolyORB.Any.Any) return Sequence;
-   function To_Any   (Item : Sequence) return PolyORB.Any.Any;
-   function Wrap (X : access Sequence) return PolyORB.Any.Content'Class;
+   function To_Local_Ref
+     (The_Ref : CORBA.Object.Ref'Class)
+     return RTCORBA.ProtocolProperties.Local_Ref
+   is
+   begin
+      if CORBA.Object.Is_Nil (The_Ref)
+        or else CORBA.Object.Is_A (The_Ref, Repository_Id) then
+         return Unchecked_To_Local_Ref (The_Ref);
+      end if;
+      CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
+   end To_Local_Ref;
 
-   procedure Initialize
-     (Element_TC, Sequence_TC : PolyORB.Any.TypeCode.Local_Ref);
+   procedure Deferred_Initialization is
+   begin
 
-private
+      declare
+         Name : CORBA.String := CORBA.To_CORBA_String ("ProtocolProperties");
+         Id : CORBA.String := CORBA.To_CORBA_String ("IDL:omg.org/RTCORBA/ProtocolProperties:1.0");
+      begin
+         TC_ProtocolProperties :=
+           CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TC_Object);
+         CORBA.Internals.Add_Parameter (TC_ProtocolProperties, CORBA.To_Any (Name));
+         CORBA.Internals.Add_Parameter (TC_ProtocolProperties, CORBA.To_Any (Id));
+      end;
 
-   --  Element accessors to be passed to generic helper package
+   end Deferred_Initialization;
 
-   package Unbounded_Helper is new Sequences.Helper
-     (Element              => Element,
-      Element_Ptr          => Element_Ptr,
-      Sequence             => Sequence,
-      Length               => Length,
-      New_Sequence         => To_Sequence,
-      Set_Length           => Set_Length,
-      Unchecked_Element_Of => Unchecked_Element_Of,
-      Element_From_Any     => Element_From_Any,
-      Element_To_Any       => Element_To_Any,
-      Element_Wrap         => Element_Wrap);
+begin
+   declare
+      use PolyORB.Initialization;
+      use PolyORB.Initialization.String_Lists;
+      use PolyORB.Utils.Strings;
+   begin
+      Register_Module
+        (Module_Info'
+         (Name      => +"RTCORBA.ProtocolProperties.Helper",
+          Conflicts => PolyORB.Initialization.String_Lists.Empty,
+          Depends   =>
+                  +"any"
+          ,
+          Provides  => PolyORB.Initialization.String_Lists.Empty,
+          Implicit  => False,
+          Init      => Deferred_Initialization'Access,
+          Shutdown  => null));
+   end;
 
-end PolyORB.Sequences.Unbounded.Helper;
+end RTCORBA.ProtocolProperties.Helper;

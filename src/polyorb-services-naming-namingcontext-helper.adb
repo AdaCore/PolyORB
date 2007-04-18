@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -363,9 +363,11 @@ package body PolyORB.Services.Naming.NamingContext.Helper is
          Id : PolyORB.Types.String
            := To_PolyORB_String ("IDL:omg.org/CosNaming/NamingContext:1.0");
       begin
+         TC_NamingContext := TypeCode.TC_Object;
          TypeCode.Add_Parameter (TC_NamingContext, To_Any (Name));
          TypeCode.Add_Parameter (TC_NamingContext, To_Any (Id));
       end;
+
       declare
          Name : PolyORB.Types.String
            := To_PolyORB_String ("NotFoundReason");
@@ -379,6 +381,7 @@ package body PolyORB.Services.Naming.NamingContext.Helper is
          not_object_Name : PolyORB.Types.String
            := To_PolyORB_String ("not_object");
       begin
+         TC_NotFoundReason := TypeCode.TC_Enum;
          TypeCode.Add_Parameter (TC_NotFoundReason, To_Any (Name));
          TypeCode.Add_Parameter (TC_NotFoundReason, To_Any (Id));
          TypeCode.Add_Parameter (TC_NotFoundReason,
@@ -398,6 +401,7 @@ package body PolyORB.Services.Naming.NamingContext.Helper is
          Arg_Name_rest_of_name : PolyORB.Types.String
            := To_PolyORB_String ("rest_of_name");
       begin
+         TC_NotFound := TypeCode.TC_Except;
          TypeCode.Add_Parameter (TC_NotFound, To_Any (Name));
          TypeCode.Add_Parameter (TC_NotFound, To_Any (Id));
          TypeCode.Add_Parameter (TC_NotFound,
@@ -420,6 +424,7 @@ package body PolyORB.Services.Naming.NamingContext.Helper is
          Arg_Name_rest_of_name : PolyORB.Types.String
            := To_PolyORB_String ("rest_of_name");
       begin
+         TC_CannotProceed := TypeCode.TC_Except;
          TypeCode.Add_Parameter (TC_CannotProceed, To_Any (Name));
          TypeCode.Add_Parameter (TC_CannotProceed, To_Any (Id));
          TypeCode.Add_Parameter (TC_CannotProceed,
@@ -440,6 +445,7 @@ package body PolyORB.Services.Naming.NamingContext.Helper is
            := To_PolyORB_String
            ("IDL:omg.org/CosNaming/NamingContext/InvalidName:1.0");
       begin
+         TC_InvalidName := TypeCode.TC_Except;
          TypeCode.Add_Parameter (TC_InvalidName, To_Any (Name));
          TypeCode.Add_Parameter (TC_InvalidName, To_Any (Id));
       end;
@@ -453,6 +459,7 @@ package body PolyORB.Services.Naming.NamingContext.Helper is
            := To_PolyORB_String
            ("IDL:omg.org/CosNaming/NamingContext/AlreadyBound:1.0");
       begin
+         TC_AlreadyBound := TypeCode.TC_Except;
          TypeCode.Add_Parameter (TC_AlreadyBound, To_Any (Name));
          TypeCode.Add_Parameter (TC_AlreadyBound, To_Any (Id));
       end;
@@ -466,6 +473,7 @@ package body PolyORB.Services.Naming.NamingContext.Helper is
            := To_PolyORB_String
            ("IDL:omg.org/CosNaming/NamingContext/NotEmpty:1.0");
       begin
+         TC_NotEmpty := TypeCode.TC_Except;
          TypeCode.Add_Parameter (TC_NotEmpty, To_Any (Name));
          TypeCode.Add_Parameter (TC_NotEmpty, To_Any (Id));
       end;

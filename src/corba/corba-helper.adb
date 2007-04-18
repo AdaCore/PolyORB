@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -225,59 +225,36 @@ package body CORBA.Helper is
       --  Build a typecode for type Name which is an alias of CORBA::String
 
       function Build_TC_Alias_String
-        (Name : Standard.String)
-         return CORBA.TypeCode.Object
+        (Name : Standard.String) return CORBA.TypeCode.Object
       is
-         TC : CORBA.TypeCode.Object
-           := TypeCode.Internals.To_CORBA_Object
-           (PolyORB.Any.TypeCode.TC_Alias);
-
       begin
-         TypeCode.Internals.Add_Parameter
-           (TC, CORBA.To_Any (To_CORBA_String (Name)));
-         TypeCode.Internals.Add_Parameter
-           (TC, CORBA.To_Any (To_CORBA_String
-                              ("IDL:omg.org/CORBA/" & Name & ":1.0")));
-         TypeCode.Internals.Add_Parameter
-           (TC, CORBA.To_Any (CORBA.TC_String));
-         return TC;
+         return CORBA.TypeCode.Internals.Build_Alias_TC
+           (Name   => To_CORBA_String (Name),
+            Id     => To_CORBA_String ("IDL:omg.org/CORBA/" & Name & ":1.0"),
+            Parent => CORBA.TC_String);
       end Build_TC_Alias_String;
 
    begin
       TC_RepositoryId_Cache := Build_TC_Alias_String ("RepositoryId");
-      TC_Identifier_Cache := Build_TC_Alias_String ("Identifier");
-      TC_ScopedName_Cache := Build_TC_Alias_String ("ScopedName");
+      TC_Identifier_Cache   := Build_TC_Alias_String ("Identifier");
+      TC_ScopedName_Cache   := Build_TC_Alias_String ("ScopedName");
 
       declare
          Name : CORBA.String := CORBA.To_CORBA_String ("Visibility");
          Id   : CORBA.String
            := CORBA.To_CORBA_String ("IDL:omg.org/CORBA/Visibility:1.0");
       begin
-         TC_Visibility_Cache :=
-           TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TC_Alias);
-
-         TypeCode.Internals.Add_Parameter
-           (TC_Visibility_Cache, CORBA.To_Any (Name));
-         TypeCode.Internals.Add_Parameter
-           (TC_Visibility_Cache, CORBA.To_Any (Id));
-         TypeCode.Internals.Add_Parameter
-           (TC_Visibility_Cache, CORBA.To_Any (CORBA.TC_Short));
+         TC_Visibility_Cache := CORBA.TypeCode.Internals.Build_Alias_TC
+           (Name => Name, Id => Id, Parent => CORBA.TC_Short);
       end;
 
       declare
          Name : CORBA.String := CORBA.To_CORBA_String ("PolicyType");
-         Id   : CORBA.String
-           := CORBA.To_CORBA_String ("IDL:CORBA/PolicyType:1.0");
+         Id   : CORBA.String :=
+                  CORBA.To_CORBA_String ("IDL:CORBA/PolicyType:1.0");
       begin
-         TC_PolicyType_Cache :=
-           TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TC_Alias);
-
-         TypeCode.Internals.Add_Parameter
-           (TC_PolicyType_Cache, CORBA.To_Any (Name));
-         TypeCode.Internals.Add_Parameter
-           (TC_PolicyType_Cache, CORBA.To_Any (Id));
-         TypeCode.Internals.Add_Parameter
-           (TC_PolicyType_Cache, CORBA.To_Any (CORBA.TC_Unsigned_Long));
+         TC_PolicyType_Cache := CORBA.TypeCode.Internals.Build_Alias_TC
+           (Name => Name, Id => Id, Parent => CORBA.TC_Unsigned_Long);
       end;
    end Initialize;
 

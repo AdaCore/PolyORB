@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---           Copyright (C) 2006, Free Software Foundation, Inc.             --
+--         Copyright (C) 2006-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -129,10 +129,7 @@ package body CORBA.Repository_Root.IDLType.Impl is
 --       pragma Debug (O2 ("init  end"));
 --   end Init;
 
-   function get_type
-     (Self : access Object)
-     return CORBA.TypeCode.Object
-   is
+   function get_type (Self : access Object) return CORBA.TypeCode.Object is
    begin
       --  we are going to dispatch manually this call
       case Get_Def_Kind (Self) is

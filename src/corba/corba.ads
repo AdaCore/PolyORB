@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
@@ -583,7 +583,7 @@ package CORBA is
    -- Any --
    ---------
 
-   type Any is private;
+   type Any is new PolyORB.Any.Any;
 
    ---------------
    -- TypeCodes --
@@ -649,10 +649,10 @@ package CORBA is
 
    package TypeCode is
 
-      --   XXX to be implemented: proper management of CORBA-specific
-      --   exceptions.
-
       type Object is private;
+      --  Mandated by standard mapping. Note that this pseudo-object cannot
+      --  be made limited, and we cannot force the usage of a proper ref
+      --  type on the CORBA side.
 
       --  exception Bounds
 
@@ -740,21 +740,35 @@ package CORBA is
 
          function To_PolyORB_Object
            (Self : CORBA.TypeCode.Object)
-           return PolyORB.Any.TypeCode.Object;
+           return PolyORB.Any.TypeCode.Local_Ref;
 
          function To_CORBA_Object
-           (Self : PolyORB.Any.TypeCode.Object)
-            return CORBA.TypeCode.Object;
+           (Self : PolyORB.Any.TypeCode.Local_Ref)
+           return CORBA.TypeCode.Object;
 
+         function Is_Nil (Self : CORBA.TypeCode.Object) return Boolean;
+
+         function Build_Alias_TC
+           (Name, Id : CORBA.String;
+            Parent   : Object) return Object;
          function Build_Sequence_TC (Element_TC : Object; Max : Natural)
            return Object;
+         function Build_String_TC (Max : CORBA.Unsigned_Long) return Object;
+         function Build_Wstring_TC (Max : CORBA.Unsigned_Long) return Object;
+         --  ??? Should use CORBA.ORB.Create_*_Tc instead of these
 
          function Wrap (X : access Object) return PolyORB.Any.Content'Class;
 
+      private
+         pragma Inline (To_PolyORB_Object);
+         pragma Inline (To_CORBA_Object);
       end Internals;
 
    private
-      type Object is new PolyORB.Any.TypeCode.Object;
+
+      type Object is new PolyORB.Any.TypeCode.Local_Ref;
+      --  In the neutral layer, TypeCode.Object is a limited type with
+      --  reference counting.
 
    end TypeCode;
 
@@ -779,15 +793,12 @@ package CORBA is
    function TC_TypeCode           return TypeCode.Object;
    function TC_String             return TypeCode.Object;
    function TC_Wide_String        return TypeCode.Object;
+
    --  Implementation Note: function TC_Object is defined in
    --  CORBA.Object.
 
-   --  XXX these functions are here for the IR to compile, to be
-   --  investigated
-   function TC_Principal return TypeCode.Object;
-   function TC_Value return TypeCode.Object;
-
    --  This is the returned exception in case of dynamic invocation
+
    UnknownUserException : exception;
    type UnknownUserException_Members is
      new CORBA.IDL_Exception_Members with record
@@ -798,11 +809,6 @@ package CORBA is
      (From : Ada.Exceptions.Exception_Occurrence;
       To   : out UnknownUserException_Members);
 
-   function "=" (Left, Right : Any) return Boolean;
-
-   function Equal (Left, Right : Any) return Boolean
-     renames "=";
-
    function To_Any (Item : Short)              return Any;
    function To_Any (Item : Long)               return Any;
    function To_Any (Item : Long_Long)          return Any;
@@ -812,12 +818,13 @@ package CORBA is
    function To_Any (Item : CORBA.Float)        return Any;
    function To_Any (Item : Double)             return Any;
    function To_Any (Item : Long_Double)        return Any;
-   function To_Any (Item : Boolean)            return Any;
-   function To_Any (Item : Char)               return Any;
-   function To_Any (Item : Wchar)              return Any;
-   function To_Any (Item : Octet)              return Any;
-   function To_Any (Item : Any)                return Any;
+   --  function To_Any (Item : Boolean)            return Any;
+   --  function To_Any (Item : Char)               return Any;
+   --  function To_Any (Item : Wchar)              return Any;
+   --  function To_Any (Item : Any)                return Any;
+   --  Implicitly inherited
    function To_Any (Item : TypeCode.Object)    return Any;
+   function To_Any (Item : Octet)              return Any;
    function To_Any (Item : CORBA.String)       return Any;
    function To_Any (Item : CORBA.Wide_String)  return Any;
 
@@ -830,12 +837,13 @@ package CORBA is
    function From_Any (Item : Any) return CORBA.Float;
    function From_Any (Item : Any) return Double;
    function From_Any (Item : Any) return Long_Double;
-   function From_Any (Item : Any) return Boolean;
-   function From_Any (Item : Any) return Char;
-   function From_Any (Item : Any) return Wchar;
-   function From_Any (Item : Any) return Octet;
-   function From_Any (Item : Any) return Any;
+   --  function From_Any (Item : Any) return Boolean;
+   --  function From_Any (Item : Any) return Char;
+   --  function From_Any (Item : Any) return Wchar;
+   --  function From_Any (Item : Any) return Any;
+   --  Implicitly inherited
    function From_Any (Item : Any) return TypeCode.Object;
+   function From_Any (Item : Any) return Octet;
    function From_Any (Item : Any) return CORBA.String;
    function From_Any (Item : Any) return CORBA.Wide_String;
 
@@ -854,7 +862,8 @@ package CORBA is
    function From_Any (Item : Any_Container'Class) return Char;
    function From_Any (Item : Any_Container'Class) return Wchar;
    function From_Any (Item : Any_Container'Class) return Octet;
-   function From_Any (Item : Any_Container'Class) return Any;
+   --  function From_Any (Item : Any_Container'Class) return Any;
+   --  Implicitly inherited
    function From_Any (Item : Any_Container'Class) return TypeCode.Object;
    function From_Any (Item : Any_Container'Class) return CORBA.String;
    function From_Any (Item : Any_Container'Class) return CORBA.Wide_String;
@@ -874,13 +883,12 @@ package CORBA is
    function Wrap (X : access Char)               return Content'Class;
    function Wrap (X : access Wchar)              return Content'Class;
    function Wrap (X : access Octet)              return Content'Class;
-   function Wrap (X : access Any)                return Content'Class;
+   --  function Wrap (X : access Any)                return Content'Class;
+   --  Implicitly inherited
    function Wrap (X : access TypeCode.Object)    return Content'Class;
    function Wrap (X : access CORBA.String)       return Content'Class;
    function Wrap (X : access CORBA.Wide_String)  return Content'Class;
    pragma Inline (Wrap);
-
-   function Get_Type (The_Any : Any) return TypeCode.Object;
 
    ----------------
    -- NamedValue --
@@ -917,16 +925,14 @@ package CORBA is
    function From_Any (Item : CORBA.Any) return CORBA.Completion_Status;
    function To_Any (Item : CORBA.Completion_Status) return CORBA.Any;
 
+   function Get_Type (The_Any : Any) return CORBA.TypeCode.Object;
+   --  Return the typecode of The_Any
+
    package Internals is
 
       --  Implementation Note: This package defines internal subprograms
-      --  specific to PolyORB. You must not use them.
-
-      function To_PolyORB_Any (Self : CORBA.Any) return PolyORB.Any.Any;
-      pragma Inline (To_PolyORB_Any);
-
-      function To_CORBA_Any (Self : PolyORB.Any.Any) return CORBA.Any;
-      pragma Inline (To_CORBA_Any);
+      --  specific to PolyORB which should not be used directly from
+      --  application code.
 
       function Get_Unwound_Type (The_Any : Any) return TypeCode.Object;
       --  Returns the most precise type of an Any (unwinding all typedefs)
@@ -942,7 +948,8 @@ package CORBA is
          CC : access PolyORB.Any.Content'Class) return Any;
       --  Return an Any with the specified typecode and contents wrapper
 
-      function Get_Empty_Any (Tc : TypeCode.Object) return Any;
+      function Get_Empty_Any (TC : TypeCode.Object) return Any;
+      function Get_Empty_Any (TC : TypeCode.Object) return PolyORB.Any.Any;
       --  Return an empty any with the given Typecode but not value
 
       function Is_Empty (Any_Value : CORBA.Any) return Boolean;
@@ -953,15 +960,11 @@ package CORBA is
       --  of values, instead of one unique. It is used for structs,
       --  unions, enums, arrays, sequences, objref, values...
 
-      function Get_Empty_Any_Aggregate
-        (Tc : CORBA.TypeCode.Object)
-         return Any;
+      function Get_Empty_Any_Aggregate (TC : CORBA.TypeCode.Object) return Any;
       --  Return an Any with an aggregate value containing zero elements and
       --  having the specified typecode
 
-      function Get_Aggregate_Count
-        (Value : Any)
-        return CORBA.Unsigned_Long;
+      function Get_Aggregate_Count (Value : Any) return CORBA.Unsigned_Long;
       --  Return the number of elements in an any aggregate
 
       procedure Add_Aggregate_Element
@@ -973,20 +976,14 @@ package CORBA is
 
       function Get_Aggregate_Element
         (Value : Any;
-         Tc    : CORBA.TypeCode.Object;
-         Index : CORBA.Unsigned_Long)
-         return Any;
+         TC    : CORBA.TypeCode.Object;
+         Index : CORBA.Unsigned_Long) return Any;
       --  Return an any constructed with typecode Tc and the value extracted
       --  from position Index in aggregate Value
 
       procedure Move_Any_Value (Dest : Any; Src : Any);
 
-      generic
-         with procedure Process
-           (The_Any  : Any;
-            Continue : out Boolean);
-         pragma Unreferenced (Process);
-      procedure Iterate_Over_Any_Elements (In_Any : Any);
+      procedure Add_Parameter (TC : TypeCode.Object; Param : Any);
 
    private
 
@@ -1004,10 +1001,6 @@ private
 
    PRIVATE_MEMBER : constant Visibility := PolyORB.Any.PRIVATE_MEMBER;
    PUBLIC_MEMBER  : constant Visibility := PolyORB.Any.PUBLIC_MEMBER;
-
-   type Any is record
-      The_Any : PolyORB.Any.Any;
-   end record;
 
    function To_CORBA_NV (NV : PolyORB.Any.NamedValue) return NamedValue;
 

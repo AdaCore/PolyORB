@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -533,8 +533,9 @@ package body PolyORB.Requests is
                     and then Copied_Src_Args (Src_Idx) = False
                   then
                      declare
-                        Dst_Arg_Type : constant TypeCode.Object
-                          := Get_Unwound_Type (Value (Dst_It).Argument);
+                        Dst_Arg_Type : constant TypeCode.Local_Ref :=
+                                         Get_Unwound_Type
+                                           (Value (Dst_It).Argument);
                      begin
                         pragma Debug (O ("Src_Arg: "
                                          & To_String (Value (Src_It).Name)));

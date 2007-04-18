@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with CORBA;
-
 with PolyORB.Errors.Helper;
 with PolyORB.Exceptions;
 with PolyORB.Log;
@@ -62,10 +60,9 @@ package body PolyORB.CORBA_P.Exceptions is
    ------------------------
 
    function Is_Forward_Request
-     (Occurrence : PolyORB.Any.Any)
-      return Boolean
+     (Occurrence : PolyORB.Any.Any) return Boolean
    is
-      use type PolyORB.Any.TypeCode.Object;
+      use type PolyORB.Any.TypeCode.Local_Ref;
    begin
       return not Is_Empty (Occurrence)
         and then Get_Type (Occurrence) = TC_ForwardRequest;
@@ -79,7 +76,7 @@ package body PolyORB.CORBA_P.Exceptions is
      (Occurrence : PolyORB.Any.Any)
      return Boolean
    is
-      use type PolyORB.Any.TypeCode.Object;
+      use type PolyORB.Any.TypeCode.Local_Ref;
 
    begin
       return not Is_Empty (Occurrence)
@@ -161,13 +158,19 @@ package body PolyORB.CORBA_P.Exceptions is
    -----------------------------
 
    function System_Exception_To_Any
+     (E : Ada.Exceptions.Exception_Occurrence) return CORBA.Any is
+   begin
+      return CORBA.Any (PolyORB.Any.Any'(System_Exception_To_Any (E)));
+   end System_Exception_To_Any;
+
+   function System_Exception_To_Any
      (E : Ada.Exceptions.Exception_Occurrence)
       return PolyORB.Any.Any
    is
       Repository_Id : RepositoryId;
       Members       : CORBA.System_Exception_Members;
-      TC            : TypeCode.Object;
-      Result        : Any.Any;
+      TC            : PolyORB.Any.TypeCode.Local_Ref;
+      Result        : PolyORB.Any.Any;
 
    begin
       pragma Debug (O ("System_Exception_To_Any: enter."));
@@ -202,13 +205,10 @@ package body PolyORB.CORBA_P.Exceptions is
       end;
 
       Result := Get_Empty_Any_Aggregate (TC);
-      Add_Aggregate_Element
-        (Result,
-         CORBA.Internals.To_PolyORB_Any (CORBA.To_Any (Members.Minor)));
-
-      Add_Aggregate_Element
-        (Result,
-         CORBA.Internals.To_PolyORB_Any (CORBA.To_Any (Members.Completed)));
+      Add_Aggregate_Element (Result,
+         PolyORB.Any.Any (CORBA.To_Any (Members.Minor)));
+      Add_Aggregate_Element (Result,
+        PolyORB.Any.Any (CORBA.To_Any (Members.Completed)));
 
       pragma Debug (O ("System_Exception_To_Any: leave"));
       return Result;

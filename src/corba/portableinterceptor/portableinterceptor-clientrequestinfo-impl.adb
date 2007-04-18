@@ -432,7 +432,7 @@ package body PortableInterceptor.ClientRequestInfo.Impl is
                                         Completed => CORBA.Completed_No));
       end if;
 
-      return CORBA.Internals.To_CORBA_Any (Self.Request.Exception_Info);
+      return CORBA.Any (Self.Request.Exception_Info);
    end Get_Received_Exception;
 
    -------------------------------

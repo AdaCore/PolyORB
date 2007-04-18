@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---           Copyright (C) 2006, Free Software Foundation, Inc.             --
+--         Copyright (C) 2006-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
@@ -175,13 +175,11 @@ package CORBA.Repository_Root.InterfaceDef.Impl is
       new_name : CORBA.Identifier;
       new_version : CORBA.Repository_Root.VersionSpec);
 
-   function get_type
-     (Self : access Object)
-     return CORBA.TypeCode.Object;
+   function get_type (Self : access Object) return CORBA.TypeCode.Object;
 
    --  Transform an InterfaceDefSeq into a RepositoryIdSeq
-   function Get_RepositoryIdSeq (IntDefSeq : InterfaceDefSeq)
-                                 return RepositoryIdSeq;
+   function Get_RepositoryIdSeq
+     (IntDefSeq : InterfaceDefSeq) return RepositoryIdSeq;
 
 private
 

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -86,7 +86,7 @@ package PolyORB.Errors is
    --  InvalidPolicy_Members
 
    type InvalidPolicy_Members is new Exception_Members with record
-      Index : PolyORB.Types.Short;
+      Index : PolyORB.Types.Unsigned_Short;
    end record;
 
    --  ForwardRequest_Members

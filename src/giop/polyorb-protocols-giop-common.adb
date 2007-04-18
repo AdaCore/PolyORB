@@ -156,7 +156,7 @@ package body PolyORB.Protocols.GIOP.Common is
       use PolyORB.Errors;
       use PolyORB.Errors.Helper;
       use PolyORB.Types;
-      use type PolyORB.Any.TypeCode.Object;
+      use type PolyORB.Any.TypeCode.Local_Ref;
 
       Buffer_Out      : Buffer_Access := new Buffer_Type;
       Header_Buffer   : Buffer_Access := new Buffer_Type;
@@ -797,7 +797,7 @@ package body PolyORB.Protocols.GIOP.Common is
                        (To_Standard_String (RepositoryId));
                      Slash, Next_Slash : Integer;
 
-                     TC : Any.TypeCode.Object := TypeCode.TC_Except;
+                     TC : Any.TypeCode.Local_Ref := TypeCode.TC_Except;
                   begin
                      Slash := Exception_Name'First - 1;
                      loop

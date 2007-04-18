@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -45,7 +45,7 @@ package body PolyORB.Any.ObjRef is
       renames Elementary_Any_Ref.Set_Any_Value;
 
    function To_Any_Instance is
-     new To_Any_G (References.Ref, TC_Object, Set_Any_Value);
+     new To_Any_G (References.Ref, TypeCode.TC_Object, Set_Any_Value);
    function To_Any (X : References.Ref) return Any renames To_Any_Instance;
 
    function From_Any (A : Any) return References.Ref

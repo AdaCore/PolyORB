@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -47,12 +47,11 @@ package PolyORB.Any.ExceptionList is
 
    function Get_Count (Self : Ref) return PolyORB.Types.Unsigned_Long;
 
-   procedure Add (Self : Ref; Exc : PolyORB.Any.TypeCode.Object);
+   procedure Add (Self : Ref; Exc : TypeCode.Local_Ref);
 
    function Item
      (Self  : Ref;
-      Index : PolyORB.Types.Unsigned_Long)
-     return PolyORB.Any.TypeCode.Object;
+      Index : Types.Unsigned_Long) return TypeCode.Local_Ref;
 
    procedure Remove
      (Self  : Ref;
@@ -62,8 +61,7 @@ package PolyORB.Any.ExceptionList is
 
    function Search_Exception_Id
      (Self : Ref;
-      Name : PolyORB.Types.String)
-     return PolyORB.Types.Unsigned_Long;
+      Name : Types.String) return Types.Unsigned_Long;
 
 private
 
@@ -71,17 +69,14 @@ private
 
    Nil_Ref : constant Ref := (PolyORB.Smart_Pointers.Ref with null record);
 
-   --  The actual implementation of an ExceptionList:
-   --  a list of TypeCode
+   --  The actual implementation of an ExceptionList: a list of TypeCodes
 
    package Exception_Lists is new PolyORB.Utils.Chained_Lists
-     (PolyORB.Any.TypeCode.Object, Doubly_Chained => True);
+     (PolyORB.Any.TypeCode.Local_Ref, Doubly_Chained => True);
 
    type Object is new PolyORB.Smart_Pointers.Non_Controlled_Entity with record
       List : Exception_Lists.List;
    end record;
    type Object_Ptr is access all Object;
-
-   procedure Finalize (Obj : in out Object);
 
 end PolyORB.Any.ExceptionList;

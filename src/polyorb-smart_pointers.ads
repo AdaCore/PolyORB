@@ -43,7 +43,17 @@ package PolyORB.Smart_Pointers is
    -- Task-unsafe entity --
    ------------------------
 
-   type Unsafe_Entity is abstract tagged limited private;
+   type Unsafe_Entity is abstract tagged limited record
+      Counter : Integer := 0;
+      --  Reference counter.
+      --  If set to -1, no reference counting is performed for this entity:
+      --  Inc_Usage and Dec_Usage are both no-ops in that case.
+
+      --  ???
+      --  It is strictly forbidden to access this component from outside
+      --  this unit, however we can't make it private due to G412-018.
+
+   end record;
 
    procedure Finalize (X : in out Unsafe_Entity);
    --  Unsafe_Entity is the base type of all objects that can be referenced.
@@ -62,16 +72,22 @@ package PolyORB.Smart_Pointers is
    --  to be made task-safe. These operations must guarantee mutual exclusion
    --  on accesses to the reference counter.
 
-   function Reference_Counter (Obj : Unsafe_Entity) return Integer;
+   function Reference_Counter (Obj : Unsafe_Entity'Class) return Integer;
    --  Return the value of Obj's reference counter.
    --  This function is not task safe, and must not be used for anything but
    --  debugging and the checking of assertions.
+
+   procedure Disable_Reference_Counting (Obj : in out Unsafe_Entity'Class);
+   --  Disable reference counting on Obj. No attempt will then be made to keep
+   --  track of references, and no automatic deallocation will occur after the
+   --  last reference is used. This is intended primarily for library-level
+   --  entities.
 
    ----------------------
    -- Task-safe entity --
    ----------------------
 
-   type Non_Controlled_Entity is abstract new Unsafe_Entity with private;
+   type Non_Controlled_Entity is abstract new Unsafe_Entity with null record;
    --  Same as Unsafe_Entity, but accesses to the reference counter are
    --  made task safe through calls to the Entity_Lock and Entity_Unlock
    --  operations.
@@ -146,17 +162,6 @@ package PolyORB.Smart_Pointers is
 
 private
 
-   ------------------------
-   -- Task-unsafe entity --
-   ------------------------
-
-   type Unsafe_Entity is abstract tagged limited record
-      Counter : Integer := 0;
-      --  Reference counter.
-      --  If set to -1, no reference counting is performed for this entity:
-      --  Inc_Usage and Dec_Usage are both no-ops in that case.
-   end record;
-
    ----------------------
    -- Task-safe entity --
    ----------------------
@@ -165,8 +170,6 @@ private
    --  Global mutex used to guarantee consistency of concurrent accesses to
    --  entity reference counters. To be created by a child unit during
    --  PolyORB initialization.
-
-   type Non_Controlled_Entity is abstract new Unsafe_Entity with null record;
 
    type Entity_Controller (E : access Entity'Class)
       is new Ada.Finalization.Limited_Controlled with null record;

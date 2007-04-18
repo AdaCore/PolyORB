@@ -255,19 +255,10 @@ package body CORBA.ORB is
       Original_Type : CORBA.TypeCode.Object)
       return CORBA.TypeCode.Object
    is
-      Result : CORBA.TypeCode.Object
-        := CORBA.TypeCode.Internals.To_CORBA_Object
-        (PolyORB.Any.TypeCode.TC_Alias);
-
    begin
-      CORBA.TypeCode.Internals.Add_Parameter
-        (Result, CORBA.To_Any (CORBA.String (Name)));
-      CORBA.TypeCode.Internals.Add_Parameter
-        (Result, CORBA.To_Any (CORBA.String (Id)));
-      CORBA.TypeCode.Internals.Add_Parameter
-        (Result, CORBA.To_Any (Original_Type));
-
-      return Result;
+      return CORBA.TypeCode.Internals.Build_Alias_TC
+        (Id => CORBA.String (Id), Name => CORBA.String (Name),
+         Parent => Original_Type);
    end Create_Alias_Tc;
 
    ---------------------
@@ -276,19 +267,13 @@ package body CORBA.ORB is
 
    function Create_Array_Tc
      (Length       : CORBA.Unsigned_Long;
-      Element_Type : CORBA.TypeCode.Object)
-      return CORBA.TypeCode.Object
+      Element_Type : CORBA.TypeCode.Object) return CORBA.TypeCode.Object
    is
-      Result : CORBA.TypeCode.Object :=
-                 CORBA.TypeCode.Internals.To_CORBA_Object
-                   (PolyORB.Any.TypeCode.TC_Array);
-
    begin
-      CORBA.TypeCode.Internals.Add_Parameter (Result, CORBA.To_Any (Length));
-      CORBA.TypeCode.Internals.Add_Parameter
-        (Result, CORBA.To_Any (Element_Type));
-
-      return Result;
+      return TypeCode.Internals.To_CORBA_Object
+        (PolyORB.Any.TypeCode.Build_Complex_TC (Tk_Array,
+         (PolyORB.Any.To_Any (PolyORB.Types.Unsigned_Long (Length)),
+          PolyORB.Any.Any (To_Any (Element_Type)))));
    end Create_Array_Tc;
 
    ---------------------
@@ -297,14 +282,12 @@ package body CORBA.ORB is
 
    function Create_Fixed_Tc
      (IDL_Digits : CORBA.Unsigned_Short;
-      scale      : CORBA.Short)
-      return CORBA.TypeCode.Object is
+      scale      : CORBA.Short) return CORBA.TypeCode.Object is
    begin
-      raise Program_Error;
-      pragma Warnings (Off);
-      return Create_Fixed_Tc (IDL_Digits, scale);
-      --  "Possible infinite recursion".
-      pragma Warnings (On);
+      return TypeCode.Internals.To_CORBA_Object
+        (PolyORB.Any.TypeCode.Build_Complex_TC (Tk_Fixed,
+         (PolyORB.Any.To_Any (PolyORB.Types.Unsigned_Short (IDL_Digits)),
+          PolyORB.Any.To_Any (PolyORB.Types.Short (scale)))));
    end Create_Fixed_Tc;
 
    -------------------------
@@ -314,18 +297,12 @@ package body CORBA.ORB is
    function Create_Interface_Tc
      (Id   : CORBA.RepositoryId;
       Name : CORBA.Identifier)
-      return CORBA.TypeCode.Object
-   is
-      Result : TypeCode.Object
-        := CORBA.TypeCode.Internals.To_CORBA_Object
-        (PolyORB.Any.TypeCode.TC_Object);
-
+      return CORBA.TypeCode.Object is
    begin
-      CORBA.TypeCode.Internals.Add_Parameter
-        (Result, CORBA.To_Any (CORBA.String (Name)));
-      CORBA.TypeCode.Internals.Add_Parameter
-        (Result, CORBA.To_Any (CORBA.String (Id)));
-      return Result;
+      return TypeCode.Internals.To_CORBA_Object
+        (PolyORB.Any.TypeCode.Build_Complex_TC (Tk_Objref,
+         (PolyORB.Any.To_Any (PolyORB.Types.String (Name)),
+          PolyORB.Any.To_Any (PolyORB.Types.String (Id)))));
    end Create_Interface_Tc;
 
    -----------------
@@ -334,12 +311,10 @@ package body CORBA.ORB is
 
    procedure Create_List
      (Count    : CORBA.Long;
-      New_List :    out CORBA.NVList.Ref)
+      New_List : out CORBA.NVList.Ref)
    is
       pragma Unreferenced (Count);
-
       Result : CORBA.NVList.Ref;
-
    begin
       New_List := Result;
    end Create_List;
@@ -352,15 +327,14 @@ package body CORBA.ORB is
    ----------------------
 
    function Create_Native_Tc
-     (Id   : RepositoryId;
-      Name : Identifier)
+     (Id   : CORBA.RepositoryId;
+      Name : CORBA.Identifier)
       return CORBA.TypeCode.Object is
    begin
-      raise Program_Error;
-      pragma Warnings (Off);
-      return Create_Native_Tc (Id, Name);
-      --  "Possible infinite recursion".
-      pragma Warnings (On);
+      return TypeCode.Internals.To_CORBA_Object
+        (PolyORB.Any.TypeCode.Build_Complex_TC (Tk_Native,
+         (PolyORB.Any.To_Any (PolyORB.Types.String (Name)),
+          PolyORB.Any.To_Any (PolyORB.Types.String (Id)))));
    end Create_Native_Tc;
 
    ----------------------------------
@@ -385,19 +359,13 @@ package body CORBA.ORB is
 
    function Create_Sequence_Tc
      (Bound        : CORBA.Unsigned_Long;
-      Element_Type : CORBA.TypeCode.Object)
-      return CORBA.TypeCode.Object
+      Element_Type : CORBA.TypeCode.Object) return CORBA.TypeCode.Object
    is
-      Result : CORBA.TypeCode.Object
-        := CORBA.TypeCode.Internals.To_CORBA_Object
-        (PolyORB.Any.TypeCode.TC_Sequence);
-
    begin
-      CORBA.TypeCode.Internals.Add_Parameter (Result, CORBA.To_Any (Bound));
-      CORBA.TypeCode.Internals.Add_Parameter
-        (Result, CORBA.To_Any (Element_Type));
-
-      return Result;
+      return TypeCode.Internals.To_CORBA_Object
+        (PolyORB.Any.TypeCode.Build_Complex_TC (Tk_Sequence,
+         (PolyORB.Any.To_Any (PolyORB.Types.Unsigned_Long (Bound)),
+          PolyORB.Any.Any (To_Any (Element_Type)))));
    end Create_Sequence_Tc;
 
    ----------------------
@@ -405,14 +373,11 @@ package body CORBA.ORB is
    ----------------------
 
    function Create_String_Tc
-     (Bound : CORBA.Unsigned_Long)
-      return CORBA.TypeCode.Object
-   is
-      Result : CORBA.TypeCode.Object := CORBA.TC_String;
+     (Bound : CORBA.Unsigned_Long) return CORBA.TypeCode.Object is
    begin
-      CORBA.TypeCode.Internals.Add_Parameter (Result, CORBA.To_Any (Bound));
-
-      return Result;
+      return TypeCode.Internals.To_CORBA_Object
+        (PolyORB.Any.TypeCode.Build_String_TC
+         (PolyORB.Types.Unsigned_Long (Bound)));
    end Create_String_Tc;
 
    -----------------------
@@ -420,28 +385,23 @@ package body CORBA.ORB is
    -----------------------
 
    function Create_Wstring_Tc
-     (Bound : CORBA.Unsigned_Long)
-      return CORBA.TypeCode.Object
-   is
-      Result : CORBA.TypeCode.Object := CORBA.TC_Wide_String;
+     (Bound : CORBA.Unsigned_Long) return CORBA.TypeCode.Object is
    begin
-      CORBA.TypeCode.Internals.Add_Parameter (Result, CORBA.To_Any (Bound));
-
-      return Result;
+      return TypeCode.Internals.To_CORBA_Object
+        (PolyORB.Any.TypeCode.Build_Wstring_TC
+         (PolyORB.Types.Unsigned_Long (Bound)));
    end Create_Wstring_Tc;
 
    -------------------------
    -- Get_Default_Context --
    -------------------------
 
-   function Get_Default_Context
-      return CORBA.Context.Ref is
+   function Get_Default_Context return CORBA.Context.Ref is
+      R : CORBA.Context.Ref;
    begin
       raise Program_Error;
-      pragma Warnings (Off);
-      return Get_Default_Context;
-      --  "Possible infinite recursion".
-      pragma Warnings (On);
+      --  Not implemented
+      return R;
    end Get_Default_Context;
 
    -----------------------------

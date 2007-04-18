@@ -41,7 +41,7 @@
 #pragma prefix "omg.org"
 
 #include <orb.idl>
-#include <iop.idl>
+#include <IOP.idl>
 #include <TimeBase.idl>
 #else
 import ::CORBA;

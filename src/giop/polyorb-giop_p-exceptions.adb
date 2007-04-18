@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -102,8 +102,8 @@ package body PolyORB.GIOP_P.Exceptions is
       Bad_Qos_E                 => 0);
 
    function To_CORBA_Exception_TypeCode
-     (TC : PolyORB.Any.TypeCode.Object)
-     return PolyORB.Any.TypeCode.Object;
+     (TC : PolyORB.Any.TypeCode.Local_Ref)
+     return PolyORB.Any.TypeCode.Local_Ref;
    --  Construct CORBA exception typecode from TC
 
    -------------------------
@@ -168,8 +168,8 @@ package body PolyORB.GIOP_P.Exceptions is
    ---------------------------------
 
    function To_CORBA_Exception_TypeCode
-     (TC : PolyORB.Any.TypeCode.Object)
-     return PolyORB.Any.TypeCode.Object
+     (TC : PolyORB.Any.TypeCode.Local_Ref)
+     return PolyORB.Any.TypeCode.Local_Ref
    is
       CORBA_Root_PTS : constant PolyORB.Types.String :=
         To_PolyORB_String (CORBA_Exc_Root);
@@ -190,7 +190,7 @@ package body PolyORB.GIOP_P.Exceptions is
       New_Name : constant PolyORB.Types.String :=
                    CORBA_Root_PTS & Internal_Name & CORBA_Exc_Version_PTS;
 
-      Result_TC : TypeCode.Object := TypeCode.TC_Except;
+      Result_TC : TypeCode.Local_Ref := TypeCode.TC_Except;
 
    begin
       pragma Debug (O ("Exception name was: " & Name));
@@ -227,8 +227,8 @@ package body PolyORB.GIOP_P.Exceptions is
    is
       use PolyORB.Any.TypeCode;
 
-      Exc_TC : constant PolyORB.Any.TypeCode.Object := Get_Type (Exc);
-      Result_TC : PolyORB.Any.TypeCode.Object;
+      Exc_TC : constant PolyORB.Any.TypeCode.Local_Ref := Get_Type (Exc);
+      Result_TC : PolyORB.Any.TypeCode.Local_Ref;
 
       Result : Any.Any;
 
@@ -300,15 +300,15 @@ package body PolyORB.GIOP_P.Exceptions is
    -------------------------------
 
    package System_Exception_TC_Cache is new PolyORB.Dynamic_Dict
-     (Value => TypeCode.Object);
+     (Value => TypeCode.Local_Ref);
 
    function System_Exception_TypeCode
      (Name : Standard.String)
-     return Any.TypeCode.Object
+     return Any.TypeCode.Local_Ref
    is
       use System_Exception_TC_Cache;
 
-      TC    : TypeCode.Object
+      TC    : TypeCode.Local_Ref
         := Lookup (Name, TypeCode.TC_Except);
 
       Shift : Natural := 0;

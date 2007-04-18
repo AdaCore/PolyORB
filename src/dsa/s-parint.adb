@@ -107,7 +107,7 @@ package body System.Partition_Interface is
       Element_To_Any   => PolyORB.Any.To_Any,
       Element_Wrap     => PolyORB.Any.Wrap);
 
-   TC_Opaque_Cache : PATC.Object;
+   TC_Opaque_Cache : PATC.Local_Ref;
    --  Typecode for the opaque octet sequence
 
    --------------------------------------------------------------
@@ -257,7 +257,7 @@ package body System.Partition_Interface is
    -------------------------
 
    function Any_Aggregate_Build
-     (TypeCode : PATC.Object;
+     (TypeCode : PATC.Local_Ref;
       Contents : Any_Array) return Any
    is
       Result : Any := Get_Empty_Any_Aggregate (TypeCode);
@@ -275,7 +275,7 @@ package body System.Partition_Interface is
    function Any_Member_Type
      (A     : Any;
       Index : System.Unsigned_Types.Long_Unsigned)
-     return PolyORB.Any.TypeCode.Object
+     return PolyORB.Any.TypeCode.Local_Ref
    is
    begin
       return PATC.Member_Type
@@ -421,7 +421,7 @@ package body System.Partition_Interface is
       use PolyORB.Types;
 
       Name : constant String := PolyORB.Exceptions.Occurrence_To_Name (E);
-      TC : PATC.Object := PATC.TC_Except;
+      TC : PATC.Local_Ref := PATC.TC_Except;
       Result : PolyORB.Any.Any;
    begin
       --  Name
@@ -602,11 +602,11 @@ package body System.Partition_Interface is
    -------------------------
 
    function Extract_Union_Value (U : Any) return Any is
-      U_Type : constant PATC.Object := Get_Type (U);
+      U_Type : constant PATC.Local_Ref := Get_Type (U);
       Label_Any : constant Any
         := PolyORB.Any.Get_Aggregate_Element
         (U, PATC.Discriminator_Type (U_Type), 0);
-      Value_Type : constant PATC.Object
+      Value_Type : constant PATC.Local_Ref
         := PATC.Member_Type_With_Label (U_Type, Label_Any);
    begin
       return PolyORB.Any.Get_Aggregate_Element (U, Value_Type, 1);
@@ -726,7 +726,7 @@ package body System.Partition_Interface is
 
    function Get_Aggregate_Element
      (Value : Any;
-      Tc    : PATC.Object;
+      Tc    : PATC.Local_Ref;
       Index : System.Unsigned_Types.Long_Unsigned)
       return Any is
    begin
@@ -923,7 +923,7 @@ package body System.Partition_Interface is
       use type PolyORB.Types.Unsigned_Long;
 
       Seq_Any : PolyORB.Any.Any;
-      Tc      : constant PATC.Object := Get_Type (Value);
+      Tc      : constant PATC.Local_Ref := Get_Type (Value);
    begin
       pragma Debug (O ("Get_Nested_Sequence_Length: enter,"
                        & " Depth =" & Depth'Img & ","
@@ -1759,13 +1759,11 @@ package body System.Partition_Interface is
       --  corresponding to the RACW is also constructed (and this is vital also
       --  on the client side.)
 
-      Default_Servant.Obj_TypeCode := PolyORB.Any.TC_Object;
+      Default_Servant.Obj_TypeCode := PolyORB.Any.TypeCode.TC_Object;
       PATC.Add_Parameter
-        (Default_Servant.Obj_TypeCode,
-         To_Any (PName));
+        (Default_Servant.Obj_TypeCode, To_Any (PName));
       PATC.Add_Parameter
-        (Default_Servant.Obj_TypeCode,
-         TA_String ("DSA:" & Name & ":1.0"));
+        (Default_Servant.Obj_TypeCode, TA_String ("DSA:" & Name & ":1.0"));
 
       if RACW_POA_Config = null then
          return;
@@ -1799,11 +1797,28 @@ package body System.Partition_Interface is
 
    end Setup_Object_RPC_Receiver;
 
+   --------------
+   -- TC_Build --
+   --------------
+
+   --  ??? This function should be replaced by a call to Build_Complex_TC
+
+   function TC_Build
+     (Base       : PolyORB.Any.TypeCode.Local_Ref;
+      Parameters : Any_Array) return PolyORB.Any.TypeCode.Local_Ref
+   is
+   begin
+      for J in Parameters'Range loop
+         PATC.Add_Parameter (Base, Parameters (J));
+      end loop;
+      return Base;
+   end TC_Build;
+
    ---------------
    -- TC_Opaque --
    ---------------
 
-   function TC_Opaque return PATC.Object is
+   function TC_Opaque return PATC.Local_Ref is
    begin
       return TC_Opaque_Cache;
    end TC_Opaque;

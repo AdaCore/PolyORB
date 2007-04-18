@@ -35,6 +35,8 @@
 
 with Ada.Exceptions;
 
+with CORBA;
+
 with PolyORB.Any;
 with PolyORB.Errors;
 with PolyORB.Requests;
@@ -52,8 +54,9 @@ package PolyORB.CORBA_P.Exceptions is
    --  Raise CORBA exception from data in 'Occurrence'
 
    function System_Exception_To_Any
-     (E : Ada.Exceptions.Exception_Occurrence)
-     return PolyORB.Any.Any;
+     (E : Ada.Exceptions.Exception_Occurrence) return PolyORB.Any.Any;
+   function System_Exception_To_Any
+     (E : Ada.Exceptions.Exception_Occurrence) return CORBA.Any;
    --  Convert a CORBA System Exception into a Any
 
    procedure Raise_From_Error

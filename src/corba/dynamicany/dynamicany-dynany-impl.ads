@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -164,12 +164,13 @@ package DynamicAny.DynAny.Impl is
 
    function Get_Reference (Self : access Object) return CORBA.Object.Ref;
 
-   function Get_TypeCode (Self : access Object) return CORBA.TypeCode.Object;
+   function Get_TypeCode
+     (Self : access Object) return CORBA.TypeCode.Object;
 
    function Get_LongLong (Self : access Object) return CORBA.Long_Long;
 
-   function Get_ULongLong (Self : access Object)
-     return CORBA.Unsigned_Long_Long;
+   function Get_ULongLong
+     (Self : access Object) return CORBA.Unsigned_Long_Long;
 
    function Get_LongDouble (Self : access Object) return CORBA.Long_Double;
 
@@ -317,7 +318,7 @@ package DynamicAny.DynAny.Impl is
       --  Return True iff Self marked to be destroyed as part of top level
       --  dynamic any destruction.
 
-      function Get_Value (Self : access Object'Class) return PolyORB.Any.Any;
+      function Get_Value (Self : access Object'Class) return CORBA.Any;
       --  Return internal Value
 
       --  Constructors
@@ -332,16 +333,15 @@ package DynamicAny.DynAny.Impl is
 
       procedure Initialize
         (Self     : access Object'Class;
-         IDL_Type : PolyORB.Any.TypeCode.Object);
+         IDL_Type : PolyORB.Any.TypeCode.Local_Ref);
       --  Initialize DynAny object and setup default value
 
       function Create
-        (Value  : PolyORB.Any.Any;
-         Parent : Object_Ptr)
-         return Local_Ref;
+        (Value  : CORBA.Any;
+         Parent : Object_Ptr) return Local_Ref;
 
       function Create
-        (Value : PolyORB.Any.TypeCode.Object)
+        (Value : PolyORB.Any.TypeCode.Local_Ref)
          return DynAny.Local_Ref;
 
    end Internals;
@@ -353,6 +353,8 @@ private
 
    type Object is new CORBA.Local.Object with record
       Value        : PolyORB.Any.Any;
+      --  ??? should really be a CORBA.Any
+
       Current      : CORBA.Long;
       Parent       : Object_Ptr;
       Children     : Local_Ref_Lists.List;

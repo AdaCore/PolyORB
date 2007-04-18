@@ -196,7 +196,7 @@ begin
 
    begin
       Test_Current :=
-        PortableServer.Current.Helper.To_Ref
+        PortableServer.Current.Helper.To_Local_Ref
         (CORBA.ORB.Resolve_Initial_References
          (CORBA.ORB.To_CORBA_String ("POACurrent")));
 

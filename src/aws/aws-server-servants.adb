@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---           Copyright (C) 2006, Free Software Foundation, Inc.             --
+--         Copyright (C) 2006-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -323,7 +323,7 @@ package body AWS.Server.Servants is
             pragma Debug (O ("Integrate_Data:"
                              & " byte sequence response (file)"));
             declare
-               Sq_Type : PolyORB.Any.TypeCode.Object
+               Sq_Type : PolyORB.Any.TypeCode.Local_Ref
                  := PolyORB.Any.TypeCode.TC_Sequence;
             begin
                PolyORB.Any.TypeCode.Add_Parameter

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -266,7 +266,7 @@ package body PortableServer.POA is
      return Local_Ref'Class
    is
       use type PolyORB.CORBA_P.Interceptors_Hooks.POA_Create_Handler;
-      use type CORBA.Short;
+      use type CORBA.Unsigned_Short;
 
       Res : PolyORB.POA.Obj_Adapter_Access;
       POA : constant PolyORB.POA.Obj_Adapter_Access := To_POA (Self);
@@ -276,7 +276,7 @@ package body PortableServer.POA is
 
       Note    : PolyORB.CORBA_P.Policy_Management.Policy_Manager_Note;
       Error   : PolyORB.Errors.Error_Container;
-      Indexes : CORBA.Short;
+      Indices : CORBA.Unsigned_Short;
 
    begin
       pragma Debug (O ("Creating POA "
@@ -299,7 +299,7 @@ package body PortableServer.POA is
                 (Error,
                  PolyORB.Errors.InvalidPolicy_E,
                  PolyORB.Errors.InvalidPolicy_Members'
-                  (Index => PolyORB.Types.Short (J)));
+                  (Index => PolyORB.Types.Unsigned_Short (J)));
                exit;
             end if;
 
@@ -315,11 +315,10 @@ package body PortableServer.POA is
       --  Check policy compatibility
 
       PolyORB.CORBA_P.Policy_Management.Check_Compatibility
-        (Note.Overrides,
-         Indexes);
+        (Note.Overrides, Indices);
 
-      if Indexes /= 0 then
-         Raise_InvalidPolicy ((Index => Indexes));
+      if Indices /= 0 then
+         Raise_InvalidPolicy ((Index => Indices));
       end if;
 
       --  Note: policy compability is tested by PolyORB.POA.Create_POA
@@ -1188,10 +1187,9 @@ package body PortableServer.POA is
                Member : constant InvalidPolicy_Members :=
                  InvalidPolicy_Members'
                  (CORBA.IDL_Exception_Members with
-                   Index =>
-                     CORBA.Short
-                      (PolyORB.Errors.InvalidPolicy_Members
-                        (Error.Member.all).Index));
+                   Index => CORBA.Unsigned_Short
+                              (PolyORB.Errors.InvalidPolicy_Members
+                               (Error.Member.all).Index));
             begin
                Free (Error.Member);
                Raise_InvalidPolicy (Member, Message);

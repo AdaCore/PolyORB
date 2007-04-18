@@ -162,7 +162,7 @@ private
       --  for computation of offset relative the to topmost complex typecode.
       --  Set to -1 for the outermost complex TC.
 
-      TC_Ref            : Any.TypeCode.Object;
+      TC_Ref            : Any.TypeCode.Object_Ptr;
       --  TC object at this offset. Assumes reference semantics
 
       Offset            : Types.Long;
@@ -189,17 +189,17 @@ private
       --  -1 if none.
    end record;
 
-   --  'TypeCode.Object' type
+   --  'TypeCode.Local_Ref' type
 
    procedure Marshall
      (Buffer         : access Buffers.Buffer_Type;
       Representation : access CDR_Representation'Class;
-      Data           : PolyORB.Any.TypeCode.Object);
+      Data           : PolyORB.Any.TypeCode.Local_Ref);
 
    function Unmarshall
      (Buffer         : access Buffers.Buffer_Type;
       Representation : access CDR_Representation'Class)
-      return PolyORB.Any.TypeCode.Object;
+      return PolyORB.Any.TypeCode.Local_Ref;
 
    --  CDR Representation versions registry
 

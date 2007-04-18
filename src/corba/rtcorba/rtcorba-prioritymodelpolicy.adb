@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -104,10 +104,10 @@ package body RTCORBA.PriorityModelPolicy is
                                             Completed => CORBA.Completed_No));
       end if;
 
-      return Create (Get_Priority_Model (To_Local_Ref (Self)),
-                     ORB_Priority (New_Priority),
-                     External_Priority (Get_Server_Priority
-                                        (To_Local_Ref (Self))));
+      return Create
+               (Get_Priority_Model (To_Local_Ref (Self)),
+                ORB_Priority (New_Priority),
+                External_Priority (Get_Server_Priority (To_Local_Ref (Self))));
    end Priority_Model_Policy_Allocator;
 
    ---------------------------------
@@ -116,27 +116,25 @@ package body RTCORBA.PriorityModelPolicy is
 
    function Create_PriorityModelPolicy
      (The_Type : CORBA.PolicyType;
-      Value    : CORBA.Any)
-     return CORBA.Policy.Ref
+      Value    : CORBA.Any) return CORBA.Policy.Ref
    is
    begin
       pragma Assert (The_Type = PRIORITY_MODEL_POLICY_TYPE);
 
-      if Get_Type (Value) /= TC_Unsigned_Long then
+      if Get_Type (Value) /= CORBA.TC_Unsigned_Long then
          Raise_PolicyError ((Reason => BAD_POLICY_TYPE));
       end if;
 
       declare
          Result : CORBA.Policy.Ref;
-         Entity : constant PolyORB.Smart_Pointers.Entity_Ptr
-           := new Policy_Object_Type;
+         Entity : constant PolyORB.Smart_Pointers.Entity_Ptr :=
+                    new Policy_Object_Type;
 
       begin
          Set_Policy_Type (Policy_Object_Type (Entity.all), The_Type);
          Set_Policy_Value (Policy_Object_Type (Entity.all), Value);
 
          CORBA.Policy.Set (Result, Entity);
-
          return Result;
       end;
    end Create_PriorityModelPolicy;
@@ -146,8 +144,7 @@ package body RTCORBA.PriorityModelPolicy is
    ------------------------
 
    function Get_Priority_Model
-     (Self : Local_Ref)
-     return RTCORBA.PriorityModel
+     (Self : Local_Ref) return RTCORBA.PriorityModel
    is
    begin
       return Get_Priority_Model

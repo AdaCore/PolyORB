@@ -63,10 +63,7 @@ package body PortableInterceptor.RequestInfo.Impl is
    -- Get_Arguments --
    -------------------
 
-   function Get_Arguments
-     (Self : access Object)
-      return ParameterList
-   is
+   function Get_Arguments (Self : access Object) return ParameterList is
       use PolyORB.Any.NVList.Internals;
       use PolyORB.Any.NVList.Internals.NV_Lists;
 
@@ -80,7 +77,7 @@ package body PortableInterceptor.RequestInfo.Impl is
             Append
               (Result,
                Parameter'
-                 (CORBA.Internals.To_CORBA_Any (Arg.Argument),
+                 (CORBA.Any (Arg.Argument),
                   To_CORBA_ParameterMode (Arg.Arg_Modes)));
             Next (Iter);
          end;
@@ -106,21 +103,14 @@ package body PortableInterceptor.RequestInfo.Impl is
    -- Get_Exceptions --
    --------------------
 
-   function Get_Exceptions
-     (Self : access Object)
-      return ExceptionList
-   is
+   function Get_Exceptions (Self : access Object) return ExceptionList is
       use PolyORB.Any.ExceptionList;
-
       Result : ExceptionList;
    begin
       for J in 1 .. Get_Count (Self.Request.Exc_List) loop
-         Append
-           (Result,
-            CORBA.TypeCode.Internals.To_CORBA_Object
-              (Item (Self.Request.Exc_List, J)));
+         Append (Result, CORBA.TypeCode.Internals.To_CORBA_Object
+                           (Item (Self.Request.Exc_List, J)));
       end loop;
-
       return Result;
    end Get_Exceptions;
 
@@ -334,25 +324,20 @@ package body PortableInterceptor.RequestInfo.Impl is
 
    function Get_Result (Self : access Object) return CORBA.Any is
    begin
-      return CORBA.Internals.To_CORBA_Any (Self.Request.Result.Argument);
+      return CORBA.Any (Self.Request.Result.Argument);
    end Get_Result;
 
    --------------
    -- Get_Slot --
    --------------
 
-   function Get_Slot
-     (Self : access Object;
-      Id   : SlotId)
-      return CORBA.Any
-   is
+   function Get_Slot (Self : access Object; Id : SlotId) return CORBA.Any is
       use PolyORB.Annotations;
       use PolyORB.CORBA_P.Interceptors_Slots;
 
       Note : Slots_Note;
    begin
       Get_Note (Self.Request.Notepad, Note, Invalid_Slots_Note);
-
       return Get_Slot (Note, Id);
    end Get_Slot;
 
@@ -360,10 +345,7 @@ package body PortableInterceptor.RequestInfo.Impl is
    -- Get_Sync_Scope --
    --------------------
 
-   function Get_Sync_Scope
-     (Self : access Object)
-      return Messaging.SyncScope
-   is
+   function Get_Sync_Scope (Self : access Object) return Messaging.SyncScope is
       use PolyORB.Requests;
       use PolyORB.Requests.Unsigned_Long_Flags;
    begin

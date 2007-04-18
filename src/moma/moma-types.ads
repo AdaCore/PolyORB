@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -121,8 +121,7 @@ package MOMA.Types is
      Value : MOMA.Types.Any;
    end record;
 
-   TC_Map_Element : PolyORB.Any.TypeCode.Object
-     := PolyORB.Any.TypeCode.TC_Struct;
+   TC_Map_Element : PolyORB.Any.TypeCode.Local_Ref;
 
    function To_Any (Item : Map_Element) return MOMA.Types.Any;
    function From_Any (Item : MOMA.Types.Any) return Map_Element;
@@ -220,18 +219,16 @@ package MOMA.Types is
    package IDL_SEQUENCE_Map_Element is
      new PolyORB.Sequences.Unbounded (Map_Element);
 
-   TC_IDL_SEQUENCE_Map_Element : PolyORB.Any.TypeCode.Object
-     := PolyORB.Any.TypeCode.TC_Sequence;
+   TC_IDL_SEQUENCE_Map_Element : PolyORB.Any.TypeCode.Local_Ref;
 
    function To_Any
      (Item : IDL_SEQUENCE_Map_Element.Sequence)
      return MOMA.Types.Any;
-
    function From_Any
      (Item : MOMA.Types.Any)
       return IDL_SEQUENCE_Map_Element.Sequence;
 
-   TC_Map : PolyORB.Any.TypeCode.Object := PolyORB.Any.TypeCode.TC_Alias;
+   TC_Map : PolyORB.Any.TypeCode.Local_Ref;
 
    type Map is new MOMA.Types.IDL_SEQUENCE_Map_Element.Sequence;
 
@@ -248,8 +245,7 @@ package MOMA.Types is
 
    type Destination_Type is (Unknown, Pool, Router, Topic);
 
-   TC_Destination_Type : PolyORB.Any.TypeCode.Object
-     := PolyORB.Any.TypeCode.TC_Enum;
+   TC_Destination_Type : PolyORB.Any.TypeCode.Local_Ref;
 
    function To_Any (Item : Destination_Type) return MOMA.Types.Any;
    function From_Any (Item : MOMA.Types.Any) return Destination_Type;

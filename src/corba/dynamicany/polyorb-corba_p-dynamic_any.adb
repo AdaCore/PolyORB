@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -56,8 +56,8 @@ package body PolyORB.CORBA_P.Dynamic_Any is
      (IDL_Type : CORBA.TypeCode.Object)
       return DynamicAny.DynAny.Local_Ref
    is
-      Neutral : constant PolyORB.Any.TypeCode.Object
-        := CORBA.TypeCode.Internals.To_PolyORB_Object (IDL_Type);
+      Neutral : constant PolyORB.Any.TypeCode.Local_Ref :=
+                  CORBA.TypeCode.Internals.To_PolyORB_Object (IDL_Type);
 
    begin
       case Kind (Unwind_Typedefs (Neutral)) is
@@ -140,11 +140,8 @@ package body PolyORB.CORBA_P.Dynamic_Any is
       Parent         : DynamicAny.DynAny.Impl.Object_Ptr)
       return DynamicAny.DynAny.Local_Ref
    is
-      Neutral : constant PolyORB.Any.Any
-        := CORBA.Internals.To_PolyORB_Any (Value);
-
    begin
-      case Kind (Get_Unwound_Type (Neutral)) is
+      case Kind (Get_Unwound_Type (PolyORB.Any.Any (Value))) is
          when Tk_Null
            | Tk_Void
            | Tk_Boolean
@@ -167,38 +164,38 @@ package body PolyORB.CORBA_P.Dynamic_Any is
            | Tk_Objref
            | Tk_Abstract_Interface
          =>
-            return DynamicAny.DynAny.Impl.Internals.Create (Neutral, Parent);
+            return DynamicAny.DynAny.Impl.Internals.Create (Value, Parent);
 
          when Tk_Array =>
-            return DynamicAny.DynArray.Impl.Internals.Create (Neutral, Parent);
+            return DynamicAny.DynArray.Impl.Internals.Create (Value, Parent);
 
          when Tk_Enum =>
-            return DynamicAny.DynEnum.Impl.Internals.Create (Neutral, Parent);
+            return DynamicAny.DynEnum.Impl.Internals.Create (Value, Parent);
 
          when Tk_Fixed =>
-            return DynamicAny.DynFixed.Impl.Internals.Create (Neutral, Parent);
+            return DynamicAny.DynFixed.Impl.Internals.Create (Value, Parent);
 
          when Tk_Sequence =>
             return
-              DynamicAny.DynSequence.Impl.Internals.Create (Neutral, Parent);
+              DynamicAny.DynSequence.Impl.Internals.Create (Value, Parent);
 
          when Tk_Struct
            | Tk_Except
          =>
             return
-              DynamicAny.DynStruct.Impl.Internals.Create (Neutral, Parent);
+              DynamicAny.DynStruct.Impl.Internals.Create (Value, Parent);
 
          when Tk_Union =>
-            return DynamicAny.DynUnion.Impl.Internals.Create (Neutral, Parent);
+            return DynamicAny.DynUnion.Impl.Internals.Create (Value, Parent);
 
          when Tk_Value =>
             return
               DynamicAny.DynValue.Impl.Internals.Create
-              (Neutral, Allow_Truncate, Parent);
+              (Value, Allow_Truncate, Parent);
 
          when Tk_Valuebox =>
             return
-              DynamicAny.DynValueBox.Impl.Internals.Create (Neutral, Parent);
+              DynamicAny.DynValueBox.Impl.Internals.Create (Value, Parent);
 
          when Tk_Principal
            | Tk_Native

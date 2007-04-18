@@ -2390,16 +2390,15 @@ package body Ada_Be.Idl2Ada is
                                  PL (CU, "PolyORB.Any.NVList.Add_Item");
                                  PL (CU, "  (" & T_Arg_List & ",");
                                  II (CU);
-                                 PL (CU, O_Name & T_Arg_Name
-                                     & Arg_Name & ",");
+                                 PL (CU, O_Name & T_Arg_Name & Arg_Name & ",");
 
-                                 PL (CU,
-                                     Conditional_Call
-                                       (Func      => "PolyORB.Any.Copy_Any",
-                                        Only_When => not Response_Expected,
-                                        Expr      =>
-                                          "CORBA.Internals.To_PolyORB_Any ("
-                                            & T_Arg_Any & Arg_Name & ")"));
+                                 Put (CU,
+                                      Conditional_Call
+                                        (Func      => "PolyORB.Any.Copy_Any",
+                                         Only_When => not Response_Expected,
+                                         Expr      => "PolyORB.Any.Any ("
+                                                      & T_Arg_Any & Arg_Name
+                                                      & ")"));
                                  PL (CU, ",");
                               end;
 
@@ -2459,12 +2458,12 @@ package body Ada_Be.Idl2Ada is
                      NL (CU);
                      PL (CU, T_Result & "_NV :=");
                      PL (CU, " (Name     => " & T_Result_Name & ",");
-                     PL (CU, "  Argument => CORBA.Internals.To_PolyORB_Any (");
+                     PL (CU, "  Argument =>");
 
                      Add_With (CU, TC_Unit (Org_O_Type));
                      II (CU);
                      PL (CU, "CORBA.Internals.Get_Empty_Any ("
-                         & Ada_Full_TC_Name (Org_O_Type) & ")),");
+                         & Ada_Full_TC_Name (Org_O_Type) & "),");
                      PL (CU, "Arg_Modes => 0);");
                      DI (CU);
                      if Kind (Org_O_Type) /= K_Void then

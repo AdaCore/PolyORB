@@ -125,6 +125,15 @@ package body PolyORB.Smart_Pointers is
       end if;
    end Dec_Usage;
 
+   --------------------------------
+   -- Disable_Reference_Counting --
+   --------------------------------
+
+   procedure Disable_Reference_Counting (Obj : in out Unsafe_Entity'Class) is
+   begin
+      Obj.Counter := -1;
+   end Disable_Reference_Counting;
+
    -----------------
    -- Entity_Lock --
    -----------------
@@ -302,7 +311,7 @@ package body PolyORB.Smart_Pointers is
    -- Reference_Counter --
    -----------------------
 
-   function Reference_Counter (Obj : Unsafe_Entity) return Integer is
+   function Reference_Counter (Obj : Unsafe_Entity'Class) return Integer is
    begin
       return Obj.Counter;
    end Reference_Counter;

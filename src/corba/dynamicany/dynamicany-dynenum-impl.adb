@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -59,12 +59,12 @@ package body DynamicAny.DynEnum.Impl is
       end if;
 
       declare
-         Value : constant PolyORB.Any.Any
-           := DynAny.Impl.Internals.Get_Value (Self);
-         TC    : constant PolyORB.Any.TypeCode.Object := Get_Type (Value);
-         Index : constant PolyORB.Types.Unsigned_Long
-           := From_Any
-           (Get_Aggregate_Element (Value, PolyORB.Any.TC_Unsigned_Long, 0));
+         Value : constant PolyORB.Any.Any :=
+                   PolyORB.Any.Any (DynAny.Impl.Internals.Get_Value (Self));
+         TC    : constant PolyORB.Any.TypeCode.Local_Ref := Get_Type (Value);
+         Index : constant PolyORB.Types.Unsigned_Long :=
+                   From_Any (Get_Aggregate_Element (Value,
+                               PolyORB.Any.TC_Unsigned_Long, 0));
 
       begin
          return CORBA.String (Member_Name (TC, Index));
@@ -82,8 +82,8 @@ package body DynamicAny.DynEnum.Impl is
       end if;
 
       declare
-         Value : constant PolyORB.Any.Any
-           := DynAny.Impl.Internals.Get_Value (Self);
+         Value : constant PolyORB.Any.Any :=
+                   PolyORB.Any.Any (DynAny.Impl.Internals.Get_Value (Self));
 
       begin
          return
@@ -106,7 +106,7 @@ package body DynamicAny.DynEnum.Impl is
       ------------
 
       function Create
-        (Value  : PolyORB.Any.Any;
+        (Value  : CORBA.Any;
          Parent : DynAny.Impl.Object_Ptr)
          return DynAny.Local_Ref
       is
@@ -115,9 +115,9 @@ package body DynamicAny.DynEnum.Impl is
          Result : DynAny.Local_Ref;
 
       begin
-         pragma Assert (Kind (Get_Type (Value)) = Tk_Enum);
+         pragma Assert (Kind (CORBA.Get_Type (Value)) = Tk_Enum);
 
-         Initialize (Obj, Value, Parent);
+         Initialize (Obj, PolyORB.Any.Any (Value), Parent);
 
          DynAny.Set (Result, PolyORB.Smart_Pointers.Entity_Ptr (Obj));
 
@@ -125,7 +125,7 @@ package body DynamicAny.DynEnum.Impl is
       end Create;
 
       function Create
-        (Value : PolyORB.Any.TypeCode.Object)
+        (Value : PolyORB.Any.TypeCode.Local_Ref)
          return DynAny.Local_Ref
       is
          Obj    : constant Object_Ptr := new Object;
@@ -148,7 +148,7 @@ package body DynamicAny.DynEnum.Impl is
 
       procedure Initialize
         (Self     : access Object'Class;
-         IDL_Type : PolyORB.Any.TypeCode.Object)
+         IDL_Type : PolyORB.Any.TypeCode.Local_Ref)
       is
       begin
          DynAny.Impl.Internals.Initialize (Self, IDL_Type);
@@ -202,11 +202,14 @@ package body DynamicAny.DynEnum.Impl is
       end if;
 
       declare
-         Val        : constant PolyORB.Any.Any
-           := DynAny.Impl.Internals.Get_Value (Self);
-         TC         : constant PolyORB.Any.TypeCode.Object := Get_Type (Val);
-         Enum_Value : PolyORB.Any.Any
-           := Get_Aggregate_Element (Val, PolyORB.Any.TC_Unsigned_Long, 0);
+         Val        : constant PolyORB.Any.Any :=
+                        PolyORB.Any.Any
+                          (DynAny.Impl.Internals.Get_Value (Self));
+         TC         : constant PolyORB.Any.TypeCode.Local_Ref :=
+                        Get_Type (Val);
+         Enum_Value : PolyORB.Any.Any :=
+                        Get_Aggregate_Element (Val,
+                          PolyORB.Any.TC_Unsigned_Long, 0);
 
       begin
          for J in 0 .. Member_Count (TC) - 1 loop
@@ -235,11 +238,14 @@ package body DynamicAny.DynEnum.Impl is
       end if;
 
       declare
-         Val        : constant PolyORB.Any.Any
-           := DynAny.Impl.Internals.Get_Value (Self);
-         TC         : constant PolyORB.Any.TypeCode.Object := Get_Type (Val);
-         Enum_Value : PolyORB.Any.Any
-           := Get_Aggregate_Element (Val, PolyORB.Any.TC_Unsigned_Long, 0);
+         Val        : constant PolyORB.Any.Any :=
+                        PolyORB.Any.Any
+                          (DynAny.Impl.Internals.Get_Value (Self));
+         TC         : constant PolyORB.Any.TypeCode.Local_Ref :=
+                        Get_Type (Val);
+         Enum_Value : PolyORB.Any.Any :=
+                        Get_Aggregate_Element (Val,
+                          PolyORB.Any.TC_Unsigned_Long, 0);
 
       begin
          if PolyORB.Types.Unsigned_Long (Value) < Member_Count (TC) then

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -44,11 +44,15 @@ package body CORBA.Bounded_Strings is
    -- TC_Bounded_String --
    -----------------------
 
+   TC_Cache : PolyORB.Any.TypeCode.Local_Ref;
+
    function TC_Bounded_String return CORBA.TypeCode.Object is
-      PTC_Bounded_String : constant PolyORB.Any.TypeCode.Object :=
-        PolyORB.Any.TypeCode.Build_Bounded_String_TC (Max_Length);
    begin
-      return TypeCode.Internals.To_CORBA_Object (PTC_Bounded_String);
+      if PolyORB.Any.TypeCode.Is_Nil (TC_Cache) then
+         TC_Cache := PolyORB.Any.TypeCode.Build_String_TC
+           (PolyORB.Types.Unsigned_Long (Max_Length));
+      end if;
+      return CORBA.TypeCode.Internals.To_CORBA_Object (TC_Cache);
    end TC_Bounded_String;
 
    --  Since the bounded string type does not exist in the neutral core

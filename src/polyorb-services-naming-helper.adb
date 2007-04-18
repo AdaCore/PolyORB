@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -330,6 +330,7 @@ package body  PolyORB.Services.Naming.Helper is
          Id : PolyORB.Types.String :=
            To_PolyORB_String ("IDL:omg.org/CosNaming/Istring:1.0");
       begin
+         TC_Istring := TypeCode.TC_Alias;
          TypeCode.Add_Parameter (TC_Istring, To_Any (Name));
          TypeCode.Add_Parameter (TC_Istring, To_Any (Id));
          TypeCode.Add_Parameter (TC_Istring, To_Any (TC_String));
@@ -345,6 +346,7 @@ package body  PolyORB.Services.Naming.Helper is
          Arg_Name_kind : PolyORB.Types.String :=
            To_PolyORB_String ("kind");
       begin
+         TC_NameComponent := TypeCode.TC_Struct;
          TypeCode.Add_Parameter (TC_NameComponent, To_Any (Name));
          TypeCode.Add_Parameter (TC_NameComponent, To_Any (Id));
          TypeCode.Add_Parameter (TC_NameComponent, To_Any (TC_Istring));
@@ -353,6 +355,7 @@ package body  PolyORB.Services.Naming.Helper is
          TypeCode.Add_Parameter (TC_NameComponent, To_Any (Arg_Name_kind));
       end;
 
+      TC_SEQUENCE_NameComponent := TypeCode.TC_Sequence;
       TypeCode.Add_Parameter (TC_SEQUENCE_NameComponent,
                               To_Any (PolyORB.Types.Unsigned_Long (0)));
       TypeCode.Add_Parameter (TC_SEQUENCE_NameComponent,
@@ -363,6 +366,7 @@ package body  PolyORB.Services.Naming.Helper is
          Id : PolyORB.Types.String :=
            To_PolyORB_String ("IDL:omg.org/CosNaming/Name:1.0");
       begin
+         TC_Name := TypeCode.TC_Alias;
          TypeCode.Add_Parameter (TC_Name, To_Any (Name));
          TypeCode.Add_Parameter (TC_Name, To_Any (Id));
          TypeCode.Add_Parameter (TC_Name, To_Any (TC_SEQUENCE_NameComponent));
@@ -378,6 +382,7 @@ package body  PolyORB.Services.Naming.Helper is
          ncontext_Name : PolyORB.Types.String :=
            To_PolyORB_String ("ncontext");
       begin
+         TC_BindingType := TypeCode.TC_Enum;
          TypeCode.Add_Parameter (TC_BindingType, To_Any (Name));
          TypeCode.Add_Parameter (TC_BindingType, To_Any (Id));
          TypeCode.Add_Parameter (TC_BindingType, To_Any (nobject_Name));
@@ -394,6 +399,7 @@ package body  PolyORB.Services.Naming.Helper is
          Arg_Name_binding_type : PolyORB.Types.String :=
            To_PolyORB_String ("binding_type");
       begin
+         TC_Binding := TypeCode.TC_Struct;
          TypeCode.Add_Parameter (TC_Binding, To_Any (Name));
          TypeCode.Add_Parameter (TC_Binding, To_Any (Id));
          TypeCode.Add_Parameter (TC_Binding, To_Any (Helper.TC_Name));
@@ -402,6 +408,7 @@ package body  PolyORB.Services.Naming.Helper is
          TypeCode.Add_Parameter (TC_Binding, To_Any (Arg_Name_binding_type));
       end;
 
+      TC_SEQUENCE_Binding := TypeCode.TC_Sequence;
       TypeCode.Add_Parameter (TC_SEQUENCE_Binding,
                               To_Any (PolyORB.Types.Unsigned_Long (0)));
       TypeCode.Add_Parameter (TC_SEQUENCE_Binding,
@@ -413,6 +420,7 @@ package body  PolyORB.Services.Naming.Helper is
          Id : PolyORB.Types.String := To_PolyORB_String
            ("IDL:omg.org/CosNaming/BindingList:1.0");
       begin
+         TC_BindingList := TypeCode.TC_Alias;
          TypeCode.Add_Parameter (TC_BindingList, To_Any (Name));
          TypeCode.Add_Parameter (TC_BindingList, To_Any (Id));
          TypeCode.Add_Parameter (TC_BindingList,
@@ -426,6 +434,7 @@ package body  PolyORB.Services.Naming.Helper is
          Id : PolyORB.Types.String := To_PolyORB_String
            ("IDL:CORBA/Object:1.0");
       begin
+         TC_Object := TypeCode.TC_Object;
          TypeCode.Add_Parameter (TC_Object, To_Any (Name));
          TypeCode.Add_Parameter (TC_Object, To_Any (Id));
       end;

@@ -635,7 +635,9 @@ package body MOMA.Types is
 
    begin
 
-      --  Map_Element.
+      --  Map_Element
+
+      TC_Map_Element := PolyORB.Any.TypeCode.TC_Struct;
 
       TypeCode.Add_Parameter
         (TC_Map_Element,
@@ -662,7 +664,9 @@ package body MOMA.Types is
         (TC_Map_Element,
          PolyORB.Any.To_Any (To_PolyORB_String ("value")));
 
-      --  Map.
+      --  IDL_SEQUENCE_Map_Element
+
+      TC_IDL_SEQUENCE_Map_Element := PolyORB.Any.TypeCode.TC_Sequence;
 
       TypeCode.Add_Parameter
         (TC_IDL_SEQUENCE_Map_Element,
@@ -671,6 +675,10 @@ package body MOMA.Types is
       TypeCode.Add_Parameter
         (TC_IDL_SEQUENCE_Map_Element,
          PolyORB.Any.To_Any (TC_Map_Element));
+
+      --  Map
+
+      TC_Map := PolyORB.Any.TypeCode.TC_Alias;
 
       TypeCode.Add_Parameter
         (TC_Map,
@@ -684,7 +692,9 @@ package body MOMA.Types is
         (TC_Map,
          PolyORB.Any.To_Any (TC_IDL_SEQUENCE_Map_Element));
 
-      --  Destination_Type.
+      --  Destination_Type
+
+      TC_Destination_Type := PolyORB.Any.TypeCode.TC_Enum;
 
       declare
          Name           : String := To_PolyORB_String ("Destination_Type");

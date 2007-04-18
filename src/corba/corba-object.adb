@@ -126,9 +126,7 @@ package body CORBA.Object is
       --  No arguments
 
       Result := (Name      => RPC_Result_Name,
-                 Argument  =>
-                   CORBA.Internals.To_PolyORB_Any (
-                     CORBA.Internals.Get_Empty_Any (TC_Object)),
+                 Argument  => CORBA.Internals.Get_Empty_Any (TC_Object),
                  Arg_Modes => 0);
 
       PolyORB.Requests.Create_Request
@@ -145,8 +143,7 @@ package body CORBA.Object is
 
       PolyORB.Requests.Destroy_Request (Request);
 
-      return CORBA.Object.Helper.From_Any
-        (CORBA.Internals.To_CORBA_Any (Result.Argument));
+      return CORBA.Object.Helper.From_Any (CORBA.Any (Result.Argument));
    end Get_Interface;
 
    --------------
@@ -276,6 +273,13 @@ package body CORBA.Object is
          --  Neutral core object
 
          else
+            --  ???
+            --  We should look up a registered mapping between the tag of
+            --  Entity_Of (Self) and a repository Id, as is currently done
+            --  for the particular case of servants in PortableServer.Internals
+            --  (the code of which should be moved to PolyORB.CORBA_P so it
+            --  can be used in a wider context).
+
             Raise_No_Implement (No_Implement_Members'
                                 (Minor     => 3,
                                  Completed => Completed_No));
@@ -512,10 +516,11 @@ package body CORBA.Object is
    procedure Initialize is
    begin
       TC_Object_Cache := CORBA.TypeCode.Internals.To_CORBA_Object
-        (PolyORB.Any.TypeCode.TC_Object);
-      CORBA.TypeCode.Internals.Add_Parameter
+                           (PolyORB.Any.TypeCode.TC_Object);
+
+      CORBA.Internals.Add_Parameter
         (TC_Object_Cache, To_Any (To_CORBA_String ("Object")));
-      CORBA.TypeCode.Internals.Add_Parameter
+      CORBA.Internals.Add_Parameter
         (TC_Object_Cache, To_Any (To_CORBA_String ("IDL:CORBA/Object:1.0")));
    end Initialize;
 

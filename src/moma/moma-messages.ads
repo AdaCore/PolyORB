@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -182,10 +182,9 @@ package MOMA.Messages is
 
    --  Marshalling support for Message type.
 
-   TC_MOMA_Message : TypeCode.Object := TypeCode.TC_Struct;
+   TC_MOMA_Message : TypeCode.Local_Ref;
 
    function To_Any (Self : Message) return MOMA.Types.Any;
-
    function From_Any (Self : MOMA.Types.Any) return Message'Class;
 
 private

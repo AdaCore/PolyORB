@@ -136,9 +136,8 @@ package body CORBA.Object.Policies is
 
       Result :=
         (Name      => PolyORB.Types.Identifier (Result_Name),
-         Argument  => CORBA.Internals.To_PolyORB_Any
-         (CORBA.Internals.Get_Empty_Any
-          (CORBA.DomainManager.Helper.TC_IDL_SEQUENCE_DomainManager)),
+         Argument  => CORBA.Internals.Get_Empty_Any
+          (CORBA.DomainManager.Helper.TC_IDL_SEQUENCE_DomainManager),
          Arg_Modes => 0);
 
       PolyORB.Requests.Create_Request
@@ -155,8 +154,7 @@ package body CORBA.Object.Policies is
 
       PolyORB.Requests.Destroy_Request (Request);
 
-      return CORBA.DomainManager.Helper.From_Any
-        (CORBA.Internals.To_CORBA_Any (Result.Argument));
+      return CORBA.DomainManager.Helper.From_Any (CORBA.Any (Result.Argument));
    end Get_Domain_Managers;
 
    ----------------
@@ -259,7 +257,7 @@ package body CORBA.Object.Policies is
    is
       Npad    : Notepad_Access;
       Note    : Policy_Manager_Note;
-      Indexes : CORBA.Short;
+      Indexes : CORBA.Unsigned_Short;
 
    begin
       if Is_Nil (Self) then

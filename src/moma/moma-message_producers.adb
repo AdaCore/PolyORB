@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -434,7 +434,7 @@ package body MOMA.Message_Producers is
            := MOMA.Types.To_Standard_String
            (Get_String (Get_Element (Parameter_Map, 1)));
 
-         Result_TypeCode  : constant PolyORB.Any.TypeCode.Object
+         Result_TypeCode  : constant PolyORB.Any.TypeCode.Local_Ref
            := Get_Type (Get_Element (Parameter_Map, 2).Value);
       begin
          pragma Debug (O ("Method name : " & Method_Name));

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -111,13 +111,14 @@ package body PortableServer.RequestProcessingPolicy is
 
    function Create_RequestProcessingPolicy
      (The_Type : CORBA.PolicyType;
-      Value    : CORBA.Any)
-     return CORBA.Policy.Ref
+      Value    : CORBA.Any) return CORBA.Policy.Ref
    is
    begin
       pragma Assert (The_Type = REQUEST_PROCESSING_POLICY_ID);
 
-      if Get_Type (Value) /= TC_RequestProcessingPolicyValue then
+      if Get_Type (Value)
+           /= TC_RequestProcessingPolicyValue
+      then
          Raise_PolicyError ((Reason => BAD_POLICY_TYPE));
       end if;
 
@@ -179,7 +180,7 @@ begin
      (Module_Info'
       (Name      => +"portableserver.requestprocessingpolicy",
        Conflicts => Empty,
-       Depends   => Empty,
+       Depends   => +"PortableServer.Helper",
        Provides  => Empty,
        Implicit  => False,
        Init      => Deferred_Initialization'Access,

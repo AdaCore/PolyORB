@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -47,7 +47,7 @@ package body CORBA.NVList is
       PolyORB.Any.NVList.Add_Item
         (Internals.To_PolyORB_Ref (Self),
          PolyORB.Types.Identifier (Item_Name),
-         CORBA.Internals.To_PolyORB_Any (Item),
+         PolyORB.Any.Any (Item),
          PolyORB.Any.Flags (Item_Flags));
    end Add_Item;
 

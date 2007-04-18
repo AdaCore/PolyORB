@@ -125,7 +125,7 @@ package PolyORB.Representations.SRP is
                        return Types.String;
 
    function Unmarshall (Buffer : access Buffer_Type)
-                       return PolyORB.Any.TypeCode.Object;
+                       return PolyORB.Any.TypeCode.Local_Ref;
 
    function Unmarshall (Buffer : access Buffer_Type)
                        return PolyORB.Any.Any;
@@ -188,7 +188,7 @@ package PolyORB.Representations.SRP is
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : PolyORB.Any.TypeCode.Object);
+      Data   : PolyORB.Any.TypeCode.Local_Ref);
 
    procedure Marshall_From_Any
      (R      : access Rep_SRP;

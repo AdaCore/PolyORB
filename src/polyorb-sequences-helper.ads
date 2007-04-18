@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -66,7 +66,7 @@ package PolyORB.Sequences.Helper is
    function Wrap (X : access Sequence) return PolyORB.Any.Content'Class;
 
    procedure Initialize
-     (Element_TC, Sequence_TC : PolyORB.Any.TypeCode.Object);
+     (Element_TC, Sequence_TC : PolyORB.Any.TypeCode.Local_Ref);
 
 private
 
@@ -82,13 +82,13 @@ private
 
    function Get_Aggregate_Element
      (ACC   : access Sequence_Content;
-      TC    : PolyORB.Any.TypeCode.Object;
+      TC    : PolyORB.Any.TypeCode.Local_Ref;
       Index : PolyORB.Types.Unsigned_Long;
       Mech  : access PolyORB.Any.Mechanism) return PolyORB.Any.Content'Class;
 
    procedure Set_Aggregate_Element
      (ACC    : in out Sequence_Content;
-      TC     : PolyORB.Any.TypeCode.Object;
+      TC     : PolyORB.Any.TypeCode.Local_Ref;
       Index  : Types.Unsigned_Long;
       From_C : in out PolyORB.Any.Any_Container'Class);
 

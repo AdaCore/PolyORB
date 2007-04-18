@@ -507,10 +507,10 @@ package body PolyORB.Representations.SRP is
 
    function Unmarshall
      (Buffer : access Buffer_Type)
-     return PolyORB.Any.TypeCode.Object
+     return PolyORB.Any.TypeCode.Local_Ref
    is
       Nb : constant PolyORB.Types.Unsigned_Long := Unmarshall (Buffer);
-      Result : PolyORB.Any.TypeCode.Object;
+      Result : PolyORB.Any.TypeCode.Local_Ref;
    begin
       --  XXX The hardcoded values in this case should be replaced
       --  by symbolic constants.
@@ -564,7 +564,7 @@ package body PolyORB.Representations.SRP is
 --                Complex_Buffer : Buffer_Access := null;
 --                Id, Name, Member_Name : PolyORB.Types.String;
 --                Nb : PolyORB.Types.Unsigned_Long;
---                Member_Type : PolyORB.Any.TypeCode.Object;
+--                Member_Type : PolyORB.Any.TypeCode.Local_Ref;
 --             begin
 --                pragma Debug (O ("unmarshall (TypeCode): dealing "
 --                                 & "with a struct"));
@@ -597,7 +597,7 @@ package body PolyORB.Representations.SRP is
 --                Id, Name, Member_Name : PolyORB.Types.String;
 --                Nb, Default_Index : PolyORB.Types.Unsigned_Long;
 --                Discriminator_Type,
---                  Member_Type : PolyORB.Any.TypeCode.Object;
+--                  Member_Type : PolyORB.Any.TypeCode.Local_Ref;
 --                Member_Label : PolyORB.Any.Any;
 --             begin
 --                Decapsulate (Complex_Encap'Access, Complex_Buffer);
@@ -672,7 +672,7 @@ package body PolyORB.Representations.SRP is
 --                  := Unmarshall (Buffer);
 --                Complex_Buffer : Buffer_Access := null;
 --                Length : PolyORB.Types.Unsigned_Long;
---                Content_Type : PolyORB.Any.TypeCode.Object;
+--                Content_Type : PolyORB.Any.TypeCode.Local_Ref;
 --             begin
 --                Decapsulate (Complex_Encap'Access, Complex_Buffer);
 --                Content_Type := Unmarshall (Complex_Buffer);
@@ -690,7 +690,7 @@ package body PolyORB.Representations.SRP is
 --                  := Unmarshall (Buffer);
 --                Complex_Buffer : Buffer_Access := null;
 --                Length : PolyORB.Types.Unsigned_Long;
---                Content_Type : PolyORB.Any.TypeCode.Object;
+--                Content_Type : PolyORB.Any.TypeCode.Local_Ref;
 --             begin
 --                Decapsulate (Complex_Encap'Access, Complex_Buffer);
 --                Content_Type := Unmarshall (Complex_Buffer);
@@ -708,7 +708,7 @@ package body PolyORB.Representations.SRP is
 --                  := Unmarshall (Buffer);
 --                Complex_Buffer : Buffer_Access := null;
 --                Id, Name : PolyORB.Types.String;
---                Content_Type : PolyORB.Any.TypeCode.Object;
+--                Content_Type : PolyORB.Any.TypeCode.Local_Ref;
 --             begin
 --                Decapsulate (Complex_Encap'Access, Complex_Buffer);
 --                Id := Unmarshall (Complex_Buffer);
@@ -730,7 +730,7 @@ package body PolyORB.Representations.SRP is
 --                Complex_Buffer : Buffer_Access := null;
 --                Id, Name, Member_Name : PolyORB.Types.String;
 --                Nb : PolyORB.Types.Unsigned_Long;
---                Member_Type : PolyORB.Any.TypeCode.Object;
+--                Member_Type : PolyORB.Any.TypeCode.Local_Ref;
 --             begin
 --                Decapsulate (Complex_Encap'Access, Complex_Buffer);
 --                Id := Unmarshall (Complex_Buffer);
@@ -792,7 +792,7 @@ package body PolyORB.Representations.SRP is
 --                Type_Modifier, Visibility : PolyORB.Types.Short;
 --                Nb : PolyORB.Types.Unsigned_Long;
 --                Concrete_Base_Type,
---                  Member_Type : PolyORB.Any.TypeCode.Object;
+--                  Member_Type : PolyORB.Any.TypeCode.Local_Ref;
 --             begin
 --                Decapsulate (Complex_Encap'Access, Complex_Buffer);
 --                Id := Unmarshall (Complex_Buffer);
@@ -830,7 +830,7 @@ package body PolyORB.Representations.SRP is
 --                  := Unmarshall (Buffer);
 --                Complex_Buffer : Buffer_Access := null;
 --                Id, Name : PolyORB.Types.String;
---                Content_Type : PolyORB.Any.TypeCode.Object;
+--                Content_Type : PolyORB.Any.TypeCode.Local_Ref;
 --             begin
 --                Decapsulate (Complex_Encap'Access, Complex_Buffer);
 --                Id := Unmarshall (Complex_Buffer);
@@ -889,7 +889,7 @@ package body PolyORB.Representations.SRP is
      return PolyORB.Any.Any
    is
       Result : PolyORB.Any.Any;
-      Tc     : constant PolyORB.Any.TypeCode.Object
+      Tc     : constant PolyORB.Any.TypeCode.Local_Ref
         := Unmarshall (Buffer);
    begin
       pragma Debug (O ("Unmarshall (Any): enter"));
@@ -1089,7 +1089,7 @@ package body PolyORB.Representations.SRP is
    --  Puts the right TypeCode in the buffer
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   :        PolyORB.Any.TypeCode.Object)
+      Data   :        PolyORB.Any.TypeCode.Local_Ref)
    is
 --      Complex_Buffer : Buffer_Access;
    begin
@@ -1422,7 +1422,7 @@ package body PolyORB.Representations.SRP is
      (Buffer : access Buffer_Type;
       Data   :        PolyORB.Any.Any_Container'Class)
    is
-      Data_Type : constant PolyORB.Any.TypeCode.Object :=
+      Data_Type : constant PolyORB.Any.TypeCode.Local_Ref :=
                     Unwind_Typedefs (Get_Type (Data));
    begin
       pragma Debug (O ("Marshall_From_Any: enter"));
@@ -1467,7 +1467,7 @@ package body PolyORB.Representations.SRP is
             Marshall (Buffer, PolyORB.Any.Any'(From_Any (Data)));
 
          when Tk_TypeCode =>
---            Marshall (Buffer, PolyORB.Any.TypeCode.Object'(From_Any (Data)));
+            --  FIXME : to be done
             raise Program_Error;
 
          when Tk_Principal =>
@@ -1562,7 +1562,7 @@ package body PolyORB.Representations.SRP is
 --                Nb : constant PolyORB.Types.Unsigned_Long :=
 --                  PolyORB.Any.Get_Aggregate_Count (Data);
 --                Value : PolyORB.Any.Any;
---                Content_True_Type : PolyORB.Any.TypeCode.Object :=
+--                Content_True_Type : PolyORB.Any.TypeCode.Local_Ref :=
 --                  PolyORB.Any.TypeCode.Content_Type (Data_Type);
 --             begin
 
@@ -1759,7 +1759,7 @@ package body PolyORB.Representations.SRP is
      (Buffer : access Buffer_Type;
       Result : in out PolyORB.Any.Any_Container'Class)
    is
-      Tc       : constant PolyORB.Any.TypeCode.Object :=
+      Tc       : constant PolyORB.Any.TypeCode.Local_Ref :=
                    Unwind_Typedefs (Get_Type (Result));
       C_Result : Any_Container'Class renames Result;
 
@@ -1840,7 +1840,7 @@ package body PolyORB.Representations.SRP is
             end;
          when Tk_TypeCode =>
             declare
-               T : constant TypeCode.Object := Unmarshall (Buffer);
+               T : constant TypeCode.Local_Ref := Unmarshall (Buffer);
             begin
                Set_Any_Value (T, C_Result);
             end;
@@ -1990,7 +1990,7 @@ package body PolyORB.Representations.SRP is
             raise Program_Error;
 --             declare
 --                Nb : Unsigned_Long := TypeCode.Length (Tc);
---                Content_True_Type : PolyORB.Any.TypeCode.Object :=
+--                Content_True_Type : PolyORB.Any.TypeCode.Local_Ref :=
 --                  TypeCode.Content_Type (Tc);
 --                Arg : PolyORB.Any.Any;
 --             begin

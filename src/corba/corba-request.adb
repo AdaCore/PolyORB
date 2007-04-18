@@ -71,7 +71,7 @@ package body CORBA.Request is
 
       PResult : PolyORB.Any.NamedValue
         := (Name      => PolyORB.Types.Identifier (Result.Name),
-            Argument  => Internals.To_PolyORB_Any (Result.Argument),
+            Argument  => PolyORB.Any.Any (Result.Argument),
             Arg_Modes => PolyORB.Any.Flags (Result.Arg_Modes));
 
    begin
@@ -102,7 +102,7 @@ package body CORBA.Request is
 
       PResult : PolyORB.Any.NamedValue
         := (Name      => PolyORB.Types.Identifier (Result.Name),
-            Argument  => Internals.To_PolyORB_Any (Result.Argument),
+            Argument  => PolyORB.Any.Any (Result.Argument),
             Arg_Modes => PolyORB.Any.Flags (Result.Arg_Modes));
 
    begin
@@ -126,7 +126,7 @@ package body CORBA.Request is
      (Request : PolyORB.Requests.Request_Access;
       Flags   : PolyORB.Requests.Flags)
    is
-      use type PolyORB.Any.TypeCode.Object;
+      use type PolyORB.Any.TypeCode.Local_Ref;
       use type PolyORB.Requests.Request_Access;
 
    begin

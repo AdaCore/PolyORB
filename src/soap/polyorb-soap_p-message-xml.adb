@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2000-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2000-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -187,7 +187,7 @@ package body PolyORB.SOAP_P.Message.XML is
    function Parse_Param
      (N        : DOM.Core.Node;
       S        : State;
-      Expected_Type : PolyORB.Any.TypeCode.Object)
+      Expected_Type : PolyORB.Any.TypeCode.Local_Ref)
      return PolyORB.Any.NamedValue;
    --  Parse any parameter. This is notionally the Unmashall_To_Any
    --  representation operation.
@@ -200,13 +200,13 @@ package body PolyORB.SOAP_P.Message.XML is
    function Parse_Record
      (N : DOM.Core.Node;
       S : State;
-      Expected_Type : PolyORB.Any.TypeCode.Object)
+      Expected_Type : PolyORB.Any.TypeCode.Local_Ref)
      return PolyORB.Any.NamedValue;
 
    function Parse_Sequence
      (N : DOM.Core.Node;
       S : State;
-      Expected_Type : PolyORB.Any.TypeCode.Object)
+      Expected_Type : PolyORB.Any.TypeCode.Local_Ref)
      return PolyORB.Any.NamedValue;
 
    procedure Error (Node : DOM.Core.Node; Message : String);
@@ -483,7 +483,7 @@ package body PolyORB.SOAP_P.Message.XML is
 
    begin
       declare
-         TC : constant PolyORB.Any.TypeCode.Object
+         TC : constant PolyORB.Any.TypeCode.Local_Ref
            := Get_Unwound_Type (NV.Argument);
          A : PolyORB.Any.Any
            := Get_Empty_Any_Aggregate (Get_Type (NV.Argument));
@@ -525,7 +525,7 @@ package body PolyORB.SOAP_P.Message.XML is
    function Parse_Sequence
      (N : DOM.Core.Node;
       S : State;
-      Expected_Type : PolyORB.Any.TypeCode.Object)
+      Expected_Type : PolyORB.Any.TypeCode.Local_Ref)
      return PolyORB.Any.NamedValue
    is
       use PolyORB.Any.TypeCode;
@@ -537,10 +537,10 @@ package body PolyORB.SOAP_P.Message.XML is
       A : PolyORB.Any.Any := Get_Empty_Any_Aggregate
         (Expected_Type);
 
-      Unwound_Expected_Type : constant PolyORB.Any.TypeCode.Object :=
+      Unwound_Expected_Type : constant PolyORB.Any.TypeCode.Local_Ref :=
                                 Unwind_Typedefs (Expected_Type);
 
-      Content_Type : constant PolyORB.Any.TypeCode.Object :=
+      Content_Type : constant PolyORB.Any.TypeCode.Local_Ref :=
                        TypeCode.Content_Type (Unwound_Expected_Type);
 
       Values : constant DOM.Core.Node_List := Child_Nodes (N);
@@ -818,7 +818,7 @@ package body PolyORB.SOAP_P.Message.XML is
    function Parse_Param
      (N        : DOM.Core.Node;
       S        : State;
-      Expected_Type : PolyORB.Any.TypeCode.Object)
+      Expected_Type : PolyORB.Any.TypeCode.Local_Ref)
      return PolyORB.Any.NamedValue
    is
       use type DOM.Core.Node;
@@ -828,12 +828,12 @@ package body PolyORB.SOAP_P.Message.XML is
 
       procedure Get_Empty_Any_With_Default
         (Expected_Type,
-           Default_Expected_Type : PolyORB.Any.TypeCode.Object;
+           Default_Expected_Type : PolyORB.Any.TypeCode.Local_Ref;
          NV : in out PolyORB.Any.NamedValue);
 
       procedure Get_Empty_Any_With_Default
         (Expected_Type,
-           Default_Expected_Type : PolyORB.Any.TypeCode.Object;
+           Default_Expected_Type : PolyORB.Any.TypeCode.Local_Ref;
          NV : in out PolyORB.Any.NamedValue)
       is
          TCK : constant TCKind := TypeCode.Kind (Expected_Type);
@@ -1012,14 +1012,14 @@ package body PolyORB.SOAP_P.Message.XML is
    function Parse_Record
      (N : DOM.Core.Node;
       S : State;
-      Expected_Type : TypeCode.Object)
+      Expected_Type : TypeCode.Local_Ref)
      return PolyORB.Any.NamedValue
    is
       use type DOM.Core.Node;
       use SOAP_P.Types;
       use PolyORB.Any.TypeCode;
 
-      Unwound_Expected_Type : constant TypeCode.Object
+      Unwound_Expected_Type : constant TypeCode.Local_Ref
         := Unwind_Typedefs (Expected_Type);
 
       Name  : constant PolyORB.Types.Identifier
@@ -1036,7 +1036,7 @@ package body PolyORB.SOAP_P.Message.XML is
       while Field /= null loop
          pragma Debug (O ("Parsing field" & Unsigned_Long'Image (I)));
          declare
-            Field_TC : constant PolyORB.Any.TypeCode.Object
+            Field_TC : constant PolyORB.Any.TypeCode.Local_Ref
               := Member_Type (Unwound_Expected_Type, I);
             Field_Value : constant NamedValue
               := Parse_Param (Field, S, Field_TC);
@@ -1074,7 +1074,7 @@ package body PolyORB.SOAP_P.Message.XML is
       --  XML attributes in the message.
 
       NV : Element_Access;
-      No_TypeCode : PolyORB.Any.TypeCode.Object;
+      No_TypeCode : PolyORB.Any.TypeCode.Local_Ref;
    begin
       S.Wrapper_Name := To_Unbounded_String (Name);
 

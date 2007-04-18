@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -41,7 +41,7 @@ package body PolyORB.Sequences.Bounded.CORBA_Helper is
 
    function Element_From_Any_Wrapper (Item : PolyORB.Any.Any) return Element is
    begin
-      return Element_From_Any (CORBA.Internals.To_CORBA_Any (Item));
+      return Element_From_Any (CORBA.Any (Item));
    end Element_From_Any_Wrapper;
 
    ----------------------------
@@ -50,7 +50,7 @@ package body PolyORB.Sequences.Bounded.CORBA_Helper is
 
    function Element_To_Any_Wrapper (Item : Element) return PolyORB.Any.Any is
    begin
-      return CORBA.Internals.To_PolyORB_Any (Element_To_Any (Item));
+      return PolyORB.Any.Any (Element_To_Any (Item));
    end Element_To_Any_Wrapper;
 
    --------------
@@ -59,7 +59,7 @@ package body PolyORB.Sequences.Bounded.CORBA_Helper is
 
    function From_Any (Item : CORBA.Any) return Sequence is
    begin
-      return Neutral_Helper.From_Any (CORBA.Internals.To_PolyORB_Any (Item));
+      return Neutral_Helper.From_Any (PolyORB.Any.Any (Item));
    end From_Any;
 
    ----------------
@@ -80,7 +80,7 @@ package body PolyORB.Sequences.Bounded.CORBA_Helper is
 
    function To_Any (Item : Sequence) return CORBA.Any is
    begin
-      return CORBA.Internals.To_CORBA_Any (Neutral_Helper.To_Any (Item));
+      return CORBA.Any (Neutral_Helper.To_Any (Item));
    end To_Any;
 
    ----------

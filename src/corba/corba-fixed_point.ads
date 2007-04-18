@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
@@ -84,13 +84,13 @@ private
 
    function Get_Aggregate_Element
      (ACC   : access Fixed_Content;
-      TC    : PolyORB.Any.TypeCode.Object;
+      TC    : PolyORB.Any.TypeCode.Local_Ref;
       Index : PolyORB.Types.Unsigned_Long;
       Mech  : access PolyORB.Any.Mechanism) return PolyORB.Any.Content'Class;
 
    procedure Set_Aggregate_Element
      (ACC    : in out Fixed_Content;
-      TC     : PolyORB.Any.TypeCode.Object;
+      TC     : PolyORB.Any.TypeCode.Local_Ref;
       Index  : PolyORB.Types.Unsigned_Long;
       From_C : in out PolyORB.Any.Any_Container'Class);
 

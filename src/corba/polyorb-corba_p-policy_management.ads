@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -119,7 +119,7 @@ package PolyORB.CORBA_P.Policy_Management is
 
    procedure Check_Compatibility
      (Policies : Policy_List;
-      Indexes  :    out CORBA.Short);
+      Indexes  : out CORBA.Unsigned_Short);
    --  Check compatibility of policies, defined in Policies list.
    --  If the incompatibility check failed then Indexes contain the
    --  index of the first incompatible policy.

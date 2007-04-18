@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
@@ -274,7 +274,7 @@ package PortableServer.POA is
    --  InvalidPolicy
 
    type InvalidPolicy_Members is new CORBA.IDL_Exception_Members with record
-      Index : CORBA.Short;
+      Index : CORBA.Unsigned_Short;
    end record;
 
    procedure Get_Members

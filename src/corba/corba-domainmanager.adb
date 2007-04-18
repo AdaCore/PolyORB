@@ -73,13 +73,13 @@ package body CORBA.DomainManager is
       PolyORB.Any.NVList.Add_Item
         (Arg_List,
          Arg_Name_Policy_Type,
-         CORBA.Internals.To_PolyORB_Any (Argument_Policy_Type),
+         PolyORB.Any.Any (Argument_Policy_Type),
          PolyORB.Any.ARG_IN);
 
       Result :=
         (Name      => PolyORB.Types.Identifier (Result_Name),
-         Argument  => CORBA.Internals.To_PolyORB_Any
-         (CORBA.Internals.Get_Empty_Any (CORBA.Policy.Helper.TC_Policy)),
+         Argument  => CORBA.Internals.Get_Empty_Any
+                        (CORBA.Policy.Helper.TC_Policy),
          Arg_Modes => 0);
 
       PolyORB.Requests.Create_Request
@@ -98,9 +98,7 @@ package body CORBA.DomainManager is
 
       PolyORB.Requests.Destroy_Request (Request);
 
-      return
-        CORBA.Policy.Helper.From_Any
-        (CORBA.Internals.To_CORBA_Any (Result.Argument));
+      return CORBA.Policy.Helper.From_Any (CORBA.Any (Result.Argument));
    end Get_Domain_Policy;
 
    ----------

@@ -65,8 +65,7 @@ package body IOP.Codec.Impl is
 
    function Decode
      (Self : access Object;
-      Data : CORBA.IDL_SEQUENCES.OctetSeq)
-     return CORBA.Any
+      Data : CORBA.IDL_SEQUENCES.OctetSeq) return CORBA.Any
    is
       Data_Enc : aliased Encapsulation := To_Encapsulation (Data);
       Buffer   : Buffer_Access := new Buffer_Type;
@@ -77,7 +76,7 @@ package body IOP.Codec.Impl is
       Result := Unmarshall (Buffer, Self.Representation);
       Release (Buffer);
 
-      return CORBA.Internals.To_CORBA_Any (Result);
+      return CORBA.Any (Result);
    end Decode;
 
    ------------------
@@ -87,15 +86,14 @@ package body IOP.Codec.Impl is
    function Decode_Value
      (Self : access Object;
       Data : CORBA.IDL_SEQUENCES.OctetSeq;
-      TC   : CORBA.TypeCode.Object)
-     return CORBA.Any
+      TC   : CORBA.TypeCode.Object) return CORBA.Any
    is
       Data_Enc : aliased Encapsulation := To_Encapsulation (Data);
       Buffer   : Buffer_Access := new Buffer_Type;
       Error    : Error_Container;
-      Result   : PolyORB.Any.Any
-        := PolyORB.Any.Get_Empty_Any
-        (CORBA.TypeCode.Internals.To_PolyORB_Object (TC));
+      Result   : PolyORB.Any.Any :=
+                   PolyORB.Any.Get_Empty_Any
+                     (CORBA.TypeCode.Internals.To_PolyORB_Object (TC));
 
       use PolyORB.Any;
    begin
@@ -113,7 +111,7 @@ package body IOP.Codec.Impl is
          --  XXX Handling of errors must be investigated
       end if;
 
-      return CORBA.Internals.To_CORBA_Any (Result);
+      return CORBA.Any (Result);
    end Decode_Value;
 
    ------------
@@ -122,8 +120,7 @@ package body IOP.Codec.Impl is
 
    function Encode
      (Self : access Object;
-      Data : CORBA.Any)
-     return CORBA.IDL_SEQUENCES.OctetSeq
+      Data : CORBA.Any) return CORBA.IDL_SEQUENCES.OctetSeq
    is
       Buffer : Buffer_Access := new Buffer_Type;
       Result : CORBA.IDL_SEQUENCES.OctetSeq;
@@ -133,7 +130,7 @@ package body IOP.Codec.Impl is
       Marshall
         (Buffer,
          Self.Representation,
-         CORBA.Internals.To_PolyORB_Any (Data));
+         PolyORB.Any.Any (Data));
       Result := To_Sequence (Encapsulate (Buffer));
       Release (Buffer);
 
@@ -160,7 +157,7 @@ package body IOP.Codec.Impl is
       Marshall_From_Any
         (Self.Representation,
          Buffer,
-         Get_Container (CORBA.Internals.To_PolyORB_Any (Data)).all,
+         CORBA.Get_Container (Data).all,
          Error);
 
       if Found (Error) then

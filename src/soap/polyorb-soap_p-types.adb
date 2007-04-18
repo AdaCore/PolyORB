@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2000-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2000-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -294,7 +294,7 @@ package body PolyORB.SOAP_P.Types is
 --    -----------
 
    function Image (NV : NamedValue) return String is
-      TC : constant TypeCode.Object
+      TC : constant TypeCode.Local_Ref
         := Get_Unwound_Type (NV.Argument);
       Kind : constant TCKind := TypeCode.Kind (TC);
    begin
@@ -732,7 +732,7 @@ package body PolyORB.SOAP_P.Types is
       use Ada.Strings.Unbounded;
 
       Result : Unbounded_String;
-      Element_Type : constant PolyORB.Any.TypeCode.Object
+      Element_Type : constant PolyORB.Any.TypeCode.Local_Ref
         := TypeCode.Content_Type (Get_Unwound_Type (NV.Argument));
       New_Line : constant String := ASCII.CR & ASCII.LF;
    begin
@@ -772,7 +772,7 @@ package body PolyORB.SOAP_P.Types is
       use Ada.Strings.Unbounded;
 
       Result : Unbounded_String;
-      Data_Type : constant PolyORB.Any.TypeCode.Object
+      Data_Type : constant PolyORB.Any.TypeCode.Local_Ref
         := Get_Unwound_Type (NV.Argument);
       New_Line : constant String := ASCII.CR & ASCII.LF;
    begin

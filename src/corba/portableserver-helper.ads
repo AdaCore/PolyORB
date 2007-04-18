@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---           Copyright (C) 2006, Free Software Foundation, Inc.             --
+--         Copyright (C) 2006-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
@@ -36,11 +36,20 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+-------------------------------------------------
+--  This file has been generated automatically
+--  by IDLAC version 2.3.0w.
+--
+--  Do NOT hand-modify this file, as your
+--  changes will be lost when you re-run the
+--  IDL to Ada compiler.
+-------------------------------------------------
+pragma Style_Checks ("NM32766");
+
+with PolyORB.Any;
 with CORBA;
 pragma Elaborate_All (CORBA);
 with CORBA.Object;
-
-with PolyORB.Any;
 
 package PortableServer.Helper is
 
@@ -50,155 +59,98 @@ package PortableServer.Helper is
    function To_Ref
      (The_Ref : CORBA.Object.Ref'Class) return PortableServer.POA_Forward.Ref;
 
-   TC_ObjectId : CORBA.TypeCode.Object :=
-   CORBA.TypeCode.Internals.To_CORBA_Object (
-   PolyORB.Any.TypeCode.TC_Alias);
+   TC_POA : CORBA.TypeCode.Object;
+
+   TC_IDL_SEQUENCE_PortableServer_POA_Forward : CORBA.TypeCode.Object;
+
+   TC_POAList : CORBA.TypeCode.Object;
+
+   TC_ObjectId : CORBA.TypeCode.Object;
 
    function From_Any (Item : CORBA.Any) return PortableServer.ObjectId;
 
    function To_Any
      (Item : PortableServer.ObjectId) return CORBA.Any;
 
-   TC_ForwardRequest : CORBA.TypeCode.Object :=
-     CORBA.TypeCode.Internals.To_CORBA_Object
-     (PolyORB.Any.TypeCode.TC_Except);
+   TC_ForwardRequest : CORBA.TypeCode.Object;
 
-   function From_Any
-     (Item : CORBA.Any)
-     return PortableServer.ForwardRequest_Members;
+   function From_Any (Item : CORBA.Any) return PortableServer.ForwardRequest_Members;
 
    function To_Any
-     (Item : PortableServer.ForwardRequest_Members)
-     return CORBA.Any;
+     (Item : PortableServer.ForwardRequest_Members) return CORBA.Any;
 
    procedure Raise_ForwardRequest
      (Members : in ForwardRequest_Members);
    pragma No_Return (Raise_ForwardRequest);
+   function Wrap (X : access PortableServer.ThreadPolicyValue) return PolyORB.Any.Content'Class;
 
-   function Wrap
-     (X : access PortableServer.ThreadPolicyValue)
-     return PolyORB.Any.Content'Class;
+   TC_ThreadPolicyValue : CORBA.TypeCode.Object;
 
-   TC_ThreadPolicyValue : CORBA.TypeCode.Object :=
-      CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TC_Enum);
+   function From_Any (C : PolyORB.Any.Any_Container'Class) return PortableServer.ThreadPolicyValue;
 
-   function From_Any
-     (C : PolyORB.Any.Any_Container'Class)
-     return PortableServer.ThreadPolicyValue;
-
-   function From_Any
-     (Item : CORBA.Any)
-     return PortableServer.ThreadPolicyValue;
+   function From_Any (Item : CORBA.Any) return PortableServer.ThreadPolicyValue;
 
    function To_Any
      (Item : PortableServer.ThreadPolicyValue) return CORBA.Any;
-   function Wrap
-     (X : access PortableServer.LifespanPolicyValue)
-     return PolyORB.Any.Content'Class;
+   function Wrap (X : access PortableServer.LifespanPolicyValue) return PolyORB.Any.Content'Class;
 
-   TC_LifespanPolicyValue : CORBA.TypeCode.Object :=
-      CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TC_Enum);
+   TC_LifespanPolicyValue : CORBA.TypeCode.Object;
 
-   function From_Any
-     (C : PolyORB.Any.Any_Container'Class)
-     return PortableServer.LifespanPolicyValue;
+   function From_Any (C : PolyORB.Any.Any_Container'Class) return PortableServer.LifespanPolicyValue;
 
-   function From_Any
-     (Item : CORBA.Any)
-     return PortableServer.LifespanPolicyValue;
+   function From_Any (Item : CORBA.Any) return PortableServer.LifespanPolicyValue;
 
    function To_Any
      (Item : PortableServer.LifespanPolicyValue) return CORBA.Any;
+   function Wrap (X : access PortableServer.IdUniquenessPolicyValue) return PolyORB.Any.Content'Class;
 
-   function Wrap
-     (X : access PortableServer.IdUniquenessPolicyValue)
-     return PolyORB.Any.Content'Class;
+   TC_IdUniquenessPolicyValue : CORBA.TypeCode.Object;
 
-   TC_IdUniquenessPolicyValue : CORBA.TypeCode.Object :=
-      CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TC_Enum);
+   function From_Any (C : PolyORB.Any.Any_Container'Class) return PortableServer.IdUniquenessPolicyValue;
 
-   function From_Any
-     (C : PolyORB.Any.Any_Container'Class)
-     return PortableServer.IdUniquenessPolicyValue;
-
-   function From_Any
-     (Item : CORBA.Any)
-     return PortableServer.IdUniquenessPolicyValue;
+   function From_Any (Item : CORBA.Any) return PortableServer.IdUniquenessPolicyValue;
 
    function To_Any
      (Item : PortableServer.IdUniquenessPolicyValue) return CORBA.Any;
+   function Wrap (X : access PortableServer.IdAssignmentPolicyValue) return PolyORB.Any.Content'Class;
 
-   function Wrap
-     (X : access PortableServer.IdAssignmentPolicyValue)
-     return PolyORB.Any.Content'Class;
+   TC_IdAssignmentPolicyValue : CORBA.TypeCode.Object;
 
-   TC_IdAssignmentPolicyValue : CORBA.TypeCode.Object :=
-      CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TC_Enum);
+   function From_Any (C : PolyORB.Any.Any_Container'Class) return PortableServer.IdAssignmentPolicyValue;
 
-   function From_Any
-     (C : PolyORB.Any.Any_Container'Class)
-     return PortableServer.IdAssignmentPolicyValue;
-
-   function From_Any
-     (Item : CORBA.Any)
-     return PortableServer.IdAssignmentPolicyValue;
+   function From_Any (Item : CORBA.Any) return PortableServer.IdAssignmentPolicyValue;
 
    function To_Any
      (Item : PortableServer.IdAssignmentPolicyValue) return CORBA.Any;
+   function Wrap (X : access PortableServer.ImplicitActivationPolicyValue) return PolyORB.Any.Content'Class;
 
-   function Wrap
-     (X : access PortableServer.ImplicitActivationPolicyValue)
-     return PolyORB.Any.Content'Class;
+   TC_ImplicitActivationPolicyValue : CORBA.TypeCode.Object;
 
-   TC_ImplicitActivationPolicyValue : CORBA.TypeCode.Object :=
-      CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TC_Enum);
+   function From_Any (C : PolyORB.Any.Any_Container'Class) return PortableServer.ImplicitActivationPolicyValue;
 
-   function From_Any
-     (C : PolyORB.Any.Any_Container'Class)
-     return PortableServer.ImplicitActivationPolicyValue;
-
-   function From_Any
-     (Item : CORBA.Any)
-     return PortableServer.ImplicitActivationPolicyValue;
+   function From_Any (Item : CORBA.Any) return PortableServer.ImplicitActivationPolicyValue;
 
    function To_Any
      (Item : PortableServer.ImplicitActivationPolicyValue) return CORBA.Any;
+   function Wrap (X : access PortableServer.ServantRetentionPolicyValue) return PolyORB.Any.Content'Class;
 
-   function Wrap
-     (X : access PortableServer.ServantRetentionPolicyValue)
-     return PolyORB.Any.Content'Class;
+   TC_ServantRetentionPolicyValue : CORBA.TypeCode.Object;
 
-   TC_ServantRetentionPolicyValue : CORBA.TypeCode.Object :=
-      CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TC_Enum);
+   function From_Any (C : PolyORB.Any.Any_Container'Class) return PortableServer.ServantRetentionPolicyValue;
 
-   function From_Any
-     (C : PolyORB.Any.Any_Container'Class)
-     return PortableServer.ServantRetentionPolicyValue;
-
-   function From_Any
-     (Item : CORBA.Any)
-     return PortableServer.ServantRetentionPolicyValue;
+   function From_Any (Item : CORBA.Any) return PortableServer.ServantRetentionPolicyValue;
 
    function To_Any
      (Item : PortableServer.ServantRetentionPolicyValue) return CORBA.Any;
+   function Wrap (X : access PortableServer.RequestProcessingPolicyValue) return PolyORB.Any.Content'Class;
 
-   function Wrap
-     (X : access PortableServer.RequestProcessingPolicyValue)
-     return PolyORB.Any.Content'Class;
+   TC_RequestProcessingPolicyValue : CORBA.TypeCode.Object;
 
-   TC_RequestProcessingPolicyValue : CORBA.TypeCode.Object :=
-      CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TC_Enum);
+   function From_Any (C : PolyORB.Any.Any_Container'Class) return PortableServer.RequestProcessingPolicyValue;
 
-   function From_Any
-     (C : PolyORB.Any.Any_Container'Class)
-     return PortableServer.RequestProcessingPolicyValue;
-
-   function From_Any
-     (Item : CORBA.Any)
-     return PortableServer.RequestProcessingPolicyValue;
+   function From_Any (Item : CORBA.Any) return PortableServer.RequestProcessingPolicyValue;
 
    function To_Any
-     (Item : PortableServer.RequestProcessingPolicyValue)
-     return CORBA.Any;
+     (Item : PortableServer.RequestProcessingPolicyValue) return CORBA.Any;
 
 end PortableServer.Helper;

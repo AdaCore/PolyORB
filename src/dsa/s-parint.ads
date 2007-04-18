@@ -178,7 +178,7 @@ package System.Partition_Interface is
       Object_Adapter : PolyORB.Obj_Adapters.Obj_Adapter_Access;
       --  Null for RCI servants (the root POA will be used in this case)
 
-      Obj_TypeCode   : PolyORB.Any.TypeCode.Object;
+      Obj_TypeCode   : PolyORB.Any.TypeCode.Local_Ref;
       --  The TypeCode to be used for references to objects of this type
 
       Impl_Info      : Private_Info_Access;
@@ -309,29 +309,29 @@ package System.Partition_Interface is
    Mode_Out   : PolyORB.Any.Flags renames PolyORB.Any.ARG_OUT;
    Mode_Inout : PolyORB.Any.Flags renames PolyORB.Any.ARG_INOUT;
    subtype NamedValue is PolyORB.Any.NamedValue;
-   subtype TypeCode is PolyORB.Any.TypeCode.Object;
+   subtype TypeCode is PolyORB.Any.TypeCode.Local_Ref;
    procedure Set_TC
      (A : in out Any;
-      T : PolyORB.Any.TypeCode.Object)
+      T : PolyORB.Any.TypeCode.Local_Ref)
       renames PolyORB.Any.Set_Type;
 
-   function Get_TC (A : Any) return PolyORB.Any.TypeCode.Object
+   function Get_TC (A : Any) return PolyORB.Any.TypeCode.Local_Ref
      renames PolyORB.Any.Get_Unwound_Type;
 
    function Create_Any
-     (Tc : PolyORB.Any.TypeCode.Object)
+     (Tc : PolyORB.Any.TypeCode.Local_Ref)
       return Any
      renames PolyORB.Any.Get_Empty_Any_Aggregate;
 
    function Content_Type
-     (Self : PolyORB.Any.TypeCode.Object)
-      return PolyORB.Any.TypeCode.Object
+     (Self : PolyORB.Any.TypeCode.Local_Ref)
+      return PolyORB.Any.TypeCode.Local_Ref
      renames PolyORB.Any.TypeCode.Content_Type;
 
    function Any_Member_Type
      (A     : Any;
       Index : System.Unsigned_Types.Long_Unsigned)
-      return PolyORB.Any.TypeCode.Object;
+      return PolyORB.Any.TypeCode.Local_Ref;
    --  Return type of the Index'th component in Tk_Struct or Tk_Union Any A
 
    subtype NVList_Ref is PolyORB.Any.NVList.Ref;
@@ -420,22 +420,22 @@ package System.Partition_Interface is
      return Any
      renames PolyORB.Any.ObjRef.To_Any;
 
-   function TA_TC (TC : PolyORB.Any.TypeCode.Object) return Any
+   function TA_TC (TC : PolyORB.Any.TypeCode.Local_Ref) return Any
      renames PolyORB.Any.To_Any;
 
-   --       function TC_AD return PolyORB.Any.TypeCode.Object
+   --       function TC_AD return PolyORB.Any.TypeCode.Local_Ref
    --       renames PolyORB.Any.TC_X;
-   --       function TC_AS return PolyORB.Any.TypeCode.Object
+   --       function TC_AS return PolyORB.Any.TypeCode.Local_Ref
    --       renames PolyORB.Any.TC_X;
 
    --  The typecodes below define the mapping of Ada elementary
    --  types onto PolyORB types.
 
-   function TC_B return PolyORB.Any.TypeCode.Object
+   function TC_B return PolyORB.Any.TypeCode.Local_Ref
      renames PolyORB.Any.TC_Boolean;
-   function TC_C return PolyORB.Any.TypeCode.Object
+   function TC_C return PolyORB.Any.TypeCode.Local_Ref
      renames PolyORB.Any.TC_Char;
-   function TC_F return PolyORB.Any.TypeCode.Object
+   function TC_F return PolyORB.Any.TypeCode.Local_Ref
      renames PolyORB.Any.TC_Float;
 
    --  Warning! Ada numeric types have platform dependant sizes, PolyORB types
@@ -443,76 +443,74 @@ package System.Partition_Interface is
    --  (or the biggest PolyORB type for each Ada type should be selected, if
    --  cross-platform interoperability is desired.
 
-   function TC_Any return PolyORB.Any.TypeCode.Object
+   function TC_Any return PolyORB.Any.TypeCode.Local_Ref
      renames PolyORB.Any.TC_Any;
-   function TC_I return PolyORB.Any.TypeCode.Object
+   function TC_I return PolyORB.Any.TypeCode.Local_Ref
      renames PolyORB.Any.TC_Long;
-   function TC_LF return PolyORB.Any.TypeCode.Object
+   function TC_LF return PolyORB.Any.TypeCode.Local_Ref
      renames PolyORB.Any.TC_Double;
-   function TC_LI return PolyORB.Any.TypeCode.Object
+   function TC_LI return PolyORB.Any.TypeCode.Local_Ref
      renames PolyORB.Any.TC_Long;
-   function TC_LLF return PolyORB.Any.TypeCode.Object
+   function TC_LLF return PolyORB.Any.TypeCode.Local_Ref
      renames PolyORB.Any.TC_Long_Double;
-   function TC_LLI return PolyORB.Any.TypeCode.Object
+   function TC_LLI return PolyORB.Any.TypeCode.Local_Ref
      renames PolyORB.Any.TC_Long_Long;
-   function TC_LLU return PolyORB.Any.TypeCode.Object
+   function TC_LLU return PolyORB.Any.TypeCode.Local_Ref
      renames PolyORB.Any.TC_Unsigned_Long_Long;
-   function TC_LU return PolyORB.Any.TypeCode.Object
+   function TC_LU return PolyORB.Any.TypeCode.Local_Ref
      renames PolyORB.Any.TC_Unsigned_Long;
-   function TC_SF return PolyORB.Any.TypeCode.Object
+   function TC_SF return PolyORB.Any.TypeCode.Local_Ref
      renames PolyORB.Any.TC_Float;
 
-   function TC_SI return PolyORB.Any.TypeCode.Object
+   function TC_SI return PolyORB.Any.TypeCode.Local_Ref
      renames PolyORB.Any.TC_Short;
-   function TC_SSI return PolyORB.Any.TypeCode.Object
+   function TC_SSI return PolyORB.Any.TypeCode.Local_Ref
      renames PolyORB.Any.TC_Short;
-   function TC_SSU return PolyORB.Any.TypeCode.Object
+   function TC_SSU return PolyORB.Any.TypeCode.Local_Ref
      renames PolyORB.Any.TC_Octet;
-   function TC_SU return PolyORB.Any.TypeCode.Object
+   function TC_SU return PolyORB.Any.TypeCode.Local_Ref
      renames PolyORB.Any.TC_Unsigned_Short;
-   function TC_U return PolyORB.Any.TypeCode.Object
+   function TC_U return PolyORB.Any.TypeCode.Local_Ref
      renames PolyORB.Any.TC_Unsigned_Long;
-   function TC_WC return PolyORB.Any.TypeCode.Object
+   function TC_WC return PolyORB.Any.TypeCode.Local_Ref
      renames PolyORB.Any.TC_Wchar;
 
-   function TC_String return PolyORB.Any.TypeCode.Object
+   function TC_String return PolyORB.Any.TypeCode.Local_Ref
      renames PolyORB.Any.TypeCode.TC_String;
-   function TC_Void return PolyORB.Any.TypeCode.Object
+   function TC_Void return PolyORB.Any.TypeCode.Local_Ref
      renames PolyORB.Any.TypeCode.TC_Void;
-   function TC_Opaque return PolyORB.Any.TypeCode.Object;
+   function TC_Opaque return PolyORB.Any.TypeCode.Local_Ref;
 
-   function TC_Alias return PolyORB.Any.TypeCode.Object
+   function TC_Alias return PolyORB.Any.TypeCode.Local_Ref
      renames PolyORB.Any.TypeCode.TC_Alias;
    --  Empty Tk_Alias typecode
-   function TC_Array return PolyORB.Any.TypeCode.Object
+   function TC_Array return PolyORB.Any.TypeCode.Local_Ref
      renames PolyORB.Any.TypeCode.TC_Array;
    --  Empty Tk_Array typecode
-   function TC_Sequence return PolyORB.Any.TypeCode.Object
+   function TC_Sequence return PolyORB.Any.TypeCode.Local_Ref
      renames PolyORB.Any.TypeCode.TC_Sequence;
    --  Empty Tk_Sequence typecode
-   function TC_Struct return PolyORB.Any.TypeCode.Object
+   function TC_Struct return PolyORB.Any.TypeCode.Local_Ref
      renames PolyORB.Any.TypeCode.TC_Struct;
    --  Empty Tk_Struct typecode
-   function TC_Object return PolyORB.Any.TypeCode.Object
+   function TC_Object return PolyORB.Any.TypeCode.Local_Ref
      renames PolyORB.Any.TypeCode.TC_Object;
    --  Empty Tk_ObjRef typecode
-   function TC_Union return PolyORB.Any.TypeCode.Object
+   function TC_Union return PolyORB.Any.TypeCode.Local_Ref
      renames PolyORB.Any.TypeCode.TC_Union;
    --  Empty Tk_Union typecode
 
    subtype Any_Array is PolyORB.Any.TypeCode.Any_Array;
 
    function TC_Build
-     (Base       : PolyORB.Any.TypeCode.Object;
-      Parameters : Any_Array)
-      return PolyORB.Any.TypeCode.Object
-     renames PolyORB.Any.TypeCode.Build_Complex_TC;
+     (Base       : PolyORB.Any.TypeCode.Local_Ref;
+      Parameters : Any_Array) return PolyORB.Any.TypeCode.Local_Ref;
 
    procedure Move_Any_Value (Dest, Src : Any)
      renames PolyORB.Any.Move_Any_Value;
 
    function Any_Aggregate_Build
-     (TypeCode : PolyORB.Any.TypeCode.Object;
+     (TypeCode : PolyORB.Any.TypeCode.Local_Ref;
       Contents : Any_Array)
       return Any;
 
@@ -523,11 +521,11 @@ package System.Partition_Interface is
 
    function Get_Aggregate_Element
      (Value : Any;
-      Tc    : PolyORB.Any.TypeCode.Object;
+      Tc    : PolyORB.Any.TypeCode.Local_Ref;
       Index : System.Unsigned_Types.Long_Unsigned)
       return Any;
 
-   function Get_Any_Type (A : Any) return PolyORB.Any.TypeCode.Object
+   function Get_Any_Type (A : Any) return PolyORB.Any.TypeCode.Local_Ref
      renames PolyORB.Any.Get_Type;
 
    function Get_Nested_Sequence_Length

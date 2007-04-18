@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2000-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2000-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -908,7 +908,7 @@ package body SOAP.Types is
          declare
             use Ada.Streams;
 
-            Sq_Type : PolyORB.Any.TypeCode.Object
+            Sq_Type : PolyORB.Any.TypeCode.Local_Ref
               := PolyORB.Any.TypeCode.TC_Sequence;
             Byte_Stream : constant Ada.Streams.Stream_Element_Array
               := AWS.Translator.Base64_Decode (V (SOAP_Base64 (Obj)));
@@ -937,7 +937,7 @@ package body SOAP.Types is
       elsif Obj in SOAP_Array then
          declare
             use PolyORB.Any;
-            Ar_Type : PolyORB.Any.TypeCode.Object
+            Ar_Type : PolyORB.Any.TypeCode.Local_Ref
               := PolyORB.Any.TypeCode.TC_Array;
          begin
 
@@ -972,7 +972,7 @@ package body SOAP.Types is
          declare
             use PolyORB.Any;
 
-            St_Type : PolyORB.Any.TypeCode.Object
+            St_Type : PolyORB.Any.TypeCode.Local_Ref
               := PolyORB.Any.TypeCode.TC_Struct;
          begin
             PolyORB.Any.TypeCode.Add_Parameter
@@ -1141,7 +1141,7 @@ package body SOAP.Types is
                              & Unsigned_Long'Image (Number_Of_Elements)));
 
             OS : Object_Set (1 .. Integer (Number_Of_Elements));
-            PolyORB_Type_Of_Elements : constant PolyORB.Any.TypeCode.Object
+            PolyORB_Type_Of_Elements : constant PolyORB.Any.TypeCode.Local_Ref
               := PolyORB.Any.TypeCode.Content_Type
               (PolyORB.Any.Get_Type (Item));
          begin

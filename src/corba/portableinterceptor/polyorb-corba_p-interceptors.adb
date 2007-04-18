@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -72,6 +72,7 @@ package body PolyORB.CORBA_P.Interceptors is
    use PolyORB.Requests.Unsigned_Long_Flags;
    use PolyORB.Tasking.Mutexes;
    use PolyORB.Tasking.Threads.Annotations;
+   use type PolyORB.Any.TypeCode.Local_Ref;
 
    --  Client Interceptors
 

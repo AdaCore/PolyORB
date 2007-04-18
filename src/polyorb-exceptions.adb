@@ -69,7 +69,7 @@ package body PolyORB.Exceptions is
    -----------------------------
 
    type Exception_Info is record
-      TC     : PolyORB.Any.TypeCode.Object;
+      TC     : PolyORB.Any.TypeCode.Local_Ref;
       Raiser : Raise_From_Any_Procedure;
    end record;
 
@@ -417,7 +417,7 @@ package body PolyORB.Exceptions is
    ------------------------
 
    procedure Register_Exception
-     (TC     : PolyORB.Any.TypeCode.Object;
+     (TC     : PolyORB.Any.TypeCode.Local_Ref;
       Raiser : Raise_From_Any_Procedure) is
    begin
       pragma Debug

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,150 +31,140 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PolyORB.Initialization;
-with PolyORB.Exceptions;
+-------------------------------------------------
+--  This file has been generated automatically
+--  by IDLAC version 2.3.0w.
+--
+--  Do NOT hand-modify this file, as your
+--  changes will be lost when you re-run the
+--  IDL to Ada compiler.
+-------------------------------------------------
+pragma Style_Checks ("NM32766");
+
 with PolyORB.Utils.Strings;
+with PolyORB.Initialization;
+pragma Elaborate_All (PolyORB.Initialization);
+with PolyORB.Exceptions;
+with PolyORB.Std;
+with PolyORB.Any;
 
 package body PortableServer.Current.Helper is
 
-   procedure Raise_NoContext_From_Any
-     (Item    : PolyORB.Any.Any;
-      Message : Standard.String);
-   pragma No_Return (Raise_NoContext_From_Any);
-
-   procedure Deferred_Initialization;
-
-   -----------------------------
-   -- Deferred_Initialization --
-   -----------------------------
-
-   procedure Deferred_Initialization is
+   function Unchecked_To_Local_Ref
+     (The_Ref : CORBA.Object.Ref'Class)
+     return PortableServer.Current.Local_Ref
+   is
+      Result : PortableServer.Current.Local_Ref;
    begin
-      declare
-         Name : CORBA.String := CORBA.To_CORBA_String ("Current");
-         Id   : CORBA.String
-           := CORBA.To_CORBA_String ("IDL:PortableServer/Current:1.0");
+      Set (Result,
+           CORBA.Object.Object_Of (The_Ref));
+      return Result;
+   end Unchecked_To_Local_Ref;
 
-      begin
-         CORBA.TypeCode.Internals.Add_Parameter
-           (TC_Current, CORBA.To_Any (Name));
-         CORBA.TypeCode.Internals.Add_Parameter
-           (TC_Current, CORBA.To_Any (Id));
-      end;
+   function To_Local_Ref
+     (The_Ref : CORBA.Object.Ref'Class)
+     return PortableServer.Current.Local_Ref
+   is
+   begin
+      if CORBA.Object.Is_Nil (The_Ref)
+        or else CORBA.Object.Is_A (The_Ref, Repository_Id) then
+         return Unchecked_To_Local_Ref (The_Ref);
+      end if;
+      CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
+   end To_Local_Ref;
 
-      declare
-         Name : CORBA.String := CORBA.To_CORBA_String ("NoContext");
-         Id   : CORBA.String
-           := CORBA.To_CORBA_String
-              ("IDL:PortableServer/Current/NoContext:1.0");
-      begin
-         CORBA.TypeCode.Internals.Add_Parameter
-           (TC_NoContext, CORBA.To_Any (Name));
-         CORBA.TypeCode.Internals.Add_Parameter
-           (TC_NoContext, CORBA.To_Any (Id));
-      end;
-
-      PolyORB.Exceptions.Register_Exception
-        (CORBA.TypeCode.Internals.To_PolyORB_Object (TC_NoContext),
-         Raise_NoContext_From_Any'Access);
-   end Deferred_Initialization;
-
-   --------------
-   -- From_Any --
-   --------------
-
-   function From_Any (Item : CORBA.Any) return NoContext_Members is
-      pragma Unreferenced (Item);
-
+   function From_Any (Item : CORBA.Any) return PortableServer.Current.NoContext_Members is
       Result : NoContext_Members;
-
+      pragma Warnings (Off);
+      pragma Unreferenced (Item);
+      pragma Warnings (On);
    begin
       return Result;
    end From_Any;
 
-   ---------------------
-   -- Raise_NoContext --
-   ---------------------
-
-   procedure Raise_NoContext (Members : NoContext_Members) is
-   begin
-      PolyORB.Exceptions.User_Raise_Exception (NoContext'Identity, Members);
-   end Raise_NoContext;
-
-   ------------------------------
-   -- Raise_NoContext_From_Any --
-   ------------------------------
-
-   procedure Raise_NoContext_From_Any
-     (Item    : PolyORB.Any.Any;
-      Message : Standard.String)
-   is
-      Members : constant NoContext_Members
-        := From_Any (CORBA.Internals.To_CORBA_Any (Item));
-
-   begin
-      PolyORB.Exceptions.User_Raise_Exception
-        (NoContext'Identity, Members, Message);
-   end Raise_NoContext_From_Any;
-
-   ------------
-   -- To_Any --
-   ------------
-
-   function To_Any (Item : NoContext_Members) return CORBA.Any is
+   function To_Any
+     (Item : PortableServer.Current.NoContext_Members) return CORBA.Any is
+      Result : CORBA.Any :=
+         CORBA.Internals.Get_Empty_Any_Aggregate (TC_NoContext);
+      pragma Warnings (Off);
       pragma Unreferenced (Item);
-
-      Result : CORBA.Any
-        := CORBA.Internals.Get_Empty_Any_Aggregate (TC_NoContext);
-
+      pragma Warnings (On);
    begin
       return Result;
    end To_Any;
 
-   ------------
-   -- To_Ref --
-   ------------
+   procedure Raise_NoContext_From_Any
+     (Item    : PolyORB.Any.Any;
+      Message : PolyORB.Std.String);
+   pragma No_Return (Raise_NoContext_From_Any);
 
-   function To_Ref (The_Ref : CORBA.Object.Ref'Class) return Local_Ref is
-   begin
-      if CORBA.Object.Is_Nil (The_Ref)
-        or else CORBA.Object.Is_A (The_Ref, Repository_Id)
-      then
-         return Unchecked_To_Ref (The_Ref);
-      end if;
-
-      CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
-   end To_Ref;
-
-   ----------------------
-   -- Unchecked_To_Ref --
-   ----------------------
-
-   function Unchecked_To_Ref
-     (The_Ref : CORBA.Object.Ref'Class) return Local_Ref
+   procedure Raise_NoContext_From_Any
+     (Item    : PolyORB.Any.Any;
+      Message : PolyORB.Std.String)
    is
-      Result : PortableServer.Current.Local_Ref;
+      Members : constant NoContext_Members := From_Any (CORBA.Any (Item));
    begin
-      Set (Result, CORBA.Object.Object_Of (The_Ref));
-      return Result;
-   end Unchecked_To_Ref;
+      PolyORB.Exceptions.User_Raise_Exception
+        (NoContext'Identity,
+         Members,
+         Message);
+   end Raise_NoContext_From_Any;
+
+   procedure Raise_NoContext
+     (Members : in NoContext_Members)
+   is
+   begin
+      PolyORB.Exceptions.User_Raise_Exception
+        (NoContext'Identity,
+         Members);
+   end Raise_NoContext;
+
+   procedure Deferred_Initialization is
+   begin
+
+      declare
+         Name : CORBA.String := CORBA.To_CORBA_String ("Current");
+         Id : CORBA.String := CORBA.To_CORBA_String ("IDL:omg.org/PortableServer/Current:1.0");
+      begin
+         TC_Current :=
+           CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TC_Object);
+         CORBA.Internals.Add_Parameter (TC_Current, CORBA.To_Any (Name));
+         CORBA.Internals.Add_Parameter (TC_Current, CORBA.To_Any (Id));
+      end;
+
+      declare
+         Name : CORBA.String := CORBA.To_CORBA_String ("NoContext");
+         Id : CORBA.String := CORBA.To_CORBA_String ("IDL:omg.org/PortableServer/Current/NoContext:1.0");
+      begin
+         TC_NoContext :=
+           CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TC_Except);
+         CORBA.Internals.Add_Parameter (TC_NoContext, CORBA.To_Any (Name));
+         CORBA.Internals.Add_Parameter (TC_NoContext, CORBA.To_Any (Id));
+      end;
+      PolyORB.Exceptions.Register_Exception
+        (CORBA.TypeCode.Internals.To_PolyORB_Object (TC_NoContext),
+         Raise_NoContext_From_Any'Access);
+
+   end Deferred_Initialization;
 
 begin
    declare
       use PolyORB.Initialization;
       use PolyORB.Initialization.String_Lists;
       use PolyORB.Utils.Strings;
-
    begin
       Register_Module
         (Module_Info'
          (Name      => +"PortableServer.Current.Helper",
-          Conflicts => Empty,
-          Depends   => +"any"
-          & "exceptions",
-          Provides  => Empty,
+          Conflicts => PolyORB.Initialization.String_Lists.Empty,
+          Depends   =>
+                  +"any"
+                  & "exceptions"
+          ,
+          Provides  => PolyORB.Initialization.String_Lists.Empty,
           Implicit  => False,
           Init      => Deferred_Initialization'Access,
           Shutdown  => null));
    end;
+
 end PortableServer.Current.Helper;

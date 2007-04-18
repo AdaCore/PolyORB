@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -46,9 +46,7 @@ package body CORBA.Object.Helper is
       Result : CORBA.Object.Ref;
    begin
       CORBA.Object.Internals.Convert_To_CORBA_Ref
-        (PolyORB.Any.ObjRef.From_Any (Item.The_Any),
-         Result);
-
+        (PolyORB.Any.ObjRef.From_Any (PolyORB.Any.Any (Item)), Result);
       return Result;
    end From_Any;
 
@@ -68,13 +66,10 @@ package body CORBA.Object.Helper is
       end if;
 
       declare
-         A : Any;
-
+         A : Any := CORBA.Any (PolyORB.Any.ObjRef.To_Any
+                      (CORBA.Object.Internals.To_PolyORB_Ref (Item)));
       begin
-         A.The_Any := PolyORB.Any.ObjRef.To_Any
-           (CORBA.Object.Internals.To_PolyORB_Ref (Item));
          CORBA.Internals.Set_Type (A, CORBA.Object.TC_Object);
-
          return A;
       end;
    end To_Any;

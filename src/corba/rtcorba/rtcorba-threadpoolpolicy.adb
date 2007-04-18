@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -66,13 +66,12 @@ package body RTCORBA.ThreadpoolPolicy is
 
    function Create_ThreadpoolPolicy
      (The_Type : CORBA.PolicyType;
-      Value    : CORBA.Any)
-     return CORBA.Policy.Ref
+      Value    : CORBA.Any) return CORBA.Policy.Ref
    is
    begin
       pragma Assert (The_Type = THREADPOOL_POLICY_TYPE);
 
-      if Get_Type (Value) /= TC_Unsigned_Long then
+      if Get_Type (Value) /= CORBA.TC_Unsigned_Long then
          Raise_PolicyError ((Reason => BAD_POLICY_TYPE));
       end if;
 

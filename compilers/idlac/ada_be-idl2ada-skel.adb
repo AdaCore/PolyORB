@@ -438,8 +438,7 @@ package body Ada_Be.Idl2Ada.Skel is
       PL (CU, "CORBA.ServerRequest.Set_Exception");
       PL (CU, "  (Request,");
       II (CU);
-      PL (CU, "CORBA.Internals.To_CORBA_Any");
-      PL (CU, "(PolyORB.CORBA_P.Exceptions.System_Exception_To_Any (E)));");
+      PL (CU, "PolyORB.CORBA_P.Exceptions.System_Exception_To_Any (E));");
       DI (CU);
       Add_With (CU, "PolyORB.QoS.Exception_Informations");
       PL (CU, "PolyORB.QoS.Exception_Informations.Set_Exception_Information");

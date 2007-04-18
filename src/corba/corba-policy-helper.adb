@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -50,11 +50,11 @@ package body CORBA.Policy.Helper is
 
    procedure Deferred_Initialization is
    begin
-      TC_Policy_Cache :=
-        TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TC_Object);
-      TypeCode.Internals.Add_Parameter
+      TC_Policy_Cache := CORBA.TypeCode.Internals.To_CORBA_Object
+        (PolyORB.Any.TypeCode.TC_Object);
+      Internals.Add_Parameter
         (TC_Policy_Cache, To_Any (To_CORBA_String ("Policy")));
-      TypeCode.Internals.Add_Parameter
+      Internals.Add_Parameter
         (TC_Policy_Cache, To_Any (To_CORBA_String (Repository_Id)));
    end Deferred_Initialization;
 

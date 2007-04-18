@@ -92,7 +92,7 @@ package PolyORB.Exceptions is
    procedure Default_Raise_From_Any (Occurrence : PolyORB.Any.Any);
 
    procedure Register_Exception
-     (TC     : PolyORB.Any.TypeCode.Object;
+     (TC     : PolyORB.Any.TypeCode.Local_Ref;
       Raiser : Raise_From_Any_Procedure);
    --  Associate the TypeCode for a user-defined exception with
    --  a procedure that raises an occurrence of that exception,

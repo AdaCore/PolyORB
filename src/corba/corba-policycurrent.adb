@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -138,7 +138,7 @@ package body CORBA.PolicyCurrent is
 
       Notepad : Notepad_Access;
       Note    : Policy_Manager_Note;
-      Indexes : CORBA.Short;
+      Indexes : CORBA.Unsigned_Short;
 
    begin
       Notepad := Get_Current_Thread_Notepad;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -119,18 +119,14 @@ package body PolyORB.Errors.Helper is
    -- TC_Completion_Status --
    --------------------------
 
-   TC_Completion_Status_Cache : TypeCode.Object;
+   TC_Completion_Status_Cache : TypeCode.Local_Ref;
 
-   function TC_Completion_Status
-     return PolyORB.Any.TypeCode.Object
-   is
+   function TC_Completion_Status return PolyORB.Any.TypeCode.Local_Ref is
       use type PolyORB.Types.Unsigned_Long;
-
-      TC : TypeCode.Object renames TC_Completion_Status_Cache;
-
+      TC : TypeCode.Local_Ref renames TC_Completion_Status_Cache;
    begin
-      if TypeCode.Parameter_Count (TC) /= 0 then
-         return TC_Completion_Status_Cache;
+      if not TypeCode.Is_Nil (TC) then
+         return TC;
       end if;
 
       TC := TypeCode.TC_Enum;
@@ -157,7 +153,7 @@ package body PolyORB.Errors.Helper is
    is
       pragma Unreferenced (Member);
 
-      TC    : TypeCode.Object := TypeCode.TC_Except;
+      TC    : TypeCode.Local_Ref := TypeCode.TC_Except;
       Shift : Natural         := 0;
    begin
       --  Name
@@ -188,11 +184,11 @@ package body PolyORB.Errors.Helper is
    -- TC_Comm_Failure --
    ---------------------
 
-   TC_Comm_Failure_Cache : TypeCode.Object;
+   TC_Comm_Failure_Cache : TypeCode.Local_Ref;
 
-   function TC_Comm_Failure return PolyORB.Any.TypeCode.Object is
+   function TC_Comm_Failure return PolyORB.Any.TypeCode.Local_Ref is
    begin
-      if TypeCode.Parameter_Count (TC_Comm_Failure_Cache) /= 0 then
+      if not TypeCode.Is_Nil (TC_Comm_Failure_Cache) then
          return TC_Comm_Failure_Cache;
       end if;
 
@@ -204,11 +200,11 @@ package body PolyORB.Errors.Helper is
    -- TC_Transient --
    ------------------
 
-   TC_Transient_Cache : TypeCode.Object;
+   TC_Transient_Cache : TypeCode.Local_Ref;
 
-   function TC_Transient return PolyORB.Any.TypeCode.Object is
+   function TC_Transient return PolyORB.Any.TypeCode.Local_Ref is
    begin
-      if TypeCode.Parameter_Count (TC_Transient_Cache) /= 0 then
+      if not TypeCode.Is_Nil (TC_Transient_Cache) then
          return TC_Transient_Cache;
       end if;
 
@@ -220,11 +216,11 @@ package body PolyORB.Errors.Helper is
    -- TC_No_Response --
    --------------------
 
-   TC_No_Response_Cache : TypeCode.Object;
+   TC_No_Response_Cache : TypeCode.Local_Ref;
 
-   function TC_No_Response return PolyORB.Any.TypeCode.Object is
+   function TC_No_Response return PolyORB.Any.TypeCode.Local_Ref is
    begin
-      if TypeCode.Parameter_Count (TC_No_Response_Cache) /= 0 then
+      if not TypeCode.Is_Nil (TC_No_Response_Cache) then
          return TC_No_Response_Cache;
       end if;
 
@@ -236,11 +232,11 @@ package body PolyORB.Errors.Helper is
    -- TC_Obj_Adapter --
    --------------------
 
-   TC_Obj_Adapter_Cache : TypeCode.Object;
+   TC_Obj_Adapter_Cache : TypeCode.Local_Ref;
 
-   function TC_Obj_Adapter return PolyORB.Any.TypeCode.Object is
+   function TC_Obj_Adapter return PolyORB.Any.TypeCode.Local_Ref is
    begin
-      if TypeCode.Parameter_Count (TC_Obj_Adapter_Cache) /= 0 then
+      if not TypeCode.Is_Nil (TC_Obj_Adapter_Cache) then
          return TC_Obj_Adapter_Cache;
       end if;
 
@@ -252,18 +248,18 @@ package body PolyORB.Errors.Helper is
    -- TC_ForwardRequest --
    -----------------------
 
-   TC_ForwardRequest_Cache : TypeCode.Object;
+   TC_ForwardRequest_Cache : TypeCode.Local_Ref;
 
    function TC_ForwardRequest
-     return PolyORB.Any.TypeCode.Object
+     return PolyORB.Any.TypeCode.Local_Ref
    is
-      TC : TypeCode.Object renames TC_ForwardRequest_Cache;
+      TC : TypeCode.Local_Ref renames TC_ForwardRequest_Cache;
 
       Name          : constant String := "ForwardRequest";
       Repository_Id : constant String :=
         PolyORB_Exc_Prefix & Name & PolyORB_Exc_Version;
    begin
-      if TypeCode.Parameter_Count (TC) /= 0 then
+      if not TypeCode.Is_Nil (TC) then
          return TC;
       end if;
 
@@ -273,7 +269,7 @@ package body PolyORB.Errors.Helper is
       TypeCode.Add_Parameter (TC, To_Any (Repository_Id));
 
       TypeCode.Add_Parameter
-        (TC, To_Any (TC_Object));
+        (TC, To_Any (TypeCode.TC_Object));
       TypeCode.Add_Parameter
         (TC, To_Any ("forward_reference"));
 
@@ -284,19 +280,19 @@ package body PolyORB.Errors.Helper is
    -- TC_ForwardRequestPerm --
    ---------------------------
 
-   TC_ForwardRequestPerm_Cache : TypeCode.Object;
+   TC_ForwardRequestPerm_Cache : TypeCode.Local_Ref;
 
    function TC_ForwardRequestPerm
-     return PolyORB.Any.TypeCode.Object
+     return PolyORB.Any.TypeCode.Local_Ref
    is
-      TC : TypeCode.Object renames TC_ForwardRequestPerm_Cache;
+      TC : TypeCode.Local_Ref renames TC_ForwardRequestPerm_Cache;
 
       Name          : constant String := "ForwardRequestPerm";
       Repository_Id : constant String :=
         PolyORB_Exc_Prefix & Name & PolyORB_Exc_Version;
 
    begin
-      if TypeCode.Parameter_Count (TC) /= 0 then
+      if not TypeCode.Is_Nil (TC) then
          return TC;
       end if;
 
@@ -306,7 +302,7 @@ package body PolyORB.Errors.Helper is
       TypeCode.Add_Parameter (TC, To_Any (Repository_Id));
 
       TypeCode.Add_Parameter
-        (TC, To_Any (TC_Object));
+        (TC, To_Any (TypeCode.TC_Object));
       TypeCode.Add_Parameter
         (TC, To_Any ("forward_reference"));
 
@@ -317,19 +313,19 @@ package body PolyORB.Errors.Helper is
    -- TC_NeedsAddressingMode --
    ----------------------------
 
-   TC_NeedsAddressingMode_Cache : TypeCode.Object;
+   TC_NeedsAddressingMode_Cache : TypeCode.Local_Ref;
 
    function TC_NeedsAddressingMode
-     return PolyORB.Any.TypeCode.Object
+     return PolyORB.Any.TypeCode.Local_Ref
    is
-      TC : TypeCode.Object renames TC_NeedsAddressingMode_Cache;
+      TC : TypeCode.Local_Ref renames TC_NeedsAddressingMode_Cache;
 
       Name          : constant String := "NeedsAddressingMode";
       Repository_Id : constant String :=
         PolyORB_Exc_Prefix & Name & PolyORB_Exc_Version;
 
    begin
-      if TypeCode.Parameter_Count (TC) /= 0 then
+      if not TypeCode.Is_Nil (TC) then
          return TC;
       end if;
 
@@ -352,7 +348,7 @@ package body PolyORB.Errors.Helper is
       Index          : Any.Any;
       Result_Forward : References.Ref;
    begin
-      Index := Get_Aggregate_Element (Item, TC_Object, 0);
+      Index := Get_Aggregate_Element (Item, TypeCode.TC_Object, 0);
       Result_Forward := From_Any (Index);
 
       return (Forward_Reference => Smart_Pointers.Ref (Result_Forward));
@@ -367,7 +363,7 @@ package body PolyORB.Errors.Helper is
       Result_Forward : References.Ref;
 
    begin
-      Index := Get_Aggregate_Element (Item, TC_Object, 0);
+      Index := Get_Aggregate_Element (Item, TypeCode.TC_Object, 0);
       Result_Forward := From_Any (Index);
 
       return (Forward_Reference => Smart_Pointers.Ref (Result_Forward));
@@ -476,7 +472,7 @@ package body PolyORB.Errors.Helper is
       Member : System_Exception_Members)
      return PolyORB.Any.Any
    is
-      TC : PolyORB.Any.TypeCode.Object;
+      TC : PolyORB.Any.TypeCode.Local_Ref;
       Result : PolyORB.Any.Any;
 
    begin
@@ -518,9 +514,9 @@ package body PolyORB.Errors.Helper is
 
    function System_Exception_TypeCode
      (Name : Standard.String)
-     return Any.TypeCode.Object
+     return Any.TypeCode.Local_Ref
    is
-      TC    : TypeCode.Object := TypeCode.TC_Except;
+      TC    : TypeCode.Local_Ref := TypeCode.TC_Except;
       Shift : Natural := 0;
    begin
       --  Name

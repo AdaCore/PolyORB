@@ -36,6 +36,18 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+-------------------------------------------------
+--  This file has been generated automatically
+--  by IDLAC version 2.3.0w.
+--
+--  Do NOT hand-modify this file, as your
+--  changes will be lost when you re-run the
+--  IDL to Ada compiler.
+-------------------------------------------------
+pragma Style_Checks ("NM32766");
+
+with CORBA;
+pragma Elaborate_All (CORBA);
 with CORBA.Object;
 
 package PortableServer.POA.Helper is
@@ -45,5 +57,117 @@ package PortableServer.POA.Helper is
 
    function To_Local_Ref
      (The_Ref : CORBA.Object.Ref'Class) return PortableServer.POA.Local_Ref;
+
+   TC_POA : CORBA.TypeCode.Object;
+
+   TC_AdapterAlreadyExists : CORBA.TypeCode.Object;
+
+   function From_Any (Item : CORBA.Any) return PortableServer.POA.AdapterAlreadyExists_Members;
+
+   function To_Any
+     (Item : PortableServer.POA.AdapterAlreadyExists_Members) return CORBA.Any;
+
+   procedure Raise_AdapterAlreadyExists
+     (Members : in AdapterAlreadyExists_Members);
+   pragma No_Return (Raise_AdapterAlreadyExists);
+
+   TC_AdapterNonExistent : CORBA.TypeCode.Object;
+
+   function From_Any (Item : CORBA.Any) return PortableServer.POA.AdapterNonExistent_Members;
+
+   function To_Any
+     (Item : PortableServer.POA.AdapterNonExistent_Members) return CORBA.Any;
+
+   procedure Raise_AdapterNonExistent
+     (Members : in AdapterNonExistent_Members);
+   pragma No_Return (Raise_AdapterNonExistent);
+
+   TC_InvalidPolicy : CORBA.TypeCode.Object;
+
+   function From_Any (Item : CORBA.Any) return PortableServer.POA.InvalidPolicy_Members;
+
+   function To_Any
+     (Item : PortableServer.POA.InvalidPolicy_Members) return CORBA.Any;
+
+   procedure Raise_InvalidPolicy
+     (Members : in InvalidPolicy_Members);
+   pragma No_Return (Raise_InvalidPolicy);
+
+   TC_NoServant : CORBA.TypeCode.Object;
+
+   function From_Any (Item : CORBA.Any) return PortableServer.POA.NoServant_Members;
+
+   function To_Any
+     (Item : PortableServer.POA.NoServant_Members) return CORBA.Any;
+
+   procedure Raise_NoServant
+     (Members : in NoServant_Members);
+   pragma No_Return (Raise_NoServant);
+
+   TC_ObjectAlreadyActive : CORBA.TypeCode.Object;
+
+   function From_Any (Item : CORBA.Any) return PortableServer.POA.ObjectAlreadyActive_Members;
+
+   function To_Any
+     (Item : PortableServer.POA.ObjectAlreadyActive_Members) return CORBA.Any;
+
+   procedure Raise_ObjectAlreadyActive
+     (Members : in ObjectAlreadyActive_Members);
+   pragma No_Return (Raise_ObjectAlreadyActive);
+
+   TC_ObjectNotActive : CORBA.TypeCode.Object;
+
+   function From_Any (Item : CORBA.Any) return PortableServer.POA.ObjectNotActive_Members;
+
+   function To_Any
+     (Item : PortableServer.POA.ObjectNotActive_Members) return CORBA.Any;
+
+   procedure Raise_ObjectNotActive
+     (Members : in ObjectNotActive_Members);
+   pragma No_Return (Raise_ObjectNotActive);
+
+   TC_ServantAlreadyActive : CORBA.TypeCode.Object;
+
+   function From_Any (Item : CORBA.Any) return PortableServer.POA.ServantAlreadyActive_Members;
+
+   function To_Any
+     (Item : PortableServer.POA.ServantAlreadyActive_Members) return CORBA.Any;
+
+   procedure Raise_ServantAlreadyActive
+     (Members : in ServantAlreadyActive_Members);
+   pragma No_Return (Raise_ServantAlreadyActive);
+
+   TC_ServantNotActive : CORBA.TypeCode.Object;
+
+   function From_Any (Item : CORBA.Any) return PortableServer.POA.ServantNotActive_Members;
+
+   function To_Any
+     (Item : PortableServer.POA.ServantNotActive_Members) return CORBA.Any;
+
+   procedure Raise_ServantNotActive
+     (Members : in ServantNotActive_Members);
+   pragma No_Return (Raise_ServantNotActive);
+
+   TC_WrongAdapter : CORBA.TypeCode.Object;
+
+   function From_Any (Item : CORBA.Any) return PortableServer.POA.WrongAdapter_Members;
+
+   function To_Any
+     (Item : PortableServer.POA.WrongAdapter_Members) return CORBA.Any;
+
+   procedure Raise_WrongAdapter
+     (Members : in WrongAdapter_Members);
+   pragma No_Return (Raise_WrongAdapter);
+
+   TC_WrongPolicy : CORBA.TypeCode.Object;
+
+   function From_Any (Item : CORBA.Any) return PortableServer.POA.WrongPolicy_Members;
+
+   function To_Any
+     (Item : PortableServer.POA.WrongPolicy_Members) return CORBA.Any;
+
+   procedure Raise_WrongPolicy
+     (Members : in WrongPolicy_Members);
+   pragma No_Return (Raise_WrongPolicy);
 
 end PortableServer.POA.Helper;

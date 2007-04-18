@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -46,28 +46,6 @@ package body PolyORB.Any.ExceptionList is
      renames L.Enabled;
    pragma Unreferenced (C); --  For conditional pragma Debug
 
-   --------------
-   -- Finalize --
-   --------------
-
-   procedure Finalize (Obj : in out Object) is
-
-      It : Iterator := First (Obj.List);
-
-   begin
-      pragma Debug (O ("Finalize : enter"));
-
-      pragma Debug (O ("Length" & Integer'Image (Length (Obj.List))));
-
-      while not Last (It) loop
-         Destroy_TypeCode (Value (It).all);
-         Next (It);
-      end loop;
-
-      Deallocate (Obj.List);
-      pragma Debug (O ("Finalize : leave"));
-   end Finalize;
-
    ---------------
    -- Get_Count --
    ---------------
@@ -87,7 +65,7 @@ package body PolyORB.Any.ExceptionList is
    -- Add --
    ---------
 
-   procedure Add (Self : Ref; Exc : PolyORB.Any.TypeCode.Object) is
+   procedure Add (Self : Ref; Exc : PolyORB.Any.TypeCode.Local_Ref) is
    begin
       Exception_Lists.Append (Object_Ptr (Entity_Of (Self)).List, Exc);
    end Add;
@@ -98,8 +76,7 @@ package body PolyORB.Any.ExceptionList is
 
    function Item
      (Self  : Ref;
-      Index : PolyORB.Types.Unsigned_Long)
-      return PolyORB.Any.TypeCode.Object
+      Index : PolyORB.Types.Unsigned_Long) return TypeCode.Local_Ref
    is
       Obj : constant Object_Ptr := Object_Ptr (Entity_Of (Self));
       It : Iterator := First (Obj.List);
@@ -136,7 +113,6 @@ package body PolyORB.Any.ExceptionList is
          Next (It);
       end loop;
 
-      Destroy_TypeCode (Value (It).all);
       Remove (Obj.List, It);
    end Remove;
 
@@ -155,8 +131,7 @@ package body PolyORB.Any.ExceptionList is
 
    function Search_Exception_Id
      (Self : Ref;
-      Name : PolyORB.Types.String)
-     return PolyORB.Types.Unsigned_Long
+      Name : Types.String) return Types.Unsigned_Long
    is
       Obj : constant Object_Ptr := Object_Ptr (Entity_Of (Self));
 

@@ -225,7 +225,7 @@ package body PolyORB.Any is
    package Elementary_Any_Any is
      new Elementary_Any (Any, Tk_Any);
    package Elementary_Any_TypeCode is
-     new Elementary_Any (TypeCode.Object, Tk_TypeCode);
+     new Elementary_Any (TypeCode.Local_Ref, Tk_TypeCode);
 
    ---------------------------------
    -- 'Aggregate' content wrapper --
@@ -307,13 +307,13 @@ package body PolyORB.Any is
 
    function Get_Aggregate_Element
      (ACC   : access Default_Aggregate_Content;
-      TC    : TypeCode.Object;
+      TC    : TypeCode.Local_Ref;
       Index : Types.Unsigned_Long;
       Mech  : access Mechanism) return Content'Class;
 
    procedure Set_Aggregate_Element
      (ACC    : in out Default_Aggregate_Content;
-      TC     : TypeCode.Object;
+      TC     : TypeCode.Local_Ref;
       Index  : Types.Unsigned_Long;
       From_C : in out Any_Container'Class);
 
@@ -349,18 +349,18 @@ package body PolyORB.Any is
    ---------
 
    function "=" (Left, Right : Any_Container'Class) return Boolean is
-      L_Type : constant TypeCode.Object := Get_Type (Left);
-      R_Type : constant TypeCode.Object := Get_Type (Right);
+      L_Type : constant TypeCode.Local_Ref := Get_Type (Left);
+      R_Type : constant TypeCode.Local_Ref := Get_Type (Right);
 
       function Agg_Elements_Equal
-        (TC           : TypeCode.Object;
+        (TC           : TypeCode.Local_Ref;
          L_ACC, R_ACC : access Aggregate_Content'Class;
          Index        : Types.Unsigned_Long) return Boolean;
       --  Compare the Index'th element of Left and Right, which are assumed
       --  to be aggregates. The expected type for both elements is TC.
 
       function Agg_Elements_Equal
-        (TC           : TypeCode.Object;
+        (TC           : TypeCode.Local_Ref;
          L_ACC, R_ACC : access Aggregate_Content'Class;
          Index        : Types.Unsigned_Long) return Boolean
       is
@@ -484,8 +484,8 @@ package body PolyORB.Any is
 
          when Tk_TypeCode =>
             declare
-               L : constant TypeCode.Object := From_Any (Left);
-               R : constant TypeCode.Object := From_Any (Right);
+               L : constant TypeCode.Local_Ref := From_Any (Left);
+               R : constant TypeCode.Local_Ref := From_Any (Right);
             begin
                if TypeCode.Kind (R) = Tk_Value then
                   pragma Debug (O ("Equal (Any, TypeCode) :" &
@@ -534,9 +534,9 @@ package body PolyORB.Any is
             --     2.4. Recurse in Equal on temporary Anys
 
             declare
-               List_Type : constant TypeCode.Object :=
+               List_Type : constant TypeCode.Local_Ref :=
                              Unwind_Typedefs (L_Type);
-               M_Type    : TypeCode.Object;
+               M_Type    : TypeCode.Local_Ref;
                L_ACC : Aggregate_Content'Class
                          renames Aggregate_Content'Class (Left.The_Value.all);
                R_ACC : Aggregate_Content'Class
@@ -561,11 +561,11 @@ package body PolyORB.Any is
                          Aggregate_Content'Class (Left.The_Value.all);
                R_ACC : Aggregate_Content'Class renames
                          Aggregate_Content'Class (Right.The_Value.all);
-               List_Type   : constant TypeCode.Object :=
+               List_Type   : constant TypeCode.Local_Ref :=
                                Unwind_Typedefs (L_Type);
-               Switch_Type : constant TypeCode.Object :=
+               Switch_Type : constant TypeCode.Local_Ref :=
                                TypeCode.Discriminator_Type (List_Type);
-               Member_Type : TypeCode.Object;
+               Member_Type : TypeCode.Local_Ref;
             begin
                pragma Assert (Get_Aggregate_Count (L_ACC) = 2);
                pragma Assert (Get_Aggregate_Count (R_ACC) = 2);
@@ -618,10 +618,10 @@ package body PolyORB.Any is
          when Tk_Sequence
            | Tk_Array =>
             declare
-               List_Type : constant TypeCode.Object :=
+               List_Type : constant TypeCode.Local_Ref :=
                              Unwind_Typedefs (L_Type);
 
-               Member_Type : constant TypeCode.Object :=
+               Member_Type : constant TypeCode.Local_Ref :=
                                TypeCode.Content_Type (List_Type);
 
                L_ACC : Aggregate_Content'Class renames
@@ -873,7 +873,7 @@ package body PolyORB.Any is
      (Dst_C : in out Any_Container'Class;
       Src_C : Any_Container'Class)
    is
-      TC  : constant TypeCode.Object := Unwind_Typedefs (Src_C.The_Type);
+      TC  : constant TypeCode.Local_Ref := Unwind_Typedefs (Src_C.The_Type);
       TCK : constant TCKind :=
               TypeCode.Kind (Unwind_Typedefs (Src_C.The_Type));
 
@@ -964,7 +964,7 @@ package body PolyORB.Any is
                Set_Any_Value (Any'(From_Any (Src_C)), Dst_C);
 
             when Tk_TypeCode =>
-               Set_Any_Value (TypeCode.Object'(From_Any (Src_C)), Dst_C);
+               Set_Any_Value (TypeCode.Local_Ref'(From_Any (Src_C)), Dst_C);
 
             when Tk_Objref =>
                declare
@@ -990,7 +990,7 @@ package body PolyORB.Any is
               Tk_Fixed    =>
 
                declare
-                  El_TC : TypeCode.Object;
+                  El_TC : TypeCode.Local_Ref;
                   Dst_ACC : Aggregate_Content'Class
                               renames Aggregate_Content'Class
                                 (Dst_C.The_Value.all);
@@ -1161,12 +1161,8 @@ package body PolyORB.Any is
       end if;
 
       Self.Is_Finalized := True;
-
-      TypeCode.Destroy_TypeCode (Self.The_Type);
-      pragma Debug (O (" * typecode deallocated"));
-
       Finalize_Value (Self);
-      pragma Debug (O (" * content released"));
+
       pragma Debug (O ("Finalizing Any_Container: leave"));
    end Finalize;
 
@@ -1233,7 +1229,7 @@ package body PolyORB.Any is
                       renames Elementary_Any_Wide_String.From_Any;
    function From_Any (C : Any_Container'Class) return Any
                       renames Elementary_Any_Any.From_Any;
-   function From_Any (C : Any_Container'Class) return TypeCode.Object
+   function From_Any (C : Any_Container'Class) return TypeCode.Local_Ref
                       renames Elementary_Any_TypeCode.From_Any;
 
    function From_Any (A : Any) return Types.Octet
@@ -1268,7 +1264,7 @@ package body PolyORB.Any is
                       renames Elementary_Any_Wide_String.From_Any;
    function From_Any (A : Any) return Any
                       renames Elementary_Any_Any.From_Any;
-   function From_Any (A : Any) return TypeCode.Object
+   function From_Any (A : Any) return TypeCode.Local_Ref
                       renames Elementary_Any_TypeCode.From_Any;
 
    ------------------------
@@ -1348,7 +1344,7 @@ package body PolyORB.Any is
 
    function Get_Aggregate_Element
      (ACC   : access Default_Aggregate_Content;
-      TC    : TypeCode.Object;
+      TC    : TypeCode.Local_Ref;
       Index : Unsigned_Long;
       Mech  : access Mechanism) return Content'Class
    is
@@ -1403,7 +1399,7 @@ package body PolyORB.Any is
 
    function Get_Aggregate_Element
      (Value : Any;
-      Tc    : TypeCode.Object;
+      Tc    : TypeCode.Local_Ref;
       Index : Unsigned_Long) return Any
    is
       CA_Ptr : constant Aggregate_Content_Ptr :=
@@ -1436,7 +1432,7 @@ package body PolyORB.Any is
    -- Get_Empty_Any --
    -------------------
 
-   function Get_Empty_Any (Tc : TypeCode.Object) return Any is
+   function Get_Empty_Any (Tc : TypeCode.Local_Ref) return Any is
       Result : Any;
    begin
 
@@ -1451,7 +1447,7 @@ package body PolyORB.Any is
    -- Get_Empty_Any_Aggregate --
    -----------------------------
 
-   function Get_Empty_Any_Aggregate (TC : TypeCode.Object) return Any
+   function Get_Empty_Any_Aggregate (TC : TypeCode.Local_Ref) return Any
    is
       A    : Any;
       Kind : constant TCKind := TypeCode.Kind (Unwind_Typedefs (TC));
@@ -1473,7 +1469,7 @@ package body PolyORB.Any is
    -- Get_Type --
    --------------
 
-   function Get_Type (A : Any) return TypeCode.Object is
+   function Get_Type (A : Any) return TypeCode.Local_Ref is
    begin
       pragma Debug (O ("Get_Type: enter & end"));
       return Get_Type (Get_Container (A).all);
@@ -1483,7 +1479,7 @@ package body PolyORB.Any is
    -- Get_Type --
    --------------
 
-   function Get_Type (C : Any_Container'Class) return TypeCode.Object is
+   function Get_Type (C : Any_Container'Class) return TypeCode.Local_Ref is
    begin
       return C.The_Type;
    end Get_Type;
@@ -1492,7 +1488,7 @@ package body PolyORB.Any is
    -- Get_Unwound_Type --
    ----------------------
 
-   function Get_Unwound_Type (The_Any : Any) return TypeCode.Object is
+   function Get_Unwound_Type (The_Any : Any) return TypeCode.Local_Ref is
    begin
       return Unwind_Typedefs (Get_Type (The_Any));
    end Get_Unwound_Type;
@@ -1552,10 +1548,7 @@ package body PolyORB.Any is
    -- Image (typecode) --
    ----------------------
 
-   function Image
-     (TC : TypeCode.Object)
-     return Standard.String
-   is
+   function Image (TC : TypeCode.Local_Ref) return Standard.String is
       use TypeCode;
 
       Kind : constant TCKind := TypeCode.Kind (TC);
@@ -1605,7 +1598,7 @@ package body PolyORB.Any is
                      while I < C loop
                         Result := Result &
                           " " & Image
-                           (TypeCode.Object'
+                           (TypeCode.Local_Ref'
                             (From_Any (Get_Parameter (TC, I).all))) & " "
                           & Types.String'
                              (From_Any (Get_Parameter (TC, I + 1).all))
@@ -1620,7 +1613,7 @@ package body PolyORB.Any is
                when Tk_Union =>
                   Result := Result
                     & " ("
-                    & Image (TypeCode.Object'
+                    & Image (TypeCode.Local_Ref'
                               (From_Any (Get_Parameter (TC, 2).all)))
                     & " :="
                     & Types.Long'Image (From_Any (Get_Parameter (TC, 3).all))
@@ -1633,7 +1626,7 @@ package body PolyORB.Any is
                      while I < C loop
                         Result := Result &
                           "case " & Image (Get_Parameter (TC, I).all) & ": "
-                          & Image (TypeCode.Object'
+                          & Image (TypeCode.Local_Ref'
                              (From_Any (Get_Parameter (TC, I + 1).all))) & " "
                           & Types.String'
                              (From_Any (Get_Parameter (TC, I + 2).all))
@@ -1699,7 +1692,7 @@ package body PolyORB.Any is
 
    function Image (C : Any_Container'Class) return Standard.String
    is
-      TC   : constant TypeCode.Object := Unwind_Typedefs (Get_Type (C));
+      TC   : constant TypeCode.Local_Ref := Unwind_Typedefs (Get_Type (C));
       Kind : constant TCKind := TypeCode.Kind (TC);
    begin
       if Is_Empty (C) then
@@ -1875,7 +1868,7 @@ package body PolyORB.Any is
 
    procedure Set_Aggregate_Element
      (ACC    : in out Aggregate_Content;
-      TC     : TypeCode.Object;
+      TC     : TypeCode.Local_Ref;
       Index  : Unsigned_Long;
       From_C : in out Any_Container'Class) is
    begin
@@ -1894,7 +1887,7 @@ package body PolyORB.Any is
 
    procedure Set_Aggregate_Element
      (ACC    : in out Default_Aggregate_Content;
-      TC     : TypeCode.Object;
+      TC     : TypeCode.Local_Ref;
       Index  : Unsigned_Long;
       From_C : in out Any_Container'Class)
    is
@@ -1986,7 +1979,7 @@ package body PolyORB.Any is
    procedure Set_Any_Value (X : Any;
                             C : in out Any_Container'Class)
                             renames Elementary_Any_Any.Set_Any_Value;
-   procedure Set_Any_Value (X : TypeCode.Object;
+   procedure Set_Any_Value (X : TypeCode.Local_Ref;
                             C : in out Any_Container'Class)
                             renames Elementary_Any_TypeCode.Set_Any_Value;
    procedure Set_Any_Value (X : Types.String;
@@ -2023,7 +2016,7 @@ package body PolyORB.Any is
    -- Set_Type --
    --------------
 
-   procedure Set_Type (A : in out Any; TC : TypeCode.Object) is
+   procedure Set_Type (A : in out Any; TC : TypeCode.Local_Ref) is
    begin
       Set_Type (Get_Container (A).all, TC);
    end Set_Type;
@@ -2032,9 +2025,11 @@ package body PolyORB.Any is
    -- Set_Type --
    --------------
 
-   procedure Set_Type (C : in out Any_Container'Class; TC : TypeCode.Object) is
+   procedure Set_Type
+     (C  : in out Any_Container'Class;
+      TC : TypeCode.Local_Ref)
+   is
    begin
-      TypeCode.Destroy_TypeCode (C.The_Type);
       C.The_Type := TC;
    end Set_Type;
 
@@ -2141,7 +2136,7 @@ package body PolyORB.Any is
 
       function To_Any is
         new To_Any_G
-          (TypeCode.Object, TC_TypeCode,
+          (TypeCode.Local_Ref, TC_TypeCode,
            Elementary_Any_TypeCode.Set_Any_Value);
 
    end To_Any_Instances;
@@ -2178,7 +2173,7 @@ package body PolyORB.Any is
                     renames To_Any_Instances.To_Any;
    function To_Any (X : Any) return Any
                     renames To_Any_Instances.To_Any;
-   function To_Any (X : TypeCode.Object) return Any
+   function To_Any (X : TypeCode.Local_Ref) return Any
                     renames To_Any_Instances.To_Any;
 
    function To_Any (X : Standard.String) return Any is
@@ -2191,10 +2186,9 @@ package body PolyORB.Any is
    ---------------------
 
    function Unwind_Typedefs
-     (TC : TypeCode.Object)
-     return TypeCode.Object
+     (TC : TypeCode.Local_Ref) return TypeCode.Local_Ref
    is
-      Result : TypeCode.Object := TC;
+      Result : TypeCode.Local_Ref := TC;
    begin
       while TypeCode.Kind (Result) = Tk_Alias loop
          Result := TypeCode.Content_Type (Result);
@@ -2247,7 +2241,7 @@ package body PolyORB.Any is
       return Elementary_Any_Any.Wrap (X);
    end Wrap;
 
-   function Wrap (X : access TypeCode.Object) return Content'Class
+   function Wrap (X : access TypeCode.Local_Ref) return Content'Class
                     renames Elementary_Any_TypeCode.Wrap;
    function Wrap (X : access Ada.Strings.Superbounded.Super_String)
                     return Content'Class
@@ -2262,16 +2256,20 @@ package body PolyORB.Any is
 
    package body TypeCode is
 
+      --  Empty parameter list
+
+      Empty_Any_Array : Any_Array (1 .. 0);
+
       --  Default complex typecodes
 
-      TC_String_Cache : TypeCode.Object;
-      TC_Wide_String_Cache : TypeCode.Object;
+      TC_String_Cache      : TypeCode.Local_Ref;
+      TC_Wide_String_Cache : TypeCode.Local_Ref;
 
       type Default_Aggregate_Content_Ptr is
         access all Default_Aggregate_Content'Class;
 
       function Parameters
-        (TC : TypeCode.Object) return Default_Aggregate_Content_Ptr;
+        (TC : TypeCode.Local_Ref) return Default_Aggregate_Content_Ptr;
       pragma Inline (Parameters);
       --  Return a pointer to the parameters of TC
 
@@ -2279,16 +2277,13 @@ package body PolyORB.Any is
       -- "=" --
       ---------
 
-      function "="
-        (Left, Right : Object)
-        return Boolean
-      is
+      function "=" (Left, Right : Local_Ref) return Boolean is
          Nb_Param : Unsigned_Long;
 
       begin
          pragma Debug (O ("Equal (TypeCode): enter"));
 
-         if Right.Kind /= Left.Kind then
+         if Kind (Left) /= Kind (Right) then
             pragma Debug (O ("Equal (TypeCode): end"));
             return False;
          end if;
@@ -2328,62 +2323,37 @@ package body PolyORB.Any is
       -- Add_Parameter --
       -------------------
 
-      procedure Add_Parameter
-        (Self  : in out Object;
-         Param : Any)
-      is
+      procedure Add_Parameter (Self  : Local_Ref; Param : Any) is
+         S_Parameters : Content_Ptr renames Object_Of (Self).Parameters;
       begin
          pragma Debug (O ("Add_Parameter: enter"));
          pragma Debug (O ("Add_Parameter: adding " & Image (Param)));
 
-         if Self.Parameters = null then
-            Self.Parameters :=
-              Allocate_Default_Aggregate_Content (Tk_TypeCode);
+         if S_Parameters = null then
+            S_Parameters := Allocate_Default_Aggregate_Content (Tk_TypeCode);
          end if;
-         Add_Aggregate_Element (Parameters (Self).all, Get_Container (Param));
+         Add_Aggregate_Element
+           (Default_Aggregate_Content (S_Parameters.all),
+            Get_Container (Param));
          pragma Debug (O ("Add_Parameter: end"));
       end Add_Parameter;
-
-      -----------------------------
-      -- Build_Bounded_String_TC --
-      -----------------------------
-
-      function Build_Bounded_String_TC
-        (Max : Positive) return TypeCode.Object
-      is
-      begin
-         return Build_Complex_TC
-           (PTC_String,
-            (1 => To_Any (Types.Unsigned_Long (Max))));
-      end Build_Bounded_String_TC;
-
-      ----------------------------------
-      -- Build_Bounded_Wide_String_TC --
-      ----------------------------------
-
-      function Build_Bounded_Wide_String_TC
-        (Max : Positive) return TypeCode.Object
-      is
-      begin
-         return Build_Complex_TC
-           (PTC_Wide_String,
-            (1 => To_Any (Types.Unsigned_Long (Max))));
-      end Build_Bounded_Wide_String_TC;
 
       ----------------------
       -- Build_Complex_TC --
       ----------------------
 
       function Build_Complex_TC
-        (Base : TypeCode.Object;
-         Parameters : Any_Array) return TypeCode.Object
+        (Kind       : TCKind;
+         Parameters : Any_Array) return Local_Ref
       is
-         Result : TypeCode.Object := Base;
+         Obj : constant Object_Ptr := new Object (Kind);
+         Res : Local_Ref;
       begin
-         for I in Parameters'Range loop
-            TypeCode.Add_Parameter (Result, Parameters (I));
+         Set (Res, Smart_Pointers.Entity_Ptr (Obj));
+         for J in Parameters'Range loop
+            TypeCode.Add_Parameter (Res, Parameters (J));
          end loop;
-         return Result;
+         return Res;
       end Build_Complex_TC;
 
       -----------------------
@@ -2391,19 +2361,19 @@ package body PolyORB.Any is
       -----------------------
 
       function Build_Sequence_TC
-        (Element_TC : TypeCode.Object; Max : Natural) return TypeCode.Object
+        (Element_TC : TypeCode.Local_Ref;
+         Max        : Natural) return Local_Ref
       is
       begin
-         return Build_Complex_TC (TC_Sequence,
-           (To_Any (Types.Unsigned_Long (Max)),
-            To_Any (Element_TC)));
+         return Build_Complex_TC (Tk_Sequence,
+           (To_Any (Types.Unsigned_Long (Max)), To_Any (Element_TC)));
       end Build_Sequence_TC;
 
       ------------------------
       -- Concrete_Base_Type --
       ------------------------
 
-      function Concrete_Base_Type (Self : Object) return Object is
+      function Concrete_Base_Type (Self : Local_Ref) return Local_Ref is
       begin
          case Kind (Self) is
             when Tk_Value | Tk_Event =>
@@ -2418,7 +2388,7 @@ package body PolyORB.Any is
       -- Content_Type --
       ------------------
 
-      function Content_Type (Self : Object) return Object is
+      function Content_Type (Self : Local_Ref) return Local_Ref is
       begin
          case Kind (Self) is
             when Tk_Sequence
@@ -2434,11 +2404,33 @@ package body PolyORB.Any is
          end case;
       end Content_Type;
 
+      ---------------------
+      -- Build_String_TC --
+      ---------------------
+
+      function Build_String_TC
+        (Max : Types.Unsigned_Long) return TypeCode.Local_Ref
+      is
+      begin
+         return Build_Complex_TC (Tk_String, (1 => To_Any (Max)));
+      end Build_String_TC;
+
+      ----------------------
+      -- Build_Wstring_TC --
+      ----------------------
+
+      function Build_Wstring_TC
+        (Max : Types.Unsigned_Long) return Local_Ref
+      is
+      begin
+         return Build_Complex_TC (Tk_Wstring, (1 => To_Any (Max)));
+      end Build_Wstring_TC;
+
       -------------------
       -- Default_Index --
       -------------------
 
-      function Default_Index (Self : Object) return Types.Long is
+      function Default_Index (Self : Local_Ref) return Types.Long is
       begin
 
          --  See comments after the declaration of TypeCode.Object in the
@@ -2462,31 +2454,22 @@ package body PolyORB.Any is
       begin
          pragma Debug (O ("Destroy_TypeCode: enter"));
 
-         if Self.Is_Destroyed then
-            pragma Debug (O ("Destroy_TypeCode: already destroyed!"));
-            return;
+         --  XXX this can be done only when we are sure that this is the last
+         --  reference to the object.
+
+         if False and then Self.Parameters /= null then
+            Finalize_Value (Self.Parameters.all);
+            Free (Self.Parameters);
          end if;
 
-         Self.Is_Destroyed := True;
-
-         if Self.Is_Volatile and then Self.Parameters /= null then
-            begin
-               Finalize_Value (Self.Parameters.all);
-               Free (Self.Parameters);
-            end;
-         else
-            pragma Debug (O ("Destroy_TypeCode: no deallocating required"));
-            null;
-         end if;
          pragma Debug (O ("Destroy_TypeCode: leave"));
-
       end Destroy_TypeCode;
 
       ------------------------
       -- Discriminator_Type --
       ------------------------
 
-      function Discriminator_Type (Self : Object) return Object is
+      function Discriminator_Type (Self : Local_Ref) return Local_Ref is
       begin
 
          --  See comments after the declaration of TypeCode.Object in the
@@ -2507,7 +2490,7 @@ package body PolyORB.Any is
       ---------------------
 
       function Enumerator_Name
-        (Self : Object; Index : Unsigned_Long) return Types.Identifier
+        (Self : Local_Ref; Index : Unsigned_Long) return Types.Identifier
       is
          Param_Nb : constant Unsigned_Long := Parameter_Count (Self);
       begin
@@ -2531,12 +2514,11 @@ package body PolyORB.Any is
       -- Equivalent --
       ----------------
 
-      function Equivalent (Left, Right : Object) return Boolean
-      is
+      function Equivalent (Left, Right : Local_Ref) return Boolean is
          Nb_Param : constant Unsigned_Long := Member_Count (Left);
 
-         U_Left  : Object := Left;
-         U_Right : Object := Right;
+         U_Left  : Local_Ref := Left;
+         U_Right : Local_Ref := Right;
       begin
          --  comments are from the spec CORBA v2.3 - 10.7.1
          --  If the result of the kind operation on either TypeCode is
@@ -2759,7 +2741,7 @@ package body PolyORB.Any is
       -- Fixed_Digits --
       ------------------
 
-      function Fixed_Digits (Self : Object) return Unsigned_Short is
+      function Fixed_Digits (Self : Local_Ref) return Unsigned_Short is
       begin
          case Kind (Self) is
             when Tk_Fixed =>
@@ -2774,7 +2756,7 @@ package body PolyORB.Any is
       -- Fixed_Scale --
       -----------------
 
-      function Fixed_Scale (Self : Object) return Short is
+      function Fixed_Scale (Self : Local_Ref) return Short is
       begin
          case Kind (Self) is
             when Tk_Fixed =>
@@ -2790,18 +2772,22 @@ package body PolyORB.Any is
       -------------------
 
       function Get_Parameter
-        (Self  : Object;
-         Index : Unsigned_Long) return Any_Container_Ptr
+        (Self : Local_Ref; Index : Unsigned_Long) return Any_Container_Ptr
       is
+         Int_Index : constant Integer := Integer (Index);
+         T         : Content_Table renames Parameters (Self).V;
       begin
-         return Parameters (Self).V.Table (Integer (Index));
+         if Int_Index > Content_Tables.Last (T) then
+            raise Bounds;
+         end if;
+         return T.Table (Int_Index);
       end Get_Parameter;
 
       --------
       -- Id --
       --------
 
-      function Id (Self : Object) return RepositoryId is
+      function Id (Self : Local_Ref) return RepositoryId is
       begin
          case Kind (Self) is
             when Tk_Objref
@@ -2832,30 +2818,66 @@ package body PolyORB.Any is
 
       procedure Initialize is
       begin
+         --  Do not ref count / garbage collect our library-level root TCs
 
-         --  Construct default complex typecodes
+         Smart_Pointers.Disable_Reference_Counting (PTC_Null);
+         Smart_Pointers.Disable_Reference_Counting (PTC_Void);
+         Smart_Pointers.Disable_Reference_Counting (PTC_Short);
+         Smart_Pointers.Disable_Reference_Counting (PTC_Long);
+         Smart_Pointers.Disable_Reference_Counting (PTC_Long_Long);
+         Smart_Pointers.Disable_Reference_Counting (PTC_Unsigned_Short);
+         Smart_Pointers.Disable_Reference_Counting (PTC_Unsigned_Long);
+         Smart_Pointers.Disable_Reference_Counting (PTC_Unsigned_Long_Long);
+         Smart_Pointers.Disable_Reference_Counting (PTC_Float);
+         Smart_Pointers.Disable_Reference_Counting (PTC_Double);
+         Smart_Pointers.Disable_Reference_Counting (PTC_Long_Double);
+         Smart_Pointers.Disable_Reference_Counting (PTC_Boolean);
+         Smart_Pointers.Disable_Reference_Counting (PTC_Char);
+         Smart_Pointers.Disable_Reference_Counting (PTC_Wchar);
+         Smart_Pointers.Disable_Reference_Counting (PTC_Octet);
+         Smart_Pointers.Disable_Reference_Counting (PTC_Any);
+         Smart_Pointers.Disable_Reference_Counting (PTC_TypeCode);
 
-         TC_String_Cache := TypeCode.PTC_String;
-         Add_Parameter (TC_String_Cache, To_Any (Unsigned_Long (0)));
+         TC_String_Cache      := Build_String_TC (0);
+         TC_Wide_String_Cache := Build_Wstring_TC (0);
 
-         TC_Wide_String_Cache := TypeCode.PTC_Wide_String;
-         Add_Parameter (TC_Wide_String_Cache, To_Any (Unsigned_Long (0)));
+         Smart_Pointers.Disable_Reference_Counting
+           (Object_Of (TC_String_Cache).all);
+         Smart_Pointers.Disable_Reference_Counting
+           (Object_Of (TC_Wide_String_Cache).all);
       end Initialize;
+
+      ------------
+      -- Is_Nil --
+      ------------
+
+      function Is_Nil (Self : Local_Ref) return Boolean is
+      begin
+         return Smart_Pointers.Is_Nil (Smart_Pointers.Ref (Self));
+      end Is_Nil;
 
       ----------
       -- Kind --
       ----------
 
-      function Kind (Self : Object) return TCKind is
+      function Kind (Self : Local_Ref) return TCKind is
       begin
-         return Self.Kind;
+         --  An unset typecode reference is considered to be equivalent to a
+         --  void typecode (this is a small optimization, so that personalities
+         --  need not set a typecode for the reply of void-valued operations).
+
+         if Is_Nil (Self) then
+            return Tk_Void;
+         else
+            return Object_Of (Self).Kind;
+         end if;
       end Kind;
 
       ------------
       -- Length --
       ------------
 
-      function Length (Self : Object) return Unsigned_Long is
+      function Length (Self : Local_Ref) return Unsigned_Long is
          TK : constant TCKind := TypeCode.Kind (Self);
       begin
          case TK is
@@ -2875,10 +2897,7 @@ package body PolyORB.Any is
       -- Member_Count --
       ------------------
 
-      function Member_Count
-        (Self : Object)
-        return Unsigned_Long
-      is
+      function Member_Count (Self : Local_Ref) return Unsigned_Long is
          Param_Nb : constant Unsigned_Long := Parameter_Count (Self);
       begin
 
@@ -2911,7 +2930,7 @@ package body PolyORB.Any is
       ------------------
 
       function Member_Label
-        (Self : Object; Index : Unsigned_Long) return Any_Container_Ptr
+        (Self : Local_Ref; Index : Unsigned_Long) return Any_Container_Ptr
       is
       begin
          return Get_Container (Member_Label (Self, Index));
@@ -2921,7 +2940,8 @@ package body PolyORB.Any is
       -- Member_Label --
       ------------------
 
-      function Member_Label (Self : Object; Index : Unsigned_Long) return Any
+      function Member_Label
+        (Self : Local_Ref; Index : Unsigned_Long) return Any
       is
          Param_Nb : constant Unsigned_Long := Parameter_Count (Self);
       begin
@@ -2946,13 +2966,9 @@ package body PolyORB.Any is
       -- Member_Name --
       -----------------
 
-      function Member_Name
-        (Self  : Object;
-         Index : Unsigned_Long)
-        return Identifier
-      is
-         Param_Nb : constant Unsigned_Long
-           := Parameter_Count (Self);
+      function Member_Name (Self : Local_Ref; Index : Unsigned_Long) return
+      Identifier is
+         Param_Nb : constant Unsigned_Long := Parameter_Count (Self);
          Res      : PolyORB.Types.String;
       begin
 
@@ -3000,10 +3016,11 @@ package body PolyORB.Any is
       -- Member_Type --
       -----------------
 
-      function Member_Type (Self : Object; Index : Unsigned_Long) return Object
+      function Member_Type
+        (Self : Local_Ref; Index : Unsigned_Long) return Local_Ref
       is
          Param_Nb : constant Unsigned_Long := Parameter_Count (Self);
-         K : constant TCKind := Kind (Self);
+         K        : constant TCKind := Kind (Self);
       begin
          pragma Debug (O ("Member_Type: enter, Kind is " & TCKind'Image (K)
            & Param_Nb'Img & " parameters"));
@@ -3043,8 +3060,9 @@ package body PolyORB.Any is
       ----------------------------
 
       function Member_Type_With_Label
-        (Self  : Object;
-         Label : Any) return Object is
+        (Self  : Local_Ref;
+         Label : Any) return Local_Ref
+      is
       begin
          return Member_Type_With_Label (Self, Get_Container (Label).all);
       end Member_Type_With_Label;
@@ -3054,8 +3072,8 @@ package body PolyORB.Any is
       ----------------------------
 
       function Member_Type_With_Label
-        (Self  : Object;
-         Label : Any_Container'Class) return Object
+        (Self  : Local_Ref;
+         Label : Any_Container'Class) return Local_Ref
       is
          Param_Nb : constant Unsigned_Long := Parameter_Count (Self);
 
@@ -3110,15 +3128,9 @@ package body PolyORB.Any is
             return TC_Void;
          end if;
 
-         declare
-            Typ : constant TypeCode.Object :=
-                    From_Any
-                      (Get_Parameter (Self,
-                       3 * Unsigned_Long (Member_Index) + 5).all);
-         begin
-            return Typ;
-         end;
-
+         return From_Any
+           (Get_Parameter (Self,
+            3 * Unsigned_Long (Member_Index) + 5).all);
       end Member_Type_With_Label;
 
       -----------------------
@@ -3126,7 +3138,7 @@ package body PolyORB.Any is
       -----------------------
 
       function Member_Visibility
-        (Self : Object; Index : Unsigned_Long) return Visibility is
+        (Self : Local_Ref; Index : Unsigned_Long) return Visibility is
       begin
 
          --  See comments after the declaration of TypeCode.Object in the
@@ -3156,7 +3168,7 @@ package body PolyORB.Any is
       -- Name --
       ----------
 
-      function Name (Self : Object) return Identifier is
+      function Name (Self : Local_Ref) return Identifier is
       begin
          case Kind (Self) is
             when Tk_Objref
@@ -3185,14 +3197,22 @@ package body PolyORB.Any is
          end case;
       end Name;
 
+      ---------------
+      -- Object_Of --
+      ---------------
+
+      function Object_Of (Self : Local_Ref) return Object_Ptr is
+      begin
+         return Object_Ptr (Entity_Of (Self));
+      end Object_Of;
+
       ---------------------
       -- Parameter_Count --
       ---------------------
 
-      function Parameter_Count (Self : Object) return Unsigned_Long is
+      function Parameter_Count (Self : Local_Ref) return Unsigned_Long is
          use Content_Tables;
-         ACC : constant Default_Aggregate_Content_Ptr :=
-                 Parameters (Self);
+         ACC : constant Default_Aggregate_Content_Ptr := Parameters (Self);
       begin
          if ACC = null then
             return 0;
@@ -3206,209 +3226,170 @@ package body PolyORB.Any is
       ----------------
 
       function Parameters
-        (TC : TypeCode.Object) return Default_Aggregate_Content_Ptr is
+        (TC : TypeCode.Local_Ref) return Default_Aggregate_Content_Ptr
+      is
       begin
-         return Default_Aggregate_Content_Ptr (TC.Parameters);
+         return Default_Aggregate_Content_Ptr (Object_Of (TC).Parameters);
       end Parameters;
-
-      --------------
-      -- Set_Kind --
-      --------------
-
-      procedure Set_Kind
-        (Self : out Object;
-         Kind : TCKind) is
-      begin
-         Self.Kind := Kind;
-         Self.Parameters := null;
-      end Set_Kind;
-
-      ------------------
-      -- Set_Volatile --
-      ------------------
-
-      procedure Set_Volatile
-        (Self        : in out Object;
-         Is_Volatile : Boolean) is
-      begin
-         Self.Is_Volatile := Is_Volatile;
-      end Set_Volatile;
 
       -------------
       -- TC_Null --
       -------------
 
-      function TC_Null
-        return TypeCode.Object is
+      function TC_Null return TypeCode.Local_Ref is
       begin
-         return PTC_Null;
+         return To_Ref (PTC_Null'Access);
       end TC_Null;
 
       -------------
       -- TC_Void --
       -------------
 
-      function TC_Void
-        return TypeCode.Object is
+      function TC_Void return TypeCode.Local_Ref is
       begin
-         return PTC_Void;
+         return To_Ref (PTC_Void'Access);
       end TC_Void;
 
       --------------
       -- TC_Short --
       --------------
 
-      function TC_Short
-        return TypeCode.Object is
+      function TC_Short return TypeCode.Local_Ref is
       begin
-         return PTC_Short;
+         return To_Ref (PTC_Short'Access);
       end TC_Short;
 
       -------------
       -- TC_Long --
       -------------
 
-      function TC_Long
-        return TypeCode.Object is
+      function TC_Long return TypeCode.Local_Ref is
       begin
-         return PTC_Long;
+         return To_Ref (PTC_Long'Access);
       end TC_Long;
 
       ------------------
       -- TC_Long_Long --
       ------------------
 
-      function TC_Long_Long
-        return TypeCode.Object is
+      function TC_Long_Long return TypeCode.Local_Ref is
       begin
-         return PTC_Long_Long;
+         return To_Ref (PTC_Long_Long'Access);
       end TC_Long_Long;
 
       -----------------------
       -- TC_Unsigned_Short --
       -----------------------
 
-      function TC_Unsigned_Short
-        return TypeCode.Object is
+      function TC_Unsigned_Short return TypeCode.Local_Ref is
       begin
-         return PTC_Unsigned_Short;
+         return To_Ref (PTC_Unsigned_Short'Access);
       end TC_Unsigned_Short;
 
       ----------------------
       -- TC_Unsigned_Long --
       ----------------------
 
-      function TC_Unsigned_Long
-        return TypeCode.Object is
+      function TC_Unsigned_Long return TypeCode.Local_Ref is
       begin
-         return PTC_Unsigned_Long;
+         return To_Ref (PTC_Unsigned_Long'Access);
       end TC_Unsigned_Long;
 
       ---------------------------
       -- TC_Unsigned_Long_Long --
       ---------------------------
 
-      function TC_Unsigned_Long_Long
-        return TypeCode.Object is
+      function TC_Unsigned_Long_Long return TypeCode.Local_Ref is
       begin
-         return PTC_Unsigned_Long_Long;
+         return To_Ref (PTC_Unsigned_Long_Long'Access);
       end TC_Unsigned_Long_Long;
 
       --------------
       -- TC_Float --
       --------------
 
-      function TC_Float
-        return TypeCode.Object is
+      function TC_Float return TypeCode.Local_Ref is
       begin
-         return PTC_Float;
+         return To_Ref (PTC_Float'Access);
       end TC_Float;
 
       ---------------
       -- TC_Double --
       ---------------
 
-      function TC_Double
-        return TypeCode.Object is
+      function TC_Double return TypeCode.Local_Ref is
       begin
-         return PTC_Double;
+         return To_Ref (PTC_Double'Access);
       end TC_Double;
 
       --------------------
       -- TC_Long_Double --
       --------------------
 
-      function TC_Long_Double
-        return TypeCode.Object is
+      function TC_Long_Double return TypeCode.Local_Ref is
       begin
-         return PTC_Long_Double;
+         return To_Ref (PTC_Long_Double'Access);
       end TC_Long_Double;
 
       ----------------
       -- TC_Boolean --
       ----------------
 
-      function TC_Boolean
-        return TypeCode.Object is
+      function TC_Boolean return TypeCode.Local_Ref is
       begin
-         return PTC_Boolean;
+         return To_Ref (PTC_Boolean'Access);
       end TC_Boolean;
 
       -------------
       -- TC_Char --
       -------------
 
-      function TC_Char
-        return TypeCode.Object is
+      function TC_Char return TypeCode.Local_Ref is
       begin
-         return PTC_Char;
+         return To_Ref (PTC_Char'Access);
       end TC_Char;
 
       --------------
       -- TC_Wchar --
       --------------
 
-      function TC_Wchar
-        return TypeCode.Object is
+      function TC_Wchar return TypeCode.Local_Ref is
       begin
-         return PTC_Wchar;
+         return To_Ref (PTC_Wchar'Access);
       end TC_Wchar;
 
       --------------
       -- TC_Octet --
       --------------
 
-      function TC_Octet
-        return TypeCode.Object is
+      function TC_Octet return TypeCode.Local_Ref is
       begin
-         return PTC_Octet;
+         return To_Ref (PTC_Octet'Access);
       end TC_Octet;
 
       ------------
       -- TC_Any --
       ------------
 
-      function TC_Any
-        return TypeCode.Object is
+      function TC_Any return TypeCode.Local_Ref is
       begin
-         return PTC_Any;
+         return To_Ref (PTC_Any'Access);
       end TC_Any;
 
       -----------------
       -- TC_TypeCode --
       -----------------
 
-      function TC_TypeCode
-        return TypeCode.Object is
+      function TC_TypeCode return TypeCode.Local_Ref is
       begin
-         return PTC_TypeCode;
+         return To_Ref (PTC_TypeCode'Access);
       end TC_TypeCode;
 
       ---------------
       -- TC_String --
       ---------------
 
-      function TC_String return TypeCode.Object is
+      function TC_String return Local_Ref is
       begin
          return TC_String_Cache;
       end TC_String;
@@ -3417,7 +3398,7 @@ package body PolyORB.Any is
       -- TC_Wide_String --
       --------------------
 
-      function TC_Wide_String return TypeCode.Object is
+      function TC_Wide_String return Local_Ref is
       begin
          return TC_Wide_String_Cache;
       end TC_Wide_String;
@@ -3426,189 +3407,180 @@ package body PolyORB.Any is
       -- TC_Principal --
       ------------------
 
-      function TC_Principal
-        return TypeCode.Object is
+      function TC_Principal return TypeCode.Local_Ref is
       begin
-         return PTC_Principal;
+         return Build_Complex_TC (Tk_Principal, Empty_Any_Array);
       end TC_Principal;
 
       ---------------
       -- TC_Struct --
       ---------------
 
-      function TC_Struct
-        return TypeCode.Object is
+      function TC_Struct return TypeCode.Local_Ref is
       begin
-         return PTC_Struct;
+         return Build_Complex_TC (Tk_Struct, Empty_Any_Array);
       end TC_Struct;
 
       --------------
       -- TC_Union --
       --------------
 
-      function TC_Union
-        return TypeCode.Object is
+      function TC_Union return TypeCode.Local_Ref is
       begin
-         return PTC_Union;
+         return Build_Complex_TC (Tk_Union, Empty_Any_Array);
       end TC_Union;
 
       -------------
       -- TC_Enum --
       -------------
 
-      function TC_Enum
-        return TypeCode.Object is
+      function TC_Enum return TypeCode.Local_Ref is
       begin
-         return PTC_Enum;
+         return Build_Complex_TC (Tk_Enum, Empty_Any_Array);
       end TC_Enum;
 
       --------------
       -- TC_Alias --
       --------------
 
-      function TC_Alias
-        return TypeCode.Object is
+      function TC_Alias return TypeCode.Local_Ref is
       begin
-         return PTC_Alias;
+         return Build_Complex_TC (Tk_Alias, Empty_Any_Array);
       end TC_Alias;
 
-      -----------------
-      --  TC_Except  --
-      -----------------
+      ---------------
+      -- TC_Except --
+      ---------------
 
-      function TC_Except
-        return TypeCode.Object is
+      function TC_Except return TypeCode.Local_Ref is
       begin
-         return PTC_Except;
+         return Build_Complex_TC (Tk_Except, Empty_Any_Array);
       end TC_Except;
 
       ---------------
       -- TC_Object --
       ---------------
 
-      function TC_Object
-        return TypeCode.Object is
+      function TC_Object return TypeCode.Local_Ref is
       begin
-         return PTC_Object;
+         return Build_Complex_TC (Tk_Objref, Empty_Any_Array);
       end TC_Object;
 
       --------------
       -- TC_Fixed --
       --------------
 
-      function TC_Fixed
-        return TypeCode.Object is
+      function TC_Fixed return TypeCode.Local_Ref is
       begin
-         return PTC_Fixed;
+         return Build_Complex_TC (Tk_Fixed, Empty_Any_Array);
       end TC_Fixed;
 
       -----------------
       -- TC_Sequence --
       -----------------
 
-      function TC_Sequence
-        return TypeCode.Object is
+      function TC_Sequence return TypeCode.Local_Ref is
       begin
-         return PTC_Sequence;
+         return Build_Complex_TC (Tk_Sequence, Empty_Any_Array);
       end TC_Sequence;
 
       --------------
       -- TC_Array --
       --------------
 
-      function TC_Array
-        return TypeCode.Object is
+      function TC_Array return TypeCode.Local_Ref is
       begin
-         return PTC_Array;
+         return Build_Complex_TC (Tk_Array, Empty_Any_Array);
       end TC_Array;
 
       --------------
       -- TC_Value --
       --------------
 
-      function TC_Value
-        return TypeCode.Object is
+      function TC_Value return TypeCode.Local_Ref is
       begin
-         return PTC_Value;
+         return Build_Complex_TC (Tk_Value, Empty_Any_Array);
       end TC_Value;
 
       -----------------
       -- TC_Valuebox --
       -----------------
 
-      function TC_Valuebox
-        return TypeCode.Object is
+      function TC_Valuebox return TypeCode.Local_Ref is
       begin
-         return PTC_Valuebox;
+         return Build_Complex_TC (Tk_Valuebox, Empty_Any_Array);
       end TC_Valuebox;
 
       ---------------
       -- TC_Native --
       ---------------
 
-      function TC_Native
-        return TypeCode.Object is
+      function TC_Native return TypeCode.Local_Ref is
       begin
-         return PTC_Native;
+         return Build_Complex_TC (Tk_Native, Empty_Any_Array);
       end TC_Native;
 
       ---------------------------
       -- TC_Abstract_Interface --
       ---------------------------
 
-      function TC_Abstract_Interface
-        return TypeCode.Object is
+      function TC_Abstract_Interface return TypeCode.Local_Ref is
       begin
-         return PTC_Abstract_Interface;
+         return Build_Complex_TC (Tk_Abstract_Interface, Empty_Any_Array);
       end TC_Abstract_Interface;
 
       ------------------------
       -- TC_Local_Interface --
       ------------------------
 
-      function TC_Local_Interface
-        return TypeCode.Object is
+      function TC_Local_Interface return TypeCode.Local_Ref is
       begin
-         return PTC_Local_Interface;
+         return Build_Complex_TC (Tk_Local_Interface, Empty_Any_Array);
       end TC_Local_Interface;
 
       ------------------
       -- TC_Component --
       ------------------
 
-      function TC_Component
-        return TypeCode.Object is
+      function TC_Component return TypeCode.Local_Ref is
       begin
-         return PTC_Component;
+         return Build_Complex_TC (Tk_Component, Empty_Any_Array);
       end TC_Component;
 
       -------------
       -- TC_Home --
       -------------
 
-      function TC_Home
-        return TypeCode.Object is
+      function TC_Home return TypeCode.Local_Ref is
       begin
-         return PTC_Home;
+         return Build_Complex_TC (Tk_Home, Empty_Any_Array);
       end TC_Home;
 
       --------------
       -- TC_Event --
       --------------
 
-      function TC_Event
-        return TypeCode.Object is
+      function TC_Event return TypeCode.Local_Ref is
       begin
-         return PTC_Event;
+         return Build_Complex_TC (Tk_Event, Empty_Any_Array);
       end TC_Event;
+
+      ------------
+      -- To_Ref --
+      ------------
+
+      function To_Ref (Self : Object_Ptr) return Local_Ref is
+         Result : Local_Ref;
+      begin
+         Set (Result, Smart_Pointers.Entity_Ptr (Self));
+         return Result;
+      end To_Ref;
 
       -------------------
       -- Type_Modifier --
       -------------------
 
-      function Type_Modifier
-        (Self : Object)
-        return ValueModifier is
+      function Type_Modifier (Self : Local_Ref) return ValueModifier is
       begin
          case Kind (Self) is
             when Tk_Value | Tk_Event =>

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -70,9 +70,9 @@ package body CORBA.DomainManager.Helper is
    begin
       TC_DomainManager_Cache :=
         TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TC_Object);
-      TypeCode.Internals.Add_Parameter
+      Internals.Add_Parameter
         (TC_DomainManager_Cache, To_Any (To_CORBA_String ("DomainManager")));
-      TypeCode.Internals.Add_Parameter
+      Internals.Add_Parameter
         (TC_DomainManager_Cache, To_Any (To_CORBA_String (Repository_Id)));
 
       TC_IDL_SEQUENCE_DomainManager_Cache :=
@@ -82,16 +82,10 @@ package body CORBA.DomainManager.Helper is
          Sequence_TC => TC_IDL_SEQUENCE_DomainManager_Cache);
 
       TC_DomainManagersList_Cache :=
-        TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TC_Alias);
-      TypeCode.Internals.Add_Parameter
-        (TC_DomainManagersList_Cache,
-         To_Any (To_CORBA_String ("DomainManagersList")));
-      TypeCode.Internals.Add_Parameter
-        (TC_DomainManagersList_Cache,
-         To_Any (To_CORBA_String ("IDL:CORBA_A/DomainManagersList:1.0")));
-      TypeCode.Internals.Add_Parameter
-        (TC_DomainManagersList_Cache,
-         To_Any (TC_IDL_SEQUENCE_DomainManager));
+        CORBA.TypeCode.Internals.Build_Alias_TC
+          (Name   => To_CORBA_String ("DomainManagersList"),
+           Id     => To_CORBA_String ("IDL:CORBA_A/DomainManagersList:1.0"),
+           Parent => TC_IDL_SEQUENCE_DomainManager);
    end Deferred_Initialization;
 
    --------------

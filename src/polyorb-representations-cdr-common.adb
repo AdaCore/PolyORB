@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -193,7 +193,7 @@ package body PolyORB.Representations.CDR.Common is
    --                 PolyORB.Any.TypeCode.Member_Type (Data_Type, I + 3 * J),
    --                 J);
    --              declare
-   --                 Member_Type : constant PolyORB.Any.TypeCode.Object
+   --                 Member_Type : constant PolyORB.Any.TypeCode.Local_Ref
    --                    := PolyORB.Any.Get_Unwound_Type (Member_Value);
    --              begin
    --                 case PolyORB.Any.TypeCode.Kind (Member_Type) is
