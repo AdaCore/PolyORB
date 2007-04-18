@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -780,9 +780,15 @@ package body CORBA.ORB is
       --  Register initial reference for NamingService
 
       if Naming_IOR /= "" then
+         --  Standard CORBA3 name
+
          Register_Initial_Reference
-           (To_CORBA_String ("NamingService"),
-            To_CORBA_String (Naming_IOR));
+           (To_CORBA_String ("NameService"), To_CORBA_String (Naming_IOR));
+
+         --  Legacy compatibility synonym
+
+         Register_Initial_Reference
+           (To_CORBA_String ("NamingService"), To_CORBA_String (Naming_IOR));
       end if;
 
       --  Register initial reference for Interface Repository
