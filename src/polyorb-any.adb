@@ -2465,6 +2465,15 @@ package body PolyORB.Any is
          pragma Debug (O ("Destroy_TypeCode: leave"));
       end Destroy_TypeCode;
 
+      --------------------------------
+      -- Disable_Reference_Counting --
+      --------------------------------
+
+      procedure Disable_Reference_Counting (Self : in out Object) is
+      begin
+         Smart_Pointers.Disable_Reference_Counting (Self);
+      end Disable_Reference_Counting;
+
       ------------------------
       -- Discriminator_Type --
       ------------------------
@@ -2817,6 +2826,7 @@ package body PolyORB.Any is
       ----------------
 
       procedure Initialize is
+         TC_String, TC_Wide_String : Local_Ref;
       begin
          --  Do not ref count / garbage collect our library-level root TCs
 
@@ -2838,8 +2848,11 @@ package body PolyORB.Any is
          Smart_Pointers.Disable_Reference_Counting (PTC_Any);
          Smart_Pointers.Disable_Reference_Counting (PTC_TypeCode);
 
-         PTC_String      := Object_Of (Build_String_TC (0));
-         PTC_Wide_String := Object_Of (Build_Wstring_TC (0));
+         TC_String      := Build_String_TC (0);
+         TC_Wide_String := Build_Wstring_TC (0);
+
+         PTC_String      := Object_Of (TC_String);
+         PTC_Wide_String := Object_Of (TC_Wide_String);
 
          Smart_Pointers.Disable_Reference_Counting (PTC_String.all);
          Smart_Pointers.Disable_Reference_Counting (PTC_Wide_String.all);
