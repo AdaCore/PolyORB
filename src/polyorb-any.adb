@@ -2258,12 +2258,12 @@ package body PolyORB.Any is
 
       --  Empty parameter list
 
-      Empty_Any_Array : Any_Array (1 .. 0);
+      subtype Empty_Any_Array is Any_Array (1 .. 0);
 
       --  Default complex typecodes
 
-      TC_String_Cache      : TypeCode.Local_Ref;
-      TC_Wide_String_Cache : TypeCode.Local_Ref;
+      PTC_String      : TypeCode.Object_Ptr;
+      PTC_Wide_String : TypeCode.Object_Ptr;
 
       type Default_Aggregate_Content_Ptr is
         access all Default_Aggregate_Content'Class;
@@ -2838,13 +2838,11 @@ package body PolyORB.Any is
          Smart_Pointers.Disable_Reference_Counting (PTC_Any);
          Smart_Pointers.Disable_Reference_Counting (PTC_TypeCode);
 
-         TC_String_Cache      := Build_String_TC (0);
-         TC_Wide_String_Cache := Build_Wstring_TC (0);
+         PTC_String      := Object_Of (Build_String_TC (0));
+         PTC_Wide_String := Object_Of (Build_Wstring_TC (0));
 
-         Smart_Pointers.Disable_Reference_Counting
-           (Object_Of (TC_String_Cache).all);
-         Smart_Pointers.Disable_Reference_Counting
-           (Object_Of (TC_Wide_String_Cache).all);
+         Smart_Pointers.Disable_Reference_Counting (PTC_String.all);
+         Smart_Pointers.Disable_Reference_Counting (PTC_Wide_String.all);
       end Initialize;
 
       ------------
@@ -3391,7 +3389,7 @@ package body PolyORB.Any is
 
       function TC_String return Local_Ref is
       begin
-         return TC_String_Cache;
+         return To_Ref (PTC_String);
       end TC_String;
 
       --------------------
@@ -3400,7 +3398,7 @@ package body PolyORB.Any is
 
       function TC_Wide_String return Local_Ref is
       begin
-         return TC_Wide_String_Cache;
+         return To_Ref (PTC_Wide_String);
       end TC_Wide_String;
 
       ------------------
@@ -3408,8 +3406,9 @@ package body PolyORB.Any is
       ------------------
 
       function TC_Principal return TypeCode.Local_Ref is
+         E : Empty_Any_Array;
       begin
-         return Build_Complex_TC (Tk_Principal, Empty_Any_Array);
+         return Build_Complex_TC (Tk_Principal, E);
       end TC_Principal;
 
       ---------------
@@ -3417,8 +3416,9 @@ package body PolyORB.Any is
       ---------------
 
       function TC_Struct return TypeCode.Local_Ref is
+         E : Empty_Any_Array;
       begin
-         return Build_Complex_TC (Tk_Struct, Empty_Any_Array);
+         return Build_Complex_TC (Tk_Struct, E);
       end TC_Struct;
 
       --------------
@@ -3426,8 +3426,9 @@ package body PolyORB.Any is
       --------------
 
       function TC_Union return TypeCode.Local_Ref is
+         E : Empty_Any_Array;
       begin
-         return Build_Complex_TC (Tk_Union, Empty_Any_Array);
+         return Build_Complex_TC (Tk_Union, E);
       end TC_Union;
 
       -------------
@@ -3435,8 +3436,9 @@ package body PolyORB.Any is
       -------------
 
       function TC_Enum return TypeCode.Local_Ref is
+         E : Empty_Any_Array;
       begin
-         return Build_Complex_TC (Tk_Enum, Empty_Any_Array);
+         return Build_Complex_TC (Tk_Enum, E);
       end TC_Enum;
 
       --------------
@@ -3444,8 +3446,9 @@ package body PolyORB.Any is
       --------------
 
       function TC_Alias return TypeCode.Local_Ref is
+         E : Empty_Any_Array;
       begin
-         return Build_Complex_TC (Tk_Alias, Empty_Any_Array);
+         return Build_Complex_TC (Tk_Alias, E);
       end TC_Alias;
 
       ---------------
@@ -3453,8 +3456,9 @@ package body PolyORB.Any is
       ---------------
 
       function TC_Except return TypeCode.Local_Ref is
+         E : Empty_Any_Array;
       begin
-         return Build_Complex_TC (Tk_Except, Empty_Any_Array);
+         return Build_Complex_TC (Tk_Except, E);
       end TC_Except;
 
       ---------------
@@ -3462,8 +3466,9 @@ package body PolyORB.Any is
       ---------------
 
       function TC_Object return TypeCode.Local_Ref is
+         E : Empty_Any_Array;
       begin
-         return Build_Complex_TC (Tk_Objref, Empty_Any_Array);
+         return Build_Complex_TC (Tk_Objref, E);
       end TC_Object;
 
       --------------
@@ -3471,8 +3476,9 @@ package body PolyORB.Any is
       --------------
 
       function TC_Fixed return TypeCode.Local_Ref is
+         E : Empty_Any_Array;
       begin
-         return Build_Complex_TC (Tk_Fixed, Empty_Any_Array);
+         return Build_Complex_TC (Tk_Fixed, E);
       end TC_Fixed;
 
       -----------------
@@ -3480,8 +3486,9 @@ package body PolyORB.Any is
       -----------------
 
       function TC_Sequence return TypeCode.Local_Ref is
+         E : Empty_Any_Array;
       begin
-         return Build_Complex_TC (Tk_Sequence, Empty_Any_Array);
+         return Build_Complex_TC (Tk_Sequence, E);
       end TC_Sequence;
 
       --------------
@@ -3489,8 +3496,9 @@ package body PolyORB.Any is
       --------------
 
       function TC_Array return TypeCode.Local_Ref is
+         E : Empty_Any_Array;
       begin
-         return Build_Complex_TC (Tk_Array, Empty_Any_Array);
+         return Build_Complex_TC (Tk_Array, E);
       end TC_Array;
 
       --------------
@@ -3498,8 +3506,9 @@ package body PolyORB.Any is
       --------------
 
       function TC_Value return TypeCode.Local_Ref is
+         E : Empty_Any_Array;
       begin
-         return Build_Complex_TC (Tk_Value, Empty_Any_Array);
+         return Build_Complex_TC (Tk_Value, E);
       end TC_Value;
 
       -----------------
@@ -3507,8 +3516,9 @@ package body PolyORB.Any is
       -----------------
 
       function TC_Valuebox return TypeCode.Local_Ref is
+         E : Empty_Any_Array;
       begin
-         return Build_Complex_TC (Tk_Valuebox, Empty_Any_Array);
+         return Build_Complex_TC (Tk_Valuebox, E);
       end TC_Valuebox;
 
       ---------------
@@ -3516,8 +3526,9 @@ package body PolyORB.Any is
       ---------------
 
       function TC_Native return TypeCode.Local_Ref is
+         E : Empty_Any_Array;
       begin
-         return Build_Complex_TC (Tk_Native, Empty_Any_Array);
+         return Build_Complex_TC (Tk_Native, E);
       end TC_Native;
 
       ---------------------------
@@ -3525,8 +3536,9 @@ package body PolyORB.Any is
       ---------------------------
 
       function TC_Abstract_Interface return TypeCode.Local_Ref is
+         E : Empty_Any_Array;
       begin
-         return Build_Complex_TC (Tk_Abstract_Interface, Empty_Any_Array);
+         return Build_Complex_TC (Tk_Abstract_Interface, E);
       end TC_Abstract_Interface;
 
       ------------------------
@@ -3534,8 +3546,9 @@ package body PolyORB.Any is
       ------------------------
 
       function TC_Local_Interface return TypeCode.Local_Ref is
+         E : Empty_Any_Array;
       begin
-         return Build_Complex_TC (Tk_Local_Interface, Empty_Any_Array);
+         return Build_Complex_TC (Tk_Local_Interface, E);
       end TC_Local_Interface;
 
       ------------------
@@ -3543,8 +3556,9 @@ package body PolyORB.Any is
       ------------------
 
       function TC_Component return TypeCode.Local_Ref is
+         E : Empty_Any_Array;
       begin
-         return Build_Complex_TC (Tk_Component, Empty_Any_Array);
+         return Build_Complex_TC (Tk_Component, E);
       end TC_Component;
 
       -------------
@@ -3552,8 +3566,9 @@ package body PolyORB.Any is
       -------------
 
       function TC_Home return TypeCode.Local_Ref is
+         E : Empty_Any_Array;
       begin
-         return Build_Complex_TC (Tk_Home, Empty_Any_Array);
+         return Build_Complex_TC (Tk_Home, E);
       end TC_Home;
 
       --------------
@@ -3561,8 +3576,9 @@ package body PolyORB.Any is
       --------------
 
       function TC_Event return TypeCode.Local_Ref is
+         E : Empty_Any_Array;
       begin
-         return Build_Complex_TC (Tk_Event, Empty_Any_Array);
+         return Build_Complex_TC (Tk_Event, E);
       end TC_Event;
 
       ------------
