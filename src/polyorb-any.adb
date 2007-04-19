@@ -2465,15 +2465,6 @@ package body PolyORB.Any is
          pragma Debug (O ("Destroy_TypeCode: leave"));
       end Destroy_TypeCode;
 
-      --------------------------------
-      -- Disable_Reference_Counting --
-      --------------------------------
-
-      procedure Disable_Reference_Counting (Self : in out Object) is
-      begin
-         Smart_Pointers.Disable_Reference_Counting (Self);
-      end Disable_Reference_Counting;
-
       ------------------------
       -- Discriminator_Type --
       ------------------------
