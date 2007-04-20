@@ -483,16 +483,16 @@ package body PolyORB.SOAP_P.Message.XML is
 
    begin
       declare
-         TC : constant PolyORB.Any.TypeCode.Local_Ref
-           := Get_Unwound_Type (NV.Argument);
-         A : PolyORB.Any.Any
-           := Get_Empty_Any_Aggregate (Get_Type (NV.Argument));
+         TC : constant PolyORB.Any.TypeCode.Object_Ptr :=
+                Object_Of (Get_Unwound_Type (NV.Argument));
+         A : PolyORB.Any.Any := Get_Empty_Any_Aggregate
+                                  (Get_Type (NV.Argument));
 
          Atts : constant DOM.Core.Named_Node_Map := Attributes (N);
          Value : constant DOM.Core.Node := First_Child (N);
 
-         Enumerator_Id_Node : constant DOM.Core.Node
-           := Get_Named_Item (Atts, "id");
+         Enumerator_Id_Node : constant DOM.Core.Node :=
+                                Get_Named_Item (Atts, "id");
          Enumerator_Literal : constant String := Node_Value (Value);
       begin
          if Enumerator_Id_Node /= null then
@@ -500,15 +500,13 @@ package body PolyORB.SOAP_P.Message.XML is
               (A, To_Any (Unsigned_Long'Value
                           (Node_Value (Enumerator_Id_Node)) - 1));
          else
-            for I in 1 .. Member_Count (TC) loop
+            for J in 0 .. Member_Count (TC) - 1 loop
                declare
-                  Enumerator : constant PolyORB.Types.String
-                    := From_Any (Get_Parameter (TC, I + 1).all);
+                  Enumerator : constant String :=
+                    To_Standard_String (Enumerator_Name (TC, J));
                begin
-                  if Enumerator_Literal = To_Standard_String
-                    (Enumerator)
-                  then
-                     Add_Aggregate_Element (A, To_Any (I - 1));
+                  if Enumerator_Literal = Enumerator then
+                     Add_Aggregate_Element (A, To_Any (J));
                      exit;
                   end if;
                end;

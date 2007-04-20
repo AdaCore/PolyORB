@@ -123,7 +123,7 @@ package body RTCORBA.Helper is
 
    function Get_Aggregate_Element
      (ACC   : access Content_Ü_ThreadpoolLane;
-      TC    : PolyORB.Any.TypeCode.Local_Ref;
+      TC    : PolyORB.Any.TypeCode.Object_Ptr;
       Index : PolyORB.Types.Unsigned_Long;
       Mech  : access PolyORB.Any.Mechanism) return PolyORB.Any.Content'Class;
    function Get_Aggregate_Count
@@ -139,7 +139,7 @@ package body RTCORBA.Helper is
 
    function Get_Aggregate_Element
      (ACC   : access Content_Ü_ThreadpoolLane;
-      TC    : PolyORB.Any.TypeCode.Local_Ref;
+      TC    : PolyORB.Any.TypeCode.Object_Ptr;
       Index : PolyORB.Types.Unsigned_Long;
       Mech  : access PolyORB.Any.Mechanism) return PolyORB.Any.Content'Class
    is
@@ -297,12 +297,12 @@ package body RTCORBA.Helper is
 
    function Get_Aggregate_Element
      (ACC   : access Content_Ü_PriorityModel;
-      TC    : PolyORB.Any.TypeCode.Local_Ref;
+      TC    : PolyORB.Any.TypeCode.Object_Ptr;
       Index : PolyORB.Types.Unsigned_Long;
       Mech  : access PolyORB.Any.Mechanism) return PolyORB.Any.Content'Class;
    procedure Set_Aggregate_Element
      (ACC    : in out Content_Ü_PriorityModel;
-      TC     : PolyORB.Any.TypeCode.Local_Ref;
+      TC     : PolyORB.Any.TypeCode.Object_Ptr;
       Index  : PolyORB.Types.Unsigned_Long;
       From_C : in out PolyORB.Any.Any_Container'Class);
    function Get_Aggregate_Count
@@ -318,7 +318,7 @@ package body RTCORBA.Helper is
 
    function Get_Aggregate_Element
      (ACC   : access Content_Ü_PriorityModel;
-      TC    : PolyORB.Any.TypeCode.Local_Ref;
+      TC    : PolyORB.Any.TypeCode.Object_Ptr;
       Index : PolyORB.Types.Unsigned_Long;
       Mech  : access PolyORB.Any.Mechanism) return PolyORB.Any.Content'Class
    is
@@ -334,7 +334,7 @@ package body RTCORBA.Helper is
 
    procedure Set_Aggregate_Element
      (ACC    : in out Content_Ü_PriorityModel;
-      TC     : PolyORB.Any.TypeCode.Local_Ref;
+      TC     : PolyORB.Any.TypeCode.Object_Ptr;
       Index  : PolyORB.Types.Unsigned_Long;
       From_C : in out PolyORB.Any.Any_Container'Class)
    is
@@ -463,7 +463,7 @@ package body RTCORBA.Helper is
 
    function Get_Aggregate_Element
      (ACC   : access Content_Ü_Protocol;
-      TC    : PolyORB.Any.TypeCode.Local_Ref;
+      TC    : PolyORB.Any.TypeCode.Object_Ptr;
       Index : PolyORB.Types.Unsigned_Long;
       Mech  : access PolyORB.Any.Mechanism) return PolyORB.Any.Content'Class;
    function Get_Aggregate_Count
@@ -479,7 +479,7 @@ package body RTCORBA.Helper is
 
    function Get_Aggregate_Element
      (ACC   : access Content_Ü_Protocol;
-      TC    : PolyORB.Any.TypeCode.Local_Ref;
+      TC    : PolyORB.Any.TypeCode.Object_Ptr;
       Index : PolyORB.Types.Unsigned_Long;
       Mech  : access PolyORB.Any.Mechanism) return PolyORB.Any.Content'Class
    is
@@ -563,7 +563,7 @@ package body RTCORBA.Helper is
 
    function Get_Aggregate_Element
      (ACC   : access Content_Ü_PriorityBand;
-      TC    : PolyORB.Any.TypeCode.Local_Ref;
+      TC    : PolyORB.Any.TypeCode.Object_Ptr;
       Index : PolyORB.Types.Unsigned_Long;
       Mech  : access PolyORB.Any.Mechanism) return PolyORB.Any.Content'Class;
    function Get_Aggregate_Count
@@ -579,7 +579,7 @@ package body RTCORBA.Helper is
 
    function Get_Aggregate_Element
      (ACC   : access Content_Ü_PriorityBand;
-      TC    : PolyORB.Any.TypeCode.Local_Ref;
+      TC    : PolyORB.Any.TypeCode.Object_Ptr;
       Index : PolyORB.Types.Unsigned_Long;
       Mech  : access PolyORB.Any.Mechanism) return PolyORB.Any.Content'Class
    is

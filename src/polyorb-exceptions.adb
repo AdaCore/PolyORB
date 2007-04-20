@@ -408,7 +408,7 @@ package body PolyORB.Exceptions is
          Ada.Exceptions.Raise_Exception
            (Get_ExcepId_By_RepositoryId
               (To_Standard_String
-                 (TypeCode.Id (Get_Type (Occurrence)))));
+                 (TypeCode.Id (Get_Type_Obj (Occurrence)))));
       end if;
    end Default_Raise_From_Any;
 

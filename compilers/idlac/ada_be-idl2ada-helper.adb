@@ -940,7 +940,7 @@ package body Ada_Be.Idl2Ada.Helper is
    begin
       PL (CU, "function Get_Aggregate_Element");
       PL (CU, "  (ACC   : access " & T_Content & Ada_Name (Node) & ";");
-      PL (CU, "   TC    : PolyORB.Any.TypeCode.Local_Ref;");
+      PL (CU, "   TC    : PolyORB.Any.TypeCode.Object_Ptr;");
       PL (CU, "   Index : PolyORB.Types.Unsigned_Long;");
       Put (CU, "   Mech  : access PolyORB.Any.Mechanism)"
            & " return PolyORB.Any.Content'Class");
@@ -983,7 +983,7 @@ package body Ada_Be.Idl2Ada.Helper is
    begin
       PL (CU, "procedure Set_Aggregate_Element");
       PL (CU, "  (ACC    : in out " & T_Content & Ada_Name (Node) & ";");
-      PL (CU, "   TC     : PolyORB.Any.TypeCode.Local_Ref;");
+      PL (CU, "   TC     : PolyORB.Any.TypeCode.Object_Ptr;");
       PL (CU, "   Index  : PolyORB.Types.Unsigned_Long;");
       Put (CU, "   From_C : in out PolyORB.Any.Any_Container'Class)");
    end Gen_Set_Aggregate_Element_Profile;
@@ -1169,7 +1169,8 @@ package body Ada_Be.Idl2Ada.Helper is
                DI (CU);
                PL (CU, "end " & Raise_From_Any_Name (Node) & ";");
 
-               --  Register raiser.
+               --  Register raiser
+
                --  This has to be done in deferred initialization, after the
                --  TypeCode has been constructed.
 
@@ -1973,6 +1974,9 @@ package body Ada_Be.Idl2Ada.Helper is
          end loop;
       end;
 
+      PL (CU, "CORBA.TypeCode.Internals.Disable_Reference_Counting ("
+              & Ada_TC_Name (Node) & ");");
+
       DI (CU);
       PL (CU, "end;");
       Divert (CU, Visible_Declarations);
@@ -2116,6 +2120,9 @@ package body Ada_Be.Idl2Ada.Helper is
       PL (CU, "CORBA.Internals.Add_Parameter ("
           & Ada_TC_Name (Node)
           & ", CORBA.To_Any (Id));");
+      PL (CU, "CORBA.TypeCode.Internals.Disable_Reference_Counting ("
+              & Ada_TC_Name (Node) & ");");
+
       DI (CU);
       PL (CU, "end;");
       Divert (CU, Visible_Declarations);
@@ -2236,6 +2243,9 @@ package body Ada_Be.Idl2Ada.Helper is
       PL (CU, "CORBA.Internals.Add_Parameter ("
           & Ada_TC_Name (Node)
           & ", CORBA.To_Any (Id));");
+      PL (CU, "CORBA.TypeCode.Internals.Disable_Reference_Counting ("
+              & Ada_TC_Name (Node) & ");");
+
       DI (CU);
       PL (CU, "end;");
       Divert (CU, Visible_Declarations);
@@ -2286,29 +2296,11 @@ package body Ada_Be.Idl2Ada.Helper is
       NL (CU);
       Gen_From_Any_Profile (CU, Node, From_Container => True);
       PL (CU, " is");
-      II (CU);
-      PL (CU, "ACC : PolyORB.Any.Aggregate_Content'Class renames"
-          & " PolyORB.Any.Aggregate_Content'Class"
-          & " (PolyORB.Any.Get_Value (C).all);");
-      PL (CU, "El_M  : aliased PolyORB.Any.Mechanism :="
-          & " PolyORB.Any.By_Value;");
-      PL (CU, "El_CC : aliased PolyORB.Any.Content'Class :=");
-      II (CU);
-      PL (CU, "PolyORB.Any.Get_Aggregate_Element (ACC'Access,");
-      PL (CU, "                                       "
-          & "PolyORB.Any.TC_Unsigned_Long,");
-      PL (CU, "                                       "
-          & "0, El_M'Access);");
-      DI (CU);
-      PL (CU, "El_C : PolyORB.Any.Any_Container;");
-      DI (CU);
       PL (CU, "begin");
       II (CU);
-      PL (CU, "PolyORB.Any.Set_Type (El_C, PolyORB.Any.TC_Unsigned_Long);");
-      PL (CU, "PolyORB.Any.Set_Value (El_C, El_CC'Unchecked_Access);");
-      PL (CU, "return " & Ada_Name (Node)
+      PL (CU, "return " & Ada_Full_Name (Node)
           & "'Val (PolyORB.Types.Unsigned_Long'("
-          & "PolyORB.Any.From_Any (El_C)));");
+          & "PolyORB.Any.Get_Aggregate_Element (C, 0)));");
       DI (CU);
       PL (CU, "end From_Any;");
 
@@ -2384,6 +2376,7 @@ package body Ada_Be.Idl2Ada.Helper is
       PL (CU, "CORBA.Internals.Add_Parameter ("
           & Ada_TC_Name (Node)
           & ", CORBA.To_Any (Id));");
+
       declare
          It     : Node_Iterator;
          E_Node : Node_Id;
@@ -2398,6 +2391,9 @@ package body Ada_Be.Idl2Ada.Helper is
                 & "_Name));");
          end loop;
       end;
+      PL (CU, "CORBA.TypeCode.Internals.Disable_Reference_Counting ("
+              & Ada_TC_Name (Node) & ");");
+
       DI (CU);
       PL (CU, "end;");
       Divert (CU, Visible_Declarations);
@@ -2777,6 +2773,8 @@ package body Ada_Be.Idl2Ada.Helper is
             end;
          end loop;
       end;
+      PL (CU, "CORBA.TypeCode.Internals.Disable_Reference_Counting ("
+              & Ada_TC_Name (Node) & ");");
 
       DI (CU);
       PL (CU, "end;");
@@ -2866,6 +2864,9 @@ package body Ada_Be.Idl2Ada.Helper is
          PL (CU, "CORBA.TypeCode.Internals.Build_String_TC ("
              & Utils.Img (Expr_Value (Bound (Node))) & ");");
       end if;
+
+      PL (CU, "CORBA.TypeCode.Internals.Disable_Reference_Counting ("
+              & Ada_TC_Name (Node) & ");");
 
       DI (CU);
       PL (CU, "end;");
@@ -3263,6 +3264,9 @@ package body Ada_Be.Idl2Ada.Helper is
          end loop;
       end;
 
+      PL (CU, "CORBA.TypeCode.Internals.Disable_Reference_Counting ("
+              & Ada_TC_Name (Node) & ");");
+
       DI (CU);
       PL (CU, "end;");
       Divert (CU, Visible_Declarations);
@@ -3396,6 +3400,9 @@ package body Ada_Be.Idl2Ada.Helper is
          end loop;
          Gen_Array_TC (CU, Type_Node, Node);
       end if;
+
+      PL (CU, "CORBA.TypeCode.Internals.Disable_Reference_Counting ("
+              & Ada_TC_Name (Node) & ");");
 
       DI (CU);
       PL (CU, "end;");
@@ -3760,6 +3767,9 @@ package body Ada_Be.Idl2Ada.Helper is
       PL (CU, "  CORBA.TypeCode.Internals.Build_Sequence_TC");
       PL (CU, "    (" & Elt_TC_Name & ", " & Img (B_Value) & ");");
 
+      PL (CU, "CORBA.TypeCode.Internals.Disable_Reference_Counting ("
+              & Ada_TC_Name (Node) & ");");
+
       if not Has_Local_Component (Node) then
          Put (CU, Seq_Helper_Name & ".Initialize" & ASCII.LF & "  (");
          II (CU);
@@ -3862,6 +3872,8 @@ package body Ada_Be.Idl2Ada.Helper is
           & ", CORBA.To_Any (CORBA.Short (");
       Gen_Constant_Value (CU, Expr => Scale (Fixed_Node), Typ => No_Node);
       PL (CU, ")));");
+      PL (CU, "CORBA.TypeCode.Internals.Disable_Reference_Counting ("
+              & Ada_TC_Name (Decl_Node) & ");");
       Divert (CU, Visible_Declarations);
    end Gen_Fixed_Body;
 

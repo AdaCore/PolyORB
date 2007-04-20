@@ -860,7 +860,7 @@ package body PolyORB.Requests is
 
       Self.Set_Result_Called := True;
       if Is_Empty (Self.Result.Argument) then
-         Set_Type (Self.Result.Argument, Get_Type (Val));
+         Set_Type (Self.Result.Argument, Get_Type_Obj (Val));
          Move_Any_Value (Self.Result.Argument, Val);
       else
          Copy_Any_Value (Self.Result.Argument, Val);

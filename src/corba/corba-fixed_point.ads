@@ -84,13 +84,13 @@ private
 
    function Get_Aggregate_Element
      (ACC   : access Fixed_Content;
-      TC    : PolyORB.Any.TypeCode.Local_Ref;
+      TC    : PolyORB.Any.TypeCode.Object_Ptr;
       Index : PolyORB.Types.Unsigned_Long;
       Mech  : access PolyORB.Any.Mechanism) return PolyORB.Any.Content'Class;
 
    procedure Set_Aggregate_Element
      (ACC    : in out Fixed_Content;
-      TC     : PolyORB.Any.TypeCode.Local_Ref;
+      TC     : PolyORB.Any.TypeCode.Object_Ptr;
       Index  : PolyORB.Types.Unsigned_Long;
       From_C : in out PolyORB.Any.Any_Container'Class);
 

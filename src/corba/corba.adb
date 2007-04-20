@@ -38,7 +38,6 @@ with PolyORB.CORBA_P.Exceptions;
 with PolyORB.Errors.Helper;
 with PolyORB.Exceptions;
 with PolyORB.Initialization;
-
 with PolyORB.Utils.Strings;
 
 package body CORBA is
@@ -1825,6 +1824,16 @@ package body CORBA is
               (PolyORB.Any.TypeCode.Build_Wstring_TC
                (PolyORB.Types.Unsigned_Long (Max)));
          end Build_Wstring_TC;
+
+         --------------------------------
+         -- Disable_Reference_Counting --
+         --------------------------------
+
+         procedure Disable_Reference_Counting (Self : CORBA.TypeCode.Object) is
+         begin
+            PolyORB.Any.TypeCode.Disable_Reference_Counting
+              (Object_Of (Self).all);
+         end Disable_Reference_Counting;
 
          ------------
          -- Is_Nil --

@@ -331,16 +331,9 @@ package body PolyORB.SOAP_P.Types is
             end if;
 
          when Tk_Enum =>
-            declare
-               Pos : constant PolyORB.Types.Unsigned_Long
-                 := From_Any
-                 (Get_Aggregate_Element
-                  (NV.Argument, TC_Unsigned_Long, 0));
-               Enumerator : constant PolyORB.Types.String
-                 := From_Any (TypeCode.Get_Parameter (TC, Pos + 2).all);
-            begin
-               return To_Standard_String (Enumerator);
-            end;
+            return To_Standard_String
+                     (TypeCode.Enumerator_Name (TC,
+                        Get_Aggregate_Element (NV.Argument, 0)));
 
          when Tk_Void =>
             return "";
@@ -348,8 +341,7 @@ package body PolyORB.SOAP_P.Types is
          when others =>
             --  XXX ???
             pragma Debug
-              (O ("Image: Unsupported typecode kind:"
-                               & TCKind'Image (Kind)));
+              (O ("Image: Unsupported typecode kind:" & TCKind'Image (Kind)));
             raise Data_Error;
       end case;
    end Image;

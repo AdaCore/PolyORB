@@ -177,15 +177,13 @@ package body PolyORB.GIOP_P.Exceptions is
       CORBA_Exc_Version_PTS : constant PolyORB.Types.String :=
         To_PolyORB_String (CORBA_Exc_Version);
 
-      Name : constant String :=
-               To_Standard_String (From_Any
-                 (TypeCode.Get_Parameter (TC, Types.Unsigned_Long (1)).all));
+      Id : constant String := To_Standard_String (TypeCode.Id (TC));
 
-      Colon1 : constant Integer := Find (Name, Name'First, '/');
-      Colon2 : constant Integer := Find (Name, Colon1 + 1, ':');
+      Colon1 : constant Integer := Find (Id, Id'First, '/');
+      Colon2 : constant Integer := Find (Id, Colon1 + 1, ':');
 
       Internal_Name : constant PolyORB.Types.String :=
-                        To_PolyORB_String (Name (Colon1 + 1 .. Colon2 - 1));
+                        To_PolyORB_String (Id (Colon1 + 1 .. Colon2 - 1));
 
       New_Name : constant PolyORB.Types.String :=
                    CORBA_Root_PTS & Internal_Name & CORBA_Exc_Version_PTS;
@@ -193,8 +191,8 @@ package body PolyORB.GIOP_P.Exceptions is
       Result_TC : TypeCode.Local_Ref := TypeCode.TC_Except;
 
    begin
-      pragma Debug (O ("Exception name was: " & Name));
-      pragma Debug (O ("New exception name is: "
+      pragma Debug (O ("Exception Id was: " & Id));
+      pragma Debug (O ("New exception Id is: "
                        & To_Standard_String (New_Name)));
 
       --  Name
@@ -249,9 +247,7 @@ package body PolyORB.GIOP_P.Exceptions is
 
          declare
             Exception_Name : constant String :=
-                               To_Standard_String (From_Any
-                                 (TypeCode.Get_Parameter (Result_TC,
-                                    PolyORB.Types.Unsigned_Long (0)).all));
+                               To_Standard_String (Name (Result_TC));
             Id : constant Error_Id := Error_Id'Value (Exception_Name & "_E");
 
             Minor : constant Types.Unsigned_Long

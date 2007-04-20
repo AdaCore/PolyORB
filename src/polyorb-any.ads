@@ -55,18 +55,14 @@ package PolyORB.Any is
    type Any_Ptr is access all Any;
    --  The end of this part is after the typecode part;
 
-   function Image
-     (A : Any)
-     return Standard.String;
+   function Image (A : Any) return Standard.String;
    --  For debugging purposes.
 
    type Any_Container is tagged limited private;
    type Any_Container_Ptr is access all Any_Container'Class;
    --  The entity designated by an Any
 
-   function Image
-     (C : Any_Container'Class)
-     return Standard.String;
+   function Image (C : Any_Container'Class) return Standard.String;
    --  For debugging purposes.
 
    -------------
@@ -171,7 +167,13 @@ package PolyORB.Any is
       ----------
 
       type Local_Ref is private;
-      type Object (<>) is limited private;
+
+      type Object (Kind : TCKind) is
+        new Smart_Pointers.Non_Controlled_Entity
+      with record
+         Parameters : Content_Ptr;
+      end record;
+
       type Object_Ptr is access all Object;
       --  A typecode is a locality constrained pseudo object with reference
       --  counting.
@@ -198,10 +200,13 @@ package PolyORB.Any is
       --  protocol personality built upon these subprograms must wrap them
       --  to raise proper exceptions or messages.
 
-      function "="   (Left, Right : Local_Ref) return Boolean;
-      function Equal (Left, Right : Local_Ref) return Boolean renames "=";
+      function Equal (Left, Right : Object_Ptr) return Boolean;
+      function Equal (Left, Right : Local_Ref) return Boolean;
       --  TypeCode equality
 
+      function "=" (Left, Right : Local_Ref) return Boolean renames Equal;
+
+      function Equivalent (Left, Right : Object_Ptr) return Boolean;
       function Equivalent (Left, Right : Local_Ref) return Boolean;
       --  Equivalence between two typecodes as defined in section 10.7.1 of
       --  the CORBA V2.3 specifications.
@@ -210,40 +215,58 @@ package PolyORB.Any is
       -- Accessors from CORBA specs --
       --------------------------------
 
+      function Kind (Self : Object_Ptr) return TCKind;
       function Kind (Self : Local_Ref) return TCKind;
       --  Return the kind of a typecode. Note: as a small optimization, calling
       --  this function on an unset typecode reference will return Tk_Void.
 
+      function Id (Self : Object_Ptr) return Types.RepositoryId;
       function Id (Self : Local_Ref) return Types.RepositoryId;
       --  Return the repository id associated with a complex typecode of one
       --  of the following kinds: objref, struct, union, enum, alias, value,
       --  valuebox, native, abstract_interface or except.
       --  Otherwise raises BadKind.
+      --  ??? should return Standard.String
 
+      function Name (Self : Object_Ptr) return Types.Identifier;
       function Name (Self : Local_Ref) return Types.Identifier;
       --  Return the name associated with a complex typecode of one of the
       --  following kinds: objref, struct, union, enum, alias, value, valuebox,
       --  native, abstract_interface or except.
       --  Otherwise raises BadKind.
+      --  ??? should return Standard.String
 
+      function Member_Count (Self : Object_Ptr) return Types.Unsigned_Long;
       function Member_Count (Self : Local_Ref) return Types.Unsigned_Long;
       --  Return the number of members associated with a struct, union, enum,
       --  value or except typecode.
       --  Otherwise raises BadKind.
 
       function Member_Name
+        (Self  : Object_Ptr;
+         Index : Types.Unsigned_Long) return Types.Identifier;
+      function Member_Name
         (Self  : Local_Ref;
          Index : Types.Unsigned_Long) return Types.Identifier;
       --  Return the name of the indicated member of a struct, union, enum,
       --  value or except typecode. Raises Bounds if Index is too big.
       --  Raises BadKind for other typecode kinds.
+      --  ???? should return Standard.String
 
+      function Member_Type
+        (Self : Object_Ptr; Index : Types.Unsigned_Long) return Object_Ptr;
       function Member_Type
         (Self : Local_Ref; Index : Types.Unsigned_Long) return Local_Ref;
       --  Return the type of the indicated member of a struct, union, enum,
       --  value or except typecode. Raises Bounds if Index is too big.
       --  Raises BadKind for other typecode kinds.
 
+      function Member_Label
+        (Self  : Object_Ptr;
+         Index : Types.Unsigned_Long) return Any_Container_Ptr;
+      function Member_Label
+        (Self  : Object_Ptr;
+         Index : Types.Unsigned_Long) return Any;
       function Member_Label
         (Self  : Local_Ref;
          Index : Types.Unsigned_Long) return Any_Container_Ptr;
@@ -255,49 +278,63 @@ package PolyORB.Any is
       --  Raises BadKind for other typecode kinds.
 
       function Enumerator_Name
+        (Self  : Object_Ptr;
+         Index : Types.Unsigned_Long) return Types.Identifier;
+      function Enumerator_Name
         (Self  : Local_Ref;
          Index : Types.Unsigned_Long) return Types.Identifier;
       --  Return the name of the Index'th enumerator in an enumeration.
       --  Raises Bounds if Index is too big.
       --  Raises BadKind for other typecode kinds.
+      --  ??? should return Standard.String
 
+      function Discriminator_Type (Self : Object_Ptr) return Object_Ptr;
       function Discriminator_Type (Self : Local_Ref) return Local_Ref;
       --  Return the discriminator type of a union typecode.
       --  Raises BadKind for other typecode kinds.
 
+      function Default_Index (Self : Object_Ptr) return Types.Long;
       function Default_Index (Self : Local_Ref) return Types.Long;
       --  Return the position of the default member of a union typecode, or
       --  -1 if there is no default member.
       --  Raises BadKind for other typecode kinds.
 
+      function Length (Self : Object_Ptr) return Types.Unsigned_Long;
       function Length (Self : Local_Ref) return Types.Unsigned_Long;
       --  Return the length associated with a string, wide_string, sequence
       --  or array typecode.
       --  Raise BadKind for other typecode kinds.
 
+      function Content_Type (Self : Object_Ptr) return Object_Ptr;
       function Content_Type (Self : Local_Ref) return Local_Ref;
       --  Return the element type associated with a string, wide_string,
       --  sequence or array typecode.
       --  Raise BadKind for other typecode kinds.
 
+      function Fixed_Digits (Self : Object_Ptr) return Types.Unsigned_Short;
       function Fixed_Digits (Self : Local_Ref) return Types.Unsigned_Short;
       --  Return the number of digits of a fixed typecode.
       --  Raise BadKind for other typecode kinds.
 
+      function Fixed_Scale (Self : Object_Ptr) return Types.Short;
       function Fixed_Scale (Self : Local_Ref) return Types.Short;
       --  Return the scale of digits of a fixed typecode.
       --  Raise BadKind for other typecode kinds.
 
+      function Member_Visibility
+        (Self : Object_Ptr; Index : Types.Unsigned_Long) return Visibility;
       function Member_Visibility
         (Self : Local_Ref; Index : Types.Unsigned_Long) return Visibility;
       --  Return the visibility of the indicated member of a value typecode.
       --  Raises Bounds if Index is too big.
       --  Raises BadKind for other typecode kinds.
 
+      function Type_Modifier (Self : Object_Ptr) return ValueModifier;
       function Type_Modifier (Self : Local_Ref) return ValueModifier;
       --  Return the type modifier of a value typecode.
       --  Raises BadKind for other typecode kinds.
 
+      function Concrete_Base_Type (Self : Object_Ptr) return Object_Ptr;
       function Concrete_Base_Type (Self : Local_Ref) return Local_Ref;
       --  Return the concrete base type of a value typecode.
       --  Raises BadKind for other typecode kinds.
@@ -306,9 +343,14 @@ package PolyORB.Any is
       -- Supplementary accessors provided by PolyORB --
       -------------------------------------------------
 
+      function Parameter_Count (Self : Object_Ptr) return Types.Unsigned_Long;
       function Parameter_Count (Self : Local_Ref) return Types.Unsigned_Long;
       --  Return the number of parameters in typecode Self
 
+      function Member_Type_With_Label
+        (Self : Object_Ptr; Label : Any_Container'Class) return Object_Ptr;
+      function Member_Type_With_Label
+        (Self : Object_Ptr; Label : Any) return Object_Ptr;
       function Member_Type_With_Label
         (Self : Local_Ref; Label : Any_Container'Class) return Local_Ref;
       function Member_Type_With_Label
@@ -322,10 +364,15 @@ package PolyORB.Any is
       ------------------------------------
 
       function Get_Parameter
-        (Self  : Local_Ref;
+        (Self  : Object_Ptr;
          Index : Types.Unsigned_Long) return Any_Container_Ptr;
-      --  Return the Index'th parameter of Local_Ref.
-      --  Raises Bounds if Index is too big.
+      --  Extract the Index'th parameter from Self
+
+      function Get_Parameter
+        (Self  : Object_Ptr;
+         Index : Types.Unsigned_Long) return Object_Ptr;
+      --  Special version of Get_Parameter for the case where the parameter
+      --  is itself a TypeCode.
 
       procedure Add_Parameter (Self : Local_Ref; Param : Any);
       --  Append Param to Self's parameter list
@@ -379,6 +426,26 @@ package PolyORB.Any is
       function TC_Home               return Local_Ref;
       function TC_Event              return Local_Ref;
 
+      --  Typecode objects for root types
+
+      PTC_Null               : aliased Object (Tk_Null);
+      PTC_Void               : aliased Object (Tk_Void);
+      PTC_Short              : aliased Object (Tk_Short);
+      PTC_Long               : aliased Object (Tk_Long);
+      PTC_Long_Long          : aliased Object (Tk_Longlong);
+      PTC_Unsigned_Short     : aliased Object (Tk_Ushort);
+      PTC_Unsigned_Long      : aliased Object (Tk_Ulong);
+      PTC_Unsigned_Long_Long : aliased Object (Tk_Ulonglong);
+      PTC_Float              : aliased Object (Tk_Float);
+      PTC_Double             : aliased Object (Tk_Double);
+      PTC_Long_Double        : aliased Object (Tk_Longdouble);
+      PTC_Boolean            : aliased Object (Tk_Boolean);
+      PTC_Char               : aliased Object (Tk_Char);
+      PTC_Wchar              : aliased Object (Tk_Widechar);
+      PTC_Octet              : aliased Object (Tk_Octet);
+      PTC_Any                : aliased Object (Tk_Any);
+      PTC_TypeCode           : aliased Object (Tk_TypeCode);
+
       type Any_Array is array (Natural range <>) of Any;
 
       function Build_Complex_TC
@@ -408,12 +475,6 @@ package PolyORB.Any is
       --  Default_Aggregate_Content, i.e. a dynamic table of Any_Containers.
 
       type Local_Ref is new Smart_Pointers.Ref with null record;
-
-      subtype NCE is Smart_Pointers.Non_Controlled_Entity;
-
-      type Object (Kind : TCKind) is new NCE with record
-         Parameters : Content_Ptr;
-      end record;
 
       ---------------------------
       -- Encoding of TypeCodes --
@@ -470,24 +531,6 @@ package PolyORB.Any is
       --
       --  11. For fixed, the first parameter will be the digits
       --      number and the second the scale.
-
-      PTC_Null               : aliased Object (Tk_Null);
-      PTC_Void               : aliased Object (Tk_Void);
-      PTC_Short              : aliased Object (Tk_Short);
-      PTC_Long               : aliased Object (Tk_Long);
-      PTC_Long_Long          : aliased Object (Tk_Longlong);
-      PTC_Unsigned_Short     : aliased Object (Tk_Ushort);
-      PTC_Unsigned_Long      : aliased Object (Tk_Ulong);
-      PTC_Unsigned_Long_Long : aliased Object (Tk_Ulonglong);
-      PTC_Float              : aliased Object (Tk_Float);
-      PTC_Double             : aliased Object (Tk_Double);
-      PTC_Long_Double        : aliased Object (Tk_Longdouble);
-      PTC_Boolean            : aliased Object (Tk_Boolean);
-      PTC_Char               : aliased Object (Tk_Char);
-      PTC_Wchar              : aliased Object (Tk_Widechar);
-      PTC_Octet              : aliased Object (Tk_Octet);
-      PTC_Any                : aliased Object (Tk_Any);
-      PTC_TypeCode           : aliased Object (Tk_TypeCode);
 
    end TypeCode;
 
@@ -549,6 +592,9 @@ package PolyORB.Any is
 
    procedure Set_Type
      (C  : in out Any_Container'Class;
+      TC : TypeCode.Object_Ptr);
+   procedure Set_Type
+     (C  : in out Any_Container'Class;
       TC : TypeCode.Local_Ref);
    --  Set the type of C to TC
 
@@ -583,8 +629,13 @@ package PolyORB.Any is
    type Mechanism is (By_Reference, By_Value);
 
    function Get_Aggregate_Element
-     (ACC   : access Aggregate_Content;
+     (ACC   : access Aggregate_Content'Class;
       TC    : TypeCode.Local_Ref;
+      Index : Types.Unsigned_Long;
+      Mech  : access Mechanism) return Content'Class;
+   function Get_Aggregate_Element
+     (ACC   : access Aggregate_Content;
+      TC    : TypeCode.Object_Ptr;
       Index : Types.Unsigned_Long;
       Mech  : access Mechanism) return Content'Class is abstract;
    --  Return contents wrapper for one stored element.
@@ -602,8 +653,13 @@ package PolyORB.Any is
    --  case Mech must be By_Value upon exit.
 
    procedure Set_Aggregate_Element
-     (ACC    : in out Aggregate_Content;
+     (ACC    : in out Aggregate_Content'Class;
       TC     : TypeCode.Local_Ref;
+      Index  : Types.Unsigned_Long;
+      From_C : in out Any_Container'Class);
+   procedure Set_Aggregate_Element
+     (ACC    : in out Aggregate_Content;
+      TC     : TypeCode.Object_Ptr;
       Index  : Types.Unsigned_Long;
       From_C : in out Any_Container'Class);
    --  Update contents wrapper for one stored element using value provided by
@@ -756,10 +812,14 @@ package PolyORB.Any is
    function From_Any (A : Any) return String;
    function From_Any (A : Any) return Wide_String;
 
+   function Get_Type_Obj (A : Any) return TypeCode.Object_Ptr;
+   function Get_Type_Obj (C : Any_Container'Class) return TypeCode.Object_Ptr;
    function Get_Type (A : Any) return TypeCode.Local_Ref;
    function Get_Type (C : Any_Container'Class) return TypeCode.Local_Ref;
    --  Accessors for the typecode of an Any
 
+   function Unwind_Typedefs
+     (TC : TypeCode.Object_Ptr) return TypeCode.Object_Ptr;
    function Unwind_Typedefs
      (TC : TypeCode.Local_Ref) return TypeCode.Local_Ref;
    --  Unwind any typedef (alias) from TC
@@ -767,6 +827,7 @@ package PolyORB.Any is
    function Get_Unwound_Type (The_Any : Any) return TypeCode.Local_Ref;
    --  Return the actual type of The_Any, after resolution of all alias levels
 
+   procedure Set_Type (A : in out Any; TC : TypeCode.Object_Ptr);
    procedure Set_Type (A : in out Any; TC : TypeCode.Local_Ref);
    --  Not in spec : change the type of an any without changing its
    --  value : to be used carefully
@@ -804,11 +865,25 @@ package PolyORB.Any is
 
    function Get_Aggregate_Element
      (Value : Any;
-      Tc    : TypeCode.Local_Ref;
+      TC    : TypeCode.Local_Ref;
       Index : Types.Unsigned_Long) return Any;
-   --  Gets an element in an any agregate
+   --  Gets an element in an any aggregate
    --  Return an any made of the typecode Tc and the value read in
    --  the aggregate. The first element has index 0.
+
+   function Get_Aggregate_Element
+     (Value : Any_Container'Class;
+      Index : Types.Unsigned_Long) return Types.Unsigned_Long;
+   function Get_Aggregate_Element
+     (Value : Any;
+      Index : Types.Unsigned_Long) return Types.Unsigned_Long;
+   function Get_Aggregate_Element
+     (Value : Any_Container'Class;
+      Index : Types.Unsigned_Long) return Types.Octet;
+   function Get_Aggregate_Element
+     (Value : Any;
+      Index : Types.Unsigned_Long) return Types.Octet;
+   --  Specialized efficient versions for often-used base data types
 
    procedure Copy_Any_Value (Dst : Any; Src : Any);
    --  Set the value of Dest from a copy of the value of Src (as Set_Any_Value
@@ -844,6 +919,7 @@ package PolyORB.Any is
       Arg_Modes : Flags;
    end record;
 
+   function Image (TC : TypeCode.Object_Ptr) return Standard.String;
    function Image (TC : TypeCode.Local_Ref) return Standard.String;
    function Image (NV : NamedValue) return Standard.String;
    --  For debugging purposes
@@ -962,7 +1038,9 @@ private
       Kind : TCKind;
    package Elementary_Any is
 
+      type T_Ptr is access all T;
       type T_Content is new Content with private;
+
       function Clone
         (CC   : T_Content;
          Into : Content_Ptr := null) return Content_Ptr;
@@ -977,8 +1055,19 @@ private
 
       function Wrap (X : access T) return Content'Class;
 
+      function Unchecked_Get_V (X : access T_Content) return T_Ptr;
+      pragma Inline (Unchecked_Get_V);
+      --  Unchecked access to the wrapper value
+
+      function Get_Aggregate_Element
+        (Value : Any_Container'Class;
+         Index : Types.Unsigned_Long) return T;
+      function Get_Aggregate_Element
+        (Value : Any;
+         Index : Types.Unsigned_Long) return T;
+      --  Shortcut accessors for aggregate elements of type T
+
    private
-      type T_Ptr is access all T;
       type T_Content is new Content with record
          V : T_Ptr;
       end record;

@@ -747,6 +747,12 @@ package CORBA is
            return CORBA.TypeCode.Object;
 
          function Is_Nil (Self : CORBA.TypeCode.Object) return Boolean;
+         --  True when Self has not been initialized to contain any typecode
+         --  information.
+
+         procedure Disable_Reference_Counting (Self : CORBA.TypeCode.Object);
+         --  Disable reference counting on the underlying storage of Self
+         --  (meant to be used for library-level typecode objects).
 
          function Build_Alias_TC
            (Name, Id : CORBA.String;

@@ -956,8 +956,7 @@ package body System.Partition_Interface is
             return Outer_Length;
          else
             Seq_Any := PolyORB.Any.Get_Aggregate_Element
-              (Seq_Any, From_Any (PATC.Get_Parameter
-               (Get_Type (Seq_Any), 1).all), 1);
+                         (Seq_Any, Content_Type (Get_Type (Seq_Any)), 1);
             return Get_Nested_Sequence_Length (Seq_Any, Depth - 1);
          end if;
       end;

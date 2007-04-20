@@ -96,9 +96,7 @@ package body PolyORB.Errors.Helper is
    function From_Any (Item : PolyORB.Any.Any) return Completion_Status is
    begin
       return Completion_Status'Val
-        (Unsigned_Long'
-         (From_Any (PolyORB.Any.Get_Aggregate_Element
-                    (Item, TC_Unsigned_Long, 0))));
+        (Unsigned_Long'(PolyORB.Any.Get_Aggregate_Element (Item, 0)));
    end From_Any;
 
    ------------

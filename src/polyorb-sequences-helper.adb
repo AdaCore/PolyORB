@@ -91,10 +91,8 @@ package body PolyORB.Sequences.Helper is
    is
       pragma Suppress (Discriminant_Check);
 
-      Len : constant Integer
-        := Integer
-        (Types.Unsigned_Long'
-         (From_Any (Get_Aggregate_Element (Item, TC_Unsigned_Long, 0))));
+      Len : constant Integer :=
+              Integer (Types.Unsigned_Long'(Get_Aggregate_Element (Item, 0)));
 
       Result : aliased Sequence := New_Sequence (Len);
 
@@ -104,7 +102,7 @@ package body PolyORB.Sequences.Helper is
          Unchecked_Element_Of (Result'Access, J).all :=
            Element_From_Any
              (Get_Aggregate_Element
-                  (Item, Element_TC, Types.Unsigned_Long (J)));
+              (Item, Element_TC, Types.Unsigned_Long (J)));
       end loop;
       return Result;
    end From_Any;
@@ -126,7 +124,7 @@ package body PolyORB.Sequences.Helper is
 
    function Get_Aggregate_Element
      (ACC   : access Sequence_Content;
-      TC    : PolyORB.Any.TypeCode.Local_Ref;
+      TC    : PolyORB.Any.TypeCode.Object_Ptr;
       Index : PolyORB.Types.Unsigned_Long;
       Mech  : access PolyORB.Any.Mechanism) return PolyORB.Any.Content'Class
    is
@@ -177,7 +175,7 @@ package body PolyORB.Sequences.Helper is
 
    procedure Set_Aggregate_Element
      (ACC    : in out Sequence_Content;
-      TC     : TypeCode.Local_Ref;
+      TC     : TypeCode.Object_Ptr;
       Index  : Types.Unsigned_Long;
       From_C : in out Any_Container'Class)
    is

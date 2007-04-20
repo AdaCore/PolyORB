@@ -116,17 +116,14 @@ package body CORBA.Fixed_Point is
            CORBA.Internals.Get_Aggregate_Count (Item);
          Octets : Stream_Element_Array (1 .. Stream_Element_Offset (Nb)) :=
            (others => 0);
-         Element : CORBA.Any;
       begin
-         for I in Octets'Range loop
+         for J in Octets'Range loop
             pragma Debug (O ("From_Any (Fixed) : yet another octet"));
-            Element :=
-              CORBA.Internals.Get_Aggregate_Element
-              (Item,
-               CORBA.TC_Octet,
-               CORBA.Unsigned_Long (I - 1));
-            Octets (I) := Stream_Element
-              (CORBA.Octet'(CORBA.From_Any (Element)));
+            Octets (J) :=
+              Stream_Element
+               (PolyORB.Types.Octet'(PolyORB.Any.Get_Aggregate_Element
+                (PolyORB.Any.Any (Item),
+                 PolyORB.Types.Unsigned_Long (J - 1))));
          end loop;
          pragma Debug (O ("From_Any (Fixed) : return"));
          return CDR_Fixed_F.Octets_To_Fixed (Octets);
@@ -192,7 +189,7 @@ package body CORBA.Fixed_Point is
 
    function Get_Aggregate_Element
      (ACC   : access Fixed_Content;
-      TC    : PolyORB.Any.TypeCode.Local_Ref;
+      TC    : PolyORB.Any.TypeCode.Object_Ptr;
       Index : PolyORB.Types.Unsigned_Long;
       Mech  : access PolyORB.Any.Mechanism) return PolyORB.Any.Content'Class
    is
@@ -222,7 +219,7 @@ package body CORBA.Fixed_Point is
 
    procedure Set_Aggregate_Element
      (ACC    : in out Fixed_Content;
-      TC     : PolyORB.Any.TypeCode.Local_Ref;
+      TC     : PolyORB.Any.TypeCode.Object_Ptr;
       Index  : PolyORB.Types.Unsigned_Long;
       From_C : in out PolyORB.Any.Any_Container'Class)
    is
