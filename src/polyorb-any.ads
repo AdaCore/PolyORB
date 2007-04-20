@@ -188,6 +188,9 @@ package PolyORB.Any is
       --  True if Self has not been set to designate any specific TypeCode
       --  object.
 
+      procedure Disable_Reference_Counting (Self : in out Object);
+      --  Mark Self as not to be subjected to reference counting
+
       Bounds       : exception;
       BadKind      : exception;
       Bad_TypeCode : exception;
