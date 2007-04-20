@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -163,12 +163,29 @@ package body PolyORB.Asynch_Ev.Sockets is
          T := PolyORB.Sockets.Forever;
       end if;
 
-      Check_Selector
-        (Selector     => AEM.Selector,
-         R_Socket_Set => R_Set,
-         W_Socket_Set => W_Set,
-         Status       => Status,
-         Timeout      => T);
+      --  We want to retry the Check_Selector call if it is interrupted
+      --  (happens when the application is being profiled).
+
+      Retry_Loop : loop
+         begin
+            Check_Selector
+              (Selector     => AEM.Selector,
+               R_Socket_Set => R_Set,
+               W_Socket_Set => W_Set,
+               Status       => Status,
+               Timeout      => T);
+            exit Retry_Loop;
+         exception
+            when E : Socket_Error =>
+               if Resolve_Exception (E) = Interrupted_System_Call then
+                  --  Retry
+
+                  null;
+               else
+                  raise;
+               end if;
+         end;
+      end loop Retry_Loop;
 
       pragma Debug (O ("Selector returned status "
                        & Selector_Status'Image (Status)));
