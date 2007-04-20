@@ -68,9 +68,10 @@ package PolyORB.Smart_Pointers is
 
    procedure Entity_Lock (X : in out Unsafe_Entity);
    procedure Entity_Unlock (X : in out Unsafe_Entity);
-   --  Lock/unlock operations to be overloaded by derived types if they need
+   --  Lock/unlock operations to be overridden by derived types if they need
    --  to be made task-safe. These operations must guarantee mutual exclusion
-   --  on accesses to the reference counter.
+   --  on accesses to the reference counter. The default versions here do
+   --  nothing.
 
    function Reference_Counter (Obj : Unsafe_Entity'Class) return Integer;
    --  Return the value of Obj's reference counter.
