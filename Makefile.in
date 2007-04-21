@@ -350,7 +350,7 @@ polyorb_idl_stamps := ${all_idl_stamps} # All so far, that is.
 polyorb-idl-stamps: build-@IDLAC@ ${polyorb_idl_stamps} cos/ir/orb.idl-stamp
 
 #???What is the following all about?  Why does it "chmod" and "rm"?
-cos/ir/orb.idl-stamp: ${top_srcdir}/idls/CORBA_IDL/orb.idl ${top_srcdir}/idls/CORBA_IDL/CORBA_InterfaceRepository.idl ${top_srcdir}/idls/CORBA_IDL/CORBA_TypeCode.idl
+cos/ir/orb.idl-stamp: ${top_srcdir}/idls/CORBA_IDL/orb.idl ${top_srcdir}/idls/CORBA_IDL/CORBA_InterfaceRepository.idl ${top_srcdir}/idls/CORBA_IDL/CORBA_TypeCode.idl ${IDLAC_bin} ${IDLAC_WRAPPER}
 	@chmod a+x ${IDLAC_WRAPPER}
 	cd ${dir $@} ; ${idlac} $<
 	${RM} cos/ir/corba-repository_root.ads
