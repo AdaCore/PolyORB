@@ -75,7 +75,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
       --  Return the spec of the Raise_"Exception_Name" procedure
 
       function TypeCode_Spec (E : Node_Id) return Node_Id;
-      --  Return a TypeCode constant for a given type (E).
+      --  Return a TypeCode variable for a given type (E).
 
       function TypeCode_Dimension_Spec
         (Declarator : Node_Id;
@@ -122,12 +122,6 @@ package body Backend.BE_CORBA_Ada.Helpers is
             Profile,
             Get_Type_Definition_Node (E));
 
-         --  Setting the correct parent unit name, for the future
-         --  calls of the subprogram.
-
-         Set_Homogeneous_Parent_Unit_Name
-           (Defining_Identifier (N),
-            (Defining_Identifier (Helper_Package (Current_Entity))));
          return N;
       end From_Any_Spec;
 
@@ -152,12 +146,6 @@ package body Backend.BE_CORBA_Ada.Helpers is
             Profile, Expand_Designator
             (Type_Def_Node (BE_Node (Identifier (E)))));
 
-         --  Setting the correct parent unit name, for the future
-         --  calls of the subprogram
-
-         Set_Homogeneous_Parent_Unit_Name
-           (Defining_Identifier (N),
-            Defining_Identifier (Helper_Package (Current_Entity)));
          return N;
       end U_To_Ref_Spec;
 
@@ -179,12 +167,6 @@ package body Backend.BE_CORBA_Ada.Helpers is
            (Make_Defining_Identifier (SN (S_To_Any)),
             Profile, RE (RE_Any));
 
-         --  Setting the correct parent unit name, for the future
-         --  calls of the subprogram
-
-         Set_Homogeneous_Parent_Unit_Name
-           (Defining_Identifier (N),
-            Defining_Identifier (Helper_Package (Current_Entity)));
          return N;
       end To_Any_Spec;
 
@@ -210,12 +192,6 @@ package body Backend.BE_CORBA_Ada.Helpers is
             Expand_Designator
             (Type_Def_Node (BE_Node (Identifier (E)))));
 
-         --  Setting the correct parent unit name, for the future
-         --  calls of the subprogram
-
-         Set_Homogeneous_Parent_Unit_Name
-           (Defining_Identifier (N),
-            Defining_Identifier (Helper_Package (Current_Entity)));
          return N;
       end To_Ref_Spec;
 
@@ -241,12 +217,6 @@ package body Backend.BE_CORBA_Ada.Helpers is
            (Raise_Node,
             Profile);
 
-         --  Setting the correct parent unit name, for the future
-         --  calls of the subprogram
-
-         Set_Homogeneous_Parent_Unit_Name
-           (Defining_Identifier (N),
-            Defining_Identifier (Helper_Package (Current_Entity)));
          return N;
       end Raise_Excp_Spec;
 
@@ -256,80 +226,40 @@ package body Backend.BE_CORBA_Ada.Helpers is
 
       function TypeCode_Spec (E : Node_Id) return Node_Id is
          N  : Node_Id := E;
-         C  : Node_Id := No_Node;
          TC : Name_Id;
-         P  : Node_Id := No_Node;
-         T  : Node_Id;
       begin
          case FEN.Kind (E) is
             when K_Enumeration_Type =>
-               P := RE (RE_TC_Enum);
                N := Get_Type_Definition_Node (E);
 
             when K_Forward_Interface_Declaration =>
-               P := RE (RE_TC_Object_1);
                N := Instantiation_Node (BE_Node (Identifier (E)));
 
             when K_Fixed_Point_Type =>
-               P := RE (RE_TC_Fixed);
                N := Get_Type_Definition_Node (E);
 
             when K_Interface_Declaration =>
-               P := RE (RE_TC_Object_1);
                N := Package_Declaration
                  (BEN.Parent (Type_Def_Node (BE_Node (Identifier (E)))));
 
             when K_Sequence_Type
               | K_String_Type
               | K_Wide_String_Type =>
-               --  No need to set the value of P because the
-               --  TypeCode is not initialized.
-
                N := Expand_Designator (Instantiation_Node (BE_Node (E)));
 
             when  K_Simple_Declarator =>
-               T := Type_Spec (Declaration (E));
-
-               --  The default TC for type definition is
-               --  TC_Alias...
-
-               P := RE (RE_TC_Alias);
-
-               --  ...However, there are some exceptions
-
-               if Kind (T) = K_Scoped_Name and then
-                 Get_Predefined_CORBA_Entity (T) = RE_Null
-                 and then
-                 FEN.Kind (Reference (T)) /= K_Interface_Declaration
-                 and then
-                 FEN.Kind (Reference (T)) /= K_Structure_Type
-                 and then
-                 Present (BE_Node (Identifier (Reference (T))))
-               then
-                  P := Reference (T);
-                  P := TC_Node (BE_Node (Identifier (P)));
-                  P := Copy_Designator
-                    (First_Node
-                     (Actual_Parameter_Part
-                      (BEN.Expression (P))));
-               end if;
-
                N := Get_Type_Definition_Node (E);
 
             when K_Complex_Declarator =>
-               P := RE (RE_TC_Array);
                N := Get_Type_Definition_Node (E);
 
             when K_Structure_Type =>
-               P := RE (RE_TC_Struct);
                N := Get_Type_Definition_Node (E);
 
             when K_Union_Type =>
-               P := RE (RE_TC_Union);
                N := Get_Type_Definition_Node (E);
 
             when K_Exception_Declaration =>
-               P := RE (RE_TC_Except);
                N := Make_Designator (To_Ada_Name (IDL_Name (Identifier (E))));
 
             when others =>
@@ -342,26 +272,13 @@ package body Backend.BE_CORBA_Ada.Helpers is
                end;
          end case;
 
-         if Present (P) then
-            C := Make_Subprogram_Call
-              (Defining_Identifier   => RE (RE_To_CORBA_Object),
-               Actual_Parameter_Part => Make_List_Id (P));
-         end if;
-
          TC := Add_Prefix_To_Name ("TC_", BEN.Name (Defining_Identifier (N)));
 
          N := Make_Object_Declaration
            (Defining_Identifier => Make_Defining_Identifier (TC),
             Constant_Present    => False,
-            Object_Definition   => RE (RE_Object),
-            Expression          => C);
+            Object_Definition   => RE (RE_Object));
 
-         --  Setting the correct parent unit name, for the future
-         --  calls of the subprogram
-
-         Set_Homogeneous_Parent_Unit_Name
-           (Defining_Identifier (N),
-            Defining_Identifier (Helper_Package (Current_Entity)));
          return N;
       end TypeCode_Spec;
 
@@ -1208,11 +1125,8 @@ package body Backend.BE_CORBA_Ada.Helpers is
             --  Return statement
 
             N := Make_Subprogram_Call
-              (RE (RE_To_PolyORB_Any),
+              (RE (RE_Get_Container_1),
                Make_List_Id (Make_Designator (PN (P_Item))));
-            N := Make_Subprogram_Call
-              (RE (RE_Get_Container),
-               Make_List_Id (N));
             N := Make_Explicit_Dereference (N);
             N := Make_Subprogram_Call
               (Get_From_Any_Container_Node (E),

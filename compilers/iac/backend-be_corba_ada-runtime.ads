@@ -194,6 +194,7 @@ package Backend.BE_CORBA_Ada.Runtime is
       RE_To_Any_0,                  --  CORBA.To_Any
       RE_From_Any_0,                --  CORBA.From_Any
       RE_Wrap_2,                    --  CORBA.Wrap
+      RE_Get_Container_1,           --  CORBA.Get_Container
       RE_Ref_11,                    --  CORBA.DomainManager.Ref
       RE_Object_8,                  --  CORBA.DomainManager.Impl.Object
       RE_From_Any_5,                --  CORBA.DomainManager.Helper.From_Any
@@ -373,12 +374,11 @@ package Backend.BE_CORBA_Ada.Runtime is
       RE_To_CORBA_Wide_String,      --  CORBA.To_CORBA_Wide_String
       RE_Ref_1,                     --  CORBA.AbstractBase.Ref
       RE_Ref_8,                     --  CORBA.Context.Ref
+      RE_Add_Parameter,             --  CORBA.Internals.Add_Parameter
       RE_Set_Type,                  --  CORBA.Internals.Set_Type
       RE_Get_Empty_Any_Aggregate,   --  CORBA.Internals.Get_Empty_Any_Agregate
       RE_Add_Aggregate_Element,     --  CORBA.Internals.Add_Aggregate_Element
       RE_Get_Wrapper_Any,           --  CORBA.Internals.Get_Wrapper_Any
-      RE_To_CORBA_Any,              --  CORBA.Internals.To_CORBA_Any
-      RE_To_PolyORB_Any,            --  CORBA.Internals.To_PolyORB_Any
       RE_Buff_Access_To_Ulong,      --  Conversion
       RE_Move_Any_Value,            --  CORBA.Internals.Move_Any_Value
       RE_Add_Item_0,                --  CORBA.NVList.Add_Item
@@ -406,13 +406,16 @@ package Backend.BE_CORBA_Ada.Runtime is
       RE_Create_List,               --  CORBA.ORB.Create_List,
       RE_Get_Default_Context,       --  CORBA.ORB.Get_Default_Context
       RE_Object,                    --  CORBA.TypeCode.Object
-      RE_Add_Parameter,             --  CORBA.TypeCode.Internals.Add_Parameter
+      RE_Build_Alias_TC,            --  CORBA.TypeCode.
+      --                                  Internals.Build_Alias_TC
       RE_Build_Sequence_TC,         --  CORBA.TypeCode.
       --                            --    Internals.Build_Sequence_TC
       RE_To_CORBA_Object,           --  CORBA.TypeCode.
       --                            --    Internals.To_CORBA_Object
       RE_To_PolyORB_Object,         --  CORBA.TypeCode.
       --                            --    Internals.To_PolyORB_Object
+      RE_Disable_Reference_Counting, --  CORBA.TypeCode.
+      --                                  Internals.Disable_Reference_Counting
       RE_Arguments_1,               --  CORBA.ServerRequest.Arguments
       RE_Object_Ptr,                --  CORBA.ServerRequest.Object_ptr
       RE_Operation,                 --  CORBA.ServerRequest.Operation
@@ -445,9 +448,10 @@ package Backend.BE_CORBA_Ada.Runtime is
       RE_Any_Container,             --  PolyORB.Any.Any_Container
       RE_By_Value,                  --  PolyORB.Any.By_Value
       RE_By_Reference,              --  PolyORB.Any.By_Reference
+      RE_Copy_Any,                  --  PolyORB.Any.Copy_Any
       RE_From_Any_3,                --  PolyORB.Any.From_Any
       RE_Get_Aggregate_Element_2,   --  PolyORB.Any.Get_Aggregate_Element
-      RE_Get_Container,             --  PolyORB.Any.Get_Container
+      RE_Get_Container_2,           --  PolyORB.Any.Get_Container
       RE_Get_Value,                 --  PolyORB.Any.Get_Value
       RE_Content,                   --  PolyORB.Any.Content
       RE_Content_Ptr,               --  PolyORB.Any.Content_Ptr
@@ -464,11 +468,9 @@ package Backend.BE_CORBA_Ada.Runtime is
       RE_Ref_3,                     --  PolyORB.Any.NVList.Ref
       RE_Create,                    --  PolyORB.Any.NVList.Create
       RE_Add_Item_1,                --  PolyORB.Any.NVList.Add_Item
-      RE_Build_Bounded_String_TC,   --  PolyORB.Any.TypeCode.
-      --                                  Build_Bounded_String_TC
-      RE_Build_Bounded_Wide_String_TC, --  PolyORB.Any.TypeCode.
-      --                                  Build_Bounded_Wide_String_TC
-
+      RE_Build_String_TC,           --  PolyORB.Any.TypeCode.Build_String_TC
+      RE_Build_Wstring_TC,          --  PolyORB.Any.TypeCode.Build_Wstring_TC
+      RE_Object_Ptr_2,              --  PolyORB.Any.TypeCode.Object_Ptr
       RE_Object_7,                  --  PolyORB.Any.TypeCode.Object
       RE_TC_Object_1,               --  PolyORB.Any.TypeCode.TC_Object
       RE_TC_Alias,                  --  PolyORB.Any.TypeCode.TC_Alias
@@ -796,6 +798,7 @@ package Backend.BE_CORBA_Ada.Runtime is
          RE_To_Any_0                  => RU_CORBA,
          RE_From_Any_0                => RU_CORBA,
          RE_Wrap_2                    => RU_CORBA,
+         RE_Get_Container_1           => RU_CORBA,
          RE_Get_Aggregate_Element     => RU_CORBA_Internals,
          RE_Get_Empty_Any             => RU_CORBA_Internals,
          RE_Any                       => RU_CORBA,
@@ -966,14 +969,13 @@ package Backend.BE_CORBA_Ada.Runtime is
          RE_Add_1                     => RU_CORBA_ExceptionList,
          RE_Ref_5                     => RU_CORBA_ExceptionList,
          RE_To_PolyORB_Ref_1          => RU_CORBA_ExceptionList_Internals,
+         RE_Add_Parameter             => RU_CORBA_Internals,
          RE_Set_Type                  => RU_CORBA_Internals,
          RE_Get_Empty_Any_Aggregate   => RU_CORBA_Internals,
          RE_Add_Aggregate_Element     => RU_CORBA_Internals,
          RE_Get_Wrapper_Any           => RU_CORBA_Internals,
          RE_Ref_1                     => RU_CORBA_AbstractBase,
          RE_Ref_8                     => RU_CORBA_Context,
-         RE_To_CORBA_Any              => RU_CORBA_Internals,
-         RE_To_PolyORB_Any            => RU_CORBA_Internals,
          RE_Buff_Access_To_Ulong      => RU_PolyORB_Buffers_Optimization,
          RE_Move_Any_Value            => RU_CORBA_Internals,
          RE_Object_2                  => RU_CORBA_Local,
@@ -1007,21 +1009,23 @@ package Backend.BE_CORBA_Ada.Runtime is
          RE_Set_Exception             => RU_CORBA_ServerRequest,
          RE_Set_Result                => RU_CORBA_ServerRequest,
          RE_Object                    => RU_CORBA_TypeCode,
-         RE_Add_Parameter             => RU_CORBA_TypeCode_Internals,
          RE_Build_Sequence_TC         => RU_CORBA_TypeCode_Internals,
+         RE_Build_Alias_TC            => RU_CORBA_TypeCode_Internals,
          RE_To_CORBA_Object           => RU_CORBA_TypeCode_Internals,
          RE_To_PolyORB_Object         => RU_CORBA_TypeCode_Internals,
+         RE_Disable_Reference_Counting => RU_CORBA_TypeCode_Internals,
          RE_Set_Note                  => RU_PolyORB_Annotations,
          RE_Aggregate_Content         => RU_PolyORB_Any,
          RE_Any_1                     => RU_PolyORB_Any,
          RE_Any_Container             => RU_PolyORB_Any,
          RE_By_Value                  => RU_PolyORB_Any,
          RE_By_Reference              => RU_PolyORB_Any,
+         RE_Copy_Any                  => RU_PolyORB_Any,
          RE_Content                   => RU_PolyORB_Any,
          RE_Content_Ptr               => RU_PolyORB_Any,
          RE_From_Any_3                => RU_PolyORB_Any,
          RE_Get_Aggregate_Element_2   => RU_PolyORB_Any,
-         RE_Get_Container             => RU_PolyORB_Any,
+         RE_Get_Container_2           => RU_PolyORB_Any,
          RE_Get_Value                 => RU_PolyORB_Any,
          RE_Is_Empty                  => RU_PolyORB_Any,
          RE_Mechanism                 => RU_PolyORB_Any,
@@ -1036,9 +1040,9 @@ package Backend.BE_CORBA_Ada.Runtime is
          RE_Ref_3                     => RU_PolyORB_Any_NVList,
          RE_Create                    => RU_PolyORB_Any_NVList,
          RE_Add_Item_1                => RU_PolyORB_Any_NVList,
-         RE_Build_Bounded_String_TC   => RU_PolyORB_Any_TypeCode,
-         RE_Build_Bounded_Wide_String_TC =>
-           RU_PolyORB_Any_TypeCode,
+         RE_Build_String_TC           => RU_PolyORB_Any_TypeCode,
+         RE_Build_Wstring_TC          => RU_PolyORB_Any_TypeCode,
+         RE_Object_Ptr_2              => RU_PolyORB_Any_TypeCode,
          RE_Object_7                  => RU_PolyORB_Any_TypeCode,
          RE_TC_Alias                  => RU_PolyORB_Any_TypeCode,
          RE_TC_Array                  => RU_PolyORB_Any_TypeCode,

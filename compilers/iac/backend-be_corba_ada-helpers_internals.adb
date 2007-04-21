@@ -177,12 +177,6 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
             Profile,
             Get_Type_Definition_Node (E));
 
-         --  Setting the correct parent unit name, for the future
-         --  calls of the subprogram.
-
-         Set_Homogeneous_Parent_Unit_Name
-           (Defining_Identifier (N),
-            (Defining_Identifier (Helper_Package (Current_Entity))));
          return N;
       end From_Any_Container_Spec;
 
@@ -541,7 +535,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
 
          N := Make_Parameter_Specification
            (Defining_Identifier => Make_Defining_Identifier (PN (P_TC)),
-            Subtype_Mark        => RE (RE_Object_7),
+            Subtype_Mark        => RE (RE_Object_Ptr_2),
             Parameter_Mode      => Mode_In);
          Append_Node_To_List (N, Profile);
 
@@ -588,7 +582,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
 
          N := Make_Parameter_Specification
            (Defining_Identifier => Make_Defining_Identifier (PN (P_TC)),
-            Subtype_Mark        => RE (RE_Object_7),
+            Subtype_Mark        => RE (RE_Object_Ptr_2),
             Parameter_Mode      => Mode_In);
          Append_Node_To_List (N, Profile);
 
@@ -2736,6 +2730,10 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
            return Node_Id;
          --  Makes a variable declaration using the given parameters
 
+         function TypeCode_Initialization return Node_Id;
+         --  Initialization for the TypeCode variable
+         --  declated in the Helper spec.
+
          -------------------
          -- Add_Parameter --
          -------------------
@@ -2778,6 +2776,121 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
             return N;
          end Declare_Name;
 
+         -----------------------------
+         -- TypeCode_Initialization --
+         -----------------------------
+
+         function TypeCode_Initialization return Node_Id is
+            Expr : Node_Id;
+         begin
+            case FEN.Kind (E) is
+               when K_Enumeration_Type =>
+                  Expr := Make_Subprogram_Call
+                    (RE (RE_To_CORBA_Object),
+                     Make_List_Id (RE (RE_TC_Enum)));
+
+               when K_Forward_Interface_Declaration
+                 | K_Interface_Declaration =>
+                  Expr := Make_Subprogram_Call
+                    (RE (RE_To_CORBA_Object),
+                     Make_List_Id (RE (RE_TC_Object_1)));
+
+               when K_Fixed_Point_Type =>
+                  Expr := Make_Subprogram_Call
+                    (RE (RE_To_CORBA_Object),
+                     Make_List_Id (RE (RE_TC_Fixed)));
+
+               when K_Complex_Declarator =>
+                  Expr := Make_Subprogram_Call
+                    (RE (RE_To_CORBA_Object),
+                     Make_List_Id (RE (RE_TC_Array)));
+
+               when K_Structure_Type =>
+                  Expr := Make_Subprogram_Call
+                    (RE (RE_To_CORBA_Object),
+                     Make_List_Id (RE (RE_TC_Struct)));
+
+               when K_Union_Type =>
+                  Expr := Make_Subprogram_Call
+                    (RE (RE_To_CORBA_Object),
+                     Make_List_Id (RE (RE_TC_Union)));
+
+               when K_Exception_Declaration =>
+                  Expr := Make_Subprogram_Call
+                    (RE (RE_To_CORBA_Object),
+                     Make_List_Id (RE (RE_TC_Except)));
+
+               when K_Simple_Declarator =>
+                  Expr := Make_Subprogram_Call
+                    (RE (RE_Build_Alias_TC),
+                     Make_List_Id
+                     (Make_Parameter_Association
+                      (Make_Defining_Identifier (PN (P_Name)),
+                       Make_Defining_Identifier (VN (V_Name))),
+                      Make_Parameter_Association
+                      (Make_Defining_Identifier (PN (P_Id)),
+                       Make_Defining_Identifier (VN (V_Id))),
+                      Make_Parameter_Association
+                      (Make_Defining_Identifier (PN (P_Parent)),
+                       Get_TC_Node (Type_Spec (Declaration (E))))));
+
+               when K_Sequence_Type =>
+                  declare
+                     Max_Size_Literal : Node_Id;
+                     TC_Element       : Node_Id;
+                  begin
+                     --  Unbounded, sequences have "0" as limit
+
+                     if Present (Max_Size (E)) then
+                        Max_Size_Literal := Make_Literal
+                          (FEN.Value (Max_Size (E)));
+                     else
+                        Max_Size_Literal := Make_Literal
+                          (New_Integer_Value (0, 1, 10));
+                     end if;
+
+                     TC_Element := Get_TC_Node (Type_Spec (E));
+
+                     Expr := Make_Subprogram_Call
+                       (RE (RE_Build_Sequence_TC),
+                        Make_List_Id
+                        (TC_Element,
+                         Max_Size_Literal));
+                  end;
+
+               when K_String_Type
+                 | K_Wide_String_Type =>
+                  declare
+                     Build_Spg : Node_Id;
+                  begin
+                     if FEN.Kind (E) = K_String_Type then
+                        Build_Spg := RE (RE_Build_String_TC);
+                     else
+                        Build_Spg := RE (RE_Build_Wstring_TC);
+                     end if;
+
+                     Expr := Make_Subprogram_Call
+                       (Build_Spg,
+                        Make_List_Id
+                        (Make_Literal
+                         (FEN.Value
+                          (Max_Size
+                           (E)))));
+                  end;
+
+               when others =>
+                  declare
+                     Msg : constant String :=
+                       "Cannot initialize TypeCode for the frontend node "
+                       & FEN.Node_Kind'Image (FEN.Kind (E));
+                  begin
+                     raise Program_Error with Msg;
+                  end;
+            end case;
+
+            return Make_Assignment_Statement (Get_TC_Node (E), Expr);
+         end TypeCode_Initialization;
+
          Stub             : Node_Id;
          N                : Node_Id;
          Entity_TC_Name   : Name_Id;
@@ -2790,12 +2903,17 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
          Dependencies     : constant List_Id :=
            Get_GList (Helper_Package, GL_Dependencies);
       begin
+         --  Initialize the TypeCode variable
+
+         N := TypeCode_Initialization;
+         Append_Node_To_List (N, Statements);
+
          --  Extract from polyorb-any.ads concerning the Encoding of
          --  TypeCodes:
 
-         --  9. For string and wide_string, the only parameter will
-         --     be the length of the string. Its value will be 0 for
-         --     unbounded strings or wide strings.
+         --  9.  For string and wide_string, the only parameter will
+         --      be the length of the string. Its value will be 0 for
+         --      unbounded strings or wide strings.
 
          --  10. For sequence and array, the first parameter will
          --      be the length of the sequence or the array and the second
@@ -2813,7 +2931,6 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
            and then FEN.Kind (E) /= K_String_Type
            and then FEN.Kind (E) /= K_Wide_String_Type
          then
-
             --  For the forward interfaces, we use the name and the
             --  Rep_Id of the forwarded interface. The Repository_Id
             --  is declared just after the type definition
@@ -2833,8 +2950,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
          case FEN.Kind (E) is
             when K_Interface_Declaration
               | K_Forward_Interface_Declaration =>
-               Stub := Package_Declaration
-                 (BEN.Parent (Stub));
+               Stub := Package_Declaration (BEN.Parent (Stub));
 
             when K_Complex_Declarator =>
                declare
@@ -2857,6 +2973,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                   T                : Node_Id;
                begin
                   if Dimension > 1 then
+                     --  Multi-dimension array
 
                      --  First of all, we create a new list which
                      --  contains the elements of the list Sizes. All
@@ -2874,21 +2991,35 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                         From_N := Next_Node (From_N);
                      end loop;
 
-                     --  The TC_XXXX constants used here are the ones
-                     --  declared in the Helper spec
+                     --  The TC_Dimension_X variables used here are
+                     --  the ones declared in the Helper spec
 
                      TC := TC_Node (BE_Node (Identifier (E)));
                      Constraint := Last_Node (Sizes_Reverse);
+
                      for Index in 1 .. Dimension - 1 loop
                         TC_Dim := Next_N_Node (TC, Dimension - Index);
-
                         TC_Previous_Name := TC_Name;
                         TC_Name := BEN.Name (BEN.Defining_Identifier (TC_Dim));
+
+                        --  Initialize the TC_Dimension variable
+
+                        N := Make_Assignment_Statement
+                          (Make_Defining_Identifier (TC_Name),
+                           Make_Subprogram_Call
+                           (RE (RE_To_CORBA_Object),
+                            Make_List_Id (RE (RE_TC_Array))));
+                        Append_Node_To_List (N, Statements);
+
+                        --  For multi-dimensional arrays, we fill each
+                        --  TC_Dimention_X TypeCode with the
+                        --  TC_Dimension_(X+1). The last TC_Dimension
+                        --  is filled withe the array element TypeCode.
+
                         V := Values.Value (BEN.Value (Last (Constraint)));
                         V.IVal := V.IVal + 1;
-                        Param1 := Make_Subprogram_Call
+                        Param1 := Make_Type_Conversion
                           (RE (RE_Unsigned_Long),
-                           Make_List_Id
                            (Make_Literal (New_Value (V))));
 
                         if TC_Previous_Name = No_Name then
@@ -2901,8 +3032,10 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                            Handle_Dependency (T, Statements);
                            Helpers.Package_Body.Add_Dependency
                              (Parent_Unit_Name (Param2), Dependencies);
+                        else
 
-                        else --  Not the deepest dimension
+                           --  Not the deepest dimension
+
                            Param2 := Make_Designator (TC_Previous_Name);
                         end if;
 
@@ -2926,7 +3059,8 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                         (Make_Literal (New_Value (V))));
                      Param2 := Make_Designator (TC_Name);
 
-                  else --  1 dimension array
+                  else
+                     --  1 dimension array
 
                      V := Values.Value (BEN.Value (Last (First_Node (Sizes))));
                      V.IVal := V.IVal + 1;
@@ -2961,38 +3095,26 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
 
             when K_Sequence_Type =>
                declare
-                  Max_Size_Literal : Node_Id;
                   TC_Sequence      : Node_Id;
                   TC_Element       : Node_Id;
                   Seq_Package      : Node_Id;
                begin
-                  --  Unbounded, sequences have "0" as limit
+                  --  Disable the reference counting on the TypeCode
+                  --  variable.
 
-                  if Present (Max_Size (E)) then
-                     Max_Size_Literal := Make_Literal
-                       (FEN.Value (Max_Size (E)));
-                  else
-                     Max_Size_Literal := Make_Literal
-                       (New_Integer_Value (0, 1, 10));
-                  end if;
-
-                  TC_Element := Get_TC_Node (Type_Spec (E));
-                  TC_Sequence := Get_TC_Node (E);
-
-                  N := Make_Assignment_Statement
-                    (TC_Sequence,
-                     Make_Subprogram_Call
-                     (RE (RE_Build_Sequence_TC),
-                      Make_List_Id
-                      (TC_Element,
-                       Max_Size_Literal)));
+                  N := Make_Subprogram_Call
+                    (RE (RE_Disable_Reference_Counting),
+                     Make_List_Id (Get_TC_Node (E)));
                   Append_Node_To_List (N, Statements);
 
                   --  If the sequence does not contain local element,
                   --  initialize the instantiated package.
 
                   if not FEU.Has_Local_Component (E) then
+                     Handle_Dependency (Type_Spec (E), Statements);
 
+                     TC_Element := Get_TC_Node (Type_Spec (E));
+                     TC_Sequence := Get_TC_Node (E);
                      Seq_Package := Make_Defining_Identifier
                        (Map_Sequence_Pkg_Helper_Name (E));
 
@@ -3011,29 +3133,8 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                end;
 
             when K_String_Type
-              | K_Wide_String_Type =>
-               declare
-                  Build_Spg : Node_Id;
-               begin
-                  if FEN.Kind (E) = K_String_Type then
-                     Build_Spg := RE (RE_Build_Bounded_String_TC);
-                  else
-                     Build_Spg := RE (RE_Build_Bounded_Wide_String_TC);
-                  end if;
-
-                  N := Make_Subprogram_Call
-                    (Build_Spg,
-                     Make_List_Id (Make_Literal (FEN.Value (Max_Size (E)))));
-
-                  N := Make_Subprogram_Call
-                    (RE (RE_To_CORBA_Object),
-                     Make_List_Id (N));
-
-                  N := Make_Assignment_Statement (Get_TC_Node (E), N);
-                  Append_Node_To_List (N, Statements);
-               end;
-
-            when K_Simple_Declarator
+              | K_Wide_String_Type
+              | K_Simple_Declarator
               | K_Enumeration_Type
               | K_Structure_Type
               | K_Union_Type
@@ -3088,6 +3189,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                   Enumerators := Enumeration_Literals
                     (Type_Definition (Stub));
                   Enum_Item := First_Node (Enumerators);
+
                   loop
                      Var_Name := Add_Prefix_To_Name
                        (Get_Name_String (BEN.Name (Enum_Item)) & '_',
@@ -3100,6 +3202,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                      N := Add_Parameter (Entity_TC_Name, Param1);
                      Append_Node_To_List (N, Statements);
                      Enum_Item := Next_Node (Enum_Item);
+
                      exit when No (Enum_Item);
                   end loop;
                end;
@@ -3168,6 +3271,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                   --  statements list.
 
                   Switch_Alternative := First_Entity (Switch_Type_Body (E));
+
                   while Present (Switch_Alternative) loop
                      Choices := New_List (K_List_Id);
                      Label   := First_Entity (Labels (Switch_Alternative));
@@ -3237,6 +3341,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                      --  more than once but with a different label.
 
                      Choice := First_Node (Choices);
+
                      while Present (Choice) loop
                         if BEN.Value (Choice) /= No_Value then
                            --  We make a copy of the Choice value to
@@ -3285,22 +3390,22 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                            Append_Node_To_List (N, Statement_List);
 
                         end if;
+
                         Choice := Next_Node (Choice);
                      end loop;
 
                      Switch_Alternative := Next_Entity (Switch_Alternative);
                   end loop;
+
                   if not There_Is_Default then
                      Default_Index := New_Integer_Value (1, -1, 10); --  (-1)
                   end if;
 
                   --  Forth parameter
 
-                  N := Make_Literal
-                    (Value           => Default_Index);
-                  N := Make_Subprogram_Call
+                  N := Make_Type_Conversion
                     (RE (RE_Long),
-                     Make_List_Id (N));
+                     Make_Literal (Default_Index));
                   N := Add_Parameter (Entity_TC_Name, N);
                   Append_Node_To_List (N, Statements);
 
@@ -3311,7 +3416,6 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                   Append_Node_To_List
                     (First_Node (Statement_List),
                      Statements);
-
                end;
 
             when K_Structure_Type =>
@@ -3323,6 +3427,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                   T          : Node_Id;
                begin
                   Member := First_Entity (Members (E));
+
                   while Present (Member) loop
                      Declarator := First_Entity (Declarators (Member));
 
@@ -3362,6 +3467,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
 
                         Declarator := Next_Entity (Declarator);
                      end loop;
+
                      Member := Next_Entity (Member);
                   end loop;
                end;
@@ -3381,8 +3487,10 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                   --  two two parameter for each member.
 
                   Members := FEN.Members (E);
+
                   if not FEU.Is_Empty (Members) then
                      Member := First_Entity (Members);
+
                      while Present (Member) loop
                         Declarator := First_Entity (Declarators (Member));
                         while Present (Declarator) loop
@@ -3430,6 +3538,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
 
                            Declarator := Next_Entity (Declarator);
                         end loop;
+
                         Member := Next_Entity (Member);
                      end loop;
                   end if;
@@ -3438,7 +3547,6 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                   --  interface members in the exception).
 
                   if not FEU.Has_Local_Component (E) then
-
                      --  Add a dependency to initialize correctly the
                      --  modules.
 
@@ -3488,6 +3596,17 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
             when others =>
                null;
          end case;
+
+         --  Disable reference counting on the TypeCode variable for
+         --  types who are different from sequences. For sequences,
+         --  this has been done earlier.
+
+         if FEN.Kind (E) /= K_Sequence_Type then
+            N := Make_Subprogram_Call
+              (RE (RE_Disable_Reference_Counting),
+               Make_List_Id (Get_TC_Node (E)));
+            Append_Node_To_List (N, Statements);
+         end if;
       end Initialize_Routine;
 
       -----------------------------
@@ -3503,86 +3622,16 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
          S    : constant List_Id := New_List (K_List_Id);
          N    : Node_Id;
       begin
-         --  Declarative part
-
-         --  Declare the ACC renaming variable
-
-         N := Make_Subprogram_Call
-           (RE (RE_Get_Value),
-            Make_List_Id (Make_Designator (PN (P_C))));
-         N := Make_Explicit_Dereference (N);
-         N := Make_Type_Conversion
-           (Make_Attribute_Designator (RE (RE_Aggregate_Content), A_Class),
-            N);
-         N := Make_Object_Declaration
-           (Defining_Identifier => Make_Defining_Identifier (PN (P_ACC)),
-            Object_Definition   => Make_Attribute_Designator
-            (RE (RE_Aggregate_Content), A_Class),
-            Renamed_Object      => N);
-         Append_Node_To_List (N, D);
-
-         --  Declare the El_M variable
-
-         N := Make_Object_Declaration
-           (Defining_Identifier => Make_Defining_Identifier (PN (P_El_M)),
-            Object_Definition   => RE (RE_Mechanism),
-            Expression          => RE (RE_By_Value),
-            Aliased_Present     => True);
-         Append_Node_To_List (N, D);
-
-         --  Declare the El_CC variable
-
          N := Make_Subprogram_Call
            (RE (RE_Get_Aggregate_Element_2),
             Make_List_Id
-            (Make_Attribute_Designator (Make_Designator (PN (P_ACC)),
-                                        A_Access),
-             RE (RE_TC_Unsigned_Long_1),
-             Make_Literal (Int0_Val),
-             Make_Attribute_Designator (Make_Designator (PN (P_El_M)),
-                                        A_Access)));
-         N := Make_Object_Declaration
-           (Defining_Identifier => Make_Defining_Identifier (PN (P_El_CC)),
-            Object_Definition   => Make_Attribute_Designator
-            (RE (RE_Content), A_Class),
-            Expression          => N,
-            Aliased_Present     => True);
-         Append_Node_To_List (N, D);
+            (Make_Designator (PN (P_C)),
+             Make_Literal (Int0_Val)));
 
-         --  Declare the El_C variable
-
-         N := Make_Object_Declaration
-           (Defining_Identifier => Make_Defining_Identifier (PN (P_El_C)),
-            Object_Definition   => RE (RE_Any_Container));
-         Append_Node_To_List (N, D);
-
-         --  Statements
-
-         --  Set the type of El_C
-
-         N := Make_Subprogram_Call
-           (RE (RE_Set_Type_1),
-            Make_List_Id (Make_Designator (PN (P_El_C)),
-                          RE (RE_TC_Unsigned_Long_1)));
-         Append_Node_To_List (N, S);
-
-         --  Set the value of El_CC
-
-         N := Make_Subprogram_Call
-           (RE (RE_Set_Value),
-            Make_List_Id (Make_Designator (PN (P_El_C)),
-                          Make_Attribute_Designator
-                          (Make_Designator (PN (P_El_CC)),
-                           A_Unchecked_Access)));
-         Append_Node_To_List (N, S);
-
-         --  Return statement
-
-         N := Make_Subprogram_Call
-           (RE (RE_From_Any_3),
-            Make_List_Id (Make_Designator (PN (P_El_C))));
          N := Make_Record_Aggregate (Make_List_Id (N));
+
          N := Make_Qualified_Expression (RE (RE_Unsigned_Long_1), N);
+
          N := Make_Subprogram_Call
            (Make_Attribute_Designator (Get_Type_Definition_Node (E), A_Val),
             Make_List_Id (N));
@@ -3592,6 +3641,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
          --  Make the subprogram body
 
          N := Make_Subprogram_Body (Spec, D, S);
+
          return N;
       end From_Any_Container_Body;
 
@@ -3666,9 +3716,10 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
 
          --  Preparing the call to From_Any
 
-         N := Make_Subprogram_Call
-           (RE (RE_To_CORBA_Any),
-            Make_List_Id (Make_Defining_Identifier (PN (P_Item))));
+         N := Make_Type_Conversion
+           (RE (RE_Any),
+            Make_Defining_Identifier (PN (P_Item)));
+
          From_Any_Helper := Expand_Designator
            (From_Any_Node
             (BE_Node

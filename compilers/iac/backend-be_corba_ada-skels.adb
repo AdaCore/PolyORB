@@ -1991,10 +1991,6 @@ package body Backend.BE_CORBA_Ada.Skels is
             Make_List_Id
             (Make_Defining_Identifier (PN (P_E))));
 
-         N := Make_Subprogram_Call
-           (RE (RE_To_CORBA_Any),
-            Make_List_Id (N));
-
          --  Set the exception
 
          N := Make_Subprogram_Call

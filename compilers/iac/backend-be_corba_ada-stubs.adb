@@ -1458,9 +1458,15 @@ package body Backend.BE_CORBA_Ada.Stubs is
                --  3rd param
 
                N := Make_Designator (Map_Argument_Any_Name (Argument_Name));
-               N := Make_Subprogram_Call
-                 (RE (RE_To_PolyORB_Any),
-                  Make_List_Id (N));
+               N := Make_Type_Conversion (RE (RE_Any_1), N);
+
+               --  If the operation is oneway, transmit a copy of the "Any"
+
+               if Is_Oneway (E) then
+                  N := Make_Subprogram_Call
+                    (RE (RE_Copy_Any), Make_List_Id (N));
+               end if;
+
                Append_Node_To_List (N, Profile);
 
                --  4th param
@@ -1555,8 +1561,6 @@ package body Backend.BE_CORBA_Ada.Stubs is
             C := Make_Subprogram_Call
               (Defining_Identifier  => RE (RE_Get_Empty_Any),
                Actual_Parameter_Part => Make_List_Id (Param));
-            C := Make_Subprogram_Call
-              (RE (RE_To_PolyORB_Any), Make_List_Id (C));
             N := Make_Component_Association
               (Selector_Name => Make_Defining_Identifier (PN (P_Argument)),
                Expression    => C);
@@ -1596,7 +1600,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
 
                N := Make_Designator (CN (C_Argument), VN (V_Result_NV));
                N := Make_Subprogram_Call
-                 (RE (RE_Get_Container),
+                 (RE (RE_Get_Container_2),
                   Make_List_Id (N));
                N := Make_Explicit_Dereference (N);
 
@@ -1862,10 +1866,6 @@ package body Backend.BE_CORBA_Ada.Stubs is
                    (Make_Designator (EN (E_Program_Error)))));
                Append_Node_To_List (N, Statements);
             end if;
-
-            --  For the moment there is no implementation of SII/SSI
-            --  invocation for GIOP 1.0 and 1.1 so we didn't have to
-            --  make this conditional.
          end if;
 
          --  Invoking the request (synchronously or asynchronously),
