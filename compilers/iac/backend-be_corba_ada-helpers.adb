@@ -233,7 +233,16 @@ package body Backend.BE_CORBA_Ada.Helpers is
                N := Get_Type_Definition_Node (E);
 
             when K_Forward_Interface_Declaration =>
-               N := Instantiation_Node (BE_Node (Identifier (E)));
+
+               --  Resolve the forward declaration
+
+               N := Package_Declaration
+                 (BEN.Parent
+                  (Type_Def_Node
+                   (BE_Node
+                    (Identifier
+                     (Forward
+                      (E))))));
 
             when K_Fixed_Point_Type =>
                N := Get_Type_Definition_Node (E);
@@ -308,19 +317,12 @@ package body Backend.BE_CORBA_Ada.Helpers is
          Add_Nat_To_Name_Buffer (Int (Dim));
          TC_Name := Name_Find;
 
-         --  Expression of the constant
-
-         N :=  Make_Subprogram_Call
-           (Defining_Identifier   => RE (RE_To_CORBA_Object),
-            Actual_Parameter_Part => Make_List_Id (RE (RE_TC_Array)));
-
          --  Declaration of the variable
 
          N := Make_Object_Declaration
            (Defining_Identifier => Make_Defining_Identifier (TC_Name),
             Constant_Present    => False,
-            Object_Definition   => RE (RE_Object),
-            Expression          => N);
+            Object_Definition   => RE (RE_Object));
 
          return N;
       end TypeCode_Dimension_Spec;
@@ -1803,9 +1805,17 @@ package body Backend.BE_CORBA_Ada.Helpers is
             Expression    => RE (RE_Empty));
          Append_Node_To_List (N, Aggregates);
 
-         --  Building the dependency list of the package
+         --  Building the dependency list of the package. By default,
+         --  all Helper packages have to be initialized after the Any
+         --  type initialization.
 
-         N := RE (RE_Empty);
+         Set_Str_To_Name_Buffer ("any");
+
+         N := Make_Expression
+           (Make_Literal
+            (New_String_Value
+             (Name_Find, False)),
+            Op_Plus);
 
          --  Dependencies
 

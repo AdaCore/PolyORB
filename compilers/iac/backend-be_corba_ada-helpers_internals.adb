@@ -2888,7 +2888,11 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                   end;
             end case;
 
-            return Make_Assignment_Statement (Get_TC_Node (E), Expr);
+            return Make_Assignment_Statement
+              (Get_TC_Node
+               (T               => E,
+                Resolve_Forward => False),
+               Expr);
          end TypeCode_Initialization;
 
          Stub             : Node_Id;

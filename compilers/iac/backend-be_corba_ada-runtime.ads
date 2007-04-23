@@ -410,6 +410,10 @@ package Backend.BE_CORBA_Ada.Runtime is
       --                                  Internals.Build_Alias_TC
       RE_Build_Sequence_TC,         --  CORBA.TypeCode.
       --                            --    Internals.Build_Sequence_TC
+      RE_Build_String_TC,           --  CORBA.TypeCode.
+      --                                  Internals.Build_String_TC
+      RE_Build_Wstring_TC,          --  CORBA.TypeCode.
+      --                                  Internals.Build_Wstring_TC
       RE_To_CORBA_Object,           --  CORBA.TypeCode.
       --                            --    Internals.To_CORBA_Object
       RE_To_PolyORB_Object,         --  CORBA.TypeCode.
@@ -468,8 +472,6 @@ package Backend.BE_CORBA_Ada.Runtime is
       RE_Ref_3,                     --  PolyORB.Any.NVList.Ref
       RE_Create,                    --  PolyORB.Any.NVList.Create
       RE_Add_Item_1,                --  PolyORB.Any.NVList.Add_Item
-      RE_Build_String_TC,           --  PolyORB.Any.TypeCode.Build_String_TC
-      RE_Build_Wstring_TC,          --  PolyORB.Any.TypeCode.Build_Wstring_TC
       RE_Object_Ptr_2,              --  PolyORB.Any.TypeCode.Object_Ptr
       RE_Object_7,                  --  PolyORB.Any.TypeCode.Object
       RE_TC_Object_1,               --  PolyORB.Any.TypeCode.TC_Object
@@ -1011,6 +1013,8 @@ package Backend.BE_CORBA_Ada.Runtime is
          RE_Object                    => RU_CORBA_TypeCode,
          RE_Build_Sequence_TC         => RU_CORBA_TypeCode_Internals,
          RE_Build_Alias_TC            => RU_CORBA_TypeCode_Internals,
+         RE_Build_String_TC           => RU_CORBA_TypeCode_Internals,
+         RE_Build_Wstring_TC          => RU_CORBA_TypeCode_Internals,
          RE_To_CORBA_Object           => RU_CORBA_TypeCode_Internals,
          RE_To_PolyORB_Object         => RU_CORBA_TypeCode_Internals,
          RE_Disable_Reference_Counting => RU_CORBA_TypeCode_Internals,
@@ -1040,8 +1044,6 @@ package Backend.BE_CORBA_Ada.Runtime is
          RE_Ref_3                     => RU_PolyORB_Any_NVList,
          RE_Create                    => RU_PolyORB_Any_NVList,
          RE_Add_Item_1                => RU_PolyORB_Any_NVList,
-         RE_Build_String_TC           => RU_PolyORB_Any_TypeCode,
-         RE_Build_Wstring_TC          => RU_PolyORB_Any_TypeCode,
          RE_Object_Ptr_2              => RU_PolyORB_Any_TypeCode,
          RE_Object_7                  => RU_PolyORB_Any_TypeCode,
          RE_TC_Alias                  => RU_PolyORB_Any_TypeCode,
