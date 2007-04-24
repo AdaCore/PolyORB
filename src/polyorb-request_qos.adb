@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -162,7 +162,7 @@ package body PolyORB.Request_QoS is
       A_Parameter : QoS_Parameter_Access;
 
    begin
-      pragma Debug (O ("Fetch_Qos: enter"));
+      pragma Debug (O ("Fetch_QoS: enter"));
 
       for J in Call_Back_Array'Range loop
          if Call_Back_Array (J) /= null then
@@ -177,7 +177,7 @@ package body PolyORB.Request_QoS is
          end if;
       end loop;
 
-      pragma Debug (O ("Fetch_Qos: leave"));
+      pragma Debug (O ("Fetch_QoS: leave"));
       return Result;
    end Fetch_QoS;
 
