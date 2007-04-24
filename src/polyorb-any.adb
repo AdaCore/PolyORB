@@ -157,7 +157,7 @@ package body PolyORB.Any is
 
       procedure Kind_Check (C : Any_Container'Class) is
       begin
-         if TypeCode.Kind (Unwind_Typedefs (C.The_Type)) /= Kind then
+         if TypeCode.Kind (Unwind_Typedefs (Get_Type_Obj (C))) /= Kind then
             raise Program_Error;
          end if;
       end Kind_Check;
@@ -918,11 +918,11 @@ package body PolyORB.Any is
       Src_C : Any_Container'Class)
    is
       TC  : constant TypeCode.Object_Ptr :=
-              Unwind_Typedefs (TypeCode.Object_Of (Src_C.The_Type));
+              Unwind_Typedefs (Get_Type_Obj (Src_C));
       TCK : constant TCKind := TypeCode.Kind (TC);
 
       Dst_TCK : constant TCKind :=
-                  TypeCode.Kind (Unwind_Typedefs (Dst_C.The_Type));
+                  TypeCode.Kind (Unwind_Typedefs (Get_Type_Obj (Dst_C)));
    begin
       if Src_C'Address = Dst_C'Address then
          return;
@@ -1317,7 +1317,7 @@ package body PolyORB.Any is
 
    function From_Any (C : Any_Container'Class) return Standard.String is
       Bound : constant Types.Unsigned_Long :=
-                TypeCode.Length (Unwind_Typedefs (C.The_Type));
+                TypeCode.Length (Unwind_Typedefs (Get_Type_Obj (C)));
    begin
       if Bound = 0 then
 
@@ -1336,7 +1336,7 @@ package body PolyORB.Any is
 
    function From_Any (C : Any_Container'Class) return Standard.Wide_String is
       Bound : constant Types.Unsigned_Long :=
-                TypeCode.Length (Unwind_Typedefs (C.The_Type));
+                TypeCode.Length (Unwind_Typedefs (Get_Type_Obj (C)));
    begin
       if Bound = 0 then
 
@@ -2015,7 +2015,7 @@ package body PolyORB.Any is
    procedure Set_Any_Aggregate_Value (Agg_C : in out Any_Container'Class) is
       use TypeCode;
       Kind : constant TCKind :=
-               TypeCode.Kind (Unwind_Typedefs (Agg_C.The_Type));
+               TypeCode.Kind (Unwind_Typedefs (Get_Type_Obj (Agg_C)));
    begin
       pragma Debug (O ("Set_Any_Aggregate_Value: enter"));
       if Kind not in Aggregate_TCKind then
