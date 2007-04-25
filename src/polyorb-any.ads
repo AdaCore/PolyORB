@@ -359,20 +359,9 @@ package PolyORB.Any is
       --  label value.
       --  Raises BadKind for other typecode kinds.
 
-      ------------------------------------
-      -- Low-level parameters accessors --
-      ------------------------------------
-
-      function Get_Parameter
-        (Self  : Object_Ptr;
-         Index : Types.Unsigned_Long) return Any_Container_Ptr;
-      --  Extract the Index'th parameter from Self
-
-      function Get_Parameter
-        (Self  : Object_Ptr;
-         Index : Types.Unsigned_Long) return Object_Ptr;
-      --  Special version of Get_Parameter for the case where the parameter
-      --  is itself a TypeCode.
+      -------------------------------------------------------------------
+      -- Low-level accessors for construction/destruction of typecodes --
+      -------------------------------------------------------------------
 
       procedure Add_Parameter (Self : Local_Ref; Param : Any);
       --  Append Param to Self's parameter list

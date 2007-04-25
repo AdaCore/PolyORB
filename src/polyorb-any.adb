@@ -705,8 +705,8 @@ package body PolyORB.Any is
 
          when Tk_String =>
             declare
-               L : Types.String := From_Any (Left);
-               R : Types.String := From_Any (Right);
+               L : constant Standard.String := From_Any (Left);
+               R : constant Standard.String := From_Any (Right);
             begin
                pragma Debug (O ("Equal (Any, String): end"));
                return L = R;
@@ -1322,8 +1322,13 @@ package body PolyORB.Any is
       if Bound = 0 then
 
          --  Unbounded case
+         --  Use unchecked access to underlying Types.String to avoid
+         --  a costly Adjust.
 
-         return To_Standard_String (Types.String'(From_Any (C)));
+         return To_Standard_String
+           (Elementary_Any_String.Unchecked_Get_V
+            (Elementary_Any_String.T_Content
+             (C.The_Value.all)'Access).all);
 
       else
 
@@ -1341,8 +1346,13 @@ package body PolyORB.Any is
       if Bound = 0 then
 
          --  Unbounded case
+         --  Use unchecked access to underlying Types.String to avoid
+         --  a costly Adjust.
 
-         return To_Wide_String (Types.Wide_String'(From_Any (C)));
+         return To_Wide_String
+           (Elementary_Any_Wide_String.Unchecked_Get_V
+            (Elementary_Any_Wide_String.T_Content
+             (C.The_Value.all)'Access).all);
 
       else
 
@@ -1654,10 +1664,7 @@ package body PolyORB.Any is
            Tk_Abstract_Interface |
            Tk_Except             =>
             Result := To_PolyORB_String (TCKind'Image (Kind) & " ")
-              & Types.String'(From_Any (Get_Parameter (TC, 0).all))
-              & To_PolyORB_String (" (")
-              & Types.String'(From_Any (Get_Parameter (TC, 1).all))
-              & To_PolyORB_String (")");
+              & Types.String (Name (TC)) & " (" & Types.String (Id (TC)) & ")";
 
             --  Add a few information
 
@@ -1676,52 +1683,32 @@ package body PolyORB.Any is
                when
                  Tk_Struct             |
                  Tk_Except             =>
-                  Result := Result & " { ";
 
-                  declare
-                     I : Types.Unsigned_Long := 2;
-                     C : constant Types.Unsigned_Long := Parameter_Count (TC);
-                  begin
-                     while I < C loop
-                        Result := Result &
-                          " " & Image
-                           (TypeCode.Local_Ref'
-                            (From_Any (Get_Parameter (TC, I).all))) & " "
-                          & Types.String'
-                             (From_Any (Get_Parameter (TC, I + 1).all))
-                          & "; ";
-                        I := I + 2;
-                     end loop;
-                  end;
-                  Result := Result & "}";
+                  Result := Result & " {";
+                  for J in 0 .. Member_Count (TC) - 1 loop
+                     Result := Result &
+                       " " & Image (Member_Type (TC, J)) & " "
+                           & Types.String (Member_Name (TC, J));
+                  end loop;
+                  Result := Result & " }";
 
                   return To_Standard_String (Result);
 
                when Tk_Union =>
                   Result := Result
                     & " ("
-                    & Image (TypeCode.Local_Ref'
-                              (From_Any (Get_Parameter (TC, 2).all)))
+                    & Image (Discriminator_Type (TC))
                     & " :="
-                    & Types.Long'Image (From_Any (Get_Parameter (TC, 3).all))
-                    & ") { ";
+                    & Types.Long'Image (Default_Index (TC))
+                    & ") {";
 
-                  declare
-                     I : Types.Unsigned_Long := 4;
-                     C : constant Types.Unsigned_Long := Parameter_Count (TC);
-                  begin
-                     while I < C loop
-                        Result := Result &
-                          "case " & Image (Get_Parameter (TC, I).all) & ": "
-                          & Image (TypeCode.Local_Ref'
-                             (From_Any (Get_Parameter (TC, I + 1).all))) & " "
-                          & Types.String'
-                             (From_Any (Get_Parameter (TC, I + 2).all))
-                          & "; ";
-                        I := I + 3;
-                     end loop;
-                  end;
-                  Result := Result & "}";
+                  for J in 0 .. Member_Count (TC) - 1 loop
+                     Result := Result &
+                       " case " & Image (Member_Label (TC, J)) & ": "
+                       & Image (Member_Type (TC, J))
+                       & Types.String (Member_Name (TC, J)) & ";";
+                  end loop;
+                  Result := Result & " }";
 
                   return To_Standard_String (Result);
 
@@ -2387,6 +2374,17 @@ package body PolyORB.Any is
       pragma Inline (Parameters);
       --  Return a pointer to the parameters of TC
 
+      function Get_Parameter
+        (Self  : Object_Ptr;
+         Index : Types.Unsigned_Long) return Any_Container_Ptr;
+      --  Extract the Index'th parameter from Self
+
+      function Get_Parameter
+        (Self  : Object_Ptr;
+         Index : Types.Unsigned_Long) return Object_Ptr;
+      --  Special version of Get_Parameter for the case where the parameter
+      --  is itself a TypeCode.
+
       -----------
       -- Equal --
       -----------
@@ -2398,7 +2396,6 @@ package body PolyORB.Any is
 
       function Equal (Left, Right : Object_Ptr) return Boolean is
          Nb_Param : Unsigned_Long;
-
       begin
          pragma Debug (O ("Equal (TypeCode): enter"));
 
