@@ -381,8 +381,8 @@ package body PolyORB.Requests is
                      pragma Debug (O ("Src_Arg: "
                                       & To_String (Value (Src_It).Name)));
                      if PolyORB.Any.TypeCode.Equal
-                       (Get_Unwound_Type (Value (Dst_It).Argument),
-                        Get_Unwound_Type (Value (Src_It).Argument))
+                          (Get_Unwound_Type (Value (Dst_It).Argument),
+                           Get_Unwound_Type (Value (Src_It).Argument))
                        and then Value (Dst_It).Name = Value (Src_It).Name
                      then
                         pragma Debug (O ("Found the argument: copying"));
@@ -533,15 +533,15 @@ package body PolyORB.Requests is
                     and then Copied_Src_Args (Src_Idx) = False
                   then
                      declare
-                        Dst_Arg_Type : constant TypeCode.Local_Ref :=
+                        Dst_Arg_Type : constant TypeCode.Object_Ptr :=
                                          Get_Unwound_Type
                                            (Value (Dst_It).Argument);
                      begin
                         pragma Debug (O ("Src_Arg: "
                                          & To_String (Value (Src_It).Name)));
                         if PolyORB.Any.TypeCode.Equal
-                          (Dst_Arg_Type, Get_Unwound_Type
-                           (Value (Src_It).Argument))
+                          (Dst_Arg_Type,
+                           Get_Unwound_Type (Value (Src_It).Argument))
                         then
                            if Value (Dst_It).Name = Value (Src_It).Name then
                               Copy_Argument := True;

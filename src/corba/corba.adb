@@ -1446,10 +1446,11 @@ package body CORBA is
       -- Get_Unwound_Type --
       ----------------------
 
-      function Get_Unwound_Type (The_Any : Any) return TypeCode.Object is
+      function Get_Unwound_Type
+        (The_Any : Any) return PolyORB.Any.TypeCode.Object_Ptr
+      is
       begin
-         return TypeCode.Internals.To_CORBA_Object
-                  (Get_Unwound_Type (The_Any));
+         return PolyORB.Any.Get_Unwound_Type (PolyORB.Any.Any (The_Any));
       end Get_Unwound_Type;
 
       ---------------------

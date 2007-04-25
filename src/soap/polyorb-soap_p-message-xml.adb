@@ -484,7 +484,7 @@ package body PolyORB.SOAP_P.Message.XML is
    begin
       declare
          TC : constant PolyORB.Any.TypeCode.Object_Ptr :=
-                Object_Of (Get_Unwound_Type (NV.Argument));
+                Get_Unwound_Type (NV.Argument);
          A : PolyORB.Any.Any := Get_Empty_Any_Aggregate
                                   (Get_Type (NV.Argument));
 

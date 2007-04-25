@@ -871,6 +871,15 @@ package body System.Partition_Interface is
       Addr := Null_Address;
    end Get_Local_Address;
 
+   ------------
+   -- Get_TC --
+   ------------
+
+   function Get_TC (A : Any) return PolyORB.Any.TypeCode.Local_Ref is
+   begin
+      return PATC.To_Ref (PolyORB.Any.Get_Unwound_Type (A));
+   end Get_TC;
+
    Local_PID_Barrier   : PTC.Condition_Access;
    Local_PID           : RPC.Partition_ID;
    Local_PID_Allocated : Boolean := False;

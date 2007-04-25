@@ -813,7 +813,7 @@ package PolyORB.Any is
      (TC : TypeCode.Local_Ref) return TypeCode.Local_Ref;
    --  Unwind any typedef (alias) from TC
 
-   function Get_Unwound_Type (The_Any : Any) return TypeCode.Local_Ref;
+   function Get_Unwound_Type (The_Any : Any) return TypeCode.Object_Ptr;
    --  Return the actual type of The_Any, after resolution of all alias levels
 
    procedure Set_Type (A : in out Any; TC : TypeCode.Object_Ptr);

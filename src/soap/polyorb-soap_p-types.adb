@@ -294,8 +294,7 @@ package body PolyORB.SOAP_P.Types is
 --    -----------
 
    function Image (NV : NamedValue) return String is
-      TC : constant TypeCode.Local_Ref
-        := Get_Unwound_Type (NV.Argument);
+      TC : constant TypeCode.Object_Ptr := Get_Unwound_Type (NV.Argument);
       Kind : constant TCKind := TypeCode.Kind (TC);
    begin
       pragma Debug
@@ -724,8 +723,10 @@ package body PolyORB.SOAP_P.Types is
       use Ada.Strings.Unbounded;
 
       Result : Unbounded_String;
-      Element_Type : constant PolyORB.Any.TypeCode.Local_Ref
-        := TypeCode.Content_Type (Get_Unwound_Type (NV.Argument));
+      Element_Type : constant PolyORB.Any.TypeCode.Local_Ref :=
+                                PolyORB.Any.TypeCode.To_Ref
+                                  (TypeCode.Content_Type
+                                   (Get_Unwound_Type (NV.Argument)));
       New_Line : constant String := ASCII.CR & ASCII.LF;
    begin
       Append (Result, SOAP.Utils.Tag
@@ -747,7 +748,7 @@ package body PolyORB.SOAP_P.Types is
                 (Name     => To_PolyORB_String ("e"),
                  Argument =>
                    PolyORB.Any.Get_Aggregate_Element
-                 (NV.Argument, Element_Type, I),
+                     (NV.Argument, Element_Type, I),
                  Arg_Modes => ARG_IN)));
 
             Append (Result, New_Line);
@@ -764,8 +765,8 @@ package body PolyORB.SOAP_P.Types is
       use Ada.Strings.Unbounded;
 
       Result : Unbounded_String;
-      Data_Type : constant PolyORB.Any.TypeCode.Local_Ref
-        := Get_Unwound_Type (NV.Argument);
+      Data_Type : constant PolyORB.Any.TypeCode.Object_Ptr :=
+                    Get_Unwound_Type (NV.Argument);
       New_Line : constant String := ASCII.CR & ASCII.LF;
    begin
       pragma Debug (O ("XML_Record_Image: enter"));
@@ -781,12 +782,13 @@ package body PolyORB.SOAP_P.Types is
             Append
               (Result, XML_Image
                (PolyORB.Any.NamedValue'
-                (Name     =>
-                   PolyORB.Any.TypeCode.Member_Name (Data_Type, I),
+                (Name     => PolyORB.Any.TypeCode.Member_Name (Data_Type, I),
                  Argument =>
                    PolyORB.Any.Get_Aggregate_Element
-                 (NV.Argument, PolyORB.Any.TypeCode.Member_Type
-                  (Data_Type, I), I),
+                     (NV.Argument,
+                      PolyORB.Any.TypeCode.To_Ref
+                        (PolyORB.Any.TypeCode.Member_Type (Data_Type, I)),
+                      I),
                  Arg_Modes =>
                    ARG_IN)));
 

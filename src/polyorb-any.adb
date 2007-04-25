@@ -1580,9 +1580,9 @@ package body PolyORB.Any is
    -- Get_Unwound_Type --
    ----------------------
 
-   function Get_Unwound_Type (The_Any : Any) return TypeCode.Local_Ref is
+   function Get_Unwound_Type (The_Any : Any) return TypeCode.Object_Ptr is
    begin
-      return Unwind_Typedefs (Get_Type (The_Any));
+      return Unwind_Typedefs (Get_Type_Obj (The_Any));
    end Get_Unwound_Type;
 
    ---------------
@@ -1904,7 +1904,7 @@ package body PolyORB.Any is
       Dst_C : constant Any_Container_Ptr := Get_Container (Dst);
    begin
       if TypeCode.Kind (Get_Unwound_Type (Dst))
-        /= TypeCode.Kind (Get_Unwound_Type (Src))
+         /= TypeCode.Kind (Get_Unwound_Type (Src))
       then
          pragma Debug (O ("Move_Any_Value from: "
                           & Image (Get_Unwound_Type (Src))));

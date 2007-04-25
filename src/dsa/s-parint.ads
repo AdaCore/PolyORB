@@ -315,12 +315,10 @@ package System.Partition_Interface is
       T : PolyORB.Any.TypeCode.Local_Ref)
       renames PolyORB.Any.Set_Type;
 
-   function Get_TC (A : Any) return PolyORB.Any.TypeCode.Local_Ref
-     renames PolyORB.Any.Get_Unwound_Type;
+   function Get_TC (A : Any) return PolyORB.Any.TypeCode.Local_Ref;
 
    function Create_Any
-     (Tc : PolyORB.Any.TypeCode.Local_Ref)
-      return Any
+     (Tc : PolyORB.Any.TypeCode.Local_Ref) return Any
      renames PolyORB.Any.Get_Empty_Any_Aggregate;
 
    function Content_Type

@@ -89,8 +89,7 @@ package body DynamicAny.DynAny.Impl is
    ---------------------
 
    function Component_Count
-     (Self : access Object)
-      return CORBA.Unsigned_Long
+     (Self : access Object) return CORBA.Unsigned_Long
    is
    begin
       if Is_Destroyed (Self) then
@@ -98,9 +97,8 @@ package body DynamicAny.DynAny.Impl is
       end if;
 
       declare
-         T : constant PolyORB.Any.TypeCode.Local_Ref
-           := Get_Unwound_Type (Self.Value);
-
+         T : constant PolyORB.Any.TypeCode.Object_Ptr :=
+               Get_Unwound_Type (Self.Value);
       begin
          case Kind (T) is
             when Tk_Sequence =>

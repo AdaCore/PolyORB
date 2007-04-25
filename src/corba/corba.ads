@@ -940,8 +940,9 @@ package CORBA is
       --  specific to PolyORB which should not be used directly from
       --  application code.
 
-      function Get_Unwound_Type (The_Any : Any) return TypeCode.Object;
-      --  Returns the most precise type of an Any (unwinding all typedefs)
+      function Get_Unwound_Type
+        (The_Any : Any) return PolyORB.Any.TypeCode.Object_Ptr;
+      --  Returns the type of The_Any after unwinding all typedefs
 
       procedure Set_Type
         (The_Any  : in out Any;
