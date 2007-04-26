@@ -7,17 +7,22 @@ with Echo;
 with PolyORB.Setup.Client;
 pragma Warnings (Off, PolyORB.Setup.Client);
 
+with PolyORB.Utils.Report;
+
 procedure Client is
    use Ada.Command_Line;
    use Ada.Text_IO;
+   use PolyORB.Utils.Report;
 
    Sent_Msg, Rcvd_Msg : CORBA.String;
    myecho : Echo.Ref;
 
 begin
+   New_Test ("Echo client");
+
    CORBA.ORB.Initialize ("ORB");
    if Argument_Count /= 1 then
-      Put_Line ("usage : client <IOR_string_from_server>");
+      Put_Line ("usage : client <IOR_string_from_server>|-i");
       return;
    end if;
 
@@ -43,6 +48,8 @@ begin
    Put_Line ("I said : " & CORBA.To_Standard_String (Sent_Msg));
    Put_Line ("The object answered : " & CORBA.To_Standard_String (Rcvd_Msg));
 
+   End_Report;
+
 exception
    when E : CORBA.Transient =>
       declare
@@ -53,5 +60,7 @@ exception
          Put (CORBA.Unsigned_Long'Image (Memb.Minor));
          Put (", completion status: ");
          Put_Line (CORBA.Completion_Status'Image (Memb.Completed));
+
+         End_Report;
       end;
 end Client;
