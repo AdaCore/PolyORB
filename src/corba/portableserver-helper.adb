@@ -178,7 +178,7 @@ package body PortableServer.Helper is
       use type PolyORB.Types.Unsigned_Long;
       use type PolyORB.Any.Mechanism;
       pragma Unreferenced (TC, Index);
-      pragma Suppress (Validity_Check);
+      pragma Suppress (All_Checks);
    begin
       ACC.Repr_Cache := PortableServer.ThreadPolicyValue'Pos (ACC.V.all);
       Mech.all := PolyORB.Any.By_Value;
@@ -322,7 +322,7 @@ package body PortableServer.Helper is
       use type PolyORB.Types.Unsigned_Long;
       use type PolyORB.Any.Mechanism;
       pragma Unreferenced (TC, Index);
-      pragma Suppress (Validity_Check);
+      pragma Suppress (All_Checks);
    begin
       ACC.Repr_Cache := PortableServer.LifespanPolicyValue'Pos (ACC.V.all);
       Mech.all := PolyORB.Any.By_Value;
@@ -466,7 +466,7 @@ package body PortableServer.Helper is
       use type PolyORB.Types.Unsigned_Long;
       use type PolyORB.Any.Mechanism;
       pragma Unreferenced (TC, Index);
-      pragma Suppress (Validity_Check);
+      pragma Suppress (All_Checks);
    begin
       ACC.Repr_Cache := PortableServer.IdUniquenessPolicyValue'Pos (ACC.V.all);
       Mech.all := PolyORB.Any.By_Value;
@@ -610,7 +610,7 @@ package body PortableServer.Helper is
       use type PolyORB.Types.Unsigned_Long;
       use type PolyORB.Any.Mechanism;
       pragma Unreferenced (TC, Index);
-      pragma Suppress (Validity_Check);
+      pragma Suppress (All_Checks);
    begin
       ACC.Repr_Cache := PortableServer.IdAssignmentPolicyValue'Pos (ACC.V.all);
       Mech.all := PolyORB.Any.By_Value;
@@ -754,7 +754,7 @@ package body PortableServer.Helper is
       use type PolyORB.Types.Unsigned_Long;
       use type PolyORB.Any.Mechanism;
       pragma Unreferenced (TC, Index);
-      pragma Suppress (Validity_Check);
+      pragma Suppress (All_Checks);
    begin
       ACC.Repr_Cache := PortableServer.ImplicitActivationPolicyValue'Pos (ACC.V.all);
       Mech.all := PolyORB.Any.By_Value;
@@ -898,7 +898,7 @@ package body PortableServer.Helper is
       use type PolyORB.Types.Unsigned_Long;
       use type PolyORB.Any.Mechanism;
       pragma Unreferenced (TC, Index);
-      pragma Suppress (Validity_Check);
+      pragma Suppress (All_Checks);
    begin
       ACC.Repr_Cache := PortableServer.ServantRetentionPolicyValue'Pos (ACC.V.all);
       Mech.all := PolyORB.Any.By_Value;
@@ -1042,7 +1042,7 @@ package body PortableServer.Helper is
       use type PolyORB.Types.Unsigned_Long;
       use type PolyORB.Any.Mechanism;
       pragma Unreferenced (TC, Index);
-      pragma Suppress (Validity_Check);
+      pragma Suppress (All_Checks);
    begin
       ACC.Repr_Cache := PortableServer.RequestProcessingPolicyValue'Pos (ACC.V.all);
       Mech.all := PolyORB.Any.By_Value;
@@ -1161,7 +1161,7 @@ package body PortableServer.Helper is
          CORBA.Internals.Add_Parameter (TC_POA, CORBA.To_Any (Id));
       end;
 
-      TC_IDL_SEQUENCE_PortableServer_POA_Forward := 
+      TC_IDL_SEQUENCE_PortableServer_POA_Forward :=
         CORBA.TypeCode.Internals.Build_Sequence_TC
           (PortableServer.POA.Helper.TC_POA, 0);
 
