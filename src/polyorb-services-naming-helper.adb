@@ -310,9 +310,9 @@ package body  PolyORB.Services.Naming.Helper is
    function To_Any (Item : PolyORB.References.Ref)
                     return PolyORB.Any.Any
    is
-      A : PolyORB.Any.Any := PolyORB.Any.ObjRef.To_Any (Item);
+      A : Any.Any := Any.ObjRef.To_Any (Item);
    begin
-      Set_Type (A, PolyORB.Services.Naming.Helper.TC_Object);
+      Set_Type (A, Services.Naming.Helper.TC_Object);
       return A;
    end To_Any;
 
@@ -323,6 +323,7 @@ package body  PolyORB.Services.Naming.Helper is
    procedure Initialize;
 
    procedure Initialize is
+      use PolyORB.Any.TypeCode;
    begin
       declare
          Name : PolyORB.Types.String :=
@@ -330,10 +331,11 @@ package body  PolyORB.Services.Naming.Helper is
          Id : PolyORB.Types.String :=
            To_PolyORB_String ("IDL:omg.org/CosNaming/Istring:1.0");
       begin
-         TC_Istring := TypeCode.TC_Alias;
-         TypeCode.Add_Parameter (TC_Istring, To_Any (Name));
-         TypeCode.Add_Parameter (TC_Istring, To_Any (Id));
-         TypeCode.Add_Parameter (TC_Istring, To_Any (TC_String));
+         TC_Istring := TC_Alias;
+         Add_Parameter (TC_Istring, To_Any (Name));
+         Add_Parameter (TC_Istring, To_Any (Id));
+         Add_Parameter (TC_Istring, To_Any (TypeCode.TC_String));
+         Disable_Reference_Counting (Object_Of (TC_Istring).all);
       end;
 
       declare
@@ -346,30 +348,32 @@ package body  PolyORB.Services.Naming.Helper is
          Arg_Name_kind : PolyORB.Types.String :=
            To_PolyORB_String ("kind");
       begin
-         TC_NameComponent := TypeCode.TC_Struct;
-         TypeCode.Add_Parameter (TC_NameComponent, To_Any (Name));
-         TypeCode.Add_Parameter (TC_NameComponent, To_Any (Id));
-         TypeCode.Add_Parameter (TC_NameComponent, To_Any (TC_Istring));
-         TypeCode.Add_Parameter (TC_NameComponent, To_Any (Arg_Name_id));
-         TypeCode.Add_Parameter (TC_NameComponent, To_Any (TC_Istring));
-         TypeCode.Add_Parameter (TC_NameComponent, To_Any (Arg_Name_kind));
+         TC_NameComponent := TC_Struct;
+         Add_Parameter (TC_NameComponent, To_Any (Name));
+         Add_Parameter (TC_NameComponent, To_Any (Id));
+         Add_Parameter (TC_NameComponent, To_Any (TC_Istring));
+         Add_Parameter (TC_NameComponent, To_Any (Arg_Name_id));
+         Add_Parameter (TC_NameComponent, To_Any (TC_Istring));
+         Add_Parameter (TC_NameComponent, To_Any (Arg_Name_kind));
+         Disable_Reference_Counting (Object_Of (TC_NameComponent).all);
       end;
 
-      TC_SEQUENCE_NameComponent := TypeCode.TC_Sequence;
-      TypeCode.Add_Parameter (TC_SEQUENCE_NameComponent,
-                              To_Any (PolyORB.Types.Unsigned_Long (0)));
-      TypeCode.Add_Parameter (TC_SEQUENCE_NameComponent,
-                              To_Any (TC_NameComponent));
+      TC_SEQUENCE_NameComponent := TC_Sequence;
+      Add_Parameter (TC_SEQUENCE_NameComponent,
+                     To_Any (Types.Unsigned_Long'(0)));
+      Add_Parameter (TC_SEQUENCE_NameComponent, To_Any (TC_NameComponent));
+      Disable_Reference_Counting (Object_Of (TC_SEQUENCE_NameComponent).all);
 
       declare
          Name : PolyORB.Types.String := To_PolyORB_String ("Name");
          Id : PolyORB.Types.String :=
            To_PolyORB_String ("IDL:omg.org/CosNaming/Name:1.0");
       begin
-         TC_Name := TypeCode.TC_Alias;
-         TypeCode.Add_Parameter (TC_Name, To_Any (Name));
-         TypeCode.Add_Parameter (TC_Name, To_Any (Id));
-         TypeCode.Add_Parameter (TC_Name, To_Any (TC_SEQUENCE_NameComponent));
+         TC_Name := TC_Alias;
+         Add_Parameter (TC_Name, To_Any (Name));
+         Add_Parameter (TC_Name, To_Any (Id));
+         Add_Parameter (TC_Name, To_Any (TC_SEQUENCE_NameComponent));
+         Disable_Reference_Counting (Object_Of (TC_Name).all);
       end;
 
       declare
@@ -382,11 +386,12 @@ package body  PolyORB.Services.Naming.Helper is
          ncontext_Name : PolyORB.Types.String :=
            To_PolyORB_String ("ncontext");
       begin
-         TC_BindingType := TypeCode.TC_Enum;
-         TypeCode.Add_Parameter (TC_BindingType, To_Any (Name));
-         TypeCode.Add_Parameter (TC_BindingType, To_Any (Id));
-         TypeCode.Add_Parameter (TC_BindingType, To_Any (nobject_Name));
-         TypeCode.Add_Parameter (TC_BindingType, To_Any (ncontext_Name));
+         TC_BindingType := TC_Enum;
+         Add_Parameter (TC_BindingType, To_Any (Name));
+         Add_Parameter (TC_BindingType, To_Any (Id));
+         Add_Parameter (TC_BindingType, To_Any (nobject_Name));
+         Add_Parameter (TC_BindingType, To_Any (ncontext_Name));
+         Disable_Reference_Counting (Object_Of (TC_BindingType).all);
       end;
 
       declare
@@ -399,20 +404,22 @@ package body  PolyORB.Services.Naming.Helper is
          Arg_Name_binding_type : PolyORB.Types.String :=
            To_PolyORB_String ("binding_type");
       begin
-         TC_Binding := TypeCode.TC_Struct;
-         TypeCode.Add_Parameter (TC_Binding, To_Any (Name));
-         TypeCode.Add_Parameter (TC_Binding, To_Any (Id));
-         TypeCode.Add_Parameter (TC_Binding, To_Any (Helper.TC_Name));
-         TypeCode.Add_Parameter (TC_Binding, To_Any (Arg_Name_binding_name));
-         TypeCode.Add_Parameter (TC_Binding, To_Any (Helper.TC_BindingType));
-         TypeCode.Add_Parameter (TC_Binding, To_Any (Arg_Name_binding_type));
+         TC_Binding := TC_Struct;
+         Add_Parameter (TC_Binding, To_Any (Name));
+         Add_Parameter (TC_Binding, To_Any (Id));
+         Add_Parameter (TC_Binding, To_Any (Helper.TC_Name));
+         Add_Parameter (TC_Binding, To_Any (Arg_Name_binding_name));
+         Add_Parameter (TC_Binding, To_Any (Helper.TC_BindingType));
+         Add_Parameter (TC_Binding, To_Any (Arg_Name_binding_type));
+         Disable_Reference_Counting (Object_Of (TC_Binding).all);
       end;
 
-      TC_SEQUENCE_Binding := TypeCode.TC_Sequence;
-      TypeCode.Add_Parameter (TC_SEQUENCE_Binding,
+      TC_SEQUENCE_Binding := TC_Sequence;
+      Add_Parameter (TC_SEQUENCE_Binding,
                               To_Any (PolyORB.Types.Unsigned_Long (0)));
-      TypeCode.Add_Parameter (TC_SEQUENCE_Binding,
+      Add_Parameter (TC_SEQUENCE_Binding,
                               To_Any (TC_Binding));
+      Disable_Reference_Counting (Object_Of (TC_SEQUENCE_Binding).all);
 
       declare
          Name : PolyORB.Types.String := To_PolyORB_String
@@ -420,11 +427,11 @@ package body  PolyORB.Services.Naming.Helper is
          Id : PolyORB.Types.String := To_PolyORB_String
            ("IDL:omg.org/CosNaming/BindingList:1.0");
       begin
-         TC_BindingList := TypeCode.TC_Alias;
-         TypeCode.Add_Parameter (TC_BindingList, To_Any (Name));
-         TypeCode.Add_Parameter (TC_BindingList, To_Any (Id));
-         TypeCode.Add_Parameter (TC_BindingList,
-                                 To_Any (TC_SEQUENCE_Binding));
+         TC_BindingList := TC_Alias;
+         Add_Parameter (TC_BindingList, To_Any (Name));
+         Add_Parameter (TC_BindingList, To_Any (Id));
+         Add_Parameter (TC_BindingList, To_Any (TC_SEQUENCE_Binding));
+         Disable_Reference_Counting (Object_Of (TC_BindingList).all);
       end;
 
       --  XXX to be declared in minimal servant ???
@@ -434,9 +441,10 @@ package body  PolyORB.Services.Naming.Helper is
          Id : PolyORB.Types.String := To_PolyORB_String
            ("IDL:CORBA/Object:1.0");
       begin
-         TC_Object := TypeCode.TC_Object;
-         TypeCode.Add_Parameter (TC_Object, To_Any (Name));
-         TypeCode.Add_Parameter (TC_Object, To_Any (Id));
+         Naming.Helper.TC_Object := TypeCode.TC_Object;
+         Add_Parameter (Naming.Helper.TC_Object, To_Any (Name));
+         Add_Parameter (Naming.Helper.TC_Object, To_Any (Id));
+         Disable_Reference_Counting (Object_Of (Naming.Helper.TC_Object).all);
       end;
 
    end Initialize;

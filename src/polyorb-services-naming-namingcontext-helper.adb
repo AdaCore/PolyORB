@@ -356,6 +356,7 @@ package body PolyORB.Services.Naming.NamingContext.Helper is
    procedure Initialize;
 
    procedure Initialize is
+      use PolyORB.Any.TypeCode;
    begin
       declare
          Name : PolyORB.Types.String
@@ -364,8 +365,9 @@ package body PolyORB.Services.Naming.NamingContext.Helper is
            := To_PolyORB_String ("IDL:omg.org/CosNaming/NamingContext:1.0");
       begin
          TC_NamingContext := TypeCode.TC_Object;
-         TypeCode.Add_Parameter (TC_NamingContext, To_Any (Name));
-         TypeCode.Add_Parameter (TC_NamingContext, To_Any (Id));
+         Add_Parameter (TC_NamingContext, To_Any (Name));
+         Add_Parameter (TC_NamingContext, To_Any (Id));
+         Disable_Reference_Counting (Object_Of (TC_NamingContext).all);
       end;
 
       declare
@@ -381,15 +383,16 @@ package body PolyORB.Services.Naming.NamingContext.Helper is
          not_object_Name : PolyORB.Types.String
            := To_PolyORB_String ("not_object");
       begin
-         TC_NotFoundReason := TypeCode.TC_Enum;
-         TypeCode.Add_Parameter (TC_NotFoundReason, To_Any (Name));
-         TypeCode.Add_Parameter (TC_NotFoundReason, To_Any (Id));
-         TypeCode.Add_Parameter (TC_NotFoundReason,
+         TC_NotFoundReason := TC_Enum;
+         Add_Parameter (TC_NotFoundReason, To_Any (Name));
+         Add_Parameter (TC_NotFoundReason, To_Any (Id));
+         Add_Parameter (TC_NotFoundReason,
                                  To_Any (missing_node_Name));
-         TypeCode.Add_Parameter (TC_NotFoundReason,
+         Add_Parameter (TC_NotFoundReason,
                                  To_Any (not_context_Name));
-         TypeCode.Add_Parameter (TC_NotFoundReason,
+         Add_Parameter (TC_NotFoundReason,
                                  To_Any (not_object_Name));
+         Disable_Reference_Counting (Object_Of (TC_NotFoundReason).all);
       end;
 
       declare
@@ -401,15 +404,16 @@ package body PolyORB.Services.Naming.NamingContext.Helper is
          Arg_Name_rest_of_name : PolyORB.Types.String
            := To_PolyORB_String ("rest_of_name");
       begin
-         TC_NotFound := TypeCode.TC_Except;
-         TypeCode.Add_Parameter (TC_NotFound, To_Any (Name));
-         TypeCode.Add_Parameter (TC_NotFound, To_Any (Id));
-         TypeCode.Add_Parameter (TC_NotFound,
+         TC_NotFound := TC_Except;
+         Add_Parameter (TC_NotFound, To_Any (Name));
+         Add_Parameter (TC_NotFound, To_Any (Id));
+         Add_Parameter (TC_NotFound,
                                  To_Any (TC_NotFoundReason));
-         TypeCode.Add_Parameter (TC_NotFound, To_Any (Arg_Name_why));
-         TypeCode.Add_Parameter (TC_NotFound, To_Any (TC_Name));
-         TypeCode.Add_Parameter (TC_NotFound,
+         Add_Parameter (TC_NotFound, To_Any (Arg_Name_why));
+         Add_Parameter (TC_NotFound, To_Any (TC_Name));
+         Add_Parameter (TC_NotFound,
                                  To_Any (Arg_Name_rest_of_name));
+         Disable_Reference_Counting (Object_Of (TC_NotFound).all);
       end;
       PolyORB.Exceptions.Register_Exception
         (TC_NotFound,
@@ -424,15 +428,16 @@ package body PolyORB.Services.Naming.NamingContext.Helper is
          Arg_Name_rest_of_name : PolyORB.Types.String
            := To_PolyORB_String ("rest_of_name");
       begin
-         TC_CannotProceed := TypeCode.TC_Except;
-         TypeCode.Add_Parameter (TC_CannotProceed, To_Any (Name));
-         TypeCode.Add_Parameter (TC_CannotProceed, To_Any (Id));
-         TypeCode.Add_Parameter (TC_CannotProceed,
+         TC_CannotProceed := TC_Except;
+         Add_Parameter (TC_CannotProceed, To_Any (Name));
+         Add_Parameter (TC_CannotProceed, To_Any (Id));
+         Add_Parameter (TC_CannotProceed,
                                  To_Any (TC_NamingContext));
-         TypeCode.Add_Parameter (TC_CannotProceed, To_Any (Arg_Name_cxt));
-         TypeCode.Add_Parameter (TC_CannotProceed, To_Any (TC_Name));
-         TypeCode.Add_Parameter (TC_CannotProceed,
+         Add_Parameter (TC_CannotProceed, To_Any (Arg_Name_cxt));
+         Add_Parameter (TC_CannotProceed, To_Any (TC_Name));
+         Add_Parameter (TC_CannotProceed,
                                  To_Any (Arg_Name_rest_of_name));
+         Disable_Reference_Counting (Object_Of (TC_CannotProceed).all);
       end;
       PolyORB.Exceptions.Register_Exception
         (TC_CannotProceed,
@@ -445,9 +450,10 @@ package body PolyORB.Services.Naming.NamingContext.Helper is
            := To_PolyORB_String
            ("IDL:omg.org/CosNaming/NamingContext/InvalidName:1.0");
       begin
-         TC_InvalidName := TypeCode.TC_Except;
-         TypeCode.Add_Parameter (TC_InvalidName, To_Any (Name));
-         TypeCode.Add_Parameter (TC_InvalidName, To_Any (Id));
+         TC_InvalidName := TC_Except;
+         Add_Parameter (TC_InvalidName, To_Any (Name));
+         Add_Parameter (TC_InvalidName, To_Any (Id));
+         Disable_Reference_Counting (Object_Of (TC_InvalidName).all);
       end;
       PolyORB.Exceptions.Register_Exception
         (TC_InvalidName,
@@ -459,9 +465,10 @@ package body PolyORB.Services.Naming.NamingContext.Helper is
            := To_PolyORB_String
            ("IDL:omg.org/CosNaming/NamingContext/AlreadyBound:1.0");
       begin
-         TC_AlreadyBound := TypeCode.TC_Except;
-         TypeCode.Add_Parameter (TC_AlreadyBound, To_Any (Name));
-         TypeCode.Add_Parameter (TC_AlreadyBound, To_Any (Id));
+         TC_AlreadyBound := TC_Except;
+         Add_Parameter (TC_AlreadyBound, To_Any (Name));
+         Add_Parameter (TC_AlreadyBound, To_Any (Id));
+         Disable_Reference_Counting (Object_Of (TC_AlreadyBound).all);
       end;
       PolyORB.Exceptions.Register_Exception
         (TC_AlreadyBound,
@@ -473,9 +480,10 @@ package body PolyORB.Services.Naming.NamingContext.Helper is
            := To_PolyORB_String
            ("IDL:omg.org/CosNaming/NamingContext/NotEmpty:1.0");
       begin
-         TC_NotEmpty := TypeCode.TC_Except;
-         TypeCode.Add_Parameter (TC_NotEmpty, To_Any (Name));
-         TypeCode.Add_Parameter (TC_NotEmpty, To_Any (Id));
+         TC_NotEmpty := TC_Except;
+         Add_Parameter (TC_NotEmpty, To_Any (Name));
+         Add_Parameter (TC_NotEmpty, To_Any (Id));
+         Disable_Reference_Counting (Object_Of (TC_NotEmpty).all);
       end;
       PolyORB.Exceptions.Register_Exception
         (TC_NotEmpty,
