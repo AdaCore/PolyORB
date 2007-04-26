@@ -168,7 +168,7 @@ package body Idl_Fe.Files is
       use GNAT.Command_Line;
 
       CPP_Arg_List : constant Argument_List_Access
-        := Argument_String_To_List (Platform.CXX_Preprocessor);
+        := Argument_String_To_List (Platform.IDL_Preprocessor);
 
       Tmp_File_Name_NUL : Temp_File_Name;
       --  Name of the temporary file to which preprocessor output
@@ -216,7 +216,7 @@ package body Idl_Fe.Files is
          Tmp_File_Name := new String'(
            Tmp_File_Name_NUL (Tmp_File_Name_NUL'First
                            .. Tmp_File_Name_NUL'Last - 1)
-           & Platform.CXX_Preprocessor_Suffix);
+           & Platform.IDL_Preprocessor_Suffix);
       end;
 
       --  Add platform specific C++ preprocessor arguments as well as C++

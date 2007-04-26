@@ -525,7 +525,7 @@ package body Lexer is
       Tmp_FName                   : Temp_File_Name;
       Preprocessor                : String_Access;
       Prep_And_Flags_List : constant Argument_List_Access
-        := Argument_String_To_List (Platform.CXX_Preprocessor);
+        := Argument_String_To_List (Platform.IDL_Preprocessor);
 
    begin
       if Initialized then
@@ -571,7 +571,7 @@ package body Lexer is
 
       Set_Str_To_Name_Buffer (Tmp_FName);
       Name_Len := Name_Len - 1;
-      Add_Str_To_Name_Buffer (Platform.CXX_Preprocessor_Suffix);
+      Add_Str_To_Name_Buffer (Platform.IDL_Preprocessor_Suffix);
       Add_CPP_Flag (Name_Buffer (1 .. Name_Len));
 
       CPP_Tmp_File := Name_Find;

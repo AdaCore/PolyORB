@@ -62,7 +62,6 @@ if test "${ADAFLAGS-unset}" = unset; then
 fi
 
 AC_PROG_INSTALL
-AC_PROG_CXXCPP
 AC_PROG_AWK
 AC_CHECK_PROG(RM, rm, rm)
 AC_CHECK_PROG(SED, sed, sed)
@@ -77,6 +76,7 @@ AM_CROSS_PROG_WORKING_ADA
 AM_PROG_GNATMAKE
 AM_CROSS_PROG_GNATMAKE
 AM_CROSS_PROG_CC
+AM_PROG_IDLCPP
 AM_PROG_XARGS_I
 
 ##########################################
@@ -173,15 +173,7 @@ AC_ARG_WITH(idl-compiler,
   IDLAC=idlac
 ])
 AC_SUBST(IDLAC)
-if test "${CXXCPPFLAGS}" = ""; then
-  CXXCPPFLAGS="-x c++ -ansi"
-  # Use default options for the GNU CPP:
-  # -x c++       force C++ preprocessor mode (even though it cannot be
-  #              inferred from filename extension .idl)
-  # -ansi        disable GCC-specific behaviour
-fi
-AC_SUBST(CXXCPPFLAGS)
-AM_CXXCPP_NEEDS_DOT
+AM_IDLCPP_NEEDS_DOT
 
 ##########################################
 # Services list.

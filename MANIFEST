@@ -1791,6 +1791,7 @@ support/cxxcpp.m4
 support/enable-conditional-debug
 support/gentexifile
 support/gnatsrc.m4
+support/idlcpp.m4
 support/install-sh
 support/libtool-tag.m4
 support/libtool.m4
