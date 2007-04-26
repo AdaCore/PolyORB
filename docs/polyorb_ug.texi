@@ -550,7 +550,11 @@ Optional:
   personality (the OMG IDL specification mandates that IDL source
   files be preprocessed according to standard C++ preprocessing
   rules, and PolyORB relies on an external preprocessor provided
-  by a suitable C++ compiler to implement this).
+  by a suitable C++ compiler to implement this). Note that newer
+  versions of GNAT provide an integrated IDL preprocessor. This feature
+  is detected and used automatically; in that case, no external C++
+  compiler is necessary. Please refer to the documentation of your
+  particular version of GNAT to know if it supports this feature.
 
 @item XML/Ada (@url{http://libre.adacore.com/xmlada/}) if you
   want to build the SOAP protocol personality.

@@ -43,3 +43,9 @@ NF-23-G130-013 Extended syntax for port binding parameters (2007-01-31)
   This provides a means of ensuring that a server does not unexpectedly
   bind to a different port than the one specified in runtime configuration
   parameters.
+
+NF-23-FC18-009 No C++ compiler is required with recent GNAT (2007-04-26)
+
+  New versions of the GNAT compiler now provide an IDL preprocessor. When
+  this feature is present, no external C++ compiler is required to process
+  OMG IDL files.
