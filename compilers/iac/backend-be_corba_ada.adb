@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -122,12 +122,15 @@ package body Backend.BE_CORBA_Ada is
         (Hdr & "         and minimize memory space");
       Write_Line
         (Hdr & "-rs      Use the SII/SSI to handle requests");
+
+      --  XXX The following is currently not advertised, it requires
+      --  some support in PolyORB that is not currently operational.
+      --  Write_Line
+      --   (Hdr & "-ro      Use the SII/SSI and optimize buffer allocation");
+      --  Write_Line
+      --  (Hdr & "-ra    Use the SII/SSI and optimize parameter marshalling");
       Write_Line
-        (Hdr & "-ro      Use the SII/SSI and optimize buffer allocation");
-      Write_Line
-        (Hdr & "-ra      Use the SII/SSI and optimize parameter marshalling");
-      Write_Line
-        (Hdr & "-rd      Use the DII/DSI to handle requests");
+        (Hdr & "-rd      Use the DII/DSI to handle requests (default)");
       Write_Line
         (Hdr & "-da      Dump the Ada tree");
       Write_Line
