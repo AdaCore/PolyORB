@@ -354,6 +354,7 @@ docs/Makefile.am
 docs/Makefile.in
 docs/PROBLEM-REPORT-FORM
 docs/gfdl.texi
+docs/iac.1
 docs/idlac.1
 docs/po_names.1
 docs/polyorb-config.1
