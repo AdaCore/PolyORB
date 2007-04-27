@@ -366,7 +366,7 @@ package PolyORB.Any is
       procedure Add_Parameter (Self : Local_Ref; Param : Any);
       --  Append Param to Self's parameter list
 
-      procedure Destroy_TypeCode (Self : in out Object);
+      procedure Finalize (Self : in out Object);
       --  Reclaim all storage associated with Self's parameters
 
       --  Standard typecode constants

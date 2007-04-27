@@ -1686,9 +1686,12 @@ package body PolyORB.Any is
 
                   Result := Result & " {";
                   for J in 0 .. Member_Count (TC) - 1 loop
-                     Result := Result &
-                       " " & Image (Member_Type (TC, J)) & " "
-                           & Types.String (Member_Name (TC, J));
+                     Result := Result
+                       & " "
+                       & Image (Member_Type (TC, J))
+                       & " "
+                       & Types.String (Member_Name (TC, J))
+                       & ";";
                   end loop;
                   Result := Result & " }";
 
@@ -2577,22 +2580,6 @@ package body PolyORB.Any is
          end case;
       end Default_Index;
 
-      ----------------------
-      -- Destroy_TypeCode --
-      ----------------------
-
-      procedure Destroy_TypeCode (Self : in out Object) is
-      begin
-         pragma Debug (O ("Destroy_TypeCode: enter"));
-
-         if Self.Parameters /= null then
-            Finalize_Value (Self.Parameters.all);
-            Free (Self.Parameters);
-         end if;
-
-         pragma Debug (O ("Destroy_TypeCode: leave"));
-      end Destroy_TypeCode;
-
       --------------------------------
       -- Disable_Reference_Counting --
       --------------------------------
@@ -2890,6 +2877,22 @@ package body PolyORB.Any is
 
          return True;
       end Equivalent;
+
+      --------------
+      -- Finalize --
+      --------------
+
+      procedure Finalize (Self : in out Object) is
+      begin
+         pragma Debug (O ("Finalize (TypeCode.Object): enter"));
+
+         if Self.Parameters /= null then
+            Finalize_Value (Self.Parameters.all);
+            Free (Self.Parameters);
+         end if;
+
+         pragma Debug (O ("Finalize (TypeCode.Object): leave"));
+      end Finalize;
 
       ------------------
       -- Fixed_Digits --
