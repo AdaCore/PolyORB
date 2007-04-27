@@ -1159,11 +1159,14 @@ package body PortableServer.Helper is
            CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TC_Object);
          CORBA.Internals.Add_Parameter (TC_POA, CORBA.To_Any (Name));
          CORBA.Internals.Add_Parameter (TC_POA, CORBA.To_Any (Id));
+         CORBA.TypeCode.Internals.Disable_Reference_Counting (TC_POA);
       end;
 
       TC_IDL_SEQUENCE_PortableServer_POA_Forward :=
         CORBA.TypeCode.Internals.Build_Sequence_TC
           (PortableServer.POA.Helper.TC_POA, 0);
+      CORBA.TypeCode.Internals.Disable_Reference_Counting
+        (TC_IDL_SEQUENCE_PortableServer_POA_Forward);
 
       declare
          Name : CORBA.String := CORBA.To_CORBA_String ("POAList");
@@ -1171,6 +1174,7 @@ package body PortableServer.Helper is
       begin
          TC_POAList := CORBA.TypeCode.Internals.Build_Alias_TC
            (Name => Name, Id => Id, Parent => PortableServer.Helper.TC_IDL_SEQUENCE_PortableServer_POA_Forward);
+         CORBA.TypeCode.Internals.Disable_Reference_Counting (TC_POAList);
       end;
 
       declare
@@ -1179,6 +1183,7 @@ package body PortableServer.Helper is
       begin
          TC_ObjectId := CORBA.TypeCode.Internals.Build_Alias_TC
            (Name => Name, Id => Id, Parent => CORBA.IDL_SEQUENCES.Helper.TC_OctetSeq);
+         CORBA.TypeCode.Internals.Disable_Reference_Counting (TC_ObjectId);
       end;
 
       declare
@@ -1192,6 +1197,7 @@ package body PortableServer.Helper is
          CORBA.Internals.Add_Parameter (TC_ForwardRequest, CORBA.To_Any (Id));
          CORBA.Internals.Add_Parameter (TC_ForwardRequest, CORBA.To_Any (CORBA.Object.Helper.TC_Object));
          CORBA.Internals.Add_Parameter (TC_ForwardRequest, CORBA.To_Any (Arg_Name_forward_reference));
+         CORBA.TypeCode.Internals.Disable_Reference_Counting (TC_ForwardRequest);
       end;
       PolyORB.Exceptions.Register_Exception
         (CORBA.TypeCode.Internals.To_PolyORB_Object (TC_ForwardRequest),
@@ -1210,6 +1216,7 @@ package body PortableServer.Helper is
          CORBA.Internals.Add_Parameter (TC_ThreadPolicyValue, CORBA.To_Any (ORB_CTRL_MODEL_Name));
          CORBA.Internals.Add_Parameter (TC_ThreadPolicyValue, CORBA.To_Any (SINGLE_THREAD_MODEL_Name));
          CORBA.Internals.Add_Parameter (TC_ThreadPolicyValue, CORBA.To_Any (MAIN_THREAD_MODEL_Name));
+         CORBA.TypeCode.Internals.Disable_Reference_Counting (TC_ThreadPolicyValue);
       end;
       declare
          Name : CORBA.String := CORBA.To_CORBA_String ("LifespanPolicyValue");
@@ -1223,6 +1230,7 @@ package body PortableServer.Helper is
          CORBA.Internals.Add_Parameter (TC_LifespanPolicyValue, CORBA.To_Any (Id));
          CORBA.Internals.Add_Parameter (TC_LifespanPolicyValue, CORBA.To_Any (TRANSIENT_Name));
          CORBA.Internals.Add_Parameter (TC_LifespanPolicyValue, CORBA.To_Any (PERSISTENT_Name));
+         CORBA.TypeCode.Internals.Disable_Reference_Counting (TC_LifespanPolicyValue);
       end;
       declare
          Name : CORBA.String := CORBA.To_CORBA_String ("IdUniquenessPolicyValue");
@@ -1236,6 +1244,7 @@ package body PortableServer.Helper is
          CORBA.Internals.Add_Parameter (TC_IdUniquenessPolicyValue, CORBA.To_Any (Id));
          CORBA.Internals.Add_Parameter (TC_IdUniquenessPolicyValue, CORBA.To_Any (UNIQUE_ID_Name));
          CORBA.Internals.Add_Parameter (TC_IdUniquenessPolicyValue, CORBA.To_Any (MULTIPLE_ID_Name));
+         CORBA.TypeCode.Internals.Disable_Reference_Counting (TC_IdUniquenessPolicyValue);
       end;
       declare
          Name : CORBA.String := CORBA.To_CORBA_String ("IdAssignmentPolicyValue");
@@ -1249,6 +1258,7 @@ package body PortableServer.Helper is
          CORBA.Internals.Add_Parameter (TC_IdAssignmentPolicyValue, CORBA.To_Any (Id));
          CORBA.Internals.Add_Parameter (TC_IdAssignmentPolicyValue, CORBA.To_Any (USER_ID_Name));
          CORBA.Internals.Add_Parameter (TC_IdAssignmentPolicyValue, CORBA.To_Any (SYSTEM_ID_Name));
+         CORBA.TypeCode.Internals.Disable_Reference_Counting (TC_IdAssignmentPolicyValue);
       end;
       declare
          Name : CORBA.String := CORBA.To_CORBA_String ("ImplicitActivationPolicyValue");
@@ -1262,6 +1272,7 @@ package body PortableServer.Helper is
          CORBA.Internals.Add_Parameter (TC_ImplicitActivationPolicyValue, CORBA.To_Any (Id));
          CORBA.Internals.Add_Parameter (TC_ImplicitActivationPolicyValue, CORBA.To_Any (IMPLICIT_ACTIVATION_Name));
          CORBA.Internals.Add_Parameter (TC_ImplicitActivationPolicyValue, CORBA.To_Any (NO_IMPLICIT_ACTIVATION_Name));
+         CORBA.TypeCode.Internals.Disable_Reference_Counting (TC_ImplicitActivationPolicyValue);
       end;
       declare
          Name : CORBA.String := CORBA.To_CORBA_String ("ServantRetentionPolicyValue");
@@ -1275,6 +1286,7 @@ package body PortableServer.Helper is
          CORBA.Internals.Add_Parameter (TC_ServantRetentionPolicyValue, CORBA.To_Any (Id));
          CORBA.Internals.Add_Parameter (TC_ServantRetentionPolicyValue, CORBA.To_Any (RETAIN_Name));
          CORBA.Internals.Add_Parameter (TC_ServantRetentionPolicyValue, CORBA.To_Any (NON_RETAIN_Name));
+         CORBA.TypeCode.Internals.Disable_Reference_Counting (TC_ServantRetentionPolicyValue);
       end;
       declare
          Name : CORBA.String := CORBA.To_CORBA_String ("RequestProcessingPolicyValue");
@@ -1290,6 +1302,7 @@ package body PortableServer.Helper is
          CORBA.Internals.Add_Parameter (TC_RequestProcessingPolicyValue, CORBA.To_Any (USE_ACTIVE_OBJECT_MAP_ONLY_Name));
          CORBA.Internals.Add_Parameter (TC_RequestProcessingPolicyValue, CORBA.To_Any (USE_DEFAULT_SERVANT_Name));
          CORBA.Internals.Add_Parameter (TC_RequestProcessingPolicyValue, CORBA.To_Any (USE_SERVANT_MANAGER_Name));
+         CORBA.TypeCode.Internals.Disable_Reference_Counting (TC_RequestProcessingPolicyValue);
       end;
 
    end Deferred_Initialization;

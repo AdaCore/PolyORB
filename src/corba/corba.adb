@@ -90,8 +90,8 @@ package body CORBA is
       TC : CORBA.TypeCode.Object renames TC_Completion_Status_Cache;
 
    begin
-      if not TypeCode.Internals.Is_Nil (TC_Completion_Status_Cache) then
-         return TC_Completion_Status_Cache;
+      if not TypeCode.Internals.Is_Nil (TC) then
+         return TC;
       end if;
 
       TC := TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TC_Enum);
@@ -105,6 +105,7 @@ package body CORBA is
          Internals.Add_Parameter
            (TC, To_Any (To_PolyORB_String (Completion_Status'Image (C))));
       end loop;
+      TypeCode.Internals.Disable_Reference_Counting (TC);
 
       return TC;
    end TC_Completion_Status;

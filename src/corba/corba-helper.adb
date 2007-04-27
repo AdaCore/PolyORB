@@ -236,8 +236,16 @@ package body CORBA.Helper is
 
    begin
       TC_RepositoryId_Cache := Build_TC_Alias_String ("RepositoryId");
+      CORBA.TypeCode.Internals.Disable_Reference_Counting
+        (TC_RepositoryId_Cache);
+
       TC_Identifier_Cache   := Build_TC_Alias_String ("Identifier");
+      CORBA.TypeCode.Internals.Disable_Reference_Counting
+        (TC_Identifier_Cache);
+
       TC_ScopedName_Cache   := Build_TC_Alias_String ("ScopedName");
+      CORBA.TypeCode.Internals.Disable_Reference_Counting
+        (TC_ScopedName_Cache);
 
       declare
          Name : CORBA.String := CORBA.To_CORBA_String ("Visibility");
@@ -246,6 +254,8 @@ package body CORBA.Helper is
       begin
          TC_Visibility_Cache := CORBA.TypeCode.Internals.Build_Alias_TC
            (Name => Name, Id => Id, Parent => CORBA.TC_Short);
+         CORBA.TypeCode.Internals.Disable_Reference_Counting
+           (TC_Visibility_Cache);
       end;
 
       declare
@@ -255,6 +265,8 @@ package body CORBA.Helper is
       begin
          TC_PolicyType_Cache := CORBA.TypeCode.Internals.Build_Alias_TC
            (Name => Name, Id => Id, Parent => CORBA.TC_Unsigned_Long);
+         CORBA.TypeCode.Internals.Disable_Reference_Counting
+           (TC_PolicyType_Cache);
       end;
    end Initialize;
 

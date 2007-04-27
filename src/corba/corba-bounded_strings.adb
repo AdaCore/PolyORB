@@ -47,10 +47,12 @@ package body CORBA.Bounded_Strings is
    TC_Cache : PolyORB.Any.TypeCode.Local_Ref;
 
    function TC_Bounded_String return CORBA.TypeCode.Object is
+      use PolyORB.Any.TypeCode;
    begin
-      if PolyORB.Any.TypeCode.Is_Nil (TC_Cache) then
-         TC_Cache := PolyORB.Any.TypeCode.Build_String_TC
-           (PolyORB.Types.Unsigned_Long (Max_Length));
+      if Is_Nil (TC_Cache) then
+         TC_Cache := Build_String_TC
+                       (PolyORB.Types.Unsigned_Long (Max_Length));
+         Disable_Reference_Counting (Object_Of (TC_Cache).all);
       end if;
       return CORBA.TypeCode.Internals.To_CORBA_Object (TC_Cache);
    end TC_Bounded_String;
