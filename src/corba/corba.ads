@@ -175,10 +175,12 @@ package CORBA is
    --  exception is raised. The default Member record is abstract and empty but
    --  all other records will inherit from it.
 
-   procedure Get_Members
-     (From : Ada.Exceptions.Exception_Occurrence;
-      To   : out IDL_Exception_Members) is abstract;
-   --  Return the member corresponding to an exception occurence
+   --  procedure Get_Members
+   --    (From : Ada.Exceptions.Exception_Occurrence;
+   --     To   : out IDL_Exception_Members) is abstract;
+   --  Return the member corresponding to an exception occurence.
+   --  There is no abstract dispatching operation; this is defined only
+   --  for derived types of Exception_Members.
 
    type Completion_Status is new PolyORB.Errors.Completion_Status;
    --  Characterization the state of execution when an exception occurs
