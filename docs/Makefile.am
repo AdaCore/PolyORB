@@ -1,5 +1,5 @@
 info_TEXINFOS = polyorb_ug.texi polyorb_dg.texi
-man_MANS = po_names.1 idlac.1 polyorb-config.1 polyorb.7
+man_MANS = po_names.1 idlac.1 iac.1 polyorb-config.1 polyorb.7
 
 SUFFIXES = .idl .ads .adb .texi .sed .pdf .txt .html
 
