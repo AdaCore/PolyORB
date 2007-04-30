@@ -821,7 +821,8 @@ package body Backend.BE_CORBA_Ada.Skels is
                Param := First_Entity (Parameters (E));
                while Present (Param) loop
                   if  FEN.Parameter_Mode (Param) = Mode_In
-                    or else FEN.Parameter_Mode (Param) = Mode_Inout then
+                    or else FEN.Parameter_Mode (Param) = Mode_Inout
+                  then
 
                      --  Get the parameter name
 
@@ -918,7 +919,6 @@ package body Backend.BE_CORBA_Ada.Skels is
                    Exception_Handler => Exception_Handler),
                   Statements);
             end if;
-
          end;
 
          --  Set Result
@@ -1099,7 +1099,7 @@ package body Backend.BE_CORBA_Ada.Skels is
                   Append_Node_To_List (N, Statements);
                end;
             else
-               --  the marshaller method
+               --  The marshaller method
 
                C := Expand_Designator
                  (Marshaller_Node
