@@ -42,7 +42,7 @@ with Platform;
 procedure Usage is
 begin
    Set_Standard_Error;
-   Write_Str  ("IAC from PolyORB " & Platform.Version);
+   Write_Line ("IAC from PolyORB " & Platform.Version);
    Write_Str  ("Usage: ");
    Write_Str  (Command_Name);
    Write_Line (" opts file [-cppargs args]");
