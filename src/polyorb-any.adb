@@ -1704,7 +1704,7 @@ package body PolyORB.Any is
 
                   for J in 0 .. Member_Count (TC) - 1 loop
                      Result := Result &
-                       " case " & Image (Member_Label (TC, J)) & ": "
+                       " case" & Image (Member_Label (TC, J)) & ": "
                        & Image (Member_Type (TC, J))
                        & " "
                        & Types.String (Member_Name (TC, J)) & ";";
