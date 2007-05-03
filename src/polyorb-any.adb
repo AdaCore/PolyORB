@@ -1598,10 +1598,7 @@ package body PolyORB.Any is
    -- Image --
    -----------
 
-   function Image
-     (NV : NamedValue)
-     return Standard.String
-   is
+   function Image (NV : NamedValue) return Standard.String is
 
       ---------------
       -- Flag_Name --
@@ -1709,6 +1706,7 @@ package body PolyORB.Any is
                      Result := Result &
                        " case " & Image (Member_Label (TC, J)) & ": "
                        & Image (Member_Type (TC, J))
+                       & " "
                        & Types.String (Member_Name (TC, J)) & ";";
                   end loop;
                   Result := Result & " }";
