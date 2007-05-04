@@ -1388,7 +1388,8 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
       --  Message type
 
       MCtx_1_2.Message_Type := Unmarshall (Buffer);
-      pragma Debug (O ("Message Type       : " & MCtx_1_2.Message_Type'Img));
+      pragma Debug
+        (O ("Message Type       : " & MCtx_1_2.Message_Type'Img));
 
       --  Message size
 
