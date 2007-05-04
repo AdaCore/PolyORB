@@ -41,11 +41,16 @@ package body PolyORB.Parameters is
 
    package Source_Lists is
      new PolyORB.Utils.Chained_Lists (Parameters_Source_Access);
+   type Source_List_Access is access Source_Lists.List;
 
-   Sources : Source_Lists.List;
+   Sources : Source_List_Access;
    --  Manage an ordered list of configuration parameter sources. When looking
    --  up the value of a parameter, the first match is returned, hence sources
    --  closer to the head of the list take precendence over subsequent ones.
+   --  The designated List object is allocated on the first call to
+   --  Register_Source (we can't declare a List object directly here because
+   --  List is a private type, and this would make Parameters non-preelaborable
+   --  in Ada 95).
 
    function Fetch (Key : String) return String;
    --  Get the string from a file (if Key starts with file: and the file
@@ -77,7 +82,7 @@ package body PolyORB.Parameters is
       Default      : String := "") return String
    is
       use Source_Lists;
-      It : Iterator := First (Sources);
+      It : Iterator := First (Sources.all);
    begin
       while not Last (It) loop
          declare
@@ -208,7 +213,10 @@ package body PolyORB.Parameters is
 
    procedure Register_Source (Source : Parameters_Source_Access) is
    begin
-      Source_Lists.Append (Sources, Source);
+      if Sources = null then
+         Sources := new Source_Lists.List;
+      end if;
+      Source_Lists.Append (Sources.all, Source);
    end Register_Source;
 
 end PolyORB.Parameters;
