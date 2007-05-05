@@ -2366,14 +2366,16 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
       end if;
 
       --  We get the node of the current interface (the interface who
-      --  first called this subprogram
+      --  first called this subprogram.
 
       Actual_Current_Interface := FEN.Corresponding_Entity
         (FE_Node (Current_Entity));
 
-      if First_Recusrion_Level
-        and then not Skel
-      then
+      --  In case of first recursion level, we compute a new value to
+      --  tag visited parents (in order to visit them only once), we
+      --  also map the additional entities.
+
+      if First_Recusrion_Level then
          --  It is important to get the new value before any inherited
          --  entity manipulation
 
@@ -2395,14 +2397,21 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
                Stub   => Stub,
                Helper => Helper);
          end if;
-         Par_Int := Next_Entity (First_Entity (L));
       else
          Mark := View_Old_Int_Value;
+      end if;
+
+      --  In case of first recursion level and not a skel visiting, we
+      --  begin by the second parent, in other cases, we begin by the
+      --  first.
+
+      if First_Recusrion_Level and then not Skel then
+         Par_Int := Next_Entity (First_Entity (L));
+      else
          Par_Int := First_Entity (L);
       end if;
 
       while Present (Par_Int) loop
-
          --  We ensure that the interface is not visited twice and is
          --  not an implicit parent
 
@@ -2411,19 +2420,21 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
             (Reference
              (Par_Int)));
 
+         if Get_Name_Table_Info (Par_Name) = Mark then
+            Do_Visit := False;
+         else
+            Set_Name_Table_Info (Par_Name, Mark);
+         end if;
+
          --  For Stubs, Helpers or Impls, primitives for the first
          --  parent are inherited by entities: we only add nodes from
          --  the others parents. Skel should handle all parents.
 
-         if (not Skel
-             and then Is_Implicit_Parent (Reference (Par_Int),
-                                          Actual_Current_Interface))
-           or else Get_Name_Table_Info (Par_Name) = Mark
+         if Is_Implicit_Parent (Reference (Par_Int), Actual_Current_Interface)
+           and then not Skel
          then
             Do_Visit := False;
          end if;
-
-         Set_Name_Table_Info (Par_Name, Mark);
 
          if not Do_Visit then
             Do_Visit := True;

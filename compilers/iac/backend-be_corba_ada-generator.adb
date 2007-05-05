@@ -1055,13 +1055,17 @@ package body Backend.BE_CORBA_Ada.Generator is
             Write_Space;
          elsif Op /= Operator_Type'Pos (Op_None) then
             Write_Name (Operator_Image (Standard.Integer (Op)));
-            Write_Space;
+
+            --  Do not generate space after a unary operator
          end if;
       else
-         --  Expressions having "|" as operator are generally used in
-         --  case switches and do not require parentheses
+         --  Expressions having "|" as operator (case switches
+         --  alternatives) and expressions having "&" as operator
+         --  (array concatenation) do not require parentheses.
 
-         if Op /= Operator_Type'Pos (Op_Vertical_Bar) then
+         if Op /= Operator_Type'Pos (Op_Vertical_Bar)
+           and then Op /= Operator_Type'Pos (Op_And_Symbol)
+         then
             Write (Tok_Left_Paren);
          end if;
       end if;
@@ -1069,25 +1073,21 @@ package body Backend.BE_CORBA_Ada.Generator is
       Generate (L_Expr);
 
       if Present (R_Expr) then
-         if Kind (R_Expr) /= K_Literal then
-            Write_Eol;
-            Increment_Indentation;
-            Write_Indentation;
-         else
-            Write_Space;
-         end if;
+         Write_Eol;
+         Increment_Indentation;
+         Write_Indentation;
 
          Write_Name (Operator_Image (Standard.Integer (Op)));
          Write_Space;
          Generate (R_Expr);
 
-         if Op /= Operator_Type'Pos (Op_Vertical_Bar) then
+         if Op /= Operator_Type'Pos (Op_Vertical_Bar)
+           and then Op /= Operator_Type'Pos (Op_And_Symbol)
+         then
             Write (Tok_Right_Paren);
          end if;
 
-         if Kind (R_Expr) /= K_Literal then
-            Decrement_Indentation;
-         end if;
+         Decrement_Indentation;
       end if;
    end Generate_Expression;
 
