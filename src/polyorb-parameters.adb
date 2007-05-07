@@ -82,8 +82,14 @@ package body PolyORB.Parameters is
       Default      : String := "") return String
    is
       use Source_Lists;
-      It : Iterator := First (Sources.all);
+      It : Iterator;
    begin
+      if Sources = null then
+         return Default;
+      end if;
+
+      It := First (Sources.all);
+
       while not Last (It) loop
          declare
             V : constant String := Get_Conf (Value (It).all, Section, Key);
