@@ -1836,7 +1836,9 @@ package body PolyORB.Any is
 
          when Tk_Any =>
             return "<Any:"
-              & Image (Elementary_Any_Any.T_Content (Get_Value (C).all).V.all)
+              & Image (Elementary_Any_Any.Unchecked_Get_V
+                       (Elementary_Any_Any.T_Content
+                        (Get_Value (C).all)'Access).all)
               & ">";
 
          when others =>
