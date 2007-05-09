@@ -150,6 +150,7 @@ package PolyORB.Representations.CDR is
 private
 
    --  Typecodes map management
+
    --  When a complex typecode is marshalled into a CDR stream, nested
    --  typecodes can be stored as indirect references to a previous occurrence
    --  of the same typecode within the same enclosing outermost complex
