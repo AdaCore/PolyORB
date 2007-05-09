@@ -340,7 +340,7 @@ package body PolyORB.SOAP_P.Types is
          when others =>
             --  XXX ???
             pragma Debug
-              (O ("Image: Unsupported typecode kind:" & TCKind'Image (Kind)));
+              (O ("Image: Unsupported TCKind:" & TCKind'Image (Kind)));
             raise Data_Error;
       end case;
    end Image;
