@@ -150,6 +150,11 @@ package body PolyORB.Representations.CDR is
    --  If Complex is True, Representation.Current_Complex is restored to
    --  the index of the enclosing complex TC.
 
+   --  When unmarshalling a TypeCode, Start_TC and End_TC must each be
+   --  called exactly once, and if the typecode encloses any nested typecode,
+   --  then the nested typecode must be unmarshalled after the Start_TC call
+   --  and before the End_TC call.
+
    function To_Absolute_Offset
      (Representation  : access CDR_Representation'Class;
       Relative_Offset : Types.Long) return Types.Long;
