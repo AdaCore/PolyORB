@@ -199,6 +199,9 @@ package body PolyORB.Representations.CDR is
       use TC_Maps;
       T : TC_Maps.Instance renames Representation.TC_Map;
    begin
+      pragma Debug (O ("End_TC: Complex = " & Complex'Img
+        & ", Current_Complex =" & Representation.Current_Complex'Img));
+
       if not Complex then
          return;
       end if;
@@ -209,6 +212,7 @@ package body PolyORB.Representations.CDR is
       if Representation.Current_Complex = -1 then
          --  Outermost complex typecode completed
 
+         pragma Debug (O ("End_TC: left outermost complex"));
          Deallocate (T);
       end if;
    end End_TC;
@@ -1290,6 +1294,7 @@ package body PolyORB.Representations.CDR is
                        Types.String
                          (Types.Identifier'
                             (Unmarshall (Complex_Buffer'Access)));
+
                      Member_Type :=
                        Unmarshall (Complex_Buffer'Access, Representation);
                      Any.TypeCode.Add_Parameter (Result, To_Any (Member_Type));
@@ -1424,18 +1429,18 @@ package body PolyORB.Representations.CDR is
                Content_Type : TypeCode.Local_Ref;
             begin
                Decapsulate (Complex_Encap'Access, Complex_Buffer'Access);
-               Content_Type :=
-                 Unmarshall (Complex_Buffer'Access, Representation);
-               Length := Unmarshall (Complex_Buffer'Access);
-               TypeCode.Add_Parameter
-                 (Result, To_Any (Length));
 
                Complex := True;
                Start_TC
                  (Representation, Object_Of (Result), Offset, Complex => True);
 
-               TypeCode.Add_Parameter
-                 (Result, To_Any (Content_Type));
+               Content_Type :=
+                 Unmarshall (Complex_Buffer'Access, Representation);
+               Length := Unmarshall (Complex_Buffer'Access);
+
+               TypeCode.Add_Parameter (Result, To_Any (Length));
+               TypeCode.Add_Parameter (Result, To_Any (Content_Type));
+
                End_TC (Representation, Complex => True);
             end;
 
@@ -1449,15 +1454,18 @@ package body PolyORB.Representations.CDR is
                Content_Type : TypeCode.Local_Ref;
             begin
                Decapsulate (Complex_Encap'Access, Complex_Buffer'Access);
-               Content_Type :=
-                 Unmarshall (Complex_Buffer'Access, Representation);
-               Length := Unmarshall (Complex_Buffer'Access);
-               Any.TypeCode.Add_Parameter (Result, To_Any (Length));
 
                Complex := True;
                Start_TC
                  (Representation, Object_Of (Result), Offset, Complex => True);
+
+               Content_Type :=
+                 Unmarshall (Complex_Buffer'Access, Representation);
+               Length := Unmarshall (Complex_Buffer'Access);
+
+               Any.TypeCode.Add_Parameter (Result, To_Any (Length));
                Any.TypeCode.Add_Parameter (Result, To_Any (Content_Type));
+
                End_TC (Representation, Complex => True);
             end;
 
@@ -1477,17 +1485,18 @@ package body PolyORB.Representations.CDR is
                Name :=
                  Types.String
                    (Types.Identifier'(Unmarshall (Complex_Buffer'Access)));
-               Content_Type :=
-                 Unmarshall (Complex_Buffer'Access, Representation);
-               TypeCode.Add_Parameter
-                 (Result, To_Any (Name));
-               TypeCode.Add_Parameter
-                 (Result, To_Any (Id));
+
+               TypeCode.Add_Parameter (Result, To_Any (Name));
+               TypeCode.Add_Parameter (Result, To_Any (Id));
 
                Complex := True;
                Start_TC
                  (Representation, Object_Of (Result), Offset, Complex => True);
+
+               Content_Type :=
+                 Unmarshall (Complex_Buffer'Access, Representation);
                Any.TypeCode.Add_Parameter (Result, To_Any (Content_Type));
+
                End_TC (Representation, Complex => True);
             end;
 
@@ -1821,6 +1830,10 @@ package body PolyORB.Representations.CDR is
                if Offset >= -4 then
                   raise Constraint_Error;
                end if;
+
+               pragma Debug (O ("Unmarshall (TypeCode): @" & Current'Img
+                 & ": found indirect reference with relative offset "
+                 & Offset'Img));
 
                return To_Ref
                  (Find_TC (Representation,
