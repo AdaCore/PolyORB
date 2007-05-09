@@ -31,6 +31,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Strings.Fixed;
+
 with PolyORB.Log;
 with PolyORB.Utils.Dynamic_Tables;
 
@@ -1704,7 +1706,10 @@ package body PolyORB.Any is
 
                   for J in 0 .. Member_Count (TC) - 1 loop
                      Result := Result &
-                       " case" & Image (Member_Label (TC, J)) & ": "
+                       " case " & Ada.Strings.Fixed.Trim
+                                    (Image (Member_Label (TC, J)),
+                                     Ada.Strings.Left)
+                       & ": "
                        & Image (Member_Type (TC, J))
                        & " "
                        & Types.String (Member_Name (TC, J)) & ";";
