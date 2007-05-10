@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -42,14 +42,6 @@ package Backend.BE_CORBA_Ada.Helpers is
    package Package_Body is
 
       procedure Visit (E : Node_Id);
-
-      procedure Add_Dependency (Dep : Node_Id; Dependency_List : List_Id);
-      --  When a Helper package is initialized by the PolyORB
-      --  Initialization Manager, some packages this package depends
-      --  on must be initialized.  We don't handle here the dependency
-      --  between user created TypeCodes. The dependency between
-      --  TypeCodes is handled automatically by the Initialization
-      --  routines.
 
    end Package_Body;
 

@@ -498,4 +498,17 @@ package Backend.BE_CORBA_Ada.IDL_To_Ada is
    --  flag is set, returs the Ada type for which a Wrap function has
    --  been generated (this is relevant only for sequence types).
 
+   type Dependent_Entity is (D_Stub, D_Helper, D_Skel);
+
+   procedure Add_Dependency
+     (Dep             : Node_Id;
+      Dependency_List : List_Id;
+      Dependency_Kind : Dependent_Entity;
+      Optional        : Boolean := False);
+   --  When a package is initialized by the PolyORB Initialization
+   --  Manager, some packages this package depends on must be
+   --  initialized before it. This procedure add the given dependency
+   --  to the given dependency list. If 'Optional' is True, then the
+   --  added dependency is suffixed by '?'.
+
 end Backend.BE_CORBA_Ada.IDL_To_Ada;

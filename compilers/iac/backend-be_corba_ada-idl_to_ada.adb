@@ -34,6 +34,7 @@
 with Namet;     use Namet;
 with Values;    use Values;
 with Locations; use Locations;
+with Charset;   use Charset;
 with Utils;     use Utils;
 
 with Frontend.Nodes;   use Frontend.Nodes;
@@ -46,6 +47,7 @@ with Backend.BE_CORBA_Ada.Expand;      use Backend.BE_CORBA_Ada.Expand;
 package body Backend.BE_CORBA_Ada.IDL_To_Ada is
 
    package BEN renames Backend.BE_CORBA_Ada.Nodes;
+   package BEU renames Backend.BE_CORBA_Ada.Nutils;
    package FEU renames Frontend.Nutils;
 
    --  The entities below are used to avoid name collision when
@@ -3670,5 +3672,130 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
             end;
       end case;
    end Get_Wrap_Node;
+
+   --------------------
+   -- Add_Dependency --
+   --------------------
+
+   procedure Add_Dependency
+     (Dep             : Node_Id;
+      Dependency_List : List_Id;
+      Dependency_Kind : Dependent_Entity;
+      Optional        : Boolean := False)
+   is
+
+      function "=" (Name : Name_Id; Node : Node_Id) return Boolean;
+      --  Shortcut to compare `Name' to the full name of `Node'
+
+      function Is_Internal_Unit (Unit : Node_Id) return Boolean;
+      --  Return True if `Unit' is an internal Ada unit
+
+      ---------
+      -- "=" --
+      ---------
+
+      function "=" (Name : Name_Id; Node : Node_Id) return Boolean is
+      begin
+         return Name = Fully_Qualified_Name (Node);
+      end "=";
+
+      ----------------------
+      -- Is_Internal_Unit --
+      ----------------------
+
+      function Is_Internal_Unit (Unit : Node_Id) return Boolean is
+         N : Node_Id := Unit;
+      begin
+         if BEN.Kind (N) = K_Designator then
+            N := Defining_Identifier (N);
+         end if;
+
+         return BEN.Kind (Corresponding_Node (N)) = K_Package_Instantiation;
+      end Is_Internal_Unit;
+
+      Dep_Name : Name_Id;
+      V        : Value_Id;
+      N        : Node_Id;
+      M        : Node_Id;
+      Append   : Boolean := False;
+   begin
+      if Is_Internal_Unit (Dep) then
+         return;
+      end if;
+
+      Dep_Name := BEU.Fully_Qualified_Name (Dep);
+
+      --  Particular case : We don't add dependencies on:
+
+      --  * The Helper package itself
+
+      if Dep_Name = Defining_Identifier
+        (Helper_Package (Current_Entity))
+      then
+         return;
+
+         --  First case : A dependency on CORBA.Object.Helper
+         --  implies a dependency on CORBA.Object
+
+      elsif Dep_Name = RU (RU_CORBA_Object_Helper, False) then
+         Add_Dependency
+           (RU (RU_CORBA_Object, False),
+            Dependency_List,
+            Dependency_Kind);
+         return;
+
+         --  Second case : We lower the case of these entities
+         --  * CORBA
+         --  * CORBA.Helper
+         --  * CORBA.Object
+
+      elsif Dep_Name = RU (RU_CORBA, False)
+        or else Dep_Name = RU (RU_CORBA_Helper, False)
+        or else Dep_Name = RU (RU_CORBA_Object, False)
+      then
+         Get_Name_String (Dep_Name);
+         To_Lower (Name_Buffer (1 .. Name_Len));
+         Dep_Name := Name_Find;
+         Append := True;
+
+         --  Third case: Some PolyORB units have a customized
+         --  initialization name
+
+      elsif Dep_Name = RU (RU_PolyORB_Exceptions, False) then
+         Set_Str_To_Name_Buffer ("exceptions");
+         Dep_Name := Name_Find;
+         Append := True;
+      elsif Dependency_Kind /= D_Helper then
+         --  Forth case: general case, we add the dependency for the
+         --  given package except for *generated* Helpers that need
+         --  not to depend upon each others
+
+         Append := True;
+      end if;
+
+      --  If the dependency is optional, append a '?' suffix
+
+      if Optional then
+         Dep_Name := Add_Suffix_To_Name ("?", Dep_Name);
+      end if;
+
+      --  Check whether the dependency is already added
+
+      M := First_Node (Dependency_List);
+      while Present (M) loop
+         if Values.Value (BEN.Value (M)).SVal = Dep_Name then
+            Append := False;
+         end if;
+         M := Next_Node (M);
+      end loop;
+
+      --  Add the dependency if it belongs to the cases above
+
+      if Append then
+         V := New_String_Value (Dep_Name, False);
+         N := Make_Literal (V);
+         Append_Node_To_List (N, Dependency_List);
+      end if;
+   end Add_Dependency;
 
 end Backend.BE_CORBA_Ada.IDL_To_Ada;

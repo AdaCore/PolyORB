@@ -40,7 +40,6 @@ with Frontend.Nutils;
 
 with Backend.BE_CORBA_Ada.Nodes;       use Backend.BE_CORBA_Ada.Nodes;
 with Backend.BE_CORBA_Ada.Nutils;      use Backend.BE_CORBA_Ada.Nutils;
-with Backend.BE_CORBA_Ada.Helpers;     use Backend.BE_CORBA_Ada.Helpers;
 with Backend.BE_CORBA_Ada.IDL_To_Ada;  use Backend.BE_CORBA_Ada.IDL_To_Ada;
 with Backend.BE_CORBA_Ada.Runtime;     use Backend.BE_CORBA_Ada.Runtime;
 with Backend.BE_CORBA_Ada.Expand;      use Backend.BE_CORBA_Ada.Expand;
@@ -3034,8 +3033,10 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                            Param2 := Get_TC_Node (T);
 
                            Handle_Dependency (T, Statements);
-                           Helpers.Package_Body.Add_Dependency
-                             (Parent_Unit_Name (Param2), Dependencies);
+                           Add_Dependency
+                             (Parent_Unit_Name (Param2),
+                              Dependencies,
+                              D_Helper);
                         else
 
                            --  Not the deepest dimension
@@ -3077,8 +3078,10 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                      Param2 := Get_TC_Node (T);
 
                      Handle_Dependency (T, Statements);
-                     Helpers.Package_Body.Add_Dependency
-                       (Parent_Unit_Name (Param2), Dependencies);
+                     Add_Dependency
+                       (Parent_Unit_Name (Param2),
+                        Dependencies,
+                        D_Helper);
                   end if;
                end;
 
@@ -3242,8 +3245,10 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                   TC_Helper := Get_TC_Node (Switch_Type_Spec (E));
 
                   Handle_Dependency (Switch_Type_Spec (E), Statements);
-                  Helpers.Package_Body.Add_Dependency
-                    (Parent_Unit_Name (TC_Helper), Dependencies);
+                  Add_Dependency
+                    (Parent_Unit_Name (TC_Helper),
+                     Dependencies,
+                     D_Helper);
 
                   To_Any_Helper := Get_To_Any_Node (Switch_Type_Spec (E));
 
@@ -3314,8 +3319,10 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                      Handle_Dependency (T, Statements);
                      TC_Helper := Get_TC_Node (T);
 
-                     Helpers.Package_Body.Add_Dependency
-                       (Parent_Unit_Name (TC_Helper), Dependencies);
+                     Add_Dependency
+                       (Parent_Unit_Name (TC_Helper),
+                        Dependencies,
+                        D_Helper);
 
                      Designator := Map_Designator (Declarator);
                      Get_Name_String (VN (V_Argument_Name));
@@ -3460,8 +3467,10 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                         Handle_Dependency (T, Statements);
                         Param1 := Get_TC_Node (T);
 
-                        Helpers.Package_Body.Add_Dependency
-                          (Parent_Unit_Name (Param1), Dependencies);
+                        Add_Dependency
+                          (Parent_Unit_Name (Param1),
+                           Dependencies,
+                           D_Helper);
 
                         Param2 := Make_Designator (Arg_Name);
                         N := Add_Parameter (Entity_TC_Name, Param1);
@@ -3532,8 +3541,10 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                            N := Get_TC_Node (Type_Spec (Member));
 
                            Handle_Dependency (Type_Spec (Member), Statements);
-                           Helpers.Package_Body.Add_Dependency
-                             (Parent_Unit_Name (N), Dependencies);
+                           Add_Dependency
+                             (Parent_Unit_Name (N),
+                              Dependencies,
+                              D_Helper);
 
                            N := Add_Parameter (Entity_TC_Name, N);
                            Append_Node_To_List (N, Statements);
@@ -3554,8 +3565,10 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                      --  Add a dependency to initialize correctly the
                      --  modules.
 
-                     Helpers.Package_Body.Add_Dependency
-                       (Parent_Unit_Name (Register_Excp_Node), Dependencies);
+                     Add_Dependency
+                       (Parent_Unit_Name (Register_Excp_Node),
+                        Dependencies,
+                        D_Helper);
 
                      Raise_From_Any_Access_Node := Make_Designator
                        (Map_Raise_From_Any_Name (E));
@@ -3590,8 +3603,10 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
 
                   N := Get_TC_Node (T);
 
-                  Helpers.Package_Body.Add_Dependency
-                    (Parent_Unit_Name (N), Dependencies);
+                  Add_Dependency
+                    (Parent_Unit_Name (N),
+                     Dependencies,
+                     D_Helper);
 
                   N := Add_Parameter (Entity_TC_Name, N);
                   Append_Node_To_List (N, Statements);

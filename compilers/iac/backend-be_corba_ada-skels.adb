@@ -42,11 +42,12 @@ with Backend.BE_CORBA_Ada.IDL_To_Ada;  use Backend.BE_CORBA_Ada.IDL_To_Ada;
 with Backend.BE_CORBA_Ada.Nodes;       use Backend.BE_CORBA_Ada.Nodes;
 with Backend.BE_CORBA_Ada.Nutils;      use Backend.BE_CORBA_Ada.Nutils;
 with Backend.BE_CORBA_Ada.Runtime;     use Backend.BE_CORBA_Ada.Runtime;
-with Backend.BE_CORBA_Ada.Common;     use Backend.BE_CORBA_Ada.Common;
+with Backend.BE_CORBA_Ada.Common;      use Backend.BE_CORBA_Ada.Common;
 
 with GNAT.Perfect_Hash_Generators; use GNAT.Perfect_Hash_Generators;
 
 package body Backend.BE_CORBA_Ada.Skels is
+
    package FEN renames Frontend.Nodes;
    package BEN renames Backend.BE_CORBA_Ada.Nodes;
    package FEU renames Frontend.Nutils;
@@ -154,6 +155,7 @@ package body Backend.BE_CORBA_Ada.Skels is
       Invoke_Elsif_Statements : List_Id := No_List;
       Package_Initialization  : List_Id := No_List;
       Choice_List             : List_Id := No_List;
+      Dependency_List         : List_Id := No_List;
 
       function Deferred_Initialization_Body (E : Node_Id) return Node_Id;
       --  Generate the body of the deferred initialization procedure
@@ -249,7 +251,7 @@ package body Backend.BE_CORBA_Ada.Skels is
 
          --  In case of perfect hash function optimization, we
          --  register the Invoke_XXXX procedures at the package
-         --  initialilzation
+         --  initialization.
 
          if Use_Minimal_Hash_Function then
             Append_Node_To_List
@@ -1859,9 +1861,7 @@ package body Backend.BE_CORBA_Ada.Skels is
          N := Expand_Designator (N);
          N := Make_Type_Attribute (N, A_Class);
          N := Make_Expression
-           (Make_Designator
-            (Designator => PN (P_Obj),
-             Is_All     => True),
+           (Make_Explicit_Dereference (Make_Defining_Identifier (PN (P_Obj))),
             Op_In,
             N);
          N := Make_Return_Statement (N);
@@ -1877,6 +1877,7 @@ package body Backend.BE_CORBA_Ada.Skels is
       procedure Skeleton_Initialization (L : List_Id) is
          N                : Node_Id;
          V                : Value_Id;
+         Dep              : Node_Id;
          Aggregates       : constant List_Id := New_List (K_List_Id);
          Declarative_Part : constant List_Id := New_List (K_List_Id);
          Statements       : constant List_Id := New_List (K_List_Id);
@@ -1911,9 +1912,21 @@ package body Backend.BE_CORBA_Ada.Skels is
 
          --  The dependencies
 
+         N := RE (RE_Empty);
+
+         if not Is_Empty (Dependency_List) then
+            Dep := First_Node (Dependency_List);
+
+            while Present (Dep) loop
+               N := Make_Expression (N, Op_And_Symbol, Dep);
+
+               Dep := Next_Node (Dep);
+            end loop;
+         end if;
+
          N := Make_Component_Association
            (Selector_Name => Make_Defining_Identifier (PN (P_Depends)),
-            Expression    => RE (RE_Empty));
+            Expression    => N);
          Append_Node_To_List (N, Aggregates);
 
          --  Provides
@@ -2358,7 +2371,7 @@ package body Backend.BE_CORBA_Ada.Skels is
          Invk_Body      : Node_Id;
          Is_A_Invk_Part : Node_Id;
          Implicit_CORBA : List_Id;
-
+         Parent_Int     : Node_Id;
       begin
          --  No Skel package is generated for an abstract or a local
          --  interface
@@ -2375,8 +2388,8 @@ package body Backend.BE_CORBA_Ada.Skels is
          Set_Skeleton_Body;
 
          Invoke_Then_Statements := New_List (K_List_Id);
-
-         Package_Initialization  := New_List (K_List_Id);
+         Package_Initialization := New_List (K_List_Id);
+         Dependency_List        := New_List (K_List_Id);
 
          --  If the user chose to generate optimised skeletons, we
          --  initialise the optimization related lists
@@ -2472,6 +2485,37 @@ package body Backend.BE_CORBA_Ada.Skels is
 
          N := Deferred_Initialization_Body (E);
          Append_Node_To_List (N, Statements (Current_Package));
+
+         --  Make the current skeleton depend upon the skeletons of
+         --  all the interface parent to guarantee their registration
+         --  before the current skeleton.
+
+         Parent_Int := First_Entity (Interface_Spec (E));
+
+         while Present (Parent_Int) loop
+            declare
+               The_Interface : constant Node_Id := Reference (Parent_Int);
+            begin
+               if Present (BE_Node (Identifier (The_Interface))) then
+                  Add_Dependency
+                    (Expand_Designator
+                     (Skeleton_Package
+                      (IDL_Unit
+                       (Package_Declaration
+                        (BEN.Parent
+                         (Type_Def_Node
+                          (BE_Node
+                           (Identifier
+                            (The_Interface))))))),
+                      False),
+                     Dependency_List,
+                     D_Skel,
+                     True);
+               end if;
+            end;
+
+            Parent_Int := Next_Entity (Parent_Int);
+         end loop;
 
          Skeleton_Initialization (Package_Initialization);
          Set_Package_Initialization (Current_Package, Package_Initialization);
