@@ -41,6 +41,14 @@ See the features-23 file.
 Bug fixes
 ---------
 
+Receiving an out-of-range value for an enumerated type (which can occur
+when the sending side passes an uninitialized object with invalid
+representation) would cause a segmentation fault in some contexts instead
+of propagating an exception. (G328-007)
+
+The CDR unmarshalling routines did not support indirect typecode references.
+(G328-027)
+
 Parsing of PolyORB's specific command line parameters in po_cos_naming
 was not working. This has been corrected. (G326-002)
 
