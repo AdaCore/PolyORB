@@ -387,6 +387,8 @@ package body PortableServer is
       if Last (It) then
          raise Skeleton_Unknown;
       end if;
+         pragma Debug (O ("Selected skeleton of Type_Id "
+           & CORBA.To_Standard_String (Value (It).Type_Id)));
 
       return Value (It).all;
    end Find_Info;
