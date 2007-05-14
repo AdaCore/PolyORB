@@ -849,7 +849,7 @@ package body Backend.BE_CORBA_Ada.Skels is
                      Set_Parent_Unit_Name (C, Record_Node);
 
                      N := Make_Assignment_Statement
-                       (Make_Defining_Identifier (Param_Name),
+                       (Make_Defining_Identifier (Arg_Name),
                         C);
                      Append_Node_To_List (N, Inner_Statements);
                   end if;
@@ -1152,6 +1152,31 @@ package body Backend.BE_CORBA_Ada.Skels is
                     (Make_Raise_Statement
                      (Make_Designator
                       (EN (E_Program_Error)))));
+               Append_Node_To_List (N, Statements);
+
+               --  Add the buffer as a QoS parameter for the request
+
+               Set_Str_To_Name_Buffer
+                 ("Add the buffer to the request QoS parameters");
+               Append_Node_To_List (Make_Ada_Comment (Name_Find), Statements);
+
+               N := Make_Record_Aggregate
+                 (Make_List_Id
+                  (RE (RE_GIOP_Static_Buffer),
+                   Make_Defining_Identifier (VN (V_Buffer))));
+
+               N := Make_Object_Instantiation
+                 (Make_Qualified_Expression
+                  (RE (RE_QoS_GIOP_Static_Buffer_Parameter),
+                   N));
+
+               N := Make_Subprogram_Call
+                 (RE (RE_Add_Request_QoS),
+                  Make_List_Id
+                  (Make_Defining_Identifier (VN (V_Request)),
+                   RE (RE_GIOP_Static_Buffer),
+                   N));
+
                Append_Node_To_List (N, Statements);
             end if;
          end if;

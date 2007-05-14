@@ -1797,6 +1797,10 @@ package body Backend.BE_CORBA_Ada.Stubs is
                   Append_Node_To_List (N, Statements);
                end;
             else
+               --  In this context, we use a QoS attribute to store a
+               --  CDR buffer that holds the CDR representation of the
+               --  requests parameters.
+
                Profile := New_List (K_List_Id);
                Append_Node_To_List
                  (Make_Designator (VN (V_Binding_Profile)), Profile);
@@ -1805,8 +1809,8 @@ package body Backend.BE_CORBA_Ada.Stubs is
                                     Profile);
                Append_Node_To_List (Make_Designator (VN (V_Error)), Profile);
 
-               --  Negotiate the CodeSet for the session to be
-               --  replaced !
+               --  Negotiate the CodeSet for the session.
+               --  XXX to be replaced !
 
                C := Make_Subprogram_Call
                  (RE (RE_Negotiate_Code_Set_And_Update_Session),
@@ -1866,6 +1870,31 @@ package body Backend.BE_CORBA_Ada.Stubs is
                    (Make_Designator (EN (E_Program_Error)))));
                Append_Node_To_List (N, Statements);
             end if;
+
+            --  Add the buffer as a QoS parameter for the request
+
+            Set_Str_To_Name_Buffer
+              ("Add the buffer to the request QoS parameters");
+            Append_Node_To_List (Make_Ada_Comment (Name_Find), Statements);
+
+            N := Make_Record_Aggregate
+              (Make_List_Id
+               (RE (RE_GIOP_Static_Buffer),
+                Make_Defining_Identifier (VN (V_Buffer))));
+
+            N := Make_Object_Instantiation
+              (Make_Qualified_Expression
+               (RE (RE_QoS_GIOP_Static_Buffer_Parameter),
+                N));
+
+            N := Make_Subprogram_Call
+              (RE (RE_Add_Request_QoS),
+               Make_List_Id
+               (Make_Defining_Identifier (VN (V_Request)),
+                RE (RE_GIOP_Static_Buffer),
+                N));
+
+            Append_Node_To_List (N, Statements);
          end if;
 
          --  Invoking the request (synchronously or asynchronously),

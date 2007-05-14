@@ -112,6 +112,7 @@ package Backend.BE_CORBA_Ada.Runtime is
       RU_PolyORB_CORBA_P_IR_Hooks,
       RU_PolyORB_CORBA_P_Exceptions,
       RU_PolyORB_QoS,
+      RU_PolyORB_QoS_Static_Buffers,
       RU_PolyORB_QoS_Exception_Informations,
       RU_PolyORB_References,
       RU_PolyORB_Representations,
@@ -155,7 +156,8 @@ package Backend.BE_CORBA_Ada.Runtime is
       RU_PolyORB_Utils_Strings,
       RU_PolyORB_Utils_Strings_Lists,
       RU_PortableServer,
-      RU_PortableServer_Internals);
+      RU_PortableServer_Internals,
+      RU_System);
 
    --  Runtime Entities
 
@@ -493,6 +495,7 @@ package Backend.BE_CORBA_Ada.Runtime is
       RE_CDR_Representation_Access, --  PolyORB.Representation.CDR.
       --                                 CDR_Representation_Access
       RE_Bind,                      --  PolyORB.Binding_Data.Bind
+      RE_Add_Request_QoS,           --  PolyORB.Request_QoS.Add_Request_QoS
       RE_Get_Request_QoS,           --  PolyORB.Request_QoS.Get_Request_QoS
       RE_Binding_Object_Access,     --  PolyORB_Binding_Object.
       --                                  Binding_Object_Access
@@ -524,6 +527,10 @@ package Backend.BE_CORBA_Ada.Runtime is
       RE_User_Raise_Exception,      --  PolyORB.Exceptions.User_Raise_Exception
       RE_Module_Info,               --  PolyORB.Initialization.Module_Info
       RE_Register_Module,           --  PolyORB.Initialization.Register_Module
+      RE_GIOP_Static_Buffer,        --  PolyORB.QoS.GIOP_Static_Buffer
+      RE_QoS_GIOP_Static_Buffer_Parameter,
+      --                                PolyORB.QoS.Static_Buffers.
+      --                                   QoS_GIOP_Static_Buffer_Parameter
       RE_Set_Exception_Information, --  PolyORB.QoS.Exception_Informations
       RE_Ref_9,                     --  PolyORB.References.Ref
       RE_Marshall_1,                --  PolyORB.Representations.CDR.Marshall
@@ -1066,6 +1073,7 @@ package Backend.BE_CORBA_Ada.Runtime is
          RE_Release                   => RU_PolyORB_Buffers,
          RE_CDR_Representation_Access => RU_PolyORB_Representations_CDR,
          RE_Bind                      => RU_PolyORB_References_Binding,
+         RE_Add_Request_QoS           => RU_PolyORB_Request_QoS,
          RE_Get_Request_QoS           => RU_PolyORB_Request_QoS,
          RE_Binding_Object_Access     => RU_PolyORB_Binding_Objects,
          RE_The_ORB                   => RU_PolyORB_Setup,
@@ -1095,6 +1103,9 @@ package Backend.BE_CORBA_Ada.Runtime is
          RE_Client_Invoke             => RU_PolyORB_CORBA_P_Interceptors_Hooks,
          RE_Module_Info               => RU_PolyORB_Initialization,
          RE_Register_Module           => RU_PolyORB_Initialization,
+         RE_GIOP_Static_Buffer        => RU_PolyORB_QoS,
+         RE_QoS_GIOP_Static_Buffer_Parameter =>
+           RU_PolyORB_QoS_Static_Buffers,
          RE_Set_Exception_Information => RU_PolyORB_QoS_Exception_Informations,
          RE_Ref_9                     => RU_PolyORB_References,
          RE_CDR_Representation        => RU_PolyORB_Representations_CDR,
