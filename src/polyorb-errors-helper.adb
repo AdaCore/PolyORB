@@ -151,7 +151,7 @@ package body PolyORB.Errors.Helper is
    is
       pragma Unreferenced (Member);
 
-      TC    : TypeCode.Local_Ref := TypeCode.TC_Except;
+      TC    : constant TypeCode.Local_Ref := TypeCode.TC_Except;
       Shift : Natural         := 0;
    begin
       --  Name
@@ -514,7 +514,7 @@ package body PolyORB.Errors.Helper is
      (Name : Standard.String)
      return Any.TypeCode.Local_Ref
    is
-      TC    : TypeCode.Local_Ref := TypeCode.TC_Except;
+      TC    : constant TypeCode.Local_Ref := TypeCode.TC_Except;
       Shift : Natural := 0;
    begin
       --  Name
