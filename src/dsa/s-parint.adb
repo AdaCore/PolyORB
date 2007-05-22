@@ -371,8 +371,8 @@ package body System.Partition_Interface is
       end if;
 
       declare
-         Info       : RCI_Info        := Retrieve_RCI_Info (Name);
-         Type_Id    : constant String := Type_Id_Of (Info.Base_Ref);
+         Info       : constant RCI_Info := Retrieve_RCI_Info (Name);
+         Type_Id    : constant String   := Type_Id_Of (Info.Base_Ref);
          Last_Colon : Integer;
       begin
 
@@ -421,7 +421,7 @@ package body System.Partition_Interface is
       use PolyORB.Types;
 
       Name : constant String := PolyORB.Exceptions.Occurrence_To_Name (E);
-      TC : PATC.Local_Ref := PATC.TC_Except;
+      TC : constant PATC.Local_Ref := PATC.TC_Except;
       Result : PolyORB.Any.Any;
    begin
       --  Name
@@ -1524,7 +1524,7 @@ package body System.Partition_Interface is
       Obj  : PolyORB.References.Ref)
    is
       use Ada.Exceptions;
-      Id : PolyORB.Services.Naming.Name := To_Name (Name, Kind);
+      Id : constant PolyORB.Services.Naming.Name := To_Name (Name, Kind);
       Reg_Obj : PolyORB.References.Ref;
    begin
       pragma Debug (O ("About to register " & Name & " on nameserver"));

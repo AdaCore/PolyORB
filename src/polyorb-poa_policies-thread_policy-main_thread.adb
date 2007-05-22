@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -147,7 +147,7 @@ package body PolyORB.POA_Policies.Thread_Policy.Main_Thread is
       pragma Debug (O ("Waiting done"));
 
       declare
-         Result : PolyORB.Components.Message'Class :=
+         Result : constant PolyORB.Components.Message'Class :=
            Execute_Servant (Servant_Access (Requestor), Msg);
       begin
          Leave (Main_Thread_Lock);

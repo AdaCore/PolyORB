@@ -188,7 +188,7 @@ package body PolyORB.GIOP_P.Exceptions is
       New_Name : constant PolyORB.Types.String :=
                    CORBA_Root_PTS & Internal_Name & CORBA_Exc_Version_PTS;
 
-      Result_TC : TypeCode.Local_Ref := TypeCode.TC_Except;
+      Result_TC : constant TypeCode.Local_Ref := TypeCode.TC_Except;
 
    begin
       pragma Debug (O ("Exception Id was: " & Id));
@@ -304,7 +304,7 @@ package body PolyORB.GIOP_P.Exceptions is
    is
       use System_Exception_TC_Cache;
 
-      TC    : TypeCode.Local_Ref
+      TC    : constant TypeCode.Local_Ref
         := Lookup (Name, TypeCode.TC_Except);
 
       Shift : Natural := 0;

@@ -797,7 +797,8 @@ package body PolyORB.Protocols.GIOP.Common is
                        (To_Standard_String (RepositoryId));
                      Slash, Next_Slash : Integer;
 
-                     TC : Any.TypeCode.Local_Ref := TypeCode.TC_Except;
+                     TC : constant Any.TypeCode.Local_Ref
+                       := TypeCode.TC_Except;
                   begin
                      Slash := Exception_Name'First - 1;
                      loop

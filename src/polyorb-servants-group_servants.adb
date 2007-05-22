@@ -182,7 +182,7 @@ package body PolyORB.Servants.Group_Servants is
                   use PolyORB.Any;
                   use PolyORB.Any.NVList.Internals.NV_Lists;
 
-                  Req_Args : Ref := Unmarshall_Arguments (Msg).Args;
+                  Req_Args : constant Ref := Unmarshall_Arguments (Msg).Args;
                   It1 : PolyORB.Any.NVList.Internals.NV_Lists.Iterator;
                   It2 : PolyORB.Any.NVList.Internals.NV_Lists.Iterator;
                begin

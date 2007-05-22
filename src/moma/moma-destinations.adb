@@ -258,7 +258,8 @@ package body MOMA.Destinations is
    procedure Initialize is
       use PolyORB.Utils.Strings;
 
-      T : PolyORB.Any.TypeCode.Local_Ref := PolyORB.Any.TypeCode.TC_Object;
+      T : constant PolyORB.Any.TypeCode.Local_Ref
+        := PolyORB.Any.TypeCode.TC_Object;
 
    begin
       TC_MOMA_Destination := PolyORB.Any.TypeCode.TC_Struct;

@@ -462,7 +462,7 @@ package body PolyORB.Representations.SRP is
    function Unmarshall (Buffer : access Buffer_Type)
      return PolyORB.Types.Long
    is
-      Long_String : Types.String := Unmarshall (Buffer);
+      Long_String : constant Types.String := Unmarshall (Buffer);
    begin
       pragma Debug (O ("Unmarshall (Long): enter & end"));
       return Long'Value (To_Standard_String (Long_String));
@@ -547,8 +547,8 @@ package body PolyORB.Representations.SRP is
          when 14 =>
             Result := PolyORB.Any.TypeCode.TC_Object;
             declare
-               Id : PolyORB.Types.String := Unmarshall (Buffer);
-               Name : PolyORB.Types.String := Unmarshall (Buffer);
+               Id : constant PolyORB.Types.String := Unmarshall (Buffer);
+               Name : constant PolyORB.Types.String := Unmarshall (Buffer);
             begin
                PolyORB.Any.TypeCode.Add_Parameter
                  (Result, To_Any (Name));
@@ -1947,7 +1947,7 @@ package body PolyORB.Representations.SRP is
 --             end;
          when Tk_String =>
             declare
-               S : PolyORB.Types.String := Unmarshall (Buffer);
+               S : constant PolyORB.Types.String := Unmarshall (Buffer);
             begin
                Set_Any_Value (S, C_Result);
             end;
