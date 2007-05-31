@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -217,19 +217,30 @@ package body PolyORB.ORB.Thread_Per_Session is
       ORB :        ORB_Access;
       RJ  : access Request_Job'Class)
    is
-      pragma Unreferenced (P, ORB);
-
-      S   : constant Session_Access := Session_Access (RJ.Requestor);
-      N   : constant Notepad_Access := Get_Task_Info (S);
-      STI : Session_Thread_Info;
+      pragma Unreferenced (P);
    begin
       pragma Debug (O ("Handle_Request_Execution : Queue Job"));
+      if RJ.Requestor = Component_Access (ORB) then
+         --  Per PolyORB.ORB.Handle_Message, the request has been
+         --  queued by a client, meaning we are on the client-side. So
+         --  use client thread to send the request.
+         Run_Request (RJ);
 
-      Get_Note (N.all, STI);
-      Add_Request
-        (STI,
-         Request_Info'(Job => PolyORB.ORB.Duplicate_Request_Job (RJ)));
+      else
+         declare
+            S   : constant Session_Access := Session_Access (RJ.Requestor);
+            N   : constant Notepad_Access := Get_Task_Info (S);
+            STI : Session_Thread_Info;
+         begin
+            --  A thread has been created and is associated to handle
+            --  request execution, use it.
 
+            Get_Note (N.all, STI);
+            Add_Request
+              (STI,
+               Request_Info'(Job => PolyORB.ORB.Duplicate_Request_Job (RJ)));
+         end;
+      end if;
    end Handle_Request_Execution;
 
    ----------
