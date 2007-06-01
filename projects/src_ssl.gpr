@@ -54,17 +54,4 @@ project src_ssl is
 
    end Compiler;
 
-   --  ???Why is this necessary?
-   for Source_Files use (
-      "polyorb-asynch_ev-sockets-ssl.adb",
-      "polyorb-asynch_ev-sockets-ssl.ads",
-      "polyorb-ssl.adb",
-      "polyorb-ssl.ads",
-      "polyorb_ssl.c",
-      "polyorb-transport-connected-sockets-ssl.adb",
-      "polyorb-transport-connected-sockets-ssl.ads",
-      "polyorb-utils-ssl_access_points.adb",
-      "polyorb-utils-ssl_access_points.ads"
-    );
-
 end src_ssl;
