@@ -35,6 +35,8 @@ with "common", "src";
 
 project src_security is
 
+   for Languages use ("Ada", "C");
+
    Dir := "src/security";
    Obj_Dir := Common.Build_Dir & Dir;
    for Object_Dir use Obj_Dir;

@@ -35,6 +35,8 @@ with "common", "src", "src_security";
 
 project src_security_x509 is
 
+   for Languages use ("Ada", "C");
+
    Dir := "src/security/x509";
    Obj_Dir := Common.Build_Dir & Dir;
    for Object_Dir use Obj_Dir;
