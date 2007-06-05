@@ -1152,8 +1152,9 @@ package body PortableServer.Helper is
    begin
 
       declare
-         Name : CORBA.String := CORBA.To_CORBA_String ("POA");
-         Id : CORBA.String := CORBA.To_CORBA_String ("IDL:omg.org/PortableServer/POA:1.0");
+         Name : constant CORBA.String := CORBA.To_CORBA_String ("POA");
+         Id   : constant CORBA.String := CORBA.To_CORBA_String
+                  ("IDL:omg.org/PortableServer/POA:1.0");
       begin
          TC_POA :=
            CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TC_Object);
@@ -1169,8 +1170,9 @@ package body PortableServer.Helper is
         (TC_IDL_SEQUENCE_PortableServer_POA_Forward);
 
       declare
-         Name : CORBA.String := CORBA.To_CORBA_String ("POAList");
-         Id : CORBA.String := CORBA.To_CORBA_String ("IDL:omg.org/PortableServer/POAList:1.0");
+         Name : constant CORBA.String := CORBA.To_CORBA_String ("POAList");
+         Id   : constant CORBA.String :=
+                  CORBA.To_CORBA_String ("IDL:omg.org/PortableServer/POAList:1.0");
       begin
          TC_POAList := CORBA.TypeCode.Internals.Build_Alias_TC
            (Name => Name, Id => Id, Parent => PortableServer.Helper.TC_IDL_SEQUENCE_PortableServer_POA_Forward);
@@ -1178,8 +1180,9 @@ package body PortableServer.Helper is
       end;
 
       declare
-         Name : CORBA.String := CORBA.To_CORBA_String ("ObjectId");
-         Id : CORBA.String := CORBA.To_CORBA_String ("IDL:omg.org/PortableServer/ObjectId:1.0");
+         Name : constant CORBA.String := CORBA.To_CORBA_String ("ObjectId");
+         Id   : constant CORBA.String :=
+                  CORBA.To_CORBA_String ("IDL:omg.org/PortableServer/ObjectId:1.0");
       begin
          TC_ObjectId := CORBA.TypeCode.Internals.Build_Alias_TC
            (Name => Name, Id => Id, Parent => CORBA.IDL_SEQUENCES.Helper.TC_OctetSeq);
@@ -1187,9 +1190,11 @@ package body PortableServer.Helper is
       end;
 
       declare
-         Name : CORBA.String := CORBA.To_CORBA_String ("ForwardRequest");
-         Id : CORBA.String := CORBA.To_CORBA_String ("IDL:omg.org/PortableServer/ForwardRequest:1.0");
-         Arg_Name_forward_reference : CORBA.String := CORBA.To_CORBA_String ("forward_reference");
+         Name : constant CORBA.String :=
+                  CORBA.To_CORBA_String ("ForwardRequest");
+         Id   : constant CORBA.String :=
+                  CORBA.To_CORBA_String ("IDL:omg.org/PortableServer/ForwardRequest:1.0");
+         Arg_Name_forward_reference : constant CORBA.String := CORBA.To_CORBA_String ("forward_reference");
       begin
          TC_ForwardRequest :=
            CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TC_Except);
@@ -1203,11 +1208,14 @@ package body PortableServer.Helper is
         (CORBA.TypeCode.Internals.To_PolyORB_Object (TC_ForwardRequest),
          Raise_ForwardRequest_From_Any'Access);
       declare
-         Name : CORBA.String := CORBA.To_CORBA_String ("ThreadPolicyValue");
-         Id : CORBA.String := CORBA.To_CORBA_String ("IDL:omg.org/PortableServer/ThreadPolicyValue:1.0");
-         ORB_CTRL_MODEL_Name : CORBA.String := CORBA.To_CORBA_String ("ORB_CTRL_MODEL");
-         SINGLE_THREAD_MODEL_Name : CORBA.String := CORBA.To_CORBA_String ("SINGLE_THREAD_MODEL");
-         MAIN_THREAD_MODEL_Name : CORBA.String := CORBA.To_CORBA_String ("MAIN_THREAD_MODEL");
+         Name : constant CORBA.String :=
+                  CORBA.To_CORBA_String ("ThreadPolicyValue");
+         Id   : constant CORBA.String :=
+                  CORBA.To_CORBA_String ("IDL:omg.org/PortableServer/ThreadPolicyValue:1.0");
+
+         ORB_CTRL_MODEL_Name : constant CORBA.String := CORBA.To_CORBA_String ("ORB_CTRL_MODEL");
+         SINGLE_THREAD_MODEL_Name : constant CORBA.String := CORBA.To_CORBA_String ("SINGLE_THREAD_MODEL");
+         MAIN_THREAD_MODEL_Name : constant CORBA.String := CORBA.To_CORBA_String ("MAIN_THREAD_MODEL");
       begin
          TC_ThreadPolicyValue :=
            CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TC_Enum);
@@ -1219,10 +1227,10 @@ package body PortableServer.Helper is
          CORBA.TypeCode.Internals.Disable_Reference_Counting (TC_ThreadPolicyValue);
       end;
       declare
-         Name : CORBA.String := CORBA.To_CORBA_String ("LifespanPolicyValue");
-         Id : CORBA.String := CORBA.To_CORBA_String ("IDL:omg.org/PortableServer/LifespanPolicyValue:1.0");
-         TRANSIENT_Name : CORBA.String := CORBA.To_CORBA_String ("TRANSIENT");
-         PERSISTENT_Name : CORBA.String := CORBA.To_CORBA_String ("PERSISTENT");
+         Name : constant CORBA.String := CORBA.To_CORBA_String ("LifespanPolicyValue");
+         Id : constant CORBA.String := CORBA.To_CORBA_String ("IDL:omg.org/PortableServer/LifespanPolicyValue:1.0");
+         TRANSIENT_Name : constant CORBA.String := CORBA.To_CORBA_String ("TRANSIENT");
+         PERSISTENT_Name : constant CORBA.String := CORBA.To_CORBA_String ("PERSISTENT");
       begin
          TC_LifespanPolicyValue :=
            CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TC_Enum);
@@ -1233,10 +1241,10 @@ package body PortableServer.Helper is
          CORBA.TypeCode.Internals.Disable_Reference_Counting (TC_LifespanPolicyValue);
       end;
       declare
-         Name : CORBA.String := CORBA.To_CORBA_String ("IdUniquenessPolicyValue");
-         Id : CORBA.String := CORBA.To_CORBA_String ("IDL:omg.org/PortableServer/IdUniquenessPolicyValue:1.0");
-         UNIQUE_ID_Name : CORBA.String := CORBA.To_CORBA_String ("UNIQUE_ID");
-         MULTIPLE_ID_Name : CORBA.String := CORBA.To_CORBA_String ("MULTIPLE_ID");
+         Name : constant CORBA.String := CORBA.To_CORBA_String ("IdUniquenessPolicyValue");
+         Id : constant CORBA.String := CORBA.To_CORBA_String ("IDL:omg.org/PortableServer/IdUniquenessPolicyValue:1.0");
+         UNIQUE_ID_Name : constant CORBA.String := CORBA.To_CORBA_String ("UNIQUE_ID");
+         MULTIPLE_ID_Name : constant CORBA.String := CORBA.To_CORBA_String ("MULTIPLE_ID");
       begin
          TC_IdUniquenessPolicyValue :=
            CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TC_Enum);
@@ -1247,10 +1255,10 @@ package body PortableServer.Helper is
          CORBA.TypeCode.Internals.Disable_Reference_Counting (TC_IdUniquenessPolicyValue);
       end;
       declare
-         Name : CORBA.String := CORBA.To_CORBA_String ("IdAssignmentPolicyValue");
-         Id : CORBA.String := CORBA.To_CORBA_String ("IDL:omg.org/PortableServer/IdAssignmentPolicyValue:1.0");
-         USER_ID_Name : CORBA.String := CORBA.To_CORBA_String ("USER_ID");
-         SYSTEM_ID_Name : CORBA.String := CORBA.To_CORBA_String ("SYSTEM_ID");
+         Name : constant CORBA.String := CORBA.To_CORBA_String ("IdAssignmentPolicyValue");
+         Id : constant CORBA.String := CORBA.To_CORBA_String ("IDL:omg.org/PortableServer/IdAssignmentPolicyValue:1.0");
+         USER_ID_Name : constant CORBA.String := CORBA.To_CORBA_String ("USER_ID");
+         SYSTEM_ID_Name : constant CORBA.String := CORBA.To_CORBA_String ("SYSTEM_ID");
       begin
          TC_IdAssignmentPolicyValue :=
            CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TC_Enum);
@@ -1261,10 +1269,10 @@ package body PortableServer.Helper is
          CORBA.TypeCode.Internals.Disable_Reference_Counting (TC_IdAssignmentPolicyValue);
       end;
       declare
-         Name : CORBA.String := CORBA.To_CORBA_String ("ImplicitActivationPolicyValue");
-         Id : CORBA.String := CORBA.To_CORBA_String ("IDL:omg.org/PortableServer/ImplicitActivationPolicyValue:1.0");
-         IMPLICIT_ACTIVATION_Name : CORBA.String := CORBA.To_CORBA_String ("IMPLICIT_ACTIVATION");
-         NO_IMPLICIT_ACTIVATION_Name : CORBA.String := CORBA.To_CORBA_String ("NO_IMPLICIT_ACTIVATION");
+         Name : constant CORBA.String := CORBA.To_CORBA_String ("ImplicitActivationPolicyValue");
+         Id : constant CORBA.String := CORBA.To_CORBA_String ("IDL:omg.org/PortableServer/ImplicitActivationPolicyValue:1.0");
+         IMPLICIT_ACTIVATION_Name : constant CORBA.String := CORBA.To_CORBA_String ("IMPLICIT_ACTIVATION");
+         NO_IMPLICIT_ACTIVATION_Name : constant CORBA.String := CORBA.To_CORBA_String ("NO_IMPLICIT_ACTIVATION");
       begin
          TC_ImplicitActivationPolicyValue :=
            CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TC_Enum);
@@ -1275,10 +1283,10 @@ package body PortableServer.Helper is
          CORBA.TypeCode.Internals.Disable_Reference_Counting (TC_ImplicitActivationPolicyValue);
       end;
       declare
-         Name : CORBA.String := CORBA.To_CORBA_String ("ServantRetentionPolicyValue");
-         Id : CORBA.String := CORBA.To_CORBA_String ("IDL:omg.org/PortableServer/ServantRetentionPolicyValue:1.0");
-         RETAIN_Name : CORBA.String := CORBA.To_CORBA_String ("RETAIN");
-         NON_RETAIN_Name : CORBA.String := CORBA.To_CORBA_String ("NON_RETAIN");
+         Name : constant CORBA.String := CORBA.To_CORBA_String ("ServantRetentionPolicyValue");
+         Id : constant CORBA.String := CORBA.To_CORBA_String ("IDL:omg.org/PortableServer/ServantRetentionPolicyValue:1.0");
+         RETAIN_Name : constant CORBA.String := CORBA.To_CORBA_String ("RETAIN");
+         NON_RETAIN_Name : constant CORBA.String := CORBA.To_CORBA_String ("NON_RETAIN");
       begin
          TC_ServantRetentionPolicyValue :=
            CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TC_Enum);
@@ -1289,11 +1297,11 @@ package body PortableServer.Helper is
          CORBA.TypeCode.Internals.Disable_Reference_Counting (TC_ServantRetentionPolicyValue);
       end;
       declare
-         Name : CORBA.String := CORBA.To_CORBA_String ("RequestProcessingPolicyValue");
-         Id : CORBA.String := CORBA.To_CORBA_String ("IDL:omg.org/PortableServer/RequestProcessingPolicyValue:1.0");
-         USE_ACTIVE_OBJECT_MAP_ONLY_Name : CORBA.String := CORBA.To_CORBA_String ("USE_ACTIVE_OBJECT_MAP_ONLY");
-         USE_DEFAULT_SERVANT_Name : CORBA.String := CORBA.To_CORBA_String ("USE_DEFAULT_SERVANT");
-         USE_SERVANT_MANAGER_Name : CORBA.String := CORBA.To_CORBA_String ("USE_SERVANT_MANAGER");
+         Name : constant CORBA.String := CORBA.To_CORBA_String ("RequestProcessingPolicyValue");
+         Id : constant CORBA.String := CORBA.To_CORBA_String ("IDL:omg.org/PortableServer/RequestProcessingPolicyValue:1.0");
+         USE_ACTIVE_OBJECT_MAP_ONLY_Name : constant CORBA.String := CORBA.To_CORBA_String ("USE_ACTIVE_OBJECT_MAP_ONLY");
+         USE_DEFAULT_SERVANT_Name : constant CORBA.String := CORBA.To_CORBA_String ("USE_DEFAULT_SERVANT");
+         USE_SERVANT_MANAGER_Name : constant CORBA.String := CORBA.To_CORBA_String ("USE_SERVANT_MANAGER");
       begin
          TC_RequestProcessingPolicyValue :=
            CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TC_Enum);

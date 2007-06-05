@@ -721,35 +721,35 @@ package body RTCORBA.Helper is
    begin
 
       declare
-         Name : CORBA.String := CORBA.To_CORBA_String ("NativePriority");
-         Id : CORBA.String := CORBA.To_CORBA_String ("IDL:omg.org/RTCORBA/NativePriority:1.0");
+         Name : constant CORBA.String := CORBA.To_CORBA_String ("NativePriority");
+         Id : constant CORBA.String := CORBA.To_CORBA_String ("IDL:omg.org/RTCORBA/NativePriority:1.0");
       begin
          TC_NativePriority := CORBA.TypeCode.Internals.Build_Alias_TC
            (Name => Name, Id => Id, Parent => CORBA.TC_Short);
       end;
 
       declare
-         Name : CORBA.String := CORBA.To_CORBA_String ("Priority");
-         Id : CORBA.String := CORBA.To_CORBA_String ("IDL:omg.org/RTCORBA/Priority:1.0");
+         Name : constant CORBA.String := CORBA.To_CORBA_String ("Priority");
+         Id : constant CORBA.String := CORBA.To_CORBA_String ("IDL:omg.org/RTCORBA/Priority:1.0");
       begin
          TC_Priority := CORBA.TypeCode.Internals.Build_Alias_TC
            (Name => Name, Id => Id, Parent => CORBA.TC_Short);
       end;
 
       declare
-         Name : CORBA.String := CORBA.To_CORBA_String ("ThreadpoolId");
-         Id : CORBA.String := CORBA.To_CORBA_String ("IDL:omg.org/RTCORBA/ThreadpoolId:1.0");
+         Name : constant CORBA.String := CORBA.To_CORBA_String ("ThreadpoolId");
+         Id : constant CORBA.String := CORBA.To_CORBA_String ("IDL:omg.org/RTCORBA/ThreadpoolId:1.0");
       begin
          TC_ThreadpoolId := CORBA.TypeCode.Internals.Build_Alias_TC
            (Name => Name, Id => Id, Parent => CORBA.TC_Unsigned_Long);
       end;
 
       declare
-         Name : CORBA.String := CORBA.To_CORBA_String ("ThreadpoolLane");
-         Id : CORBA.String := CORBA.To_CORBA_String ("IDL:omg.org/RTCORBA/ThreadpoolLane:1.0");
-         Arg_Name_lane_priority : CORBA.String := CORBA.To_CORBA_String ("lane_priority");
-         Arg_Name_static_threads : CORBA.String := CORBA.To_CORBA_String ("static_threads");
-         Arg_Name_dynamic_threads : CORBA.String := CORBA.To_CORBA_String ("dynamic_threads");
+         Name : constant CORBA.String := CORBA.To_CORBA_String ("ThreadpoolLane");
+         Id : constant CORBA.String := CORBA.To_CORBA_String ("IDL:omg.org/RTCORBA/ThreadpoolLane:1.0");
+         Arg_Name_lane_priority : constant CORBA.String := CORBA.To_CORBA_String ("lane_priority");
+         Arg_Name_static_threads : constant CORBA.String := CORBA.To_CORBA_String ("static_threads");
+         Arg_Name_dynamic_threads : constant CORBA.String := CORBA.To_CORBA_String ("dynamic_threads");
       begin
          TC_ThreadpoolLane :=
            CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TC_Struct);
@@ -771,17 +771,17 @@ package body RTCORBA.Helper is
          Sequence_TC => TC_IDL_SEQUENCE_RTCORBA_ThreadpoolLane);
 
       declare
-         Name : CORBA.String := CORBA.To_CORBA_String ("ThreadpoolLanes");
-         Id : CORBA.String := CORBA.To_CORBA_String ("IDL:omg.org/RTCORBA/ThreadpoolLanes:1.0");
+         Name : constant CORBA.String := CORBA.To_CORBA_String ("ThreadpoolLanes");
+         Id : constant CORBA.String := CORBA.To_CORBA_String ("IDL:omg.org/RTCORBA/ThreadpoolLanes:1.0");
       begin
          TC_ThreadpoolLanes := CORBA.TypeCode.Internals.Build_Alias_TC
            (Name => Name, Id => Id, Parent => RTCORBA.Helper.TC_IDL_SEQUENCE_RTCORBA_ThreadpoolLane);
       end;
       declare
-         Name : CORBA.String := CORBA.To_CORBA_String ("PriorityModel");
-         Id : CORBA.String := CORBA.To_CORBA_String ("IDL:omg.org/RTCORBA/PriorityModel:1.0");
-         CLIENT_PROPAGATED_Name : CORBA.String := CORBA.To_CORBA_String ("CLIENT_PROPAGATED");
-         SERVER_DECLARED_Name : CORBA.String := CORBA.To_CORBA_String ("SERVER_DECLARED");
+         Name : constant CORBA.String := CORBA.To_CORBA_String ("PriorityModel");
+         Id : constant CORBA.String := CORBA.To_CORBA_String ("IDL:omg.org/RTCORBA/PriorityModel:1.0");
+         CLIENT_PROPAGATED_Name : constant CORBA.String := CORBA.To_CORBA_String ("CLIENT_PROPAGATED");
+         SERVER_DECLARED_Name : constant CORBA.String := CORBA.To_CORBA_String ("SERVER_DECLARED");
       begin
          TC_PriorityModel :=
            CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TC_Enum);
@@ -792,8 +792,8 @@ package body RTCORBA.Helper is
       end;
 
       declare
-         Name : CORBA.String := CORBA.To_CORBA_String ("ProtocolProperties");
-         Id : CORBA.String := CORBA.To_CORBA_String ("IDL:omg.org/RTCORBA/ProtocolProperties:1.0");
+         Name : constant CORBA.String := CORBA.To_CORBA_String ("ProtocolProperties");
+         Id : constant CORBA.String := CORBA.To_CORBA_String ("IDL:omg.org/RTCORBA/ProtocolProperties:1.0");
       begin
          TC_ProtocolProperties :=
            CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TC_Object);
@@ -802,11 +802,11 @@ package body RTCORBA.Helper is
       end;
 
       declare
-         Name : CORBA.String := CORBA.To_CORBA_String ("Protocol");
-         Id : CORBA.String := CORBA.To_CORBA_String ("IDL:omg.org/RTCORBA/Protocol:1.0");
-         Arg_Name_protocol_type : CORBA.String := CORBA.To_CORBA_String ("protocol_type");
-         Arg_Name_orb_protocol_properties : CORBA.String := CORBA.To_CORBA_String ("orb_protocol_properties");
-         Arg_Name_transport_protocol_properties : CORBA.String := CORBA.To_CORBA_String ("transport_protocol_properties");
+         Name : constant CORBA.String := CORBA.To_CORBA_String ("Protocol");
+         Id : constant CORBA.String := CORBA.To_CORBA_String ("IDL:omg.org/RTCORBA/Protocol:1.0");
+         Arg_Name_protocol_type : constant CORBA.String := CORBA.To_CORBA_String ("protocol_type");
+         Arg_Name_orb_protocol_properties : constant CORBA.String := CORBA.To_CORBA_String ("orb_protocol_properties");
+         Arg_Name_transport_protocol_properties : constant CORBA.String := CORBA.To_CORBA_String ("transport_protocol_properties");
       begin
          TC_Protocol :=
            CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TC_Struct);
@@ -825,18 +825,18 @@ package body RTCORBA.Helper is
           (RTCORBA.Helper.TC_Protocol, 0);
 
       declare
-         Name : CORBA.String := CORBA.To_CORBA_String ("ProtocolList");
-         Id : CORBA.String := CORBA.To_CORBA_String ("IDL:omg.org/RTCORBA/ProtocolList:1.0");
+         Name : constant CORBA.String := CORBA.To_CORBA_String ("ProtocolList");
+         Id : constant CORBA.String := CORBA.To_CORBA_String ("IDL:omg.org/RTCORBA/ProtocolList:1.0");
       begin
          TC_ProtocolList := CORBA.TypeCode.Internals.Build_Alias_TC
            (Name => Name, Id => Id, Parent => RTCORBA.Helper.TC_IDL_SEQUENCE_RTCORBA_Protocol);
       end;
 
       declare
-         Name : CORBA.String := CORBA.To_CORBA_String ("PriorityBand");
-         Id : CORBA.String := CORBA.To_CORBA_String ("IDL:omg.org/RTCORBA/PriorityBand:1.0");
-         Arg_Name_low : CORBA.String := CORBA.To_CORBA_String ("low");
-         Arg_Name_high : CORBA.String := CORBA.To_CORBA_String ("high");
+         Name : constant CORBA.String := CORBA.To_CORBA_String ("PriorityBand");
+         Id : constant CORBA.String := CORBA.To_CORBA_String ("IDL:omg.org/RTCORBA/PriorityBand:1.0");
+         Arg_Name_low : constant CORBA.String := CORBA.To_CORBA_String ("low");
+         Arg_Name_high : constant CORBA.String := CORBA.To_CORBA_String ("high");
       begin
          TC_PriorityBand :=
            CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TC_Struct);
@@ -856,8 +856,8 @@ package body RTCORBA.Helper is
          Sequence_TC => TC_IDL_SEQUENCE_RTCORBA_PriorityBand);
 
       declare
-         Name : CORBA.String := CORBA.To_CORBA_String ("PriorityBands");
-         Id : CORBA.String := CORBA.To_CORBA_String ("IDL:omg.org/RTCORBA/PriorityBands:1.0");
+         Name : constant CORBA.String := CORBA.To_CORBA_String ("PriorityBands");
+         Id : constant CORBA.String := CORBA.To_CORBA_String ("IDL:omg.org/RTCORBA/PriorityBands:1.0");
       begin
          TC_PriorityBands := CORBA.TypeCode.Internals.Build_Alias_TC
            (Name => Name, Id => Id, Parent => RTCORBA.Helper.TC_IDL_SEQUENCE_RTCORBA_PriorityBand);

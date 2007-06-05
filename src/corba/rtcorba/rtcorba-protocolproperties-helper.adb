@@ -67,8 +67,8 @@ package body RTCORBA.ProtocolProperties.Helper is
    begin
 
       declare
-         Name : CORBA.String := CORBA.To_CORBA_String ("ProtocolProperties");
-         Id : CORBA.String := CORBA.To_CORBA_String ("IDL:omg.org/RTCORBA/ProtocolProperties:1.0");
+         Name : constant CORBA.String := CORBA.To_CORBA_String ("ProtocolProperties");
+         Id : constant CORBA.String := CORBA.To_CORBA_String ("IDL:omg.org/RTCORBA/ProtocolProperties:1.0");
       begin
          TC_ProtocolProperties :=
            CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TC_Object);

@@ -2719,14 +2719,12 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
          Statements       : List_Id)
       is
          function Add_Parameter
-           (TC_Name : Name_Id; Var_Node : Node_Id)
-           return Node_Id;
+           (TC_Name : Name_Id; Var_Node : Node_Id) return Node_Id;
          --  Makes a call to the Add_Parameter Routine with the given
          --  parameters
 
          function Declare_Name
-           (Var_Name : Name_Id; Value : Value_Id)
-           return Node_Id;
+           (Var_Name : Name_Id; Value : Value_Id) return Node_Id;
          --  Makes a variable declaration using the given parameters
 
          function TypeCode_Initialization return Node_Id;
@@ -2745,8 +2743,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
             N : Node_Id;
          begin
             N := Make_Subprogram_Call
-              (RE (RE_To_Any_0),
-               Make_List_Id (Var_Node));
+              (RE (RE_To_Any_0), Make_List_Id (Var_Node));
             N := Make_Subprogram_Call
               (RE (RE_Add_Parameter),
                Make_List_Id (Make_Designator (TC_Name), N));
@@ -2767,6 +2764,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
          begin
             N := Make_Object_Declaration
               (Defining_Identifier => Make_Defining_Identifier (Var_Name),
+               Constant_Present    => True,
                Object_Definition   => RE (RE_String_0),
                Expression          => Make_Subprogram_Call
                  (RE (RE_To_CORBA_String),
@@ -3340,6 +3338,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                      N := Make_Object_Declaration
                        (Defining_Identifier =>
                           Make_Defining_Identifier (Arg_Name),
+                        Constant_Present    => True,
                         Object_Definition   => RE (RE_String_0),
                         Expression          => N);
                      Append_Node_To_List (N, Declaration_List);
@@ -3459,6 +3458,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                         N := Make_Object_Declaration
                           (Defining_Identifier =>
                              Make_Defining_Identifier (Arg_Name),
+                           Constant_Present    => True,
                            Object_Definition   => RE (RE_String_0),
                            Expression          => N);
                         Append_Node_To_List (N, Declaration_List);
@@ -3496,8 +3496,12 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                   Register_Excp_Node         : constant Node_Id :=
                     RE (RE_Register_Exception);
                begin
-                  --  In case where the exception has members, we add
-                  --  two two parameter for each member.
+                  --  In case where the exception has members, we add two
+                  --  parameters for each member.
+
+                  --  ??? "if" statement looks redundant, assuming that
+                  --  if the list Is_Empty, its First_Entity will be a null
+                  --  node id.
 
                   Members := FEN.Members (E);
 
@@ -3532,6 +3536,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
 
                            N := Make_Object_Declaration
                              (Defining_Identifier => Arg_Name_Node,
+                              Constant_Present    => True,
                               Object_Definition   => RE (RE_String_0),
                               Expression          => N);
                            Append_Node_To_List (N, Declaration_List);

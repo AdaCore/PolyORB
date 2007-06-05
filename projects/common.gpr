@@ -52,10 +52,8 @@ project Common is
       Base_Ada_Compiler_Switches :=
         ("-gnatf",            --  Full compiler error messages
          Config.Style_Switch, --  Enable style checks
-         "-gnatwaleK");       --  Enable all warnings, also enable elaboration
+         "-gnatwale");        --  Enable all warnings, also enable elaboration
                               --  warnings, and treat all warnings as errors.
-                              --  ???Temporarily disable warnings for missing
-                              --  "constant" ("K").
 
       case Build is
          when "PRODUCTION" =>

@@ -50,8 +50,8 @@ package body CORBA.ORB.Typecode is
       CORBA.Internals.Add_Parameter
         (Result, To_Any (CORBA.String (Id)));
       declare
-         Memb_Array : SMS.Element_Array
-           := SMS.To_Element_Array (SMS.Sequence (Members));
+         Memb_Array : constant SMS.Element_Array :=
+                        SMS.To_Element_Array (SMS.Sequence (Members));
       begin
          for I in Memb_Array'Range loop
             CORBA.Internals.Add_Parameter
@@ -83,8 +83,8 @@ package body CORBA.ORB.Typecode is
       CORBA.Internals.Add_Parameter
         (Result, To_Any (Discriminator_Type));
       declare
-         Memb_Array : UMS.Element_Array
-           := UMS.To_Element_Array (UMS.Sequence (Members));
+         Memb_Array : constant UMS.Element_Array :=
+                        UMS.To_Element_Array (UMS.Sequence (Members));
       begin
          for I in Memb_Array'Range loop
             CORBA.Internals.Add_Parameter
@@ -107,8 +107,8 @@ package body CORBA.ORB.Typecode is
       Result : CORBA.TypeCode.Object;
       package EMS renames
         CORBA.Repository_Root.IDL_SEQUENCE_CORBA_Identifier;
-      Memb_Array : EMS.Element_Array
-        := EMS.To_Element_Array (EMS.Sequence (Members));
+      Memb_Array : constant EMS.Element_Array :=
+                     EMS.To_Element_Array (EMS.Sequence (Members));
    begin
       Result := CORBA.TypeCode.Internals.To_CORBA_Object
                   (PolyORB.Any.TypeCode.TC_Enum);
@@ -150,8 +150,8 @@ package body CORBA.ORB.Typecode is
       CORBA.Internals.Add_Parameter
         (Result, To_Any (CORBA.String (Id)));
       declare
-         Memb_Array : SMS.Element_Array
-           := SMS.To_Element_Array (SMS.Sequence (Members));
+         Memb_Array : constant SMS.Element_Array :=
+                        SMS.To_Element_Array (SMS.Sequence (Members));
       begin
          for I in Memb_Array'Range loop
             CORBA.Internals.Add_Parameter

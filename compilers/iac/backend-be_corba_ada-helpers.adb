@@ -285,7 +285,6 @@ package body Backend.BE_CORBA_Ada.Helpers is
 
          N := Make_Object_Declaration
            (Defining_Identifier => Make_Defining_Identifier (TC),
-            Constant_Present    => False,
             Object_Definition   => RE (RE_Object));
 
          return N;
@@ -321,7 +320,6 @@ package body Backend.BE_CORBA_Ada.Helpers is
 
          N := Make_Object_Declaration
            (Defining_Identifier => Make_Defining_Identifier (TC_Name),
-            Constant_Present    => False,
             Object_Definition   => RE (RE_Object));
 
          return N;
@@ -852,11 +850,9 @@ package body Backend.BE_CORBA_Ada.Helpers is
          Append_Node_To_List (R, L);
 
          N := Make_Object_Declaration
-           (Defining_Identifier => Make_Defining_Identifier
-            (A_Name),
-            Object_Definition   => Make_Array_Type_Definition
-            (L, RE (RE_Any)));
-
+                (Defining_Identifier => Make_Defining_Identifier (A_Name),
+                 Object_Definition   => Make_Array_Type_Definition
+                                          (L, RE (RE_Any)));
          return N;
       end Declare_Any_Array;
 
@@ -1249,6 +1245,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
             N := Make_Object_Declaration
               (Defining_Identifier =>
                  Make_Defining_Identifier (VN (V_Label_Any)),
+               Constant_Present    => True,
                Object_Definition   => RE (RE_Any),
                Expression          => N);
             Append_Node_To_List (N, D);
@@ -2065,15 +2062,22 @@ package body Backend.BE_CORBA_Ada.Helpers is
             N := Make_Subprogram_Call
               (N,
                Make_List_Id (Make_Defining_Identifier (Helper_Name)));
+
+            Member := First_Entity (Members (E));
+
             N := Make_Object_Declaration
               (Defining_Identifier =>
                  Make_Defining_Identifier (PN (P_Result)),
+               Constant_Present  => not Present (Member),
                Object_Definition => RE (RE_Any),
                Expression => N);
             Append_Node_To_List (N, D);
-            Member := First_Entity (Members (E));
+
+            --  If the structure has no members, Result won't ever be modified
+            --  and may be declared a constant.
 
             while Present (Member) loop
+               Set_Constant_Present (N, False);
                Declarator := First_Entity (Declarators (Member));
                Item_Designator := Make_Designator (PN (P_Item));
 
@@ -2269,18 +2273,22 @@ package body Backend.BE_CORBA_Ada.Helpers is
               (RE (RE_Get_Empty_Any_Aggregate),
                Make_List_Id
                (N));
+
+            Members := FEN.Members (E);
+
+            --  If the structure has no members, Result won't ever be modified
+            --  and may be declared a constant.
+
             N := Make_Object_Declaration
               (Defining_Identifier =>
                  Make_Defining_Identifier (VN (V_Result)),
+               Constant_Present    => FEU.Is_Empty (Members),
                Object_Definition   => RE (RE_Any),
                Expression => N);
             Append_Node_To_List (N, D);
 
-            --  Adding the necessary pragmas because the parameter of
-            --  the function is unreferenced in case of nonexistence
-            --  of exception members.
-
-            Members := FEN.Members (E);
+            --  Also add Unreferenced pragmas in that case, since the Item
+            --  formal is never referenced if there are no members.
 
             if FEU.Is_Empty (Members) then
                N := Make_Pragma

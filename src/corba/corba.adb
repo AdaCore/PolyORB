@@ -1462,7 +1462,7 @@ package body CORBA is
         (TC : TypeCode.Object;
          CC : access PolyORB.Any.Content'Class) return Any
       is
-         Result : Any := Get_Empty_Any (TC);
+         Result : constant Any := Get_Empty_Any (TC);
          pragma Suppress (Accessibility_Check);
       begin
          PolyORB.Any.Set_Value (Get_Container (Result).all,

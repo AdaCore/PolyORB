@@ -73,13 +73,9 @@ package body CORBA.PolicyManager is
 
    function Get_Policy_Overrides
      (Self : Local_Ref;
-      TS   : CORBA.Policy.PolicyTypeSeq)
-     return CORBA.Policy.PolicyList
-   is
-      Self_Ref : CORBA.Object.Ref := CORBA.Object.Ref (Self);
-
+      TS   : CORBA.Policy.PolicyTypeSeq) return CORBA.Policy.PolicyList is
    begin
-      if CORBA.Object.Is_Nil (Self_Ref) then
+      if Is_Nil (Self) then
          CORBA.Raise_Inv_Objref (CORBA.Default_Sys_Member);
       end if;
 
@@ -117,10 +113,8 @@ package body CORBA.PolicyManager is
       Policies : CORBA.Policy.PolicyList;
       Set_Add  : SetOverrideType)
    is
-      Self_Ref : CORBA.Object.Ref := CORBA.Object.Ref (Self);
-
    begin
-      if CORBA.Object.Is_Nil (Self_Ref) then
+      if Is_Nil (Self) then
          CORBA.Raise_Inv_Objref (CORBA.Default_Sys_Member);
       end if;
 

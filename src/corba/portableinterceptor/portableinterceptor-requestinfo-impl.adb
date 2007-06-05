@@ -130,8 +130,9 @@ package body PortableInterceptor.RequestInfo.Impl is
       end if;
 
       declare
-         Members : PolyORB.Errors.ForwardRequest_Members
-           := PolyORB.Errors.Helper.From_Any (Self.Request.Exception_Info);
+         Members : constant PolyORB.Errors.ForwardRequest_Members :=
+                     PolyORB.Errors.Helper.From_Any
+                       (Self.Request.Exception_Info);
          Ref     : PolyORB.References.Ref;
          Result  : CORBA.Object.Ref;
       begin

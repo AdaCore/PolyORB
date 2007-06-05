@@ -201,8 +201,8 @@ package body PolyORB.Protocols.SOAP_Pr is
 
          PolyORB.SOAP_P.Message.Set_Parameters (RO, RP);
          declare
-            RD : PolyORB.SOAP_P.Response.Data
-              := PolyORB.SOAP_P.Message.Response.Build (RO);
+            RD : constant PolyORB.SOAP_P.Response.Data :=
+                   PolyORB.SOAP_P.Message.Response.Build (RO);
 
             --  Here we depend on a violation of abstraction:
             --  we construct an /AWS/ response object, and

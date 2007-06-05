@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -273,9 +273,10 @@ package body PolyORB.MOMA_P.Provider.Message_Pool is
       Key  : constant String := "M" & Temp (2 .. Temp'Last);
       --  Dummy Key construction, should be analyzed from message
 
-      Rcvd_Message : MOMA.Messages.Message'Class := From_Any (Message);
-      Id : constant String
-        := MOMA.Types.To_Standard_String (Get_Message_Id (Rcvd_Message));
+      Rcvd_Message : constant MOMA.Messages.Message'Class :=
+                       From_Any (Message);
+      Id : constant String :=
+             MOMA.Types.To_Standard_String (Get_Message_Id (Rcvd_Message));
 
    begin
       if Self.Behavior = Handle

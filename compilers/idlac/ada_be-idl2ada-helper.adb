@@ -1582,9 +1582,12 @@ package body Ada_Be.Idl2Ada.Helper is
       PL (CU, "is");
       II (CU);
       PL (CU, "--  Get the ID, and then check the association list.");
-      PL (CU, "ID_Tag : CORBA.Any := CORBA.Internals.Get_Aggregate_Element");
-      PL (CU, "   (Item, CORBA.TC_String, CORBA.Unsigned_Long (0));");
-      PL (CU, "Temp_String : CORBA.String := CORBA.From_Any (ID_Tag);");
+      PL (CU, "ID_Tag : constant CORBA.Any :=");
+      PL (CU, "           CORBA.Internals.Get_Aggregate_Element");
+      PL (CU, "             (Item, CORBA.TC_String, "
+                            & "CORBA.Unsigned_Long (0));");
+      PL (CU, "Temp_String : constant CORBA.String :=");
+      PL (CU, "                CORBA.From_Any (ID_Tag);");
       PL (CU, "My_ID : Any_ID;");
       PL (CU, "Index : Natural;");
       DI (CU);
@@ -1862,11 +1865,11 @@ package body Ada_Be.Idl2Ada.Helper is
       NL (CU);
       PL (CU, "declare");
       II (CU);
-      PL (CU, "Name : CORBA.String :=");
+      PL (CU, "Name : constant CORBA.String :=");
       PL (CU, "   CORBA.To_CORBA_String ("""
           & Ada_Name (Node)
           & """);");
-      PL (CU, "Id : CORBA.String :=");
+      PL (CU, "Id   : constant CORBA.String :=");
       PL (CU, "   CORBA.To_CORBA_String ("""
           & Idl_Repository_Id (Node)
           & """);");
@@ -1890,7 +1893,8 @@ package body Ada_Be.Idl2Ada.Helper is
                      Get_Next_Node (It2, Content_Node_Id);
                      PL (CU, "Name_"
                          & Ada_Name (Content_Node_Id)
-                         & " : CORBA.String := CORBA.To_CORBA_String ("""
+                         & " : constant CORBA.String := "
+                         & "CORBA.To_CORBA_String ("""
                          & Ada_Name (Content_Node_Id)
                          & """);");
                   end loop;
@@ -2101,10 +2105,10 @@ package body Ada_Be.Idl2Ada.Helper is
       NL (CU);
       PL (CU, "declare");
       II (CU);
-      PL (CU, "Name : CORBA.String := CORBA.To_CORBA_String ("""
+      PL (CU, "Name : constant CORBA.String := CORBA.To_CORBA_String ("""
           & Ada_Name (Node)
           & """);");
-      PL (CU, "Id : CORBA.String := CORBA.To_CORBA_String ("""
+      PL (CU, "Id   : constant CORBA.String := CORBA.To_CORBA_String ("""
           & Idl_Repository_Id (Node)
           & """);");
       DI (CU);
@@ -2224,10 +2228,10 @@ package body Ada_Be.Idl2Ada.Helper is
       NL (CU);
       PL (CU, "declare");
       II (CU);
-      PL (CU, "Name : CORBA.String := CORBA.To_CORBA_String ("""
+      PL (CU, "Name : constant CORBA.String := CORBA.To_CORBA_String ("""
           & Ada_Name (Forward (Node))
           & """);");
-      PL (CU, "Id : CORBA.String := CORBA.To_CORBA_String ("""
+      PL (CU, "Id : constant CORBA.String := CORBA.To_CORBA_String ("""
           & Idl_Repository_Id (Node)
           & """);");
       DI (CU);
@@ -2343,10 +2347,10 @@ package body Ada_Be.Idl2Ada.Helper is
       Divert (CU, Deferred_Initialization);
       PL (CU, "declare");
       II (CU);
-      PL (CU, "Name : CORBA.String := CORBA.To_CORBA_String ("""
+      PL (CU, "Name : constant CORBA.String := CORBA.To_CORBA_String ("""
           & Ada_Name (Node)
           & """);");
-      PL (CU, "Id : CORBA.String := CORBA.To_CORBA_String ("""
+      PL (CU, "Id : constant CORBA.String := CORBA.To_CORBA_String ("""
           & Idl_Repository_Id (Node)
           & """);");
       declare
@@ -2357,7 +2361,7 @@ package body Ada_Be.Idl2Ada.Helper is
          while not Is_End (It) loop
             Get_Next_Node (It, E_Node);
             PL (CU, Ada_Name (E_Node)
-                & "_Name : CORBA.String := CORBA.To_CORBA_String ("""
+                & "_Name : constant CORBA.String := CORBA.To_CORBA_String ("""
                 & Ada_Name (E_Node)
                 & """);");
          end loop;
@@ -2622,7 +2626,12 @@ package body Ada_Be.Idl2Ada.Helper is
          Gen_To_Any_Profile (CU, Struct_Node);
          PL (CU, " is");
          II (CU);
-         PL (CU, "Result : CORBA.Any :=");
+         Put (CU, "Result : ");
+         if Is_Empty then
+            Put (CU, "constant ");
+         end if;
+
+         PL (CU, "CORBA.Any :=");
          II (CU);
          PL (CU, "CORBA.Internals.Get_Empty_Any_Aggregate ("
              & Ada_TC_Name (Node)
@@ -2679,10 +2688,10 @@ package body Ada_Be.Idl2Ada.Helper is
       NL (CU);
       PL (CU, "declare");
       II (CU);
-      PL (CU, "Name : CORBA.String := CORBA.To_CORBA_String ("""
+      PL (CU, "Name : constant CORBA.String := CORBA.To_CORBA_String ("""
           & Ada_Name (Node)
           & """);");
-      PL (CU, "Id : CORBA.String := CORBA.To_CORBA_String ("""
+      PL (CU, "Id : constant CORBA.String := CORBA.To_CORBA_String ("""
           & Idl_Repository_Id (Node)
           & """);");
 
@@ -2707,7 +2716,7 @@ package body Ada_Be.Idl2Ada.Helper is
                   Get_Next_Node (It2, Decl_Node);
                   PL (CU, "Arg_Name_"
                       & Ada_Name (Decl_Node)
-                      & " : CORBA.String := CORBA.To_CORBA_String ("""
+                      & " : constant CORBA.String := CORBA.To_CORBA_String ("""
                       & Ada_Name (Decl_Node)
                       & """);");
                end loop;
@@ -2927,7 +2936,7 @@ package body Ada_Be.Idl2Ada.Helper is
          Gen_From_Any_Profile (CU, Node, From_Container => False);
          PL (CU, " is");
          II (CU);
-         PL (CU, "Label_Any : CORBA.Any :=");
+         PL (CU, "Label_Any : constant CORBA.Any :=");
          II (CU);
          PL (CU, "CORBA.Internals.Get_Aggregate_Element (Item,");
          PL (CU, "                             "
@@ -3125,10 +3134,10 @@ package body Ada_Be.Idl2Ada.Helper is
       NL (CU);
       PL (CU, "declare");
       II (CU);
-      PL (CU, "Name : CORBA.String := CORBA.To_CORBA_String ("""
+      PL (CU, "Name : constant CORBA.String := CORBA.To_CORBA_String ("""
           & Ada_Name (Node)
           & """);");
-      PL (CU, "Id : CORBA.String := CORBA.To_CORBA_String ("""
+      PL (CU, "Id : constant CORBA.String := CORBA.To_CORBA_String ("""
           & Idl_Repository_Id (Node)
        & """);");
 
@@ -3144,7 +3153,7 @@ package body Ada_Be.Idl2Ada.Helper is
 
             PL (CU, "Arg_Name_"
                 & Ada_Name (Case_Decl (Case_Node))
-                & " : CORBA.String := CORBA.To_CORBA_String ("""
+                & " : constant CORBA.String := CORBA.To_CORBA_String ("""
                 & Ada_Name (Case_Decl (Case_Node))
                 & """);");
          end loop;
@@ -3365,10 +3374,10 @@ package body Ada_Be.Idl2Ada.Helper is
       II (CU);
 
       if not Is_Array then
-         PL (CU, "Name : CORBA.String := CORBA.To_CORBA_String ("""
+         PL (CU, "Name : constant CORBA.String := CORBA.To_CORBA_String ("""
              & Ada_Name (Node)
              & """);");
-         PL (CU, "Id : CORBA.String := CORBA.To_CORBA_String ("""
+         PL (CU, "Id : constant CORBA.String := CORBA.To_CORBA_String ("""
              & Idl_Repository_Id (Node)
              & """);");
       end if;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -130,8 +130,8 @@ package body Client_Call_Back_Procedures is
    function Receive_MByte (MOMA_Consumer : Message_Consumer)
       return MOMA.Types.Byte
    is
-      MOMA_Message_Temp : MOMA.Messages.Message'Class
-         := Receive (MOMA_Consumer);
+      MOMA_Message_Temp : constant MOMA.Messages.Message'Class :=
+                            Receive (MOMA_Consumer);
    begin
       return Get_Byte_Value (MOMA_Message_Temp);
    end Receive_MByte;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -78,8 +78,9 @@ package body MOMA.Types is
      return IDL_SEQUENCE_Map_Element.Sequence
    is
       use IDL_SEQUENCE_Map_Element;
-      Nb_Any : Any := Get_Aggregate_Element
-        (Item, TC_Unsigned_Long, PolyORB.Types.Unsigned_Long (0));
+      Nb_Any : constant Any :=
+                 Get_Aggregate_Element (Item,
+                   TC_Unsigned_Long, PolyORB.Types.Unsigned_Long (0));
 
       Nb_Long : constant Unsigned_Long := From_Any (Nb_Any);
       Nb      : constant Integer := Integer (Nb_Long);
@@ -99,9 +100,8 @@ package body MOMA.Types is
       return To_Sequence (Result);
    end From_Any;
 
-   function From_Any (Item : MOMA.Types.Any) return Map
-   is
-      Result : IDL_SEQUENCE_Map_Element.Sequence := From_Any (Item);
+   function From_Any (Item : MOMA.Types.Any) return Map is
+      Result : constant IDL_SEQUENCE_Map_Element.Sequence := From_Any (Item);
    begin
       pragma Debug (O ("From_Any : (Map)"));
       return Map (Result);
@@ -109,9 +109,9 @@ package body MOMA.Types is
 
    function From_Any (Item : MOMA.Types.Any) return Destination_Type
    is
-      Index : Any := Get_Aggregate_Element (Item,
-                                            TC_Unsigned_Long,
-                                            PolyORB.Types.Unsigned_Long (0));
+      Index : constant Any :=
+                 Get_Aggregate_Element (Item,
+                   TC_Unsigned_Long, PolyORB.Types.Unsigned_Long (0));
       Position : constant Unsigned_Long := From_Any (Index);
    begin
       return Destination_Type'Val (Position);
@@ -201,9 +201,8 @@ package body MOMA.Types is
      return MOMA.Types.Any
    is
       use IDL_SEQUENCE_Map_Element;
-      Array_Item : Element_Array := To_Element_Array (Item);
-      Result : Any :=
-        Get_Empty_Any_Aggregate (TC_IDL_SEQUENCE_Map_Element);
+      Array_Item : constant Element_Array := To_Element_Array (Item);
+      Result : Any := Get_Empty_Any_Aggregate (TC_IDL_SEQUENCE_Map_Element);
 
    begin
       pragma Debug (O ("To_Any : (IDL_SEQUENCE_Map_Element)"));
@@ -697,13 +696,15 @@ package body MOMA.Types is
       TC_Destination_Type := PolyORB.Any.TypeCode.TC_Enum;
 
       declare
-         Name           : String := To_PolyORB_String ("Destination_Type");
-         Id             : String := To_PolyORB_String
-           ("MOMA:types/destination_type:1.0");
-         Unknown_Name   : String := To_PolyORB_String ("Unknown");
-         Pool_Name      : String := To_PolyORB_String ("Pool");
-         Router_Name    : String := To_PolyORB_String ("Router");
-         Topic_Name     : String := To_PolyORB_String ("Topic");
+         Name           : constant String :=
+                            To_PolyORB_String ("Destination_Type");
+         Id             : constant String :=
+                            To_PolyORB_String
+                              ("MOMA:types/destination_type:1.0");
+         Unknown_Name   : constant String := To_PolyORB_String ("Unknown");
+         Pool_Name      : constant String := To_PolyORB_String ("Pool");
+         Router_Name    : constant String := To_PolyORB_String ("Router");
+         Topic_Name     : constant String := To_PolyORB_String ("Topic");
       begin
          TypeCode.Add_Parameter (TC_Destination_Type, To_Any (Name));
          TypeCode.Add_Parameter (TC_Destination_Type, To_Any (Id));

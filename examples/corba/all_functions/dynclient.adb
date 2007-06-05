@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -61,12 +61,12 @@ procedure Dynclient is
    function Get_The_Attribute
      return CORBA.Short
    is
-      Operation_Name : CORBA.Identifier
-        := To_CORBA_String ("_get_the_attribute");
+      Operation_Name : constant CORBA.Identifier :=
+                         To_CORBA_String ("_get_the_attribute");
       Request : CORBA.Request.Object;
       Ctx : CORBA.Context.Ref;
       Arg_List : CORBA.NVList.Ref;
-      Result_Name : CORBA.String := To_CORBA_String ("Result");
+      Result_Name : constant CORBA.String := To_CORBA_String ("Result");
       Result : CORBA.NamedValue;
    begin
       --  creating the argument list
@@ -93,15 +93,15 @@ procedure Dynclient is
 
    procedure Set_The_Attribute (To   : in CORBA.Short)
    is
-      Operation_Name : CORBA.Identifier
-        := To_CORBA_String ("_set_the_attribute");
-      Arg_Name_To : CORBA.Identifier := To_CORBA_String ("to");
+      Operation_Name : constant CORBA.Identifier :=
+                         To_CORBA_String ("_set_the_attribute");
+      Arg_Name_To : constant CORBA.Identifier := To_CORBA_String ("to");
       Request : CORBA.Request.Object;
       Ctx : CORBA.Context.Ref;
       Argument : CORBA.Any;
       Arg_List : CORBA.NVList.Ref;
       Result : CORBA.NamedValue;
-      Result_Name : CORBA.String := To_CORBA_String ("Result");
+      Result_Name : constant CORBA.String := To_CORBA_String ("Result");
    begin
       --  creating the argument list
       CORBA.ORB.Create_List (0, Arg_List);
@@ -131,13 +131,13 @@ procedure Dynclient is
    function Get_The_Readonly_Attribute
      return CORBA.Short
    is
-      Operation_Name : CORBA.Identifier
-        := To_CORBA_String ("_get_the_readonly_attribute");
+      Operation_Name : constant CORBA.Identifier :=
+                         To_CORBA_String ("_get_the_readonly_attribute");
       Request : CORBA.Request.Object;
       Ctx : CORBA.Context.Ref;
       Arg_List : CORBA.NVList.Ref;
       Result : CORBA.NamedValue;
-      Result_Name : CORBA.String := To_CORBA_String ("Result");
+      Result_Name : constant CORBA.String := To_CORBA_String ("Result");
    begin
       --  creating the argument list
       CORBA.ORB.Create_List (0, Arg_List);
@@ -163,12 +163,13 @@ procedure Dynclient is
 
    procedure Void_Proc
    is
-      Operation_Name : CORBA.Identifier := To_CORBA_String ("void_proc");
+      Operation_Name : constant CORBA.Identifier :=
+                         To_CORBA_String ("void_proc");
       Request : CORBA.Request.Object;
       Ctx : CORBA.Context.Ref;
       Arg_List : CORBA.NVList.Ref;
       Result : CORBA.NamedValue;
-      Result_Name : CORBA.String := To_CORBA_String ("Result");
+      Result_Name : constant CORBA.String := To_CORBA_String ("Result");
    begin
       --  creating the argument list
       CORBA.ORB.Create_List (0, Arg_List);
@@ -192,18 +193,19 @@ procedure Dynclient is
 
    procedure In_Proc (A, B, C : in CORBA.Short)
    is
-      Operation_Name : CORBA.Identifier := To_CORBA_String ("in_proc");
-      Arg_Name_A : CORBA.Identifier := To_CORBA_String ("a");
-      Arg_Name_B : CORBA.Identifier := To_CORBA_String ("b");
-      Arg_Name_C : CORBA.Identifier := To_CORBA_String ("c");
+      Operation_Name : constant CORBA.Identifier :=
+                         To_CORBA_String ("in_proc");
+      Arg_Name_A : constant CORBA.Identifier := To_CORBA_String ("a");
+      Arg_Name_B : constant CORBA.Identifier := To_CORBA_String ("b");
+      Arg_Name_C : constant CORBA.Identifier := To_CORBA_String ("c");
       Request : CORBA.Request.Object;
       Ctx : CORBA.Context.Ref;
-      Argument_A : CORBA.Any := CORBA.To_Any (A);
-      Argument_B : CORBA.Any := CORBA.To_Any (B);
-      Argument_C : CORBA.Any := CORBA.To_Any (C);
+      Argument_A : constant CORBA.Any := CORBA.To_Any (A);
+      Argument_B : constant CORBA.Any := CORBA.To_Any (B);
+      Argument_C : constant CORBA.Any := CORBA.To_Any (C);
       Arg_List : CORBA.NVList.Ref;
       Result : CORBA.NamedValue;
-      Result_Name : CORBA.String := To_CORBA_String ("Result");
+      Result_Name : constant CORBA.String := To_CORBA_String ("Result");
    begin
       --  creating the argument list
       CORBA.ORB.Create_List (0, Arg_List);
@@ -331,23 +333,26 @@ procedure Dynclient is
    procedure In_Out_Proc (A, B : in CORBA.Short;
                           C, D : out CORBA.Short)
    is
-      Operation_Name : CORBA.Identifier := To_CORBA_String ("in_out_proc");
-      Arg_Name_A : CORBA.Identifier := To_CORBA_String ("a");
-      Arg_Name_B : CORBA.Identifier := To_CORBA_String ("b");
-      Arg_Name_C : CORBA.Identifier := To_CORBA_String ("c");
-      Arg_Name_D : CORBA.Identifier := To_CORBA_String ("d");
+      Operation_Name : constant CORBA.Identifier :=
+                         To_CORBA_String ("in_out_proc");
+      Arg_Name_A : constant CORBA.Identifier := To_CORBA_String ("a");
+      Arg_Name_B : constant CORBA.Identifier := To_CORBA_String ("b");
+      Arg_Name_C : constant CORBA.Identifier := To_CORBA_String ("c");
+      Arg_Name_D : constant CORBA.Identifier := To_CORBA_String ("d");
       Request : CORBA.Request.Object;
       Ctx : CORBA.Context.Ref;
-      Argument_A : CORBA.Any := CORBA.To_Any (A);
-      Argument_B : CORBA.Any := CORBA.To_Any (B);
+      Argument_A : constant CORBA.Any := CORBA.To_Any (A);
+      Argument_B : constant CORBA.Any := CORBA.To_Any (B);
+
       pragma Warnings (Off);
       --  C and D are referenced before they have a value.
-      Argument_C : CORBA.Any := CORBA.To_Any (C);
-      Argument_D : CORBA.Any := CORBA.To_Any (D);
+      Argument_C : constant CORBA.Any := CORBA.To_Any (C);
+      Argument_D : constant CORBA.Any := CORBA.To_Any (D);
       pragma Warnings (On);
+
       Arg_List : CORBA.NVList.Ref;
       Result : CORBA.NamedValue;
-      Result_Name : CORBA.String := To_CORBA_String ("Result");
+      Result_Name : constant CORBA.String := To_CORBA_String ("Result");
    begin
       --  creating the argument list
       CORBA.ORB.Create_List (0, Arg_List);
@@ -396,20 +401,21 @@ procedure Dynclient is
                             C : in CORBA.Short;
                             D : in out CORBA.Short)
    is
-      Operation_Name : CORBA.Identifier := To_CORBA_String ("in_inout_proc");
-      Arg_Name_A : CORBA.Identifier := To_CORBA_String ("a");
-      Arg_Name_B : CORBA.Identifier := To_CORBA_String ("b");
-      Arg_Name_C : CORBA.Identifier := To_CORBA_String ("c");
-      Arg_Name_D : CORBA.Identifier := To_CORBA_String ("d");
+      Operation_Name : constant CORBA.Identifier :=
+                         To_CORBA_String ("in_inout_proc");
+      Arg_Name_A : constant CORBA.Identifier := To_CORBA_String ("a");
+      Arg_Name_B : constant CORBA.Identifier := To_CORBA_String ("b");
+      Arg_Name_C : constant CORBA.Identifier := To_CORBA_String ("c");
+      Arg_Name_D : constant CORBA.Identifier := To_CORBA_String ("d");
       Request : CORBA.Request.Object;
       Ctx : CORBA.Context.Ref;
-      Argument_A : CORBA.Any := CORBA.To_Any (A);
-      Argument_B : CORBA.Any := CORBA.To_Any (B);
-      Argument_C : CORBA.Any := CORBA.To_Any (C);
-      Argument_D : CORBA.Any := CORBA.To_Any (D);
+      Argument_A : constant CORBA.Any := CORBA.To_Any (A);
+      Argument_B : constant CORBA.Any := CORBA.To_Any (B);
+      Argument_C : constant CORBA.Any := CORBA.To_Any (C);
+      Argument_D : constant CORBA.Any := CORBA.To_Any (D);
       Arg_List : CORBA.NVList.Ref;
       Result : CORBA.NamedValue;
-      Result_Name : CORBA.String := To_CORBA_String ("Result");
+      Result_Name : constant CORBA.String := To_CORBA_String ("Result");
    begin
       --  creating the argument list
       CORBA.ORB.Create_List (0, Arg_List);
@@ -521,22 +527,22 @@ procedure Dynclient is
                                 B : out CORBA.Short;
                                 C : in out CORBA.Short)
    is
-      Operation_Name : CORBA.Identifier :=
-        To_CORBA_String ("in_out_inout_proc");
-      Arg_Name_A : CORBA.Identifier := To_CORBA_String ("a");
-      Arg_Name_B : CORBA.Identifier := To_CORBA_String ("b");
-      Arg_Name_C : CORBA.Identifier := To_CORBA_String ("c");
+      Operation_Name : constant CORBA.Identifier :=
+                         To_CORBA_String ("in_out_inout_proc");
+      Arg_Name_A : constant CORBA.Identifier := To_CORBA_String ("a");
+      Arg_Name_B : constant CORBA.Identifier := To_CORBA_String ("b");
+      Arg_Name_C : constant CORBA.Identifier := To_CORBA_String ("c");
       Request : CORBA.Request.Object;
       Ctx : CORBA.Context.Ref;
-      Argument_A : CORBA.Any := CORBA.To_Any (A);
+      Argument_A : constant CORBA.Any := CORBA.To_Any (A);
       pragma Warnings (Off);
       --  B is referenced before it has a value.
-      Argument_B : CORBA.Any := CORBA.To_Any (B);
+      Argument_B : constant CORBA.Any := CORBA.To_Any (B);
       pragma Warnings (On);
-      Argument_C : CORBA.Any := CORBA.To_Any (C);
+      Argument_C : constant CORBA.Any := CORBA.To_Any (C);
       Arg_List : CORBA.NVList.Ref;
       Result : CORBA.NamedValue;
-      Result_Name : CORBA.String := To_CORBA_String ("Result");
+      Result_Name : constant CORBA.String := To_CORBA_String ("Result");
    begin
       --  creating the argument list
       CORBA.ORB.Create_List (0, Arg_List);
@@ -575,12 +581,13 @@ procedure Dynclient is
 
    function Void_Fun return CORBA.Short
    is
-      Operation_Name : CORBA.Identifier := To_CORBA_String ("void_fun");
+      Operation_Name : constant CORBA.Identifier :=
+                         To_CORBA_String ("void_fun");
       Request : CORBA.Request.Object;
       Ctx : CORBA.Context.Ref;
       Arg_List : CORBA.NVList.Ref;
       Result : CORBA.NamedValue;
-      Result_Name : CORBA.String := To_CORBA_String ("Result");
+      Result_Name : constant CORBA.String := To_CORBA_String ("Result");
    begin
       --  creating the argument list
       CORBA.ORB.Create_List (0, Arg_List);
@@ -608,18 +615,18 @@ procedure Dynclient is
    function In_Fun (A, B, C : in CORBA.Short)
                    return CORBA.Short
    is
-      Operation_Name : CORBA.Identifier := To_CORBA_String ("in_fun");
-      Arg_Name_A : CORBA.Identifier := To_CORBA_String ("a");
-      Arg_Name_B : CORBA.Identifier := To_CORBA_String ("b");
-      Arg_Name_C : CORBA.Identifier := To_CORBA_String ("c");
+      Operation_Name : constant CORBA.Identifier := To_CORBA_String ("in_fun");
+      Arg_Name_A : constant CORBA.Identifier := To_CORBA_String ("a");
+      Arg_Name_B : constant CORBA.Identifier := To_CORBA_String ("b");
+      Arg_Name_C : constant CORBA.Identifier := To_CORBA_String ("c");
       Request : CORBA.Request.Object;
       Ctx : CORBA.Context.Ref;
-      Argument_A : CORBA.Any := CORBA.To_Any (A);
-      Argument_B : CORBA.Any := CORBA.To_Any (B);
-      Argument_C : CORBA.Any := CORBA.To_Any (C);
+      Argument_A : constant CORBA.Any := CORBA.To_Any (A);
+      Argument_B : constant CORBA.Any := CORBA.To_Any (B);
+      Argument_C : constant CORBA.Any := CORBA.To_Any (C);
       Arg_List : CORBA.NVList.Ref;
       Result : CORBA.NamedValue;
-      Result_Name : CORBA.String := To_CORBA_String ("Result");
+      Result_Name : constant CORBA.String := To_CORBA_String ("Result");
    begin
       --  creating the argument list
       CORBA.ORB.Create_List (0, Arg_List);
@@ -658,21 +665,22 @@ procedure Dynclient is
    procedure Out_Fun
      (A, B, C, Returns : out CORBA.Short)
    is
-      Operation_Name : CORBA.Identifier := To_CORBA_String ("out_fun");
-      Arg_Name_A : CORBA.Identifier := To_CORBA_String ("a");
-      Arg_Name_B : CORBA.Identifier := To_CORBA_String ("b");
-      Arg_Name_C : CORBA.Identifier := To_CORBA_String ("c");
+      Operation_Name : constant CORBA.Identifier :=
+                         To_CORBA_String ("out_fun");
+      Arg_Name_A : constant CORBA.Identifier := To_CORBA_String ("a");
+      Arg_Name_B : constant CORBA.Identifier := To_CORBA_String ("b");
+      Arg_Name_C : constant CORBA.Identifier := To_CORBA_String ("c");
       Request : CORBA.Request.Object;
       Ctx : CORBA.Context.Ref;
       pragma Warnings (Off);
       --  A, B, and C are referenced before they have a value.
-      Argument_A : CORBA.Any := CORBA.To_Any (A);
-      Argument_B : CORBA.Any := CORBA.To_Any (B);
-      Argument_C : CORBA.Any := CORBA.To_Any (C);
+      Argument_A : constant CORBA.Any := CORBA.To_Any (A);
+      Argument_B : constant CORBA.Any := CORBA.To_Any (B);
+      Argument_C : constant CORBA.Any := CORBA.To_Any (C);
       pragma Warnings (On);
       Arg_List : CORBA.NVList.Ref;
       Result : CORBA.NamedValue;
-      Result_Name : CORBA.String := To_CORBA_String ("Result");
+      Result_Name : constant CORBA.String := To_CORBA_String ("Result");
    begin
       --  creating the argument list
       CORBA.ORB.Create_List (0, Arg_List);
@@ -717,16 +725,17 @@ procedure Dynclient is
      (A, B : in out CORBA.Short;
       Returns : out CORBA.Short)
    is
-      Operation_Name : CORBA.Identifier := To_CORBA_String ("inout_fun");
-      Arg_Name_A : CORBA.Identifier := To_CORBA_String ("a");
-      Arg_Name_B : CORBA.Identifier := To_CORBA_String ("b");
+      Operation_Name : constant CORBA.Identifier :=
+                         To_CORBA_String ("inout_fun");
+      Arg_Name_A : constant CORBA.Identifier := To_CORBA_String ("a");
+      Arg_Name_B : constant CORBA.Identifier := To_CORBA_String ("b");
       Request : CORBA.Request.Object;
       Ctx : CORBA.Context.Ref;
-      Argument_A : CORBA.Any := CORBA.To_Any (A);
-      Argument_B : CORBA.Any := CORBA.To_Any (B);
+      Argument_A : constant CORBA.Any := CORBA.To_Any (A);
+      Argument_B : constant CORBA.Any := CORBA.To_Any (B);
       Arg_List : CORBA.NVList.Ref;
       Result : CORBA.NamedValue;
-      Result_Name : CORBA.String := To_CORBA_String ("Result");
+      Result_Name : constant CORBA.String := To_CORBA_String ("Result");
    begin
       --  creating the argument list
       CORBA.ORB.Create_List (0, Arg_List);
@@ -766,23 +775,24 @@ procedure Dynclient is
      (A, B : in CORBA.Short;
       C, D, Returns : out CORBA.Short)
    is
-      Operation_Name : CORBA.Identifier := To_CORBA_String ("in_out_fun");
-      Arg_Name_A : CORBA.Identifier := To_CORBA_String ("a");
-      Arg_Name_B : CORBA.Identifier := To_CORBA_String ("b");
-      Arg_Name_C : CORBA.Identifier := To_CORBA_String ("c");
-      Arg_Name_D : CORBA.Identifier := To_CORBA_String ("d");
+      Operation_Name : constant CORBA.Identifier :=
+                         To_CORBA_String ("in_out_fun");
+      Arg_Name_A : constant CORBA.Identifier := To_CORBA_String ("a");
+      Arg_Name_B : constant CORBA.Identifier := To_CORBA_String ("b");
+      Arg_Name_C : constant CORBA.Identifier := To_CORBA_String ("c");
+      Arg_Name_D : constant CORBA.Identifier := To_CORBA_String ("d");
       Request : CORBA.Request.Object;
       Ctx : CORBA.Context.Ref;
-      Argument_A : CORBA.Any := CORBA.To_Any (A);
-      Argument_B : CORBA.Any := CORBA.To_Any (B);
+      Argument_A : constant CORBA.Any := CORBA.To_Any (A);
+      Argument_B : constant CORBA.Any := CORBA.To_Any (B);
       pragma Warnings (Off);
       --  C and D are referenced before they have a value.
-      Argument_C : CORBA.Any := CORBA.To_Any (C);
-      Argument_D : CORBA.Any := CORBA.To_Any (D);
+      Argument_C : constant CORBA.Any := CORBA.To_Any (C);
+      Argument_D : constant CORBA.Any := CORBA.To_Any (D);
       pragma Warnings (On);
       Arg_List : CORBA.NVList.Ref;
       Result : CORBA.NamedValue;
-      Result_Name : CORBA.String := To_CORBA_String ("Result");
+      Result_Name : constant CORBA.String := To_CORBA_String ("Result");
    begin
       --  creating the argument list
       CORBA.ORB.Create_List (0, Arg_List);
@@ -836,20 +846,21 @@ procedure Dynclient is
       D : in out CORBA.Short;
       Returns : out CORBA.Short)
    is
-      Operation_Name : CORBA.Identifier := To_CORBA_String ("in_inout_fun");
-      Arg_Name_A : CORBA.Identifier := To_CORBA_String ("a");
-      Arg_Name_B : CORBA.Identifier := To_CORBA_String ("b");
-      Arg_Name_C : CORBA.Identifier := To_CORBA_String ("c");
-      Arg_Name_D : CORBA.Identifier := To_CORBA_String ("d");
+      Operation_Name : constant CORBA.Identifier :=
+                         To_CORBA_String ("in_inout_fun");
+      Arg_Name_A : constant CORBA.Identifier := To_CORBA_String ("a");
+      Arg_Name_B : constant CORBA.Identifier := To_CORBA_String ("b");
+      Arg_Name_C : constant CORBA.Identifier := To_CORBA_String ("c");
+      Arg_Name_D : constant CORBA.Identifier := To_CORBA_String ("d");
       Request : CORBA.Request.Object;
       Ctx : CORBA.Context.Ref;
-      Argument_A : CORBA.Any := CORBA.To_Any (A);
-      Argument_B : CORBA.Any := CORBA.To_Any (B);
-      Argument_C : CORBA.Any := CORBA.To_Any (C);
-      Argument_D : CORBA.Any := CORBA.To_Any (D);
+      Argument_A : constant CORBA.Any := CORBA.To_Any (A);
+      Argument_B : constant CORBA.Any := CORBA.To_Any (B);
+      Argument_C : constant CORBA.Any := CORBA.To_Any (C);
+      Argument_D : constant CORBA.Any := CORBA.To_Any (D);
       Arg_List : CORBA.NVList.Ref;
       Result : CORBA.NamedValue;
-      Result_Name : CORBA.String := To_CORBA_String ("Result");
+      Result_Name : constant CORBA.String := To_CORBA_String ("Result");
    begin
       --  creating the argument list
       CORBA.ORB.Create_List (0, Arg_List);
@@ -903,23 +914,24 @@ procedure Dynclient is
       D : out CORBA.Short;
       Returns : out CORBA.Short)
    is
-      Operation_Name : CORBA.Identifier := To_CORBA_String ("out_inout_fun");
-      Arg_Name_A : CORBA.Identifier := To_CORBA_String ("a");
-      Arg_Name_B : CORBA.Identifier := To_CORBA_String ("b");
-      Arg_Name_C : CORBA.Identifier := To_CORBA_String ("c");
-      Arg_Name_D : CORBA.Identifier := To_CORBA_String ("d");
+      Operation_Name : constant CORBA.Identifier :=
+                         To_CORBA_String ("out_inout_fun");
+      Arg_Name_A : constant CORBA.Identifier := To_CORBA_String ("a");
+      Arg_Name_B : constant CORBA.Identifier := To_CORBA_String ("b");
+      Arg_Name_C : constant CORBA.Identifier := To_CORBA_String ("c");
+      Arg_Name_D : constant CORBA.Identifier := To_CORBA_String ("d");
       Request : CORBA.Request.Object;
       Ctx : CORBA.Context.Ref;
       pragma Warnings (Off);
       --  A and D are referenced before they have a value
-      Argument_A : CORBA.Any := CORBA.To_Any (A);
-      Argument_D : CORBA.Any := CORBA.To_Any (D);
+      Argument_A : constant CORBA.Any := CORBA.To_Any (A);
+      Argument_D : constant CORBA.Any := CORBA.To_Any (D);
       pragma Warnings (On);
-      Argument_B : CORBA.Any := CORBA.To_Any (B);
-      Argument_C : CORBA.Any := CORBA.To_Any (C);
+      Argument_B : constant CORBA.Any := CORBA.To_Any (B);
+      Argument_C : constant CORBA.Any := CORBA.To_Any (C);
       Arg_List : CORBA.NVList.Ref;
       Result : CORBA.NamedValue;
-      Result_Name : CORBA.String := To_CORBA_String ("Result");
+      Result_Name : constant CORBA.String := To_CORBA_String ("Result");
    begin
       --  creating the argument list
       CORBA.ORB.Create_List (0, Arg_List);
@@ -971,22 +983,22 @@ procedure Dynclient is
                                C : in out CORBA.Short;
                                Returns : out CORBA.Short)
    is
-      Operation_Name : CORBA.Identifier :=
-        To_CORBA_String ("in_out_inout_fun");
-      Arg_Name_A : CORBA.Identifier := To_CORBA_String ("a");
-      Arg_Name_B : CORBA.Identifier := To_CORBA_String ("b");
-      Arg_Name_C : CORBA.Identifier := To_CORBA_String ("c");
+      Operation_Name : constant CORBA.Identifier :=
+                         To_CORBA_String ("in_out_inout_fun");
+      Arg_Name_A : constant CORBA.Identifier := To_CORBA_String ("a");
+      Arg_Name_B : constant CORBA.Identifier := To_CORBA_String ("b");
+      Arg_Name_C : constant CORBA.Identifier := To_CORBA_String ("c");
       Request : CORBA.Request.Object;
       Ctx : CORBA.Context.Ref;
-      Argument_A : CORBA.Any := CORBA.To_Any (A);
+      Argument_A : constant CORBA.Any := CORBA.To_Any (A);
       pragma Warnings (Off);
       --  B is referenced before it has a value.
-      Argument_B : CORBA.Any := CORBA.To_Any (B);
+      Argument_B : constant CORBA.Any := CORBA.To_Any (B);
       pragma Warnings (On);
-      Argument_C : CORBA.Any := CORBA.To_Any (C);
+      Argument_C : constant CORBA.Any := CORBA.To_Any (C);
       Arg_List : CORBA.NVList.Ref;
       Result : CORBA.NamedValue;
-      Result_Name : CORBA.String := To_CORBA_String ("Result");
+      Result_Name : constant CORBA.String := To_CORBA_String ("Result");
    begin
       --  creating the argument list
       CORBA.ORB.Create_List (0, Arg_List);
@@ -1026,13 +1038,13 @@ procedure Dynclient is
 
    procedure Oneway_Void_Proc
    is
-      Operation_Name : CORBA.Identifier
-        := To_CORBA_String ("oneway_void_proc");
+      Operation_Name : constant CORBA.Identifier :=
+                         To_CORBA_String ("oneway_void_proc");
       Request : CORBA.Request.Object;
       Ctx : CORBA.Context.Ref;
       Arg_List : CORBA.NVList.Ref;
       Result : CORBA.NamedValue;
-      Result_Name : CORBA.String := To_CORBA_String ("Result");
+      Result_Name : constant CORBA.String := To_CORBA_String ("Result");
    begin
       --  creating the argument list
       CORBA.ORB.Create_List (0, Arg_List);
@@ -1056,16 +1068,17 @@ procedure Dynclient is
 
    procedure Oneway_In_Proc (A, B : in CORBA.Short)
    is
-      Operation_Name : CORBA.Identifier := To_CORBA_String ("oneway_in_proc");
-      Arg_Name_A : CORBA.Identifier := To_CORBA_String ("a");
-      Arg_Name_B : CORBA.Identifier := To_CORBA_String ("b");
+      Operation_Name : constant CORBA.Identifier :=
+                         To_CORBA_String ("oneway_in_proc");
+      Arg_Name_A : constant CORBA.Identifier := To_CORBA_String ("a");
+      Arg_Name_B : constant CORBA.Identifier := To_CORBA_String ("b");
       Request : CORBA.Request.Object;
       Ctx : CORBA.Context.Ref;
-      Argument_A : CORBA.Any := CORBA.To_Any (A);
-      Argument_B : CORBA.Any := CORBA.To_Any (B);
+      Argument_A : constant CORBA.Any := CORBA.To_Any (A);
+      Argument_B : constant CORBA.Any := CORBA.To_Any (B);
       Arg_List : CORBA.NVList.Ref;
       Result : CORBA.NamedValue;
-      Result_Name : CORBA.String := To_CORBA_String ("Result");
+      Result_Name : constant CORBA.String := To_CORBA_String ("Result");
    begin
       --  creating the argument list
       CORBA.ORB.Create_List (0, Arg_List);
@@ -1097,12 +1110,13 @@ procedure Dynclient is
 
    function Oneway_Checker return CORBA.Short
    is
-      Operation_Name : CORBA.Identifier := To_CORBA_String ("oneway_checker");
+      Operation_Name : constant CORBA.Identifier :=
+                         To_CORBA_String ("oneway_checker");
       Request : CORBA.Request.Object;
       Ctx : CORBA.Context.Ref;
       Arg_List : CORBA.NVList.Ref;
       Result : CORBA.NamedValue;
-      Result_Name : CORBA.String := To_CORBA_String ("Result");
+      Result_Name : constant CORBA.String := To_CORBA_String ("Result");
    begin
       --  creating the argument list
       CORBA.ORB.Create_List (0, Arg_List);

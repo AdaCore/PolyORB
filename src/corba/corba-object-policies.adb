@@ -125,7 +125,7 @@ package body CORBA.Object.Policies is
       Request     : PolyORB.Requests.Request_Access;
       Arg_List    : PolyORB.Any.NVList.Ref;
       Result      : PolyORB.Any.NamedValue;
-      Result_Name : CORBA.String := To_CORBA_String ("Result");
+      Result_Name : constant CORBA.String := To_CORBA_String ("Result");
 
    begin
       if CORBA.Object.Is_Nil (Self) then

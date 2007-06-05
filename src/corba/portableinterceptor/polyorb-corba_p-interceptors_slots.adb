@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -58,10 +58,9 @@ package body PolyORB.CORBA_P.Interceptors_Slots is
    -- Allocate_Slots --
    --------------------
 
-   procedure Allocate_Slots
-     (Note : in out Slots_Note)
-   is
-      Empty : CORBA.Any := CORBA.Internals.Get_Empty_Any (CORBA.TC_Null);
+   procedure Allocate_Slots (Note : in out Slots_Note) is
+      Empty : constant CORBA.Any :=
+                CORBA.Internals.Get_Empty_Any (CORBA.TC_Null);
 
    begin
       Note.Slots := Null_Sequence;

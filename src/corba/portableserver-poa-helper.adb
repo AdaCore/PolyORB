@@ -98,7 +98,7 @@ package body PortableServer.POA.Helper is
 
    function To_Any
      (Item : PortableServer.POA.AdapterAlreadyExists_Members) return CORBA.Any is
-      Result : CORBA.Any :=
+      Result : constant CORBA.Any :=
          CORBA.Internals.Get_Empty_Any_Aggregate (TC_AdapterAlreadyExists);
       pragma Warnings (Off);
       pragma Unreferenced (Item);
@@ -144,7 +144,7 @@ package body PortableServer.POA.Helper is
 
    function To_Any
      (Item : PortableServer.POA.AdapterNonExistent_Members) return CORBA.Any is
-      Result : CORBA.Any :=
+      Result : constant CORBA.Any :=
          CORBA.Internals.Get_Empty_Any_Aggregate (TC_AdapterNonExistent);
       pragma Warnings (Off);
       pragma Unreferenced (Item);
@@ -238,7 +238,7 @@ package body PortableServer.POA.Helper is
 
    function To_Any
      (Item : PortableServer.POA.NoServant_Members) return CORBA.Any is
-      Result : CORBA.Any :=
+      Result : constant CORBA.Any :=
          CORBA.Internals.Get_Empty_Any_Aggregate (TC_NoServant);
       pragma Warnings (Off);
       pragma Unreferenced (Item);
@@ -284,7 +284,7 @@ package body PortableServer.POA.Helper is
 
    function To_Any
      (Item : PortableServer.POA.ObjectAlreadyActive_Members) return CORBA.Any is
-      Result : CORBA.Any :=
+      Result : constant CORBA.Any :=
          CORBA.Internals.Get_Empty_Any_Aggregate (TC_ObjectAlreadyActive);
       pragma Warnings (Off);
       pragma Unreferenced (Item);
@@ -330,7 +330,7 @@ package body PortableServer.POA.Helper is
 
    function To_Any
      (Item : PortableServer.POA.ObjectNotActive_Members) return CORBA.Any is
-      Result : CORBA.Any :=
+      Result : constant CORBA.Any :=
          CORBA.Internals.Get_Empty_Any_Aggregate (TC_ObjectNotActive);
       pragma Warnings (Off);
       pragma Unreferenced (Item);
@@ -376,7 +376,7 @@ package body PortableServer.POA.Helper is
 
    function To_Any
      (Item : PortableServer.POA.ServantAlreadyActive_Members) return CORBA.Any is
-      Result : CORBA.Any :=
+      Result : constant CORBA.Any :=
          CORBA.Internals.Get_Empty_Any_Aggregate (TC_ServantAlreadyActive);
       pragma Warnings (Off);
       pragma Unreferenced (Item);
@@ -422,7 +422,7 @@ package body PortableServer.POA.Helper is
 
    function To_Any
      (Item : PortableServer.POA.ServantNotActive_Members) return CORBA.Any is
-      Result : CORBA.Any :=
+      Result : constant CORBA.Any :=
          CORBA.Internals.Get_Empty_Any_Aggregate (TC_ServantNotActive);
       pragma Warnings (Off);
       pragma Unreferenced (Item);
@@ -468,7 +468,7 @@ package body PortableServer.POA.Helper is
 
    function To_Any
      (Item : PortableServer.POA.WrongAdapter_Members) return CORBA.Any is
-      Result : CORBA.Any :=
+      Result : constant CORBA.Any :=
          CORBA.Internals.Get_Empty_Any_Aggregate (TC_WrongAdapter);
       pragma Warnings (Off);
       pragma Unreferenced (Item);
@@ -514,7 +514,7 @@ package body PortableServer.POA.Helper is
 
    function To_Any
      (Item : PortableServer.POA.WrongPolicy_Members) return CORBA.Any is
-      Result : CORBA.Any :=
+      Result : constant CORBA.Any :=
          CORBA.Internals.Get_Empty_Any_Aggregate (TC_WrongPolicy);
       pragma Warnings (Off);
       pragma Unreferenced (Item);
@@ -553,8 +553,8 @@ package body PortableServer.POA.Helper is
    begin
 
       declare
-         Name : CORBA.String := CORBA.To_CORBA_String ("POA");
-         Id : CORBA.String := CORBA.To_CORBA_String ("IDL:omg.org/PortableServer/POA:1.0");
+         Name : constant CORBA.String := CORBA.To_CORBA_String ("POA");
+         Id : constant CORBA.String := CORBA.To_CORBA_String ("IDL:omg.org/PortableServer/POA:1.0");
       begin
          TC_POA :=
            CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TC_Object);
@@ -563,8 +563,8 @@ package body PortableServer.POA.Helper is
       end;
 
       declare
-         Name : CORBA.String := CORBA.To_CORBA_String ("AdapterAlreadyExists");
-         Id : CORBA.String := CORBA.To_CORBA_String ("IDL:omg.org/PortableServer/POA/AdapterAlreadyExists:1.0");
+         Name : constant CORBA.String := CORBA.To_CORBA_String ("AdapterAlreadyExists");
+         Id : constant CORBA.String := CORBA.To_CORBA_String ("IDL:omg.org/PortableServer/POA/AdapterAlreadyExists:1.0");
       begin
          TC_AdapterAlreadyExists :=
            CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TC_Except);
@@ -576,8 +576,8 @@ package body PortableServer.POA.Helper is
          Raise_AdapterAlreadyExists_From_Any'Access);
 
       declare
-         Name : CORBA.String := CORBA.To_CORBA_String ("AdapterNonExistent");
-         Id : CORBA.String := CORBA.To_CORBA_String ("IDL:omg.org/PortableServer/POA/AdapterNonExistent:1.0");
+         Name : constant CORBA.String := CORBA.To_CORBA_String ("AdapterNonExistent");
+         Id : constant CORBA.String := CORBA.To_CORBA_String ("IDL:omg.org/PortableServer/POA/AdapterNonExistent:1.0");
       begin
          TC_AdapterNonExistent :=
            CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TC_Except);
@@ -589,9 +589,9 @@ package body PortableServer.POA.Helper is
          Raise_AdapterNonExistent_From_Any'Access);
 
       declare
-         Name : CORBA.String := CORBA.To_CORBA_String ("InvalidPolicy");
-         Id : CORBA.String := CORBA.To_CORBA_String ("IDL:omg.org/PortableServer/POA/InvalidPolicy:1.0");
-         Arg_Name_index : CORBA.String := CORBA.To_CORBA_String ("index");
+         Name : constant CORBA.String := CORBA.To_CORBA_String ("InvalidPolicy");
+         Id : constant CORBA.String := CORBA.To_CORBA_String ("IDL:omg.org/PortableServer/POA/InvalidPolicy:1.0");
+         Arg_Name_index : constant CORBA.String := CORBA.To_CORBA_String ("index");
       begin
          TC_InvalidPolicy :=
            CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TC_Except);
@@ -605,8 +605,8 @@ package body PortableServer.POA.Helper is
          Raise_InvalidPolicy_From_Any'Access);
 
       declare
-         Name : CORBA.String := CORBA.To_CORBA_String ("NoServant");
-         Id : CORBA.String := CORBA.To_CORBA_String ("IDL:omg.org/PortableServer/POA/NoServant:1.0");
+         Name : constant CORBA.String := CORBA.To_CORBA_String ("NoServant");
+         Id : constant CORBA.String := CORBA.To_CORBA_String ("IDL:omg.org/PortableServer/POA/NoServant:1.0");
       begin
          TC_NoServant :=
            CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TC_Except);
@@ -618,8 +618,8 @@ package body PortableServer.POA.Helper is
          Raise_NoServant_From_Any'Access);
 
       declare
-         Name : CORBA.String := CORBA.To_CORBA_String ("ObjectAlreadyActive");
-         Id : CORBA.String := CORBA.To_CORBA_String ("IDL:omg.org/PortableServer/POA/ObjectAlreadyActive:1.0");
+         Name : constant CORBA.String := CORBA.To_CORBA_String ("ObjectAlreadyActive");
+         Id : constant CORBA.String := CORBA.To_CORBA_String ("IDL:omg.org/PortableServer/POA/ObjectAlreadyActive:1.0");
       begin
          TC_ObjectAlreadyActive :=
            CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TC_Except);
@@ -631,8 +631,8 @@ package body PortableServer.POA.Helper is
          Raise_ObjectAlreadyActive_From_Any'Access);
 
       declare
-         Name : CORBA.String := CORBA.To_CORBA_String ("ObjectNotActive");
-         Id : CORBA.String := CORBA.To_CORBA_String ("IDL:omg.org/PortableServer/POA/ObjectNotActive:1.0");
+         Name : constant CORBA.String := CORBA.To_CORBA_String ("ObjectNotActive");
+         Id : constant CORBA.String := CORBA.To_CORBA_String ("IDL:omg.org/PortableServer/POA/ObjectNotActive:1.0");
       begin
          TC_ObjectNotActive :=
            CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TC_Except);
@@ -644,8 +644,8 @@ package body PortableServer.POA.Helper is
          Raise_ObjectNotActive_From_Any'Access);
 
       declare
-         Name : CORBA.String := CORBA.To_CORBA_String ("ServantAlreadyActive");
-         Id : CORBA.String := CORBA.To_CORBA_String ("IDL:omg.org/PortableServer/POA/ServantAlreadyActive:1.0");
+         Name : constant CORBA.String := CORBA.To_CORBA_String ("ServantAlreadyActive");
+         Id : constant CORBA.String := CORBA.To_CORBA_String ("IDL:omg.org/PortableServer/POA/ServantAlreadyActive:1.0");
       begin
          TC_ServantAlreadyActive :=
            CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TC_Except);
@@ -657,8 +657,8 @@ package body PortableServer.POA.Helper is
          Raise_ServantAlreadyActive_From_Any'Access);
 
       declare
-         Name : CORBA.String := CORBA.To_CORBA_String ("ServantNotActive");
-         Id : CORBA.String := CORBA.To_CORBA_String ("IDL:omg.org/PortableServer/POA/ServantNotActive:1.0");
+         Name : constant CORBA.String := CORBA.To_CORBA_String ("ServantNotActive");
+         Id : constant CORBA.String := CORBA.To_CORBA_String ("IDL:omg.org/PortableServer/POA/ServantNotActive:1.0");
       begin
          TC_ServantNotActive :=
            CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TC_Except);
@@ -670,8 +670,8 @@ package body PortableServer.POA.Helper is
          Raise_ServantNotActive_From_Any'Access);
 
       declare
-         Name : CORBA.String := CORBA.To_CORBA_String ("WrongAdapter");
-         Id : CORBA.String := CORBA.To_CORBA_String ("IDL:omg.org/PortableServer/POA/WrongAdapter:1.0");
+         Name : constant CORBA.String := CORBA.To_CORBA_String ("WrongAdapter");
+         Id : constant CORBA.String := CORBA.To_CORBA_String ("IDL:omg.org/PortableServer/POA/WrongAdapter:1.0");
       begin
          TC_WrongAdapter :=
            CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TC_Except);
@@ -683,8 +683,8 @@ package body PortableServer.POA.Helper is
          Raise_WrongAdapter_From_Any'Access);
 
       declare
-         Name : CORBA.String := CORBA.To_CORBA_String ("WrongPolicy");
-         Id : CORBA.String := CORBA.To_CORBA_String ("IDL:omg.org/PortableServer/POA/WrongPolicy:1.0");
+         Name : constant CORBA.String := CORBA.To_CORBA_String ("WrongPolicy");
+         Id : constant CORBA.String := CORBA.To_CORBA_String ("IDL:omg.org/PortableServer/POA/WrongPolicy:1.0");
       begin
          TC_WrongPolicy :=
            CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TC_Except);

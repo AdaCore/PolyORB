@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -110,8 +110,8 @@ package body PolyORB.MOMA_P.Provider.Message_Consumer is
       QoS_Params : PolyORB.QoS.QoS_Parameters)
      return PolyORB.Any.Any
    is
-      Argument_Mesg : PolyORB.Any.Any
-        := PolyORB.Any.To_Any (PolyORB.Types.String (Message_Id));
+      Argument_Mesg : constant PolyORB.Any.Any :=
+                        PolyORB.Any.To_Any (PolyORB.Types.String (Message_Id));
 
       Operation_Name : constant Standard.String := "Get";
 

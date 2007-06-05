@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---           Copyright (C) 2006, Free Software Foundation, Inc.             --
+--         Copyright (C) 2006-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -268,8 +268,8 @@ package body CORBA.Repository_Root.ExceptionDef.Impl is
                                    return ExcDescriptionSeq
    is
       Result : ExcDescriptionSeq;
-      Exc_Array : ExcDef.Element_Array
-        := ExcDef.To_Element_Array (ExcDef.Sequence (ExcDefSeq));
+      Exc_Array : constant ExcDef.Element_Array :=
+                    ExcDef.To_Element_Array (ExcDef.Sequence (ExcDefSeq));
    begin
       for I in Exc_Array'Range loop
          declare

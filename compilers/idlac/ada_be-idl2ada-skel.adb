@@ -181,7 +181,8 @@ package body Ada_Be.Idl2Ada.Skel is
             & " constant CORBA.Identifier");
       PL (CU, ":= CORBA.To_CORBA_String (""Type_Id"");");
       Divert (CU, Operation_Body);
-      PL (CU, T_Arg_Any & "Type_Id : CORBA.Any := CORBA.To_Any (Type_Id);");
+      PL (CU, T_Arg_Any
+        & "Type_Id : constant CORBA.Any := CORBA.To_Any (Type_Id);");
       PL (CU, "");
       PL (CU, T_Result & " : CORBA.Boolean;");
       DI (CU);
@@ -622,7 +623,7 @@ package body Ada_Be.Idl2Ada.Skel is
                            Add_With (CU, TC_Unit (P_Typ));
 
                            PL (CU, Justify (T_Arg_Any & Arg_Name, Max_Len)
-                               & " : CORBA.Any := "
+                               & " : constant CORBA.Any := "
                                & "CORBA.Internals.Get_Wrapper_Any ("
                                & Ada_Full_TC_Name (P_Typ) & ", "
                                & T_Arg_CC & Arg_Name & "'Unchecked_Access);");
@@ -662,7 +663,8 @@ package body Ada_Be.Idl2Ada.Skel is
 
                   Add_With (CU, TC_Unit (Org_O_Type));
                   PL (CU, Justify (T_Arg_Any & T_Result, Max_Len)
-                      & " : CORBA.Any := CORBA.Internals.Get_Wrapper_Any ("
+                      & " : constant CORBA.Any :="
+                      & " CORBA.Internals.Get_Wrapper_Any ("
                       & Ada_Full_TC_Name (Org_O_Type)
                       & ", " & T_Arg_CC & T_Result & "'Unchecked_Access);");
                end if;

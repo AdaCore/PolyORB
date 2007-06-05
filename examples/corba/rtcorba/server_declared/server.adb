@@ -176,9 +176,9 @@ begin
 
       Ref_Server_3 : CORBA.Object.Ref;
 
-      No_Implicit_Activation_Policy : CORBA.Policy.Ref
-        := CORBA.Policy.Ref
-        (Create_Implicit_Activation_Policy (NO_IMPLICIT_ACTIVATION));
+      No_Implicit_Activation_Policy : constant CORBA.Policy.Ref :=
+        CORBA.Policy.Ref
+          (Create_Implicit_Activation_Policy (NO_IMPLICIT_ACTIVATION));
 
    begin
 

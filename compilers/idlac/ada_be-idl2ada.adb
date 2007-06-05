@@ -541,8 +541,8 @@ package body Ada_Be.Idl2Ada is
                Original_VT_Name : constant String
                  := Ada_Full_Name
                  (Oldest_Supporting_ValueType (Node));
-               Self_Expr : constant String
-                 := Self_For_Operation (Mapping, Node);
+               Self_Expr : constant String :=
+                             Self_For_Operation (Mapping, Node);
             begin
                if not Is_Implicit_Inherited (Node) then
                   Add_With (CU, Parent_Scope_Name (Node)
@@ -2148,6 +2148,9 @@ package body Ada_Be.Idl2Ada is
                Is_Function   : constant Boolean := Kind (O_Type) /= K_Void;
                Decls_Div     : constant Diversion := Current_Diversion (CU);
 
+               Self_Expr : constant String :=
+                             Self_For_Operation (Mapping, Node);
+
                procedure Gen_Object_Self_Nil_Check;
                --  Generate object reference nil check
 
@@ -2159,7 +2162,7 @@ package body Ada_Be.Idl2Ada is
                begin
                   NL (CU);
                   PL (CU,
-                      "if CORBA.Object.Is_Nil (" & T_Self_Ref & ") then");
+                      "if Is_Nil (" & Self_Expr & ") then");
                   II (CU);
                   PL (CU, "CORBA.Raise_Inv_Objref (Default_Sys_Member);");
                   DI (CU);
@@ -2192,11 +2195,6 @@ package body Ada_Be.Idl2Ada is
 
                   begin
                      Add_With (CU, Impl_U_Name);
-                     Add_With (CU, "CORBA.Object");
-
-                     PL (CU, T_Self_Ref & " : CORBA.Object.Ref");
-                     PL (CU, "  := CORBA.Object.Ref ("
-                         & Self_For_Operation (Mapping, Node) & ");");
 
                      DI (CU);
                      PL (CU, "begin");
@@ -2316,7 +2314,7 @@ package body Ada_Be.Idl2Ada is
                                  Divert (CU, Decls_Div);
                                  NL (CU);
                                  PL (CU, O_Name & T_Arg_Name & Arg_Name
-                                     & " : PolyORB.Types.Identifier");
+                                     & " : constant PolyORB.Types.Identifier");
                                  PL (CU,
                                      "  := PolyORB.Types.To_PolyORB_String ("""
                                      & Arg_Name & """);");
@@ -2332,7 +2330,7 @@ package body Ada_Be.Idl2Ada is
 
                                  Add_With (CU, TC_Unit (P_Typ));
                                  PL (CU, T_Arg_Any & Arg_Name
-                                     & " : CORBA.Any :="
+                                     & " : constant CORBA.Any :="
                                      & " CORBA.Internals.Get_Wrapper_Any ("
                                      & Ada_Full_TC_Name (P_Typ) & ", "
                                      & T_Arg_CC & Arg_Name
@@ -2352,10 +2350,6 @@ package body Ada_Be.Idl2Ada is
                      NL (CU);
 
                      Add_With (CU, "CORBA.Object");
-                     PL (CU, T_Self_Ref & " : CORBA.Object.Ref");
-                     PL (CU, "  := CORBA.Object.Ref ("
-                         & Self_For_Operation (Mapping, Node) & ");");
-                     NL (CU);
                      PL (CU, T_Request
                          & " : PolyORB.Requests.Request_Access;");
 

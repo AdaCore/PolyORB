@@ -58,10 +58,9 @@ package body  PolyORB.Services.Naming.Helper is
    -- From_Any --
    --------------
 
-   function From_Any (Item : PolyORB.Any.Any)
-      return Istring
+   function From_Any (Item : PolyORB.Any.Any) return Istring
    is
-      Result : PolyORB.Types.String := From_Any (Item);
+      Result : constant PolyORB.Types.String := From_Any (Item);
    begin
       pragma Debug (O ("From Any : (Istring)"));
       return Istring (Result);
@@ -88,10 +87,9 @@ package body  PolyORB.Services.Naming.Helper is
           kind => Result_kind);
    end From_Any;
 
-   function From_Any (Item : PolyORB.Any.Any)
-      return Name
-   is
-      Result : SEQUENCE_NameComponent.Sequence := Helper.From_Any (Item);
+   function From_Any (Item : PolyORB.Any.Any) return Name is
+      Result : constant SEQUENCE_NameComponent.Sequence :=
+                 Helper.From_Any (Item);
    begin
       pragma Debug (O ("From Any : (Name)"));
       return Name (Result);
@@ -101,12 +99,11 @@ package body  PolyORB.Services.Naming.Helper is
       return BindingType
    is
       pragma Debug (O ("From Any : (BindingType)"));
-      Index : PolyORB.Any.Any :=
-         Get_Aggregate_Element (Item,
-                                TypeCode.TC_Unsigned_Long,
-                                PolyORB.Types.Unsigned_Long (0));
-      Position : constant PolyORB.Types.Unsigned_Long
-        := From_Any (Index);
+      Index : constant PolyORB.Any.Any :=
+                Get_Aggregate_Element (Item,
+                                       TypeCode.TC_Unsigned_Long,
+                                       PolyORB.Types.Unsigned_Long (0));
+      Position : constant PolyORB.Types.Unsigned_Long := From_Any (Index);
    begin
       return BindingType'Val (Position);
    end From_Any;
@@ -136,23 +133,19 @@ package body  PolyORB.Services.Naming.Helper is
       return SEQUENCE_Binding.Sequence
    is
       use SEQUENCE_Binding;
-      Nb_Any : PolyORB.Any.Any :=
-         Get_Aggregate_Element (Item,
-                                TypeCode.TC_Unsigned_Long,
-                                PolyORB.Types.Unsigned_Long (0));
-      Nb_Long : constant PolyORB.Types.Unsigned_Long
-        := From_Any (Nb_Any);
-      Nb : constant Integer := Integer (Nb_Long);
-      Index : PolyORB.Any.Any;
-      Result : Element_Array (1 .. Nb);
+      Count  : constant PolyORB.Types.Unsigned_Long :=
+                 From_Any
+                   (Get_Aggregate_Element (Item,
+                                           TypeCode.TC_Unsigned_Long,
+                                           PolyORB.Types.Unsigned_Long (0)));
+      Result : Element_Array (1 .. Integer (Count));
    begin
       pragma Debug (O ("From Any : (SequenceBinding)"));
-      for I in 1 .. Nb loop
-         Index :=
-            Get_Aggregate_Element (Item,
-                                   Helper.TC_Binding,
-                                   PolyORB.Types.Unsigned_Long (I));
-         Result (I) := Helper.From_Any (Index);
+      for J in Result'Range loop
+         Result (J) := Helper.From_Any
+                         (Get_Aggregate_Element
+                          (Item, Helper.TC_Binding,
+                           PolyORB.Types.Unsigned_Long (J)));
       end loop;
       return To_Sequence (Result);
    end From_Any;
@@ -161,30 +154,25 @@ package body  PolyORB.Services.Naming.Helper is
       return SEQUENCE_NameComponent.Sequence
    is
       use SEQUENCE_NameComponent;
-      Nb_Any : PolyORB.Any.Any :=
-         Get_Aggregate_Element (Item,
-                                TypeCode.TC_Unsigned_Long,
-                                PolyORB.Types.Unsigned_Long (0));
-      Nb_Long : constant PolyORB.Types.Unsigned_Long
-        := From_Any (Nb_Any);
-      Nb : constant Integer := Integer (Nb_Long);
-      Index : PolyORB.Any.Any;
-      Result : Element_Array (1 .. Nb);
+      Count  : constant PolyORB.Types.Unsigned_Long :=
+                 From_Any
+                   (Get_Aggregate_Element (Item,
+                                           TypeCode.TC_Unsigned_Long,
+                                           PolyORB.Types.Unsigned_Long (0)));
+      Result : Element_Array (1 .. Integer (Count));
    begin
       pragma Debug (O ("From Any : (Sequence namecomponent)"));
-      for I in 1 .. Nb loop
-         Index :=
-            Get_Aggregate_Element (Item,
-                                   TC_NameComponent,
-                                   PolyORB.Types.Unsigned_Long (I));
-         Result (I) := Helper.From_Any (Index);
+      for J in Result'Range loop
+         Result (J) := Helper.From_Any
+                         (Get_Aggregate_Element
+                          (Item, Helper.TC_Binding,
+                           PolyORB.Types.Unsigned_Long (J)));
       end loop;
       return To_Sequence (Result);
    end From_Any;
 
-   function From_Any (Item : PolyORB.Any.Any)
-      return BindingList is
-      Result : SEQUENCE_Binding.Sequence := Helper.From_Any (Item);
+   function From_Any (Item : PolyORB.Any.Any) return BindingList is
+      Result : constant SEQUENCE_Binding.Sequence := Helper.From_Any (Item);
    begin
       return BindingList (Result);
    end From_Any;
@@ -220,9 +208,9 @@ package body  PolyORB.Services.Naming.Helper is
      return PolyORB.Any.Any
    is
       use SEQUENCE_NameComponent;
-      Array_Item : Element_Array := To_Element_Array (Item);
-      Result : PolyORB.Any.Any := Get_Empty_Any_Aggregate
-        (TC_SEQUENCE_NameComponent);
+      Array_Item : constant Element_Array := To_Element_Array (Item);
+      Result : PolyORB.Any.Any :=
+                 Get_Empty_Any_Aggregate (TC_SEQUENCE_NameComponent);
    begin
       pragma Debug (O ("To Any : (Sequence NameComponent)"));
       Add_Aggregate_Element
@@ -281,9 +269,9 @@ package body  PolyORB.Services.Naming.Helper is
      return PolyORB.Any.Any
    is
       use SEQUENCE_Binding;
-      Array_Item : Element_Array := To_Element_Array (Item);
-      Result : PolyORB.Any.Any := Get_Empty_Any_Aggregate
-        (TC_SEQUENCE_Binding);
+      Array_Item : constant Element_Array := To_Element_Array (Item);
+      Result : PolyORB.Any.Any :=
+                 Get_Empty_Any_Aggregate (TC_SEQUENCE_Binding);
    begin
       pragma Debug (O ("To Any : (SequenceBinding)"));
       Add_Aggregate_Element
@@ -326,10 +314,9 @@ package body  PolyORB.Services.Naming.Helper is
       use PolyORB.Any.TypeCode;
    begin
       declare
-         Name : PolyORB.Types.String :=
-           To_PolyORB_String ("Istring");
-         Id : PolyORB.Types.String :=
-           To_PolyORB_String ("IDL:omg.org/CosNaming/Istring:1.0");
+         Name : constant PolyORB.Types.String := To_PolyORB_String ("Istring");
+         Id   : constant PolyORB.Types.String :=
+                  To_PolyORB_String ("IDL:omg.org/CosNaming/Istring:1.0");
       begin
          TC_Istring := TC_Alias;
          Add_Parameter (TC_Istring, To_Any (Name));
@@ -339,14 +326,15 @@ package body  PolyORB.Services.Naming.Helper is
       end;
 
       declare
-         Name : PolyORB.Types.String :=
-           To_PolyORB_String ("NameComponent");
-         Id : PolyORB.Types.String :=
-           To_PolyORB_String ("IDL:omg.org/CosNaming/NameComponent:1.0");
-         Arg_Name_id : PolyORB.Types.String :=
-           To_PolyORB_String ("id");
-         Arg_Name_kind : PolyORB.Types.String :=
-           To_PolyORB_String ("kind");
+         Name : constant PolyORB.Types.String :=
+                  To_PolyORB_String ("NameComponent");
+         Id : constant PolyORB.Types.String :=
+                To_PolyORB_String ("IDL:omg.org/CosNaming/NameComponent:1.0");
+
+         Arg_Name_id   : constant PolyORB.Types.String :=
+                           To_PolyORB_String ("id");
+         Arg_Name_kind : constant PolyORB.Types.String :=
+                           To_PolyORB_String ("kind");
       begin
          TC_NameComponent := TC_Struct;
          Add_Parameter (TC_NameComponent, To_Any (Name));
@@ -365,9 +353,9 @@ package body  PolyORB.Services.Naming.Helper is
       Disable_Reference_Counting (Object_Of (TC_SEQUENCE_NameComponent).all);
 
       declare
-         Name : PolyORB.Types.String := To_PolyORB_String ("Name");
-         Id : PolyORB.Types.String :=
-           To_PolyORB_String ("IDL:omg.org/CosNaming/Name:1.0");
+         Name : constant PolyORB.Types.String := To_PolyORB_String ("Name");
+         Id   : constant PolyORB.Types.String :=
+                  To_PolyORB_String ("IDL:omg.org/CosNaming/Name:1.0");
       begin
          TC_Name := TC_Alias;
          Add_Parameter (TC_Name, To_Any (Name));
@@ -377,14 +365,15 @@ package body  PolyORB.Services.Naming.Helper is
       end;
 
       declare
-         Name : PolyORB.Types.String :=
-           To_PolyORB_String ("BindingType");
-         Id : PolyORB.Types.String :=
-           To_PolyORB_String ("IDL:omg.org/CosNaming/BindingType:1.0");
-         nobject_Name : PolyORB.Types.String :=
-           To_PolyORB_String ("nobject");
-         ncontext_Name : PolyORB.Types.String :=
-           To_PolyORB_String ("ncontext");
+         Name : constant PolyORB.Types.String :=
+                  To_PolyORB_String ("BindingType");
+         Id   : constant PolyORB.Types.String :=
+                  To_PolyORB_String ("IDL:omg.org/CosNaming/BindingType:1.0");
+
+         nobject_Name : constant PolyORB.Types.String :=
+                          To_PolyORB_String ("nobject");
+         ncontext_Name : constant PolyORB.Types.String :=
+                           To_PolyORB_String ("ncontext");
       begin
          TC_BindingType := TC_Enum;
          Add_Parameter (TC_BindingType, To_Any (Name));
@@ -395,14 +384,15 @@ package body  PolyORB.Services.Naming.Helper is
       end;
 
       declare
-         Name : PolyORB.Types.String :=
-           To_PolyORB_String ("Binding");
-         Id : PolyORB.Types.String :=
-           To_PolyORB_String ("IDL:omg.org/CosNaming/Binding:1.0");
-         Arg_Name_binding_name : PolyORB.Types.String :=
-           To_PolyORB_String ("binding_name");
-         Arg_Name_binding_type : PolyORB.Types.String :=
-           To_PolyORB_String ("binding_type");
+         Name : constant PolyORB.Types.String :=
+                  To_PolyORB_String ("Binding");
+         Id   : constant PolyORB.Types.String :=
+                  To_PolyORB_String ("IDL:omg.org/CosNaming/Binding:1.0");
+
+         Arg_Name_binding_name : constant PolyORB.Types.String :=
+                                   To_PolyORB_String ("binding_name");
+         Arg_Name_binding_type : constant PolyORB.Types.String :=
+                                   To_PolyORB_String ("binding_type");
       begin
          TC_Binding := TC_Struct;
          Add_Parameter (TC_Binding, To_Any (Name));
@@ -422,10 +412,10 @@ package body  PolyORB.Services.Naming.Helper is
       Disable_Reference_Counting (Object_Of (TC_SEQUENCE_Binding).all);
 
       declare
-         Name : PolyORB.Types.String := To_PolyORB_String
-           ("BindingList");
-         Id : PolyORB.Types.String := To_PolyORB_String
-           ("IDL:omg.org/CosNaming/BindingList:1.0");
+         Name : constant PolyORB.Types.String :=
+                  To_PolyORB_String ("BindingList");
+         Id   : constant PolyORB.Types.String :=
+                  To_PolyORB_String ("IDL:omg.org/CosNaming/BindingList:1.0");
       begin
          TC_BindingList := TC_Alias;
          Add_Parameter (TC_BindingList, To_Any (Name));
@@ -436,10 +426,10 @@ package body  PolyORB.Services.Naming.Helper is
 
       --  XXX to be declared in minimal servant ???
       declare
-         Name : PolyORB.Types.String := To_PolyORB_String
-           ("Object");
-         Id : PolyORB.Types.String := To_PolyORB_String
-           ("IDL:CORBA/Object:1.0");
+         Name : constant PolyORB.Types.String :=
+                  To_PolyORB_String ("Object");
+         Id   : constant PolyORB.Types.String :=
+                  To_PolyORB_String ("IDL:CORBA/Object:1.0");
       begin
          Naming.Helper.TC_Object := TypeCode.TC_Object;
          Add_Parameter (Naming.Helper.TC_Object, To_Any (Name));

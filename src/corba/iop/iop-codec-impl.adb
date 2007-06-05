@@ -91,7 +91,7 @@ package body IOP.Codec.Impl is
       Data_Enc : aliased Encapsulation := To_Encapsulation (Data);
       Buffer   : Buffer_Access := new Buffer_Type;
       Error    : Error_Container;
-      Result   : PolyORB.Any.Any :=
+      Result   : constant PolyORB.Any.Any :=
                    PolyORB.Any.Get_Empty_Any
                      (CORBA.TypeCode.Internals.To_PolyORB_Object (TC));
 

@@ -51,9 +51,8 @@ package body CORBA.Helper is
    -- From_Any --
    --------------
 
-   function From_Any (Item : CORBA.Any)
-      return CORBA.RepositoryId is
-      Result : CORBA.String := CORBA.From_Any (Item);
+   function From_Any (Item : CORBA.Any) return CORBA.RepositoryId is
+      Result : constant CORBA.String := CORBA.From_Any (Item);
    begin
       return CORBA.RepositoryId (Result);
    end From_Any;
@@ -62,9 +61,7 @@ package body CORBA.Helper is
    -- To_Any --
    ------------
 
-   function To_Any
-     (Item : CORBA.RepositoryId)
-     return CORBA.Any is
+   function To_Any (Item : CORBA.RepositoryId) return CORBA.Any is
       Result : CORBA.Any := CORBA.To_Any (CORBA.String (Item));
    begin
       CORBA.Internals.Set_Type (Result, TC_RepositoryId);
@@ -86,9 +83,8 @@ package body CORBA.Helper is
    -- From_Any --
    --------------
 
-   function From_Any (Item : CORBA.Any)
-      return CORBA.Identifier is
-      Result : CORBA.String := CORBA.From_Any (Item);
+   function From_Any (Item : CORBA.Any) return CORBA.Identifier is
+      Result : constant CORBA.String := CORBA.From_Any (Item);
    begin
       return CORBA.Identifier (Result);
    end From_Any;
@@ -97,9 +93,7 @@ package body CORBA.Helper is
    -- To_Any --
    ------------
 
-   function To_Any
-     (Item : CORBA.Identifier)
-     return CORBA.Any is
+   function To_Any (Item : CORBA.Identifier) return CORBA.Any is
       Result : CORBA.Any := CORBA.To_Any (CORBA.String (Item));
    begin
       CORBA.Internals.Set_Type (Result, TC_Identifier);
@@ -121,9 +115,8 @@ package body CORBA.Helper is
    -- From_Any --
    --------------
 
-   function From_Any (Item : CORBA.Any)
-      return CORBA.ScopedName is
-      Result : CORBA.String := CORBA.From_Any (Item);
+   function From_Any (Item : CORBA.Any) return CORBA.ScopedName is
+      Result : constant CORBA.String := CORBA.From_Any (Item);
    begin
       return CORBA.ScopedName (Result);
    end From_Any;
@@ -132,9 +125,7 @@ package body CORBA.Helper is
    -- To_Any --
    ------------
 
-   function To_Any
-     (Item : CORBA.ScopedName)
-     return CORBA.Any is
+   function To_Any (Item : CORBA.ScopedName) return CORBA.Any is
       Result : CORBA.Any := CORBA.To_Any (CORBA.String (Item));
    begin
       CORBA.Internals.Set_Type (Result, TC_ScopedName);
@@ -156,9 +147,7 @@ package body CORBA.Helper is
    -- From_Any --
    --------------
 
-   function From_Any (Item : CORBA.Any)
-      return CORBA.Visibility
-   is
+   function From_Any (Item : CORBA.Any) return CORBA.Visibility is
       Result : constant CORBA.Short := CORBA.From_Any (Item);
    begin
       return CORBA.Visibility (Result);
@@ -168,10 +157,7 @@ package body CORBA.Helper is
    -- To_Any --
    ------------
 
-   function To_Any
-     (Item : CORBA.Visibility)
-      return CORBA.Any
-   is
+   function To_Any (Item : CORBA.Visibility) return CORBA.Any is
       Result : CORBA.Any := CORBA.To_Any (CORBA.Short (Item));
    begin
       CORBA.Internals.Set_Type (Result, TC_Visibility);
@@ -248,9 +234,9 @@ package body CORBA.Helper is
         (TC_ScopedName_Cache);
 
       declare
-         Name : CORBA.String := CORBA.To_CORBA_String ("Visibility");
-         Id   : CORBA.String
-           := CORBA.To_CORBA_String ("IDL:omg.org/CORBA/Visibility:1.0");
+         Name : constant CORBA.String := CORBA.To_CORBA_String ("Visibility");
+         Id   : constant CORBA.String :=
+                  CORBA.To_CORBA_String ("IDL:omg.org/CORBA/Visibility:1.0");
       begin
          TC_Visibility_Cache := CORBA.TypeCode.Internals.Build_Alias_TC
            (Name => Name, Id => Id, Parent => CORBA.TC_Short);
@@ -259,8 +245,8 @@ package body CORBA.Helper is
       end;
 
       declare
-         Name : CORBA.String := CORBA.To_CORBA_String ("PolicyType");
-         Id   : CORBA.String :=
+         Name : constant CORBA.String := CORBA.To_CORBA_String ("PolicyType");
+         Id   : constant CORBA.String :=
                   CORBA.To_CORBA_String ("IDL:CORBA/PolicyType:1.0");
       begin
          TC_PolicyType_Cache := CORBA.TypeCode.Internals.Build_Alias_TC

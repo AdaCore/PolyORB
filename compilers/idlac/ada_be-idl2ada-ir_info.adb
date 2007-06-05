@@ -638,8 +638,7 @@ package body Ada_Be.Idl2Ada.IR_Info is
          Divert (CU, Registration);
          PL (CU, "declare");
          II (CU);
-         PL (CU, "Dummy : CORBA.Object.Ref'Class");
-         PL (CU, "  := " & Name & ";");
+         PL (CU, "Dummy : constant CORBA.Object.Ref'Class := " & Name & ";");
          PL (CU, "pragma Unreferenced (Dummy);");
          DI (CU);
          PL (CU, "begin");

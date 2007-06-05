@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---           Copyright (C) 2006, Free Software Foundation, Inc.             --
+--         Copyright (C) 2006-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -97,9 +97,10 @@ package body Periodic_Clients is
 
       Server_Workload : DHB.KWIPS := R.Info.Initial_Server_Workload;
 
-      Current : RTCORBA.Current.Local_Ref
-        := RTCORBA.Current.Helper.To_Local_Ref
-        (Resolve_Initial_References (To_CORBA_String ("RTCurrent")));
+      Current : constant RTCORBA.Current.Local_Ref :=
+                  RTCORBA.Current.Helper.To_Local_Ref
+                    (Resolve_Initial_References
+                      (To_CORBA_String ("RTCurrent")));
 
       Running_Priority : RTCORBA.Priority;
       Rounded_Priority : RTCORBA.Priority;

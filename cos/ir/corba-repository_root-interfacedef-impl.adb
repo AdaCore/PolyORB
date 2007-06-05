@@ -426,7 +426,7 @@ package body CORBA.Repository_Root.InterfaceDef.Impl is
      (IntDefSeq : InterfaceDefSeq) return RepositoryIdSeq
    is
       Result    : RepositoryIdSeq;
-      Int_Array : IntDef.Element_Array :=
+      Int_Array : constant IntDef.Element_Array :=
                     IntDef.To_Element_Array (IntDef.Sequence (IntDefSeq));
    begin
       for I in Int_Array'Range loop

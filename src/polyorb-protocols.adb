@@ -165,7 +165,7 @@ package body PolyORB.Protocols is
                   --  Delegate the decision and lookup process to the default
                   --  interface descriptor objet.
 
-                  Args : Any.NVList.Ref :=
+                  Args : constant Any.NVList.Ref :=
                            Get_Empty_Arg_List (Desc,
                                                Req.Target,
                                                Req.Operation.all);

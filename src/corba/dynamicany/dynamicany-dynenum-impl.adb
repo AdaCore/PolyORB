@@ -207,7 +207,7 @@ package body DynamicAny.DynEnum.Impl is
                           (DynAny.Impl.Internals.Get_Value (Self));
          TC         : constant PolyORB.Any.TypeCode.Local_Ref :=
                         Get_Type (Val);
-         Enum_Value : PolyORB.Any.Any :=
+         Enum_Value : constant PolyORB.Any.Any :=
                         Get_Aggregate_Element (Val,
                           PolyORB.Any.TC_Unsigned_Long, 0);
 
@@ -243,7 +243,7 @@ package body DynamicAny.DynEnum.Impl is
                           (DynAny.Impl.Internals.Get_Value (Self));
          TC         : constant PolyORB.Any.TypeCode.Local_Ref :=
                         Get_Type (Val);
-         Enum_Value : PolyORB.Any.Any :=
+         Enum_Value : constant PolyORB.Any.Any :=
                         Get_Aggregate_Element (Val,
                           PolyORB.Any.TC_Unsigned_Long, 0);
 

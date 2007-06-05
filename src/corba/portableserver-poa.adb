@@ -352,13 +352,7 @@ package body PortableServer.POA is
       end if;
 
       pragma Debug (O ("POA created"));
-
-      declare
-         New_Ref : Local_Ref'Class := Internals.To_CORBA_POA (Res);
-
-      begin
-         return New_Ref;
-      end;
+      return Internals.To_CORBA_POA (Res);
    end Create_POA;
 
    ----------------------

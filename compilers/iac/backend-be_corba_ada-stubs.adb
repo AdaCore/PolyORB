@@ -1438,8 +1438,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
                end if;
 
             else
-               --  Preparing the parameter list of the Add_Item
-               --  Call.
+               --  Preparing the parameter list of the Add_Item call
 
                Profile := New_List (K_Parameter_Profile);
 
@@ -2153,7 +2152,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
 
                   N := Make_Object_Declaration
                     (Defining_Identifier => Make_Defining_Identifier (R),
-                     Constant_Present    => False,
+                     Constant_Present    => True,
                      Object_Definition   => RE (RE_Identifier),
                      Expression          => C);
                   Append_Node_To_List (N, Statements (Current_Package));
@@ -2203,6 +2202,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
                       C));
                   N := Make_Object_Declaration
                     (Defining_Identifier => Make_Defining_Identifier (R),
+                     Constant_Present    => True,
                      Object_Definition   => RE (RE_Any),
                      Expression          => C);
                   Append_Node_To_List (N, L);
@@ -2333,7 +2333,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
                N := Make_Object_Declaration
                  (Defining_Identifier =>
                     Make_Defining_Identifier (R),
-                  Constant_Present    => False,
+                  Constant_Present    => True,
                   Object_Definition   => RE (RE_Identifier),
                   Expression          => C);
                Append_Node_To_List (N, Statements (Current_Package));

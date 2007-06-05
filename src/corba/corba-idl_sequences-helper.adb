@@ -143,10 +143,9 @@ package body CORBA.IDL_SEQUENCES.Helper is
          Sequence_TC => TC_IDL_SEQUENCE_Any);
 
       declare
-         Name : CORBA.String := CORBA.To_CORBA_String ("AnySeq");
-         Id   : CORBA.String :=
+         Name : constant CORBA.String := CORBA.To_CORBA_String ("AnySeq");
+         Id   : constant CORBA.String :=
                   CORBA.To_CORBA_String ("IDL:omg.org/CORBA/AnySeq:1.0");
-
       begin
          TC_AnySeq := CORBA.TypeCode.Internals.Build_Alias_TC
            (Name => Name, Id => Id, Parent => TC_IDL_SEQUENCE_Any);
@@ -163,10 +162,9 @@ package body CORBA.IDL_SEQUENCES.Helper is
          Sequence_TC => TC_IDL_SEQUENCE_Boolean);
 
       declare
-         Name : CORBA.String := CORBA.To_CORBA_String ("BooleanSeq");
-         Id   : CORBA.String
-           := CORBA.To_CORBA_String ("IDL:omg.org/CORBA/BooleanSeq:1.0");
-
+         Name : constant CORBA.String := CORBA.To_CORBA_String ("BooleanSeq");
+         Id   : constant CORBA.String :=
+                  CORBA.To_CORBA_String ("IDL:omg.org/CORBA/BooleanSeq:1.0");
       begin
          TC_BooleanSeq := CORBA.TypeCode.Internals.Build_Alias_TC
            (Name => Name, Id => Id, Parent => TC_IDL_SEQUENCE_Boolean);
@@ -183,10 +181,9 @@ package body CORBA.IDL_SEQUENCES.Helper is
          Sequence_TC => TC_IDL_SEQUENCE_Char);
 
       declare
-         Name : CORBA.String := CORBA.To_CORBA_String ("CharSeq");
-         Id   : CORBA.String
-           := CORBA.To_CORBA_String ("IDL:omg.org/CORBA/CharSeq:1.0");
-
+         Name : constant CORBA.String := CORBA.To_CORBA_String ("CharSeq");
+         Id   : constant CORBA.String :=
+                  CORBA.To_CORBA_String ("IDL:omg.org/CORBA/CharSeq:1.0");
       begin
          TC_CharSeq := CORBA.TypeCode.Internals.Build_Alias_TC
            (Name => Name, Id => Id, Parent => TC_IDL_SEQUENCE_Char);
@@ -203,9 +200,9 @@ package body CORBA.IDL_SEQUENCES.Helper is
          Sequence_TC => TC_IDL_SEQUENCE_Wide_Char);
 
       declare
-         Name : CORBA.String := CORBA.To_CORBA_String ("WCharSeq");
-         Id   : CORBA.String
-           := CORBA.To_CORBA_String ("IDL:omg.org/CORBA/WCharSeq:1.0");
+         Name : constant CORBA.String := CORBA.To_CORBA_String ("WCharSeq");
+         Id   : constant CORBA.String :=
+                  CORBA.To_CORBA_String ("IDL:omg.org/CORBA/WCharSeq:1.0");
       begin
          TC_WCharSeq := CORBA.TypeCode.Internals.Build_Alias_TC
            (Name => Name, Id => Id, Parent => TC_IDL_SEQUENCE_Wide_Char);
@@ -222,10 +219,9 @@ package body CORBA.IDL_SEQUENCES.Helper is
          Sequence_TC => TC_IDL_SEQUENCE_Octet);
 
       declare
-         Name : CORBA.String := CORBA.To_CORBA_String ("OctetSeq");
-         Id   : CORBA.String
-           := CORBA.To_CORBA_String ("IDL:omg.org/CORBA/OctetSeq:1.0");
-
+         Name : constant CORBA.String := CORBA.To_CORBA_String ("OctetSeq");
+         Id   : constant CORBA.String :=
+                  CORBA.To_CORBA_String ("IDL:omg.org/CORBA/OctetSeq:1.0");
       begin
          TC_OctetSeq := CORBA.TypeCode.Internals.Build_Alias_TC
            (Name => Name, Id => Id, Parent => TC_IDL_SEQUENCE_Octet);
@@ -242,10 +238,9 @@ package body CORBA.IDL_SEQUENCES.Helper is
          Sequence_TC => TC_IDL_SEQUENCE_Short);
 
       declare
-         Name : CORBA.String := CORBA.To_CORBA_String ("ShortSeq");
-         Id   : CORBA.String
-           := CORBA.To_CORBA_String ("IDL:omg.org/CORBA/ShortSeq:1.0");
-
+         Name : constant CORBA.String := CORBA.To_CORBA_String ("ShortSeq");
+         Id   : constant CORBA.String :=
+                  CORBA.To_CORBA_String ("IDL:omg.org/CORBA/ShortSeq:1.0");
       begin
          TC_ShortSeq := CORBA.TypeCode.Internals.Build_Alias_TC
            (Name => Name, Id => Id, Parent => TC_IDL_SEQUENCE_Short);
@@ -263,10 +258,9 @@ package body CORBA.IDL_SEQUENCES.Helper is
          Sequence_TC => TC_IDL_SEQUENCE_Unsigned_Short);
 
       declare
-         Name : CORBA.String := CORBA.To_CORBA_String ("UShortSeq");
-         Id   : CORBA.String
-           := CORBA.To_CORBA_String ("IDL:omg.org/CORBA/UShortSeq:1.0");
-
+         Name : constant CORBA.String := CORBA.To_CORBA_String ("UShortSeq");
+         Id   : constant CORBA.String :=
+                  CORBA.To_CORBA_String ("IDL:omg.org/CORBA/UShortSeq:1.0");
       begin
          TC_UShortSeq := CORBA.TypeCode.Internals.Build_Alias_TC
            (Name => Name, Id => Id, Parent => TC_IDL_SEQUENCE_Unsigned_Short);
@@ -283,10 +277,9 @@ package body CORBA.IDL_SEQUENCES.Helper is
          Sequence_TC => TC_IDL_SEQUENCE_Long);
 
       declare
-         Name : CORBA.String := CORBA.To_CORBA_String ("LongSeq");
-         Id   : CORBA.String
-           := CORBA.To_CORBA_String ("IDL:omg.org/CORBA/LongSeq:1.0");
-
+         Name : constant CORBA.String := CORBA.To_CORBA_String ("LongSeq");
+         Id   : constant CORBA.String :=
+                  CORBA.To_CORBA_String ("IDL:omg.org/CORBA/LongSeq:1.0");
       begin
          TC_LongSeq := CORBA.TypeCode.Internals.Build_Alias_TC
            (Name => Name, Id => Id, Parent => TC_IDL_SEQUENCE_Long);
@@ -303,10 +296,9 @@ package body CORBA.IDL_SEQUENCES.Helper is
          Sequence_TC => TC_IDL_SEQUENCE_Unsigned_Long);
 
       declare
-         Name : CORBA.String := CORBA.To_CORBA_String ("ULongSeq");
-         Id   : CORBA.String
-           := CORBA.To_CORBA_String ("IDL:omg.org/CORBA/ULongSeq:1.0");
-
+         Name : constant CORBA.String := CORBA.To_CORBA_String ("ULongSeq");
+         Id   : constant CORBA.String :=
+                  CORBA.To_CORBA_String ("IDL:omg.org/CORBA/ULongSeq:1.0");
       begin
          TC_ULongSeq := CORBA.TypeCode.Internals.Build_Alias_TC
            (Name => Name, Id => Id, Parent => TC_IDL_SEQUENCE_Unsigned_Long);
@@ -323,10 +315,9 @@ package body CORBA.IDL_SEQUENCES.Helper is
          Sequence_TC => TC_IDL_SEQUENCE_Long_Long);
 
       declare
-         Name : CORBA.String := CORBA.To_CORBA_String ("LongLongSeq");
-         Id   : CORBA.String
-           := CORBA.To_CORBA_String ("IDL:omg.org/CORBA/LongLongSeq:1.0");
-
+         Name : constant CORBA.String := CORBA.To_CORBA_String ("LongLongSeq");
+         Id   : constant CORBA.String :=
+                  CORBA.To_CORBA_String ("IDL:omg.org/CORBA/LongLongSeq:1.0");
       begin
          TC_LongLongSeq := CORBA.TypeCode.Internals.Build_Alias_TC
            (Name => Name, Id => Id, Parent => TC_IDL_SEQUENCE_Long_Long);
@@ -344,10 +335,10 @@ package body CORBA.IDL_SEQUENCES.Helper is
          Sequence_TC => TC_IDL_SEQUENCE_Unsigned_Long_Long);
 
       declare
-         Name : CORBA.String := CORBA.To_CORBA_String ("ULongLongSeq");
-         Id   : CORBA.String
-           := CORBA.To_CORBA_String ("IDL:omg.org/CORBA/ULongLongSeq:1.0");
-
+         Name : constant CORBA.String :=
+                  CORBA.To_CORBA_String ("ULongLongSeq");
+         Id   : constant CORBA.String :=
+                  CORBA.To_CORBA_String ("IDL:omg.org/CORBA/ULongLongSeq:1.0");
       begin
          TC_ULongLongSeq := CORBA.TypeCode.Internals.Build_Alias_TC
            (Name => Name, Id => Id,
@@ -365,10 +356,9 @@ package body CORBA.IDL_SEQUENCES.Helper is
          Sequence_TC => TC_IDL_SEQUENCE_Float);
 
       declare
-         Name : CORBA.String := CORBA.To_CORBA_String ("FloatSeq");
-         Id   : CORBA.String
-           := CORBA.To_CORBA_String ("IDL:omg.org/CORBA/FloatSeq:1.0");
-
+         Name : constant CORBA.String := CORBA.To_CORBA_String ("FloatSeq");
+         Id   : constant CORBA.String :=
+                  CORBA.To_CORBA_String ("IDL:omg.org/CORBA/FloatSeq:1.0");
       begin
          TC_FloatSeq := CORBA.TypeCode.Internals.Build_Alias_TC
            (Name => Name, Id => Id, Parent => TC_IDL_SEQUENCE_Float);
@@ -385,10 +375,9 @@ package body CORBA.IDL_SEQUENCES.Helper is
          Sequence_TC => TC_IDL_SEQUENCE_Double);
 
       declare
-         Name : CORBA.String := CORBA.To_CORBA_String ("DoubleSeq");
-         Id   : CORBA.String
-           := CORBA.To_CORBA_String ("IDL:omg.org/CORBA/DoubleSeq:1.0");
-
+         Name : constant CORBA.String := CORBA.To_CORBA_String ("DoubleSeq");
+         Id   : constant CORBA.String :=
+                  CORBA.To_CORBA_String ("IDL:omg.org/CORBA/DoubleSeq:1.0");
       begin
          TC_DoubleSeq := CORBA.TypeCode.Internals.Build_Alias_TC
            (Name => Name, Id => Id, Parent => TC_IDL_SEQUENCE_Double);
@@ -405,10 +394,11 @@ package body CORBA.IDL_SEQUENCES.Helper is
          Sequence_TC => TC_IDL_SEQUENCE_Long_Double);
 
       declare
-         Name : CORBA.String := CORBA.To_CORBA_String ("LongDoubleSeq");
-         Id   : CORBA.String
-           := CORBA.To_CORBA_String ("IDL:omg.org/CORBA/LongDoubleSeq:1.0");
-
+         Name : constant CORBA.String :=
+                  CORBA.To_CORBA_String ("LongDoubleSeq");
+         Id   : constant CORBA.String :=
+                  CORBA.To_CORBA_String
+                    ("IDL:omg.org/CORBA/LongDoubleSeq:1.0");
       begin
          TC_LongDoubleSeq := CORBA.TypeCode.Internals.Build_Alias_TC
            (Name => Name, Id => Id, Parent => TC_IDL_SEQUENCE_Long_Double);
@@ -426,10 +416,9 @@ package body CORBA.IDL_SEQUENCES.Helper is
          Sequence_TC => TC_IDL_SEQUENCE_String);
 
       declare
-         Name : CORBA.String := CORBA.To_CORBA_String ("StringSeq");
-         Id   : CORBA.String
-           := CORBA.To_CORBA_String ("IDL:omg.org/CORBA/StringSeq:1.0");
-
+         Name : constant CORBA.String := CORBA.To_CORBA_String ("StringSeq");
+         Id   : constant CORBA.String :=
+                  CORBA.To_CORBA_String ("IDL:omg.org/CORBA/StringSeq:1.0");
       begin
          TC_StringSeq := CORBA.TypeCode.Internals.Build_Alias_TC
            (Name => Name, Id => Id, Parent => TC_IDL_SEQUENCE_String);
@@ -446,10 +435,9 @@ package body CORBA.IDL_SEQUENCES.Helper is
          Sequence_TC => TC_IDL_SEQUENCE_Wide_String);
 
       declare
-         Name : CORBA.String := CORBA.To_CORBA_String ("WStringSeq");
-         Id   : CORBA.String := CORBA.To_CORBA_String
-                                  ("IDL:omg.org/CORBA/WStringSeq:1.0");
-
+         Name : constant CORBA.String := CORBA.To_CORBA_String ("WStringSeq");
+         Id   : constant CORBA.String :=
+                  CORBA.To_CORBA_String ("IDL:omg.org/CORBA/WStringSeq:1.0");
       begin
          TC_WStringSeq := CORBA.TypeCode.Internals.Build_Alias_TC
            (Name, Id, TC_IDL_SEQUENCE_Wide_String);

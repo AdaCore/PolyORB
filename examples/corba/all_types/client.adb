@@ -260,6 +260,27 @@ begin
       end;
 
       declare
+         X_Color : Color;
+         X_Octet : CORBA.Octet;
+         for X_Octet'Address use X_Color'Address;
+         pragma Import (Ada, X_Octet);
+      begin
+         X_Color := Color'Last;
+         X_Octet := X_Octet + 1;
+
+         --  From this point on, X_Color has an invalid representation
+
+         Output ("test enum invalid rep",
+           echoColor (Myall_types, X_Color) = X_Color);
+      exception
+         when CORBA.MARSHAL =>
+            Output ("test enum invalid rep", True);
+         when E : others =>
+            Output ("test enum invalid rep", False);
+            Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Information (E));
+      end;
+
+      declare
          X : Rainbow;
       begin
          for J in X'Range loop

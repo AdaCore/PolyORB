@@ -123,10 +123,9 @@ package body PortableServer.ThreadPolicy is
       end if;
 
       declare
-         Index : CORBA.Any
-           := CORBA.Internals.Get_Aggregate_Element (Value,
-                                                     CORBA.TC_Unsigned_Long,
-                                                     CORBA.Unsigned_Long (0));
+         Index : constant CORBA.Any :=
+                   CORBA.Internals.Get_Aggregate_Element
+                     (Value, CORBA.TC_Unsigned_Long, CORBA.Unsigned_Long (0));
          Position : constant CORBA.Unsigned_Long := CORBA.From_Any (Index);
       begin
          if Position not in

@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -174,7 +174,7 @@ procedure PO_COS_Naming_Shell is
    Obj     : CORBA.Object.Ref;
    Fil     : File.Ref;
    WDR     : NamingContext.Ref;
-   WDN     : Name := Null_Name;
+   WDN     : constant Name := Null_Name;
    Root    : NamingContext.Ref;
 
    ------------
@@ -183,11 +183,9 @@ procedure PO_COS_Naming_Shell is
 
    function Parent
      (S   : String;
-      Sep : Character := '/')
-     return NamingContext.Ref
+      Sep : Character := '/') return NamingContext.Ref
    is
-      N : Name := To_Name (S, Sep);
-
+      N : constant Name := To_Name (S, Sep);
    begin
       if Length (N) = 1 then
          return From (S, Sep);
@@ -314,8 +312,8 @@ procedure PO_COS_Naming_Shell is
       Ada.Text_IO.New_Line;
    end Usage;
 
-   Back     : Name := To_Name ("...subcontext");
-   Here     : Name := To_Name ("..subcontext");
+   Back     : constant Name := To_Name ("...subcontext");
+   Here     : constant Name := To_Name ("..subcontext");
    Cmmd     : Command;
    Register_Service : Boolean := False;
 
@@ -323,13 +321,9 @@ procedure PO_COS_Naming_Shell is
    -- Bind_Self --
    ---------------
 
-   procedure Bind_Self
-      (Self : CosNaming.NamingContext.Ref;
-       As   : Name);
+   procedure Bind_Self (Self : CosNaming.NamingContext.Ref; As : Name);
 
-   procedure Bind_Self
-      (Self : CosNaming.NamingContext.Ref;
-       As   : Name) is
+   procedure Bind_Self (Self : CosNaming.NamingContext.Ref; As : Name) is
    begin
       bind_context (Self, As, Self);
    exception
@@ -359,8 +353,7 @@ procedure PO_COS_Naming_Shell is
 
 begin
    CORBA.ORB.Initialize ("ORB");
-   PolyORB.CORBA_P.Server_Tools.Initiate_Server
-     (Start_New_Task => True);
+   PolyORB.CORBA_P.Server_Tools.Initiate_Server (Start_New_Task => True);
 
    --  Parse the command line
 
@@ -384,11 +377,11 @@ begin
                      raise Program_Error;
                   end if;
                   WDR := NamingContext.Helper.To_Ref
-                    (CORBA.ORB.Resolve_Initial_References
-                     (CORBA.ORB.ObjectId
-                      (CORBA.String'
-                       (CORBA.To_CORBA_String
-                        ("NamingService")))));
+                           (CORBA.ORB.Resolve_Initial_References
+                            (CORBA.ORB.ObjectId
+                             (CORBA.String'
+                              (CORBA.To_CORBA_String
+                               ("NamingService")))));
                   Ada.Text_IO.Put_Line (" done");
                exception
                   when others =>

@@ -225,8 +225,8 @@ procedure PO_DumpIR is
       Inc : Standard.String)
    is
       package PDS renames IDL_SEQUENCE_CORBA_ParameterDescription;
-      A : PDS.Element_Array
-        := PDS.To_Element_Array (PDS.Sequence (Des));
+      A : constant PDS.Element_Array :=
+            PDS.To_Element_Array (PDS.Sequence (Des));
 
    begin
       for J in A'Range loop
@@ -353,15 +353,16 @@ procedure PO_DumpIR is
    is
       package Contained_For_Seq renames
         CORBA.Repository_Root.IDL_SEQUENCE_CORBA_Contained_Forward;
-      Cont_Array : Contained_For_Seq.Element_Array
-        := Contained_For_Seq.To_Element_Array
-        (Contained_For_Seq.Sequence (In_Seq));
+      Cont_Array : constant Contained_For_Seq.Element_Array :=
+                     Contained_For_Seq.To_Element_Array
+                       (Contained_For_Seq.Sequence (In_Seq));
       use Contained;
 
    begin
       for J in Cont_Array'Range loop
          declare
-            The_Ref : Contained.Ref := Convert_Forward.To_Ref (Cont_Array (J));
+            The_Ref : constant Contained.Ref :=
+                        Convert_Forward.To_Ref (Cont_Array (J));
          begin
             Put_Line (Inc & "Node     : " &
                       DefinitionKind'Image
@@ -387,48 +388,54 @@ procedure PO_DumpIR is
             case Contained.Get_def_kind (The_Ref) is
                when dk_Module =>
                   declare
-                     R : Container.Ref := Container.Helper.To_Ref
-                       (ModuleDef.Helper.To_Ref (The_Ref));
+                     R : constant Container.Ref :=
+                           Container.Helper.To_Ref
+                             (ModuleDef.Helper.To_Ref (The_Ref));
                   begin
                      Print_Contents
                        (Container.contents (R, dk_all, True), Inc & "    ");
                   end;
                when dk_Exception =>
                   declare
-                     R : Container.Ref := Container.Helper.To_Ref
-                       (ExceptionDef.Helper.To_Ref (The_Ref));
+                     R : constant Container.Ref :=
+                           Container.Helper.To_Ref
+                             (ExceptionDef.Helper.To_Ref (The_Ref));
                   begin
                      Print_Contents
                        (Container.contents (R, dk_all, True), Inc & "     ");
                   end;
                when dk_Interface =>
                   declare
-                     R : Container.Ref := Container.Helper.To_Ref
-                       (InterfaceDef.Helper.To_Ref (The_Ref));
+                     R : constant Container.Ref :=
+                           Container.Helper.To_Ref
+                             (InterfaceDef.Helper.To_Ref (The_Ref));
                   begin
                      Print_Contents
                        (Container.contents (R, dk_all, True), Inc & "     ");
                   end;
                when dk_Value =>
                   declare
-                     R : Container.Ref := Container.Helper.To_Ref
-                       (ValueDef.Helper.To_Ref (The_Ref));
+                     R : constant Container.Ref :=
+                           Container.Helper.To_Ref
+                             (ValueDef.Helper.To_Ref (The_Ref));
                   begin
                      Print_Contents
                        (Container.contents (R, dk_all, True), Inc & "    ");
                   end;
                when dk_Struct =>
                   declare
-                     R : Container.Ref := Container.Helper.To_Ref
-                       (StructDef.Helper.To_Ref (The_Ref));
+                     R : constant Container.Ref :=
+                           Container.Helper.To_Ref
+                             (StructDef.Helper.To_Ref (The_Ref));
                   begin
                      Print_Contents
                        (Container.contents (R, dk_all, True), Inc & "    ");
                   end;
                when dk_Union =>
                   declare
-                     R : Container.Ref := Container.Helper.To_Ref
-                       (UnionDef.Helper.To_Ref (The_Ref));
+                     R : constant Container.Ref :=
+                           Container.Helper.To_Ref
+                             (UnionDef.Helper.To_Ref (The_Ref));
                   begin
                      Print_Contents
                        (Container.contents (R, dk_all, True), Inc & "    ");

@@ -529,7 +529,7 @@ package body CORBA.ORB is
 
       Id : constant Standard.String := To_Standard_String (Identifier);
 
-      Result : CORBA.Object.Ref := Resolve_Initial_References (Id);
+      Result : constant CORBA.Object.Ref := Resolve_Initial_References (Id);
    begin
       pragma Debug (O ("Resolve_Initial_References: " & Id));
 

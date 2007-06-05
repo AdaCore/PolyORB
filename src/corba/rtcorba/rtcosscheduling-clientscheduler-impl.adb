@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -72,10 +72,10 @@ package body RTCosScheduling.ClientScheduler.Impl is
 
       Priority : Integer;
 
-      Current : RTCORBA.Current.Local_Ref
-        := RTCORBA.Current.Helper.To_Local_Ref
-        (CORBA.ORB.Resolve_Initial_References
-         (CORBA.ORB.To_CORBA_String ("RTCurrent")));
+      Current : constant RTCORBA.Current.Local_Ref :=
+                  RTCORBA.Current.Helper.To_Local_Ref
+                    (CORBA.ORB.Resolve_Initial_References
+                     (CORBA.ORB.To_CORBA_String ("RTCurrent")));
 
    begin
       pragma Debug (O ("Configuring activity: "

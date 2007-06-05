@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -157,8 +157,8 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
             use PolyORB.Errors;
 
             Type_Id          : PolyORB.Types.String;
-            Argument_Type_Id : PolyORB.Any.Any
-              := Get_Empty_Any (TypeCode.TC_String);
+            Argument_Type_Id : constant PolyORB.Any.Any :=
+                                 Get_Empty_Any (TypeCode.TC_String);
 
             Result           : PolyORB.Types.Boolean;
             Exception_Error            : Error_Container;
@@ -175,7 +175,6 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
             if Found (Exception_Error) then
                raise Program_Error;
                --  XXX We should do something more constructive
-
             end if;
 
             Type_Id := From_Any (Argument_Type_Id);
@@ -193,11 +192,13 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
          declare
             use PolyORB.Errors;
 
-            N           : Name;
-            Argument_N  : PolyORB.Any.Any := Get_Empty_Any (TC_Name);
+            N            : Name;
+            Argument_N   : constant PolyORB.Any.Any := Get_Empty_Any (TC_Name);
 
             Obj          : PolyORB.References.Ref;
-            Argument_Obj : PolyORB.Any.Any := Get_Empty_Any (PSNH.TC_Object);
+            Argument_Obj : constant PolyORB.Any.Any :=
+                             Get_Empty_Any (PSNH.TC_Object);
+
             Exception_Error        : Error_Container;
          begin
             --  Create argument list
@@ -235,11 +236,13 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
          declare
             use PolyORB.Errors;
 
-            N          : Name;
-            Argument_N : PolyORB.Any.Any := Get_Empty_Any (TC_Name);
+            N            : Name;
+            Argument_N   : constant PolyORB.Any.Any := Get_Empty_Any (TC_Name);
 
             Obj          : PolyORB.References.Ref;
-            Argument_Obj : PolyORB.Any.Any := Get_Empty_Any (PSNH.TC_Object);
+            Argument_Obj : constant PolyORB.Any.Any :=
+                             Get_Empty_Any (PSNH.TC_Object);
+
             Exception_Error        : Error_Container;
          begin
             --  Create argument list
@@ -276,10 +279,12 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
             use PolyORB.Errors;
 
             N           : Name;
-            Argument_N  : PolyORB.Any.Any := Get_Empty_Any (TC_Name);
+            Argument_N  : constant PolyORB.Any.Any := Get_Empty_Any (TC_Name);
 
             Nc          : NamingContext.Ref;
-            Argument_Nc : PolyORB.Any.Any := Get_Empty_Any (TC_NamingContext);
+            Argument_Nc : constant PolyORB.Any.Any :=
+                            Get_Empty_Any (TC_NamingContext);
+
             Exception_Error       : Error_Container;
          begin
             --  Create argument list
@@ -318,10 +323,12 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
             use PolyORB.Errors;
 
             N           : Name;
-            Argument_N  : PolyORB.Any.Any := Get_Empty_Any (TC_Name);
+            Argument_N  : constant PolyORB.Any.Any := Get_Empty_Any (TC_Name);
 
             Nc          : NamingContext.Ref;
-            Argument_Nc : PolyORB.Any.Any := Get_Empty_Any (TC_NamingContext);
+            Argument_Nc : constant PolyORB.Any.Any :=
+                            Get_Empty_Any (TC_NamingContext);
+
             Exception_Error       : Error_Container;
          begin
             --  Create argument list
@@ -360,7 +367,7 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
             use PolyORB.Errors;
 
             N          : Name;
-            Argument_N : PolyORB.Any.Any := Get_Empty_Any (TC_Name);
+            Argument_N : constant PolyORB.Any.Any := Get_Empty_Any (TC_Name);
 
             Result     : PolyORB.References.Ref;
             Exception_Error      : Error_Container;
@@ -400,7 +407,7 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
             use PolyORB.Errors;
 
             N           : Name;
-            Argument_N  : PolyORB.Any.Any := Get_Empty_Any (TC_Name);
+            Argument_N  : constant PolyORB.Any.Any := Get_Empty_Any (TC_Name);
             Exception_Error       : Error_Container;
          begin
             --  Create argument list
@@ -457,8 +464,8 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
          declare
             use PolyORB.Errors;
 
-            N               : Name;
-            Argument_N      : PolyORB.Any.Any := Get_Empty_Any (TC_Name);
+            N          : Name;
+            Argument_N : constant PolyORB.Any.Any := Get_Empty_Any (TC_Name);
 
             Result          : NamingContext.Ref;
             Exception_Error : Error_Container;

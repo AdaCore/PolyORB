@@ -486,8 +486,7 @@ package body Backend.BE_CORBA_Ada.Skels is
                C := Make_Subprogram_Call
                  (C,
                   Make_List_Id (Make_Attribute_Designator
-                                (N,
-                                 A_Unrestricted_Access)));
+                                (N, A_Unrestricted_Access)));
                N := Make_Attribute_Designator (RE (RE_Content), A_Class);
                N := Make_Object_Declaration
                  (Defining_Identifier => Make_Defining_Identifier
@@ -500,19 +499,23 @@ package body Backend.BE_CORBA_Ada.Skels is
                --  Declaration of the `Any' argument variable
 
                C := Make_Attribute_Designator
-                 (Make_Designator
-                  (Map_Argument_Content_Name (Param_Name)),
-                  A_Unchecked_Access);
+                      (Make_Designator
+                         (Map_Argument_Content_Name (Param_Name)),
+                       A_Unchecked_Access);
+
                C := Make_Subprogram_Call
                  (RE (RE_Get_Wrapper_Any),
                   Make_List_Id
                   (Get_TC_Node (Type_Spec (Param)),
                    C));
+
                N := Make_Object_Declaration
-                 (Defining_Identifier => Make_Defining_Identifier
-                  (Map_Argument_Any_Name (Param_Name)),
-                  Object_Definition   => RE (RE_Any),
-                  Expression          => C);
+                      (Defining_Identifier => Make_Defining_Identifier
+                                                (Map_Argument_Any_Name
+                                                 (Param_Name)),
+                       Constant_Present    => True,
+                       Object_Definition   => RE (RE_Any),
+                       Expression          => C);
                Append_Node_To_List (N, Declarative_Part);
 
                --  Append the Any variable the actual profile of the
@@ -620,18 +623,18 @@ package body Backend.BE_CORBA_Ada.Skels is
                   (Get_TC_Node (Type_Spec (E)),
                    C));
                N := Make_Object_Declaration
-                 (Defining_Identifier => Make_Defining_Identifier
-                  (Map_Argument_Any_Name (VN (V_Result))),
-                  Object_Definition   => RE (RE_Any),
-                  Expression          => C);
+                      (Defining_Identifier => Make_Defining_Identifier
+                                                (Map_Argument_Any_Name
+                                                   (VN (V_Result))),
+                       Constant_Present    => True,
+                       Object_Definition   => RE (RE_Any),
+                       Expression          => C);
                Append_Node_To_List (N, Declarative_Part);
             end if;
-
          end if;
 
-         --  In the SII mode, the request payload has to be set before
-         --  the request is processed. The Argument procedure is not
-         --  the same as DII.
+         --  In SII mode, the request payload has to be set before the request
+         --  is processed. The Argument procedure is not the same as DII.
 
          if Use_SII then
             declare
@@ -639,14 +642,13 @@ package body Backend.BE_CORBA_Ada.Skels is
             begin
                Params := New_List (K_List_Id);
 
-               --  GIOP_Session is used to get the representation
-               --  attribute (the declartif part the block).
+               --  GIOP_Session is used to get the representation attribute
+               --  (the declarative part the block).
 
                M := Make_Designator (VN (V_Component), Is_All => True);
 
                N := Make_Subprogram_Call
-                 (RE (RE_GIOP_Session),
-                  Make_List_Id (M));
+                      (RE (RE_GIOP_Session), Make_List_Id (M));
 
                N := Make_Object_Declaration
                  (Defining_Identifier => Make_Defining_Identifier
@@ -1529,6 +1531,7 @@ package body Backend.BE_CORBA_Ada.Skels is
          N := Make_Object_Declaration
            (Defining_Identifier => Make_Defining_Identifier
               (VN (V_Argument_Type_Id)),
+            Constant_Present    => True,
             Object_Definition   => RE (RE_Any),
             Expression          => Make_Subprogram_Call
               (RE (RE_To_Any_0),
