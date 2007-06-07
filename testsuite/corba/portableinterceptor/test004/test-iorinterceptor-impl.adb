@@ -50,7 +50,8 @@ package body Test.IORInterceptor.Impl is
 
       Factory : IOP.CodecFactory.Local_Ref;
       Codec   : IOP.Codec.Local_Ref;
-      Version : CORBA.Any := CORBA.To_Any (CORBA.Unsigned_Long'(123456789));
+      Version : constant CORBA.Any
+        := CORBA.To_Any (CORBA.Unsigned_Long'(123456789));
 
    begin
       Factory :=

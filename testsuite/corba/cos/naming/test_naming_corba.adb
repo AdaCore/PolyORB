@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -104,7 +104,7 @@ begin
 
          Output ("Bind Object (raise Already Bound)", False);
       exception
-         when AlreadyBound =>
+         when CosNaming.NamingContext.AlreadyBound =>
             Output ("Bind Object (raise Already Bound)", True);
 
          when others =>

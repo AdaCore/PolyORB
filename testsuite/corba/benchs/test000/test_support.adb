@@ -56,7 +56,7 @@ package body Test_Support is
    ----------------
 
    procedure Initialize is
-      Root_POA : PortableServer.POA.Local_Ref
+      Root_POA : constant PortableServer.POA.Local_Ref
         := PortableServer.POA.Helper.To_Local_Ref
             (CORBA.ORB.Resolve_Initial_References
               (CORBA.ORB.To_CORBA_String ("RootPOA")));
@@ -107,7 +107,7 @@ package body Test_Support is
       declare
          Srv : constant Test.Factory.Impl.Object_Ptr
            := new Test.Factory.Impl.Object;
-         Ref : CORBA.Object.Ref
+         Ref : constant CORBA.Object.Ref
            := PortableServer.POA.Servant_To_Reference
                (Root_POA,
                 PortableServer.Servant (Srv));

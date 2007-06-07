@@ -90,7 +90,7 @@ package body CORBA.DomainManager.Skel is
       if Operation = "_is_a" then
          declare
             Type_Id : CORBA.String;
-            Arg_Any_Ü_Type_Id : CORBA.Any := CORBA.To_Any (Type_Id);
+            Arg_Any_Ü_Type_Id : constant CORBA.Any := CORBA.To_Any (Type_Id);
 
             Result_Ü : CORBA.Boolean;
          begin
@@ -158,13 +158,13 @@ package body CORBA.DomainManager.Skel is
             pragma Warnings (Off, Argument_Ü_policy_type);
             Arg_CC_Ü_policy_type  : aliased PolyORB.Any.Content'Class :=
                CORBA.Wrap (CORBA.Unsigned_Long (Argument_Ü_policy_type)'Unrestricted_Access);
-            Arg_Any_Ü_policy_type : CORBA.Any := CORBA.Internals.Get_Wrapper_Any (CORBA.Helper.TC_PolicyType, Arg_CC_Ü_policy_type'Unchecked_Access);
+            Arg_Any_Ü_policy_type : constant CORBA.Any := CORBA.Internals.Get_Wrapper_Any (CORBA.Helper.TC_PolicyType, Arg_CC_Ü_policy_type'Unchecked_Access);
 
             Result_Ü              : CORBA.Policy.Ref;
             pragma Warnings (Off, Result_Ü);
             Arg_CC_Ü_Result_Ü     : aliased PolyORB.Any.Content'Class :=
                CORBA.Object.Helper.Wrap (CORBA.Object.Ref (Result_Ü)'Unrestricted_Access);
-            Arg_Any_Ü_Result_Ü    : CORBA.Any := CORBA.Internals.Get_Wrapper_Any (CORBA.Policy.Helper.TC_Policy, Arg_CC_Ü_Result_Ü'Unchecked_Access);
+            Arg_Any_Ü_Result_Ü    : constant CORBA.Any := CORBA.Internals.Get_Wrapper_Any (CORBA.Policy.Helper.TC_Policy, Arg_CC_Ü_Result_Ü'Unchecked_Access);
          begin
             CORBA.NVList.Add_Item
               (Arg_List_Ü,

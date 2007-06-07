@@ -49,7 +49,7 @@ begin
 
    begin
       declare
-         Int : CORBA.Object.Ref'Class
+         Int : constant CORBA.Object.Ref'Class
            := CORBA.Object.Get_Interface (CORBA.Object.Ref (POA));
 
          pragma Warnings (Off);
@@ -73,7 +73,7 @@ begin
 
    begin
       declare
-         Int : CORBA.Object.Ref'Class
+         Int : constant CORBA.Object.Ref'Class
            := CORBA.Object.Get_Interface (CORBA.Object.Ref (POA));
 
          pragma Warnings (Off);

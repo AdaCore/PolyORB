@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -141,7 +141,7 @@ procedure Test_Event is
       K_PushConsumer,
       K_PushSupplier);
 
-   Image : array (Entity_Kind) of CosNaming.Istring
+   Image : constant array (Entity_Kind) of CosNaming.Istring
      := (K_Channel      => CosNaming.To_CORBA_String (K_Channel'Img),
          K_PullConsumer => CosNaming.To_CORBA_String (K_PullConsumer'Img),
          K_PullSupplier => CosNaming.To_CORBA_String (K_PullSupplier'Img),
@@ -413,7 +413,8 @@ procedure Test_Event is
       B    : Binding;
       BL   : BindingList;
       BI   : BindingIterator_Forward.Ref;
-      Id   : CosNaming.Istring := CosNaming.To_CORBA_String (Name.all);
+      Id   : constant CosNaming.Istring
+        := CosNaming.To_CORBA_String (Name.all);
       Done : CORBA.Boolean;
       NC   : NameComponent;
 
@@ -455,7 +456,7 @@ procedure Test_Event is
       Times  : Natural)
    is
       O : CORBA.Impl.Object_Ptr;
-      A : CORBA.Any := To_Any (To_CORBA_String (Event.all));
+      A : constant CORBA.Any := To_Any (To_CORBA_String (Event.all));
 
    begin
       case Kind is

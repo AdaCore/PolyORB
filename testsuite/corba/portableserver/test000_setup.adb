@@ -126,7 +126,8 @@ package body Test000_Setup is
    begin
       if Reentrant then
          declare
-            IOR : CORBA.String := CORBA.Object.Object_To_String (Obj_Ref);
+            IOR : constant CORBA.String
+              := CORBA.Object.Object_To_String (Obj_Ref);
          begin
             if Verbose then
                Output
@@ -187,7 +188,7 @@ package body Test000_Setup is
 
       Policies : CORBA.Policy.PolicyList;
 
-      Thread_Policy : CORBA.Policy.Ref :=
+      Thread_Policy : constant CORBA.Policy.Ref :=
         CORBA.Policy.Ref (Create_Thread_Policy
                           (PortableServer.ORB_CTRL_MODEL));
 
@@ -362,7 +363,7 @@ package body Test000_Setup is
 
       Policies : CORBA.Policy.PolicyList;
 
-      Thread_Policy : CORBA.Policy.Ref :=
+      Thread_Policy : constant CORBA.Policy.Ref :=
         CORBA.Policy.Ref (Create_Thread_Policy
                           (PortableServer.SINGLE_THREAD_MODEL));
 
@@ -441,7 +442,7 @@ package body Test000_Setup is
 
       Policies : CORBA.Policy.PolicyList;
 
-      Thread_Policy : CORBA.Policy.Ref :=
+      Thread_Policy : constant CORBA.Policy.Ref :=
         CORBA.Policy.Ref (Create_Thread_Policy
                           (PortableServer.MAIN_THREAD_MODEL));
 
@@ -575,31 +576,31 @@ package body Test000_Setup is
 
       Policies : CORBA.Policy.PolicyList;
 
-      Thread_Policy : CORBA.Policy.Ref :=
+      Thread_Policy : constant CORBA.Policy.Ref :=
         CORBA.Policy.Ref
         (Create_Thread_Policy (Tp));
 
-      Lifespan_Policy : CORBA.Policy.Ref :=
+      Lifespan_Policy : constant CORBA.Policy.Ref :=
         CORBA.Policy.Ref
         (Create_Lifespan_Policy (Lp));
 
-      Id_Uniqueness_Policy : CORBA.Policy.Ref :=
+      Id_Uniqueness_Policy : constant CORBA.Policy.Ref :=
         CORBA.Policy.Ref
         (Create_Id_Uniqueness_Policy (Up));
 
-      Id_Assignment_Policy : CORBA.Policy.Ref :=
+      Id_Assignment_Policy : constant CORBA.Policy.Ref :=
         CORBA.Policy.Ref
         (Create_Id_Assignment_Policy (Ap));
 
-      Implicit_Activation_Policy : CORBA.Policy.Ref :=
+      Implicit_Activation_Policy : constant CORBA.Policy.Ref :=
         CORBA.Policy.Ref
         (Create_Implicit_Activation_Policy (Ip));
 
-      Servant_Retention_Policy : CORBA.Policy.Ref :=
+      Servant_Retention_Policy : constant CORBA.Policy.Ref :=
         CORBA.Policy.Ref
         (Create_Servant_Retention_Policy (Sp));
 
-      Request_Processing_Policy : CORBA.Policy.Ref :=
+      Request_Processing_Policy : constant CORBA.Policy.Ref :=
         CORBA.Policy.Ref
         (Create_Request_Processing_Policy (Rp));
 
@@ -1574,10 +1575,11 @@ package body Test000_Setup is
       declare
          use PortableServer.IDL_SEQUENCE_PortableServer_POA_Forward;
 
-         Children : PortableServer.POAList
+         Children : constant PortableServer.POAList
            := PortableServer.POA.Get_The_Children (Child_POA);
 
-         Children_Array : Element_Array := To_Element_Array (Children);
+         Children_Array : constant Element_Array
+           := To_Element_Array (Children);
 
       begin
          if Children_Array'Length /= 2 then
@@ -1623,19 +1625,19 @@ package body Test000_Setup is
       declare
          Policies : CORBA.Policy.PolicyList;
 
-         Lifespan_Policy : CORBA.Policy.Ref
+         Lifespan_Policy : constant CORBA.Policy.Ref
            := CORBA.Policy.Ref
            (Create_Lifespan_Policy (PERSISTENT));
 
-         Id_Assignment_Policy : CORBA.Policy.Ref
+         Id_Assignment_Policy : constant CORBA.Policy.Ref
            := CORBA.Policy.Ref
            (Create_Id_Assignment_Policy (USER_ID));
 
-         Implicit_Activation_Policy : CORBA.Policy.Ref
+         Implicit_Activation_Policy : constant CORBA.Policy.Ref
            := CORBA.Policy.Ref
            (Create_Implicit_Activation_Policy (NO_IMPLICIT_ACTIVATION));
 
-         Request_Processing_Policy : CORBA.Policy.Ref
+         Request_Processing_Policy : constant CORBA.Policy.Ref
            := CORBA.Policy.Ref
            (Create_Request_Processing_Policy (USE_SERVANT_MANAGER));
 

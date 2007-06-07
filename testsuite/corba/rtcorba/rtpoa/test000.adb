@@ -291,7 +291,7 @@ begin
          Thread_Pool_Id : RTCORBA.ThreadpoolId;
          Thread_Pool_Policy_Ref : RTCORBA.ThreadpoolPolicy.Local_Ref;
 
-         No_Implicit_Activation_Policy : CORBA.Policy.Ref
+         No_Implicit_Activation_Policy : constant CORBA.Policy.Ref
            := CORBA.Policy.Ref
            (Create_Implicit_Activation_Policy (NO_IMPLICIT_ACTIVATION));
 
@@ -608,7 +608,7 @@ begin
          pragma Warnings (Off, Ref_Client); --  WAG:5.02 DB08-008
          --  Assigned but never read
 
-         No_Implicit_Activation_Policy : CORBA.Policy.Ref
+         No_Implicit_Activation_Policy : constant CORBA.Policy.Ref
            := CORBA.Policy.Ref
            (Create_Implicit_Activation_Policy (NO_IMPLICIT_ACTIVATION));
 

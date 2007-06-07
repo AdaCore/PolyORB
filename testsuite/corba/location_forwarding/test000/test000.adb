@@ -69,17 +69,17 @@ begin
    declare
       use CORBA.Policy.IDL_SEQUENCE_Policy;
 
-      Implicit_Activation_Policy : CORBA.Policy.Ref
+      Implicit_Activation_Policy : constant CORBA.Policy.Ref
         := CORBA.Policy.Ref
             (PortableServer.POA.Create_Implicit_Activation_Policy
               (PortableServer.NO_IMPLICIT_ACTIVATION));
 
-      Id_Assignment_Policy : CORBA.Policy.Ref
+      Id_Assignment_Policy : constant CORBA.Policy.Ref
         := CORBA.Policy.Ref
             (PortableServer.POA.Create_Id_Assignment_Policy
               (PortableServer.USER_ID));
 
-      Request_Processing_Policy : CORBA.Policy.Ref
+      Request_Processing_Policy : constant CORBA.Policy.Ref
         := CORBA.Policy.Ref
             (PortableServer.POA.Create_Request_Processing_Policy
               (PortableServer.USE_SERVANT_MANAGER));
@@ -126,7 +126,7 @@ begin
    end;
 
    declare
-      Ref : CORBA.Object.Ref
+      Ref : constant CORBA.Object.Ref
         := PortableServer.POA.Create_Reference_With_Id
             (My_POA,
              PortableServer.String_To_ObjectId ("dead"),

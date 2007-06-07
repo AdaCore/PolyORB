@@ -50,7 +50,7 @@ begin
    end;
 
    declare
-      Root_POA : PortableServer.POA.Local_Ref
+      Root_POA : constant PortableServer.POA.Local_Ref
         := PortableServer.POA.Helper.To_Local_Ref
             (CORBA.ORB.Resolve_Initial_References
               (CORBA.ORB.To_CORBA_String ("RootPOA")));

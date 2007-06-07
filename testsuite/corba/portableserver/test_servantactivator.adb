@@ -71,16 +71,16 @@ package body Test_ServantActivator is
 
       Policies : CORBA.Policy.PolicyList;
 
-      Implicit_Activation_Policy : CORBA.Policy.Ref :=
+      Implicit_Activation_Policy : constant CORBA.Policy.Ref :=
         CORBA.Policy.Ref
         (Create_Implicit_Activation_Policy
          (PortableServer.NO_IMPLICIT_ACTIVATION));
 
-      Id_Assignment_Policy : CORBA.Policy.Ref :=
+      Id_Assignment_Policy : constant CORBA.Policy.Ref :=
         CORBA.Policy.Ref
         (Create_Id_Assignment_Policy (PortableServer.USER_ID));
 
-      Request_Processing_Policy : CORBA.Policy.Ref :=
+      Request_Processing_Policy : constant CORBA.Policy.Ref :=
         CORBA.Policy.Ref
         (Create_Request_Processing_Policy
          (PortableServer.USE_SERVANT_MANAGER));
