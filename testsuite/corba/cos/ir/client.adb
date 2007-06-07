@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1999-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 1999-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -46,16 +46,21 @@ with CORBA.Repository_Root.ModuleDef;
 with PolyORB.Setup.Client;
 pragma Warnings (Off, PolyORB.Setup.Client);
 
+with PolyORB.Utils.Report;
+
 procedure Client is
    use Ada.Text_IO;
 
    use CORBA;
    use CORBA.Repository_Root;
+   use PolyORB.Utils.Report;
 
    IOR : CORBA.String;
    Myrep : Repository.Ref;
 
 begin
+   New_Test ("InterfaceRepository");
+
    CORBA.ORB.Initialize ("ORB");
    if Ada.Command_Line.Argument_Count = 1 then
       IOR := CORBA.To_CORBA_String (Ada.Command_Line.Argument (1));
@@ -95,6 +100,8 @@ begin
                                         Id,
                                         Name,
                                         Version);
+      Output ("Create_Module", True);
+
       Id := To_CORBA_String ("idl:toto/titi:1.0");
       Name := To_CORBA_String ("titi");
       Version := To_CORBA_String ("1.0");
@@ -105,19 +112,22 @@ begin
          Version,
          InterfaceDefSeq (IDS.Null_Sequence),
          False);
+      Output ("Create_Interface", True);
+
       declare
          package PDS renames IDL_SEQUENCE_CORBA_ParameterDescription;
          package EDS renames IDL_SEQUENCE_CORBA_ExceptionDef_Forward;
          package CIS renames IDL_SEQUENCE_CORBA_ContextIdentifier;
          Mem : ParDescriptionSeq
            := ParDescriptionSeq (PDS.Null_Sequence);
-         Exc : ExceptionDefSeq
+         Exc : constant ExceptionDefSeq
            := ExceptionDefSeq (EDS.Null_Sequence);
-         Con : ContextIdSeq
+         Con : constant ContextIdSeq
            := ContextIdSeq (CIS.Null_Sequence);
          Memb : ParameterDescription;
-      begin
+         Prim : CORBA.Repository_Root.PrimitiveDef_Forward.Ref;
 
+      begin
          --  Create the members
 
          Name := To_CORBA_String ("oper1");
@@ -149,6 +159,12 @@ begin
          Id := To_CORBA_String ("idl:toto/titi/myop:1.1");
          Name := To_CORBA_String ("myop");
          Version := To_CORBA_String ("1.1");
+
+         Prim := Repository.get_primitive
+           (Myrep,
+            pk_long);
+         Output ("Get_Primitive", True);
+
          Op1 := InterfaceDef.create_operation
            (InterfaceDef.Convert_Forward.
             To_Ref (Int1),
@@ -157,16 +173,15 @@ begin
             Version,
             IDLType.Ref
             (PrimitiveDef.Convert_Forward.To_Ref
-             (Repository.get_primitive
-              (Myrep,
-               pk_long))),
+             (Prim)),
             OP_NORMAL,
             Mem,
             Exc,
             Con);
-
+         Output ("Create_Operation", True);
       end;
    end;
+   End_Report;
 
 exception
    when E : CORBA.Bad_Param =>
@@ -177,4 +192,5 @@ exception
          Put ("received Bad_Param exception, minor");
          Put_Line (Unsigned_Long'Image (Memb.Minor));
       end;
+
 end Client;
