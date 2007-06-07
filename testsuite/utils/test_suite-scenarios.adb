@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -89,7 +89,7 @@ package body Test_Suite.Scenarios is
          if Position = -1 then
             loop
                declare
-                  Extracted_Test : Test'Class
+                  Extracted_Test : constant Test'Class
                     := Extract_Test
                     (Scenario_Name, Count, Configuration_Dir, Output);
 
@@ -115,7 +115,7 @@ package body Test_Suite.Scenarios is
             end loop;
          else
             declare
-               Extracted_Test : Test'Class
+               Extracted_Test : constant Test'Class
                  := Extract_Test
                  (Scenario_Name, Position, Configuration_Dir, Output);
 
