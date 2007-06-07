@@ -522,6 +522,12 @@ package body XE_IO is
       Ptr    : Text_Ptr := 1;
 
    begin
+      --  Pre-set First and Last to junk values to prevent a warning in case
+      --  of early return (in error cases).
+
+      First := 0;
+      Last := 0;
+
       Get_Name_String (Fname);
       Name_Buffer (Name_Len + 1) := ASCII.NUL;
       File := Open_Read (Name_Buffer'Address, Binary);
