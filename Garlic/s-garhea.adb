@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1996-2006 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- GARLIC is free software;  you can redistribute it and/or modify it under --
 -- terms of the  GNU General Public License  as published by the Free Soft- --
@@ -203,9 +203,9 @@ package body System.Garlic.Heart is
       Offset     : Ada.Streams.Stream_Element_Offset;
       Error      : in out Error_Type)
    is
+      First : constant Stream_Element_Offset := Filtered'First + Offset;
       PID   : Partition_ID;
       Code  : Any_Opcode;
-      First : constant Stream_Element_Offset := Filtered'First + Offset;
 
    begin
       --  Dump the stream for debugging purpose
@@ -261,6 +261,7 @@ package body System.Garlic.Heart is
       then
          Allocate_PID (PID, Null_String, Error);
          if Found (Error) then
+            Opcode := Invalid_Operation;
             return;
          end if;
       end if;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1996-2006 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- GARLIC is free software;  you can redistribute it and/or modify it under --
 -- terms of the  GNU General Public License  as published by the Free Soft- --
@@ -1305,6 +1305,7 @@ package body System.Garlic.Partitions is
 
          Allocate_PID (PID, Partition_Name, Error);
          if Found (Error) then
+            Partition := Null_Partition_ID;
             return;
          end if;
 
