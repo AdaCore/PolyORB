@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -216,7 +216,11 @@ package body PolyORB.RT_POA.Basic_RT_POA is
             if Found (Error2) then
                Catch (Error);
                Error := Error2;
+               pragma Warnings (Off);
+               --  Model, Server_External_Priority, and Server_ORB_Priority not
+               --  set before return
                return;
+               pragma Warnings (On);
             end if;
             while not Last (It) loop
                if U_Oid = Value (It).all.U_Oid then

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -130,7 +130,9 @@ package body PolyORB.CORBA_P.TSS_State_Machine_Actions is
       then
          Status := Invalid_Mechanism;
 
+         pragma Warnings (Off);  --  "Stateful" not set before return
          return;
+         pragma Warnings (On);
       end if;
 
       Mech := Target_Mechanism_Lists.Element (QoS.Mechanisms, 0).all;

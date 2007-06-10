@@ -199,7 +199,9 @@ package body PolyORB.POA_Types is
       for J in ULongs'Range loop
          Get_ULong (SEA, SEI, ULongs (J), Error);
          if Errors.Found (Error) then
+            pragma Warnings (Off);  --  "TS" not set before return
             return;
+            pragma Warnings (On);
          end if;
       end loop;
       TS := From_ULongs (ULongs);

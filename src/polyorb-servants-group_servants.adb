@@ -486,7 +486,9 @@ package body PolyORB.Servants.Group_Servants is
    begin
       if not (Group.all in Group_Servant) then
          Throw (Error, NotAGroupObject_E, Null_Members'(Null_Member));
+         pragma Warnings (Off);  --  "L" not set before return
          return;
+         pragma Warnings (On);
       end if;
 
       L := TPL.Length (Group_Servant_Access (Group).Target_List);
