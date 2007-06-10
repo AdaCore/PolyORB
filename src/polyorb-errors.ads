@@ -44,7 +44,7 @@ package PolyORB.Errors is
    ------------------------
 
    --  A PolyORB error is notionally equivalent to a CORBA exception.
-   --  It is composed by
+   --  It is composed of:
    --   - Exception Id,
    --   - Exception Member.
 
@@ -218,7 +218,7 @@ package PolyORB.Errors is
      (Error  : in out Error_Container;
       Kind   : Error_Id;
       Member : Exception_Members'Class);
-   --  Generates an error whith Kind and Member information
+   --  Generates an error with Kind and Member information
 
    procedure Catch (Error : in out Error_Container);
    --  Acknowledge Error and reset its content
