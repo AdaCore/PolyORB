@@ -644,7 +644,9 @@ package body PolyORB.Filters.HTTP is
       if Item_First > S'Last then
          --  There was only LWS from Pos to the end of the string.
          Pos := S'Last + 1;
+         pragma Warnings (Off); --  "Last" not set before return
          return;
+         pragma Warnings (On);
       end if;
 
       Separator := Item_First;
