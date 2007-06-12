@@ -149,10 +149,11 @@ package body PortableServer.Helper is
    end record;
 
    function Get_Aggregate_Element
-     (ACC   : access Content_Ü_ThreadPolicyValue;
+     (ACC   : not null access Content_Ü_ThreadPolicyValue;
       TC    : PolyORB.Any.TypeCode.Object_Ptr;
       Index : PolyORB.Types.Unsigned_Long;
-      Mech  : access PolyORB.Any.Mechanism) return PolyORB.Any.Content'Class;
+      Mech  : not null access PolyORB.Any.Mechanism)
+      return PolyORB.Any.Content'Class;
    procedure Set_Aggregate_Element
      (ACC    : in out Content_Ü_ThreadPolicyValue;
       TC     : PolyORB.Any.TypeCode.Object_Ptr;
@@ -170,10 +171,11 @@ package body PortableServer.Helper is
      (ACC : in out Content_Ü_ThreadPolicyValue);
 
    function Get_Aggregate_Element
-     (ACC   : access Content_Ü_ThreadPolicyValue;
+     (ACC   : not null access Content_Ü_ThreadPolicyValue;
       TC    : PolyORB.Any.TypeCode.Object_Ptr;
       Index : PolyORB.Types.Unsigned_Long;
-      Mech  : access PolyORB.Any.Mechanism) return PolyORB.Any.Content'Class
+      Mech  : not null access PolyORB.Any.Mechanism)
+      return PolyORB.Any.Content'Class
    is
       use type PolyORB.Types.Unsigned_Long;
       use type PolyORB.Any.Mechanism;
@@ -293,10 +295,11 @@ package body PortableServer.Helper is
    end record;
 
    function Get_Aggregate_Element
-     (ACC   : access Content_Ü_LifespanPolicyValue;
+     (ACC   : not null access Content_Ü_LifespanPolicyValue;
       TC    : PolyORB.Any.TypeCode.Object_Ptr;
       Index : PolyORB.Types.Unsigned_Long;
-      Mech  : access PolyORB.Any.Mechanism) return PolyORB.Any.Content'Class;
+      Mech  : not null access PolyORB.Any.Mechanism)
+      return PolyORB.Any.Content'Class;
    procedure Set_Aggregate_Element
      (ACC    : in out Content_Ü_LifespanPolicyValue;
       TC     : PolyORB.Any.TypeCode.Object_Ptr;
@@ -314,10 +317,10 @@ package body PortableServer.Helper is
      (ACC : in out Content_Ü_LifespanPolicyValue);
 
    function Get_Aggregate_Element
-     (ACC   : access Content_Ü_LifespanPolicyValue;
+     (ACC   : not null access Content_Ü_LifespanPolicyValue;
       TC    : PolyORB.Any.TypeCode.Object_Ptr;
       Index : PolyORB.Types.Unsigned_Long;
-      Mech  : access PolyORB.Any.Mechanism) return PolyORB.Any.Content'Class
+      Mech  : not null access PolyORB.Any.Mechanism) return PolyORB.Any.Content'Class
    is
       use type PolyORB.Types.Unsigned_Long;
       use type PolyORB.Any.Mechanism;
@@ -437,10 +440,10 @@ package body PortableServer.Helper is
    end record;
 
    function Get_Aggregate_Element
-     (ACC   : access Content_Ü_IdUniquenessPolicyValue;
+     (ACC   : not null access Content_Ü_IdUniquenessPolicyValue;
       TC    : PolyORB.Any.TypeCode.Object_Ptr;
       Index : PolyORB.Types.Unsigned_Long;
-      Mech  : access PolyORB.Any.Mechanism) return PolyORB.Any.Content'Class;
+      Mech  : not null access PolyORB.Any.Mechanism) return PolyORB.Any.Content'Class;
    procedure Set_Aggregate_Element
      (ACC    : in out Content_Ü_IdUniquenessPolicyValue;
       TC     : PolyORB.Any.TypeCode.Object_Ptr;
@@ -458,10 +461,10 @@ package body PortableServer.Helper is
      (ACC : in out Content_Ü_IdUniquenessPolicyValue);
 
    function Get_Aggregate_Element
-     (ACC   : access Content_Ü_IdUniquenessPolicyValue;
+     (ACC   : not null access Content_Ü_IdUniquenessPolicyValue;
       TC    : PolyORB.Any.TypeCode.Object_Ptr;
       Index : PolyORB.Types.Unsigned_Long;
-      Mech  : access PolyORB.Any.Mechanism) return PolyORB.Any.Content'Class
+      Mech  : not null access PolyORB.Any.Mechanism) return PolyORB.Any.Content'Class
    is
       use type PolyORB.Types.Unsigned_Long;
       use type PolyORB.Any.Mechanism;
@@ -581,10 +584,10 @@ package body PortableServer.Helper is
    end record;
 
    function Get_Aggregate_Element
-     (ACC   : access Content_Ü_IdAssignmentPolicyValue;
+     (ACC   : not null access Content_Ü_IdAssignmentPolicyValue;
       TC    : PolyORB.Any.TypeCode.Object_Ptr;
       Index : PolyORB.Types.Unsigned_Long;
-      Mech  : access PolyORB.Any.Mechanism) return PolyORB.Any.Content'Class;
+      Mech  : not null access PolyORB.Any.Mechanism) return PolyORB.Any.Content'Class;
    procedure Set_Aggregate_Element
      (ACC    : in out Content_Ü_IdAssignmentPolicyValue;
       TC     : PolyORB.Any.TypeCode.Object_Ptr;
@@ -602,10 +605,10 @@ package body PortableServer.Helper is
      (ACC : in out Content_Ü_IdAssignmentPolicyValue);
 
    function Get_Aggregate_Element
-     (ACC   : access Content_Ü_IdAssignmentPolicyValue;
+     (ACC   : not null access Content_Ü_IdAssignmentPolicyValue;
       TC    : PolyORB.Any.TypeCode.Object_Ptr;
       Index : PolyORB.Types.Unsigned_Long;
-      Mech  : access PolyORB.Any.Mechanism) return PolyORB.Any.Content'Class
+      Mech  : not null access PolyORB.Any.Mechanism) return PolyORB.Any.Content'Class
    is
       use type PolyORB.Types.Unsigned_Long;
       use type PolyORB.Any.Mechanism;
@@ -725,10 +728,10 @@ package body PortableServer.Helper is
    end record;
 
    function Get_Aggregate_Element
-     (ACC   : access Content_Ü_ImplicitActivationPolicyValue;
+     (ACC   : not null access Content_Ü_ImplicitActivationPolicyValue;
       TC    : PolyORB.Any.TypeCode.Object_Ptr;
       Index : PolyORB.Types.Unsigned_Long;
-      Mech  : access PolyORB.Any.Mechanism) return PolyORB.Any.Content'Class;
+      Mech  : not null access PolyORB.Any.Mechanism) return PolyORB.Any.Content'Class;
    procedure Set_Aggregate_Element
      (ACC    : in out Content_Ü_ImplicitActivationPolicyValue;
       TC     : PolyORB.Any.TypeCode.Object_Ptr;
@@ -746,10 +749,10 @@ package body PortableServer.Helper is
      (ACC : in out Content_Ü_ImplicitActivationPolicyValue);
 
    function Get_Aggregate_Element
-     (ACC   : access Content_Ü_ImplicitActivationPolicyValue;
+     (ACC   : not null access Content_Ü_ImplicitActivationPolicyValue;
       TC    : PolyORB.Any.TypeCode.Object_Ptr;
       Index : PolyORB.Types.Unsigned_Long;
-      Mech  : access PolyORB.Any.Mechanism) return PolyORB.Any.Content'Class
+      Mech  : not null access PolyORB.Any.Mechanism) return PolyORB.Any.Content'Class
    is
       use type PolyORB.Types.Unsigned_Long;
       use type PolyORB.Any.Mechanism;
@@ -869,10 +872,10 @@ package body PortableServer.Helper is
    end record;
 
    function Get_Aggregate_Element
-     (ACC   : access Content_Ü_ServantRetentionPolicyValue;
+     (ACC   : not null access Content_Ü_ServantRetentionPolicyValue;
       TC    : PolyORB.Any.TypeCode.Object_Ptr;
       Index : PolyORB.Types.Unsigned_Long;
-      Mech  : access PolyORB.Any.Mechanism) return PolyORB.Any.Content'Class;
+      Mech  : not null access PolyORB.Any.Mechanism) return PolyORB.Any.Content'Class;
    procedure Set_Aggregate_Element
      (ACC    : in out Content_Ü_ServantRetentionPolicyValue;
       TC     : PolyORB.Any.TypeCode.Object_Ptr;
@@ -890,10 +893,10 @@ package body PortableServer.Helper is
      (ACC : in out Content_Ü_ServantRetentionPolicyValue);
 
    function Get_Aggregate_Element
-     (ACC   : access Content_Ü_ServantRetentionPolicyValue;
+     (ACC   : not null access Content_Ü_ServantRetentionPolicyValue;
       TC    : PolyORB.Any.TypeCode.Object_Ptr;
       Index : PolyORB.Types.Unsigned_Long;
-      Mech  : access PolyORB.Any.Mechanism) return PolyORB.Any.Content'Class
+      Mech  : not null access PolyORB.Any.Mechanism) return PolyORB.Any.Content'Class
    is
       use type PolyORB.Types.Unsigned_Long;
       use type PolyORB.Any.Mechanism;
@@ -1013,10 +1016,10 @@ package body PortableServer.Helper is
    end record;
 
    function Get_Aggregate_Element
-     (ACC   : access Content_Ü_RequestProcessingPolicyValue;
+     (ACC   : not null access Content_Ü_RequestProcessingPolicyValue;
       TC    : PolyORB.Any.TypeCode.Object_Ptr;
       Index : PolyORB.Types.Unsigned_Long;
-      Mech  : access PolyORB.Any.Mechanism) return PolyORB.Any.Content'Class;
+      Mech  : not null access PolyORB.Any.Mechanism) return PolyORB.Any.Content'Class;
    procedure Set_Aggregate_Element
      (ACC    : in out Content_Ü_RequestProcessingPolicyValue;
       TC     : PolyORB.Any.TypeCode.Object_Ptr;
@@ -1034,10 +1037,10 @@ package body PortableServer.Helper is
      (ACC : in out Content_Ü_RequestProcessingPolicyValue);
 
    function Get_Aggregate_Element
-     (ACC   : access Content_Ü_RequestProcessingPolicyValue;
+     (ACC   : not null access Content_Ü_RequestProcessingPolicyValue;
       TC    : PolyORB.Any.TypeCode.Object_Ptr;
       Index : PolyORB.Types.Unsigned_Long;
-      Mech  : access PolyORB.Any.Mechanism) return PolyORB.Any.Content'Class
+      Mech  : not null access PolyORB.Any.Mechanism) return PolyORB.Any.Content'Class
    is
       use type PolyORB.Types.Unsigned_Long;
       use type PolyORB.Any.Mechanism;

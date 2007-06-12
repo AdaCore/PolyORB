@@ -618,15 +618,16 @@ package PolyORB.Any is
    type Mechanism is (By_Reference, By_Value);
 
    function Get_Aggregate_Element
-     (ACC   : access Aggregate_Content'Class;
+     (ACC   : not null access Aggregate_Content'Class;
       TC    : TypeCode.Local_Ref;
       Index : Types.Unsigned_Long;
-      Mech  : access Mechanism) return Content'Class;
+      Mech  : not null access Mechanism) return Content'Class;
+
    function Get_Aggregate_Element
-     (ACC   : access Aggregate_Content;
+     (ACC   : not null access Aggregate_Content;
       TC    : TypeCode.Object_Ptr;
       Index : Types.Unsigned_Long;
-      Mech  : access Mechanism) return Content'Class is abstract;
+      Mech  : not null access Mechanism) return Content'Class is abstract;
    --  Return contents wrapper for one stored element.
    --  Upon entry, if Mech is By_Reference, the caller requests access to
    --  the stored element in order to update it; if it is By_Value, the caller

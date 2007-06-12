@@ -123,10 +123,11 @@ package body PolyORB.Sequences.Helper is
    ---------------------------
 
    function Get_Aggregate_Element
-     (ACC   : access Sequence_Content;
+     (ACC   : not null access Sequence_Content;
       TC    : PolyORB.Any.TypeCode.Object_Ptr;
       Index : PolyORB.Types.Unsigned_Long;
-      Mech  : access PolyORB.Any.Mechanism) return PolyORB.Any.Content'Class
+      Mech  : not null access PolyORB.Any.Mechanism)
+      return PolyORB.Any.Content'Class
    is
       use type PolyORB.Types.Unsigned_Long;
       use type PolyORB.Any.Mechanism;

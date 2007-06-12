@@ -352,10 +352,10 @@ package body PolyORB.Any is
       Count : Types.Unsigned_Long);
 
    function Get_Aggregate_Element
-     (ACC   : access Default_Aggregate_Content;
+     (ACC   : not null access Default_Aggregate_Content;
       TC    : TypeCode.Object_Ptr;
       Index : Types.Unsigned_Long;
-      Mech  : access Mechanism) return Content'Class;
+      Mech  : not null access Mechanism) return Content'Class;
 
    procedure Set_Aggregate_Element
      (ACC    : in out Default_Aggregate_Content;
@@ -1399,20 +1399,20 @@ package body PolyORB.Any is
    ---------------------------
 
    function Get_Aggregate_Element
-     (ACC   : access Aggregate_Content'Class;
+     (ACC   : not null access Aggregate_Content'Class;
       TC    : TypeCode.Local_Ref;
       Index : Unsigned_Long;
-      Mech  : access Mechanism) return Content'Class
+      Mech  : not null access Mechanism) return Content'Class
    is
    begin
       return Get_Aggregate_Element (ACC, TypeCode.Object_Of (TC), Index, Mech);
    end Get_Aggregate_Element;
 
    function Get_Aggregate_Element
-     (ACC   : access Default_Aggregate_Content;
+     (ACC   : not null access Default_Aggregate_Content;
       TC    : TypeCode.Object_Ptr;
       Index : Unsigned_Long;
-      Mech  : access Mechanism) return Content'Class
+      Mech  : not null access Mechanism) return Content'Class
    is
       use PolyORB.Smart_Pointers;
       use Content_Tables;

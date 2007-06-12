@@ -939,10 +939,11 @@ package body Ada_Be.Idl2Ada.Helper is
       Node : Node_Id) is
    begin
       PL (CU, "function Get_Aggregate_Element");
-      PL (CU, "  (ACC   : access " & T_Content & Ada_Name (Node) & ";");
+      PL (CU, "  (ACC   : not null access "
+              & T_Content & Ada_Name (Node) & ";");
       PL (CU, "   TC    : PolyORB.Any.TypeCode.Object_Ptr;");
       PL (CU, "   Index : PolyORB.Types.Unsigned_Long;");
-      Put (CU, "   Mech  : access PolyORB.Any.Mechanism)"
+      Put (CU, "   Mech  : not null access PolyORB.Any.Mechanism)"
            & " return PolyORB.Any.Content'Class");
    end Gen_Get_Aggregate_Element_Profile;
 
