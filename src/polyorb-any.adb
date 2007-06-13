@@ -31,6 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Exceptions;
 with Ada.Strings.Fixed;
 
 with PolyORB.Log;
@@ -1849,6 +1850,11 @@ package body PolyORB.Any is
          when others =>
             return "<Any:" & Image (Get_Type_Obj (C)) & ">";
       end case;
+
+   exception
+      when E : others =>
+         return "<Image raised "
+           & Ada.Exceptions.Exception_Information (E) & ">";
    end Image;
 
    ----------------
