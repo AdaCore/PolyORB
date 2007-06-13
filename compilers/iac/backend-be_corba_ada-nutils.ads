@@ -574,7 +574,8 @@ package Backend.BE_CORBA_Ada.Nutils is
    function Make_Access_Type_Definition
      (Subtype_Indication : Node_Id;
       Is_All             : Boolean := False;
-      Is_Constant        : Boolean := False)
+      Is_Constant        : Boolean := False;
+      Is_Not_Null        : Boolean := False)
      return Node_Id;
    --  Usually used with Make_Full_Type_Declaration
 

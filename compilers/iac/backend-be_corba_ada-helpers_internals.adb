@@ -528,7 +528,8 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
          N := Make_Parameter_Specification
            (Defining_Identifier => Make_Defining_Identifier (PN (P_ACC)),
             Subtype_Mark        => Make_Access_Type_Definition
-              (Make_Designator (Map_Container_Name (E))),
+              (Make_Designator (Map_Container_Name (E)),
+               Is_Not_Null      => True),
             Parameter_Mode      => Mode_In);
          Append_Node_To_List (N, Profile);
 
@@ -547,7 +548,8 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
          N := Make_Parameter_Specification
            (Defining_Identifier => Make_Defining_Identifier (PN (P_Mech)),
             Subtype_Mark        => Make_Access_Type_Definition
-              (RE (RE_Mechanism)),
+              (RE (RE_Mechanism),
+               Is_Not_Null => True),
             Parameter_Mode      => Mode_In);
          Append_Node_To_List (N, Profile);
 

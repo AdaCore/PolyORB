@@ -337,6 +337,13 @@ package body Backend.BE_CORBA_Ada.Generator is
 
    procedure Generate_Access_Type_Definition (N : Node_Id) is
    begin
+      if Is_Not_Null (N) then
+         Write (Tok_Not);
+         Write_Space;
+         Write (Tok_Null);
+         Write_Space;
+      end if;
+
       Write (Tok_Access);
       Write_Space;
 

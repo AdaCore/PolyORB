@@ -865,7 +865,8 @@ package body Backend.BE_CORBA_Ada.Nutils is
    function Make_Access_Type_Definition
      (Subtype_Indication : Node_Id;
       Is_All             : Boolean := False;
-      Is_Constant        : Boolean := False)
+      Is_Constant        : Boolean := False;
+      Is_Not_Null        : Boolean := False)
      return Node_Id
    is
       N : Node_Id;
@@ -874,6 +875,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
       Set_Subtype_Indication (N, Subtype_Indication);
       Set_Is_All (N, Is_All);
       Set_Is_Constant (N, Is_Constant);
+      Set_Is_Not_Null (N, Is_Not_Null);
       return N;
    end Make_Access_Type_Definition;
 

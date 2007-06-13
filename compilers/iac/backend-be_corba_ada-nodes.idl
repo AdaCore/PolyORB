@@ -356,6 +356,9 @@ module Backend::BE_CORBA_Ada::Nodes {
     boolean    Is_Constant;
     // If True then the "constant" modifier is generated
 
+    boolean    Is_Not_Null;
+    // If True then the "not null" keywords are generated
+
     Node_Id    Subtype_Indication;
     // The accessed type
   };  
