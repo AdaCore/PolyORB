@@ -65,9 +65,12 @@ RM		:= @RM@
 XARGS_I		:= @XARGS_I@
 INSTALL		:= @INSTALL@
 
-CC_FOR_TARGET	:= @CC_FOR_TARGET@
-GNATCHOP	:= @GNATCHOP@
-GNATMAKE	:= @GNATMAKE_FOR_TARGET@
+TOOL_EXE_SUFFIX		:= @TOOL_EXE_SUFFIX@
+COMPILER_EXE_SUFFIX	:= @COMPILER_EXE_SUFFIX@
+CC_FOR_TARGET		:= @CC_FOR_TARGET@
+GNATCHOP		:= @GNATCHOP@
+GNATMAKE		:= @GNATMAKE@
+GNATMAKE_FOR_TARGET	:= @GNATMAKE_FOR_TARGET@
 # ??? distinguish between native tools, cross tools and cross libs
 
 CFLAGS		:= @CFLAGS@
@@ -446,7 +449,7 @@ ${PROJECT_FILES}: %.gpr: \
     src/giop/polyorb-giop_p-code_sets-data.ads-stamp \
     tools/po_catref/polyorb-giop_p-code_sets-description_data.ads-stamp
 	ADA_PROJECT_PATH=${top_builddir}/projects:${top_srcdir}/projects:$$ADA_PROJECT_PATH \
-	  ${GNATMAKE} -P $@ ${GNATMAKE_FLAGS} ${PRJ_GNATMAKE_FLAGS}
+	  ${GNATMAKE_FOR_TARGET} -P $@ ${GNATMAKE_FLAGS} ${PRJ_GNATMAKE_FLAGS}
 
 .PHONY: libpolyorb-corba-cos-event-impl.a
 libpolyorb-corba-cos-event-impl.a: cos_event.gpr
@@ -769,16 +772,16 @@ install: all
 	${RM} -fr "${prefix}/include/polyorb"
 	${INSTALL} -d ${prefix}/include/polyorb
 	for comp in ${COMPILER_EXES}; do \
-	  ${INSTALL} ${top_builddir}/compilers/$${comp} ${prefix}/bin; \
+	  ${INSTALL} ${top_builddir}/compilers/$${comp}${COMPILER_EXE_SUFFIX} ${prefix}/bin; \
 	done
-	${INSTALL} ${top_builddir}/tools/po_cos_naming/po_cos_naming ${prefix}/bin
-	${INSTALL} ${top_builddir}/tools/po_cos_naming/po_cos_naming_shell ${prefix}/bin
-	${INSTALL} ${top_builddir}/tools/po_cos_naming/ir_ab_names ${prefix}/bin
-	${INSTALL} ${top_builddir}/tools/po_ir/po_ir ${prefix}/bin
-	${INSTALL} ${top_builddir}/tools/po_catref/po_catref ${prefix}/bin
-	${INSTALL} ${top_builddir}/tools/po_createref/po_createref ${prefix}/bin
-	${INSTALL} ${top_builddir}/tools/po_names/po_names ${prefix}/bin
-	${INSTALL} ${top_builddir}/tools/po_dumpir/po_dumpir ${prefix}/bin
+	${INSTALL} ${top_builddir}/tools/po_cos_naming/po_cos_naming${TOOL_EXE_SUFFIX} ${prefix}/bin
+	${INSTALL} ${top_builddir}/tools/po_cos_naming/po_cos_naming_shell${TOOL_EXE_SUFFIX} ${prefix}/bin
+	${INSTALL} ${top_builddir}/tools/po_cos_naming/ir_ab_names${TOOL_EXE_SUFFIX} ${prefix}/bin
+	${INSTALL} ${top_builddir}/tools/po_ir/po_ir${TOOL_EXE_SUFFIX} ${prefix}/bin
+	${INSTALL} ${top_builddir}/tools/po_catref/po_catref${TOOL_EXE_SUFFIX} ${prefix}/bin
+	${INSTALL} ${top_builddir}/tools/po_createref/po_createref${TOOL_EXE_SUFFIX} ${prefix}/bin
+	${INSTALL} ${top_builddir}/tools/po_names/po_names${TOOL_EXE_SUFFIX} ${prefix}/bin
+	${INSTALL} ${top_builddir}/tools/po_dumpir/po_dumpir${TOOL_EXE_SUFFIX} ${prefix}/bin
 	${INSTALL} ${top_builddir}/polyorb-config ${prefix}/bin
 	ls ${top_builddir}/lib/*.a | ${XARGS_I} ${INSTALL} -m 444 {} ${prefix}/lib
 	(find \

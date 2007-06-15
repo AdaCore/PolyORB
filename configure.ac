@@ -497,13 +497,36 @@ host=$host_tmp
 
 case "$host_os" in
   cygwin* | mingw*)
-    windows=true
+    windows_host=true
+    HOST_EXE_SUFFIX=.exe
     ;;
   *)
-    windows=false
+    windows_host=false
+    HOST_EXE_SUFFIX=
     ;;
 esac
-AM_CONDITIONAL(WINDOWS, test x$windows = xtrue)
+AM_CONDITIONAL(WINDOWS, $windows_host)
+
+case "$target_os" in
+  *cygwin* | *mingw*)
+    TARGET_EXE_SUFFIX=.exe
+    ;;
+  *)
+    TARGET_EXE_SUFFIX=
+    ;;
+esac
+
+# Compilers are always built using the native Ada compiler. Therefore,
+# their executable suffix depends on the host operating system.
+
+COMPILER_EXE_SUFFIX=$HOST_EXE_SUFFIX
+AC_SUBST(COMPILER_EXE_SUFFIX)
+
+# Tools are using the cross Ada compiler. Therefore, their executable
+# suffix depends on the target operating system.
+
+TOOL_EXE_SUFFIX=$TARGET_EXE_SUFFIX
+AC_SUBST(TOOL_EXE_SUFFIX)
 
 #################################################
 # Build code fragments to be substituted in
