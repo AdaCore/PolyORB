@@ -31,7 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Exceptions;
 with Ada.Strings.Fixed;
 
 with PolyORB.Log;
@@ -1853,8 +1852,7 @@ package body PolyORB.Any is
 
    exception
       when E : others =>
-         return "<Image raised "
-           & Ada.Exceptions.Exception_Information (E) & ">";
+         return "<Image raised an exception>";
    end Image;
 
    ----------------
