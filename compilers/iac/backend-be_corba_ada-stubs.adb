@@ -1808,15 +1808,6 @@ package body Backend.BE_CORBA_Ada.Stubs is
                                     Profile);
                Append_Node_To_List (Make_Designator (VN (V_Error)), Profile);
 
-               --  Negotiate the CodeSet for the session.
-               --  XXX to be replaced !
-
-               C := Make_Subprogram_Call
-                 (RE (RE_Negotiate_Code_Set_And_Update_Session),
-                  Profile);
-
-               Append_Node_To_List (C, Statements);
-
                --  Get the marshaller
 
                C := Expand_Designator
