@@ -1851,7 +1851,7 @@ package body PolyORB.Any is
       end case;
 
    exception
-      when E : others =>
+      when others =>
          return "<Image raised an exception>";
    end Image;
 
