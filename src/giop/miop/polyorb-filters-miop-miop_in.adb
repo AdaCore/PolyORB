@@ -296,22 +296,8 @@ package body PolyORB.Filters.MIOP.MIOP_In is
             end case;
          end;
 
-      elsif False
-        or else S in Connect_Indication
-        or else S in Connect_Confirmation
-        or else S in Disconnect_Indication
-        or else S in Set_Server
-      then
-         return Emit (F.Upper, S);
-
-      elsif False
-        or else S in Data_Out
-        or else S in Disconnect_Request
-      then
-         return Emit (F.Lower, S);
-
       else
-         raise Program_Error;
+         return Filters.Handle_Message (Filters.Filter (F.all)'Access, S);
       end if;
    end Handle_Message;
 

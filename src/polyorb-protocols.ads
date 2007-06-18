@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -123,8 +123,8 @@ package PolyORB.Protocols is
 
    procedure Handle_Data_Indication
      (S           : access Session;
-      Data_Amount :        Ada.Streams.Stream_Element_Count)
-      is abstract;
+      Data_Amount : Ada.Streams.Stream_Element_Count;
+      Error       : in out Errors.Error_Container) is abstract;
    --  Invoked when some data arrives for session S.
 
    procedure Handle_Disconnect

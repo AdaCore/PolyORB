@@ -106,8 +106,7 @@ package body PolyORB.Transport.Connected is
 
    function Handle_Message
      (TE  : access Connected_Transport_Endpoint;
-      Msg : Components.Message'Class)
-     return Components.Message'Class
+      Msg : Components.Message'Class) return Components.Message'Class
    is
       use PolyORB.Buffers;
       use PolyORB.Components;
@@ -117,10 +116,7 @@ package body PolyORB.Transport.Connected is
 
       Nothing : Components.Null_Message;
    begin
-      if Msg in Connect_Indication then
-         return Emit (TE.Upper, Msg);
-
-      elsif Msg in Data_Expected then
+      if Msg in Data_Expected then
          declare
             DE : Data_Expected renames Data_Expected (Msg);
          begin
@@ -182,9 +178,6 @@ package body PolyORB.Transport.Connected is
          TE.Server := Set_Server (Msg).Server;
          return Emit (TE.Upper, Msg);
 
-      elsif Msg in Connect_Confirmation then
-         return Emit (TE.Upper, Msg);
-
       elsif Msg in Disconnect_Indication then
          Close (Transport_Endpoint'Class (TE.all)'Access);
          return Emit (TE.Upper, Msg);
@@ -193,10 +186,8 @@ package body PolyORB.Transport.Connected is
          Close (Transport_Endpoint'Class (TE.all)'Access);
 
       else
-
-         --  Must not happen
-
-         raise Program_Error;
+         return Transport.Handle_Message
+                  (Transport_Endpoint (TE.all)'Access, Msg);
       end if;
 
       return Nothing;

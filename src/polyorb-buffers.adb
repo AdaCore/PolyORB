@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -92,9 +92,7 @@ package body PolyORB.Buffers is
      (Buffer : access Buffer_Type;
       E      :        Endianness_Type) is
    begin
-      pragma Assert
-        (Buffer.CDR_Position = Buffer.Initial_CDR_Position);
-
+      pragma Assert (Buffer.CDR_Position = Buffer.Initial_CDR_Position);
       Buffer.Endianness := E;
    end Set_Endianness;
 
@@ -493,8 +491,7 @@ package body PolyORB.Buffers is
       Extracted_Size : Stream_Element_Count := Size;
    begin
       Partial_Extract_Data (Buffer, Data, Extracted_Size,
-        Use_Current, At_Position,
-        Partial => False);
+        Use_Current, At_Position, Partial => False);
       pragma Assert (Extracted_Size = Size);
    end Extract_Data;
 
@@ -524,7 +521,7 @@ package body PolyORB.Buffers is
          Start_Position - Buffer.Initial_CDR_Position, Size);
 
       if Size < Requested_Size and then not Partial then
-         raise Program_Error;
+         raise Constraint_Error;
       end if;
 
       if Use_Current then
@@ -993,8 +990,7 @@ package body PolyORB.Buffers is
          Offset     :     Stream_Element_Offset;
          Size       : in out Stream_Element_Count)
       is
-         Vecs_Address : constant System.Address
-           := Iovecs_Address (Iovec_Pool);
+         Vecs_Address : constant System.Address := Iovecs_Address (Iovec_Pool);
          Vecs : Iovec_Array (1 .. Iovec_Pool.Last);
          for Vecs'Address use Vecs_Address;
          pragma Import (Ada, Vecs);
@@ -1011,11 +1007,21 @@ package body PolyORB.Buffers is
             Offset_Remainder := Offset_Remainder - Last_Offset;
          end if;
 
-         while Offset_Remainder >= Vecs (Last_Index).Iov_Len loop
+         while Last_Index <= Vecs'Last
+                 and then
+               Offset_Remainder >= Vecs (Last_Index).Iov_Len
+         loop
             Offset_Remainder := Offset_Remainder - Vecs (Last_Index).Iov_Len;
             Last_Offset      := Last_Offset      + Vecs (Last_Index).Iov_Len;
             Last_Index       := Last_Index       + 1;
          end loop;
+
+         if Last_Index > Vecs'Last then
+            --  Attempt to extract data past end of buffer
+
+            Data := System.Null_Address;
+            Size := 0;
+         end if;
 
          declare
             Contiguous_Size : constant Stream_Element_Count :=

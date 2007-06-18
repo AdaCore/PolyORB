@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -129,6 +129,11 @@ package PolyORB.Filters.Iface is
 
       Error : Errors.Error_Container;
    end record;
+
+   type Check_Validity is new Root_Data_Unit with null record;
+   --  Direction: from upper to lower
+   --  Semantics: test whether protocol stack is usable to send a request.
+   --  If so, an Empty message is returned, if not, a Filter_Error.
 
    ---------------------
    -- Helper routines --

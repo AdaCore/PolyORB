@@ -37,6 +37,7 @@ with Ada.Unchecked_Conversion;
 with PolyORB.CORBA_P.Names;
 with PolyORB.CORBA_P.Interceptors_Hooks;
 
+with PolyORB.Any;
 with PolyORB.Errors;
 with PolyORB.Exceptions;
 with PolyORB.Initialization;
@@ -173,14 +174,17 @@ package body PortableServer is
                  (DynamicImplementation'Class (Self.all)'Access, R, P);
             end if;
 
-            if R.Arguments_Called then
+            --  Implementation Note: As part of PortableInterceptors
+            --  specifications, an interception point may raise an exception
+            --  before Arguments is called. An exception may also have been
+            --  raised by Arguments itself, in which case Arguments_Called is
+            --  True and the R.Exception_Info Any is non-empty. We set out
+            --  arguments only if no exception was raised.
 
-               --  Implementation Note: As part of PortableInterceptors
-               --  specifications, an interception point may raise an
-               --  exception before Arguments is called.
-               --
-               --  As a consequence, set out arguments iff the
-               --  skeleton called Arguments.
+            if R.Arguments_Called
+                 and then
+               PolyORB.Any.Is_Empty (R.Exception_Info)
+            then
 
                pragma Debug
                  (O ("Execute_Servant: executed, setting out args"));

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -161,21 +161,29 @@ package body PolyORB.References is
 
       RI   : constant Reference_Info_Access := Ref_Info_Of (R);
       Iter : Binding_Info_Lists.Iterator    := First (RI.Binding_Info);
+      BO   : Binding_Object_Access;
 
    begin
       while not Last (Iter) loop
-         if PolyORB.Binding_Object_QoS.Is_Compatible
-           (PolyORB.Binding_Objects.Binding_Object_Access
-            (Entity_Of (Value (Iter).all.Binding_Object_Ref)),
-            QoS)
-         then
-            BOC := Get_Component (Value (Iter).all.Binding_Object_Ref);
+         BO := Binding_Object_Access
+                 (Entity_Of (Value (Iter).Binding_Object_Ref));
+
+         --  If the binding object has become invalid, forget about it
+
+         if not Valid (BO) then
+            pragma Debug (O ("Removing invalid binding object"));
+            Remove (RI.Binding_Info, Iter);
+
+         --  If existing BO QoS is compatible with requested QoS, reuse it
+
+         elsif PolyORB.Binding_Object_QoS.Is_Compatible (BO, QoS) then
+            BOC := Get_Component (Value (Iter).Binding_Object_Ref);
             Pro := Value (Iter).all.Binding_Profile;
-
             return;
-         end if;
 
-         Next (Iter);
+         else
+            Next (Iter);
+         end if;
       end loop;
 
       BOC := null;

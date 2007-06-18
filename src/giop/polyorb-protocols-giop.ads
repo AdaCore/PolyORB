@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -62,6 +62,9 @@ package PolyORB.Protocols.GIOP is
    -- Version management --
    ------------------------
 
+   --  ??? How about other major versions
+   --  ??? How about other minor versions
+
    type GIOP_Version is (GIOP_V1_0, GIOP_V1_1, GIOP_V1_2);
 
    To_GIOP_Version : constant array (0 .. 2) of GIOP_Version
@@ -104,7 +107,8 @@ package PolyORB.Protocols.GIOP is
 
    procedure Handle_Data_Indication
      (Sess        : access GIOP_Session;
-      Data_Amount :        Stream_Element_Count);
+      Data_Amount : Stream_Element_Count;
+      Error       : in out Errors.Error_Container);
 
    procedure Handle_Disconnect
      (Sess : access GIOP_Session; Error : Errors.Error_Container);
@@ -391,7 +395,7 @@ private
    ------------------------
 
    type GIOP_Conf is record
-      GIOP_Def_Ver          : GIOP_Version;
+      GIOP_Default_Version  : GIOP_Version;
       --  Default GIOP Version
 
       GIOP_Implems      : GIOP_Implem_Array;
@@ -439,7 +443,7 @@ private
       --  Role of session for ORB
 
       Conf         : GIOP_Conf_Access;
-      --  Access to GIOP_Protocol, which contain GIOP_Implems
+      --  Configuration parameters
 
       --------------------------------------
       -- Global state of the GIOP session --

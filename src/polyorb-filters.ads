@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -66,32 +66,35 @@ package PolyORB.Filters is
    type Filter is abstract new PC.Component with private;
    type Filter_Access is access all Filter'Class;
 
+   function Handle_Message
+     (F   : access Filter;
+      Msg : Components.Message'Class) return Components.Message'Class;
+   --  Implement default propagation: just transmit message to the appropriate
+   --  neighbour (lower or upper, depending on message type, as documented in
+   --  Filters.Iface).
+
    procedure Connect_Lower (F : access Filter; Lower : PC.Component_Access);
    function Lower (F : access Filter) return PC.Component_Access;
 
    function Upper (F : access Filter) return PC.Component_Access;
 
-   --------------------------------------------------------
-   -- Filters communicate by exchanging Data_Units,      --
-   -- defined in child package PolyORB.Filters.Interface. --
-   --                                                    --
-   -- Filters can be chained. A chain of filters is      --
-   -- created from a chain of filter factories.          --
-   --------------------------------------------------------
+   --  Filters communicate by exchanging Data_Units, defined in child package
+   --  PolyORB.Filters.Interface.
+
+   --  Filters are associated in a stack, each one having a lower and an
+   --  upper neighbour. A stack is created from a list of factories.
 
    type Factory is abstract tagged limited private;
    type Factory_Access is access all Factory'Class;
 
-   type Factory_Array is array (Integer range <>)
-     of Factory_Access;
+   type Factory_Array is array (Integer range <>) of Factory_Access;
    type Factories_Access is access all Factory_Array;
 
    procedure Create
      (Fact : access Factory;
-      Filt : out Filter_Access)
-      is abstract;
-   --  Each filter factory implements a Create operation that
-   --  instanciates the corresponding filter.
+      Filt : out Filter_Access) is abstract;
+   --  Each filter factory implements a Create operation that instanciates
+   --  the corresponding filter.
 
    procedure Destroy (F : in out Filter);
 
@@ -99,9 +102,8 @@ package PolyORB.Filters is
      (Factories :     Factory_Array;
       Bottom    : out Filter_Access;
       Top       : out Filter_Access);
-   --  Invoke the factory chain starting with Head, to create
-   --  a chain of filters. The head of the created filter chain
-   --  is returned.
+   --  Invoke the factory chain Factories, to create a stack of filters whose
+   --  bottom and top elements are returned.
 
 private
 
