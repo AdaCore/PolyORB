@@ -465,7 +465,7 @@ package body XE_Back.PolyORB is
 
       Comp_Args (1) := E_Current_Dir;
       Comp_Args (2) := I_Part_Dir;
-      Comp_Args (3) := I_Stub_Dir;
+      Comp_Args (3) := A_Stub_Dir;
       Comp_Args (4) := I_Current_Dir;
 
       --  If there is no project file, then save ali and object files
@@ -530,7 +530,7 @@ package body XE_Back.PolyORB is
 
       Make_Args (1) := E_Current_Dir;
       Make_Args (2) := I_Part_Dir;
-      Make_Args (3) := I_Stub_Dir;
+      Make_Args (3) := A_Stub_Dir;
       Make_Args (4) := I_Current_Dir;
       Make_Args (5) := Bind_Only_Flag;
       Make_Args (6) := Link_Only_Flag;

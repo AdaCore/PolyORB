@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 1995-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 1995-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNATDIST is  free software;  you  can redistribute  it and/or  modify it --
 -- under terms of the  GNU General Public License  as published by the Free --
@@ -54,9 +54,9 @@ package XE_Utils is
    Part_Dir_Name : File_Name_Type;
    PWD_Id        : File_Name_Type;
    Stub_Dir      : String_Access;
-   I_Current_Dir : String_Access;
+   A_Stub_Dir    : String_Access;
    E_Current_Dir : String_Access;
-   I_Stub_Dir    : String_Access;
+   I_Current_Dir : String_Access;
 
    Part_Main_Src_Name : File_Name_Type;
    Part_Main_ALI_Name : File_Name_Type;

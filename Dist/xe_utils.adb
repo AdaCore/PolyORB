@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1995-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 1995-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNATDIST is  free software;  you  can redistribute  it and/or  modify it --
 -- under terms of the  GNU General Public License  as published by the Free --
@@ -500,9 +500,9 @@ package body XE_Utils is
       Part_Prj_File_Name := Id ("partition.gpr");
 
       Name_Len := 2;
-      Name_Buffer (1 .. 2) := "-I";
+      Name_Buffer (1 .. 2) := "-A";
       Get_Name_String_And_Append (Stub_Dir_Name);
-      I_Stub_Dir := new String'(Name_Buffer (1 .. Name_Len));
+      A_Stub_Dir := new String'(Name_Buffer (1 .. Name_Len));
 
       for J in 1 .. Argument_Count loop
          Scan_Dist_Arg (Argument (J));
