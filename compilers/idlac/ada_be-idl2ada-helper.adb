@@ -472,29 +472,33 @@ package body Ada_Be.Idl2Ada.Helper is
       II (CU);
       PL (CU, "use type PolyORB.Types.Unsigned_Long;");
       PL (CU, "use type PolyORB.Any.Mechanism;");
-      case NK is
-         when K_Enum =>
-            PL (CU, "pragma Unreferenced (TC, Index);");
 
-            --  ACC.V might be uninitialized and have an invalid representation
-            --  (case of Get_Aggregate_Element being called from within an
-            --  unmarshall routine), in which case we know that we will
-            --  overwrite Repr_Cache without using the invalid value; we must
-            --  disable validity checks here so that we do not fail a runtime
-            --  check on the bogus value when initializing Repr_Cache.
+      --  ACC.V might be uninitialized and have an invalid representation
+      --  (case of Get_Aggregate_Element being called from within an
+      --  unmarshall routine), in which case we know that we will
+      --  overwrite it without using the invalid value; we must
+      --  disable validity checks here so that we do not fail a runtime
+      --  check on the bogus value.
 
-            PL (CU, "pragma Suppress (" & Validity_Check_Name & ");");
+      PL (CU, "pragma Suppress (" & Validity_Check_Name & ");");
 
-         when K_Struct | K_Declarator | K_Union =>
-            PL (CU, "pragma Unreferenced (TC);");
+      --  The TypeCode formal is of no use here (we always statically know
+      --  the type of each aggregate element).
 
-         when others =>
-            null;
+      PL (CU, "pragma Unreferenced (TC);");
 
-      end case;
+      if NK = K_Enum then
+
+         --  An enum always has exactly one element, so we can ignore the
+         --  provided index.
+
+         PL (CU, "pragma Unreferenced (Index);");
+      end if;
+
       DI (CU);
       PL (CU, "begin");
       II (CU);
+
       case NK is
          when K_Enum =>
             PL (CU, "ACC.Repr_Cache := "
@@ -513,8 +517,8 @@ package body Ada_Be.Idl2Ada.Helper is
             while not Is_End (It) loop
                Get_Next_Node (It, M_Node);
                declare
-                  M_Typ       : constant Node_Id := M_Type (M_Node);
-                  It2 : Node_Iterator;
+                  M_Typ  : constant Node_Id := M_Type (M_Node);
+                  It2    : Node_Iterator;
                   M_Decl : Node_Id;
                begin
                   Init (It2, Decl (M_Node));

@@ -1731,10 +1731,24 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
          Statements   : constant List_Id := New_List (K_Statement_List);
          Unref_Params : constant List_Id := New_List (K_List_Id);
          N            : Node_Id;
+
       begin
          N := Make_Used_Type (RE (RE_Unsigned_Long_1));
          Append_Node_To_List (N, Dcl_Part);
          N := Make_Used_Type (RE (RE_Mechanism));
+         Append_Node_To_List (N, Dcl_Part);
+
+         --  ACC.V might be uninitialized and have an invalid representation
+         --  (case of Get_Aggregate_Element being called from within an
+         --  unmarshall routine), in which case we know that we will overwrite
+         --  the invalid value without using it; we must disable validity
+         --  checks here so that we do not fail a runtime check on the bogus
+         --  value.
+
+         N := Make_Pragma (Pragma_Suppress,
+                Make_List_Id
+                  (RE (RE_Id'Value
+                        ("RE_" & Platform.Validity_Check_Name))));
          Append_Node_To_List (N, Dcl_Part);
 
          --  IDL node kind dependant part
@@ -1748,20 +1762,6 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                                        Unref_Params);
                   Append_Node_To_List (Make_Designator (PN (P_Index)),
                                        Unref_Params);
-
-                  --  ACC.V might be uninitialized and have an invalid
-                  --  representation (case of Get_Aggregate_Element being
-                  --  called from within an unmarshall routine), in which case
-                  --  we know that we will overwrite Repr_Cache without using
-                  --  the invalid value; we must disable validity checks here
-                  --  so that we do not fail a runtime check on the bogus value
-                  --  when initializing Repr_Cache.
-
-                  N := Make_Pragma (Pragma_Suppress,
-                         Make_List_Id
-                           (RE (RE_Id'Value
-                                 ("RE_" & Platform.Validity_Check_Name))));
-                  Append_Node_To_List (N, Dcl_Part);
 
                   --  Statements
 
@@ -2117,7 +2117,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                         Label := Next_Entity (Label);
                      end loop;
 
-                     --  Get the type sepc of the element
+                     --  Get the type spec of the element
 
                      T := Type_Spec (Element (Switch_Alternative));
 
