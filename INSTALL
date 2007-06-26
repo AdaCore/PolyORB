@@ -46,15 +46,15 @@ newer, and libtool 1.5.8 or newer.
 To install PolyORB, execute:
 
   % ./configure [some options]
-  % make              (or gmake if your make is not GNU make)
-  % make install      (ditto)
+  % make
+  % make install
 
 This will install files in standard locations.
 
 If you want to choose another prefix than /usr/local, give configure a
 --prefix=whereveryouwant argument.
 
-Note: at this time, you MUST use GNU make to compile this software.
+NOTE: you MUST use GNU make (version 3.80 or later) to build PolyORB.
 
 Available options for the 'configure' script include:
 
