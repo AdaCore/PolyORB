@@ -580,8 +580,8 @@ To compile and install PolyORB, execute:
 
 @smallexample
   % ./configure [some options]
-  % make              (or gmake if your make is not GNU make)
-  % make install      (ditto)
+  % make
+  % make install
 @end smallexample
 
 @noindent
@@ -589,7 +589,7 @@ This will install files in standard locations.  If you want to choose
 another prefix than @file{/usr/local}, give configure a
 @option{--prefix=whereveryouwant} argument.
 
-Note: at this time, you MUST use GNU make to compile this software.
+NOTE: you MUST use GNU make (version 3.80 or later) to build PolyORB.
 
 @c -------------------------------------------------------------------
 @node Additional instructions for cross platforms
