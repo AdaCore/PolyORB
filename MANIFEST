@@ -1387,6 +1387,8 @@ src/polyorb-qos-priority.adb
 src/polyorb-qos-priority.ads
 src/polyorb-qos-service_contexts.adb
 src/polyorb-qos-service_contexts.ads
+src/polyorb-qos-static_buffers.adb
+src/polyorb-qos-static_buffers.ads
 src/polyorb-qos-tagged_components.adb
 src/polyorb-qos-tagged_components.ads
 src/polyorb-qos.adb

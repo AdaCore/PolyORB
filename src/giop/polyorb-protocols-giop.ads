@@ -127,6 +127,7 @@ package PolyORB.Protocols.GIOP is
    type GIOP_State is
      (Not_Initialized,        --  Session initialized
       Expect_Header,          --  Waiting for a new message header
+      Expect_Request_Id,      --  Waiting for the request Id of a reply
       Expect_Body,            --  Waiting for body message
       Waiting_Unmarshalling   --  Waiting argument unsmarshalling
       );
@@ -172,6 +173,18 @@ package PolyORB.Protocols.GIOP is
        return PolyORB.QoS.QoS_Parameter_Access;
 
    Fetch_Secure_Transport_QoS : Fetch_Secure_Transport_QoS_Hook := null;
+
+   function Get_Representation
+     (Sess : GIOP_Session)
+     return PolyORB.Representations.CDR.CDR_Representation_Access;
+   --  Return the representation object used by the session.
+   --  Note: the user is not allowed to destroy this object
+
+   function Get_Buffer
+     (Sess : GIOP_Session)
+     return PolyORB.Buffers.Buffer_Access;
+   --  Return the buffer object used by the session.
+   --  Note: the user is not allowed to destroy this object
 
 private
 
@@ -468,8 +481,8 @@ private
    procedure Initialize (S : in out GIOP_Session);
    procedure Destroy (S : in out GIOP_Session);
 
-   --  Magic identifier
-   --  Begin of all GIOP Messages
+   --  Magic identifier: 4 bytes at the begining of every GIOP message
+
    Magic : constant Stream_Element_Array (1 .. 4)
      := (Character'Pos ('G'),
          Character'Pos ('I'),
@@ -478,6 +491,11 @@ private
 
    --  Header size of GIOP_packet (non version specific header)
    GIOP_Header_Size : constant Stream_Element_Offset := 12;
+
+   --  Size of the fixed GIOP_packet header (version specific header)
+   GIOP_Fixed_Part_Size : constant Stream_Element_Offset := 6;
+
+   Request_Id_Size : constant := 4;
 
    --  Location of flags in GIOP packet
    Flags_Index       : constant Stream_Element_Offset := 7;
@@ -545,10 +563,11 @@ private
      (Sess    : access GIOP_Session;
       Id      :        Types.Unsigned_Long;
       Req     :    out Pending_Request;
-      Success :    out Boolean);
+      Success :    out Boolean;
+      Remove  :        Boolean := True);
    --  Retrieve a pending request of Sess by its request id, and
-   --  remove it from the list of pending requests. This procedure
-   --  ensures proper mutual exclusion.
+   --  remove it from the list of pending requests if Remove is set to
+   --  true. This procedure ensures proper mutual exclusion.
 
    procedure Get_Pending_Request_By_Locate
      (Sess    : access GIOP_Session;

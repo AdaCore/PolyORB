@@ -45,12 +45,14 @@ with PolyORB.Initialization;
 with PolyORB.Log;
 with PolyORB.Obj_Adapters;
 with PolyORB.Obj_Adapters.Group_Object_Adapter;
+with PolyORB.Opaque;
 with PolyORB.ORB.Iface;
 with PolyORB.Parameters;
 with PolyORB.Protocols.GIOP.Common;
 pragma Elaborate_All (PolyORB.Protocols.GIOP.Common);
 with PolyORB.QoS.Addressing_Modes;
 with PolyORB.QoS.Service_Contexts;
+with PolyORB.QoS.Static_Buffers;
 with PolyORB.References.Binding;
 with PolyORB.References.IOR;
 with PolyORB.Representations.CDR.Common;
@@ -73,6 +75,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
    use PolyORB.QoS;
    use PolyORB.QoS.Code_Sets;
    use PolyORB.QoS.Service_Contexts;
+   use PolyORB.QoS.Static_Buffers;
    use PolyORB.Representations.CDR.Common;
    use PolyORB.Representations.CDR.GIOP_1_2;
    use PolyORB.Request_QoS;
@@ -127,6 +130,11 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
       Target_Ref       :    out Target_Address_Access;
       Operation        :    out Types.String;
       Service_Contexts :    out QoS_GIOP_Service_Contexts_Parameter_Access);
+
+   procedure Negotiate_Code_Set_And_Update_Session
+     (Profile        : Binding_Data.Profile_Access;
+      S              : access Session'Class;
+      Error          : in out Errors.Error_Container);
 
    -----------------------------------
    -- Internal function declaration --
@@ -1011,6 +1019,12 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
          raise Bidirectionnal_GIOP_Not_Implemented;
       end if;
 
+      Negotiate_Code_Set_And_Update_Session
+        (R.Target_Profile, S, Error);
+      if Found (Error) then
+         return;
+      end if;
+
       pragma Debug (O ("Send locate request to find target object"));
       pragma Debug (O ("Locate Request Id :" & R.Locate_Req_Id'Img));
       pragma Debug (O ("Request Id :" & R.Request_Id'Img));
@@ -1060,78 +1074,17 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
       Buffer        : Buffer_Access;
       Header_Buffer : Buffer_Access;
       Header_Space  : Reservation;
-
+      Static_Buffer : constant QoS_GIOP_Static_Buffer_Parameter_Access :=
+        QoS_GIOP_Static_Buffer_Parameter_Access
+        (Extract_Request_Parameter (PolyORB.QoS.GIOP_Static_Buffer, R.Req));
    begin
       pragma Debug (O ("Sending request , Id :" & R.Request_Id'Img));
 
-      --  Process code sets negotiation once after setup connection
+      Negotiate_Code_Set_And_Update_Session
+        (R.Target_Profile, S, Error);
 
-      if not SCtx.CSN_Complete then
-         pragma Debug (O ("Negotiate code sets"));
-         declare
-            use PolyORB.Binding_Data.GIOP;
-            use PolyORB.GIOP_P.Tagged_Components;
-            use PolyORB.GIOP_P.Tagged_Components.Code_Sets;
-
-            TC : constant Tagged_Component_Access
-              := Get_Component
-                 (GIOP_Profile_Type (R.Target_Profile.all),
-                  Tag_Code_Sets);
-         begin
-            if TC = null then
-               pragma Debug
-                 (O ("No code sets tagged component in profile"));
-               null;
-            else
-               SCtx.CS_Context := new QoS_GIOP_Code_Sets_Parameter;
-
-               Negotiate_Code_Set
-                 (Native_Char_Code_Set,
-                  Conversion_Char_Code_Sets,
-                  TC_Code_Sets (TC.all).For_Char_Data.Native_Code_Set,
-                  TC_Code_Sets (TC.all).For_Char_Data.Conversion_Code_Sets,
-                  Char_Data_Fallback_Code_Set,
-                  SCtx.CS_Context.Char_Data,
-                  Error);
-
-               if Found (Error) then
-                  Release (QoS_Parameter_Access (SCtx.CS_Context));
-                  return;
-               end if;
-
-               pragma Debug
-                 (O ("   TCS-C:"
-                     & Code_Set_Id'Image (SCtx.CS_Context.Char_Data)));
-
-               Negotiate_Code_Set
-                 (Native_Wchar_Code_Set,
-                  Conversion_Wchar_Code_Sets,
-                  TC_Code_Sets (TC.all).For_Wchar_Data.Native_Code_Set,
-                  TC_Code_Sets (TC.all).For_Wchar_Data.Conversion_Code_Sets,
-                  Wchar_Data_Fallback_Code_Set,
-                  SCtx.CS_Context.Wchar_Data,
-                  Error);
-
-               if Found (Error) then
-                  Release (QoS_Parameter_Access (SCtx.CS_Context));
-                  return;
-               end if;
-
-               pragma Debug
-                 (O ("   TCS-W:"
-                     & Code_Set_Id'Image (SCtx.CS_Context.Wchar_Data)));
-
-               Set_Converters
-                 (GIOP_1_2_CDR_Representation (Sess.Repr.all),
-                  Get_Converter
-                   (Native_Char_Code_Set,
-                    SCtx.CS_Context.Char_Data),
-                  Get_Converter
-                   (Native_Wchar_Code_Set,
-                    SCtx.CS_Context.Wchar_Data));
-            end if;
-         end;
-         SCtx.CSN_Complete := True;
+      if Found (Error) then
+         return;
       end if;
 
       if SCtx.CS_Context /= null then
@@ -1277,19 +1230,55 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
 
       --  Arguments
 
-      Marshall_Argument_List
-        (Sess.Implem, Buffer, Sess.Repr, R.Req.Args, PolyORB.Any.ARG_IN,
-         Sess.Implem.Data_Alignment, Error);
+      if Static_Buffer /= null
+        and then Length (Static_Buffer.Buffer) /= 0
+      then
+         --  The arguments were marshalled and stored in the request
+         --  QoS attribute. We insert the data contained in the
+         --  request QoS in the buffer.
 
-      if Found (Error) then
-         Replace_Marshal_5_To_Inv_Objref_2 (Error, Completed_No);
-         --  An error in the marshalling of wchar data implies the
-         --  server did not provide a valid codeset component. We
-         --  convert this exception to Inv_ObjRef 2.
+         pragma Debug (O ("Using static buffer"));
 
-         Release (Header_Buffer);
-         Release (Buffer);
-         return;
+         Pad_Align (Buffer, Sess.Implem.Data_Alignment);
+
+         declare
+            Data : PolyORB.Opaque.Opaque_Pointer;
+            Data_Processed : Stream_Element_Count
+              := Length (Static_Buffer.Buffer);
+            Data_To_Process : Stream_Element_Count
+              := Length (Static_Buffer.Buffer);
+            Position : Ada.Streams.Stream_Element_Offset := 0;
+         begin
+            while Data_To_Process > 0 loop
+               PolyORB.Buffers.Partial_Extract_Data
+                 (Static_Buffer.Buffer,
+                  Data,
+                  Data_Processed,
+                  Use_Current => False,
+                  At_Position => Position,
+                  Partial => True);
+
+               Insert_Raw_Data (Buffer, Data_Processed, Data);
+               Data_To_Process := Data_To_Process - Data_Processed;
+               Position := Position + Data_Processed;
+            end loop;
+         end;
+
+      else
+         pragma Debug (O ("Marshalling argument list"));
+         Marshall_Argument_List
+           (Sess.Implem, Buffer, Sess.Repr, R.Req.Args, PolyORB.Any.ARG_IN,
+            Sess.Implem.Data_Alignment, Error);
+         if Found (Error) then
+            Replace_Marshal_5_To_Inv_Objref_2 (Error, Completed_No);
+            --  An error in the marshalling of wchar data implies the
+            --  server did not provide a valid codeset component. We
+            --  convert this exception to Inv_ObjRef 2.
+
+            Release (Header_Buffer);
+            Release (Buffer);
+            return;
+         end if;
       end if;
 
       --  GIOP Header
@@ -1309,6 +1298,80 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
       pragma Debug (O ("Request sent, Id :" & R.Request_Id'Img));
       Release (Buffer);
    end Send_Request;
+
+   -------------------------------------------
+   -- Negotiate_Code_Set_And_Update_Session --
+   -------------------------------------------
+
+   procedure Negotiate_Code_Set_And_Update_Session
+     (Profile        : Binding_Data.Profile_Access;
+      S              : access Session'Class;
+      Error          : in out Errors.Error_Container)
+   is
+      Sess : GIOP_Session renames GIOP_Session (S.all);
+      SCtx : GIOP_Session_Context_1_2
+        renames GIOP_Session_Context_1_2 (Sess.SCtx.all);
+
+   begin
+      if not SCtx.CSN_Complete then
+         pragma Debug (O ("Negotiate_Code_Set_And_Update_Session"));
+
+         declare
+            use PolyORB.Binding_Data.GIOP;
+            use PolyORB.GIOP_P.Tagged_Components;
+            use PolyORB.GIOP_P.Tagged_Components.Code_Sets;
+
+            TC : constant Tagged_Component_Access
+              := Get_Component
+              (GIOP_Profile_Type (Profile.all),
+               Tag_Code_Sets);
+         begin
+            if TC = null then
+               null;
+            else
+               SCtx.CS_Context := new QoS_GIOP_Code_Sets_Parameter;
+
+               Negotiate_Code_Set
+                 (Native_Char_Code_Set,
+                  Conversion_Char_Code_Sets,
+                  TC_Code_Sets (TC.all).For_Char_Data.Native_Code_Set,
+                  TC_Code_Sets (TC.all).For_Char_Data.Conversion_Code_Sets,
+                  Char_Data_Fallback_Code_Set,
+                  SCtx.CS_Context.Char_Data,
+                  Error);
+
+               if Found (Error) then
+                  Release (QoS_Parameter_Access (SCtx.CS_Context));
+                  return;
+               end if;
+
+               Negotiate_Code_Set
+                 (Native_Wchar_Code_Set,
+                  Conversion_Wchar_Code_Sets,
+                  TC_Code_Sets (TC.all).For_Wchar_Data.Native_Code_Set,
+                  TC_Code_Sets (TC.all).For_Wchar_Data.Conversion_Code_Sets,
+                  Wchar_Data_Fallback_Code_Set,
+                  SCtx.CS_Context.Wchar_Data,
+                  Error);
+
+               if Found (Error) then
+                  Release (QoS_Parameter_Access (SCtx.CS_Context));
+                  return;
+               end if;
+
+               Set_Converters
+                 (GIOP_1_2_CDR_Representation (Sess.Repr.all),
+                  Get_Converter
+                  (Native_Char_Code_Set,
+                   SCtx.CS_Context.Char_Data),
+                  Get_Converter
+                  (Native_Wchar_Code_Set,
+                   SCtx.CS_Context.Wchar_Data));
+            end if;
+         end;
+         SCtx.CSN_Complete := True;
+      end if;
+   end Negotiate_Code_Set_And_Update_Session;
 
    ---------------------------
    -- Process_Abort_Request --

@@ -39,7 +39,9 @@ with PolyORB.Protocols.GIOP.Common;
 with PolyORB.GIOP_P.Exceptions;
 with PolyORB.Log;
 with PolyORB.Parameters;
+with PolyORB.QoS.Static_Buffers;
 with PolyORB.References.Binding;
+with PolyORB.Request_QoS;
 with PolyORB.Representations.CDR.Common;
 with PolyORB.Representations.CDR.GIOP_Utils;
 with PolyORB.Servants.Iface;
@@ -52,6 +54,8 @@ package body PolyORB.Protocols.GIOP is
    use PolyORB.Protocols.GIOP.Common;
    use PolyORB.Log;
    use PolyORB.ORB;
+   use PolyORB.QoS.Static_Buffers;
+   use PolyORB.Request_QoS;
    use PolyORB.Representations.CDR;
    use PolyORB.Representations.CDR.Common;
    use PolyORB.Representations.CDR.GIOP_Utils;
@@ -220,14 +224,79 @@ package body PolyORB.Protocols.GIOP is
 
             if Sess.MCtx.Message_Size = 0 then
                Process_Message (Sess.Implem, Sess);
+
             else
+               --  If Reply message ask for the Request_Id
+
+               if Sess.MCtx.Message_Type = Reply then
+                  Sess.State := Expect_Request_Id;
+                  Emit_No_Reply
+                    (Port => Lower (Sess),
+                     Msg  => GIOP_Data_Expected'
+                     (In_Buf => Sess.Buffer_In,
+                      Max    => Request_Id_Size,
+                      State  => Sess.State));
+               else
+                  --  Else ask for the whole message
+
+                  Emit_No_Reply
+                    (Port => Lower (Sess),
+                     Msg  => GIOP_Data_Expected'
+                     (In_Buf => Sess.Buffer_In,
+                      Max    => Stream_Element_Count
+                      (Sess.MCtx.Message_Size),
+                      State  => Sess.State));
+               end if;
+            end if;
+
+         when Expect_Request_Id =>
+            declare
+               Success         : Boolean;
+               Current_Request : Pending_Request;
+               Buffer          : Buffer_Access;
+            begin
+               if CDR_Position (Sess.Buffer_In) = GIOP_Header_Size then
+                  Sess.MCtx.Request_Id := Unmarshall (Sess.Buffer_In);
+               end if;
+
+               Get_Pending_Request
+                 (Sess, Sess.MCtx.Request_Id, Current_Request,
+                  Success, False);
+
+               declare
+                  Static_Buffer :
+                    constant QoS_GIOP_Static_Buffer_Parameter_Access :=
+                    QoS_GIOP_Static_Buffer_Parameter_Access
+                    (Extract_Request_Parameter
+                     (PolyORB.QoS.GIOP_Static_Buffer, Current_Request.Req));
+               begin
+                  --  In the case of a reply message, use request's
+                  --  internal buffer if available to store the
+                  --  result. This will allow its direct marshalling
+                  --  by the skeleton later.
+
+                  if Static_Buffer /= null then
+                     Buffer := Sess.Buffer_In;
+                     Release_Contents (Static_Buffer.Buffer.all);
+                     Sess.Buffer_In := Static_Buffer.Buffer;
+                     Static_Buffer.Buffer := Buffer;
+                  end if;
+               end;
+
+               --  In Reply message if we have received just the request
+               --  Id, we send a message to the filter-slicer component
+               --  to receive the message's header and body.
+
+               Sess.State := Expect_Body;
+
                Emit_No_Reply
                  (Port => Lower (Sess),
                   Msg  => GIOP_Data_Expected'
-                    (In_Buf => Sess.Buffer_In,
-                     Max    => Stream_Element_Count (Sess.MCtx.Message_Size),
-                     State  => Sess.State));
-            end if;
+                  (In_Buf => Sess.Buffer_In,
+                   Max    => Stream_Element_Count
+                   (Sess.MCtx.Message_Size) - Request_Id_Size,
+                   State  => Sess.State));
+            end;
 
          when Expect_Body =>
             pragma Debug (O ("Received GIOP message body"));
@@ -862,7 +931,8 @@ package body PolyORB.Protocols.GIOP is
      (Sess    : access GIOP_Session;
       Id      :        Types.Unsigned_Long;
       Req     :    out Pending_Request;
-      Success :    out Boolean)
+      Success :    out Boolean;
+      Remove  :        Boolean := True)
    is
       use Pend_Req_Tables;
 
@@ -879,9 +949,13 @@ package body PolyORB.Protocols.GIOP is
            and then Sess.Pending_Reqs.Table (J).Request_Id = Id
          then
             PRA := Sess.Pending_Reqs.Table (J);
-            Sess.Pending_Reqs.Table (J) := null;
+            if Remove then
+               Sess.Pending_Reqs.Table (J) := null;
+            end if;
             Req := PRA.all;
-            Free (PRA);
+            if Remove then
+               Free (PRA);
+            end if;
             Success := True;
             exit;
          end if;
@@ -1046,5 +1120,29 @@ package body PolyORB.Protocols.GIOP is
         & ".1."
         & Trimmed_Image (Unsigned_Long_Long (To_Minor_GIOP (Implem.Version)));
    end Get_Conf_Chain;
+
+   ------------------------
+   -- Get_Representation --
+   ------------------------
+
+   function Get_Representation
+     (Sess : GIOP_Session)
+     return PolyORB.Representations.CDR.CDR_Representation_Access
+   is
+   begin
+      return Sess.Repr;
+   end Get_Representation;
+
+   ----------------
+   -- Get_Buffer --
+   ----------------
+
+   function Get_Buffer
+     (Sess : GIOP_Session)
+     return Buffer_Access
+   is
+   begin
+      return Sess.Buffer_In;
+   end Get_Buffer;
 
 end PolyORB.Protocols.GIOP;

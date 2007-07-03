@@ -43,6 +43,8 @@ with PolyORB.Requests;
 with PolyORB.Servants.Iface;
 with PolyORB.Smart_Pointers;
 with PolyORB.Utils.Strings;
+with PolyORB.QoS.Static_Buffers;
+with PolyORB.Opaque;
 
 package body PolyORB.Protocols.GIOP.Common is
 
@@ -54,6 +56,7 @@ package body PolyORB.Protocols.GIOP.Common is
    use PolyORB.Request_QoS;
    use PolyORB.QoS;
    use PolyORB.QoS.Service_Contexts;
+   use PolyORB.QoS.Static_Buffers;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.protocols.giop.common");
    procedure O (Message : String; Level : Log_Level := Debug)
@@ -169,6 +172,9 @@ package body PolyORB.Protocols.GIOP.Common is
       Data_Alignment  : Stream_Element_Offset :=
         Sess.Implem.Data_Alignment;
 
+      Static_Buffer : constant QoS_GIOP_Static_Buffer_Parameter_Access :=
+        QoS_GIOP_Static_Buffer_Parameter_Access
+        (Extract_Request_Parameter (PolyORB.QoS.GIOP_Static_Buffer, Request));
    begin
       pragma Assert (Sess.Implem.Version in GIOP_V1_0 .. GIOP_V1_2);
 
@@ -263,58 +269,94 @@ package body PolyORB.Protocols.GIOP.Common is
             end if;
 
          when No_Exception =>
-            if TypeCode.Kind (Get_Type (Request.Result.Argument)) /=
-              Tk_Void then
-               Pad_Align (Buffer_Out, Data_Alignment);
-               Data_Alignment := 1;
-            end if;
+            if Static_Buffer = null then
+               pragma Debug (O ("Using Any to send reply data"));
 
-            Marshall_From_Any
-              (Sess.Repr,
-               Buffer_Out,
-               Get_Container (Request.Result.Argument).all,
-               Error);
-
-            if Found (Error) then
-
-               --  An error in the marshalling of wchar data implies
-               --  the server did not provide a valid codeset service
-               --  context. We convert this exception to Bad_Param 23.
-
-               Replace_Marshal_5_To_Bad_Param_23 (Error, Completed_Yes);
-
-               --  The error was encountered while marshalling a reply
-               --  with a No_Exception status: we know that the servant
-               --  executed the request succesfully.
-
-               if Error.Member.all in System_Exception_Members then
-                  System_Exception_Members (Error.Member.all).Completed :=
-                    Completed_Yes;
+               if TypeCode.Kind (Get_Type (Request.Result.Argument)) /=
+                 Tk_Void then
+                  Pad_Align (Buffer_Out, Data_Alignment);
+                  Data_Alignment := 1;
                end if;
 
-               Release (Header_Buffer);
-               Release (Buffer_Out);
-               return;
-            end if;
+               Marshall_From_Any
+                 (Sess.Repr,
+                  Buffer_Out,
+                  Get_Container (Request.Result.Argument).all,
+                  Error);
 
-            Marshall_Argument_List
-              (Sess.Implem,
-               Buffer_Out,
-               Sess.Repr,
-               Request.Args,
-               PolyORB.Any.ARG_OUT,
-               Data_Alignment,
-               Error);
+               if Found (Error) then
 
-            if Found (Error) then
-               Replace_Marshal_5_To_Bad_Param_23 (Error, Completed_Yes);
-               --  An error in the marshalling of wchar data implies
-               --  the server did not provide a valid codeset service
-               --  context. We convert this exception to Bad_Param 23.
+                  --  An error in the marshalling of wchar data implies
+                  --  the server did not provide a valid codeset service
+                  --  context. We convert this exception to Bad_Param 23.
 
-               Release (Header_Buffer);
-               Release (Buffer_Out);
-               return;
+                  Replace_Marshal_5_To_Bad_Param_23 (Error, Completed_Yes);
+
+                  --  The error was encountered while marshalling a reply
+                  --  with a No_Exception status: we know that the servant
+                  --  executed the request succesfully.
+
+                  if Error.Member.all in System_Exception_Members then
+                     System_Exception_Members (Error.Member.all).Completed :=
+                       Completed_Yes;
+                  end if;
+
+                  Release (Header_Buffer);
+                  Release (Buffer_Out);
+                  return;
+               end if;
+
+               Marshall_Argument_List
+                 (Sess.Implem,
+                  Buffer_Out,
+                  Sess.Repr,
+                  Request.Args,
+                  PolyORB.Any.ARG_OUT,
+                  Data_Alignment,
+                  Error);
+
+               if Found (Error) then
+                  Replace_Marshal_5_To_Bad_Param_23 (Error, Completed_Yes);
+                  --  An error in the marshalling of wchar data implies
+                  --  the server did not provide a valid codeset service
+                  --  context. We convert this exception to Bad_Param 23.
+
+                  Release (Header_Buffer);
+                  Release (Buffer_Out);
+                  return;
+               end if;
+            else
+               if Length (Static_Buffer.Buffer) /= 0 then
+                  pragma Debug (O ("Using buffer to send reply data"));
+                  --  The arguments were marshalled and stored in the
+                  --  request QoS attribute. We insert the data
+                  --  contained in the request QoS in the buffer.
+
+                  Pad_Align (Buffer_Out, Data_Alignment);
+
+                  declare
+                     Data : PolyORB.Opaque.Opaque_Pointer;
+                     Data_Processed : Stream_Element_Count
+                       := Length (Static_Buffer.Buffer);
+                     Data_To_Process : Stream_Element_Count
+                       := Length (Static_Buffer.Buffer);
+                     Position : Ada.Streams.Stream_Element_Offset := 0;
+                  begin
+                     while Data_To_Process > 0 loop
+                        PolyORB.Buffers.Partial_Extract_Data
+                          (Static_Buffer.Buffer,
+                           Data,
+                           Data_Processed,
+                           Use_Current => False,
+                           At_Position => Position,
+                           Partial => True);
+
+                        Insert_Raw_Data (Buffer_Out, Data_Processed, Data);
+                        Data_To_Process := Data_To_Process - Data_Processed;
+                        Position := Position + Data_Processed;
+                     end loop;
+                  end;
+               end if;
             end if;
 
          when Location_Forward =>
@@ -678,6 +720,8 @@ package body PolyORB.Protocols.GIOP.Common is
       Arguments_Alignment : Buffers.Alignment_Type
         := Sess.Implem.Data_Alignment;
       Error        : Errors.Error_Container;
+
+      Static_Buffer : QoS_GIOP_Static_Buffer_Parameter_Access;
    begin
       pragma Assert (Sess.Implem.Version in GIOP_V1_0 .. GIOP_V1_2);
 
@@ -687,6 +731,11 @@ package body PolyORB.Protocols.GIOP.Common is
                        & Types.Unsigned_Long'Image (Request_Id)));
 
       Get_Pending_Request (Sess, Request_Id, Current_Req, Success);
+      Static_Buffer :=
+        QoS_GIOP_Static_Buffer_Parameter_Access
+        (Extract_Request_Parameter
+         (PolyORB.QoS.GIOP_Static_Buffer, Current_Req.Req));
+
       if not Success then
          raise GIOP_Error;
       end if;
@@ -702,34 +751,22 @@ package body PolyORB.Protocols.GIOP.Common is
 
             --  Unmarshall reply body.
 
-            if TypeCode.Kind
-              (Get_Type (Current_Req.Req.Result.Argument))
-              /= Tk_Void
-            then
-               Align_Position (Sess.Buffer_In, Arguments_Alignment);
-               Arguments_Alignment := 1;
-            end if;
+            if Static_Buffer = null then
+               pragma Debug (O ("Use Anys"));
 
-            Unmarshall_To_Any
-              (Sess.Repr,
-               Sess.Buffer_In,
-               Get_Container (Current_Req.Req.Result.Argument).all,
-               Error);
+               if TypeCode.Kind
+                 (Get_Type (Current_Req.Req.Result.Argument))
+                 /= Tk_Void
+               then
+                  Align_Position (Sess.Buffer_In, Arguments_Alignment);
+                  Arguments_Alignment := 1;
+               end if;
 
-            if Found (Error) then
-               Replace_Marshal_5_To_Inv_Objref_2 (Error, Completed_Yes);
-               --  An error in the marshalling of wchar data implies
-               --  the server did not provide a valid codeset
-               --  component. We convert this exception to Inv_ObjRef 2.
-
-               Set_Exception (Current_Req.Req, Error);
-               Catch (Error);
-
-            else
-               Unmarshall_Argument_List
-                 (Sess.Implem, Sess.Buffer_In, Sess.Repr,
-                  Current_Req.Req.Args, PolyORB.Any.ARG_OUT,
-                  Arguments_Alignment, Error);
+               Unmarshall_To_Any
+                 (Sess.Repr,
+                  Sess.Buffer_In,
+                  Get_Container (Current_Req.Req.Result.Argument).all,
+                  Error);
 
                if Found (Error) then
                   Replace_Marshal_5_To_Inv_Objref_2 (Error, Completed_Yes);
@@ -739,7 +776,36 @@ package body PolyORB.Protocols.GIOP.Common is
 
                   Set_Exception (Current_Req.Req, Error);
                   Catch (Error);
+
+               else
+                  Unmarshall_Argument_List
+                    (Sess.Implem, Sess.Buffer_In, Sess.Repr,
+                     Current_Req.Req.Args, PolyORB.Any.ARG_OUT,
+                     Arguments_Alignment, Error);
+
+                  if Found (Error) then
+                     Replace_Marshal_5_To_Inv_Objref_2 (Error, Completed_Yes);
+                     --  An error in the marshalling of wchar data implies
+                     --  the server did not provide a valid codeset
+                     --  component. We convert this exception to Inv_ObjRef 2.
+
+                     Set_Exception (Current_Req.Req, Error);
+                     Catch (Error);
+
+                  end if;
                end if;
+            else
+               pragma Debug (O ("Use static buffer"));
+               Align_Position (Sess.Buffer_In, Arguments_Alignment);
+               Arguments_Alignment := 1;
+
+               declare
+                  Buffer : Buffer_Access;
+               begin
+                  Buffer := Sess.Buffer_In;
+                  Sess.Buffer_In := Static_Buffer.Buffer;
+                  Static_Buffer.Buffer := Buffer;
+               end;
             end if;
 
             Expect_GIOP_Header (Sess);
