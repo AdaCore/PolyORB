@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 1995-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 1995-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNATDIST is  free software;  you  can redistribute  it and/or  modify it --
 -- under terms of the  GNU General Public License  as published by the Free --
@@ -119,7 +119,9 @@ private
       N2 : Name_Id := No_Name;
       S2 : String  := No_Str;
       N3 : Name_Id := No_Name;
-      S3 : String  := No_Str);
+      S3 : String  := No_Str;
+      I1_Present : Boolean := False;
+      I1         : Int     := -1);
    --  Insert a procedure call. The first non-null parameter
    --  is supposed to be the procedure name. The next parameters
    --  are parameters for this procedure call.

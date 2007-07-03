@@ -304,7 +304,8 @@ package body XE_Back.GARLIC is
       if Current.Priority /= No_Priority then
          Write_Call (RE (RE_Set_RPC_Handler_Priority),
                      No_Name,
-                     Current.Priority'Img);
+                     I1_Present => True,
+                     I1         => Int (Current.Priority));
       end if;
 
       if Default_Priority_Policy /= No_Priority_Policy then
@@ -743,7 +744,7 @@ package body XE_Back.GARLIC is
             Write_Call (RE (RE_Check),
                         Quote (Stubs.Table (J)), No_Str,
                         Stubs.Table (J) & "'Version",
-                        Units.Table (Unit).RCI'Img);
+                        Boolean'Image (Units.Table (Unit).RCI));
          end loop;
       end if;
 
@@ -1060,6 +1061,7 @@ package body XE_Back.GARLIC is
       Storage_Config_File  := Id ("s-gastco");
 
       Register_Casing_Rule ("PCS");
+      Register_Casing_Rule ("RPC");
 
       for U in RU_Id'First .. RU_Id'Last loop
          Set_Str_To_Name_Buffer (RU_Id'Image (U));

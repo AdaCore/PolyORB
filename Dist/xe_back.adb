@@ -890,13 +890,15 @@ package body XE_Back is
    ----------------
 
    procedure Write_Call
-     (SP : Unit_Name_Type;
-      N1 : Name_Id := No_Name;
-      S1 : String  := No_Str;
-      N2 : Name_Id := No_Name;
-      S2 : String  := No_Str;
-      N3 : Name_Id := No_Name;
-      S3 : String  := No_Str)
+     (SP         : Unit_Name_Type;
+      N1         : Name_Id := No_Name;
+      S1         : String  := No_Str;
+      N2         : Name_Id := No_Name;
+      S2         : String  := No_Str;
+      N3         : Name_Id := No_Name;
+      S3         : String  := No_Str;
+      I1_Present : Boolean := False;
+      I1         : Int     := -1)
    is
       Max_String_Length : constant := 64;
       N_Params          : Integer  := 0;
@@ -975,6 +977,10 @@ package body XE_Back is
       if S3 /= No_Str then
          Write_Separator;
          Write_Parameter (S3);
+      end if;
+      if I1_Present then
+         Write_Separator;
+         Write_Int (I1);
       end if;
       if N_Params /= 0 then
          Write_Str (")");
