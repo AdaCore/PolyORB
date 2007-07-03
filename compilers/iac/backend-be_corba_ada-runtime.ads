@@ -484,8 +484,6 @@ package Backend.BE_CORBA_Ada.Runtime is
       RE_Align_Position,            --  PolyORB.Buffers.Align_Position
       RE_Alignment_Type,            --  PolyORB.Buffers.Alignment_Type
       RE_Pad_Align,                 --  PolyORB.Buffers.Pad_Align
-      RE_Client_Entity,             --  PolyORB.Protocols.GIOP.Client_Entity
-      RE_Server_Entity,             --  PolyORB.Protocols.GIOP.Server_Entity
       RE_CDR_Representation_Access, --  PolyORB.Representation.CDR.
       --                                 CDR_Representation_Access
       RE_Bind,                      --  PolyORB.Binding_Data.Bind
@@ -507,7 +505,6 @@ package Backend.BE_CORBA_Ada.Runtime is
       --                                  Get_Buffer
       RE_Get_GIOP_Version,          --  PolyORB.Binding_Data.GIOP
       RE_Release,                   --  PolyORB.buffers.Release
-      RE_Entity_Role,               --  PolyORB.Protocols.GIOP.Entity_Role
       RE_Operation_Payload,         --  PolyORB.Protocols.GIOP.
       --                                   Operation_Payload
       RE_CDR_Representation,        --  PolyORB.Representations.
@@ -1057,8 +1054,6 @@ package Backend.BE_CORBA_Ada.Runtime is
          RE_Align_Position            => RU_PolyORB_Buffers,
          RE_Alignment_Type            => RU_PolyORB_Buffers,
          RE_Pad_Align                 => RU_PolyORB_Buffers,
-         RE_Client_Entity             => RU_PolyORB_Protocols_GIOP,
-         RE_Server_Entity             => RU_PolyORB_Protocols_GIOP,
          RE_Release                   => RU_PolyORB_Buffers,
          RE_CDR_Representation_Access => RU_PolyORB_Representations_CDR,
          RE_Bind                      => RU_PolyORB_References_Binding,
@@ -1076,7 +1071,6 @@ package Backend.BE_CORBA_Ada.Runtime is
          RE_Component_Access          => RU_PolyORB_Components,
          RE_Profile_Access            => RU_PolyORB_Binding_Data,
          RE_Get_GIOP_Version          => RU_PolyORB_Binding_Data_GIOP,
-         RE_Entity_Role               => RU_PolyORB_Protocols_GIOP,
          RE_Operation_Payload         => RU_PolyORB_Protocols_GIOP,
          RE_Error_Container           => RU_PolyORB_Errors,
          RE_Found                     => RU_PolyORB_Errors,

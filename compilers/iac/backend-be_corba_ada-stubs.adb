@@ -1817,10 +1817,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
                     (E))));
 
                Profile := New_List (K_List_Id);
-
-               --  The GIOP entity
-
-               Append_Node_To_List (RE (RE_Client_Entity), Profile);
+               Append_Node_To_List (RE (RE_True), Profile);
 
                --  The arguments list, we use the method_name_Arg_Type
                --  instead of the Request_Args type
@@ -1914,10 +1911,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
                  (E))));
 
             Profile := New_List (K_List_Id);
-
-            --  The GIOP entity
-
-            Append_Node_To_List (RE (RE_Client_Entity), Profile);
+            Append_Node_To_List (RE (RE_True), Profile);
 
             --  The arguments list, we use the method_name_Arg_Type
             --  instead of the Request_Args type.

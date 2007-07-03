@@ -80,7 +80,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
          Parameter := Make_Parameter_Specification
            (Defining_Identifier => Make_Defining_Identifier
             (PN (P_Role)),
-            Subtype_Mark        => RE (RE_Entity_Role),
+            Subtype_Mark        => RE (RE_Boolean_0),
             Parameter_Mode      => Mode_In);
          Append_Node_To_List (Parameter, Profile);
 
@@ -335,11 +335,11 @@ package body Backend.BE_CORBA_Ada.Buffers is
          T                 : constant Node_Id := Type_Spec (E);
 
          Client_Case       : constant List_Id := Make_List_Id
-           (RE (RE_Client_Entity));
+           (RE (RE_True));
          Client_Statements : constant List_Id := New_List (K_List_Id);
 
          Server_Case       : constant List_Id := Make_List_Id
-           (RE (RE_Server_Entity));
+           (RE (RE_False));
          Server_Statements : constant List_Id := New_List (K_List_Id);
 
          Case_Alternatives : constant List_Id := New_List (K_List_Id);

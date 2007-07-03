@@ -716,7 +716,7 @@ package body Backend.BE_CORBA_Ada.Skels is
                    (Identifier
                     (E))));
 
-               Append_Node_To_List (RE (RE_Server_Entity), Params);
+               Append_Node_To_List (RE (RE_False), Params);
 
                M := Make_Designator (PN (P_Arg_List_In));
                M := Make_Attribute_Designator (M, A_Access);
@@ -1112,7 +1112,7 @@ package body Backend.BE_CORBA_Ada.Skels is
                     (E))));
 
                Params := New_List (K_List_Id);
-               Append_Node_To_List (RE (RE_Server_Entity), Params);
+               Append_Node_To_List (RE (RE_False), Params);
 
                M := Make_Designator (PN (P_Arg_List_Out));
                M := Make_Attribute_Designator (M, A_Access);
