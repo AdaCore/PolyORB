@@ -2226,11 +2226,13 @@ package body Idl_Fe.Parser is
       return;
    end Parse_End_Value_Box_Dcl;
 
-   ------------------------------------
-   --  Parse_Value_Inheritance_Spec  --
-   ------------------------------------
-   procedure Parse_Value_Inheritance_Spec (Result : in out Node_Id;
-                                           Success : out Boolean) is
+   ----------------------------------
+   -- Parse_Value_Inheritance_Spec --
+   ----------------------------------
+
+   procedure Parse_Value_Inheritance_Spec
+     (Result  : Node_Id; Success : out Boolean)
+   is
    begin
       pragma Debug (O2 ("Parse_Value_Inheritance_Spec: enter"));
       Success := True;
@@ -8587,11 +8589,14 @@ package body Idl_Fe.Parser is
       return;
    end Parse_Fixed_Pt_Literal;
 
-   -------------------------
-   --  Check_Value_Range  --
-   -------------------------
-   procedure Check_Value_Range (Node : in out Node_Id;
-                                Full : Boolean) is
+   -----------------------
+   -- Check_Value_Range --
+   -----------------------
+
+   procedure Check_Value_Range
+     (Node : Node_Id;
+      Full : Boolean)
+   is
       N : Constant_Value_Ptr renames Expr_Value (Node);
 
       procedure Integer_Precision_Exceeded;

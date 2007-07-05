@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -91,7 +91,7 @@ package body Backend.BE_Types is
    --  Local operations declarations
 
    procedure Generate (E : Node_Id; L : in out List_Id);
-   procedure Generate_Base_Type (E : Node_Id; L : in out List_Id);
+   procedure Generate_Base_Type (E : Node_Id; L : List_Id);
    procedure Generate_Exception_Declaration (E : Node_Id; L : in out List_Id);
    procedure Generate_Interface_Declaration (E : Node_Id; L : in out List_Id);
    procedure Generate_Module (E : Node_Id; L : in out List_Id);
@@ -102,25 +102,26 @@ package body Backend.BE_Types is
    procedure Generate_Union_Type (E : Node_Id; L : in out List_Id);
    procedure Generate_Value_Declaration (E : Node_Id; L : in out List_Id);
 
-   procedure Insert (S : String; L : in out List_Id);
+   procedure Insert (S : String; L : List_Id);
    --  Append the Node_Kind to the list only if the Node_Kind
    --  is not present yet.
+   --  ??? bogus comment, there is no Node_Kind anywhere in this declaration
 
    procedure Print_List
       (L : List_Id; Output : File_Descriptor := Standout);
    --  Print the list on a file descriptor. By default that is
    --  the standard output.
 
-   procedure Insert_Required_Types (L : in out List_Id);
+   procedure Insert_Required_Types (L : List_Id);
    --  Insert the types always required by PolyORB for a CORBA application.
 
    ------------
    -- Insert --
    ------------
 
-   procedure Insert (S : String; L : in out List_Id) is
+   procedure Insert (S : String; L : List_Id) is
       Node : Node_Id;
-      N : Name_Id;
+      N    : Name_Id;
    begin
       Set_Str_To_Name_Buffer (S);
       N := Name_Find;
@@ -158,13 +159,14 @@ package body Backend.BE_Types is
    -- Insert_Required_Types --
    ---------------------------
 
-   procedure Insert_Required_Types (L : in out List_Id) is
+   procedure Insert_Required_Types (L : List_Id) is
    begin
 
       --  The string type and thus unsigned long are always used
       --  but they can not appear in the idl file. So we add them into
       --  the list. Note that if the type string is present in the list,
       --  this operation has no effect on the type list.
+
       Insert (Idl_String, L);
       Insert (Idl_Ulong, L);
 
@@ -318,7 +320,7 @@ package body Backend.BE_Types is
    -- Generate_Base_Type --
    ------------------------
 
-   procedure Generate_Base_Type (E : Node_Id; L : in out List_Id) is
+   procedure Generate_Base_Type (E : Node_Id; L : List_Id) is
    begin
       case Kind (E) is
          when K_Float =>

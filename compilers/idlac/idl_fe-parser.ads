@@ -367,8 +367,8 @@ private
    --                               <value_name> { "," <value_name> }* ]
    --                               [ "supports" <interface_name>
    --                               { "," <interface_name> }* ]
-   procedure Parse_Value_Inheritance_Spec (Result : in out Node_Id;
-                                           Success : out Boolean);
+   procedure Parse_Value_Inheritance_Spec
+     (Result : Node_Id; Success : out Boolean);
 
    --  Rule 20
    --  <value_name> ::= <scoped_name>
@@ -1056,8 +1056,7 @@ private
    --  C_General_Float
    --  Full indicates whether signed and unsigned types should be
    --  distinguished or not
-   procedure Check_Value_Range (Node : in out Node_Id;
-                                Full : Boolean);
+   procedure Check_Value_Range (Node : Node_Id; Full : Boolean);
 
    --  checks that the value contained by value is compatible with
    --  the type of value_type.
