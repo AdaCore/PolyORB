@@ -2722,8 +2722,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
       is
          function Add_Parameter
            (TC_Name : Name_Id; Var_Node : Node_Id) return Node_Id;
-         --  Makes a call to the Add_Parameter Routine with the given
-         --  parameters
+         --  Makes a call to Add_Parameter with the given parameters
 
          function Declare_Name
            (Var_Name : Name_Id; Value : Value_Id) return Node_Id;
@@ -2758,9 +2757,8 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
          ------------------
 
          function Declare_Name
-           (Var_Name  : Name_Id;
-            Value : Value_Id)
-           return Node_Id
+           (Var_Name : Name_Id;
+            Value    : Value_Id) return Node_Id
          is
             N : Node_Id;
          begin
@@ -2788,8 +2786,9 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                     (RE (RE_To_CORBA_Object),
                      Make_List_Id (RE (RE_TC_Enum)));
 
-               when K_Forward_Interface_Declaration
-                 | K_Interface_Declaration =>
+               when
+                 K_Forward_Interface_Declaration |
+                 K_Interface_Declaration         =>
                   Expr := Make_Subprogram_Call
                     (RE (RE_To_CORBA_Object),
                      Make_List_Id (RE (RE_TC_Object_1)));
@@ -2838,11 +2837,13 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                      Max_Size_Literal : Node_Id;
                      TC_Element       : Node_Id;
                   begin
-                     --  Unbounded, sequences have "0" as limit
+                     --  Unbounded sequences are identified by a maximum
+                     --  length of 0.
 
                      if Present (Max_Size (E)) then
                         Max_Size_Literal := Make_Literal
                           (FEN.Value (Max_Size (E)));
+
                      else
                         Max_Size_Literal := Make_Literal
                           (New_Integer_Value (0, 1, 10));
@@ -2857,8 +2858,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                          Max_Size_Literal));
                   end;
 
-               when K_String_Type
-                 | K_Wide_String_Type =>
+               when K_String_Type | K_Wide_String_Type =>
                   declare
                      Build_Spg : Node_Id;
                   begin
@@ -2871,28 +2871,21 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                      Expr := Make_Subprogram_Call
                        (Build_Spg,
                         Make_List_Id
-                        (Make_Literal
-                         (FEN.Value
-                          (Max_Size
-                           (E)))));
+                          (Make_Literal (FEN.Value (Max_Size (E)))));
                   end;
 
                when others =>
-                  declare
-                     Msg : constant String :=
-                       "Cannot initialize TypeCode for the frontend node "
-                       & FEN.Node_Kind'Image (FEN.Kind (E));
-                  begin
-                     raise Program_Error with Msg;
-                  end;
+                  raise Program_Error with
+                    "Cannot initialize TypeCode for frontend node "
+                      & FEN.Node_Kind'Image (FEN.Kind (E));
             end case;
 
             return Make_Assignment_Statement
-              (Get_TC_Node
-               (T               => E,
-                Resolve_Forward => False),
+              (Get_TC_Node (T => E, Resolve_Forward => False),
                Expr);
          end TypeCode_Initialization;
+
+         --  Local variables
 
          Stub             : Node_Id;
          N                : Node_Id;
@@ -2905,6 +2898,9 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
            Parent (Package_Declaration (Current_Package));
          Dependencies     : constant List_Id :=
            Get_GList (Helper_Package, GL_Dependencies);
+
+         --  Start of processing for Initialize_Routine
+
       begin
          --  Initialize the TypeCode variable
 
