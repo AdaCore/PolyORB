@@ -2231,7 +2231,7 @@ package body Idl_Fe.Parser is
    ----------------------------------
 
    procedure Parse_Value_Inheritance_Spec
-     (Result  : Node_Id; Success : out Boolean)
+     (Result : Node_Id; Success : out Boolean)
    is
    begin
       pragma Debug (O2 ("Parse_Value_Inheritance_Spec: enter"));
