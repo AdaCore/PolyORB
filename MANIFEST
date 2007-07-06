@@ -1790,7 +1790,6 @@ support/ada.m4
 support/adacompiler.in
 support/config.guess
 support/config.sub
-support/cxxcpp.m4
 support/enable-conditional-debug
 support/gentexifile
 support/gnatsrc.m4
