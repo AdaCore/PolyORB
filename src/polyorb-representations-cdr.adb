@@ -764,7 +764,7 @@ package body PolyORB.Representations.CDR is
 
    begin
       pragma Debug (O ("Marshall_From_Any: enter"));
-      pragma Debug (O ("Marshall_From_Any: kind is " & TCK'Img));
+      pragma Debug (O ("Marshall_From_Any: CData = " & Image (CData)));
 
       case TCK is
 
