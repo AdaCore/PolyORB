@@ -2721,8 +2721,13 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
          Statements       : List_Id)
       is
          function Add_Parameter
-           (TC_Name : Name_Id; Var_Node : Node_Id) return Node_Id;
-         --  Makes a call to Add_Parameter with the given parameters
+           (TC_Name   : Name_Id;
+            Expr_Node : Node_Id;
+            To_Any    : Node_Id := RE (RE_To_Any_0)) return Node_Id;
+         --  Build a call to:
+         --    Add_Parameter (TC_Name, To_Any (Expr_Node))
+         --  If To_Any is not provided, it defaults to the (overloaded)
+         --  CORBA.To_Any.
 
          function Declare_Name
            (Var_Name : Name_Id; Value : Value_Id) return Node_Id;
@@ -2737,14 +2742,14 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
          -------------------
 
          function Add_Parameter
-           (TC_Name  : Name_Id;
-            Var_Node : Node_Id)
+           (TC_Name   : Name_Id;
+            Expr_Node : Node_Id;
+            To_Any    : Node_Id := RE (RE_To_Any_0))
            return Node_Id
          is
             N : Node_Id;
          begin
-            N := Make_Subprogram_Call
-              (RE (RE_To_Any_0), Make_List_Id (Var_Node));
+            N := Make_Subprogram_Call (To_Any, Make_List_Id (Expr_Node));
             N := Make_Subprogram_Call
               (RE (RE_Add_Parameter),
                Make_List_Id (Make_Designator (TC_Name), N));
@@ -3216,7 +3221,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                   Choice              : Node_Id;
                   Choices             : List_Id;
                   Label               : Node_Id;
-                  To_Any_Helper       : Node_Id;
+                  Switch_To_Any       : Node_Id;
                   TC_Helper           : Node_Id;
                   Declarator          : Node_Id;
                   Designator          : Node_Id;
@@ -3230,8 +3235,9 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                     New_List (K_List_Id);
                   Default_Index       : Value_Id :=
                     New_Integer_Value (0, 1, 10); --  (0)
-                  There_Is_Default    : Boolean           :=
-                    False;
+                  --  ??? magic hard-coded constants MUST be documented
+
+                  Default_Present     : Boolean;
                   T                   : Node_Id;
                begin
 
@@ -3246,13 +3252,11 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                      Dependencies,
                      D_Helper);
 
-                  To_Any_Helper := Get_To_Any_Node (Switch_Type_Spec (E));
+                  Switch_To_Any := Get_To_Any_Node (Switch_Type_Spec (E));
 
                   if Is_Base_Type (Switch_Type_Spec (E)) then
-                     Switch_Type := RE
-                       (Convert
-                        (FEN.Kind
-                         (Switch_Type_Spec (E))));
+                     Switch_Type :=
+                       RE (Convert (FEN.Kind (Switch_Type_Spec (E))));
 
                   elsif FEN.Kind (Orig_Type) = K_Enumeration_Type then
                      Switch_Type := Map_Designator (Switch_Type_Spec (E));
@@ -3276,7 +3280,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                   --  statements list.
 
                   Switch_Alternative := First_Entity (Switch_Type_Body (E));
-
+                  Default_Present := False;
                   while Present (Switch_Alternative) loop
                      Choices := New_List (K_List_Id);
                      Label   := First_Entity (Labels (Switch_Alternative));
@@ -3296,7 +3300,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                              (Default_Index,
                               Value (Default_Index) + Value (Int1_Val));
                         else
-                           There_Is_Default := True;
+                           Default_Present := True;
                         end if;
 
                         Append_Node_To_List (Choice, Choices);
@@ -3352,9 +3356,9 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
 
                      while Present (Choice) loop
                         if BEN.Value (Choice) /= No_Value then
-                           --  We make a copy of the Choice value to
-                           --  avoid adding the next nodes of Choice
-                           --  to the argument list
+
+                           --  Copy Choice value to avoid adding the next nodes
+                           --  of Choice to the argument list.
 
                            N := Make_Literal
                              (Value             =>
@@ -3367,10 +3371,8 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                               Aggregate    => Make_Record_Aggregate
                                 (Make_List_Id (N)));
 
-                           N := Make_Subprogram_Call
-                             (To_Any_Helper,
-                              Make_List_Id (N));
-                           N := Add_Parameter (Entity_TC_Name, N);
+                           N := Add_Parameter
+                                  (Entity_TC_Name, N, To_Any => Switch_To_Any);
                            Append_Node_To_List (N, Statement_List);
 
                            N := Add_Parameter (Entity_TC_Name, TC_Helper);
@@ -3380,13 +3382,14 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                              (Entity_TC_Name,
                               Make_Defining_Identifier (Arg_Name));
                            Append_Node_To_List (N, Statement_List);
-                        else --  The default case
+
+                        else
+                           --  Case of a default alternative
+
                            N := Make_Type_Attribute (Switch_Type, A_First);
 
-                           N := Make_Subprogram_Call
-                             (To_Any_Helper,
-                              Make_List_Id (N));
-                           N := Add_Parameter (Entity_TC_Name, N);
+                           N := Add_Parameter
+                                  (Entity_TC_Name, N, To_Any => Switch_To_Any);
                            Append_Node_To_List (N, Statement_List);
 
                            N := Add_Parameter (Entity_TC_Name, TC_Helper);
@@ -3405,11 +3408,12 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                      Switch_Alternative := Next_Entity (Switch_Alternative);
                   end loop;
 
-                  if not There_Is_Default then
+                  if not Default_Present then
                      Default_Index := New_Integer_Value (1, -1, 10); --  (-1)
                   end if;
 
-                  --  Forth parameter
+                  --  Fourth parameter
+                  --  ??? What is this parameter for?
 
                   N := Make_Type_Conversion
                     (RE (RE_Long),

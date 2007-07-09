@@ -3145,17 +3145,10 @@ package body PolyORB.Any is
       ------------------
 
       function Member_Label
-        (Self : Local_Ref; Index : Unsigned_Long) return Any_Container_Ptr
+        (Self : Local_Ref; Index : Unsigned_Long) return Any
       is
       begin
          return Member_Label (Object_Of (Self), Index);
-      end Member_Label;
-
-      function Member_Label
-        (Self : Object_Ptr; Index : Unsigned_Long) return Any_Container_Ptr
-      is
-      begin
-         return Get_Container (Member_Label (Self, Index));
       end Member_Label;
 
       ------------------
@@ -3163,18 +3156,36 @@ package body PolyORB.Any is
       ------------------
 
       function Member_Label
-        (Self : Local_Ref; Index : Unsigned_Long) return Any
+        (Self : Local_Ref; Index : Unsigned_Long) return Any_Container_Ptr
       is
       begin
          return Member_Label (Object_Of (Self), Index);
       end Member_Label;
 
+      ------------------
+      -- Member_Label --
+      ------------------
+
       function Member_Label
         (Self : Object_Ptr; Index : Unsigned_Long) return Any
       is
+         Result : Any;
+      begin
+         Set (Result,
+           Smart_Pointers.Entity_Ptr
+             (Any_Container_Ptr'(Member_Label (Self, Index))));
+         return Result;
+      end Member_Label;
+
+      ------------------
+      -- Member_Label --
+      ------------------
+
+      function Member_Label
+        (Self : Object_Ptr; Index : Unsigned_Long) return Any_Container_Ptr
+      is
          Param_Nb : constant Unsigned_Long := Parameter_Count (Self);
       begin
-
          --  See comments after the declaration of TypeCode.Object in the
          --  private part of PolyORB.Any.TypeCode to understand the magic
          --  numbers used here.
@@ -3184,7 +3195,7 @@ package body PolyORB.Any is
                if Param_Nb < 3 * Index + 7 then
                   raise Bounds;
                end if;
-               return From_Any (Get_Parameter (Self, 3 * Index + 4).all);
+               return Get_Parameter (Self, 3 * Index + 4);
 
             when others =>
                raise BadKind;
@@ -3201,6 +3212,10 @@ package body PolyORB.Any is
       begin
          return Member_Name (Object_Of (Self), Index);
       end Member_Name;
+
+      -----------------
+      -- Member_Name --
+      -----------------
 
       function Member_Name
         (Self : Object_Ptr; Index : Unsigned_Long) return Identifier
@@ -3260,6 +3275,10 @@ package body PolyORB.Any is
          return To_Ref (Member_Type (Object_Of (Self), Index));
       end Member_Type;
 
+      -----------------
+      -- Member_Type --
+      -----------------
+
       function Member_Type
         (Self : Object_Ptr; Index : Unsigned_Long) return Object_Ptr
       is
@@ -3312,6 +3331,10 @@ package body PolyORB.Any is
            Get_Container (Label).all));
       end Member_Type_With_Label;
 
+      ----------------------------
+      -- Member_Type_With_Label --
+      ----------------------------
+
       function Member_Type_With_Label
         (Self  : Object_Ptr;
          Label : Any) return Object_Ptr
@@ -3320,6 +3343,10 @@ package body PolyORB.Any is
          return Member_Type_With_Label (Self, Get_Container (Label).all);
       end Member_Type_With_Label;
 
+      ----------------------------
+      -- Member_Type_With_Label --
+      ----------------------------
+
       function Member_Type_With_Label
         (Self  : Local_Ref;
          Label : Any_Container'Class) return Local_Ref
@@ -3327,6 +3354,10 @@ package body PolyORB.Any is
       begin
          return To_Ref (Member_Type_With_Label (Object_Of (Self), Label));
       end Member_Type_With_Label;
+
+      ----------------------------
+      -- Member_Type_With_Label --
+      ----------------------------
 
       function Member_Type_With_Label
         (Self  : Object_Ptr;

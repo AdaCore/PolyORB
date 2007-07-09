@@ -190,18 +190,6 @@ private
       --  -1 if none.
    end record;
 
-   --  'TypeCode.Local_Ref' type
-
-   procedure Marshall
-     (Buffer         : access Buffers.Buffer_Type;
-      Representation : access CDR_Representation'Class;
-      Data           : PolyORB.Any.TypeCode.Local_Ref);
-
-   function Unmarshall
-     (Buffer         : access Buffers.Buffer_Type;
-      Representation : access CDR_Representation'Class)
-      return PolyORB.Any.TypeCode.Local_Ref;
-
    --  CDR Representation versions registry
 
    type CDR_Representation_Factory is

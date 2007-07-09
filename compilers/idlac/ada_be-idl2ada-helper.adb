@@ -3221,9 +3221,9 @@ package body Ada_Be.Idl2Ada.Helper is
                if Default_Index (Node) = I then
                   PL (CU, "CORBA.Internals.Add_Parameter" & ASCII.LF
                         & "  (" & Ada_TC_Name (Node) & "," & ASCII.LF
-                        & "   CORBA.To_Any (" & Switch_Helper_Name
+                        & "   " & Switch_Helper_Name
                         & ".To_Any (" & Ada_Type_Name (ST_Node)
-                        & "'First)));");
+                        & "'First));");
 
                   Add_Helper_Dependency
                     (CU,
@@ -3248,11 +3248,11 @@ package body Ada_Be.Idl2Ada.Helper is
                      Put (CU, "CORBA.Internals.Add_Parameter"
                             & ASCII.LF
                             & "  (" & Ada_TC_Name (Node) & "," & ASCII.LF
-                            & "   CORBA.To_Any (" & Switch_Helper_Name
+                            & "   " & Switch_Helper_Name
                             & ".To_Any (" & Ada_Type_Name (ST_Node) & "'(");
                      Gen_Constant_Value (CU,
                        Expr => Label_Node, Typ => ST_Node);
-                     PL (CU, "))));");
+                     PL (CU, ")));");
 
                      Add_Helper_Dependency
                        (CU,

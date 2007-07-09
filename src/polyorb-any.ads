@@ -262,17 +262,17 @@ package PolyORB.Any is
       --  Raises BadKind for other typecode kinds.
 
       function Member_Label
-        (Self  : Object_Ptr;
-         Index : Types.Unsigned_Long) return Any_Container_Ptr;
-      function Member_Label
-        (Self  : Object_Ptr;
+        (Self  : Local_Ref;
          Index : Types.Unsigned_Long) return Any;
       function Member_Label
         (Self  : Local_Ref;
          Index : Types.Unsigned_Long) return Any_Container_Ptr;
       function Member_Label
-        (Self  : Local_Ref;
+        (Self  : Object_Ptr;
          Index : Types.Unsigned_Long) return Any;
+      function Member_Label
+        (Self  : Object_Ptr;
+         Index : Types.Unsigned_Long) return Any_Container_Ptr;
       --  Return the label of the indicated member of a union typecode.
       --  Raises Bounds if Index is too big.
       --  Raises BadKind for other typecode kinds.
