@@ -1,5 +1,5 @@
 ========================================================
-PolyORB 2.3 NEW FEATURES LIST Current as of Jun 27, 2007
+PolyORB 2.3 NEW FEATURES LIST Current as of Jul 10, 2007
 ========================================================
 
 Copyright (c) 2007, AdaCore
@@ -21,6 +21,12 @@ NF-23-G627-011 Remove unused libraries from polyorb-config output (2007-03-14)
 
   Applications that use these libraries now need to have explicit linker
   arguments for them.
+
+NF-23-G405-030 Improved representation of union typecodes (2007-07-09)
+
+  The internal representation of union typecodes has been improved. Its
+  memory footprint has been reduced, and the marshalling and unmarshalling
+  of unions are now more efficient.
 
 NF-23-G329-021 Setting default log level (2007-03-29)
 
