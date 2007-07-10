@@ -33,7 +33,6 @@
 
 --  All_Types client
 
-with Ada.Characters.Handling;
 with Ada.Command_Line; use Ada.Command_Line;
 with Ada.Exceptions;
 with Ada.Text_IO;
@@ -59,7 +58,12 @@ procedure Client is
    Howmany : Integer := 1;
    Sequence_Length : Integer := 5;
 
-   type Test_Type is (All_Tests, Long_Only, Sequence_Only);
+   Test_Unions : constant array (Integer range <>) of myUnionEnumSwitch :=
+                   ((Switch => Red, Foo => 31337),
+                    (Switch => Green, Bar => 534),
+                    (Switch => Blue, Baz => CORBA.To_CORBA_String ("grümpf")));
+
+   type Test_Type is (All_Tests, Long_Only, Sequence_Only, UnionSequence_Only);
    What : Test_Type := All_Tests;
 
 begin
@@ -68,8 +72,12 @@ begin
    CORBA.ORB.Initialize ("ORB");
    if Argument_Count < 1 then
       Ada.Text_IO.Put_Line
-        ("usage : client <IOR_string_from_server|name|-i> "
-         & "[howmany [what]]");
+        ("Usage: client <IOR_string_from_server|name|-i> "
+         & "[howmany [what [seq-length]]]");
+      Ada.Text_IO.Put ("where <what> is one of:");
+      for J in Test_Type'Range loop
+         Ada.Text_IO.Put (" " & J'Img);
+      end loop;
       return;
    end if;
 
@@ -78,21 +86,22 @@ begin
    end if;
 
    if Argument_Count >= 3 then
-      declare
-         What_Arg : constant String
-           := Ada.Characters.Handling.To_Lower
-                (Argument (3));
       begin
-         if What_Arg = "true" or else What_Arg = "long" then
-            What := Long_Only;
-         elsif What_Arg = "sequence" then
-            What := Sequence_Only;
-            if Argument_Count > 3 then
-               Sequence_Length := Integer'Value
-                 (Argument (4));
-            end if;
-         end if;
+         What := Test_Type'Value (Argument (3));
+      exception
+         when Constraint_Error =>
+            What := All_Tests;
       end;
+
+      case What is
+         when Sequence_Only | UnionSequence_Only =>
+            if Argument_Count > 3 then
+               Sequence_Length := Integer'Value (Argument (4));
+            end if;
+
+         when others =>
+            null;
+      end case;
    end if;
 
    if Argument (1) = "-i" then
@@ -108,7 +117,7 @@ begin
 
    Output ("test not null", not all_types.Is_Nil (Myall_types));
 
-   while Howmany > 0 loop
+   for Iterations in 1 .. Howmany loop
 
       if What = All_Tests or else What = Long_Only then
          declare
@@ -126,10 +135,10 @@ begin
 
       if What = All_Tests or else What = Sequence_Only then
          declare
-            X : U_sequence := U_sequence (IDL_SEQUENCE_short.Null_Sequence);
+            X : U_sequence := To_Sequence (Sequence_Length);
          begin
             for J in 1 .. Sequence_Length loop
-               X := X & CORBA.Short (J);
+               Replace_Element (X, J, CORBA.Short (J));
             end loop;
 
             declare
@@ -140,11 +149,39 @@ begin
                   goto End_Of_Loop;
                end if;
 
-               Output ("test unbounded sequence", Res = X);
+               Output ("test unbounded sequence (length"
+                 & Sequence_Length'Img & ")", Res = X);
             end;
          exception
             when others =>
                Output ("test unbounded sequence", False);
+         end;
+      end if;
+
+      if What = All_Tests or else What = UnionSequence_Only then
+         declare
+            X : UnionSequence := To_Sequence (Sequence_Length);
+         begin
+            for J in 1 .. Sequence_Length loop
+               Replace_Element (X, J, Test_Unions
+                          (Test_Unions'First + J mod Test_Unions'Length));
+            end loop;
+
+            declare
+               Res : constant UnionSequence := echoUnionSequence
+                                                 (Myall_types, X);
+            begin
+               if What = UnionSequence_Only then
+                  pragma Assert (Res = X);
+                  goto End_Of_Loop;
+               end if;
+
+               Output ("test sequence of unions (length"
+                 & Sequence_Length'Img & ")", Res = X);
+            end;
+         exception
+            when others =>
+               Output ("test sequence of unions", False);
          end;
       end if;
 
@@ -295,9 +332,10 @@ begin
       --  Bounded sequences
 
       declare
-         X : B_sequence := B_sequence (IDL_SEQUENCE_10_short.Null_Sequence);
+         X : constant B_sequence :=
+               B_sequence (IDL_SEQUENCE_10_short.To_Sequence
+                 (IDL_SEQUENCE_10_short.Element_Array'(1, 2, 3, 4, 5)));
       begin
-         X := X & 1 & 2 & 3 & 4 & 5;
          Output ("test bounded sequence",  echoBsequence (Myall_types, X) = X);
       exception
          when others =>
@@ -398,10 +436,6 @@ begin
       end;
 
       declare
-         Test_Unions : constant array (Integer range <>) of myUnionEnumSwitch
-           := ((Switch => Red, Foo => 31337),
-               (Switch => Green, Bar => 534),
-               (Switch => Blue, Baz => CORBA.To_CORBA_String ("grümpf")));
          Pass : Boolean;
       begin
          for J in Test_Unions'Range loop
@@ -607,8 +641,12 @@ begin
       Output ("test system exception", Ok);
 
       <<End_Of_Loop>>
-      Howmany := Howmany - 1;
+      null;
    end loop;
+
+   if What /= All_Tests then
+      Output ("test " & What'Img & " iterated" & Howmany'Img & " times", True);
+   end if;
 
    begin
       StopServer (Myall_types);

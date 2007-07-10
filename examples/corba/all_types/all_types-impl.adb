@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -388,12 +388,19 @@ package body all_types.Impl is
 
    function echoBsequence
      (Self : access Object;
-      arg : in B_sequence)
-     return B_sequence
+      arg : in B_sequence) return B_sequence
    is
    begin
       return arg;
    end echoBsequence;
+
+   function echoUnionSequence
+     (Self : access Object;
+      arg : in unionSequence) return unionSequence
+   is
+   begin
+      return arg;
+   end echoUnionSequence;
 
    procedure set_MyColor
      (Self : access Object;

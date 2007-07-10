@@ -127,6 +127,9 @@ interface all_types {
   typedef sequence<short,10> B_sequence;
   B_sequence echoBsequence (in B_sequence arg);
 
+  typedef sequence<myUnionEnumSwitch> unionSequence;
+  unionSequence echoUnionSequence (in unionSequence arg);
+
   // Fixed point
   // -----------
   typedef fixed<18,2> Money;
