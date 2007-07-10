@@ -77,14 +77,6 @@ AC_SUBST(PCSNAME)
 AC_SUBST(PCSFLAGS)
 AC_SUBST(GLADEDIRS)
 #
-# Check for optimization flags
-#
-AC_ARG_WITH(optimization,
-[  --with-optimization=X   Use X as default optimization for gnatdist (O0)],
-[GNATDISTOPT="$withval"],
-[GNATDISTOPT="O0"])
-AC_SUBST(GNATDISTOPT)
-#
 # Check that the GNAT version is recent enough for this version of GLADE
 #
 AM_GNAT_PREREQ(20041007, 3.16)

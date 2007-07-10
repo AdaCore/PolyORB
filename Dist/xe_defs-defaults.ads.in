@@ -22,7 +22,7 @@ package XE_Defs.Defaults is
      "@DEFPROTOCOLNAME@";
 
    Default_Dist_Flags : constant String :=
-     "@GNAT_RTS_FLAG@ -@GNATDISTOPT@";
+     "@GNAT_RTS_FLAG@";
 
    Default_Prefix : constant String :=
      "@prefix@";
