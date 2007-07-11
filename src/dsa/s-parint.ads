@@ -69,6 +69,12 @@ package System.Partition_Interface is
 
    type DSA_Implementation_Name is (No_DSA, GARLIC_DSA, PolyORB_DSA);
    DSA_Implementation : constant DSA_Implementation_Name := PolyORB_DSA;
+   --  Identification of this DSA implementation variant
+
+   PCS_Version : constant := 1;
+   --  Version of the PCS API (for Exp_Dist consistency check).
+   --  This version number is matched against Gnatvsn.PCS_Version_Number to
+   --  ensure that the versions of Exp_Dist and the PCS are consistent.
 
    type Subprogram_Id is new Natural;
    --  This type is used exclusively by stubs
