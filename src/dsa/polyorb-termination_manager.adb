@@ -430,8 +430,9 @@ package body PolyORB.Termination_Manager is
       PolyORB.Initialization.Shutdown_World (Wait_For_Completion => True);
 
    exception
-      when e : others =>
-         pragma Debug (O (Exception_Information (e)));
+      when E : others =>
+         pragma Debug (O ("Termination_Loop: got "
+                            & Exception_Information (E)));
          PolyORB.Initialization.Shutdown_World (Wait_For_Completion => False);
          raise;
    end Termination_Loop;
