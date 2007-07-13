@@ -378,11 +378,10 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
         (Req.Notepad,
          Request_Note'(Annotations.Note with Id => Request_Id));
 
-      Queue_Request_To_Handler
-        (ORB.Tasking_Policy, ORB,
-         Queue_Request'
-         (Request => Req,
-          Requestor => Component_Access (S)));
+      Queue_Request_To_Handler (ORB,
+        Queue_Request'
+          (Request   => Req,
+           Requestor => Component_Access (S)));
 
       Free (Object_Key);
       pragma Debug (O ("Request queued."));

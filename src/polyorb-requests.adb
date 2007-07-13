@@ -167,20 +167,17 @@ package body PolyORB.Requests is
       use PolyORB.Setup;
 
    begin
-      PolyORB.ORB.Queue_Request_To_Handler
-        (The_ORB.Tasking_Policy,
-         The_ORB,
-         Queue_Request'
-         (Request   => Self,
-          Requestor => Self.Requesting_Component));
+      PolyORB.ORB.Queue_Request_To_Handler (The_ORB,
+        Queue_Request'(Request   => Self,
+                       Requestor => Self.Requesting_Component));
 
       --  Execute the ORB until the request is completed
 
       PolyORB.ORB.Run
         (The_ORB,
          Exit_Condition_T'
-         (Condition => Self.Completed'Access,
-          Task_Info => Self.Requesting_Task'Access),
+           (Condition => Self.Completed'Access,
+            Task_Info => Self.Requesting_Task'Access),
          May_Poll => True);
    end Invoke;
 

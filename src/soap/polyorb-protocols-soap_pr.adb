@@ -327,7 +327,7 @@ package body PolyORB.Protocols.SOAP_Pr is
             --  Dummy NamedValue for Create_Request; the actual Result
             --  is set by the called method.
 
-            ORB : constant ORB_Access := ORB_Access (S.Server);
+            The_ORB : constant ORB_Access := ORB_Access (S.Server);
 
             Target : References.Ref;
             Target_Profile : constant Binding_Data.Profile_Access
@@ -345,7 +345,7 @@ package body PolyORB.Protocols.SOAP_Pr is
                  (O ("Path_To_Oid: " & To_Standard_String (Path)));
 
                return PolyORB.Obj_Adapters.Rel_URI_To_Oid
-                 (PolyORB.ORB.Object_Adapter (ORB),
+                 (PolyORB.ORB.Object_Adapter (The_ORB),
                   PolyORB.Types.To_Standard_String (Path));
             end Path_To_Oid;
 
@@ -403,11 +403,10 @@ package body PolyORB.Protocols.SOAP_Pr is
             S.Target := Types.To_PolyORB_String ("");
             S.Entity_Length := Data_Amount;
 
-            PolyORB.ORB.Queue_Request_To_Handler
-              (ORB.Tasking_Policy, ORB,
-               PolyORB.ORB.Iface.Queue_Request'
-               (Request => Req,
-                Requestor => Components.Component_Access (S)));
+            ORB.Queue_Request_To_Handler (The_ORB,
+              ORB.Iface.Queue_Request'
+                (Request   => Req,
+                 Requestor => Components.Component_Access (S)));
          end;
       else
          Process_Reply (S);

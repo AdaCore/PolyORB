@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -186,20 +186,6 @@ package body PolyORB.ORB.Thread_Per_Request is
    begin
       Setup.The_Tasking_Policy := new Thread_Per_Request_Policy;
    end Initialize;
-
-   ------------------------------
-   -- Queue_Request_To_Handler --
-   ------------------------------
-
-   procedure Queue_Request_To_Handler
-     (P   : access Thread_Per_Request_Policy;
-      ORB :        ORB_Access;
-      Msg :        Message'Class)
-   is
-      pragma Unreferenced (P);
-   begin
-      Emit_No_Reply (Component_Access (ORB), Msg);
-   end Queue_Request_To_Handler;
 
    ---------
    -- Run --

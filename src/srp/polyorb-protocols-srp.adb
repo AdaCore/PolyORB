@@ -222,12 +222,11 @@ package body PolyORB.Protocols.SRP is
          (S.Dependent_Binding_Object));
 
       --  Queue the request for execution
-      Queue_Request_To_Handler
-        (ORB.Tasking_Policy,
-         ORB,
-         Queue_Request'
-         (Request   => Req,
-          Requestor => Component_Access (S)));
+
+      Queue_Request_To_Handler (ORB,
+        Queue_Request'
+          (Request   => Req,
+           Requestor => Component_Access (S)));
 
    end Request_Received;
 

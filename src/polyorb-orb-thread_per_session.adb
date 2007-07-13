@@ -39,7 +39,6 @@ with PolyORB.Filters.Iface;
 with PolyORB.Initialization;
 
 with PolyORB.Log;
-with PolyORB.ORB.Iface;
 with PolyORB.Protocols;
 with PolyORB.Setup;
 with PolyORB.Tasking.Condition_Variables;
@@ -53,7 +52,6 @@ package body PolyORB.ORB.Thread_Per_Session is
    use PolyORB.Filters;
    use PolyORB.Filters.Iface;
    use PolyORB.Log;
-   use PolyORB.ORB.Iface;
    use PolyORB.Protocols;
    use PolyORB.Tasking.Condition_Variables;
    use PolyORB.Tasking.Semaphores;
@@ -281,26 +279,6 @@ package body PolyORB.ORB.Thread_Per_Session is
    begin
       Setup.The_Tasking_Policy := new Thread_Per_Session_Policy;
    end Initialize;
-
-   ------------------------------
-   -- Queue_Request_To_Handler --
-   ------------------------------
-
-   procedure Queue_Request_To_Handler
-     (P   : access Thread_Per_Session_Policy;
-      ORB :        ORB_Access;
-      Msg :        Message'Class)
-   is
-      pragma Unreferenced (P);
-   begin
-      if Msg in Iface.Queue_Request then
-         Emit_No_Reply
-           (Component_Access (ORB), Msg);
-      else
-         pragma Debug (O ("Queue Request To Handler"));
-         raise Program_Error;
-      end if;
-   end Queue_Request_To_Handler;
 
    ---------
    -- Run --

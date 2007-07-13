@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -160,23 +160,6 @@ package body PolyORB.ORB.No_Tasking is
       --  application may not go idle, since this would
       --  block the whole system forever.
    end Idle;
-
-   ------------------------------
-   -- Queue_Request_To_Handler --
-   ------------------------------
-
-   procedure Queue_Request_To_Handler
-     (P   : access No_Tasking;
-      ORB :        ORB_Access;
-      Msg :        Message'Class)
-   is
-      pragma Warnings (Off);
-      pragma Unreferenced (P);
-      pragma Warnings (On);
-
-   begin
-      Emit_No_Reply (Component_Access (ORB), Msg);
-   end Queue_Request_To_Handler;
 
    ----------------
    -- Initialize --

@@ -263,14 +263,13 @@ package body PolyORB.Protocols.Echo is
                Result    => Result,
                Req       => Req);
 
-            Queue_Request_To_Handler
-              (ORB.Tasking_Policy,
-               ORB,
-               Queue_Request'(Request   => Req,
-                              Requestor => Component_Access (S)));
-            --  This request is submitted to the ORB by internal
-            --  activity, not by a transient task lent by the
-            --  application. Requesting_Task is therefore null.
+            --  This request is submitted to the ORB by internal activity,
+            --  not by a transient task lent by the application:
+            --  set Requesting_Task to null.
+
+            Queue_Request_To_Handler (ORB,
+              Queue_Request'(Request   => Req,
+                             Requestor => Component_Access (S)));
 
          exception
             when E : others =>

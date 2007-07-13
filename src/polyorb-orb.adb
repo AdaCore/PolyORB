@@ -1262,14 +1262,6 @@ package body PolyORB.ORB is
 
             Req.Completed := True;
 
-            --  XXX The correctness of the following is not
-            --  completely determined.
-            --  Is this mutitask-safe????
-
-            --  As of 20021122, the answer is NO.
-            --  Run evoluted DSA tests with -n 2 -c 100 -s 1
-            --  and Thread_Pool server.
-
             pragma Debug (O ("Request completed."));
             if Req.Requesting_Task /= null then
 
@@ -1410,6 +1402,18 @@ package body PolyORB.ORB is
       Setup.The_ORB := new ORB_Type (Setup.The_Tasking_Policy, The_Controller);
       Create (Setup.The_ORB.all);
    end Initialize;
+
+   ------------------------------
+   -- Queue_Request_To_Handler --
+   ------------------------------
+
+   procedure Queue_Request_To_Handler
+     (ORB : access ORB_Type;
+      Msg : Message'Class) is
+   begin
+      pragma Assert (Msg in Iface.Queue_Request);
+      Emit_No_Reply (Component_Access (ORB), Msg);
+   end Queue_Request_To_Handler;
 
    ---------------------
    -- Shutdown Module --

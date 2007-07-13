@@ -308,12 +308,10 @@ package body PolyORB.Servants.Group_Servants is
 
             --  Requeue request to ORB
 
-            Queue_Request_To_Handler
-              (The_ORB.Tasking_Policy, The_ORB,
-               Queue_Request'
-               (Request => Req,
-                Requestor =>
-                  PolyORB.Components.Component_Access (Self)));
+            Queue_Request_To_Handler (The_ORB,
+              Queue_Request'
+                (Request   => Req,
+                 Requestor => PolyORB.Components.Component_Access (Self)));
 
             pragma Debug (O ("Request sent"));
             TPL.Next (It);

@@ -159,17 +159,6 @@ package PolyORB.ORB is
    --  idling, and re-assert it before Idle returns.
    --  This_Task holds information on this waiting task.
 
-   procedure Queue_Request_To_Handler
-     (P   : access Tasking_Policy_Type;
-      ORB :        ORB_Access;
-      Msg :        PolyORB.Components.Message'Class)
-      is abstract;
-   --  Assign the handling of a Request (i.e. an upcall to
-   --  an application object) to the appropriate task.
-   --  XXX It looks like this is implemented in exactly identical terms
-   --  by all existing ORB tasking policies (as of 20021212). This should
-   --  be removed from the TP interface.
-
    ------------------------------
    -- Server object operations --
    ------------------------------
@@ -184,6 +173,12 @@ package PolyORB.ORB is
 
    procedure Create (ORB : in out ORB_Type);
    --  Initialize a newly-allocated ORB object.
+
+   procedure Queue_Request_To_Handler
+     (ORB : access ORB_Type;
+      Msg : PolyORB.Components.Message'Class);
+   --  Assign the handling of a Request (i.e. an upcall to an application
+   --  objec) to the appropriate task.
 
    function Find_Reusable_Binding_Object
      (ORB : access ORB_Type;
