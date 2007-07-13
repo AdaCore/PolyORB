@@ -232,10 +232,13 @@ package body all_types.Impl is
 
    function echoColor
      (Self : access Object;
-      arg  : in Color)
-      return Color is
+      arg  : in Color) return Color is
    begin
-      Ada.Text_IO.Put_Line ("echoColor: " & arg'Img);
+      if Arg'Valid then
+         Ada.Text_IO.Put_Line ("echoColor: " & arg'Img);
+      else
+         Ada.Text_IO.Put_Line ("echoColor: <invalid representation>");
+      end if;
       return arg;
    end echoColor;
 
