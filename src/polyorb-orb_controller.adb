@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -79,7 +79,7 @@ package body PolyORB.ORB_Controller is
    is
       use PolyORB.Tasking.Threads;
    begin
-      pragma Debug (O1 ("Is_Locally_Terminated: " & Status (O)));
+      pragma Debug (O2 ("Is_Locally_Terminated: " & Status (O)));
 
       if O.Transient_Tasks > 0
         or else O.Counters (Running) > Expected_Running_Tasks
