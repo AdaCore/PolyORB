@@ -292,10 +292,20 @@ package body PolyORB.Termination_Manager is
    is
       Result : Boolean;
    begin
-      Enter_ORB_Critical_Section (The_ORB.ORB_Controller);
-      Result := Is_Locally_Terminated (The_ORB.ORB_Controller,
+      --  Theoretically we should just test Is_Locally_Terminated once.
+      --  However in some cases the I/O task that received the message
+      --  for a wave might still be running (about to be rescheduled)
+      --  at the first try, so we wait a tiny bit and check again if
+      --  at first we don't get a positive result.
+
+      for J in 1 .. 3 loop
+         Enter_ORB_Critical_Section (The_ORB.ORB_Controller);
+         Result := Is_Locally_Terminated (The_ORB.ORB_Controller,
                                        Expected_Running_Tasks);
-      Leave_ORB_Critical_Section (The_ORB.ORB_Controller);
+         Leave_ORB_Critical_Section (The_ORB.ORB_Controller);
+         exit when Result;
+         Relative_Delay (The_TM.Time_Between_Waves);
+      end loop;
 
       return Result;
    end Is_Locally_Terminated;
@@ -341,6 +351,9 @@ package body PolyORB.Termination_Manager is
       end if;
 
       --  If node is not locally terminated or active, return False
+
+      pragma Debug (O ("Expect" & Non_Terminating_Tasks'Img
+        & " remaining tasks"));
 
       if not Is_Locally_Terminated (Non_Terminating_Tasks) then
          pragma
