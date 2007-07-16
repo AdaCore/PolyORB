@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -38,7 +38,7 @@
 
 --  Some terminology issues:
 --  in this package, and in its profile-specific implementations,
---  a task designate the common abstraction of processors as provided
+--  a task designates the common abstraction of processors as provided
 --  by the Ada 95 language.
 --  A Thread will only denote the type defined in this package,
 --  which is only a container for the parameters of the task.
@@ -107,11 +107,10 @@ package PolyORB.Tasking.Threads is
 
    type Thread_Type is abstract tagged limited null record;
    --  This type is a task proxy. It should be given to a task creation
-   --  procedure, so that its main procedure will be runned in a
-   --  different task.  The difference between a Runnable and a Thread
-   --  is that a thread has some informations about the scheduling,
-   --  such as its priority.
-   --  This type is derived by each concrete tasking profile.
+   --  procedure, so that its main procedure will be run in a different task.
+   --  The difference between a Runnable and a Thread is that a thread has some
+   --  information about the scheduling, such as its priority.  This type is
+   --  derived by each concrete tasking profile.
 
    type Thread_Access is access all Thread_Type'Class;
 
@@ -133,6 +132,9 @@ package PolyORB.Tasking.Threads is
 
    procedure Create_Task
      (Main : Parameterless_Procedure);
+   --  Call Run_In_Task with the Thread_Factory object registered in this
+   --  package, to run the code in Main, with other parameters
+   --  defaulted. The resulting Thread_Access is discarded.
 
    function Run_In_Task
      (TF               : access Thread_Factory_Type;
@@ -199,20 +201,21 @@ package PolyORB.Tasking.Threads is
    procedure Register_Thread_Factory
      (TF : Thread_Factory_Access);
    --  Register the factory corresponding to the chosen tasking profile.
+   --  Must be called exactly once per partition.
 
    procedure Set_Priority
      (TF : access Thread_Factory_Type;
       T  :        Thread_Id;
       P  :        System.Any_Priority) is abstract;
    --  Change the priority of the task T. Raise Tasking_Error if it is not
-   --  permitted by tasking profile in use.
+   --  permitted by the tasking profile in use.
 
    function Get_Priority
      (TF : access Thread_Factory_Type;
       T  :        Thread_Id)
      return System.Any_Priority is abstract;
    --  Return the priority of the task T. Raise Tasking_Error if it is not
-   --  permitted by tasking profile in use.
+   --  permitted by the tasking profile in use.
 
    procedure Relative_Delay (D : Duration);
    procedure Relative_Delay

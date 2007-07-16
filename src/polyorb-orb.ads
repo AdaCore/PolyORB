@@ -313,7 +313,7 @@ private
    --------------------------------------------
 
    procedure Run (J : access Request_Job);
-   --  Overload the abstract Run primitive for Job:
+   --  Override the abstract Run primitive for Job:
    --  dispatch through ORB's tasking policy.
 
    procedure Run_Request (J : access Request_Job);

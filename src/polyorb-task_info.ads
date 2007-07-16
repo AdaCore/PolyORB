@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -86,24 +86,24 @@ package PolyORB.Task_Info is
      (TI       : in out Task_Info;
       Selector :        Asynch_Ev.Asynch_Ev_Monitor_Access;
       Timeout  :        Duration);
-   --  The task refereed by TI will be blocked on Selector for Timeout seconds
+   --  The task referred by TI will be blocked on Selector for Timeout seconds
 
    procedure Set_State_Idle
      (TI        : in out Task_Info;
       Condition :        PTCV.Condition_Access;
       Mutex     :        PTM.Mutex_Access);
-   --  The task refereed by TI will go Idle;
+   --  The task referred by TI will go Idle;
    --  signaling condition variable Condition will awake it.
 
    procedure Set_State_Running (TI : in out Task_Info; Job : Jobs.Job_Access);
-   --  The task refereed by TI is now in Running state, and will execute Job;
+   --  The task referred by TI is now in Running state, and will execute Job;
    --  this procedure resets Selector or Condition it was blocked on.
 
    procedure Set_State_Unscheduled (TI : in out Task_Info);
-   --  The task refereed by TI is now unaffected.
+   --  The task referred by TI is now unaffected.
 
    procedure Set_State_Terminated (TI : in out Task_Info);
-   --  The task refereed by TI has terminated its job.
+   --  The task referred by TI has terminated its job.
 
    function State (TI : Task_Info) return Task_State;
    --  Return the state of the task referred by TI
@@ -170,12 +170,12 @@ package PolyORB.Task_Info is
 
 private
 
-   type Task_Info (Kind : Task_Kind) is record
+   type Task_Info (Kind : Task_Kind) is limited record
 
-      Id        : PolyORB.Tasking.Threads.Thread_Id;
+      Id : PolyORB.Tasking.Threads.Thread_Id;
       --  Task referred by Task_Info record
 
-      State    : Task_State := Unscheduled;
+      State : Task_State := Unscheduled;
       --  Current Task status
 
       May_Poll : Boolean := False;
