@@ -2716,10 +2716,10 @@ Threadpool #2. Note that both policies are optional and can be omitted.
 @c -------------------------------------------------------------------
 
 @noindent
-This section assumes the reader is familiar with annex E of the
-Ada 95 Reference Manual @cite{[ISO95]}. To build DSA applications
-with PolyORB you will use a tool named @command{po_gnatdist}. This tool is
-documented in the GLADE's User Guide @cite{[gla06]}. 
+This section assumes the reader is familiar with annex E of the Ada 95
+Reference Manual @cite{[ISO95]}. To build DSA applications with
+PolyORB you will use a tool named @command{po_gnatdist}. This tool is
+documented in the GLADE's User Guide @cite{[gla06]}.
 
 @c -------------------------------------------------------------------
 @node Installing DSA application personality
@@ -2736,10 +2736,10 @@ application personality. To build the DSA application personality,
 @section A small example of a DSA application
 @c -------------------------------------------------------------------
 
-In this section we will write a really simple client-server application
-using PolyORB DSA. The server will provide a @code{Remote Call Interface}
-composed of a single @code{Echo_String} function that will take a String 
-and return it to the caller.
+In this section we will write a really simple client-server
+application using PolyORB DSA. The server will provide a @code{Remote
+Call Interface} composed of a single @code{Echo_String} function that
+will take a String and return it to the caller.
 
 Here is the code for the server:
 
@@ -2775,10 +2775,10 @@ yourself to the Ada 95 Reference Manual @cite{[ISO95]}.
 @c -------------------------------------------------------------------
 
 @noindent
-The preferred way to build distributed application is using @command{po_gnatdist}.
-@command{po_gnatdist} is a tool that provides a configuration language, allowing
-the user to partition his program and specify various parameters for
-each partition.
+The preferred way to build distributed application is using
+@command{po_gnatdist}.  @command{po_gnatdist} is a tool that provides
+a configuration language, allowing the user to partition his program
+and specify various parameters for each partition.
 
 @c -------------------------------------------------------------------
 @node Installing po_gnatdist
@@ -2786,8 +2786,8 @@ each partition.
 @c -------------------------------------------------------------------
 
 @noindent
-@command{po_gnatdist} is built and installed as part of your PolyORB installation
-provided the DSA personality is enabled.
+@command{po_gnatdist} is built and installed as part of your PolyORB
+installation provided the DSA personality is enabled.
 
 @c -------------------------------------------------------------------
 @node Using po_gnatdist with PolyORB
@@ -2795,10 +2795,11 @@ provided the DSA personality is enabled.
 @c -------------------------------------------------------------------
 
 @noindent
-For extensive documentation on the configuration language of @command{po_gnatdist}
-and usage of the @command{po_gnatdist} command, please report yourself to the
-GLADE User Guide. In this section we will only explain basic usage
-of @command{po_gnatdist} to compile the Echo example.
+For extensive documentation on the configuration language of
+@command{po_gnatdist} and usage of the @command{po_gnatdist} command,
+please report yourself to the GLADE User Guide. In this section we
+will only explain basic usage of @command{po_gnatdist} to compile the
+Echo example.
 
 First we need to describe how we want to partition our application.
 For this we will create a @command{po_gnatdist} configuration file
@@ -2818,18 +2819,20 @@ Now we are ready to build our distributed application with the command:
 @section Running a DSA application
 @c -------------------------------------------------------------------
 
-By default @command{po_gnatdist} will use the Ada starter. So if you have not specified
-@code{pragma Starter (None);} in the @command{po_gnatdist} configuration file, you should
-have a starter in your build dir, named after your configuration file.
-In this case you just have to run this program.
+By default @command{po_gnatdist} will use the Ada starter. So if you
+have not specified @code{pragma Starter (None);} in the
+@command{po_gnatdist} configuration file, you should have a starter in
+your build dir, named after your configuration file.  In this case you
+just have to run this program.
 
-If you don't want to use the Starter and have specified
-@code{pragma Starter (None);} in your configuration file, then you should
-have, in your Partition'Directory, one binary for each of your partitions.
+If you don't want to use the Starter and have specified @code{pragma
+Starter (None);} in your configuration file, then you should have, in
+your Partition'Directory, one binary for each of your partitions.
 You'll have to start each of these programs manually.
 
 In both cases you must specify a name server for your application.
-You can use for example the one included in PolyORB: @file{po_cos_naming}.
+You can use for example the one included in PolyORB:
+@file{po_cos_naming}.
 
 Just ensure that you set the global environment variable
 @code{POLYORB_DSA_NAME_SERVICE} to an IOR URI referencing the
