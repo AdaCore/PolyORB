@@ -541,7 +541,8 @@ Ada compiler:
 @end itemize
 
 For builds for cross targets, both a native and a cross compiler are
-required, as some tools (idlac...) are meant for use on the build host.
+required, as some tools (like an IDL-to-Ada compiler) are meant for
+use on the build host.
 
 Optional: 
 
@@ -685,10 +686,10 @@ guess at what compilers to use:
 @item @code{CC}:  the C compiler
 @item @code{ADA}: the Ada 95 compiler (e.g. gcc, gnatgcc or adagcc)
 @item @code{CXXCPP}, @code{CXXCPPFLAGS}: the preprocessor used by
-idlac (only when setting up the CORBA application personality). CORBA
-specifications require this preprocessor to be compatible with the
-preprocessing rules defined in the @i{C++} programming language
-specifications.
+the IDL-to-Ada compiler (only when setting up the CORBA application
+personality). CORBA specifications require this preprocessor to be
+compatible with the preprocessing rules defined in the @i{C++}
+programming language specifications.
 
 @end itemize
 
@@ -1598,7 +1599,7 @@ Controllers.
 @menu
 * What you should know before Reading this section::
 * Installing CORBA application personality::
-* Usage of idlac::
+* IDL-to-Ada compiler::
 * Resolving names in a CORBA application::
 * The CORBA Interface Repository::
 * Building a CORBA application with PolyORB::
@@ -1631,8 +1632,27 @@ for more details on how to check installed personalities.
 To build the CORBA application personality, @pxref{Installation}.
 
 @c -------------------------------------------------------------------
+@node IDL-to-Ada compiler
+@section IDL-to-Ada compiler
+@c -------------------------------------------------------------------
+
+@noindent
+PolyORB provides two IDL-to-Ada compilers:
+
+@enumerate
+@item @command{idlac} is the legacy PolyORB IDL-to-Ada compiler,
+@item @command{iac} is the new, optimized IDL-to-Ada compiler.
+@end enumerate
+
+@menu
+* Usage of idlac::              
+* Usage of iac::              
+* Difference between idlac and iac::
+@end menu
+
+@c -------------------------------------------------------------------
 @node Usage of idlac
-@section Usage of @command{idlac}
+@subsection Usage of @command{idlac}
 @cindex @command{idlac}
 @c -------------------------------------------------------------------
 
@@ -1728,6 +1748,147 @@ EXIT STATUS
   Repository. They are generated only if the @code{'-ir'} flag is specified.
 
 
+@end itemize
+
+@c -------------------------------------------------------------------
+@node Usage of iac
+@subsection Usage of @command{iac}
+@cindex @command{iac}
+@c -------------------------------------------------------------------
+
+@noindent
+@command{iac} is new PolyORB's IDL-to-Ada 95 compiler. It support
+many command line parameters to control code generation optimizations
+like use of static hashing for deterministic request dispatching, or
+optimized GIOP marshalling for CORBA applications.
+
+@smallexample
+
+@c XXX check consistency with corresponding man page
+
+NAME
+       iac - PolyORB's IDL-to-Ada compiler
+
+SYNOPSIS
+       iac [-Edikpqv] [-[no]ir] [-gnatW8] [-o DIR] idl_file [-cppargs ...]
+
+DESCRIPTION
+       iac is an IDL-to-Ada compiler, compliant with version 1.2 of the "Ada
+       Language Mapping Specification" produced by the OMG.
+
+OPTIONS
+       iac accepts the following options:
+
+  -E       Preprocess only
+  -k       Keep temporary files
+  -p       Produce source on standard output
+  -o DIR   Specify output directory (DIR must exist)
+
+  -dm      Generate debug messages when analyzing scopes
+
+  -df      Dump the frontend tree (the IDL tree)
+
+  -cppargs Pass arguments to the C++ preprocessor
+  -I <dir> Shortcut -cppargs -I directory. Use this flag
+           for the imported entities
+
+  -<lang>  Generate code for a supported language
+
+   types   Generate a list of all types present in the IDL file
+           -p       Print the list generate
+
+   ada     Generate Ada source code
+           -i       Generate implementation packages
+           -c       Generate code for client side only
+           -s       Generate code for server side only
+           -d       Generate delegation package (defunct)
+           -ir      Generate code for interface repository (defunct)
+           -noir    Do not generate code for interface repository (default)
+           -hc      Using perfect minimal hash tables in skeletons
+                    and minimize CPU time
+           -hm      Using perfect minimal hash tables in skeletons
+                    and minimize memory space
+           -rs      Use the SII/SSI to handle requests
+           -rd      Use the DII/DSI to handle requests (default)
+           -da      Dump the Ada tree
+           -db      Generate only the package bodies
+           -ds      Generate only the package specs
+           -dw      Output the withed entities
+           -dt      Output tree warnings
+           -di      Generate code for imported entities
+
+   idl     Dump parsed IDL file
+           -b n     Base to output integer literal
+                    As a default (zero) use base from input
+           -e       Expand IDL Tree
+           -df      Dump IDL Tree (may be used in conjunction with -e
+                    to dump the expanded IDL tree)
+           -di      Output IDL code of imported entities  (may be
+                    used in conjunction with -e to output the
+                    expanded IDL code)
+
+EXIT STATUS
+       iac returns one of the following values upon exit:
+
+       0      Successful completion
+
+       1      Usage error
+
+       2      Illegal IDL specification
+
+@end smallexample
+
+@noindent
+@command{iac} creates several files :
+
+
+@itemize @bullet
+
+@item  @code{myinterface.ads}, @code{myinterface.adb} : these files contain 
+  the mapping for user defined types (client and server side).
+
+@item @code{myinterface-impl.ads}, @code{myinterface-impl.adb} : 
+  these files are to be filled by the user. They contain the
+implementation of the server. They are generated only if the -i flag
+is specified.
+
+@item @code{myinterface.ads}, @code{myinterface.adb} : these files
+  contain the client stubs for the interface.
+
+@item @code{myinterface-skel.ads}, @code{myinterface-skel.adb} : these files
+  contain the server-side skeletons for the interface.
+
+@item @code{myinterface-helper.ads}, @code{myinterface-helper.adb} : these 
+  files contain subprograms to marshal data into CORBA Any containers.
+
+@item @code{myinterface-ir_info.ads}, @code{myinterface-ir_info.adb} : these
+  files contain code for registering IDL definitions in the CORBA
+Interface Repository. They are generated only if the @code{'-ir'} flag
+is specified.
+
+@item @code{myinterface-cdr.ads}, @code{myinterface-cdr.adb} : these
+  files contain code for optimized CDR marshalling of GIOP
+messages. They are generated only if the @code{'-rs'} flag is
+specified.
+
+@end itemize
+
+@c -------------------------------------------------------------------
+@node Difference between idlac and iac
+@subsection Difference between idlac and iac
+@c -------------------------------------------------------------------
+
+@noindent
+This section lists main differences between @command{idlac} and @command{iac} 
+
+@itemize
+@item @command{iac} is backward compatible with @command{idlac}, but
+lacks the following features: 
+@enumerate
+@item generation of @code{ir_info} files for using the CORBA interface
+repository;
+@item generation of delegation files.
+@end enumerate
 @end itemize
 
 @c -------------------------------------------------------------------
@@ -1844,9 +2005,9 @@ personality preferences} for more details.
 @c -------------------------------------------------------------------
 
 @noindent
-@code{idlac} generates a helper package that allows you to register
-all entities defined in your IDL specification in the Interface
-Repository.
+The IDL-to-Ada compiler generates a helper package that allows you to
+register all entities defined in your IDL specification in the
+Interface Repository.
 
 @c -------------------------------------------------------------------
 @node Building a CORBA application with PolyORB
@@ -1939,7 +2100,7 @@ interaction with other nodes.
 @noindent
 To compile this demo, 
 @enumerate
-@item Process the IDL file with @code{idlac}
+@item Process the IDL file with @command{idlac} (or @command{iac})
 @smallexample
  $ idlac echo.idl
 @end smallexample
@@ -2339,10 +2500,11 @@ You have two ways to register the reference to the CORBA Policy Domain
 Manager the application will use:
 
 @itemize @bullet
-@item Setting up the @code{policy_domaing_manager} entry in the @code{[corba]}
-section in your configuration file, @code{policy_domaing_manager} is
-the @code{IOR} or @code{corbaloc} of the COS Naming server to use. See
-@ref{Using a configuration file} for more details.
+@item Setting up the @code{policy_domaing_manager} entry in the 
+@code{[corba]} section in your configuration file,
+@code{policy_domaing_manager} is the @code{IOR} or @code{corbaloc} of
+the COS Naming server to use. See @ref{Using a configuration file} for
+more details.
 
 @item Registering an initial reference using the @code{-ORB InitRef
 PolyORBPolicyDomainManager=<IOR>} or @code{-ORB InitRef
@@ -2370,9 +2532,10 @@ defined in the IDL-to-Ada mapping) to provide accessors to retrieve
 information on the exception.
 
 In addition, for each exception defined in a user-defined IDL
-specification, @file{idlac} will generate a @code{Raise_<excp_name>}
-function in the Helper package. It is a utility function that raises
-the exception @code{<excp_name>}, along with its exception member.
+specification, the IDL-to-Ada compiler will generate a
+@code{Raise_<excp_name>} function in the Helper package. It is a
+utility function that raises the exception @code{<excp_name>}, along
+with its exception member.
 
 @c -------------------------------------------------------------------
 @node Additional information to CORBA_Unknown
@@ -4082,6 +4245,7 @@ PolyORB does not support this optional chapter.
 @noindent
 @i{The documentation of the SOAP standards conformance of PolyORB will
 appear in a future revision of PolyORB.}
+
 
 @c -------------------------------------------------------------------
 @node References
