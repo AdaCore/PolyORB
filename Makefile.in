@@ -199,7 +199,7 @@ build-iac \
 build-po_gnatdist \
 \
 : build-%:
-	cd compilers/${compiler_dir} ; \
+	cd compilers/${compiler_dir} && \
 	  ${GNATMAKE} -m \
 	   $* \
 	   -gnat05 \
@@ -268,10 +268,10 @@ GEN_HTTP_BODY = ${top_srcdir}/src/soap/gen_http_body
 
 #???.exe suffix : gnatprfh.exe?
 src/soap/polyorb-http_methods.adb: ${GEN_HTTP_BODY} compilers/gnatprfh/gnatprfh ${top_srcdir}/src/soap/polyorb-http_methods.ads
-	cd src/soap ; ${GEN_HTTP_BODY} ${GNATPRFH} ${top_srcdir}/src/soap Method
+	cd src/soap && ${GEN_HTTP_BODY} ${GNATPRFH} ${top_srcdir}/src/soap Method
 
 src/soap/polyorb-http_headers.adb: ${GEN_HTTP_BODY} compilers/gnatprfh/gnatprfh ${top_srcdir}/src/soap/polyorb-http_headers.ads
-	cd src/soap ; ${GEN_HTTP_BODY} ${GNATPRFH} ${top_srcdir}/src/soap Header
+	cd src/soap && ${GEN_HTTP_BODY} ${GNATPRFH} ${top_srcdir}/src/soap Header
 
 #???What about perfect_hash.ad[sb]?
 
@@ -282,21 +282,21 @@ src/soap/polyorb-http_headers.adb: ${GEN_HTTP_BODY} compilers/gnatprfh/gnatprfh 
 GEN_CODESET = src/giop/gen_codeset
 
 build-gen_codeset:
-	cd src/giop ; \
+	cd src/giop && \
 	  ${GNATMAKE} gen_codeset -I${top_srcdir}/src/giop ${GNATMAKE_FLAGS}
 
 src/giop/polyorb-giop_p-code_sets-data.ads-stamp: ${top_srcdir}/src/giop/cs_registry1.2h ${GEN_CODESET}
-	cd src/giop ; ./gen_codeset -c "PolyORB.GIOP_P.Code_Sets.Data" \
+	cd src/giop && ./gen_codeset -c "PolyORB.GIOP_P.Code_Sets.Data" \
 	  polyorb-giop_p-code_sets-data.ads.new \
 	  < $<
-	cd src/giop ; ${MOVEIFCHANGE} polyorb-giop_p-code_sets-data.ads.new polyorb-giop_p-code_sets-data.ads
+	cd src/giop && ${MOVEIFCHANGE} polyorb-giop_p-code_sets-data.ads.new polyorb-giop_p-code_sets-data.ads
 	touch src/giop/polyorb-giop_p-code_sets-data.ads-stamp
 
 tools/po_catref/polyorb-giop_p-code_sets-description_data.ads-stamp: ${top_srcdir}/src/giop/cs_registry1.2h ${GEN_CODESET} Makefile
-	cd tools/po_catref ; ${top_builddir}/${GEN_CODESET} -d "PolyORB.GIOP_P.Code_Sets.Description_Data" \
+	cd tools/po_catref && ${top_builddir}/${GEN_CODESET} -d "PolyORB.GIOP_P.Code_Sets.Description_Data" \
 	  polyorb-giop_p-code_sets-description_data.ads.new \
 	  < $<
-	cd tools/po_catref ; ${MOVEIFCHANGE} polyorb-giop_p-code_sets-description_data.ads.new polyorb-giop_p-code_sets-description_data.ads
+	cd tools/po_catref && ${MOVEIFCHANGE} polyorb-giop_p-code_sets-description_data.ads.new polyorb-giop_p-code_sets-description_data.ads
 	touch tools/po_catref/polyorb-giop_p-code_sets-description_data.ads-stamp
 
 ################################################################
@@ -355,7 +355,7 @@ polyorb-idl-stamps: build-@IDLAC@ ${polyorb_idl_stamps} cos/ir/orb.idl-stamp
 #???What is the following all about?  Why does it "chmod" and "rm"?
 cos/ir/orb.idl-stamp: ${top_srcdir}/idls/CORBA_IDL/orb.idl ${top_srcdir}/idls/CORBA_IDL/CORBA_InterfaceRepository.idl ${top_srcdir}/idls/CORBA_IDL/CORBA_TypeCode.idl ${IDLAC_bin} ${IDLAC_WRAPPER}
 	@chmod a+x ${IDLAC_WRAPPER}
-	cd ${dir $@} ; ${idlac} $<
+	cd ${dir $@} && ${idlac} $<
 	${RM} cos/ir/corba-repository_root.ads
 	touch $@
 
@@ -702,44 +702,54 @@ examples: ${active_examples}
 # as a target-specific variable.
 
 ${idls_idl_stamps}: %.idl-stamp: ${top_srcdir}/idls/%.idl
-	cd ${dir $@} ; ${idlac} ${idlac_flags} $<
+	mkdir -p ${dir $@}
+	cd ${dir $@} && ${idlac} ${idlac_flags} $<
 	touch $@
 
 ${interop_corba_idl_stamps}: src/corba/%.idl-stamp: ${top_srcdir}/idls/Interop/%.idl
-	cd ${dir $@} ; ${idlac} ${idlac_flags} $<
+	mkdir -p ${dir $@}
+	cd ${dir $@} && ${idlac} ${idlac_flags} $<
 	touch $@
 
 ${interop_corba_iop_idl_stamps}: src/corba/iop/%.idl-stamp: ${top_srcdir}/idls/Interop/%.idl
-	cd ${dir $@} ; ${idlac} ${idlac_flags} $<
+	mkdir -p ${dir $@}
+	cd ${dir $@} && ${idlac} ${idlac_flags} $<
 	touch $@
 
 ${interop_corba_security_idl_stamps}: src/corba/security/%.idl-stamp: ${top_srcdir}/idls/Interop/%.idl
-	cd ${dir $@} ; ${idlac} ${idlac_flags} $<
+	mkdir -p ${dir $@}
+	cd ${dir $@} && ${idlac} ${idlac_flags} $<
 	touch $@
 
 ${interop_corba_security_gssup_idl_stamps}: src/corba/security/gssup/%.idl-stamp: ${top_srcdir}/idls/Interop/%.idl
-	cd ${dir $@} ; ${idlac} ${idlac_flags} $<
+	mkdir -p ${dir $@}
+	cd ${dir $@} && ${idlac} ${idlac_flags} $<
 	touch $@
 
 ${misc_corba_dynamicany_idl_stamps}: src/corba/dynamicany/%.idl-stamp: ${top_srcdir}/idls/Misc/%.idl
-	cd ${dir $@} ; ${idlac} ${idlac_flags} $<
+	mkdir -p ${dir $@}
+	cd ${dir $@} && ${idlac} ${idlac_flags} $<
 	touch $@
 
 ${misc_corba_messaging_idl_stamps}: src/corba/messaging/%.idl-stamp: ${top_srcdir}/idls/Misc/%.idl
-	cd ${dir $@} ; ${idlac} ${idlac_flags} $<
+	mkdir -p ${dir $@}
+	cd ${dir $@} && ${idlac} ${idlac_flags} $<
 	touch $@
 
 ${misc_corba_portableinterceptor_idl_stamps}: src/corba/portableinterceptor/%.idl-stamp: ${top_srcdir}/idls/Misc/%.idl
-	cd ${dir $@} ; ${idlac} ${idlac_flags} $<
+	mkdir -p ${dir $@}
+	cd ${dir $@} && ${idlac} ${idlac_flags} $<
 	touch $@
 
 ${rtcorba_corba_rtcorba_idl_stamps}: src/corba/rtcorba/%.idl-stamp: ${top_srcdir}/idls/RTCORBA/%.idl
-	cd ${dir $@} ; ${idlac} ${idlac_flags} $<
+	mkdir -p ${dir $@}
+	cd ${dir $@} && ${idlac} ${idlac_flags} $<
 	touch $@
 
 
 ${self_idl_stamps}: %.idl-stamp: ${top_srcdir}/%.idl
-	cd ${dir $@} ; ${idlac} ${idlac_flags} $<
+	mkdir -p ${dir $@}
+	cd ${dir $@} && ${idlac} ${idlac_flags} $<
 	touch $@
 
 ${all_idl_stamps}: ${IDLAC_bin} ${IDLAC_WRAPPER}
