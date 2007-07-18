@@ -93,7 +93,7 @@ package PolyORB.Task_Info is
       Condition :        PTCV.Condition_Access;
       Mutex     :        PTM.Mutex_Access);
    --  The task referred by TI will go Idle;
-   --  signaling condition variable Condition will awake it.
+   --  signalling condition variable Condition will awake it.
 
    procedure Set_State_Running (TI : in out Task_Info; Job : Jobs.Job_Access);
    --  The task referred by TI is now in Running state, and will execute Job;
