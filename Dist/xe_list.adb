@@ -365,33 +365,32 @@ package body XE_List is
          Img : String_Access renames Image (T);
 
       begin
-         if T in T_No_ALI .. T_Flags then
-            for J in 1 .. N loop
-               Write_Str ("   ");
-            end loop;
+         case T is
+            when T_No_ALI .. T_Flags =>
+               for J in 1 .. N loop
+                  Write_Str ("   ");
+               end loop;
 
-            Write_Str (Img.all);
+               Write_Str (Img.all);
 
-            for J in Img'Length .. 12 loop
+               for J in Img'Length .. 12 loop
+                  Write_Char (' ');
+               end loop;
+
+               Write_Str ("=>");
+
+               if T in T_Source .. T_Name then
+                  Write_Char (' ');
+               end if;
+
+            when T_Preelaborated .. T_Body =>
                Write_Char (' ');
-            end loop;
+               Write_Str  (Img.all);
 
-            Write_Str ("=>");
+            when others =>
+               Write_Str  (Img.all);
 
-            if T in T_No_ALI .. T_With then
-               null;
-
-            elsif T in T_Source .. T_Name then
-               Write_Char (' ');
-            end if;
-
-         elsif T in T_Preelaborated .. T_Body then
-            Write_Char (' ');
-            Write_Str  (Img.all);
-
-         else
-            Write_Str  (Img.all);
-         end if;
+         end case;
       end Write_Token;
 
    begin
