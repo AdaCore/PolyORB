@@ -112,17 +112,18 @@ package body PolyORB.Representations.SRP is
       function Base64 (E : Stream_Element) return Character is
          V : constant Natural := Natural (E);
       begin
-         if V in 0 .. 25 then
-            return Character'Val (V + Character'Pos ('A'));
-         elsif V in 26 .. 51 then
-            return Character'Val (V - 26 + Character'Pos ('a'));
-         elsif V in 52 .. 61 then
-            return Character'Val (V - 52 + Character'Pos ('0'));
-         elsif V = 62 then
-            return '+';
-         else
-            return '/';
-         end if;
+         case V is
+            when 0 .. 25 =>
+               return Character'Val (V + Character'Pos ('A'));
+            when 26 .. 51 =>
+               return Character'Val (V - 26 + Character'Pos ('a'));
+            when 52 .. 61 =>
+               return Character'Val (V - 52 + Character'Pos ('0'));
+            when 62 =>
+               return '+';
+            when others =>
+               return '/';
+         end case;
       end Base64;
 
    begin

@@ -435,8 +435,7 @@ package body PolyORB.POA is
    -- Destroy_OA --
    ----------------
 
-   procedure Destroy_OA
-     (OA : in out Obj_Adapter_Access)
+   procedure Destroy_OA (OA : Obj_Adapter_Access)
    is
       use PolyORB.Object_Maps;
 
@@ -779,11 +778,7 @@ package body PolyORB.POA is
 
       --  Destroy POA components
 
-      declare
-         OA : Obj_Adapter_Access := Obj_Adapter_Access (Self);
-      begin
-         Destroy_OA (OA);
-      end;
+      Destroy_OA (Obj_Adapter_Access (Self));
 
       pragma Debug (O ("POA destroyed"));
 

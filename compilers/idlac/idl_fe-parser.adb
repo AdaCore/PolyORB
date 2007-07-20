@@ -3758,8 +3758,10 @@ package body Idl_Fe.Parser is
                         Expr_Value (Res).Digits_Nb := Expr_Type.Digits_Nb;
                         Expr_Value (Res).Scale := Expr_Type.Scale;
                      end if;
+
                      declare
-                        Res_Expr : Constant_Value_Ptr := Expr_Value (Res);
+                        Res_Expr : constant Constant_Value_Ptr :=
+                                     Expr_Value (Res);
                      begin
                         if Plus then
                            Fixed_Add (Res_Expr,
@@ -3773,6 +3775,7 @@ package body Idl_Fe.Parser is
                         Set_Expr_Value (Res, Res_Expr);
                      end;
                   end if;
+
                   Check_Value_Range (Res, False);
                   if Expr_Value (Res).Kind = C_Fixed and
                     Expr_Type.Kind = C_Fixed then
@@ -3978,8 +3981,10 @@ package body Idl_Fe.Parser is
                         Expr_Value (Res).Digits_Nb := Expr_Type.Digits_Nb;
                         Expr_Value (Res).Scale := Expr_Type.Scale;
                      end if;
+
                      declare
-                        Res_Expr : Constant_Value_Ptr := Expr_Value (Res);
+                        Res_Expr : constant Constant_Value_Ptr :=
+                                     Expr_Value (Res);
                      begin
                         if Op = Mul then
                            Fixed_Mul (Res_Expr,
@@ -4172,8 +4177,10 @@ package body Idl_Fe.Parser is
                         Expr_Value (Result).Digits_Nb := Expr_Type.Digits_Nb;
                         Expr_Value (Result).Scale := Expr_Type.Scale;
                      end if;
+
                      declare
-                        Res_Expr : Constant_Value_Ptr := Expr_Value (Result);
+                        Res_Expr : constant Constant_Value_Ptr :=
+                                     Expr_Value (Result);
                      begin
                         if Op = Plus then
                            Fixed_Id (Res_Expr,
@@ -9046,11 +9053,11 @@ package body Idl_Fe.Parser is
    ---------
 
    function "and" (X, Y : Idl_Integer) return Idl_Integer is
-      I : Idl_Integer := 0;
+      I   : Idl_Integer := 0;
       Res : Idl_Integer := 0;
       Exp : Idl_Integer := 1;
-      XX : Idl_Integer := abs X;
-      YY : Idl_Integer := abs Y;
+      XX  : Idl_Integer := abs X;
+      YY  : Idl_Integer := abs Y;
    begin
       while XX > 0 or else YY > 0 loop
          if (XX mod 2 = 1) and then (YY mod 2 = 1) then
@@ -9103,19 +9110,20 @@ package body Idl_Fe.Parser is
    -- Fixed_Add --
    ---------------
 
-   procedure Fixed_Add (Res : in out Constant_Value_Ptr;
-                        Left, Right : Constant_Value_Ptr) is
+   procedure Fixed_Add (Res, Left, Right : Constant_Value_Ptr) is
    begin
       pragma Assert (Res.Kind = C_Fixed);
       pragma Assert (Left.Kind = C_Fixed);
       pragma Assert (Right.Kind = C_Fixed);
-      Res.Digits_Nb :=
-        Max (Left.Digits_Nb - Left.Scale,
-             Right.Digits_Nb - Right.Scale) +
-        Max (Left.Scale, Right.Scale) + 1;
-      Res.Scale := Max (Left.Scale, Right.Scale);
+
+      Res.Digits_Nb := 1
+        + Max (Left.Digits_Nb - Left.Scale, Right.Digits_Nb - Right.Scale)
+        + Max (Left.Scale, Right.Scale);
+
+      Res.Scale       := Max (Left.Scale, Right.Scale);
+
       Res.Fixed_Value :=
-        Left.Fixed_Value * 10 ** Natural (Res.Scale - Left.Scale) +
+        Left.Fixed_Value  * 10 ** Natural (Res.Scale - Left.Scale) +
         Right.Fixed_Value * 10 ** Natural (Res.Scale - Right.Scale);
    end Fixed_Add;
 
@@ -9123,9 +9131,7 @@ package body Idl_Fe.Parser is
    -- Fixed_Sub --
    ---------------
 
-   procedure Fixed_Sub
-     (Res : in out Constant_Value_Ptr;
-      Left, Right : Constant_Value_Ptr) is
+   procedure Fixed_Sub (Res, Left, Right : Constant_Value_Ptr) is
    begin
       pragma Assert (Res.Kind = C_Fixed);
       pragma Assert (Left.Kind = C_Fixed);
@@ -9145,8 +9151,7 @@ package body Idl_Fe.Parser is
    -- Fixed_Mul --
    ---------------
 
-   procedure Fixed_Mul (Res : in out Constant_Value_Ptr;
-                        Left, Right : Constant_Value_Ptr) is
+   procedure Fixed_Mul (Res, Left, Right : Constant_Value_Ptr) is
    begin
       pragma Assert (Res.Kind = C_Fixed);
       pragma Assert (Left.Kind = C_Fixed);
@@ -9161,10 +9166,7 @@ package body Idl_Fe.Parser is
    -- Fixed_Div --
    ---------------
 
-   procedure Fixed_Div
-     (Res : in out Constant_Value_Ptr;
-      Left, Right : Constant_Value_Ptr)
-   is
+   procedure Fixed_Div (Res, Left, Right : Constant_Value_Ptr) is
       Dn, S, Fv : Idl_Integer := 0;
       Remainder : Idl_Integer;
    begin
@@ -9198,15 +9200,13 @@ package body Idl_Fe.Parser is
    -- Fixed_Id --
    --------------
 
-   procedure Fixed_Id
-     (Res : in out Constant_Value_Ptr;
-      Operand : Constant_Value_Ptr) is
+   procedure Fixed_Id (Res, Operand : Constant_Value_Ptr) is
    begin
       pragma Assert (Res.Kind = C_Fixed);
       pragma Assert (Operand.Kind = C_Fixed);
 
-      Res.Digits_Nb := Operand.Digits_Nb;
-      Res.Scale := Operand.Scale;
+      Res.Digits_Nb   := Operand.Digits_Nb;
+      Res.Scale       := Operand.Scale;
       Res.Fixed_Value := Operand.Fixed_Value;
    end Fixed_Id;
 
@@ -9214,14 +9214,13 @@ package body Idl_Fe.Parser is
    -- Fixed_Neg --
    ---------------
 
-   procedure Fixed_Neg
-     (Res : in out Constant_Value_Ptr;
-      Operand : Constant_Value_Ptr) is
+   procedure Fixed_Neg (Res, Operand : Constant_Value_Ptr) is
    begin
       pragma Assert (Res.Kind = C_Fixed);
       pragma Assert (Operand.Kind = C_Fixed);
-      Res.Digits_Nb := Operand.Digits_Nb;
-      Res.Scale := Operand.Scale;
+
+      Res.Digits_Nb   := Operand.Digits_Nb;
+      Res.Scale       := Operand.Scale;
       Res.Fixed_Value := -Operand.Fixed_Value;
    end Fixed_Neg;
 
@@ -9231,10 +9230,10 @@ package body Idl_Fe.Parser is
 
    function "not" (X : Idl_Integer) return Idl_Integer
    is
-      I : Idl_Integer := 0;
+      I   : Idl_Integer := 0;
       Res : Idl_Integer := 0;
       Exp : Idl_Integer := 1;
-      XX : Idl_Integer := abs X;
+      XX  : Idl_Integer := abs X;
    begin
       while XX > 0 loop
          if XX mod 2 = 0 then

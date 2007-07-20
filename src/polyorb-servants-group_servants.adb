@@ -432,6 +432,7 @@ package body PolyORB.Servants.Group_Servants is
       TPL.Deallocate (GS.Target_List);
       Destroy (GS.Mutex);
       Destroy (GS.Group_Lock);
+      Group := null;
    end Destroy_Group_Servant;
 
    --------------------------

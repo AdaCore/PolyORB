@@ -360,9 +360,10 @@ private
    pragma Warnings (On);
    --  Destroys OA's policies
 
-   procedure Destroy_OA
-     (OA : in out Obj_Adapter_Access);
-   --  Destroy OA's components
+   procedure Destroy_OA (OA : in Obj_Adapter_Access);
+   --  Destroy OA's components (this does not deallocate the OA itself, since
+   --  this is usually done by the reference counting system).
+   --  ??? Why isn't this just an override of Finalize?
 
    procedure Create_Root_POA
      (New_Obj_Adapter : access Obj_Adapter);

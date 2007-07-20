@@ -966,7 +966,7 @@ private
    --  verifying that an interface can be imported :
    --     Int in a scoped name denoting the interface to be imported
    --     Scope is an interface where the other will be imported
-   --  This method verifies that there is no operation or
+   --  This function verifies that there is no operation or
    --  attributes in the new imported interface that clashes
    --  with the already imported ones.
    function Interface_Is_Importable (Int : Node_Id;
@@ -1102,48 +1102,42 @@ private
    --  addition of two fixed integer :
    --    R is the result
    --    Left and right are the operands
-   procedure Fixed_Add (Res : in out Constant_Value_Ptr;
-                        Left, Right : Constant_Value_Ptr);
+   procedure Fixed_Add (Res, Left, Right : Constant_Value_Ptr);
 
    --  subtraction of two fixed integer :
    --    R is the result
    --    Left and right are the operands
-   procedure Fixed_Sub (Res : in out Constant_Value_Ptr;
-                        Left, Right : Constant_Value_Ptr);
+   procedure Fixed_Sub (Res, Left, Right : Constant_Value_Ptr);
 
    --  multiplication of two fixed integer :
    --    R is the result
    --    Left and right are the operands
-   procedure Fixed_Mul (Res : in out Constant_Value_Ptr;
-                        Left, Right : Constant_Value_Ptr);
+   procedure Fixed_Mul (Res, Left, Right : Constant_Value_Ptr);
 
    --  division of two fixed integer :
    --    R is the result
    --    Left and right are the operands
-   procedure Fixed_Div (Res : in out Constant_Value_Ptr;
-                        Left, Right : Constant_Value_Ptr);
+   procedure Fixed_Div (Res, Left, Right : Constant_Value_Ptr);
 
    --  identity for a fixed integer :
    --    R is the result
    --    operand is the operand
-   procedure Fixed_Id (Res : in out Constant_Value_Ptr;
-                       Operand : Constant_Value_Ptr);
+   procedure Fixed_Id (Res, Operand : Constant_Value_Ptr);
 
-   --  inversion of a fixed integer :
+   --  negation of a fixed integer :
    --    R is the result
    --    operand is the operand
-   procedure Fixed_Neg (Res : in out Constant_Value_Ptr;
-                        Operand : Constant_Value_Ptr);
+   procedure Fixed_Neg (Res, Operand : Constant_Value_Ptr);
 
-   --  not operator between two Idl_Integer
+   --  bitwise negation of a fixed integer
    function "not" (X : Idl_Integer) return Idl_Integer;
 
-   ------------------------------
-   --  To resume after errors  --
-   ------------------------------
+   --------------------
+   -- Error recovery --
+   --------------------
 
-   --  This methods are called when the parser encounters an error
-   --  in order to try to continue the parsing
+   --  These procedures are called when the parser encounters an error, and
+   --  attempt to skip to a suitable recovery point.
 
    --  Goes to the beginning of the next definition.
    procedure Go_To_Next_Definition;

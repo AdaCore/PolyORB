@@ -121,23 +121,22 @@ package body PortableServer.LifespanPolicy is
       end if;
 
       declare
-         Index : constant CORBA.Any :=
-                   CORBA.Internals.Get_Aggregate_Element
-                     (Value, CORBA.TC_Unsigned_Long, CORBA.Unsigned_Long (0));
-         Position : constant CORBA.Unsigned_Long := CORBA.From_Any (Index);
+         Position : constant CORBA.Unsigned_Long :=
+                      CORBA.From_Any
+                        (CORBA.Internals.Get_Aggregate_Element
+                          (Value,
+                           CORBA.TC_Unsigned_Long,
+                           CORBA.Unsigned_Long (0)));
       begin
-         if Position not in
-           LifespanPolicyValue'Pos (LifespanPolicyValue'First) ..
-           LifespanPolicyValue'Pos (LifespanPolicyValue'Last)
-         then
+         if Position > LifespanPolicyValue'Pos (LifespanPolicyValue'Last) then
             Raise_PolicyError ((Reason => BAD_POLICY_VALUE));
          end if;
       end;
 
       declare
          Result : CORBA.Policy.Ref;
-         Entity : constant PolyORB.Smart_Pointers.Entity_Ptr
-           := new Policy_Object_Type;
+         Entity : constant PolyORB.Smart_Pointers.Entity_Ptr :=
+                    new Policy_Object_Type;
       begin
          Set_Policy_Type (Policy_Object_Type (Entity.all), The_Type);
          Set_Policy_Value (Policy_Object_Type (Entity.all), Value);
