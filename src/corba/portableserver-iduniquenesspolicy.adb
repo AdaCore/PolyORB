@@ -122,13 +122,14 @@ package body PortableServer.IdUniquenessPolicy is
       end if;
 
       declare
-         Index : constant CORBA.Any :=
-                   CORBA.Internals.Get_Aggregate_Element
-                     (Value, CORBA.TC_Unsigned_Long, CORBA.Unsigned_Long (0));
-         Position : constant CORBA.Unsigned_Long := CORBA.From_Any (Index);
+         Position : constant CORBA.Unsigned_Long :=
+                      CORBA.From_Any
+                        (CORBA.Internals.Get_Aggregate_Element
+                          (Value,
+                           CORBA.TC_Unsigned_Long,
+                           CORBA.Unsigned_Long (0)));
       begin
-         if Position not in
-           IdUniquenessPolicyValue'Pos (IdUniquenessPolicyValue'First) ..
+         if Position >
            IdUniquenessPolicyValue'Pos (IdUniquenessPolicyValue'Last)
          then
             Raise_PolicyError ((Reason => BAD_POLICY_VALUE));

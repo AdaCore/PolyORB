@@ -131,7 +131,9 @@ package body PortableServer.ServantRetentionPolicy is
                           CORBA.TC_Unsigned_Long,
                           CORBA.Unsigned_Long (0)));
       begin
-         if Position > ServantRetentionPolicyValue'Last then
+         if Position > ServantRetentionPolicyValue'Pos
+                         (ServantRetentionPolicyValue'Last)
+         then
             Raise_PolicyError ((Reason => BAD_POLICY_VALUE));
          end if;
       end;
