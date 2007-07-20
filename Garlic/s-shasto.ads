@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 1996-2006 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- GARLIC is free software;  you can redistribute it and/or modify it under --
 -- terms of the  GNU General Public License  as published by the Free Soft- --
@@ -83,9 +83,8 @@ package System.Shared_Storage is
 
    --  The approach is as follows:
 
-   --    For each shared variable, var, an access routine varR is
-   --  created whose body has the following form (this example is for
-   --  Pkg.Var):
+   --  For each shared variable, var, an access routine varR is created whose
+   --  body has the following form (this example is for Pkg.Var):
 
    --      procedure varR is
    --         S : Ada.Streams.Stream_IO.Stream_Access;
@@ -201,6 +200,7 @@ package System.Shared_Storage is
    --  Shared_Mem_Lock procedure, and is to be generated as the last
    --  operation in the body of a protected subprogram.
 
-   procedure Shared_Var_Close (Var : in out SIO.Stream_Access);
+   procedure Shared_Var_Close (Var : SIO.Stream_Access);
+   --  ??? needs documentation
 
 end System.Shared_Storage;
