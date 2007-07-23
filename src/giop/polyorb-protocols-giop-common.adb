@@ -176,8 +176,6 @@ package body PolyORB.Protocols.GIOP.Common is
         QoS_GIOP_Static_Buffer_Parameter_Access
         (Extract_Request_Parameter (PolyORB.QoS.GIOP_Static_Buffer, Request));
    begin
-      pragma Assert (Sess.Implem.Version in GIOP_V1_0 .. GIOP_V1_2);
-
       Get_Note (Request.Notepad, N);
 
       pragma Debug (O ("Process reply of request id =" & Request_Id'Img));
@@ -453,8 +451,6 @@ package body PolyORB.Protocols.GIOP.Common is
                         Reserve (Buffer, GIOP_Header_Size);
 
    begin
-      pragma Assert (Sess.Implem.Version in GIOP_V1_0 .. GIOP_V1_2);
-
       pragma Debug (O ("Sending Locate Reply, Request Id :"
                        & MCtx.Request_Id'Img
                        & " , type: "
@@ -678,8 +674,6 @@ package body PolyORB.Protocols.GIOP.Common is
       Success       : Boolean;
 
    begin
-      pragma Assert (Sess.Implem.Version in GIOP_V1_0 .. GIOP_V1_2);
-
       Get_Note (R.Notepad, Current_Note);
       Get_Pending_Request (Sess, Current_Note.Id, Current_Req, Success);
       if not Success then
@@ -723,8 +717,6 @@ package body PolyORB.Protocols.GIOP.Common is
 
       Static_Buffer : QoS_GIOP_Static_Buffer_Parameter_Access;
    begin
-      pragma Assert (Sess.Implem.Version in GIOP_V1_0 .. GIOP_V1_2);
-
       pragma Debug (O ("Reply received: status = "
                        & Reply_Status_Type'Image (Reply_Status)
                        & ", id ="
