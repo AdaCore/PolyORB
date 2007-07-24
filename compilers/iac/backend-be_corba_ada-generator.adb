@@ -384,24 +384,23 @@ package body Backend.BE_CORBA_Ada.Generator is
       Max_Line_Length : constant Natural := 78;
       --  The maximum length of a line, in columns
 
-      function Are_There_More_Words return Boolean;
-      --  This function returns True if there are words in the buffer
+      function Buffer_Empty return Boolean;
+      --  True when the Name_Buffer is empty
 
       function Next_Word_Length return Natural;
-      --  This function returns the size of the next word to be
-      --  got. It returns zero when the buffer is empty.
+      --  Length of next word to be retrieved, or 0 if buffer is empty
 
       function Get_Next_Word return String;
-      --  This function extracts the next word from the buffer.
+      --  Extract the next word from the buffer
 
-      --------------------------
-      -- Are_There_More_Words --
-      --------------------------
+      ------------------
+      -- Buffer_Empty --
+      ------------------
 
-      function Are_There_More_Words return Boolean is
+      function Buffer_Empty return Boolean is
       begin
-         return (Name_Len /= 0);
-      end Are_There_More_Words;
+         return Name_Len = 0;
+      end Buffer_Empty;
 
       ----------------------
       -- Next_Word_Length --
@@ -410,13 +409,15 @@ package body Backend.BE_CORBA_Ada.Generator is
       function Next_Word_Length return Natural is
          L : Natural;
       begin
-         if not Are_There_More_Words then
+         if Buffer_Empty then
             L := 0;
+
          elsif Name_Buffer (1) = ' ' then
             L := 1;
+
          else
             L := 0;
-            while L + 1 <= Name_Len and then  Name_Buffer (L + 1) /= ' ' loop
+            while L + 1 <= Name_Len and then Name_Buffer (L + 1) /= ' ' loop
                L := L + 1;
             end loop;
          end if;
@@ -450,7 +451,7 @@ package body Backend.BE_CORBA_Ada.Generator is
       Used_Columns : Natural;
    begin
       Get_Name_String (Message (N));
-      while Are_There_More_Words loop
+      while not Buffer_Empty loop
          Used_Columns := N_Space;
          if First_Line then
             First_Line := False;
@@ -471,14 +472,14 @@ package body Backend.BE_CORBA_Ada.Generator is
          Used_Columns := Used_Columns + Next_Word_Length;
          Write_Str (Get_Next_Word);
 
-         while Are_There_More_Words
+         while not Buffer_Empty
            and then (Used_Columns + Next_Word_Length < Max_Line_Length)
          loop
             Used_Columns := Used_Columns + Next_Word_Length;
             Write_Str (Get_Next_Word);
          end loop;
 
-         if Are_There_More_Words then
+         if not Buffer_Empty then
             Write_Eol;
          end if;
       end loop;
