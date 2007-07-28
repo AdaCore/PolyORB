@@ -47,7 +47,7 @@
 @c  6. DO NOT use @cartouche for examples that are longer than around 10 lines.
 @c     This command inhibits page breaks, so long examples in a @cartouche can
 @c     lead to large, ugly patches of empty space on a page.
-@c  
+@c
 @c  7. To add an entry to the bibliography, you must:
 @c     * add it to polyorb_ug.bib
 @c     This will generate the correct polyorb_ug_ref.texi file
@@ -420,7 +420,7 @@ enable interaction between application partitions:
 @itemize @bullet
 @item the API seen by the developer's applicative objects;
 
-@item the protocol used by the middleware environment to interact with 
+@item the protocol used by the middleware environment to interact with
 other nodes in the distributed application.
 
 
@@ -537,7 +537,7 @@ GNAT and the @code{GNAT.Sockets} package are available.}
 @c -------------------------------------------------------------------
 
 @noindent
-Ada compiler: 
+Ada compiler:
 @itemize @bullet
 @item GNAT Pro 5.04a1 or later
 @item GNAT GPL 2006  or later
@@ -548,7 +548,7 @@ For builds for cross targets, both a native and a cross compiler are
 required, as some tools (like an IDL-to-Ada compiler) are meant for
 use on the build host.
 
-Optional: 
+Optional:
 
 @itemize @bullet
 @item (Only for older versions of GNAT, and only if you want to build
@@ -642,25 +642,25 @@ Available options for the 'configure' script include:
 @itemize @bullet
 
 @item  @option{--with-appli-perso="..."}: application personalities to build
-      
+
       Available personalities: AWS, CORBA, DSA, MOMA
-      
-      e.g.   @option{--with-appli-perso="corba moma"} to build both the CORBA 
+
+      e.g.   @option{--with-appli-perso="corba moma"} to build both the CORBA
              and MOMA personalities
 
 @item  @option{--with-proto-perso="..."}: personalities to build
-      
+
       Available personalities: GIOP, SOAP
-      
-      e.g.   @option{--with-proto-perso="giop soap"} to build both the GIOP 
+
+      e.g.   @option{--with-proto-perso="giop soap"} to build both the GIOP
              and SOAP personalities
 
 @item  @option{--with-corba-services="..."}: CORBA COS services to build
-      
+
       Available services: event, ir, naming, notification, time
-      
+
       e.g.  @option{--with-corba-services="event naming"} to build only
-      COS Event and COS Naming.	
+      COS Event and COS Naming.
 
 By default, only the CORBA and GIOP personalities are built, no CORBA
 Services are built.
@@ -672,7 +672,7 @@ features, including the IIOP/SSLIOP personality
 
 @item  @option{--enable-shared}: build shared libraries.
 
-@item  @option{--enable-debug}:  enable debugging information generation 
+@item  @option{--enable-debug}:  enable debugging information generation
 and supplementary runtime checks. Note that this option has a significant
 space and time cost, and is not recommended for production use.
 
@@ -915,11 +915,11 @@ following dedicated instances:
 @item IIOP/SSIOP supports synchronous request semantics using SSL sockets,
 @cindex SSLIOP
 
-@item MIOP instantiation of GIOP enables group communication over 
+@item MIOP instantiation of GIOP enables group communication over
 IP multicast,
 @cindex MIOP
 
-@item DIOP relies on UDP/IP communications to transmit one-way 
+@item DIOP relies on UDP/IP communications to transmit one-way
 requests only.
 @cindex DIOP
 
@@ -961,7 +961,7 @@ communication protocol for Web Services.
 @noindent
 The user may configure some elements of a PolyORB application at
 compile-time.
- 
+
 @menu
 * Tasking run-times::
 * Middleware tasking policies::
@@ -986,7 +986,7 @@ run-time, middleware is mono-task.
 @item @code{Full_Tasking}: Middleware uses Ada tasking constructs,
 middleware can be configured for multi-tasking.
 
-@item @code{Ravenscar} : Middleware uses Ada 
+@item @code{Ravenscar} : Middleware uses Ada
 tasking constructs, with the limitations of the Ravenscar profile
 @cite{[DB98]}.  Middleware can be configured for multi-tasking.
 @cindex Ravenscar
@@ -1042,17 +1042,17 @@ enabled, configured to use all protocol personalities build with
 PolyORB. Middleware tasking runtime follow Ravenscar's profile
 restrictions. Middleware tasking policies is @code{Thread_Pool}.
 
-@item @code{PolyORB.Setup.Thread_Per_Request_Server}: a server node, 
+@item @code{PolyORB.Setup.Thread_Per_Request_Server}: a server node,
 with tasking enabled, configured to use all protocol personalities
 build with PolyORB. Middleware tasking policies is
 @code{Thread_Per_Request}.
 
-@item @code{PolyORB.Setup.Thread_Per_Session_Server}: a server node, 
+@item @code{PolyORB.Setup.Thread_Per_Session_Server}: a server node,
 with tasking enabled, configured to use all protocol personalities
 build with PolyORB. Middleware tasking policies is
 @code{Thread_Per_Session}.
 
-@item @code{PolyORB.Setup.Thread_Pool_Server}: a server node, 
+@item @code{PolyORB.Setup.Thread_Pool_Server}: a server node,
 with tasking enabled, configured to use all protocol personalities
 build with PolyORB. Middleware tasking policies is
 @code{Thread_Pool}.
@@ -1081,7 +1081,7 @@ are read in the following order: command line, environment variables,
 configuration file. PolyORB will use the first value that matches the
 searched parameter.
 
-@menu 
+@menu
 * Using a configuration file::
 * Using environment variables::
 * Using the command line::
@@ -1106,7 +1106,7 @@ The syntax of the configuration file is:
 @item sections can be started by lines of the form
     @code{[ SECTION-NAME ']'};
 
-@item variable assignments can be performed by lines of the form 
+@item variable assignments can be performed by lines of the form
 @code{VARIABLE-NAME '=' VALUE}.
 
 Any variable assignment is local to a section.
@@ -1124,7 +1124,7 @@ Default search path for @file{polyorb.conf} is current
 directory. Environment variable @code{POLYORB_CONF} may be used to
 set up information on configuration file.
 
-PolyORB's configuration file allows the user to 
+PolyORB's configuration file allows the user to
 @enumerate
 @item enable/disable the output of debug information
 @item set up default reference on naming service
@@ -1134,7 +1134,7 @@ PolyORB's configuration file allows the user to
 
 @noindent
 The configuration file is read once when running a node, during
-initialization. 
+initialization.
 
 @c -------------------------------------------------------------------
 @node Using environment variables
@@ -1154,7 +1154,7 @@ by setting environment variable @code{"POLYORB_SEC_VAR_IABLE"}.
 PolyORB allows to set up configuration variables on the command
 line. The syntax is close to the one described in configuration files
 A variable @code{Var.Iable} in section @code{[Sec]} can be overridden
-with flag @code{--polyorb-<sec>-<var>-<iable>[=<value>]}. 
+with flag @code{--polyorb-<sec>-<var>-<iable>[=<value>]}.
 
 @c -------------------------------------------------------------------
 @node Setting up protocol personalities
@@ -1206,7 +1206,7 @@ binding_data.iiop=enable
 binding_data.diop=disable
 binding_data.uipmc=disable
 @end smallexample
- 
+
 @noindent
 This example enables the creation of bindings to remote objects using
 SOAP or IIOP. Objects cannot be reached using DIOP or UIPMC.
@@ -1221,7 +1221,7 @@ SOAP or IIOP. Objects cannot be reached using DIOP or UIPMC.
 @noindent
 The user may affect a @emph{preference} to each protocol
 personality. The protocol with the higher preference will be selected
-among possible protocols to send a request to a remote node.  
+among possible protocols to send a request to a remote node.
 
 See @code{polyorb.binding_data.<protocol>.preference} in
 section @code{[protocol]} to set up protocol's preference.
@@ -1230,7 +1230,7 @@ Possible protocols are defined as the protocols available on the
 remote node, as advertised in its @emph{object reference}.  @code{IOR}
 or @code{corbaloc} references may support multiple protocols,
 @code{URI} only support one protocol.
- 
+
 Each protocol supports a variety of configuration parameters, please
 refer to the protocols' sections for more details.
 
@@ -1277,7 +1277,7 @@ necessary to:
 @c -------------------------------------------------------------------
 @node polyorb-config
 @section @command{polyorb-config}
-@cindex @command{polyorb-config} 
+@cindex @command{polyorb-config}
 @c -------------------------------------------------------------------
 
 @noindent
@@ -1346,7 +1346,7 @@ OPTIONS
        --help  Print help message.
 
 
-@end smallexample 
+@end smallexample
 
 @c -------------------------------------------------------------------
 @node Tasking model in PolyORB
@@ -1381,7 +1381,7 @@ The choice of a specific tasking runtime is a compile-time parameter,
 @subsection Full tasking runtime
 @c -------------------------------------------------------------------
 
-@noindent 
+@noindent
 Full tasking runtime refers to configuration in which there are some
 dependencies on the tasking constructs defined in chapter 9 of
 @cite{[ISO95]}. It makes use of all capabilities defined in this
@@ -1394,7 +1394,7 @@ linked with a tasking-capable Ada runtime.
 @subsection No tasking runtime
 @c -------------------------------------------------------------------
 
-@noindent 
+@noindent
 No tasking runtime refers to configuration in which there is no
 semantic dependency on tasking constructs. Thus, no tasking is
 required.
@@ -1407,7 +1407,7 @@ linked with a tasking-capable Ada runtime or a no-tasking Ada runtime.
 @cindex Ravenscar
 @c -------------------------------------------------------------------
 
-@noindent 
+@noindent
 Ravenscar tasking runtime refers to configuration in which tasking
 constructs are compliant with the @emph{Ravenscar tasking restricted
 profile}.
@@ -1454,7 +1454,7 @@ parameters in the @code{[tasking]} configuration section.
 
 @itemize @bullet
 
-@item @code{min_spare_threads} indicates the number of tasks 
+@item @code{min_spare_threads} indicates the number of tasks
 created at startup.
 
 @item @code{max_spare_threads} is a ceiling. When a remote subprogram
@@ -1462,7 +1462,7 @@ call is completed, its anonymous task is deallocated if the number of
 tasks already in the pool is greater than the ceiling. If not, then
 the task is queued in the pool.
 
-@item @code{max_threads} indicates the maximum number of tasks in the pool. 
+@item @code{max_threads} indicates the maximum number of tasks in the pool.
 
 @end itemize
 
@@ -1500,7 +1500,7 @@ parameters.
 @smallexample
 
 ###############################################################################
-# Parameters for tasking 
+# Parameters for tasking
 #
 
 [tasking]
@@ -1508,9 +1508,9 @@ parameters.
 #storage_size=262144
 
 # Number of threads by Thread Pool tasking policy
-#min_spare_threads=4 
-#max_spare_threads=4 
-#max_threads=4 
+#min_spare_threads=4
+#max_spare_threads=4
+#max_threads=4
 
 @end smallexample
 
@@ -1651,8 +1651,8 @@ PolyORB provides two IDL-to-Ada compilers:
 @end enumerate
 
 @menu
-* Usage of idlac::              
-* Usage of iac::              
+* Usage of idlac::
+* Usage of iac::
 * Difference between idlac and iac::
 @end menu
 
@@ -1732,10 +1732,10 @@ EXIT STATUS
 
 @itemize @bullet
 
-@item  @code{myinterface.ads}, @code{myinterface.adb} : these files contain 
+@item  @code{myinterface.ads}, @code{myinterface.adb} : these files contain
   the mapping for user defined types (client and server side).
 
-@item @code{myinterface-impl.ads}, @code{myinterface-impl.adb} : 
+@item @code{myinterface-impl.ads}, @code{myinterface-impl.adb} :
   these files are to be filled by the user. They contain the
   implementation of the server. They are generated only if the -i flag
   is specified.
@@ -1746,7 +1746,7 @@ EXIT STATUS
 @item @code{myinterface-skel.ads}, @code{myinterface-skel.adb} : these files
   contain the server-side skeletons for the interface.
 
-@item @code{myinterface-helper.ads}, @code{myinterface-helper.adb} : these 
+@item @code{myinterface-helper.ads}, @code{myinterface-helper.adb} : these
   files contain subprograms to marshal data into CORBA Any containers.
 
 @item @code{myinterface-ir_info.ads}, @code{myinterface-ir_info.adb} : these
@@ -1850,10 +1850,10 @@ EXIT STATUS
 
 @itemize @bullet
 
-@item  @code{myinterface.ads}, @code{myinterface.adb} : these files contain 
+@item  @code{myinterface.ads}, @code{myinterface.adb} : these files contain
   the mapping for user defined types (client and server side).
 
-@item @code{myinterface-impl.ads}, @code{myinterface-impl.adb} : 
+@item @code{myinterface-impl.ads}, @code{myinterface-impl.adb} :
   these files are to be filled by the user. They contain the
 implementation of the server. They are generated only if the -i flag
 is specified.
@@ -1864,7 +1864,7 @@ is specified.
 @item @code{myinterface-skel.ads}, @code{myinterface-skel.adb} : these files
   contain the server-side skeletons for the interface.
 
-@item @code{myinterface-helper.ads}, @code{myinterface-helper.adb} : these 
+@item @code{myinterface-helper.ads}, @code{myinterface-helper.adb} : these
   files contain subprograms to marshal data into CORBA Any containers.
 
 @item @code{myinterface-ir_info.ads}, @code{myinterface-ir_info.adb} : these
@@ -1885,11 +1885,11 @@ specified.
 @c -------------------------------------------------------------------
 
 @noindent
-This section lists main differences between @command{idlac} and @command{iac} 
+This section lists main differences between @command{idlac} and @command{iac}
 
 @itemize
 @item @command{iac} is backward compatible with @command{idlac}, but
-lacks the following features: 
+lacks the following features:
 @enumerate
 @item generation of @code{ir_info} files for using the CORBA interface
 repository;
@@ -1951,7 +1951,7 @@ You have two ways to register the reference to the root context of the
 COS Naming server the application will use:
 
 @itemize @bullet
-@item Setting up the @code{name_service} entry in the @code{[corba]} 
+@item Setting up the @code{name_service} entry in the @code{[corba]}
 section in your configuration file, @code{name_service} is the
 @code{IOR} or @code{corbaloc} of the COS Naming server to use. See
 @ref{Using a configuration file} for more details.
@@ -1977,7 +1977,7 @@ PolyORB provides a helper package to manipulate the COS Naming in your
 applications. See @ref{PolyORB specific APIs} for more details.
 
 @c -------------------------------------------------------------------
-@node The CORBA Interface Repository 
+@node The CORBA Interface Repository
 @section The CORBA Interface Repository
 @c -------------------------------------------------------------------
 
@@ -2031,7 +2031,7 @@ Interface Repository.
 @c -------------------------------------------------------------------
 
 
-@noindent 
+@noindent
 We consider building a simple ``Echo'' CORBA server and client. This
 application echoes a string. The source code for this example is
 located in @file{examples/corba/echo} directory in PolyORB
@@ -2059,7 +2059,7 @@ This interface defines an @code{echo} object with a unique method
 @subsubsection Implementation code for the @code{echo} object
 @c -------------------------------------------------------------------
 
-@noindent 
+@noindent
 Package @code{Echo.Impl} is an implementation of this interface. This
 implementation follows the @emph{IDL-to-Ada} mapping.
 
@@ -2104,7 +2104,7 @@ interaction with other nodes.
 @c -------------------------------------------------------------------
 
 @noindent
-To compile this demo, 
+To compile this demo,
 @enumerate
 @item Process the IDL file with @command{idlac} (or @command{iac})
 @smallexample
@@ -2123,7 +2123,7 @@ To compile this demo,
 
 @end enumerate
 
-@noindent 
+@noindent
 Note the use of backticks (`). This means that
 @command{polyorb-config} is first executed, and then the command line
 is replaced with the output of the script, setting up library and
@@ -2135,7 +2135,7 @@ To run this demo:
 @item run @file{server}, the server outputs its IOR, an hexadecimal
 string with the <IOR:> prefix.
 @smallexample
-$ ./server                     
+$ ./server
 Loading configuration from polyorb.conf
 No polyorb.conf configuration file.
 'IOR:01534f410d00000049444c3[..]'
@@ -2206,12 +2206,12 @@ The GIOP protocol is separated from the CORBA application
 personality. See @ref{Configuring the GIOP personality} for more
 information on GIOP's configuration.
 
-@c -------------------------------------------------------------------   
+@c -------------------------------------------------------------------
 @node Configuring Security services for PolyORB
 @subsection Configuring Security services for PolyORB
-@c -------------------------------------------------------------------   
+@c -------------------------------------------------------------------
 
-@noindent 
+@noindent
 PolyORB provides support for some elements of the CORBA Security
 mechanisms. This sections lists the corresponding configuration
 parameters.
@@ -2237,7 +2237,7 @@ predefined setup packages:
 @enumerate
 @item @code{PolyORB.Setup.Secure_Client} - for client side support only;
 
-@item @code{PolyORB.Setup.Secure_Server} - for both client and server 
+@item @code{PolyORB.Setup.Secure_Server} - for both client and server
 side support.
 @end enumerate
 
@@ -2404,15 +2404,15 @@ defined in POA configuration.
 @end smallexample
 @end enumerate
 
-@c -------------------------------------------------------------------   
+@c -------------------------------------------------------------------
 @node Command line arguments
 @subsection Command line arguments
-@c ------------------------------------------------------------------- 
+@c -------------------------------------------------------------------
 
 @noindent
 The CORBA specifications define a mechanism to pass command line
 arguments to your application, using the @code{CORBA::ORB:Init}
-method. 
+method.
 
 For now, PolyORB supports the following list of arguments:
 
@@ -2437,7 +2437,7 @@ For now, PolyORB supports the following list of arguments:
 * Internals packages::
 @end menu
 
-@noindent 
+@noindent
 PolyORB strives to support CORBA specifications as closely as
 possible. However, in rare occasions, the implementation adapts the
 specifications to actually enable its completion. This section
@@ -2448,7 +2448,7 @@ provides information on the various modification we made.
 @subsection Tasking
 @c -------------------------------------------------------------------
 
-@noindent 
+@noindent
 PolyORB provides support for tasking and no-tasking, using
 configuration parameters. Please, refer to @ref{Building an
 application with PolyORB} for more information on PolyORB's
@@ -2462,7 +2462,7 @@ thread safe, following the IDL-to-Ada mapping recommendations.
 @subsection Implementation of CORBA specifications
 @c -------------------------------------------------------------------
 
-@noindent 
+@noindent
 In some occasions, the CORBA specifications do not describe the
 semantics of the interface with sufficient details. We add an
 @code{Implementation Notes} tag in the package specification to
@@ -2478,7 +2478,7 @@ PolyORB follows the CORBA specifications.
 @subsection Additions to the CORBA specifications
 @c -------------------------------------------------------------------
 
-@noindent 
+@noindent
 In some occasions, the specifications lack feature that may be
 useful. We add an @code{Implementation Notes} tag in the package
 specification to detail the additions we made to the standard.
@@ -2506,7 +2506,7 @@ You have two ways to register the reference to the CORBA Policy Domain
 Manager the application will use:
 
 @itemize @bullet
-@item Setting up the @code{policy_domaing_manager} entry in the 
+@item Setting up the @code{policy_domaing_manager} entry in the
 @code{[corba]} section in your configuration file,
 @code{policy_domaing_manager} is the @code{IOR} or @code{corbaloc} of
 the COS Naming server to use. See @ref{Using a configuration file} for
@@ -2529,7 +2529,7 @@ specifications for more details.
 @subsection Mapping of exceptions
 @c -------------------------------------------------------------------
 
-@noindent 
+@noindent
 For each exception defined in the CORBA specifications, PolyORB
 provides the @code{Raise_<excp_name>} function, a utility function
 that raises the exception @code{<excp_name>}, along with its exception
@@ -2550,7 +2550,7 @@ with its exception member.
 @cindex @code{CORBA::Unknown}
 @cindex CORBA, Server-side exception
 
-@noindent 
+@noindent
 When a CORBA application raises an Ada exception that is not part of
 the IDL specifications, or defined by the CORBA specifications, then
 this exception is translated into a @code{CORBA::UNKNOWN} exception.
@@ -2602,17 +2602,17 @@ PolyORB defines packages to help in the development of CORBA programs.
 
 @itemize @bullet
 
-@item @ref{PolyORB.CORBA_P.CORBALOC}: 
+@item @ref{PolyORB.CORBA_P.CORBALOC}:
 
 This package defines a helper function to build a @code{corbaloc}
 stringified reference from a CORBA object reference.
 
-@item @ref{PolyORB.CORBA_P.Naming_Tools}: 
+@item @ref{PolyORB.CORBA_P.Naming_Tools}:
 
 This package defines helper functions to ease interaction with CORBA
 COS Naming.
 
-@item @ref{PolyORB.CORBA_P.Server_Tools}: 
+@item @ref{PolyORB.CORBA_P.Server_Tools}:
 
 This package defines helper functions to ease set up of a simple CORBA
 Server.
@@ -2669,11 +2669,11 @@ CORBA specifications described in @cite{[OMG02a]} and @cite{[OMG03]}.
 @section Installing RT-CORBA
 @c -------------------------------------------------------------------
 
-@noindent 
+@noindent
 The RT-CORBA library is installed as part of the installation of the
 CORBA personality. Note that you may have to select specific run-time
 options to enable full compliance with RT-CORBA specifications and
-ensure real time behavior. 
+ensure real time behavior.
 
 @c XXX TO BE COMPLETED
 
@@ -2686,7 +2686,7 @@ ensure real time behavior.
 * PolyORB.RTCORBA_P.Setup::
 @end menu
 
-@noindent 
+@noindent
 This section details how to configure your application to use the
 RT-CORBA library.
 
@@ -2696,7 +2696,7 @@ RT-CORBA library.
 @cindex @code{PolyORB.RTCORBA_P.Setup}
 @c -------------------------------------------------------------------
 
-@noindent 
+@noindent
 RT-CORBA specifications mandates the implementation provides a
 mechanism to set up some of its internals.
 
@@ -2716,7 +2716,7 @@ PolyORB provides different implementations of this specification:
 
 @itemize @bullet
 
-@item @code{RTCORBA.PriorityMapping.Direct} maps CORBA priorities 
+@item @code{RTCORBA.PriorityMapping.Direct} maps CORBA priorities
 directly to native priorities. If the CORBA priority is not in
 @code{System.Priority'Range}, then the mapping is not possible.
 
@@ -2744,7 +2744,7 @@ complete CORBA priority range is used up for the mapping. See
 @subsection Overview
 @c -------------------------------------------------------------------
 
-@noindent 
+@noindent
 PolyORB provides an implementation of the RTCosScheduling service
 defined in @cite{[OMG02a]}.
 
@@ -2833,7 +2833,7 @@ In this example, object @code{object1} is defined with priority
 [poa poa1]
 
 # PriorityModelPolicy for POA
-priority_model=CLIENT_PROPAGATED 
+priority_model=CLIENT_PROPAGATED
 default_priority=0 # not meaningful for CLIENT_PROPAGATED
 
 # Threadpools attached to POA
@@ -2844,7 +2844,7 @@ threadpool_id=1
 
 # PriorityModelPolicy for POA
 priority_model=SERVER_DECLARED
-default_priority=40 
+default_priority=40
 
 # Threadpools attached to POA
 threadpool_id=2
@@ -3048,12 +3048,12 @@ The delay before the termination manager starts sending waves.
 If true, the partition will be detached.
 
 @item rsh_options = [string]
-Options passed to the rsh command when using the module 
+Options passed to the rsh command when using the module
 polyorb.dsa_p-remote_launch
 
 @item rsh_command = [string]
-Which command should the module polyorb.dsa_p-remote_launch 
-use to spawn remote programs.  
+Which command should the module polyorb.dsa_p-remote_launch
+use to spawn remote programs.
 @end table
 
 @c -------------------------------------------------------------------
@@ -3096,7 +3096,7 @@ To build the MOMA application personality, @pxref{Installation}.
 @section Package hierarchy
 @c -------------------------------------------------------------------
 
-@noindent 
+@noindent
 Packages installed in @file{$INSTALL_DIR/include/polyorb/moma} hold
 the MOMA API. MOMA is built around two distinct set of packages:
 
@@ -3198,7 +3198,7 @@ allowing incoming requests which are unsecured.
 @noindent
 Datagram Inter-ORB Protocol (DIOP) is a specialization of GIOP for the
 UDP/IP protocol stack. It supports only asynchronous (@code{oneway})
-requests. 
+requests.
 
 This protocol is specific to PolyORB. DIOP 1.0 is mapping of GIOP on
 top of UDP/IP. DIOP 1.0 uses GIOP 1.2 message format.
@@ -3240,7 +3240,7 @@ Here is a summary of available parameters for each instance of GIOP.
 @cindex GIOP
 @c -------------------------------------------------------------------
 
-@noindent 
+@noindent
 This section details configuration parameters common to all GIOP
 instances.
 
@@ -3561,7 +3561,7 @@ PolyORB supports the following list of code sets:
 @subsection Incompatibility in code set support
 @c -------------------------------------------------------------------
 
-@noindent 
+@noindent
 Some ORB reports incompatiblity in code sets because fallback
 converters are not explicitely present in the reference.
 To work-around this issue, you may use the following parameters:
@@ -3612,14 +3612,14 @@ Character data Converter for char data have the following API (from
 @smallexample
    type Converter is abstract tagged private;
 
-   procedure Marshall 
+   procedure Marshall
      (C      : Converter;
       Buffer : access Buffers.Buffer_Type;
       Data   : Types.Char;
       Error  : in out Errors.Error_Container)
       is abstract;
 
-   procedure Marshall 
+   procedure Marshall
      (C      : Converter;
       Buffer : access Buffers.Buffer_Type;
       Data   : Types.String;
@@ -3908,7 +3908,7 @@ etc.). @xref{Tasking model in PolyORB}.
 @code{X} is the GIOP version in use, to false will disable
 @code{Locate_Message}, reducing the number of requests exchanged,
 
-@item Increasing 
+@item Increasing
 @code{polyorb.protocols.iiop.giop.1.X.max_message_size}, where
 @code{X} is the GIOP version in use, will reduce GIOP fragmentation,
 reducing middleware processing.
@@ -3933,7 +3933,7 @@ reducing middleware processing.
 @section CORBA standards conformance
 @c -------------------------------------------------------------------
 
-@noindent 
+@noindent
 The OMG defines CORBA-compliant ORB as implementations of the CORBA
 specifications that supports CORBA Core and one mapping of CORBA's IDL.
 
@@ -3984,22 +3984,22 @@ This set encompasses chapters 1-11. Chapters 3 to 11 are normative.
 @item Chapter 3 describes OMG IDL syntax and semantics. See @ref{CORBA
 IDL-to-Ada mapping} for a description of non-implemented features;
 
-@item Chapter 4 describes the ORB Interface. 
+@item Chapter 4 describes the ORB Interface.
 
-@noindent 
+@noindent
 PolyORB partially supports this chapter.
 
 @c XXX TO BE EXPANDED, note there are some differences between ORB Core and
 @c IDL-to-Ada mapping !}
 
-@item Chapter 5 describes Value Type Semantics. 
+@item Chapter 5 describes Value Type Semantics.
 
-@noindent 
+@noindent
 PolyORB does not support this chapter.
 
-@item Chapter 6 describes Abstract Interface Semantics. 
+@item Chapter 6 describes Abstract Interface Semantics.
 
-@noindent 
+@noindent
 PolyORB does not support this chapter.
 
 @item Chapter 7 describes Dynamic Invocation Interface (DII)
@@ -4010,25 +4010,25 @@ PolyORB supports only the following methods: @code{Create_Request},
 
 @item Chapter 8 describes Dynamic Skeleton Interface (DSI)
 
-@noindent 
+@noindent
 PolyORB partially supports this chapter: this interface is fully
 implemented except for context data.
 
 @item Chapter 9 describes Dynamic Management of Any Values
 
-@noindent 
+@noindent
 PolyORB partially supports this chapter: this interface is fully
 implemented except for object references and value types.
 
 @item Chapter 10 describes The Interface Repository
 
-@noindent 
+@noindent
 PolyORB supports this chapter, except for the @code{ExtValueDef}
 interface, and all CORBA CCM related interfaces.
 
 @item Chapter 11 describes The Portable Object Adapter
 
-@noindent 
+@noindent
 PolyORB supports this chapter with the following limitations:
 @itemize @bullet
 @item @code{USE_SERVANT_MANAGER} policy is partially supported: the
@@ -4052,7 +4052,7 @@ This set encompasses chapters 12-16.
 
 @itemize @bullet
 
-@item See @ref{CORBA-GIOP standards conformance} for more information 
+@item See @ref{CORBA-GIOP standards conformance} for more information
 on this point.
 
 @end itemize
@@ -4098,7 +4098,7 @@ This set encompasses chapters 22-24.
 
 @item Chapter 23 describes Fault Tolerant CORBA
 
-@item Chapter 24 describes Secure Interoperability. 
+@item Chapter 24 describes Secure Interoperability.
 
 @end itemize
 
@@ -4120,7 +4120,7 @@ following COS Services:
 @c XXX should indicate version for each COS
 
 @itemize @bullet
-@item COS Event and TypedEvent; 
+@item COS Event and TypedEvent;
 @item COS Naming;
 @item COS Notification;
 @item COS Time;
@@ -4139,7 +4139,7 @@ PolyORB supports the following specialized services:
 @item Unreliable Multicast (MIOP), proposed 1.0 specification @cite{[OMG02b]}.
 @cindex MIOP
 
-@item RT-CORBA extensions, see @ref{RT-CORBA} for more information 
+@item RT-CORBA extensions, see @ref{RT-CORBA} for more information
 on this point.
 
 @item CORBA security extensions, see @cite{[OMG]} for more information
@@ -4152,7 +4152,7 @@ on this point.
 @section RT-CORBA standards conformance
 @c -------------------------------------------------------------------
 
-@noindent 
+@noindent
 RT-CORBA specifications relies on the CORBA application
 personality. It inherits all its issues, and implementations notes.
 
@@ -4163,7 +4163,7 @@ specifications.
 @itemize @bullet
 @item RT-CORBA static and dynamic scheduling (Chapter 2)
 
-Chapter 2 is common to these two specifications. It describes 
+Chapter 2 is common to these two specifications. It describes
 key mechanisms of RT-CORBA that are common to both specifications.
 
 PolyORB partially implements this chapter from section 2.1 up to
@@ -4212,7 +4212,7 @@ Repository. See @ref{CORBA standards conformance} for more details.
 @item IIOP protocol as defined in chapter 15.
 @end itemize
 
-@noindent 
+@noindent
 Support for other components is optional.
 
 @itemize @bullet
