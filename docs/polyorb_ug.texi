@@ -156,6 +156,8 @@ Installation
 * Build instructions::
 * Additional instructions for cross platforms::
 * Building the documentation and PolyORB's examples::
+* Build Options::
+* Compiler Tools and Run-Time libraries Options::
 * Platform notes::
 
 Overview of PolyORB personalities
@@ -305,7 +307,7 @@ constructs within PolyORB.
 the real-time extensions of OMG's CORBA.
 
 @item @ref{DSA} describes PolyORB's implementation of the Ada
-Distributed System Annex.
+Distributed Systems Annex.
 
 @item @ref{MOMA} describes PolyORB's implementation of MOMA, the
 Message Oriented Middleware for Ada.
@@ -375,7 +377,7 @@ the characters @w{``@code{$ }''} (dollar sign followed by space). If
 your system uses this sequence as a prompt, then the commands will
 appear exactly as you see them in the manual. If your system uses some
 other prompt, then the command will appear with the @code{$} replaced
-by whatever prompt character you are using.
+by whatever prompt you are using.
 
 Full file names are shown with the ``@code{/}'' character
 as the directory separator; e.g., @file{parent-dir/subdir/myfile.adb}.
@@ -403,7 +405,7 @@ the ``@code{\}'' character should be used instead.
 @noindent
 PolyORB aims at providing a uniform solution to build distributed
 applications; relying either on industrial-strength middleware
-standards such as CORBA, the Distributed System Annex of Ada 95,
+standards such as CORBA, the Distributed Systems Annex of Ada 95,
 distribution programming paradigms such as Web Services, Message
 Oriented Middleware (MOM), or to implement application-specific
 middleware.
@@ -441,8 +443,8 @@ defined by the combination of distribution mechanisms made available
 to the application. Common examples of such mechanisms are Remote
 Procedure Call (RPC), Distributed Objects or Message Passing. A
 distribution infrastructure or middleware refers to software that
-supports one (or several) distribution model, e.g.: OMG CORBA, Java
-Remote Method Invocation (RMI), the Distributed System Annex of Ada
+supports one distribution model (or several), e.g.: OMG CORBA, Java
+Remote Method Invocation (RMI), the Distributed Systems Annex of Ada
 95, Java Message Service (MOM).
 
 @c -------------------------------------------------------------------
@@ -471,7 +473,7 @@ The decoupling of application and protocol personalities, and the
 support for multiple simultaneous personalities within the same
 running middleware, are key features required for the construction of
 interoperable distributed applications. This allows PolyORB to
-communicate with middleware that implement different distribution
+communicate with middleware that implements different distribution
 standards: PolyORB provides middleware-to-middleware interoperability
 (M2M).
 
@@ -502,6 +504,8 @@ Reusable Object-Oriented Polymorphic Infrastructure}
 * Build instructions::
 * Additional instructions for cross platforms::
 * Building the documentation and PolyORB's examples::
+* Build Options::
+* Compiler Tools and Run-Time libraries Options::
 * Platform notes::
 @end menu
 
@@ -547,15 +551,15 @@ use on the build host.
 Optional: 
 
 @itemize @bullet
-@item A C++ compiler if you want to build the CORBA application
-  personality (the OMG IDL specification mandates that IDL source
-  files be preprocessed according to standard C++ preprocessing
-  rules, and PolyORB relies on an external preprocessor provided
-  by a suitable C++ compiler to implement this). Note that newer
-  versions of GNAT provide an integrated IDL preprocessor. This feature
-  is detected and used automatically; in that case, no external C++
-  compiler is necessary. Please refer to the documentation of your
-  particular version of GNAT to know if it supports this feature.
+@item (Only for older versions of GNAT, and only if you want to build
+  the CORBA application personality): A C++ compiler. The OMG IDL
+  specification mandates that IDL source files be preprocessed according
+  to standard C++ preprocessing rules. Newer versions of GNAT provide an
+  integrated IDL preprocessor. This feature is detected and used
+  automatically. However, for older versions of GNAT, PolyORB relies on
+  an external preprocessor provided by a suitable C++ compiler. Please
+  refer to the documentation of your particular version of GNAT to know
+  if it supports this feature.
 
 @item XML/Ada (@url{http://libre.adacore.com/xmlada/}) if you
   want to build the SOAP protocol personality.
@@ -563,12 +567,12 @@ Optional:
 
 @noindent
 Note: per construction, the macro @command{configure} used to find
-your GNAT compiler looks first to the executables @command{gnatgcc},
-then @command{adagcc} and finally to @command{gcc} to find out which
+your GNAT compiler looks first for the executable @command{gnatgcc},
+then @command{adagcc} and finally @command{gcc} to find out which
 Ada compiler to use. You should be very careful with your path and
-executables if you have multiple GNAT versions installed. See below
-explanations on the ADA environment variable if you need to override
-the default guess.
+executables if you have multiple GNAT versions installed. See the
+explanation below on the ADA environment variable if you need to
+override the default guess.
 
 @c -------------------------------------------------------------------
 @node Build instructions
@@ -587,10 +591,10 @@ To compile and install PolyORB, execute:
 
 @noindent
 This will install files in standard locations.  If you want to choose
-another prefix than @file{/usr/local}, give configure a
+a prefix other than @file{/usr/local}, give configure a
 @option{--prefix=whereveryouwant} argument.
 
-NOTE: you MUST use GNU make (version 3.80 or later) to build PolyORB.
+NOTE: you must use GNU make (version 3.80 or later) to build PolyORB.
 
 @c -------------------------------------------------------------------
 @node Additional instructions for cross platforms
@@ -628,7 +632,8 @@ You may install PolyORB's documentation in a standard location using
 @command{make install}.
 
 @c -------------------------------------------------------------------
-@subsection Build Options
+@node Build Options
+@section Build Options
 @c -------------------------------------------------------------------
 
 @noindent
@@ -674,7 +679,8 @@ space and time cost, and is not recommended for production use.
 @end itemize
 
 @c -------------------------------------------------------------------
-@subsection Compiler, Tools and Run-Time libraries Options
+@node Compiler Tools and Run-Time libraries Options
+@section Compiler, Tools and Run-Time libraries Options
 @c -------------------------------------------------------------------
 
 @noindent
@@ -838,12 +844,12 @@ specifications; @code{RT-CORBA}, @code{PortableInterceptors},
 
 @c -------------------------------------------------------------------
 @node DSAoverview
-@subsection Distributed System Annex of Ada (DSA)
-@cindex DSA, Distributed System Annex
+@subsection Distributed Systems Annex of Ada (DSA)
+@cindex DSA, Distributed Systems Annex
 @c -------------------------------------------------------------------
 
 @noindent
-The Distributed System Annex of Ada (DSA) @cite{[ISO95]} is a normative
+The Distributed Systems Annex of Ada (DSA) @cite{[ISO95]} is a normative
 specification part of the language. It describes remote invocation
 schemes applied to most language constructs.
 
@@ -2860,8 +2866,8 @@ Threadpool #2. Note that both policies are optional and can be omitted.
 
 @c -------------------------------------------------------------------
 @node DSA
-@chapter Ada Distributed System Annex (DSA)
-@cindex DSA, Distributed System Annex
+@chapter Ada Distributed Systems Annex (DSA)
+@cindex DSA, Distributed Systems Annex
 @c -------------------------------------------------------------------
 
 @menu
@@ -2918,7 +2924,7 @@ And here is the code for the client:
 @include dsa_client-body.texi
 
 @noindent
-For more details about the distributed system annex please report
+For more details about the Distributed Systems annex please report
 yourself to the Ada 95 Reference Manual @cite{[ISO95]}.
 
 @c -------------------------------------------------------------------
