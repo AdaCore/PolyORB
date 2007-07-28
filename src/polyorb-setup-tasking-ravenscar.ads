@@ -55,7 +55,7 @@ generic
    --  Number of preallocated mutexes.
 
    Task_Priority                  : System.Priority;
-   --  Priority affected to the tasks of the pool.
+   --  Priority of the tasks of the pool.
 
    Storage_Size                   : Natural;
    --  Stack size of the system tasks.
