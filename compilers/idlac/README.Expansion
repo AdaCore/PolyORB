@@ -20,7 +20,7 @@ It is mapped to "type NAME is delta 10 ** -SCALE digits DIGITS;"
   N2:{seq(Name=IDL_SEQUENCE_SEQUENCE_foo,Bound=0,Element_Type=N1)}
   typedef N2 SeqSeqFoo;
 
-{seq} is a new node kind for generic CORBA.Sequences.* instanciations.
+{seq} is a new node kind for generic CORBA.Sequences.* instantiations.
 It is a named node, and holds a reference to the original sequence
 node as its Original_Node field.
 The {seq} node replaces the original sequence node wherever

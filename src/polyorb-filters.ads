@@ -93,7 +93,7 @@ package PolyORB.Filters is
    procedure Create
      (Fact : access Factory;
       Filt : out Filter_Access) is abstract;
-   --  Each filter factory implements a Create operation that instanciates
+   --  Each filter factory implements a Create operation that instantiates
    --  the corresponding filter.
 
    procedure Destroy (F : in out Filter);

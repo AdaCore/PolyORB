@@ -1412,7 +1412,7 @@ package body Ada_Be.Idl2Ada is
 
       PL (CU, " with null record;");
       --  The type is not produced as a private extension declaration, because
-      --  we may need to use it as a generic actual parameter to instanciate
+      --  we may need to use it as a generic actual parameter to instantiate
       --  CORBA.Forward.
 
    end Gen_Client_Stub_Type_Declaration;

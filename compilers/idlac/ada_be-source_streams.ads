@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -166,12 +166,12 @@ package Ada_Be.Source_Streams is
 
    procedure Generate
      (Unit : Compilation_Unit;
-      Is_Generic_Instanciation : Boolean := False;
+      Is_Generic_Instantiation : Boolean := False;
       To_Stdout : Boolean := False);
    --  Produce the source code for Unit.
-   --  If Is_Generic_Instanciation, then Unit's Kind must
+   --  If Is_Generic_Instantiation, then Unit's Kind must
    --  be Unit_Spec, and Unit must be a library-level
-   --  instanciation of a generic package.
+   --  instantiation of a generic package.
    --  If To_Stdout, the code is emitted to standard output.
    --  Empty units are omitted altogether.
 

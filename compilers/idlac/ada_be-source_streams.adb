@@ -331,7 +331,7 @@ package body Ada_Be.Source_Streams is
 
    procedure Generate
      (Unit : Compilation_Unit;
-      Is_Generic_Instanciation : Boolean := False;
+      Is_Generic_Instantiation : Boolean := False;
       To_Stdout : Boolean := False)
    is
 
@@ -490,7 +490,7 @@ package body Ada_Be.Source_Streams is
             Write_Str (To_String (Unit.Diversions (Elaboration).Library_Item));
          end if;
 
-         if not Is_Generic_Instanciation then
+         if not Is_Generic_Instantiation then
             Write_Eol;
             Write_Line ("end " & Unit.Library_Unit_Name.all & ";");
          end if;

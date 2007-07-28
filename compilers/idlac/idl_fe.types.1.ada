@@ -528,7 +528,7 @@ package Idl_Fe.Types is
    --  The table is actually represented as a pointer to allow reallocation
    type Table_Ptr is access all Big_Table_Type;
 
-   --  the table type that will be instanciated
+   --  the table type that will be instantiated
    type Table is record
       --  the table
       Table : Table_Ptr := null;

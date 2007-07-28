@@ -105,7 +105,7 @@ package PolyORB.Log is
       --  Output S to stderr.
 
       --  Note: this function is to be utilised if and only if we cannot
-      --  instanciate PolyORB.Log.Facility_Log.
+      --  instantiate PolyORB.Log.Facility_Log.
 
       type Log_Hook_T is access procedure (S : String);
 

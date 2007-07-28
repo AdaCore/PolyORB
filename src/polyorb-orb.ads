@@ -231,7 +231,7 @@ package PolyORB.ORB is
       PF    :        PBD.Profile_Factory_Access);
    --  Register a newly-created transport access point with
    --  ORB. When a connection is received on TAP, a filter
-   --  chain is instanciated using Chain, and associated
+   --  chain is instantiated using Chain, and associated
    --  to the corresponding transport endpoint.
 
    function Is_Profile_Local
@@ -247,7 +247,7 @@ package PolyORB.ORB is
       BO   :        Smart_Pointers.Ref;
       Role :        Endpoint_Role);
    --  Register a newly-created transport endpoint with ORB.
-   --  A filter chain is instanciated using Chain, and associated
+   --  A filter chain is instantiated using Chain, and associated
    --  with TE.
 
    procedure Unregister_Binding_Object

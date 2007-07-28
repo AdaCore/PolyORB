@@ -7,7 +7,7 @@ client_soap <uri>
 where <uri> MUST be an URI, as AWS only handles URIs. So entering an
 IOR or a corbaloc will not work.
 
-server instanciates two servants: 
+server instantiates two servants: 
 - one for the classical web
 - another for web services
 

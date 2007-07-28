@@ -31,7 +31,7 @@
 =============
 
 This release contains the PolyORB generic middleware, and its CORBA
-and DSA instanciations. In addition to the 2.2 release, it includes:
+and DSA instantiations. In addition to the 2.2 release, it includes:
 
 New features
 ------------
