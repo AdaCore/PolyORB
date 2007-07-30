@@ -155,7 +155,7 @@ done
 exec_prefix="@exec_prefix@"
 includedir="@includedir@"
 libdir="@libdir@"
-polyorb_dir="-I${includedir}/polyorb"
+polyorb_dir="-aI${includedir}/polyorb -aL${includedir}/polyorb"
 polyorb_lib="@LDFLAGS@ -L${libdir}"
 corba_idl_dir="-I${includedir}/polyorb"
 
