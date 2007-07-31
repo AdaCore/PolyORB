@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---           Copyright (C) 2006, Free Software Foundation, Inc.             --
+--         Copyright (C) 2006-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -30,6 +30,7 @@
 --                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
+
 pragma Warnings (Off);
 
 with PolyORB.Exceptions;
@@ -92,6 +93,6 @@ package PolyORB.Partition_Elaboration is
    procedure Full_Launch;
    --  Launch the slave partitions when using Ada Starter
 
-   --  We elaborate the body, which contains the distributed specific
-   --  elaboration code.
+   --  Body elaboration statements contain partition specific elaboration code
+
 end PolyORB.Partition_Elaboration;
