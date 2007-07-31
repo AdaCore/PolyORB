@@ -805,7 +805,8 @@ install: all
 	find \
 	  ${top_builddir}/ali \
 	  -name '*.ali' \
-	  -a ! -name 'polyorb-dsa_p-partitions.ali') | \
+	  -a ! -name 'polyorb-dsa_p-partitions.ali' \
+	  -a ! -name 'polyorb-partition_elaboration.ali') | \
 	${XARGS_I} ${INSTALL} -m 444 {} ${prefix}/include/polyorb
 
 # polyorb-dsa_p-partitions.ali is a special case above.
