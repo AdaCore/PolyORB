@@ -155,7 +155,7 @@ done
 exec_prefix="@exec_prefix@"
 includedir="@includedir@"
 libdir="@libdir@"
-polyorb_dir="-aI${includedir}/polyorb -aL${includedir}/polyorb"
+polyorb_dir="${includedir}/polyorb"
 polyorb_lib="@LDFLAGS@ -L${libdir}"
 corba_idl_dir="-I${includedir}/polyorb"
 
@@ -226,12 +226,12 @@ polyorb_lib="$polyorb_lib -lpolyorb-setup"
 # (specifically, System.Partition_Interface.*).
 
 if $require_xmlada; then
-  polyorb_dir="$polyorb_dir @XMLADA_INCS@"
-  polyorb_lib="$polyorb_lib @XMLADA_LIBS@"
+  xmlada_dir="@XMLADA_INCS@"
+  xmlada_lib="@XMLADA_LIBS@"
 fi
 
 if test ! x"$echo_prefix" = x"true"  -a ! x"$echo_exec_prefix" = x"true" -a ! x"$echo_cflags" = x"true" -a ! x"$echo_libs" = x"true" -a ! x"$echo_idls" = x"true"; then
-   echo $polyorb_dir -largs $polyorb_lib
+   echo -aI${polyorb_dir} -aL${polyorb_dir} ${xmlada_dir} -largs ${polyorb_lib} ${xmlada_lib}
 fi
 
 if test x"$echo_prefix" = x"true" ; then
@@ -242,11 +242,11 @@ if test x"$echo_exec_prefix" = x"true" ; then
 fi
 
 if test x"$echo_cflags" = x"true"; then
-    echo $polyorb_dir 
+    echo -I${polyorb_dir} ${xmlada_dir}
 fi
 
 if test x"$echo_libs" = x"true"; then
-    echo $polyorb_lib
+    echo ${polyorb_lib} ${xmlada_lib}
 fi
 
 if test x"$echo_idls" = x"true"; then
