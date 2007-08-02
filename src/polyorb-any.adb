@@ -1931,6 +1931,7 @@ package body PolyORB.Any is
    -------------
 
    function No_Wrap (X : access T) return Content'Class is
+      pragma Unreferenced (X);
    begin
       raise Program_Error;
       return No_Content'(null record);
