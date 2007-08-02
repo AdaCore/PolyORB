@@ -1311,8 +1311,6 @@ src/polyorb-parameters-file.adb
 src/polyorb-parameters-file.ads
 src/polyorb-parameters-initialization.adb
 src/polyorb-parameters-initialization.ads
-src/polyorb-parameters-partition.adb
-src/polyorb-parameters-partition.ads
 src/polyorb-parameters.adb
 src/polyorb-parameters.ads
 src/polyorb-platform-ssl_linker_options.ads.in

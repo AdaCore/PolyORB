@@ -37,6 +37,12 @@ package PolyORB.Parameters is
 
    pragma Preelaborate;
 
+   ------------------
+   -- Consumer API --
+   ------------------
+
+   --  Used by modules that retrieve configuration information
+
    function Get_Conf
      (Section, Key : String;
       Default : String := "") return String;
@@ -88,9 +94,13 @@ package PolyORB.Parameters is
    function Make_Global_Key (Section, Key : String) return String;
    --  Build dynamic key from (Section, Key) tuple
 
-private
+   ------------------
+   -- Provider API --
+   ------------------
 
-   type Parameters_Source is abstract tagged limited null record;
+   --  Used by modules that provide configuration information
+
+   type Parameters_Source is abstract tagged limited private;
    type Parameters_Source_Access is access all Parameters_Source'Class;
 
    function Get_Conf
@@ -102,6 +112,10 @@ private
    procedure Register_Source (Source : Parameters_Source_Access);
    --  Register one source of configuration parameters. Sources are queried
    --  at run time in the order they were registered.
+
+private
+
+   type Parameters_Source is abstract tagged limited null record;
 
    type Fetch_From_File_T is access function (Key : String) return String;
    Fetch_From_File_Hook : Fetch_From_File_T := null;
