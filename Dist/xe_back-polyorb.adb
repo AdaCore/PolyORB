@@ -49,9 +49,6 @@ package body XE_Back.PolyORB is
    Elaboration_File  : File_Name_Type;
    --  Partition elaboration unit
 
-   Parameters_File   : File_Name_Type;
-   --  Partition runtime parameters
-
    PCS_Project       : Name_Id;
    PCS_Project_File  : File_Name_Type;
    --  Project file for the PCS
@@ -74,7 +71,6 @@ package body XE_Back.PolyORB is
       RU_PolyORB_DSA_P,
       RU_PolyORB_DSA_P_Remote_Launch,
       RU_PolyORB_Parameters,
-      RU_PolyORB_Parameters_Partition,
       RU_PolyORB_Partition_Elaboration,
       RU_PolyORB_Setup,
       RU_PolyORB_Setup_Access_Points,
@@ -170,8 +166,11 @@ package body XE_Back.PolyORB is
    --  Compile main partition file and elaboration file.
    --  Bind and link partition to create executable.
 
-   procedure Generate_Parameters_File (P : Partition_Id);
-   --  Create parameters source unit for the given partition.
+   procedure Generate_Parameters_Source (P : Partition_Id);
+   --  Create fragment of elaboration file that declares and registers a
+   --  runtime parameters source for the given partition. Must be called last
+   --  thing in Generate_Elaboration_File (creates elaboration statements for
+   --  the package).
 
    procedure Generate_Partition_Main_File (P : Partition_Id);
    --  Create a procedure which "withes" all the RCI or SP receivers
@@ -272,8 +271,7 @@ package body XE_Back.PolyORB is
 
       --  Overridden
 
-      Write_Line ("     (""polyorb-parameters-partition.adb"",");
-      Write_Line ("      ""polyorb-partition_elaboration.adb"",");
+      Write_Line ("     (""polyorb-partition_elaboration.adb"",");
 
       --  Rebuilt
 
@@ -399,6 +397,14 @@ package body XE_Back.PolyORB is
          end if;
       end if;
 
+      --  Dependencies related to the partition specific parameters source
+
+      Write_With_Clause (RU (RU_PolyORB_Parameters), U => True);
+      Write_With_Clause (RU (RU_PolyORB_Initialization), True, True);
+      Write_With_Clause (RU (RU_PolyORB_Utils), True);
+      Write_With_Clause (RU (RU_PolyORB_Utils_Strings), True);
+      Write_With_Clause (RU (RU_PolyORB_Utils_Strings_Lists), True);
+
       Write_Str  ("package body ");
       Write_Name (RU (RU_PolyORB_Partition_Elaboration));
       Write_Line (" is");
@@ -425,6 +431,8 @@ package body XE_Back.PolyORB is
       Decrement_Indentation;
       Write_Indentation;
       Write_Line  ("end Full_Launch;");
+
+      Generate_Parameters_Source (P);
 
       Decrement_Indentation;
       Write_Str  ("end ");
@@ -507,14 +515,6 @@ package body XE_Back.PolyORB is
       end if;
       Compile (Sfile, Comp_Args (1 .. Length));
 
-      --  Compile parameters file
-
-      Sfile := Parameters_File & ADB_Suffix_Id;
-      if Project_File_Name = null then
-         Sfile := Dir (Part_Dir, Sfile);
-      end if;
-      Compile (Sfile, Comp_Args (1 .. Length));
-
       --  Compile main file
 
       Sfile := Partition_Main_File & ADB_Suffix_Id;
@@ -551,21 +551,13 @@ package body XE_Back.PolyORB is
       Free (Make_Args (8));
    end Generate_Executable_File;
 
-   ------------------------------
-   -- Generate_Parameters_File --
-   ------------------------------
+   --------------------------------
+   -- Generate_Parameters_Source --
+   --------------------------------
 
-   procedure Generate_Parameters_File (P : Partition_Id) is
-
-      Filename     : File_Name_Type;
-      File         : File_Descriptor;
+   procedure Generate_Parameters_Source (P : Partition_Id) is
       Current      : Partition_Type renames Partitions.Table (P);
-
    begin
-      Filename := Parameters_File & ADB_Suffix_Id;
-      Filename := Dir (Current.Partition_Dir, Filename);
-      Create_File (File, Filename);
-      Set_Output  (File);
 
       --  Add the termination policy to the configuration table, if no
       --  termination policy is set, the default is Global_Termination.
@@ -609,16 +601,6 @@ package body XE_Back.PolyORB is
 
       --  The configuration is done, start generating the code
 
-      Write_Line ("pragma Warnings (Off);");
-      Write_With_Clause (RU (RU_PolyORB_Initialization), True, True);
-      Write_With_Clause (RU (RU_PolyORB_Utils), True);
-      Write_With_Clause (RU (RU_PolyORB_Utils_Strings), True);
-      Write_With_Clause (RU (RU_PolyORB_Utils_Strings_Lists), True);
-      Write_Str  ("package body ");
-      Write_Name (RU (RU_PolyORB_Parameters_Partition));
-      Write_Line (" is");
-
-      Increment_Indentation;
       Write_Indentation;
       Write_Line ("type Partition_Source is new Parameters_Source" &
                     " with null record;");
@@ -741,21 +723,12 @@ package body XE_Back.PolyORB is
       Write_Indentation (+1);
       Write_Line ("Shutdown  => null));");
       Decrement_Indentation;
-      Decrement_Indentation;
-
-      Write_Indentation;
-      Write_Str  ("end ");
-      Write_Name (RU (RU_PolyORB_Parameters_Partition));
-      Write_Line (";");
-
-      Close (File);
-      Set_Standard_Output;
 
       --  Reset the configuration table so that next partition elaboration
       --  is configurated properly.
 
       Reset_Conf;
-   end Generate_Parameters_File;
+   end Generate_Parameters_Source;
 
    ----------------------------------
    -- Generate_Partition_Main_File --
@@ -887,7 +860,6 @@ package body XE_Back.PolyORB is
       Set_Corresponding_Project_File_Name (Dist_App_Project_File);
 
       Elaboration_File      := Id ("polyorb-partition_elaboration");
-      Parameters_File       := Id ("polyorb-parameters-partition");
 
       Register_Casing_Rule ("ORB");
 
@@ -1002,7 +974,6 @@ package body XE_Back.PolyORB is
                      Message ("building partition", Current.Name);
                   end if;
 
-                  Generate_Parameters_File (J);
                   Generate_Elaboration_File (J);
                   Generate_Partition_Main_File (J);
                   Generate_Executable_File (J);
