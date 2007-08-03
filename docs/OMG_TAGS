@@ -1,0 +1,24 @@
+This file lists the OMG tag assignments held by the PolyORB open source
+middleware. To update contact information or request new tag assignments,
+contact tag-request@omg.org / andrew@omg.org.
+
+-----------------------------------------------------------------------------
+
+Holder:       PolyORB Open Source middleware
+Contact:      Thomas Quinot
+Email:        <quinot@adacore.com>
+URL:
+Last update:  2nd August 2007
+Status:       Current
+
+ 256 profile tags    0x504f0000 - 0x504f00ff  ("PO\x00\x00" - "PO\x00\xff")
+ 256 service tags    0x504f0000 - 0x504f00ff  ("PO\x00\x00" - "PO\x00\xff")
+ 256 component IDs   0x504f0000 - 0x504f00ff  ("PO\x00\x00" - "PO\x00\xff")
+ 16 VMCIDs           0x504f0xxx - 0x504ffxxx  ("PO\x00\x00" - "PO\xff\xff")
+ 16 ORB type IDs     0x504f0000 - 0x504f000f  ("PO\x00\x00" - "PO\x00\x0f")
+
+-----------------------------------------------------------------------------
+
+These tag ranges are used to create constants in the following units:
+  profile tags       PolyORB.Binding_Data
+  service tags       PolyORB.QoS.Service_Contexts

@@ -1,5 +1,5 @@
 ========================================================
-PolyORB 2.3 NEW FEATURES LIST Current as of Jul 10, 2007
+PolyORB 2.3 NEW FEATURES LIST Current as of Aug 03, 2007
 ========================================================
 
 Copyright (c) 2007, AdaCore
@@ -11,6 +11,16 @@ An ISO date (YYYY-MM-DD) appears in parentheses after the description line.
 This date shows the implementation date of the feature. Any 2.3w wavefront
 subsequent to this date will contain the indicated feature, as will any
 subsequent releases.
+
+NF-23-G803-009 Official OMG tags assigned to PolyORB (2007-08-02)
+
+  PolyORB has received official OMG profile tags, service tags,
+  component IDs, vendor minor code IDs and ORB type IDs from the OMG. 
+
+  Note that users who rely on PolyORB-specific features across partitions
+  in an application (including all users of the DSA application personality)
+  will have to upgrade all partitions at the same time so that they use a
+  consistent set of tags.
 
 NF-23-G627-011 Remove unused libraries from polyorb-config output (2007-03-14)
 

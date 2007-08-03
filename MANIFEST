@@ -352,6 +352,7 @@ docs/CODING_GUIDELINES
 docs/CONTRIBUTING
 docs/Makefile.am
 docs/Makefile.in
+docs/OMG_TAGS
 docs/PROBLEM-REPORT-FORM
 docs/gfdl.texi
 docs/iac.1

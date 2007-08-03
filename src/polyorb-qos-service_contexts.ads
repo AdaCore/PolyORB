@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -103,11 +103,25 @@ package PolyORB.QoS.Service_Contexts is
 
 private
 
+   use type Types.Unsigned_Long;
+
+   --  Standard service tags
+
    CodeSets                 : constant Service_Id := 1;
    RTCorbaPriority          : constant Service_Id := 10;
    FTGroupVersion           : constant Service_Id := 12;
    FTRequest                : constant Service_Id := 13;
    SecurityAttributeService : constant Service_Id := 15;
-   AdaExceptionInformation  : constant Service_Id := 2005;
-   TMInfo                   : constant Service_Id := 17;
+
+   --  PolyORB-specific service tags (see docs/OMG_TAGS)
+
+   PolyORB_First            : constant Service_Id := 16#504f0000#;
+   --  "PO\x00\x00"
+
+   AdaExceptionInformation  : constant Service_Id := PolyORB_First + 0;
+   TMInfo                   : constant Service_Id := PolyORB_First + 1;
+
+   PolyORB_Last             : constant Service_Id := 16#504f00ff#;
+   --  "PO\x00\xff"
+
 end PolyORB.QoS.Service_Contexts;
