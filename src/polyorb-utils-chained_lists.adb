@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -196,14 +196,23 @@ package body PolyORB.Utils.Chained_Lists is
       end if;
 
       if Before.Current = null then
+
+         --  Inserting at tail of list: update Last and N's Prev pointer
+
          if Doubly_Chained then
             N.Chain (Prev_Node) := L.Last;
          end if;
          L.Last := N;
+
       elsif Doubly_Chained then
+
+         --  Inserting at head (of non-empty list) or in the middle of
+         --  the list: update this and the next nodes' Prev pointer.
+
          N.Chain (Prev_Node) := Before.Current.Chain (Prev_Node);
          Before.Current.Chain (Prev_Node) := N;
       end if;
+
       pragma Assert ((L.First = null) = (L.Last = null));
    end Insert;
 
@@ -256,7 +265,7 @@ package body PolyORB.Utils.Chained_Lists is
 
    procedure Next (I : in out Iterator) is
    begin
-      I.Current  := I.Current.Chain (Next_Node);
+      I.Current := I.Current.Chain (Next_Node);
    end Next;
 
    -------------
