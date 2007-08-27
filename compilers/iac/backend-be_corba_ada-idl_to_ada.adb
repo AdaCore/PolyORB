@@ -77,14 +77,21 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
    --  Returns a conventional Name_Id useful for the two subprogram
    --  above
 
+   function Map_Declarator_Type_Designator
+     (Type_Decl  : Node_Id;
+      Declarator : Node_Id)
+     return Node_Id;
+   --  Map an Ada designator from Type_Decl according to the Ada
+   --  mapping rules.
+
    ----------------------------
    -- Get_Mapped_Entity_Name --
    ----------------------------
 
    function Get_Mapped_Entity_Name (T : Node_Id) return Name_Id is
-      pragma Assert (FEN.Kind (T) = K_Fixed_Point_Type or else
-                     FEN.Kind (T) = K_Sequence_Type or else
-                     FEN.Kind (T) = K_String_Type or else
+      pragma Assert (FEN.Kind (T) = K_Fixed_Point_Type   or else
+                     FEN.Kind (T) = K_Sequence_Type      or else
+                     FEN.Kind (T) = K_String_Type        or else
                      FEN.Kind (T) = K_Wide_String_Type);
 
       Internal_Name : constant Name_Id := Get_Internal_Name (T);
@@ -104,9 +111,9 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
    procedure Link_Mapped_Entity_Name
      (E_Name : Name_Id; T : Node_Id)
    is
-      pragma Assert (FEN.Kind (T) = K_Fixed_Point_Type or else
-                     FEN.Kind (T) = K_Sequence_Type or else
-                     FEN.Kind (T) = K_String_Type or else
+      pragma Assert (FEN.Kind (T) = K_Fixed_Point_Type   or else
+                     FEN.Kind (T) = K_Sequence_Type      or else
+                     FEN.Kind (T) = K_String_Type        or else
                      FEN.Kind (T) = K_Wide_String_Type);
 
       Internal_Name : constant Name_Id := Get_Internal_Name (T);
@@ -183,7 +190,8 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
          when FEN.K_Object              => return RE (RE_TC_Object_0);
          when FEN.K_Any                 => return RE (RE_TC_Any);
          when others                    =>
-            raise Program_Error;
+            raise Program_Error with "Not a base type: "
+              & FEN.Node_Kind'Image (K);
       end case;
    end Base_Type_TC;
 
@@ -398,7 +406,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
    begin
       Designator := Map_Designator (Type_Decl);
 
-      --  The expansion phase ensure ther cannot be complex
+      --  The expansion phase ensures there cannot be complex
       --  declarators inside structures, exceptions and unions.
 
       if Kind (Declarator) = K_Complex_Declarator then
@@ -454,7 +462,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
 
          --  The routine below verifies whether the scoped name
          --  designs a CORBA Entity declared in orb.idl, in which
-         --  case, it returns the corresponding runtime entity
+         --  case, it returns the corresponding runtime entity.
 
          N := Map_Predefined_CORBA_Entity (Entity);
 
@@ -467,7 +475,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
          end if;
 
          --  Handling the case where R is not a base type nor a user
-         --  defined type but an Interface type. In this case we do
+         --  defined type but an interface type. In this case we do
          --  not return the identifier of the interface name but the
          --  identifier to the Ref type defined in the stub package
          --  relative to the interface.
@@ -475,8 +483,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
          N := New_Node (K_Designator);
 
          if Kind (R) = FEN.K_Interface_Declaration then
-
-            --  Getting the node of the Ref type declaration.
+            --  Get the node of the Ref type declaration.
 
             Ref_Type_Node := Type_Def_Node (BE_Node (Identifier (R)));
             Set_Defining_Identifier
@@ -485,8 +492,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
             Set_FE_Node (N, R);
             P := R;
          elsif Kind (R) = FEN.K_Forward_Interface_Declaration then
-
-            --  Getting the node of the Ref type declaration.
+            --  Get the node of the Ref type declaration.
 
             Ref_Type_Node := Type_Def_Node (BE_Node (Identifier (R)));
             Set_Defining_Identifier
@@ -692,7 +698,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
    function Map_IDL_Unit (Entity : Node_Id) return Node_Id is
       P : Node_Id;
       N : Node_Id;
-      M : Node_Id;  --  Main Package (Stub)
+      M : Node_Id;
       D : Node_Id;
       L : List_Id;
       I : Node_Id;
@@ -1075,15 +1081,17 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
    begin
       if Is_Abstract_Interface (Entity) then
 
-         --  The abstract interfaces should inherit from CORBA.AbstractBase.Ref
-         --  to allow passing interfaces and ValueTypes.
-         --  Since the code generation for ValueType is not performed by IAC
-         --  It is useless (for now) to make the abstract interfaces inherit
-         --  from CORBA.AbstractBase.Ref and it causes problems when compiling
-         --  current generated code.
-         --  Ancestor := RE (RE_Ref_1);
+         --  The abstract interfaces should inherit from
+         --  CORBA.AbstractBase.Ref to allow passing interfaces and
+         --  ValueTypes.
 
-         --  XXX : To be replaced when the ValuTypes are implemented
+         --  Since the code generation for ValueType is not performed
+         --  by IAC, it is useless (for now) to make the abstract
+         --  interfaces inherit from CORBA.AbstractBase.Ref and it
+         --  causes problems when compiling current generated code.
+
+         --  XXX : To be replaced by RE_Ref_1 when the ValueTypes are
+         --  implemented.
          Ancestor := RE (RE_Ref_2, Withed);
       else
          Ancestor := RE (RE_Ref_2, Withed);
@@ -1163,9 +1171,10 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
 
       begin
 
-         --  The explicit definition of a type ID disables the effects of the
-         --  type prefix and the type version explicit definitions, the
-         --  conflicts being checked in the analyze phase of the frontend.
+         --  The explicit definition of a type ID disables the effects
+         --  of the type prefix and the type version explicit
+         --  definitions, the conflicts being checked in the analyze
+         --  phase of the frontend.
 
          if First_Recursion_Level
            and then Present (FEN.Type_Id (Entity))
@@ -1174,9 +1183,9 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
             return;
          end if;
 
-         --  For entity kinds modules, interfaces and valutypes, the prefix
-         --  fetching begins from the entity itself. For the rest of kind, the
-         --  fetching starts from the parent entity
+         --  For entity kinds modules, interfaces and valutypes, the
+         --  prefix fetching begins from the entity itself. For the
+         --  rest of kind, the fetching starts from the parent entity.
 
          if First_Recursion_Level and then
            (FEN.Kind (Entity) = K_Module or else
@@ -1188,9 +1197,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
             Name := Name_Find; --  Backup
             Prefix := IDL_Name (Last_Entity (Type_Prefixes (Entity)));
             Prefix := Add_Suffix_To_Name ("/", Prefix);
-            Name   := Add_Suffix_To_Name
-              (Get_Name_String (Prefix),
-               Name);
+            Name   := Add_Suffix_To_Name (Get_Name_String (Prefix), Name);
             Get_Name_String (Name); --  Restore
             Prefix := No_Name;
          end if;
@@ -1234,7 +1241,6 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
       I : Name_Id;
       V : Value_Id;
    begin
-
       --  Building the Repository Id designator
 
       Name_Len := 0;
@@ -1320,8 +1326,8 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
       Info     : Nat;
       Index    : Nat;
    begin
-      --  First of all, see whether we have already mapped the sequence
-      --  type S
+      --  First of all, see whether we have already mapped the
+      --  sequence type S.
 
       S_Name := Get_Mapped_Entity_Name (S);
 
@@ -1356,8 +1362,8 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
          raise Program_Error;
       end if;
 
-      --  If the type name consists of two or more words, replace
-      --  spaces by underscores
+      --  If the type name consists of two or more words ("unsigned
+      --  long"), replace spaces by underscores.
 
       Get_Name_String (ET_Name);
 
@@ -1406,7 +1412,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
       S_Name := Name_Find;
 
       --  ... However we must resolve the conflicts that may occur
-      --  with other sequence type names
+      --  with other sequence type names.
 
       Info := Get_Name_Table_Info (S_Name);
 
@@ -1444,13 +1450,12 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
    -------------------------
 
    function Map_String_Pkg_Name (S : Node_Id) return Name_Id is
-      pragma Assert (FEN.Kind (S) = K_String_Type or else
-                     FEN.Kind (S) = K_Wide_String_Type);
-
       S_Name : Name_Id;
       Info   : Nat;
       Index  : Nat;
    begin
+      pragma Assert (FEN.Kind (S) = K_String_Type        or else
+                     FEN.Kind (S) = K_Wide_String_Type);
       --  First of all, see whether we have already mapped the string
       --  type S
 
@@ -1687,12 +1692,10 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
            | RE_Visibility
            | RE_PolicyType
            | RE_Ref_2 =>
-            return N;
+            --  Return a dummy node and not "No_Node" because No_Nodes
+            --  means that this is not a predefined CORBA type.
 
-            --  FIXME : For predefined CORBA Sequence type, once the
-            --  CORBA.IDL_Sequence.Helper.Init package is added to the
-            --  PolyORB source, return the corresponding
-            --  <Type>Seq_Initialize procedure
+            return N;
 
          when RE_AnySeq_2
            | RE_FloatSeq_2
@@ -1710,6 +1713,12 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
            | RE_WStringSeq_2
            | RE_BooleanSeq_2
            | RE_OctetSeq_2 =>
+            --  FIXME : For predefined CORBA Sequence type, once the
+            --  CORBA.IDL_Sequence.Helper.Init package is added to the
+            --  PolyORB source, return the corresponding
+            --  <Type>Seq_Initialize procedure. For now we return a
+            --  dummy node N.
+
             return N;
 
          when others =>
@@ -2104,9 +2113,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
       Add_Str_To_Name_Buffer (Message);
       Get_Name_String_And_Append (Second_Name);
       Comment := Make_Ada_Comment (Name_Find);
-      Append_Node_To_List
-        (Comment,
-         Visible_Part (Current_Package));
+      Append_Node_To_List (Comment, Visible_Part (Current_Package));
    end Explaining_Comment;
 
    ------------------------
@@ -3193,9 +3200,10 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
 
    function Map_Operation_Name_Literal (O : Node_Id) return Name_Id is
    begin
-      --  Attribute accessor are known by their null location (they
-      --  are created at expansion time, so they do not have a
-      --  location in the IDL file).
+      --  Literals for attribute accessors must be prefixed by '_'
+      --  (_Get_... and _Set_...). Attribute accessors are known by
+      --  their null location (they are created at expansion time, so
+      --  they do not have a location in the IDL file).
 
       Name_Len := 0;
 

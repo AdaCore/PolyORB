@@ -38,10 +38,10 @@
 package Backend.BE_CORBA_Ada is
 
    procedure Generate (E : Node_Id);
-   --  Creates the Ada tree, then depending on the user chosen options
+   --  Creates the Ada tree, then depending on the user options
    --  generate the Ada code, dumps the tree...
 
-   --  The procedure Generate uses Visitor Functions. Visitor_XXX
+   --  The Generate procedure uses Visitor Functions. Visitor_XXX
    --  stands for visit IDL node XXX. The returned value of this
    --  function is either a Node_Id or a List_Id, it's related with
    --  the context of each IDL structure in the IDL tree.
@@ -54,6 +54,8 @@ package Backend.BE_CORBA_Ada is
    --  source).
 
    procedure Usage (Indent : Natural);
+   --  Displays a help message that describes the command line options
+   --  of IAC.
 
    -----------------------
    -- General use flags --
@@ -83,10 +85,10 @@ package Backend.BE_CORBA_Ada is
    --  Controls the dumping of the Ada tree
 
    Output_Unit_Withing  : Boolean := False;
-   --  Outputs the Withed units
+   --  Outputs the "Withed" units
 
    Output_Tree_Warnings : Boolean := False;
-   --  Outputs the Warning encountered while building the Ada tree
+   --  Outputs the warnings encountered while building the Ada tree
 
    -----------------------------
    -- Code optimization flags --
@@ -99,22 +101,22 @@ package Backend.BE_CORBA_Ada is
    Optimize_CPU              : Boolean := False;
    Optimize_Memory           : Boolean := False;
 
-   --  The flag below is related to the request handling method (SSI
-   --  or DII) By default, the it's the Used
-
    Use_SII : Boolean := False;
-   --  Marshaller optimization using a one time allocation by
-   --  calculating the message body size of a GIOP request (used with
-   --  SII handling)
+   --  The request handling method (SSI or DII). By default, the DII
+   --  is used.
 
    Use_Optimized_Buffers_Allocation : Boolean := False;
-   --  Marshalling optimization using the representation clause of the
-   --  Ada language to make the padding between parameters (used with
-   --  SII handling)
+   --  Marshaller optimization using a one time allocation by
+   --  calculating the message body size of a GIOP request (used with
+   --  SII handling).
 
    Use_Compiler_Alignment : Boolean := False;
+   --  Marshalling optimization using the representation clause of the
+   --  Ada language to make the padding between parameters (used with
+   --  SII handling).
+
    --  In some particular cases, some parts of the IDL tree must not
-   --  be generated. The entities below achieve this goal
+   --  be generated. The entities below achieve this goal.
 
    type Package_Type is
      (PK_CDR_Spec,
@@ -124,10 +126,10 @@ package Backend.BE_CORBA_Ada is
       PK_Aligned_Spec,
       PK_Helper_Spec,
       PK_Helper_Body,
+      PK_Helper_Internals_Spec,
+      PK_Helper_Internals_Body,
       PK_Impl_Spec,
       PK_Impl_Body,
-      PK_Init_Spec,
-      PK_Init_Body,
       PK_Skel_Spec,
       PK_Skel_Body,
       PK_Stub_Spec,

@@ -230,7 +230,7 @@ package body Backend.BE_CORBA_Ada.Common is
                --  to cast the variable to the original enumeration
                --  type.
 
-               M := Make_Type_Attribute (CORBA_Type, A_Val);
+               M := Make_Attribute_Designator (CORBA_Type, A_Val);
                N := Make_Subprogram_Call (M, Make_List_Id (N));
             end;
 
@@ -388,7 +388,7 @@ package body Backend.BE_CORBA_Ada.Common is
                --  to cast the variable to the original enumeration
                --  type.
 
-               M := Make_Type_Attribute (Ada_Enum_Type, A_Pos);
+               M := Make_Attribute_Designator (Ada_Enum_Type, A_Pos);
                M := Make_Subprogram_Call (M, Make_List_Id (N));
                N := Make_Subprogram_Call
                  (RE (RE_Unsigned_Long_1),
@@ -862,7 +862,7 @@ package body Backend.BE_CORBA_Ada.Common is
                --  to cast the variable to the original enumeration
                --  type.
 
-               M := Make_Type_Attribute (Ada_Enum_Type, A_Pos);
+               M := Make_Attribute_Designator (Ada_Enum_Type, A_Pos);
                M := Make_Subprogram_Call (M, Make_List_Id (N));
                N := Make_Subprogram_Call
                  (RE (RE_Unsigned_Long_10),

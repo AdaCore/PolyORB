@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -184,6 +184,9 @@ package body Backend.BE_CORBA_Ada.Debug is
    is
       C : Node_Id;
    begin
+      --  Some fields must not be printed be cause they constitute
+      --  redundant information.
+
       if A = "Next_Entity"
         or else A = "Next_Node"
         or else A = "Package_Declaration"
@@ -213,6 +216,8 @@ package body Backend.BE_CORBA_Ada.Debug is
       else
          Write_Line (V);
       end if;
+
+      --  Some fields must not be visited to avoid endless recursions
 
       if A /= "Node"
         and then A /= "Corresponding_Node"

@@ -70,24 +70,24 @@ package body Backend.BE_CORBA_Ada.Expand is
    procedure Forward_Current_Interface_Designing_Components
      (Interface_Node : Node_Id;
       Type_Spec_Node : Node_Id);
-   --  For Sequence types, the item parameter cannot :
+   --  For Sequence types, the item parameter cannot:
    --  * denote the current interface
    --  * have a component whose type is the current interface
    --  The instantiation of the sequences generic package would
    --  otherwise cause freezing.
 
    function  Is_Forward_Necessary
-     (Entity      : Node_Id;
-      Type_Spec   : Node_Id)
+     (Entity    : Node_Id;
+      Type_Spec : Node_Id)
      return Boolean;
-   --  This function tests if the type spec is an interface based type
-   --  and then tests if the scope entity of this interface is the
-   --  same as the declarator.
+   --  Return True if the type spec is an interface based type and
+   --  then if the scope entity of this interface is the same as
+   --  Entity's scope entity.
 
    procedure Define_Array_Type_Outside
-     (Member  : Node_Id;
-      Entity  : Node_Id;
-      Before  : Node_Id);
+     (Member : Node_Id;
+      Entity : Node_Id;
+      Before : Node_Id);
    --  This procedure does the following :
    --  * Insert a definition of the array type corresponding to
    --  the "Member" type spec outside the enclosing entity "Entity".
@@ -250,7 +250,7 @@ package body Backend.BE_CORBA_Ada.Expand is
    begin
       --  The anonymous nested types are deprecated in CORBA 3.0.3, so
       --  the only case in which we can find a interface type
-      --  component is the case of a Scoped_Name type spec
+      --  component is the case of a Scoped_Name type spec.
 
       if FEN.Kind (Type_Spec_Node) = K_Scoped_Name then
          if FEN.Reference (Type_Spec_Node) = Interface_Node then
@@ -304,22 +304,18 @@ package body Backend.BE_CORBA_Ada.Expand is
    --------------------------
 
    function Is_Forward_Necessary
-     (Entity      : Node_Id;
-      Type_Spec   : Node_Id)
+     (Entity    : Node_Id;
+      Type_Spec : Node_Id)
      return Boolean
    is
       Result       : Boolean := False;
       S_Entity     : Node_Id;
       S_Type_Spec  : Node_Id;
    begin
-      pragma Assert (FEN.Kind (Entity) = K_Simple_Declarator
-                     or else
-                     FEN.Kind (Entity) = K_Complex_Declarator
-                     or else
-                     FEN.Kind (Entity) = K_Structure_Type
-                     or else
-                     FEN.Kind (Entity) = K_Union_Type
-                     or else
+      pragma Assert (FEN.Kind (Entity) = K_Simple_Declarator       or else
+                     FEN.Kind (Entity) = K_Complex_Declarator      or else
+                     FEN.Kind (Entity) = K_Structure_Type          or else
+                     FEN.Kind (Entity) = K_Union_Type              or else
                      FEN.Kind (Entity) = K_Exception_Declaration);
 
       S_Entity := FEN.Scope_Entity (FEN.Identifier (Entity));
@@ -367,7 +363,8 @@ package body Backend.BE_CORBA_Ada.Expand is
             Definition := Next_Entity (Definition);
          end loop;
 
-         --  We cannot reach this code
+         --  We cannot reach this code unless a serious problem
+         --  occured during the parsing.
 
          raise Program_Error;
       else
@@ -417,9 +414,9 @@ package body Backend.BE_CORBA_Ada.Expand is
    -------------------------------
 
    procedure Define_Array_Type_Outside
-     (Member  : Node_Id;
-      Entity  : Node_Id;
-      Before  : Node_Id)
+     (Member : Node_Id;
+      Entity : Node_Id;
+      Before : Node_Id)
    is
       Declarator            : Node_Id;
       Type_Spec             : Node_Id;
@@ -577,7 +574,7 @@ package body Backend.BE_CORBA_Ada.Expand is
 
       pragma Assert (FEN.Kind (Type_Spec) = K_Structure_Type);
 
-      --  Create the scoped name which will be the new type spec
+      --  The new type spec scoped name
 
       New_Identifier := FEU.Make_Identifier
         (Loc          => FEN.Loc (Identifier (Type_Spec)),
@@ -620,7 +617,8 @@ package body Backend.BE_CORBA_Ada.Expand is
         (FEN.Identifier (Type_Spec),
          Potential_Scope (Identifier (Entity)));
 
-      --  We expand the new created type
+      --  Expand the new created type to detect any nested anonymous
+      --  types, implicit forwards or complex declarators.
 
       Expand_Structure_Type (Type_Spec);
    end Define_Structure_Type_Outside;
@@ -644,7 +642,8 @@ package body Backend.BE_CORBA_Ada.Expand is
       List             : List_Id;
       Entity_Type_Spec : Node_Id;
    begin
-      --  Particular case of union types
+      --  The name of the type spec fields is different for union type
+      --  nodes.
 
       if FEN.Kind (Entity) = K_Union_Type then
          Entity_Type_Spec := Switch_Type_Spec (Entity);
@@ -658,8 +657,7 @@ package body Backend.BE_CORBA_Ada.Expand is
                Max_S          : Value_Type;
                Type_Spec_Name : Name_Id;
             begin
-               --  First of all, we handle the type spec of the
-               --  sequence.
+               --  First of all, handle the type spec of the sequence
 
                Handle_Anonymous_Type (Entity_Type_Spec, Parent, Before);
 
@@ -737,8 +735,8 @@ package body Backend.BE_CORBA_Ada.Expand is
             begin
                Set_Str_To_Name_Buffer (Anon_Type_Prefix);
 
-               --  For type declaration, the expansion of the type
-               --  does not occur only when there are complex declarators
+               --  For type declarations, the expansion of the type
+               --  occurs only when there are complex declarators.
 
                if FEN.Kind (Entity) = K_Type_Declaration and then
                  not Has_Complex_Declarators (Entity)
@@ -792,7 +790,7 @@ package body Backend.BE_CORBA_Ada.Expand is
             return;
       end case;
 
-      --  We verify that there is no other handled anonymous type with
+      --  Verify that there is no other handled anonymous type with
       --  the same name in the 'Parent' scope.
 
       B := Get_Name_Table_Info (Anon_Type_Name);
@@ -806,7 +804,7 @@ package body Backend.BE_CORBA_Ada.Expand is
 
       Set_Name_Table_Info (Anon_Type_Name, Int (Parent));
 
-      --  Creating the type declaration
+      --  Create the type declaration
 
       if FEN.Kind (Entity_Type_Spec) = K_Enumeration_Type then
          declare
@@ -825,7 +823,6 @@ package body Backend.BE_CORBA_Ada.Expand is
             end loop;
 
             if FEN.Kind (Entity) = K_Union_Type then
-
                --  Readjusting the scope entity of labels
 
                declare
@@ -886,20 +883,23 @@ package body Backend.BE_CORBA_Ada.Expand is
          FEU.Bind_Declarators_To_Entity (List, Node);
       end if;
 
-      --  Inserting the new declaration
+      --  Insert the new declaration
 
       if FEN.Kind (Parent) = K_Module or else
-        FEN.Kind (Parent) = K_Specification then
+        FEN.Kind (Parent) = K_Specification
+      then
          List := FEN.Definitions (Parent);
       elsif FEN.Kind (Parent) = K_Interface_Declaration then
          List := FEN.Interface_Body (Parent);
       else
-         raise Program_Error;
+         raise Program_Error with "Wrong parent kind: "
+           & FEN.Node_Kind'Image (FEN.Kind (Parent));
       end if;
 
       FEU.Insert_Before_Node (Node, Before, List);
 
-      --  Modifying the type spec
+      --  The type spec has to be modified using the new defined type
+      --  declaration.
 
       New_Identifier := FEU.Make_Identifier
         (Loc          => FEN.Loc (Entity),
@@ -954,18 +954,6 @@ package body Backend.BE_CORBA_Ada.Expand is
    ------------
    -- Expand --
    ------------
-
-   --  The goals of the expansion phase are:
-
-   --  * Adding the necessary forwards which are implicit in the IDL
-   --  tree
-
-   --  * Modify the types in the operation declarations; attribute
-   --  declarations exception declarations so that they take in
-   --  account the forward added
-
-   --  * Replacing the anonymous types (deprecated in CORBA 3.0) by
-   --  type definitions
 
    procedure Expand (Entity : Node_Id) is
    begin
@@ -1258,7 +1246,7 @@ package body Backend.BE_CORBA_Ada.Expand is
    ----------------------------------
 
    procedure Expand_Interface_Declaration (Entity : Node_Id) is
-      N       : Node_Id;
+      N : Node_Id;
    begin
       N := First_Entity (Interface_Body (Entity));
 
@@ -1281,7 +1269,7 @@ package body Backend.BE_CORBA_Ada.Expand is
       L                    : Location;
 
       procedure Relocate (Parent : Node_Id; Child : Node_Id);
-      --  Reparent Node and its named subnodes to the new Parent This
+      --  Reparent Node and its named subnodes to the new Parent. This
       --  procedure is useful when generating code related to the
       --  CORBA Module.
 
@@ -1298,7 +1286,7 @@ package body Backend.BE_CORBA_Ada.Expand is
 
       begin
          --  We must be very careful, because Append_Node_To_List
-         --  don't add only the node but all the Next_Entities (for
+         --  does not add only the node but all the Next_Entities (for
          --  details, see the calls to this procedure).
 
          FEU.Append_Node_To_List (Child, Definitions);
@@ -1351,8 +1339,8 @@ package body Backend.BE_CORBA_Ada.Expand is
          --  Creating the CORBA.Repository_Root module
 
          declare
-            Identifier         : Node_Id;
-            Module_Name        : Name_Id;
+            Identifier  : Node_Id;
+            Module_Name : Name_Id;
          begin
             CORBA_IR_Root_Node := FEU.New_Node (K_Module, L);
             Set_Imported (CORBA_IR_Root_Node, Imported (Entity));
@@ -1376,8 +1364,8 @@ package body Backend.BE_CORBA_Ada.Expand is
          --  Creating the CORBA.IDL_Sequences module
 
          declare
-            Identifier         : Node_Id;
-            Module_Name        : Name_Id;
+            Identifier  : Node_Id;
+            Module_Name : Name_Id;
          begin
             CORBA_Sequences_Node := FEU.New_Node (K_Module, L);
             Set_Imported (CORBA_Sequences_Node, Imported (Entity));
@@ -1595,7 +1583,6 @@ package body Backend.BE_CORBA_Ada.Expand is
          Is_Seq_Type    := True;
 
       elsif FEN.Kind (Type_Spec_Node) = FEN.K_Structure_Type then
-
          --  If the type spec is a structure type, extract the nested
          --  structure definition outside.
 
@@ -1637,7 +1624,6 @@ package body Backend.BE_CORBA_Ada.Expand is
       Type_Spec    : Node_Id;
       Parent       : constant Node_Id := Scope_Entity (Identifier (Entity));
    begin
-
       --  Expanding the switch type spec
 
       Handle_Anonymous_Type (Entity, Parent, Entity);

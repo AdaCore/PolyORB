@@ -147,7 +147,7 @@ package body Backend.BE_CORBA_Ada.Impls is
          N := Make_Full_Type_Declaration
            (Make_Defining_Identifier (TN (T_Object_Ptr)),
             Make_Access_Type_Definition
-            (Make_Type_Attribute (D, A_Class),
+            (Make_Attribute_Designator (D, A_Class),
              Is_All => True));
          Append_Node_To_List
            (N, Visible_Part (Current_Package));
@@ -173,8 +173,9 @@ package body Backend.BE_CORBA_Ada.Impls is
             N := Next_Entity (N);
          end loop;
 
-         --  In case of multiple inheritance, generate the mappings for
-         --  the operations and attributes of the parents except the first one.
+         --  In case of multiple inheritance, generate the mappings
+         --  for the operations and attributes of the parents except
+         --  the first one.
 
          Map_Inherited_Entities_Specs
            (Current_interface    => E,
@@ -338,7 +339,7 @@ package body Backend.BE_CORBA_Ada.Impls is
 
          --  First of all we add a with clause for the Skel package to
          --  force the skeleton elaboration (only in the case whether
-         --  this package exists of course)
+         --  this package exists).
 
          if not FEN.Is_Local_Interface (E) then
             Add_With_Package

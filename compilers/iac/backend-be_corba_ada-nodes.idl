@@ -56,9 +56,6 @@ module Backend::BE_CORBA_Ada::Nodes {
   /* We use a designator to designate a Defining identifier of an 
      Ada entity */
   interface Designator : Node_Id {
-    boolean    Is_All;
-    // Indicates whether it's a dereferenced entity
-
     Node_Id    Defining_Identifier;
     // The Identifier of the designator
 
@@ -567,12 +564,6 @@ module Backend::BE_CORBA_Ada::Nodes {
     // The loop statements
   };
 
-
-  interface For_Use_Statement : Definition {
-    Node_Id      Use_Value;
-    // The value of Use clause
-  };
-
   /* Example: when 1 | 3 | 27 => A := A + 2; */
 
   interface Case_Statement_Alternative : Node_Id {
@@ -676,6 +667,15 @@ module Backend::BE_CORBA_Ada::Nodes {
     //  A list of literal or element associations
   };
 
+  // INDEXED_COMPONENT ::= PREFIX ( EXPRESSION { , EXPRESSION} ) 
+  //  Example: Page (10)
+  //           Tab (1, 3)
+
+  interface Indexed_Component : Node_Id {
+    Node_Id    Prefix;
+    List_Id    Expressions;
+  };
+
   interface Exception_Declaration : Definition {
     // Defining_Identifier inherited from Definition
 
@@ -729,14 +729,18 @@ module Backend::BE_CORBA_Ada::Nodes {
     Node_Id     Right_Expr;
   };
 
-  /* Example: Record_Type'(F1 => 1, F2 => "hello") */
+  /* Qualified_Expression ::= Subtype_Mark'(Expression) 
+                            | Subtype_Mark'Aggregate */
+
+  /* Example: Record_Type'(F1 => 1, F2 => "hello") 
+              CORBA.Long'(2) */
 
   interface Qualified_Expression : Node_Id {
     Node_Id    Subtype_Mark;
     // The type used in the expression
 
-    Node_Id    Aggregate;
-    // Generally, a Record_Aggregate
+    Node_Id    Operand;
+    // Generally, a Record_Aggregate or and expression
   };
 
   /* Type Casting */

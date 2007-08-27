@@ -67,7 +67,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
       procedure Visit_Exception_Declaration (E : Node_Id);
 
       function Initialize_Spec (E : Node_Id) return Node_Id;
-      --  Returns the spec of the Initialize procedure that builds the
+      --  Return the spec of the Initialize procedure that builds the
       --  TypeCode corresponding to the IDL type E.
 
       --  The routines below build the type declarations necessary for
@@ -81,7 +81,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
       --  unions having an enumeration switch.
 
       function Wrap_Spec (E : Node_Id) return Node_Id;
-      --  Builds the spec of the Wrap function corresponding to IDL
+      --  Build the spec of the Wrap function corresponding to IDL
       --  type E.
 
       function Element_Wrap_Spec (E : Node_Id) return Node_Id;
@@ -121,7 +121,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
          N        : Node_Id;
          Spg_Name : Name_Id;
       begin
-         --  Building the defining identifier for the initialization
+         --  Build the defining identifier for the initialization
          --  subprogram.
 
          case FEN.Kind (E) is
@@ -143,7 +143,8 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                Spg_Name := To_Ada_Name (FEN.IDL_Name (Identifier (E)));
          end case;
 
-         --  Adding the prefix to the initialization subprogram identifier
+         --  Add the prefix to the initialization subprogram
+         --  identifier.
 
          Spg_Name := Add_Prefix_To_Name ("Initialize_", Spg_Name);
 
@@ -190,8 +191,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
          N       : Node_Id;
          P_Type  : Node_Id;
       begin
-         --  Getting the mapped Ada type corresponding to the IDL
-         --  entity E.
+         --  Get the mapped Ada type corresponding to the IDL entity E
 
          case FEN.Kind (E) is
             when K_String_Type
@@ -317,10 +317,10 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
          --  The container record declaration
 
          --  Building the component list of the container depending on
-         --  the kind f 'E'
+         --  the kind f 'E'.
 
          --  All the containers contain a component 'V' which is a
-         --  pointer to the Ada type mapped from the IDL type 'E'
+         --  pointer to the Ada type mapped from the IDL type 'E'.
 
          N := Make_Component_Declaration
            (Defining_Identifier => Make_Defining_Identifier (CN (C_V)),
@@ -850,7 +850,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
       procedure Visit_Module (E : Node_Id) is
          D : Node_Id;
       begin
-         if not Map_Particular_CORBA_Parts (E, PK_Init_Spec) then
+         if not Map_Particular_CORBA_Parts (E, PK_Helper_Internals_Spec) then
             Push_Entity (Stub_Node (BE_Node (Identifier (E))));
             D := First_Entity (Definitions (E));
 
@@ -919,7 +919,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
          Set_Internals_Spec;
 
          --  Extra code generation for fixed point types, sequence
-         --  types and bounde [wide] string types.
+         --  types and bounded [wide] string types.
 
          case FEN.Kind (T) is
             when K_Fixed_Point_Type =>
@@ -928,7 +928,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                   Fixed_Type_Node : Node_Id;
                begin
                   --  We instantiate the generic helper package here
-                  --  because we need it in the Wrap function body
+                  --  because we need it in the Wrap function body.
 
                   Package_Node := Make_Defining_Identifier
                     (Map_Fixed_Type_Helper_Name (T));
@@ -964,8 +964,8 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                   Elt_Wrap     : Node_Id;
                   Profile      : constant List_Id := New_List (K_List_Id);
                begin
-                  --  Do not generate any thing if the sequence
-                  --  element type has a loval interface component.
+                  --  Do not generate anything if the sequence element
+                  --  type has a local interface component.
 
                   if not FEU.Has_Local_Component (T) then
                      --  The element wrap function
@@ -987,9 +987,9 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                      Package_Node := Make_Defining_Identifier
                        (Map_Sequence_Pkg_Helper_Name (T));
 
-                     --  getting the the From_any, the To_Any and the
-                     --  Wrap functions nodes corresponding to the
-                     --  elements of the sequence.
+                     --  Get the the From_any, the To_Any and the Wrap
+                     --  functions nodes corresponding to the elements
+                     --  of the sequence.
 
                      Elt_From_Any := Get_From_Any_Node (Type_Spec (T));
                      Elt_To_Any := Get_To_Any_Node (Type_Spec (T));
@@ -1063,11 +1063,11 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                Aggregate_Container_Routines (D);
             end if;
 
-            --  We do not generate the `Wrap' spec if the defined type:
-            --  1 - is derived from an object type
-            --  2 - is a fixed point type
-            --  3 - is a bounded string type
-            --  4 - is a sequence type
+            --  We do not generate the `Wrap' spec if the defined type is:
+            --  1 - derived from an object type
+            --  2 - a fixed point type
+            --  3 - a bounded string type
+            --  4 - a sequence type
 
             if not (((FEN.Kind (T) = K_Scoped_Name
                       or else FEN.Kind (T) = K_Object)
@@ -1205,7 +1205,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
       --  it adds the necessary dependency to the Helper
       --  initialization. If the node N belongs to the current IDL
       --  specification, it calls the Initialize_XXX function that
-      --  build its TypeCode
+      --  build its TypeCode.
 
       function Wrap_Body (E : Node_Id) return Node_Id;
       --  Builds the body of the Wrap function corresponding to IDL
@@ -1257,13 +1257,13 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                Parent (S));
          end Copy_Subprogram_Spec;
 
-         Spec       : Node_Id;
-         N          : Node_Id;
+         Spec : Node_Id;
+         N    : Node_Id;
       begin
          case FEN.Kind (E) is
             when K_String_Type | K_Wide_String_Type =>
                --  For bounded string types, we simply rename the Wrap
-               --  function of the instantiated generic package
+               --  function of the instantiated generic package.
 
                Spec := Copy_Subprogram_Spec (Wrap_Node (BE_Node (E)));
                N := Make_Designator (SN (S_Wrap));
@@ -1367,7 +1367,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
 
                   N := Make_Type_Conversion
                     (Map_Designator (O),
-                     Make_Designator (PN (P_X), Is_All => True));
+                     Make_Explicit_Dereference (Make_Designator (PN (P_X))));
                   N := Make_Attribute_Designator (N, A_Unrestricted_Access);
 
                   N := Make_Subprogram_Call
@@ -1381,7 +1381,8 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
 
             when K_Fixed_Point_Type =>
                --  For fixed point types, we simply rename the Wrap
-               --  function of the instantiated helper generic package
+               --  function of the instantiated helper generic
+               --  package.
 
                Spec := Copy_Subprogram_Spec (Wrap_Node (BE_Node (E)));
                N := Make_Designator (SN (S_Wrap));
@@ -1392,7 +1393,8 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
 
             when K_Sequence_Type =>
                --  For sequence types, we simply rename the Wrap
-               --  function of the instantiated helper generic package
+               --  function of the instantiated helper generic
+               --  package.
 
                Spec := Copy_Subprogram_Spec (Wrap_Node (BE_Node (E)));
                N := Make_Designator (SN (S_Wrap));
@@ -1419,13 +1421,12 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
          Statements : constant List_Id := New_List (K_Statement_List);
          O          : constant Node_Id :=
            FEU.Get_Original_Type_Declarator (Type_Spec (E));
-
-         --  O is the original type of the sequence type spec
+         --  The original type of the sequence type spec
 
          W          : constant Node_Id := Get_Wrap_Node (O);
          N          : Node_Id;
       begin
-         N := Make_Designator (PN (P_X), Is_All => True);
+         N := Make_Explicit_Dereference (Make_Designator (PN (P_X)));
 
          --  If the type spec of the sequence is a user defined type,
          --  we have to cast it to the original type.
@@ -1444,8 +1445,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
 
          --  Make the body
 
-         N := Make_Subprogram_Body
-           (Spec, No_List, Statements);
+         N := Make_Subprogram_Body (Spec, No_List, Statements);
 
          return N;
       end Element_Wrap_Body;
@@ -1485,7 +1485,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
             --  Inner IF statement
 
             Condition  := Make_Expression
-              (Make_Designator (PN (P_Into), Is_All => True),
+              (Make_Explicit_Dereference (Make_Designator (PN (P_Into))),
                Op_Not_In,
                Make_Designator (Map_Container_Name (E)));
             N := Make_If_Statement
@@ -1531,10 +1531,11 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
             --  discriminent constraints. This construct is also valid
             --  for non-discriminated types.
 
-            N := Make_Record_Aggregate (Make_List_Id (Expr));
             N := Make_Qualified_Expression
-              (Expand_Designator (Type_Def_Node (BE_Node (Identifier (E)))),
-               N);
+              (Subtype_Mark => Expand_Designator
+                 (Type_Def_Node (BE_Node (Identifier (E)))),
+               Operand      => Expr);
+
             Expr := Make_Object_Instantiation (N);
 
             N := Make_Assignment_Statement
@@ -1660,7 +1661,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
          Returns    : constant Node_Id := Get_Aggr_Count (E);
       begin
          --  The ACC formal parampeter is used only in case of a
-         --  multidimensional array
+         --  multidimensional array.
 
          if FEN.Kind (E) /= K_Complex_Declarator
            or else not FEU.Is_Multidimensional_Array (E)
@@ -1697,7 +1698,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
          Append_Node_To_List (N, Dcl_Part);
 
          --  The ACC formal parampeter is used only in case of a
-         --  multidimensional array
+         --  multidimensional array.
 
          if FEN.Kind (E) /= K_Complex_Declarator
            or else not FEU.Is_Multidimensional_Array (E)
@@ -1738,12 +1739,12 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
          N := Make_Used_Type (RE (RE_Mechanism));
          Append_Node_To_List (N, Dcl_Part);
 
-         --  ACC.V might be uninitialized and have an invalid representation
-         --  (case of Get_Aggregate_Element being called from within an
-         --  unmarshall routine), in which case we know that we will overwrite
-         --  the invalid value without using it; we must disable validity
-         --  checks here so that we do not fail a runtime check on the bogus
-         --  value.
+         --  ACC.V might be uninitialized and have an invalid
+         --  representation (case of Get_Aggregate_Element being
+         --  called from within an unmarshall routine), in which case
+         --  we know that we will overwrite the invalid value without
+         --  using it; we must disable validity checks here so that we
+         --  do not fail a runtime check on the bogus value.
 
          N := Make_Pragma (Pragma_Suppress,
                 Make_List_Id
@@ -1751,15 +1752,20 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                         ("RE_" & Platform.Validity_Check_Name))));
          Append_Node_To_List (N, Dcl_Part);
 
+         --  The TypeCode formal is of no use here (we always
+         --  statically know the type of each aggregate element).
+
+         Append_Node_To_List (Make_Designator (PN (P_TC)),
+                              Unref_Params);
+
          --  IDL node kind dependant part
 
          case FEN.Kind (E) is
             when K_Enumeration_Type =>
                begin
-                  --  Unreferenced parameters
+                  --  An enum always has exactly one element, so we
+                  --  can ignore the provided index.
 
-                  Append_Node_To_List (Make_Designator (PN (P_TC)),
-                                       Unref_Params);
                   Append_Node_To_List (Make_Designator (PN (P_Index)),
                                        Unref_Params);
 
@@ -1770,17 +1776,18 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                   N := Make_Assignment_Statement
                     (Make_Designator (CN (C_Repr_Cache), PN (P_ACC)),
                      Make_Subprogram_Call
-                     (Make_Attribute_Designator
-                      (Expand_Designator
-                       (Type_Def_Node (BE_Node (Identifier (E)))), A_Pos),
-                      Make_List_Id
-                      (Make_Designator (CN (C_V), PN (P_ACC), True))));
+                      (Make_Attribute_Designator
+                       (Expand_Designator
+                        (Type_Def_Node (BE_Node (Identifier (E)))), A_Pos),
+                         Make_List_Id
+                          (Make_Explicit_Dereference
+                           (Make_Designator (CN (C_V), PN (P_ACC))))));
                   Append_Node_To_List (N, Statements);
 
                   --  Setting the Mechanism
 
                   N := Make_Assignment_Statement
-                    (Make_Designator (PN (P_Mech), Is_All => True),
+                    (Make_Explicit_Dereference (Make_Designator (PN (P_Mech))),
                      RE (RE_By_Value));
                   Append_Node_To_List (N, Statements);
 
@@ -1805,15 +1812,10 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                   T         : Node_Id;
                   Wrap_Node : Node_Id;
                begin
-                  --  Unreferenced parameters
-
-                  Append_Node_To_List (Make_Designator (PN (P_TC)),
-                                       Unref_Params);
-
                   --  Setting the Mechanism
 
                   N := Make_Assignment_Statement
-                    (Make_Designator (PN (P_Mech), Is_All => True),
+                    (Make_Explicit_Dereference (Make_Designator (PN (P_Mech))),
                      RE (RE_By_Reference));
                   Append_Node_To_List (N, Statements);
 
@@ -1850,13 +1852,12 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                         --  Declarative part
 
                         N := Make_Object_Declaration
-                          (Defining_Identifier =>
-                             Make_Defining_Identifier (PN (P_R_ACC)),
-                           Object_Definition   =>
-                             Expand_Designator
+                          (Defining_Identifier => Make_Defining_Identifier
+                             (PN (P_R_ACC)),
+                           Object_Definition   => Expand_Designator
                              (Aggr_Container_Node (BE_Node (Identifier (E)))),
-                           Expression          =>
-                             Make_Designator (PN (P_ACC), Is_All => True));
+                           Expression          => Make_Explicit_Dereference
+                             (Make_Designator (PN (P_ACC))));
                         Append_Node_To_List (N, Dcl_Part);
 
                         --  Statements
@@ -1896,6 +1897,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                         --  element.
 
                         Count := 1;
+
                         while Count < Dimension loop
                            N := Make_Designator (CN (C_Indices), PN (P_ACC));
                            N := Make_Subprogram_Call
@@ -2009,11 +2011,6 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                   O                   : Node_Id;
                   T                   : Node_Id;
                begin
-                  --  Unreferenced parameters
-
-                  Append_Node_To_List (Make_Designator (PN (P_TC)),
-                                       Unref_Params);
-
                   --  Index = 0: discriminant
 
                   Condition := Make_Expression
@@ -2029,7 +2026,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                   --  in place.
 
                   N := Make_Assignment_Statement
-                    (Make_Designator (PN (P_Mech), Is_All => True),
+                    (Make_Explicit_Dereference (Make_Designator (PN (P_Mech))),
                      RE (RE_By_Value));
                   Append_Node_To_List (N, If_Sts);
 
@@ -2081,7 +2078,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                   --  Setting the Mechanism
 
                   N := Make_Assignment_Statement
-                    (Make_Designator (PN (P_Mech), Is_All => True),
+                    (Make_Explicit_Dereference (Make_Designator (PN (P_Mech))),
                      RE (RE_By_Reference));
                   Append_Node_To_List (N, Else_Sts);
 
@@ -2191,22 +2188,17 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                   Orig_Type           : Node_Id;
                   T                   : Node_Id;
                begin
-                  --  Unreferenced parameters
-
-                  Append_Node_To_List (Make_Designator (PN (P_TC)),
-                                       Unref_Params);
-
                   --  Setting the Mechanism
 
                   N := Make_Assignment_Statement
-                    (Make_Designator (PN (P_Mech), Is_All => True),
+                    (Make_Explicit_Dereference (Make_Designator (PN (P_Mech))),
                      RE (RE_By_Reference));
                   Append_Node_To_List (N, Statements);
 
                   Switch_Item := Make_Designator (PN (P_Index));
 
                   --  For each element, we build a case alternative
-                  --  that calls the wrap function of the element
+                  --  that calls the wrap function of the element.
 
                   Switch_Alternatives := New_List (K_Variant_List);
 
@@ -2372,16 +2364,16 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
 
                   --  Left operand of the assignment statement
 
-                  Left_Oprand := Make_Designator
-                    (CN (C_V), PN (P_ACC), Is_All => True);
+                  Left_Oprand := Make_Explicit_Dereference
+                    (Make_Designator
+                       (CN (C_V),
+                        PN (P_ACC)));
 
                   --  Right operand of the assignment statement
 
                   Right_Operand := Make_Subprogram_Call
                     (RE (RE_From_Any_3),
                      Make_List_Id (Make_Designator (PN (P_From_C))));
-                  Right_Operand := Make_Record_Aggregate
-                    (Make_List_Id (Right_Operand));
                   Right_Operand := Make_Qualified_Expression
                     (RE (RE_Unsigned_Long_1), Right_Operand);
                   N := Make_Attribute_Designator
@@ -2429,7 +2421,6 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                   if FEN.Kind (T) = K_Scoped_Name
                     and then FEN.Kind (Reference (T)) = K_Simple_Declarator
                   then
-                     N := Make_Record_Aggregate (Make_List_Id (N));
                      N := Make_Qualified_Expression
                        (Get_Type_Definition_Node (O), N);
                      N := Make_Type_Conversion
@@ -2482,7 +2473,10 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                   --  The assignment statement
 
                   N := Make_Assignment_Statement
-                    (Make_Designator (CN (C_V), PN (P_ACC), Is_All => True),
+                    (Make_Explicit_Dereference
+                       (Make_Designator
+                          (CN (C_V),
+                           PN (P_ACC))),
                      Make_Designator (PN (P_New_Union)));
                   Append_Node_To_List (N, Statements);
                end;
@@ -2561,7 +2555,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
 
             when K_Union_Type =>
                --  Union types have two aggregates, the switch and the
-               --  corresponding element
+               --  corresponding element.
 
                N := Make_Literal (New_Integer_Value (2, 1, 10));
 
@@ -2683,8 +2677,8 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
          --  whether the TypeCode has been initialized or not. There
          --  is no harm this variable is global, because the
          --  initialization is done only once at the beginning of the
-         --  application and its not supposed to be done by more than
-         --  one task
+         --  application and it is not supposed to be done by more
+         --  than one task.
 
          N := Initialized_Flag_Declaration (E);
          Append_Node_To_List (N, BEN.Statements (Current_Package));
@@ -2905,7 +2899,6 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
            Get_GList (Helper_Package, GL_Dependencies);
 
          --  Start of processing for Initialize_Routine
-
       begin
          --  Initialize the TypeCode variable
 
@@ -3234,13 +3227,15 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                   Statement_List     : constant List_Id :=
                     New_List (K_List_Id);
                   Default_Index       : Value_Id :=
-                    New_Integer_Value (0, 1, 10); --  (0)
-                  --  ??? magic hard-coded constants MUST be documented
+                    New_Integer_Value (0, 1, 10); -- (0)
+                  --  Index of the default case of the union. It is
+                  --  initialized to 0 and incremented each time a
+                  --  non-default case is met. It is set to -1 of no
+                  --  default case exists in the union.
 
                   Default_Present     : Boolean;
                   T                   : Node_Id;
                begin
-
                   --  Getting the discriminator type and the To_Any
                   --  node corresponding to it
 
@@ -3368,8 +3363,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
 
                            N := Make_Qualified_Expression
                              (Subtype_Mark => Switch_Type,
-                              Aggregate    => Make_Record_Aggregate
-                                (Make_List_Id (N)));
+                              Operand      => N);
 
                            N := Add_Parameter
                                   (Entity_TC_Name, N, To_Any => Switch_To_Any);
@@ -3386,7 +3380,8 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                         else
                            --  Case of a default alternative
 
-                           N := Make_Type_Attribute (Switch_Type, A_First);
+                           N := Make_Attribute_Designator
+                             (Switch_Type, A_First);
 
                            N := Add_Parameter
                                   (Entity_TC_Name, N, To_Any => Switch_To_Any);
@@ -3412,8 +3407,8 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                      Default_Index := New_Integer_Value (1, -1, 10); --  (-1)
                   end if;
 
-                  --  Fourth parameter
-                  --  ??? What is this parameter for?
+                  --  Fourth parameter: The index of the "default"
+                  --  alternative as a CORBA.Long.
 
                   N := Make_Type_Conversion
                     (RE (RE_Long),
@@ -3421,9 +3416,9 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                   N := Add_Parameter (Entity_TC_Name, N);
                   Append_Node_To_List (N, Statements);
 
-                  --  Append the Statement_List list to the end of
-                  --  the Statements list (we only append the first
-                  --  node, the others are appended automatically)
+                  --  Append the Statement_List list to the end of the
+                  --  Statements list (we only append the first node,
+                  --  the others are appended automatically).
 
                   Append_Node_To_List
                     (First_Node (Statement_List),
@@ -3491,7 +3486,6 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                declare
                   Raise_From_Any_Access_Node : Node_Id;
                   Member                     : Node_Id;
-                  Members                    : List_Id;
                   Declarator                 : Node_Id;
                   Dcl_Name                   : Name_Id;
                   Arg_Name_Node              : Node_Id;
@@ -3501,69 +3495,59 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                   --  In case where the exception has members, we add two
                   --  parameters for each member.
 
-                  --  ??? "if" statement looks redundant, assuming that
-                  --  if the list Is_Empty, its First_Entity will be a null
-                  --  node id.
+                  Member := First_Entity (Members (E));
 
-                  Members := FEN.Members (E);
+                  while Present (Member) loop
+                     Declarator := First_Entity (Declarators (Member));
+                     while Present (Declarator) loop
 
-                  if not FEU.Is_Empty (Members) then
-                     Member := First_Entity (Members);
+                        --  Declaring the Arg_Name_"member" variable
 
-                     while Present (Member) loop
-                        Declarator := First_Entity (Declarators (Member));
-                        while Present (Declarator) loop
+                        Dcl_Name := To_Ada_Name
+                          (IDL_Name (FEN.Identifier (Declarator)));
+                        Set_Str_To_Name_Buffer ("Arg_Name_");
+                        Get_Name_String_And_Append (Dcl_Name);
+                        Arg_Name_Node := Make_Defining_Identifier
+                          (Name_Find);
 
-                           --  Declaring the Arg_Name_"member"
-                           --  variable
+                        --  Get a string literal of the member name
 
-                           Dcl_Name := To_Ada_Name
-                             (IDL_Name (FEN.Identifier (Declarator)));
-                           Set_Str_To_Name_Buffer ("Arg_Name_");
-                           Get_Name_String_And_Append (Dcl_Name);
-                           Arg_Name_Node := Make_Defining_Identifier
-                             (Name_Find);
+                        N := Make_Subprogram_Call
+                          (RE (RE_To_CORBA_String),
+                           Make_List_Id
+                             (Make_Literal
+                                (New_Value
+                                   (Value_Type'
+                                      (K    => K_String,
+                                       SVal => Dcl_Name)))));
 
-                           --  Obtaining a string literal of the
-                           --  member name
+                        N := Make_Object_Declaration
+                          (Defining_Identifier => Arg_Name_Node,
+                           Constant_Present    => True,
+                           Object_Definition   => RE (RE_String_0),
+                           Expression          => N);
+                        Append_Node_To_List (N, Declaration_List);
 
-                           N := Make_Subprogram_Call
-                             (RE (RE_To_CORBA_String),
-                              Make_List_Id
-                              (Make_Literal
-                               (New_Value
-                                (Value_Type'
-                                 (K    => K_String,
-                                  SVal => Dcl_Name)))));
+                        --  Add the two additional parameters
 
-                           N := Make_Object_Declaration
-                             (Defining_Identifier => Arg_Name_Node,
-                              Constant_Present    => True,
-                              Object_Definition   => RE (RE_String_0),
-                              Expression          => N);
-                           Append_Node_To_List (N, Declaration_List);
+                        N := Get_TC_Node (Type_Spec (Member));
 
-                           --  Adding the two additional parameters
+                        Handle_Dependency (Type_Spec (Member), Statements);
+                        Add_Dependency
+                          (Parent_Unit_Name (N),
+                           Dependencies,
+                           D_Helper);
 
-                           N := Get_TC_Node (Type_Spec (Member));
+                        N := Add_Parameter (Entity_TC_Name, N);
+                        Append_Node_To_List (N, Statements);
+                        N := Add_Parameter (Entity_TC_Name, Arg_Name_Node);
+                        Append_Node_To_List (N, Statements);
 
-                           Handle_Dependency (Type_Spec (Member), Statements);
-                           Add_Dependency
-                             (Parent_Unit_Name (N),
-                              Dependencies,
-                              D_Helper);
-
-                           N := Add_Parameter (Entity_TC_Name, N);
-                           Append_Node_To_List (N, Statements);
-                           N := Add_Parameter (Entity_TC_Name, Arg_Name_Node);
-                           Append_Node_To_List (N, Statements);
-
-                           Declarator := Next_Entity (Declarator);
-                        end loop;
-
-                        Member := Next_Entity (Member);
+                        Declarator := Next_Entity (Declarator);
                      end loop;
-                  end if;
+
+                     Member := Next_Entity (Member);
+                  end loop;
 
                   --  Register the exception (in case of no local
                   --  interface members in the exception).
@@ -3585,7 +3569,13 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                        (RE (RE_To_PolyORB_Object),
                         Make_List_Id
                         (Make_Designator
-                         (Entity_TC_Name)));
+                           (Entity_TC_Name)));
+
+                     --  Register raiser
+
+                     --  This has to be done in deferred initialization,
+                     --  after the TypeCode has been constructed.
+
                      N := Make_Subprogram_Call
                        (Register_Excp_Node,
                         Make_List_Id
@@ -3653,8 +3643,6 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
             Make_List_Id
             (Make_Designator (PN (P_C)),
              Make_Literal (Int0_Val)));
-
-         N := Make_Record_Aggregate (Make_List_Id (N));
 
          N := Make_Qualified_Expression (RE (RE_Unsigned_Long_1), N);
 
@@ -3732,15 +3720,14 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
          From_Any_Helper : Node_Id;
          Excp_Members    : Node_Id;
       begin
+         --  Declarations
 
-         --  Begin Declarations
-
-         --  Obtaining the node corresponding to the declaration of
-         --  the "Excp_Name"_Members type.
+         --  Get the node corresponding to the declaration of the
+         --  "Excp_Name"_Members type.
 
          Excp_Members := Type_Def_Node (BE_Node (Identifier (E)));
 
-         --  Preparing the call to From_Any
+         --  Prepare the call to From_Any
 
          N := Make_Type_Conversion
            (RE (RE_Any),
@@ -3765,9 +3752,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
             Expression          => N);
          Append_Node_To_List (N, Declarations);
 
-         --  End Declarations
-
-         --  Begin Statements
+         --  Statements
 
          N := Make_Defining_Identifier
            (To_Ada_Name (IDL_Name (FEN.Identifier (E))));
@@ -3780,10 +3765,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
              Make_Defining_Identifier (PN (P_Message))));
          Append_Node_To_List (N, Statements);
 
-         --  End Statements
-
-         N := Make_Subprogram_Body
-           (Spec, Declarations, Statements);
+         N := Make_Subprogram_Body (Spec, Declarations, Statements);
 
          return N;
       end Raise_Excp_From_Any_Body;
@@ -3901,7 +3883,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
       procedure Visit_Module (E : Node_Id) is
          D : Node_Id;
       begin
-         if not Map_Particular_CORBA_Parts (E, PK_Init_Body) then
+         if not Map_Particular_CORBA_Parts (E, PK_Helper_Internals_Body) then
             Push_Entity (Stub_Node (BE_Node (Identifier (E))));
             D := First_Entity (Definitions (E));
             while Present (D) loop
@@ -4017,11 +3999,11 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                Aggregate_Container_Routines (D);
             end if;
 
-            --  We do not generate the `Wrap' spec if the defined type:
-            --  1 - is derived from an object type
-            --  2 - is a fixed point type
-            --  3 - is a bounded string type
-            --  4 - is a sequence type
+            --  We do not generate the `Wrap' spec if the defined type is:
+            --  1 - derived from an object type
+            --  2 - a fixed point type
+            --  3 - a bounded string type
+            --  4 - a sequence type
 
             if not (((FEN.Kind (T) = K_Scoped_Name
                       or else FEN.Kind (T) = K_Object)

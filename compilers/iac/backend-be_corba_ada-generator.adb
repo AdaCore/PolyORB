@@ -69,10 +69,10 @@ package body Backend.BE_CORBA_Ada.Generator is
    procedure Generate_Explicit_Dereference (N : Node_Id);
    procedure Generate_Expression (N : Node_Id);
    procedure Generate_For_Statement (N : Node_Id);
-   procedure Generate_For_Use_Statement (N : Node_Id);
    procedure Generate_Full_Type_Declaration (N : Node_Id);
    procedure Generate_IDL_Unit_Packages (N : Node_Id);
    procedure Generate_If_Statement (N : Node_Id);
+   procedure Generate_Indexed_Component (N : Node_Id);
    procedure Generate_Instantiated_Subprogram (N : Node_Id);
    procedure Generate_Literal (N : Node_Id);
    procedure Generate_Null_Statement;
@@ -233,9 +233,6 @@ package body Backend.BE_CORBA_Ada.Generator is
          when K_For_Statement =>
             Generate_For_Statement (N);
 
-         when K_For_Use_Statement =>
-            Generate_For_Use_Statement (N);
-
          when K_Full_Type_Declaration =>
             Generate_Full_Type_Declaration (N);
 
@@ -244,6 +241,9 @@ package body Backend.BE_CORBA_Ada.Generator is
 
          when K_If_Statement =>
             Generate_If_Statement (N);
+
+         when K_Indexed_Component =>
+            Generate_Indexed_Component (N);
 
          when K_Instantiated_Subprogram =>
             Generate_Instantiated_Subprogram (N);
@@ -938,11 +938,6 @@ package body Backend.BE_CORBA_Ada.Generator is
       end if;
 
       Write_Name (Name (Defining_Identifier (N)));
-
-      if Is_All (N) then
-         Write (Tok_Dot);
-         Write (Tok_All);
-      end if;
    end Generate_Designator;
 
    ----------------------------------
@@ -1137,21 +1132,6 @@ package body Backend.BE_CORBA_Ada.Generator is
       Write (Tok_Loop);
    end Generate_For_Statement;
 
-   --------------------------------
-   -- Generate_For_Use_Statement --
-   --------------------------------
-
-   procedure Generate_For_Use_Statement (N : Node_Id) is
-   begin
-      Write (Tok_For);
-      Write_Space;
-      Write_Name (Fully_Qualified_Name (Defining_Identifier (N)));
-      Write_Space;
-      Write (Tok_Use);
-      Write_Space;
-      Write_Name (Fully_Qualified_Name (Use_Value (N)));
-   end Generate_For_Use_Statement;
-
    ------------------------------------
    -- Generate_Full_Type_Declaration --
    ------------------------------------
@@ -1297,6 +1277,37 @@ package body Backend.BE_CORBA_Ada.Generator is
       Write_Space;
       Write (Tok_If);
    end Generate_If_Statement;
+
+   --------------------------------
+   -- Generate_Indexed_Component --
+   --------------------------------
+
+   procedure Generate_Indexed_Component (N : Node_Id) is
+      Exp : constant List_Id := Expressions (N);
+      E   : Node_Id;
+
+   begin
+      Generate (Prefix (N));
+
+      pragma Assert (not Is_Empty (Exp));
+
+      Write_Eol;
+      Increment_Indentation;
+      Write_Indentation (-1);
+      Write (Tok_Left_Paren);
+      E := First_Node (Exp);
+
+      loop
+         Generate (E);
+         E := Next_Node (E);
+         exit when No (E);
+         Write_Line (Tok_Comma);
+         Write_Indentation;
+      end loop;
+
+      Write (Tok_Right_Paren);
+      Decrement_Indentation;
+   end Generate_Indexed_Component;
 
    --------------------------------------
    -- Generate_Instantiated_Subprogram --
@@ -1847,7 +1858,20 @@ package body Backend.BE_CORBA_Ada.Generator is
       Write_Line (Tok_Apostrophe);
       Increment_Indentation;
       Write_Indentation (-1);
-      Generate (Aggregate (N));
+
+      --  We generate parentheses only in case the Operand is not an
+      --  aggregate
+
+      if Kind (Operand (N)) = K_Record_Aggregate or else
+        Kind (Operand (N)) = K_Array_Aggregate
+      then
+         Generate (Operand (N));
+      else
+         Write (Tok_Left_Paren);
+         Generate (Operand (N));
+         Write (Tok_Right_Paren);
+      end if;
+
       Decrement_Indentation;
    end Generate_Qualified_Expression;
 

@@ -717,7 +717,7 @@ package body Backend.BE_CORBA_Ada.Aligned is
          Append_Node_To_List
            (Make_Component_Declaration
             (Make_Defining_Identifier (CN (C_Switch)), T,
-             Make_Type_Attribute (T, A_First)),
+             Make_Attribute_Designator (T, A_First)),
             Discr);
 
          Append_Node_To_List
@@ -965,7 +965,7 @@ package body Backend.BE_CORBA_Ada.Aligned is
 
                   M := Make_Component_Declaration
                     (Make_Defining_Identifier (CN (C_Switch)), M,
-                     Make_Type_Attribute (M, A_First));
+                     Make_Attribute_Designator (M, A_First));
                   Append_Node_To_List (M, L);
                end;
 
@@ -999,7 +999,7 @@ package body Backend.BE_CORBA_Ada.Aligned is
                M := Make_Defining_Identifier (Name_Find);
                M := Make_Component_Declaration
                  (M, RE (RE_Natural),
-                  Make_Type_Attribute (RE (RE_Natural), A_First));
+                  Make_Attribute_Designator (RE (RE_Natural), A_First));
 
                Append_Node_To_List (M, L);
 

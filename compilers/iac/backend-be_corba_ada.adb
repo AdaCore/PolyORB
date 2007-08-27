@@ -151,15 +151,15 @@ package body Backend.BE_CORBA_Ada is
 
    procedure Visit (E : Node_Id) is
    begin
-      --  Generate packages specifications
+      --  Generate package specifications
 
       --  NB : Even if the user did not request the generation of
       --  implementation templates, the Ada trees relative to the
-      --  specs of these Units have to be created because they are
-      --  used by the skeleton sub-tree. However the code spec is
-      --  generated if and only if the user requested it (see the
-      --  Map_IDL_Unit in the Backen.BE_Ada.IDL_To_Ada package for
-      --  more details).
+      --  specs of these units have to be created because they are
+      --  used by the skeleton sub-tree. However the spec code is
+      --  generated if and only if the user requested it explicitly
+      --  (see the Map_IDL_Unit in the Backen.BE_CORBA_Ada.IDL_To_Ada
+      --  package for more details).
 
       --  Created independently from the command line options
 
@@ -192,7 +192,7 @@ package body Backend.BE_CORBA_Ada is
 
       --  The order is important here because the dependencies of the
       --  Helper package are computed while building the Initialize
-      --  routines
+      --  routines.
 
       Helpers_Internals.Package_Body.Visit (E);
       Helpers.Package_Body.Visit (E);
@@ -219,9 +219,10 @@ package body Backend.BE_CORBA_Ada is
    -------------------------
 
    procedure Visit_Specification (E : Node_Id) is
-      N          : Node_Id;
+      N : Node_Id;
    begin
       Backend.BE_CORBA_Ada.Expand.Expand (E);
+
       N := Map_IDL_Unit (E);
       Push_Entity (N);
       Visit (E);
@@ -240,8 +241,9 @@ package body Backend.BE_CORBA_Ada is
 
       procedure Dispatched_Visit (Entity : Node_Id);
       --  This procedure calls the right Visit procedure depending on
-      --  the PK parameter. This call doesn't occur only if a code
-      --  generation must be done for Entity
+      --  the PK parameter (of Map_Particular_CORBA_Parts). This call
+      --  doesn't occur only if a code generation must be done for
+      --  Entity.
 
       ----------------------
       -- Dispatched_Visit --
@@ -282,9 +284,9 @@ package body Backend.BE_CORBA_Ada is
                   Helpers.Package_Spec.Visit (Entity);
                when PK_Helper_Body =>
                   Helpers.Package_Body.Visit (Entity);
-               when PK_Init_Spec =>
+               when PK_Helper_Internals_Spec =>
                   Helpers_Internals.Package_Spec.Visit (Entity);
-               when PK_Init_Body =>
+               when PK_Helper_Internals_Body =>
                   Helpers_Internals.Package_Body.Visit (Entity);
                when PK_Skel_Spec   =>
                   Skels.Package_Spec.Visit (Entity);

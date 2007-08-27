@@ -432,7 +432,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
 
    function Copy_Designator
      (Designator : Node_Id;
-      Witheded   : Boolean := True)
+      Withed     : Boolean := True)
      return Node_Id
    is
       D : Node_Id;
@@ -452,7 +452,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
       if Present (P) then
          P := Copy_Designator (P, False);
 
-         if Witheded then
+         if Withed then
             Add_With_Package (P);
          end if;
       end if;
@@ -838,15 +838,11 @@ package body Backend.BE_CORBA_Ada.Nutils is
    -- Length --
    ------------
 
-   function Length
-     (L : List_Id)
-     return Natural
-   is
+   function Length (L : List_Id) return Natural is
       N : Node_Id;
       C : Natural := 0;
    begin
       if not Is_Empty (L) then
-
          N := First_Node (L);
 
          while Present (N) loop
@@ -901,9 +897,10 @@ package body Backend.BE_CORBA_Ada.Nutils is
    --------------------------
 
    function Make_Array_Aggregate (Elements : List_Id) return Node_Id is
-      pragma Assert (not Is_Empty (Elements));
       N : Node_Id;
    begin
+      pragma Assert (not Is_Empty (Elements));
+
       N := New_Node (K_Array_Aggregate);
       Set_Elements (N, Elements);
       return N;
@@ -920,7 +917,6 @@ package body Backend.BE_CORBA_Ada.Nutils is
      return Node_Id
    is
       N : Node_Id;
-
    begin
       N := New_Node (K_Array_Type_Definition);
       Set_Range_Constraints (N, Range_Constraints);
@@ -939,7 +935,6 @@ package body Backend.BE_CORBA_Ada.Nutils is
      return Node_Id
    is
       N : Node_Id;
-
    begin
       N := New_Node (BEN.K_String_Type_Definition);
       Set_Defining_Identifier (N, Defining_Identifier);
@@ -1131,7 +1126,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
    ----------------------------------
 
    function Make_Derived_Type_Definition
-     (Subtype_Indication    : Node_Id;
+     (Subtype_Indication          : Node_Id;
       Record_Extension_Part : Node_Id := No_Node;
       Is_Abstract_Type      : Boolean := False;
       Is_Private_Extention  : Boolean := False;
@@ -1139,7 +1134,6 @@ package body Backend.BE_CORBA_Ada.Nutils is
      return Node_Id
    is
       N : Node_Id;
-
    begin
       N := New_Node (K_Derived_Type_Definition);
       Set_Is_Abstract_Type (N, Is_Abstract_Type);
@@ -1156,8 +1150,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
 
    function Make_Designator
      (Designator : Name_Id;
-      Parent     : Name_Id := No_Name;
-      Is_All     : Boolean := False)
+      Parent     : Name_Id := No_Name)
      return Node_Id
    is
       N : Node_Id;
@@ -1165,7 +1158,6 @@ package body Backend.BE_CORBA_Ada.Nutils is
    begin
       N := New_Node (K_Designator);
       Set_Defining_Identifier (N, Make_Defining_Identifier (Designator));
-      Set_Is_All (N, Is_All);
 
       if Parent /= No_Name then
          P := New_Node (K_Designator);
@@ -1219,7 +1211,6 @@ package body Backend.BE_CORBA_Ada.Nutils is
      return Node_Id
    is
       N : Node_Id;
-
    begin
       N := New_Node (K_Enumeration_Type_Definition);
       Set_Enumeration_Literals (N, Enumeration_Literals);
@@ -1236,7 +1227,6 @@ package body Backend.BE_CORBA_Ada.Nutils is
      return Node_Id
    is
       N : Node_Id;
-
    begin
       N := New_Node           (K_Exception_Declaration);
       Set_Defining_Identifier (N, Defining_Identifier);
@@ -1250,10 +1240,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
    -- Make_Explicit_Dereference --
    -------------------------------
 
-   function Make_Explicit_Dereference
-     (Prefix : Node_Id)
-     return Node_Id
-   is
+   function Make_Explicit_Dereference (Prefix : Node_Id) return Node_Id is
       N : Node_Id;
    begin
       N := New_Node (K_Explicit_Dereference);
@@ -1299,23 +1286,6 @@ package body Backend.BE_CORBA_Ada.Nutils is
       return N;
    end Make_For_Statement;
 
-   ----------------------------
-   -- Make_For_Use_Statement --
-   ----------------------------
-
-   function Make_For_Use_Statement
-     (Defining_Identifier : Node_Id;
-      Use_Value           : Node_Id)
-     return Node_Id
-   is
-      N : Node_Id;
-   begin
-      N := New_Node (K_For_Use_Statement);
-      Set_Defining_Identifier (N, Defining_Identifier);
-      Set_Use_Value (N, Use_Value);
-      return N;
-   end Make_For_Use_Statement;
-
    --------------------------------
    -- Make_Full_Type_Declaration --
    --------------------------------
@@ -1329,7 +1299,6 @@ package body Backend.BE_CORBA_Ada.Nutils is
      return Node_Id
    is
       N : Node_Id;
-
    begin
       N := New_Node (K_Full_Type_Declaration);
       Set_Defining_Identifier (N, Defining_Identifier);
@@ -1361,6 +1330,23 @@ package body Backend.BE_CORBA_Ada.Nutils is
       Set_Else_Statements (N, Else_Statements);
       return N;
    end Make_If_Statement;
+
+   ----------------------------
+   -- Make_Indexed_Component --
+   ----------------------------
+
+   function Make_Indexed_Component
+     (Prefix      : Node_Id;
+      Expressions : List_Id)
+     return Node_Id
+   is
+      N : Node_Id;
+   begin
+      N := New_Node (K_Indexed_Component);
+      Set_Prefix (N, Prefix);
+      Set_Expressions (N, Expressions);
+      return N;
+   end Make_Indexed_Component;
 
    ----------------------------------
    -- Make_Instantiated_Subprogram --
@@ -1461,7 +1447,6 @@ package body Backend.BE_CORBA_Ada.Nutils is
      return Node_Id
    is
       N : Node_Id;
-
    begin
       N := New_Node           (K_Object_Declaration);
       Set_Defining_Identifier (N, Defining_Identifier);
@@ -1665,15 +1650,15 @@ package body Backend.BE_CORBA_Ada.Nutils is
    -------------------------------
 
    function Make_Qualified_Expression
-     (Subtype_Mark  : Node_Id;
-      Aggregate     : Node_Id)
+     (Subtype_Mark : Node_Id;
+      Operand      : Node_Id)
      return Node_Id
    is
       N : Node_Id;
    begin
       N := New_Node (K_Qualified_Expression);
       Set_Subtype_Mark (N, Subtype_Mark);
-      Set_Aggregate (N, Aggregate);
+      Set_Operand (N, Operand);
       return N;
    end Make_Qualified_Expression;
 
@@ -1733,7 +1718,6 @@ package body Backend.BE_CORBA_Ada.Nutils is
      return Node_Id
    is
       N : Node_Id;
-
    begin
       N := New_Node (K_Record_Definition);
       Set_Component_List (N, Component_List);
@@ -1752,7 +1736,6 @@ package body Backend.BE_CORBA_Ada.Nutils is
      return Node_Id
    is
       N : Node_Id;
-
    begin
       N := New_Node (K_Record_Type_Definition);
       Set_Is_Abstract_Type (N, Is_Abstract_Type);
@@ -1766,10 +1749,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
    -- Make_Return_Statement --
    ---------------------------
 
-   function Make_Return_Statement
-     (Expression : Node_Id)
-     return Node_Id
-   is
+   function Make_Return_Statement (Expression : Node_Id) return Node_Id is
       N : Node_Id;
    begin
       N := New_Node (K_Return_Statement);
@@ -1819,11 +1799,9 @@ package body Backend.BE_CORBA_Ada.Nutils is
      (Specification : Node_Id;
       Declarations  : List_Id;
       Statements    : List_Id)
-
      return Node_Id
    is
       N : Node_Id;
-
    begin
       N := New_Node (K_Subprogram_Body);
       Set_Specification (N, Specification);
@@ -1846,7 +1824,6 @@ package body Backend.BE_CORBA_Ada.Nutils is
      return Node_Id
    is
       N : Node_Id;
-
    begin
       N := New_Node               (K_Subprogram_Specification);
       Set_Defining_Identifier     (N, Defining_Identifier);
@@ -1857,43 +1834,6 @@ package body Backend.BE_CORBA_Ada.Nutils is
       Set_Instantiated_Subprogram (N, Instantiated_Subprogram);
       return N;
    end Make_Subprogram_Specification;
-
-   -------------------------
-   -- Make_Type_Attribute --
-   -------------------------
-
-   function Make_Type_Attribute
-     (Designator : Node_Id;
-      Attribute  : Attribute_Id)
-     return Node_Id
-   is
-      procedure Get_Scoped_Name_String (S : Node_Id);
-
-      ----------------------------
-      -- Get_Scoped_Name_String --
-      ----------------------------
-
-      procedure Get_Scoped_Name_String (S : Node_Id) is
-         P : Node_Id;
-
-      begin
-         P := Parent_Unit_Name (S);
-
-         if Present (P) then
-            Get_Scoped_Name_String (P);
-            Add_Char_To_Name_Buffer ('.');
-         end if;
-
-         Get_Name_String_And_Append (Name (Defining_Identifier (S)));
-      end Get_Scoped_Name_String;
-
-   begin
-      Name_Len := 0;
-      Get_Scoped_Name_String (Designator);
-      Add_Char_To_Name_Buffer (''');
-      Get_Name_String_And_Append (AN (Attribute));
-      return Make_Defining_Identifier (Name_Find);
-   end Make_Type_Attribute;
 
    --------------------------
    -- Make_Type_Conversion --
@@ -1953,7 +1893,6 @@ package body Backend.BE_CORBA_Ada.Nutils is
      return                Node_Id
    is
       N : Node_Id;
-
    begin
       N := New_Node (K_Variant_Part);
       Set_Variants (N, Variant_List);
@@ -2292,7 +2231,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
    begin
       --  We cannot directly append the node E to the List of
       --  forwarded entities because this node may have to be appended
-      --  to other lists
+      --  to other lists.
 
       N := New_Node (K_Node_Id);
       Set_FE_Node (N, E);

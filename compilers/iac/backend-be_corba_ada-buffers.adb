@@ -1901,9 +1901,9 @@ package body Backend.BE_CORBA_Ada.Buffers is
               (Identifier
                (Subp_Nod)))));
 
-         M := Make_Designator
-           (Designator => PN (P_Args),
-            Is_All     => True);
+         M := Make_Explicit_Dereference
+           (Make_Designator
+              (PN (P_Args)));
 
          N := Make_Object_Declaration
            (Defining_Identifier => Args_Id,

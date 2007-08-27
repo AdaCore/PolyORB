@@ -52,6 +52,10 @@ package body Backend.BE_CORBA_Ada.Skels is
    package BEN renames Backend.BE_CORBA_Ada.Nodes;
    package FEU renames Frontend.Nutils;
 
+   ------------------
+   -- Package_Spec --
+   ------------------
+
    package body Package_Spec is
 
       procedure Visit_Interface_Declaration (E : Node_Id);
@@ -87,7 +91,7 @@ package body Backend.BE_CORBA_Ada.Skels is
          N : Node_Id;
       begin
          --  No Skel package is generated for an abstract or a local
-         --  interface
+         --  interface.
 
          if FEN.Is_Abstract_Interface (E) or else
            FEN.Is_Local_Interface (E)
@@ -101,11 +105,13 @@ package body Backend.BE_CORBA_Ada.Skels is
 
          N := Make_Pragma (Pragma_Elaborate_Body);
          Append_Node_To_List (N, Visible_Part (Current_Package));
+
          N := First_Entity (Interface_Body (E));
          while Present (N) loop
             Visit (N);
             N := Next_Entity (N);
          end loop;
+
          Pop_Entity;
       end Visit_Interface_Declaration;
 
@@ -148,6 +154,10 @@ package body Backend.BE_CORBA_Ada.Skels is
       end Visit_Specification;
 
    end Package_Spec;
+
+   ------------------
+   -- Package_Body --
+   ------------------
 
    package body Package_Body is
 
@@ -234,15 +244,16 @@ package body Backend.BE_CORBA_Ada.Skels is
             Make_List_Id (Expand_Designator (N)));
          Append_Node_To_List (N, Profile);
 
-         N := Make_Type_Attribute
+         N := Make_Attribute_Designator
            (Make_Designator (SN (S_Servant_Is_A)), A_Access);
          Append_Node_To_List (N, Profile);
 
-         N := Make_Type_Attribute
+         N := Make_Attribute_Designator
            (Make_Designator (SN (S_Is_A)), A_Access);
          Append_Node_To_List (N, Profile);
 
-         N := Make_Type_Attribute (Make_Designator (SN (S_Invoke)), A_Access);
+         N := Make_Attribute_Designator
+           (Make_Designator (SN (S_Invoke)), A_Access);
          Append_Node_To_List (N, Profile);
 
          N := Make_Subprogram_Call
@@ -319,9 +330,8 @@ package body Backend.BE_CORBA_Ada.Skels is
                  (Reference (E)))));
 
             Selector := Make_Object_Declaration
-              (Defining_Identifier =>
-                 Make_Defining_Identifier (PN (P_E)),
-               Object_Definition => N);
+              (Defining_Identifier => Make_Defining_Identifier (PN (P_E)),
+               Object_Definition   => N);
 
             --  Declaration of the Members variable Getting the node
             --  corresponding to the declaration of the
@@ -342,9 +352,8 @@ package body Backend.BE_CORBA_Ada.Skels is
             N := Type_Def_Node (BE_Node (Identifier (Reference (E))));
             N := Next_Node (Next_Node (N));
 
-            N := Defining_Identifier (N);
             N := Make_Subprogram_Call
-              (N,
+              (Expand_Designator (N),
                Make_List_Id
                (Make_Defining_Identifier (PN (P_E)),
                 Make_Defining_Identifier (PN (P_Members))));
@@ -387,9 +396,9 @@ package body Backend.BE_CORBA_Ada.Skels is
          N := Implementation_Package (Current_Entity);
          N := First_Node (Visible_Part (Package_Specification (N)));
          N := Expand_Designator (N);
-         N := Make_Type_Attribute (N, A_Class);
-         C := Make_Designator (PN (P_Self), Is_All => True);
-         N := Make_Subprogram_Call (N, Make_List_Id (C));
+         N := Make_Attribute_Designator (N, A_Class);
+         C := Make_Explicit_Dereference (Make_Designator (PN (P_Self)));
+         N := Make_Type_Conversion (N, C);
          N := Make_Attribute_Designator (N, A_Access);
          Append_Node_To_List (N, Inv_Profile);
 
@@ -520,6 +529,7 @@ package body Backend.BE_CORBA_Ada.Skels is
 
                --  Append the Any variable the actual profile of the
                --  Add_Item call.
+
                N := Make_Designator (Map_Argument_Any_Name (Param_Name));
                Append_Node_To_List (N, Params);
 
@@ -633,8 +643,9 @@ package body Backend.BE_CORBA_Ada.Skels is
             end if;
          end if;
 
-         --  In SII mode, the request payload has to be set before the request
-         --  is processed. The Argument procedure is not the same as DII.
+         --  In SII mode, the request payload has to be set before the
+         --  request is processed. The Argument procedure is not the
+         --  same as DII.
 
          if Use_SII then
             declare
@@ -642,10 +653,11 @@ package body Backend.BE_CORBA_Ada.Skels is
             begin
                Params := New_List (K_List_Id);
 
-               --  GIOP_Session is used to get the representation attribute
-               --  (the declarative part the block).
+               --  GIOP_Session is used to get the representation
+               --  attribute (the declarative part the block).
 
-               M := Make_Designator (VN (V_Component), Is_All => True);
+               M := Make_Explicit_Dereference
+                 (Make_Designator (VN (V_Component)));
 
                N := Make_Subprogram_Call
                       (RE (RE_GIOP_Session), Make_List_Id (M));
@@ -729,12 +741,14 @@ package body Backend.BE_CORBA_Ada.Skels is
 
                Append_Node_To_List (M, Params);
 
-               M := Make_Designator (VN (V_Component), Is_All => True);
+               M := Make_Explicit_Dereference
+                 (Make_Designator
+                    (VN (V_Component)));
 
                Append_Node_To_List
-                 (Make_Designator
-                  (Designator => VN (V_Representation),
-                   Is_All     => True),
+                 (Make_Explicit_Dereference
+                    (Make_Designator
+                       (VN (V_Representation))),
                   Params);
 
                Append_Node_To_List
@@ -784,8 +798,8 @@ package body Backend.BE_CORBA_Ada.Skels is
          --  method.
 
          --  If the method could potentially throw an exception, the
-         --  generated code will be put in a statement bloc. Else, No
-         --  additional statement bloc will be used.
+         --  generated code will be put inside a block statement.
+         --  Otherwise, no additional block statements will be used.
 
          declare
             Inner_Statements  : List_Id := No_List;
@@ -827,7 +841,6 @@ package body Backend.BE_CORBA_Ada.Skels is
                   if  FEN.Parameter_Mode (Param) = Mode_In
                     or else FEN.Parameter_Mode (Param) = Mode_Inout
                   then
-
                      --  Get the parameter name
 
                      Param_Name := To_Ada_Name
@@ -902,7 +915,7 @@ package body Backend.BE_CORBA_Ada.Skels is
               (Copy_Designator (Impl_Id), Inv_Profile);
 
             if Is_Ada_Function then
-               --  Cast class wide results
+               --  Cast class-wide results
 
                if Is_Equal_To_Current_Interface (Type_Spec (E)) then
                   C := Make_Type_Conversion
@@ -956,7 +969,6 @@ package body Backend.BE_CORBA_Ada.Skels is
          --  Setting out arguments
 
          if Use_SII then
-
             --  Out parameters of the Operation
 
             Param := First_Entity (Parameters (E));
@@ -1077,9 +1089,9 @@ package body Backend.BE_CORBA_Ada.Skels is
                   Append_Node_To_List (N, Dec_Stat);
 
                   C := Make_Attribute_Designator
-                    (Make_Designator
-                     (Designator => VN (V_Args_Out),
-                      Is_All     => True),
+                    (Make_Explicit_Dereference
+                       (Make_Designator
+                          (VN (V_Args_Out))),
                      A_Address);
 
                   J := Unsigned_Long_Long (Length (Disc));
@@ -1089,9 +1101,9 @@ package body Backend.BE_CORBA_Ada.Skels is
                      (Make_Designator (PN (P_Request)),
                       C,
                       Make_Attribute_Designator
-                      (Make_Designator
-                       (Designator => VN (V_Args_Out),
-                        Is_All     => True),
+                      (Make_Explicit_Dereference
+                       (Make_Designator
+                        (VN (V_Args_Out))),
                        A_Size),
                       Make_Literal (New_Integer_Value (J, 1, 10)),
                       Make_Designator (VN (V_Buffer))));
@@ -1120,16 +1132,18 @@ package body Backend.BE_CORBA_Ada.Skels is
 
                Append_Node_To_List
                  (Make_Defining_Identifier (VN (V_Buffer)), Params);
-               M := Make_Designator (VN (V_Component), Is_All => True);
+               M := Make_Explicit_Dereference
+                 (Make_Designator (VN (V_Component)));
 
                --  GIOP_Session is used to get the representation
-               --  attribute (the declarative part the block)
+               --  attribute (the declarative part the block).
 
                N := Make_Subprogram_Call
                  (RE (RE_GIOP_Session),
                   Make_List_Id (M));
 
-               N := Make_Designator (VN (V_Representation), Is_All => True);
+               N := Make_Explicit_Dereference
+                 (Make_Designator (VN (V_Representation)));
                Append_Node_To_List (N, Params);
 
                Append_Node_To_List (Make_Literal (Int1_Val), Params);
@@ -1205,7 +1219,6 @@ package body Backend.BE_CORBA_Ada.Skels is
             N := Make_Elsif_Statement
               (C, Make_List_Id (N));
          else
-
             --  Insert the subprogram name into the hash function
             --  generator and add a call to Register_Procedure
 
@@ -1295,8 +1308,7 @@ package body Backend.BE_CORBA_Ada.Skels is
                N);
             Append_Node_To_List (N, Invoke_Statements);
 
-            --  Obtaining the operation name corresponding to the hash
-            --  code
+            --  Get the operation name corresponding to the hash code
 
             N := Make_Subprogram_Call
               (Make_Defining_Identifier (PN (P_Invoke_Db)),
@@ -1309,9 +1321,9 @@ package body Backend.BE_CORBA_Ada.Skels is
 
             --  The condition
 
-            N := Make_Designator
-              (PN (P_Invoke_Name_Access),
-               Is_All => True);
+            N := Make_Explicit_Dereference
+              (Make_Designator
+                 (PN (P_Invoke_Name_Access)));
 
             C_1 := Make_Expression
               (Make_Defining_Identifier (VN (V_Operation)),
@@ -1319,7 +1331,7 @@ package body Backend.BE_CORBA_Ada.Skels is
                N);
 
             --  Generate the "case" statement after adding a "when
-            --  others" clause
+            --  others" clause.
 
             N := Make_Raise_Statement (Make_Designator (EN (E_Program_Error)));
             N := Make_Case_Statement_Alternative
@@ -1331,7 +1343,6 @@ package body Backend.BE_CORBA_Ada.Skels is
               (Make_Designator (VN (V_Index)),
                Invoke_Subp_Bodies);
             Append_Node_To_List (N, Invoke_Then_Statements);
-
          end if;
 
          N := Make_Subprogram_Call
@@ -1369,9 +1380,9 @@ package body Backend.BE_CORBA_Ada.Skels is
       procedure Invoke_Declaration (L : List_Id) is
          N : Node_Id;
       begin
-         N := Make_Designator
-           (Designator => PN (P_Request),
-            Is_All     => True);
+         N := Make_Explicit_Dereference
+           (Make_Designator
+            (PN (P_Request)));
          N := Make_Subprogram_Call
            (RE (RE_Operation),
             Make_List_Id (N));
@@ -1394,7 +1405,7 @@ package body Backend.BE_CORBA_Ada.Skels is
 
          if Use_SII then
             declare
-               C         : Node_Id;
+               C : Node_Id;
             begin
                N := Make_Subprogram_Call
                  (RE (RE_Request_Access),
@@ -1424,7 +1435,7 @@ package body Backend.BE_CORBA_Ada.Skels is
                Append_Node_To_List (N, L);
 
                --  The GIOP Session is the Component attribute
-               --  Dependent_Binding_Object
+               --  Dependent_Binding_Object.
 
                C := Make_Subprogram_Call
                  (RE (RE_Get_Component),
@@ -1509,7 +1520,6 @@ package body Backend.BE_CORBA_Ada.Skels is
 
          Profile : List_Id;
       begin
-
          --  Declarative part
 
          N := Make_Object_Declaration
@@ -1636,7 +1646,6 @@ package body Backend.BE_CORBA_Ada.Skels is
             N := Make_Case_Statement_Alternative
               (Make_List_Id (Make_Literal (Discret_Choice_Value)),
                Make_List_Id (N));
-
          end if;
 
          return N;
@@ -1656,14 +1665,12 @@ package body Backend.BE_CORBA_Ada.Skels is
             Method_Name_1 : String;
             Method_Name_2 : String := "");
          --  To make the addition (or the removal) of an implicit
-         --  CORBA method easier, we use the
-         --  'Add_Implicit_CORBA_Method' subprogram. This subprogram
-         --  takes the method name, A declaration list and a statement
-         --  list. It creates a block statement for each implicit
-         --  method and fills a list depending on the optimization
-         --  mode chosen by the user. If two method names correspond
-         --  to the same treatment, the user may use the Method_Name_2
-         --  parameter
+         --  CORBA method easier, we use this subprogram. It takes the
+         --  method name, A declaration list and a statement list. It
+         --  creates a block statement for each implicit method and
+         --  fills a list depending on the optimization mode chosen by
+         --  the user. If two method names correspond to the same
+         --  treatment, the user may use the Method_Name_2 parameter.
 
          -------------------------------
          -- Add_Implicit_CORBA_Method --
@@ -1856,8 +1863,7 @@ package body Backend.BE_CORBA_Ada.Skels is
             N := Make_Literal (New_Boolean_Value (False));
             N := Make_Qualified_Expression
               (Subtype_Mark => RE (RE_Boolean),
-               Aggregate    => Make_Record_Aggregate
-                 (Make_List_Id (N)));
+               Operand      => N);
             N := Make_Subprogram_Call
               (RE (RE_To_Any_0),
                Make_List_Id (N));
@@ -1887,7 +1893,7 @@ package body Backend.BE_CORBA_Ada.Skels is
          N := First_Node
            (Visible_Part (Package_Specification (N)));
          N := Expand_Designator (N);
-         N := Make_Type_Attribute (N, A_Class);
+         N := Make_Attribute_Designator (N, A_Class);
          N := Make_Expression
            (Make_Explicit_Dereference (Make_Defining_Identifier (PN (P_Obj))),
             Op_In,
@@ -1975,7 +1981,7 @@ package body Backend.BE_CORBA_Ada.Skels is
 
          N := Make_Component_Association
            (Selector_Name => Make_Defining_Identifier (PN (P_Init)),
-            Expression    => Make_Type_Attribute
+            Expression    => Make_Attribute_Designator
               (Make_Designator (SN (S_Deferred_Initialization)),
                A_Access));
          Append_Node_To_List (N, Aggregates);
@@ -1989,11 +1995,9 @@ package body Backend.BE_CORBA_Ada.Skels is
 
          --  Registering the module
 
-         N := Make_Record_Aggregate (Aggregates);
-
          N := Make_Qualified_Expression
            (Subtype_Mark => RE (RE_Module_Info),
-            Aggregate    => N);
+            Operand      => Make_Record_Aggregate (Aggregates));
 
          N := Make_Subprogram_Call (RE (RE_Register_Module), Make_List_Id (N));
          Append_Node_To_List (N, Statements);
@@ -2222,7 +2226,7 @@ package body Backend.BE_CORBA_Ada.Skels is
          N_Subprograms := N_Subprograms + 1;
 
          --  Insert the subprogram name into the perfect hash table
-         --  generator
+         --  generator.
 
          Get_Name_String (Subp_Name);
          Insert (Name_Buffer (1 .. Name_Len));
@@ -2311,7 +2315,7 @@ package body Backend.BE_CORBA_Ada.Skels is
          Append_Node_To_List (N, Statements);
 
          --  Test if the hash code was already found in which case
-         --  raise a program error
+         --  raise a program error.
 
          N := Make_Subprogram_Call
            (Make_Defining_Identifier (PN (P_Invoke_Db)),
@@ -2338,10 +2342,8 @@ package body Backend.BE_CORBA_Ada.Skels is
             Make_Object_Instantiation
             (Make_Qualified_Expression
              (Subtype_Mark => RE (RE_String_2),
-              Aggregate    => Make_Record_Aggregate
-              (Make_List_Id
-               (Make_Defining_Identifier
-                (PN (P_Operation_Name)))))));
+              Operand      => Make_Defining_Identifier
+                (PN (P_Operation_Name)))));
          Append_Node_To_List (N, Statements);
 
          --  Update the hash table
@@ -2402,7 +2404,7 @@ package body Backend.BE_CORBA_Ada.Skels is
          Parent_Int     : Node_Id;
       begin
          --  No Skel package is generated for an abstract or a local
-         --  interface
+         --  interface.
 
          if FEN.Is_Abstract_Interface (E)
            or else FEN.Is_Local_Interface (E)
@@ -2420,7 +2422,7 @@ package body Backend.BE_CORBA_Ada.Skels is
          Dependency_List        := New_List (K_List_Id);
 
          --  If the user chose to generate optimised skeletons, we
-         --  initialise the optimization related lists
+         --  initialise the optimization related lists.
 
          if Use_Minimal_Hash_Function then
             Initialize_Hash_Function_Optimization;
@@ -2474,7 +2476,7 @@ package body Backend.BE_CORBA_Ada.Skels is
 
          --  Here, we append the implicit CORBA methods either to the
          --  elsif statements or to the case statement depending on
-         --  the optimization mode chosen by the developer
+         --  the optimization mode chosen by the developer.
 
          Append_Node_To_List
            (First_Node (Implicit_CORBA),

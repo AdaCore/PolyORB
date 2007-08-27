@@ -817,9 +817,9 @@ package body Backend.BE_CORBA_Ada.CDRs is
                   (BE_Node
                    (Identifier
                     (E))));
-               M := Make_Designator
-                 (Designator => PN (P_Args),
-                  Is_All     => True);
+               M := Make_Explicit_Dereference
+                 (Make_Designator
+                    (PN (P_Args)));
                N := Make_Object_Declaration
                  (Defining_Identifier => Args_Id,
                   Object_Definition   => N,
@@ -1174,9 +1174,9 @@ package body Backend.BE_CORBA_Ada.CDRs is
                   (BE_Node
                    (Identifier
                     (E))));
-               M := Make_Designator
-                 (Designator => PN (P_Args),
-                  Is_All     => True);
+               M := Make_Explicit_Dereference
+                 (Make_Designator
+                    (PN (P_Args)));
                N := Make_Object_Declaration
                  (Defining_Identifier => Args_Id,
                   Object_Definition   => N,
@@ -1223,9 +1223,9 @@ package body Backend.BE_CORBA_Ada.CDRs is
             N := Make_Ada_Comment (Name_Find);
             Append_Node_To_List (N, Subp_Statements);
 
-            M := Make_Designator
-              (Designator => PN (P_Args),
-               Is_All     => True);
+            M := Make_Explicit_Dereference
+              (Make_Designator
+                 (PN (P_Args)));
             N := Make_Assignment_Statement (M, Copy_Node (Args_Id));
             Append_Node_To_List (N, Subp_Statements);
          end if;
@@ -2319,10 +2319,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
 
                         N := Make_Qualified_Expression
                           (Subtype_Mark => Map_Designator (Var_Type),
-                           Aggregate    => Make_Record_Aggregate
-                           (Make_List_Id
-                            (Make_Designator
-                             (Intermed_Name))));
+                           Operand      => Make_Designator (Intermed_Name));
 
                         N := Make_Assignment_Statement (Var_Node, N);
                         Append_Node_To_List (N, Inner_St);

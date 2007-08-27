@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -33,13 +33,14 @@
 
 package Backend.BE_CORBA_Ada.Stubs is
 
-   --  The function below is used by the Impls package in the case of local
-   --  interfaces the difference between the two functions are very tiny and
-   --  don't justify the creation of a new "Is_A_Body" in the Impls package
    function Local_Is_A_Body
-     (E        : Node_Id;
-      Spec     : Node_Id := No_Node)
+     (E    : Node_Id;
+      Spec : Node_Id := No_Node)
      return Node_Id;
+   --  The function below is used by the Impls package in the case of
+   --  local interfaces the difference between the two functions are
+   --  very tiny and does not justify the creation of a new
+   --  "Is_A_Body" in the Impls package.
 
    package Package_Spec is
 

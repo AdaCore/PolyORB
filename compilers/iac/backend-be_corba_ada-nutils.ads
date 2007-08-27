@@ -203,8 +203,8 @@ package Backend.BE_CORBA_Ada.Nutils is
      range Operator_Type'First .. Op_Or_Else;
 
    --  The types XXXX_Id are used to make easier the building of the
-   --  Ada. The user does not have to manipulate the name buffet. He
-   --  just use the Name_Id from the proper array type.
+   --  Ada identifiers. The user does not have to manipulate the name
+   --  buffer. He just uses the Name_Id from the proper array type.
 
    type Parameter_Id is
      (P_A,
@@ -447,18 +447,20 @@ package Backend.BE_CORBA_Ada.Nutils is
    --  Array of exception identifiers
 
    function Add_Prefix_To_Name
-     (Prefix : String; Name : Name_Id)
+     (Prefix : String;
+      Name   : Name_Id)
      return Name_Id;
    --  Add the 'Prefix' string to the beginning of 'Name' and returns
    --  the corresponding name id. Note that the content of the
-   --  Name_Buffer could be modifies after the end of this function.
+   --  Name_Buffer could be modified after the end of this function.
 
    function Add_Suffix_To_Name
-     (Suffix : String; Name : Name_Id)
+     (Suffix : String;
+      Name   : Name_Id)
      return Name_Id;
    --  Append the 'Suffix' string to the end of 'Name' and returns the
    --  corresponding name id. Note that the content of the Name_Buffer
-   --  could be modifies after the end of this function.
+   --  could be modified after the end of this function.
 
    function Remove_Suffix_From_Name
      (Suffix : String;
@@ -477,7 +479,7 @@ package Backend.BE_CORBA_Ada.Nutils is
 
    function Convert (K : Frontend.Nodes.Node_Kind) return RE_Id;
    --  If K is an IDL base type, returns the corresponding CORBA type
-   --  (according to the mapping specifications. Else, raises
+   --  (according to the mapping specifications. Otherwise, raises
    --  Program_Error
 
    procedure Push_Entity (E : Node_Id);
@@ -490,7 +492,7 @@ package Backend.BE_CORBA_Ada.Nutils is
    --  Return the top of the IDL_Entity stack
 
    function  Current_Package return Node_Id;
-   --  Return the top of the Package stack
+   --  Return the top of the Ada Package stack
 
    function Copy_Node (N : Node_Id) return Node_Id;
    --  Return a copy of node N if N is a K_Designator,
@@ -498,7 +500,8 @@ package Backend.BE_CORBA_Ada.Nutils is
    --  Program_Error.
 
    function New_Node
-     (Kind : Node_Kind; From : Node_Id := No_Node)
+     (Kind : Node_Kind;
+      From : Node_Id   := No_Node)
      return Node_Id;
    --  Create a new Ada Node_Id of Kind 'Kind'. If the 'From' node is
    --  given, set the FE_Node of the newly created node to
@@ -506,7 +509,8 @@ package Backend.BE_CORBA_Ada.Nutils is
    --  Node_Id
 
    function New_List
-     (Kind : Node_Kind; From : Node_Id := No_Node)
+     (Kind : Node_Kind;
+      From : Node_Id   := No_Node)
      return List_Id;
    --  The same as New_Node, but creates a List
 
@@ -519,11 +523,11 @@ package Backend.BE_CORBA_Ada.Nutils is
    --  spaces (used to build the Operator_Image table)
 
    function Is_Equal_To_Current_Interface (T : Node_Id) return Boolean;
-   --  Return true when the type T is equal to defined from the
+   --  Return True when the type T is equal to defined from the
    --  current interface type.
 
    procedure Initialize;
-   --  Initialize the Nutils package by creating different tables
+   --  Initialize the Nutils package by initializing different tables
 
    procedure New_Token (T : Token_Type; I : String := "");
    --  Create a new Token and set its image to I (if given)
@@ -540,10 +544,10 @@ package Backend.BE_CORBA_Ada.Nutils is
 
    function Copy_Designator
      (Designator : Node_Id;
-      Witheded   : Boolean := True)
+      Withed     : Boolean := True)
      return Node_Id;
    --  copy the K_Designator or the K_Attribute_Designator and add the
-   --  proper 'with' clause (of the parent) if the 'Witheded' flag is
+   --  proper 'with' clause (of the parent) if the 'Withed' flag is
    --  set
 
    function Defining_Identifier_To_Designator
@@ -647,6 +651,9 @@ package Backend.BE_CORBA_Ada.Nutils is
    function Make_Decimal_Type_Definition
      (Definition : Node_Id)
      return Node_Id;
+   --  Creates an Ada Fixed point type definition from the IDL fixed
+   --  point type definition node.  Usually used with
+   --  Make_Full_Type_Declaration
 
    function Make_Defining_Identifier (Name  : Name_Id) return  Node_Id;
 
@@ -661,8 +668,7 @@ package Backend.BE_CORBA_Ada.Nutils is
 
    function Make_Designator
      (Designator : Name_Id;
-      Parent     : Name_Id := No_Name;
-      Is_All     : Boolean := False)
+      Parent     : Name_Id := No_Name)
      return Node_Id;
    --  If parent is given, create a second new designator for 'Parent'
    --  and register it as the Parent Unit Name.
@@ -682,6 +688,7 @@ package Backend.BE_CORBA_Ada.Nutils is
    function Make_Enumeration_Type_Definition
      (Enumeration_Literals : List_Id)
      return Node_Id;
+   --  Usually used with Make_Full_Type_Declaration
 
    function Make_Exception_Declaration
      (Defining_Identifier : Node_Id;
@@ -704,11 +711,6 @@ package Backend.BE_CORBA_Ada.Nutils is
       Statements          : List_Id)
      return Node_Id;
 
-   function Make_For_Use_Statement
-     (Defining_Identifier : Node_Id;
-      Use_Value           : Node_Id)
-     return Node_Id;
-
    function Make_Full_Type_Declaration
      (Defining_Identifier : Node_Id;
       Type_Definition     : Node_Id;
@@ -724,6 +726,11 @@ package Backend.BE_CORBA_Ada.Nutils is
       Then_Statements  : List_Id;
       Elsif_Statements : List_Id := No_List;
       Else_Statements  : List_Id := No_List)
+     return Node_Id;
+
+   function Make_Indexed_Component
+     (Prefix      : Node_Id;
+      Expressions : List_Id)
      return Node_Id;
 
    function Make_Instantiated_Subprogram
@@ -794,7 +801,7 @@ package Backend.BE_CORBA_Ada.Nutils is
 
    function Make_Qualified_Expression
      (Subtype_Mark : Node_Id;
-      Aggregate    : Node_Id)
+      Operand      : Node_Id)
      return Node_Id;
 
    function Make_Raise_Statement
@@ -851,11 +858,6 @@ package Backend.BE_CORBA_Ada.Nutils is
      return Node_Id;
    --  Parent is the package in which the Type declaration will be put
    --  (useful for further with clauses and for designator expanding)
-
-   function Make_Type_Attribute
-     (Designator : Node_Id;
-      Attribute  : Attribute_Id)
-     return Node_Id;
 
    function Make_Type_Conversion
      (Subtype_Mark : Node_Id;

@@ -95,15 +95,6 @@ package Backend.BE_CORBA_Ada.IDL_To_Ada is
    --  Return True iff the IDL node M is declared within (directly or
    --  not) the scope of N.
 
-   function Map_Declarator_Type_Designator
-     (Type_Decl  : Node_Id;
-      Declarator : Node_Id)
-     return Node_Id;
-   --  Map an Ada designator from Type_Decl according to the Ada
-   --  mapping rules. If Declarator is a complex declarator, creates
-   --  an array type definition as specified by the mapping
-   --  specifications
-
    function Map_Defining_Identifier (Entity : Node_Id) return Node_Id;
    --  Map an Ada defining identifier from the IDL node 'Entity'
 
@@ -392,7 +383,7 @@ package Backend.BE_CORBA_Ada.IDL_To_Ada is
    --  Extract from the Ada mapping specifications :
    --  "The definitions of types, constants, and exceptions in the
    --  parent package are renamed or sub-typed so that they are also
-   --  'inherited' in accordance with the IDL semantic."
+   --  'inherited' in accordance with the IDL semantics."
 
    procedure Map_Additional_Entities_Specs
      (Parent_Interface : Node_Id;

@@ -31,9 +31,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  This package contains also routines to expand the IDL tree and
---  generate an intermediate IDL tree. In this tree, will be
---  implemented:
+--  This package contains routines to expand the IDL tree and generate
+--  an intermediate IDL tree. In this tree, will be implemented:
 
 --  * The implicit forward declarations (eg. when a type uses an
 --  interface of the same scope). The implementation of this feature
@@ -41,10 +40,10 @@
 --  complex because we will be obliged to revisit nodes we have
 --  already visited.
 
---  * The optimisations of the number of forward.
-
 --  * The definition of nested structures types : nested structures
 --  anonymous types are not deprecated.
+
+--  * The expansion of IDL attributes into Get_/Set_ IDL subprograms
 
 --  This phase of the compilation is located in the Ada backend
 --  because the problems related to the forwards are Ada specific
@@ -52,6 +51,10 @@
 
 package Backend.BE_CORBA_Ada.Expand is
 
+   function Expand_Designator
+     (N               : Node_Id;
+      Add_With_Clause : Boolean := True)
+     return Node_Id;
    --  This function creates a new designator from the node N which
    --  may be:
 
@@ -66,21 +69,17 @@ package Backend.BE_CORBA_Ada.Expand is
    --  basing on:
 
    --  * the Parent_Unit_Name of node N defining identifier, if we are
-   --  handling an forward interface declaration.
+   --  handling a forward interface declaration.
 
    --  * the "Parent" field of N in the other cases.
 
-   function Expand_Designator
-     (N               : Node_Id;
-      Add_With_Clause : Boolean := True)
-     return Node_Id;
-
    procedure Expand (Entity : Node_Id);
    --  Note that this procedure modifies the IDL tree but this is not
-   --  very dangerous since we are already in the Ada backend.  NB :
-   --  Iac may evolve to execute many backend one after the other. In
-   --  this case the procedure above has to be replaced by a function
-   --  which duplicates the IDL tree and keeps it intact for other
-   --  backends.
+   --  very dangerous since we are already in the Ada backend.
+
+   --  NB: Iac may evolve to execute many backend one after the
+   --  other. In this case the procedure above has to be replaced by a
+   --  function which duplicates the IDL tree and keeps it intact for
+   --  other backends.
 
 end Backend.BE_CORBA_Ada.Expand;
