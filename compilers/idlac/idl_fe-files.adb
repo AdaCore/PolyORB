@@ -102,8 +102,8 @@ package body Idl_Fe.Files is
       --  If File_Name has directory prefix then check file existence
       --  and return File_Name as result.
 
-      Separator :=
-        Index (File_Name, To_Set (Directory_Separator), Inside, Backward);
+      Separator := Index
+        (File_Name, To_Set (Directory_Separator & "/"), Inside, Backward);
 
       if Separator /= 0 then
          --  Directory prefix present: check file existence
@@ -233,11 +233,18 @@ package body Idl_Fe.Files is
          Add_Argument (Full_Switch);
       end loop;
 
-      --  Add all search paths.
+      --  Add all search paths. Remove directory separator, because gcc does
+      --  not work on Windows when we call it with things like:
+      --     -I /some/directory\
 
       for J in Search_Path.First .. Search_Path.Last loop
          Add_Argument ("-I");
-         Add_Argument (Search_Path.Table (J).all);
+         declare
+            Dir : String renames Search_Path.Table (J).all;
+            pragma Assert (Dir (Dir'Last) = Dir_Separator);
+         begin
+            Add_Argument (Dir (Dir'First .. Dir'Last - 1));
+         end;
       end loop;
 
       --  Always add the current directory at the end of the include list

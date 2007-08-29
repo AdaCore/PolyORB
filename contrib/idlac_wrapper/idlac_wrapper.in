@@ -48,6 +48,9 @@ done
 
     ##  Execute idlac
 
+    if "$verbose" == true; then
+        echo "${IDLAC} -o ${tmp} ${args}"
+    fi
     eval "${IDLAC} -o ${tmp} ${args}" || exit $?
 
     ##  Replace existing files only if actually changed; move newly-created

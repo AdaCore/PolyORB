@@ -49,7 +49,7 @@ project src is
 
       for Default_Switches ("Ada") -- For src only.
          use Common.Compiler'Default_Switches ("Ada")
-            & "-gnatg"  --  Internal GNAT runtime implementation mode
+            & "-gnatg"   --  Internal GNAT runtime implementation mode
             & "-gnati1"  --  Allow full ISO-8859-1 character set
             & "-gnatwale"
             ;

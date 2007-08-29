@@ -3,11 +3,6 @@
 .PHONY: default
 default: all
 
-# ???NOTE: To use the old make files, first run configure as usual, then say
-# "cp Makefile.old Makefile". (Note that "make -f Makefile.old ..." will not
-# work.) In addition, other modifications may be necessary; the old make files
-# are no longer kept up to date.
-
 # To use this make file, say "make <targets>".
 # You must be in the top-level polyorb directory.
 # (???We probably want a convenient way to do a build from any subdirectory.)
@@ -92,6 +87,11 @@ all: all-compilers perfect-hash polyorb-idl-stamps do-gnatmake
 
 IDLAC_bin := compilers/@IDLAC@/@IDLAC@
 IDLAC_WRAPPER := ${top_builddir}/contrib/idlac_wrapper/idlac_wrapper
+
+# Path separator -- ":" or ";" for Unix/Windows.
+# Note that @PATH_SEPARATOR@ is : for cygwin, so we need to adjust that.
+@WINDOWS_FALSE@PATH_SEP := @PATH_SEPARATOR@
+@WINDOWS_TRUE@PATH_SEP := ;
 
 ################################################################
 
@@ -254,7 +254,7 @@ idlac_include_flags := \
 	-I.
 
 # Command used to run idlac:
-idlac := ${IDLAC_WRAPPER} -v --idlac="${top_builddir}/${IDLAC_bin}" ${idlac_include_flags}
+idlac := ${IDLAC_WRAPPER} --idlac="${top_builddir}/${IDLAC_bin}" ${idlac_include_flags}
 
 ################################################################
 
@@ -267,13 +267,13 @@ GNATPRFH = ${top_builddir}/compilers/gnatprfh/gnatprfh
 GEN_HTTP_BODY = ${top_srcdir}/src/soap/gen_http_body
 
 #???.exe suffix : gnatprfh.exe?
-src/soap/polyorb-http_methods.adb: ${GEN_HTTP_BODY} compilers/gnatprfh/gnatprfh ${top_srcdir}/src/soap/polyorb-http_methods.ads
+src/soap/polyorb-http_methods.adb: ${GEN_HTTP_BODY} compilers/gnatprfh/gnatprfh 
+
+# Note that the second gen_http_body command below overwrites perfect_hash.adb
+# with different content.
+src/soap/polyorb-http_methods.adb src/soap/polyorb-http_headers.adb: ${GEN_HTTP_BODY} compilers/gnatprfh/gnatprfh ${top_srcdir}/src/soap/polyorb-http_methods.ads ${top_srcdir}/src/soap/polyorb-http_headers.ads
 	cd src/soap && ${GEN_HTTP_BODY} ${GNATPRFH} ${top_srcdir}/src/soap Method
-
-src/soap/polyorb-http_headers.adb: ${GEN_HTTP_BODY} compilers/gnatprfh/gnatprfh ${top_srcdir}/src/soap/polyorb-http_headers.ads
 	cd src/soap && ${GEN_HTTP_BODY} ${GNATPRFH} ${top_srcdir}/src/soap Header
-
-#???What about perfect_hash.ad[sb]?
 
 ################################################################
 
@@ -437,7 +437,7 @@ ${MKDIR_FLAGS}: %/mkdir.flag:
 # projects.
 
 PRJ_GNATMAKE_FLAGS :=
-# This variable is used to pass additional per-project command line swicthes
+# This variable is used to pass additional per-project command line switches
 # to gnatmake.
 
 .PHONY: ${PROJECT_FILES}
@@ -448,7 +448,7 @@ ${PROJECT_FILES}: %.gpr: \
     build-gen_codeset \
     src/giop/polyorb-giop_p-code_sets-data.ads-stamp \
     tools/po_catref/polyorb-giop_p-code_sets-description_data.ads-stamp
-	ADA_PROJECT_PATH=${top_builddir}/projects:${top_srcdir}/projects:$$ADA_PROJECT_PATH \
+	ADA_PROJECT_PATH="${top_builddir}/projects${PATH_SEP}${top_srcdir}/projects${PATH_SEP}$$ADA_PROJECT_PATH" \
 	  ${GNATMAKE_FOR_TARGET} -P $@ ${GNATMAKE_FLAGS} ${PRJ_GNATMAKE_FLAGS}
 
 .PHONY: libpolyorb-corba-cos-event-impl.a
@@ -628,7 +628,7 @@ test_targets := ${sort ${test_targets}}
 
 .PHONY: ${test_targets}
 ${test_targets}: %/build-test:
-	ADA_PROJECT_PATH=${top_builddir}/projects:${top_srcdir}/projects:$$ADA_PROJECT_PATH \
+	ADA_PROJECT_PATH="${top_builddir}/projects${PATH_SEP}${top_srcdir}/projects${PATH_SEP}$$ADA_PROJECT_PATH" \
 	  ${GNATMAKE} "-XTest_Dir=$*" -P ${top_srcdir}/$*/test.gpr ${GNATMAKE_FLAGS}
 
 # Set active_tests to a subset of test_targets -- remove the ones that are for
