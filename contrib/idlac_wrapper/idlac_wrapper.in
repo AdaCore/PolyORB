@@ -48,7 +48,7 @@ done
 
     ##  Execute idlac
 
-    if "$verbose" == true; then
+    if "$verbose"; then
         echo "${IDLAC} -o ${tmp} ${args}"
     fi
     eval "${IDLAC} -o ${tmp} ${args}" || exit $?
@@ -67,7 +67,7 @@ done
                 mv -f ${file} ${ofile}
             fi
         else
-            if "$verbose" == true; then
+            if "$verbose"; then
                 # This is the usual case; don't print message unless --verbose
                 # flag was given
                 echo "${IDLAC}: created: ${PWD}/${ofile}"
