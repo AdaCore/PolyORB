@@ -182,21 +182,21 @@ clean-local: maintainer-clean
 	-@${RM} -fr polyorb_ug.html polyorb_dg.html polyorb_ug_toc.html
 
 install-data-local:
-	$(INSTALL) -d $(prefix)/doc/polyorb
-	$(INSTALL) -d $(prefix)/doc/polyorb/info
-	$(INSTALL) -d $(prefix)/doc/polyorb/ps
-	$(INSTALL) -d $(prefix)/doc/polyorb/pdf
-	$(INSTALL) -d $(prefix)/doc/polyorb/txt
-	$(INSTALL) -d $(prefix)/doc/polyorb/html
-	$(INSTALL) -d $(prefix)/doc/polyorb/html/polyorb_ug
+	$(INSTALL) -d $(prefix)/share/doc/polyorb
+	$(INSTALL) -d $(prefix)/share/doc/polyorb/info
+	$(INSTALL) -d $(prefix)/share/doc/polyorb/ps
+	$(INSTALL) -d $(prefix)/share/doc/polyorb/pdf
+	$(INSTALL) -d $(prefix)/share/doc/polyorb/txt
+	$(INSTALL) -d $(prefix)/share/doc/polyorb/html
+	$(INSTALL) -d $(prefix)/share/doc/polyorb/html/polyorb_ug
 
 	for fmt in info ps pdf txt; \
 	do \
-		$(INSTALL_DATA) polyorb_ug.$$fmt $(prefix)/doc/polyorb/$$fmt/; \
+		$(INSTALL_DATA) polyorb_ug.$$fmt $(prefix)/share/doc/polyorb/$$fmt/; \
 	done
 	for f in polyorb_ug.html/*.html; \
 	do \
-		$(INSTALL_DATA) $$f $(prefix)/doc/polyorb/html/polyorb_ug; \
+		$(INSTALL_DATA) $$f $(prefix)/share/doc/polyorb/html/polyorb_ug; \
 	done
 
 MANIFEST: polyorb_ug.info polyorb_ug.html polyorb_ug.pdf polyorb_ug.ps polyorb_ug.txt \
