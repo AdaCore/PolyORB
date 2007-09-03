@@ -5,7 +5,30 @@
 
 # @configure_input@
 
-prefix="@prefix@"
+# Determine installation prefix
+
+case "$0" in
+  */*)
+    # Already has a directory indication
+    exec_name="$0"
+    ;;
+
+  *)
+    # Just base filename, retrieve from PATH
+    exec_name=`which $0`
+    ;;
+esac
+exec_rel_dir=`dirname "${exec_name}"`
+exec_abs_dir=`cd ${exec_rel_dir} && pwd`
+exec_prefix=`dirname "${exec_abs_dir}"`
+
+if [ -f "${exec_prefix}"/include/polyorb/polyorb.ads ]; then
+  prefix="${exec_prefix}"
+else
+  # Fall back to configure-time prefix
+  prefix="@prefix@"
+fi
+
 default_appli="@APPLI_LIST@"
 default_proto="@PROTO_LIST@"
 default_services="@SERVICE_LIST@"
