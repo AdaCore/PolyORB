@@ -637,9 +637,14 @@ ${test_targets}: %/build-test:
 # Note that two tests are for multiple personalities: examples/bbs is built
 # only if we are configured for both corba and dsa, and
 # examples/corba/all_types is built only if we are configured for both corba
-# and moma.
+# and moma. Also remove the ones that depend on ssl, if we're not configured
+# with ssl support.
 
 active_tests := ${test_targets}
+
+ifneq (${HAVE_SSL},yes)
+  active_tests := ${filter-out examples/corba/secure_echo/%,${active_tests}}
+endif
 
 ifneq "${filter corba, ${APPLI_LIST}}" "corba"
   active_tests := ${filter-out examples/corba/%,${active_tests}}
