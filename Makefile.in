@@ -770,8 +770,6 @@ docs:
 
 prefix=@prefix@
 
-#???Install documention?
-
 .PHONY: install
 install: all
 	@echo "Install prefix: ${prefix}"
@@ -808,6 +806,11 @@ install: all
 	  -a ! -name 'polyorb-dsa_p-partitions.ali' \
 	  -a ! -name 'polyorb-partition_elaboration.ali') | \
 	${XARGS_I} ${INSTALL} -m 444 {} ${prefix}/include/polyorb
+	# Install documentation only if it has been built:
+	if [ -r docs/polyorb_ug.html ]; \
+	then \
+	  (cd docs && ${MAKE} install); \
+	fi
 
 # polyorb-dsa_p-partitions.ali is a special case above.
 # It is never installed, so that this unit is recompiled for each application
