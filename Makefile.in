@@ -797,6 +797,8 @@ install: all
 	${INSTALL} ${top_builddir}/tools/po_dumpir/po_dumpir${TOOL_EXE_SUFFIX} ${prefix}/bin
 	${INSTALL} ${top_builddir}/polyorb-config ${prefix}/bin
 	ls ${top_builddir}/lib/*.a | ${XARGS_I} ${INSTALL} -m 444 {} ${prefix}/lib
+	ls ${top_srcdir}/projects-distrib/*.gpr | ${XARGS_I} ${INSTALL} -m 444 {} ${prefix}/lib
+	ls ${top_builddir}/projects-distrib/*.gpr | ${XARGS_I} ${INSTALL} -m 444 {} ${prefix}/lib
 	(find \
 	  ${top_builddir}/src \
 	  ${top_builddir}/cos \

@@ -680,6 +680,7 @@ AC_OUTPUT([
 	docs/Makefile
 	projects/config.gpr
 	projects/src_setup.gpr
+	projects-distrib/src_setup.gpr
 	src/Makefile
 	src/corba/Makefile
 	src/corba/dynamicany/Makefile
