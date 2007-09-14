@@ -816,7 +816,7 @@ install: all
 	# Install documentation only if it has been built:
 	if [ -r docs/polyorb_ug.html ]; \
 	then \
-	  (cd docs && ${MAKE} install); \
+	  (cd docs && ${MAKE} install prefix="${prefix}"); \
 	fi
 
 # polyorb-dsa_p-partitions.ali is a special case above.
