@@ -2285,12 +2285,10 @@ debug-makefile:
 	@echo "debug-makefile"
 	@echo top_builddir = ${top_builddir}
 	@echo top_srcdir = ${top_srcdir}
-	@echo corba_exe = ${corba_exe}
 	@echo MAKEFLAGS = ${MAKEFLAGS}
 	@echo MAKECMDGOALS = ${MAKECMDGOALS}
 	@echo polyorb_idl_stamps = ${polyorb_idl_stamps}
 	@echo all_idl_stamps = ${all_idl_stamps}
-	@echo POLYORB_INCS = ${POLYORB_INCS}
 	@echo XMLADA_INCS = ${XMLADA_INCS}
 	@echo POLYORB_LIBS = ${POLYORB_LIBS}
 	@echo SERVICE_LIBS = ${SERVICE_LIBS}
@@ -2301,6 +2299,8 @@ debug-makefile:
 	@echo C_FILES = ${C_FILES}
 	@echo C_OBJECTS = ${C_OBJECTS}
 	@echo COMPILER_EXES = ${COMPILER_EXES}
+	@echo APPLI_EXES = ${APPLI_EXES}
+	@echo SERVICE_EXES = ${SERVICE_EXES}
 	@echo COMPILERS = ${COMPILERS}
 	@echo active_tests = ${active_tests}
 	@echo "debug-makefile done"

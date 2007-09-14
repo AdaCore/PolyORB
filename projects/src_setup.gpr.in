@@ -34,15 +34,15 @@
 --  Pre-canned middleware setups
 
 --  The units provided by this project provide convenient short-hands to
---  drag an appropriate middleware configuration. They contain only
+--  drag in an appropriate middleware configuration. They contain only
 --  WITH clauses for the PolyORB components. Within the PolyORB build
 --  system, only tools projects (not library projects) are allowed to import
 --  this one.
 
-with "common", "src",
-  @NO_SSL@"src_ssl",
-  @PROTO_PRJS@,
-  @APPLI_PRJS@;
+with "common", "src";
+@NO_SSL@with "src_ssl";
+@WITH_PROTO_PRJS@
+@WITH_APPLI_PRJS@
 
 project src_setup is
 

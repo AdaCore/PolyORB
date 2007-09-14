@@ -705,7 +705,7 @@ projects-distrib/idls_cos_event.gpr
 projects-distrib/idls_cos_naming.gpr
 projects-distrib/idls_cos_notification.gpr
 projects-distrib/idls_cos_time.gpr
-projects-distrib/polyorb.gpr
+projects-distrib/polyorb.gpr.in
 projects-distrib/src.gpr
 projects-distrib/src_corba.gpr
 projects-distrib/src_corba_dynamicany.gpr

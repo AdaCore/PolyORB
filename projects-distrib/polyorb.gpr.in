@@ -37,17 +37,9 @@
 --  If SOAP is included, ADA_PROJECT_PATH must also be set so we can find
 --  xmlada.gpr.
 
-with
-     --  ??? Should not list services explicitly, instead should use
-     --  autoconf substitution.
-
-     "idls_cos_event",
-     "idls_cos_naming",
-     "idls_cos_notification",
-     "idls_cos_time",
-
-     "src_setup",
-     "src_setup_security";
+with "common", "src_setup";
+@NO_SSL@with "src_setup_security";
+@WITH_SERVICE_PRJS@
 
 project PolyORB is
 

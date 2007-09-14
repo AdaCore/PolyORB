@@ -226,8 +226,7 @@ AC_SUBST(LIBS_LIST)
 ##########################################
 
 get_perso_prjs() {
-  perso_kind=$1
-  perso_name=$2
+  perso_name=$1
   result=
   sep=""
   for gpr in ${srcdir}/projects/src_${perso_name}*.gpr; do
@@ -238,31 +237,39 @@ get_perso_prjs() {
 }
 
 APPLI_DIRS=""
-APPLI_EXES="\$(poly_exe) "
 APPLI_INCS=""
 APPLI_LIBS=""
+APPLI_EXES="\$(poly_exe) "
+APPLI_PRJS=""
 
 sep=""
 for P in ${APPLI_LIST}
 do
    APPLI_DIRS="${APPLI_DIRS} "'$'"(${P}_dir)"
-   APPLI_LIBS="${APPLI_LIBS} "'$'"(${P}_lib)"
    APPLI_INCS="${APPLI_INCS} "'$'"(${P}_inc)"
+   APPLI_LIBS="${APPLI_LIBS} "'$'"(${P}_lib)"
    APPLI_EXES="${APPLI_EXES} "'$'"(${P}_exe)"
-   APPLI_PRJS="${APPLI_PRJS}${sep}`get_perso_prjs appli ${P}`"
+   APPLI_PRJS="${APPLI_PRJS}${sep}`get_perso_prjs ${P}`"
    sep=","
 done
+if test x"$APPLI_PRJS" = x
+then
+  WITH_APPLI_PRJS=""
+else
+  WITH_APPLI_PRJS="with $APPLI_PRJS;"
+fi
 
 AC_SUBST(APPLI_DIRS)
 AC_SUBST(APPLI_INCS)
 AC_SUBST(APPLI_LIBS)
-AC_SUBST(APPLI_PRJS)
 AC_SUBST(APPLI_EXES)
-# ??? Do we have any APPLI_EXES?
+AC_SUBST(APPLI_PRJS)
+AC_SUBST(WITH_APPLI_PRJS)
 
 PROTO_DIRS=""
 PROTO_INCS=""
 PROTO_LIBS=""
+PROTO_PRJS=""
 
 sep=""
 for P in ${PROTO_LIST}
@@ -270,50 +277,72 @@ do
    PROTO_DIRS="${PROTO_DIRS} "'$'"(${P}_dir)"
    PROTO_INCS="${PROTO_INCS} "'$'"(${P}_inc)"
    PROTO_LIBS="${PROTO_LIBS} "'$'"(${P}_lib)"
-   PROTO_PRJS="${PROTO_PRJS}${sep}`get_perso_prjs proto ${P}`"
+   PROTO_PRJS="${PROTO_PRJS}${sep}`get_perso_prjs ${P}`"
    sep=","
 done
+if test x"$PROTO_PRJS" = x
+then
+  WITH_PROTO_PRJS=""
+else
+  WITH_PROTO_PRJS="with $PROTO_PRJS;"
+fi
 
 AC_SUBST(PROTO_DIRS)
 AC_SUBST(PROTO_INCS)
 AC_SUBST(PROTO_LIBS)
 AC_SUBST(PROTO_PRJS)
+AC_SUBST(WITH_PROTO_PRJS)
 
 SERVICE_DIRS=""
 SERVICE_INCS=""
 SERVICE_LIBS=""
 SERVICE_EXES=""
+SERVICE_PRJS=""
 
+sep=""
 for P in ${SERVICE_LIST}
 do
    SERVICE_DIRS="${SERVICE_DIRS} "'$'"(${P}_dir)"
    SERVICE_INCS="${SERVICE_INCS} "'$'"(${P}_inc)"
    SERVICE_LIBS="${SERVICE_LIBS} "'$'"(${P}_lib)"
    SERVICE_EXES="${SERVICE_EXES} "'$'"(${P}_exe)"
+   if test "$P" != ir
+   then
+      SERVICE_PRJS="${SERVICE_PRJS}${sep}\"idls_cos_${P}\""
+      sep=","
+   fi
 done
+if test x"$SERVICE_PRJS" = x
+then
+  WITH_SERVICE_PRJS=""
+else
+  WITH_SERVICE_PRJS="with $SERVICE_PRJS;"
+fi
 
 AC_SUBST(SERVICE_DIRS)
 AC_SUBST(SERVICE_INCS)
 AC_SUBST(SERVICE_LIBS)
 AC_SUBST(SERVICE_EXES)
+AC_SUBST(SERVICE_PRJS)
+AC_SUBST(WITH_SERVICE_PRJS)
 
 LIBS_DIRS=""
-LIBS_EXES=""
 LIBS_INCS=""
 LIBS_LIBS=""
+LIBS_EXES=""
 
 for P in ${LIBS_LIST}
 do
    LIBS_DIRS="${LIBS_DIRS} "'$'"(${P}_dir)"
-   LIBS_LIBS="${LIBS_LIBS} "'$'"(${P}_lib)"
    LIBS_INCS="${LIBS_INCS} "'$'"(${P}_inc)"
+   LIBS_LIBS="${LIBS_LIBS} "'$'"(${P}_lib)"
    LIBS_EXES="${LIBS_EXES} "'$'"(${P}_exe)"
 done
 
 AC_SUBST(LIBS_DIRS)
-AC_SUBST(LIBS_EXES)
 AC_SUBST(LIBS_INCS)
 AC_SUBST(LIBS_LIBS)
+AC_SUBST(LIBS_EXES)
 
 ##########################################
 # gnatdist flags 
@@ -679,7 +708,9 @@ AC_OUTPUT([
 	compilers/idlac/testsuite/Makefile
 	docs/Makefile
 	projects/config.gpr
+	projects/polyorb.gpr
 	projects/src_setup.gpr
+	projects-distrib/polyorb.gpr
 	projects-distrib/src_setup.gpr
 	src/Makefile
 	src/corba/Makefile
