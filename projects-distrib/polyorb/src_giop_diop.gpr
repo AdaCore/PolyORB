@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                              P O L Y O R B                               --
+--                        S R C _ G I O P _ D I O P                         --
 --                                                                          --
 --                                 P r o j                                  --
 --                                                                          --
@@ -31,19 +31,14 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  This is the main project file for clients of PolyORB.  A client project
---  file should say "with polyorb;", and the ADA_PROJECT_PATH environment
---  variable should be set to point to the directory containing this file.
---  If SOAP is included, ADA_PROJECT_PATH must also be set so we can find
---  xmlada.gpr.
+with "common", "src", "src_giop";
 
-with "polyorb/common", "polyorb/src_setup";
-@NO_SSL@with "polyorb/src_setup_security";
+project src_giop_diop is
 
-project PolyORB is
-
-   for Source_Dirs use ("../../include/polyorb");
-   for Object_Dir  use  "../../include/polyorb";
+   for Source_Files use ();
+   for Library_Name use "polyorb-giop-diop";
+   for Library_Dir use "../..";
+   for Library_Kind use "static";
    for Externally_Built use "true";
 
-end PolyORB;
+end src_giop_diop;

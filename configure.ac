@@ -711,7 +711,7 @@ AC_OUTPUT([
 	projects/polyorb.gpr
 	projects/src_setup.gpr
 	projects-distrib/polyorb.gpr
-	projects-distrib/src_setup.gpr
+	projects-distrib/polyorb/src_setup.gpr
 	src/Makefile
 	src/corba/Makefile
 	src/corba/dynamicany/Makefile

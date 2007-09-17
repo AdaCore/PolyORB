@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                              P O L Y O R B                               --
+--                   S R C _ S E T U P _ S E C U R I T Y                    --
 --                                                                          --
 --                                 P r o j                                  --
 --                                                                          --
@@ -31,19 +31,18 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  This is the main project file for clients of PolyORB.  A client project
---  file should say "with polyorb;", and the ADA_PROJECT_PATH environment
---  variable should be set to point to the directory containing this file.
---  If SOAP is included, ADA_PROJECT_PATH must also be set so we can find
---  xmlada.gpr.
+--  Pre-canned setups for security subsystem
 
-with "polyorb/common", "polyorb/src_setup";
-@NO_SSL@with "polyorb/src_setup_security";
+--  See src_setup for purpose and usage rules
 
-project PolyORB is
+with "common", "src", "src_corba", "src_giop", "src_security", "src_security_gssup", "src_corba_security", "src_giop_iiop_security", "src_giop_iiop_security_tls";
 
-   for Source_Dirs use ("../../include/polyorb");
-   for Object_Dir  use  "../../include/polyorb";
+project src_setup_security is
+
+   for Source_Files use ();
+   for Library_Name use "polyorb-setup-security";
+   for Library_Dir use "../..";
+   for Library_Kind use "static";
    for Externally_Built use "true";
 
-end PolyORB;
+end src_setup_security;

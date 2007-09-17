@@ -181,6 +181,7 @@ Configuration
 * Setting up protocol personalities::
 * Activating debug information::
 * Tracing exceptions::
+* polyorb.gpr::
 * polyorb-config::
 
 Tasking model in PolyORB
@@ -955,6 +956,7 @@ communication protocol for Web Services.
 * Setting up protocol personalities::
 * Activating debug information::
 * Tracing exceptions::
+* polyorb.gpr::
 * polyorb-config::
 @end menu
 
@@ -1281,6 +1283,36 @@ necessary to:
 @item compile PolyORB with debug activated,
 @item activate debug information on package @code{PolyORB.Exceptions}.
 @end enumerate
+
+@c -------------------------------------------------------------------
+@node polyorb.gpr
+@section @command{polyorb.gpr}
+@cindex @command{polyorb.gpr}
+@c -------------------------------------------------------------------
+
+@noindent
+This section describes how to build your program using project files.
+An alternative method, using @command{polyorb-config}, is described in the
+following section. @command{polyorb-config} is intended primarily for Unix-like
+systems. The project-file method will work on all supported systems.
+
+To build your application, create a project file as usual.
+Import the @command{polyorb.gpr} project by putting @code{with "polyorb";}
+in your project file.
+
+Set the ADA_PROJECT_PATH environment variable to point to the directory
+containing @command{polyorb.cfg}, which is @command{<prefix>/lib/gnat}.
+If SOAP is being used, ADA_PROJECT_PATH must also be set so we can find
+@command{xmlada.gpr}.
+
+If your project file is @command{my_proj.gpr}, you can build it by saying:
+
+@smallexample
+  $ gnatmake -P my_proj
+@end smallexample
+
+See the GNAT User's Guide and the GNAT Reference Manual for more information
+on project files.
 
 @c -------------------------------------------------------------------
 @node polyorb-config
