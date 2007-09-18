@@ -783,6 +783,7 @@ install: all
 	${INSTALL} -d ${prefix}/bin
 	${RM} -fr "${prefix}/lib/gnat/polyorb"
 	${INSTALL} -d ${prefix}/lib/gnat/polyorb
+	${INSTALL} -d ${prefix}/lib/polyorb
 	${RM} -fr "${prefix}/include/polyorb"
 	${INSTALL} -d ${prefix}/include/polyorb
 	for comp in ${COMPILER_EXES}; do \
@@ -809,13 +810,14 @@ install: all
 	  ${top_srcdir}/src \
 	  ${top_srcdir}/cos \
 	  ${top_srcdir}/idls \
-	  -name '*.ads' -o -name '*.adb' -o -name '*.idl'; \
-	find \
+	  -name '*.ads' -o -name '*.adb' -o -name '*.idl') | \
+	${XARGS_I} ${INSTALL} -m 444 {} ${prefix}/include/polyorb
+	(find \
 	  ${top_builddir}/ali \
 	  -name '*.ali' \
 	  -a ! -name 'polyorb-dsa_p-partitions.ali' \
 	  -a ! -name 'polyorb-partition_elaboration.ali') | \
-	${XARGS_I} ${INSTALL} -m 444 {} ${prefix}/include/polyorb
+	${XARGS_I} ${INSTALL} -m 444 {} ${prefix}/lib/polyorb
 	# Install documentation only if it has been built:
 	if [ -r docs/polyorb_ug.html ]; \
 	then \

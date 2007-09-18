@@ -43,7 +43,7 @@ with "polyorb/common", "polyorb/src_setup";
 project PolyORB is
 
    for Source_Dirs use ("../../include/polyorb");
-   for Object_Dir  use  "../../include/polyorb";
+   for Object_Dir  use  "../../lib/polyorb";
    for Externally_Built use "true";
 
 end PolyORB;
