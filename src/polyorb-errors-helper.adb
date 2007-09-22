@@ -120,7 +120,6 @@ package body PolyORB.Errors.Helper is
    TC_Completion_Status_Cache : TypeCode.Local_Ref;
 
    function TC_Completion_Status return PolyORB.Any.TypeCode.Local_Ref is
-      use type PolyORB.Types.Unsigned_Long;
       TC : TypeCode.Local_Ref renames TC_Completion_Status_Cache;
    begin
       if not TypeCode.Is_Nil (TC) then
