@@ -408,45 +408,50 @@ package body Ada_Be.Source_Streams is
       ----------------------
 
       procedure Emit_Source_Code is
-         Dep_Node      : Dependency := Unit.Context_Clause;
-         Spec_Dep_Node : Dependency;
+         Dep_Node : Dependency := Unit.Context_Clause;
       begin
          while Dep_Node /= null loop
-            if Unit.Kind = Unit_Body then
-               Spec_Dep_Node := Find_Dep
-                                  (Dep_Node.Library_Unit.all,
-                                   Unit.Corresponding_Spec.Context_Clause);
-            end if;
+            declare
+               Spec_Dep_Node : Dependency := null;
+            begin
+               if Unit.Kind = Unit_Body then
+                  Spec_Dep_Node := Find_Dep
+                                     (Dep_Node.Library_Unit.all,
+                                      Unit.Corresponding_Spec.Context_Clause);
+               end if;
 
-            if Dep_Node.Elab_Control /= None
-              or else (Spec_Dep_Node = null
-                and then not Is_Ancestor (Dep_Node.Library_Unit.all,
-                                          Unit.Library_Unit_Name.all))
-            then
-               Write_Line ("with " & Dep_Node.Library_Unit.all & ";");
-            end if;
+               if Dep_Node.Elab_Control /= None
+                 or else (Spec_Dep_Node = null
+                   and then not Is_Ancestor (Dep_Node.Library_Unit.all,
+                                             Unit.Library_Unit_Name.all))
+               then
+                  Write_Line ("with " & Dep_Node.Library_Unit.all & ";");
 
-            if Dep_Node.Use_It
-              and then (Spec_Dep_Node = null or else not Spec_Dep_Node.Use_It)
-            then
-               Write_Line (" use " & Dep_Node.Library_Unit.all & ";");
-            end if;
+                  if Dep_Node.Use_It
+                    and then (Spec_Dep_Node = null
+                              or else not Spec_Dep_Node.Use_It)
+                  then
+                     Write_Line (" use " & Dep_Node.Library_Unit.all & ";");
+                  end if;
 
-            case Dep_Node.Elab_Control is
-               when Elaborate_All =>
-                  Write_Line ("pragma Elaborate_All ("
-                            & Dep_Node.Library_Unit.all & ");");
-               when Elaborate =>
-                  Write_Line ("pragma Elaborate ("
-                            & Dep_Node.Library_Unit.all & ");");
-               when None =>
-                  null;
-            end case;
+                  case Dep_Node.Elab_Control is
+                     when Elaborate_All =>
+                        Write_Line ("pragma Elaborate_All ("
+                                  & Dep_Node.Library_Unit.all & ");");
+                     when Elaborate =>
+                        Write_Line ("pragma Elaborate ("
+                                  & Dep_Node.Library_Unit.all & ");");
+                     when None =>
+                        null;
+                  end case;
 
-            if Dep_Node.No_Warnings then
-               Write_Line ("pragma Warnings (Off, "
-                         & Dep_Node.Library_Unit.all & ");");
-            end if;
+                  if Dep_Node.No_Warnings then
+                     Write_Line ("pragma Warnings (Off, "
+                               & Dep_Node.Library_Unit.all & ");");
+                  end if;
+               end if;
+            end;
+
             Dep_Node := Dep_Node.Next;
          end loop;
 
