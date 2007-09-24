@@ -32,7 +32,6 @@
 ------------------------------------------------------------------------------
 
 with PolyORB.Utils.Chained_Lists;
-with PolyORB.Types;
 
 with Output;
 

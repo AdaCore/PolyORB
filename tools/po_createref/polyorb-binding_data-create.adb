@@ -32,7 +32,6 @@
 ------------------------------------------------------------------------------
 
 with PolyORB.Utils.Chained_Lists;
-with PolyORB.Types;
 with Ada.Text_IO;
 
 package body PolyORB.Binding_Data.Create is
