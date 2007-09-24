@@ -1997,9 +1997,6 @@ package body Ada_Be.Idl2Ada is
          when K_Const_Dcl =>
 
             NL (CU);
-            Put (CU, "use type ");
-            Gen_Node_Stubs_Spec (CU, Constant_Type (Node));
-            PL (CU, ";");
             Put (CU, Name (Node) & " : constant ");
             Gen_Node_Stubs_Spec (CU, Constant_Type (Node));
             NL (CU);
@@ -3000,7 +2997,21 @@ package body Ada_Be.Idl2Ada is
            C_ULongLong       |
            C_Octet           |
            C_General_Integer =>
-            Put (CU, Img (Integer_Value (Expr)));
+            declare
+               Int_Val : constant Idl_Integer := Integer_Value (Expr);
+            begin
+               --  If the value is negative, we use an expanded name for the
+               --  "-" operator, because it might not be directly visible.  For
+               --  example, CORBA."-" (1234).
+
+               if Int_Val < 0 then
+                  Put (CU, Library_Unit_Name (Mapping, Typ) & ".""-"" (");
+                  Put (CU, Img (-Int_Val));
+                  Put (CU, ")");
+               else
+                  Put (CU, Img (Int_Val));
+               end if;
+            end;
 
          when C_Char =>
             Put (CU, "'" & Value.Char_Value & "'");
