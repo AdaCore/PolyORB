@@ -68,8 +68,6 @@ package body PolyORB.Binding_Data.Create is
       Profile        : out PolyORB.Binding_Data.Profile_Access;
       Error          : out Boolean)
    is
-      use type PolyORB.Types.Unsigned_Long;
-
       Tag : constant String := Param.Profile_Type.all;
       It  : Iterator := First (Callbacks);
    begin

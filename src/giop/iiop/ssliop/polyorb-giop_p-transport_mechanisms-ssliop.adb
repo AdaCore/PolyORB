@@ -423,8 +423,6 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.SSLIOP is
       M  : access Transport_Mechanism'Class)
       return Boolean
    is
-      use type PolyORB.Sockets.Sock_Addr_Type;
-
    begin
       return M.all in SSLIOP_Transport_Mechanism
         and then SSLIOP_Transport_Mechanism (M.all).Address = MF.Address;

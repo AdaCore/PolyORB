@@ -186,8 +186,6 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.DIOP is
       M  : access Transport_Mechanism'Class)
       return Boolean
    is
-      use type PolyORB.Sockets.Sock_Addr_Type;
-
    begin
       return M.all in DIOP_Transport_Mechanism
         and then DIOP_Transport_Mechanism (M.all).Address = MF.Address;

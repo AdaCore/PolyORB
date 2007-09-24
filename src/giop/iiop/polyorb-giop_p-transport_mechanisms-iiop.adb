@@ -292,8 +292,6 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.IIOP is
       M  : access Transport_Mechanism'Class)
       return Boolean
    is
-      use type PolyORB.Sockets.Sock_Addr_Type;
-
       Iter_1 : Iterator;
 
    begin

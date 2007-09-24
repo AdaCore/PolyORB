@@ -72,8 +72,6 @@ package body PolyORB.Representations.SRP is
    function Base64_Encode (Data : Streams.Stream_Element_Array)
                           return String
    is
-      use type Streams.Stream_Element;
-
       function Base64 (E : Stream_Element) return Character;
       --  returns the base64 character given a number
 
@@ -168,7 +166,6 @@ package body PolyORB.Representations.SRP is
    end Base64_Encode;
 
    function Base64_Encode (Data : String) return String is
-      use type Streams.Stream_Element_Offset;
       Stream_Data : Streams.Stream_Element_Array
         (1 .. Streams.Stream_Element_Offset (Data'Length));
       I : Streams.Stream_Element_Offset := 1;
@@ -188,7 +185,6 @@ package body PolyORB.Representations.SRP is
                           return Streams.Stream_Element_Array
    is
       use type Interfaces.Unsigned_32;
-      use type Streams.Stream_Element_Offset;
 
       function Base64 (C : Character) return Interfaces.Unsigned_32;
       --  returns the base64 stream element given a character

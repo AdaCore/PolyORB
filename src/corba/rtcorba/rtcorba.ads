@@ -70,11 +70,9 @@ package RTCORBA is
    Priority_Repository_Id : constant PolyORB.Std.String
      := "IDL:omg.org/RTCORBA/Priority:1.0";
 
-   use type RTCORBA.Priority;
    minPriority : constant RTCORBA.Priority
      := 0;
 
-   use type RTCORBA.Priority;
    maxPriority : constant RTCORBA.Priority
      := 32767;
 
@@ -122,7 +120,6 @@ package RTCORBA is
 
    --  Interface PriorityModelPolicy
 
-   use type CORBA.PolicyType;
    THREADPOOL_POLICY_TYPE : constant CORBA.PolicyType
      := 41;
 
@@ -151,19 +148,16 @@ package RTCORBA is
    ProtocolList_Repository_Id : constant PolyORB.Std.String
      := "IDL:omg.org/RTCORBA/ProtocolList:1.0";
 
-   use type CORBA.PolicyType;
    SERVER_PROTOCOL_POLICY_TYPE : constant CORBA.PolicyType
      := 42;
 
    --  Interface ServerProtocolPolicy
 
-   use type CORBA.PolicyType;
    CLIENT_PROTOCOL_POLICY_TYPE : constant CORBA.PolicyType
      := 43;
 
    --  Interface ClientProtocolPolicy
 
-   use type CORBA.PolicyType;
    PRIVATE_CONNECTION_POLICY_TYPE : constant CORBA.PolicyType
      := 44;
 
@@ -189,7 +183,6 @@ package RTCORBA is
    PriorityBands_Repository_Id : constant PolyORB.Std.String
      := "IDL:omg.org/RTCORBA/PriorityBands:1.0";
 
-   use type CORBA.PolicyType;
    PRIORITY_BANDED_CONNECTION_POLICY_TYPE : constant CORBA.PolicyType
      := 45;
 

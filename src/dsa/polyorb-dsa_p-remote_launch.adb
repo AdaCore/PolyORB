@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---           Copyright (C) 2006, Free Software Foundation, Inc.             --
+--           Copyright (C) 2006-2007, Free Software Foundation, Inc.        --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -130,7 +130,6 @@ package body PolyORB.DSA_P.Remote_Launch is
    -----------
 
    procedure Spawn (Command : String) is
-      use type IC.int;
       C_Command : aliased String := Command & ASCII.NUL;
    begin
       if C_System (C_Command'Address) / 256 /= 0 then

@@ -209,7 +209,6 @@ package body System.Partition_Interface is
    --  When a RACW must be constructed to designate a local object, an object
    --  identifier is created using the address of the object.
 
-   use type Ada.Streams.Stream_Element_Offset;
    subtype Local_Oid is PolyORB.Objects.Object_Id
      (1 .. System.Address'Size / 8);
 

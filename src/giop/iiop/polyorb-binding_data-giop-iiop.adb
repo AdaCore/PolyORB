@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -53,7 +53,6 @@ with PolyORB.Utils.Strings;
 package body PolyORB.Binding_Data.GIOP.IIOP is
 
    use PolyORB.Binding_Data.GIOP.INET;
-   use PolyORB.Binding_Data.GIOP.IIOP;
    use PolyORB.GIOP_P.Tagged_Components;
    use PolyORB.GIOP_P.Transport_Mechanisms;
    use PolyORB.GIOP_P.Transport_Mechanisms.IIOP;

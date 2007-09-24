@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2004 Free Software Foundation, Inc.             --
+--            Copyright (C) 2004-2007, Free Software Foundation, Inc.       --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -67,8 +67,6 @@ package body PolyORB.Binding_Data.Print is
    -------------------
 
    procedure Print_Profile (Profile : Profile_Access) is
-      use type PolyORB.Types.Unsigned_Long;
-
       Tag : constant Profile_Tag := Get_Profile_Tag (Profile.all);
       It : Iterator := First (Callbacks);
 

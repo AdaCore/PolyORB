@@ -203,8 +203,6 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.UIPMC is
       M  : access Transport_Mechanism'Class)
       return Boolean
    is
-      use type PolyORB.Sockets.Sock_Addr_Type;
-
    begin
       return M.all in UIPMC_Transport_Mechanism
         and then UIPMC_Transport_Mechanism (M.all).Address = MF.Address;
