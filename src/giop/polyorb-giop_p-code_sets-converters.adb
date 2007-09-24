@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -671,9 +671,8 @@ package body PolyORB.GIOP_P.Code_Sets.Converters is
       Alignment : Alignment_Type)
       return Unsigned_Short
    is
-      use type Types.Unsigned_Long;
-      package FSU is new Fixed_Size_Unmarshall
-        (Size => 2, Alignment => Alignment);
+      package FSU is
+                new Fixed_Size_Unmarshall (Size => 2, Alignment => Alignment);
       Z : constant FSU.AZ := FSU.Align_Unmarshall (Buffer);
    begin
       if Endianness (Buffer) = Big_Endian then

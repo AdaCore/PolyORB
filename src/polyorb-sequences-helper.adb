@@ -129,8 +129,6 @@ package body PolyORB.Sequences.Helper is
       Mech  : not null access PolyORB.Any.Mechanism)
       return PolyORB.Any.Content'Class
    is
-      use type PolyORB.Types.Unsigned_Long;
-      use type PolyORB.Any.Mechanism;
       pragma Unreferenced (TC);
    begin
       if Index = 0 then
@@ -163,9 +161,7 @@ package body PolyORB.Sequences.Helper is
 
    procedure Set_Aggregate_Count
      (ACC   : in out Sequence_Content;
-      Count : PolyORB.Types.Unsigned_Long)
-   is
-      use type PolyORB.Types.Unsigned_Long;
+      Count : PolyORB.Types.Unsigned_Long) is
    begin
       Set_Length (ACC.V.all, Length => Integer (Count - 1));
    end Set_Aggregate_Count;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -103,7 +103,6 @@ package body PolyORB.ORB_Controller.Workers is
      (O : access ORB_Controller_Workers;
       E :        Event)
    is
-      use type PAE.Asynch_Ev_Monitor_Access;
       use type PRS.Request_Scheduler_Access;
 
    begin

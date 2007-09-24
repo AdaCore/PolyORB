@@ -116,9 +116,6 @@ package body CORBA.ServerRequest is
    procedure Set_Exception (Obj : access Object; Val : Any) is
       use PolyORB.Any;
       use PolyORB.Any.TypeCode;
-
-      use type PolyORB.Any.TypeCode.Object;
-
    begin
       pragma Debug (O ("Server notifies exception: " & Image (Val)));
 

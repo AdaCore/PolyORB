@@ -1247,9 +1247,7 @@ package body PolyORB.POA is
      (Self     : access Obj_Adapter;
       Children :    out POAList)
    is
-      use type PolyORB.POA_Types.POATable_Access;
       use PolyORB.POA_Types.POA_HTables;
-
    begin
       pragma Debug (O ("Get_The_Children: enter"));
 

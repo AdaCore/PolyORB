@@ -56,11 +56,7 @@ package body PortableServer.LifespanPolicy is
    -- To_Ref --
    ------------
 
-   function To_Ref
-     (The_Ref : CORBA.Object.Ref'Class)
-     return Ref
-   is
-      use type CORBA.PolicyType;
+   function To_Ref (The_Ref : CORBA.Object.Ref'Class) return Ref is
    begin
       if The_Ref not in CORBA.Policy.Ref'Class
         or else Get_Policy_Type (CORBA.Policy.Ref (The_Ref)) /=
