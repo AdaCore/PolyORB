@@ -186,13 +186,15 @@ package body Backend.BE_CORBA_Ada.Stubs is
               | K_Fixed_Point_Type
               | K_Float .. K_Long_Double =>
 
-               --  If the constant is of integerger or real type and
-               --  if it has a negative value, we use the expanded
-               --  name for the "-" operator because it might not be
-               --  directly visible
+               --  If the constant has integer or real type and has negative
+               --  value, use the expanded name for "-" operator because it
+               --  might not be directly visible.
 
                declare
                   Number_Image : constant String := Image_Ada (FEN.Value (E));
+                  --  Do we really need to go through a string image just to
+                  --  test the sign of a numeric constant???
+
                   Minus        : Node_Id;
                begin
                   if Number_Image (Number_Image'First) = '-' then
@@ -203,10 +205,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
                      Expression := Make_Subprogram_Call
                        (Minus,
                         Make_List_Id
-                        (Make_Literal
-                         (New_Value
-                          (-Value
-                           (FEN.Value (E))))));
+                          (Make_Literal (New_Value (-Value (FEN.Value (E))))));
 
                   else
                      Expression := Make_Literal (FEN.Value (E));
@@ -216,11 +215,11 @@ package body Backend.BE_CORBA_Ada.Stubs is
                Expression := Make_Literal (FEN.Value (E));
          end case;
 
-         --  If the constant type is of String type, it needs to be
-         --  converted using To_CORBA_String or
-         --  To_CORBA_Wide_String. The parent unit name of these
-         --  methods depends on whether the constant type is directly
-         --  a CORBA [wide] string or it is a derived type.
+         --  If the constant type is of a string type, it needs to be
+         --  converted using To_CORBA_[Wide_]String.
+         --  Determine the expanded name of these subprograms according to
+         --  whether the type is directly CORBA.[Wide_]String, or a derived
+         --  type thereof.
 
          K := FEN.Kind (FEU.Get_Original_Type_Specifier (Type_Spec (E)));
 
@@ -237,18 +236,16 @@ package body Backend.BE_CORBA_Ada.Stubs is
 
                   if FEN.Kind (Type_Spec (E)) = K then
                      Expression := Make_Subprogram_Call
-                       (RE (Converter),
-                        Make_List_Id (Expression));
+                                     (RE (Converter),
+                                      Make_List_Id (Expression));
                   else
                      P := Parent_Unit_Name
-                       (Get_Type_Definition_Node
-                        (Type_Spec
-                         (E)));
+                            (Get_Type_Definition_Node (Type_Spec (E)));
                      S := RE (Converter, False);
                      Set_Homogeneous_Parent_Unit_Name (S, P);
 
                      --  The call to Copy_Node ensures the addition of
-                     --  necessary with caluses.
+                     --  necessary WITH clauses.
 
                      Expression := Make_Subprogram_Call
                        (Copy_Node (S), Make_List_Id (Expression));
