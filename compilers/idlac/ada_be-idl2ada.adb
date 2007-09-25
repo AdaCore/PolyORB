@@ -2997,11 +2997,12 @@ package body Ada_Be.Idl2Ada is
            C_ULongLong       |
            C_Octet           |
            C_General_Integer =>
+
             declare
                Int_Val : constant Idl_Integer := Integer_Value (Expr);
             begin
                --  If the value is negative, we use an expanded name for the
-               --  "-" operator, because it might not be directly visible.  For
+               --  "-" operator, because it might not be directly visible. For
                --  example, CORBA."-" (1234).
 
                if Int_Val < 0 then

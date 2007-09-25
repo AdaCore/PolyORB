@@ -865,7 +865,6 @@ package body Backend.BE_CORBA_Ada.Generator is
       Write_Space;
 
       Write_Str (Values.Image_Ada (Total (N)));
-
    end Generate_Decimal_Type_Definition;
 
    ----------------------------------

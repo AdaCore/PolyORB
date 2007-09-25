@@ -2656,4 +2656,5 @@ package body Backend.BE_CORBA_Ada.Stubs is
          RE (RE_Boolean));
       return N;
    end Visible_Is_A_Spec;
+
 end Backend.BE_CORBA_Ada.Stubs;
