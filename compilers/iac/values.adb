@@ -761,6 +761,37 @@ package body Values is
       return Name_Buffer (1 .. Name_Len);
    end Image_Ada;
 
+   --------------
+   -- Negative --
+   --------------
+
+   function Negative (V : Value_Type) return Boolean is
+   begin
+      case V.K is
+         when K_Short .. K_Unsigned_Long_Long | K_Octet | K_Fixed_Point_Type =>
+            return V.Sign < 0;
+
+         when K_Float .. K_Long_Double =>
+            return V.FVal < 0.0;
+
+         when others =>
+            raise Program_Error;
+      end case;
+   end Negative;
+
+   --------------
+   -- Negative --
+   --------------
+
+   function Negative (V : Value_Id) return Boolean is
+   begin
+      if V = No_Value then
+         raise Program_Error;
+      end if;
+
+      return Negative (Value (V));
+   end Negative;
+
    -----------------------
    -- New_Boolean_Value --
    -----------------------

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -156,6 +156,11 @@ package Values is
 
    function "<"   (L, R : Value_Type) return Boolean;
    --  Assume L and R have the same type.
+
+   function Negative (V : Value_Type) return Boolean;
+   function Negative (V : Value_Id) return Boolean;
+   --  Return True when R is a strictly negative number. Raise an
+   --  error if R is not a number.
 
 private
 

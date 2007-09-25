@@ -191,13 +191,9 @@ package body Backend.BE_CORBA_Ada.Stubs is
                --  might not be directly visible.
 
                declare
-                  Number_Image : constant String := Image_Ada (FEN.Value (E));
-                  --  Do we really need to go through a string image just to
-                  --  test the sign of a numeric constant???
-
-                  Minus        : Node_Id;
+                  Minus : Node_Id;
                begin
-                  if Number_Image (Number_Image'First) = '-' then
+                  if Negative (FEN.Value (E)) then
                      Minus := Make_Selected_Component
                        (Parent_Unit_Name (Constant_Type),
                         Make_Defining_Identifier (SN (S_Minus)));
