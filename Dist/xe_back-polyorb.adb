@@ -604,8 +604,15 @@ package body XE_Back.PolyORB is
       Write_Indentation;
       Write_Line ("type Partition_Source is new Parameters_Source" &
                     " with null record;");
+
+      Write_Line ("function Get_Conf");
+      Increment_Indentation;
+      Write_Indentation (-1);
+      Write_Line ("(Source       : access Partition_Source;");
       Write_Indentation;
-      Write_Line ("The_Partition_Source : aliased Partition_Source;");
+      Write_Line ("Section, Key : String) return String;");
+      Decrement_Indentation;
+
       Write_Indentation;
       Write_Line ("type Parameter_Entry is record");
 
@@ -668,6 +675,10 @@ package body XE_Back.PolyORB is
 
       Write_Indentation;
       Write_Line ("end Get_Conf;");
+
+      Write_Indentation;
+      Write_Line ("The_Partition_Source : aliased Partition_Source;");
+
       Write_Indentation;
       Write_Line ("procedure Initialize is");
       Write_Indentation;
