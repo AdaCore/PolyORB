@@ -772,9 +772,16 @@ package body Backend.BE_CORBA_Ada.Nutils is
       --  Subprograms
 
       for S in Subprogram_Id loop
-         Set_Str_To_Name_Buffer (Subprogram_Id'Image (S));
-         Set_Str_To_Name_Buffer (Name_Buffer (3 .. Name_Len));
-         GNAT.Case_Util.To_Mixed (Name_Buffer (1 .. Name_Len));
+         case S is
+            when S_Minus =>
+               Set_Str_To_Name_Buffer (Quoted ("-"));
+
+            when others =>
+               Set_Str_To_Name_Buffer (Subprogram_Id'Image (S));
+               Set_Str_To_Name_Buffer (Name_Buffer (3 .. Name_Len));
+               GNAT.Case_Util.To_Mixed (Name_Buffer (1 .. Name_Len));
+         end case;
+
          SN (S) := Name_Find;
       end loop;
 

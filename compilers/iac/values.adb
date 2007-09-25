@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -505,9 +505,7 @@ package body Values is
             Add_Str_To_Name_Buffer (Long_Double'Image (V.FVal));
             declare
                Index : Natural := Name_Len;
-
             begin
-
                --  Find exponent if any
 
                while Index > 0 and then Name_Buffer (Index) /= 'E' loop

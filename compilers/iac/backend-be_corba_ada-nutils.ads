@@ -358,6 +358,7 @@ package Backend.BE_CORBA_Ada.Nutils is
       S_Is_A,
       S_Length,
       S_Marshall,
+      S_Minus, -- "-"
       S_Register_Procedure,
       S_Servant_Is_A,
       S_Set,

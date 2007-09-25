@@ -868,19 +868,24 @@ package body Parser is
 
       Save_Lexer (State);
       Const_Type := P_Simple_Type_Spec;
-      case Kind (Const_Type) is
-         when K_Any
-           | K_Object
-           | K_Value_Base
-           | K_Sequence_Type
-           | K_Fixed_Point_Type =>
-            Restore_Lexer (State);
-            Unexpected_Token (Next_Token, "type specifier");
-            return No_Node;
 
-         when others =>
-            return Const_Type;
-      end case;
+      if Present (Const_Type) then
+         case Kind (Const_Type) is
+            when K_Any
+              | K_Object
+              | K_Value_Base
+              | K_Sequence_Type
+              | K_Fixed_Point_Type =>
+               Restore_Lexer (State);
+               Unexpected_Token (Next_Token, "type specifier");
+               return No_Node;
+
+            when others =>
+               return Const_Type;
+         end case;
+      else
+         return No_Node;
+      end if;
    end P_Constant_Type;
 
    ------------------

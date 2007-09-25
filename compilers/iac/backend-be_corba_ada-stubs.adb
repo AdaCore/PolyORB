@@ -171,72 +171,89 @@ package body Backend.BE_CORBA_Ada.Stubs is
       --------------------------------
 
       procedure Visit_Constant_Declaration (E : Node_Id) is
-         N          : Node_Id;
-         Expression : Node_Id;
-         P          : Node_Id;
-         S          : Node_Id;
+         N             : Node_Id;
+         Expression    : Node_Id;
+         Constant_Type : constant Node_Id := Map_Designator (Type_Spec (E));
+         P             : Node_Id;
+         S             : Node_Id;
+         K             : FEN.Node_Kind;
       begin
          Set_Main_Spec;
 
-         Expression := Make_Literal (FEN.Value (E));
+         case Value (FEN.Value (E)).K is
+            when K_Short .. K_Unsigned_Long_Long
+              | K_Octet
+              | K_Fixed_Point_Type
+              | K_Float .. K_Long_Double =>
 
-         --  Add a use clause for the type to be able to invoke its
-         --  operators.
+               --  If the constant is of integerger or real type and
+               --  if it has a negative value, we use the expanded
+               --  name for the "-" operator because it might not be
+               --  directly visible
 
-         if Is_Base_Type (Type_Spec (E)) then
-            N := Make_Used_Type (RE (Convert (FEN.Kind (Type_Spec (E)))));
-            Append_Node_To_List (N, Visible_Part (Current_Package));
-         end if;
+               declare
+                  Number_Image : constant String := Image_Ada (FEN.Value (E));
+                  Minus        : Node_Id;
+               begin
+                  if Number_Image (Number_Image'First) = '-' then
+                     Minus := Make_Selected_Component
+                       (Parent_Unit_Name (Constant_Type),
+                        Make_Defining_Identifier (SN (S_Minus)));
+
+                     Expression := Make_Subprogram_Call
+                       (Minus,
+                        Make_List_Id
+                        (Make_Literal
+                         (New_Value
+                          (-Value
+                           (FEN.Value (E))))));
+
+                  else
+                     Expression := Make_Literal (FEN.Value (E));
+                  end if;
+               end;
+            when others =>
+               Expression := Make_Literal (FEN.Value (E));
+         end case;
 
          --  If the constant type is of String type, it needs to be
          --  converted using To_CORBA_String or
          --  To_CORBA_Wide_String. The parent unit name of these
          --  methods depends on whether the constant type is directly
-         --  a CORBA string or it is a derived type.
+         --  a CORBA [wide] string or it is a derived type.
 
-         --  FIXME: Need more effort to handle types such as
-         --  CORBA::String given as scoped names.
+         K := FEN.Kind (FEU.Get_Original_Type_Specifier (Type_Spec (E)));
 
-         case FEN.Kind (FEU.Get_Original_Type_Specifier (Type_Spec (E))) is
-            when K_String =>
-               if FEN.Kind (Type_Spec (E)) = K_String then
-                  Expression := Make_Subprogram_Call
-                    (RE (RE_To_CORBA_String),
-                     Make_List_Id (Expression));
-               else
-                  P := Parent_Unit_Name
-                    (Get_Type_Definition_Node
-                     (Type_Spec
-                      (E)));
-                  S := RE (RE_To_CORBA_String, False);
-                  Set_Homogeneous_Parent_Unit_Name (S, P);
+         case K is
+            when K_String | K_Wide_String =>
+               declare
+                  Converter : RE_Id;
+               begin
+                  if K = K_String then
+                     Converter := RE_To_CORBA_String;
+                  else
+                     Converter := RE_To_CORBA_Wide_String;
+                  end if;
 
-                  --  The call to Copy_Node ensures the addition of
-                  --  necessary with caluses.
+                  if FEN.Kind (Type_Spec (E)) = K then
+                     Expression := Make_Subprogram_Call
+                       (RE (Converter),
+                        Make_List_Id (Expression));
+                  else
+                     P := Parent_Unit_Name
+                       (Get_Type_Definition_Node
+                        (Type_Spec
+                         (E)));
+                     S := RE (Converter, False);
+                     Set_Homogeneous_Parent_Unit_Name (S, P);
 
-                  Expression := Make_Subprogram_Call
-                    (Copy_Node (S), Make_List_Id (Expression));
-               end if;
+                     --  The call to Copy_Node ensures the addition of
+                     --  necessary with caluses.
 
-            when K_Wide_String =>
-               if FEN.Kind (Type_Spec (E)) = K_Wide_String then
-                  Expression := Make_Subprogram_Call
-                    (RE (RE_To_CORBA_Wide_String),
-                     Make_List_Id (Expression));
-               else
-                  P := Parent_Unit_Name
-                    (Get_Type_Definition_Node
-                     (Type_Spec
-                      (E)));
-                  S := RE (RE_To_CORBA_Wide_String, False);
-                  Set_Homogeneous_Parent_Unit_Name (S, P);
-
-                  --  The call to Copy_Node ensures the addition of
-                  --  necessary with caluses.
-
-                  Expression := Make_Subprogram_Call
-                    (Copy_Node (S), Make_List_Id (Expression));
-               end if;
+                     Expression := Make_Subprogram_Call
+                       (Copy_Node (S), Make_List_Id (Expression));
+                  end if;
+               end;
 
             when others =>
                null;
@@ -245,7 +262,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
          N := Make_Object_Declaration
            (Defining_Identifier => Map_Defining_Identifier (E),
             Constant_Present    => True,
-            Object_Definition   => Map_Designator (Type_Spec (E)),
+            Object_Definition   => Constant_Type,
             Expression          => Expression);
          Bind_FE_To_BE (Identifier (E), N, B_Stub);
          Append_Node_To_List (N, Visible_Part (Current_Package));
