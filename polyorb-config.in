@@ -249,8 +249,8 @@ polyorb_lib="$polyorb_lib -lpolyorb-setup"
 # (specifically, System.Partition_Interface.*).
 
 if $require_xmlada; then
-  xmlada_dir="@XMLADA_INCS@"
-  xmlada_lib="@XMLADA_LIBS@"
+  xmlada_dir="`xmlada-config --cflags`"
+  xmlada_lib="`xmlada-config --libs`"
 fi
 
 if test ! x"$echo_prefix" = x"true"  -a ! x"$echo_exec_prefix" = x"true" -a ! x"$echo_cflags" = x"true" -a ! x"$echo_libs" = x"true" -a ! x"$echo_idls" = x"true"; then
