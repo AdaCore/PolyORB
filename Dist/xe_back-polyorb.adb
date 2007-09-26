@@ -605,6 +605,7 @@ package body XE_Back.PolyORB is
       Write_Line ("type Partition_Source is new Parameters_Source" &
                     " with null record;");
 
+      Write_Indentation;
       Write_Line ("function Get_Conf");
       Increment_Indentation;
       Write_Indentation (-1);
