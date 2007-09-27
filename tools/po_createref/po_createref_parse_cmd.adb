@@ -59,10 +59,6 @@ package body PO_CreateRef_Parse_Cmd is
 
    procedure Usage;
 
-   procedure Parse_Profile (Profile : in out Parameter_Profile);
-
-   procedure Parse_Component (Component : in out Parameter_Component);
-
    procedure Free (Obj : in out Policy_Subcomponent);
 
    procedure Free (Obj : in out Parameter_Component);
@@ -118,7 +114,10 @@ package body PO_CreateRef_Parse_Cmd is
       Initialize_Option_Scan;
 
       loop
-         case Getopt ("t: pn: h pt:") is
+         case Getopt ("a: char: ce cn: cr: ct: g h  i: inet:requires: "
+                      & "supports:  p:  pe pt: pn: pol_nb: port: t: vmj: "
+                      & "vmn: wchar:")
+         is
             when ASCII.NUL =>
                exit;
 
@@ -137,7 +136,53 @@ package body PO_CreateRef_Parse_Cmd is
                   Profile_Index := Profile_Index + 1;
                   Param.Profiles.all (Profile_Index).Profile_Type :=
                     new String'(Parameter);
-                  Parse_Profile (Param.Profiles.all (Profile_Index));
+
+               elsif Full_Switch = "p" then
+                  Param.Profiles.all (Profile_Index).Address.Port
+                    := Positive'Value (Parameter);
+
+               elsif Full_Switch = "pe" then
+                  exit;
+
+               elsif Full_Switch = "pol_nb" then
+                  Param.Profiles.all (Profile_Index).
+                    Components.all (Component_Index).Policies
+                    := new Policies_Array
+                    (1 .. Natural'Value (Parameter));
+
+                  for I in Param.Profiles.all (Profile_Index).
+                    Components.all (Component_Index).Policies.all'Range loop
+                     for J in 1 .. 2 loop
+                        case Getopt ("model: priority:") is
+                           when 'm' =>
+                              if Full_Switch = "model" then
+                                 Param.Profiles.all (Profile_Index).
+                                   Components.all (Component_Index).
+                                   Policies.all (I).Priority_Model :=
+                                   new String'(Parameter);
+                              end if;
+
+                           when 'p' =>
+                              if Full_Switch = "priority" then
+                                 Param.Profiles.all (Profile_Index).
+                                   Components.all (Component_Index).
+                                   Policies.all (I).Priority_Value :=
+                                   Positive'Value (Parameter);
+                              end if;
+
+                           when ASCII.NUL =>  --  it should not happen!
+                              raise Program_Error;
+
+                           when others =>
+                              raise Program_Error;
+                        end case;
+                     end loop;
+                  end loop;
+
+               elsif Full_Switch = "p" then
+                  Param.Profiles.all (Profile_Index).
+                    Components.all (Component_Index).Address.Port
+                    := Positive'Value (Parameter);
                end if;
 
             when 't' =>
@@ -149,8 +194,137 @@ package body PO_CreateRef_Parse_Cmd is
                Usage;
                return;
 
+            when 'a' =>
+               if Full_Switch = "a" then
+                  Param.Profiles.all (Profile_Index).Address.Inet_Addr
+                    := new String'(Parameter);
+               end if;
+
+            when 'c' =>
+               if Full_Switch = "cr" then
+                  Param.Profiles.all (Profile_Index).Creator_Name
+                    := new String'(Parameter);
+
+               elsif Full_Switch = "cn" then
+                  Param.Profiles.all (Profile_Index).Components :=
+                    new Component_Array (1 .. Natural'Value (Parameter));
+                  Component_Index := 0;
+
+               elsif Full_Switch = "ct" then
+                  if Param.Profiles.all (Profile_Index).Components = null then
+                     Put_Line ("No component should be defined before "
+                               & "component number");
+                     raise Program_Error;
+
+                  end if;
+                  Component_Index := Component_Index + 1;
+                  Param.Profiles.all (Profile_Index).Components.all
+                    (Component_Index).C_Type := new String'(Parameter);
+
+               elsif Full_Switch = "char" then
+                  Param.Profiles.all (Profile_Index).
+                    Components.all (Component_Index).Cchar
+                    := new String'(Parameter);
+                  case Getopt ("s:") is
+
+                     when 's' =>
+                        Param.Profiles.all (Profile_Index).
+                          Components.all (Component_Index).C_Supported
+                          := new Codeset_Array
+                          (1 .. Positive'Value (Parameter));
+
+                        for I in Param.Profiles.all (Profile_Index).
+                          Components.all (Component_Index).
+                          C_Supported.all'Range loop
+
+                           Param.Profiles.all (Profile_Index).
+                             Components.all (Component_Index).
+                             C_Supported.all (I) :=
+                             new String'(Get_Argument);
+                        end loop;
+
+                     when others =>
+                        Put_Line ("coin");
+
+                        raise Program_Error;
+                  end case;
+
+               elsif Full_Switch = "ce" then
+                  exit;
+               end if;
+
+            when 'g' =>
+               if Full_Switch = "g" then
+                  Param.Profiles.all (Profile_Index).Is_Generated := True;
+               end if;
+
+            when 'i' =>
+               if Full_Switch = "i" then
+                  Param.Profiles.all (Profile_Index).Index
+                    := new String'(Parameter);
+               end if;
+
+            when 'v' =>
+               if Full_Switch = "vmj" then
+                  Param.Profiles.all (Profile_Index).Version_Major
+                    := PolyORB.Types.Octet'Value (Parameter);
+
+               elsif Full_Switch = "vmn" then
+                  Param.Profiles.all (Profile_Index).Version_Minor
+                    := PolyORB.Types.Octet'Value
+                    (Parameter);
+               end if;
+
+            when 'w' =>
+               if Full_Switch = "wchar" then
+                  Param.Profiles.all (Profile_Index).
+                    Components.all (Component_Index).Wchar
+                    := new String'(Parameter);
+
+                  case Getopt ("s:") is
+
+                     when ASCII.NUL =>
+                        Param.Profiles.all (Profile_Index).
+                          Components.all (Component_Index).
+                          W_Supported := null;
+                        exit;
+
+                     when 's' =>
+                        Param.Profiles.all (Profile_Index).
+                          Components.all (Component_Index).
+                          W_Supported := new Codeset_Array
+                          (1 .. Positive'Value (Parameter));
+
+                        for I in Param.Profiles.all (Profile_Index).
+                          Components.all (Component_Index).
+                          W_Supported.all'Range loop
+                           Param.Profiles.all (Profile_Index).
+                             Components.all (Component_Index).
+                             W_Supported.all (I) :=
+                             new String'(Get_Argument);
+                        end loop;
+
+                     when others =>
+                        raise Program_Error;
+                  end case;
+               end if;
+
+            when 's' =>
+               if Full_Switch = "supports" then
+                  Param.Profiles.all (Profile_Index).
+                    Components.all (Component_Index).SSL_Supports
+                    := new String'(Parameter);
+               end if;
+
+            when 'r' =>
+               if Full_Switch = "requires" then
+                  Param.Profiles.all (Profile_Index).
+                    Components.all (Component_Index).SSL_Requires
+                    := new String'(Parameter);
+               end if;
+
             when others =>
-               raise Invalid_Switch;
+               raise Program_Error;
 
          end case;
       end loop;
@@ -164,216 +338,6 @@ package body PO_CreateRef_Parse_Cmd is
          Put_Line ("No parameter provided for " & Full_Switch);
          raise;
    end Parse_Command_Line;
-
-   -------------------
-   -- Parse_Profile --
-   -------------------
-
-   procedure Parse_Profile (Profile : in out Parameter_Profile) is
-   begin
-      loop
-         case Getopt ("i: g cr: ct: vmj: vmn: a: p: cn: pe") is
-            when ASCII.NUL =>
-               --  This should not happen since we mark the profile
-               --  end with the flag -pe.
-
-               raise Program_Error;
-
-            when 'a' =>
-               if Full_Switch = "a" then
-                  Profile.Address.Inet_Addr := new String'(Parameter);
-               end if;
-
-            when 'c' =>
-               if Full_Switch = "cr" then
-                  Profile.Creator_Name := new String'(Parameter);
-
-               elsif Full_Switch = "cn" then
-                  Profile.Components :=
-                    new Component_Array (1 .. Natural'Value (Parameter));
-                  Component_Index := 0;
-
-               elsif Full_Switch = "ct" then
-                  if Profile.Components = null then
-                     Put_Line ("No component should be defined before "
-                               & "component number");
-                     raise Program_Error;
-
-                  end if;
-                  Component_Index := Component_Index + 1;
-                  Profile.Components.all (Component_Index).C_Type :=
-                    new String'(Parameter);
-                  Parse_Component (Profile.Components.all (Component_Index));
-               end if;
-
-            when 'g' =>
-               if Full_Switch = "g" then
-                  Profile.Is_Generated := True;
-               end if;
-
-            when 'i' =>
-               if Full_Switch = "i" then
-                  Profile.Index := new String'(Parameter);
-               end if;
-
-            when 'p' =>
-               if Full_Switch = "p" then
-                  Profile.Address.Port := Positive'Value (Parameter);
-
-               elsif Full_Switch = "pe" then
-                  exit;
-               end if;
-
-            when 'v' =>
-               if Full_Switch = "vmj" then
-                  Profile.Version_Major := PolyORB.Types.Octet'Value
-                    (Parameter);
-
-               elsif Full_Switch = "vmn" then
-                  Profile.Version_Minor := PolyORB.Types.Octet'Value
-                    (Parameter);
-               end if;
-
-            when others =>
-               raise Invalid_Switch;
-
-         end case;
-      end loop;
-
-   exception
-      when Invalid_Switch =>
-         Put_Line ("profile : Unknown switch used : " & Full_Switch);
-         raise Program_Error;
-
-      when Invalid_Parameter =>
-         Put_Line ("No parameter provided for " & Full_Switch);
-         raise;
-   end Parse_Profile;
-
-   ---------------------
-   -- Parse_Component --
-   ---------------------
-
-   procedure Parse_Component (Component : in out Parameter_Component) is
-   begin
-      loop
-         case Getopt ("ce char: wchar: pol_nb: inet: " &
-                      "port: supports: requires:") is
-            when ASCII.NUL =>
-               --  This should not happen since we mark the component
-               --  end with the flag -ce.
-
-               raise Program_Error;
-
-            when 'c' =>
-
-               if Full_Switch = "char" then
-                  Component.Cchar := new String'(Parameter);
-                  case Getopt ("s:") is
-
-                     when 's' =>
-                        Component.C_Supported := new
-                          Codeset_Array
-                          (1 .. Positive'Value (Parameter));
-
-                        for I in Component.C_Supported.all'Range loop
-                           Component.C_Supported.all (I) :=
-                             new String'(Get_Argument);
-                        end loop;
-
-                     when others =>
-                        raise Invalid_Switch;
-                  end case;
-
-               elsif Full_Switch = "ce" then
-                  exit;
-               end if;
-
-            when 'w' =>
-               if Full_Switch = "wchar" then
-                  Component.Wchar := new String'(Parameter);
-                  case Getopt ("s:") is
-
-                     when ASCII.NUL =>
-                        Component.W_Supported := null;
-                        exit;
-
-                     when 's' =>
-                        Component.W_Supported := new Codeset_Array
-                          (1 .. Positive'Value (Parameter));
-
-                        for I in Component.W_Supported.all'Range loop
-                           Component.W_Supported.all (I) :=
-                             new String'(Get_Argument);
-                        end loop;
-
-                     when others =>
-                        raise Invalid_Switch;
-                  end case;
-               end if;
-
-            when 'p' =>
-               if Full_Switch = "pol_nb" then
-                  Component.Policies := new Policies_Array
-                    (1 .. Natural'Value (Parameter));
-                  for I in Component.Policies.all'Range loop
-                     for J in 1 .. 2 loop
-                        case Getopt ("model: priority:") is
-                           when 'm' =>
-                              if Full_Switch = "model" then
-                                 Component.Policies.all (I).Priority_Model :=
-                                   new String'(Parameter);
-                              end if;
-
-                           when 'p' =>
-                              if Full_Switch = "priority" then
-                                 Component.Policies.all (I).Priority_Value :=
-                                   Positive'Value (Parameter);
-                              end if;
-
-                           when ASCII.NUL =>  --  it shouldn't happen!
-                              raise Program_Error;
-
-                           when others =>
-                              raise Invalid_Switch;
-                        end case;
-                     end loop;
-                  end loop;
-
-               elsif Full_Switch = "p" then
-                  Component.Address.Port := Positive'Value (Parameter);
-               end if;
-
-            when 'a' =>
-               if Full_Switch = "a" then
-                  Component.Address.Inet_Addr := new String'(Parameter);
-               end if;
-
-            when 's' =>
-               if Full_Switch = "supports" then
-                  Component.SSL_Supports := new String'(Parameter);
-               end if;
-
-            when 'r' =>
-               if Full_Switch = "requires" then
-                  Component.SSL_Requires := new String'(Parameter);
-               end if;
-
-            when others =>
-               raise Invalid_Switch;
-
-         end case;
-      end loop;
-
-   exception
-      when Invalid_Switch =>
-         Put_Line ("Component : Unknown switch used : " & Full_Switch);
-         raise;
-
-      when Invalid_Parameter =>
-         Put_Line ("No parameter provided for " & Full_Switch);
-         raise;
-   end Parse_Component;
 
    -----------
    -- Usage --
@@ -427,10 +391,6 @@ package body PO_CreateRef_Parse_Cmd is
       Free (Ptr.Profiles);
    end Free;
 
-   ----------
-   -- Free --
-   ----------
-
    procedure Free (Obj : in out Parameter_Profile) is
    begin
       Free (Obj.Profile_Type);
@@ -443,10 +403,6 @@ package body PO_CreateRef_Parse_Cmd is
 
       Free (Obj.Components);
    end Free;
-
-   ----------
-   -- Free --
-   ----------
 
    procedure Free (Obj : in out Parameter_Component) is
    begin
@@ -489,10 +445,6 @@ package body PO_CreateRef_Parse_Cmd is
          Free (Obj.Address.Inet_Addr);
       end if;
    end Free;
-
-   ----------
-   -- Free --
-   ----------
 
    procedure Free (Obj : in out Policy_Subcomponent) is
    begin
