@@ -142,7 +142,7 @@ package body PO_CreateRef_Parse_Cmd is
                     := Positive'Value (Parameter);
 
                elsif Full_Switch = "pe" then
-                  exit;
+                  null;
 
                elsif Full_Switch = "pol_nb" then
                   Param.Profiles.all (Profile_Index).
@@ -250,7 +250,7 @@ package body PO_CreateRef_Parse_Cmd is
                   end case;
 
                elsif Full_Switch = "ce" then
-                  exit;
+                  null;
                end if;
 
             when 'g' =>
