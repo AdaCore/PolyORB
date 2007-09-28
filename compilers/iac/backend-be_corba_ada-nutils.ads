@@ -497,8 +497,34 @@ package Backend.BE_CORBA_Ada.Nutils is
 
    function Copy_Node (N : Node_Id) return Node_Id;
    --  Return a copy of node N if N is a K_Designator,
-   --  K_Defining_Identifier or a K_Attribute_Designator. Else raise
+   --  K_Defining_Identifier or a K_Attribute_Reference. Else raise
    --  Program_Error.
+
+   function Get_Declaration_Node (N : Node_Id) return Node_Id;
+   --  If N is of kind K_Defininy_Identifier, return the value of its
+   --  Declaration_Node field. If N is of kind K_Selected_Component,
+   --  return the value of its Selector_Name's Declaration_Node
+   --  field. Otherwise, raise Program_Error.
+
+   function Get_Base_Identifier (N : Node_Id) return Node_Id;
+   --  If N is a K_Identifier or K_Defining_Identifier, return it
+   --  unchanged. If N is a selected subcomponent, return its
+   --  Selector_Name. Otherwise, returns the Defining_Identifier of N.
+
+   function Get_Name (N : Node_Id) return Name_Id;
+   --  If N is of kind K_Defininy_Identifier or K_identifier, return
+   --  the value of its Name field. If N is of kind
+   --  K_Selected_Component, return the value of its Selector_Name's
+   --  Name field. Otherwise, raise Program_Error.
+
+   function Get_Value (N : Node_Id) return Value_Id;
+   --  If N is a K_Literal, return its Value. If N is a
+   --  K_Selected_Component, return the Value of its
+   --  Selector_Name. Otherwise, raise Program_Error.
+
+   function Get_Parent_Unit_Name (N : Node_Id) return Node_Id;
+   --  If N is a selected component, return the value of its Prefix
+   --  field. Otherwise, return No_Node.
 
    function New_Node
      (Kind : Node_Kind;
@@ -543,28 +569,34 @@ package Backend.BE_CORBA_Ada.Nutils is
    pragma Inline (Is_Empty);
    --  Return true when L is No_List or when Length (L) is 0
 
-   function Copy_Designator
-     (Designator : Node_Id;
-      Withed     : Boolean := True)
+   function Copy_Expanded_Name
+     (N      : Node_Id;
+      Withed : Boolean := True)
      return Node_Id;
-   --  copy the K_Designator or the K_Attribute_Designator and add the
-   --  proper 'with' clause (of the parent) if the 'Withed' flag is
-   --  set
+   --  copy the expanded name N add the proper 'with' clause (of the
+   --  parent) if the 'Withed' flag is set.
 
-   function Defining_Identifier_To_Designator
-     (N                       : Node_Id;
-      Copy                    : Boolean := False;
-      Keep_Parent             : Boolean := True;
-      Keep_Corresponding_Node : Boolean := True)
+   function Expand_Designator
+     (N               : Node_Id;
+      Add_With_Clause : Boolean := True)
      return Node_Id;
-   --  Converts a defining identifier to a designator.
-   --  if Copy is True, the created Designator will have a copy of N
-   --  as defining_identifier.
-   --  if Keep_Parent is True, the Parent Unit Name of the created
-   --  designator is set to one of N.
-   --  if Keep_Corresponding_Node is True, the Corresponding_Node of
-   --  the copied defining_identifier to the one of N. This flag has
-   --  no sense if Copy is false
+   --  This function creates a new designator from the node N which
+   --  may be:
+
+   --  * a type declaration
+   --  * a subprogram specification
+   --  * an object declaration
+   --  * a package specification
+   --  * a package declaration
+
+   --  The new created node is a designator having the same defining
+   --  identifier as N. The parent unit name of the result is set
+   --  basing on:
+
+   --  * the Parent_Unit_Name of node N defining identifier, if we are
+   --  handling a forward interface declaration.
+
+   --  * the "Parent" field of N in the other cases.
 
    ---------------------------------
    -- Ada Tree Building Functions --
@@ -613,7 +645,7 @@ package Backend.BE_CORBA_Ada.Nutils is
       Expression          : Node_Id)
      return Node_Id;
 
-   function Make_Attribute_Designator
+   function Make_Attribute_Reference
      (Prefix    : Node_Id;
       Attribute : Attribute_Id)
      return Node_Id;
@@ -653,10 +685,12 @@ package Backend.BE_CORBA_Ada.Nutils is
      (Definition : Node_Id)
      return Node_Id;
    --  Creates an Ada Fixed point type definition from the IDL fixed
-   --  point type definition node.  Usually used with
+   --  point type definition node. Usually used with
    --  Make_Full_Type_Declaration
 
-   function Make_Defining_Identifier (Name  : Name_Id) return  Node_Id;
+   function Make_Identifier (Name : Name_Id) return  Node_Id;
+
+   function Make_Defining_Identifier (Name : Name_Id) return  Node_Id;
 
    function Make_Derived_Type_Definition
      (Subtype_Indication    : Node_Id;
@@ -666,13 +700,6 @@ package Backend.BE_CORBA_Ada.Nutils is
       Is_Subtype            : Boolean := False)
      return Node_Id;
    --  Usually used with Make_Full_Type_Declaration
-
-   function Make_Designator
-     (Designator : Name_Id;
-      Parent     : Name_Id := No_Name)
-     return Node_Id;
-   --  If parent is given, create a second new designator for 'Parent'
-   --  and register it as the Parent Unit Name.
 
    function Make_Elsif_Statement
      (Condition       : Node_Id;
@@ -693,7 +720,8 @@ package Backend.BE_CORBA_Ada.Nutils is
 
    function Make_Exception_Declaration
      (Defining_Identifier : Node_Id;
-      Renamed_Exception   : Node_Id := No_Node)
+      Renamed_Exception   : Node_Id := No_Node;
+      Parent              : Node_Id := Current_Package)
      return Node_Id;
 
    function Make_Explicit_Dereference
@@ -749,10 +777,11 @@ package Backend.BE_CORBA_Ada.Nutils is
    --  Create a list which contains all the given nodes
 
    function Make_Literal
-     (Value             : Value_Id;
-      Parent_Designator : Node_Id := No_Node)
+     (Value  : Value_Id;
+      Parent : Node_Id := No_Node)
      return Node_Id;
-   --  The Parent_Designator is used for enumeration literals
+   --  If parent is present, creates a selected component whose prefix
+   --  is the parent and whose selector name is the literal.
 
    function Make_Null_Statement return Node_Id;
 
@@ -848,6 +877,12 @@ package Backend.BE_CORBA_Ada.Nutils is
      (Prefix        : Node_Id;
       Selector_Name : Node_Id)
      return Node_Id;
+   function Make_Selected_Component
+     (Prefix        : Name_Id;
+      Selector_Name : Name_Id)
+     return Node_Id;
+   --  If the prefix is No_Node (or No_Name), these functions return a
+   --  simple Identifier.
 
    function Make_Subprogram_Specification
      (Defining_Identifier     : Node_Id;
@@ -883,16 +918,6 @@ package Backend.BE_CORBA_Ada.Nutils is
 
    function Next_N_Node (N : Node_Id; Num : Natural) return Node_Id;
    --  This function executes Next_Node 'Num' times
-
-   procedure Set_Homogeneous_Parent_Unit_Name
-     (Child  : Node_Id;
-      Parent : Node_Id);
-   --  Set correctly the parent unit name of a node depending on its
-   --  kind :
-   --  * K_Defining_Identifier : the parent unit name is also a
-   --    K_Defining_Identifier
-   --  * K_Designator : The parent unit name is a K_Designator and the
-   --    parent unit name of its defining identifier is also set up.
 
    procedure Set_Forwarded (E : Node_Id);
    --  Mark the IDL node E as "Forwarded"

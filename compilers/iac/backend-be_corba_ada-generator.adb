@@ -52,16 +52,14 @@ package body Backend.BE_CORBA_Ada.Generator is
    procedure Generate_Array_Type_Definition (N : Node_Id);
    procedure Generate_String_Type_Definition (N : Node_Id);
    procedure Generate_Assignment_Statement (N : Node_Id);
-   procedure Generate_Attribute_Designator (N : Node_Id);
+   procedure Generate_Attribute_Reference (N : Node_Id);
    procedure Generate_Block_Statement (N : Node_Id);
    procedure Generate_Case_Statement (N : Node_Id);
    procedure Generate_Case_Statement_Alternative (N : Node_Id);
    procedure Generate_Component_Association (N : Node_Id);
    procedure Generate_Component_Declaration (N : Node_Id);
    procedure Generate_Decimal_Type_Definition (N : Node_Id);
-   procedure Generate_Defining_Identifier (N : Node_Id);
    procedure Generate_Derived_Type_Definition (N : Node_Id);
-   procedure Generate_Designator (N : Node_Id);
    procedure Generate_Elsif_Statement (N : Node_Id);
    procedure Generate_Element_Association (N : Node_Id);
    procedure Generate_Enumeration_Type_Definition (N : Node_Id);
@@ -70,6 +68,7 @@ package body Backend.BE_CORBA_Ada.Generator is
    procedure Generate_Expression (N : Node_Id);
    procedure Generate_For_Statement (N : Node_Id);
    procedure Generate_Full_Type_Declaration (N : Node_Id);
+   procedure Generate_Identifier (N : Node_Id);
    procedure Generate_IDL_Unit_Packages (N : Node_Id);
    procedure Generate_If_Statement (N : Node_Id);
    procedure Generate_Indexed_Component (N : Node_Id);
@@ -182,8 +181,8 @@ package body Backend.BE_CORBA_Ada.Generator is
          when K_Assignment_Statement =>
             Generate_Assignment_Statement (N);
 
-         when K_Attribute_Designator =>
-            Generate_Attribute_Designator (N);
+         when K_Attribute_Reference =>
+            Generate_Attribute_Reference (N);
 
          when K_Block_Statement =>
             Generate_Block_Statement (N);
@@ -204,13 +203,10 @@ package body Backend.BE_CORBA_Ada.Generator is
             Generate_Decimal_Type_Definition (N);
 
          when K_Defining_Identifier =>
-            Generate_Defining_Identifier (N);
+            Generate_Identifier (N);
 
          when K_Derived_Type_Definition =>
             Generate_Derived_Type_Definition (N);
-
-         when K_Designator =>
-            Generate_Designator (N);
 
          when K_Element_Association =>
             Generate_Element_Association (N);
@@ -235,6 +231,9 @@ package body Backend.BE_CORBA_Ada.Generator is
 
          when K_Full_Type_Declaration =>
             Generate_Full_Type_Declaration (N);
+
+         when K_Identifier =>
+            Generate_Identifier (N);
 
          when K_IDL_Unit =>
             Generate_IDL_Unit_Packages (N);
@@ -585,16 +584,16 @@ package body Backend.BE_CORBA_Ada.Generator is
       Decrement_Indentation;
    end Generate_Assignment_Statement;
 
-   -----------------------------------
-   -- Generate_Attribute_Designator --
-   -----------------------------------
+   ----------------------------------
+   -- Generate_Attribute_Reference --
+   ----------------------------------
 
-   procedure Generate_Attribute_Designator (N : Node_Id) is
+   procedure Generate_Attribute_Reference (N : Node_Id) is
    begin
       Generate (Prefix (N));
       Write (Tok_Apostrophe);
       Write_Name (Name (N));
-   end Generate_Attribute_Designator;
+   end Generate_Attribute_Reference;
 
    ------------------------------
    -- Generate_Block_Statement --
@@ -867,24 +866,6 @@ package body Backend.BE_CORBA_Ada.Generator is
       Write_Str (Values.Image_Ada (Total (N)));
    end Generate_Decimal_Type_Definition;
 
-   ----------------------------------
-   -- Generate_Defining_Identifier --
-   ----------------------------------
-
-   procedure Generate_Defining_Identifier (N : Node_Id) is
-      P : Node_Id;
-
-   begin
-      P := Parent_Unit_Name (N);
-
-      if Present (P) then
-         Generate (P);
-         Write (Tok_Dot);
-      end if;
-
-      Write_Name (Name (N));
-   end Generate_Defining_Identifier;
-
    --------------------------------------
    -- Generate_Derived_Type_Definition --
    --------------------------------------
@@ -920,24 +901,6 @@ package body Backend.BE_CORBA_Ada.Generator is
          end if;
       end if;
    end Generate_Derived_Type_Definition;
-
-   -------------------------
-   -- Generate_Designator --
-   -------------------------
-
-   procedure Generate_Designator (N : Node_Id) is
-      P : Node_Id;
-
-   begin
-      P := Parent_Unit_Name (N);
-
-      if Present (P) then
-         Generate (P);
-         Write (Tok_Dot);
-      end if;
-
-      Write_Name (Name (Defining_Identifier (N)));
-   end Generate_Designator;
 
    ----------------------------------
    -- Generate_Element_Association --
@@ -1183,6 +1146,15 @@ package body Backend.BE_CORBA_Ada.Generator is
       Decrement_Indentation;
    end Generate_Full_Type_Declaration;
 
+   -------------------------
+   -- Generate_Identifier --
+   -------------------------
+
+   procedure Generate_Identifier (N : Node_Id) is
+   begin
+      Write_Name (Name (N));
+   end Generate_Identifier;
+
    --------------------------------
    -- Generate_IDL_Unit_Packages --
    --------------------------------
@@ -1346,11 +1318,6 @@ package body Backend.BE_CORBA_Ada.Generator is
 
    procedure Generate_Literal (N : Node_Id) is
    begin
-      if Present (Parent_Designator (N)) then
-         Generate (Parent_Designator (N));
-         Write (Tok_Dot);
-      end if;
-
       Write_Str (Values.Image_Ada (Value (N)));
    end Generate_Literal;
 
@@ -1506,7 +1473,7 @@ package body Backend.BE_CORBA_Ada.Generator is
         and then Is_Subunit_Package
         (Package_Specification (Package_Declaration (N)))
       then
-         Write_Name (Name (Defining_Identifier (Package_Declaration (N))));
+         Write_Name (Get_Name (Get_Base_Identifier (Package_Declaration (N))));
       else
          Generate (Defining_Identifier (Package_Declaration (N)));
       end if;
@@ -1559,7 +1526,7 @@ package body Backend.BE_CORBA_Ada.Generator is
         and then Is_Subunit_Package
         (Package_Specification (Package_Declaration (N)))
       then
-         Write_Name (Name (Defining_Identifier (Package_Declaration (N))));
+         Write_Name (Get_Name (Get_Base_Identifier (Package_Declaration (N))));
       else
          Generate (Defining_Identifier (Package_Declaration (N)));
       end if;
@@ -1659,7 +1626,7 @@ package body Backend.BE_CORBA_Ada.Generator is
       Write_Space;
 
       if Is_Subunit_Package (N) then
-         Write_Name (Name (Defining_Identifier (Package_Declaration (N))));
+         Write_Name (Get_Name (Get_Base_Identifier (Package_Declaration (N))));
       else
          Generate (Defining_Identifier (Package_Declaration (N)));
       end if;
@@ -1718,7 +1685,7 @@ package body Backend.BE_CORBA_Ada.Generator is
       Write_Space;
 
       if Is_Subunit_Package (N) then
-         Write_Name (Name (Defining_Identifier (Package_Declaration (N))));
+         Write_Name (Get_Name (Get_Base_Identifier (Package_Declaration (N))));
       else
          Generate (Defining_Identifier (Package_Declaration (N)));
       end if;

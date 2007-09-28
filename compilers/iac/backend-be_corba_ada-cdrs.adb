@@ -40,7 +40,6 @@ with Backend.BE_CORBA_Ada.Nodes;       use Backend.BE_CORBA_Ada.Nodes;
 with Backend.BE_CORBA_Ada.Nutils;      use Backend.BE_CORBA_Ada.Nutils;
 with Backend.BE_CORBA_Ada.IDL_To_Ada;  use Backend.BE_CORBA_Ada.IDL_To_Ada;
 with Backend.BE_CORBA_Ada.Runtime;     use Backend.BE_CORBA_Ada.Runtime;
-with Backend.BE_CORBA_Ada.Expand;      use Backend.BE_CORBA_Ada.Expand;
 
 with Backend.BE_CORBA_Ada.Common;      use Backend.BE_CORBA_Ada.Common;
 
@@ -104,7 +103,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
 
                Par_Type := Parameter_Type (Parameter);
 
-               if BEN.Kind (Par_Type) = K_Attribute_Designator then
+               if BEN.Kind (Par_Type) = K_Attribute_Reference then
                   Par_Type := Prefix (Par_Type);
                end if;
 
@@ -126,7 +125,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
 
             Par_Type := T;
 
-            if BEN.Kind (Par_Type) = K_Attribute_Designator then
+            if BEN.Kind (Par_Type) = K_Attribute_Reference then
                Par_Type := Prefix (Par_Type);
             end if;
 
@@ -140,14 +139,11 @@ package body Backend.BE_CORBA_Ada.CDRs is
          --  Type Declaration
 
          Args_Type := Make_Full_Type_Declaration
-           (Defining_Identifier => Map_Args_Type_Identifier
-            (Defining_Identifier (Spec)),
+           (Defining_Identifier => Make_Selected_Component
+              (Defining_Identifier (CDR_Package (Current_Entity)),
+               Map_Args_Type_Identifier (Defining_Identifier (Spec))),
             Type_Definition     => Make_Record_Definition
             (Components));
-
-         Set_Homogeneous_Parent_Unit_Name
-           (Defining_Identifier (Args_Type),
-            Defining_Identifier (CDR_Package (Current_Entity)));
 
          return Args_Type;
       end Args_Type_Record;
@@ -200,7 +196,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
          Parameter := Make_Parameter_Specification
            (Defining_Identifier => Make_Defining_Identifier
             (PN (P_Representation)),
-            Subtype_Mark        => Make_Attribute_Designator
+            Subtype_Mark        => Make_Attribute_Reference
             (RE (RE_CDR_Representation), A_Class),
             Parameter_Mode      => Mode_In);
          Append_Node_To_List (Parameter, Profile);
@@ -226,12 +222,11 @@ package body Backend.BE_CORBA_Ada.CDRs is
          --  Subprogram Specification
 
          S := Make_Subprogram_Specification
-           (Map_Marshaller_Identifier (Defining_Identifier (Spec)),
+           (Make_Selected_Component
+            (Defining_Identifier (CDR_Package (Current_Entity)),
+             Map_Marshaller_Identifier (Defining_Identifier (Spec))),
             Profile,
             No_Node);
-         Set_Homogeneous_Parent_Unit_Name
-           (Defining_Identifier (S),
-            Defining_Identifier (CDR_Package (Current_Entity)));
 
          return S;
       end Marshaller_Spec;
@@ -284,7 +279,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
          Parameter := Make_Parameter_Specification
            (Defining_Identifier => Make_Defining_Identifier
             (PN (P_Representation)),
-            Subtype_Mark        => Make_Attribute_Designator
+            Subtype_Mark        => Make_Attribute_Reference
             (RE (RE_CDR_Representation), A_Class),
             Parameter_Mode      => Mode_In);
          Append_Node_To_List (Parameter, Profile);
@@ -310,12 +305,11 @@ package body Backend.BE_CORBA_Ada.CDRs is
          --  Subprogram Specification
 
          S := Make_Subprogram_Specification
-           (Map_Unmarshaller_Identifier (Defining_Identifier (Spec)),
+           (Make_Selected_Component
+            (Defining_Identifier (CDR_Package (Current_Entity)),
+             Map_Unmarshaller_Identifier (Defining_Identifier (Spec))),
             Profile,
             No_Node);
-         Set_Homogeneous_Parent_Unit_Name
-           (Defining_Identifier (S),
-            Defining_Identifier (CDR_Package (Current_Entity)));
 
          return S;
       end Unmarshaller_Spec;
@@ -638,8 +632,8 @@ package body Backend.BE_CORBA_Ada.CDRs is
             N := Make_Subprogram_Call
               (RE (RE_Pad_Align),
                Make_List_Id
-               (Make_Designator (PN (P_Buffer)),
-                Make_Designator (PN (P_Data_Alignment))));
+               (Make_Identifier (PN (P_Buffer)),
+                Make_Identifier (PN (P_Data_Alignment))));
             Append_Node_To_List (N, Server_Statements);
 
             --  the operation does not have OUT or INOUT parameters,
@@ -655,8 +649,9 @@ package body Backend.BE_CORBA_Ada.CDRs is
 
             --  Marshalling the result and handling the error
 
-            N := Make_Defining_Identifier (PN (P_Returns));
-            Set_Homogeneous_Parent_Unit_Name (N, Copy_Node (Args_Id));
+            N := Make_Selected_Component
+              (Copy_Node (Args_Id),
+               Make_Defining_Identifier (PN (P_Returns)));
 
             N := Do_Marshall (N, T, PN (P_Buffer));
             Append_Node_To_List (N, Server_Statements);
@@ -674,8 +669,8 @@ package body Backend.BE_CORBA_Ada.CDRs is
                N := Make_Subprogram_Call
                  (RE (RE_Pad_Align),
                   Make_List_Id
-                  (Make_Designator (PN (P_Buffer)),
-                   Make_Designator (PN (P_Data_Alignment))));
+                  (Make_Identifier (PN (P_Buffer)),
+                   Make_Identifier (PN (P_Data_Alignment))));
                Append_Node_To_List (N, Server_Statements);
             end if;
 
@@ -683,8 +678,8 @@ package body Backend.BE_CORBA_Ada.CDRs is
                N := Make_Subprogram_Call
                  (RE (RE_Pad_Align),
                   Make_List_Id
-                  (Make_Designator (PN (P_Buffer)),
-                   Make_Designator (PN (P_Data_Alignment))));
+                  (Make_Identifier (PN (P_Buffer)),
+                   Make_Identifier (PN (P_Data_Alignment))));
                Append_Node_To_List (N, Client_Statements);
             end if;
 
@@ -730,8 +725,10 @@ package body Backend.BE_CORBA_Ada.CDRs is
                --  Marshalling the parameter and handling the error
 
                if Is_In (Parameter_Mode) then
-                  N := Make_Defining_Identifier (Parameter_Name);
-                  Set_Homogeneous_Parent_Unit_Name (N, Copy_Node (Args_Id));
+                  N := Make_Selected_Component
+                    (Copy_Node (Args_Id),
+                     Make_Defining_Identifier (Parameter_Name));
+
                   N := Do_Marshall
                     (N,
                      Type_Spec (Parameter),
@@ -740,8 +737,10 @@ package body Backend.BE_CORBA_Ada.CDRs is
                end if;
 
                if Is_Out (Parameter_Mode) then
-                  N := Make_Defining_Identifier (Parameter_Name);
-                  Set_Homogeneous_Parent_Unit_Name (N, Copy_Node (Args_Id));
+                  N := Make_Selected_Component
+                    (Copy_Node (Args_Id),
+                     Make_Defining_Identifier (Parameter_Name));
+
                   N := Do_Marshall
                     (N,
                      Type_Spec (Parameter),
@@ -770,7 +769,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
                for Index in Unref_Entities'Range loop
                   N := Make_Pragma
                     (Pragma_Unreferenced,
-                     Make_List_Id (Make_Designator (Unref_Entities (Index))));
+                     Make_List_Id (Make_Identifier (Unref_Entities (Index))));
                   Append_Node_To_List (N, Subp_Declarations);
                end loop;
             end;
@@ -790,7 +789,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
                   N := Make_Pragma
                     (Pragma_Warnings,
                      Make_List_Id (RE (RE_Off),
-                                   Make_Designator (W_Off_Entities (Index))));
+                                   Make_Identifier (W_Off_Entities (Index))));
                   Append_Node_To_List (N, Subp_Declarations);
                end loop;
 
@@ -805,7 +804,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
                     (PN (P_Data_Alignment)),
                   Object_Definition   => RE (RE_Alignment_Type),
                   Constant_Present    => Alignment_Const,
-                  Expression          => Make_Designator
+                  Expression          => Make_Identifier
                     (PN (P_First_Arg_Alignment)));
                Append_Node_To_List (N, Subp_Declarations);
 
@@ -818,7 +817,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
                    (Identifier
                     (E))));
                M := Make_Explicit_Dereference
-                 (Make_Designator
+                 (Make_Identifier
                     (PN (P_Args)));
                N := Make_Object_Declaration
                  (Defining_Identifier => Args_Id,
@@ -855,7 +854,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
             Append_Node_To_List (N, Case_Alternatives);
 
             N := Make_Case_Statement
-              (Make_Designator (PN (P_Role)), Case_Alternatives);
+              (Make_Identifier (PN (P_Role)), Case_Alternatives);
             Append_Node_To_List (N, Subp_Statements);
          end if;
 
@@ -957,8 +956,8 @@ package body Backend.BE_CORBA_Ada.CDRs is
             N := Make_Subprogram_Call
               (RE (RE_Align_Position),
                Make_List_Id
-               (Make_Designator (PN (P_Buffer)),
-                Make_Designator (PN (P_Data_Alignment))));
+               (Make_Identifier (PN (P_Buffer)),
+                Make_Identifier (PN (P_Data_Alignment))));
             Append_Node_To_List (N, Client_Statements);
 
             --  the operation does not have out or INOUT parameters,
@@ -981,13 +980,15 @@ package body Backend.BE_CORBA_Ada.CDRs is
             --  Unmarshalling the result and handling the error
 
             N := Do_Unmarshall
-              (Make_Designator (PN (P_Returns)), T, PN (P_Buffer));
+              (Make_Identifier (PN (P_Returns)), T, PN (P_Buffer));
             Append_Node_To_List (N, Client_Statements);
 
             --  Updating the record field
 
-            N := Make_Defining_Identifier (PN (P_Returns));
-            Set_Homogeneous_Parent_Unit_Name (N, Copy_Node (Args_Id));
+            N := Make_Selected_Component
+              (Copy_Node (Args_Id),
+               Make_Defining_Identifier (PN (P_Returns)));
+
             N := Make_Assignment_Statement
               (N,
                Cast_Variable_From_PolyORB_Type
@@ -1006,8 +1007,8 @@ package body Backend.BE_CORBA_Ada.CDRs is
                N := Make_Subprogram_Call
                  (RE (RE_Align_Position),
                   Make_List_Id
-                  (Make_Designator (PN (P_Buffer)),
-                   Make_Designator (PN (P_Data_Alignment))));
+                  (Make_Identifier (PN (P_Buffer)),
+                   Make_Identifier (PN (P_Data_Alignment))));
                Append_Node_To_List (N, Client_Statements);
             end if;
 
@@ -1015,8 +1016,8 @@ package body Backend.BE_CORBA_Ada.CDRs is
                N := Make_Subprogram_Call
                  (RE (RE_Align_Position),
                   Make_List_Id
-                  (Make_Designator (PN (P_Buffer)),
-                   Make_Designator (PN (P_Data_Alignment))));
+                  (Make_Identifier (PN (P_Buffer)),
+                   Make_Identifier (PN (P_Data_Alignment))));
                Append_Node_To_List (N, Server_Statements);
             end if;
 
@@ -1069,7 +1070,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
 
                if Is_In (Parameter_Mode) then
                   N := Do_Unmarshall
-                    (Make_Designator (Parameter_Name),
+                    (Make_Identifier (Parameter_Name),
                      Type_Spec (Parameter),
                      PN (P_Buffer));
                   Append_Node_To_List (N, Server_Statements);
@@ -1077,7 +1078,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
 
                if Is_Out (Parameter_Mode) then
                   N := Do_Unmarshall
-                    (Make_Designator (Parameter_Name),
+                    (Make_Identifier (Parameter_Name),
                      Type_Spec (Parameter),
                      PN (P_Buffer));
                   Append_Node_To_List (N, Client_Statements);
@@ -1086,8 +1087,10 @@ package body Backend.BE_CORBA_Ada.CDRs is
                --  Updating the record field
 
                if Is_In (Parameter_Mode) then
-                  N := Make_Defining_Identifier (Parameter_Name);
-                  Set_Homogeneous_Parent_Unit_Name (N, Copy_Node (Args_Id));
+                  N := Make_Selected_Component
+                    (Copy_Node (Args_Id),
+                     Make_Defining_Identifier (Parameter_Name));
+
                   N := Make_Assignment_Statement
                     (N,
                      Cast_Variable_From_PolyORB_Type
@@ -1096,8 +1099,10 @@ package body Backend.BE_CORBA_Ada.CDRs is
                end if;
 
                if Is_Out (Parameter_Mode) then
-                  N := Make_Defining_Identifier (Parameter_Name);
-                  Set_Homogeneous_Parent_Unit_Name (N, Copy_Node (Args_Id));
+                  N := Make_Selected_Component
+                    (Copy_Node (Args_Id),
+                     Make_Defining_Identifier (Parameter_Name));
+
                   N := Make_Assignment_Statement
                     (N,
                      Cast_Variable_From_PolyORB_Type
@@ -1126,7 +1131,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
                for Index in Unref_Entities'Range loop
                   N := Make_Pragma
                     (Pragma_Unreferenced,
-                     Make_List_Id (Make_Designator (Unref_Entities (Index))));
+                     Make_List_Id (Make_Identifier (Unref_Entities (Index))));
                   Append_Node_To_List (N, Subp_Declarations);
                end loop;
             end;
@@ -1147,7 +1152,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
                   N := Make_Pragma
                     (Pragma_Warnings,
                      Make_List_Id (RE (RE_Off),
-                                   Make_Designator (W_Off_Entities (Index))));
+                                   Make_Identifier (W_Off_Entities (Index))));
                   Append_Node_To_List (N, Subp_Declarations);
                end loop;
 
@@ -1162,7 +1167,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
                     (PN (P_Data_Alignment)),
                   Object_Definition   => RE (RE_Alignment_Type),
                   Constant_Present    => Alignment_Const,
-                  Expression          => Make_Designator
+                  Expression          => Make_Identifier
                     (PN (P_First_Arg_Alignment)));
                Append_Node_To_List (N, Subp_Declarations);
 
@@ -1175,7 +1180,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
                    (Identifier
                     (E))));
                M := Make_Explicit_Dereference
-                 (Make_Designator
+                 (Make_Identifier
                     (PN (P_Args)));
                N := Make_Object_Declaration
                  (Defining_Identifier => Args_Id,
@@ -1214,7 +1219,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
             Append_Node_To_List (N, Case_Alternatives);
 
             N := Make_Case_Statement
-              (Make_Designator (PN (P_Role)), Case_Alternatives);
+              (Make_Identifier (PN (P_Role)), Case_Alternatives);
             Append_Node_To_List (N, Subp_Statements);
 
             --  Updating the argument list when needed
@@ -1224,7 +1229,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
             Append_Node_To_List (N, Subp_Statements);
 
             M := Make_Explicit_Dereference
-              (Make_Designator
+              (Make_Identifier
                  (PN (P_Args)));
             N := Make_Assignment_Statement (M, Copy_Node (Args_Id));
             Append_Node_To_List (N, Subp_Statements);
@@ -1381,13 +1386,15 @@ package body Backend.BE_CORBA_Ada.CDRs is
 
                   --  Sequence type
 
-                  N := Make_Designator (TN (T_Sequence));
-                  Set_Homogeneous_Parent_Unit_Name (N, Seq_Package_Node);
+                  N := Make_Selected_Component
+                    (Seq_Package_Node,
+                     Make_Identifier (TN (T_Sequence)));
 
                   --  null sequence
 
-                  Seq_Exp := Make_Designator (PN (P_Null_Sequence));
-                  Set_Homogeneous_Parent_Unit_Name (Seq_Exp, Seq_Package_Node);
+                  Seq_Exp := Make_Selected_Component
+                    (Seq_Package_Node,
+                     Make_Identifier (PN (P_Null_Sequence)));
 
                   --  Variable declaration
 
@@ -1460,7 +1467,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
                N := Make_Subprogram_Call
                  (RE (RE_Marshall_2),
                   Make_List_Id
-                  (Make_Designator (Buff),
+                  (Make_Identifier (Buff),
                    Cast_Variable_To_PolyORB_Type
                    (Var_Node, Direct_Type_Node)));
                Append_Node_To_List (N, Block_St);
@@ -1486,14 +1493,14 @@ package body Backend.BE_CORBA_Ada.CDRs is
 
                   --  Marshall
 
-                  N := Make_Designator
-                    (Designator => SN (S_Marshall),
-                     Parent     => VN (V_Fixed_Point));
+                  N := Make_Selected_Component
+                    (VN (V_Fixed_Point),
+                     SN (S_Marshall));
 
                   N := Make_Subprogram_Call
                     (N,
                      Make_List_Id
-                     (Make_Designator (Buff),
+                     (Make_Identifier (Buff),
                       Cast_Variable_To_PolyORB_Type
                       (Var_Node, Direct_Type_Node)));
                   Append_Node_To_List (N, Block_St);
@@ -1508,10 +1515,10 @@ package body Backend.BE_CORBA_Ada.CDRs is
                declare
                   Profile : constant List_Id := New_List (K_List_Id);
                begin
-                  N := Make_Designator (PN (P_Representation));
+                  N := Make_Identifier (PN (P_Representation));
                   Append_Node_To_List (N, Profile);
 
-                  N := Make_Designator (Buff);
+                  N := Make_Identifier (Buff);
                   Append_Node_To_List (N, Profile);
 
                   Append_Node_To_List
@@ -1519,7 +1526,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
                      (Var_Node, Direct_Type_Node),
                      Profile);
 
-                  N := Make_Designator (PN (P_Error));
+                  N := Make_Identifier (PN (P_Error));
                   Append_Node_To_List (N, Profile);
 
                   N := Make_Subprogram_Call (RE (RE_Marshall_1), Profile);
@@ -1529,7 +1536,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
 
                   N := Make_Subprogram_Call
                     (RE (RE_Found),
-                     Make_List_Id (Make_Designator (PN (P_Error))));
+                     Make_List_Id (Make_Identifier (PN (P_Error))));
                   N := Make_If_Statement
                     (Condition       => N,
                      Then_Statements => Make_List_Id
@@ -1560,8 +1567,9 @@ package body Backend.BE_CORBA_Ada.CDRs is
                      Object_Definition   => RE (RE_Unsigned_Long_1));
                   Append_Node_To_List (N, Block_Dcl);
 
-                  N := Make_Designator (SN (S_Length));
-                  Set_Homogeneous_Parent_Unit_Name (N, Seq_Package_Node);
+                  N := Make_Selected_Component
+                    (Seq_Package_Node,
+                     Make_Identifier (SN (S_Length)));
 
                   N := Make_Subprogram_Call
                     (N,
@@ -1580,7 +1588,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
                   N := Make_Subprogram_Call
                     (RE (RE_Marshall_2),
                      Make_List_Id
-                     (Make_Designator (Buff),
+                     (Make_Identifier (Buff),
                       Make_Defining_Identifier (Seq_Length)));
                   Append_Node_To_List (N, Block_St);
 
@@ -1596,8 +1604,9 @@ package body Backend.BE_CORBA_Ada.CDRs is
 
                   --    Getting the sequence element
 
-                  N := RE (RE_Get_Element);
-                  Set_Homogeneous_Parent_Unit_Name (N, Seq_Package_Node);
+                  N := Make_Selected_Component
+                    (Seq_Package_Node,
+                     Get_Base_Identifier (RE (RE_Get_Element)));
 
                   Seq_Element := Make_Subprogram_Call
                     (N,
@@ -1702,9 +1711,10 @@ package body Backend.BE_CORBA_Ada.CDRs is
                           (IDL_Name
                            (Identifier
                             (Declarator)));
-                        Dcl_Ada_Node := Make_Designator (Dcl_Ada_Name);
-                        Set_Homogeneous_Parent_Unit_Name
-                          (Dcl_Ada_Node, Var_Node);
+
+                        Dcl_Ada_Node := Make_Selected_Component
+                          (Var_Node,
+                           Make_Identifier (Dcl_Ada_Name));
 
                         --  Marshalling the record field
 
@@ -1738,8 +1748,9 @@ package body Backend.BE_CORBA_Ada.CDRs is
                begin
                   --  1/ Marshall the union switch
 
-                  Switch_Node := Make_Designator (CN (C_Switch));
-                  Set_Homogeneous_Parent_Unit_Name (Switch_Node, Var_Node);
+                  Switch_Node := Make_Selected_Component
+                    (Var_Node,
+                     Make_Identifier (CN (C_Switch)));
 
                   N := Do_Marshall
                     (Var_Node => Switch_Node,
@@ -1754,7 +1765,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
                     (Switch_Type_Spec
                      (Type_Spec_Node));
                   if FEN.Kind (Switch_Type) = K_Enumeration_Type then
-                     Literal_Parent := Map_Designator
+                     Literal_Parent := Map_Expanded_Name
                        (Scope_Entity
                         (Identifier
                          (Switch_Type)));
@@ -1771,10 +1782,9 @@ package body Backend.BE_CORBA_Ada.CDRs is
                      Label   := First_Entity (Labels (Switch_Alternative));
 
                      while Present (Label) loop
-
                         Choice := Make_Literal
-                          (Value             => FEN.Value (Label),
-                           Parent_Designator => Literal_Parent);
+                          (Value  => FEN.Value (Label),
+                           Parent => Literal_Parent);
                         Append_Node_To_List (Choice, Choices);
                         Label := Next_Entity (Label);
                      end loop;
@@ -1791,8 +1801,10 @@ package body Backend.BE_CORBA_Ada.CDRs is
                        (IDL_Name
                         (Identifier
                          (Declarator)));
-                     Dcl_Ada_Node := Make_Designator (Dcl_Ada_Name);
-                     Set_Homogeneous_Parent_Unit_Name (Dcl_Ada_Node, Var_Node);
+
+                     Dcl_Ada_Node := Make_Selected_Component
+                       (Var_Node,
+                        Make_Identifier (Dcl_Ada_Name));
 
                      --  Marshalling the record field
 
@@ -1873,7 +1885,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
                   N := Make_Subprogram_Call
                     (RE (RE_Unmarshall_2),
                      Make_List_Id
-                     (Make_Designator (Buff)));
+                     (Make_Identifier (Buff)));
                   N := Make_Assignment_Statement (Var_Node, N);
                   Append_Node_To_List (N, Block_St);
                end;
@@ -1899,14 +1911,14 @@ package body Backend.BE_CORBA_Ada.CDRs is
 
                   --  Unmarshall
 
-                  N := Make_Designator
-                    (Designator => SN (S_Unmarshall),
-                     Parent     => VN (V_Fixed_Point));
+                  N := Make_Selected_Component
+                    (VN (V_Fixed_Point),
+                     SN (S_Unmarshall));
 
                   N := Make_Subprogram_Call
                     (N,
                      Make_List_Id
-                     (Make_Designator (Buff)));
+                     (Make_Identifier (Buff)));
                   N := Make_Assignment_Statement (Var_Node, N);
                   Append_Node_To_List (N, Block_St);
                end;
@@ -1920,15 +1932,15 @@ package body Backend.BE_CORBA_Ada.CDRs is
                declare
                   Profile : constant List_Id := New_List (K_List_Id);
                begin
-                  N := Make_Designator (PN (P_Representation));
+                  N := Make_Identifier (PN (P_Representation));
                   Append_Node_To_List (N, Profile);
 
-                  N := Make_Designator (Buff);
+                  N := Make_Identifier (Buff);
                   Append_Node_To_List (N, Profile);
 
                   Append_Node_To_List (Var_Node, Profile);
 
-                  N := Make_Designator (PN (P_Error));
+                  N := Make_Identifier (PN (P_Error));
                   Append_Node_To_List (N, Profile);
 
                   N := Make_Subprogram_Call (RE (RE_Unmarshall_1), Profile);
@@ -1938,7 +1950,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
 
                   N := Make_Subprogram_Call
                     (RE (RE_Found),
-                     Make_List_Id (Make_Designator (PN (P_Error))));
+                     Make_List_Id (Make_Identifier (PN (P_Error))));
                   N := Make_If_Statement
                     (Condition       => N,
                      Then_Statements => Make_List_Id
@@ -1975,9 +1987,9 @@ package body Backend.BE_CORBA_Ada.CDRs is
                   N := Make_Subprogram_Call
                     (RE (RE_Unmarshall_2),
                      Make_List_Id
-                     (Make_Designator (Buff)));
+                     (Make_Identifier (Buff)));
                   N := Make_Assignment_Statement
-                    (Make_Designator (Seq_Length), N);
+                    (Make_Identifier (Seq_Length), N);
                   Append_Node_To_List (N, Block_St);
 
                   --  Unmarshalling the sequence elements
@@ -1999,15 +2011,16 @@ package body Backend.BE_CORBA_Ada.CDRs is
                   --    Unmarshalling the sequence element
 
                   N := Do_Unmarshall
-                    (Var_Node => Make_Designator (Seq_Element_Name),
+                    (Var_Node => Make_Identifier (Seq_Element_Name),
                      Var_Type => Type_Spec (Type_Spec_Node),
                      Buff     => Buff);
                   Append_Node_To_List (N, For_Statements);
 
                   --    Appending the sequence element
 
-                  N := Make_Designator (SN (S_Append));
-                  Set_Homogeneous_Parent_Unit_Name (N, Seq_Package_Node);
+                  N := Make_Selected_Component
+                    (Seq_Package_Node,
+                     Make_Identifier (SN (S_Append)));
 
                   N := Make_Subprogram_Call
                     (N,
@@ -2026,8 +2039,8 @@ package body Backend.BE_CORBA_Ada.CDRs is
                      (Type_Spec (Type_Spec_Node))) = K_Sequence_Type
                   then
                      N := Make_Assignment_Statement
-                       (Make_Designator (Seq_Element_Name),
-                        Copy_Designator (BEN.Expression (Element_Dcl)));
+                       (Make_Identifier (Seq_Element_Name),
+                        Copy_Expanded_Name (BEN.Expression (Element_Dcl)));
                      Append_Node_To_List (N, For_Statements);
                   end if;
 
@@ -2101,7 +2114,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
                   --  Unmarshalling the element and handling the error
 
                   N := Do_Unmarshall
-                    (Var_Node => Make_Designator (Array_Element),
+                    (Var_Node => Make_Identifier (Array_Element),
                      Var_Type => Type_Spec (Declaration (Type_Spec_Node)),
                      Buff     => Buff);
                   Append_Node_To_List (N, Loop_Statements);
@@ -2145,7 +2158,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
                         --  Unmarshalling the element
 
                         N := Do_Unmarshall
-                          (Var_Node => Make_Designator (Struct_Element),
+                          (Var_Node => Make_Identifier (Struct_Element),
                            Var_Type => Declarator,
                            Buff     => Buff);
                         Append_Node_To_List (N, Block_St);
@@ -2156,9 +2169,10 @@ package body Backend.BE_CORBA_Ada.CDRs is
                           (IDL_Name
                            (Identifier
                             (Declarator)));
-                        Dcl_Ada_Node := Make_Designator (Dcl_Ada_Name);
-                        Set_Homogeneous_Parent_Unit_Name
-                          (Dcl_Ada_Node, Var_Node);
+
+                        Dcl_Ada_Node := Make_Selected_Component
+                          (Var_Node,
+                           Make_Identifier (Dcl_Ada_Name));
 
                         --  Updating the struct field
 
@@ -2208,7 +2222,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
                   --    Unmarshall the switch
 
                   N := Do_Unmarshall
-                    (Var_Node => Make_Designator (Switch_Element),
+                    (Var_Node => Make_Identifier (Switch_Element),
                      Var_Type => Switch_Type_Spec (Type_Spec_Node),
                      Buff     => Buff);
                   Append_Node_To_List (N, Block_St);
@@ -2223,7 +2237,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
                     (Switch_Type_Spec
                      (Type_Spec_Node));
                   if FEN.Kind (Switch_Type) = K_Enumeration_Type then
-                     Literal_Parent := Map_Designator
+                     Literal_Parent := Map_Expanded_Name
                        (Scope_Entity
                         (Identifier
                          (Switch_Type)));
@@ -2238,10 +2252,9 @@ package body Backend.BE_CORBA_Ada.CDRs is
                      Choices := New_List (K_Discrete_Choice_List);
                      Label   := First_Entity (Labels (Switch_Alternative));
                      while Present (Label) loop
-
                         Choice := Make_Literal
-                          (Value             => FEN.Value (Label),
-                           Parent_Designator => Literal_Parent);
+                          (Value  => FEN.Value (Label),
+                           Parent => Literal_Parent);
                         Append_Node_To_List (Choice, Choices);
                         Label := Next_Entity (Label);
                      end loop;
@@ -2265,7 +2278,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
                      --    Unmarshalling the element
 
                      N := Do_Unmarshall
-                       (Var_Node => Make_Designator (Union_Element),
+                       (Var_Node => Make_Identifier (Union_Element),
                         Var_Type => Declarator,
                         Buff     => Buff);
                      Append_Node_To_List (N, Block_Statements);
@@ -2276,8 +2289,10 @@ package body Backend.BE_CORBA_Ada.CDRs is
                        (IDL_Name
                         (Identifier
                          (Declarator)));
-                     Dcl_Ada_Node := Make_Designator (Dcl_Ada_Name);
-                     Set_Homogeneous_Parent_Unit_Name (Dcl_Ada_Node, Var_Node);
+
+                     Dcl_Ada_Node := Make_Selected_Component
+                       (Var_Node,
+                        Make_Identifier (Dcl_Ada_Name));
 
                      --  Build the union: we cannot build the union by
                      --  the means of a record aggregate. The solution
@@ -2294,7 +2309,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
                         --  Intermediary variable with the correct type
 
                         N := Make_Subprogram_Call
-                          (Map_Designator (Var_Type),
+                          (Map_Expanded_Name (Var_Type),
                            Make_List_Id
                            (Cast_Variable_From_PolyORB_Type
                             (Switch_Element,
@@ -2318,8 +2333,8 @@ package body Backend.BE_CORBA_Ada.CDRs is
                         --  Qualified expression
 
                         N := Make_Qualified_Expression
-                          (Subtype_Mark => Map_Designator (Var_Type),
-                           Operand      => Make_Designator (Intermed_Name));
+                          (Subtype_Mark => Map_Expanded_Name (Var_Type),
+                           Operand      => Make_Identifier (Intermed_Name));
 
                         N := Make_Assignment_Statement (Var_Node, N);
                         Append_Node_To_List (N, Inner_St);

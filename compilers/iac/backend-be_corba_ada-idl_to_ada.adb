@@ -42,7 +42,6 @@ with Frontend.Nutils;
 
 with Backend.BE_CORBA_Ada.Nodes;       use Backend.BE_CORBA_Ada.Nodes;
 with Backend.BE_CORBA_Ada.Nutils;      use Backend.BE_CORBA_Ada.Nutils;
-with Backend.BE_CORBA_Ada.Expand;      use Backend.BE_CORBA_Ada.Expand;
 
 package body Backend.BE_CORBA_Ada.IDL_To_Ada is
 
@@ -404,7 +403,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
    is
       Designator : Node_Id;
    begin
-      Designator := Map_Designator (Type_Decl);
+      Designator := Map_Expanded_Name (Type_Decl);
 
       --  The expansion phase ensures there cannot be complex
       --  declarators inside structures, exceptions and unions.
@@ -436,24 +435,22 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
         and then Present (Stub_Node (BE_Node (I)))
         and then BEN.Kind (Stub_Node (BE_Node (I))) = K_IDL_Unit
       then
-         Set_Corresponding_Node
+         Set_Declaration_Node
            (Result, Main_Package (Stub_Node (BE_Node (I))));
       end if;
 
       return Result;
    end Map_Defining_Identifier;
 
-   --------------------
-   -- Map_Designator --
-   --------------------
+   -----------------------
+   -- Map_Expanded_Name --
+   -----------------------
 
-   function Map_Designator (Entity : Node_Id) return Node_Id is
+   function Map_Expanded_Name (Entity : Node_Id) return Node_Id is
       P : Node_Id;
       N : Node_Id;
       K : FEN.Node_Kind;
       R : Node_Id;
-      B : Node_Id;
-      Ref_Type_Node : Node_Id;
    begin
       K := FEN.Kind (Entity);
 
@@ -480,84 +477,82 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
          --  identifier to the Ref type defined in the stub package
          --  relative to the interface.
 
-         N := New_Node (K_Designator);
-
          if Kind (R) = FEN.K_Interface_Declaration then
             --  Get the node of the Ref type declaration.
 
-            Ref_Type_Node := Type_Def_Node (BE_Node (Identifier (R)));
-            Set_Defining_Identifier
-              (N,
-               Copy_Node (Defining_Identifier (Ref_Type_Node)));
+            N := Copy_Node
+              (Defining_Identifier
+               (Type_Def_Node
+                (BE_Node
+                 (Identifier
+                  (R)))));
             Set_FE_Node (N, R);
             P := R;
          elsif Kind (R) = FEN.K_Forward_Interface_Declaration then
             --  Get the node of the Ref type declaration.
 
-            Ref_Type_Node := Type_Def_Node (BE_Node (Identifier (R)));
-            Set_Defining_Identifier
-              (N,
-               Copy_Node (Defining_Identifier (Ref_Type_Node)));
-            Set_FE_Node (N, R);
-
-            Set_Homogeneous_Parent_Unit_Name
-              (N,
-               Defining_Identifier
+            N := Make_Selected_Component
+              (Expand_Designator
                (Instantiation_Node
                 (BE_Node
                  (Identifier
-                  (R)))));
+                  (R)))),
+               Copy_Node
+               (Defining_Identifier
+                (Type_Def_Node
+                 (BE_Node
+                  (Identifier (R))))));
+            Set_FE_Node (N, R);
+
             P := No_Node;
          else
-            Set_Defining_Identifier (N, Map_Defining_Identifier (R));
+            N := Map_Defining_Identifier (R);
             Set_FE_Node (N, R);
             P := Scope_Entity (Identifier (R));
          end if;
 
          if Present (P) then
             if Kind (P) = K_Specification then
-               B := Defining_Identifier_To_Designator
+               N := Make_Selected_Component
                  (Defining_Identifier
                   (Main_Package
                    (Stub_Node
                     (BE_Node
                      (Identifier
-                      (P))))));
-               Set_FE_Node (B, P);
-               Set_Homogeneous_Parent_Unit_Name (N, B);
+                      (P))))),
+                  N);
             else
-               Set_Homogeneous_Parent_Unit_Name (N, Map_Designator (P));
+               N := Make_Selected_Component (Map_Expanded_Name (P), N);
             end if;
          end if;
-
       elsif K in FEN.K_Float .. FEN.K_Value_Base then
          N := RE (Convert (K));
          Set_FE_Node (N, Entity);
 
       else
-         N := New_Node (K_Designator);
-         Set_Defining_Identifier (N, Map_Defining_Identifier (Entity));
+         N := Map_Defining_Identifier (Entity);
 
          if K = FEN.K_Interface_Declaration
            or else K = FEN.K_Module
          then
             P := Scope_Entity (Identifier (Entity));
             Set_FE_Node (N, Entity);
-            Set_Homogeneous_Parent_Unit_Name (N, Map_Designator (P));
+
+            N := Make_Selected_Component (Map_Expanded_Name (P), N);
 
          elsif K = FEN.K_Specification then
             return No_Node;
          end if;
       end if;
 
-      P := Parent_Unit_Name (N);
+      P := Get_Parent_Unit_Name (N);
 
       if Present (P) then
          Add_With_Package (P);
       end if;
 
       return N;
-   end Map_Designator;
+   end Map_Expanded_Name;
 
    -------------------------
    -- Map_Fixed_Type_Name --
@@ -657,8 +652,9 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
             P := FEN.Scope_Entity (I);
          end if;
 
-         Set_Homogeneous_Parent_Unit_Name
-           (N, Map_Fully_Qualified_Identifier (P));
+         N := Make_Selected_Component
+           (Map_Fully_Qualified_Identifier (P),
+            N);
       end if;
 
       return N;
@@ -731,8 +727,9 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
       --  Helper package
 
       Set_Str_To_Name_Buffer ("Helper");
-      N := Make_Defining_Identifier (Name_Find);
-      Set_Homogeneous_Parent_Unit_Name (N, I);
+      N := Make_Selected_Component
+        (I,
+         Make_Defining_Identifier (Name_Find));
       D := Make_Package_Declaration (N);
       Set_IDL_Unit (D, P);
       Set_Parent (D, M);
@@ -745,9 +742,9 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
       --  Internals package
 
       Set_Str_To_Name_Buffer ("Internals");
-      N := Make_Defining_Identifier (Name_Find);
-      Set_Homogeneous_Parent_Unit_Name
-        (N, Copy_Node (Defining_Identifier (D)));
+      N := Make_Selected_Component
+        (Copy_Node (Defining_Identifier (D)),
+         Make_Defining_Identifier (Name_Find));
       Z := Make_Package_Declaration (N);
       Set_IDL_Unit (Z, P);
       Set_Parent (Z, D);
@@ -789,8 +786,9 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
                --  Skeleton package
 
                Set_Str_To_Name_Buffer ("Skel");
-               N := Make_Defining_Identifier (Name_Find);
-               Set_Homogeneous_Parent_Unit_Name (N, I);
+               N := Make_Selected_Component
+                 (I,
+                  Make_Defining_Identifier (Name_Find));
                D := Make_Package_Declaration (N);
                Set_IDL_Unit (D, P);
                Set_Parent (D, M);
@@ -800,8 +798,9 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
                --  CDR package
 
                Set_Str_To_Name_Buffer ("CDR");
-               N := Make_Defining_Identifier (Name_Find);
-               Set_Homogeneous_Parent_Unit_Name (N, I);
+               N := Make_Selected_Component
+                 (I,
+                  Make_Defining_Identifier (Name_Find));
                D := Make_Package_Declaration (N);
                Set_IDL_Unit (D, P);
                Set_Parent (D, M);
@@ -811,8 +810,9 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
                --  Aligned package
 
                Set_Str_To_Name_Buffer ("Aligned");
-               N := Make_Defining_Identifier (Name_Find);
-               Set_Homogeneous_Parent_Unit_Name (N, I);
+               N := Make_Selected_Component
+                 (I,
+                  Make_Defining_Identifier (Name_Find));
                D := Make_Package_Declaration (N);
                Set_IDL_Unit (D, P);
                Set_Parent (D, M);
@@ -822,8 +822,9 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
                --  Buffers package
 
                Set_Str_To_Name_Buffer ("Buffers");
-               N := Make_Defining_Identifier (Name_Find);
-               Set_Homogeneous_Parent_Unit_Name (N, I);
+               N := Make_Selected_Component
+                 (I,
+                  Make_Defining_Identifier (Name_Find));
                D := Make_Package_Declaration (N);
                Set_IDL_Unit (D, P);
                Set_Parent (D, M);
@@ -834,8 +835,9 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
             --  Implementation package
 
             Set_Str_To_Name_Buffer ("Impl");
-            N := Make_Defining_Identifier (Name_Find);
-            Set_Homogeneous_Parent_Unit_Name (N, I);
+            N := Make_Selected_Component
+              (I,
+               Make_Defining_Identifier (Name_Find));
             D := Make_Package_Declaration (N);
             Set_IDL_Unit (D, P);
             Set_Parent (D, M);
@@ -867,7 +869,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
          --  casing rules in the type name are not standard and have to be
          --  registered
 
-         Ref_Type := Defining_Identifier (RE (RE_LocalObject));
+         Ref_Type := RE (RE_LocalObject);
       else
          Ref_Type := Make_Defining_Identifier (TN (T_Object));
       end if;
@@ -1537,8 +1539,8 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
 
          while Present (Label) loop
             Choice := Make_Literal
-              (Value             => FEN.Value (Label),
-               Parent_Designator => Literal_Parent);
+              (Value  => FEN.Value (Label),
+               Parent => Literal_Parent);
             Append_Node_To_List (Choice, Choices);
             Label := Next_Entity (Label);
          end loop;
@@ -2154,12 +2156,9 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
       Profile   : List_Id;
       Parameter : Node_Id;
    begin
-      New_Type := Make_Designator (Type_Name);
-      Set_Homogeneous_Parent_Unit_Name
-        (New_Type,
-         Expand_Designator
-         (Main_Package
-          (Current_Entity)));
+      New_Type := Make_Selected_Component
+        (Expand_Designator (Main_Package (Current_Entity)),
+         Make_Identifier (Type_Name));
 
       --  From_Any
 
@@ -2168,35 +2167,22 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
         (Make_Defining_Identifier (PN (P_Item)),
          RE (RE_Any));
       Append_Node_To_List (Parameter, Profile);
+
       From_Any := Make_Subprogram_Specification
         (Make_Defining_Identifier (SN (S_From_Any)),
          Profile,
-         Defining_Identifier (New_Type));
-
-      --  Setting the correct parent unit name, for the future calls of the
-      --  subprogram
-
-      Set_Homogeneous_Parent_Unit_Name
-        (Defining_Identifier (From_Any),
-         Defining_Identifier (Helper_Package (Current_Entity)));
+         New_Type);
 
       --  To_Any
 
       Profile  := New_List (K_Parameter_Profile);
       Parameter := Make_Parameter_Specification
         (Make_Defining_Identifier (PN (P_Item)),
-         Defining_Identifier (New_Type));
+         New_Type);
       Append_Node_To_List (Parameter, Profile);
       To_Any := Make_Subprogram_Specification
         (Make_Defining_Identifier (SN (S_To_Any)),
          Profile, RE (RE_Any));
-
-      --  Setting the correct parent unit name, for the future calls of the
-      --  subprogram
-
-      Set_Homogeneous_Parent_Unit_Name
-        (Defining_Identifier (To_Any),
-         Defining_Identifier (Helper_Package (Current_Entity)));
    end Map_Any_Converters;
 
    ----------------------------------
@@ -2593,7 +2579,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
                                  No_Node,
                                Is_Subtype => True),
                               Is_Subtype => True);
-                           Set_Corresponding_Node (New_Type, T);
+                           Set_Declaration_Node (New_Type, T);
                            Append_Node_To_List
                              (T,
                               Visible_Part (Current_Package));
@@ -2665,7 +2651,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
                               No_Node,
                             Is_Subtype => True),
                            Is_Subtype => True);
-                        Set_Corresponding_Node (New_Type, T);
+                        Set_Declaration_Node (New_Type, T);
                         Append_Node_To_List
                           (T,
                            Visible_Part (Current_Package));
@@ -2726,7 +2712,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
                            Constant_Present    =>
                              False, --  Yes, False
                            Object_Definition   =>
-                             Map_Designator (Type_Spec (Entity)),
+                             Map_Expanded_Name (Type_Spec (Entity)),
                            Renamed_Object      =>
                              Original_Constant);
                         Append_Node_To_List
@@ -2789,8 +2775,8 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
                             (Identifier
                              (Entity))));
                         New_Type := Make_Defining_Identifier
-                          (BEN.Name
-                           (Defining_Identifier
+                          (Get_Name
+                           (Get_Base_Identifier
                             (Original_Type)));
                         T := Make_Full_Type_Declaration
                           (Defining_Identifier    =>
@@ -2803,7 +2789,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
                               No_Node,
                             Is_Subtype => True),
                            Is_Subtype => True);
-                        Set_Corresponding_Node (New_Type, T);
+                        Set_Declaration_Node (New_Type, T);
                         Append_Node_To_List
                           (T,
                            Visible_Part (Current_Package));
@@ -2966,37 +2952,30 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
                      if Stub then
                         --  generate the renamed Get_Members
 
-                        New_Member_Type :=
-                          Expand_Designator
-                          (Type_Def_Node
-                           (BE_Node
-                            (Identifier
-                             (Entity))));
-                        Set_Homogeneous_Parent_Unit_Name
-                          (New_Member_Type,
-                           Expand_Designator
-                           (Main_Package
-                            (Current_Entity)));
+                        New_Member_Type := Make_Selected_Component
+                          (Defining_Identifier (Main_Package (Current_Entity)),
+                           Get_Base_Identifier
+                           (Type_Def_Node
+                            (BE_Node
+                             (Identifier
+                              (Entity)))));
                         N := Map_Get_Members_Spec (New_Member_Type);
 
-                        Original_Get_Members := Defining_Identifier
-                          (Map_Get_Members_Spec
-                           (Expand_Designator
-                            (Type_Def_Node
-                             (BE_Node
-                              (Identifier
-                               (Entity))))));
-
-                        --  Setting the right parent unit name
-
-                        Set_Homogeneous_Parent_Unit_Name
-                          (Original_Get_Members,
-                           Expand_Designator
+                        Original_Get_Members := Make_Selected_Component
+                          (Expand_Designator
                            (BEN.Parent
                             (Type_Def_Node
                              (BE_Node
                               (Identifier
-                               (Parent_Interface))))));
+                               (Parent_Interface))))),
+                           Get_Base_Identifier
+                           (Defining_Identifier
+                            (Map_Get_Members_Spec
+                             (Expand_Designator
+                              (Type_Def_Node
+                               (BE_Node
+                                (Identifier
+                                 (Entity))))))));
                         Set_Renamed_Entity (N, Original_Get_Members);
                         Append_Node_To_List
                           (N, Statements (Current_Package));
@@ -3556,7 +3535,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
          when K_Sequence_Type
            | K_String_Type
            | K_Wide_String_Type =>
-            return Copy_Designator (Type_Def_Node (BE_Node (T)));
+            return Copy_Expanded_Name (Type_Def_Node (BE_Node (T)));
 
          when K_Scoped_Name =>
             --  Handle predefined CORBA entities
@@ -3585,9 +3564,9 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
                   return Result;
                end if;
 
-               --  If the wrap flag has been set and the type we
-               --  return the ancestor type of T for which a 'Wrap'
-               --  function has been generated.
+               --  If the wrap flag has been set, we return the
+               --  ancestor type of T for which a 'Wrap' function has
+               --  been generated.
 
                if Wrap then
                   return Get_Type_Definition_Node (Orig_Type_Spec);
@@ -3712,13 +3691,9 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
       ----------------------
 
       function Is_Internal_Unit (Unit : Node_Id) return Boolean is
-         N : Node_Id := Unit;
       begin
-         if BEN.Kind (N) = K_Designator then
-            N := Defining_Identifier (N);
-         end if;
-
-         return BEN.Kind (Corresponding_Node (N)) = K_Package_Instantiation;
+         return BEN.Kind (Get_Declaration_Node (Unit))
+           = K_Package_Instantiation;
       end Is_Internal_Unit;
 
       Dep_Name : Name_Id;

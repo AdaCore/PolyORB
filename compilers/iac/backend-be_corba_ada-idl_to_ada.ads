@@ -98,8 +98,8 @@ package Backend.BE_CORBA_Ada.IDL_To_Ada is
    function Map_Defining_Identifier (Entity : Node_Id) return Node_Id;
    --  Map an Ada defining identifier from the IDL node 'Entity'
 
-   function Map_Designator (Entity : Node_Id) return Node_Id;
-   --  Map an Ada designator from the IDL node 'Entity'. Handle the
+   function Map_Expanded_Name (Entity : Node_Id) return Node_Id;
+   --  Map an Ada expanded name from the IDL node 'Entity'. Handle the
    --  case of IDL base types for which we must return a CORBA type
    --  designator
 

@@ -38,7 +38,6 @@ with Locations; use Locations;
 with Frontend.Nutils;
 with Frontend.Nodes;  use Frontend.Nodes;
 
-with Backend.BE_CORBA_Ada.Expand;     use Backend.BE_CORBA_Ada.Expand;
 with Backend.BE_CORBA_Ada.IDL_To_Ada; use Backend.BE_CORBA_Ada.IDL_To_Ada;
 with Backend.BE_CORBA_Ada.Nodes;      use Backend.BE_CORBA_Ada.Nodes;
 with Backend.BE_CORBA_Ada.Nutils;     use Backend.BE_CORBA_Ada.Nutils;
@@ -173,8 +172,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
       procedure Visit_Constant_Declaration (E : Node_Id) is
          N             : Node_Id;
          Expression    : Node_Id;
-         Constant_Type : constant Node_Id := Map_Designator (Type_Spec (E));
-         P             : Node_Id;
+         Constant_Type : constant Node_Id := Map_Expanded_Name (Type_Spec (E));
          S             : Node_Id;
          K             : FEN.Node_Kind;
       begin
@@ -195,7 +193,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
                begin
                   if Negative (FEN.Value (E)) then
                      Minus := Make_Selected_Component
-                       (Parent_Unit_Name (Constant_Type),
+                       (Get_Parent_Unit_Name (Constant_Type),
                         Make_Defining_Identifier (SN (S_Minus)));
 
                      Expression := Make_Subprogram_Call
@@ -235,10 +233,10 @@ package body Backend.BE_CORBA_Ada.Stubs is
                                      (RE (Converter),
                                       Make_List_Id (Expression));
                   else
-                     P := Parent_Unit_Name
-                            (Get_Type_Definition_Node (Type_Spec (E)));
-                     S := RE (Converter, False);
-                     Set_Homogeneous_Parent_Unit_Name (S, P);
+                     S := Make_Selected_Component
+                       (Get_Parent_Unit_Name
+                        (Get_Type_Definition_Node (Type_Spec (E))),
+                        Selector_Name (RE (Converter, False)));
 
                      --  The call to Copy_Node ensures the addition of
                      --  necessary WITH clauses.
@@ -313,9 +311,6 @@ package body Backend.BE_CORBA_Ada.Stubs is
          Get_Name_String (To_Ada_Name (IDL_Name (FEN.Identifier (E))));
          Identifier := Make_Defining_Identifier (Name_Find);
          N := Make_Exception_Declaration (Identifier);
-         Set_Homogeneous_Parent_Unit_Name
-           (Identifier,
-            Defining_Identifier (Main_Package (Current_Entity)));
          Append_Node_To_List (N, Visible_Part (Current_Package));
 
          --  Link the frontend node to the backend exception
@@ -327,9 +322,6 @@ package body Backend.BE_CORBA_Ada.Stubs is
          Get_Name_String (To_Ada_Name (IDL_Name (FEN.Identifier (E))));
          Add_Str_To_Name_Buffer ("_Members");
          Identifier := Make_Defining_Identifier (Name_Find);
-         Set_Homogeneous_Parent_Unit_Name
-           (Identifier,
-            Defining_Identifier (Main_Package (Current_Entity)));
          N := Make_Full_Type_Declaration
            (Defining_Identifier => Identifier,
             Type_Definition     => Make_Derived_Type_Definition
@@ -350,10 +342,10 @@ package body Backend.BE_CORBA_Ada.Stubs is
 
          --  Insert the Get_Members procedure specification
 
-         N := Map_Get_Members_Spec (Identifier);
-         Set_Homogeneous_Parent_Unit_Name
-           (Defining_Identifier (N),
-            Defining_Identifier (Main_Package (Current_Entity)));
+         N := Map_Get_Members_Spec
+           (Make_Selected_Component
+            (Defining_Identifier (Main_Package (Current_Entity)),
+             Identifier));
 
          Append_Node_To_List
            (N, Visible_Part (Current_Package));
@@ -386,8 +378,6 @@ package body Backend.BE_CORBA_Ada.Stubs is
          Get_Name_String (To_Ada_Name (IDL_Name (FEN.Identifier (E))));
          Add_Str_To_Name_Buffer ("_Forward");
          Identifier := Make_Defining_Identifier (Name_Find);
-         Set_Homogeneous_Parent_Unit_Name
-           (Identifier, Defining_Identifier (Main_Package (Current_Entity)));
 
          --  Generic Package Instantiation
 
@@ -407,8 +397,6 @@ package body Backend.BE_CORBA_Ada.Stubs is
          --  declared in the instantiated package.
 
          Identifier := Map_Ref_Type (E);
-         Set_Homogeneous_Parent_Unit_Name
-           (Identifier, Defining_Identifier (N));
          Ref_Type_Node := Make_Full_Type_Declaration
            (Identifier,
             Make_Derived_Type_Definition
@@ -416,7 +404,8 @@ package body Backend.BE_CORBA_Ada.Stubs is
                Map_Ref_Type_Ancestor (E, False),
              Record_Extension_Part =>
                Make_Record_Type_Definition
-             (Record_Definition => Make_Record_Definition (No_List))));
+               (Record_Definition => Make_Record_Definition (No_List))),
+           Parent => N);
 
          --  We don't add this node!
 
@@ -467,7 +456,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
 
             N := Map_Ref_Type_Ancestor (E);
          else
-            N := Map_Designator (First_Entity (L));
+            N := Map_Expanded_Name (First_Entity (L));
          end if;
 
          --  The designator of the reference type is also dependant of
@@ -530,25 +519,21 @@ package body Backend.BE_CORBA_Ada.Stubs is
                Gen_Pack  : Node_Id;
             begin
                Pack_Inst := RE (RE_Convert_Forward);
-               Set_Homogeneous_Parent_Unit_Name
-                 (Pack_Inst,
-                  Defining_Identifier (Main_Package (Current_Entity)));
-               Gen_Pack := RE (RE_Convert);
-               Set_Homogeneous_Parent_Unit_Name
-                 (Gen_Pack,
-                  Defining_Identifier
+
+               Gen_Pack := Make_Selected_Component
+                 (Expand_Designator
                   (Forward_Node
                    (BE_Node
-                    (Identifier
-                     (E)))));
+                    (Identifier (E)))),
+                  RE (RE_Convert));
 
                --  To guarantee that the "with" clause of the generic
-               --  package would be added, we use the Copy_Designator
+               --  package would be added, we use the Copy_Expanded_Name
                --  function.
 
                N := Make_Package_Instantiation
-                 (Defining_Identifier => Defining_Identifier (Pack_Inst),
-                  Generic_Package     => Copy_Designator (Gen_Pack),
+                 (Defining_Identifier => Pack_Inst,
+                  Generic_Package     => Copy_Expanded_Name (Gen_Pack),
                   Parameter_List      => Make_List_Id (Map_Ref_Type (E)));
                Append_Node_To_List (N, Visible_Part (Current_Package));
             end;
@@ -631,10 +616,10 @@ package body Backend.BE_CORBA_Ada.Stubs is
          is
             Result : Node_Id;
          begin
-            Result := Map_Designator (Entity);
+            Result := Map_Expanded_Name (Entity);
 
             if Is_Equal_To_Current_Interface (Entity) then
-               Result := Make_Attribute_Designator (Result, A_Class);
+               Result := Make_Attribute_Reference (Result, A_Class);
             end if;
 
             return Result;
@@ -816,8 +801,6 @@ package body Backend.BE_CORBA_Ada.Stubs is
                  := Map_Fixed_Type_Name (Type_Spec_Node);
             begin
                T := Make_Defining_Identifier (Fixed_Name);
-               Set_Homogeneous_Parent_Unit_Name
-                 (T, Defining_Identifier (Main_Package (Current_Entity)));
 
                Fixed_Type_Node := Make_Full_Type_Declaration
                  (Defining_Identifier => T,
@@ -825,6 +808,9 @@ package body Backend.BE_CORBA_Ada.Stubs is
                     (Type_Spec_Node));
                Append_Node_To_List (Fixed_Type_Node,
                                     Visible_Part (Current_Package));
+
+               T := Make_Selected_Component
+                 (Defining_Identifier (Main_Package (Current_Entity)), T);
 
                --  Link the front end node to the Ada type definition
 
@@ -864,14 +850,10 @@ package body Backend.BE_CORBA_Ada.Stubs is
 
                --  Building the sequence package node
 
-               Type_Node := Map_Designator (Type_Spec (Type_Spec_Node));
+               Type_Node := Map_Expanded_Name (Type_Spec (Type_Spec_Node));
 
                Seq_Package_Node := Make_Defining_Identifier
                  (Seq_Package_Name);
-               Set_Homogeneous_Parent_Unit_Name
-                 (Seq_Package_Node,
-                  Defining_Identifier
-                  (Main_Package (Current_Entity)));
 
                if Bounded then
                   Seq_Package_Inst := Make_Package_Instantiation
@@ -898,8 +880,11 @@ package body Backend.BE_CORBA_Ada.Stubs is
                               Seq_Package_Inst,
                               B_Instantiation);
 
-               T := Make_Designator (TN (T_Sequence));
-               Set_Homogeneous_Parent_Unit_Name (T, Seq_Package_Node);
+               T := Make_Selected_Component
+                 (Make_Selected_Component
+                  (Defining_Identifier (Main_Package (Current_Entity)),
+                   Seq_Package_Node),
+                  Make_Identifier (TN (T_Sequence)));
 
                --  Link the frontend node to the Sequence type designator
 
@@ -935,20 +920,16 @@ package body Backend.BE_CORBA_Ada.Stubs is
 
                if FEN.Kind (Type_Spec_Node) = K_Wide_String_Type then
                   CORBA_String_Pkg := RU (RU_CORBA_Bounded_Wide_Strings);
-                  T := Make_Designator (TN (T_Bounded_Wide_String));
+                  T := Make_Identifier (TN (T_Bounded_Wide_String));
                else
                   CORBA_String_Pkg := RU (RU_CORBA_Bounded_Strings);
-                  T := Make_Designator (TN (T_Bounded_String));
+                  T := Make_Identifier (TN (T_Bounded_String));
                end if;
 
                --  Building the string package node
 
                Pkg_Node := Make_Defining_Identifier
                  (Pkg_Name);
-               Set_Homogeneous_Parent_Unit_Name
-                 (Pkg_Node,
-                  Defining_Identifier
-                  (Main_Package (Current_Entity)));
 
                Str_Package_Inst := Make_Package_Instantiation
                  (Defining_Identifier => Pkg_Node,
@@ -965,9 +946,13 @@ package body Backend.BE_CORBA_Ada.Stubs is
                               B_Instantiation);
 
                --  Setting the correct parent unit name of the
-               --  instantiated type
+               --  instantiated type.
 
-               Set_Homogeneous_Parent_Unit_Name (T, Pkg_Node);
+               T := Make_Selected_Component
+                 (Make_Selected_Component
+                  (Defining_Identifier (Main_Package (Current_Entity)),
+                   Pkg_Node),
+                  T);
 
                --  Link the frontend node to the Sequence type designator
 
@@ -976,7 +961,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
          else
             --  General case
 
-            T := Map_Designator (Type_Spec_Node);
+            T := Map_Expanded_Name (Type_Spec_Node);
          end if;
 
          --  According to the Ada mapping specification. Most of the
@@ -997,8 +982,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
                  (Defining_Identifier => Map_Defining_Identifier (D),
                   Type_Definition     => Make_Array_Type_Definition
                   (Map_Range_Constraints
-                   (FEN.Array_Sizes (D))
-                   , T));
+                   (FEN.Array_Sizes (D)), T));
             else
                N := Make_Full_Type_Declaration
                  (Defining_Identifier => Map_Defining_Identifier (D),
@@ -1065,13 +1049,13 @@ package body Backend.BE_CORBA_Ada.Stubs is
          Literal_Parent : Node_Id := No_Node;
       begin
          Set_Main_Spec;
-         T := Map_Designator (S);
+         T := Map_Expanded_Name (S);
 
          --  If the discriminator is an enumeration type, we must put
          --  the full names of literals
 
          if FEN.Kind (Orig_Type) = K_Enumeration_Type then
-            Literal_Parent := Map_Designator
+            Literal_Parent := Map_Expanded_Name
               (Scope_Entity
                (Identifier
                 (Orig_Type)));
@@ -1092,7 +1076,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
             Make_List_Id
             (Make_Component_Declaration
              (Make_Defining_Identifier (CN (C_Switch)), T,
-              Make_Attribute_Designator (T, A_First))));
+              Make_Attribute_Reference (T, A_First))));
          Bind_FE_To_BE (Identifier (E), N, B_Stub);
          Bind_FE_To_BE (Identifier (E), N, B_Type_Def);
 
@@ -1397,7 +1381,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
 
                if Non_Void and then not Is_Function then
                   Append_Node_To_List
-                    (Make_Designator (PN (P_Returns)), Impl_Profile);
+                    (Make_Identifier (PN (P_Returns)), Impl_Profile);
                end if;
 
                Implem_Node := Expand_Designator
@@ -1452,7 +1436,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
               (IDL_Name (Identifier (Declarator (P))));
 
             if Use_Compiler_Alignment then
-               C := Make_Designator (Argument_Name);
+               C := Make_Identifier (Argument_Name);
                Marshall_Args (Statements, Type_Spec (P), C);
             elsif Use_SII then
                --  Updating the record field corresponding to the
@@ -1463,9 +1447,8 @@ package body Backend.BE_CORBA_Ada.Stubs is
                then
                   --  Record field :
 
-                  N := Make_Designator
-                    (Designator => Argument_Name,
-                     Parent     => PN (P_Arg_List));
+                  N := Make_Selected_Component
+                    (Argument_Name, PN (P_Arg_List));
 
                   --  Parameter :
 
@@ -1494,19 +1477,19 @@ package body Backend.BE_CORBA_Ada.Stubs is
 
                --  1st param
 
-               N := Make_Designator (VN (V_Argument_List));
+               N := Make_Identifier (VN (V_Argument_List));
                Append_Node_To_List (N, Profile);
 
                --  2nd param
 
-               N := Make_Designator
+               N := Make_Identifier
                  (Map_Argument_Identifier_Name
                   (Argument_Name, Operation_Name));
                Append_Node_To_List (N, Profile);
 
                --  3rd param
 
-               N := Make_Designator (Map_Argument_Any_Name (Argument_Name));
+               N := Make_Identifier (Map_Argument_Any_Name (Argument_Name));
                N := Make_Type_Conversion (RE (RE_Any_1), N);
 
                --  If the operation is oneway, transmit a copy of the "Any"
@@ -1554,7 +1537,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
                N := Make_Subprogram_Call
                  (RE (RE_Create_List_1),
                   Make_List_Id
-                  (Make_Designator (VN (V_Exception_List))));
+                  (Make_Identifier (VN (V_Exception_List))));
                Append_Node_To_List (N, Statements);
 
                Excep_FE := First_Entity (Exceptions (E));
@@ -1569,7 +1552,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
                   N := Make_Subprogram_Call
                     (RE (RE_Add_1),
                      Make_List_Id
-                     (Make_Designator
+                     (Make_Identifier
                       (VN (V_Exception_List)),
                       Excep_TC));
                   Append_Node_To_List (N, Statements);
@@ -1593,8 +1576,8 @@ package body Backend.BE_CORBA_Ada.Stubs is
             --  1st component association
 
             N := Make_Component_Association
-              (Selector_Name => Make_Designator (PN (P_Name)),
-               Expression    => Make_Designator
+              (Selector_Name => Make_Identifier (PN (P_Name)),
+               Expression    => Make_Identifier
                (Map_Result_Identifier_Name (Operation_Name)));
             Append_Node_To_List (N, Profile);
 
@@ -1631,7 +1614,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
             R := Map_Result_Subprogram_Name (Operation_Name);
 
             I := Make_Pragma
-              (Pragma_Inline, Make_List_Id (Make_Designator (R)));
+              (Pragma_Inline, Make_List_Id (Make_Identifier (R)));
             C := Make_Subprogram_Specification
               (Make_Defining_Identifier (R),
                No_List,
@@ -1646,14 +1629,15 @@ package body Backend.BE_CORBA_Ada.Stubs is
                Set_Str_To_Name_Buffer ("Setting the result value");
                Append_Node_To_List (Make_Ada_Comment (Name_Find), Statements);
 
-               N := Make_Designator (CN (C_Argument), VN (V_Result_NV));
+               N := Make_Selected_Component
+                 (VN (V_Result_NV), CN (C_Argument));
                N := Make_Subprogram_Call
                  (RE (RE_Get_Container_2),
                   Make_List_Id (N));
                N := Make_Explicit_Dereference (N);
 
-               C := Make_Attribute_Designator
-                 (Make_Designator
+               C := Make_Attribute_Reference
+                 (Make_Identifier
                   (Map_Argument_Content_Name
                    (VN (V_Result))),
                   A_Unrestricted_Access);
@@ -1715,7 +1699,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
             N := Make_Subprogram_Call
               (RE (RE_To_PolyORB_Ref_1),
                Make_List_Id
-               (Make_Designator
+               (Make_Identifier
                 (VN (V_Exception_List))));
 
             --  5th parameter association
@@ -1770,7 +1754,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
 
             M := Make_Subprogram_Call
               (RE (RE_Ref_2),
-               Make_List_Id (Make_Designator (PN (P_Self))));
+               Make_List_Id (Make_Identifier (PN (P_Self))));
 
             N := Make_Subprogram_Call
               (RE (RE_To_PolyORB_Ref),
@@ -1781,13 +1765,13 @@ package body Backend.BE_CORBA_Ada.Stubs is
 
             N := Make_Subprogram_Call
               (RE (RE_Get_Request_QoS),
-               Make_List_Id (Make_Designator (VN (V_Request))));
+               Make_List_Id (Make_Identifier (VN (V_Request))));
             Append_Node_To_List (N, Profile);
-            Append_Node_To_List (Make_Designator (VN (V_Component)), Profile);
+            Append_Node_To_List (Make_Identifier (VN (V_Component)), Profile);
             Append_Node_To_List
-              (Make_Designator (VN (V_Binding_Profile)), Profile);
+              (Make_Identifier (VN (V_Binding_Profile)), Profile);
             Append_Node_To_List (RE (RE_False), Profile);
-            Append_Node_To_List (Make_Designator (VN (V_Error)), Profile);
+            Append_Node_To_List (Make_Identifier (VN (V_Error)), Profile);
 
             --  Call to the bind method to get the client Session and
             --  the binding_profile.
@@ -1801,14 +1785,14 @@ package body Backend.BE_CORBA_Ada.Stubs is
             N := Make_Type_Conversion
               (RE (RE_GIOP_Session),
                (Make_Explicit_Dereference
-                  (Make_Designator
+                  (Make_Identifier
                      (VN (V_Component)))));
 
             N := Make_Subprogram_Call
               (RE (RE_Get_Representation),
                Make_List_Id (N));
             N := Make_Assignment_Statement
-              (Make_Designator (VN (V_Representation)), N);
+              (Make_Identifier (VN (V_Representation)), N);
             Append_Node_To_List (N, Statements);
 
             if Use_Compiler_Alignment then
@@ -1831,18 +1815,18 @@ package body Backend.BE_CORBA_Ada.Stubs is
                   end loop;
 
                   J := Unsigned_Long_Long (Length (Disc));
-                  C := Make_Attribute_Designator
-                    (Make_Designator (VN (V_Args_In)), A_Address);
+                  C := Make_Attribute_Reference
+                    (Make_Identifier (VN (V_Args_In)), A_Address);
 
                   N := Make_Subprogram_Call
                     (RE (RE_Insert_Raw_Data),
                      Make_List_Id
-                     (Make_Designator (VN (V_Request)),
+                     (Make_Identifier (VN (V_Request)),
                       C,
-                      Make_Attribute_Designator
-                      (Make_Designator (VN (V_Args_In)), A_Size),
+                      Make_Attribute_Reference
+                      (Make_Identifier (VN (V_Args_In)), A_Size),
                       Make_Literal (New_Integer_Value (J, 1, 10)),
-                      Make_Designator (VN (V_Buffer))));
+                      Make_Identifier (VN (V_Buffer))));
                   Append_Node_To_List (N, Statements);
                end;
             else
@@ -1852,11 +1836,11 @@ package body Backend.BE_CORBA_Ada.Stubs is
 
                Profile := New_List (K_List_Id);
                Append_Node_To_List
-                 (Make_Designator (VN (V_Binding_Profile)), Profile);
+                 (Make_Identifier (VN (V_Binding_Profile)), Profile);
 
-               Append_Node_To_List (Make_Designator (VN (V_Component)),
+               Append_Node_To_List (Make_Identifier (VN (V_Component)),
                                     Profile);
-               Append_Node_To_List (Make_Designator (VN (V_Error)), Profile);
+               Append_Node_To_List (Make_Identifier (VN (V_Error)), Profile);
 
                --  Get the marshaller
 
@@ -1872,15 +1856,15 @@ package body Backend.BE_CORBA_Ada.Stubs is
                --  The arguments list, we use the method_name_Arg_Type
                --  instead of the Request_Args type
 
-               N := Make_Designator (PN (P_Arg_List));
-               N := Make_Attribute_Designator (N, A_Access);
+               N := Make_Identifier (PN (P_Arg_List));
+               N := Make_Attribute_Reference (N, A_Access);
                Append_Node_To_List (N, Profile);
 
                Append_Node_To_List
                  (Make_Defining_Identifier (VN (V_Buffer)), Profile);
 
                N := Make_Explicit_Dereference
-                 (Make_Designator (VN (V_Representation)));
+                 (Make_Identifier (VN (V_Representation)));
                Append_Node_To_List (N, Profile);
 
                --  There is no alignment it will be done in
@@ -1899,13 +1883,13 @@ package body Backend.BE_CORBA_Ada.Stubs is
 
                N := Make_Subprogram_Call
                  (RE (RE_Found),
-                  Make_List_Id (Make_Designator (VN (V_Error))));
+                  Make_List_Id (Make_Identifier (VN (V_Error))));
 
                N := Make_If_Statement
                  (Condition       => N,
                   Then_Statements => Make_List_Id
                   (Make_Raise_Statement
-                   (Make_Designator (EN (E_Program_Error)))));
+                   (Make_Identifier (EN (E_Program_Error)))));
                Append_Node_To_List (N, Statements);
             end if;
 
@@ -1966,15 +1950,15 @@ package body Backend.BE_CORBA_Ada.Stubs is
             Profile := New_List (K_List_Id);
             Append_Node_To_List (RE (RE_True), Profile);
 
-            N := Make_Designator (PN (P_Arg_List));
-            N := Make_Attribute_Designator (N, A_Access);
+            N := Make_Identifier (PN (P_Arg_List));
+            N := Make_Attribute_Reference (N, A_Access);
             Append_Node_To_List (N, Profile);
 
-            N := Make_Designator (VN (V_Buffer));
+            N := Make_Identifier (VN (V_Buffer));
             Append_Node_To_List (N, Profile);
 
             N := Make_Explicit_Dereference
-              (Make_Designator (VN (V_Representation)));
+              (Make_Identifier (VN (V_Representation)));
             Append_Node_To_List (N, Profile);
 
             --  There is no alignment it will be done in
@@ -1999,13 +1983,13 @@ package body Backend.BE_CORBA_Ada.Stubs is
          Append_Node_To_List
            (Make_Subprogram_Call
               (RE (RE_Request_Raise_Occurrence),
-               Make_List_Id (Make_Designator (VN (V_Request)))), Statements);
+               Make_List_Id (Make_Identifier (VN (V_Request)))), Statements);
 
          --  Destroy the request
 
          N := Make_Subprogram_Call
            (RE (RE_Destroy_Request),
-            Make_List_Id (Make_Designator (VN (V_Request))));
+            Make_List_Id (Make_Identifier (VN (V_Request))));
          Append_Node_To_List (N, Statements);
 
          --  Retrieve return value
@@ -2015,11 +1999,11 @@ package body Backend.BE_CORBA_Ada.Stubs is
             Append_Node_To_List (Make_Ada_Comment (Name_Find), Statements);
 
             if Use_SII then
-               N := Make_Designator (PN (P_Returns), PN (P_Arg_List));
+               N := Make_Selected_Component (PN (P_Returns), PN (P_Arg_List));
                N := Make_Return_Statement (N);
                Append_Node_To_List (N, Statements);
             else
-               N := Make_Return_Statement (Make_Designator (VN (V_Result)));
+               N := Make_Return_Statement (Make_Identifier (VN (V_Result)));
                Append_Node_To_List (N, Statements);
             end if;
          end if;
@@ -2095,7 +2079,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
                      --  There is a Returns parameter in the Ada
                      --  mapped subprogram.
 
-                     N := Make_Designator (PN (P_Returns));
+                     N := Make_Identifier (PN (P_Returns));
                   end if;
 
                   N := Make_Object_Declaration
@@ -2112,12 +2096,12 @@ package body Backend.BE_CORBA_Ada.Stubs is
                      --  There is no Returns parameter in the Ada
                      --  mapped subprogram.
 
-                     N := Make_Designator (VN (V_Result));
+                     N := Make_Identifier (VN (V_Result));
                   else
                      --  There is a Returns parameter in the Ada
                      --  mapped subprogram.
 
-                     N := Make_Designator (PN (P_Returns));
+                     N := Make_Identifier (PN (P_Returns));
                   end if;
 
                   N := Make_Pragma
@@ -2131,7 +2115,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
                     (FEU.Get_Original_Type_Declarator
                      (Type_Spec (E)));
 
-                  N := Make_Designator (VN (V_Result));
+                  N := Make_Identifier (VN (V_Result));
 
                   --  Cast the parameter when necessary
 
@@ -2143,14 +2127,14 @@ package body Backend.BE_CORBA_Ada.Stubs is
 
                   C := Make_Subprogram_Call
                     (C,
-                     Make_List_Id (Make_Attribute_Designator
+                     Make_List_Id (Make_Attribute_Reference
                                    (N,
                                     A_Unrestricted_Access)));
                   N := Make_Object_Declaration
                     (Defining_Identifier => Make_Defining_Identifier
                      (Map_Argument_Content_Name (VN (V_Result))),
                      Constant_Present    => False,
-                     Object_Definition   => Make_Attribute_Designator
+                     Object_Definition   => Make_Attribute_Reference
                      (RE (RE_Content), A_Class),
                      Expression          => C,
                      Aliased_Present     => True);
@@ -2199,7 +2183,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
                     (FEU.Get_Original_Type_Declarator
                      (Type_Spec (P)));
 
-                  N := Make_Designator (Argument_Name);
+                  N := Make_Identifier (Argument_Name);
 
                   --  Cast the parameter when necessary
 
@@ -2211,14 +2195,14 @@ package body Backend.BE_CORBA_Ada.Stubs is
 
                   C := Make_Subprogram_Call
                     (C,
-                     Make_List_Id (Make_Attribute_Designator
+                     Make_List_Id (Make_Attribute_Reference
                                    (N,
                                     A_Unrestricted_Access)));
                   N := Make_Object_Declaration
                     (Defining_Identifier => Make_Defining_Identifier
                        (Map_Argument_Content_Name (Argument_Name)),
                      Constant_Present    => False,
-                     Object_Definition   => Make_Attribute_Designator
+                     Object_Definition   => Make_Attribute_Reference
                      (RE (RE_Content), A_Class),
                      Expression          => C,
                      Aliased_Present     => True);
@@ -2227,8 +2211,8 @@ package body Backend.BE_CORBA_Ada.Stubs is
                   --  Declaration of the `Any' argument variable
 
                   R := Map_Argument_Any_Name (Argument_Name);
-                  C := Make_Attribute_Designator
-                    (Make_Designator
+                  C := Make_Attribute_Reference
+                    (Make_Identifier
                      (Map_Argument_Content_Name (Argument_Name)),
                      A_Unchecked_Access);
                   C := Make_Subprogram_Call
@@ -2251,7 +2235,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
                        (Pragma_Warnings,
                         Make_List_Id
                         (RE (RE_Off),
-                         Make_Designator (Argument_Name)));
+                         Make_Identifier (Argument_Name)));
                      Append_Node_To_List (N, L);
                   end if;
 
@@ -2342,7 +2326,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
                Res_Exp := No_Node;
             else
                Res_Exp := Make_Subprogram_Call
-                 (Make_Designator (R), No_List);
+                 (Make_Identifier (R), No_List);
             end if;
 
             N := Make_Object_Declaration
@@ -2497,8 +2481,9 @@ package body Backend.BE_CORBA_Ada.Stubs is
                --  Build the Repository_Id constant corresponding to
                --  the parent interface.
 
-               Rep_Id := Make_Defining_Identifier (PN (P_Repository_Id));
-               Set_Homogeneous_Parent_Unit_Name (Rep_Id, Parent_Unit_Name (T));
+               Rep_Id := Make_Selected_Component
+                 (Get_Parent_Unit_Name (T),
+                  Make_Defining_Identifier (PN (P_Repository_Id)));
 
                if Present (Result) then
                   Result := Make_Expression
@@ -2627,7 +2612,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
          Make_List_Id (M, Make_Defining_Identifier (PN (P_Logical_Type_Id))));
       N := Make_Subprogram_Call
         (Make_Defining_Identifier (SN (S_Is_A)),
-         Make_List_Id (Make_Designator (PN (P_Logical_Type_Id))));
+         Make_List_Id (Make_Identifier (PN (P_Logical_Type_Id))));
       N := Make_Expression
         (RE (RE_False),
          Op_Or_Else,

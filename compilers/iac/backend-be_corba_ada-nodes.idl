@@ -40,43 +40,36 @@ module Backend::BE_CORBA_Ada::Nodes {
     Node_Id    First_Node;
     Node_Id    Last_Node;
   };
-  
-  interface Defining_Identifier : Node_Id {
+
+  interface Identifier : Node_Id {
     Name_Id    Name;
     // The local name if the identifier
-    
-    Node_Id    Corresponding_Node;
-    // The Ada entity the identifier belongs to
-
-    Node_Id    Parent_Unit_Name;
-    // The parent of the identifier which is generally a 
-    // Defining_Identifier
+  };
+  
+  interface Defining_Identifier : Identifier {
+    Node_Id    Declaration_Node;
+    // The Ada declaration the identifier belongs to
   };
 
-  /* We use a designator to designate a Defining identifier of an 
-     Ada entity */
-  interface Designator : Node_Id {
-    Node_Id    Defining_Identifier;
-    // The Identifier of the designator
-
-    Node_Id    Parent_Unit_Name;
-  };
-
-  /* The Attribute designator node is used to create Ada entities such as
+  /* The Attribute reference node is used to create Ada entities such as
      A'Class. A is the prefix, Class is the name of the Attribute 
-     designator */
+     designator 
 
-  interface Attribute_Designator : Node_Id {
+     ATTRIBUTE_REFERENCE ::= PREFIX'ATTRIBUTE_DESIGNATOR
+
+     RANGE_ATTRIBUTE_REFERENCE ::= PREFIX'RANGE_ATTRIBUTE_DESIGNATOR
+  */
+
+  interface Attribute_Reference : Node_Id {
     Name_Id    Name;
-    // Name of the Attribute designator (Class, Range ...)
+    // Name of the Attribute designator (Class, Range [(...)], etc...)
 
     Node_Id    Prefix;
     // Prefix, which is generally a Designator
-
-    Node_Id    Parent_Unit_Name;
   };
 
   /* --  EXPLICIT_DEREFERENCE ::= NAME . all */
+
   interface Explicit_Dereference : Node_Id {
     Node_Id   Prefix;
   };
@@ -158,12 +151,13 @@ module Backend::BE_CORBA_Ada::Nodes {
     // False for imported entities
   };
 
-  /* A package declaration consist of a package specification and a package
-     implementation */
+  /* A package declaration consist of a package specification and a
+     package implementation.
+  */
 
   interface Package_Declaration : Definition {
-    // The full name of the package is stored in the Defining_Identifier field
-    // inherited from Definition
+    // The full name of the package is stored in the
+    // Defining_Identifier field inherited from Definition.
 
     Node_Id    IDL_Unit;
     // The IDL_Unit the package declaration belongs to
@@ -187,9 +181,9 @@ module Backend::BE_CORBA_Ada::Nodes {
     // or else 'end') 
 
     List_Id    Subunits;
-    // The list of subunits declared in this specification
-    // Note: we do not want subunits to be declared in visible_part to 
-    // ensure they are generated after all other elements in the Visible_Part.
+    // The list of subunits declared in this specification Note: we do
+    // not want subunits to be declared in visible_part to ensure they
+    // are generated after all other elements in the Visible_Part.
 
     List_Id    Private_Part;
     // The private declaration part (between 'private' and 'end')
@@ -213,7 +207,8 @@ module Backend::BE_CORBA_Ada::Nodes {
     // 'begin' or else 'end')
 
     List_Id    Package_Initialization;
-    // The handled list of statements (between the 'begin' and the 'end')
+    // The handled list of statements (between the 'begin' and the
+    // 'end')
   };
 
   /********************/
@@ -287,7 +282,6 @@ module Backend::BE_CORBA_Ada::Nodes {
 
   /* PARAMETER_ASSOCIATION ::=
       [formal_parameter_SELECTOR_NAME =>] EXPLICIT_ACTUAL_PARAMETER */
-  
 
   interface Parameter_Association : Node_Id {
     Node_Id    Selector_Name;
@@ -298,6 +292,7 @@ module Backend::BE_CORBA_Ada::Nodes {
   };
 
   /* SELECTED_COMPONENT ::= PREFIX . SELECTOR_NAME */
+
   interface Selected_Component : Node_Id {
      Node_Id  Prefix;
      Node_Id  Selector_Name;
@@ -482,15 +477,16 @@ module Backend::BE_CORBA_Ada::Nodes {
     // A list of component associations
 
     Node_Id    Ancestor_Part;
-    // If present then we deal with an EXTENSION_AGGREGATE, else we deal
-    // with a RECORD_AGGREGATE
+    // If present then we deal with an EXTENSION_AGGREGATE, else we
+    // deal with a RECORD_AGGREGATE.
   };
 
   interface Component_Association : Definition {
     // Defining_Identifier inherited from Definition
 
     Node_Id    Expression;
-    // The expression of the component (the part which comes after the "=>"
+    // The expression of the component (the part which comes after the
+    // "=>"
   };
 
   /**************/
@@ -505,6 +501,7 @@ module Backend::BE_CORBA_Ada::Nodes {
      exception
         raise;
      end; */
+
   interface Block_Statement : Definition {
     // Defining_Identifier inherited from Definition
 
@@ -614,11 +611,11 @@ module Backend::BE_CORBA_Ada::Nodes {
 
   interface Ada_Comment : Node_Id {
     Name_Id     Message;
-    // The comment
+    // The comment text
 
     boolean     Has_Header_Spaces;
-    // If True then do not generate the spaces between the "--" 
-    // and the comment
+    // If True then do not generate the spaces between the "--" and
+    // the comment.
   };
 
   /****************/
@@ -649,9 +646,6 @@ module Backend::BE_CORBA_Ada::Nodes {
   interface Literal : Node_Id {
     Value_Id   Value;
     // The Value of the literal
-
-    Node_Id    Parent_Designator;
-    // The parent of the literal (for enumeration literals)
   };
 
   /* Example : 1 => 3 */
@@ -683,9 +677,11 @@ module Backend::BE_CORBA_Ada::Nodes {
     // The renamed exception (if any)
   };
 
-  /* The Node below is used to link the front end tree to the backend tree. 
-     It allows to link one frontend node to more than one backend node without
-     modifying the frontend tree each time we add a new link */
+  /* The Node below is used to link the front end tree to the backend
+     tree.  It allows to link one frontend node to more than one
+     backend node without modifying the frontend tree each time we add
+     a new link.
+  */
 
   interface BE_Ada : Node_Id {
     Node_Id    Stub_Node;

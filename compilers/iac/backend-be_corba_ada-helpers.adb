@@ -37,7 +37,6 @@ with Values;   use Values;
 with Frontend.Nodes;   use Frontend.Nodes;
 with Frontend.Nutils;
 
-with Backend.BE_CORBA_Ada.Expand;      use Backend.BE_CORBA_Ada.Expand;
 with Backend.BE_CORBA_Ada.IDL_To_Ada;  use Backend.BE_CORBA_Ada.IDL_To_Ada;
 with Backend.BE_CORBA_Ada.Nodes;       use Backend.BE_CORBA_Ada.Nodes;
 with Backend.BE_CORBA_Ada.Nutils;      use Backend.BE_CORBA_Ada.Nutils;
@@ -137,7 +136,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
       begin
          Parameter := Make_Parameter_Specification
            (Make_Defining_Identifier (PN (P_The_Ref)),
-            Make_Attribute_Designator
+            Make_Attribute_Reference
             (Map_Ref_Type_Ancestor (E),
              A_Class));
          Append_Node_To_List (Parameter, Profile);
@@ -182,7 +181,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
       begin
          Parameter := Make_Parameter_Specification
            (Make_Defining_Identifier (PN (P_The_Ref)),
-            Make_Attribute_Designator
+            Make_Attribute_Reference
             (Map_Ref_Type_Ancestor (E),
              A_Class));
          Append_Node_To_List (Parameter, Profile);
@@ -211,7 +210,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
       begin
          Parameter := Make_Parameter_Specification
            (Make_Defining_Identifier (PN (P_Members)),
-            Defining_Identifier (Excp_Members));
+            Excp_Members);
          Append_Node_To_List (Parameter, Profile);
 
          N := Make_Subprogram_Specification
@@ -273,7 +272,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
                N := Get_Type_Definition_Node (E);
 
             when K_Exception_Declaration =>
-               N := Make_Designator (To_Ada_Name (IDL_Name (Identifier (E))));
+               N := Make_Identifier (To_Ada_Name (IDL_Name (Identifier (E))));
 
             when others =>
                declare
@@ -285,7 +284,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
                end;
          end case;
 
-         TC := Add_Prefix_To_Name ("TC_", BEN.Name (Defining_Identifier (N)));
+         TC := Add_Prefix_To_Name ("TC_", Get_Name (Get_Base_Identifier (N)));
 
          N := Make_Object_Declaration
            (Defining_Identifier => Make_Defining_Identifier (TC),
@@ -707,7 +706,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
          --  Get the node corresponding to the declaration of the
          --  "Excp_Name"_Members type.
 
-         Excp_Members := Type_Def_Node (BE_Node (Identifier (E)));
+         Excp_Members := Get_Type_Definition_Node (E);
 
          --  Do not generate the Any converters in case one of the
          --  component is a local interface or has a local interface
@@ -737,7 +736,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
 
          N := Make_Pragma
            (Pragma_No_Return,
-            Make_List_Id (Make_Designator (BEN.Name (Raise_Node))));
+            Make_List_Id (Make_Identifier (BEN.Name (Raise_Node))));
          Append_Node_To_List (N, Visible_Part (Current_Package));
       end Visit_Exception_Declaration;
 
@@ -942,7 +941,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
               (Defining_Identifier =>
                  Make_Defining_Identifier (PN (P_Result)),
                Object_Definition =>
-                 Copy_Designator (Return_Type (Spec)));
+                 Copy_Expanded_Name (Return_Type (Spec)));
             Append_Node_To_List (N, D);
 
             N := Declare_Any_Array (PN (P_Aux), 0, Dimension - 1);
@@ -1041,7 +1040,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
 
             N := Make_Subprogram_Call
               (RE (RE_Get_Container_1),
-               Make_List_Id (Make_Designator (PN (P_Item))));
+               Make_List_Id (Make_Identifier (PN (P_Item))));
             N := Make_Explicit_Dereference (N);
             N := Make_Subprogram_Call
               (Get_From_Any_Container_Node (E),
@@ -1147,21 +1146,21 @@ package body Backend.BE_CORBA_Ada.Helpers is
                Declarator := First_Entity (Declarators (Member));
 
                while Present (Declarator) loop
-                  Designator := Map_Designator (Declarator);
+                  Designator := Map_Expanded_Name (Declarator);
                   Get_Name_String (VN (V_Result));
                   Add_Char_To_Name_Buffer ('_');
                   Get_Name_String_And_Append
-                    (BEN.Name (Defining_Identifier (Designator)));
+                    (Get_Name (Get_Base_Identifier (Designator)));
                   Result_Name := Name_Find;
                   N := Make_Component_Association
-                    (Defining_Identifier (Designator),
+                    (Designator,
                      Make_Defining_Identifier (Result_Name));
                   Append_Node_To_List (N, L);
 
                   N := Make_Object_Declaration
                     (Defining_Identifier => Make_Defining_Identifier
                      (Result_Name),
-                     Object_Definition => Copy_Designator
+                     Object_Definition => Copy_Expanded_Name
                      (Subtype_Indication
                       (Stub_Node
                        (BE_Node
@@ -1190,7 +1189,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
                   Append_Node_To_List (N, S);
                   N := Make_Subprogram_Call
                     (Helper,
-                     Make_List_Id (Make_Designator (VN (V_Index))));
+                     Make_List_Id (Make_Identifier (VN (V_Index))));
                   N := Make_Assignment_Statement
                     (Make_Defining_Identifier (Result_Name),
                      N);
@@ -1246,13 +1245,13 @@ package body Backend.BE_CORBA_Ada.Helpers is
             if Is_Base_Type (Switch_Type_Spec (E)) then
                Switch_Type := RE (Convert (FEN.Kind (Switch_Type_Spec (E))));
             elsif FEN.Kind (Orig_Type) =  K_Enumeration_Type then
-               Switch_Type := Map_Designator (Switch_Type_Spec (E));
-               Literal_Parent := Map_Designator
+               Switch_Type := Map_Expanded_Name (Switch_Type_Spec (E));
+               Literal_Parent := Map_Expanded_Name
                  (Scope_Entity
                   (Identifier
                    (Orig_Type)));
             else
-               Switch_Type := Map_Designator (Switch_Type_Spec (E));
+               Switch_Type := Map_Expanded_Name (Switch_Type_Spec (E));
             end if;
 
             --  Declaration of the "Label_Any" Variable.
@@ -1260,7 +1259,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
             N := Make_Subprogram_Call
               (RE (RE_Get_Aggregate_Element),
                Make_List_Id
-               (Make_Designator (PN (P_Item)),
+               (Make_Identifier (PN (P_Item)),
                 TC_Helper,
                 Make_Type_Conversion
                 (RE (RE_Unsigned_Long),
@@ -1291,7 +1290,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
             --  Declaring the "Result" variable
 
             N := Make_Type_Conversion
-              (Copy_Designator (Return_Type (Spec)),
+              (Copy_Expanded_Name (Return_Type (Spec)),
                Make_Defining_Identifier (VN (V_Label)));
 
             N := Make_Object_Declaration
@@ -1321,8 +1320,8 @@ package body Backend.BE_CORBA_Ada.Helpers is
 
                while Present (Label) loop
                   Choice := Make_Literal
-                    (Value             => FEN.Value (Label),
-                     Parent_Designator => Literal_Parent);
+                    (Value  => FEN.Value (Label),
+                     Parent => Literal_Parent);
                   Append_Node_To_List (Choice, Choices);
 
                   Label := Next_Entity (Label);
@@ -1364,7 +1363,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
                elsif FEN.Kind (Type_Spec (Element (Switch_Alternative))) =
                  K_Scoped_Name
                then
-                  Switch_Type := Map_Designator
+                  Switch_Type := Map_Expanded_Name
                     (Type_Spec
                      (Element
                       (Switch_Alternative)));
@@ -1388,7 +1387,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
                N := Make_Subprogram_Call
                  (RE (RE_Get_Aggregate_Element),
                   Make_List_Id
-                  (Make_Designator (PN (P_Item)),
+                  (Make_Identifier (PN (P_Item)),
                    TC_Helper,
                    Make_Type_Conversion
                    (RE (RE_Unsigned_Long),
@@ -1468,8 +1467,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
                --  Get the node corresponding to the declaration of
                --  the "Excp_Name"_Members type.
 
-               N := Type_Def_Node (BE_Node (Identifier (E)));
-               N := Defining_Identifier (N);
+               N := Get_Type_Definition_Node (E);
                N := Make_Object_Declaration
                  (Defining_Identifier =>
                     Make_Defining_Identifier (VN (V_Result)),
@@ -1485,7 +1483,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
 
                N := Make_Pragma
                  (Pragma_Unreferenced,
-                  Make_List_Id (Make_Designator (PN (P_Item))));
+                  Make_List_Id (Make_Identifier (PN (P_Item))));
                Append_Node_To_List (N, D);
 
                N := Make_Pragma
@@ -1494,7 +1492,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
 
                --  Statements
 
-               N := Make_Return_Statement (Make_Designator (VN (V_Result)));
+               N := Make_Return_Statement (Make_Identifier (VN (V_Result)));
                Append_Node_To_List (N, S);
             else
                --  Declarations
@@ -1530,7 +1528,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
 
                      Append_Node_To_List
                        (Make_Component_Association
-                        (Make_Designator (Dcl_Name),
+                        (Make_Identifier (Dcl_Name),
                          Member_Id),
                         Return_List);
 
@@ -1564,7 +1562,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
 
                      Param_List := New_List (K_List_Id);
                      Append_Node_To_List
-                       (Make_Designator (PN (P_Item)),
+                       (Make_Identifier (PN (P_Item)),
                         Param_List);
 
                      TC_Node := Get_TC_Node (Member_Type);
@@ -1746,8 +1744,8 @@ package body Backend.BE_CORBA_Ada.Helpers is
 
          N := Make_Component_Association
            (Selector_Name => Make_Defining_Identifier (PN (P_Init)),
-            Expression    => Make_Attribute_Designator
-              (Make_Designator (SN (S_Deferred_Initialization)),
+            Expression    => Make_Attribute_Reference
+              (Make_Identifier (SN (S_Deferred_Initialization)),
                A_Access));
          Append_Node_To_List (N, Aggregates);
 
@@ -1914,7 +1912,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
                Expression => N);
             Append_Node_To_List (N, D);
             N := Make_Subprogram_Call
-              (Make_Attribute_Designator (Map_Designator (E), A_Pos),
+              (Make_Attribute_Reference (Map_Expanded_Name (E), A_Pos),
                Make_List_Id (Make_Defining_Identifier (PN (P_Item))));
             N := Make_Type_Conversion (RE (RE_Unsigned_Long), N);
             N := Make_Subprogram_Call (RE (RE_To_Any_0), Make_List_Id (N));
@@ -1981,7 +1979,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
             N := Make_Subprogram_Call
               (RE (RE_Set_Type),
                Make_List_Id (Make_Defining_Identifier (PN (P_A)),
-                             Make_Designator (Helper_Name)));
+                             Make_Identifier (Helper_Name)));
             Append_Node_To_List (N, S);
             N := Make_Return_Statement
               (Make_Defining_Identifier (PN (P_A)));
@@ -2057,26 +2055,25 @@ package body Backend.BE_CORBA_Ada.Helpers is
 
             Member := First_Entity (Members (E));
 
+            --  If the structure has no members, Result would never be
+            --  modified and may be declared a constant.
+
             N := Make_Object_Declaration
               (Defining_Identifier =>
                  Make_Defining_Identifier (PN (P_Result)),
-               Constant_Present  => not Present (Member),
+               Constant_Present  => No (Member),
                Object_Definition => RE (RE_Any),
                Expression => N);
             Append_Node_To_List (N, D);
 
-            --  If the structure has no members, Result would never be
-            --  modified and may be declared a constant.
-
             while Present (Member) loop
-               Set_Constant_Present (N, False);
                Declarator := First_Entity (Declarators (Member));
-               Item_Designator := Make_Designator (PN (P_Item));
+               Item_Designator := Make_Identifier (PN (P_Item));
 
                while Present (Declarator) loop
-                  Designator := Map_Designator (Declarator);
-                  Set_Homogeneous_Parent_Unit_Name
-                    (Designator, Item_Designator);
+                  Designator := Make_Selected_Component
+                    (Item_Designator,
+                     Map_Expanded_Name (Declarator));
 
                   --  Get the declarator type in order to call the
                   --  right To_Any function
@@ -2148,15 +2145,15 @@ package body Backend.BE_CORBA_Ada.Helpers is
             --  Getting the "Item.Switch" name
 
             Switch_Item := Make_Selected_Component
-              (Make_Defining_Identifier (PN (P_Item)),
-               Make_Defining_Identifier (CN (C_Switch)));
+              (PN (P_Item),
+               CN (C_Switch));
 
             --  Getting the To_Any function of the union Switch
 
             To_Any_Helper := Get_To_Any_Node (Switch_Type_Spec (E));
 
             if FEN.Kind (Orig_Type) = K_Enumeration_Type then
-               Literal_Parent := Map_Designator
+               Literal_Parent := Map_Expanded_Name
                  (Scope_Entity
                   (Identifier
                    (Orig_Type)));
@@ -2184,8 +2181,8 @@ package body Backend.BE_CORBA_Ada.Helpers is
 
                while Present (Label) loop
                   Choice := Make_Literal
-                    (Value             => FEN.Value (Label),
-                     Parent_Designator => Literal_Parent);
+                    (Value  => FEN.Value (Label),
+                     Parent => Literal_Parent);
                   Append_Node_To_List (Choice, Choices);
                   Label := Next_Entity (Label);
                end loop;
@@ -2287,7 +2284,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
 
                N := Make_Pragma
                  (Pragma_Unreferenced,
-                  Make_List_Id (Make_Designator (PN (P_Item))));
+                  Make_List_Id (Make_Identifier (PN (P_Item))));
                Append_Node_To_List (N, D);
 
                N := Make_Pragma
@@ -2305,10 +2302,12 @@ package body Backend.BE_CORBA_Ada.Helpers is
 
                      To_Any_Helper := Get_To_Any_Node (Member_Type);
 
-                     N := Make_Designator
-                       (To_Ada_Name
-                        (IDL_Name (FEN.Identifier (Declarator))),
-                        PN (P_Item));
+                     N := Make_Selected_Component
+                       (PN (P_Item),
+                        To_Ada_Name
+                        (IDL_Name
+                         (FEN.Identifier
+                          (Declarator))));
 
                      N := Make_Subprogram_Call
                        (To_Any_Helper,
@@ -2328,7 +2327,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
                end loop;
             end if;
 
-            N := Make_Return_Statement (Make_Designator (VN (V_Result)));
+            N := Make_Return_Statement (Make_Identifier (VN (V_Result)));
             Append_Node_To_List (N, S);
 
             N := Make_Subprogram_Body (Spec, D, S);
@@ -2413,13 +2412,13 @@ package body Backend.BE_CORBA_Ada.Helpers is
          --  function defined in the instantiated package.
 
          if FEN.Kind (E) = K_Forward_Interface_Declaration then
-            Set_Homogeneous_Parent_Unit_Name
-              (S_Set_Node,
-               Defining_Identifier
+            S_Set_Node := Make_Selected_Component
+              (Expand_Designator
                (Instantiation_Node
                 (BE_Node
                  (Identifier
-                  (E)))));
+                  (E)))),
+               S_Set_Node);
          end if;
 
          Statements := New_List (K_List_Id);
@@ -2495,7 +2494,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
             Rep_Id := Make_Defining_Identifier (PN (P_Repository_Id));
          elsif FEN.Kind (E) = K_Forward_Interface_Declaration then
             Rep_Id := Make_Literal
-              (BEN.Value
+              (Get_Value
                (BEN.Expression
                 (Next_Node
                  (Type_Def_Node
@@ -2561,7 +2560,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
 
          N := Make_Defining_Identifier
            (To_Ada_Name (IDL_Name (FEN.Identifier (E))));
-         N := Make_Attribute_Designator (N, A_Identity);
+         N := Make_Attribute_Reference (N, A_Identity);
          N := Make_Subprogram_Call
            (RE (RE_User_Raise_Exception),
             Make_List_Id
@@ -2904,11 +2903,10 @@ package body Backend.BE_CORBA_Ada.Helpers is
             --  Getting the name of the package instantiation in the
             --  Internals package.
 
-            Package_Node := Make_Defining_Identifier
-              (Map_Fixed_Type_Helper_Name (Type_Node));
-            Set_Homogeneous_Parent_Unit_Name
-              (Package_Node,
-               Defining_Identifier (Internals_Package (Current_Entity)));
+            Package_Node := Make_Selected_Component
+              (Defining_Identifier (Internals_Package (Current_Entity)),
+               Make_Defining_Identifier
+               (Map_Fixed_Type_Helper_Name (Type_Node)));
 
             --  The From_Any and To_Any functions for the fixed point
             --  type are homonyms of those of the instantiated
@@ -2921,8 +2919,9 @@ package body Backend.BE_CORBA_Ada.Helpers is
 
             --  The renamed subprogram
 
-            Renamed_Subp := Make_Defining_Identifier (SN (S_From_Any));
-            Set_Homogeneous_Parent_Unit_Name (Renamed_Subp, Package_Node);
+            Renamed_Subp := Make_Selected_Component
+              (Package_Node,
+               Make_Defining_Identifier (SN (S_From_Any)));
 
             N :=  Make_Subprogram_Specification
               (Defining_Identifier => Defining_Identifier (Spec_Node),
@@ -2937,8 +2936,9 @@ package body Backend.BE_CORBA_Ada.Helpers is
 
             --  The renamed subprogram
 
-            Renamed_Subp := Make_Defining_Identifier (SN (S_To_Any));
-            Set_Homogeneous_Parent_Unit_Name (Renamed_Subp, Package_Node);
+            Renamed_Subp := Make_Selected_Component
+              (Package_Node,
+               Make_Defining_Identifier (SN (S_To_Any)));
 
             N :=  Make_Subprogram_Specification
               (Defining_Identifier => Defining_Identifier (Spec_Node),
@@ -2973,12 +2973,11 @@ package body Backend.BE_CORBA_Ada.Helpers is
                --  Getting the name of the package instantiation in
                --  the Internals package.
 
-               Package_Node := Make_Defining_Identifier
-                 (Map_Sequence_Pkg_Helper_Name
-                  (Type_Node));
-               Set_Homogeneous_Parent_Unit_Name
-                 (Package_Node,
-                  Defining_Identifier (Internals_Package (Current_Entity)));
+               Package_Node := Make_Selected_Component
+                 (Defining_Identifier (Internals_Package (Current_Entity)),
+                  Make_Defining_Identifier
+                  (Map_Sequence_Pkg_Helper_Name
+                   (Type_Node)));
 
                --  The From_Any and To_Any functions for the fixed
                --  point type are homonyms of those of the
@@ -2991,8 +2990,9 @@ package body Backend.BE_CORBA_Ada.Helpers is
 
                --  The renamed subprogram
 
-               Renamed_Subp := Make_Defining_Identifier (SN (S_From_Any));
-               Set_Homogeneous_Parent_Unit_Name (Renamed_Subp, Package_Node);
+               Renamed_Subp := Make_Selected_Component
+                 (Package_Node,
+                  Make_Defining_Identifier (SN (S_From_Any)));
 
                N :=  Make_Subprogram_Specification
                  (Defining_Identifier => Defining_Identifier (Spec_Node),
@@ -3007,8 +3007,9 @@ package body Backend.BE_CORBA_Ada.Helpers is
 
                --  The renamed subprogram
 
-               Renamed_Subp := Make_Defining_Identifier (SN (S_To_Any));
-               Set_Homogeneous_Parent_Unit_Name (Renamed_Subp, Package_Node);
+               Renamed_Subp := Make_Selected_Component
+                 (Package_Node,
+                  Make_Defining_Identifier (SN (S_To_Any)));
 
                N :=  Make_Subprogram_Specification
                  (Defining_Identifier => Defining_Identifier (Spec_Node),
@@ -3054,8 +3055,9 @@ package body Backend.BE_CORBA_Ada.Helpers is
 
             --  The renamed subprogram
 
-            Renamed_Subp := Make_Defining_Identifier (SN (S_From_Any));
-            Set_Homogeneous_Parent_Unit_Name (Renamed_Subp, Package_Node);
+            Renamed_Subp := Make_Selected_Component
+              (Package_Node,
+               Make_Defining_Identifier (SN (S_From_Any)));
 
             N :=  Make_Subprogram_Specification
               (Defining_Identifier => Defining_Identifier (Spec_Node),
@@ -3070,8 +3072,9 @@ package body Backend.BE_CORBA_Ada.Helpers is
 
             --  The renamed subprogram
 
-            Renamed_Subp := Make_Defining_Identifier (SN (S_To_Any));
-            Set_Homogeneous_Parent_Unit_Name (Renamed_Subp, Package_Node);
+            Renamed_Subp := Make_Selected_Component
+              (Package_Node,
+               Make_Defining_Identifier (SN (S_To_Any)));
 
             N :=  Make_Subprogram_Specification
               (Defining_Identifier => Defining_Identifier (Spec_Node),

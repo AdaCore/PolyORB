@@ -103,9 +103,12 @@ package body Backend.BE_CORBA_Ada.Runtime is
       S : Node_Id;
 
    begin
-      pragma Assert (Kind (N) = K_Designator);
-      S := Corresponding_Node (Defining_Identifier (N));
+      pragma Assert (Kind (N) = K_Defining_Identifier or else
+                     Kind (N) = K_Selected_Component);
+
+      S := Get_Declaration_Node (N);
       pragma Assert (Kind (S) = K_Package_Specification);
+
       Set_Is_Subunit_Package (S, True);
    end Declare_Subunit;
 
@@ -114,12 +117,10 @@ package body Backend.BE_CORBA_Ada.Runtime is
    ----------------
 
    procedure Initialize is
-      Position   : Integer;
-      Name       : Name_Id;
-      Identifier : Node_Id;
-      Length     : Natural;
-      Pkg_Spec   : Node_Id;
-
+      Position : Integer;
+      Name     : Name_Id;
+      Length   : Natural;
+      Pkg_Spec : Node_Id;
    begin
       Register_Casing_Rule ("ASCII");
       Register_Casing_Rule ("AbstractBase");
@@ -177,7 +178,7 @@ package body Backend.BE_CORBA_Ada.Runtime is
          Set_Str_To_Name_Buffer (RU_Id'Image (U));
          Set_Str_To_Name_Buffer (Name_Buffer (4 .. Name_Len));
 
-         RUD (U) := New_Node (K_Designator);
+         RUD (U) := New_Node (K_Defining_Identifier);
 
          Position := 0;
          Name     := Name_Find;
@@ -202,22 +203,19 @@ package body Backend.BE_CORBA_Ada.Runtime is
             Set_Str_To_Name_Buffer
               (Name_Buffer (Name_Len + 2 .. Length));
             Name := Name_Find;
-            Set_Homogeneous_Parent_Unit_Name
-              (RUD (U), RUD (RU_Id'Val (Position)));
          end if;
 
          Get_Name_String (Name);
          Apply_Casing_Rules (Name_Buffer (1 .. Name_Len));
-         Identifier := Make_Defining_Identifier (Name_Find);
-         Set_Defining_Identifier (RUD (U), Identifier);
+         Set_Name (RUD (U), Name_Find);
          Pkg_Spec := New_Node (K_Package_Specification);
          Set_Is_Runtime_Package (Pkg_Spec, True);
-         Set_Corresponding_Node (Identifier, Pkg_Spec);
+         Set_Declaration_Node (RUD (U), Pkg_Spec);
 
          if Position > 0 then
-            Set_Homogeneous_Parent_Unit_Name
-              (Identifier,
-               Defining_Identifier (Parent_Unit_Name (RUD (U))));
+            RUD (U) := Make_Selected_Component
+              (RUD (RU_Id'Val (Position)),
+               RUD (U));
          end if;
 
          Set_Name_Table_Info
@@ -292,10 +290,12 @@ package body Backend.BE_CORBA_Ada.Runtime is
 
          Name := Name_Find;
 
-         RED (E) := New_Node (K_Designator);
-         Set_Defining_Identifier
-           (RED (E), Make_Defining_Identifier (Name));
-         Set_Homogeneous_Parent_Unit_Name (RED (E), RUD (RE_Unit_Table (E)));
+         RED (E) := Make_Defining_Identifier (Name);
+
+         if Present (RUD (RE_Unit_Table (E))) then
+            RED (E) := Make_Selected_Component
+              (RUD (RE_Unit_Table (E)), RED (E));
+         end if;
       end loop;
    end Initialize;
 
@@ -309,7 +309,7 @@ package body Backend.BE_CORBA_Ada.Runtime is
      return Node_Id
    is
    begin
-      return Copy_Designator (RED (Id), Withed);
+      return Copy_Expanded_Name (RED (Id), Withed);
    end RE;
 
    --------------------------
@@ -339,7 +339,7 @@ package body Backend.BE_CORBA_Ada.Runtime is
       --  This is a runtime unit and not a runtime entity, so it's
       --  parent unit does not have to be "withed"
 
-      Result := Copy_Designator (RUD (Id), False);
+      Result := Copy_Expanded_Name (RUD (Id), False);
       if Withed then
          Add_With_Package (Result);
       end if;

@@ -35,9 +35,7 @@ with Namet;     use Namet;
 with Locations; use Locations;
 with Values;    use Values;
 
-with Backend.BE_CORBA_Ada.Nodes;      use Backend.BE_CORBA_Ada.Nodes;
 with Backend.BE_CORBA_Ada.Nutils;     use Backend.BE_CORBA_Ada.Nutils;
-with Backend.BE_CORBA_Ada.Runtime;    use Backend.BE_CORBA_Ada.Runtime;
 with Backend.BE_CORBA_Ada.IDL_To_Ada; use Backend.BE_CORBA_Ada.IDL_To_Ada;
 
 with Frontend.Nodes;         use Frontend.Nodes;
@@ -47,7 +45,6 @@ with Lexer;
 
 package body Backend.BE_CORBA_Ada.Expand is
 
-   package BEN renames Backend.BE_CORBA_Ada.Nodes;
    package FEN renames Frontend.Nodes;
    package FEU renames Frontend.Nutils;
 
@@ -135,104 +132,6 @@ package body Backend.BE_CORBA_Ada.Expand is
    function Has_Complex_Declarators (Entity : Node_Id) return Boolean;
    --  This function returns True when the type declaration has one or
    --  more complex declarators.
-
-   -----------------------
-   -- Expand_Designator --
-   -----------------------
-
-   function Expand_Designator
-     (N               : Node_Id;
-      Add_With_Clause : Boolean := True)
-     return Node_Id
-   is
-      P  : Node_Id;
-      D  : Node_Id := No_Node;
-      X  : Node_Id := N;
-      FE : Node_Id;
-
-   begin
-      case BEN.Kind (N) is
-         when K_Full_Type_Declaration |
-           K_Subprogram_Specification =>
-            P  := Parent (X);
-            FE := FE_Node (X);
-
-         when K_Object_Declaration
-           | K_Exception_Declaration =>
-            P  := Parent (X);
-            FE := FE_Node (X);
-
-         when K_Package_Specification =>
-            X  := Package_Declaration (N);
-            P  := Parent (X);
-            FE := FE_Node (IDL_Unit (X));
-
-         when K_Package_Declaration =>
-            P  := Parent (N);
-            FE := FE_Node (IDL_Unit (X));
-
-         when K_Designator =>
-            return Copy_Designator (N);
-
-         when K_Package_Instantiation =>
-            P := Parent (X);
-            FE := FE_Node (X);
-
-         when others =>
-            raise Program_Error;
-      end case;
-
-      D := Defining_Identifier_To_Designator
-        (N           => Defining_Identifier (X),
-         Keep_Parent => False);
-
-      if Present (FE) then
-         Set_FE_Node (D, FE);
-
-         --  Handle the case of CORBA particular entities
-
-         if FEN.Kind (FE) = K_Identifier
-           and then Present (Scope_Entity (FE))
-           and then FEN.Kind (Scope_Entity (FE)) = K_Module
-           and then FEN.IDL_Name (Identifier (Scope_Entity (FE))) = CORBA_Name
-         then
-            Set_Homogeneous_Parent_Unit_Name (D, RU (RU_CORBA, False));
-         end if;
-      end if;
-
-      if No (P) then
-         return D;
-      end if;
-
-      --  This handles the particular case of the forward declaration
-      --  of interfaces.
-
-      if BEN.Kind (N) = K_Full_Type_Declaration
-        and then Present (Parent_Unit_Name (Defining_Identifier (N)))
-        and then BEN.Kind
-        (Corresponding_Node
-         (Parent_Unit_Name
-          (Defining_Identifier
-           (N)))) = K_Package_Instantiation
-      then
-         Set_Homogeneous_Parent_Unit_Name
-           (D,
-            Parent_Unit_Name (Defining_Identifier (N)));
-         P := Expand_Designator (P);
-      else
-         Set_Homogeneous_Parent_Unit_Name
-           (D, Expand_Designator (P, False));
-         P := BEN.Parent_Unit_Name (D);
-      end if;
-
-      --  Adding the with clause
-
-      if Add_With_Clause and then Present (P) then
-         Add_With_Package (P);
-      end if;
-
-      return D;
-   end Expand_Designator;
 
    ----------------------------------------------------
    -- Forward_Current_Interface_Designing_Components --

@@ -37,7 +37,6 @@ with Values;    use Values;
 with Frontend.Nodes;  use Frontend.Nodes;
 with Frontend.Nutils;
 
-with Backend.BE_CORBA_Ada.Expand;      use Backend.BE_CORBA_Ada.Expand;
 with Backend.BE_CORBA_Ada.IDL_To_Ada;  use Backend.BE_CORBA_Ada.IDL_To_Ada;
 with Backend.BE_CORBA_Ada.Nodes;       use Backend.BE_CORBA_Ada.Nodes;
 with Backend.BE_CORBA_Ada.Nutils;      use Backend.BE_CORBA_Ada.Nutils;
@@ -244,16 +243,16 @@ package body Backend.BE_CORBA_Ada.Skels is
             Make_List_Id (Expand_Designator (N)));
          Append_Node_To_List (N, Profile);
 
-         N := Make_Attribute_Designator
-           (Make_Designator (SN (S_Servant_Is_A)), A_Access);
+         N := Make_Attribute_Reference
+           (Make_Identifier (SN (S_Servant_Is_A)), A_Access);
          Append_Node_To_List (N, Profile);
 
-         N := Make_Attribute_Designator
-           (Make_Designator (SN (S_Is_A)), A_Access);
+         N := Make_Attribute_Reference
+           (Make_Identifier (SN (S_Is_A)), A_Access);
          Append_Node_To_List (N, Profile);
 
-         N := Make_Attribute_Designator
-           (Make_Designator (SN (S_Invoke)), A_Access);
+         N := Make_Attribute_Reference
+           (Make_Identifier (SN (S_Invoke)), A_Access);
          Append_Node_To_List (N, Profile);
 
          N := Make_Subprogram_Call
@@ -337,12 +336,12 @@ package body Backend.BE_CORBA_Ada.Skels is
             --  corresponding to the declaration of the
             --  "Excp_Name"_Members type.
 
-            N := Type_Def_Node (BE_Node (Identifier (Reference (E))));
+            N := Get_Type_Definition_Node (E);
 
             N := Make_Object_Declaration
               (Defining_Identifier =>
                  Make_Defining_Identifier (PN (P_Members)),
-               Object_Definition => Defining_Identifier (N));
+               Object_Definition => N);
             Append_Node_To_List (N, D);
 
             --  Getting the node corresponding to the declaration of
@@ -396,10 +395,10 @@ package body Backend.BE_CORBA_Ada.Skels is
          N := Implementation_Package (Current_Entity);
          N := First_Node (Visible_Part (Package_Specification (N)));
          N := Expand_Designator (N);
-         N := Make_Attribute_Designator (N, A_Class);
-         C := Make_Explicit_Dereference (Make_Designator (PN (P_Self)));
+         N := Make_Attribute_Reference (N, A_Class);
+         C := Make_Explicit_Dereference (Make_Identifier (PN (P_Self)));
          N := Make_Type_Conversion (N, C);
-         N := Make_Attribute_Designator (N, A_Access);
+         N := Make_Attribute_Reference (N, A_Access);
          Append_Node_To_List (N, Inv_Profile);
 
          --  Generate the code relative to the operation parameters
@@ -446,12 +445,12 @@ package body Backend.BE_CORBA_Ada.Skels is
 
                N := Make_Pragma
                  (Pragma_Warnings,
-                  Make_List_Id (RE (RE_Off), Make_Designator (Arg_Name)));
+                  Make_List_Id (RE (RE_Off), Make_Identifier (Arg_Name)));
                Append_Node_To_List (N, Declarative_Part);
 
                --  Prepare the actual profile of the Add_Item call
 
-               Params := Make_List_Id (Make_Designator (VN (V_Argument_List)));
+               Params := Make_List_Id (Make_Identifier (VN (V_Argument_List)));
 
                --  Declare the global variable corresponding to the
                --  argument name.
@@ -472,7 +471,7 @@ package body Backend.BE_CORBA_Ada.Skels is
                --  Append the argument name to the actual profile of
                --  the Add_Item call.
 
-               Append_Node_To_List (Make_Designator (New_Name), Params);
+               Append_Node_To_List (Make_Identifier (New_Name), Params);
 
                --  Declare the `Content' variable relative to the
                --  argument.
@@ -482,7 +481,7 @@ package body Backend.BE_CORBA_Ada.Skels is
                   (Type_Spec
                    (Param)));
 
-               N := Make_Designator (Arg_Name);
+               N := Make_Identifier (Arg_Name);
 
                --  Cast the parameter when necessary
 
@@ -494,9 +493,9 @@ package body Backend.BE_CORBA_Ada.Skels is
 
                C := Make_Subprogram_Call
                  (C,
-                  Make_List_Id (Make_Attribute_Designator
+                  Make_List_Id (Make_Attribute_Reference
                                 (N, A_Unrestricted_Access)));
-               N := Make_Attribute_Designator (RE (RE_Content), A_Class);
+               N := Make_Attribute_Reference (RE (RE_Content), A_Class);
                N := Make_Object_Declaration
                  (Defining_Identifier => Make_Defining_Identifier
                   (Map_Argument_Content_Name (Param_Name)),
@@ -507,8 +506,8 @@ package body Backend.BE_CORBA_Ada.Skels is
 
                --  Declaration of the `Any' argument variable
 
-               C := Make_Attribute_Designator
-                      (Make_Designator
+               C := Make_Attribute_Reference
+                      (Make_Identifier
                          (Map_Argument_Content_Name (Param_Name)),
                        A_Unchecked_Access);
 
@@ -530,7 +529,7 @@ package body Backend.BE_CORBA_Ada.Skels is
                --  Append the Any variable the actual profile of the
                --  Add_Item call.
 
-               N := Make_Designator (Map_Argument_Any_Name (Param_Name));
+               N := Make_Identifier (Map_Argument_Any_Name (Param_Name));
                Append_Node_To_List (N, Params);
 
                --  Append the parameter mode is added to the Add_Item
@@ -574,7 +573,7 @@ package body Backend.BE_CORBA_Ada.Skels is
 
             if not Is_Ada_Function then
                Append_Node_To_List
-                 (Make_Designator (VN (V_Result)), Inv_Profile);
+                 (Make_Identifier (VN (V_Result)), Inv_Profile);
             end if;
 
             --  The following declaration are not for static request
@@ -586,7 +585,7 @@ package body Backend.BE_CORBA_Ada.Skels is
                N := Make_Pragma
                     (Pragma_Warnings,
                      Make_List_Id (RE (RE_Off),
-                                   Make_Designator (VN (V_Result))));
+                                   Make_Identifier (VN (V_Result))));
                Append_Node_To_List (N, Declarative_Part);
 
                --  Declaration of the `Content' argument variable
@@ -595,7 +594,7 @@ package body Backend.BE_CORBA_Ada.Skels is
                  (FEU.Get_Original_Type_Declarator
                   (Type_Spec (E)));
 
-               N := Make_Designator (VN (V_Result));
+               N := Make_Identifier (VN (V_Result));
 
                --  Cast the parameter when necessary
 
@@ -607,11 +606,11 @@ package body Backend.BE_CORBA_Ada.Skels is
 
                C := Make_Subprogram_Call
                  (C,
-                  Make_List_Id (Make_Attribute_Designator
+                  Make_List_Id (Make_Attribute_Reference
                                 (N,
                                  A_Unrestricted_Access)));
 
-               N := Make_Attribute_Designator (RE (RE_Content), A_Class);
+               N := Make_Attribute_Reference (RE (RE_Content), A_Class);
                N := Make_Object_Declaration
                  (Defining_Identifier => Make_Defining_Identifier
                   (Map_Argument_Content_Name (VN (V_Result))),
@@ -623,8 +622,8 @@ package body Backend.BE_CORBA_Ada.Skels is
 
                --  Declaration of the `Any' argument variable
 
-               C := Make_Attribute_Designator
-                 (Make_Designator
+               C := Make_Attribute_Reference
+                 (Make_Identifier
                   (Map_Argument_Content_Name (VN (V_Result))),
                   A_Unchecked_Access);
                C := Make_Subprogram_Call
@@ -657,7 +656,7 @@ package body Backend.BE_CORBA_Ada.Skels is
                --  attribute (the declarative part the block).
 
                M := Make_Explicit_Dereference
-                 (Make_Designator (VN (V_Component)));
+                 (Make_Identifier (VN (V_Component)));
 
                N := Make_Subprogram_Call
                       (RE (RE_GIOP_Session), Make_List_Id (M));
@@ -671,7 +670,7 @@ package body Backend.BE_CORBA_Ada.Skels is
 
                N := Make_Subprogram_Call
                  (RE (RE_Get_Representation),
-                  Make_List_Id (Make_Designator (VN (V_Session))));
+                  Make_List_Id (Make_Identifier (VN (V_Session))));
 
                N := Make_Object_Declaration
                  (Defining_Identifier =>
@@ -730,24 +729,24 @@ package body Backend.BE_CORBA_Ada.Skels is
 
                Append_Node_To_List (RE (RE_False), Params);
 
-               M := Make_Designator (PN (P_Arg_List_In));
-               M := Make_Attribute_Designator (M, A_Access);
+               M := Make_Identifier (PN (P_Arg_List_In));
+               M := Make_Attribute_Reference (M, A_Access);
 
                Append_Node_To_List (M, Params);
 
                M := Make_Subprogram_Call
                  (RE (RE_Get_Buffer),
-                  Make_List_Id (Make_Designator (VN (V_Session))));
+                  Make_List_Id (Make_Identifier (VN (V_Session))));
 
                Append_Node_To_List (M, Params);
 
                M := Make_Explicit_Dereference
-                 (Make_Designator
+                 (Make_Identifier
                     (VN (V_Component)));
 
                Append_Node_To_List
                  (Make_Explicit_Dereference
-                    (Make_Designator
+                    (Make_Identifier
                        (VN (V_Representation))),
                   Params);
 
@@ -834,7 +833,7 @@ package body Backend.BE_CORBA_Ada.Skels is
             --  Args record.
 
             if Use_SII then
-               Record_Node := Make_Designator (PN (P_Arg_List_In));
+               Record_Node := Make_Identifier (PN (P_Arg_List_In));
 
                Param := First_Entity (Parameters (E));
                while Present (Param) loop
@@ -854,14 +853,9 @@ package body Backend.BE_CORBA_Ada.Skels is
 
                      --  Getting the record field
 
-                     C := Make_Defining_Identifier (Param_Name);
-
-                     --  Here, we use directly Set_Parent_Unit_Name
-                     --  and not Set_Homogeneous_Parent_Unit_Name
-                     --  because the parent node is not a defining
-                     --  identifier nor a designator
-
-                     Set_Parent_Unit_Name (C, Record_Node);
+                     C := Make_Selected_Component
+                       (Record_Node,
+                        Make_Defining_Identifier (Param_Name));
 
                      N := Make_Assignment_Statement
                        (Make_Defining_Identifier (Arg_Name),
@@ -890,9 +884,9 @@ package body Backend.BE_CORBA_Ada.Skels is
                --  Do not add a with clause since the parent unit will
                --  be modified.
 
-               C := RE (Predefined_Entity, False);
+               C := Selector_Name (RE (Predefined_Entity, False));
             else
-               C := Impl_Node (BE_Node (Identifier (E)));
+               C := Defining_Identifier (Impl_Node (BE_Node (Identifier (E))));
             end if;
 
             --  Re-adjusting the parent unit name of the
@@ -900,19 +894,14 @@ package body Backend.BE_CORBA_Ada.Skels is
             --  or attributes inherited from the second until the last
             --  parent (multiple inheritance)
 
-            Impl_Id := New_Node (K_Designator);
-            Set_Defining_Identifier
-              (Impl_Id,
-               Copy_Node
-               (Defining_Identifier (C)));
-            Set_Homogeneous_Parent_Unit_Name
-              (Impl_Id,
-               Defining_Identifier
+            Impl_Id := Make_Selected_Component
+              (Defining_Identifier
                (Implementation_Package
-                (Current_Entity)));
+                (Current_Entity)),
+               Copy_Node (C));
 
             C := Make_Subprogram_Call
-              (Copy_Designator (Impl_Id), Inv_Profile);
+              (Copy_Expanded_Name (Impl_Id), Inv_Profile);
 
             if Is_Ada_Function then
                --  Cast class-wide results
@@ -945,23 +934,18 @@ package body Backend.BE_CORBA_Ada.Skels is
             Append_Node_To_List (Make_Ada_Comment (Name_Find), Statements);
 
             if Use_SII then
-               C := Make_Defining_Identifier (PN (P_Returns));
-
-               --  Here, we use directly Set_Parent_Unit_Name and not
-               --  Set_Homogeneous_Parent_Unit_Name because the parent
-               --  node is not a defining identifier nor a designator
-
-               Set_Parent_Unit_Name (C, Make_Designator (PN (P_Arg_List_Out)));
+               C := Make_Selected_Component
+                 (PN (P_Arg_List_Out), PN (P_Returns));
 
                N := Make_Assignment_Statement
-                 (C, Make_Designator (VN (V_Result)));
+                 (C, Make_Identifier (VN (V_Result)));
                Append_Node_To_List (N, Statements);
             else
                N := Make_Subprogram_Call
                  (RE (RE_Set_Result),
                   Make_List_Id
-                  (Make_Designator (PN (P_Request)),
-                   Make_Designator (Map_Argument_Any_Name (VN (V_Result)))));
+                  (Make_Identifier (PN (P_Request)),
+                   Make_Identifier (Map_Argument_Any_Name (VN (V_Result)))));
                Append_Node_To_List (N, Statements);
             end if;
          end if;
@@ -986,9 +970,9 @@ package body Backend.BE_CORBA_Ada.Skels is
                   C := Make_Defining_Identifier (Param_Name);
 
                   C := Make_Selected_Component
-                    (Make_Designator (PN (P_Arg_List_Out)), C);
+                    (Make_Identifier (PN (P_Arg_List_Out)), C);
                   N := Make_Assignment_Statement
-                    (C, Make_Designator (Arg_Name));
+                    (C, Make_Identifier (Arg_Name));
                   Append_Node_To_List (N, Statements);
 
                end if;
@@ -1009,9 +993,9 @@ package body Backend.BE_CORBA_Ada.Skels is
                C := Make_Defining_Identifier (Param_Name);
 
                C := Make_Selected_Component
-                 (Make_Designator (PN (P_Arg_List_Out)), C);
+                 (Make_Identifier (PN (P_Arg_List_Out)), C);
                N := Make_Assignment_Statement
-                 (C, Make_Designator (Arg_Name));
+                 (C, Make_Identifier (Arg_Name));
                Append_Node_To_List (N, Statements);
             end if;
          else
@@ -1019,7 +1003,7 @@ package body Backend.BE_CORBA_Ada.Skels is
 
             N := Make_Subprogram_Call
               (RE (RE_Clone_Out_Args),
-               Make_List_Id (Make_Designator (VN (V_Argument_List))));
+               Make_List_Id (Make_Identifier (VN (V_Argument_List))));
             Append_Node_To_List (N, Statements);
          end if;
 
@@ -1037,7 +1021,7 @@ package body Backend.BE_CORBA_Ada.Skels is
                      Marshall_Args (Blk_Stat,
                                     Type_Spec (E),
                                     C,
-                                    Make_Designator (VN (V_Result)));
+                                    Make_Identifier (VN (V_Result)));
 
                      Get_Discriminants_Value
                        (E,
@@ -1088,9 +1072,9 @@ package body Backend.BE_CORBA_Ada.Skels is
                      Expression          => Make_Object_Instantiation (N));
                   Append_Node_To_List (N, Dec_Stat);
 
-                  C := Make_Attribute_Designator
+                  C := Make_Attribute_Reference
                     (Make_Explicit_Dereference
-                       (Make_Designator
+                       (Make_Identifier
                           (VN (V_Args_Out))),
                      A_Address);
 
@@ -1098,15 +1082,15 @@ package body Backend.BE_CORBA_Ada.Skels is
                   N := Make_Subprogram_Call
                     (RE (RE_Insert_Raw_Data),
                      Make_List_Id
-                     (Make_Designator (PN (P_Request)),
+                     (Make_Identifier (PN (P_Request)),
                       C,
-                      Make_Attribute_Designator
+                      Make_Attribute_Reference
                       (Make_Explicit_Dereference
-                       (Make_Designator
+                       (Make_Identifier
                         (VN (V_Args_Out))),
                        A_Size),
                       Make_Literal (New_Integer_Value (J, 1, 10)),
-                      Make_Designator (VN (V_Buffer))));
+                      Make_Identifier (VN (V_Buffer))));
                   Append_Node_To_List (N, Blk_Stat);
 
                   N := Make_Block_Statement
@@ -1126,14 +1110,14 @@ package body Backend.BE_CORBA_Ada.Skels is
                Params := New_List (K_List_Id);
                Append_Node_To_List (RE (RE_False), Params);
 
-               M := Make_Designator (PN (P_Arg_List_Out));
-               M := Make_Attribute_Designator (M, A_Access);
+               M := Make_Identifier (PN (P_Arg_List_Out));
+               M := Make_Attribute_Reference (M, A_Access);
                Append_Node_To_List (M, Params);
 
                Append_Node_To_List
                  (Make_Defining_Identifier (VN (V_Buffer)), Params);
                M := Make_Explicit_Dereference
-                 (Make_Designator (VN (V_Component)));
+                 (Make_Identifier (VN (V_Component)));
 
                --  GIOP_Session is used to get the representation
                --  attribute (the declarative part the block).
@@ -1143,7 +1127,7 @@ package body Backend.BE_CORBA_Ada.Skels is
                   Make_List_Id (M));
 
                N := Make_Explicit_Dereference
-                 (Make_Designator (VN (V_Representation)));
+                 (Make_Identifier (VN (V_Representation)));
                Append_Node_To_List (N, Params);
 
                Append_Node_To_List (Make_Literal (Int1_Val), Params);
@@ -1160,13 +1144,13 @@ package body Backend.BE_CORBA_Ada.Skels is
 
                N := Make_Subprogram_Call
                  (RE (RE_Found),
-                  Make_List_Id (Make_Designator (PN (P_Error))));
+                  Make_List_Id (Make_Identifier (PN (P_Error))));
 
                N := Make_If_Statement
                  (Condition       => N,
                   Then_Statements => Make_List_Id
                     (Make_Raise_Statement
-                     (Make_Designator
+                     (Make_Identifier
                       (EN (E_Program_Error)))));
                Append_Node_To_List (N, Statements);
 
@@ -1292,9 +1276,9 @@ package body Backend.BE_CORBA_Ada.Skels is
          else
             Append_Node_To_List (Is_A_Invk_Part, Invoke_Subp_Bodies);
 
-            N := Make_Defining_Identifier (SN (S_Hash));
-            Set_Homogeneous_Parent_Unit_Name
-              (N, Make_Defining_Identifier (Hash_Package_Name (E)));
+            N := Make_Selected_Component
+              (Make_Defining_Identifier (Hash_Package_Name (E)),
+               Make_Defining_Identifier (SN (S_Hash)));
 
             --  Calculate the hash code of the operation
 
@@ -1322,7 +1306,7 @@ package body Backend.BE_CORBA_Ada.Skels is
             --  The condition
 
             N := Make_Explicit_Dereference
-              (Make_Designator
+              (Make_Identifier
                  (PN (P_Invoke_Name_Access)));
 
             C_1 := Make_Expression
@@ -1333,14 +1317,14 @@ package body Backend.BE_CORBA_Ada.Skels is
             --  Generate the "case" statement after adding a "when
             --  others" clause.
 
-            N := Make_Raise_Statement (Make_Designator (EN (E_Program_Error)));
+            N := Make_Raise_Statement (Make_Identifier (EN (E_Program_Error)));
             N := Make_Case_Statement_Alternative
               (No_List,
                Make_List_Id (N));
             Append_Node_To_List (N, Invoke_Subp_Bodies);
 
             N := Make_Case_Statement
-              (Make_Designator (VN (V_Index)),
+              (Make_Identifier (VN (V_Index)),
                Invoke_Subp_Bodies);
             Append_Node_To_List (N, Invoke_Then_Statements);
          end if;
@@ -1381,7 +1365,7 @@ package body Backend.BE_CORBA_Ada.Skels is
          N : Node_Id;
       begin
          N := Make_Explicit_Dereference
-           (Make_Designator
+           (Make_Identifier
             (PN (P_Request)));
          N := Make_Subprogram_Call
            (RE (RE_Operation),
@@ -1420,9 +1404,9 @@ package body Backend.BE_CORBA_Ada.Skels is
                   Expression          => N);
                Append_Node_To_List (N, L);
 
-               C := Make_Designator
-                 (Designator => PN (P_Dependent_Binding_Object),
-                  Parent     => VN (V_Request));
+               C := Make_Selected_Component
+                 (PN (P_Dependent_Binding_Object),
+                  VN (V_Request));
 
                --  Request binding object
 
@@ -1439,7 +1423,7 @@ package body Backend.BE_CORBA_Ada.Skels is
 
                C := Make_Subprogram_Call
                  (RE (RE_Get_Component),
-                  Make_List_Id (Make_Designator (VN (V_Binding_Object))));
+                  Make_List_Id (Make_Identifier (VN (V_Binding_Object))));
 
                N := Make_Object_Declaration
                  (Defining_Identifier =>
@@ -1559,11 +1543,11 @@ package body Backend.BE_CORBA_Ada.Skels is
 
          Profile := New_List (K_Parameter_Profile);
 
-         Append_Node_To_List (Make_Designator (VN (V_Argument_List)),
+         Append_Node_To_List (Make_Identifier (VN (V_Argument_List)),
                               Profile);
-         Append_Node_To_List (Make_Designator (VN (V_Arg_Name_Type_Id)),
+         Append_Node_To_List (Make_Identifier (VN (V_Arg_Name_Type_Id)),
                               Profile);
-         Append_Node_To_List (Make_Designator (VN (V_Argument_Type_Id)),
+         Append_Node_To_List (Make_Identifier (VN (V_Argument_Type_Id)),
                               Profile);
          Append_Node_To_List (RE (RE_ARG_IN_0), Profile);
 
@@ -1574,9 +1558,9 @@ package body Backend.BE_CORBA_Ada.Skels is
 
          Profile := New_List (K_Parameter_Profile);
 
-         Append_Node_To_List (Make_Designator (PN (P_Request)),
+         Append_Node_To_List (Make_Identifier (PN (P_Request)),
                               Profile);
-         Append_Node_To_List (Make_Designator (VN (V_Argument_List)),
+         Append_Node_To_List (Make_Identifier (VN (V_Argument_List)),
                               Profile);
 
          N := Make_Subprogram_Call (RE (RE_Arguments_1), Profile);
@@ -1587,7 +1571,7 @@ package body Backend.BE_CORBA_Ada.Skels is
          N := Make_Assignment_Statement
            (Make_Defining_Identifier (VN (V_Type_Id)),
             Make_Subprogram_Call (RE (RE_From_Any_0),
-                                  Make_List_Id (Make_Designator
+                                  Make_List_Id (Make_Identifier
                                                 (VN (V_Argument_Type_Id)))));
          Append_Node_To_List (N, Statements);
 
@@ -1595,7 +1579,7 @@ package body Backend.BE_CORBA_Ada.Skels is
 
          N := Make_Subprogram_Call
            (RE (RE_To_Standard_String),
-            Make_List_Id (Make_Designator (VN (V_Type_Id))));
+            Make_List_Id (Make_Identifier (VN (V_Type_Id))));
          N := Make_Subprogram_Call
            (Make_Defining_Identifier (SN (S_Is_A)),
             Make_List_Id (N));
@@ -1607,10 +1591,10 @@ package body Backend.BE_CORBA_Ada.Skels is
 
          Profile := New_List (K_Parameter_Profile);
 
-         Append_Node_To_List (Make_Designator (PN (P_Request)),
+         Append_Node_To_List (Make_Identifier (PN (P_Request)),
                               Profile);
          N := Make_Subprogram_Call (RE (RE_To_Any_0),
-                                    Make_List_Id (Make_Designator
+                                    Make_List_Id (Make_Identifier
                                                   (VN (V_Result))));
          Append_Node_To_List (N, Profile);
 
@@ -1773,8 +1757,8 @@ package body Backend.BE_CORBA_Ada.Skels is
 
             Profile := New_List (K_Parameter_Profile);
 
-            Append_Node_To_List (Make_Designator (PN (P_Request)), Profile);
-            Append_Node_To_List (Make_Designator (VN (V_Argument_List)),
+            Append_Node_To_List (Make_Identifier (PN (P_Request)), Profile);
+            Append_Node_To_List (Make_Identifier (VN (V_Argument_List)),
                                  Profile);
             N := Make_Subprogram_Call (RE (RE_Arguments_1), Profile);
             Append_Node_To_List (N, Statements);
@@ -1782,11 +1766,11 @@ package body Backend.BE_CORBA_Ada.Skels is
             --  Call CORBA.ServerRequest.Set_Result
 
             Profile := New_List (K_Parameter_Profile);
-            Append_Node_To_List (Make_Designator (PN (P_Request)), Profile);
+            Append_Node_To_List (Make_Identifier (PN (P_Request)), Profile);
 
             N := Make_Subprogram_Call
               (RE (RE_To_CORBA_String),
-               Make_List_Id (Make_Designator (PN (P_Repository_Id))));
+               Make_List_Id (Make_Identifier (PN (P_Repository_Id))));
             N := Make_Subprogram_Call (RE (RE_Get_Interface_Definition),
                                        Make_List_Id (N));
             N := Make_Subprogram_Call (RE (RE_Ref_2),
@@ -1814,8 +1798,8 @@ package body Backend.BE_CORBA_Ada.Skels is
 
             Profile := New_List (K_Parameter_Profile);
 
-            Append_Node_To_List (Make_Designator (PN (P_Request)), Profile);
-            Append_Node_To_List (Make_Designator (VN (V_Argument_List)),
+            Append_Node_To_List (Make_Identifier (PN (P_Request)), Profile);
+            Append_Node_To_List (Make_Identifier (VN (V_Argument_List)),
                                  Profile);
             N := Make_Subprogram_Call (RE (RE_Arguments_1), Profile);
             Append_Node_To_List (N, Statements);
@@ -1823,11 +1807,11 @@ package body Backend.BE_CORBA_Ada.Skels is
             --  Call CORBA.ServerRequest.Set_Result
 
             Profile := New_List (K_Parameter_Profile);
-            Append_Node_To_List (Make_Designator (PN (P_Request)), Profile);
+            Append_Node_To_List (Make_Identifier (PN (P_Request)), Profile);
 
             N := Make_Subprogram_Call
               (RE (RE_Get_Domain_Managers),
-               Make_List_Id (Make_Designator (PN (P_Self))));
+               Make_List_Id (Make_Identifier (PN (P_Self))));
             Append_Node_To_List (N, Profile);
 
             N := Make_Subprogram_Call (RE (RE_Set_Result), Profile);
@@ -1849,8 +1833,8 @@ package body Backend.BE_CORBA_Ada.Skels is
 
             Profile := New_List (K_Parameter_Profile);
 
-            Append_Node_To_List (Make_Designator (PN (P_Request)), Profile);
-            Append_Node_To_List (Make_Designator (VN (V_Argument_List)),
+            Append_Node_To_List (Make_Identifier (PN (P_Request)), Profile);
+            Append_Node_To_List (Make_Identifier (VN (V_Argument_List)),
                                  Profile);
             N := Make_Subprogram_Call (RE (RE_Arguments_1), Profile);
             Append_Node_To_List (N, Statements);
@@ -1858,7 +1842,7 @@ package body Backend.BE_CORBA_Ada.Skels is
             --  Call CORBA.ServerRequest.Set_Result
 
             Profile := New_List (K_Parameter_Profile);
-            Append_Node_To_List (Make_Designator (PN (P_Request)), Profile);
+            Append_Node_To_List (Make_Identifier (PN (P_Request)), Profile);
 
             N := Make_Literal (New_Boolean_Value (False));
             N := Make_Qualified_Expression
@@ -1893,7 +1877,7 @@ package body Backend.BE_CORBA_Ada.Skels is
          N := First_Node
            (Visible_Part (Package_Specification (N)));
          N := Expand_Designator (N);
-         N := Make_Attribute_Designator (N, A_Class);
+         N := Make_Attribute_Reference (N, A_Class);
          N := Make_Expression
            (Make_Explicit_Dereference (Make_Defining_Identifier (PN (P_Obj))),
             Op_In,
@@ -1981,8 +1965,8 @@ package body Backend.BE_CORBA_Ada.Skels is
 
          N := Make_Component_Association
            (Selector_Name => Make_Defining_Identifier (PN (P_Init)),
-            Expression    => Make_Attribute_Designator
-              (Make_Designator (SN (S_Deferred_Initialization)),
+            Expression    => Make_Attribute_Reference
+              (Make_Identifier (SN (S_Deferred_Initialization)),
                A_Access));
          Append_Node_To_List (N, Aggregates);
 
@@ -2049,8 +2033,8 @@ package body Backend.BE_CORBA_Ada.Skels is
          N := Make_Subprogram_Call
            (RE (RE_Set_Exception_Information),
             Make_List_Id
-            (Make_Designator (PN (P_Request)),
-             Make_Designator (PN (P_E))));
+            (Make_Identifier (PN (P_Request)),
+             Make_Identifier (PN (P_E))));
          Append_Node_To_List (N, S);
 
          Expression := Make_Block_Statement
@@ -2119,7 +2103,7 @@ package body Backend.BE_CORBA_Ada.Skels is
          --  We add a "with" clause to be able to use the "Hash"
          --  function
 
-         Add_With_Package (Make_Designator (Hash_Package_Name (E)));
+         Add_With_Package (Make_Identifier (Hash_Package_Name (E)));
 
          --  Declaration of the total number of subprograms
 
@@ -2299,9 +2283,9 @@ package body Backend.BE_CORBA_Ada.Skels is
 
          --  Statements part
 
-         N := Make_Defining_Identifier (SN (S_Hash));
-         Set_Homogeneous_Parent_Unit_Name
-           (N, Make_Defining_Identifier (Hash_Package_Name (E)));
+         N := Make_Selected_Component
+           (Make_Defining_Identifier (Hash_Package_Name (E)),
+            Make_Defining_Identifier (SN (S_Hash)));
 
          N := Make_Subprogram_Call
            (N,

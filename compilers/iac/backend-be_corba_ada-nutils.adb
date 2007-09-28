@@ -168,10 +168,11 @@ package body Backend.BE_CORBA_Ada.Nutils is
 
       function To_Library_Unit (E : Node_Id) return Node_Id is
          U : Node_Id;
-
       begin
-         pragma Assert (Kind (E) = K_Designator);
-         U := Corresponding_Node (Defining_Identifier (E));
+         pragma Assert (Kind (E) = K_Defining_Identifier or else
+                        Kind (E) = K_Selected_Component);
+
+         U := Get_Declaration_Node (E);
 
          --  This node is not properly built as the corresponding node
          --  is not set.
@@ -201,7 +202,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
          if Kind (U) = K_Package_Instantiation
            or else Is_Subunit_Package (U)
          then
-            U := Parent_Unit_Name (E);
+            U := Get_Parent_Unit_Name (E);
 
             --  This is a special case to handle package Standard
 
@@ -215,13 +216,12 @@ package body Backend.BE_CORBA_Ada.Nutils is
          return E;
       end To_Library_Unit;
 
-      P            : constant Node_Id := To_Library_Unit (E);
-      W            : Node_Id;
-      N            : Name_Id;
-      B            : Byte;
-      D            : Node_Id;
-      I            : Node_Id;
-
+      P                : constant Node_Id := To_Library_Unit (E);
+      W                : Node_Id;
+      N                : Name_Id;
+      B                : Byte;
+      D                : Node_Id;
+      I                : Node_Id;
       Helper_Name      : Name_Id;
       Skel_Name        : Name_Id;
       Impl_Name        : Name_Id;
@@ -235,24 +235,17 @@ package body Backend.BE_CORBA_Ada.Nutils is
       --  the withed package.
 
    begin
-      Set_Str_To_Name_Buffer ("Helper");
-      Helper_Name := Name_Find;
-      Set_Str_To_Name_Buffer ("Skel");
-      Skel_Name := Name_Find;
-      Set_Str_To_Name_Buffer ("Impl");
-      Impl_Name := Name_Find;
-      Set_Str_To_Name_Buffer ("CDR");
-      CDR_Name := Name_Find;
-      Set_Str_To_Name_Buffer ("Aligned");
-      Aligned_Name := Name_Find;
-      Set_Str_To_Name_Buffer ("Buffers");
-      Buffers_Name := Name_Find;
-      Set_Str_To_Name_Buffer ("Internals");
-      H_Internals_Name := Name_Find;
-
       if No (P) then
          return;
       end if;
+
+      Helper_Name      := Get_String_Name ("Helper");
+      Skel_Name        := Get_String_Name ("Skel");
+      Impl_Name        := Get_String_Name ("Impl");
+      CDR_Name         := Get_String_Name ("CDR");
+      Aligned_Name     := Get_String_Name ("Aligned");
+      Buffers_Name     := Get_String_Name ("Buffers");
+      H_Internals_Name := Get_String_Name ("Internals");
 
       --  Build a string "<current_entity>%[s,b] <withed_entity>" that
       --  is the current entity name, a character 's' (resp 'b') to
@@ -260,28 +253,27 @@ package body Backend.BE_CORBA_Ada.Nutils is
       --  current entity and the withed entity name.
 
       D := FE_Node (P);
+
       if Present (D) then
-
-         --  This is a local entity and there is no need for a with clause
-
-         if BEN.Name (Defining_Identifier (P)) /= Helper_Name
-           and then BEN.Name (Defining_Identifier (P)) /= Skel_Name
-           and then BEN.Name (Defining_Identifier (P)) /= Impl_Name
-           and then BEN.Name (Defining_Identifier (P)) /= CDR_Name
-           and then BEN.Name (Defining_Identifier (P)) /= Aligned_Name
-           and then BEN.Name (Defining_Identifier (P)) /= Buffers_Name
-           and then BEN.Name (Defining_Identifier (P)) /= H_Internals_Name
+         if Get_Name (P) /= Helper_Name
+           and then Get_Name (P) /= Skel_Name
+           and then Get_Name (P) /= Impl_Name
+           and then Get_Name (P) /= CDR_Name
+           and then Get_Name (P) /= Aligned_Name
+           and then Get_Name (P) /= Buffers_Name
+           and then Get_Name (P) /= H_Internals_Name
          then
+            --  This is a local entity and there is no need for a with
+            --  clause.
+
             if Is_N_Parent_Of_M (D, FE_Node (Current_Entity)) then
                return;
             end if;
          end if;
       end if;
 
-      if Corresponding_Node (Defining_Identifier (P))
-        = Package_Declaration (Current_Package)
-      then
-         --  If true, this means a package "with"es itself, so exit
+      if Get_Declaration_Node (P) = Package_Declaration (Current_Package) then
+         --  This means a package "with"es itself, so exit
 
          return;
       end if;
@@ -309,8 +301,10 @@ package body Backend.BE_CORBA_Ada.Nutils is
          --  The package is a subunit of another package, uses its
          --  parent's name.
 
-         I := Parent_Unit_Name (Defining_Identifier
-                                (Package_Declaration (Current_Package)));
+         I := Get_Parent_Unit_Name
+           (Defining_Identifier
+            (Package_Declaration
+             (Current_Package)));
 
          if Fully_Qualified_Name (I) = N then
             --  If true, this means a package "with"es itself, so exit
@@ -346,17 +340,13 @@ package body Backend.BE_CORBA_Ada.Nutils is
          Write_Eol;
       end if;
 
-      if Name (Defining_Identifier (P)) = Get_String_Name ("Internals")
-        or else Name (Defining_Identifier (P)) = Get_String_Name ("CORBA")
-        or else Name (Defining_Identifier (P)) = Get_String_Name ("Forward")
-        or else Name (Defining_Identifier (P))
-        = Get_String_Name ("Bounded_Strings")
-        or else Name (Defining_Identifier (P))
-        = Get_String_Name ("Bounded_Wide_Strings")
-        or else Name (Defining_Identifier (P))
-        = Get_String_Name ("Fixed_Point")
-        or else Name (Defining_Identifier (P))
-        = Get_String_Name ("CORBA_Helper")
+      if Get_Name (P) = Get_String_Name ("Internals")           or else
+        Get_Name (P) = Get_String_Name ("CORBA")                or else
+        Get_Name (P) = Get_String_Name ("Forward")              or else
+        Get_Name (P) = Get_String_Name ("Bounded_Strings")      or else
+        Get_Name (P) = Get_String_Name ("Bounded_Wide_Strings") or else
+        Get_Name (P) = Get_String_Name ("Fixed_Point")          or else
+        Get_Name (P) = Get_String_Name ("CORBA_Helper")
       then
          --  Ada static elaboration rules require the addition of
          --  "pragma Elaborate_All" to these package.
@@ -426,31 +416,30 @@ package body Backend.BE_CORBA_Ada.Nutils is
       end case;
    end Convert;
 
-   ---------------------
-   -- Copy_Designator --
-   ---------------------
+   ------------------------
+   -- Copy_Expanded_Name --
+   ------------------------
 
-   function Copy_Designator
-     (Designator : Node_Id;
-      Withed     : Boolean := True)
+   function Copy_Expanded_Name
+     (N      : Node_Id;
+      Withed : Boolean := True)
      return Node_Id
    is
       D : Node_Id;
-      P : Node_Id := Parent_Unit_Name (Designator);
-
+      P : Node_Id := Get_Parent_Unit_Name (N);
    begin
-      D := Copy_Node (Designator);
+      D := Copy_Node (N);
 
-      if Kind (Designator) = K_Designator
-        or else Kind (Designator) = K_Defining_Identifier
-      then
-         P := Parent_Unit_Name (Designator);
-      elsif Kind (Designator) = K_Attribute_Designator then
-         P := Parent_Unit_Name (Prefix (Designator));
+      if Kind (N) = K_Defining_Identifier then
+         P := Get_Parent_Unit_Name (N);
+      elsif Kind (N) = K_Attribute_Reference then
+         P := Get_Parent_Unit_Name (Prefix (N));
+      elsif Kind (N) = K_Selected_Component then
+         P := Prefix (N);
       end if;
 
       if Present (P) then
-         P := Copy_Designator (P, False);
+         P := Copy_Expanded_Name (P, False);
 
          if Withed then
             Add_With_Package (P);
@@ -458,7 +447,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
       end if;
 
       return D;
-   end Copy_Designator;
+   end Copy_Expanded_Name;
 
    ---------------
    -- Copy_Node --
@@ -466,25 +455,35 @@ package body Backend.BE_CORBA_Ada.Nutils is
 
    function Copy_Node (N : Node_Id) return Node_Id is
       C : Node_Id;
-
    begin
       case Kind (N) is
-         when K_Designator =>
-            C := New_Node (K_Designator);
-            Set_Defining_Identifier (C, Defining_Identifier (N));
+         when K_Identifier =>
+            C := New_Node (K_Identifier);
+            Set_Name (C, Name (N));
             Set_FE_Node (C, FE_Node (N));
-            Set_Homogeneous_Parent_Unit_Name (C, Parent_Unit_Name (N));
 
          when K_Defining_Identifier =>
             C := New_Node (K_Defining_Identifier);
             Set_Name (C, Name (N));
-            Set_Homogeneous_Parent_Unit_Name (C, Parent_Unit_Name (N));
-            Set_Corresponding_Node (C, Corresponding_Node (N));
+            Set_Declaration_Node (C, Declaration_Node (N));
+            Set_FE_Node (C, FE_Node (N));
 
-         when K_Attribute_Designator =>
-            C := New_Node (K_Attribute_Designator);
+         when K_Attribute_Reference =>
+            C := New_Node (K_Attribute_Reference);
             Set_Name (C, Name (N));
             Set_Prefix (C, Copy_Node (Prefix (N)));
+            Set_FE_Node (C, FE_Node (N));
+
+         when K_Selected_Component =>
+            C := New_Node (K_Selected_Component);
+            Set_Selector_Name (C, Copy_Node (Selector_Name (N)));
+            Set_Prefix (C, Copy_Node (Prefix (N)));
+            Set_FE_Node (C, FE_Node (N));
+
+         when K_Literal =>
+            C := New_Node (K_Literal);
+            Set_Value (C, Value (N));
+            Set_FE_Node (C, FE_Node (N));
 
          when others =>
             raise Program_Error;
@@ -492,6 +491,115 @@ package body Backend.BE_CORBA_Ada.Nutils is
 
       return C;
    end Copy_Node;
+
+   --------------------------
+   -- Get_Declaration_Node --
+   --------------------------
+
+   function Get_Declaration_Node (N : Node_Id) return Node_Id is
+   begin
+      case Kind (N) is
+         when K_Defining_Identifier | K_Identifier =>
+            return Declaration_Node (N);
+
+         when K_Selected_Component =>
+            if Kind (Selector_Name (N)) = K_Defining_Identifier or else
+              Kind (Selector_Name (N)) = K_Identifier
+            then
+               return Declaration_Node (Selector_Name (N));
+            else
+               raise Program_Error;
+            end if;
+
+         when others =>
+            raise Program_Error;
+      end case;
+   end Get_Declaration_Node;
+
+   -------------------------
+   -- Get_Base_Identifier --
+   -------------------------
+
+   function Get_Base_Identifier (N : Node_Id) return Node_Id is
+   begin
+      case Kind (N) is
+         when K_Defining_Identifier | K_Identifier =>
+            return N;
+
+         when K_Selected_Component =>
+            if Kind (Selector_Name (N)) = K_Defining_Identifier or else
+               Kind (Selector_Name (N)) = K_Identifier
+            then
+               return Selector_Name (N);
+            else
+               raise Program_Error;
+            end if;
+
+         when others =>
+            return Get_Base_Identifier (Defining_Identifier (N));
+      end case;
+   end Get_Base_Identifier;
+
+   --------------
+   -- Get_Name --
+   --------------
+
+   function Get_Name (N : Node_Id) return Name_Id is
+   begin
+      case Kind (N) is
+         when K_Defining_Identifier | K_Identifier =>
+            return Name (N);
+
+         when K_Selected_Component =>
+            if Kind (Selector_Name (N)) = K_Defining_Identifier or else
+              Kind (Selector_Name (N)) = K_Identifier
+            then
+               return Name (Selector_Name (N));
+            else
+               raise Program_Error;
+            end if;
+
+         when others =>
+            raise Program_Error;
+      end case;
+   end Get_Name;
+
+   ---------------
+   -- Get_Value --
+   ---------------
+
+   function Get_Value (N : Node_Id) return Value_Id is
+   begin
+      case Kind (N) is
+         when K_Literal =>
+            return Value (N);
+
+         when K_Selected_Component =>
+            if Kind (Selector_Name (N)) = K_Literal then
+               return Value (Selector_Name (N));
+            else
+               raise Program_Error;
+            end if;
+
+         when others =>
+            raise Program_Error;
+      end case;
+   end Get_Value;
+
+   --------------------------
+   -- Get_Parent_Unit_Name --
+   --------------------------
+
+   function Get_Parent_Unit_Name (N : Node_Id) return Node_Id is
+   begin
+      case Kind (N) is
+         when K_Selected_Component =>
+            return Prefix (N);
+
+         when others =>
+            return No_Node;
+      end case;
+   end Get_Parent_Unit_Name;
 
    --------------------
    -- Current_Entity --
@@ -519,43 +627,84 @@ package body Backend.BE_CORBA_Ada.Nutils is
       end if;
    end Current_Package;
 
-   ---------------------------------------
-   -- Defining_Identifier_To_Designator --
-   ---------------------------------------
+   -----------------------
+   -- Expand_Designator --
+   -----------------------
 
-   function Defining_Identifier_To_Designator
-     (N                       : Node_Id;
-      Copy                    : Boolean := False;
-      Keep_Parent             : Boolean := True;
-      Keep_Corresponding_Node : Boolean := True)
+   function Expand_Designator
+     (N               : Node_Id;
+      Add_With_Clause : Boolean := True)
      return Node_Id
    is
-      P      : Node_Id;
-      Def_Id : Node_Id := N;
+      use Frontend.Nodes;
+
+      P  : Node_Id;
+      D  : Node_Id := No_Node;
+      X  : Node_Id := N;
+      FE : Node_Id;
+
    begin
-      pragma Assert (BEN.Kind (N) = K_Defining_Identifier);
+      case BEN.Kind (N) is
+         when K_Full_Type_Declaration |
+           K_Subprogram_Specification =>
+            P  := Parent (X);
+            FE := FE_Node (X);
 
-      if Copy then
-         Def_Id := Copy_Node (N);
+         when K_Object_Declaration
+           | K_Exception_Declaration =>
+            P  := Parent (X);
+            FE := FE_Node (X);
+
+         when K_Package_Specification =>
+            X  := Package_Declaration (N);
+            P  := Parent (X);
+            FE := FE_Node (IDL_Unit (X));
+
+         when K_Package_Declaration =>
+            P  := Parent (N);
+            FE := FE_Node (IDL_Unit (X));
+
+         when K_Package_Instantiation =>
+            P := Parent (X);
+            FE := FE_Node (X);
+
+         when others =>
+            raise Program_Error;
+      end case;
+
+      D := Get_Base_Identifier (Defining_Identifier (X));
+
+      if Present (FE) then
+         Set_FE_Node (D, FE);
+
+         --  Handle the case of CORBA particular entities
+
+         if FEN.Kind (FE) = K_Identifier
+           and then Present (Scope_Entity (FE))
+           and then FEN.Kind (Scope_Entity (FE)) = K_Module
+           and then FEN.IDL_Name (Identifier (Scope_Entity (FE))) = CORBA_Name
+         then
+            D := Make_Selected_Component (RU (RU_CORBA), D);
+         end if;
       end if;
 
-      if not Keep_Parent then
-         Def_Id := Make_Defining_Identifier (BEN.Name (N));
+      if No (P) then
+         return D;
       end if;
 
-      if Keep_Corresponding_Node then
-         Set_Corresponding_Node (Def_Id, Corresponding_Node (N));
+      D := Make_Selected_Component
+        (Expand_Designator (P, False),
+         Get_Base_Identifier (D));
+      P := Get_Parent_Unit_Name (D);
+
+      --  Adding the with clause
+
+      if Add_With_Clause and then Present (P) then
+         Add_With_Package (P);
       end if;
 
-      P := New_Node (K_Designator);
-      Set_Defining_Identifier (P, Def_Id);
-
-      if Keep_Parent then
-         Set_Homogeneous_Parent_Unit_Name (P, Parent_Unit_Name (N));
-      end if;
-
-      return P;
-   end Defining_Identifier_To_Designator;
+      return D;
+   end Expand_Designator;
 
    --------------------------
    -- Fully_Qualified_Name --
@@ -567,29 +716,8 @@ package body Backend.BE_CORBA_Ada.Nutils is
 
    begin
       case Kind (N) is
-         when K_Designator =>
-            Parent_Node := Parent_Unit_Name (N);
-
-            if not Present (Parent_Node) then
-               Parent_Node := Parent_Unit_Name (Defining_Identifier (N));
-            end if;
-
-            if Present (Parent_Node) then
-               Parent_Name := Fully_Qualified_Name (Parent_Node);
-            end if;
-
-            Name_Len := 0;
-
-            if Present (Parent_Node) then
-               Get_Name_String (Parent_Name);
-               Add_Char_To_Name_Buffer ('.');
-            end if;
-
-            Get_Name_String_And_Append (Name (Defining_Identifier (N)));
-            return Name_Find;
-
          when K_Defining_Identifier =>
-            Parent_Node := Parent_Unit_Name (N);
+            Parent_Node := Get_Parent_Unit_Name (N);
 
             if Present (Parent_Node) then
                Parent_Name := Fully_Qualified_Name (Parent_Node);
@@ -605,10 +733,44 @@ package body Backend.BE_CORBA_Ada.Nutils is
             Get_Name_String_And_Append (Name (N));
             return Name_Find;
 
-         when K_Attribute_Designator =>
+         when K_Attribute_Reference =>
             Get_Name_String (Fully_Qualified_Name (Prefix (N)));
             Add_Char_To_Name_Buffer (''');
             Get_Name_String_And_Append (Name (N));
+            return Name_Find;
+
+         when K_Selected_Component =>
+            Get_Name_String (Fully_Qualified_Name (Prefix (N)));
+            Add_Char_To_Name_Buffer ('.');
+
+            case Kind (Selector_Name (N)) is
+               when K_Identifier | K_Defining_Identifier =>
+                  Get_Name_String_And_Append (Name (Selector_Name (N)));
+               when K_Literal =>
+                  declare
+                     V : constant Value_Id := Value (Selector_Name (N));
+                  begin
+                     case Value (V).K is
+                        when FEN.K_Char .. FEN.K_Wide_Char =>
+                           Add_Str_To_Name_Buffer
+                             (Quoted (Image_Ada (V), '''));
+
+                        when FEN.K_String .. FEN.K_Wide_String =>
+                           Add_Str_To_Name_Buffer
+                             (Quoted (Image_Ada (V), '"'));
+
+                        when FEN.K_Enumerator =>
+                           Add_Str_To_Name_Buffer (Image_Ada (V));
+
+                        when others =>
+                           raise Program_Error;
+                     end case;
+                  end;
+
+               when others =>
+                  raise Program_Error;
+            end case;
+
             return Name_Find;
 
          when others =>
@@ -966,22 +1128,22 @@ package body Backend.BE_CORBA_Ada.Nutils is
       return N;
    end Make_Assignment_Statement;
 
-   -------------------------------
-   -- Make_Attribute_Designator --
-   -------------------------------
+   ------------------------------
+   -- Make_Attribute_Reference --
+   ------------------------------
 
-   function Make_Attribute_Designator
+   function Make_Attribute_Reference
      (Prefix    : Node_Id;
       Attribute : Attribute_Id)
      return Node_Id
    is
       N : Node_Id;
    begin
-      N := New_Node (K_Attribute_Designator);
+      N := New_Node (K_Attribute_Reference);
       Set_Prefix (N, Prefix);
       Set_Name (N, AN (Attribute));
       return N;
-   end Make_Attribute_Designator;
+   end Make_Attribute_Reference;
 
    --------------------------
    -- Make_Block_Statement --
@@ -1000,7 +1162,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
       Set_Defining_Identifier (N, Statement_Identifier);
 
       if Present (Statement_Identifier) then
-         Set_Corresponding_Node (Statement_Identifier, N);
+         Set_Declaration_Node (Statement_Identifier, N);
       end if;
 
       Set_Declarative_Part (N, Declarative_Part);
@@ -1112,16 +1274,24 @@ package body Backend.BE_CORBA_Ada.Nutils is
       return N;
    end Make_Decimal_Type_Definition;
 
+   ---------------------
+   -- Make_Identifier --
+   ---------------------
+
+   function Make_Identifier (Name : Name_Id) return Node_Id is
+      N : Node_Id;
+   begin
+      N := New_Node (K_Identifier);
+      Set_Name (N, To_Ada_Name (Name));
+      return N;
+   end Make_Identifier;
+
    ------------------------------
    -- Make_Defining_Identifier --
    ------------------------------
 
-   function Make_Defining_Identifier
-     (Name   : Name_Id)
-     return Node_Id
-   is
+   function Make_Defining_Identifier (Name : Name_Id) return Node_Id is
       N : Node_Id;
-
    begin
       N := New_Node (K_Defining_Identifier);
       Set_Name (N, To_Ada_Name (Name));
@@ -1133,7 +1303,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
    ----------------------------------
 
    function Make_Derived_Type_Definition
-     (Subtype_Indication          : Node_Id;
+     (Subtype_Indication    : Node_Id;
       Record_Extension_Part : Node_Id := No_Node;
       Is_Abstract_Type      : Boolean := False;
       Is_Private_Extention  : Boolean := False;
@@ -1150,30 +1320,6 @@ package body Backend.BE_CORBA_Ada.Nutils is
       Set_Is_Subtype (N, Is_Subtype);
       return N;
    end Make_Derived_Type_Definition;
-
-   ---------------------
-   -- Make_Designator --
-   ---------------------
-
-   function Make_Designator
-     (Designator : Name_Id;
-      Parent     : Name_Id := No_Name)
-     return Node_Id
-   is
-      N : Node_Id;
-      P : Node_Id;
-   begin
-      N := New_Node (K_Designator);
-      Set_Defining_Identifier (N, Make_Defining_Identifier (Designator));
-
-      if Parent /= No_Name then
-         P := New_Node (K_Designator);
-         Set_Defining_Identifier (P, Make_Defining_Identifier (Parent));
-         Set_Homogeneous_Parent_Unit_Name (N, P);
-      end if;
-
-      return N;
-   end Make_Designator;
 
    ------------------------------
    -- Make_Element_Association --
@@ -1230,16 +1376,19 @@ package body Backend.BE_CORBA_Ada.Nutils is
 
    function Make_Exception_Declaration
      (Defining_Identifier : Node_Id;
-      Renamed_Exception   : Node_Id := No_Node)
+      Renamed_Exception   : Node_Id := No_Node;
+      Parent              : Node_Id := Current_Package)
      return Node_Id
    is
       N : Node_Id;
    begin
+      pragma Assert (Kind (Defining_Identifier) = K_Defining_Identifier);
+
       N := New_Node           (K_Exception_Declaration);
       Set_Defining_Identifier (N, Defining_Identifier);
       Set_Renamed_Entity      (N, Renamed_Exception);
-      Set_Corresponding_Node  (Defining_Identifier, N);
-      Set_Parent              (N, Current_Package);
+      Set_Declaration_Node    (Defining_Identifier, N);
+      Set_Parent              (N, Parent);
       return N;
    end Make_Exception_Declaration;
 
@@ -1307,9 +1456,11 @@ package body Backend.BE_CORBA_Ada.Nutils is
    is
       N : Node_Id;
    begin
+      pragma Assert (Kind (Defining_Identifier) = K_Defining_Identifier);
+
       N := New_Node (K_Full_Type_Declaration);
       Set_Defining_Identifier (N, Defining_Identifier);
-      Set_Corresponding_Node (Defining_Identifier, N);
+      Set_Declaration_Node (Defining_Identifier, N);
       Set_Type_Definition (N, Type_Definition);
       Set_Discriminant_Spec (N, Discriminant_Spec);
       Set_Parent (N, Parent);
@@ -1413,8 +1564,8 @@ package body Backend.BE_CORBA_Ada.Nutils is
    ------------------
 
    function Make_Literal
-     (Value             : Value_Id;
-      Parent_Designator : Node_Id := No_Node)
+     (Value  : Value_Id;
+      Parent : Node_Id  := No_Node)
      return Node_Id
    is
       N : Node_Id;
@@ -1422,7 +1573,11 @@ package body Backend.BE_CORBA_Ada.Nutils is
    begin
       N := New_Node (K_Literal);
       Set_Value (N, Value);
-      Set_Parent_Designator (N, Parent_Designator);
+
+      if Present (Parent) then
+         N := Make_Selected_Component (Parent, N);
+      end if;
+
       return N;
    end Make_Literal;
 
@@ -1455,9 +1610,11 @@ package body Backend.BE_CORBA_Ada.Nutils is
    is
       N : Node_Id;
    begin
+      pragma Assert (Kind (Defining_Identifier) = K_Defining_Identifier);
+
       N := New_Node           (K_Object_Declaration);
       Set_Defining_Identifier (N, Defining_Identifier);
-      Set_Corresponding_Node  (Defining_Identifier, N);
+      Set_Declaration_Node  (Defining_Identifier, N);
       Set_Constant_Present    (N, Constant_Present);
       Set_Aliased_Present     (N, Aliased_Present);
       Set_Object_Definition   (N, Object_Definition);
@@ -1509,14 +1666,21 @@ package body Backend.BE_CORBA_Ada.Nutils is
          return Result;
       end Get_Style_State;
 
-      Pkg  : Node_Id;
-      Unit : Node_Id;
-      N    : Node_Id;
+      Pkg         : Node_Id;
+      Unit        : Node_Id;
+      N           : Node_Id;
       Style_State : constant Value_Id := Get_Style_State;
    begin
       Unit := New_Node (K_Package_Declaration);
       Set_Defining_Identifier (Unit, Identifier);
-      Set_Corresponding_Node (Identifier, Unit);
+
+      if Kind (Identifier) = K_Defining_Identifier then
+         Set_Declaration_Node (Identifier, Unit);
+      elsif Kind (Identifier) = K_Selected_Component then
+         Set_Declaration_Node (Selector_Name (Identifier), Unit);
+      else
+         raise Program_Error;
+      end if;
 
       if Present (Current_Entity)
         and then FEN."/="
@@ -1587,9 +1751,11 @@ package body Backend.BE_CORBA_Ada.Nutils is
    is
       N : Node_Id;
    begin
+      pragma Assert (Kind (Defining_Identifier) = K_Defining_Identifier);
+
       N := New_Node (K_Package_Instantiation);
       Set_Defining_Identifier (N, Defining_Identifier);
-      Set_Corresponding_Node (Defining_Identifier, N);
+      Set_Declaration_Node (Defining_Identifier, N);
       Set_Generic_Package (N, Generic_Package);
       Set_Parameter_List (N, Parameter_List);
       Set_Parent         (N, Parent);
@@ -1646,7 +1812,6 @@ package body Backend.BE_CORBA_Ada.Nutils is
       N : Node_Id;
    begin
       N := New_Node (K_Pragma);
-
       Set_Defining_Identifier (N, Make_Defining_Identifier (GN (The_Pragma)));
       Set_Argument_List (N, Argument_List);
       return N;
@@ -1775,10 +1940,48 @@ package body Backend.BE_CORBA_Ada.Nutils is
    is
       N : Node_Id;
    begin
-      N := New_Node (K_Selected_Component);
-      Set_Prefix (N, Prefix);
-      Set_Selector_Name (N, Selector_Name);
-      return N;
+      pragma Assert (Present (Selector_Name));
+      pragma Assert (Kind (Selector_Name) /= K_Selected_Component);
+
+      if Present (Prefix) then
+         pragma Assert (Kind (Prefix) /= K_Package_Declaration      and then
+                        Kind (Prefix) /= K_Package_Specification    and then
+                        Kind (Prefix) /= K_Package_Implementation   and then
+                        Kind (Prefix) /= K_Subprogram_Specification and then
+                        Kind (Prefix) /= K_Subprogram_Body          and then
+                        Kind (Prefix) /= K_Full_Type_Declaration);
+
+         N := New_Node (K_Selected_Component);
+         Set_Prefix (N, Prefix);
+         Set_FE_Node (N, FE_Node (Selector_Name));
+         Set_Selector_Name (N, Selector_Name);
+         return N;
+      else
+         return Selector_Name;
+      end if;
+   end Make_Selected_Component;
+
+   -----------------------------
+   -- Make_Selected_Component --
+   -----------------------------
+
+   function Make_Selected_Component
+     (Prefix        : Name_Id;
+      Selector_Name : Name_Id)
+     return Node_Id
+   is
+      N : Node_Id;
+   begin
+      pragma Assert (Selector_Name /= No_Name);
+
+      if Prefix /= No_Name then
+         N := New_Node (K_Selected_Component);
+         Set_Prefix (N, Make_Identifier (Prefix));
+         Set_Selector_Name (N, Make_Identifier (Selector_Name));
+         return N;
+      else
+         return Make_Identifier (Selector_Name);
+      end if;
    end Make_Selected_Component;
 
    --------------------------
@@ -1832,6 +2035,8 @@ package body Backend.BE_CORBA_Ada.Nutils is
    is
       N : Node_Id;
    begin
+      pragma Assert (Kind (Defining_Identifier) = K_Defining_Identifier);
+
       N := New_Node               (K_Subprogram_Specification);
       Set_Defining_Identifier     (N, Defining_Identifier);
       Set_Parameter_Profile       (N, Parameter_Profile);
@@ -1927,12 +2132,12 @@ package body Backend.BE_CORBA_Ada.Nutils is
       --  Determine whether this package is intended to be edited by the user
 
       Editable :=
-        (Pkg_Name_Str = Get_Name_String (BEN.Name (Package_Identifier)));
+        (Pkg_Name_Str = Get_Name_String (Get_Name (Package_Identifier)));
 
       --  Check whether the package is internal to PolyORB
 
       Internal :=
-        (Internal_Str = Get_Name_String (BEN.Name (Package_Identifier)));
+        (Internal_Str = Get_Name_String (Get_Name (Package_Identifier)));
 
       --  Prepare separator line for comment box
 
@@ -2002,7 +2207,6 @@ package body Backend.BE_CORBA_Ada.Nutils is
 
       N := Make_Ada_Comment (Separator, False);
       Append_Node_To_List (N, Package_Header);
-
    end Make_Comment_Header;
 
    -----------------
@@ -2168,66 +2372,6 @@ package body Backend.BE_CORBA_Ada.Nutils is
          end loop;
       end if;
    end Remove_Node_From_List;
-
-   --------------------------------------
-   -- Set_Homogeneous_Parent_Unit_Name --
-   --------------------------------------
-
-   procedure Set_Homogeneous_Parent_Unit_Name
-     (Child  : Node_Id;
-      Parent : Node_Id)
-   is
-   begin
-      pragma Assert (BEN.Kind (Child) = K_Defining_Identifier
-                     or else BEN.Kind (Child) = K_Designator);
-
-      pragma Assert (Parent = No_Node
-                     or else BEN.Kind (Parent) = K_Defining_Identifier
-                     or else BEN.Kind (Parent) = K_Designator);
-
-      case BEN.Kind (Child) is
-
-         when K_Defining_Identifier =>
-            if Parent = No_Node then
-               Set_Parent_Unit_Name (Child, Parent);
-            elsif BEN.Kind (Parent) = K_Defining_Identifier then
-               Set_Parent_Unit_Name (Child, Parent);
-            elsif BEN.Kind (Parent) = K_Designator then
-               Set_Parent_Unit_Name (Child, Defining_Identifier (Parent));
-            else
-               raise Program_Error;
-            end if;
-
-         when K_Designator =>
-            if Parent = No_Node then
-               Set_Parent_Unit_Name (Child, Parent);
-
-               if Present (Defining_Identifier (Child)) then
-                  Set_Parent_Unit_Name (Defining_Identifier (Child), Parent);
-               end if;
-            elsif BEN.Kind (Parent) = K_Defining_Identifier then
-               Set_Parent_Unit_Name
-                 (Child, Defining_Identifier_To_Designator (Parent));
-
-               if Present (Defining_Identifier (Child)) then
-                  Set_Parent_Unit_Name (Defining_Identifier (Child), Parent);
-               end if;
-            elsif BEN.Kind (Parent) = K_Designator then
-               Set_Parent_Unit_Name (Child, Parent);
-
-               if Present (Defining_Identifier (Child)) then
-                  Set_Parent_Unit_Name (Defining_Identifier (Child),
-                                        Defining_Identifier (Parent));
-               end if;
-            else
-               raise Program_Error;
-            end if;
-
-         when others =>
-            raise Program_Error;
-
-      end case;
-   end Set_Homogeneous_Parent_Unit_Name;
 
    -------------------
    -- Set_Forwarded --

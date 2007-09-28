@@ -41,7 +41,6 @@ with Backend.BE_CORBA_Ada.Nodes;       use Backend.BE_CORBA_Ada.Nodes;
 with Backend.BE_CORBA_Ada.Nutils;      use Backend.BE_CORBA_Ada.Nutils;
 with Backend.BE_CORBA_Ada.IDL_To_Ada;  use Backend.BE_CORBA_Ada.IDL_To_Ada;
 with Backend.BE_CORBA_Ada.Runtime;     use Backend.BE_CORBA_Ada.Runtime;
-with Backend.BE_CORBA_Ada.Expand;      use Backend.BE_CORBA_Ada.Expand;
 
 with Backend.BE_CORBA_Ada.Common;      use Backend.BE_CORBA_Ada.Common;
 package body Backend.BE_CORBA_Ada.Buffers is
@@ -115,12 +114,11 @@ package body Backend.BE_CORBA_Ada.Buffers is
          --  Subprogram Specification
 
          S := Make_Subprogram_Specification
-           (Map_Buffer_Size_Identifier (Defining_Identifier (Spec)),
+           (Make_Selected_Component
+            (Defining_Identifier (Buffers_Package (Current_Entity)),
+             Map_Buffer_Size_Identifier (Defining_Identifier (Spec))),
             Profile,
             No_Node);
-         Set_Homogeneous_Parent_Unit_Name
-           (Defining_Identifier (S),
-            Defining_Identifier (Buffers_Package (Current_Entity)));
 
          return S;
       end Buffer_Size_Spec;
@@ -385,7 +383,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
          --  bounded type (client side).
 
          if Contains_In_Parameters (E) then
-            Cl_Buffer_Size := Make_Designator
+            Cl_Buffer_Size := Make_Identifier
               (Add_Suffix_To_Name
                ("_Client_Size",
                 IDL_Name
@@ -405,7 +403,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
             N := Make_Subprogram_Call
               (RE (RE_Preallocate_Buffer),
                Make_List_Id
-               (Make_Designator (PN (P_Buffer)),
+               (Make_Identifier (PN (P_Buffer)),
                 Cl_Buffer_Size));
 
             M := Make_Return_Statement (No_Node);
@@ -430,7 +428,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
            (Present (T) and then
             FEN.Kind (T) /= K_Void)
          then
-            Sr_Buffer_Size := Make_Designator
+            Sr_Buffer_Size := Make_Identifier
               (Add_Suffix_To_Name
                ("_Server_Size",
                 IDL_Name
@@ -450,7 +448,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
             N := Make_Subprogram_Call
               (RE (RE_Preallocate_Buffer),
                Make_List_Id
-               (Make_Designator (PN (P_Buffer)),
+               (Make_Identifier (PN (P_Buffer)),
                 Sr_Buffer_Size));
 
             M := Make_Return_Statement (No_Node);
@@ -490,9 +488,9 @@ package body Backend.BE_CORBA_Ada.Buffers is
             N := Make_Subprogram_Call
               (RE (RE_Pad_Compute),
                Make_List_Id
-               (Make_Designator (VN (V_CDR_Position)),
-                Make_Designator (VN (V_Buffer_Size)),
-                Make_Designator (PN (P_Data_Alignment))));
+               (Make_Identifier (VN (V_CDR_Position)),
+                Make_Identifier (VN (V_Buffer_Size)),
+                Make_Identifier (PN (P_Data_Alignment))));
             Append_Node_To_List (N, Server_Statements);
 
             --  Initialize body alignment to "1"
@@ -507,8 +505,9 @@ package body Backend.BE_CORBA_Ada.Buffers is
 
             --  Compute memory needed for result marshalling
 
-            N := Make_Defining_Identifier (PN (P_Returns));
-            Set_Homogeneous_Parent_Unit_Name (N, Copy_Node (Args_Id));
+            N := Make_Selected_Component
+              (Copy_Node (Args_Id),
+               Make_Defining_Identifier (PN (P_Returns)));
             N := Compute_Size (N, T, Subp_Declarations, E);
             Append_Node_To_List (N, Server_Statements);
 
@@ -530,9 +529,9 @@ package body Backend.BE_CORBA_Ada.Buffers is
                N := Make_Subprogram_Call
                  (RE (RE_Pad_Compute),
                   Make_List_Id
-                  (Make_Designator (VN (V_CDR_Position)),
-                   Make_Designator (VN (V_Buffer_Size)),
-                   Make_Designator (PN (P_Data_Alignment))));
+                  (Make_Identifier (VN (V_CDR_Position)),
+                   Make_Identifier (VN (V_Buffer_Size)),
+                   Make_Identifier (PN (P_Data_Alignment))));
 
                Append_Node_To_List (N, Server_Statements);
             end if;
@@ -541,9 +540,9 @@ package body Backend.BE_CORBA_Ada.Buffers is
                N := Make_Subprogram_Call
                  (RE (RE_Pad_Compute),
                   Make_List_Id
-                  (Make_Designator (VN (V_CDR_Position)),
-                   Make_Designator (VN (V_Buffer_Size)),
-                   Make_Designator (PN (P_Data_Alignment))));
+                  (Make_Identifier (VN (V_CDR_Position)),
+                   Make_Identifier (VN (V_Buffer_Size)),
+                   Make_Identifier (PN (P_Data_Alignment))));
 
                Append_Node_To_List (N, Client_Statements);
             end if;
@@ -593,8 +592,10 @@ package body Backend.BE_CORBA_Ada.Buffers is
                --  Compute parameter size
 
                if  Is_In (Parameter_Mode) then
-                  N := Make_Defining_Identifier (Parameter_Name);
-                  Set_Homogeneous_Parent_Unit_Name (N, Copy_Node (Args_Id));
+                  N := Make_Selected_Component
+                    (Copy_Node (Args_Id),
+                     Make_Defining_Identifier (Parameter_Name));
+
                   N := Compute_Size
                     (N,
                      Type_Spec (Parameter),
@@ -612,8 +613,10 @@ package body Backend.BE_CORBA_Ada.Buffers is
                end if;
 
                if  Is_Out (Parameter_Mode) then
-                  N := Make_Defining_Identifier (Parameter_Name);
-                  Set_Homogeneous_Parent_Unit_Name (N, Copy_Node (Args_Id));
+                  N := Make_Selected_Component
+                    (Copy_Node (Args_Id),
+                     Make_Defining_Identifier (Parameter_Name));
+
                   N := Compute_Size
                     (N,
                      Type_Spec (Parameter),
@@ -640,7 +643,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
             if Fixed_Client_Buffer then
                N := Make_Assignment_Statement
                  (Cl_Buffer_Size,
-                  Make_Designator (VN (V_Buffer_Size)));
+                  Make_Identifier (VN (V_Buffer_Size)));
                Append_Node_To_List (N, Client_Statements);
             else
                N := Make_Assignment_Statement
@@ -652,8 +655,8 @@ package body Backend.BE_CORBA_Ada.Buffers is
             N := Make_Subprogram_Call
               (RE (RE_Preallocate_Buffer),
                Make_List_Id
-               (Make_Designator (PN (P_Buffer)),
-                Make_Designator (VN (V_Buffer_Size))));
+               (Make_Identifier (PN (P_Buffer)),
+                Make_Identifier (VN (V_Buffer_Size))));
 
             Append_Node_To_List (N, Client_Statements);
          end if;
@@ -662,7 +665,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
             if Fixed_Server_Buffer then
                N := Make_Assignment_Statement
                  (Sr_Buffer_Size,
-                  Make_Designator (VN (V_Buffer_Size)));
+                  Make_Identifier (VN (V_Buffer_Size)));
                Append_Node_To_List (N, Server_Statements);
             else
                N := Make_Assignment_Statement
@@ -674,8 +677,8 @@ package body Backend.BE_CORBA_Ada.Buffers is
             N := Make_Subprogram_Call
               (RE (RE_Preallocate_Buffer),
                Make_List_Id
-               (Make_Designator (PN (P_Buffer)),
-                Make_Designator (VN (V_Buffer_Size))));
+               (Make_Identifier (PN (P_Buffer)),
+                Make_Identifier (VN (V_Buffer_Size))));
 
             Append_Node_To_List (N, Server_Statements);
          end if;
@@ -695,7 +698,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
                for Index in Unref_Entities'Range loop
                   N := Make_Pragma
                     (Pragma_Unreferenced,
-                     Make_List_Id (Make_Designator (Unref_Entities (Index))));
+                     Make_List_Id (Make_Identifier (Unref_Entities (Index))));
                   Append_Node_To_List (N, Subp_Declarations);
                end loop;
             end;
@@ -707,7 +710,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
 
             N := Make_Pragma
               (Pragma_Warnings,
-               Make_List_Id (RE (RE_Off), Make_Designator (PN (P_Args))));
+               Make_List_Id (RE (RE_Off), Make_Identifier (PN (P_Args))));
             Append_Node_To_List (N, Subp_Declarations);
 
             --  Common declarations
@@ -721,7 +724,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
                (PN (P_Data_Alignment)),
                Object_Definition   => RE (RE_Alignment_Type),
                Constant_Present    => Alignment_Const,
-               Expression          => Make_Designator
+               Expression          => Make_Identifier
                (PN (P_First_Arg_Alignment)));
             Append_Node_To_List (N, Subp_Declarations);
 
@@ -729,14 +732,14 @@ package body Backend.BE_CORBA_Ada.Buffers is
             --  Buffer_Size and CDR_Position.
 
             N := Make_Used_Type
-              (Make_Designator
+              (Make_Identifier
                (Fully_Qualified_Name
                 (RE (RE_Unsigned_Long_1))));
 
             Append_Node_To_List (N, Subp_Declarations);
 
             N := Make_Used_Type
-              (Make_Designator
+              (Make_Identifier
                (Fully_Qualified_Name
                 (RE (RE_Stream_Element_Count))));
 
@@ -754,11 +757,11 @@ package body Backend.BE_CORBA_Ada.Buffers is
                  Make_Expression
                (Make_Subprogram_Call
                 (RE (RE_CDR_Position),
-                 Make_List_Id (Make_Designator (PN (P_Buffer)))),
+                 Make_List_Id (Make_Identifier (PN (P_Buffer)))),
                 Op_Minus,
                 Make_Subprogram_Call
                 (RE (RE_Length),
-                 Make_List_Id (Make_Designator (PN (P_Buffer))))));
+                 Make_List_Id (Make_Identifier (PN (P_Buffer))))));
 
             Append_Node_To_List (N, Subp_Declarations);
 
@@ -772,7 +775,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
                Expression          =>
                  Make_Subprogram_Call
                (RE (RE_CDR_Position),
-                Make_List_Id (Make_Designator (PN (P_Buffer)))));
+                Make_List_Id (Make_Identifier (PN (P_Buffer)))));
 
             Append_Node_To_List (N, Subp_Declarations);
          end if;
@@ -805,7 +808,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
             Append_Node_To_List (N, Case_Alternatives);
 
             N := Make_Case_Statement
-              (Make_Designator (PN (P_Role)), Case_Alternatives);
+              (Make_Identifier (PN (P_Role)), Case_Alternatives);
             Append_Node_To_List (N, Subp_Statements);
          end if;
 
@@ -1003,8 +1006,8 @@ package body Backend.BE_CORBA_Ada.Buffers is
                   N := Make_Subprogram_Call
                     (RE (RE_Pad_Compute),
                      Make_List_Id
-                     (Make_Designator (VN (V_CDR_Position)),
-                      Make_Designator (VN (V_Buffer_Size)),
+                     (Make_Identifier (VN (V_CDR_Position)),
+                      Make_Identifier (VN (V_Buffer_Size)),
                       Make_Literal (New_Integer_Value (4, 1, 10))));
 
                   Append_Node_To_List (N, Block_St);
@@ -1039,7 +1042,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
                   N := Make_Assignment_Statement
                     (Make_Defining_Identifier (VN (V_Buffer_Size)),
                      Make_Expression
-                     (Make_Designator (VN (V_Buffer_Size)),
+                     (Make_Identifier (VN (V_Buffer_Size)),
                       Op_Plus,
                       Make_Literal (New_Integer_Value (4, 1, 10))));
 
@@ -1048,7 +1051,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
                   N := Make_Assignment_Statement
                     (Make_Defining_Identifier (VN (V_CDR_Position)),
                      Make_Expression
-                     (Make_Designator (VN (V_CDR_Position)),
+                     (Make_Identifier (VN (V_CDR_Position)),
                       Op_Plus,
                       Make_Literal (New_Integer_Value (4, 1, 10))));
 
@@ -1114,8 +1117,8 @@ package body Backend.BE_CORBA_Ada.Buffers is
                   N := Make_Subprogram_Call
                     (RE (RE_Pad_Compute),
                      Make_List_Id
-                     (Make_Designator (VN (V_CDR_Position)),
-                      Make_Designator (VN (V_Buffer_Size)),
+                     (Make_Identifier (VN (V_CDR_Position)),
+                      Make_Identifier (VN (V_Buffer_Size)),
                       Make_Literal (Padding_Value)));
 
                   Append_Node_To_List (N, Block_St);
@@ -1155,8 +1158,8 @@ package body Backend.BE_CORBA_Ada.Buffers is
                   N := Make_Subprogram_Call
                     (RE (RE_Pad_Compute),
                      Make_List_Id
-                     (Make_Designator (VN (V_CDR_Position)),
-                      Make_Designator (VN (V_Buffer_Size)),
+                     (Make_Identifier (VN (V_CDR_Position)),
+                      Make_Identifier (VN (V_Buffer_Size)),
                       Make_Literal (New_Integer_Value (4, 1, 10))));
 
                   Append_Node_To_List (N, Block_St);
@@ -1168,7 +1171,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
                      Make_Expression
                      (Make_Literal (New_Integer_Value (4, 1, 10)),
                       Op_Plus,
-                      Make_Designator (VN (V_Buffer_Size))));
+                      Make_Identifier (VN (V_Buffer_Size))));
 
                   Append_Node_To_List (N, Block_St);
 
@@ -1177,7 +1180,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
                      Make_Expression
                      (Make_Literal (New_Integer_Value (4, 1, 10)),
                       Op_Plus,
-                      Make_Designator (VN (V_CDR_Position))));
+                      Make_Identifier (VN (V_CDR_Position))));
 
                   Append_Node_To_List (N, Block_St);
 
@@ -1222,9 +1225,9 @@ package body Backend.BE_CORBA_Ada.Buffers is
                      (N));
                   Append_Node_To_List (N, Block_Dcl);
 
-                  N := Make_Designator
-                    (Designator => SN (S_Type_Size),
-                     Parent     => VN (V_FXS));
+                  N := Make_Selected_Component
+                    (VN (V_FXS),
+                     SN (S_Type_Size));
 
                   M := Make_Subprogram_Call
                     (RE (RE_Stream_Element_Count),
@@ -1273,8 +1276,8 @@ package body Backend.BE_CORBA_Ada.Buffers is
                   N := Make_Subprogram_Call
                     (RE (RE_Pad_Compute),
                      Make_List_Id
-                     (Make_Designator (VN (V_CDR_Position)),
-                      Make_Designator (VN (V_Buffer_Size)),
+                     (Make_Identifier (VN (V_CDR_Position)),
+                      Make_Identifier (VN (V_Buffer_Size)),
                       Make_Literal (New_Integer_Value (8, 1, 10))));
 
                   Append_Node_To_List (N, Block_St);
@@ -1310,8 +1313,8 @@ package body Backend.BE_CORBA_Ada.Buffers is
                   N := Make_Subprogram_Call
                     (RE (RE_Pad_Compute),
                      Make_List_Id
-                     (Make_Designator (VN (V_CDR_Position)),
-                      Make_Designator (VN (V_Buffer_Size)),
+                     (Make_Identifier (VN (V_CDR_Position)),
+                      Make_Identifier (VN (V_Buffer_Size)),
                       Make_Literal (New_Integer_Value (4, 1, 10))));
 
                   Append_Node_To_List (N, Block_St);
@@ -1322,7 +1325,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
                   N := Make_Assignment_Statement
                     (Make_Defining_Identifier (VN (V_Buffer_Size)),
                      Make_Expression
-                     (Make_Designator (VN (V_Buffer_Size)),
+                     (Make_Identifier (VN (V_Buffer_Size)),
                       Op_Plus,
                       Make_Literal (New_Integer_Value (4, 1, 10))));
 
@@ -1331,7 +1334,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
                   N := Make_Assignment_Statement
                     (Make_Defining_Identifier (VN (V_CDR_Position)),
                      Make_Expression
-                     (Make_Designator (VN (V_CDR_Position)),
+                     (Make_Identifier (VN (V_CDR_Position)),
                       Op_Plus,
                       Make_Literal (New_Integer_Value (4, 1, 10))));
 
@@ -1389,8 +1392,8 @@ package body Backend.BE_CORBA_Ada.Buffers is
                   N := Make_Subprogram_Call
                     (RE (RE_Pad_Compute),
                      Make_List_Id
-                     (Make_Designator (VN (V_CDR_Position)),
-                      Make_Designator (VN (V_Buffer_Size)),
+                     (Make_Identifier (VN (V_CDR_Position)),
+                      Make_Identifier (VN (V_Buffer_Size)),
                       Make_Literal (New_Integer_Value (4, 1, 10))));
 
                   Append_Node_To_List (N, Block_St);
@@ -1400,7 +1403,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
                   N := Make_Assignment_Statement
                     (Make_Defining_Identifier (VN (V_Buffer_Size)),
                      Make_Expression
-                     (Make_Designator (VN (V_Buffer_Size)),
+                     (Make_Identifier (VN (V_Buffer_Size)),
                       Op_Plus,
                       Make_Literal (New_Integer_Value (4, 1, 10))));
                   Append_Node_To_List (N, Block_St);
@@ -1408,7 +1411,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
                   N := Make_Assignment_Statement
                     (Make_Defining_Identifier (VN (V_CDR_Position)),
                      Make_Expression
-                     (Make_Designator (VN (V_CDR_Position)),
+                     (Make_Identifier (VN (V_CDR_Position)),
                       Op_Plus,
                       Make_Literal (New_Integer_Value (4, 1, 10))));
                   Append_Node_To_List (N, Block_St);
@@ -1427,8 +1430,9 @@ package body Backend.BE_CORBA_Ada.Buffers is
 
                   Append_Node_To_List (N, Block_Dcl);
 
-                  N := Make_Designator (SN (S_Length));
-                  Set_Homogeneous_Parent_Unit_Name (N, Seq_Package_Node);
+                  N := Make_Selected_Component
+                    (Seq_Package_Node,
+                     Make_Identifier (SN (S_Length)));
 
                   N := Make_Subprogram_Call
                     (N,
@@ -1445,8 +1449,9 @@ package body Backend.BE_CORBA_Ada.Buffers is
 
                   Append_Node_To_List (N, Block_St);
 
-                  N := RE (RE_Get_Element);
-                  Set_Homogeneous_Parent_Unit_Name (N, Seq_Package_Node);
+                  N := Make_Selected_Component
+                    (Seq_Package_Node,
+                     Get_Base_Identifier (RE (RE_Get_Element)));
 
                   --  Verify if the element type is complex
 
@@ -1502,8 +1507,8 @@ package body Backend.BE_CORBA_Ada.Buffers is
                         N := Make_Subprogram_Call
                           (RE (RE_Pad_Compute),
                            Make_List_Id
-                           (Make_Designator (VN (V_CDR_Position)),
-                            Make_Designator (VN (V_Buffer_Size)),
+                           (Make_Identifier (VN (V_CDR_Position)),
+                            Make_Identifier (VN (V_Buffer_Size)),
                             Make_Literal (Padding_Value)));
 
                         Append_Node_To_List (N, Block_St);
@@ -1581,7 +1586,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
                      loop
                         Loop_Range := New_Integer_Value
                           (Unsigned_Long_Long'Value
-                           (Values.Image (BEN.Value (Last (Dim)))) + 1,
+                           (Values.Image (Get_Value (Last (Dim)))) + 1,
                            1,
                            10);
 
@@ -1597,8 +1602,8 @@ package body Backend.BE_CORBA_Ada.Buffers is
                      N := Make_Subprogram_Call
                        (RE (RE_Pad_Compute),
                         Make_List_Id
-                        (Make_Designator (VN (V_CDR_Position)),
-                         Make_Designator (VN (V_Buffer_Size)),
+                        (Make_Identifier (VN (V_CDR_Position)),
+                         Make_Identifier (VN (V_Buffer_Size)),
                          Make_Literal (Padding_Value)));
                      Append_Node_To_List (N, Block_St);
 
@@ -1681,9 +1686,9 @@ package body Backend.BE_CORBA_Ada.Buffers is
                           (IDL_Name
                            (Identifier
                             (Declarator)));
-                        Dcl_Ada_Node := Make_Designator (Dcl_Ada_Name);
-                        Set_Homogeneous_Parent_Unit_Name
-                          (Dcl_Ada_Node, Var_Node);
+                        Dcl_Ada_Node := Make_Selected_Component
+                          (Var_Node,
+                           Make_Identifier (Dcl_Ada_Name));
 
                         --  Marshalling the record field
 
@@ -1719,8 +1724,9 @@ package body Backend.BE_CORBA_Ada.Buffers is
                begin
                   --  1/ Marshall the union switch
 
-                  Switch_Node := Make_Designator (CN (C_Switch));
-                  Set_Homogeneous_Parent_Unit_Name (Switch_Node, Var_Node);
+                  Switch_Node := Make_Selected_Component
+                    (Var_Node,
+                     Make_Identifier (CN (C_Switch)));
 
                   N := Compute_Size
                     (Var_Node => Switch_Node,
@@ -1737,7 +1743,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
                     (Switch_Type_Spec
                      (Type_Spec_Node));
                   if FEN.Kind (Switch_Type) = K_Enumeration_Type then
-                     Literal_Parent := Map_Designator
+                     Literal_Parent := Map_Expanded_Name
                        (Scope_Entity
                         (Identifier
                          (Switch_Type)));
@@ -1755,8 +1761,8 @@ package body Backend.BE_CORBA_Ada.Buffers is
                      while Present (Label) loop
 
                         Choice := Make_Literal
-                          (Value             => FEN.Value (Label),
-                           Parent_Designator => Literal_Parent);
+                          (Value  => FEN.Value (Label),
+                           Parent => Literal_Parent);
                         Append_Node_To_List (Choice, Choices);
                         Label := Next_Entity (Label);
                      end loop;
@@ -1772,8 +1778,10 @@ package body Backend.BE_CORBA_Ada.Buffers is
                        (IDL_Name
                         (Identifier
                          (Declarator)));
-                     Dcl_Ada_Node := Make_Designator (Dcl_Ada_Name);
-                     Set_Homogeneous_Parent_Unit_Name (Dcl_Ada_Node, Var_Node);
+
+                     Dcl_Ada_Node := Make_Selected_Component
+                       (Var_Node,
+                        Make_Identifier (Dcl_Ada_Name));
 
                      --  Marshalling the record field
 
@@ -1902,7 +1910,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
                (Subp_Nod)))));
 
          M := Make_Explicit_Dereference
-           (Make_Designator
+           (Make_Identifier
               (PN (P_Args)));
 
          N := Make_Object_Declaration

@@ -40,7 +40,6 @@ with Backend.BE_CORBA_Ada.IDL_To_Ada;  use Backend.BE_CORBA_Ada.IDL_To_Ada;
 with Backend.BE_CORBA_Ada.Nodes;       use Backend.BE_CORBA_Ada.Nodes;
 with Backend.BE_CORBA_Ada.Nutils;      use Backend.BE_CORBA_Ada.Nutils;
 with Backend.BE_CORBA_Ada.Runtime;     use Backend.BE_CORBA_Ada.Runtime;
-with Backend.BE_CORBA_Ada.Expand;      use Backend.BE_CORBA_Ada.Expand;
 with Backend.BE_CORBA_Ada.Stubs;
 
 package body Backend.BE_CORBA_Ada.Impls is
@@ -142,12 +141,11 @@ package body Backend.BE_CORBA_Ada.Impls is
 
          --  The Object_Ptr type
 
-         D := New_Node (K_Designator);
-         Set_Defining_Identifier (D, Copy_Node (I));
+         D := Copy_Node (I);
          N := Make_Full_Type_Declaration
            (Make_Defining_Identifier (TN (T_Object_Ptr)),
             Make_Access_Type_Definition
-            (Make_Attribute_Designator (D, A_Class),
+            (Make_Attribute_Reference (D, A_Class),
              Is_All => True));
          Append_Node_To_List
            (N, Visible_Part (Current_Package));
@@ -245,7 +243,8 @@ package body Backend.BE_CORBA_Ada.Impls is
          Stub_Param := Next_Node (First_Node (Parameter_Profile (Stub)));
 
          while Present (Stub_Param) loop
-            Type_Designator := Copy_Designator (Parameter_Type (Stub_Param));
+            Type_Designator := Copy_Expanded_Name
+              (Parameter_Type (Stub_Param));
             Impl_Param := Make_Parameter_Specification
               (Copy_Node (Defining_Identifier (Stub_Param)),
                Type_Designator,
@@ -255,7 +254,7 @@ package body Backend.BE_CORBA_Ada.Impls is
          end loop;
 
          if Present (Return_Type (Stub)) then
-            Returns := Copy_Designator (Return_Type (Stub));
+            Returns := Copy_Expanded_Name (Return_Type (Stub));
          end if;
 
          Set_Impl_Spec;
@@ -409,9 +408,9 @@ package body Backend.BE_CORBA_Ada.Impls is
          Subp_Spec := Impl_Node (BE_Node (Identifier (E)));
 
          if Present (Return_Type (Stub)) then
-            Returns := Copy_Designator (Return_Type (Stub));
+            Returns := Copy_Expanded_Name (Return_Type (Stub));
 
-            if Kind (Returns) = K_Attribute_Designator then
+            if Kind (Returns) = K_Attribute_Reference then
                Returns := Prefix (Returns);
             end if;
 

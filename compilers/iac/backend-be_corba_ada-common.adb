@@ -40,7 +40,6 @@ with Backend.BE_CORBA_Ada.Nutils;      use Backend.BE_CORBA_Ada.Nutils;
 with Backend.BE_CORBA_Ada.Nodes;       use Backend.BE_CORBA_Ada.Nodes;
 with Backend.BE_CORBA_Ada.IDL_To_Ada;  use Backend.BE_CORBA_Ada.IDL_To_Ada;
 with Backend.BE_CORBA_Ada.Runtime;     use Backend.BE_CORBA_Ada.Runtime;
-with Backend.BE_CORBA_Ada.Expand;      use Backend.BE_CORBA_Ada.Expand;
 
 package body Backend.BE_CORBA_Ada.Common is
 
@@ -60,7 +59,7 @@ package body Backend.BE_CORBA_Ada.Common is
       Orig_Type        : Node_Id;
       Direct_Type_Node : Node_Id;
    begin
-      N := Make_Designator (Var_Name);
+      N := Make_Identifier (Var_Name);
 
       Orig_Type := FEU.Get_Original_Type_Specifier (Var_Type);
 
@@ -84,7 +83,7 @@ package body Backend.BE_CORBA_Ada.Common is
                   Make_List_Id (N));
                if FEN.Kind (Direct_Type_Node) /= K_String then
                   N := Make_Subprogram_Call
-                    (Map_Designator (Direct_Type_Node),
+                    (Map_Expanded_Name (Direct_Type_Node),
                      Make_List_Id (N));
                end if;
             end;
@@ -102,10 +101,9 @@ package body Backend.BE_CORBA_Ada.Common is
 
                --  Getting the conversion subprogram
 
-               Str_Convert_Subp := Make_Designator
-                 (SN (S_To_Bounded_String));
-               Set_Homogeneous_Parent_Unit_Name
-                 (Str_Convert_Subp, Str_Package_Node);
+               Str_Convert_Subp := Make_Selected_Component
+                 (Str_Package_Node,
+                  Make_Identifier (SN (S_To_Bounded_String)));
 
                N := Make_Subprogram_Call
                  (RE (RE_To_Standard_String_1),
@@ -116,7 +114,7 @@ package body Backend.BE_CORBA_Ada.Common is
                   Make_List_Id (N));
 
                N := Make_Subprogram_Call
-                 (Map_Designator (Direct_Type_Node),
+                 (Map_Expanded_Name (Direct_Type_Node),
                   Make_List_Id (N));
             end;
 
@@ -130,7 +128,7 @@ package body Backend.BE_CORBA_Ada.Common is
                   Make_List_Id (N));
                if FEN.Kind (Direct_Type_Node) /= K_Wide_String then
                   N := Make_Subprogram_Call
-                    (Map_Designator (Direct_Type_Node),
+                    (Map_Expanded_Name (Direct_Type_Node),
                      Make_List_Id (N));
                end if;
             end;
@@ -148,10 +146,9 @@ package body Backend.BE_CORBA_Ada.Common is
 
                --  Getting the conversion subprogram
 
-               Str_Convert_Subp := Make_Designator
-                 (SN (S_To_Bounded_Wide_String));
-               Set_Homogeneous_Parent_Unit_Name
-                 (Str_Convert_Subp, Str_Package_Node);
+               Str_Convert_Subp := Make_Selected_Component
+                 (Str_Package_Node,
+                  Make_Identifier (SN (S_To_Bounded_Wide_String)));
 
                N := Make_Subprogram_Call
                  (RE (RE_To_Standard_Wide_String_1),
@@ -162,7 +159,7 @@ package body Backend.BE_CORBA_Ada.Common is
                   Make_List_Id (N));
 
                N := Make_Subprogram_Call
-                 (Map_Designator (Direct_Type_Node),
+                 (Map_Expanded_Name (Direct_Type_Node),
                   Make_List_Id (N));
             end;
 
@@ -182,7 +179,7 @@ package body Backend.BE_CORBA_Ada.Common is
            | K_Boolean
            | K_Fixed_Point_Type =>
             declare
-               CORBA_Type : constant Node_Id := Map_Designator
+               CORBA_Type : constant Node_Id := Map_Expanded_Name
                  (Direct_Type_Node);
             begin
                N := Make_Subprogram_Call
@@ -220,7 +217,7 @@ package body Backend.BE_CORBA_Ada.Common is
 
          when K_Enumeration_Type =>
             declare
-               CORBA_Type : constant Node_Id := Map_Designator
+               CORBA_Type : constant Node_Id := Map_Expanded_Name
                  (Direct_Type_Node);
                M : Node_Id;
             begin
@@ -230,7 +227,7 @@ package body Backend.BE_CORBA_Ada.Common is
                --  to cast the variable to the original enumeration
                --  type.
 
-               M := Make_Attribute_Designator (CORBA_Type, A_Val);
+               M := Make_Attribute_Reference (CORBA_Type, A_Val);
                N := Make_Subprogram_Call (M, Make_List_Id (N));
             end;
 
@@ -388,7 +385,7 @@ package body Backend.BE_CORBA_Ada.Common is
                --  to cast the variable to the original enumeration
                --  type.
 
-               M := Make_Attribute_Designator (Ada_Enum_Type, A_Pos);
+               M := Make_Attribute_Reference (Ada_Enum_Type, A_Pos);
                M := Make_Subprogram_Call (M, Make_List_Id (N));
                N := Make_Subprogram_Call
                  (RE (RE_Unsigned_Long_1),
@@ -425,12 +422,13 @@ package body Backend.BE_CORBA_Ada.Common is
 
                --  Getting the conversion subprogram
 
-               Str_Type := Make_Designator (TN (T_Bounded_String));
-               Set_Homogeneous_Parent_Unit_Name (Str_Type, Str_Package_Node);
+               Str_Type := Make_Selected_Component
+                 (Str_Package_Node,
+                  Make_Identifier (TN (T_Bounded_String)));
 
-               Str_Convert_Subp := Make_Designator (SN (S_To_String));
-               Set_Homogeneous_Parent_Unit_Name
-                 (Str_Convert_Subp, Str_Package_Node);
+               Str_Convert_Subp := Make_Selected_Component
+                 (Str_Package_Node,
+                  Make_Identifier (SN (S_To_String)));
 
                N := Make_Subprogram_Call
                  (Str_Type,
@@ -475,13 +473,13 @@ package body Backend.BE_CORBA_Ada.Common is
 
                --  Getting the conversion subprogram
 
-               Str_Type := Make_Designator (TN (T_Bounded_Wide_String));
-               Set_Homogeneous_Parent_Unit_Name (Str_Type, Str_Package_Node);
+               Str_Type := Make_Selected_Component
+                 (Str_Package_Node,
+                  Make_Identifier (TN (T_Bounded_Wide_String)));
 
-               Str_Convert_Subp := Make_Designator
-                 (SN (S_To_Wide_String));
-               Set_Homogeneous_Parent_Unit_Name
-                 (Str_Convert_Subp, Str_Package_Node);
+               Str_Convert_Subp := Make_Selected_Component
+                 (Str_Package_Node,
+                  Make_Identifier (SN (S_To_Wide_String)));
 
                N := Make_Subprogram_Call
                  (Str_Type,
@@ -509,8 +507,9 @@ package body Backend.BE_CORBA_Ada.Common is
 
                --  Sequence type
 
-               Seq_Type := Make_Designator (TN (T_Sequence));
-               Set_Homogeneous_Parent_Unit_Name (Seq_Type, Seq_Package_Node);
+               Seq_Type := Make_Selected_Component
+                 (Seq_Package_Node,
+                  Make_Identifier (TN (T_Sequence)));
 
                N := Make_Subprogram_Call
                  (Seq_Type,
@@ -594,9 +593,10 @@ package body Backend.BE_CORBA_Ada.Common is
    -- Make_type_Designator --
    --------------------------
 
-   function Make_Type_Designator (N          : Node_Id;
-                                  Declarator : Node_Id := No_Node)
-                                 return Node_Id
+   function Make_Type_Designator
+     (N          : Node_Id;
+      Declarator : Node_Id := No_Node)
+     return Node_Id
    is
       Rewinded_Type : Node_Id;
       M             : Node_Id;
@@ -625,10 +625,6 @@ package body Backend.BE_CORBA_Ada.Common is
                (Map_Range_Constraints
                 (FEN.Array_Sizes (Declarator)), Designator));
 
-            Set_Homogeneous_Parent_Unit_Name
-              (Defining_Identifier (Type_Node),
-               (Defining_Identifier (Aligned_Package (Current_Entity))));
-
             --  We make a link between the identifier and the type
             --  declaration.  This link is useful for the generation
             --  of the From_Any and To_Any functions and the TC_XXX
@@ -638,12 +634,9 @@ package body Backend.BE_CORBA_Ada.Common is
               (Type_Node,
                Visible_Part (Current_Package));
 
-            Designator := New_Node (K_Designator);
-            Set_Defining_Identifier
-              (Designator, Defining_Identifier (Type_Node));
-            Set_Homogeneous_Parent_Unit_Name
-              (Designator,
-               (Defining_Identifier (Main_Package (Current_Entity))));
+            Designator := Make_Selected_Component
+              (Defining_Identifier (Main_Package (Current_Entity)),
+               Defining_Identifier (Type_Node));
 
             return Designator;
          end;
@@ -655,9 +648,9 @@ package body Backend.BE_CORBA_Ada.Common is
             return RE (RE_String_10);
 
          when K_Sequence_Type =>
-            M := Make_Designator (IDL_Name (Identifier (N)));
-            Set_Homogeneous_Parent_Unit_Name
-              (M, Defining_Identifier (Aligned_Package (Current_Entity)));
+            M := Make_Selected_Component
+              (Defining_Identifier (Aligned_Package (Current_Entity)),
+               Make_Identifier (IDL_Name (Identifier (N))));
             return M;
 
          when K_Long =>
@@ -685,6 +678,9 @@ package body Backend.BE_CORBA_Ada.Common is
            | K_Enumeration_Type =>
             return RE (RE_Unsigned_Long_10);
 
+         when K_Long_Long =>
+            return RE (RE_Long_Long_10);
+
          when K_Unsigned_Long_Long =>
             return RE (RE_Unsigned_Long_Long_10);
 
@@ -698,9 +694,9 @@ package body Backend.BE_CORBA_Ada.Common is
             return RE (RE_Double_10);
 
          when K_Complex_Declarator =>
-            M := Make_Designator (IDL_Name (Identifier (N)));
-            Set_Homogeneous_Parent_Unit_Name
-              (M, Defining_Identifier (Aligned_Package (Current_Entity)));
+            M := Make_Selected_Component
+              (Defining_Identifier (Aligned_Package (Current_Entity)),
+               Make_Identifier (IDL_Name (Identifier (N))));
             return M;
 
          when K_String_Type
@@ -709,25 +705,25 @@ package body Backend.BE_CORBA_Ada.Common is
            | K_Union_Type
            | K_Fixed_Point_Type =>
 
-            M := Make_Designator (IDL_Name (Identifier (N)));
-            Set_Homogeneous_Parent_Unit_Name
-              (M, Defining_Identifier (Aligned_Package (Current_Entity)));
+            M := Make_Selected_Component
+              (Defining_Identifier (Aligned_Package (Current_Entity)),
+               Make_Identifier (IDL_Name (Identifier (N))));
             return M;
 
          when K_Object =>
             --  XXX is it right ?
 
-            M := Make_Designator (FEN.Image (Base_Type (Rewinded_Type)));
-            Set_Homogeneous_Parent_Unit_Name
-              (M, Defining_Identifier (Main_Package (Current_Entity)));
+            M := Make_Selected_Component
+              (Defining_Identifier (Aligned_Package (Current_Entity)),
+               Make_Identifier (FEN.Image (Base_Type (Rewinded_Type))));
             return M;
 
          when K_Interface_Declaration =>
             --  XXX is it right ?
 
-            M := Make_Designator (IDL_Name (Identifier (Rewinded_Type)));
-            Set_Homogeneous_Parent_Unit_Name
-              (M, Defining_Identifier (Main_Package (Current_Entity)));
+            M := Make_Selected_Component
+              (Defining_Identifier (Aligned_Package (Current_Entity)),
+               Make_Identifier (IDL_Name (Identifier (Rewinded_Type))));
             return M;
 
          when others =>
@@ -862,7 +858,7 @@ package body Backend.BE_CORBA_Ada.Common is
                --  to cast the variable to the original enumeration
                --  type.
 
-               M := Make_Attribute_Designator (Ada_Enum_Type, A_Pos);
+               M := Make_Attribute_Reference (Ada_Enum_Type, A_Pos);
                M := Make_Subprogram_Call (M, Make_List_Id (N));
                N := Make_Subprogram_Call
                  (RE (RE_Unsigned_Long_10),
@@ -896,12 +892,13 @@ package body Backend.BE_CORBA_Ada.Common is
 
                --  Getting the conversion subprogram
 
-               Str_Type := Make_Designator (TN (T_Bounded_String));
-               Set_Homogeneous_Parent_Unit_Name (Str_Type, Str_Package_Node);
+               Str_Type := Make_Selected_Component
+                 (Str_Package_Node,
+                  Make_Identifier (TN (T_Bounded_String)));
 
-               Str_Convert_Subp := Make_Designator (SN (S_To_String));
-               Set_Homogeneous_Parent_Unit_Name
-                 (Str_Convert_Subp, Str_Package_Node);
+               Str_Convert_Subp := Make_Selected_Component
+                 (Str_Package_Node,
+                  Make_Identifier (SN (S_To_String)));
 
                N := Make_Subprogram_Call
                  (Str_Type,
@@ -929,8 +926,9 @@ package body Backend.BE_CORBA_Ada.Common is
 
                --  Sequence type
 
-               Seq_Type := Make_Designator (TN (T_Sequence));
-               Set_Homogeneous_Parent_Unit_Name (Seq_Type, Seq_Package_Node);
+               Seq_Type := Make_Selected_Component
+                 (Seq_Package_Node,
+                  Make_Identifier (TN (T_Sequence)));
 
                N := Make_Subprogram_Call
                  (Seq_Type,
@@ -968,18 +966,24 @@ package body Backend.BE_CORBA_Ada.Common is
             begin
                Member := First_Entity (Members (Rewinded_Type));
                while Present (Member) loop
-                  C := Make_Designator
-                    (IDL_Name
-                     (Identifier
-                      (First_Entity (Declarators (Member)))));
-                  Set_Homogeneous_Parent_Unit_Name (C, Var);
+                  C := Make_Selected_Component
+                    (Var,
+                     Make_Identifier
+                     (IDL_Name
+                      (Identifier
+                       (First_Entity
+                        (Declarators
+                         (Member))))));
 
                   if Var_Exp /= No_Node then
-                     M := Make_Designator
-                       (IDL_Name
-                        (Identifier
-                         (First_Entity (Declarators (Member)))));
-                     Set_Homogeneous_Parent_Unit_Name (M, Var_Exp);
+                     M := Make_Selected_Component
+                       (Var_Exp,
+                        Make_Identifier
+                        (IDL_Name
+                         (Identifier
+                          (First_Entity
+                           (Declarators
+                            (Member))))));
                      Marshall_Args (Stat, Type_Spec (Member), C, M);
                   else
                      Marshall_Args (Stat, Type_Spec (Member), C);
@@ -1001,18 +1005,19 @@ package body Backend.BE_CORBA_Ada.Common is
                Switch_Alternatives : List_Id;
                Switch_Node : Node_Id;
             begin
-               Switch_Node := Make_Designator (CN (C_Switch));
+               Switch_Node := Make_Identifier (CN (C_Switch));
                if Var_Exp /= No_Node then
-                  Set_Homogeneous_Parent_Unit_Name (Switch_Node, Var_Exp);
+                  Switch_Node := Make_Selected_Component
+                    (Var_Exp, Switch_Node);
                else
-                  Set_Homogeneous_Parent_Unit_Name (Switch_Node, Var);
+                  Switch_Node := Make_Selected_Component (Var, Switch_Node);
                end if;
 
                C := FEU.Get_Original_Type_Specifier
                  (Switch_Type_Spec (Rewinded_Type));
 
                if FEN.Kind (C) = K_Enumeration_Type then
-                  Literal_Parent := Map_Designator
+                  Literal_Parent := Map_Expanded_Name
                     (Scope_Entity
                      (Identifier
                       (C)));
@@ -1029,25 +1034,29 @@ package body Backend.BE_CORBA_Ada.Common is
 
                   while Present (Label) loop
                      Choice := Make_Literal
-                       (Value             => FEN.Value (Label),
-                        Parent_Designator => Literal_Parent);
+                       (Value  => FEN.Value (Label),
+                        Parent => Literal_Parent);
                      Append_Node_To_List (Choice, Choices);
                      Label := Next_Entity (Label);
                   end loop;
 
                   L := New_List (K_List_Id);
-                  C := Make_Designator
-                    (IDL_Name
-                     (Identifier
-                      (Declarator (Element (Member)))));
-                  Set_Homogeneous_Parent_Unit_Name (C, Var);
+                  C := Make_Selected_Component
+                    (Var,
+                     Make_Identifier
+                     (IDL_Name
+                      (Identifier
+                       (Declarator
+                        (Element (Member))))));
 
                   if Var_Exp /= No_Node then
-                     M := Make_Designator
-                       (IDL_Name
-                        (Identifier
-                         (Declarator (Element (Member)))));
-                     Set_Homogeneous_Parent_Unit_Name (M, Var_Exp);
+                     M := Make_Selected_Component
+                       (Var_Exp,
+                        Make_Identifier
+                        (IDL_Name
+                         (Identifier
+                          (Declarator
+                           (Element (Member))))));
                      Marshall_Args (L, Type_Spec (Element (Member)), C, M);
                   else
                      Marshall_Args (L, Type_Spec (Element (Member)), C);
@@ -1083,17 +1092,16 @@ package body Backend.BE_CORBA_Ada.Common is
             C := RE (RE_Nul);
             M := Make_Expression (M, Op_And_Symbol, C);
             C := Cast_Variable_To_PolyORB_Aligned_Type (Var, Var_Type);
-            N := Make_Designator
-              (Designator => PN (P_Content),
-               Parent     => Fully_Qualified_Name (Var));
+            N := Make_Selected_Component
+              (PN (P_Content),
+               Fully_Qualified_Name (Var));
 
-            N := Make_Designator (Fully_Qualified_Name (N));
             if Var_Exp /= No_Node then
-               Set_Homogeneous_Parent_Unit_Name
-                 (N, Make_Designator (VN (V_Args_Out)));
+               N := Make_Selected_Component
+                 (VN (V_Args_Out), Fully_Qualified_Name (N));
             else
-               Set_Homogeneous_Parent_Unit_Name
-                 (N, Make_Designator (VN (V_Args_In)));
+               N := Make_Selected_Component
+                 (VN (V_Args_In), Fully_Qualified_Name (N));
             end if;
 
             N := Make_Assignment_Statement (N, M);
@@ -1123,19 +1131,18 @@ package body Backend.BE_CORBA_Ada.Common is
                Range_Constraint := Make_Range_Constraint
                  (Make_Literal (Int1_Val), N);
 
-               N := Make_Designator
-                 (Designator => PN (P_Content),
-                  Parent     => Fully_Qualified_Name (Var));
+               N := Make_Selected_Component
+                 (PN (P_Content),
+                  Fully_Qualified_Name (Var));
 
-               N := Make_Designator (Fully_Qualified_Name (N));
                if Var_Exp /= No_Node then
-                  Set_Homogeneous_Parent_Unit_Name
-                    (N, Make_Designator (VN (V_Args_Out)));
-                  N := Make_Designator (Fully_Qualified_Name (N));
+                  N := Make_Selected_Component
+                    (VN (V_Args_Out), Fully_Qualified_Name (N));
+                  N := Make_Identifier (Fully_Qualified_Name (N));
                   N := Make_Subprogram_Call
                     (N, Make_List_Id (Index_Node));
 
-                  M := Make_Designator (Fully_Qualified_Name (Var_Exp));
+                  M := Make_Identifier (Fully_Qualified_Name (Var_Exp));
                   K := Make_Subprogram_Call
                     (RE (RE_Integer), Make_List_Id (Index_Node));
                   M := Make_Subprogram_Call
@@ -1149,13 +1156,13 @@ package body Backend.BE_CORBA_Ada.Common is
 
                   N := Make_Assignment_Statement (N, M);
                else
-                  Set_Homogeneous_Parent_Unit_Name
-                    (N, Make_Designator (VN (V_Args_In)));
-                  N := Make_Designator (Fully_Qualified_Name (N));
+                  N := Make_Selected_Component
+                    (VN (V_Args_In), Fully_Qualified_Name (N));
+                  N := Make_Identifier (Fully_Qualified_Name (N));
                   N := Make_Subprogram_Call
                     (N, Make_List_Id (Index_Node));
 
-                  M := Make_Designator (Fully_Qualified_Name (Var));
+                  M := Make_Identifier (Fully_Qualified_Name (Var));
                   K := Make_Subprogram_Call
                     (RE (RE_Integer), Make_List_Id (Index_Node));
                   M := Make_Subprogram_Call
@@ -1178,9 +1185,9 @@ package body Backend.BE_CORBA_Ada.Common is
             end;
 
          when K_Complex_Declarator =>
-            M := Make_Designator (IDL_Name (Identifier (Var_Type)));
-            Set_Homogeneous_Parent_Unit_Name
-              (M, Defining_Identifier (Aligned_Package (Current_Entity)));
+            M := Make_Selected_Component
+              (Defining_Identifier (Aligned_Package (Current_Entity)),
+               Make_Identifier (IDL_Name (Identifier (Var_Type))));
             M := Make_Subprogram_Call (M, Make_List_Id (Var));
 
          when others =>
@@ -1192,14 +1199,14 @@ package body Backend.BE_CORBA_Ada.Common is
             C := Cast_Variable_To_PolyORB_Aligned_Type (Var, Var_Type);
       end case;
 
-      N := Make_Designator (Fully_Qualified_Name (Var));
+      N := Make_Identifier (Fully_Qualified_Name (Var));
 
       if Var_Exp /= No_Node then
-         Set_Homogeneous_Parent_Unit_Name
-           (N, Make_Designator (VN (V_Args_Out)));
+         N := Make_Selected_Component
+           (VN (V_Args_Out), Fully_Qualified_Name (Var));
       else
-         Set_Homogeneous_Parent_Unit_Name
-           (N, Make_Designator (VN (V_Args_In)));
+         N := Make_Selected_Component
+           (VN (V_Args_Out), Fully_Qualified_Name (Var));
       end if;
 
       N := Make_Assignment_Statement (N, M);
@@ -1238,19 +1245,22 @@ package body Backend.BE_CORBA_Ada.Common is
                Member := First_Entity (Switch_Type_Body (Rewinded_Type));
 
                while Present (Member) loop
-                  M := Make_Defining_Identifier
-                    (IDL_Name
-                     (Identifier
-                      (Declarator (Element (Member)))));
-                  Set_Homogeneous_Parent_Unit_Name
-                    (M, Var);
+                  M := Make_Selected_Component
+                    (Var,
+                     Make_Defining_Identifier
+                     (IDL_Name
+                      (Identifier
+                       (Declarator
+                        (Element
+                         (Member))))));
                   Get_Discriminants_Value
                     (M, Type_Spec (Element (Member)), L);
                   Member := Next_Entity (Member);
                end loop;
 
-               M := Make_Designator (CN (C_Switch));
-               Set_Homogeneous_Parent_Unit_Name (M, Var);
+               M := Make_Selected_Component
+                 (Var,
+                  Make_Identifier (CN (C_Switch)));
 
                C := Switch_Type_Spec (Rewinded_Type);
                M := Cast_Variable_To_PolyORB_Aligned_Type (M, C);
@@ -1264,21 +1274,21 @@ package body Backend.BE_CORBA_Ada.Common is
                Member := First_Entity (Members (Rewinded_Type));
 
                while Present (Member) loop
-                  M := Make_Defining_Identifier
-                    (IDL_Name
-                     (Identifier
-                      (First_Entity
-                       (Declarators (Member)))));
-                  Set_Homogeneous_Parent_Unit_Name
-                    (M, Var);
+                  M := Make_Selected_Component
+                    (Var,
+                     Make_Identifier
+                     (IDL_Name
+                      (Identifier
+                       (First_Entity
+                        (Declarators
+                         (Member))))));
                   Get_Discriminants_Value (M, Type_Spec (Member), L, Ret);
                   Member := Next_Entity (Member);
                end loop;
             end;
 
-         when K_String
-           | K_Wide_String =>
-            C := Make_Attribute_Designator
+         when K_String | K_Wide_String =>
+            C := Make_Attribute_Reference
               (Make_Subprogram_Call
                (RE (RE_To_Standard_String), Make_List_Id (Var)),
                A_Length);

@@ -220,7 +220,7 @@ package body Backend.BE_CORBA_Ada.Debug is
       --  Some fields must not be visited to avoid endless recursions
 
       if A /= "Node"
-        and then A /= "Corresponding_Node"
+        and then A /= "Declaration_Node"
         and then A /= "FE_Node"
         and then A /= "Parent"
         and then A /= "IDL_Unit"
