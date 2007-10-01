@@ -1,0 +1,4 @@
+${eval ${define_test}}
+
+${current_dir}typedtest_interface.idl-stamp: idlac_flags :=
+${test_target}: ${current_dir}typedtest_interface.idl-stamp

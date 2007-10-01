@@ -1,0 +1,31 @@
+test not null...............................................: PASSED
+test string.................................................: PASSED
+test boolean................................................: PASSED
+test short..................................................: PASSED
+test long...................................................: PASSED
+test unsigned_short.........................................: PASSED
+test unsigned_long..........................................: PASSED
+test float..................................................: PASSED
+test double.................................................: PASSED
+test char...................................................: PASSED
+test octet..................................................: PASSED
+test enum...................................................: PASSED
+test unbounded sequence.....................................: PASSED
+test bounded sequence.......................................: PASSED
+test fixed point............................................: FAILED
+test struct.................................................: PASSED
+test self reference.........................................: PASSED
+test self reference consistency.............................: PASSED
+test self reference typedef.................................: PASSED
+test object.................................................: PASSED
+test object typedef.........................................: PASSED
+test union..................................................: PASSED
+test union with enum switch.................................: PASSED
+test simple array...........................................: PASSED
+test multi-dimensional array................................: PASSED
+test big multi-dimensional array............................: FAILED
+test attribute..............................................: PASSED
+test read-only attribute....................................: PASSED
+test user exception.........................................: PASSED
+test unknown exception......................................: PASSED
+

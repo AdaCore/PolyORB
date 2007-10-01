@@ -1,0 +1,54 @@
+README for the PolyORB testsuite
+--------------------------------
+
+$Id: //droopi/main/testsuite/README#2 $
+
+This file details the organization of PolyORB's test suite.
+
+* Directory structure
+
+acats/ : source for the Distributed System Annex test suite, from the
+        ACATS suite,
+
+corba/ : source for the CORBA test suite,
+
+core/ : source for the PolyORB's core test suite,
+
+scenarios/ : scenarios to be executed when running the test suite,
+
+utils/ : tools used to run the test suite.
+
+* Preparing PolyORB to run the test suite
+
+1/ Build PolyORB
+
+Refer to PolyORB User's Guide for more information.
+
+We suppose you build PolyORB in $build_dir.
+
+2/ Build PolyORB's examples
+
+Go in $build_dir/examples
+Run make
+
+3/ Build the test suite
+
+Go in $build_dir/testsuite
+Run Make
+
+Note: some tests are not built by default: they require the
+installation of third-party middleware, and adaptation of the
+makefiles. See corba/interop/cpp/README and corba/interop/java/README
+for more details.
+
+* Run the test suite
+
+In $buld_dir/testsuite, type 'make run_tests'.
+
+This will launch the test suite. Output is in $build_dir/output.
+
+$build_dir/output/error provides information on any internal error,
+$build_dir/output/failed lists failed tests,
+$build_dir/output/log provides various information,
+$build_dir/output/<scenario_name>/<test> is a trace of the test.
+

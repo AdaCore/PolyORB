@@ -1,0 +1,26 @@
+The project files in this directory are for building PolyORB.
+See ../projects-distrib for building clients of PolyORB.
+
+common.gpr -- imported by all the others; contains commonly used variables
+
+config.gpr -- generated from config.gpr.in by configure, and imported by common.gpr.
+
+build_all.gpr -- imports all the others; can be used to recompile everything,
+using the -U switch of gnatmake.  (??Currently not used.)
+
+One for each of the following directories:
+
+  src and its subdirectories (including src_setup.gpr, which is generated from
+  src_setup.gpr.in).
+
+  subdirectories of cos
+
+  subdirectories of idls that correspond to subdirectories of cos
+
+The naming convention is the path name, relative to the root of
+the polyorb hierarchy, with directory separators "/" replaced
+with underscore "_"; for example, src_giop_diop.gpr is the project
+file for src/giop/diop.
+Each of these builds a library.
+
+tools_*.gpr -- these are for building programs.

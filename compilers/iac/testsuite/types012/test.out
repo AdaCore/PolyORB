@@ -1,0 +1,10 @@
+UNION := True
+LONG := True
+STRING := True
+ULONG := True
+CHAR := True
+SHORT := True
+OCTET := True
+DOUBLE := True
+USHORT := True
+ANY := True

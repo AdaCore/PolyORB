@@ -1,0 +1,10 @@
+
+module Test_Exception_1 {
+
+    interface X {};
+
+    exception Y {
+        X a;
+    };
+
+};

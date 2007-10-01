@@ -1,0 +1,6 @@
+interface I0 {
+  typedef boolean foo;
+
+  typedef foo array[10];
+
+};

@@ -1,0 +1,53 @@
+// Test all declarations allowed at file level, except modules,
+// interfaces, valuetypes, forward interfaces and valuetypes.
+
+  typedef Object otherObject;
+
+  enum Color { Red, Green, Blue };
+
+  exception my_exception {long info;};
+
+  union myUnion switch (long) {
+    case 1: long    Counter;
+    case 2: boolean Flag;
+    case 3: Color   Hue;
+    default: long Unknown;
+  };
+
+  union myUnionEnumSwitch switch (Color) {
+    case Red:   long   foo;
+    case Green: short  bar;
+    case Blue:  string baz;
+  };
+
+  typedef long simple_array[5];
+
+  typedef long matrix[3][3];
+  typedef long bigmatrix[30][15];
+
+  struct simple_struct {
+      long a;
+      string s;
+  };
+
+  struct array_struct {
+      long a[10];
+      unsigned short b;
+  };
+
+  struct composite_struct {
+      fixed<12,3> fixedMember;
+      sequence<sequence<octet> > seqseqMember;
+      long double matrixMember[3][4];
+  };
+
+  struct nested_struct {
+    	simple_struct ns;
+  };
+
+  typedef sequence<short> U_sequence;
+
+  typedef sequence<short,10> B_sequence;
+
+  typedef fixed<18,2> Money;
+

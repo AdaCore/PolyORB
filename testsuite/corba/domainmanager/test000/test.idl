@@ -1,0 +1,10 @@
+
+import ::CORBA;
+
+module Test {
+
+    interface DomainManager : CORBA::DomainManager { };
+
+    interface Echo { };
+
+};

@@ -1,0 +1,10 @@
+typedef long Apple;
+typedef long Banana;
+typedef long Carrots;
+typedef long Lemon;
+typedef long BlackCherry;
+typedef long Starfruit;
+typedef long Rhubarb;
+interface idlServer {
+ void PassionFruit(in Apple p1, in Banana p2, in Carrots p3, in Lemon p4, in BlackCherry p5, in Starfruit p6, in Rhubarb p7);
+};

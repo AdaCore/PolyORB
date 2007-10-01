@@ -1,0 +1,25 @@
+// File: IOP-DCE.idl
+// From CORBA 3.0: Chapter 13, ORB Interoperability Achitecture
+
+// if you want to copile this file then uncomment the line including
+// this file that reads "#include <IOP_DCE.idl>" in IOP.idl
+
+#ifndef _IOP_DCE_IDL_
+#define _IOP_DCE_IDL_
+
+//PolyORB:NI:module IOP {
+//PolyORB:NI:
+//PolyORB:NI:    struct EndpointIdPositionComponent {
+//PolyORB:NI:        unsigned short begin;
+//PolyORB:NI:        unsigned short end;
+//PolyORB:NI:    };
+//PolyORB:NI:
+//PolyORB:NI:
+//PolyORB:NI:// IDL does not support octet constants
+//PolyORB:NI:#define LOCATE_NEVER 0
+//PolyORB:NI:#define LOCATE_OBJECT 1
+//PolyORB:NI:#define LOCATE_OPERATION 2
+//PolyORB:NI:#define LOCATE_ALWAYS 3
+//PolyORB:NI:};
+
+#endif // _IOP_DCE_IDL_

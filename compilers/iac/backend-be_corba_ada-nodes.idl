@@ -1,0 +1,783 @@
+module Backend::BE_CORBA_Ada::Nodes {
+
+  /******************/
+  /* Internal types */
+  /******************/
+
+  /* These types map to the data types declared in the Types package */
+
+  typedef octet   Mode_Id;
+  typedef octet   Operator_Id;
+  typedef long    Name_Id;
+  typedef long    Value_Id;
+
+  /******************/
+  /* Internal nodes */
+  /******************/
+
+  /* The Root of all nodes in the Ada tree */
+
+  interface Node_Id {
+    Node_Id    Next_Node;
+    // The next node in a given list. A node belongs to at most one list
+
+    Node_Id    FE_Node;
+    // Used to create links between the Ada tree and the IDL tree
+  };
+
+  /* The root node of all Ada entities which have an Identifier 
+     (subprograms, package declarations ... */
+
+  interface Definition : Node_Id {
+    Node_Id    Defining_Identifier;
+    Node_Id    Parent; 
+  };
+
+  /* We traverse a List_Id using the Next_Node flag in the Node_Id 
+     node kind */
+
+  interface List_Id {
+    Node_Id    First_Node;
+    Node_Id    Last_Node;
+  };
+
+  interface Identifier : Node_Id {
+    Name_Id    Name;
+    // The local name if the identifier
+  };
+  
+  interface Defining_Identifier : Identifier {
+    Node_Id    Declaration_Node;
+    // The Ada declaration the identifier belongs to
+  };
+
+  /* The Attribute reference node is used to create Ada entities such as
+     A'Class. A is the prefix, Class is the name of the Attribute 
+     designator 
+
+     ATTRIBUTE_REFERENCE ::= PREFIX'ATTRIBUTE_DESIGNATOR
+
+     RANGE_ATTRIBUTE_REFERENCE ::= PREFIX'RANGE_ATTRIBUTE_DESIGNATOR
+  */
+
+  interface Attribute_Reference : Node_Id {
+    Name_Id    Name;
+    // Name of the Attribute designator (Class, Range [(...)], etc...)
+
+    Node_Id    Prefix;
+    // Prefix, which is generally a Designator
+  };
+
+  /* --  EXPLICIT_DEREFERENCE ::= NAME . all */
+
+  interface Explicit_Dereference : Node_Id {
+    Node_Id   Prefix;
+  };
+
+
+  /*****************/
+  /* Package nodes */
+  /*****************/
+
+  /* USE_TYPE_CLAUSE ::= use type The_Used_Entity; */
+
+  interface Used_Type : Node_Id {
+    Node_Id    The_Used_Entity;
+  };
+
+  /* The two lists below are used for clarity when building Node lists */
+  interface Declaration_List : List_Id {};
+  interface Statement_List : List_Id {};
+
+  interface Withed_Package : Definition {
+    // The Defining_Identifier field inherited from Definition is the
+    // package to be withed 
+  
+    boolean    Used;
+    // If True, then the package is also used
+
+    boolean    Elaborated;
+    // If true, then a pragma elaborate_all is also added for the package
+  };
+
+  interface Used_Package : Used_Type {
+    // The only difference between Used_Package and Used_Type is the
+    // Key word "type" which is added at code generation time
+  };
+
+  /*****************/
+  /* Package nodes */
+  /*****************/
+
+  /* For clarity */
+
+  interface Withed_Packages : List_Id {};
+  interface Packages : List_Id {};
+
+  /* An IDL unit is the set of Ada packages generated for an IDL interface, 
+     module or specification */
+
+  interface IDL_Unit : Node_Id {
+    Node_Id    Main_Package;
+    // Points to the stub package declaration (if any)
+
+    Node_Id    Skeleton_Package;
+    // Points to the skeleton package declaration (if any)
+
+    Node_Id    Implementation_Package;
+    // Points to the user implementation package declaration (if any)
+
+    Node_Id    Helper_Package;
+    // Points to the user Helper package declaration (if any)
+
+    Node_Id    Internals_Package;
+    // Points to the Initialization package declaration (if any)
+
+    Node_Id    CDR_Package;
+    // Points to the CDR package declaration (if any)
+
+    Node_Id    Aligned_Package;
+    // Points to the Aligned package declaration (if any)
+    
+    Node_Id    Buffers_Package;
+    // Points to the 'Buffers' package declaration (if any)
+
+    List_Id    Packages;
+    // This list contains : All the package declarations of the IDL_Unit 
+    // and all the Child IDL_Units. It is traversed when generating the 
+    // Ada code
+
+    boolean    Generate_Code;
+    // False for imported entities
+  };
+
+  /* A package declaration consist of a package specification and a
+     package implementation.
+  */
+
+  interface Package_Declaration : Definition {
+    // The full name of the package is stored in the
+    // Defining_Identifier field inherited from Definition.
+
+    Node_Id    IDL_Unit;
+    // The IDL_Unit the package declaration belongs to
+
+    Node_Id    Package_Specification;
+    // The package specification
+
+    Node_Id    Package_Implementation;
+    // The package body (if any)
+  };
+
+  interface Package_Specification : Node_Id {
+    Node_Id    Package_Declaration;
+    // Points to the corresponding package declaration
+
+    List_Id    Withed_Packages;
+    // The list of withed packages
+
+    List_Id    Visible_Part;
+    // The visible declaration part (between 'is' and 'private' 
+    // or else 'end') 
+
+    List_Id    Subunits;
+    // The list of subunits declared in this specification Note: we do
+    // not want subunits to be declared in visible_part to ensure they
+    // are generated after all other elements in the Visible_Part.
+
+    List_Id    Private_Part;
+    // The private declaration part (between 'private' and 'end')
+
+    boolean    Is_Subunit_Package;
+    // True if the package is a subunit
+
+    boolean    Is_Runtime_Package;
+    // True if the package is a runtime package
+  };
+
+  interface Package_Implementation : Node_Id {
+    Node_Id    Package_Declaration;
+    // Points to the corresponding package declaration
+
+    List_Id    Withed_Packages;
+    // The list of withed packages
+
+    List_Id    Statements;
+    // The statements of the package body (between the 'is' and the
+    // 'begin' or else 'end')
+
+    List_Id    Package_Initialization;
+    // The handled list of statements (between the 'begin' and the
+    // 'end')
+  };
+
+  /********************/
+  /* Subprogram nodes */
+  /********************/
+
+  /* A subprogram parameter */
+
+  interface Parameter_Specification : Definition {
+    // Defining_Identifier field inherited from Definition
+
+    Mode_Id    Parameter_Mode;
+    // Mode of the parameter (Mode_IN, Mode_OUT or Mode_INOUT)
+
+    Node_Id    Parameter_Type;
+    // Type of the parameter (generally a designator)
+
+    Node_Id    Expression;
+    //  Default value of a parameter (An expression, a literal...)
+  };
+
+  interface Parameter_Profile : List_Id {};
+
+  interface Instantiated_Subprogram : Definition {
+    List_Id   Parameter_List;
+    // Instantiation parameters
+  };
+
+  interface Subprogram_Specification : Definition {
+    // Defining_Identifier field inherited from Definition
+
+    List_Id    Parameter_Profile;
+    // The list of parameters
+
+    Node_Id    Return_Type;
+    // Return Type : if the return type is No_Node then we deal with 
+    // a procedure, else we deal with a function
+
+    Node_Id    Renamed_Entity;
+    // Indicates whether the subprogram renames another subprogram
+    // (Generally a designator) 
+
+    Node_Id    Instantiated_Subprogram;
+    // Indicates whether the subprogram is an instantiation of a generioc 
+    // subprogram
+  };
+
+  /* Subprogram Body */
+
+  interface Subprogram_Body : Node_Id {
+    Node_Id    Specification;
+    // The kind of this node is Subprogram_Specification. There is no need
+    // to duplicate the spec
+
+    List_Id    Declarations;
+    // The declarative part of the subprogram
+
+    List_Id    Statements;
+    // The statements of the subprogram
+  };
+
+  interface Subprogram_Call : Definition {
+    // Defining_Identifier field inherited from Definition
+
+    List_Id    Actual_Parameter_Part;
+    // The list of parameter passed to a subprogram call may be 
+    // different from the parameter list described in the spec of the 
+    // subprogram. (May be a list of parameter associations or
+    // whatever could be passed as a parameter)
+  };
+
+  /* PARAMETER_ASSOCIATION ::=
+      [formal_parameter_SELECTOR_NAME =>] EXPLICIT_ACTUAL_PARAMETER */
+
+  interface Parameter_Association : Node_Id {
+    Node_Id    Selector_Name;
+    // The formal parameter selector name
+
+    Node_Id    Actual_Parameter;
+    // The actual parameter
+  };
+
+  /* SELECTED_COMPONENT ::= PREFIX . SELECTOR_NAME */
+
+  interface Selected_Component : Node_Id {
+     Node_Id  Prefix;
+     Node_Id  Selector_Name;
+  };
+
+  /*********************/
+  /* Type declarations */
+  /*********************/
+
+  interface Full_Type_Declaration : Definition {
+    // Defining_Identifier field inherited from Definition
+
+    Node_Id    Type_Definition;
+    // May be:
+    // an Enumeration_Type_Definition
+    // a  Decimal_Type_Definition
+    // an Access_Type_Definition
+    // a  Derived_Type_Definition
+    // a  Record_Type_Definition
+
+    List_Id    Discriminant_Spec;
+    // Specifies the discriminant of the type
+
+    boolean    Is_Subtype;
+    // Precise whether the type is a new type or a subtype
+  };
+
+  interface Enumeration_Literals : List_Id {};
+
+  /* Example : type T is (E1, E2, E3); */
+
+  interface Enumeration_Type_Definition : Node_Id {
+    List_Id    Enumeration_Literals;
+    // A list of defining identifiers
+  };
+
+  /* DECIMAL_FIXED_POINT_DEFINITION ::=
+       delta SCALE
+       digits TOTAL
+     Example : type T is delta 0.1 digits 5; */
+
+  interface Decimal_Type_Definition : Node_Id {
+    Node_Id    Scale;
+    Value_Id   Total;
+  };
+
+  /* Example : type T is access O; */
+
+  interface Access_Type_Definition : Node_Id {
+    boolean    Is_All;
+    // If True then the "all" modifier is generated
+
+    boolean    Is_Constant;
+    // If True then the "constant" modifier is generated
+
+    boolean    Is_Not_Null;
+    // If True then the "not null" keywords are generated
+
+    Node_Id    Subtype_Indication;
+    // The accessed type
+  };  
+
+  /* Example : type T is new R with private; */
+
+  interface Derived_Type_Definition : Node_Id {
+    boolean    Is_Private_Extention;
+    // If True, then "with private" generated
+
+    boolean    Is_Abstract_Type;
+    // If True then "abstract" generated
+
+    Node_Id    Subtype_Indication;
+    // The derived type
+
+    Node_Id    Record_Extension_Part;
+    // If not No_Node then, with <record_definition> generated
+
+    boolean    Is_Subtype;
+    // If True then "new" NOT generated
+  };
+
+  /* Example : Type T is record F : Integer; end record; */
+
+  interface Record_Type_Definition : Node_Id{
+    boolean    Is_Abstract_Type;
+    // If True then generate abstract
+
+    boolean    Is_Tagged_Type;
+    // If True then generate tagged
+
+    boolean    Is_Limited_Type;
+    // If true then generate limited
+
+    Node_Id    Record_Definition;
+    // The record definition
+  };
+  
+  /* Example : F : Integer := 1; (inside a record) */
+
+  interface Component_Declaration : Definition {
+    // Defining_Identifier inherited from Definition
+
+    Node_Id    Subtype_Indication;
+    // The component Type
+ 
+    Node_Id    Expression;
+    // The component default value
+
+    boolean    Aliased_Present;
+    // Whether the component is aliased or not
+  };
+
+  interface Component_List : List_Id {};
+
+  interface Record_Definition : Node_Id {
+    List_Id    Component_List;
+    // If No_List then "null record" generated
+  };
+
+  interface Range_Constraints : List_Id {};
+
+  /* Example: type T is array (1 .. 10, 2 .. 30) of Float; */
+
+  interface Array_Type_Definition : Node_Id {
+    List_Id    Range_Constraints;
+    // The list of the range constraints
+
+    Node_Id    Component_Definition;
+    // The array element type
+
+    Node_Id    Index_Definition;
+    // The array index type    
+  };
+
+  interface String_Type_Definition : Definition {
+    Node_Id    Range_Constraint;
+  };
+
+  /* FIRST .. LAST */
+
+  interface Range_Constraint : Node_Id {
+    Node_Id    First;
+    Node_Id    Last;
+  };
+
+  interface Variant_List : List_Id {};
+
+  /* The case of a variant record. The record component list contain only 
+     one element of kind Variant_Part */
+
+  interface Variant_Part : Node_Id {
+    List_Id    Variants;
+    // The list of variants there variant as many as "when" clauses
+
+    Node_Id    Discriminant;
+    // The discriminant of the Type
+  };
+
+  interface Discrete_Choice_List : List_Id {};
+
+  interface Variant : Node_Id {
+    List_Id    Discrete_Choices;
+    // The choices of the "when" clause
+
+    Node_Id    _Component;
+    // The record component (Component_Declaration)
+  };
+  
+  /**************/
+  /* Aggregates */
+  /**************/
+
+  // 1 - RECORD_AGGREGATE ::= (RECORD_COMPONENT_ASSOCIATION_LIST)
+  // 2 - EXTENSION_AGGREGATE ::=
+  //       (ANCESTOR_PART with RECORD_COMPONENT_ASSOCIATION_LIST)
+
+  /* Example 1: (F1 => 2, F2 => "hello"); */
+  /* Example 2: (My_Record with F1 => 2, F2 => "hello"); */
+   
+  interface Record_Aggregate : Node_Id {
+    List_Id    Component_Association_List;
+    // A list of component associations
+
+    Node_Id    Ancestor_Part;
+    // If present then we deal with an EXTENSION_AGGREGATE, else we
+    // deal with a RECORD_AGGREGATE.
+  };
+
+  interface Component_Association : Definition {
+    // Defining_Identifier inherited from Definition
+
+    Node_Id    Expression;
+    // The expression of the component (the part which comes after the
+    // "=>"
+  };
+
+  /**************/
+  /* Statements */
+  /**************/
+
+  /* Example : 
+     A_Block: Declare
+        I : integer;
+     begin
+        I := I + 1;
+     exception
+        raise;
+     end; */
+
+  interface Block_Statement : Definition {
+    // Defining_Identifier inherited from Definition
+
+    List_Id    Declarative_Part;
+    // The declarations between "declare" and "begin" (if any)
+
+    List_Id    Statements;
+    // The statements between "begin" and "exception" or else "end" 
+    // (null; if No_List)
+
+    List_Id    Exception_Handler;
+    // The statements between "exception" and "end" (if any)
+  };
+
+  interface Elsif_Statement : Node_Id {
+    Node_Id    Condition;
+    // The condition of the "elsif" (generally an Expression)
+
+    List_Id    Then_Statements; // (A list of statements)
+    // The statements between "then" and "elsif" or else "else" 
+    // or else "end if"
+  };
+
+  interface If_Statement : Node_Id {
+    Node_Id    Condition;
+    // The condition of the "if" (generally an Expression)
+
+    List_Id    Then_Statements; // (A list of statements)
+    // The statements between the "then" and "elsif" or else "else" 
+    // or else "end if"
+
+    List_Id    Elsif_Statements; // (A list of Elsif_Statement)
+
+    List_Id    Else_Statements; // (A list of statements)
+    // The statements between "else" and "end if" (if any)
+  };
+
+  /* Example: A := 1; */
+
+  interface Assignment_Statement : Definition {
+    Node_Id    Expression;  
+  };
+
+  /* Example: return Result; */
+
+  interface Return_Statement : Node_Id {
+    Node_Id    Expression; 
+  };
+
+  interface For_Statement : Definition {
+    // Defining_Identifier inherited from Definition represents the loop index
+
+    Node_Id    Range_Constraint;
+    // The range of the loop
+
+    List_Id    Statements;
+    // The loop statements
+  };
+
+  /* Example: when 1 | 3 | 27 => A := A + 2; */
+
+  interface Case_Statement_Alternative : Node_Id {
+    List_Id    Discret_Choice_List;
+    // The choices of the "when" clause. If No_List then "others" is generated
+
+    List_Id    Statements;
+    // Statements of the "when" clause
+  };
+
+  interface Case_Statement : Node_Id {
+    Node_Id    Expression;
+    // Switch of the case statement
+
+    List_Id    Case_Statement_Alternatives;
+    // A Case_Statement_Alternative list
+  };
+
+  /* Example; pragma Unreferenced (A, B, C); */
+
+  interface Pragma : Definition {
+    // Defining_Identifier inherited from Definition
+
+    List_Id    Argument_List;
+    // The Argument list of the pragma (if any)
+  };
+
+  interface Null_Statement : Node_Id {}; // null;
+
+  /***************/
+  /* Other nodes */
+  /***************/
+
+  interface Package_Instantiation : Definition {
+    // Defining_Identifier inherited from Definition
+
+    Node_Id      Generic_Package;
+    // A designator for the generic instantiated package
+
+    List_Id      Parameter_List;
+    // The parameters of the Instantiation (if any)
+  };
+
+  interface Raise_Statement : Node_Id {
+    Node_Id      Raised_Error;
+    // The raised exception
+  };
+
+  interface Ada_Comment : Node_Id {
+    Name_Id     Message;
+    // The comment text
+
+    boolean     Has_Header_Spaces;
+    // If True then do not generate the spaces between the "--" and
+    // the comment.
+  };
+
+  /****************/
+  /* Object nodes */
+  /****************/
+
+  /* Example: A : constant Integer := 2 * 3; */
+
+  interface Object_Declaration: Definition {
+    // Defining_Identifier inherited from Definition
+
+    boolean    Constant_Present;
+    // If True then generate "constant"
+
+    boolean    Aliased_Present;
+    // If True then generate "aliased"
+
+    Node_Id    Object_Definition;
+    // The object type
+
+    Node_Id    Expression;
+    // The object default value (if any)
+
+    Node_Id    Renamed_Entity;
+    // The renamed object (if any)
+  };
+
+  interface Literal : Node_Id {
+    Value_Id   Value;
+    // The Value of the literal
+  };
+
+  /* Example : 1 => 3 */
+  interface Element_Association : Node_Id {
+    Node_Id    Index;
+    Node_Id    Expression;
+  };
+
+  interface Element_List : List_Id {};
+
+  interface Array_Aggregate : Node_Id {
+    List_Id     Elements;
+    //  A list of literal or element associations
+  };
+
+  // INDEXED_COMPONENT ::= PREFIX ( EXPRESSION { , EXPRESSION} ) 
+  //  Example: Page (10)
+  //           Tab (1, 3)
+
+  interface Indexed_Component : Node_Id {
+    Node_Id    Prefix;
+    List_Id    Expressions;
+  };
+
+  interface Exception_Declaration : Definition {
+    // Defining_Identifier inherited from Definition
+
+    Node_Id    Renamed_Entity;
+    // The renamed exception (if any)
+  };
+
+  /* The Node below is used to link the front end tree to the backend
+     tree.  It allows to link one frontend node to more than one
+     backend node without modifying the frontend tree each time we add
+     a new link.
+  */
+
+  interface BE_Ada : Node_Id {
+    Node_Id    Stub_Node;
+    Node_Id    Impl_Node;
+    Node_Id    TC_Node;
+    Node_Id    From_Any_Container_Node;
+    Node_Id    From_Any_Node;
+    Node_Id    To_Any_Node;
+    Node_Id    Raise_Excp_Node;
+    Node_Id    Initialize_Node;
+    Node_Id    To_Ref_Node;
+    Node_Id    U_To_Ref_Node;
+    Node_Id    Type_Def_Node;
+    Node_Id    Forward_Node;
+    Node_Id    Instantiation_Node;
+    Node_Id    Unmarshaller_Node;
+    Node_Id    Marshaller_Node;
+    Node_Id    Args_In_Node;
+    Node_Id    Args_Out_Node;
+    Node_Id    Access_Args_Out_Node;
+    Node_Id    Buffer_Size_Node;
+
+    //  Nodes useful for the Shadow Any Trees
+    Node_Id    Pointer_Type_Node;
+    Node_Id    Aggr_Container_Node;
+    Node_Id    Wrap_Node;
+    Node_Id    Element_Wrap_Node;
+    Node_Id    Clone_Node;
+    Node_Id    Finalize_Value_Node;
+    Node_Id    Get_Aggregate_Count_Node;
+    Node_Id    Set_Aggregate_Count_Node;
+    Node_Id    Get_Aggregate_Element_Node;
+    Node_Id    Set_Aggregate_Element_Node;
+  };
+
+  /* Example: A + B */
+
+  interface Expression : Node_Id {
+    Operator_Id Operator;
+    Node_Id     Left_Expr;
+    Node_Id     Right_Expr;
+  };
+
+  /* Qualified_Expression ::= Subtype_Mark'(Expression) 
+                            | Subtype_Mark'Aggregate */
+
+  /* Example: Record_Type'(F1 => 1, F2 => "hello") 
+              CORBA.Long'(2) */
+
+  interface Qualified_Expression : Node_Id {
+    Node_Id    Subtype_Mark;
+    // The type used in the expression
+
+    Node_Id    Operand;
+    // Generally, a Record_Aggregate or and expression
+  };
+
+  /* Type Casting */
+  interface Type_Conversion : Node_Id {
+    Node_Id   Subtype_Mark;
+    // The type to which we Cast
+
+    Node_Id   Expression;
+    // The expression being casted
+  }; 
+
+  /* Example: new Record_Type'(F1 => 1, F2 => "hello") */
+  interface Object_Instantiation : Node_Id {
+    Node_Id    Qualified_Expression;
+    // A Qualified_Expression or a designator for the Instantiated type
+  };
+
+  /**************/
+  /* Base types */
+  /**************/
+
+  interface Base_Type {
+    Name_Id    Image;
+    // Image of the base type
+  };
+
+  interface _Float : Base_Type {};
+  interface _Double : Base_Type {};
+  interface Long_Double : Base_Type {};
+  interface _Short : Base_Type {};
+  interface _Long : Base_Type {};
+  interface Long_Long : Base_Type {};
+  interface Unsigned_Short : Base_Type {};
+  interface Unsigned_Long : Base_Type {};
+  interface Unsigned_Long_Long : Base_Type {};
+  interface _Char : Base_Type {};
+  interface Wide_Char : Base_Type {};
+  interface _String : Base_Type {};
+  interface Wide_String : Base_Type {};
+  interface _Boolean : Base_Type {};
+  interface _Octet : Base_Type {};
+  interface _Object : Base_Type {};
+  interface _Any : Base_Type {};
+};

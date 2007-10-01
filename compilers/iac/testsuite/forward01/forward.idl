@@ -1,0 +1,19 @@
+interface toto {};
+interface titi {
+   typedef toto toto2;
+   toto2 getToto2();
+   toto  getToto();
+};
+
+module Test000 {
+   interface X0 {};
+   typedef X0 Y0;
+
+   interface X1 {};
+   union Y1 switch (long) { case 1: X1 field1; };
+
+   interface X2 {};
+   union Y2 switch (long) { case 1: struct Nested { X2 field2; }
+   fieldNest; };
+};
+

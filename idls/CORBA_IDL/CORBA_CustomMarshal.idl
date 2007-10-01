@@ -1,0 +1,8 @@
+// File: CORBA_CustomMarshal.idl
+// CORBA 3.0, Chapter 5
+// depends on CORBA_Stream.idl
+
+//PolyORB:NI:	abstract valuetype CustomMarshal {
+//PolyORB:NI:		void marshal   (in DataOutputStream os);
+//PolyORB:NI:		void unmarshal (in DataInputStream  is);
+//PolyORB:NI:	};

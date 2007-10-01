@@ -1,0 +1,5 @@
+--  GNAT configuration pragmas for debugging-related settings
+
+--  @configure_input@
+
+@DEBUG_ONLY@pragma Initialize_Scalars;

@@ -1,0 +1,29 @@
+union Broadbeans switch (long) {
+ case 521 :
+ struct Avocado {
+ float ButterBean;
+ } Banana;
+ case 45 :
+ struct GalaApple {
+ float ButterBean, ChestNut, Currant, CoxPippin, Chervil, Scallion, Tomato;
+ } Orange;
+ case 72 :
+ octet Corn;
+};
+interface idlServer {
+ exception BroadbeansExcpt {
+ Broadbeans ex1;
+ };
+ attribute Broadbeans BroadbeansAttr;
+ Broadbeans BroadbeansOp(in Broadbeans p1, out Broadbeans p2, inout Broadbeans p3) raises (idlServer::BroadbeansExcpt);
+ exception AvocadoExcpt {
+ Broadbeans::Avocado ex1;
+ };
+ attribute Broadbeans::Avocado AvocadoAttr;
+ Broadbeans::Avocado AvocadoOp(in Broadbeans::Avocado p1, out Broadbeans::Avocado p2, inout Broadbeans::Avocado p3) raises (idlServer::AvocadoExcpt);
+ exception GalaAppleExcpt {
+ Broadbeans::GalaApple ex1;
+ };
+ attribute Broadbeans::GalaApple GalaAppleAttr;
+ Broadbeans::GalaApple GalaAppleOp(in Broadbeans::GalaApple p1, out Broadbeans::GalaApple p2, inout Broadbeans::GalaApple p3) raises (idlServer::GalaAppleExcpt);
+};

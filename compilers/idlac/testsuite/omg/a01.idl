@@ -1,0 +1,11 @@
+
+interface Asset {
+            void op1();
+            void op2();
+};
+interface Vehicle {
+            void op3();
+            void op4();
+};
+interface Tank : Vehicle, Asset {
+};

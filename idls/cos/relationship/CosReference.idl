@@ -1,0 +1,29 @@
+//File: CosReference.idl
+//Part of the Relationship Service
+//OMG File: 98-10-34
+
+#ifndef _COS_REFERENCE_IDL_
+#define _COS_REFERENCE_IDL_
+
+#ifdef _PRE_3_0_COMPILER_
+#include <CosGraphs.idl>
+#pragma prefix "omg.org"
+#else
+import ::CosGraphs;
+#endif // _PRE_3_0_COMPILER_
+
+module CosReference {
+
+#ifndef _PRE_3_0_COMPILER_
+	typeprefix CosReference "omg.org";
+#endif // _PRE_3_0_COMPILER_
+
+	interface Relationship : 
+			CosRelationships::Relationship {};
+
+	interface ReferencesRole : CosGraphs::Role {};
+
+	interface ReferencedByRole : CosGraphs::Role {};
+
+};
+#endif /* ifndef _COS_REFERENCE_IDL_ */

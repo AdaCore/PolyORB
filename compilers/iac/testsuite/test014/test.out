@@ -1,0 +1,32 @@
+interface Apple {
+ const long Lemon = 3;
+ typedef long Pumpkin;
+ exception Oregano {
+ long Sultana;
+ };
+};
+interface Banana : Apple {
+ const short Lemon = 3;
+ typedef short Pumpkin;
+ exception Oregano {
+ short Sultana;
+ };
+};
+interface Carrots : Apple {
+ const float Lemon = 4.5;
+ typedef float Pumpkin;
+ exception Oregano {
+ float Sultana;
+ };
+};
+interface Dates : Banana, Carrots {
+ const char Lemon = '6';
+ typedef char Pumpkin;
+ exception Oregano {
+ char Sultana;
+ };
+};
+interface idlServer : Dates {
+ typedef short Melon[3];
+ void Lemon(in idlServer::Melon p1, inout Apple::Pumpkin p2, inout Banana::Pumpkin p3, inout Carrots::Pumpkin p4, inout Dates::Pumpkin p5) raises (Carrots::Oregano);
+};

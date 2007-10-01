@@ -1,0 +1,30 @@
+//File: SecurityLevel1.idl
+//Part of the Security Service
+//OMG File: 02-03-12
+
+#if !defined(_SECURITY_LEVEL_1_IDL_)
+#define _SECURITY_LEVEL_1_IDL_
+
+#ifdef _PRE_3_0_COMPILER_
+#include <Security.idl>
+#pragma prefix "omg.org"
+#else
+import ::Security;
+#endif // _PRE_3_0_COMPILER_
+
+module SecurityLevel1 {
+
+#ifndef _PRE_3_0_COMPILER_
+	typeprefix SecurityLevel1 "omg.org";
+#endif // _PRE_3_0_COMPILER_
+
+#	pragma version SecurityLevel1 1.8
+	local interface Current : CORBA::Current {
+#		pragma version Current 1.8
+		// thread specific operations
+		Security::AttributeList get_attributes (			
+			in 	Security::AttributeTypeList								attributes 
+		);
+	};
+};
+#endif /* _SECURITY_LEVEL_1_IDL_ */

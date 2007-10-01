@@ -1,0 +1,53 @@
+//
+// Copyright (c) 1997 X/Open Company Ltd., A member of The Open Group.
+//
+// All rights reserved. No part of this source code may be reproduced,
+// stored in a retrieval system, or transmitted, in any form or by any
+// means, electronic, mechanical, photocopying, recording or otherwise,
+// except as stated in the end-user licence agreement, without the prior
+// permission of the copyright owners.
+//
+// Developed for X/Open by ApTest Ireland Limited.
+//
+// Project: CORVAL2
+//
+
+
+struct KidneyBean{
+  long BlackCherry;
+  sequence<KidneyBean>  PassionFruit;
+};
+
+struct Shallots {
+    struct  Aniseed{
+    	sequence<Shallots,9>  Tofu;
+    	float Apricots;
+    	short Guava;
+    } KidneyBean, Brocoli;
+  enum Runnerbean{
+    WhiteCabbage,
+    Mushroom,
+    Tomato,
+    Almonds,
+    Orange
+  } Bayleaf;
+};
+
+interface idlServer{
+
+  exception GoldenDelicous{
+    ::Shallots CantelopeMelon;
+    ::KidneyBean RowanBerry;
+  };
+
+
+  attribute ::Shallots Plum;
+  attribute ::KidneyBean Zucchini;
+
+  ::Shallots Avocado(
+    in    ::KidneyBean p1,
+    out   ::KidneyBean p2,
+    inout ::Shallots p3
+  ) raises (GoldenDelicous);
+};
+

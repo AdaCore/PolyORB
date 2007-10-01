@@ -1,0 +1,78 @@
+#!/bin/sh
+#
+# idlac_wrapper
+# $Id$
+# @configure_input@
+#
+# Contributed to PolyORB by Vadim Godunko <vgodunko@rost.ru>   
+# See README for more details.
+#
+
+tmp="idlac_wrapper.$$"
+trap "rm -rf ${tmp}" 0 1 2 3 15
+
+SED=@SED@
+IDLAC=idlac
+
+verbose=false
+
+while [ $# -ne 0 ]; do
+  case "$1" in
+
+    --idlac=*)
+      IDLAC=`echo "$1" | ${SED} 's/^--idlac=//'`
+      shift
+      ;;
+
+    --verbose)
+      verbose=true
+      shift
+      ;;
+
+    -v)
+      verbose=true
+      shift
+      ;;
+
+    *)
+      args="${args} `echo "$1" | ${SED} 's/./\\\\&/g'`"
+      shift
+      ;;
+  esac
+done
+
+(
+    ##  Create temporary directory
+
+    mkdir ${tmp} || exit $?
+
+    ##  Execute idlac
+
+    if "$verbose"; then
+        echo "${IDLAC} -o ${tmp} ${args}"
+    fi
+    eval "${IDLAC} -o ${tmp} ${args}" || exit $?
+
+    ##  Replace existing files only if actually changed; move newly-created
+    ##  files, and remove files in other case
+
+    for file in ${tmp}/*.ad[sb]; do
+        ofile=`basename ${file}`
+        if [ -r ${ofile} ]; then
+            if cmp ${file} ${ofile} > /dev/null; then
+                echo "${IDLAC}: not modified: ${PWD}/${ofile}"
+                rm -f ${file}
+            else
+                echo "${IDLAC}: updated: ${PWD}/${ofile}"
+                mv -f ${file} ${ofile}
+            fi
+        else
+            if "$verbose"; then
+                # This is the usual case; don't print message unless --verbose
+                # flag was given
+                echo "${IDLAC}: created: ${PWD}/${ofile}"
+            fi
+            mv -f ${file} ${ofile}
+        fi
+    done
+)

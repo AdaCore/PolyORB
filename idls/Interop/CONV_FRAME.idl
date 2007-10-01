@@ -1,0 +1,40 @@
+// File: CONV_FRAME.idl
+// From CORBA 3.0: Chapter 13, Interoperability Architecture
+
+// PolyORB:WAGCORBA This file has been update to take into acocunt OMG
+// Issue 5232 (anonymous sequence types are deprecated).
+
+#ifndef _CONV_FRAME_IDL
+#define _CONV_FRAME_IDL
+
+#ifdef _PRE_3_0_COMPILER_
+#pragma prefix "omg.org"
+#endif
+
+module CONV_FRAME {
+
+#ifndef _PRE_3_0_COMPILER_
+    typeprefix CONV_FRAME "omg.org";
+#endif
+
+    typedef unsigned long CodeSetId;
+    typedef sequence<CodeSetId> CodeSetIdSeq;
+
+    struct CodeSetComponent {
+        CodeSetId               native_code_set;
+        CodeSetIdSeq            conversion_code_sets;
+    };
+    struct CodeSetComponentInfo {
+        CodeSetComponent        ForCharData;
+        CodeSetComponent        ForWcharData;
+    };
+
+    // CodeSet Service Context information
+
+    struct CodeSetContext {
+        CodeSetId               char_data;
+        CodeSetId               wchar_data;
+    };
+};
+#endif // _CONV_FRAME_IDL
+

@@ -1,0 +1,8 @@
+valuetype AVal;
+valuetype BVal {
+ public AVal Mbr;
+};
+valuetype AVal : BVal {
+};
+valuetype CVal : AVal {
+};

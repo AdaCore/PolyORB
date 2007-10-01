@@ -1,0 +1,8 @@
+module Test {
+  interface Printer {
+    oneway void printString (in string Mesg);
+    oneway void printLong (in long K);
+    string echoString (in string K);
+    long echoLong (in long K);
+  };
+};

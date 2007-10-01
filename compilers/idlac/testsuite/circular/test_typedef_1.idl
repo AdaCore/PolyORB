@@ -1,0 +1,8 @@
+
+module Test_Typedef_1 {
+
+    interface X {};
+
+    typedef X Y;
+
+};

@@ -1,0 +1,9 @@
+
+const double Pi = 3.1415926535;
+const short Line_Buffer_Length = 80;
+
+
+
+const long Page_Buffer_Length =
+    (Line_Buffer_Length * 60) + 2;
+const long Legal_Page_Buffer_Length = (80 * 80) + 2;

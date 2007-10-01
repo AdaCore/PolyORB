@@ -1,0 +1,6 @@
+abstract valuetype AbsVal {
+ AbsVal op1(in AbsVal inPara, inout AbsVal ioPara, out AbsVal outPara);
+};
+interface Itf {
+ AbsVal op2(in AbsVal inPara, inout AbsVal ioPara, out AbsVal outPara);
+};
