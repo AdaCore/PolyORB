@@ -55,8 +55,9 @@ cd $dir
 if [ ! -z "$change" ]; then
   taginfo="CHANGE_${change}"
 
-  rm -f ${taginfo}
-  LANG=C date > ${taginfo}
+  if [ ! -f "${taginfo}" ]; then
+    LANG=C date "+Pacakged from repository rev. ${change} on %c" > ${taginfo}
+  fi
   echo ${taginfo} >> MANIFEST
 fi
 
