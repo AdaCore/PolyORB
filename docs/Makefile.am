@@ -1,7 +1,7 @@
 info_TEXINFOS = polyorb_ug.texi polyorb_dg.texi
 man_MANS = po_names.1 idlac.1 iac.1 polyorb-config.1 polyorb.7
 
-SUFFIXES = .idl .ads .adb .texi .sed .txt
+SUFFIXES = .idl .ads .adb .texi .sed .pdf .txt .html
 
 FIG2DEV=fig2dev
 
@@ -172,7 +172,7 @@ polyorb_ug_ref.aux: polyorb_ug_ref.tex polyorb_ug.bib
 	-${MAKEINFO} -o $@ --force --html --number-sections $<
 	cp *.png $@
 
-%.txt: ${srcdir}/%.texi $(FIG_TXTFILES)
+%.txt: ${srcdir}/%.texi
 	-${MAKEINFO} -o $@ --ifinfo --number-sections $<
 
 %.pdf: ${srcdir}/%.texi
@@ -287,7 +287,7 @@ install-data-local:
 	done
 
 MANIFEST: polyorb_ug.info polyorb_ug.html polyorb_ug.pdf polyorb_ug.ps polyorb_ug.txt \
-	polyorb_ug.info polyorb_dg.html polyorb_dg.pdf polyorb_dg.txt polyorb_dg.ps
+	polyorb_dg.info polyorb_dg.html polyorb_dg.pdf polyorb_dg.txt polyorb_dg.ps
 	-${RM} -f MANIFEST
 	echo polyorb_ug.info >> MANIFEST
 	echo polyorb_ug.ps >> MANIFEST
