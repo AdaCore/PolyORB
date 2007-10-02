@@ -1052,8 +1052,8 @@ package body Parser is
 
       --  The definition is successfully parsed
 
-      --  Particular case when parsing a typeprefix or a typeid statement :
-      --  The IDL grammar is clear :
+      --  Particular case when parsing a typeprefix or a typeid statement:
+      --  The IDL grammar is clear:
       --  (2) <definition> ::= <type_dcl> ";"
       --                     | <const_dcl> ";"
       --                     | <except_dcl> ";"
@@ -1063,32 +1063,20 @@ package body Parser is
       --                     | <type_id_dcl> ";"
       --                     | <type_prefix_dcl> ";"
 
-      --  The last 2 lines show that a semi-colon is required after a
+      --  The last two lines show that a semi-colon is required after a
       --  <type_id_dcl> and <type_prefix_dcl>.
-      --  The code we should put here is :
-
-      --  if Present (Definition) and then Kind (Definition) /= K_Pragma then
-      --     Save_Lexer (State);
-      --     Scan_Token (T_Semi_Colon);
-      --     if Token = T_Error then
-      --        Definition := No_Node;
-      --     end if;
-      --  end if;
 
       --  However, in some OMG idl files (including orb.idl), there is no
-      --  semi-colon after typeprefix statement.
-      --  This problem was discussed in the issue 3299 of the omg :
-      --  http://www.omg.org/issues/issue3299.txt
+      --  semi-colon after typeprefix statement. This issue has been discussed
+      --  in OMG issue 3299: http://www.omg.org/issues/issue3299.txt
       --  but no solution has been accepted, and the issue is still pending.
 
-      --  To be respectful of the IDL grammar and at the same time, to be
-      --  able to parse OMG idl files, we accept both cases : with semi-colon
-      --  and without semi-colon.
+      --  We therefore support a relaxed IDL syntax for the purpose of parsing
+      --  standard OMG idl files, accepting specifications lacking the
+      --  semicolon. When OMG standard IDLs are fixed, this work-around can
+      --  be removed.
 
-      --  This is of course a temporary solution, and when the error is fixed
-      --  by OMG, the IDL grammar must be respected by all IDL files.
-
-      --  The same situation is met when parsing an import statement
+      --  The same situation is encountered when parsing an import statement.
 
       if Present (Definition) and then Kind (Definition) /= K_Pragma then
          Save_Lexer (State);
@@ -1099,8 +1087,7 @@ package body Parser is
             then
                Restore_Lexer (State);
                Error_Loc (1) := Token_Location;
-               DE ("Conforming to the IDL grammar, a semi-colon"
-                   & " is expected here", K_Warning);
+               DE ("semicolon expected", K_Warning);
             else
                Definition := No_Node;
             end if;
@@ -1478,17 +1465,8 @@ package body Parser is
 
       --  The import is successfully parsed
 
-      --  See the comment at the end of the P_Definition function to understand
-      --  why we should accept that no ";" may be given after an import
-      --  declaration.
-
-      --  Once the error in OMG idl files is fixed, the code to be put is :
-      --  if Present (Imported_Scope) then
-      --     Scan_Token (T_Semi_Colon);
-      --     if Token = T_Error then
-      --        Import_Node := No_Node;
-      --     end if;
-      --  end if;
+      --  See discussion in P_Definition for relaxed syntax exception (we
+      --  accept an import declaration without a terminating semicolon).
 
       if Present (Imported_Scope) then
          Save_Lexer (State);
@@ -1496,14 +1474,13 @@ package body Parser is
          if Token /= T_Semi_Colon then
             Restore_Lexer (State);
             Error_Loc (1) := Token_Location;
-            DE ("Conforming to the IDL grammar, a semi-colon"
-                & " is expected here", K_Warning);
+            DE ("semicolon expected", K_Warning);
          end if;
       end if;
 
       --  Now, we parse the file corresponding to the imported scope
 
-      --  FIXME : Note that even if the imported scope covers only a part
+      --  FIXME: Note that even if the imported scope covers only a part
       --  of a file and not a whole file, all the entities in this file
       --  will be visible
 
