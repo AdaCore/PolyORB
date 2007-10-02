@@ -186,7 +186,8 @@ polyorb_ug_ref.aux: polyorb_ug_ref.tex polyorb_ug.bib
 # (Fatal format file error; I'm stymied)
 # /usr/bin/texi2dvi: texinfo.tex appears to be broken, quitting.
 #See: http://www.mail-archive.com/bug-automake@gnu.org/msg00546.html
-%.dvi: ${srcdir}/%.texi $(FIG_EPSFILES)
+%.dvi: ${srcdir}/%.texi
+	${MAKE} $(FIG_EPSFILES)
 	TEX=tex \
 	TEXINPUTS="$(am__TEXINFO_TEX_DIR)$(PATH_SEPARATOR)$$TEXINPUTS" \
 	MAKEINFO='$(MAKEINFO) $(AM_MAKEINFOFLAGS) $(MAKEINFOFLAGS) -I $(srcdir)' \
