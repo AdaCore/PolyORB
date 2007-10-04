@@ -297,6 +297,27 @@ package body Backend.BE_CORBA_Ada.Runtime is
               (RUD (RE_Unit_Table (E)), RED (E));
          end if;
       end loop;
+
+      --  For CORBA predefined units and CORBA predefined entities,
+      --  put the enumerator position in the Info field of their
+      --  expanded name id. This should save time and memory space
+      --  when fetching CORBA predefined entities.
+
+      for U in CORBA_Predefined_RU'Range loop
+         Get_Name_String (To_Lower (Fully_Qualified_Name (RUD (U))));
+         Add_Str_To_Name_Buffer (CORBA_Predefined_RU_Suffix);
+
+         Name := Name_Find;
+         Set_Name_Table_Info (Name, CORBA_Predefined_RU'Pos (U));
+      end loop;
+
+      for E in CORBA_Predefined_RE'Range loop
+         Get_Name_String (To_Lower (Fully_Qualified_Name (RED (E))));
+         Add_Str_To_Name_Buffer (CORBA_Predefined_RE_Suffix);
+
+         Name := Name_Find;
+         Set_Name_Table_Info (Name, CORBA_Predefined_RE'Pos (E));
+      end loop;
    end Initialize;
 
    --------
@@ -330,7 +351,7 @@ package body Backend.BE_CORBA_Ada.Runtime is
    --------
 
    function RU
-     (Id : RU_Id;
+     (Id     : RU_Id;
       Withed : Boolean := True)
      return Node_Id
    is
@@ -340,9 +361,11 @@ package body Backend.BE_CORBA_Ada.Runtime is
       --  parent unit does not have to be "withed"
 
       Result := Copy_Expanded_Name (RUD (Id), False);
+
       if Withed then
          Add_With_Package (Result);
       end if;
+
       return Result;
    end RU;
 

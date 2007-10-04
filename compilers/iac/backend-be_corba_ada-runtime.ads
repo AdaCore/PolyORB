@@ -635,6 +635,11 @@ package Backend.BE_CORBA_Ada.Runtime is
    --  The corresponding implementation type for each predefined CORBA
    --  interface.
 
+   CORBA_Predefined_RU_Suffix : constant String := "%pred_ru%";
+   CORBA_Predefined_RE_Suffix : constant String := "%pred_re%";
+   --  These two suffixes are used to mark CORBA predefined entities
+   --  names and avoid name conflicts with other marked names in IAC.
+
    CORBA_Predefined_RE_Table : constant array (CORBA_Predefined_RE) of RE_Id
      := (RE_Any                => RE_Any,
          RE_Identifier_0       => RE_Identifier_0,

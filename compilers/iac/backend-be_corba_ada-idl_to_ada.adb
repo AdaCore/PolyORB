@@ -1591,7 +1591,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
    is
       Entity : Node_Id;
       E_Name : Name_Id;
-      N      : Node_Id;
+      Info   : Nat;
    begin
       if FEN.Kind (E) = K_Scoped_Name then
          Entity := Reference (E);
@@ -1599,40 +1599,45 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
          Entity := E;
       end if;
 
-      E_Name := FEU.Fully_Qualified_Name (FEN.Identifier (Entity), ".");
+      Get_Name_String
+        (To_Lower (FEU.Fully_Qualified_Name (FEN.Identifier (Entity), ".")));
+      Add_Str_To_Name_Buffer (CORBA_Predefined_RU_Suffix);
+      E_Name := Name_Find;
+      Info := Get_Name_Table_Info (E_Name);
 
-      for R in CORBA_Predefined_RU'Range loop
+      if Info /= 0 then
+         --  We have a match with a CORBA predefined unit
 
-         --  During the test phase, we don't "with" any package
-
-         N := RU (R, False);
-
-         if To_Lower (E_Name) = To_Lower (Fully_Qualified_Name (N)) then
-            --  We return the Ref type or the Object.
-
-            if Implem then
-               return CORBA_Predefined_RU_Implem_Table (R);
-            else
-               return CORBA_Predefined_RU_Table (R);
-            end if;
+         if Implem then
+            return CORBA_Predefined_RU_Implem_Table
+                     (CORBA_Predefined_RU'Val (Info));
+         else
+            return CORBA_Predefined_RU_Table
+                     (CORBA_Predefined_RU'Val (Info));
          end if;
-      end loop;
+      end if;
 
-      for R in CORBA_Predefined_RE'Range loop
-         N := RE (R, False);
+      Get_Name_String
+        (To_Lower (FEU.Fully_Qualified_Name (FEN.Identifier (Entity), ".")));
+      Add_Str_To_Name_Buffer (CORBA_Predefined_RE_Suffix);
+      E_Name := Name_Find;
+      Info := Get_Name_Table_Info (E_Name);
 
-         if To_Lower (E_Name) = To_Lower (Fully_Qualified_Name (N)) then
-            --  In the case of IDL sequences, if the Wrap flag has
-            --  been set, we return the corresponding .Sequence type
-            --  for which a Wrap function has been generated.
+      if Info /= 0 then
+         --  We have a match with a CORBA predefined entity
 
-            if Wrap then
-               return CORBA_Predefined_RE_Wrap_Table (R);
-            else
-               return CORBA_Predefined_RE_Table (R);
-            end if;
+         --  In the case of IDL sequences, if the Wrap flag has been
+         --  set, we return the corresponding .Sequence type for which
+         --  a Wrap function has been generated.
+
+         if Wrap then
+            return CORBA_Predefined_RE_Wrap_Table
+                     (CORBA_Predefined_RE'Val (Info));
+         else
+            return CORBA_Predefined_RE_Table
+                     (CORBA_Predefined_RE'Val (Info));
          end if;
-      end loop;
+      end if;
 
       return RE_Null;
    end Get_Predefined_CORBA_Entity;
