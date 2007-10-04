@@ -1,0 +1,89 @@
+// This IDL file is used to benchmarks CORBA application. Each
+// function is expected to return a value equal to its parameter. It
+// allows one to evaluate the impact of parameter
+// marshalling/unmarshalling on ORB performance.
+
+interface benchs {
+
+  // fonction without parameter
+  short noParameter ();
+
+  // procedure with variable name length
+  void azerty ();
+  
+  // fonction with one parameter
+  // Simple types
+  boolean echoBoolean(in boolean arg) ;
+  short echoShort(in short arg) ;
+  long echoLong(in long arg) ;
+
+  float echoFloat(in float arg) ;
+  double echoDouble(in double arg) ;
+  char echoChar(in char arg) ;
+  wchar echoWChar(in wchar arg) ;
+  string echoString (in string arg) ;
+
+  // Enum
+  enum Color { Red, Green, Blue };
+  Color echoColor (in Color arg);
+  
+  // Array of enum
+  typedef Color Rainbow[7];
+  Rainbow echoRainbow (in Rainbow arg);
+
+  
+  // Unions
+  union myUnion switch (long) {
+  case 1: long    Counter;
+  case 2: boolean Flag;
+  case 3: Color   Hue;
+  default: long Unknown;
+  };
+  
+  myUnion echoUnion (in myUnion arg);
+  
+  union myUnionEnumSwitch switch (Color) {
+  case Red:   long   foo;
+  case Green: short  bar;
+  case Blue:  string baz;
+  };
+  myUnionEnumSwitch echoUnionEnumSwitch (in myUnionEnumSwitch arg);
+
+  // Structs
+  struct simple_struct {
+    long a;
+    string s;
+  };
+  simple_struct echoStruct (in simple_struct arg);
+  
+  struct array_struct {
+    long a[10];
+    unsigned short b;
+  };
+  array_struct echoArrayStruct (in array_struct arg);
+  
+  // Big arrays
+  // ----------
+
+  typedef long sixteenKb[64][64];
+  sixteenKb echoSixteenKb (in sixteenKb arg);
+
+  struct composite_struct {
+    fixed<12,3> fixedMember;
+    sequence<sequence<octet> > seqseqMember;
+    long double matrixMember[3][4];
+  };
+  
+  struct nested_struct {
+    simple_struct ns;
+  };
+  nested_struct echoNestedStruct (in nested_struct arg);
+  
+  
+   // Sequences
+  typedef sequence<short> U_sequence;
+  U_sequence echoUsequence (in U_sequence arg);
+      
+  // stop the server
+  void StopServer ();  
+};

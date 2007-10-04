@@ -1,0 +1,4 @@
+${eval ${define_test}}
+
+${current_dir}benchs.idl-stamp: idlac_flags :=
+${test_target}: ${current_dir}benchs.idl-stamp
