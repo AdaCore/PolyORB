@@ -151,6 +151,10 @@ begin
                   Success : Boolean;
                begin
                   Idl_Fe.Files.Add_Search_Path (Parameter, Success);
+                  if not Success then
+                     raise Program_Error
+                       with Parameter & ": directory not found";
+                  end if;
                end;
 
             when others =>
