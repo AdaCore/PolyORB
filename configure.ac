@@ -43,8 +43,18 @@ else
 fi],
 [NODEBUG_OPTIONS])
 
-WARNINGS_AS_ERRORS=e
+DEFAULT_WARNINGS_AS_ERRORS=e
+
+AC_ARG_ENABLE(warnings-as-errors,
+[  --enable-warnings-as-errors All warnings are errors],
+[if [[ "$enableval" = "yes" ]]; then
+  WARNINGS_AS_ERRORS=e
+else
+  WARNINGS_AS_ERRORS=
+fi],
+[WARNINGS_AS_ERRORS=$DEFAULT_WARNINGS_AS_ERRORS])
 AC_SUBST(WARNINGS_AS_ERRORS)
+
 # By default treat all warnings as errors when building directly from the
 # source repository. The packaging procedure changes the RHS of this assignment
 # to an empty string so that builds from packaged sources do not stop
