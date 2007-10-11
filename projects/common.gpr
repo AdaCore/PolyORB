@@ -39,6 +39,10 @@ project Common is
    type Build_Type is ("PRODUCTION", "DEBUG");
    Build : Build_Type := external ("Build", "PRODUCTION");
 
+   Warnings_As_Errors := external ("Warnings_As_Errors", "e");
+   --  Set to empty string to proceed with the build even in the presence
+   --  of compiler warnings.
+
    for Source_Files use ();
 
    Build_Dir := Config.Top_Build_Dir;
@@ -52,8 +56,10 @@ project Common is
       Base_Ada_Compiler_Switches :=
         ("-gnatf",            --  Full compiler error messages
          Config.Style_Switch, --  Enable style checks
-         "-gnatwale");        --  Enable all warnings, also enable elaboration
-                              --  warnings, and treat all warnings as errors.
+         "-gnatwal" & Warnings_As_Errors);
+                              --  Enable all warnings, also enable elaboration
+                              --  warnings, and treat all warnings as errors
+                              --  if Warnings_As_Errors is set to "e".
 
       case Build is
          when "PRODUCTION" =>

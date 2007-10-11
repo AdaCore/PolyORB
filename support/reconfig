@@ -40,6 +40,7 @@ then
       manifest[nf++] = $0;
       next;
     }
+    /^WARNINGS_AS_ERRORS=/ { sub (/=.*/, ""); }
     /^AC_OUTPUT\(/ {
       st = 1; print; next;
     }

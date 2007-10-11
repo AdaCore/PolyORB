@@ -43,6 +43,15 @@ else
 fi],
 [NODEBUG_OPTIONS])
 
+WARNINGS_AS_ERRORS=e
+AC_SUBST(WARNINGS_AS_ERRORS)
+# By default treat all warnings as errors when building directly from the
+# source repository. The packaging procedure changes the RHS of this assignment
+# to an empty string so that builds from packaged sources do not stop
+# on warnings.
+
+DEFAULT_ADAFLAGS="${DEFAULT_ADAFLAGS} -XWarnings_As_Errors=${WARNINGS_AS_ERRORS}"
+
 # ADAFLAGS will be set later, once AC_PROG_CC has set the definitive CFLAGS
 
 AC_SUBST(CFLAGS)
