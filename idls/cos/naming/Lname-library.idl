@@ -1,0 +1,53 @@
+//File: Lname-library.idl
+//Listed with the Naming Service, but not part of it.
+//
+// The Lname-Library interfaces are defined in PIDL, not IDL.
+// They are included here to provide a complete listing of what
+//  is in the Naming Service and to test the syntax. It actually 
+//  compiles as IDL.
+// This libary is optional and NOT a part of CosNaming. It should
+//  not be included in the CosNaming.idl file.
+// The Naming Service suggests that a vendor may wish to provide
+//  a language specific libary corresponding to this PIDL. This file
+//  might then serve as the basis of what the language libary 
+//  looks like. 
+// The interfaces defined here are NOT intended to be CORBA objects.
+// It should be noted that there is no module name associated 
+//  because this file is not intended to be "#include"d in any
+//  other .idl file. For that reason, there are also no guards.
+
+#include <CosNaming.idl>
+
+	interface LNameComponent {                                                              // PIDL
+		exception NotSet{};
+		string get_id() 
+			raises(NotSet);
+		void set_id(in string i);
+		string get_kind() 
+			raises(NotSet);
+		void set_kind(in string k);
+			void destroy();
+	};
+	interface LName {                                                                               // PIDL
+		exception NoComponent{};
+		exception OverFlow{};
+		exception InvalidName{};                                
+		LName insert_component(	in unsigned long i, 
+								in LNameComponent n) 
+			raises(	NoComponent, 
+					OverFlow);
+		LNameComponent get_component(in unsigned long i)
+			raises(NoComponent);                           
+		LNameComponent delete_component(in unsigned long i)
+			raises(NoComponent);                           
+		unsigned long num_components();
+		boolean equal(in LName ln);
+		boolean less_than(in LName ln);
+		CosNaming::Name to_idl_form()
+			raises(InvalidName);                             
+		void from_idl_form(in CosNaming::Name n);
+		void destroy();
+	};
+
+//Note: end of option LName PIDL
+

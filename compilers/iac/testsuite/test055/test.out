@@ -1,0 +1,7 @@
+orb.idl:44:01: Conforming to the IDL grammar, a semi-colon is expected here
+CORBA_InterfaceRepository.idl:10:01: Conforming to the IDL grammar, a semi-colon is expected here
+iac: 2 warning(s)
+import ::CORBA::ORB;
+module p {
+ typedef long plop;
+};

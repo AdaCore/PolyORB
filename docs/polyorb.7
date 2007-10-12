@@ -1,0 +1,37 @@
+.TH POLYORB 7 "December 1, 2003" "PolyORB team" "PolyORB documentation"
+
+.SH NAME
+PolyORB \- A schizophrenic middleware
+
+.SH ENVIRONMENT
+.B PolyORB
+recognizes the following environment variable:
+.HP
+.B POLYORB_CONF
+is the name of a configuration file (by default the current directory ).
+This file contains on each line an assignment of the form
+.IR VARIABLE=VALUE .
+This assignment is only taken in account if no environment variable with
+the name
+.I VARIABLE
+exists.
+
+.PP
+Any environment variable may contain a value looking like
+.RI file: path .
+In this case, the content of the file designated by
+.I path
+(if it exists) will be used as the value for the corresponding variable.
+
+.SH BUGS
+Report any bugs to polyorb-bugs@lists.adacore.com.
+
+.SH AUTHORS
+The \fIPolyORB\fP team, polyorb-devel@lists.adacore.com/
+
+.SH SEE ALSO
+.br
+The \fIPolyORB\fP WWW page,
+.B
+http://libre.adacore.com/polyorb/
+.b

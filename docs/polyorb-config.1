@@ -1,0 +1,62 @@
+.TH POLYORB-CONFIG 1 "April 26, 2007" "PolyORB team" "PolyORB documentation"
+
+.SH NAME
+polyorb-config - script to get information about the installed version of PolyORB.
+
+.SH SYNOPSIS
+.B polyorb-config [--prefix[=DIR]] [--exec-prefix[=DIR]] [--version|-v] [--config] [--libs] [--cflags] [--idls] [--help]
+
+.SH DESCRIPTION
+\fIpolyorb-config\fP is a tool that is used to determine the compiler and linker flags that should be used to compile and link programs that use \fIPolyORB\fP.
+
+.SH OPTIONS
+.l
+\fIpolyorb-config\fP accepts the following options:
+
+.TP 8
+.B  \-\-prefix[=DIR]
+ Output the directory in which PolyORB architecture-independent files
+are installed, or set this directory to DIR.
+
+.TP 8
+.B  \-\-exec\-prefix[=DIR]
+ Output the directory in which PolyORB architecture-dependent files are installed, or set this directory to DIR.
+.TP 8
+.B  \-\-version|\-v
+Print the currently installed version of \fIPolyORB\fP on the standard output.
+.TP 8
+.B  \-\-config
+Print the configuration of the currently installed version of
+\fIPolyORB\fP on the standard output.
+.TP 8
+.B  \-\-libs
+Print the linker flags that are necessary to link a \fIPolyORB\fP program.
+.TP 8
+.B  \-\-cflags
+Print the compiler flags that are necessary to compile a \fIPolyORB\fP
+program.
+.TP 8
+.B  \-\-idls
+Print the flags to set up path to CORBA's IDL for idlac.
+.TP 8
+.B \-\-with-appli-perso=P,P,P
+Restrict output to only those flags relevant to the listed applicative personalities.
+.TP 8
+.B \-\-with-proto-perso=P,P,P
+Restrict output to only those flags relevant to the listed protocol personalities.
+.TP 8
+.B \-\-with-corba-services=S,S,S
+Restrict output to only those flags relevant to the listed services.
+.TP 8
+.B  \-\-help
+Print help message.
+
+.SH AUTHORS
+The \fIPolyORB\fP team, polyorb-devel@lists.adacore.com.
+
+.SH SEE ALSO
+.br
+The \fIPolyORB\fP WWW page,
+.B
+http://libre.adacore.com/polyorb/
+.b

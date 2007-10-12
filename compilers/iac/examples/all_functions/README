@@ -1,0 +1,21 @@
+README for the IAC all_functions example
+----------------------------------------
+
+This demo tests CORBA methods invocations.
+
+Three executables are provided
+- server : a CORBA server application, provides different kinds of subprograms.
+
+- client : a CORBA client application, built to interact with 'server',
+  test all CORBA types.
+
+* To run these tests :
+
+1) client/server test :
+
+- launch server
+- launch client using the IOR string output by server as an argument
+
+The client will interact with the server, doing several tests. The different
+results are displayed on the client side.
+

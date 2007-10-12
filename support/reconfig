@@ -1,0 +1,111 @@
+#! /bin/sh
+
+EDIT_CONFIGURE_IN=false
+
+# Find a version of awk that supports gsub
+NAWK=`which nawk 2> /dev/null`
+if [ -x "${NAWK}" ]; then
+  : nawk found
+else
+  NAWK=awk
+fi
+
+set -e
+
+usage() {
+  echo "$0 [-w]"
+  echo "  -w  edit configure.ac to remove files not available according to MANIFEST"
+  exit 1
+}
+
+while getopts w opt
+do
+  case "$opt" in
+    w)
+      EDIT_CONFIGURE_IN=true
+      ;;
+    *)
+      usage
+      ,,
+  esac
+done
+
+if ${EDIT_CONFIGURE_IN}
+then
+  echo "Editing configure.ac"
+  mv configure.ac configure.ac.orig
+  ${NAWK} '
+    BEGIN { st = 0; nf = 0; }
+    FILENAME == "MANIFEST" {
+      manifest[nf++] = $0;
+      next;
+    }
+    /^DEFAULT_WARNINGS_AS_ERRORS=/ { sub (/\=.*/, "="); }
+    /^AC_OUTPUT\(/ {
+      st = 1; print; next;
+    }
+    st == 1 && /^\]/ {
+      st = 0;
+    }
+    st == 1 {
+      fn = $0;
+      gsub (/[ 	]/,"", fn);
+      for (j = 0; j < nf; j++) {
+        if (manifest[j] == fn ".in") {
+          print;
+          break;
+        }
+      }
+      next;
+    }
+    { print; }' MANIFEST configure.ac.orig > configure.ac
+  rm -f configure.ac.orig
+fi
+
+rm -f aclocal.m4 support/libtool.m4 configure
+
+echo "Libtoolizing"
+# If libtoolize advises us to get a particular version of libtool.m4,
+# copy it locally.
+libtool_m4=`libtoolize --copy --force | sed -n -e '/You should add the contents of \`\([^'\'']*\)'\''.*$/s//\1/p'`
+if [ -n "$libtool_m4" ]; then
+  cp $libtool_m4 support/libtool.m4
+else
+  touch support/libtool.m4
+fi
+
+mv support/ltmain.sh support/ltmain.sh.orig
+sed -e '/xlinker)/,/;;$/s/\$wl/-Xlinker /g' < support/ltmain.sh.orig > support/ltmain.sh
+rm -f support/ltmain.sh.orig
+
+echo "Running aclocal"
+aclocal -I support
+
+echo "Running autoconf"
+autoconf
+
+echo "Running automake"
+automake --add-missing --copy
+
+echo "Generating IDL tree accessors"
+(cd compilers/idlac && python make_nodes.py nodes.txt > nodes.ada \
+ && gnatchop -w nodes.ada && rm -f nodes.ada)
+
+echo "Doing the necessary date modifications"
+for f in \
+  configure.ac	\
+  aclocal.m4	\
+  Makefile.in	\
+  configure	\
+  stamp-h.in	\
+  config.h.in
+do
+  find . -name $f | grep -v '^\./Makefile.in$' | while read ff
+  # The above 'grep' is to avoid touching the Makefile.in in the root
+  # directory, since that's now a source file, rather than being generated from
+  # Makefile.am.
+  do
+    touch $ff
+  done
+  sleep 1
+done

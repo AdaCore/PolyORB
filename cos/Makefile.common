@@ -1,0 +1,105 @@
+include $(top_srcdir)/Makefile.common
+
+#
+# Compilation flags
+#
+
+ADAFLAGS+= $(STD_ADAFLAGS) -I. $(COS_ADAFLAGS) $(POLYORB_INCS) $(XMLADA_INCS)
+
+#
+# Compute source files to be compiled
+#
+
+ADA_BODIES = $(ADA_SPECS_WITH_BODY:.ads=.adb)
+
+ADA_SPECS = $(ADA_SPECS_WITH_BODY) $(ADA_SPECS_NO_BODY) $(GEN_SPECS)
+
+ADA_ALIS = $(ADA_SPECS:.ads=.ali)
+
+ADA_LIBADD = $(ADA_SPECS:.ads=.lo)
+
+#
+# Generate Ada source from IDL files
+#
+
+IDL_STAMPS = $(IDLS:.idl=.idl-stamp)
+
+$(IDL_STAMPS): $(IDLAC)
+
+GEN_BODIES = $(GEN_SPECS_WITH_BODY:.ads=.adb)
+GEN_SPECS = $(GEN_SPECS_NO_BODY) $(GEN_SPECS_WITH_BODY)
+
+$(GEN_BODIES): $(GEN_SPECS_WITH_BODY)
+$(GEN_SPECS): $(IDL_STAMPS)
+
+#
+# File to be cleaned
+#
+
+CLEANFILES = b~*.* *.o *.ali $(IDL_STAMPS) $(GEN_SPECS) $(GEN_BODIES)
+
+DISTCLEANFILES = $(PROGS) $(GEN) $(GEN_BODIES)
+
+#
+# Executables to be compiled
+#
+
+PROGS= @APPLI_EXES@ @SERVICE_EXES@
+
+#
+# Local targets
+#
+
+all-local:: $(PROGS) $(EXTRA)
+
+#
+# How to compile the various files
+#
+
+.adb.ali:
+	$(GNATMAKE_FOR_TARGET) -c $< $(ADAFLAGS)
+
+.PHONY: force
+
+FORCE_IDLAC=force
+
+$(PROGS): $(FORCE) $(GEN)
+	$(GNATMAKE_FOR_TARGET) $@ \
+        -m \
+        $(ADAFLAGS) \
+	-margs $(EXTRA_GNATMAKE_FLAGS) \
+	-bargs $(BARGS) \
+	-largs $(LDFLAGS) \
+	--LINK=$(LINKER) \
+	$(POLYORB_LIBS) $(XMLADA_LIBS) 
+
+force::
+	for dir in $(top_builddir)/src $(COS_DIRS);\
+	do\
+	  (cd $$dir && $(MAKE));\
+	done
+
+gen: $(GEN)
+
+#
+# Files to be installed
+#
+
+install-exec-local:
+	$(INSTALL) -d $(DESTDIR)$(bindir)
+	for p in dummy $(PROGS); do \
+	  if [ $$p != dummy ]; then \
+	    $(INSTALL_PROGRAM) $$p $(DESTDIR)$(bindir)/$$p; \
+	  fi; \
+	done
+
+install-data-local:
+	$(INSTALL) -d $(DESTDIR)$(alidir)
+	for f in $(ADA_SPECS) $(ADA_BODIES) $(ADA_ALIS); do \
+          if test -f $$f; then \
+            $(INSTALL) -m 444 $$f $(DESTDIR)$(alidir); \
+          else \
+            $(INSTALL) -m 444  $(srcdir)/$$f $(DESTDIR)$(alidir); \
+          fi \
+        done
+

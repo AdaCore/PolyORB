@@ -1,0 +1,14 @@
+TODO file for CIAO
+==================
+
+$Id: //depot/ciao/main/TODO#1 $
+
+All over CIAO, names are stored in nodes for usage occurrence
+of entities. This should not happen anymore; when the name of
+the entity denoted by a node is required, the (IDL) declaration
+of the node should be looked up, and only /that/ node should have
+a name.
+
+It is guaranteed that Translate has been previously called for any unit
+a given unit depends upon.
+

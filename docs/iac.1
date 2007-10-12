@@ -1,0 +1,141 @@
+.TH IAC 1 "April 26, 2007" "PolyORB team" "PolyORB documentation"
+
+.SH NAME
+iac \- PolyORB's IDL-to-Ada compiler
+
+.SH SYNOPSIS
+.B iac opts file [-cppargs args]
+
+.SH DESCRIPTION
+\fIiac\fP is an IDL-to-Ada compiler, compliant with version 1.2 of the "Ada Language Mapping Specification" produced by the OMG.
+
+.SH OPTIONS
+.l
+\fIiac\fP accepts the following options:
+
+.TP 8
+.B  \-E
+Preprocess only.
+.B  \-k
+Keep temporary files.
+.TP 8
+.B  \-p
+Produce source on standard output.
+.TP 8
+.B \-o DIR
+Specify output directory.
+.TP 8
+.B \-dm      
+Generate debug messages when analyzing scopes
+.TP 8
+.B \-df
+Dump the frontend tree (the IDL tree)
+.TP 8
+.B \-cppargs ARGS
+Pass ARGS to the C++ preprocessor.
+.TP 8
+.B \-I dir
+Shortcut for -cppargs -I dir.
+.TP 8
+.B \-<lang>  
+Generate code for a supported language
+.TP 8
+.B types   
+Generate a list of all types present in the IDL file
+.TP 8
+\&\fB \-p       
+Print the list generate
+.TP 8
+.B ada 
+Generate Ada source code
+.TP 8
+\&\fB \-i
+Generate implementation template.
+.TP 8
+\&\fB \-c
+Generate client side code.
+.TP 8
+\&\fB \-s
+Generate server side code.
+.TP 8
+\&\fB \-d
+Generate delegation package. (defunct)
+.TP 8
+\&\fB \-ir
+Generate code for interface repository.(defunct)
+.TP 8
+\&\fB \-noir
+Don't generate code for interface repository (default).
+.TP 8
+\&\fB \-hc      
+Using perfect minimal hash tables in skeletons
+and minimize CPU time
+.TP 8
+\&\fB \-hm      
+Using perfect minimal hash tables in skeletons
+and minimize memory space
+.TP 8
+\&\fB \-rs      
+Use the SII/SSI to handle requests
+.TP 8
+\&\fB \-rd      
+Use the DII/DSI to handle requests (default)
+.TP 8
+\&\fB \-da      
+Dump the Ada tree
+.TP 8
+\&\fB \-db      
+Generate only the package bodies
+.TP 8
+\&\fB \-ds      
+Generate only the package specs
+.TP 8
+\&\fB \-dw      
+Output the withed entities
+.TP 8
+\&\fB \-dt      
+Output tree warnings
+.TP 8
+\&\fB \-di      
+Generate code for imported entities
+.TP 8
+.B idl
+Dump parsed IDL file
+.TP 8
+\&\fB \-b n     
+Base to output integer literal
+As a default (zero) use base from input
+.TP 8
+\&\fB \-e       
+Expand IDL Tree
+.TP 8
+\&\fB \-df      
+Dump IDL Tree (may be used in conjunction with -e
+to dump the expanded IDL tree)
+.TP 8
+\&\fB \-di      
+Output IDL code of imported entities (may be used in conjunction with
+-e to output the expanded IDL code)
+
+.SH EXIT STATUS
+\fIiac\fP returns one of the following values upon exit:
+.TP
+.B 0
+Successful completion
+.TP
+.B 1
+Usage error
+.TP
+.B 2
+Illegal IDL specification
+
+
+.SH AUTHORS
+The \fIPolyORB\fP team, polyorb-devel@lists.adacore.com.
+
+.SH SEE ALSO
+.br
+The \fIPolyORB\fP WWW page,
+.B
+http://libre.adacore.com/polyorb/
+.b

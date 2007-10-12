@@ -1,0 +1,36 @@
+//File: CosLifeCycleReference.idl
+//Part of the LifeCycle Service
+//OMG File: 98-10-17
+
+#ifndef _COS_LIFE_CYCLE_REFERENCE_IDL_
+#define _COS_LIFE_CYCLE_REFERENCE_IDL_
+
+#ifdef _PRE_3_0_COMPILER_
+#include <CosReference.idl>
+#include <CosCompoundLifeCycle.idl>
+#pragma prefix "omg.org"
+#else
+import ::CosReference;
+import ::CosCompoundLifeCycle;
+#endif // _PRE_3_0_COMPILER_
+
+module CosLifeCycleReference {
+
+#ifndef _PRE_3_0_COMPILER_
+	typeprefix CosLifeCycleReference "omg.org";
+#endif // _PRE_3_0_COMPILER_
+
+	interface Relationship : 
+			CosCompoundLifeCycle::Relationship,
+			CosReference::Relationship {};
+
+	interface ReferencesRole : 
+			CosCompoundLifeCycle::Role,
+			CosReference::ReferencesRole {};
+
+	interface ReferencedByRole : 
+			CosCompoundLifeCycle::Role,
+			CosReference::ReferencedByRole {};
+};
+
+#endif /* ifndef _COS_LIFE_CYCLE_REFERENCE_IDL_ */

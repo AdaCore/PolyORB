@@ -1,0 +1,14 @@
+module M {
+ typedef long ArgType;
+ typedef M::ArgType AType;
+ interface B {
+ typedef string ArgType;
+ M::B::ArgType opb(in M::AType i);
+ };
+};
+module N {
+ typedef char ArgType;
+ interface Y : M::B {
+ void opy(in M::B::ArgType i);
+ };
+};

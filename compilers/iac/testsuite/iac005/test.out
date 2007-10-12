@@ -1,0 +1,3 @@
+tin.idl:6:20: \u may only be used in wide characters and strings
+tin.idl:10:17: \u may only be used in wide characters and strings
+iac: 2 error(s)

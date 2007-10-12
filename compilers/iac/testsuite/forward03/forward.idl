@@ -1,0 +1,11 @@
+interface TestService3 {
+
+  typedef struct foo {
+    TestService3 myRef;
+  } myStruct;
+  
+  typedef sequence<myStruct> test_services_type;
+  
+  test_services_type getStructs();
+};
+

@@ -1,0 +1,31 @@
+interface Itf {
+};
+struct FixStct {
+ long longMbr;
+};
+struct VarStct {
+ string stringMbr;
+};
+const short n = 9;
+union FixU switch (boolean) {
+ case TRUE :
+ long longMbr;
+ case FALSE :
+ short shortMbr;
+};
+union VarU switch (short) {
+ case 1 :
+ string stringMbr;
+ default :
+ any anyMbr;
+};
+valuetype Val {
+ typedef short Ar[9];
+ public Val::Ar ArMbr;
+ public any anyMbr;
+ public Itf ItfMbr;
+ public FixStct FixStctMbr;
+ public VarStct VarStctMbr;
+ public FixU FixUMbr;
+ public VarU VarUMbr;
+};

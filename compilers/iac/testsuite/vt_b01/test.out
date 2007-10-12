@@ -1,0 +1,5 @@
+valuetype Val {
+ public long longMbr;
+ public short shtMbr;
+ factory init(in long longMbr, in short shrMbr);
+};

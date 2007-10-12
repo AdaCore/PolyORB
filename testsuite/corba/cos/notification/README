@@ -1,0 +1,42 @@
+README for PolyORB's COS Notification Service
+---------------------------------------
+
+PolyORB provides a default implementation of the CORBA COS Notification
+Service.
+
+1.  The executable test_notification tests the functionnalities of generic Cos Notification
+Service
+
+test_event can be started in
+
+- interactive mode, an online help details the various commande
+
+  ./test_notification
+
+- batch mode, 
+
+  ./test_notification <COSNAMING_IOR> <script_file>
+
+script_file is a text file containing the same commands as in
+interactive mode, see online help or comments in script file for more details.
+
+There are following scripts for testing :
+
+testanypull_multiple.cmd : Tests a scenario consisting of a single untyped pull
+                           supplier and different types of push and pull consumers
+
+testanypush_multiple.cmd : Tests a scenario consisting of a single untyped push
+                           supplier and different types of push and pull consumers
+
+teststructuredpush_multiple.cmd : Tests a scenario consisting of a single structured
+                           push supplier and different types of push and pull consumers
+
+teststructuredpull_multiple.cmd : Tests a scenario consisting of a single structured
+                           pull supplier and different types of push and pull consumers
+
+testsequencepull_multiple.cmd : Tests a scenario consisting of a single sequence pull
+                           supplier and different types of push and pull consumers
+
+testsequencepush_multiple.cmd : Tests a scenario consisting of a single sequence push
+                           supplier and different types of push and pull consumers
+

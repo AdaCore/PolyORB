@@ -1,0 +1,10 @@
+typedef long ArgType;
+module M {
+ struct S {
+ ArgType x;
+ };
+ typedef string ArgType;
+ struct T {
+ M::ArgType y;
+ };
+};

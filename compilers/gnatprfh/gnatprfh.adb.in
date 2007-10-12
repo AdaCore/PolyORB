@@ -1,0 +1,191 @@
+------------------------------------------------------------------------------
+--                                                                          --
+--                           POLYORB COMPONENTS                             --
+--                                                                          --
+--                             G N A T P R F H                              --
+--                                                                          --
+--                                 B o d y                                  --
+--                                                                          --
+--           Copyright (C) 2007, Free Software Foundation, Inc.             --
+--                                                                          --
+-- PolyORB is free software; you  can  redistribute  it and/or modify it    --
+-- under terms of the  GNU General Public License as published by the  Free --
+-- Software Foundation;  either version 2,  or (at your option)  any  later --
+-- version. PolyORB is distributed  in the hope that it will be  useful,    --
+-- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
+-- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
+-- License  for more details.  You should have received  a copy of the GNU  --
+-- General Public License distributed with PolyORB; see file COPYING. If    --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
+--                                                                          --
+-- As a special exception,  if other files  instantiate  generics from this --
+-- unit, or you link  this unit with other files  to produce an executable, --
+-- this  unit  does not  by itself cause  the resulting  executable  to  be --
+-- covered  by the  GNU  General  Public  License.  This exception does not --
+-- however invalidate  any other reasons why  the executable file  might be --
+-- covered by the  GNU Public License.                                      --
+--                                                                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
+--                                                                          --
+------------------------------------------------------------------------------
+
+--  Main driver for static perfect hash table generator
+
+pragma Style_Checks ("M2048");
+--  Configure substitutions may yield long lines
+--  @configure_input@
+
+with Ada.Command_Line; use Ada.Command_Line;
+with Ada.Text_IO;      use Ada.Text_IO;
+
+with @GNAT_PERFECT_HASH_GENERATORS@; use @GNAT_PERFECT_HASH_GENERATORS@;
+
+procedure GNATPrfh is
+
+   type String_Access is access String;
+
+   File      : File_Type;
+   Buffer    : String (1 .. 256);
+   Last      : Natural;
+
+   Filename : String_Access;
+   K_To_V   : Float;
+   K, V     : Natural := 0;
+   Pkg_Name : String_Access;
+   Position : String_Access;
+   Optim    : Optimization := Memory_Space;
+   Seed     : constant Natural := 4321;
+
+   procedure Parse_Command_Line;
+
+   Flag : Character := '-';
+
+   procedure Check (B : Boolean);
+
+   -----------
+   -- Check --
+   -----------
+
+   procedure Check (B : Boolean) is
+   begin
+      if not B then
+         Put_Line (Standard_Error, "cannot parse command line");
+         raise Program_Error;
+      end if;
+   end Check;
+
+   ------------------------
+   -- Parse_Command_Line --
+   ------------------------
+
+   procedure Parse_Command_Line is
+      Argc : constant Natural := Argument_Count;
+
+   begin
+      for I in 1 .. Argc loop
+         declare
+            Arg : constant String := Argument (I);
+            Len : constant Natural := Arg'Length;
+
+         begin
+            if Arg (1) = Flag then
+               if Len = 1 then
+                  Check ((Filename = null));
+                  Filename := new String'("");
+
+               else
+                  case Arg (2) is
+                     when '-' =>
+                        Check ((Len = 2));
+                        Flag := ASCII.NUL;
+
+                     when 'v' =>
+                        Check ((Len = 2));
+                        Verbose := True;
+
+                     when 's' =>
+                        Check ((Position = null));
+                        Position := new String'(Arg (3 .. Len));
+
+                     when 'p' =>
+                        Check ((Pkg_Name = null));
+                        Pkg_Name := new String'(Arg (3 .. Len));
+
+                     when 'm' =>
+                        Optim := Memory_Space;
+
+                     when 'c' =>
+                        Optim := CPU_Time;
+
+                     when others =>
+                        null;
+                  end case;
+               end if;
+
+            else
+               Check ((Filename = null));
+               Filename := new String'(Arg);
+            end if;
+         end;
+      end loop;
+
+      if Pkg_Name = null then
+         Pkg_Name := new String'(Default_Pkg_Name);
+      end if;
+
+      if Position = null then
+         Position := new String'(Default_Position);
+      end if;
+   end Parse_Command_Line;
+
+begin
+   Parse_Command_Line;
+
+   if Filename = null then
+      Put_Line (Standard_Error, "Usage: gnatprfh opts name");
+      New_Line (Standard_Error);
+      Put_Line (Standard_Error, "   name is a filename of words");
+      New_Line (Standard_Error);
+      Put_Line (Standard_Error, "gnatprfh switches:");
+      Put_Line (Standard_Error, "  -        Standard input");
+      Put_Line (Standard_Error, "  -v       Verbose mode");
+      Put_Line (Standard_Error, "  -sRANGE  Char selection");
+      Put_Line (Standard_Error, "  -pNAME   Package name");
+      Put_Line (Standard_Error, "  -c       CPU time optimization");
+      Put_Line (Standard_Error, "  -m       Memory space optimization");
+      return;
+   end if;
+
+   if Filename'Length /= 0 then
+      Open (File, In_File, Filename.all);
+      Set_Input (File);
+   end if;
+
+   Initialize (Seed, Default_K_To_V, Optim);
+
+   while not End_Of_File (Current_Input) loop
+      Get_Line (Buffer, Last);
+      Insert (Buffer (1 .. Last));
+      K := K + 1;
+   end loop;
+
+   V := 2 * K + 1;
+   loop
+      begin
+         Compute (Position.all);
+         exit;
+      exception when others =>
+         if Optim = CPU_Time then
+            raise;
+         end if;
+         V := V + 1;
+         K_To_V := Float (V) / Float (K);
+         Initialize (Seed, K_To_V, Optim);
+      end;
+   end loop;
+
+   Produce (Pkg_Name.all);
+
+end GNATPrfh;

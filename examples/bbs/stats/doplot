@@ -1,0 +1,20 @@
+#! /bin/sh
+
+#set data style yerrorbars
+plot_one() {
+  cat <<__EOF__ | gnuplot
+set term postscript eps color
+set data style linespoint
+set output "$2"
+plot "$1"
+__EOF__
+
+}
+
+for data in data*; do
+  ps=`echo $data | sed s/data/plot/`.ps
+  if [ ! "$ps" -nt "$data" ]; then
+    echo "$data -> $ps"
+    plot_one $data $ps
+  fi
+done

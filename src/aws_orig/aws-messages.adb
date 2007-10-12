@@ -1,0 +1,524 @@
+------------------------------------------------------------------------------
+--                                                                          --
+--                           POLYORB COMPONENTS                             --
+--                                                                          --
+--                         A W S . M E S S A G E S                          --
+--                                                                          --
+--                                 B o d y                                  --
+--                                                                          --
+--         Copyright (C) 2000-2006, Free Software Foundation, Inc.          --
+--                                                                          --
+-- PolyORB is free software; you  can  redistribute  it and/or modify it    --
+-- under terms of the  GNU General Public License as published by the  Free --
+-- Software Foundation;  either version 2,  or (at your option)  any  later --
+-- version. PolyORB is distributed  in the hope that it will be  useful,    --
+-- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
+-- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
+-- License  for more details.  You should have received  a copy of the GNU  --
+-- General Public License distributed with PolyORB; see file COPYING. If    --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
+--                                                                          --
+-- As a special exception,  if other files  instantiate  generics from this --
+-- unit, or you link  this unit with other files  to produce an executable, --
+-- this  unit  does not  by itself cause  the resulting  executable  to  be --
+-- covered  by the  GNU  General  Public  License.  This exception does not --
+-- however invalidate  any other reasons why  the executable file  might be --
+-- covered by the  GNU Public License.                                      --
+--                                                                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
+--                                                                          --
+------------------------------------------------------------------------------
+
+with Ada.Characters.Handling;
+with Ada.Exceptions;
+
+with AWS.Utils;
+
+package body AWS.Messages is
+
+   type String_Access is access constant String;
+
+   subtype Status_Code_Image is String (1 .. 3);
+
+   S100_Message : aliased constant String := "Continue";
+   S101_Message : aliased constant String := "Switching Protocols";
+   S200_Message : aliased constant String := "OK";
+   S201_Message : aliased constant String := "Create";
+   S202_Message : aliased constant String := "Accepted";
+   S203_Message : aliased constant String := "Non-Authoritative Information";
+   S204_Message : aliased constant String := "No Content";
+   S205_Message : aliased constant String := "Reset Content";
+   S206_Message : aliased constant String := "Partial Content";
+   S300_Message : aliased constant String := "Multiple Choices";
+   S301_Message : aliased constant String := "Moved Permanently";
+   S302_Message : aliased constant String := "Found";
+   S303_Message : aliased constant String := "See Other";
+   S304_Message : aliased constant String := "Not Modified";
+   S305_Message : aliased constant String := "Use Proxy";
+   S307_Message : aliased constant String := "Temporary Redirect";
+   S400_Message : aliased constant String := "Bad Request";
+   S401_Message : aliased constant String := "Unauthorized";
+   S402_Message : aliased constant String := "Payment Required";
+   S403_Message : aliased constant String := "Forbidden";
+   S404_Message : aliased constant String := "Not Found";
+   S405_Message : aliased constant String := "Method Not Allowed";
+   S406_Message : aliased constant String := "Not Acceptable";
+   S407_Message : aliased constant String := "Proxy Authentification Required";
+   S408_Message : aliased constant String := "Request Time-out";
+   S409_Message : aliased constant String := "Conflict";
+   S410_Message : aliased constant String := "Gone";
+   S411_Message : aliased constant String := "Length Required";
+   S412_Message : aliased constant String := "Precondition Failed";
+   S413_Message : aliased constant String := "Request Entity Too Large";
+   S414_Message : aliased constant String := "Request-URI Too Large";
+   S415_Message : aliased constant String := "Unsupported Media Type";
+   S416_Message : aliased constant String := "Requestd range not satisfiable";
+   S417_Message : aliased constant String := "Expectation Failed";
+   S500_Message : aliased constant String := "Internal Server Error";
+   S501_Message : aliased constant String := "Not Implemented";
+   S502_Message : aliased constant String := "Bad Gateway";
+   S503_Message : aliased constant String := "Service Unavailable";
+   S504_Message : aliased constant String := "Gateway Time-out";
+   S505_Message : aliased constant String := "HTTP Version not supported";
+
+   type Status_Data is record
+      Code          : Status_Code_Image;
+      Reason_Phrase : String_Access;
+   end record;
+
+   Status_Messages : constant array (Status_Code) of Status_Data
+     := (S100 => ("100", S100_Message'Access),
+         S101 => ("101", S101_Message'Access),
+         S200 => ("200", S200_Message'Access),
+         S201 => ("201", S201_Message'Access),
+         S202 => ("202", S202_Message'Access),
+         S203 => ("203", S203_Message'Access),
+         S204 => ("204", S204_Message'Access),
+         S205 => ("205", S205_Message'Access),
+         S206 => ("206", S206_Message'Access),
+         S300 => ("300", S300_Message'Access),
+         S301 => ("301", S301_Message'Access),
+         S302 => ("302", S302_Message'Access),
+         S303 => ("303", S303_Message'Access),
+         S304 => ("304", S304_Message'Access),
+         S305 => ("305", S305_Message'Access),
+         S307 => ("307", S307_Message'Access),
+         S400 => ("400", S400_Message'Access),
+         S401 => ("401", S401_Message'Access),
+         S402 => ("402", S402_Message'Access),
+         S403 => ("403", S403_Message'Access),
+         S404 => ("404", S404_Message'Access),
+         S405 => ("405", S405_Message'Access),
+         S406 => ("406", S406_Message'Access),
+         S407 => ("407", S407_Message'Access),
+         S408 => ("408", S408_Message'Access),
+         S409 => ("409", S409_Message'Access),
+         S410 => ("410", S410_Message'Access),
+         S411 => ("411", S411_Message'Access),
+         S412 => ("412", S412_Message'Access),
+         S413 => ("413", S413_Message'Access),
+         S414 => ("414", S414_Message'Access),
+         S415 => ("415", S415_Message'Access),
+         S416 => ("416", S416_Message'Access),
+         S417 => ("417", S417_Message'Access),
+         S500 => ("500", S500_Message'Access),
+         S501 => ("501", S501_Message'Access),
+         S502 => ("502", S502_Message'Access),
+         S503 => ("503", S503_Message'Access),
+         S504 => ("504", S504_Message'Access),
+         S505 => ("505", S505_Message'Access));
+
+   Month_Name : constant array (Calendar.Month_Number) of String (1 .. 3)
+     := ("Jan", "Feb", "Mar", "Apr", "May", "Jun",
+         "Jul", "Aug", "Sep", "Oct", "Nov", "Dec");
+
+   HD : constant String := ": ";
+   --  Header delimiter with space for well formatting.
+
+   ---------------------
+   -- Accept_Language --
+   ---------------------
+
+   function Accept_Language (Mode : String) return String is
+   begin
+      return Accept_Language_Token & HD & Mode;
+   end Accept_Language;
+
+   -----------------
+   -- Accept_Type --
+   -----------------
+
+   function Accept_Type (Mode : String) return String is
+   begin
+      return Accept_Token & HD & Mode;
+   end Accept_Type;
+
+   -------------------
+   -- Authorization --
+   -------------------
+
+   function Authorization (Mode, Password : String) return String is
+   begin
+      return Authorization_Token & HD & Mode & ' ' & Password;
+   end Authorization;
+
+   -------------------
+   -- Cache_Control --
+   -------------------
+
+   function Cache_Control (Option : Cache_Option) return String is
+   begin
+      return Cache_Control_Token & HD & String (Option);
+   end Cache_Control;
+
+   ----------------
+   -- Connection --
+   ----------------
+
+   function Connection (Mode : String) return String is
+   begin
+      return Connection_Token & HD & Mode;
+   end Connection;
+
+   -------------------------
+   -- Content_Disposition --
+   -------------------------
+
+   function Content_Disposition
+     (Format   : String;
+      Name     : String;
+      Filename : String)
+      return String is
+   begin
+      if Filename = "" then
+         return Content_Disposition_Token & HD & Format
+           & "; name=""" & Name & '"';
+      else
+         return Content_Disposition_Token & HD & Format
+           & "; name=""" & Name & """; filename=""" & Filename & '"';
+      end if;
+   end Content_Disposition;
+
+   --------------------
+   -- Content_Length --
+   --------------------
+
+   function Content_Length (Size : Natural) return String is
+   begin
+      return Content_Length_Token & HD & Utils.Image (Size);
+   end Content_Length;
+
+   ------------------
+   -- Content_Type --
+   ------------------
+
+   function Content_Type
+     (Format   : String;
+      Boundary : String := "")
+      return String is
+   begin
+      if Boundary = "" then
+         return Content_Type_Token & HD & Format;
+
+      else
+         return Content_Type_Token & HD & Format & "; boundary=" & Boundary;
+      end if;
+   end Content_Type;
+
+   ------------
+   -- Cookie --
+   ------------
+
+   function Cookie (Value : String) return String is
+   begin
+      return Cookie_Token & HD & Value;
+   end Cookie;
+
+   --------------------
+   -- Does_Not_Match --
+   --------------------
+
+   function Does_Not_Match (Str, Pattern : String) return Boolean is
+      use Ada.Characters;
+      U_Str     : constant String := Handling.To_Upper (Str);
+      U_Pattern : constant String := Handling.To_Upper (Pattern);
+   begin
+      return Pattern'Length > Str'Length
+        or else U_Str (1 .. Pattern'Length) /= U_Pattern;
+   end Does_Not_Match;
+
+   ----------
+   -- Host --
+   ----------
+
+   function Host (Name : String) return String is
+   begin
+      return Host_Token & HD & Name;
+   end Host;
+
+   -----------
+   -- Image --
+   -----------
+
+   function Image (S : Status_Code) return String is
+   begin
+      return Status_Messages (S).Code;
+   end Image;
+
+   -------------------
+   -- Last_Modified --
+   -------------------
+
+   function Last_Modified (Date : Calendar.Time) return String is
+   begin
+      return Last_Modified_Token & HD & To_HTTP_Date (Date);
+   end Last_Modified;
+
+   --------------
+   -- Location --
+   --------------
+
+   function Location (URL : String) return String is
+   begin
+      return Location_Token & HD & URL;
+   end Location;
+
+   -----------
+   -- Match --
+   -----------
+
+   function Match (Str, Pattern : String) return Boolean is
+      use Ada.Characters;
+      U_Str     : constant String := Handling.To_Upper (Str);
+      U_Pattern : constant String := Handling.To_Upper (Pattern);
+   begin
+      return Pattern'Length <= Str'Length
+        and then U_Str (1 .. Pattern'Length) = U_Pattern;
+   end Match;
+
+   -------------------------
+   -- Proxy_Authorization --
+   -------------------------
+
+   function Proxy_Authorization (Mode, Password : String) return String is
+   begin
+      return Proxy_Authorization_Token & HD & Mode & ' ' & Password;
+   end Proxy_Authorization;
+
+   ----------------------
+   -- Proxy_Connection --
+   ----------------------
+
+   function Proxy_Connection (Mode : String) return String is
+   begin
+      return Proxy_Connection_Token & HD & Mode;
+   end Proxy_Connection;
+
+   -------------------
+   -- Reason_Phrase --
+   -------------------
+
+   function Reason_Phrase (S : Status_Code) return String is
+   begin
+      return Status_Messages (S).Reason_Phrase.all;
+   end Reason_Phrase;
+
+   ----------------
+   -- SOAPAction --
+   ----------------
+
+   function SOAPAction (URI : String) return String is
+   begin
+      return SOAPAction_Token & HD & '"' & URI & '"';
+   end SOAPAction;
+
+   -----------------
+   -- Status_Line --
+   -----------------
+
+   function Status_Line (Code : Status_Code) return String is
+   begin
+      return HTTP_Version & ' '
+        & Status_Messages (Code).Code & ' '
+        & Status_Messages (Code).Reason_Phrase.all;
+   end Status_Line;
+
+   ------------------
+   -- To_HTTP_Date --
+   ------------------
+
+   function To_HTTP_Date (Time : Calendar.Time) return String is
+
+      function Truncation (S : Calendar.Day_Duration) return Natural;
+      --  returns the integral value of S.
+
+      function Image (V : Natural) return String;
+      --  returns V image without the leading space and with leading zero if
+      --  only one digit
+
+      function Weekday (Date : Calendar.Time) return String;
+      --  returns the weekday as a 3 letters string for the Date.
+
+      -----------
+      -- Image --
+      -----------
+
+      function Image (V : Natural) return String is
+         V_Image : constant String := Natural'Image (V);
+      begin
+         if V_Image'Length = 2 then
+            --  only one digit add a leading zero
+            return '0' & V_Image (2 .. V_Image'Last);
+         else
+            return V_Image (2 .. V_Image'Last);
+         end if;
+      end Image;
+
+      ----------------
+      -- Truncation --
+      ----------------
+
+      function Truncation (S : Calendar.Day_Duration) return Natural is
+      begin
+         if S = 0.0 then
+            return 0;
+         else
+            return Natural (S - 0.5);
+         end if;
+      end Truncation;
+
+      -------------
+      -- Weekday --
+      -------------
+
+      function Weekday (Date : Calendar.Time) return String is
+
+         Day_Names : constant array (Integer range 0 .. 6) of String (1 .. 3)
+           := ("Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat");
+
+         C         : Integer;
+         Y         : Integer := Calendar.Year (Date);
+         M         : Integer := Calendar.Month (Date);
+         D         : constant Integer := Calendar.Day (Date);
+
+      begin
+         --  Calculate day of week by using Zeller's congruence
+         if M < 3 then
+            Y := Y - 1;
+            M := M + 10;
+         else
+            M := M - 2;
+         end if;
+
+         C := Y / 100;     --  first two digits of Year
+         Y := Y mod 100;   --  last two digits of Year
+
+         return Day_Names (((26 * M - 2) / 10
+                            + D
+                            + Y
+                            + Y / 4
+                            + C / 4
+                            - 2 * C) mod 7);
+      end Weekday;
+
+      Day  : constant String  := Image (Calendar.Day (Time));
+      Mon  : constant String  := Month_Name (Calendar.Month (Time));
+      Year : constant String  := Image (Calendar.Year (Time));
+
+      Secs : constant Natural := Truncation (Calendar.Seconds (Time));
+
+      Tmp  : constant Natural := Secs mod 3600;
+
+      H    : constant String  := Image (Secs / 3600);
+      M    : constant String  := Image (Tmp / 60);
+      S    : constant String  := Image (Tmp mod 60);
+   begin
+      return Weekday (Time) & ", " & Day & ' ' & Mon & ' ' & Year & ' '
+        & H & ':' & M & ':' & S & " GMT";
+   end To_HTTP_Date;
+
+   -------------
+   -- To_Time --
+   -------------
+
+   function To_Time (HTTP_Date : String) return Calendar.Time is
+
+      function Month_Number
+        (Month_Name : String)
+         return Calendar.Month_Number;
+      --  returns the month number given a 3 letter month name.
+
+      F : constant Positive := HTTP_Date'First;
+
+      ------------------
+      -- Month_Number --
+      ------------------
+
+      function Month_Number
+        (Month_Name : String)
+         return Calendar.Month_Number is
+      begin
+         for I in Calendar.Month_Number loop
+            if Month_Name = Messages.Month_Name (I) then
+               return I;
+            end if;
+         end loop;
+
+         Exceptions.Raise_Exception
+           (Constraint_Error'Identity,
+            "Month_Number: Wrong Month name (" & Month_Name & ')');
+      end Month_Number;
+
+   begin
+      return Calendar.Time_Of
+        (Year    => Calendar.Year_Number'Value (HTTP_Date (F + 12 .. F + 15)),
+         Month   => Month_Number (HTTP_Date (F + 8 .. F + 10)),
+         Day     => Calendar.Day_Number'Value (HTTP_Date (F + 5 .. F + 6)),
+         Seconds => Calendar.Day_Duration
+         (Natural'Value (HTTP_Date (F + 17 .. F + 18)) * 3600
+          + Natural'Value (HTTP_Date (F + 20 .. F + 21)) * 60
+          + Natural'Value (HTTP_Date (F + 23 .. F + 24))));
+   end To_Time;
+
+   -----------------------
+   -- Transfer_Encoding --
+   -----------------------
+
+   function Transfer_Encoding (Encoding : String) return String is
+   begin
+      return Transfer_Encoding_Token & HD & Encoding;
+   end Transfer_Encoding;
+
+   ----------------
+   -- User_Agent --
+   ----------------
+
+   function User_Agent (Name : String) return String is
+   begin
+      return User_Agent_Token & HD & Name;
+   end User_Agent;
+
+   ----------------------
+   -- Www_Authenticate --
+   ----------------------
+
+   function WWW_Authenticate (Realm : String) return String is
+   begin
+      return WWW_Authenticate_Token & HD & "Basic realm=""" & Realm & """";
+   end WWW_Authenticate;
+
+   function WWW_Authenticate
+     (Realm : String;
+      Nonce : String;
+      Stale : Boolean)
+      return String is
+   begin
+      return WWW_Authenticate_Token & HD
+        & "Digest qop=""auth"", realm=""" & Realm
+        & """, stale=""" & Boolean'Image (Stale)
+        & """, nonce=""" & Nonce & """";
+   end WWW_Authenticate;
+
+end AWS.Messages;

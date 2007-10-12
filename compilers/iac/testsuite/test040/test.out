@@ -1,0 +1,27 @@
+struct KidneyBean {
+ long BlackCherry;
+ sequence<KidneyBean> PassionFruit;
+};
+struct Shallots {
+ struct Aniseed {
+ sequence<Shallots, 9> Tofu;
+ float Apricots;
+ short Guava;
+ } KidneyBean, Brocoli;
+ enum Runnerbean {
+ WhiteCabbage,
+ Mushroom,
+ Tomato,
+ Almonds,
+ Orange
+ } Bayleaf;
+};
+interface idlServer {
+ exception GoldenDelicous {
+ Shallots CantelopeMelon;
+ KidneyBean RowanBerry;
+ };
+ attribute Shallots Plum;
+ attribute KidneyBean Zucchini;
+ Shallots Avocado(in KidneyBean p1, out KidneyBean p2, inout Shallots p3) raises (idlServer::GoldenDelicous);
+};

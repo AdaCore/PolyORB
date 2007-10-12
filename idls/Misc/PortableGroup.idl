@@ -1,0 +1,226 @@
+#ifndef _PortableGroup_IDL_
+#define _PortableGroup_IDL_
+
+#ifdef _PRE_3_0_COMPILER_ //PolyORB:WACORBA: was #ifndef in original spec
+#pragma prefix "omg.org"
+#include <PortableServer.idl>// CORBA 3.0, Chapter 11
+//PolyORB::NI:#include <CosNaming.idl>// 98-10-19.idl
+//PolyORB::NI:#include <IOP.idl>// from 98-03-01.idl
+//PolyORB::NI:#include "GIOP.idl"// from 98-03-01.idl
+#include <orb.idl>
+#else
+//PolyORB::NI:import ::IOP;
+//PolyORB::NI:import ::GIOP;
+import ::CORBA;
+//PolyORB::IL:import ::PortableServer::POA;
+import ::PortableServer;
+import ::CosNaming; //PolyORB:WACORBA: was missing
+#endif //_PRE_3_0_COMPILER_
+
+module PortableGroup {
+
+#ifndef _PRE_3_0_COMPILER_
+  typeprefix PortableGroup "omg.org";
+#endif // _PRE_3_0_COMPILER_
+
+  // Specification for Interoperable Object Group References
+//PolyORB::NI:   typedef GIOP::Version Version;
+//PolyORB::NI:   typedef string GroupDomainId;
+//PolyORB::NI:   typedef unsigned long long ObjectGroupId;
+//PolyORB::NI:   typedef unsigned long ObjectGroupRefVersion;
+
+//PolyORB::NI:   struct TagGroupTaggedComponent { // tag = TAG_GROUP;
+//PolyORB::NI:     GIOP::Version group_version;
+//PolyORB::NI:     GroupDomainId group_domain_id;
+//PolyORB::NI:     ObjectGroupId object_group_id;
+//PolyORB::NI:     ObjectGroupRefVersion object_group_ref_version;
+//PolyORB::NI:   };
+
+//PolyORB::NI:   typedef sequence<octet> GroupIIOPProfile; // tag = TAG_GROUP_IIOP
+
+  // Specification of Common Types and Exceptions
+  // for GroupManagement
+//PolyORB::NI:  interface GenericFactory;
+//PolyORB::NI:  typedef CORBA::RepositoryId _TypeId;
+//PolyORB::NI:  typedef Object ObjectGroup;
+//PolyORB::NI:  typedef CosNaming::Name Name;
+//PolyORB::NI:  typedef any Value;
+//PolyORB::NI:  struct Property {
+//PolyORB::NI:    Name nam;
+//PolyORB::NI:    Value val;
+//PolyORB::NI:  };
+//PolyORB::NI:  typedef sequence<Property> Properties;
+//PolyORB::NI:  typedef Name Location;
+//PolyORB::NI:  typedef sequence<Location> Locations;
+//PolyORB::NI:  typedef Properties Criteria;
+
+//PolyORB::NI:  struct FactoryInfo {
+//PolyORB::NI:    GenericFactory the_factory;
+//PolyORB::NI:    Location the_location;
+//PolyORB::NI:    Criteria the_criteria;
+//PolyORB::NI:  };
+  
+//PolyORB::NI:  typedef sequence<FactoryInfo> FactoryInfos;
+//PolyORB::NI:  typedef long MembershipStyleValue;
+
+//PolyORB::NI:  const MembershipStyleValue MEMB_APP_CTRL = 0;
+//PolyORB::NI:  const MembershipStyleValue MEMB_INF_CTRL = 1;
+
+//PolyORB::NI:  typedef unsigned short InitialNumberReplicasValue;
+//PolyORB::NI:  typedef unsigned short MinimumNumberReplicasValue;
+
+//PolyORB::NI:  exception InterfaceNotFound {};
+//PolyORB::NI:  exception ObjectGroupNotFound {};
+//PolyORB::NI:  exception MemberNotFound {};
+//PolyORB::NI:  exception ObjectNotFound {};
+//PolyORB::NI:  exception MemberAlreadyPresent {};
+//PolyORB::NI:  exception BadReplicationStyle {};
+//PolyORB::NI:  exception ObjectNotCreated {};
+//PolyORB::NI:  exception ObjectNotAdded {};
+
+//PolyORB::NI:  exception UnsupportedProperty {
+//PolyORB::NI:    Name nam;
+//PolyORB::NI:  };
+
+//PolyORB::NI:  exception InvalidProperty {
+//PolyORB::NI:    Name nam;
+//PolyORB::NI:    Value val;
+//PolyORB::NI:  };
+
+//PolyORB::NI:  exception NoFactory {
+//PolyORB::NI:    Location the_location;
+//PolyORB::NI:    _TypeId type_id;
+//PolyORB::NI:  };
+
+//PolyORB::NI:  exception InvalidCriteria {
+//PolyORB::NI:    Criteria invalid_criteria;
+//PolyORB::NI:  };
+
+//PolyORB::NI:  exception CannotMeetCriteria {
+//PolyORB::NI:    Criteria unmet_criteria;
+//PolyORB::NI:  };
+
+  // Specification of PropertyManager Interface
+//PolyORB::NI:  interface PropertyManager {
+//PolyORB::NI:    void set_default_properties
+//PolyORB::NI:    (in Properties props)
+//PolyORB::NI:      raises (InvalidProperty, UnsupportedProperty);
+    
+//PolyORB::NI:    Properties get_default_properties();
+
+//PolyORB::NI:    void remove_default_properties
+//PolyORB::NI:    (in Properties props)
+//PolyORB::NI:      raises (InvalidProperty, UnsupportedProperty);
+
+//PolyORB::NI:    void set_type_properties
+//PolyORB::NI:    (in _TypeId type_id, in Properties overrides)
+//PolyORB::NI:      raises (InvalidProperty, UnsupportedProperty);
+
+//PolyORB::NI:    Properties get_type_properties(in _TypeId type_id);
+
+//PolyORB::NI:    void remove_type_properties
+//PolyORB::NI:    (in _TypeId type_id, in Properties props)
+//PolyORB::NI:      raises (InvalidProperty, UnsupportedProperty);
+
+//PolyORB::NI:    void set_properties_dynamically
+//PolyORB::NI:    (in ObjectGroup object_group, in Properties overrides)
+//PolyORB::NI:      raises
+//PolyORB::NI:    (ObjectGroupNotFound,
+//PolyORB::NI:     InvalidProperty,
+//PolyORB::NI:     UnsupportedProperty);
+
+//PolyORB::NI:    Properties get_properties
+//PolyORB::NI:    (in ObjectGroup object_group)
+//PolyORB::NI:      raises(ObjectGroupNotFound);
+//PolyORB::NI:  }; // endPropertyManager
+
+  // Specification of ObjectGroupManager Interface
+//PolyORB::NI:  interface ObjectGroupManager {
+
+//PolyORB::NI:    ObjectGroup create_member
+//PolyORB::NI:    (in ObjectGroup object_group,
+//PolyORB::NI:     in Location the_location,
+//PolyORB::NI:     in _TypeId type_id,
+//PolyORB::NI:     in Criteria the_criteria)
+//PolyORB::NI:      raises
+//PolyORB::NI:    (ObjectGroupNotFound,
+//PolyORB::NI:     MemberAlreadyPresent,
+//PolyORB::NI:     NoFactory,
+//PolyORB::NI:     ObjectNotCreated,
+//PolyORB::NI:     InvalidCriteria,
+//PolyORB::NI:     CannotMeetCriteria);
+
+//PolyORB::NI:    ObjectGroup add_member
+//PolyORB::NI:    (in ObjectGroup object_group,
+//PolyORB::NI:     in Location the_location,
+//PolyORB::NI:     in Object member)
+//PolyORB::NI:      raises
+//PolyORB::NI:    (ObjectGroupNotFound,
+//PolyORB::NI:     CORBA::INV_OBJREF,
+//PolyORB::NI:     MemberAlreadyPresent,
+//PolyORB::NI:     ObjectNotAdded);
+
+//PolyORB::NI:    ObjectGroup remove_member
+//PolyORB::NI:    (in ObjectGroup object_group,
+//PolyORB::NI:     in Location the_location)
+//PolyORB::NI:      raises
+//PolyORB::NI:    (ObjectGroupNotFound, MemberNotFound);
+
+//PolyORB::NI:    Locations locations_of_members
+//PolyORB::NI:    (in ObjectGroup object_group) raises(ObjectGroupNotFound);
+    
+//PolyORB::NI:    ObjectGroupId get_object_group_id
+//PolyORB::NI:    (in ObjectGroup object_group) raises(ObjectGroupNotFound);
+    
+//PolyORB::NI:    ObjectGroup get_object_group_ref
+//PolyORB::NI:    (in ObjectGroup object_group) raises(ObjectGroupNotFound);
+    
+//PolyORB::NI:    Object get_member_ref
+//PolyORB::NI:    (in ObjectGroup object_group,
+//PolyORB::NI:     in Location loc)
+//PolyORB::NI:      raises(ObjectGroupNotFound, MemberNotFound);
+//PolyORB::NI:  }; // end ObjectGroupManager
+
+  // Specification of GenericFactory Interface
+//PolyORB::NI:  interface GenericFactory {
+
+//PolyORB::NI:    typedef any FactoryCreationId;
+    
+//PolyORB::NI:    Object create_object
+//PolyORB::NI:    (in _TypeId type_id,
+//PolyORB::NI:     in Criteria the_criteria,
+//PolyORB::NI:     out FactoryCreationId factory_creation_id)
+//PolyORB::NI:      raises
+//PolyORB::NI:    (NoFactory,
+//PolyORB::NI:     ObjectNotCreated,
+//PolyORB::NI:     InvalidCriteria,
+//PolyORB::NI:     InvalidProperty,
+//PolyORB::NI:     CannotMeetCriteria);
+
+//PolyORB::NI:    void delete_object
+//PolyORB::NI:    (in FactoryCreationId factory_creation_id)
+//PolyORB::NI:      raises (ObjectNotFound);
+//PolyORB::NI:  }; // end GenericFactory
+
+  exception NotAGroupObject {};
+  typedef sequence <PortableServer::ObjectId> IDs;
+
+  local interface GOA : PortableServer::POA {
+    PortableServer::ObjectId
+    create_id_for_reference(in Object the_ref)
+      raises (NotAGroupObject);
+
+    IDs reference_to_ids (in Object the_ref)
+      raises (NotAGroupObject);
+
+    void associate_reference_with_id
+    (in Object ref, in PortableServer::ObjectId oid)
+      raises(NotAGroupObject);
+
+    void disassociate_reference_with_id
+    (in Object ref, in PortableServer::ObjectId oid)
+      raises(NotAGroupObject);
+  }; // end interface GOA
+}; // end PortableGroup
+#endif // for #ifndef _PortableGroup_IDL_
+

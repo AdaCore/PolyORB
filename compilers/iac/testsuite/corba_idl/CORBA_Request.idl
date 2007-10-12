@@ -1,0 +1,35 @@
+// File: CORBA_Request.idl
+// CORBA 3.0, Chapter 7
+
+//PolyORB:NI:    native OpaqueValue;
+
+    interface Request { // PIDL
+
+//PolyORB:NI:        void add_arg (
+//PolyORB:NI:            in Identifier   name,       // argument name
+//PolyORB:NI:            in TypeCode     arg_type,   // argument datatype
+//PolyORB:NI:            in OpaqueValue  value,      // argument value to be added
+//PolyORB:NI:            in long         len,        // length/count of argument value
+//PolyORB:NI:            in Flags        arg_flags   // argument flags
+//PolyORB:NI:        );
+
+        void invoke (
+            in Flags        invoke_flags    // invocation flags
+        );
+
+        void delete ();
+
+//PolyORB:NI:        void send (
+//PolyORB:NI:            in Flags        invoke_flags    // invocation flags 
+//PolyORB:NI:        );
+//PolyORB:NI:
+//PolyORB:NI:        void get_response () raises (WrongTransaction);
+//PolyORB:NI:                            
+//PolyORB:NI:        boolean poll_response(); 
+//PolyORB:NI:
+//PolyORB:NI:        Object sendp();
+//PolyORB:NI:
+//PolyORB:NI:        void prepare(in Object p);
+//PolyORB:NI:
+//PolyORB:NI:        void sendc(in Object handler);
+    };

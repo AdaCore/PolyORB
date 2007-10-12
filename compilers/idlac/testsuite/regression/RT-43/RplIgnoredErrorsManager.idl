@@ -1,0 +1,333 @@
+
+#include "CfmuTypes.idl"
+
+interface RplIgnoredErrorsManager  {
+
+  
+/**
+* This is the general Rpl exception raised when it is not possible to
+provide a required service.
+*/
+enum RplExceptionType
+  {
+  StatusError, NotExisting, UnavailableService, ParameterInconsistencyError,
+  RplFatalError, ParameterSyntaxtError, NotIgnorableError, AlreadyInCatalog
+  };
+  
+
+exception RplException {
+  RplExceptionType m_type;
+  string           m_cause;
+  };
+
+enum ErtSynIdent { 
+     No_Vfr,
+     No_Key_Field_Changes,
+     Efpm_Error,
+     Invalid_Field,
+     Invalid_Point_In_Field,
+     Invalid_Off_Block_Time_In_Field,
+     Text_Too_Long,
+     Text_Too_Short,
+     Unknown_Flight_Rules,
+     Invalid_Level_In_Field,
+     Invalid_Time_In_Field,
+     Invalid_Date_In_Field,
+     Invalid_Speed_In_Field,
+     Invalid_Lattitude_In_Field,
+     Invalid_Longitude_In_Field,
+     Invalid_Bearing_In_Field,
+     Invalid_Distance_In_Field,
+     Invalid_List,
+     Invalid_Designator,
+     Invalid_Separator,
+     Unexpected_Separator,
+     Expected_End_Of_Message,
+     Unknown_Or_Unexpected_Field,
+     Syn_Missing_Field,
+     Too_Many_Alternate_Aerodromes,
+     Expected_Ats_Unit_Name,
+     Unexpected_Time,
+     Incomplete_Input_String,
+     Multiple_Flight_Info_Records,
+     Unknown_Rpl_Record_Type,
+     No_Activation_Day,
+     Unknown_Entry_Type,
+     Susp_Text_Too_Long,
+     Susp_Invalid_Field,
+     Item_Already_Exists,
+     Invalid_Title_Field,
+     Missing_Adexp_Eto,
+     Missing_Adexp_End,
+     Missing_Adexp_Pt_Id,
+     Missing_Adexp_Rte_Pts,
+     Missing_Adexp_Addr,
+     Number_Expected,
+     Ats_Unit_Expected,
+     Ref_Data_Expected,
+     Unknown_Aircrft_Type,
+     Wake_Turb_Expected,
+     C_Equip_Expected,
+     Ssr_Equip_Expected,
+     Fslash_Expected,
+     Unexpected_Mode_Code,
+     Unknown_Aircraft_Id,
+     Missing_Right_Bracket,
+     Flight_Type_Expected,
+     Flight_Rules_Expected,
+     Flight_Type_Rules_Expected,
+     Change_Rules_Expected,
+     Truncated_Route_Expected,
+     Date_Expected,
+     Time_Expected,
+     Invalid_Terminator,
+     Invalid_Source,
+     Invalid_Day_Of_Operation,
+     Remark_Record_Cannot_Be_Parsed,
+     Invalid_Characters_In_Field,
+     No_Matching_Longitude,
+     Multiple_Matching_Longitude,
+     Meridian_Not_Allowed,
+     Too_Many_Addresses,
+     Incorrect_Parenthesis_Pairing,
+     Eqpt_Field_Not_Allowed,
+     Multiple_Matching_Latitude,
+     Parallel_Not_Allowed,
+     Invalid_Sr_Sequence_Number
+     };
+   enum ErtAssocIdent {
+     No_Association,
+     Single_Association, // ARG1 status
+     Multiple_Association, // ARG1 count, ARG2 status
+     Single_Overlap_Association, // ARG1 status
+     Multiple_Overlap_Association, // ARG1 count, ARG2 status
+     Invalid_Keys_In_Association,
+     Duplicate_Standard_Route,
+     Duplicate_Standard_Route_Id
+    };
+
+   enum ErtProfIdent { 
+	 Unknown_Item, // Must provide name of item
+     Obsolete_Error_1, // Flight_Level_Not_Available, // Must provide route, from+to pt and level.
+     General_Rs_Violation, // Mandatory routes missing, provide ADEP-ADES, UNIT, ROUTE(S)
+     Obsolete_Error_2, // Not_Accessible, // Must provide name of route and pts (segment)
+     Bad_Eet_At_Oceanic_Boundary,
+     Prof_Abort_Due_To_Software,
+     Prof_Abort_Due_To_Environment, // Provide previous and current processed items.
+     Ttl_Eet_Difference, // Provide the calculated TTL_EET and the percentage of difference allowed
+     Ats_Availability_Error,
+     Cdr1_Availability_Error,
+     Specific_Rs_Violation, // Non-permitted route crossed, provide ADEP-ADES, UNIT, ROUTE, USAGE/ROLE
+     Violate_833_Requirements,
+     Cdr2_Availability_Error,
+     Cdr3_Availability_Error,
+     Na_Availability_Error,
+     Gap_Availability_Error,
+     Cannot_Change_Of_Level,
+     Unequiped_Enters_833_Sector,
+     Use_Of_Uhf_Not_Permited,
+     Closed_Rs_Violation
+   }; 
+  enum ErtRouteIdent{
+	No_Cruise_Level,
+     No_Level_At_Point, // Arg1 is the point name.
+     Bad_Cruise_Level,
+     Bad_Level_At_Point, // Arg1 is the point name.
+     No_Cruise_Speed,
+     No_Speed_At_Point, // Arg1 is the point name.
+     Bad_Cruise_Speed,
+     Bad_Speed_At_Point, // Arg1 is the point name.
+     Data_Inconsistency_At_Point, // Arg1 is the point name.
+     Sequence_Not_In_Route,
+     Multiple_Route, // Arg1,2 are the junction points
+     Bad_Identifier, // Arg1 is the identifier.
+     Truncated_Route,
+     Bad_Time_At_Point, // Arg1 is the point name.
+     No_Identifier,
+     No_Ifr_Part,
+     Point_Not_On_Route, // Arg1 is route, Arg2 is point.
+     Unresolved_Homonym,
+     Route_Abort_Due_To_Software,
+     Route_Abort_Due_To_Environment,
+     Cannot_Be_Sequential, // Arg1, Arg2
+     Entry_Exit_Missing, // Arg1 is the item.
+     Dct_Misplaced, // Arg1,2 are two route items.
+     Nothing_After_Arrival, // Arg1 is the arrival proc.
+     Nothing_Before_Departure, // Arg1 is the departure proc.
+     Geo_Ref_Point_Ending_Route, // Arg1 is the routeid
+     Multiple_Junctions, // Must provide from route and to route
+     No_Junction, // Must provide the names of the routes
+     Not_Last_Point_Of_Sid, // Must provide Point & name of SID
+     Not_First_Point_Of_Star, // Must provide Point & name of STAR
+     Direct_Route_Too_Long, // Provide From & To parameters.
+     No_Star_Between, // Must provide the name of the item + ADES
+     No_Sid_Between, // Must provide ADEP and name of the item
+     Not_Accessible, // Must provide name of route and pts (segment)
+     Not_Applicable_To_Ifpz,
+     Cannot_Correct_Points_Pair, // Must provide two point ids and a sequence of route ids
+     Multiple_Change_For_One_Point, // Must provide one point and the type of change
+     Ambiguous_Entry_Exit_Point_On, // Must provide the name of the route 
+     Inconsistent_With_Flight_Rules,
+     Ambiguous_Entry_Exit_Route, // Must provide the name of the route 
+     Route_Between_Same_Points, // Must provide the name of the route and point
+     Multiple_Points,
+     Point_Not_In_Rte_Pts,
+     No_More_Valid_Nat,
+     Nat_Not_Connected,
+     Is_Not_Oee,
+     Oee_Missing,
+     Lfpt_Missing,
+     Sid_Limit_Exceeded,
+     Entry_Exit_Missing_Before, // Arg1 is the item.
+     Entry_Exit_Missing_After,
+     Cannot_Find_Entry_Exit,
+     Cannot_Expand,
+     Point_Of_Route_Expected_After,
+     Point_Of_Route_Expected_Before,
+     Y_Flt_Rule_With_No_Vfr,
+     Star_Limit_Exceeded,
+     Rts_To_Repl_Dct_All_Unavail
+	 }; 
+
+  enum ErtEfpmIdent {
+     Invalid_Value,
+     Ambiguous_Value,
+     Invalid_Format,
+     Efpm_Missing_Field,
+     Field_Is_Not_Required,
+     Date_Inconsistency_With_Field, // Field name as ARG1
+     Date_Time_Inconsistency_With_Field, // Field name as ARG1
+     Aerodrome_Zzzz_And_No_Name_In_Field, // Field name as ARG1
+     Aerodrome_Not_Zzzz_But_Name_Supplied_In_Field, // Field name as ARG1
+     C_Eqpt_Z_And_No_Name_In_Com_Or_Nav,
+     Arc_Typ_And_Typ_Z_Present,
+     Arc_Typ_Zzzz,
+     Replace_Zzzz_With_Icao_Id,
+     Multiple_Fpd_Match,
+     Efpm_Match,
+     Afil_Point_Not_On_Route,
+     Afil_With_No_Matching_Fpd,
+     No_Matching_Fpd,
+     Match_Error,
+     Insufficient_Data_To_Create_Fpd,
+     Change_Modifies_The_Field, // Field name as ARG1
+     Route_Data_Missing,
+     Route_Data_Not_Expected,
+     Adep_Is_Afil,
+     No_Env_For_Reference_Time, // Field name as ARG1
+     Partially_Matching_Fpd,
+     Partially_Matching_Efpm,
+     Matching_Fpd_Is_Unprocessed,
+     Invalid_Fpd_Id,
+     Efpm_From_Fpd,
+     Rfpd_Inconsistent_With_Environment_Change,
+     Efpm_Filed_Before_Fpd,
+     Delay_Changes_Route,
+     Manual_Addressing,
+     Fpd_Closed,
+     Wk_Trc_Does_Not_Match_Arc_Typ,
+     Flight_Plan_Already_Received, // Originator address as ARG1
+     Flight_Plan_Already_Generated,
+     Cannot_Update_Fpd,
+     Eobdt_Out_Of_Range,
+     Adta_After_Reception_Time,
+     Adtd_After_Reception_Time,
+     Zero_Ifpl_For_Rpl,
+     Overlaps_2_Airac_Cycles,
+     Could_Be_Wrong,
+     Filing_Time_After_Eobdt,
+     Protected_Efpm_Requested_By_Rqp,
+     Match_With_Fpd,
+     Afp_Route_Alter_Fpd,
+     Possible_DOF,
+     STATE_AND_RVSM_WITH_STS_NONRVSM,
+     STATE_AND_NONRVSM_WITH_STS_NONRVSM,
+     VFR_Not_Allowed_In_RVSM_AS,
+     Formation_Flights_Forbidden_In_Rvsm_As,
+     State_Formation_Flights_Rvsm_Incompatable
+	 };
+
+	
+  /**
+  * Type of errors (used for example to filter errors)
+  */
+  enum RplErrorType {ErtIgnored, ErtEfpm, ErtAssoc, ErtProf, ErtRoute, ErtSyn};
+
+union RplErrorIdentifier switch (RplErrorType)
+    {
+	  case ErtEfpm  : 
+		ErtEfpmIdent  m_ErtEfpmIdent;
+	  case ErtAssoc :
+		ErtAssocIdent m_ErtAssocIdent;
+	  case ErtProf  : 
+		ErtProfIdent  m_ErtProfIdent;
+      case ErtRoute :
+		ErtRouteIdent m_ErtRouteIdent;
+	  case ErtSyn   :
+		ErtSynIdent   m_ErtSynIdent;
+      case ErtIgnored :
+	    string      m_notApplicable;
+    };
+
+ /**
+  * Structre that defines the error from which we derive the string
+m_displayableError
+  */
+
+ struct RplErrorDescription
+    {
+	RplErrorType       m_type; // Type of this error
+	CfmuStrings        m_listOfArguments;
+	RplErrorIdentifier m_errorIdentifier;
+	};
+
+ struct RplIgnoredError
+ {
+  string m_errorMessage;
+  short  m_creationTime;
+ };
+
+ typedef sequence<RplIgnoredError> RplErrorsFromCatalog;
+
+
+/**
+  * Load the catalog of Ignored Errors
+  * 
+  * 
+  * @return the list of ignored errors.
+  * @raises RplException of type RplUnavailableService.
+  */
+  RplErrorsFromCatalog  loadIgnoredErrors() raises (RplException);
+
+/**
+  * Delete the error from the catalog and update the DB.
+  * @parm i_RplErrorsFromCatalog is the the error (string representation +
+creation time)
+  * to delete from the catalog.  
+  * @raises RplException of type RplFatalError ,RplUnavailableService,
+RplStatusError.
+  */
+
+  void deleteIgnoredError (
+    in RplErrorsFromCatalog i_RplErrorCatalog
+    ) raises (RplException);
+
+ /**
+  * Add the error to the catalog and update the DB.
+  * pre-condition:
+  * <UL>
+  * <LI> The error should be ignore-able
+  * </UL>
+  *
+  * @parm i_RplErrorDescription is the the error to add to the catalog  
+  * @raises RplException of type RplFatalError ,RplUnavailableService,
+RplStatusError, NotIgnorableError, AlreadyInCatalog.
+  */
+  void addIgnoredError (
+    in RplErrorDescription  i_RplErrorDescription
+    ) raises (RplException);
+ 
+
+
+
+};

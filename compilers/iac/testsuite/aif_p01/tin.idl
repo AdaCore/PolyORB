@@ -1,0 +1,14 @@
+//testgroup abstract interface
+//tsref "IDL"
+//tgdescr "Testing features of the abstract interface construct"
+//testsubgroup abstract interface as operation parameter and attribute
+//tsgdescr "Testing  the abstract interface construct used as operation parameter and attribute"
+
+abstract interface AbsInf {
+  short op1();
+};
+interface Inf {
+  AbsInf op2(in AbsInf inp,inout AbsInf iop,out AbsInf outp);
+};
+interface Itfderiv: AbsInf {
+};

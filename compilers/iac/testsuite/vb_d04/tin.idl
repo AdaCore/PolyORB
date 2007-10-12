@@ -1,0 +1,5 @@
+// IDL-Spec for testgroup: valuetype
+// Purpose: basic features of valuetype
+
+valuetype StringValue string;
+valuetype WStringValue wstring;
