@@ -50,13 +50,13 @@ fi],
 
 DEFAULT_WARNINGS_MODE=e
 
-AC_ARG_WITH(warnings-mode,
-[  --with-warnings-mode=X  Set warnings processing to X (e*/n/s)],
-[case "$withval" in
-   yes)   WARNINGS_MODE=e ;;
-   no)    WARNINGS_MODE=s  ;;
-   [[ens]]) WARNINGS_MODE="$withval" ;;
-   *)     AC_ERROR([invalid argument to --with-warnings-mode: $withval]) ;;
+AC_ARG_ENABLE(warnings,
+[  --enable-warnings=X     Set warnings processing to X (e/n/s)],
+[case "$enableval" in
+   yes)     WARNINGS_MODE=e ;;
+   no)      WARNINGS_MODE=s ;;
+   [[ens]]) WARNINGS_MODE="$enableval" ;;
+   *)       AC_ERROR([invalid argument to --enable-warnings: $enableval]) ;;
 esac],
 [WARNINGS_MODE=$DEFAULT_WARNINGS_MODE])
 AC_SUBST(WARNINGS_MODE)
