@@ -40,7 +40,7 @@ then
       manifest[nf++] = $0;
       next;
     }
-    /^DEFAULT_WARNINGS_AS_ERRORS=/ { sub (/\=.*/, "="); }
+    /^DEFAULT_WARNINGS_MODE=/ { sub (/\=.*/, "=n"); }
     /^AC_OUTPUT\(/ {
       st = 1; print; next;
     }

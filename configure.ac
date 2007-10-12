@@ -43,24 +43,29 @@ else
 fi],
 [NODEBUG_OPTIONS])
 
-DEFAULT_WARNINGS_AS_ERRORS=e
+# WARNINGS_MODE can be set to:
+#  e (treat warnings as errors)
+#  n (normal processing)
+#  s (suppress all warnings)
 
-AC_ARG_ENABLE(warnings-as-errors,
-[  --enable-warnings-as-errors All warnings are errors],
-[if [[ "$enableval" = "yes" ]]; then
-  WARNINGS_AS_ERRORS=e
-else
-  WARNINGS_AS_ERRORS=
-fi],
-[WARNINGS_AS_ERRORS=$DEFAULT_WARNINGS_AS_ERRORS])
-AC_SUBST(WARNINGS_AS_ERRORS)
+DEFAULT_WARNINGS_MODE=e
+
+AC_ARG_WITH(warnings-mode,
+[  --with-warnings-mode=X  Set warnings processing to X (e*/n/s)],
+[case "$withval" in
+   yes)   WARNINGS_MODE=e ;;
+   no)    WARNINGS_MODE=s  ;;
+   [[ens]]) WARNINGS_MODE="$withval" ;;
+   *)     AC_ERROR([invalid argument to --with-warnings-mode: $withval]) ;;
+esac],
+[WARNINGS_MODE=$DEFAULT_WARNINGS_MODE])
+AC_SUBST(WARNINGS_MODE)
 
 # By default treat all warnings as errors when building directly from the
-# source repository. The packaging procedure changes the RHS of this assignment
-# to an empty string so that builds from packaged sources do not stop
-# on warnings.
+# source repository. The packaging procedure changes the default to "n".
+# so that builds from packaged sources do not stop on warnings.
 
-DEFAULT_ADAFLAGS="${DEFAULT_ADAFLAGS} -XWarnings_As_Errors=${WARNINGS_AS_ERRORS}"
+DEFAULT_ADAFLAGS="${DEFAULT_ADAFLAGS} -XWarnings_Mode=${WARNINGS_MODE}"
 
 # ADAFLAGS will be set later, once AC_PROG_CC has set the definitive CFLAGS
 

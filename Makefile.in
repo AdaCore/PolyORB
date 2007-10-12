@@ -184,7 +184,7 @@ build-po_gnatdist: compiler_dir := gnatdist
 # Common build rule for all compile-time tools #
 ################################################
 
-COMPILERS_GNATMAKE_FLAGS := @STYLE_SWITCH@ -gnatwa@WARNINGS_AS_ERRORS@ ${GNATMAKE_FLAGS}
+COMPILERS_GNATMAKE_FLAGS := @STYLE_SWITCH@ -gnatwa@WARNINGS_MODE@ ${GNATMAKE_FLAGS}
 
 build-gnatprfh \
 \
