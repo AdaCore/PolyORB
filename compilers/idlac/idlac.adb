@@ -149,7 +149,6 @@ begin
             when 'I' =>
                declare
                   Success : Boolean;
-                  pragma Unreferenced (Success);
                begin
                   Idl_Fe.Files.Add_Search_Path (Parameter, Success);
                   if not Success then
