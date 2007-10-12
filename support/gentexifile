@@ -38,4 +38,4 @@ fi
 echo "@end smallexample" >>${TMPTAR}
 
 cat ${TMPTAR} | tr -d '\r' > ${TARGET}
-rm ${TMPTAR}
+rm ${TMPTAR} genout

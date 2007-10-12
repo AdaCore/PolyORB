@@ -205,25 +205,20 @@ polyorb_ug_ref.aux: polyorb_ug_ref.tex polyorb_ug.bib
 # Texi generation from .ads files
 #
 
+%.sed: %.kw
+	$(top_srcdir)/support/gensedfile $< $@
+
 %.ads.texi: %.ads ada.sed $(top_builddir)/support/gentexifile
 	AWK="${AWK}" SED="${SED}" $(top_builddir)/support/gentexifile $< NOGROUP
 
 %.adb.texi: %.adb ada.sed $(top_builddir)/support/gentexifile
 	AWK="${AWK}" SED="${SED}" $(top_builddir)/support/gentexifile $< NOGROUP
 
-myconfig.cfg.texi: myconfig.cfg cfg.sed $(top_builddir)/support/gentexifile
+%.cfg.texi: %.cfg cfg.sed $(top_builddir)/support/gentexifile
 	AWK="${AWK}" SED="${SED}" $(top_builddir)/support/gentexifile $< NOGROUP
 
-#
-# Texi generation from .idl files
-#
-
-%.sed: %.kw
-	$(top_srcdir)/support/gensedfile $< $@
-
-%.texi: %.idl idl.sed $(top_builddir)/support/gentexifile
+%.idl.texi: %.idl idl.sed $(top_builddir)/support/gentexifile
 	AWK="${AWK}" SED="${SED}" $(top_builddir)/support/gentexifile $<
-	-@${RM} genout
 
 #
 # Figures
