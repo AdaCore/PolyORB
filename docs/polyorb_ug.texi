@@ -5173,11 +5173,22 @@ Some of these features are not configurable by the user.
 @end menu
 
 @node Application Startup, Heterogeneous System, PolyORB PCS Internals, PolyORB PCS Internals
-@subsubsection The PolyORB PCS
+@subsubsection Application Startup
 
-@c XXX describe application boot up / COS Naming, RCIs...
+A name server needs to be started prior to starting any application
+partition. Once the name server is started, its location must be passed
+to all partitions as the @t{name_service} runtime parameter. When using
+an Ada starter, it is sufficient to pass the name server location to the
+starter, and it will be propagated automatically to all partitions.
 
-XXX TBC
+Upon elaboration, each partition registers its RCI packages with the
+name server. Once this is done, remote calls to RCI subprograms can proceed.
+Partitions cache the replies from the name server so that during the
+course of normal execution, inter-partition calls only involve the caller
+and callee partitions (not the name server).
+
+RCI units can then act as ``clearinghouses'' for other partitions to exchange
+RACWs and set up dynamic communication paths.
 
 @node Heterogeneous System, Allocating Partition Ids, Application Startup, PolyORB PCS Internals
 @subsubsection Heterogeneous System
