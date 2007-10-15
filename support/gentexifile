@@ -1,4 +1,5 @@
 #!/bin/sh
+
 if [ $# = 0 ]; then
   echo "Usage: $0 <file to translate>"
   exit 0
@@ -24,18 +25,25 @@ TMPTAR=${TARGET}.tmp
 ${AWK:-awk} 'BEGIN{out=1}$1=="end"&&substr($0,1,1)=="e"{out=1}out==1{print}$1=="private"&&out==1{out=0; print "   --  implementation removed"}' ${SOURCE} > genout
 
 echo "@smallexample"      >${TMPTAR}
+
 if [ $# = 1 ]; then
-echo "@cartouche"        >>${TMPTAR}
-echo "@group"            >>${TMPTAR}
+  echo "@cartouche"      >>${TMPTAR}
+  echo "@group"          >>${TMPTAR}
 fi
+
 echo ""                  >>${TMPTAR}
-${SED:-sed} -f ${SEDFILE} genout    >>${TMPTAR}
+
+${SED:-sed} -f ${SEDFILE} genout >>${TMPTAR}
+
 echo ""                  >>${TMPTAR}
+
 if [ $# = 1 ]; then
-echo "@end group"        >>${TMPTAR}
-echo "@end cartouche"    >>${TMPTAR}
+  echo "@end group"        >>${TMPTAR}
+  echo "@end cartouche"    >>${TMPTAR}
 fi
+
 echo "@end smallexample" >>${TMPTAR}
 
 cat ${TMPTAR} | tr -d '\r' > ${TARGET}
-rm ${TMPTAR} genout
+
+rm -f ${TMPTAR} genout
