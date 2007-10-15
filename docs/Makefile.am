@@ -208,17 +208,17 @@ polyorb_ug_ref.aux: polyorb_ug_ref.tex polyorb_ug.bib
 %.sed: %.kw
 	$(top_srcdir)/support/gensedfile $< $@
 
-%.ads.texi: %.ads ada.sed $(top_builddir)/support/gentexifile
-	AWK="${AWK}" SED="${SED}" $(top_builddir)/support/gentexifile $< NOGROUP
+%.ads.texi: %.ads ada.sed $(top_srcdir)/support/gentexifile
+	AWK="${AWK}" SED="${SED}" $(top_srcdir)/support/gentexifile $< NOGROUP
 
-%.adb.texi: %.adb ada.sed $(top_builddir)/support/gentexifile
-	AWK="${AWK}" SED="${SED}" $(top_builddir)/support/gentexifile $< NOGROUP
+%.adb.texi: %.adb ada.sed $(top_srcdir)/support/gentexifile
+	AWK="${AWK}" SED="${SED}" $(top_srcdir)/support/gentexifile $< NOGROUP
 
-%.cfg.texi: %.cfg cfg.sed $(top_builddir)/support/gentexifile
-	AWK="${AWK}" SED="${SED}" $(top_builddir)/support/gentexifile $< NOGROUP
+%.cfg.texi: %.cfg cfg.sed $(top_srcdir)/support/gentexifile
+	AWK="${AWK}" SED="${SED}" $(top_srcdir)/support/gentexifile $< NOGROUP
 
-%.idl.texi: %.idl idl.sed $(top_builddir)/support/gentexifile
-	AWK="${AWK}" SED="${SED}" $(top_builddir)/support/gentexifile $<
+%.idl.texi: %.idl idl.sed $(top_srcdir)/support/gentexifile
+	AWK="${AWK}" SED="${SED}" $(top_srcdir)/support/gentexifile $<
 
 #
 # Figures
