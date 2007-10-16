@@ -59,6 +59,7 @@ MOVEIFCHANGE	:= ${top_builddir}/support/move-if-change
 RM		:= @RM@
 XARGS_I		:= @XARGS_I@
 INSTALL		:= @INSTALL@
+LN_S		:= @LN_S@
 
 TOOL_EXE_SUFFIX		:= @TOOL_EXE_SUFFIX@
 COMPILER_EXE_SUFFIX	:= @COMPILER_EXE_SUFFIX@
@@ -788,6 +789,11 @@ install: all
 	${INSTALL} -d ${prefix}/include/polyorb
 	for comp in ${COMPILER_EXES}; do \
 	  ${INSTALL} ${top_builddir}/compilers/$${comp}${COMPILER_EXE_SUFFIX} ${prefix}/bin; \
+	  # Special case for iac: also symlink as idlac for backwards \
+	  # compatibility \
+	  if [ `basename $${comp}` = iac ]; then \
+	    cd ${prefix}/bin && ${RM} -f idlac && ${LN_S} iac idlac; \
+          fi; \
 	done
 	${INSTALL} ${top_builddir}/tools/po_cos_naming/po_cos_naming${TOOL_EXE_SUFFIX} ${prefix}/bin
 	${INSTALL} ${top_builddir}/tools/po_cos_naming/po_cos_naming_shell${TOOL_EXE_SUFFIX} ${prefix}/bin
