@@ -2412,6 +2412,12 @@ package body PolyORB.Any is
       begin
          pragma Debug (O ("Equal (TypeCode): enter"));
 
+         --  Shortcut further tests when testing for the same object
+
+         if Left = Right then
+            return True;
+         end if;
+
          if Kind (Left) /= Kind (Right) then
             pragma Debug (O ("Equal (TypeCode): end"));
             return False;
