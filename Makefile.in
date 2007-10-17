@@ -789,8 +789,7 @@ install: all
 	${INSTALL} -d ${prefix}/include/polyorb
 	for comp in ${COMPILER_EXES}; do \
 	  ${INSTALL} ${top_builddir}/compilers/$${comp}${COMPILER_EXE_SUFFIX} ${prefix}/bin; \
-	  # Special case for iac: also symlink as idlac for backwards \
-	  # compatibility \
+	  : Special case, symlink iac as idlac for backwards compatibility; \
 	  if [ `basename $${comp}` = iac ]; then \
 	    cd ${prefix}/bin && ${RM} -f idlac && ${LN_S} iac idlac; \
           fi; \
