@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1995-2006 Free Software Foundation, Inc.           --
+--         Copyright (C) 1995-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNATDIST is  free software;  you  can redistribute  it and/or  modify it --
 -- under terms of the  GNU General Public License  as published by the Free --
@@ -922,11 +922,13 @@ package body XE_Parse is
       Function_Node  : Subprogram_Id;
       Parameter_Name : Name_Id;
       Parameter_Sloc : Location_Type;
-      Parameter_Node : Parameter_Id;
       Para_Type_Name : Name_Id;
       Para_Type_Sloc : Location_Type;
       Para_Type_Node : Type_Id;
       Para_Type_Kind : Predefined_Type;
+
+      Ignored_Parameter_Node : Parameter_Id;
+      pragma Warnings (Off, Ignored_Parameter_Node);
    begin
 
       --  The following is the only allowed signature :
@@ -979,7 +981,7 @@ package body XE_Parse is
          Para_Type_Node,
          Function_Node,
          Parameter_Sloc,
-         Parameter_Node);
+         Ignored_Parameter_Node);
 
       T_Right_Paren;
       T_Return;
@@ -1006,7 +1008,7 @@ package body XE_Parse is
          Para_Type_Node,
          Function_Node,
          Para_Type_Sloc,
-         Parameter_Node);
+         Ignored_Parameter_Node);
 
       T_Semicolon;
    end P_Function_Declaration;
