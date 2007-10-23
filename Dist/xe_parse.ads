@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 1995-2006 Free Software Foundation, Inc.           --
+--         Copyright (C) 1995-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNATDIST is  free software;  you  can redistribute  it and/or  modify it --
 -- under terms of the  GNU General Public License  as published by the Free --
@@ -74,6 +74,13 @@ package XE_Parse is
    --  Declare a parameter for a subprogram. The last parameter corresponds
    --  to a returned value when the subprogram is a function.
 
+   procedure Declare_Subprogram_Parameter
+     (Parameter_Name  : Name_Id;
+      Para_Type_Node  : Type_Id;
+      Subprogram_Node : Subprogram_Id;
+      Parameter_Sloc  : XE_Scan.Location_Type);
+   --  Same as above, but does not return the Parameter_Node.
+
    procedure Declare_Type
      (Type_Name : Name_Id;
       Type_Kind : Predefined_Type;
@@ -98,6 +105,14 @@ package XE_Parse is
    --  component of type Attr_Type_Node and includes it in the type
    --  component list.
 
+   procedure Declare_Type_Attribute
+     (Type_Node          : Type_Id;
+      Attribute_Name     : Name_Id;
+      Attr_Type_Node     : Type_Id;
+      Attribute_Kind     : Attribute_Type;
+      Attribute_Sloc     : XE_Scan.Location_Type);
+   --  Same as above, but does not return the Attribute_Node.
+
    procedure Declare_Type_Component
      (Type_Node          : Type_Id;
       Component_Name     : Name_Id;
@@ -107,6 +122,13 @@ package XE_Parse is
    --  Declare a component for a given type. This procedure creates a
    --  component of type Comp_Type_Node and includes it in the type
    --  component list.
+
+   procedure Declare_Type_Component
+     (Type_Node          : Type_Id;
+      Component_Name     : Name_Id;
+      Comp_Type_Node     : Type_Id;
+      Component_Sloc     : XE_Scan.Location_Type);
+   --  Same as above, but does not return the Component_Node.
 
    procedure Declare_Variable
      (Variable_Name : Name_Id;

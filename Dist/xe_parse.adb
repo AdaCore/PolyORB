@@ -253,6 +253,24 @@ package body XE_Parse is
       Parameter_Node := Node;
    end Declare_Subprogram_Parameter;
 
+   ----------------------------------
+   -- Declare_Subprogram_Parameter --
+   ----------------------------------
+
+   procedure Declare_Subprogram_Parameter
+     (Parameter_Name  : Name_Id;
+      Para_Type_Node  : Type_Id;
+      Subprogram_Node : Subprogram_Id;
+      Parameter_Sloc  : XE_Scan.Location_Type)
+   is
+      Ignore : Parameter_Id;
+      pragma Warnings (Off, Ignore);
+   begin
+      Declare_Subprogram_Parameter
+        (Parameter_Name, Para_Type_Node, Subprogram_Node, Parameter_Sloc,
+         Parameter_Node => Ignore);
+   end Declare_Subprogram_Parameter;
+
    ------------------
    -- Declare_Type --
    ------------------
@@ -316,6 +334,25 @@ package body XE_Parse is
    end Declare_Type_Attribute;
 
    ----------------------------
+   -- Declare_Type_Attribute --
+   ----------------------------
+
+   procedure Declare_Type_Attribute
+     (Type_Node          : Type_Id;
+      Attribute_Name     : Name_Id;
+      Attr_Type_Node     : Type_Id;
+      Attribute_Kind     : Attribute_Type;
+      Attribute_Sloc     : Location_Type)
+   is
+      Ignore : Attribute_Id;
+      pragma Warnings (Off, Ignore);
+   begin
+      Declare_Type_Attribute
+        (Type_Node, Attribute_Name, Attr_Type_Node, Attribute_Kind,
+         Attribute_Sloc, Attribute_Node => Ignore);
+   end Declare_Type_Attribute;
+
+   ----------------------------
    -- Declare_Type_Component --
    ----------------------------
 
@@ -335,6 +372,24 @@ package body XE_Parse is
       Add_Type_Component        (Type_Node, C);
       Set_Node_Location         (Node_Id (C), Component_Sloc);
       Component_Node            := C;
+   end Declare_Type_Component;
+
+   ----------------------------
+   -- Declare_Type_Component --
+   ----------------------------
+
+   procedure Declare_Type_Component
+     (Type_Node          : Type_Id;
+      Component_Name     : Name_Id;
+      Comp_Type_Node     : Type_Id;
+      Component_Sloc     : Location_Type)
+   is
+      Ignore : Component_Id;
+      pragma Warnings (Off, Ignore);
+   begin
+      Declare_Type_Component
+        (Type_Node, Component_Name, Comp_Type_Node, Component_Sloc,
+         Component_Node => Ignore);
    end Declare_Type_Component;
 
    ----------------------
@@ -926,9 +981,6 @@ package body XE_Parse is
       Para_Type_Sloc : Location_Type;
       Para_Type_Node : Type_Id;
       Para_Type_Kind : Predefined_Type;
-
-      Ignored_Parameter_Node : Parameter_Id;
-      pragma Warnings (Off, Ignored_Parameter_Node);
    begin
 
       --  The following is the only allowed signature :
@@ -980,8 +1032,7 @@ package body XE_Parse is
         (Parameter_Name,
          Para_Type_Node,
          Function_Node,
-         Parameter_Sloc,
-         Ignored_Parameter_Node);
+         Parameter_Sloc);
 
       T_Right_Paren;
       T_Return;
@@ -1007,8 +1058,7 @@ package body XE_Parse is
         (Return_Name_Id,
          Para_Type_Node,
          Function_Node,
-         Para_Type_Sloc,
-         Ignored_Parameter_Node);
+         Para_Type_Sloc);
 
       T_Semicolon;
    end P_Function_Declaration;
