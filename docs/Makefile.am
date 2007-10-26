@@ -174,16 +174,16 @@ polyorb_ug_ref.aux: polyorb_ug_ref.tex polyorb_ug.bib
 %.dvi: %.texi
 
 # The PolyORB User's Guide texi file does not provide Up links in @node
-# commands, but we want to force generation of HTML documentation anyway.
+# commands, but we want to force generation of all documentation anyway.
 %.html: ${srcdir}/%.texi ${polyorb_ug_TEXINFOS} $(FIG_PNGFILES)
 	-${MAKEINFO} -o $@ --force --html --number-sections $<
 	cp *.png $@
 
 %.info: ${srcdir}/%.texi ${polyorb_ug_TEXINFOS}
-	-${MAKEINFO} -o $@ --number-sections $<
+	-${MAKEINFO} -o $@ --force --number-sections $<
 
 %.txt : ${srcdir}/%.texi ${polyorb_ug_TEXINFOS}
-	-${MAKEINFO} -o $@ --ifinfo --number-sections $<
+	-${MAKEINFO} -o $@ --force --ifinfo --number-sections $<
 
 %.pdf: ${srcdir}/%.texi ${polyorb_ug_TEXINFOS} $(FIG_PDFFILES)
 	-${TEXI2DVI} -o $@ --pdf $<
