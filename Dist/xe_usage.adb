@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1995-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 1995-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNATDIST is  free software;  you  can redistribute  it and/or  modify it --
 -- under terms of the  GNU General Public License  as published by the Free --
@@ -70,6 +70,8 @@ begin
    Write_Str ("  -q        Be quiet, do not display partitioning operations");
    Write_Eol;
    Write_Str ("  -v        Motivate all executed commands");
+   Write_Eol;
+   Write_Str ("  -t        Keep all temporary files");
    Write_Eol;
    Write_Str ("  --PCS=... Select PCS variant (default: "
      & XE_Defs.Defaults.Default_PCS_Name & ")");
