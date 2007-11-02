@@ -81,12 +81,14 @@ package body XE_Utils is
       S3 : String := No_Str);
 
    type Sigint_Handler is access procedure;
+   pragma Convention (C, Sigint_Handler);
 
    procedure Install_Int_Handler (Handler : Sigint_Handler);
    pragma Import (C, Install_Int_Handler, "__gnat_install_int_handler");
    --  Called by Gnatmake to install the SIGINT handler below
 
    procedure Sigint_Intercepted;
+   pragma Convention (C, Sigint_Intercepted);
    --  Called when the program is interrupted by Ctrl-C to delete the
    --  temporary mapping files and configuration pragmas files.
 
