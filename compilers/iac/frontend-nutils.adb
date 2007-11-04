@@ -665,10 +665,10 @@ package body Frontend.Nutils is
    ---------------------
 
    function Make_Identifier
-     (Loc      : Location;
-      IDL_Name : Name_Id;
-      Node     : Node_Id;
-      Scope_Entity    : Node_Id)
+     (Loc          : Location;
+      IDL_Name     : Name_Id;
+      Node         : Node_Id;
+      Scope_Entity : Node_Id)
      return Node_Id
    is
       N : constant Node_Id := New_Node (K_Identifier, Loc);

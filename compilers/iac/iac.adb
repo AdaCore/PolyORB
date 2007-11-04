@@ -194,10 +194,17 @@ procedure IAC is
             when 'i' =>
                if Full_Switch = "i" then
                   BEA.Impl_Packages_Gen := True;
+               elsif Full_Switch = "ir" then
+                  BEA.IR_Info_Packages_Gen := True;
                end if;
 
             when 'k' =>
                Keep_TMP_Files := True;
+
+            when 'n' =>
+               if Full_Switch = "noir" then
+                  BEA.IR_Info_Packages_Gen := False;
+               end if;
 
             when 'o' =>
                if Output_Directory /= null

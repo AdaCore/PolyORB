@@ -64,6 +64,8 @@ compilers/iac/backend-be_corba_ada-idl_to_ada.adb
 compilers/iac/backend-be_corba_ada-idl_to_ada.ads
 compilers/iac/backend-be_corba_ada-impls.adb
 compilers/iac/backend-be_corba_ada-impls.ads
+compilers/iac/backend-be_corba_ada-ir_infos.adb
+compilers/iac/backend-be_corba_ada-ir_infos.ads
 compilers/iac/backend-be_corba_ada-nodes.idl
 compilers/iac/backend-be_corba_ada-nutils.adb
 compilers/iac/backend-be_corba_ada-nutils.ads

@@ -294,6 +294,12 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
 
          when B_Access_Args_Out =>
             Set_Access_Args_Out_Node (N, B);
+
+         when B_IR_Function =>
+            Set_Ir_Function_Node (N, B);
+
+         when B_Register_IR_Info =>
+            Set_Register_Ir_Info_Node (N, B);
       end case;
 
       FEN.Set_BE_Node (F, N);
@@ -699,7 +705,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
       L : List_Id;
       I : Node_Id;
       Z : Node_Id;
-
+      F : Node_Id;
    begin
       P := New_Node (K_IDL_Unit, Identifier (Entity));
       L := New_List (K_Packages);
@@ -771,6 +777,20 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
                            Withed_Packages (Package_Implementation (D)));
 
       Set_Internals_Package (P, Z);
+
+      --  Interface repository information package
+
+      if IR_Info_Packages_Gen then
+         Set_Str_To_Name_Buffer ("IR_Info");
+         N := Make_Selected_Component
+           (I,
+            Make_Defining_Identifier (Name_Find));
+         F := Make_Package_Declaration (N);
+         Set_IDL_Unit (F, P);
+         Set_Parent (F, M);
+         Set_Ir_Info_Package (P, F);
+         Append_Node_To_List (F, L);
+      end if;
 
       if Kind (Entity) = K_Interface_Declaration then
 
@@ -1005,6 +1025,32 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
       return Name_Find;
    end Map_Pointer_Type_Name;
 
+   -----------------
+   -- Map_IR_Name --
+   -----------------
+
+   function Map_IR_Name (E : Node_Id) return Name_Id is
+      Prefix : constant String  := "IR_";
+      Name   : constant Name_Id := To_Ada_Name (IDL_Name (Identifier (E)));
+   begin
+      Set_Str_To_Name_Buffer (Prefix);
+      Get_Name_String_And_Append (Name);
+      return Name_Find;
+   end Map_IR_Name;
+
+   ------------------------
+   -- Map_Cached_IR_Name --
+   ------------------------
+
+   function Map_Cached_IR_Name (E : Node_Id) return Name_Id is
+      Prefix : constant String  := "Cached_";
+      Name   : constant Name_Id := Map_IR_Name (E);
+   begin
+      Set_Str_To_Name_Buffer (Prefix);
+      Get_Name_String_And_Append (Name);
+      return Name_Find;
+   end Map_Cached_IR_Name;
+
    ---------------------------
    -- Map_Range_Constraints --
    ---------------------------
@@ -1102,11 +1148,11 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
       return Ancestor;
    end Map_Ref_Type_Ancestor;
 
-   --------------------------------
-   -- Map_Repository_Declaration --
-   --------------------------------
+   -----------------------------------
+   -- Map_Repository_Id_Declaration --
+   -----------------------------------
 
-   function Map_Repository_Declaration (Entity : Node_Id) return Node_Id is
+   function Map_Repository_Id_Declaration (Entity : Node_Id) return Node_Id is
 
       procedure Fetch_Prefix
         (Entity     : in  Node_Id;
@@ -1114,7 +1160,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
          Prefix     : out Name_Id;
          Has_Prefix : out Boolean);
 
-      procedure Get_Repository_String
+      procedure Get_Repository_Id_String
         (Entity                : Node_Id;
          First_Recursion_Level : Boolean := True;
          Found_Prefix          : Boolean := False);
@@ -1156,11 +1202,11 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
 
       end Fetch_Prefix;
 
-      ---------------------------
-      -- Get_Repository_String --
-      ---------------------------
+      ------------------------------
+      -- Get_Repository_Id_String --
+      ------------------------------
 
-      procedure Get_Repository_String
+      procedure Get_Repository_Id_String
         (Entity                : Node_Id;
          First_Recursion_Level : Boolean := True;
          Found_Prefix          : Boolean := False)
@@ -1232,19 +1278,44 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
             --  Then we continue building the string for the
 
             if FEN.Kind (S) /= FEN.K_Specification then
-               Get_Repository_String (S, False, Has_Prefix);
+               Get_Repository_Id_String (S, False, Has_Prefix);
                Add_Char_To_Name_Buffer ('/');
             end if;
          end if;
 
          Get_Name_String_And_Append (FEN.IDL_Name (I));
-      end Get_Repository_String;
+      end Get_Repository_Id_String;
 
       I : Name_Id;
       V : Value_Id;
    begin
-      --  Building the Repository Id designator
+      I := Map_Repository_Id_Name (Entity);
 
+      --  Building the Repository Id string value
+
+      Set_Str_To_Name_Buffer ("IDL:");
+      Get_Repository_Id_String (Entity);
+
+      if No (FEN.Type_Id (Entity)) then
+         Add_Char_To_Name_Buffer (':');
+
+         Get_Name_String_And_Append (Map_Type_Version (Entity));
+      end if;
+
+      V := New_String_Value (Name_Find, False);
+      return Make_Object_Declaration
+        (Defining_Identifier => Make_Defining_Identifier (I),
+         Constant_Present    => True,
+         Object_Definition   => RE (RE_String_2),
+         Expression          => Make_Literal (V));
+   end Map_Repository_Id_Declaration;
+
+   ----------------------------
+   -- Map_Repository_Id_Name --
+   ----------------------------
+
+   function Map_Repository_Id_Name (Entity : Node_Id) return Name_Id is
+   begin
       Name_Len := 0;
 
       case FEN.Kind (Entity) is
@@ -1268,34 +1339,35 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
       end case;
 
       Add_Str_To_Name_Buffer ("Repository_Id");
-      I := Name_Find;
 
-      --  Building the Repository Id string value
+      return Name_Find;
+   end Map_Repository_Id_Name;
 
-      Set_Str_To_Name_Buffer ("IDL:");
-      Get_Repository_String (Entity);
-      if No (FEN.Type_Id (Entity)) then
-         Add_Char_To_Name_Buffer (':');
+   ----------------------
+   -- Map_Type_Version --
+   ----------------------
 
-         if Present (Type_Version (Entity)) then
-            Get_Name_String_And_Append (FEN.IDL_Name (Type_Version (Entity)));
-         else
+   function Map_Type_Version (Entity : Node_Id) return Name_Id is
+      NB     : constant String := Name_Buffer (1 .. Name_Len);
+      Result : Name_Id;
+   begin
+      if Present (Type_Version (Entity)) then
+         Result := FEN.IDL_Name (Type_Version (Entity));
+      else
+         --  Extract from the CORBA 3.0 spec ($10.7.5.3):
+         --  "If no version pragma is supplied for a definition, version
+         --   1.0 is assumed"
 
-            --  Extract from the CORBA 3.0 spec ($10.7.5.3):
-            --  "If no version pragma is supplied for a definition, version
-            --   1.0 is assumed"
-
-            Add_Str_To_Name_Buffer ("1.0");
-         end if;
+         Set_Str_To_Name_Buffer ("1.0");
+         Result := Name_Find;
       end if;
 
-      V := New_String_Value (Name_Find, False);
-      return Make_Object_Declaration
-        (Defining_Identifier => Make_Defining_Identifier (I),
-         Constant_Present    => True,
-         Object_Definition   => RE (RE_String_2),
-         Expression          => Make_Literal (V));
-   end Map_Repository_Declaration;
+      --  Restore the name buffer
+
+      Set_Str_To_Name_Buffer (NB);
+
+      return Result;
+   end Map_Type_Version;
 
    -----------------------------
    -- Map_Raise_From_Any_Name --
@@ -1732,6 +1804,64 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
             return No_Node;
       end case;
    end Map_Predefined_CORBA_Initialize;
+
+   --------------------------------------
+   -- Map_Predefined_CORBA_IR_Function --
+   --------------------------------------
+
+   function Map_Predefined_CORBA_IR_Function (E : Node_Id) return Node_Id is
+      R : RE_Id;
+   begin
+      R := Get_Predefined_CORBA_Entity (E);
+
+      case R is
+         when RE_Any
+           | RE_Float
+           | RE_Double
+           | RE_Long_Double
+           | RE_Short
+           | RE_Long
+           | RE_Long_Long
+           | RE_Unsigned_Short
+           | RE_Unsigned_Long
+           | RE_Unsigned_Long_Long
+           | RE_Char
+           | RE_WChar
+           | RE_String_0
+           | RE_Wide_String
+           | RE_Boolean
+           | RE_Octet
+           | RE_Object
+           | RE_Identifier_0
+           | RE_RepositoryId
+           | RE_ScopedName
+           | RE_Visibility
+           | RE_PolicyType
+           | RE_Ref_2
+           | RE_AnySeq_2
+           | RE_FloatSeq_2
+           | RE_DoubleSeq_2
+           | RE_LongDoubleSeq_2
+           | RE_ShortSeq_2
+           | RE_LongSeq_2
+           | RE_LongLongSeq_2
+           | RE_UShortSeq_2
+           | RE_ULongSeq_2
+           | RE_ULongLongSeq_2
+           | RE_CharSeq_2
+           | RE_WCharSeq_2
+           | RE_StringSeq_2
+           | RE_WStringSeq_2
+           | RE_BooleanSeq_2
+           | RE_OctetSeq_2 =>
+
+            raise Program_Error with
+              "IR info for predefined CORBA entites not implemented yet";
+
+         when others =>
+            return No_Node;
+      end case;
+   end Map_Predefined_CORBA_IR_Function;
 
    -----------------------------
    -- Map_Predefined_CORBA_TC --
@@ -3582,6 +3712,121 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
             end;
       end case;
    end Get_Type_Definition_Node;
+
+   --------------------------
+   -- Get_IR_Function_Node --
+   --------------------------
+
+   function Get_IR_Function_Node
+     (T      : Node_Id;
+      Withed : Boolean := True)
+     return Node_Id
+   is
+      function Get_Primitive (R : RE_Id) return Node_Id;
+      --  Return a call to Get_Primitive for the named PrimitiveDef
+      --  kind.
+
+      -------------------
+      -- Get_Primitive --
+      -------------------
+
+      function Get_Primitive (R : RE_Id) return Node_Id is
+         N : Node_Id;
+      begin
+         N := Make_Subprogram_Call
+           (RE (RE_Get_Primitive),
+            Make_List_Id
+            (Make_Subprogram_Call (RE (RE_Get_IR_Root), No_List),
+             RE (R)));
+
+         return N;
+      end Get_Primitive;
+
+   begin
+      case FEN.Kind (T) is
+         when K_Void =>
+            return Get_Primitive (RE_pk_void);
+
+         when K_Short =>
+            return Get_Primitive (RE_pk_short);
+
+         when K_Long =>
+            return Get_Primitive (RE_pk_long);
+
+         when K_Long_Long =>
+            return Get_Primitive (RE_pk_longlong);
+
+         when K_Unsigned_Short =>
+            return Get_Primitive (RE_pk_ushort);
+
+         when K_Unsigned_Long =>
+            return Get_Primitive (RE_pk_ulong);
+
+         when K_Unsigned_Long_Long =>
+            return Get_Primitive (RE_pk_ulonglong);
+
+         when K_Char =>
+            return Get_Primitive (RE_pk_char);
+
+         when K_Wide_Char =>
+            return Get_Primitive (RE_pk_wchar);
+
+         when K_Boolean =>
+            return Get_Primitive (RE_pk_boolean);
+
+         when K_Float =>
+            return Get_Primitive (RE_pk_float);
+
+         when K_Double =>
+            return Get_Primitive (RE_pk_double);
+
+         when K_Long_Double =>
+            return Get_Primitive (RE_pk_longdouble);
+
+         when K_String =>
+            return Get_Primitive (RE_pk_string);
+
+         when K_String_Type =>
+            return Get_Primitive (RE_pk_string);
+
+         when K_Wide_String =>
+            return Get_Primitive (RE_pk_wstring);
+
+         when K_Wide_String_Type =>
+            return Get_Primitive (RE_pk_wstring);
+
+         when K_Octet =>
+            return Get_Primitive (RE_pk_octet);
+
+         when K_Object =>
+            return Get_Primitive (RE_pk_objref);
+
+         when K_Any =>
+            return Get_Primitive (RE_pk_any);
+
+         when K_Fixed_Point_Type | K_Sequence_Type =>
+            raise Program_Error;
+
+         when K_Scoped_Name =>
+            declare
+               Result : constant Node_Id :=
+                 Map_Predefined_CORBA_IR_Function (T);
+            begin
+               --  If result is not nul, then we deal with a
+               --  predefined CORBA entity.
+
+               if Present (Result) then
+                  return Result;
+               end if;
+
+               return Get_IR_Function_Node (Reference (T), Withed);
+            end;
+
+         when others =>
+            return Expand_Designator
+              (Ir_Function_Node (BE_Node (Identifier (T))), Withed);
+      end case;
+   end Get_IR_Function_Node;
 
    -------------------
    -- Get_Wrap_Node --

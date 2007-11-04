@@ -77,6 +77,17 @@ package Backend.BE_CORBA_Ada.Runtime is
       RU_CORBA_NVList,
       RU_CORBA_NVList_Internals,
       RU_CORBA_ORB,
+      RU_CORBA_Repository_Root,
+      RU_CORBA_Repository_Root_IRObject,
+      RU_CORBA_Repository_Root_IRObject_Helper,
+      RU_CORBA_Repository_Root_Container,
+      RU_CORBA_Repository_Root_Container_Helper,
+      RU_CORBA_Repository_Root_InterfaceDef,
+      RU_CORBA_Repository_Root_InterfaceDef_Helper,
+      RU_CORBA_Repository_Root_IDLType,
+      RU_CORBA_Repository_Root_IDLType_Helper,
+      RU_CORBA_Repository_Root_IDLType_Convert_Forward,
+      RU_CORBA_Repository_Root_Repository,
       RU_CORBA_ServerRequest,
       RU_CORBA_Object,   --  Begin: CORBA predefined entities
       RU_CORBA_OObject,  --  Workaround in orb.idl
@@ -110,6 +121,7 @@ package Backend.BE_CORBA_Ada.Runtime is
       RU_PolyORB_CORBA_P_Domain_Management,
       RU_PolyORB_CORBA_P_Interceptors_Hooks,
       RU_PolyORB_CORBA_P_IR_Hooks,
+      RU_PolyORB_CORBA_P_IR_Tools,
       RU_PolyORB_CORBA_P_Exceptions,
       RU_PolyORB_QoS,
       RU_PolyORB_QoS_Static_Buffers,
@@ -168,6 +180,7 @@ package Backend.BE_CORBA_Ada.Runtime is
       RE_Range_Check,               --  Range_Check
                                     --  WAG:504 (see platform.ads.in)
       RE_Validity_Check,            --  Validity_Check
+      RE_Register_IR_Info,          --  Register_IR_Info
       RE_Convert,                   --  Convert
       RE_Convert_Forward,           --  Convert_Forward
       RE_Element_TC,                --  Element_TC
@@ -422,6 +435,68 @@ package Backend.BE_CORBA_Ada.Runtime is
       RE_Set_Exception,             --  CORBA.ServerRequest.Set_Exception
       RE_Set_Result,                --  CORBA.ServerRequest.Set_Result
 
+      --  Interface repository information entities
+
+      RE_To_CORBA_String_2,         --  CRR.To_CORBA_String
+      RE_InterfaceDefSeq,           --  CRR.InterfaceDefSeq
+      RE_Append,                    --  CRR.Append
+      RE_ATTR_READONLY,             --  CRR.ATTR_READONLY
+      RE_ATTR_NORMAL,               --  CRR.ATTR_NORMAL
+      RE_pk_void,                   --  CRR.RE_pk_void
+      RE_pk_short,                  --  CRR.RE_pk_short
+      RE_pk_long,                   --  CRR.RE_pk_long
+      RE_pk_longlong,               --  CRR.RE_pk_longlong
+      RE_pk_ushort,                 --  CRR.RE_pk_ushort
+      RE_pk_ulong,                  --  CRR.RE_pk_ulong
+      RE_pk_ulonglong,              --  CRR.RE_pk_ulonglong
+      RE_pk_char,                   --  CRR.RE_pk_char
+      RE_pk_wchar,                  --  CRR.RE_pk_wchar
+      RE_pk_boolean,                --  CRR.RE_pk_boolean
+      RE_pk_float,                  --  CRR.RE_pk_float
+      RE_pk_double,                 --  CRR.RE_pk_double
+      RE_pk_longdouble,             --  CRR.RE_pk_longdouble
+      RE_pk_string,                 --  CRR.RE_pk_string
+      RE_pk_wstring,                --  CRR.RE_pk_wstring
+      RE_pk_octet,                  --  CRR.RE_pk_octet
+      RE_pk_objref,                 --  CRR.RE_pk_objref
+      RE_pk_any,                    --  CRR.RE_pk_any
+      RE_ParDescriptionSeq,         --  CRR.ParDescriptionSeq
+      RE_PARAM_IN,                  --  CRR.PARAM_IN
+      RE_PARAM_INOUT,               --  CRR.PARAM_INOUT
+      RE_PARAM_OUT,                 --  CRR.PARAM_OUT
+      RE_ParameterDescription,      --  CRR.ParameterDescription
+      RE_ExceptionDefSeq,           --  CRR.ExceptionDefSeq
+      RE_ContextIdSeq,              --  CRR.ContextIdSeq
+      RE_StructMemberSeq,           --  CRR.StructMemberSeq
+      RE_StructMember,              --  CRR.StructMember
+      RE_UnionMemberSeq,            --  CRR.UnionMemberSeq
+      RE_UnionMember,               --  CRR.UnionMember
+      RE_OP_ONEWAY,                 --  CRR.OP_ONEWAY
+      RE_OP_NORMAL,                 --  CRR.OP_NORMAL
+      RE_EnumMemberSeq,             --  CRR.EnumMemberSeq
+      RE_Ref_12,                    --  CRR.IRObject.Ref
+      RE_Is_Nil_12,                 --  CRR.IRObject.Is_Nil
+      RE_To_Ref_12,                 --  CRR.IRObject.Helper.To_Ref
+      RE_Ref_13,                    --  CRR.Container.Ref
+      RE_Lookup,                    --  CRR.Container.Lookup
+      RE_Create_Interface,          --  CRR.Container.Create_Interface
+      RE_Create_Module,             --  CRR.Container.Create_Module
+      RE_Create_Enum,               --  CRR.Container.Create_Enum
+      RE_Create_Alias,              --  CRR.Container.Create_Alias
+      RE_Create_Struct,             --  CRR.Container.Create_Struct
+      RE_Create_Exception,          --  CRR.Container.Create_Exception
+      RE_Create_Union,              --  CRR.Container.Create_Union
+      RE_To_Ref_13,                 --  CRR.Container.Helper.To_Ref
+      RE_To_Ref_14,                 --  CRR.InterfaceDef.Helper.To_Ref
+      RE_Create_Attribute,          --  CRR.InterfaceDef.Create_Attribute
+      RE_Create_Operation,          --  CRR.InterfaceDef.Create_Operation
+      RE_To_Ref_15,                 --  CRR.IDLType.Helper.To_Ref
+      RE_To_Forward,                --  CRR.IDLType.Convert_Forward.To_Forward
+      RE_Create_Array,              --  CRR.Repository.Create_Array
+      RE_Create_Fixed,              --  CRR.Repository.Create_Fixed
+      RE_Create_Sequence,           --  CRR.Repository.Create_Sequence
+      RE_Get_Primitive,             --  CRR.Repository.Get_Primitive
+
       --  Begin of the aligned entities (types) used for marshalling
 
       RE_Float_10,                  --  PolyORB.Aligned_Types.Float
@@ -586,6 +661,7 @@ package Backend.BE_CORBA_Ada.Runtime is
       --                                   Get_Domain_Managers
       RE_Get_Interface_Definition,  --  PolyORB.CORBA_P.IR_Hooks.
       --                                   Get_Interface_Definition
+      RE_Get_IR_Root,               --  PolyORB.CORBA_P.IR_Tools.Get_IR_Root
       RE_Client_Invoke,             --  PolyORB.CORBA_P.
       --                                   Interceptors_Hooks.Client_Invoke
       RE_Request_Raise_Occurrence,  --  PolyORB.CORBA_P.
@@ -779,6 +855,7 @@ package Backend.BE_CORBA_Ada.Runtime is
          RE_Discriminant_Check        => RU_Null,
          RE_Range_Check               => RU_Null,
          RE_Validity_Check            => RU_Null,
+         RE_Register_IR_Info          => RU_Null,
          RE_Convert                   => RU_Null,
          RE_Convert_Forward           => RU_Null,
          RE_Element_TC                => RU_Null,
@@ -841,6 +918,70 @@ package Backend.BE_CORBA_Ada.Runtime is
          RE_BooleanSeq_1              => RU_CORBA,
          RE_OctetSeq_1                => RU_CORBA,
          RE_PolicyList_1              => RU_CORBA,
+         RE_To_CORBA_String_2         => RU_CORBA_Repository_Root,
+         RE_InterfaceDefSeq           => RU_CORBA_Repository_Root,
+         RE_Append                    => RU_CORBA_Repository_Root,
+         RE_ATTR_READONLY             => RU_CORBA_Repository_Root,
+         RE_ATTR_NORMAL               => RU_CORBA_Repository_Root,
+         RE_pk_void                   => RU_CORBA_Repository_Root,
+         RE_pk_short                  => RU_CORBA_Repository_Root,
+         RE_pk_long                   => RU_CORBA_Repository_Root,
+         RE_pk_longlong               => RU_CORBA_Repository_Root,
+         RE_pk_ushort                 => RU_CORBA_Repository_Root,
+         RE_pk_ulong                  => RU_CORBA_Repository_Root,
+         RE_pk_ulonglong              => RU_CORBA_Repository_Root,
+         RE_pk_char                   => RU_CORBA_Repository_Root,
+         RE_pk_wchar                  => RU_CORBA_Repository_Root,
+         RE_pk_boolean                => RU_CORBA_Repository_Root,
+         RE_pk_float                  => RU_CORBA_Repository_Root,
+         RE_pk_double                 => RU_CORBA_Repository_Root,
+         RE_pk_longdouble             => RU_CORBA_Repository_Root,
+         RE_pk_string                 => RU_CORBA_Repository_Root,
+         RE_pk_wstring                => RU_CORBA_Repository_Root,
+         RE_pk_octet                  => RU_CORBA_Repository_Root,
+         RE_pk_objref                 => RU_CORBA_Repository_Root,
+         RE_pk_any                    => RU_CORBA_Repository_Root,
+         RE_ParDescriptionSeq         => RU_CORBA_Repository_Root,
+         RE_PARAM_IN                  => RU_CORBA_Repository_Root,
+         RE_PARAM_INOUT               => RU_CORBA_Repository_Root,
+         RE_PARAM_OUT                 => RU_CORBA_Repository_Root,
+         RE_ParameterDescription      => RU_CORBA_Repository_Root,
+         RE_ExceptionDefSeq           => RU_CORBA_Repository_Root,
+         RE_ContextIdSeq              => RU_CORBA_Repository_Root,
+         RE_StructMemberSeq           => RU_CORBA_Repository_Root,
+         RE_StructMember              => RU_CORBA_Repository_Root,
+         RE_UnionMemberSeq            => RU_CORBA_Repository_Root,
+         RE_UnionMember               => RU_CORBA_Repository_Root,
+         RE_OP_ONEWAY                 => RU_CORBA_Repository_Root,
+         RE_OP_NORMAL                 => RU_CORBA_Repository_Root,
+         RE_EnumMemberSeq             => RU_CORBA_Repository_Root,
+         RE_Ref_12                    => RU_CORBA_Repository_Root_IRObject,
+         RE_Is_Nil_12                 => RU_CORBA_Repository_Root_IRObject,
+         RE_To_Ref_12                    =>
+           RU_CORBA_Repository_Root_IRObject_Helper,
+         RE_Lookup                    => RU_CORBA_Repository_Root_Container,
+         RE_Ref_13                    => RU_CORBA_Repository_Root_Container,
+         RE_Create_Interface          => RU_CORBA_Repository_Root_Container,
+         RE_Create_Module             => RU_CORBA_Repository_Root_Container,
+         RE_Create_Enum               => RU_CORBA_Repository_Root_Container,
+         RE_Create_Alias              => RU_CORBA_Repository_Root_Container,
+         RE_Create_Struct             => RU_CORBA_Repository_Root_Container,
+         RE_Create_Exception          => RU_CORBA_Repository_Root_Container,
+         RE_Create_Union              => RU_CORBA_Repository_Root_Container,
+         RE_To_Ref_13                 =>
+           RU_CORBA_Repository_Root_Container_Helper,
+         RE_To_Ref_14                 =>
+           RU_CORBA_Repository_Root_InterfaceDef_Helper,
+         RE_Create_Attribute          => RU_CORBA_Repository_Root_InterfaceDef,
+         RE_Create_Operation          => RU_CORBA_Repository_Root_InterfaceDef,
+         RE_To_Ref_15                 =>
+           RU_CORBA_Repository_Root_IDLType_Helper,
+         Re_To_Forward                =>
+           RU_CORBA_Repository_Root_IDLType_Convert_Forward,
+         RE_Create_Array              => RU_CORBA_Repository_Root_Repository,
+         RE_Create_Fixed              => RU_CORBA_Repository_Root_Repository,
+         RE_Create_Sequence           => RU_CORBA_Repository_Root_Repository,
+         RE_Get_Primitive             => RU_CORBA_Repository_Root_Repository,
          RE_Float_10                  => RU_PolyORB_Aligned_Types,
          RE_Double_10                 => RU_PolyORB_Aligned_Types,
          RE_Long_Double_10            => RU_PolyORB_Aligned_Types,
@@ -1088,6 +1229,7 @@ package Backend.BE_CORBA_Ada.Runtime is
          RE_System_Exception_To_Any   => RU_PolyORB_CORBA_P_Exceptions,
          RE_Get_Domain_Managers       => RU_PolyORB_CORBA_P_Domain_Management,
          RE_Get_Interface_Definition  => RU_PolyORB_CORBA_P_IR_Hooks,
+         RE_Get_IR_Root               => RU_PolyORB_CORBA_P_IR_Tools,
          RE_Client_Invoke             => RU_PolyORB_CORBA_P_Interceptors_Hooks,
          RE_Module_Info               => RU_PolyORB_Initialization,
          RE_Register_Module           => RU_PolyORB_Initialization,

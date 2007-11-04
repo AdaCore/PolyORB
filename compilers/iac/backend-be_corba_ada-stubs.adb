@@ -157,7 +157,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
               (FE_Node (Current_Entity))
             then
                Append_Node_To_List
-                 (Map_Repository_Declaration (A),
+                 (Map_Repository_Id_Declaration (A),
                   Visible_Part (Current_Package));
             end if;
 
@@ -292,7 +292,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
            (Enum_Type_Decl,
             Visible_Part (Current_Package));
          Append_Node_To_List
-           (Map_Repository_Declaration (E),
+           (Map_Repository_Id_Declaration (E),
             Visible_Part (Current_Package));
       end Visit_Enumeration_Type;
 
@@ -337,7 +337,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
          --  Insert repository declaration
 
          Append_Node_To_List
-           (Map_Repository_Declaration (E),
+           (Map_Repository_Id_Declaration (E),
             Visible_Part (Current_Package));
 
          --  Insert the Get_Members procedure specification
@@ -480,7 +480,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
 
          Bind_FE_To_BE (Identifier (E), N, B_Type_Def);
 
-         N := Map_Repository_Declaration (E);
+         N := Map_Repository_Id_Declaration (E);
          Append_Node_To_List
            (N, Visible_Part (Current_Package));
          Set_FE_Node (N, Identifier (E));
@@ -562,7 +562,8 @@ package body Backend.BE_CORBA_Ada.Stubs is
             Push_Entity (S);
             Set_Main_Spec;
             Append_Node_To_List
-              (Map_Repository_Declaration (E), Visible_Part (Current_Package));
+              (Map_Repository_Id_Declaration (E),
+               Visible_Part (Current_Package));
 
             D := First_Entity (Definitions (E));
 
@@ -725,7 +726,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
            and then FEN.Loc (Identifier (E)) /= No_Location
          then
             Append_Node_To_List
-              (Map_Repository_Declaration (E),
+              (Map_Repository_Id_Declaration (E),
                Visible_Part (Current_Package));
          end if;
 
@@ -772,7 +773,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
 
          Append_Node_To_List (N, Visible_Part (Current_Package));
          Append_Node_To_List
-           (Map_Repository_Declaration (E), Visible_Part (Current_Package));
+           (Map_Repository_Id_Declaration (E), Visible_Part (Current_Package));
       end Visit_Structure_Type;
 
       ----------------------------
@@ -1000,7 +1001,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
             Bind_FE_To_BE (Identifier (D), N, B_Type_Def);
 
             Append_Node_To_List (N, Visible_Part (Current_Package));
-            Append_Node_To_List (Map_Repository_Declaration (D),
+            Append_Node_To_List (Map_Repository_Id_Declaration (D),
                                  Visible_Part (Current_Package));
             D := Next_Entity (D);
          end loop;
@@ -1083,7 +1084,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
          Append_Node_To_List
            (N, Visible_Part (Current_Package));
          Append_Node_To_List
-           (Map_Repository_Declaration (E), Visible_Part (Current_Package));
+           (Map_Repository_Id_Declaration (E), Visible_Part (Current_Package));
       end Visit_Union_Type;
    end Package_Spec;
 

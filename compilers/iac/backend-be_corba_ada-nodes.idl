@@ -127,6 +127,9 @@ module Backend::BE_CORBA_Ada::Nodes {
     Node_Id    Implementation_Package;
     // Points to the user implementation package declaration (if any)
 
+    Node_Id    Ir_Info_Package;
+    // Points to the interface repository information package (if any)
+
     Node_Id    Helper_Package;
     // Points to the user Helper package declaration (if any)
 
@@ -703,6 +706,8 @@ module Backend::BE_CORBA_Ada::Nodes {
     Node_Id    Args_Out_Node;
     Node_Id    Access_Args_Out_Node;
     Node_Id    Buffer_Size_Node;
+    Node_Id    Ir_Function_Node;
+    Node_Id    Register_Ir_Info_Node;
 
     //  Nodes useful for the Shadow Any Trees
     Node_Id    Pointer_Type_Node;

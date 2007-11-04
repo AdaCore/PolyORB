@@ -47,6 +47,7 @@ with Backend.BE_CORBA_Ada.Nodes;
 with Backend.BE_CORBA_Ada.Helpers;
 with Backend.BE_CORBA_Ada.Helpers_Internals;
 with Backend.BE_CORBA_Ada.Impls;
+with Backend.BE_CORBA_Ada.IR_Infos;
 with Backend.BE_CORBA_Ada.Stubs;
 with Backend.BE_CORBA_Ada.Skels;
 with Backend.BE_CORBA_Ada.CDRs;
@@ -168,6 +169,10 @@ package body Backend.BE_CORBA_Ada is
       Helpers_Internals.Package_Spec.Visit (E);
       Impls.Package_Spec.Visit (E);
 
+      if IR_Info_Packages_Gen then
+         IR_Infos.Package_Spec.Visit (E);
+      end if;
+
       if not Disable_Server_Code_Gen then
          Skels.Package_Spec.Visit (E);
       end if;
@@ -203,6 +208,10 @@ package body Backend.BE_CORBA_Ada is
 
       if Impl_Packages_Gen then
          Impls.Package_Body.Visit (E);
+      end if;
+
+      if IR_Info_Packages_Gen then
+         IR_Infos.Package_Body.Visit (E);
       end if;
 
       if Use_SII then
@@ -296,6 +305,13 @@ package body Backend.BE_CORBA_Ada is
                   Impls.Package_Spec.Visit (Entity);
                when PK_Impl_Body   =>
                   Impls.Package_Body.Visit (Entity);
+               when PK_IR_Info_Spec | PK_IR_Info_Body =>
+                  --  Ada code generated from particular CORBA
+                  --  entities (CORBA.Repository_Root hierarchy) is
+                  --  used in the repository information packages
+                  --  generated for user IDL models.
+
+                  null;
             end case;
          end if;
       end Dispatched_Visit;

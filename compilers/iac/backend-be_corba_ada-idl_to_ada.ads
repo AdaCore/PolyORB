@@ -71,7 +71,9 @@ package Backend.BE_CORBA_Ada.IDL_To_Ada is
       B_Element_Wrap,
       B_Args_Out,
       B_Args_In,
-      B_Access_Args_Out);
+      B_Access_Args_Out,
+      B_IR_Function,
+      B_Register_IR_Info);
 
    procedure Bind_FE_To_BE (F : Node_Id; B : Node_Id; W : Binding);
    --  To make easier the creation of the Ada tree, to minimize the
@@ -151,9 +153,16 @@ package Backend.BE_CORBA_Ada.IDL_To_Ada is
    function Map_Raise_From_Any_Name (Entity : Node_Id) return Name_Id;
    --  Map the name of the Raise_<Exception>_From_Any
 
-   function Map_Repository_Declaration (Entity : Node_Id) return Node_Id;
+   function Map_Repository_Id_Declaration (Entity : Node_Id) return Node_Id;
    --  Map the Repository Id constant String declaration for the IDL
    --  entity 'Entity'
+
+   function Map_Repository_Id_Name (Entity : Node_Id) return Name_Id;
+   --  Maps the name of the repository id variable declared in the
+   --  stub for node E.
+
+   function Map_Type_Version (Entity : Node_Id) return Name_Id;
+   --  Returns the type version of the respository id of entity E
 
    function Map_Fixed_Type_Name (F : Node_Id) return Name_Id;
    --  Map a fixed type name from the IDL node F according to the
@@ -238,6 +247,14 @@ package Backend.BE_CORBA_Ada.IDL_To_Ada is
    function Map_Pointer_Type_Name (E : Node_Id) return Name_Id;
    --  Maps a Pointer type name corresponding to the IDL type E
 
+   function Map_IR_Name (E : Node_Id) return Name_Id;
+   --  Maps the name of the IR_<...> subprogram generated in the
+   --  IR_Info package.
+
+   function Map_Cached_IR_Name (E : Node_Id) return Name_Id;
+   --  Maps the name of the Cached_IR_<...> global variable generated
+   --  in the IR_Info package.
+
    procedure Cast_When_Necessary
      (Ada_Node           : in out Node_Id;
       IDL_Immediate_Type :        Node_Id;
@@ -288,6 +305,11 @@ package Backend.BE_CORBA_Ada.IDL_To_Ada is
 
    function Map_Predefined_CORBA_Initialize (E : Node_Id) return Node_Id;
    --  Return a designator to the Initialize function corresponding to
+   --  the CORBA Predefined Entity 'E' and No_Node if 'E' is not a
+   --  CORBA Predefined Entity.
+
+   function Map_Predefined_CORBA_IR_Function (E : Node_Id) return Node_Id;
+   --  Return a designator to the IR_<Name> function corresponding to
    --  the CORBA Predefined Entity 'E' and No_Node if 'E' is not a
    --  CORBA Predefined Entity.
 
@@ -488,6 +510,15 @@ package Backend.BE_CORBA_Ada.IDL_To_Ada is
    --  Return the Ada type mapped from the IDL entity T. If the Wrap
    --  flag is set, returs the Ada type for which a Wrap function has
    --  been generated (this is relevant only for sequence types).
+
+   function Get_IR_Function_Node
+     (T      : Node_Id;
+      Withed : Boolean := True)
+     return Node_Id;
+   --  Return the IR_<Name> function or the corresponding predefined
+   --  primitive corresponding to the IDL node T. It handles base
+   --  types and user defined types. If the Withed flag is False then
+   --  the appropriate 'with' clause is not added.
 
    type Dependent_Entity is (D_Stub, D_Helper, D_Skel);
 

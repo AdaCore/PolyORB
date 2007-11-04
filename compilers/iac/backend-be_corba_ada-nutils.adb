@@ -2529,6 +2529,26 @@ package body Backend.BE_CORBA_Ada.Nutils is
         Package_Specification (Implementation_Package (N));
    end Set_Impl_Spec;
 
+   ----------------------
+   -- Set_IR_Info_Body --
+   ----------------------
+
+   procedure Set_IR_Info_Body (N : Node_Id := Current_Entity) is
+   begin
+      Table (Last).Current_Package :=
+        Package_Implementation (Ir_Info_Package (N));
+   end Set_IR_Info_Body;
+
+   ----------------------
+   -- Set_IR_Info_Spec --
+   ----------------------
+
+   procedure Set_IR_Info_Spec (N : Node_Id := Current_Entity) is
+   begin
+      Table (Last).Current_Package :=
+        Package_Specification (Ir_Info_Package (N));
+   end Set_IR_Info_Spec;
+
    -------------------
    -- Set_Main_Body --
    -------------------

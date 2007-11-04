@@ -53,7 +53,7 @@ package body Backend.BE_CORBA_Ada.Runtime is
       Into : String_Access;
    end record;
 
-   Rules : array (1 .. 64) of Casing_Rule;
+   Rules : array (1 .. 128) of Casing_Rule;
    Rules_Last : Natural := 0;
 
    procedure Apply_Casing_Rules (S : in out String);
@@ -171,8 +171,48 @@ package body Backend.BE_CORBA_Ada.Runtime is
       --  Misc
 
       Register_Casing_Rule ("IR_Hooks");
+      Register_Casing_Rule ("IR_Root");
+      Register_Casing_Rule ("IR_Tools");
       Register_Casing_Rule ("PolicyList");
       Register_Casing_Rule ("DomainManager");
+      Register_Casing_Rule ("IR_Info");
+      Register_Casing_Rule ("IRObject");
+      Register_Casing_Rule ("InterfaceDef");
+      Register_Casing_Rule ("InterfaceDefSeq");
+      Register_Casing_Rule ("ParDescriptionSeq");
+      Register_Casing_Rule ("ParameterDescription");
+      Register_Casing_Rule ("ExceptionDefSeq");
+      Register_Casing_Rule ("ContextIdSeq");
+      Register_Casing_Rule ("StructMemberSeq");
+      Register_Casing_Rule ("StructMember");
+      Register_Casing_Rule ("UnionMemberSeq");
+      Register_Casing_Rule ("UnionMember");
+      Register_Casing_Rule ("IDLType");
+      Register_Casing_Rule ("ATTR_READONLY");
+      Register_Casing_Rule ("ATTR_NORMAL");
+      Register_Casing_Rule ("PARAM_IN");
+      Register_Casing_Rule ("PARAM_INOUT");
+      Register_Casing_Rule ("PARAM_OUT");
+      Register_Casing_Rule ("OP_ONEWAY");
+      Register_Casing_Rule ("OP_NORMAL");
+      Register_Casing_Rule ("pk_void");
+      Register_Casing_Rule ("pk_short");
+      Register_Casing_Rule ("pk_long");
+      Register_Casing_Rule ("pk_longlong");
+      Register_Casing_Rule ("pk_ushort");
+      Register_Casing_Rule ("pk_ulong");
+      Register_Casing_Rule ("pk_ulonglong");
+      Register_Casing_Rule ("pk_char");
+      Register_Casing_Rule ("pk_wchar");
+      Register_Casing_Rule ("pk_boolean");
+      Register_Casing_Rule ("pk_float");
+      Register_Casing_Rule ("pk_double");
+      Register_Casing_Rule ("pk_longdouble");
+      Register_Casing_Rule ("pk_string");
+      Register_Casing_Rule ("pk_wstring");
+      Register_Casing_Rule ("pk_octet");
+      Register_Casing_Rule ("pk_objref");
+      Register_Casing_Rule ("pk_any");
 
       for U in RU_Id'Succ (RU_Id'First) .. RU_Id'Last loop
          Set_Str_To_Name_Buffer (RU_Id'Image (U));
@@ -268,6 +308,8 @@ package body Backend.BE_CORBA_Ada.Runtime is
         (RUD (RU_CORBA_IDL_Sequences_IDL_SEQUENCE_String));
       Declare_Subunit
         (RUD (RU_CORBA_IDL_Sequences_IDL_SEQUENCE_Wide_String));
+      Declare_Subunit
+        (RUD (RU_CORBA_Repository_Root_IDLType_Convert_Forward));
 
       for E in RE_Id loop
          Set_Str_To_Name_Buffer (RE_Id'Image (E));

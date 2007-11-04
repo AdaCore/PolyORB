@@ -216,12 +216,17 @@ package Backend.BE_CORBA_Ada.Nutils is
       P_Args,
       P_Argument,
       P_Aux,
+      P_Base_Ifs,
+      P_Bound,
       P_Buffer,
       P_C,
       P_Conflicts,
+      P_Container_Ref,
+      P_Contexts,
       P_Count,
       P_Data_Alignment,
       P_Depends,
+      P_Discriminator_Type,
       P_Dummy,
       P_E,
       P_El_C,
@@ -229,14 +234,18 @@ package Backend.BE_CORBA_Ada.Nutils is
       P_El_M,
       P_Element_From_Any,
       P_Element_To_Any,
+      P_Element_Type,
       P_Element_Wrap,
       P_Error,
       P_Exc_List,
       P_Exception_Info,
+      P_Exceptions,
       P_First_Arg_Alignment,
       P_From,
       P_From_C,
       P_Id,
+      P_IDL_Digits,
+      P_IDL_Type,
       P_Implicit,
       P_In_Context,
       P_Index,
@@ -247,9 +256,12 @@ package Backend.BE_CORBA_Ada.Nutils is
       P_Invoke_Name_Access,
       P_Invoke_Record,
       P_Item,
+      P_Label,
+      P_Length,
       P_Logical_Type_Id,
       P_Mech,
       P_Members,
+      P_Mode,
       P_N_Operations,
       P_Name,
       P_Name_Access,
@@ -261,6 +273,8 @@ package Backend.BE_CORBA_Ada.Nutils is
       P_Obj,
       P_Operation,
       P_Operation_Name,
+      P_Original_Type,
+      P_Params,
       P_Parent,
       P_Payload,
       P_Provides,
@@ -273,12 +287,14 @@ package Backend.BE_CORBA_Ada.Nutils is
       P_Result,
       P_Returns,
       P_Role,
+      P_Scale,
       P_Self,
       P_Shutdown,
       P_Target,
       P_TC,
       P_The_Ref,
       P_To,
+      P_Version,
       P_Message,
       P_Dependent_Binding_Object,
       P_X,
@@ -386,9 +402,13 @@ package Backend.BE_CORBA_Ada.Nutils is
      (C_Argument,
       C_Dimen,
       C_Indices,
+      C_Mode,
+      C_Name,
+      C_IDL_Type,
       C_Repr_Cache,
       C_Switch,
       C_Switch_Cache,
+      C_Type_Def,
       C_V);
 
    CN : array (Component_Id) of Name_Id;
@@ -945,6 +965,9 @@ package Backend.BE_CORBA_Ada.Nutils is
    procedure Set_Impl_Body (N : Node_Id := Current_Entity);
    procedure Set_Impl_Spec (N : Node_Id := Current_Entity);
 
+   procedure Set_IR_Info_Body (N : Node_Id := Current_Entity);
+   procedure Set_IR_Info_Spec (N : Node_Id := Current_Entity);
+
    procedure Set_Main_Body (N : Node_Id := Current_Entity);
    procedure Set_Main_Spec (N : Node_Id := Current_Entity);
 
@@ -981,7 +1004,8 @@ package Backend.BE_CORBA_Ada.Nutils is
    type GLists is
      (GL_Deferred_Initialization,
       GL_Initialization_Block,
-      GL_Dependencies);
+      GL_Dependencies,
+      GL_Register_IR_Info);
 
    procedure Initialize_GList (P : Node_Id; L : GLists);
    --  Creates a new global list for the package declaration P and

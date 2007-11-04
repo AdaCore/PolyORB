@@ -64,6 +64,9 @@ package Backend.BE_CORBA_Ada is
    Impl_Packages_Gen       : Boolean := False;
    --  True when we generate implementation templates
 
+   IR_Info_Packages_Gen    : Boolean := False;
+   --  True when we generate interface repository information packages
+
    Disable_Pkg_Body_Gen    : Boolean := False;
    Disable_Pkg_Spec_Gen    : Boolean := False;
    --  We can generate only spec or only bodies
@@ -130,6 +133,8 @@ package Backend.BE_CORBA_Ada is
       PK_Helper_Internals_Body,
       PK_Impl_Spec,
       PK_Impl_Body,
+      PK_IR_Info_Spec,
+      PK_IR_Info_Body,
       PK_Skel_Spec,
       PK_Skel_Body,
       PK_Stub_Spec,
