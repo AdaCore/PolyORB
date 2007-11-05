@@ -310,6 +310,8 @@ package body Backend.BE_CORBA_Ada.Runtime is
         (RUD (RU_CORBA_IDL_Sequences_IDL_SEQUENCE_Wide_String));
       Declare_Subunit
         (RUD (RU_CORBA_Repository_Root_IDLType_Convert_Forward));
+      Declare_Subunit
+        (RUD (RU_CORBA_Repository_Root_InterfaceDef_Convert_Forward));
 
       for E in RE_Id loop
          Set_Str_To_Name_Buffer (RE_Id'Image (E));

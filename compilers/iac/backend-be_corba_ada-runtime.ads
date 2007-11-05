@@ -84,6 +84,7 @@ package Backend.BE_CORBA_Ada.Runtime is
       RU_CORBA_Repository_Root_Container_Helper,
       RU_CORBA_Repository_Root_InterfaceDef,
       RU_CORBA_Repository_Root_InterfaceDef_Helper,
+      RU_CORBA_Repository_Root_InterfaceDef_Convert_Forward,
       RU_CORBA_Repository_Root_IDLType,
       RU_CORBA_Repository_Root_IDLType_Helper,
       RU_CORBA_Repository_Root_IDLType_Convert_Forward,
@@ -490,6 +491,7 @@ package Backend.BE_CORBA_Ada.Runtime is
       RE_To_Ref_14,                 --  CRR.InterfaceDef.Helper.To_Ref
       RE_Create_Attribute,          --  CRR.InterfaceDef.Create_Attribute
       RE_Create_Operation,          --  CRR.InterfaceDef.Create_Operation
+      RE_To_Forward_2,              --  CRR.InterfaceDef.Convert_Forward.To...
       RE_To_Ref_15,                 --  CRR.IDLType.Helper.To_Ref
       RE_To_Forward,                --  CRR.IDLType.Convert_Forward.To_Forward
       RE_Create_Array,              --  CRR.Repository.Create_Array
@@ -974,6 +976,8 @@ package Backend.BE_CORBA_Ada.Runtime is
            RU_CORBA_Repository_Root_InterfaceDef_Helper,
          RE_Create_Attribute          => RU_CORBA_Repository_Root_InterfaceDef,
          RE_Create_Operation          => RU_CORBA_Repository_Root_InterfaceDef,
+         RE_To_Forward_2              =>
+           RU_CORBA_Repository_Root_InterfaceDef_Convert_Forward,
          RE_To_Ref_15                 =>
            RU_CORBA_Repository_Root_IDLType_Helper,
          Re_To_Forward                =>

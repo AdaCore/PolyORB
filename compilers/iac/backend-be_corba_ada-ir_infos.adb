@@ -447,6 +447,9 @@ package body Backend.BE_CORBA_Ada.IR_Infos is
                    (P)));
 
                N := Make_Subprogram_Call
+                 (RE (RE_To_Forward_2), Make_List_Id (N));
+
+               N := Make_Subprogram_Call
                  (RE (RE_Append),
                   Make_List_Id
                   (Make_Identifier (PN (P_Base_Ifs)), N));
@@ -783,7 +786,7 @@ package body Backend.BE_CORBA_Ada.IR_Infos is
             Append_Node_To_List (N, Profile);
 
             N := Make_Subprogram_Call
-              (RE (RE_To_CORBA_String),
+              (RE (RE_To_CORBA_String_2),
                Make_List_Id
                (Make_Literal
                 (New_String_Value

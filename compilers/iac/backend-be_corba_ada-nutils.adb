@@ -229,6 +229,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
       Aligned_Name     : Name_Id;
       Buffers_Name     : Name_Id;
       H_Internals_Name : Name_Id;
+      IR_Info_Name     : Name_Id;
 
       Force_Elaboration : Boolean := False;
       --  Set to true to force the addition of elaboration pragma for
@@ -246,6 +247,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
       Aligned_Name     := Get_String_Name ("Aligned");
       Buffers_Name     := Get_String_Name ("Buffers");
       H_Internals_Name := Get_String_Name ("Internals");
+      IR_Info_Name     := Get_String_Name ("IR_Info");
 
       --  Build a string "<current_entity>%[s,b] <withed_entity>" that
       --  is the current entity name, a character 's' (resp 'b') to
@@ -262,6 +264,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
            and then Get_Name (P) /= Aligned_Name
            and then Get_Name (P) /= Buffers_Name
            and then Get_Name (P) /= H_Internals_Name
+           and then Get_Name (P) /= IR_Info_Name
          then
             --  This is a local entity and there is no need for a with
             --  clause.
