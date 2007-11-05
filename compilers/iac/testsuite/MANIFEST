@@ -13,6 +13,7 @@ ada0019/tin.idl:ada_backend
 ada0020/tin.idl:ada_backend
 ada0021/tin.idl:ada_backend
 ada0022/tin.idl:ada_backend
+ir001/tin.idl:ada_backend
 anon_types001/tin.idl:ada_backend
 attr001/tin.idl:ada_backend
 chicken-egg/chicken.idl:ada_backend

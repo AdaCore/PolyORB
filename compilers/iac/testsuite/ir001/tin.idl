@@ -1,0 +1,41 @@
+module m {
+
+  interface f;
+
+  enum Color { Red, Green, Blue };
+
+  union myUnionEnumSwitch switch (Color) {
+    case Red:   long   foo;
+    case Green: short  bar;
+    case Blue:  string baz;
+  };
+
+  interface f {
+     typedef long long1;
+
+     typedef long long_array[5];
+     typedef long long_arr[5][8][11][13][24];
+
+     typedef long_array long_array2;
+
+     readonly attribute long Counter;
+
+     attribute long Counter_2;
+
+     long1 echolong (in long arg);
+     boolean echoBoolean(in boolean arg);
+  };
+
+  interface g {
+     typedef long g_long1;
+
+     readonly attribute long g_Counter;
+
+     attribute long g_Counter_2;
+
+     g_long1 g_echolong (in long arg);
+     boolean g_echoBoolean(in boolean arg);
+  };
+
+  interface h : f, g { };
+};
