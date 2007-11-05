@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Warnings (Off);
-with Namet;     use Namet;
 with Values;    use Values;
 with Locations; use Locations;
 
@@ -43,16 +41,12 @@ with Backend.BE_CORBA_Ada.IDL_To_Ada; use Backend.BE_CORBA_Ada.IDL_To_Ada;
 with Backend.BE_CORBA_Ada.Nodes;      use Backend.BE_CORBA_Ada.Nodes;
 with Backend.BE_CORBA_Ada.Nutils;     use Backend.BE_CORBA_Ada.Nutils;
 with Backend.BE_CORBA_Ada.Runtime;    use Backend.BE_CORBA_Ada.Runtime;
-with Backend.BE_CORBA_Ada.Common;     use Backend.BE_CORBA_Ada.Common;
-pragma Warnings (On);
 
 package body Backend.BE_CORBA_Ada.IR_Infos is
 
-   pragma Warnings (Off);
    package FEN renames Frontend.Nodes;
    package BEN renames Backend.BE_CORBA_Ada.Nodes;
    package FEU renames Frontend.Nutils;
-   pragma Warnings (On);
 
    ------------------
    -- Package_Spec --
@@ -341,8 +335,6 @@ package body Backend.BE_CORBA_Ada.IR_Infos is
    ------------------
 
    package body Package_Body is
-
-      pragma Warnings (Off);
 
       procedure Visit_Attribute_Declaration (E : Node_Id);
       procedure Visit_Enumeration_Type (E : Node_Id);
@@ -1502,7 +1494,7 @@ package body Backend.BE_CORBA_Ada.IR_Infos is
          end case;
 
          --  Add the corresponding block statement to the body of
-         --  Register_IR_Info
+         --  Register_IR_Info.
 
          declare
             Register_IR_Info_St : constant List_Id := Get_GList
