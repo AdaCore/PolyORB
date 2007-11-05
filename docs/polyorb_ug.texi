@@ -2075,10 +2075,8 @@ This section lists the main differences between @command{idlac} and
 
 @itemize
 @item @command{iac} is backward compatible with @command{idlac}, but
-lacks the following features:
+lacks the following feature:
 @enumerate
-@item generation of @code{ir_info} files for using the CORBA interface
-repository;
 @item generation of delegation files.
 @end enumerate
 @end itemize
