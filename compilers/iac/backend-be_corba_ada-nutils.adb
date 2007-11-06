@@ -2297,7 +2297,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
 
       if T in Keyword_Type then
          --  We don't "mark" the keyword name but instead a custom
-         --  string ("%ada_kw%<keyword>" to avoid calshing with other
+         --  string ("%ada_kw%<keyword>" to avoid clashing with other
          --  marked names.
 
          Set_Str_To_Name_Buffer (Ada_KW_Prefix);
