@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -218,8 +218,13 @@ package body PolyORB.Tasking.Profiles.No_Tasking.Threads is
 
    procedure Initialize is
       use Ada.Calendar;
+      pragma Warnings (Off);
+      --  GNAT warns: "representation of Time values may change between GNAT
+      --  versions", but it should be safe in this case, since Node_Boot_Time
+      --  is documented as "since some unspecified epoch".
       function Time_To_Duration is
          new Ada.Unchecked_Conversion (Time, Duration);
+      pragma Warnings (On);
    begin
       PTT.Node_Boot_Time := Time_To_Duration (Clock);
       PTT.Register_Thread_Factory (PTT.Thread_Factory_Access
