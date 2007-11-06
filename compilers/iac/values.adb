@@ -669,6 +669,12 @@ package body Values is
 
          when K_Float .. K_Long_Double =>
             Add_Str_To_Name_Buffer (Long_Double'Image (V.FVal));
+
+            if Name_Buffer (Name_Buffer'First) = ' ' then
+               Set_Str_To_Name_Buffer
+                 (Name_Buffer (Name_Buffer'First .. Name_Len));
+            end if;
+
             declare
                Index : Natural := Name_Len;
 
