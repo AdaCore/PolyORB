@@ -35,22 +35,25 @@ with Types; use Types;
 
 package Flags is
 
-   Main_Source     : Types.Name_Id := Types.No_Name;
+   Main_Source      : Types.Name_Id := Types.No_Name;
    --  IDL source name
 
-   Print_On_Stdout : Boolean       := False;
+   Print_On_Stdout  : Boolean       := False;
    --  True when we want to generate sources in the standard output
 
-   Print_Full_Tree : Boolean       := False;
+   Print_Full_Tree  : Boolean       := False;
    --  Output tree
 
-   Preprocess_Only : Boolean       := False;
+   Preprocess_Only  : Boolean       := False;
    --  True when we only preprocess the IDL source file and output it
 
-   Compile_Only    : Boolean       := False;
+   Compile_Only     : Boolean       := False;
    --  True when we only compile the IDL source file and exit
 
-   Output_Directory : String_Ptr := null;
+   Output_Directory : String_Ptr    := null;
    --  The output directory
+
+   Quiet            : Boolean       := False;
+   --  Quiet mode: no output unless warnings or errors need to be displayed
 
 end Flags;

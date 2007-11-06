@@ -107,10 +107,9 @@ procedure IAC is
          Backend.Set_Current_Language (Backend.Current_Language);
       end if;
 
-      Set_Str_To_Name_Buffer  ("cppargs");
-      Initialize_Option_Scan ('-', False, Name_Buffer (1 .. Name_Len));
+      Initialize_Option_Scan ('-', False, "cppargs");
       loop
-         case Getopt ("b: c d g! E e h! I: i k o: p r! s t! ada idl "
+         case Getopt ("b: c d g! E e h! I: i k o: p q r! s t! ada idl "
                       & "ir noir types") is
 
             when ASCII.NUL =>
@@ -226,7 +225,12 @@ procedure IAC is
                end if;
                Print_On_Stdout := True;
 
+            when 'q' =>
+               Quiet := True;
+
             when 'r' =>
+               --  ??? Needs documentation
+
                declare
                   S : constant String := Parameter;
                begin

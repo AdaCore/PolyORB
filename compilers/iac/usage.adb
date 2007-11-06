@@ -51,8 +51,9 @@ begin
    Write_Eol;
    Write_Line ("  -E       Preprocess only");
    Write_Line ("  -k       Keep temporary files");
-   Write_Line ("  -p       Produce source on standard output");
    Write_Line ("  -o DIR   Specify output directory (DIR must exist)");
+   Write_Line ("  -p       Produce source on standard output");
+   Write_Line ("  -q       Quiet mode");
    Write_Eol;
    Write_Line ("  -dm      Generate debug messages when analyzing scopes");
    Write_Eol;
