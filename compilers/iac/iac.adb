@@ -265,11 +265,7 @@ procedure IAC is
                  and then Full_Switch /= "idl"
                  and then Full_Switch /= "types"
                then
-                  declare
-                     Msg : constant String := "Invalid switch " & Full_Switch;
-                  begin
-                     raise Invalid_Switch with Msg;
-                  end;
+                  raise Program_Error;
                end if;
          end case;
       end loop;
@@ -300,6 +296,10 @@ procedure IAC is
             Main_Source := Name_Find;
          end if;
       end if;
+
+   exception
+      when Invalid_Switch =>
+         DE ("invalid switch: " & Full_Switch);
    end Scan_Switches;
 
    Preprocessed_File : File_Descriptor;
