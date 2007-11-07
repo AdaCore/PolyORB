@@ -31,13 +31,12 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Implementation of Threads under the No_Tasking profile.
+--  Implementation of Threads under the No_Tasking profile
 
 with PolyORB.Initialization;
 with PolyORB.Utils.Strings;
 
 with Ada.Calendar;
-with Ada.Unchecked_Conversion;
 
 package body PolyORB.Tasking.Profiles.No_Tasking.Threads is
 
@@ -218,15 +217,9 @@ package body PolyORB.Tasking.Profiles.No_Tasking.Threads is
 
    procedure Initialize is
       use Ada.Calendar;
-      pragma Warnings (Off);
-      --  GNAT warns: "representation of Time values may change between GNAT
-      --  versions", but it should be safe in this case, since Node_Boot_Time
-      --  is documented as "since some unspecified epoch".
-      function Time_To_Duration is
-         new Ada.Unchecked_Conversion (Time, Duration);
-      pragma Warnings (On);
+      Epoch : constant Time := Time_Of (1970, 1, 1);
    begin
-      PTT.Node_Boot_Time := Time_To_Duration (Clock);
+      PTT.Node_Boot_Time := Clock - Epoch;
       PTT.Register_Thread_Factory (PTT.Thread_Factory_Access
                                    (The_Thread_Factory));
    end Initialize;
