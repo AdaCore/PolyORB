@@ -292,7 +292,7 @@ package body PolyORB.MOMA_P.Provider.Routers is
 
    procedure Invoke
      (Self : access Router;
-      Req  :        PolyORB.Requests.Request_Access)
+      Req  : PolyORB.Requests.Request_Access)
    is
       use PolyORB.Any.NVList.Internals;
       use PolyORB.Any.NVList.Internals.NV_Lists;
