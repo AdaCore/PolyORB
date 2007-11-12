@@ -671,6 +671,12 @@ package body Backend.BE_CORBA_Ada.Nutils is
             P := Parent (X);
             FE := FE_Node (X);
 
+         when K_Selected_Component =>
+            --  If N is already expanded, just add the necessary with clause
+            --  and return a copy of N.
+
+            return Copy_Expanded_Name (N, Add_With_Clause);
+
          when others =>
             raise Program_Error;
       end case;
