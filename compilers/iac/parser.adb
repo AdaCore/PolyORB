@@ -1376,11 +1376,10 @@ package body Parser is
             return No_Node;
          end if;
          if Integer_Literal_Sign < 0
-           or else Integer_Literal_Value = 0
            or else Integer_Literal_Value > 31
          then
             Error_Loc (1) := Token_Location;
-            DE ("fixed point values must have between 1 and 31 digits");
+            DE ("fixed point values must have between 0 and 31 digits");
             return No_Node;
          end if;
          Set_N_Total (Node, Int (Integer_Literal_Value));
@@ -1395,11 +1394,10 @@ package body Parser is
             return No_Node;
          end if;
          if Integer_Literal_Sign < 0
-           or else Integer_Literal_Value = 0
            or else Integer_Literal_Value > 31
          then
             Error_Loc (1) := Token_Location;
-            DE ("fixed point values must have between 1 and 31 digits");
+            DE ("fixed point values must have between 0 and 31 digits");
             return No_Node;
          end if;
          if N_Total (Node) < Int (Integer_Literal_Value) then
