@@ -906,7 +906,7 @@ package body Backend.BE_CORBA_Ada.Skels is
             if Is_Ada_Function then
                --  Cast class-wide results
 
-               if Is_Equal_To_Current_Interface (Type_Spec (E)) then
+               if Is_Class_Wide (E) then
                   C := Make_Type_Conversion
                     (Get_Type_Definition_Node (Type_Spec (E)), C);
                end if;

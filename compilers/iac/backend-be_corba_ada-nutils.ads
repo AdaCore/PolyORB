@@ -569,9 +569,18 @@ package Backend.BE_CORBA_Ada.Nutils is
    --  Return the lower case image of token T. All '_' are replaced by
    --  spaces (used to build the Operator_Image table)
 
-   function Is_Equal_To_Current_Interface (T : Node_Id) return Boolean;
-   --  Return True when the type T is equal to defined from the
-   --  current interface type.
+   function Is_Class_Wide (E : Node_Id) return Boolean;
+   --  Return True if the type specifier of IDL entity E (an operation
+   --  or a parameter declaration) must be mapped into an Ada
+   --  class-wide type. Extract from the Ada mapping specification
+   --  V. 1.2 concerning the mapping of IDL operations : "The argument
+   --  or return type shall be mapped from the IDL type except in the
+   --  case of an argument or return type that is of the enclosing IDL
+   --  unit type. Arguments or result types of the enclosing unit
+   --  types shall be mapped to the class of the mapped reference type
+   --  (for example, to Ref'Class for an constrained references)."
+   --  This subprogram returns the corresponding Ada type from the
+   --  given IDL parameter according to the requirements above.
 
    procedure Initialize;
    --  Initialize the Nutils package by initializing different tables

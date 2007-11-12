@@ -816,24 +816,36 @@ package body Backend.BE_CORBA_Ada.Nutils is
       return S (4 .. S'Last);
    end Image;
 
-   -----------------------------------
-   -- Is_Equal_To_Current_Interface --
-   -----------------------------------
+   -------------------
+   -- Is_Class_Wide --
+   -------------------
 
-   function Is_Equal_To_Current_Interface (T : Node_Id) return Boolean is
-      Orig_Type : constant Node_Id := FEU.Get_Original_Type_Specifier (T);
+   function Is_Class_Wide (E : Node_Id) return Boolean is
+      Orig_Type        : constant Node_Id := FEU.Get_Original_Type_Specifier
+        (FEN.Type_Spec (E));
+      Parent_Interface : Node_Id;
 
-      use type FEN.Node_Kind;
+      use FEN;
    begin
-      if FEN.Kind (Orig_Type) = FEN.K_Interface_Declaration
-        and then Orig_Type = FEN.Corresponding_Entity
-        (FE_Node (Current_Entity))
-      then
-         return True;
-      end if;
+      case FEN.Kind (E) is
+         when K_Parameter_Declaration =>
+            Parent_Interface := Scope_Entity
+              (Identifier
+               (Scope_Entity
+                (Identifier
+                 (Declarator
+                  (E)))));
 
-      return False;
-   end Is_Equal_To_Current_Interface;
+         when K_Operation_Declaration =>
+            Parent_Interface := Scope_Entity (Identifier (E));
+
+         when others =>
+            raise Program_Error;
+      end case;
+
+      return FEN.Kind (Orig_Type) = FEN.K_Interface_Declaration
+        and then Orig_Type = Parent_Interface;
+   end Is_Class_Wide;
 
    ----------------
    -- Initialize --

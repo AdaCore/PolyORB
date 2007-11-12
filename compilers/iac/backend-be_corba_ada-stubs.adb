@@ -596,16 +596,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
          function Map_Parameter_Type_Designator
            (Entity : Node_Id)
            return Node_Id;
-         --  Extract from the Ada mapping specification V. 1.2
-         --  concerning the mapping of operations : "The argument or
-         --  return type shall be mapped from the IDL type except in
-         --  the case of an argument or return type that is of the
-         --  enclosing IDL unit type. Arguments or result types of the
-         --  enclosing unit types shall be mapped to the class of the
-         --  mapped reference type (for example, to Ref'Class for an
-         --  constrained references)." This subprogram returns the
-         --  corresponding Ada type from the given IDL parameter
-         --  according to the requirements above.
+         --  Maps Ada type from the entity type specifier
 
          -----------------------------------
          -- Map_Parameter_Type_Designator --
@@ -617,9 +608,9 @@ package body Backend.BE_CORBA_Ada.Stubs is
          is
             Result : Node_Id;
          begin
-            Result := Map_Expanded_Name (Entity);
+            Result := Map_Expanded_Name (Type_Spec (Entity));
 
-            if Is_Equal_To_Current_Interface (Entity) then
+            if Is_Class_Wide (Entity) then
                Result := Make_Attribute_Reference (Result, A_Class);
             end if;
 
@@ -643,8 +634,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
          IDL_Param := First_Entity (Parameters (E));
 
          while Present (IDL_Param) loop
-            Type_Designator := Map_Parameter_Type_Designator
-              (Type_Spec (IDL_Param));
+            Type_Designator := Map_Parameter_Type_Designator (IDL_Param);
 
             Set_FE_Node (Type_Designator, Type_Spec (IDL_Param));
             Ada_Param := Make_Parameter_Specification
@@ -686,15 +676,14 @@ package body Backend.BE_CORBA_Ada.Stubs is
 
          if FEN.Kind (Type_Spec (E)) /= K_Void then
             if Mode = Mode_In then
-               Returns := Map_Parameter_Type_Designator (Type_Spec (E));
+               Returns := Map_Parameter_Type_Designator (E);
                Set_FE_Node (Returns, Type_Spec (E));
 
                --  If the IDL function is mapped as an Ada procedure,
                --  add a new out parameter Returns to pass the
                --  returned value.
             else
-               Type_Designator := Map_Parameter_Type_Designator
-                 (Type_Spec (E));
+               Type_Designator := Map_Parameter_Type_Designator (E);
                Set_FE_Node (Type_Designator, Type_Spec (E));
                Ada_Param := Make_Parameter_Specification
                  (Make_Defining_Identifier (PN (P_Returns)),
@@ -1366,7 +1355,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
                   --  If the parameter type is a class-wide type,
                   --  we cast it.
 
-                  if Is_Equal_To_Current_Interface (Type_Spec (P)) then
+                  if Is_Class_Wide (P) then
                      Param := Make_Type_Conversion
                        (Get_Type_Definition_Node (Type_Spec (P)),
                         Param);
@@ -1458,7 +1447,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
 
                   M := Map_Defining_Identifier (Declarator (P));
 
-                  if Is_Equal_To_Current_Interface (Type_Spec (P)) then
+                  if Is_Class_Wide (P) then
                      M := Make_Type_Conversion
                        (Get_Type_Definition_Node (Type_Spec (P)),
                         M);
