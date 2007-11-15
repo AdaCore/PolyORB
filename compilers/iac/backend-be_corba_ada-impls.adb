@@ -48,9 +48,9 @@ package body Backend.BE_CORBA_Ada.Impls is
    package BEN renames Backend.BE_CORBA_Ada.Nodes;
    package FEU renames Frontend.Nutils;
 
-   --  This function is used in the case of local interfaces to override the
-   --  Is_A function of the abstract parent type
-   function Is_A_Spec (E : Node_Id) return Node_Id;
+   function Is_A_Spec return Node_Id;
+   --  Used in the case of local interfaces to override the Is_A
+   --  function of the abstract parent type.
 
    package body Package_Spec is
 
@@ -130,11 +130,12 @@ package body Backend.BE_CORBA_Ada.Impls is
 
          --  The Object (or LocalObject) type
 
-         I := Map_Impl_Type (E);
+         I := Make_Defining_Identifier (TN (T_Object));
          N := Make_Full_Type_Declaration
-           (I, Make_Derived_Type_Definition
+           (I,
+            Make_Derived_Type_Definition
             (Subtype_Indication    => P,
-             Is_Private_Extention => True));
+             Is_Private_Extention  => True));
          Bind_FE_To_BE (Identifier (E), N, B_Impl);
          Append_Node_To_List
            (N, Visible_Part (Current_Package));
@@ -183,9 +184,8 @@ package body Backend.BE_CORBA_Ada.Impls is
          --  The Is_A spec in the case of local interfaces
 
          if Is_Local_Interface (E) then
-            N := Is_A_Spec (E);
-            Append_Node_To_List
-              (N, Visible_Part (Current_Package));
+            N := Is_A_Spec;
+            Append_Node_To_List (N, Visible_Part (Current_Package));
          end if;
 
          Pop_Entity;
@@ -237,7 +237,7 @@ package body Backend.BE_CORBA_Ada.Impls is
          Impl_Param := Make_Parameter_Specification
            (Make_Defining_Identifier (PN (P_Self)),
             Make_Access_Type_Definition
-            (Map_Impl_Type (Scope_Entity (Identifier (E)))));
+            (Make_Defining_Identifier (TN (T_Object))));
          Append_Node_To_List (Impl_Param, Profile);
 
          Stub_Param := Next_Node (First_Node (Parameter_Profile (Stub)));
@@ -365,7 +365,7 @@ package body Backend.BE_CORBA_Ada.Impls is
          --  For local interfaces, the body of the Is_A function
 
          if Is_Local_Interface (E) then
-            N := Stubs.Local_Is_A_Body (E, Is_A_Spec (E));
+            N := Stubs.Local_Is_A_Body (E, Is_A_Spec);
             Append_Node_To_List (N, Statements (Current_Package));
          end if;
 
@@ -464,7 +464,7 @@ package body Backend.BE_CORBA_Ada.Impls is
    -- Is_A_Spec --
    ---------------
 
-   function Is_A_Spec (E : Node_Id) return Node_Id is
+   function Is_A_Spec return Node_Id is
       N       : Node_Id;
       Profile : List_Id;
       Param   : Node_Id;
@@ -473,7 +473,8 @@ package body Backend.BE_CORBA_Ada.Impls is
 
       Param := Make_Parameter_Specification
         (Make_Defining_Identifier (PN (P_Self)),
-         Make_Access_Type_Definition (Map_Impl_Type (E)));
+         Make_Access_Type_Definition
+         (Make_Defining_Identifier (TN (T_Object))));
       Append_Node_To_List (Param, Profile);
 
       Param := Make_Parameter_Specification

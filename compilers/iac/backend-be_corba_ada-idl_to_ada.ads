@@ -117,10 +117,6 @@ package Backend.BE_CORBA_Ada.IDL_To_Ada is
    --  'Entity' and initialize the packages of the Unit according to
    --  its kind.
 
-   function Map_Impl_Type (Entity : Node_Id) return Node_Id;
-   --  Map an Implementation type according to the properties of the
-   --  interface 'Entity'.
-
    function Map_Impl_Type_Ancestor (Entity : Node_Id) return Node_Id;
    --  Map an Implementation parent type according to the properties
    --  of the interface 'Entity'.

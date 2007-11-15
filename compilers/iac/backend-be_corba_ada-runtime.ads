@@ -187,7 +187,6 @@ package Backend.BE_CORBA_Ada.Runtime is
       RE_Element_TC,                --  Element_TC
       RE_Marshaller,                --  Marshaller
       RE_Sequence_TC,               --  Sequence_TC
-      RE_LocalObject,               --  LocalObject
       RE_TC_Bounded_String,         --  TC_Bounded_String
       RE_TC_Bounded_Wide_String,    --  TC_Bounded_Wide_String
       RE_Unmarshaller,              --  Unmarshaller
@@ -861,7 +860,6 @@ package Backend.BE_CORBA_Ada.Runtime is
          RE_Convert                   => RU_Null,
          RE_Convert_Forward           => RU_Null,
          RE_Element_TC                => RU_Null,
-         RE_LocalObject               => RU_Null,
          RE_Sequence_TC               => RU_Null,
          RE_TC_Bounded_String         => RU_Null,
          RE_TC_Bounded_Wide_String    => RU_Null,

@@ -872,31 +872,6 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
       return P;
    end Map_IDL_Unit;
 
-   -------------------
-   -- Map_Impl_Type --
-   -------------------
-
-   function Map_Impl_Type (Entity : Node_Id) return Node_Id is
-      pragma Assert
-        (FEN.Kind (Entity) = K_Interface_Declaration or else
-         FEN.Kind (Entity) = K_Forward_Interface_Declaration);
-
-      Ref_Type : Node_Id;
-   begin
-      if Is_Local_Interface (Entity) then
-
-         --  Here, we use a runtime entity instead of a T_XXX because the
-         --  casing rules in the type name are not standard and have to be
-         --  registered
-
-         Ref_Type := RE (RE_LocalObject);
-      else
-         Ref_Type := Make_Defining_Identifier (TN (T_Object));
-      end if;
-
-      return Ref_Type;
-   end Map_Impl_Type;
-
    ----------------------------
    -- Map_Impl_Type_Ancestor --
    ----------------------------

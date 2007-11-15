@@ -138,7 +138,6 @@ package body Backend.BE_CORBA_Ada.Runtime is
       Register_Casing_Rule ("TC_");
       Register_Casing_Rule ("TypeCode");
       Register_Casing_Rule ("ExceptionList");
-      Register_Casing_Rule ("LocalObject");
       Register_Casing_Rule ("RepositoryId");
       Register_Casing_Rule ("ScopedName");
       Register_Casing_Rule ("TypeCode");
