@@ -389,6 +389,8 @@ begin
 
    Parser.Process (IDL_Spec);
 
+   --  Analyzer step
+
    Analyze (IDL_Spec);
 
    --  Cleanup temporary files
@@ -406,16 +408,16 @@ begin
       Error_Int (2) := N_Warnings;
 
       if N_Warnings > 0 then
-         DE ("$ error(s) and $ warning(s)");
+         DE ("$ error(s) and $ warning(s) during parsing.");
       else
-         DE ("$ error(s)");
+         DE ("$ error(s) during parsing.");
       end if;
 
       OS_Exit (2);
 
    elsif N_Warnings > 0 then
       Error_Int (1) := N_Warnings;
-      DE ("$ warning(s)");
+      DE ("$ warning(s) during parsing.");
    end if;
 
    Generate (IDL_Spec);
