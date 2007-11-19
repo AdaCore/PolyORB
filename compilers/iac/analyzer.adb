@@ -757,8 +757,8 @@ package body Analyzer is
 
          if Oneway and then Kind (Param_Type) /= K_Void then
             Oneway := False;
-            Error_Loc (1)  := Loc (Type_Spec (E));
-            DE ("oneway operation cannot return a non-void result");
+            Error_Loc (1)  := Loc (E);
+            DE ("Error: Oneway operation must have void type");
          end if;
 
          --  When the current interface is not local, check that its
@@ -782,7 +782,7 @@ package body Analyzer is
             if Oneway and then Parameter_Mode (Op_Parameter) /= Mode_In then
                Oneway := False;
                Error_Loc (1) := Loc (Op_Parameter);
-               DE ("oneway operation can only have ""in"" parameters");
+               DE ("Error: Oneway operation may not have output parameters");
             end if;
 
             --  When the current interface is not local, check
@@ -810,7 +810,7 @@ package body Analyzer is
             if Oneway then
                Oneway := False;
                Error_Loc (1) := Loc (Op_Exception);
-               DE ("oneway operation cannot raise exceptions");
+               DE ("Error: Oneway operation may not have raises expression");
             end if;
 
             --  When the current interface is not local, check
