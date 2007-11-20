@@ -408,16 +408,16 @@ begin
       Error_Int (2) := N_Warnings;
 
       if N_Warnings > 0 then
-         DE ("$ error(s) and $ warning(s) during parsing.");
+         DE ("$ error(s) and $ warning(s)");
       else
-         DE ("$ error(s) during parsing.");
+         DE ("$ error(s)");
       end if;
 
       OS_Exit (2);
 
    elsif N_Warnings > 0 then
       Error_Int (1) := N_Warnings;
-      DE ("$ warning(s) during parsing.");
+      DE ("$ warning(s)");
    end if;
 
    Generate (IDL_Spec);
