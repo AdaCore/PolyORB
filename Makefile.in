@@ -72,7 +72,7 @@ GNATMAKE_FOR_TARGET	:= @GNATMAKE_FOR_TARGET@
 CFLAGS		:= @CFLAGS@
 ADAFLAGS	:= @ADAFLAGS@
 CPPFLAGS	:= @CPPFLAGS@
-GNATMAKE_FLAGS	:= ${ADAFLAGS} @EXTRA_GNATMAKE_FLAGS@
+GNATMAKE_FLAGS	:= @STYLE_SWITCH@ -gnatwa@WARNINGS_MODE@ ${ADAFLAGS} @EXTRA_GNATMAKE_FLAGS@
 # EXTRA_GNATMAKE_FLAGS are user-provided, empty by default (typically
 # used to specify a non-default --RTS switch).
 
@@ -185,8 +185,6 @@ build-po_gnatdist: compiler_dir := gnatdist
 # Common build rule for all compile-time tools #
 ################################################
 
-COMPILERS_GNATMAKE_FLAGS := @STYLE_SWITCH@ -gnatwa@WARNINGS_MODE@ ${GNATMAKE_FLAGS}
-
 build-gnatprfh \
 \
 build-testparser \
@@ -204,7 +202,7 @@ build-po_gnatdist \
 	  ${GNATMAKE} -m \
 	   $* \
 	   -gnat05 \
-	   ${COMPILERS_GNATMAKE_FLAGS} \
+	   ${GNATMAKE_FLAGS} \
 	   -I${top_srcdir}/compilers/${compiler_dir} \
 	   ${PRJ_GNATMAKE_FLAGS}
 
@@ -2296,6 +2294,7 @@ debug-makefile:
 	@echo top_builddir = ${top_builddir}
 	@echo top_srcdir = ${top_srcdir}
 	@echo MAKEFLAGS = ${MAKEFLAGS}
+	@echo GNATMAKE_FLAGS = ${GNATMAKE_FLAGS}
 	@echo MAKECMDGOALS = ${MAKECMDGOALS}
 	@echo polyorb_idl_stamps = ${polyorb_idl_stamps}
 	@echo all_idl_stamps = ${all_idl_stamps}
