@@ -850,8 +850,8 @@ package body Analyzer is
    --------------------
 
    procedure Analyze_Pragma (E : Node_Id) is
-      R           : Node_Id;
-      N           : Node_Id;
+      R : Node_Id;
+      N : Node_Id;
    begin
       if Pragma_Kind (E) /= Pragma_Unrecognized then
          N := Make_Identifier
@@ -877,7 +877,8 @@ package body Analyzer is
 
          when Pragma_Unrecognized =>
             Error_Loc (1) := Loc (E);
-            DE ("Not recognized pragma", K_Warning);
+            DE ("?unknown pragma");
+            --  ??? error message should include pragma name
       end case;
    end Analyze_Pragma;
 

@@ -436,8 +436,8 @@ exception
 
          Set_Standard_Error;
 
-         Write_Line ("+=============================IAC BUG DETECTED"
-                     & "============================+");
+         Write_Line ("+============================ IAC BUG DETECTED"
+                     & " ===========================+");
 
          Write_Str (Exception_String);
          for J in Exception_String'Length .. 72 loop
@@ -453,12 +453,11 @@ exception
          Write_Str (" |");
          Write_Eol;
 
-         Write_Str ("| Please, join the files listed at the end of this ");
-         Write_Str ("report when submitting |");
+         Write_Str ("| Please include the files listed below when submitting"
+                    & " your report.      |");
          Write_Eol;
-         Write_Str ("| your bug report. "
-                    & "Please, refer to the User's Guide for ");
-         Write_Str ("more details.    |");
+         Write_Str ("| Please refer to the User's Guide for more details."
+                    & "                      |");
          Write_Eol;
          Write_Line ("+============================================="
                      & "============================+");

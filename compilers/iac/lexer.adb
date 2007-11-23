@@ -586,9 +586,8 @@ package body Lexer is
       Preprocessor := Locate_Exec_On_Path
         (Prep_And_Flags_List (Prep_And_Flags_List'First).all);
       if Preprocessor = null then
-         DE ("cannot locate "
-             & Prep_And_Flags_List (Prep_And_Flags_List'First).all,
-             K_Warning);
+         DE ("?cannot locate "
+             & Prep_And_Flags_List (Prep_And_Flags_List'First).all);
          Get_Name_String (Source);
          Add_Char_To_Name_Buffer (ASCII.NUL);
          Tmp_FDesc := Open_Read (Name_Buffer'Address, Binary);

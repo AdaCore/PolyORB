@@ -1087,7 +1087,7 @@ package body Parser is
             then
                Restore_Lexer (State);
                Error_Loc (1) := Token_Location;
-               DE ("semicolon expected", K_Warning);
+               DE ("?semicolon expected");
             else
                Definition := No_Node;
             end if;
@@ -1472,7 +1472,7 @@ package body Parser is
          if Token /= T_Semi_Colon then
             Restore_Lexer (State);
             Error_Loc (1) := Token_Location;
-            DE ("semicolon expected", K_Warning);
+            DE ("?semicolon expected");
          end if;
       end if;
 
@@ -1490,7 +1490,7 @@ package body Parser is
          if Imported_File_Name = No_Name then
             Error_Loc (1) := Loc (Imported_Scope);
             Error_Name (1) := IDL_Name (Identifier (Imported_Scope));
-            DE ("File containing the%scope declaration not found");
+            DE ("declaration of imported scope# not found");
             return No_Node;
          end if;
 
