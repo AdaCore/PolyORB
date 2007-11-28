@@ -1,8 +1,6 @@
 #!/bin/sh
 
 # gen_http_body
-# $Id$
-
 # Generate a perfect hash function in an Ada body from a specially
 # formatted Ada spec that defines an enumerated type and a list
 # of corresponding strings.
@@ -20,7 +18,7 @@ fi
 GNATPRFH=$1
 SRCDIR=$2
 NAME=$3
-name=`echo ${NAME} | tr 'A-Z' 'a-z'`
+name=`echo ${NAME} | tr '[:upper:]' '[:lower:]'`
 SPEC=${SRCDIR}/polyorb-http_${name}s.ads
 BODY=polyorb-http_${name}s.adb
 UNIT=PolyORB.HTTP_${NAME}s
