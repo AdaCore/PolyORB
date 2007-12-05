@@ -185,8 +185,10 @@ polyorb_ug_ref.aux: polyorb_ug_ref.tex polyorb_ug.bib
 %.txt : ${srcdir}/%.texi ${polyorb_ug_TEXINFOS}
 	-${MAKEINFO} -o $@ --force --ifinfo --number-sections $<
 
+# Don't use -o $@ for PDF because it causes the doc build to be done in
+# a temporary directory, and Kpathsea doesn't know about PDF images.
 %.pdf: ${srcdir}/%.texi ${polyorb_ug_TEXINFOS} $(FIG_PDFFILES)
-	-${TEXI2DVI} -o $@ --pdf $<
+	-${TEXI2DVI} --pdf $<
 
 # Setting the environment variable TEX to "tex" is needed on Windows,
 # to work around a problem with Cygwin.
@@ -286,4 +288,5 @@ release: all
 	-${RM} -rf polyorb-doc
 
 debug:
-	@echo ${polyorb_ug_TEXINFOS}
+	@echo "polyorb_ug_TEXINFOS=${polyorb_ug_TEXINFOS}"
+	@echo "FIG_PDFFILES=${FIG_PDFFILES}"
