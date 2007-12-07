@@ -180,10 +180,10 @@ polyorb_ug_ref.aux: polyorb_ug_ref.tex polyorb_ug.bib
 	cp *.png $@
 
 %.info: ${srcdir}/%.texi ${polyorb_ug_TEXINFOS}
-	-${MAKEINFO} -o $@ --force --number-sections $<
+	-${MAKEINFO} -o $@ --force --no-split --number-sections $<
 
 %.txt : ${srcdir}/%.texi ${polyorb_ug_TEXINFOS}
-	-${MAKEINFO} -o $@ --force --ifinfo --number-sections $<
+	-${MAKEINFO} -o $@ --force --no-split --plaintext --ifinfo --number-sections $<
 
 # Don't use -o $@ for PDF because it causes the doc build to be done in
 # a temporary directory, and Kpathsea doesn't know about PDF images.
