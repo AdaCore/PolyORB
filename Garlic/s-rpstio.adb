@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1996-2006 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- GARLIC is free software;  you can redistribute it and/or modify it under --
 -- terms of the  GNU General Public License  as published by the Free Soft- --
@@ -268,6 +268,7 @@ package body System.RPC.Stream_IO is
       Item   : out    Ada.Streams.Stream_Element_Array;
       Last   : out    Ada.Streams.Stream_Element_Offset)
    is
+      pragma Unmodified (Stream);
       FID     : Partition_ID;
       LID     : Partition_ID;
       Len     : Stream_Element_Offset := 0;
@@ -355,6 +356,7 @@ package body System.RPC.Stream_IO is
      (Stream : in out Partition_Stream_Type;
       Item   : Ada.Streams.Stream_Element_Array)
    is
+      pragma Unmodified (Stream);
       Str : Partition_Stream_Access;
    begin
       if not Stream.Open then
