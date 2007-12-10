@@ -562,10 +562,10 @@ ${C_OBJECTS}: %.o: ${top_srcdir}/%.c
 
 # We treat the examples and testsuite directories the same.
 # Each subdirectory that has test (or example) programs should contain
-# Makefile.test and test.gpr, and may contain one or more *.idl files. We use
-# 'find' to find all of the *.idl and Makefile.test files.
+# Makefile.local and test.gpr, and may contain one or more *.idl files. We use
+# 'find' to find all of the *.idl and Makefile.local files.
 #
-# Makefile.test should contain:
+# Makefile.local should contain:
 # ${eval ${define_test}}
 # In addition, if there are any idl files, we need to define the flags to use
 # with idlac, and make the test target depend on building the idl, like this:
@@ -600,7 +600,7 @@ test_idls := ${patsubst ${top_srcdir}/%,%,${test_idls}}
 test_idl_stamps := ${patsubst %.idl,%.idl-stamp,${test_idls}}
 self_idl_stamps += ${test_idl_stamps}
 
-# Macro to invoke at the top of each Makefile.test.
+# Macro to invoke at the top of each Makefile.local.
 # This defines macros based on the name of the test directory.
 # ???There's much duplication, here; I'm not sure why we can't say 
 # current_dir := ${dir ${current_makefile}}
@@ -612,10 +612,10 @@ test_target := ${dir ${patsubst ${top_srcdir}/%,%,${word ${words ${MAKEFILE_LIST
 test_targets += ${dir ${patsubst ${top_srcdir}/%,%,${word ${words ${MAKEFILE_LIST}},${MAKEFILE_LIST}}}}build-test
 endef
 
-# Include all the Makefile.test files. Each one invokes define_test, which adds
+# Include all the Makefile.local files. Each one invokes define_test, which adds
 # the test name to test_targets, so test_targets ends up being a list of all
 # tests.
-test_makefiles := ${shell find ${test_dirs} -name 'Makefile.test' 2> /dev/null}
+test_makefiles := ${shell find ${test_dirs} -name 'Makefile.local' 2> /dev/null}
 ifneq (${strip ${test_makefiles}},)
   include ${test_makefiles}
 endif
