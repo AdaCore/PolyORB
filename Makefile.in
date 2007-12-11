@@ -562,7 +562,7 @@ ${C_OBJECTS}: %.o: ${top_srcdir}/%.c
 
 # We treat the examples and testsuite directories the same.
 # Each subdirectory that has test (or example) programs should contain
-# Makefile.local and test.gpr, and may contain one or more *.idl files. We use
+# Makefile.local and local.gpr, and may contain one or more *.idl files. We use
 # 'find' to find all of the *.idl and Makefile.local files.
 #
 # Makefile.local should contain:
@@ -572,7 +572,7 @@ ${C_OBJECTS}: %.o: ${top_srcdir}/%.c
 # ${current_dir}<...>.idl-stamp: idlac_flags := <...>
 # ${test_target}: ${current_dir}<...>.idl-stamp
 
-# test.gpr should contain:
+# local.gpr should contain:
 # with "polyorb", "test_common";
 # 
 # project test is
@@ -628,7 +628,7 @@ test_targets := ${sort ${test_targets}}
 .PHONY: ${test_targets}
 ${test_targets}: %/build-test:
 	ADA_PROJECT_PATH="${top_builddir}/projects${PATH_SEP}${top_srcdir}/projects${PATH_SEP}$$ADA_PROJECT_PATH" \
-	  ${GNATMAKE} "-XTest_Dir=$*" -P ${top_srcdir}/$*/test.gpr ${GNATMAKE_FLAGS}
+	  ${GNATMAKE} "-XTest_Dir=$*" -P ${top_srcdir}/$*/local.gpr ${GNATMAKE_FLAGS}
 
 # Set active_tests to a subset of test_targets -- remove the ones that are for
 # application personalities that were not configured. Note: examples/polyorb

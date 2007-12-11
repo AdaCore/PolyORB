@@ -454,7 +454,7 @@ examples/Makefile.common
 examples/Makefile.in
 examples/README
 examples/aws/Makefile.local
-examples/bbs/Makefile.local
+examples/aws/local.gpr
 examples/corba/Makefile.am
 examples/corba/Makefile.in
 examples/corba/README
@@ -466,6 +466,7 @@ examples/corba/all_functions/all_functions-impl.ads
 examples/corba/all_functions/all_functions.idl
 examples/corba/all_functions/client.adb
 examples/corba/all_functions/dynclient.adb
+examples/corba/all_functions/local.gpr
 examples/corba/all_functions/server.adb
 examples/corba/all_types/Makefile.am
 examples/corba/all_types/Makefile.in
@@ -478,6 +479,7 @@ examples/corba/all_types/client.adb
 examples/corba/all_types/client_moma.adb
 examples/corba/all_types/dynclient.adb
 examples/corba/all_types/ir_server.adb
+examples/corba/all_types/local.gpr
 examples/corba/all_types/server.adb
 examples/corba/echo/Makefile.am
 examples/corba/echo/Makefile.in
@@ -492,11 +494,13 @@ examples/corba/echo/echo-impl.ads
 examples/corba/echo/echo.idl
 examples/corba/echo/echo_dynimpl.adb
 examples/corba/echo/echo_dynimpl.ads
+examples/corba/echo/local.gpr
 examples/corba/echo/server.adb
 examples/corba/random/Makefile.am
 examples/corba/random/Makefile.in
 examples/corba/random/Makefile.local
 examples/corba/random/client.adb
+examples/corba/random/local.gpr
 examples/corba/random/random-impl.adb
 examples/corba/random/random-impl.ads
 examples/corba/random/random.idl
@@ -510,6 +514,7 @@ examples/corba/rtcorba/client_propagated/client.adb
 examples/corba/rtcorba/client_propagated/echo-impl.adb
 examples/corba/rtcorba/client_propagated/echo-impl.ads
 examples/corba/rtcorba/client_propagated/echo.idl
+examples/corba/rtcorba/client_propagated/local.gpr
 examples/corba/rtcorba/client_propagated/server.adb
 examples/corba/rtcorba/dhb/Makefile.am
 examples/corba/rtcorba/dhb/Makefile.in
@@ -528,6 +533,7 @@ examples/corba/rtcorba/dhb/dhb-worker_factory-impl.ads
 examples/corba/rtcorba/dhb/dhb.idl
 examples/corba/rtcorba/dhb/dyn_dict.adb
 examples/corba/rtcorba/dhb/dyn_dict.ads
+examples/corba/rtcorba/dhb/local.gpr
 examples/corba/rtcorba/dhb/periodic_clients.adb
 examples/corba/rtcorba/dhb/periodic_clients.ads
 examples/corba/rtcorba/dhb/polyorb-setup-rtcorba.adb
@@ -550,6 +556,7 @@ examples/corba/rtcorba/rtcosscheduling/client_scheduling.conf
 examples/corba/rtcorba/rtcosscheduling/echo-impl.adb
 examples/corba/rtcorba/rtcosscheduling/echo-impl.ads
 examples/corba/rtcorba/rtcosscheduling/echo.idl
+examples/corba/rtcorba/rtcosscheduling/local.gpr
 examples/corba/rtcorba/rtcosscheduling/server.adb
 examples/corba/rtcorba/rtcosscheduling/server_scheduling.conf
 examples/corba/rtcorba/server_declared/Makefile.am
@@ -559,6 +566,7 @@ examples/corba/rtcorba/server_declared/client.adb
 examples/corba/rtcorba/server_declared/echo-impl.adb
 examples/corba/rtcorba/server_declared/echo-impl.ads
 examples/corba/rtcorba/server_declared/echo.idl
+examples/corba/rtcorba/server_declared/local.gpr
 examples/corba/rtcorba/server_declared/server.adb
 examples/corba/secure_echo/Makefile.am
 examples/corba/secure_echo/Makefile.local
@@ -570,6 +578,7 @@ examples/corba/secure_echo/echo-impl.ads
 examples/corba/secure_echo/echo.idl
 examples/corba/secure_echo/gssup.conf.in
 examples/corba/secure_echo/gssup_example.in
+examples/corba/secure_echo/local.gpr
 examples/corba/secure_echo/passwd.pwd
 examples/corba/secure_echo/polyorb_openssl.conf
 examples/corba/secure_echo/server.adb
@@ -582,6 +591,7 @@ examples/corba/send/Makefile.am
 examples/corba/send/Makefile.in
 examples/corba/send/Makefile.local
 examples/corba/send/listener.adb
+examples/corba/send/local.gpr
 examples/corba/send/print.idl
 examples/corba/send/send.adb
 examples/corba/send/test-printer-impl.adb
@@ -592,6 +602,7 @@ examples/dsa/echo/client.adb
 examples/dsa/echo/echo.cfg
 examples/dsa/echo/server.adb
 examples/dsa/echo/server.ads
+examples/dsa/local.gpr
 examples/moma/Makefile.am
 examples/moma/Makefile.in
 examples/moma/Makefile.local
@@ -600,12 +611,14 @@ examples/moma/client.adb
 examples/moma/client_call_back.adb
 examples/moma/client_call_back_procedures.adb
 examples/moma/client_call_back_procedures.ads
+examples/moma/local.gpr
 examples/moma/router.adb
 examples/moma/server.adb
 examples/polyorb/Makefile.am
 examples/polyorb/Makefile.in
 examples/polyorb/Makefile.local
 examples/polyorb/README
+examples/polyorb/local.gpr
 examples/polyorb/polyorb-setup-test.ads
 examples/polyorb/polyorb-setup-test_poa.adb
 examples/polyorb/polyorb-setup-test_poa.ads
