@@ -34,7 +34,7 @@
 with "common";
 project Test_Common is
 
-   --  This project is imported by all the test.gpr projects under examples and
+   --  This project is imported by all the local.gpr projects under examples and
    --  testsuite.
 
    for Source_Files use ();

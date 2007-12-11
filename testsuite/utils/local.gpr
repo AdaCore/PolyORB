@@ -1,6 +1,6 @@
 with "polyorb", "test_common";
 
-project test is
+project local is
 
    Dir := external ("Test_Dir");
    Obj_Dir := Test_Common.Build_Dir & Dir;
@@ -16,4 +16,4 @@ project test is
 
    for Main use ("test_driver");
 
-end test;
+end local;

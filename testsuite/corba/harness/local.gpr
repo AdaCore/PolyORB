@@ -1,6 +1,6 @@
 with "polyorb", "test_common";
 
-project test is
+project local is
 
    Dir := external ("Test_Dir");
    Obj_Dir := Test_Common.Build_Dir & Dir;
@@ -16,4 +16,4 @@ project test is
 
    for Main use ("server_no_tasking", "server_no_tasking2", "server_thread_pool", "server_thread_pool_hahs", "server_thread_pool_lf", "server_thread_per_request", "server_thread_per_session", "client", "local");
 
-end test;
+end local;
