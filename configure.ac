@@ -48,7 +48,7 @@ fi],
 #  n (normal processing)
 #  s (suppress all warnings)
 
-DEFAULT_WARNINGS_MODE=n
+DEFAULT_WARNINGS_MODE=e
 
 AC_ARG_ENABLE(warnings,
 [  --enable-warnings=X     Set warnings processing to X (e/n/s)],
@@ -718,6 +718,7 @@ dnl This section is edited automatically by support/reconfig.
 AC_OUTPUT([
 	Makefile
 	Makefile.common.project
+	Makefile.old
 	support/Makefile
 	compilers/Makefile
 	compilers/common_files/platform.ads
@@ -726,6 +727,7 @@ AC_OUTPUT([
 	compilers/gnatprfh/Makefile
 	compilers/gnatprfh/gnatprfh.adb
 	compilers/iac/Makefile
+	compilers/iac/testsuite/Makefile
 	compilers/idlac/Makefile
 	compilers/idlac/testsuite/Makefile
 	docs/Makefile
@@ -753,6 +755,7 @@ AC_OUTPUT([
 	src/giop/miop/Makefile
 	src/moma/Makefile
 	src/web_common/Makefile
+	src/aws/Makefile
 	src/security/Makefile
 	src/security/gssup/Makefile
 	src/security/tls/Makefile
@@ -764,6 +767,7 @@ AC_OUTPUT([
 	src/soap/Makefile
 	src/srp/Makefile
 	src/ssl/Makefile
+	src/debug.adc
 	src/polyorb-platform-ssl_linker_options.ads
 	src/ravenscar.adc
 	src/ravenscar_compatible.adc
@@ -797,14 +801,74 @@ AC_OUTPUT([
 	examples/corba/rtcorba/server_declared/Makefile
 	examples/corba/rtcorba/rtcosscheduling/Makefile
 	examples/corba/send/Makefile
+	examples/corba/secure_echo/Makefile
 	examples/corba/secure_echo/gssup.conf
 	examples/corba/secure_echo/gssup_example
 	examples/corba/secure_echo/tls.conf
 	examples/corba/secure_echo/tls_example
 	examples/corba/secure_echo/tls_gssup.conf
 	examples/corba/secure_echo/tls_gssup_example
+	examples/dsa/Makefile
+	examples/bbs/Makefile
 	examples/moma/Makefile
+	examples/aws/Makefile
 	examples/polyorb/Makefile
+	testsuite/Makefile
+	testsuite/corba/Makefile
+	testsuite/corba/all_exceptions/Makefile
+	testsuite/corba/benchs/Makefile
+	testsuite/corba/benchs/test000/Makefile
+	testsuite/corba/code_sets/Makefile
+	testsuite/corba/code_sets/test000/Makefile
+	testsuite/corba/cos/Makefile
+	testsuite/corba/cos/event/Makefile
+	testsuite/corba/cos/ir/Makefile
+	testsuite/corba/cos/naming/Makefile
+	testsuite/corba/cos/notification/Makefile
+	testsuite/corba/cos/time/Makefile
+	testsuite/corba/domainmanager/Makefile
+	testsuite/corba/domainmanager/test000/Makefile
+	testsuite/corba/harness/Makefile
+	testsuite/corba/local/Makefile
+	testsuite/corba/location_forwarding/Makefile
+	testsuite/corba/location_forwarding/test000/Makefile
+	testsuite/corba/location_forwarding/test001/Makefile
+	testsuite/corba/orb_init/Makefile
+	testsuite/corba/object/Makefile
+	testsuite/corba/object/test000/Makefile
+	testsuite/corba/portableinterceptor/Makefile
+	testsuite/corba/portableinterceptor/test000/Makefile
+	testsuite/corba/portableinterceptor/test001/Makefile
+	testsuite/corba/portableinterceptor/test002/Makefile
+	testsuite/corba/portableinterceptor/test003/Makefile
+	testsuite/corba/portableinterceptor/test004/Makefile
+	testsuite/corba/portableserver/Makefile
+	testsuite/corba/rtcorba/Makefile
+	testsuite/corba/rtcorba/rtcurrent/Makefile
+	testsuite/corba/rtcorba/rtorb/Makefile
+	testsuite/corba/rtcorba/rtpoa/Makefile
+	testsuite/corba/shutdown/Makefile
+	testsuite/core/Makefile
+	testsuite/core/any/Makefile
+	testsuite/core/chained_lists/Makefile
+	testsuite/core/dynamic_dict/Makefile
+	testsuite/core/fixed_point/Makefile
+	testsuite/core/initialization/Makefile
+	testsuite/core/naming/Makefile
+	testsuite/core/obj_adapters/Makefile
+	testsuite/core/poa/Makefile
+	testsuite/core/random/Makefile
+	testsuite/core/sync_policies/Makefile
+	testsuite/core/tasking/Makefile
+	testsuite/core/uri_encoding/Makefile
+	testsuite/acats/Makefile
+	testsuite/acats/CXE1001/Makefile
+	testsuite/acats/CXE2001/Makefile
+	testsuite/acats/CXE4001/Makefile
+	testsuite/acats/CXE4002/Makefile
+	testsuite/acats/CXE4005/Makefile
+	testsuite/acats/CXE4006/Makefile
+	testsuite/utils/Makefile
 	tools/Makefile
 	tools/po_catref/Makefile
 	tools/po_catref/po_catref_setup.adb
