@@ -12,6 +12,11 @@ fi
 
 set -e
 
+# The -w switch is used when creating the source distribution from the contents
+# of the repository. Its purpose is to adapt configure.ac for files that are
+# present in the repository but missing from source packages, and also to tweak
+# some knobs (such as the default warnings processing) that are intended to
+# differ between the repository and the source package.
 usage() {
   echo "$0 [-w]"
   echo "  -w  edit configure.ac to remove files not available according to MANIFEST"
