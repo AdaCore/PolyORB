@@ -813,6 +813,7 @@ projects/idls_cos_event.gpr
 projects/idls_cos_naming.gpr
 projects/idls_cos_notification.gpr
 projects/idls_cos_time.gpr
+projects/polyorb.gpr.in
 projects/src.gpr
 projects/src_corba.gpr
 projects/src_corba_dynamicany.gpr
