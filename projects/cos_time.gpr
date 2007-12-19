@@ -32,7 +32,8 @@
 ------------------------------------------------------------------------------
 
 with "common", "src", "idls_cos_time";
-limited with "src_corba";
+--limited
+ with "src_corba";
 
 project cos_time is
 

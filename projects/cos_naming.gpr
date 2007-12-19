@@ -32,7 +32,8 @@
 ------------------------------------------------------------------------------
 
 with "common", "src";
-limited with "src_corba", "idls_cos_naming";
+--limited
+ with "src_corba", "idls_cos_naming";
 
 project cos_naming is
 
