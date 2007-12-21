@@ -2140,8 +2140,8 @@ section in your configuration file, @code{name_service} is the
 @code{IOR} or @code{corbaloc} of the COS Naming server to use. See
 @ref{Using a configuration file} for more details.
 
-@item Registering an initial reference using the @code{-ORB InitRef
-NamingService=<IOR>} or @code{-ORB InitRef NamingService=<corbaloc>}
+@item Registering an initial reference using the @code{-ORBInitRef
+NamingService=<IOR>} or @code{-ORBInitRef NamingService=<corbaloc>}
 command-line argument. See the CORBA specifications for more details.
 
 @item Registering an initial reference for
