@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -294,7 +294,7 @@ package body PolyORB.Representations.SRP is
 
    procedure Encode_URL (SRP_Info : in out Split_SRP)
    is
-      Current_Arg : Arg_Info_Ptr := SRP_Info.Args;
+--      Current_Arg : Arg_Info_Ptr := SRP_Info.Args;
    begin
       raise Deprecated;
 --       while Current_Arg /= null loop
@@ -1742,8 +1742,8 @@ package body PolyORB.Representations.SRP is
       Data   : in out Any.Any_Container'Class;
       Error  : in out Errors.Error_Container)
    is
-      Encoded_URL : String_Ptr;
-      Decoded_URL : String_Ptr;
+--      Encoded_URL : String_Ptr;
+--      Decoded_URL : String_Ptr;
    begin
       raise Program_Error;
 --       Encoded_URL := new Types.String'(Unmarshall_String (R, Buffer));
