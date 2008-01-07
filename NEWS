@@ -27,8 +27,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-* PolyORB 2.3
-=============
+* PolyORB 2.3 (branched on 2008-01-07)
+======================================
 
 This release contains the PolyORB generic middleware, and its CORBA
 and DSA instantiations. In addition to the 2.2 release, it includes:
