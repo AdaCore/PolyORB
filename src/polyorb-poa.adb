@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -33,6 +33,7 @@
 
 --  Abstract interface for the POA.
 
+with Ada.Strings.Fixed;
 with Ada.Unchecked_Deallocation;
 
 with PolyORB.Log;
@@ -72,6 +73,9 @@ package body PolyORB.POA is
       URI   : out Types.String;
       Error : in out PolyORB.Errors.Error_Container)
    is
+      use Ada.Strings;
+      use Ada.Strings.Fixed;
+
       pragma Warnings (Off);
       pragma Unreferenced (OA);
       pragma Warnings (On);
@@ -106,7 +110,7 @@ package body PolyORB.POA is
       end if;
 
       if U_Oid.Persistency_Flag /= Null_Time_Stamp then
-         URI := URI & ";pf=" & U_Oid.Persistency_Flag'Img;
+         URI := URI & ";pf=" & Trim (U_Oid.Persistency_Flag'Img, Left);
       end if;
 
       pragma Debug (O ("-> URI: " & To_Standard_String (URI)));
