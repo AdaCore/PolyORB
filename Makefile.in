@@ -606,10 +606,10 @@ self_idl_stamps += ${test_idl_stamps}
 # current_dir := ${dir ${current_makefile}}
 # for example.
 define define_test
-current_makefile := ${patsubst ${top_srcdir}/%,%,${lastword ${MAKEFILE_LIST}}}
-current_dir := ${dir ${patsubst ${top_srcdir}/%,%,${lastword ${MAKEFILE_LIST}}}}
-test_target := ${dir ${patsubst ${top_srcdir}/%,%,${lastword ${MAKEFILE_LIST}}}}build-test
-test_targets += ${dir ${patsubst ${top_srcdir}/%,%,${lastword ${MAKEFILE_LIST}}}}build-test
+current_makefile := ${patsubst ${top_srcdir}/%,%,${word ${words ${MAKEFILE_LIST}},${MAKEFILE_LIST}}}
+current_dir := ${dir ${patsubst ${top_srcdir}/%,%,${word ${words ${MAKEFILE_LIST}},${MAKEFILE_LIST}}}}
+test_target := ${dir ${patsubst ${top_srcdir}/%,%,${word ${words ${MAKEFILE_LIST}},${MAKEFILE_LIST}}}}build-test
+test_targets += ${dir ${patsubst ${top_srcdir}/%,%,${word ${words ${MAKEFILE_LIST}},${MAKEFILE_LIST}}}}build-test
 endef
 
 # Include all the Makefile.local files. Each one invokes define_test, which adds
