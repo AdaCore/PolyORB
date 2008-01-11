@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -216,7 +216,9 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
 
                Request_Id := Unmarshall (Sess.Buffer_In);
                Reply_Status := Unmarshall (Sess.Buffer_In);
-
+               pragma Debug (O ("Process_Message (1.0): got GIOP Reply,"
+                                & " Request_Id =" & Request_Id'Img
+                                & ", status = " & Reply_Status'Img));
                Common_Reply_Received
                  (Sess'Access, Request_Id, Reply_Status, Service_Contexts);
             end;
@@ -555,7 +557,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
       Oid           : constant Object_Id_Access
         := Binding_Data.Get_Object_Key (R.Target_Profile.all);
    begin
-      pragma Debug (O ("Sending request , Id :" & R.Request_Id'Img));
+      pragma Debug (O ("Sending request, Id :" & R.Request_Id'Img));
 
       Buffer := new Buffer_Type;
       Header_Buffer := new Buffer_Type;
@@ -594,7 +596,8 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
       Copy_Data (Header_Buffer.all, Header_Space);
       Release (Header_Buffer);
       Emit_Message (Sess.Implem, Sess'Access, MCtx'Access, Buffer, Error);
-      pragma Debug (O ("Request sent, Id :" & MCtx.Message_Size'Img));
+      pragma Debug (O ("Request sent, Id :" & R.Request_Id'Img
+                       & ", size:" & MCtx.Message_Size'Img));
       Release (Buffer);
    end Send_Request;
 
@@ -768,6 +771,10 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
       MCtx_1_0 : GIOP_Message_Context_1_0
                    renames GIOP_Message_Context_1_0 (MCtx.all);
    begin
+      pragma Debug (O ("Marshall_GIOP_Header_Reply (1.0): Request_Id ="
+        & MCtx_1_0.Request_Id'Img
+        & ", status = " & MCtx_1_0.Reply_Status'Img));
+
       Rebuild_Reply_Service_Contexts (R);
       Marshall_Service_Context_List
         (Buffer,

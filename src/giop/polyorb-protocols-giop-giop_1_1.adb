@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -552,7 +552,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
         Binding_Data.Get_Object_Key (R.Target_Profile.all);
       Sink          : constant Types.Octet := 0;
    begin
-      pragma Debug (O ("Sending request , Id :" & R.Request_Id'Img));
+      pragma Debug (O ("Sending request, Id :" & R.Request_Id'Img));
 
       Buffer := new Buffer_Type;
       Header_Buffer := new Buffer_Type;
@@ -601,7 +601,9 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
       Copy_Data (Header_Buffer.all, Header_Space);
       Release (Header_Buffer);
       Emit_Message (Sess.Implem, Sess'Access, MCtx'Access, Buffer, Error);
-      pragma Debug (O ("Request sent, Id :" & R.Request_Id'Img));
+      pragma Debug (O ("Request sent, Id :" & R.Request_Id'Img
+                       & ", size:" & MCtx.Message_Size'Img));
+
       Release (Buffer);
    end Send_Request;
 
