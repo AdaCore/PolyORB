@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -49,6 +49,7 @@ package body PolyORB.Transport.Connected.Sockets is
    use PolyORB.Log;
    use PolyORB.Parameters;
    use PolyORB.Tasking.Mutexes;
+   use PolyORB.Utils.Sockets;
 
    package L is new PolyORB.Log.Facility_Log
      ("polyorb.transport.connected.sockets");
@@ -81,10 +82,11 @@ package body PolyORB.Transport.Connected.Sockets is
    -- Address_Of --
    ----------------
 
-   function Address_Of (SAP : Socket_Access_Point)
-     return Sock_Addr_Type is
+   function Address_Of
+     (SAP : Socket_Access_Point) return Utils.Sockets.Socket_Name
+   is
    begin
-      return SAP.Addr;
+      return Image (SAP.Addr.Addr) + SAP.Addr.Port;
    end Address_Of;
 
    ------------
@@ -105,6 +107,8 @@ package body PolyORB.Transport.Connected.Sockets is
 
          --  Address is unspecified, choose one IP for the SAP looking
          --  up hostname.
+         --  ??? Instead SAP.Addr should be a Socket_Name, and we should keep
+         --  Host_Name unresolved.
 
          SAP.Addr.Addr := Addresses (Get_Host_By_Name (Host_Name), 1);
          Address := SAP.Addr;

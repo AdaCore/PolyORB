@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -35,7 +35,7 @@ with Ada.Streams;
 
 with PolyORB.Log;
 with PolyORB.Representations.CDR.Common;
-with PolyORB.Utils.Sockets;
+with PolyORB.Sockets;
 with PolyORB.Types;
 
 package body PolyORB.Binding_Data.GIOP.INET is
@@ -48,8 +48,9 @@ package body PolyORB.Binding_Data.GIOP.INET is
    use PolyORB.Log;
    use PolyORB.Objects;
    use PolyORB.Representations.CDR.Common;
-   use PolyORB.Utils.Sockets;
    use PolyORB.Types;
+   use PolyORB.Utils;
+   use PolyORB.Utils.Sockets;
 
    package L is
       new PolyORB.Log.Facility_Log
@@ -64,20 +65,25 @@ package body PolyORB.Binding_Data.GIOP.INET is
    -- Common_IIOP_DIOP_Corbaloc_To_Profile --
    ------------------------------------------
 
-   procedure Common_IIOP_DIOP_Corbaloc_To_Profile
+   function Common_IIOP_DIOP_Corbaloc_To_Profile
      (Str           : String;
       Default_Major : Types.Octet;
       Default_Minor : Types.Octet;
-      Profile       : in out Profile_Access;
-      Address       :    out Sockets.Sock_Addr_Type)
+      Profile       : access Profile_Access) return Utils.Sockets.Socket_Name
    is
-      use PolyORB.Utils;
-
       TResult : GIOP_Profile_Type'Class
-        renames GIOP_Profile_Type'Class (Profile.all);
+        renames GIOP_Profile_Type'Class (Profile.all.all);
       S       : String renames Str;
       Index   : Integer;
       Index2  : Integer;
+
+      Host_First, Host_Last : Natural;
+      --  Indices within S of start and end of host name
+
+      Port : Sockets.Port_Type;
+
+      Empty_Name : constant Socket_Name := "" + 0;
+      --  Returned in error case
 
    begin
       pragma Debug (O ("Common_IIOP_DIOP_Corbaloc_To_Profile: enter"));
@@ -93,7 +99,7 @@ package body PolyORB.Binding_Data.GIOP.INET is
             TResult.Version_Major := Octet'Value (S (S'First .. Index2 - 1));
             TResult.Version_Minor := Octet'Value (S (Index2 + 1 .. Index - 1));
          else
-            Destroy_Profile (Profile);
+            Destroy_Profile (Profile.all);
          end if;
          Index := Index + 1;
       else
@@ -117,33 +123,36 @@ package body PolyORB.Binding_Data.GIOP.INET is
 
          if Index2 < Index then
             --  Empty host
-            Destroy_Profile (Profile);
-            return;
+            Destroy_Profile (Profile.all);
+            return Empty_Name;
          end if;
          pragma Debug (O ("Address = " & S (Index .. Index2)));
-         Address.Addr := String_To_Addr (S (Index .. Index2));
+         Host_First := Index;
+         Host_Last  := Index2;
 
          if Colon < Slash then
             if Colon + 1 < Slash then
                pragma Debug (O ("Port = " & S (Colon + 1 .. Slash - 1)));
-               Address.Port :=
+               Port :=
                   PolyORB.Sockets.Port_Type'Value (S (Colon + 1 .. Slash - 1));
             else
                --  Empty port
-               Destroy_Profile (Profile);
-               return;
+               Destroy_Profile (Profile.all);
+               return Empty_Name;
             end if;
          else
             --  No port indication: default to IANA-reserved value
-            Address.Port := 2809;
+
+            Port := 2809;
          end if;
          Index := Slash + 1;
       end;
 
       if Index > S'Last then
          --  Empty key_string
-         Destroy_Profile (Profile);
-         return;
+
+         Destroy_Profile (Profile.all);
+         return Empty_Name;
       end if;
 
       declare
@@ -157,14 +166,15 @@ package body PolyORB.Binding_Data.GIOP.INET is
       end;
 
       if TResult.Object_Id = null then
-         Destroy_Profile (Profile);
-         return;
+         Destroy_Profile (Profile.all);
+         return Empty_Name;
       end if;
 
       pragma Debug (O ("Oid = " & Image (TResult.Object_Id.all)));
 
       TResult.Components := Null_Tagged_Component_List;
       pragma Debug (O ("Common_IIOP_DIOP_Corbaloc_To_Profile: leave"));
+      return S (Host_First .. Host_Last) + Port;
    end Common_IIOP_DIOP_Corbaloc_To_Profile;
 
    ------------------------------------------
@@ -173,12 +183,11 @@ package body PolyORB.Binding_Data.GIOP.INET is
 
    function Common_IIOP_DIOP_Profile_To_Corbaloc
      (Profile : Profile_Access;
-      Address : Sockets.Sock_Addr_Type;
+      Address : Utils.Sockets.Socket_Name;
       Prefix  : String)
      return String
    is
       use PolyORB.Sockets;
-      use PolyORB.Utils;
 
       GIOP_Profile : GIOP_Profile_Type'Class
         renames GIOP_Profile_Type'Class (Profile.all);
@@ -192,8 +201,7 @@ package body PolyORB.Binding_Data.GIOP.INET is
       return Prefix & ":" &
         Trimmed_Image (Unsigned_Long_Long (GIOP_Profile.Version_Major)) & "." &
         Trimmed_Image (Unsigned_Long_Long (GIOP_Profile.Version_Minor)) & "@" &
-        Image (Address.Addr) & ":" &
-        Trimmed_Image (Long_Long (Address.Port)) & "/" &
+        Image (Address) & "/" &
         URI_Encode (Oid_Str, Also_Escape => No_Escape);
    end Common_IIOP_DIOP_Profile_To_Corbaloc;
 
@@ -204,7 +212,7 @@ package body PolyORB.Binding_Data.GIOP.INET is
    procedure Common_Marshall_Profile_Body
      (Buffer             : access Buffer_Type;
       Profile            : Profile_Access;
-      Address            : Sockets.Sock_Addr_Type;
+      Sock               : Socket_Name;
       Marshall_Object_Id : Boolean)
    is
       GIOP_Profile : GIOP_Profile_Type'Class
@@ -229,8 +237,8 @@ package body PolyORB.Binding_Data.GIOP.INET is
 
       --  Marshalling of a Socket
 
-      Marshall_Socket (Profile_Body, Address);
-      pragma Debug (O ("  Address = " & Sockets.Image (Address)));
+      Marshall_Socket (Profile_Body, Sock);
+      pragma Debug (O ("  Address = " & Image (Sock)));
 
       --  Marshalling the object id
 
@@ -256,12 +264,11 @@ package body PolyORB.Binding_Data.GIOP.INET is
    -- Common_Unmarshall_Profile_Body --
    ------------------------------------
 
-   procedure Common_Unmarshall_Profile_Body
+   function Common_Unmarshall_Profile_Body
      (Buffer                       : access Buffer_Type;
       Profile                      : Profile_Access;
-      Address                      : in out Sockets.Sock_Addr_Type;
       Unmarshall_Object_Id         : Boolean;
-      Unmarshall_Tagged_Components : Boolean)
+      Unmarshall_Tagged_Components : Boolean) return Utils.Sockets.Socket_Name
    is
       TResult        : GIOP_Profile_Type'Class
         renames GIOP_Profile_Type'Class (Profile.all);
@@ -281,33 +288,36 @@ package body PolyORB.Binding_Data.GIOP.INET is
         (O ("  Version = " & TResult.Version_Major'Img & "."
             & TResult.Version_Minor'Img));
 
-      --  Unmarshalling the socket
+      --  Unmarshalling the socket name
 
-      Unmarshall_Socket (Profile_Buffer, Address);
+      declare
+         Address : constant Socket_Name := Unmarshall_Socket (Profile_Buffer);
+      begin
+         pragma Debug (O ("  Address = " & Image (Address)));
 
-      pragma Debug (O ("  Address = " & Sockets.Image (Address)));
+         --  Unmarshalling the object id
 
-      --  Unmarshalling the object id
+         if Unmarshall_Object_Id then
+            declare
+               Str : aliased constant Stream_Element_Array :=
+                       Unmarshall (Profile_Buffer);
+            begin
+               TResult.Object_Id := new Object_Id'(Object_Id (Str));
+            end;
+         end if;
 
-      if Unmarshall_Object_Id then
-         declare
-            Str : aliased constant Stream_Element_Array
-              := Unmarshall (Profile_Buffer);
-         begin
-            TResult.Object_Id := new Object_Id'(Object_Id (Str));
-         end;
-      end if;
+         if TResult.Version_Minor /= 0
+           or else Unmarshall_Tagged_Components
+         then
+            TResult.Components :=
+              Unmarshall_Tagged_Component (Profile_Buffer);
+         end if;
 
-      if TResult.Version_Minor /= 0
-        or else Unmarshall_Tagged_Components
-      then
-         TResult.Components :=
-           Unmarshall_Tagged_Component (Profile_Buffer);
-      end if;
+         Release (Profile_Buffer);
 
-      Release (Profile_Buffer);
-
-      pragma Debug (O ("Common_Unmarshall_Profile_body: leave"));
+         pragma Debug (O ("Common_Unmarshall_Profile_body: leave"));
+         return Address;
+      end;
    end Common_Unmarshall_Profile_Body;
 
 end PolyORB.Binding_Data.GIOP.INET;

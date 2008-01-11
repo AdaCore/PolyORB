@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---         Copyright (C) 1999-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 1999-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,7 +31,7 @@
 =============
 
 This release contains the PolyORB generic middleware, and its CORBA
-and DSA instantiations. In addition to the 2.2 release, it includes:
+and DSA instantiations. In addition to the 2.3 release, it includes:
 
 New features
 ------------
@@ -40,6 +40,13 @@ See the features-24 file.
 
 Bug fixes
 ---------
+
+Host names are now kept unresolved in profiles. This allows a partition
+to unmarshall, process and marshall back an object reference even when
+the host name contained in the reference cannot be resolved to an IP
+address (this is useful for example on a name server which serves references
+provided by clients, but does not need to connect directly to the
+referenced objects). (H107-031)
 
 * PolyORB 2.3 (branched on 2008-01-07)
 ======================================

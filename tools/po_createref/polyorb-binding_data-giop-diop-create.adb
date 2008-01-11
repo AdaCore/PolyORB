@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---           Copyright (C) 2007, Free Software Foundation, Inc.             --
+--         Copyright (C) 2007-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -37,8 +37,9 @@ with PolyORB.Initialization;
 with PolyORB.GIOP_P.Tagged_Components.Create;
 with PolyORB.GIOP_P.Transport_Mechanisms;
 with PolyORB.GIOP_P.Transport_Mechanisms.DIOP;
-with PolyORB.Sockets;
 with PolyORB.POA_Types;
+with PolyORB.Sockets;
+with PolyORB.Utils.Sockets;
 with PolyORB.Utils.Strings;
 
 package body PolyORB.Binding_Data.GIOP.DIOP.Create is
@@ -48,28 +49,8 @@ package body PolyORB.Binding_Data.GIOP.DIOP.Create is
    use PolyORB.GIOP_P.Transport_Mechanisms.DIOP;
    use PolyORB.GIOP_P.Transport_Mechanisms;
    use PolyORB.POA_Types;
-
-   procedure Create_Primary_DIOP_Address
-     (Param          : Parameter_Address;
-      Addr           : out PolyORB.Sockets.Sock_Addr_Type;
-      Error          : out Boolean);
-
-   ---------------------------------
-   -- Create_Primary_DIOP_Address --
-   ---------------------------------
-
-   procedure Create_Primary_DIOP_Address
-     (Param          : Parameter_Address;
-      Addr           : out PolyORB.Sockets.Sock_Addr_Type;
-      Error          : out Boolean)
-   is
-      use PolyORB.Sockets;
-   begin
-      Error := False;
-
-      Addr.Addr := Inet_Addr (Param.Inet_Addr.all);
-      Addr.Port := Port_Type (Param.Port);
-   end Create_Primary_DIOP_Address;
+   use PolyORB.Sockets;
+   use PolyORB.Utils.Sockets;
 
    -------------------------
    -- Create_DIOP_Profile --
@@ -81,10 +62,6 @@ package body PolyORB.Binding_Data.GIOP.DIOP.Create is
       Error          : out Boolean)
    is
       use PolyORB.Utils;
-      use PolyORB.Sockets;
-
-      Addr        : Sock_Addr_Type;
-      V_Error     : Boolean;
    begin
       --  <Object_Id> -vmj <Major> -vmn <Minor>
       --   -a <IP_Address> -p <Port> -cn <Component_Number>
@@ -114,17 +91,14 @@ package body PolyORB.Binding_Data.GIOP.DIOP.Create is
          TProfile.Version_Minor := Param.Version_Minor;
 
          --  Create server address and add transport mechanism
-         Create_Primary_DIOP_Address (Param.Address, Addr, V_Error);
-         if V_Error then
-            Error := True;
-            return;
-         end if;
+
          Append
            (TProfile.Mechanisms,
-            PolyORB.GIOP_P.Transport_Mechanisms.DIOP.Create_Transport_Mechanism
-            (Addr));
+            GIOP_P.Transport_Mechanisms.DIOP.Create_Transport_Mechanism
+              (Param.Address.Inet_Addr.all + Port_Type (Param.Address.Port)));
 
          --  Add Tagged_Components
+
          Create_Tagged_Components
            (Param.Components.all, TProfile.Components, Error);
       end;

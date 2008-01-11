@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -33,8 +33,8 @@
 
 --  Binding data concrete implementation for SOAP over HTTP.
 
-with PolyORB.Sockets;
 with PolyORB.Types;
+with PolyORB.Utils.Sockets;
 
 package PolyORB.Binding_Data.SOAP is
 
@@ -120,12 +120,12 @@ package PolyORB.Binding_Data.SOAP is
 private
 
    type SOAP_Profile_Type is new Profile_Type with record
-      Address  : Sockets.Sock_Addr_Type;
+      Address  : Utils.Sockets.Socket_Name_Ptr;
       URI_Path : Types.String;
    end record;
 
    type SOAP_Profile_Factory is new Profile_Factory with record
-      Address : Sockets.Sock_Addr_Type;
+      Address : Utils.Sockets.Socket_Name_Ptr;
    end record;
 
 end PolyORB.Binding_Data.SOAP;

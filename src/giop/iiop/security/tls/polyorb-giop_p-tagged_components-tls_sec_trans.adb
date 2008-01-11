@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -36,7 +36,6 @@ with PolyORB.Initialization;
 with PolyORB.Representations.CDR.Common;
 with PolyORB.Security.Transport_Mechanisms.TLS;
 with PolyORB.Transport.Connected.Sockets.TLS;
-with PolyORB.Utils.Sockets;
 with PolyORB.Utils.Strings;
 
 package body PolyORB.GIOP_P.Tagged_Components.TLS_Sec_Trans is
@@ -45,8 +44,8 @@ package body PolyORB.GIOP_P.Tagged_Components.TLS_Sec_Trans is
    use PolyORB.Security.Transport_Mechanisms;
    use PolyORB.Security.Transport_Mechanisms.TLS;
    use PolyORB.Transport.Connected.Sockets.TLS;
-   use PolyORB.Utils.Sockets;
-   use Sock_Addr_Lists;
+
+   use Socket_Name_Lists;
 
    function Create_Empty_Component return Tagged_Component_Access;
 
@@ -78,11 +77,15 @@ package body PolyORB.GIOP_P.Tagged_Components.TLS_Sec_Trans is
    function Duplicate (C : TC_TLS_Sec_Trans) return Tagged_Component_Access is
       TC     : constant Tagged_Component_Access := new TC_TLS_Sec_Trans;
       Result : TC_TLS_Sec_Trans renames TC_TLS_Sec_Trans (TC.all);
-
+      Iter   : Socket_Name_Lists.Iterator := First (C.Addresses);
    begin
       Result.Target_Supports := C.Target_Supports;
       Result.Target_Requires := C.Target_Requires;
-      Result.Addresses       := Sock_Addr_Lists.Duplicate (C.Addresses);
+
+      while not Last (Iter) loop
+         Append (Result.Addresses, new Socket_Name'(Value (Iter).all.all));
+         Next (Iter);
+      end loop;
 
       return TC;
    end Duplicate;
@@ -114,7 +117,7 @@ package body PolyORB.GIOP_P.Tagged_Components.TLS_Sec_Trans is
       Buffer : access Buffer_Type)
    is
       Temp_Buf : Buffer_Access            := new Buffer_Type;
-      Iter     : Sock_Addr_Lists.Iterator := First (C.Addresses);
+      Iter     : Socket_Name_Lists.Iterator := First (C.Addresses);
 
    begin
       Start_Encapsulation (Temp_Buf);
@@ -124,7 +127,7 @@ package body PolyORB.GIOP_P.Tagged_Components.TLS_Sec_Trans is
       Marshall (Temp_Buf, Types.Unsigned_Long (Length (C.Addresses)));
 
       while not Last (Iter) loop
-         Marshall_Socket (Temp_Buf, Value (Iter).all);
+         Marshall_Socket (Temp_Buf, Value (Iter).all.all);
          Next (Iter);
       end loop;
 
@@ -137,7 +140,12 @@ package body PolyORB.GIOP_P.Tagged_Components.TLS_Sec_Trans is
    ----------------------
 
    procedure Release_Contents (C : access TC_TLS_Sec_Trans) is
+      Iter : Socket_Name_Lists.Iterator := First (C.Addresses);
    begin
+      while not Last (Iter) loop
+         Free (Value (Iter).all);
+         Next (Iter);
+      end loop;
       Deallocate (C.Addresses);
    end Release_Contents;
 
@@ -150,9 +158,8 @@ package body PolyORB.GIOP_P.Tagged_Components.TLS_Sec_Trans is
       return
        PolyORB.Security.Transport_Mechanisms.Client_Transport_Mechanism_Access
    is
-      Result : constant Client_Transport_Mechanism_Access
-        := new Client_TLS_Transport_Mechanism;
-
+      Result : constant Client_Transport_Mechanism_Access :=
+                 new Client_TLS_Transport_Mechanism;
    begin
       Client_TLS_Transport_Mechanism (Result.all).Target_Supports :=
         TC_TLS_Sec_Trans (TC.all).Target_Supports;
@@ -185,7 +192,8 @@ package body PolyORB.GIOP_P.Tagged_Components.TLS_Sec_Trans is
       while not TAP_Lists.Last (Iter) loop
          Append
            (TC_TLS_Sec_Trans (Result.all).Addresses,
-            Address_Of (TLS_Access_Point (TAP_Lists.Value (Iter).all.all)));
+            new Socket_Name'(Address_Of
+              (TLS_Access_Point (TAP_Lists.Value (Iter).all.all))));
          TAP_Lists.Next (Iter);
       end loop;
 
@@ -207,7 +215,6 @@ package body PolyORB.GIOP_P.Tagged_Components.TLS_Sec_Trans is
       Tag_Body : aliased Encapsulation := Unmarshall (Buffer);
       Temp_Buf : Buffer_Access         := new Buffer_Type;
       Length   : Types.Unsigned_Long;
-      Sock     : PolyORB.Sockets.Sock_Addr_Type;
 
    begin
       Decapsulate (Tag_Body'Access, Temp_Buf);
@@ -223,9 +230,7 @@ package body PolyORB.GIOP_P.Tagged_Components.TLS_Sec_Trans is
       Length := Unmarshall (Temp_Buf);
 
       for J in 1 .. Length loop
-         Unmarshall_Socket (Temp_Buf, Sock);
-
-         Append (C.Addresses, Sock);
+         Append (C.Addresses, new Socket_Name'(Unmarshall_Socket (Temp_Buf)));
       end loop;
 
       pragma Assert (Remaining (Temp_Buf) = 0);

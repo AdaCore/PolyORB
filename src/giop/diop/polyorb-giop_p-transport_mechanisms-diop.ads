@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PolyORB.Sockets;
+with PolyORB.Utils.Sockets;
 
 package PolyORB.GIOP_P.Transport_Mechanisms.DIOP is
 
@@ -49,8 +49,8 @@ package PolyORB.GIOP_P.Transport_Mechanisms.DIOP is
 
    --  DIOP Transport Mechanism specific subprograms
 
-   function Address_Of (M : DIOP_Transport_Mechanism)
-     return Sockets.Sock_Addr_Type;
+   function Address_Of
+     (M : DIOP_Transport_Mechanism) return Utils.Sockets.Socket_Name;
    --  Return address of transport mechanism's transport access point.
 
    type DIOP_Transport_Mechanism_Factory is
@@ -77,8 +77,7 @@ package PolyORB.GIOP_P.Transport_Mechanisms.DIOP is
    --  Create transport mechanism
 
    function Create_Transport_Mechanism
-     (Address : Sockets.Sock_Addr_Type)
-      return Transport_Mechanism_Access;
+     (Address : Utils.Sockets.Socket_Name) return Transport_Mechanism_Access;
    --  Create transport mechanism for specified transport access point address
 
    function Duplicate
@@ -92,13 +91,13 @@ package PolyORB.GIOP_P.Transport_Mechanisms.DIOP is
 private
 
    type DIOP_Transport_Mechanism is new Transport_Mechanism with record
-      Address : Sockets.Sock_Addr_Type;
+      Address : Utils.Sockets.Socket_Name_Ptr;
    end record;
 
    type DIOP_Transport_Mechanism_Factory is
      new Transport_Mechanism_Factory with
    record
-      Address : Sockets.Sock_Addr_Type;
+      Address : Utils.Sockets.Socket_Name_Ptr;
    end record;
 
 end PolyORB.GIOP_P.Transport_Mechanisms.DIOP;

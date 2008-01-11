@@ -1,5 +1,5 @@
 ========================================================
-PolyORB 2.4 NEW FEATURES LIST Current as of Jan 07, 2008
+PolyORB 2.4 NEW FEATURES LIST Current as of Jan 11, 2008
 ========================================================
 
 Copyright (c) 2008, AdaCore
@@ -12,3 +12,8 @@ This date shows the implementation date of the feature. Any 2.4w wavefront
 subsequent to this date will contain the indicated feature, as will any
 subsequent releases.
 
+NF-24-H107-031 Hosts with multiple IP addresses (2008-01-11)
+
+  When an object reference contains a host name corresponding to multiple
+  IP addresses, connection attempts try successive addresses in turn if
+  the connection fails, instead of bailing out after the first attempt.

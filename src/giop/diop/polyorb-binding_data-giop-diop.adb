@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -42,8 +42,8 @@ with PolyORB.Parameters;
 with PolyORB.References.Corbaloc;
 with PolyORB.References.IOR;
 with PolyORB.Setup;
-with PolyORB.Sockets;
 with PolyORB.Utils.Strings;
+with PolyORB.Utils.Sockets;
 
 package body PolyORB.Binding_Data.GIOP.DIOP is
 
@@ -56,6 +56,7 @@ package body PolyORB.Binding_Data.GIOP.DIOP is
    use PolyORB.References.IOR;
    use PolyORB.References.Corbaloc;
    use PolyORB.Types;
+   use PolyORB.Utils.Sockets;
 
    package L is
       new PolyORB.Log.Facility_Log ("polyorb.binding_data.giop.diop");
@@ -189,15 +190,16 @@ package body PolyORB.Binding_Data.GIOP.DIOP is
    ----------------------------------
 
    function Unmarshall_DIOP_Profile_Body
-     (Buffer : access Buffer_Type)
-      return Profile_Access
+     (Buffer : access Buffer_Type) return Profile_Access
    is
       Result  : constant Profile_Access := new DIOP_Profile_Type;
-      Address : PolyORB.Sockets.Sock_Addr_Type;
-
+      Address : constant Utils.Sockets.Socket_Name :=
+                  Common_Unmarshall_Profile_Body
+                    (Buffer,
+                     Result,
+                     Unmarshall_Object_Id         => True,
+                     Unmarshall_Tagged_Components => False);
    begin
-      Common_Unmarshall_Profile_Body (Buffer, Result, Address, True, False);
-
       --  Create transport mechanism
 
       Append
@@ -214,7 +216,7 @@ package body PolyORB.Binding_Data.GIOP.DIOP is
    function Image (Prof : DIOP_Profile_Type) return String is
    begin
       return "Address : "
-        & PolyORB.Sockets.Image
+        & Utils.Sockets.Image
         (Address_Of
          (DIOP_Transport_Mechanism (Element (Prof.Mechanisms, 0).all.all)))
         & ", Object_Id : "
@@ -242,13 +244,13 @@ package body PolyORB.Binding_Data.GIOP.DIOP is
    -------------------------
 
    function Corbaloc_To_Profile (Str : String) return Profile_Access is
-      Result  : Profile_Access := new DIOP_Profile_Type;
-      Address : Sockets.Sock_Addr_Type;
-
+      Result  : aliased Profile_Access := new DIOP_Profile_Type;
+      Address : constant Utils.Sockets.Socket_Name :=
+                  Common_IIOP_DIOP_Corbaloc_To_Profile
+                    (Str,
+                     DIOP_Version_Major, DIOP_Version_Minor,
+                     Result'Access);
    begin
-      Common_IIOP_DIOP_Corbaloc_To_Profile
-        (Str, DIOP_Version_Major, DIOP_Version_Minor, Result, Address);
-
       --  Create transport mechanism
 
       Append

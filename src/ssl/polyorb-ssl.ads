@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2005 Free Software Foundation, Inc.             --
+--         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -36,6 +36,7 @@
 with Ada.Streams;
 
 with PolyORB.Sockets;
+with PolyORB.Utils.Sockets;
 
 package PolyORB.SSL is
 
@@ -116,7 +117,7 @@ package PolyORB.SSL is
      (Sock    : Sockets.Socket_Type;
       Context : SSL_Context_Type;
       Socket  : out SSL_Socket_Type;
-      Address : in out Sockets.Sock_Addr_Type);
+      Address : Utils.Sockets.Socket_Name);
    --  Make a connection to a remote SSL access point with the given
    --  Address, using SSL parameters specified by Context.
    --  Raises Socket_Error on socket error and SSL_Error on SSL connection

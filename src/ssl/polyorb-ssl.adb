@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -39,7 +39,6 @@ with PolyORB.Platform.SSL_Linker_Options;
 pragma Warnings (Off, PolyORB.Platform.SSL_Linker_Options);
 --  No entity referenced
 
-with PolyORB.Utils.Sockets;
 with PolyORB.Utils.Strings;
 
 package body PolyORB.SSL is
@@ -402,8 +401,8 @@ package body PolyORB.SSL is
    procedure Connect_Socket
      (Sock    : Sockets.Socket_Type;
       Context : SSL_Context_Type;
-      Socket  :    out SSL_Socket_Type;
-      Address : in out Sockets.Sock_Addr_Type)
+      Socket  : out SSL_Socket_Type;
+      Address : Utils.Sockets.Socket_Name)
    is
    begin
       Utils.Sockets.Connect_Socket (Sock, Address);

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -41,6 +41,7 @@ with PolyORB.Initialization;
 with PolyORB.ORB;
 with PolyORB.Parameters;
 with PolyORB.Protocols.GIOP.IIOP;
+with PolyORB.Sockets;
 with PolyORB.SSL;
 with PolyORB.Transport.Connected.Sockets.SSL;
 with PolyORB.Utils.Strings;
@@ -57,6 +58,7 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.SSLIOP is
    use PolyORB.Sockets;
    use PolyORB.SSL;
    use PolyORB.Transport.Connected.Sockets.SSL;
+   use PolyORB.Utils.Sockets;
 
    procedure Initialize;
 
@@ -68,16 +70,16 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.SSLIOP is
 
    Binding_Context : SSL_Context_Type;
 
-   --------------------
-   -- Bind_Mechanism --
-   --------------------
-
    --  Factories
 
    Sli            : aliased PolyORB.Filters.Slicers.Slicer_Factory;
    Pro            : aliased PolyORB.Protocols.GIOP.IIOP.IIOP_Protocol;
    IIOP_Factories : constant PolyORB.Filters.Factory_Array
      := (0 => Sli'Access, 1 => Pro'Access);
+
+   --------------------
+   -- Bind_Mechanism --
+   --------------------
 
    procedure Bind_Mechanism
      (Mechanism : SSLIOP_Transport_Mechanism;
@@ -93,7 +95,6 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.SSLIOP is
 
       Sock        : Socket_Type;
       SSL_Sock    : SSL_Socket_Type;
-      Remote_Addr : Sock_Addr_Type := Mechanism.Address;
       TE          : constant PolyORB.Transport.Transport_Endpoint_Access :=
                       new SSL_Endpoint;
 
@@ -107,7 +108,7 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.SSLIOP is
       end if;
 
       Create_Socket (Sock);
-      Connect_Socket (Sock, Binding_Context, SSL_Sock, Remote_Addr);
+      Connect_Socket (Sock, Binding_Context, SSL_Sock, Mechanism.Address.all);
       Create (SSL_Endpoint (TE.all), SSL_Sock);
 
       Binding_Objects.Setup_Binding_Object
@@ -148,10 +149,10 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.SSLIOP is
 
    begin
       SSLIOP_Transport_Mechanism (Mechanism.all).Address :=
-        Primary_Address_Of
-        (IIOP_Transport_Mechanism
-         (Get_Primary_Transport_Mechanism
-          (IIOP_Profile_Type (Profile.all)).all));
+        new Socket_Name'(Primary_Address_Of
+          (IIOP_Transport_Mechanism
+             (Get_Primary_Transport_Mechanism
+                (IIOP_Profile_Type (Profile.all)).all)));
       SSLIOP_Transport_Mechanism (Mechanism.all).Address.Port :=
         TC_SSL_Sec_Trans (TC.all).Port;
 
@@ -169,7 +170,7 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.SSLIOP is
       TAP :     Transport.Transport_Access_Point_Access)
    is
    begin
-      MF.Address := Address_Of (SSL_Access_Point (TAP.all));
+      MF.Address := new Socket_Name'(Address_Of (SSL_Access_Point (TAP.all)));
 
       --  Detect supported and required security assocations by
       --  review of descriptions of available ciphers (conformant
@@ -357,7 +358,10 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.SSLIOP is
      (TMA : SSLIOP_Transport_Mechanism)
      return SSLIOP_Transport_Mechanism is
    begin
-      return TMA;
+      return SSLIOP_Transport_Mechanism'
+        (Address         => new Socket_Name'(TMA.Address.all),
+         Target_Supports => TMA.Target_Supports,
+         Target_Requires => TMA.Target_Requires);
    end Duplicate;
 
    ----------------
@@ -433,10 +437,8 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.SSLIOP is
    ----------------------
 
    procedure Release_Contents (M : access SSLIOP_Transport_Mechanism) is
-      pragma Unreferenced (M);
-
    begin
-      null;
+      Free (M.Address);
    end Release_Contents;
 
 begin

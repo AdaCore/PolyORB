@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -58,7 +58,7 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.TLS is
    use PolyORB.Errors;
    use PolyORB.GIOP_P.Tagged_Components;
    use PolyORB.GIOP_P.Tagged_Components.TLS_Sec_Trans;
-   use PolyORB.GIOP_P.Tagged_Components.TLS_Sec_Trans.Sock_Addr_Lists;
+   use PolyORB.GIOP_P.Tagged_Components.TLS_Sec_Trans.Socket_Name_Lists;
    use PolyORB.QoS;
    use PolyORB.QoS.Transport_Contexts;
    use PolyORB.Security.Credentials;
@@ -108,13 +108,13 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.TLS is
    is
       Sock        : Socket_Type;
       TLS_Sock    : TLS_Socket_Type;
-      Remote_Addr : Sock_Addr_Type;
+      Remote_Addr : Utils.Sockets.Socket_Name_Ptr;
       TE          : PolyORB.Transport.Transport_Endpoint_Access;
-      Iter        : Sock_Addr_Lists.Iterator := First (Mechanism.Addresses);
-      Creds       : constant TLS_Credentials_Access
-        := Extract_TLS_Credentials
-        (QoS_Transport_Context_Parameter_Access
-         (QoS (Transport_Security)).Invocation_Credentials);
+      Iter        : Socket_Name_Lists.Iterator := First (Mechanism.Addresses);
+      Creds       : constant TLS_Credentials_Access :=
+                      Extract_TLS_Credentials
+                        (QoS_Transport_Context_Parameter_Access
+                           (QoS (Transport_Security)).Invocation_Credentials);
 
    begin
       if Profile.all
@@ -130,7 +130,7 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.TLS is
             Remote_Addr := Value (Iter).all;
 
             Create_Socket (Sock);
-            Utils.Sockets.Connect_Socket (Sock, Remote_Addr);
+            Utils.Sockets.Connect_Socket (Sock, Remote_Addr.all);
 
             TLS_Sock := Create_Invocation_Socket (Creds);
 
@@ -478,6 +478,8 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.TLS is
       end if;
 
       declare
+         use type Utils.Sockets.Socket_Name;
+
          L_Iter : Iterator := First (Left.Addresses);
          R_Iter : Iterator :=
                     First (TLS_Transport_Mechanism (Right).Addresses);
@@ -491,7 +493,7 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.TLS is
 
             Right_Addresses :
             while not Last (R_Iter) loop
-               if Value (L_Iter).all = Value (R_Iter).all then
+               if Value (L_Iter).all.all = Value (R_Iter).all.all then
                   return True;
                end if;
 
@@ -513,6 +515,7 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.TLS is
      (Left  : TLS_Transport_Mechanism;
       Right : Transport_Mechanism'Class) return Boolean
    is
+      use type Utils.Sockets.Socket_Name;
    begin
       if Right not in TLS_Transport_Mechanism then
          return False;
@@ -531,7 +534,7 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.TLS is
          end if;
 
          while not Last (L_Iter) loop
-            if Value (L_Iter).all /= Value (R_Iter).all then
+            if Value (L_Iter).all.all /= Value (R_Iter).all.all then
                return False;
             end if;
 

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -47,7 +47,7 @@ with PolyORB.QoS.Tagged_Components;
 with PolyORB.References.Corbaloc;
 with PolyORB.References.IOR;
 with PolyORB.Setup;
-with PolyORB.Sockets;
+with PolyORB.Utils.Sockets;
 with PolyORB.Utils.Strings;
 
 package body PolyORB.Binding_Data.GIOP.IIOP is
@@ -80,8 +80,7 @@ package body PolyORB.Binding_Data.GIOP.IIOP is
    function Corbaloc_To_Profile (Str : String) return Profile_Access;
 
    function Get_Primary_IIOP_Address
-     (Profile : IIOP_Profile_Type)
-     return PolyORB.Sockets.Sock_Addr_Type;
+     (Profile : IIOP_Profile_Type) return Utils.Sockets.Socket_Name;
    --  Return primary address of profile (address of the first profile's
    --  transport mechanims)
 
@@ -170,8 +169,7 @@ package body PolyORB.Binding_Data.GIOP.IIOP is
    ------------------------------
 
    function Get_Primary_IIOP_Address
-     (Profile : IIOP_Profile_Type)
-     return PolyORB.Sockets.Sock_Addr_Type
+     (Profile : IIOP_Profile_Type) return Utils.Sockets.Socket_Name
    is
    begin
       return
@@ -370,14 +368,17 @@ package body PolyORB.Binding_Data.GIOP.IIOP is
    is
       use PolyORB.QoS;
       use PolyORB.QoS.Tagged_Components;
+      use PolyORB.Utils.Sockets;
 
       Result  : constant Profile_Access := new IIOP_Profile_Type;
       TResult : IIOP_Profile_Type renames IIOP_Profile_Type (Result.all);
-      Address : PolyORB.Sockets.Sock_Addr_Type;
-
+      Address : constant Utils.Sockets.Socket_Name :=
+                  Common_Unmarshall_Profile_Body
+                    (Buffer,
+                     Result,
+                     Unmarshall_Object_Id         => True,
+                     Unmarshall_Tagged_Components => False);
    begin
-      Common_Unmarshall_Profile_Body (Buffer, Result, Address, True, False);
-
       --  Create primary transport mechanism
 
       Append (TResult.Mechanisms, Create_Transport_Mechanism (Address));
@@ -395,7 +396,7 @@ package body PolyORB.Binding_Data.GIOP.IIOP is
    function Image (Prof : IIOP_Profile_Type) return String is
    begin
       return "Address : "
-        & PolyORB.Sockets.Image (Get_Primary_IIOP_Address (Prof))
+        & PolyORB.Utils.Sockets.Image (Get_Primary_IIOP_Address (Prof))
         & ", Object_Id : "
         & PolyORB.Objects.Image (Prof.Object_Id.all);
    end Image;
@@ -418,18 +419,19 @@ package body PolyORB.Binding_Data.GIOP.IIOP is
    -------------------------
 
    function Corbaloc_To_Profile (Str : String) return Profile_Access is
-      Result  : Profile_Access := new IIOP_Profile_Type;
-      Address : Sockets.Sock_Addr_Type;
-
+      use Utils.Sockets;
+      Result  : aliased Profile_Access := new IIOP_Profile_Type;
+      Address : constant Socket_Name :=
+                  Common_IIOP_DIOP_Corbaloc_To_Profile (Str,
+                    IIOP_Version_Major, IIOP_Version_Minor, Result'Access);
    begin
-      Common_IIOP_DIOP_Corbaloc_To_Profile
-        (Str, IIOP_Version_Major, IIOP_Version_Minor, Result, Address);
+      if Result /= null then
+         --  Create primary transport mechanism
 
-      --  Create primary transport mechanism
-
-      Append
-        (IIOP_Profile_Type (Result.all).Mechanisms,
-         Create_Transport_Mechanism (Address));
+         Append
+           (IIOP_Profile_Type (Result.all).Mechanisms,
+            Create_Transport_Mechanism (Address));
+      end if;
 
       return Result;
    end Corbaloc_To_Profile;

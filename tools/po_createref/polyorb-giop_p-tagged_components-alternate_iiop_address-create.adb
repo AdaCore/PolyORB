@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---           Copyright (C) 2007, Free Software Foundation, Inc.             --
+--         Copyright (C) 2007-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -32,6 +32,7 @@
 ------------------------------------------------------------------------------
 
 with PolyORB.Sockets;
+with PolyORB.Utils.Sockets;
 
 package body PolyORB.GIOP_P.Tagged_Components.Alternate_IIOP_Address.Create is
    use PolyORB.GIOP_P.Tagged_Components.Alternate_IIOP_Address;
@@ -46,11 +47,12 @@ package body PolyORB.GIOP_P.Tagged_Components.Alternate_IIOP_Address.Create is
       Error      : out Boolean)
    is
       use PolyORB.Sockets;
+      use PolyORB.Utils.Sockets;
    begin
+      TC.Address :=
+        new Socket_Name'(Param.Address.Inet_Addr.all
+                         + Port_Type (Param.Address.Port));
       Error := False;
-
-      TC.Address.Addr := Inet_Addr (Param.Address.Inet_Addr.all);
-      TC.Address.Port := Port_Type (Param.Address.Port);
    end Create_TC;
 
 end PolyORB.GIOP_P.Tagged_Components.Alternate_IIOP_Address.Create;

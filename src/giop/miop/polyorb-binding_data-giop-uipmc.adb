@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -62,6 +62,7 @@ package body PolyORB.Binding_Data.GIOP.UIPMC is
    use PolyORB.References.Corbaloc;
    use PolyORB.References.IOR;
    use PolyORB.Types;
+   use PolyORB.Utils.Sockets;
 
    package L is new PolyORB.Log.Facility_Log
      ("polyorb.binding_data.giop.uipmc");
@@ -226,7 +227,7 @@ package body PolyORB.Binding_Data.GIOP.UIPMC is
 
    procedure Marshall_UIPMC_Profile_Body
      (Buf     : access Buffer_Type;
-      Profile :        Profile_Access)
+      Profile : Profile_Access)
    is
    begin
       Common_Marshall_Profile_Body
@@ -243,22 +244,24 @@ package body PolyORB.Binding_Data.GIOP.UIPMC is
    -----------------------------------
 
    function Unmarshall_UIPMC_Profile_Body
-     (Buffer       : access Buffer_Type)
-     return Profile_Access
+     (Buffer : access Buffer_Type) return Profile_Access
    is
       use PolyORB.GIOP_P.Tagged_Components;
       use PolyORB.MIOP_P.Tagged_Components;
 
       Result   : Profile_Access := new UIPMC_Profile_Type;
       TResult  : UIPMC_Profile_Type renames UIPMC_Profile_Type (Result.all);
-      Address  : Sockets.Sock_Addr_Type;
+      Address  : constant Utils.Sockets.Socket_Name :=
+                   Common_Unmarshall_Profile_Body
+                     (Buffer,
+                      Result,
+                      Unmarshall_Object_Id => False,
+                      Unmarshall_Tagged_Components => True);
+
       Temp_Ref : Tagged_Component_Access;
 
    begin
       pragma Debug (O ("Unmarshall_UIPMC_Profile_body: enter"));
-
-      Common_Unmarshall_Profile_Body
-        (Buffer, Result, Address, False, True);
 
       --  Create transport mechanism
 
@@ -285,8 +288,7 @@ package body PolyORB.Binding_Data.GIOP.UIPMC is
          Destroy_Profile (Result);
          return null;
       end if;
-      TResult.G_I := TC_Group_Info_Access (Temp_Ref).G_I'Access;
-
+      TResult.G_I       := TC_Group_Info_Access (Temp_Ref).G_I'Access;
       TResult.Object_Id := To_Object_Id (TResult.G_I.all);
 
       pragma Debug (O ("Unmarshall_UIPMC_Profile_body: leave"));
@@ -346,12 +348,14 @@ package body PolyORB.Binding_Data.GIOP.UIPMC is
       use PolyORB.GIOP_P.Tagged_Components;
       use PolyORB.MIOP_P.Tagged_Components;
       use PolyORB.Utils;
-      use PolyORB.Utils.Sockets;
 
       Result  : Profile_Access := new UIPMC_Profile_Type;
       TResult : UIPMC_Profile_Type
         renames UIPMC_Profile_Type (Result.all);
-      Address : Sockets.Sock_Addr_Type;
+
+      Host_First, Host_Last : Natural;
+      Port : Sockets.Port_Type;
+
       S       : String renames Str;
       Index   : Integer := S'First;
       Index2  : Integer;
@@ -409,17 +413,19 @@ package body PolyORB.Binding_Data.GIOP.UIPMC is
          return null;
       end if;
       pragma Debug (O ("Address = " & S (Index .. Index2 - 1)));
-      Address.Addr := String_To_Addr (S (Index .. Index2 - 1));
+      Host_First := Index;
+      Host_Last := Index2 - 1;
       Index := Index2 + 1;
 
       pragma Debug (O ("Port = " & S (Index .. S'Last)));
-      Address.Port := PolyORB.Sockets.Port_Type'Value (S (Index .. S'Last));
+      Port := PolyORB.Sockets.Port_Type'Value (S (Index .. S'Last));
 
       TResult.Object_Id := To_Object_Id (TResult.G_I.all);
 
       --  Create transport mechanism
 
-      Append (TResult.Mechanisms, Create_Transport_Mechanism (Address));
+      Append (TResult.Mechanisms,
+        Create_Transport_Mechanism (S (Host_First .. Host_Last) + Port));
 
       pragma Debug (O ("UIPMC corbaloc to profile: leave"));
       return Result;

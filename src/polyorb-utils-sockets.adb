@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -32,6 +32,7 @@
 ------------------------------------------------------------------------------
 
 with Ada.Exceptions;
+with Ada.Strings.Fixed;
 
 with PolyORB.Log;
 with PolyORB.Representations.CDR.Common;
@@ -39,6 +40,8 @@ with PolyORB.Types;
 
 package body PolyORB.Utils.Sockets is
 
+   use Ada.Strings;
+   use Ada.Strings.Fixed;
    use PolyORB.Buffers;
    use PolyORB.Log;
    use PolyORB.Sockets;
@@ -51,24 +54,138 @@ package body PolyORB.Utils.Sockets is
      renames L.Enabled;
    pragma Unreferenced (C); --  For conditional pragma Debug
 
+   ---------
+   -- "+" --
+   ---------
+
+   function "+"
+     (Host_Name : String;
+      Port      : PolyORB.Sockets.Port_Type) return Socket_Name
+   is
+   begin
+      return Socket_Name'(Name_Len  => Host_Name'Length,
+                          Host_Name => Host_Name,
+                          Port      => Port);
+   end "+";
+
    --------------------
    -- Connect_Socket --
    --------------------
 
    procedure Connect_Socket
      (Sock        : PolyORB.Sockets.Socket_Type;
-      Remote_Addr : in out PolyORB.Sockets.Sock_Addr_Type) is
+      Remote_Name : Socket_Name)
+   is
+
+      function Try_One_Address
+        (Remote_Addr : Sock_Addr_Type; Last : Boolean) return Boolean;
+      --  Try one of Remote_Name's aliases. Return True for a successful
+      --  connection. For a failed connection, if Last is False, there are
+      --  other addresses to try, so we return False to indicate non-fatal
+      --  failure. Otherwise an exception is propagated.
+
+      ---------------------
+      -- Try_One_Address --
+      ---------------------
+
+      function Try_One_Address
+        (Remote_Addr : Sock_Addr_Type; Last : Boolean) return Boolean
+      is
+         Remote_Addr_Var : Sock_Addr_Type := Remote_Addr;
+         --  WAG:62
+         --  Connect_Socket should take a parameter of mode IN, not IN OUT
+      begin
+         pragma Debug
+           (O ("... trying " & Image (Remote_Addr)));
+         PolyORB.Sockets.Connect_Socket (Sock, Remote_Addr_Var);
+         return True;
+      exception
+         when Socket_Error =>
+            if Last then
+               raise;
+            else
+               return False;
+            end if;
+      end Try_One_Address;
+
+      Host_Name        : String renames Remote_Name.Host_Name;
+
    begin
       pragma Debug
-        (O ("connect socket" & Image (Sock)
-            & " to " & Image (Remote_Addr)));
-      PolyORB.Sockets.Connect_Socket (Sock, Remote_Addr);
+        (O ("connect socket" & Image (Sock)  & " to " & Image (Remote_Name)));
+
+      if Is_IP_Address (Host_Name) then
+         if not Try_One_Address
+           ((Family => Family_Inet,
+             Addr   => Inet_Addr (Host_Name),
+             Port   => Remote_Name.Port), Last => True)
+         then
+            --  Should never happen, Last = True so in case of error,
+            --  an exception is expected.
+
+            raise Program_Error;
+         end if;
+      else
+         declare
+            Host_Entry       : constant Host_Entry_Type :=
+                                 Get_Host_By_Name (Host_Name);
+            Addresses_Len : constant Natural :=
+                              PolyORB.Sockets.Addresses_Length (Host_Entry);
+         begin
+            --  Iterate over all addresses associated with name
+
+            for J in 1 .. Addresses_Len loop
+               if Try_One_Address
+                 ((Family => Family_Inet,
+                   Addr   => Addresses (Host_Entry, J),
+                   Port   => Remote_Name.Port),
+                  Last => J = Addresses_Len)
+               then
+                  --  Success
+
+                  return;
+               end if;
+            end loop;
+
+            --  Never reached, last iteration above must either exit
+            --  succesfully or raise Socket_Error.
+
+            raise Program_Error;
+         end;
+      end if;
+
    exception
       when E : PolyORB.Sockets.Socket_Error =>
-         O ("connect to " & Image (Remote_Addr) & " failed: "
+         O ("connect to " & Host_Name & " failed: "
             & Ada.Exceptions.Exception_Message (E), Notice);
          raise;
    end Connect_Socket;
+
+   -----------
+   -- Image --
+   -----------
+
+   function Image (SN : Socket_Name) return String is
+   begin
+      return SN.Host_Name & ":" & Trim (SN.Port'Img, Left);
+   end Image;
+
+   -------------------
+   -- Is_IP_Address --
+   -------------------
+
+   function Is_IP_Address (Name : String) return Boolean is
+   begin
+      for J in Name'Range loop
+         if Name (J) /= '.'
+           and then Name (J) not in '0' .. '9'
+         then
+            return False;
+         end if;
+      end loop;
+
+      return True;
+   end Is_IP_Address;
 
    ---------------------
    -- Marshall_Socket --
@@ -76,14 +193,14 @@ package body PolyORB.Utils.Sockets is
 
    procedure Marshall_Socket
      (Buffer : access Buffer_Type;
-      Sock   : Sock_Addr_Type)
+      Sock   : Socket_Name)
    is
    begin
-      --  Marshalling the host name as a string
+      --  Marshall the host name as a string
 
-      Marshall_Latin_1_String (Buffer, Image (Sock.Addr));
+      Marshall_Latin_1_String (Buffer, Sock.Host_Name);
 
-      --  Marshalling the port
+      --  Marshall the port
 
       Marshall (Buffer, Types.Unsigned_Short (Sock.Port));
    end Marshall_Socket;
@@ -92,15 +209,13 @@ package body PolyORB.Utils.Sockets is
    -- Unmarshall_Socket --
    -----------------------
 
-   procedure Unmarshall_Socket
-    (Buffer : access Buffer_Type;
-     Sock   :    out Sock_Addr_Type)
+   function Unmarshall_Socket
+     (Buffer : access Buffer_Type) return Socket_Name
    is
-      Addr_Image : constant String := Unmarshall_Latin_1_String (Buffer);
-      Port : constant Types.Unsigned_Short := Unmarshall (Buffer);
+      Host_Name : constant String := Unmarshall_Latin_1_String (Buffer);
+      Port      : constant Types.Unsigned_Short := Unmarshall (Buffer);
    begin
-      Sock.Addr := String_To_Addr (Addr_Image);
-      Sock.Port := Port_Type (Port);
+      return Host_Name + Port_Type (Port);
    end Unmarshall_Socket;
 
    --------------------

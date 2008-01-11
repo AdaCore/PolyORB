@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -74,11 +74,16 @@ package body PolyORB.Transport.Datagram.Sockets_Out is
    procedure Create
      (TE   : in out Socket_Out_Endpoint;
       S    :        Socket_Type;
-      Addr :        Sock_Addr_Type)
+      Addr :        Utils.Sockets.Socket_Name)
    is
    begin
       TE.Socket := S;
-      TE.Addr := Addr;
+      if Utils.Sockets.Is_IP_Address (Addr.Host_Name) then
+         TE.Addr.Addr := Inet_Addr (Addr.Host_Name);
+      else
+         TE.Addr.Addr := Addresses (Get_Host_By_Name (Addr.Host_Name), 1);
+      end if;
+      TE.Addr.Port := Addr.Port;
       Create (TE.Mutex);
    end Create;
 

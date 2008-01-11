@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -46,6 +46,7 @@ package body PolyORB.Transport.Datagram.Sockets_In is
 
    use PolyORB.Asynch_Ev.Sockets;
    use PolyORB.Log;
+   use PolyORB.Utils.Sockets;
 
    package L is new PolyORB.Log.Facility_Log
      ("polyorb.transport.datagram.sockets_in");
@@ -73,6 +74,9 @@ package body PolyORB.Transport.Datagram.Sockets_In is
       if Update_Addr then
          SAP.Addr := Get_Socket_Name (Socket);
          if SAP.Addr.Addr = Any_Inet_Addr then
+            --  ??? Should keep Host_Name unresolved here, see comments in
+            --  PolyORB.Transport.Connected.Sockets.Create.
+
             SAP.Addr.Addr := Addresses (Get_Host_By_Name (Host_Name), 1);
          end if;
          Address := SAP.Addr;
@@ -105,9 +109,11 @@ package body PolyORB.Transport.Datagram.Sockets_In is
    -- Address_Of --
    ----------------
 
-   function Address_Of (SAP : Socket_In_Access_Point) return Sock_Addr_Type is
+   function Address_Of
+     (SAP : Socket_In_Access_Point) return Utils.Sockets.Socket_Name
+   is
    begin
-      return SAP.Addr;
+      return Image (SAP.Addr.Addr) + SAP.Addr.Port;
    end Address_Of;
 
    ------------
