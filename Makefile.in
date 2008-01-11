@@ -69,10 +69,12 @@ GNATMAKE		:= @GNATMAKE@
 GNATMAKE_FOR_TARGET	:= @GNATMAKE_FOR_TARGET@
 # ??? distinguish between native tools, cross tools and cross libs
 
-CFLAGS		:= @CFLAGS@
-ADAFLAGS	:= @ADAFLAGS@
-CPPFLAGS	:= @CPPFLAGS@
-GNATMAKE_FLAGS	:= @STYLE_SWITCH@ -gnatwa@WARNINGS_MODE@ ${ADAFLAGS} @EXTRA_GNATMAKE_FLAGS@
+CFLAGS                  := @CFLAGS@
+ADAFLAGS                := @ADAFLAGS@
+CPPFLAGS                := @CPPFLAGS@
+GNATMAKE_FLAGS          := @STYLE_SWITCH@ -gnatwa@WARNINGS_MODE@ ${ADAFLAGS} ${PARALLEL_GNATMAKE_FLAGS} ${EXTRA_GNATMAKE_FLAGS}
+PARALLEL_GNATMAKE_FLAGS := -j4
+EXTRA_GNATMAKE_FLAGS    := @EXTRA_GNATMAKE_FLAGS@
 # EXTRA_GNATMAKE_FLAGS are user-provided, empty by default (typically
 # used to specify a non-default --RTS switch).
 
