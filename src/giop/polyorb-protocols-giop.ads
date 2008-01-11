@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -66,6 +66,7 @@ package PolyORB.Protocols.GIOP is
    --  ??? How about other minor versions
 
    type GIOP_Version is (GIOP_V1_0, GIOP_V1_1, GIOP_V1_2);
+   --  Must be kept in ascending order
 
    To_GIOP_Version : constant array (0 .. 2) of GIOP_Version
      := (0 => GIOP_V1_0, 1 => GIOP_V1_1, 2 => GIOP_V1_2);
@@ -222,10 +223,12 @@ private
    GIOP_Default_Version : constant GIOP_Version := GIOP_V1_2;
 
    procedure Get_GIOP_Implem
-     (Sess    : access GIOP_Session;
-      Version :        GIOP_Version);
+     (Sess            : access GIOP_Session;
+      Version         : GIOP_Version;
+      Allow_Downgrade : Boolean := False);
    --  Retrieve a GIOP_Implem for the specified GIOP Version, and associate
-   --  it with Sess.
+   --  it with Sess. If Allow_Downgrade is True, and the given Version is
+   --  unavailable, try a lower version.
 
    --------------------------
    -- GIOP message context --

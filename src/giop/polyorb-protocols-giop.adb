@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -261,7 +261,10 @@ package body PolyORB.Protocols.GIOP is
 
                Get_Pending_Request
                  (Sess, Sess.MCtx.Request_Id, Current_Request,
-                  Success, False);
+                  Success, Remove => False);
+               pragma Assert (Success);
+               --  ??? case of a server sending a bogus reply with no
+               --  matching pending request?
 
                declare
                   Static_Buffer :
@@ -382,13 +385,15 @@ package body PolyORB.Protocols.GIOP is
 
       if Sess.Implem = null then
          --  Initialize session with GIOP version specified by the profile
-         --  used to create the session.
+         --  used to create the session. As a client, we are allowed to use
+         --  a lower protocol version than the one advertised by the server.
 
          Get_GIOP_Implem
            (Sess,
             Get_GIOP_Version
               (GIOP_Profile_Type'Class
-                (Get_Profile (Sess.Dependent_Binding_Object).all)));
+                (Get_Profile (Sess.Dependent_Binding_Object).all)),
+            Allow_Downgrade => True);
       end if;
 
       Expect_GIOP_Header (Sess);
@@ -910,17 +915,30 @@ package body PolyORB.Protocols.GIOP is
    ---------------------
 
    procedure Get_GIOP_Implem
-     (Sess    : access GIOP_Session;
-      Version :        GIOP_Version)
+     (Sess            : access GIOP_Session;
+      Version         : GIOP_Version;
+      Allow_Downgrade : Boolean := False)
    is
       use PolyORB.Utils;
-
+      Use_Version : GIOP_Version := Version;
    begin
       pragma Debug (O ("Looking up implementation for "
                        & GIOP_Version'Image (Version)));
 
-      Sess.Implem := Sess.Conf.GIOP_Implems (Version);
-      Initialize_Session (Sess.Implem, Sess);
+      loop
+         Sess.Implem := Sess.Conf.GIOP_Implems (Use_Version);
+         exit when Sess.Implem /= null
+           or else not Allow_Downgrade
+           or else Use_Version = Sess.Conf.GIOP_Implems'First;
+         Use_Version := GIOP_Version'Pred (Use_Version);
+      end loop;
+
+      if Sess.Implem /= null then
+         pragma Debug (O ("... using version " & Use_Version'Img));
+         Initialize_Session (Sess.Implem, Sess);
+      else
+         raise GIOP_Error with "could not find a suitable GIOP version";
+      end if;
    end Get_GIOP_Implem;
 
    -------------------------
