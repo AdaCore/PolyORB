@@ -112,7 +112,8 @@ package body PolyORB.Utils.Sockets is
 
    begin
       pragma Debug
-        (O ("connect socket" & Image (Sock)  & " to " & Image (Remote_Name)));
+        (O ("connect socket" & Image (Sock)
+            & " to " & Image (Remote_Name)));
 
       if Is_IP_Address (Host_Name) then
          if not Try_One_Address
