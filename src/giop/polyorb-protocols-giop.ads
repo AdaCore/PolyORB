@@ -128,7 +128,6 @@ package PolyORB.Protocols.GIOP is
    type GIOP_State is
      (Not_Initialized,        --  Session initialized
       Expect_Header,          --  Waiting for a new message header
-      Expect_Request_Id,      --  Waiting for the request Id of a reply
       Expect_Body,            --  Waiting for body message
       Waiting_Unmarshalling   --  Waiting argument unsmarshalling
       );

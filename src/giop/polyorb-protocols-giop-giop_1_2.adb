@@ -252,7 +252,8 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
                Request_Id       : Types.Unsigned_Long;
                Reply_Status     : Reply_Status_Type;
                Service_Contexts : QoS_GIOP_Service_Contexts_Parameter_Access;
-
+               Success          : Boolean;
+               Current_Request  : Pending_Request;
             begin
                if CDR_Position (Sess.Buffer_In) = GIOP_Header_Size then
                   Request_Id := Unmarshall (Sess.Buffer_In);
@@ -265,6 +266,37 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
                Reply_Status := Unmarshall (Sess.Buffer_In);
                Unmarshall_Service_Context_List
                  (Sess.Buffer_In, Service_Contexts);
+               pragma Debug (O (Request_Id'Img));
+
+               Get_Pending_Request
+                 (Sess'Access, Request_Id, Current_Request,
+                  Success, Remove => False);
+               pragma Assert (Success);
+               --  ??? case of a server sending a bogus reply with no
+               --  matching pending request?
+
+               declare
+                  Static_Buffer :
+                    constant QoS_GIOP_Static_Buffer_Parameter_Access :=
+                    QoS_GIOP_Static_Buffer_Parameter_Access
+                    (Extract_Request_Parameter
+                     (PolyORB.QoS.GIOP_Static_Buffer, Current_Request.Req));
+                  Buffer : Buffer_Access;
+
+               begin
+                  --  In the case of a reply message, use request's
+                  --  internal buffer if available to store the
+                  --  result. This will allow its direct marshalling
+                  --  by the skeleton later.
+
+                  if Static_Buffer /= null then
+                     Buffer := Sess.Buffer_In;
+                     Release_Contents (Static_Buffer.Buffer.all);
+                     Sess.Buffer_In := Static_Buffer.Buffer;
+                     Static_Buffer.Buffer := Buffer;
+                  end if;
+               end;
+
                Common_Reply_Received
                  (Sess'Access, Request_Id, Reply_Status, Service_Contexts);
             end;
