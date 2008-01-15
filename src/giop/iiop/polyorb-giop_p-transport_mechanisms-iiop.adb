@@ -397,7 +397,7 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.IIOP is
 
             Right_Addresses :
             while not Last (R_Iter) loop
-               if Value (L_Iter).all = Value (R_Iter).all then
+               if Value (L_Iter).all.all = Value (R_Iter).all.all then
                   return True;
                end if;
                Next (R_Iter);
