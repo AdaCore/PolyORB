@@ -311,7 +311,7 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.IIOP is
 
             begin
                while not Last (Iter_2) loop
-                  if Value (Iter_1).all = Value (Iter_2).all then
+                  if Value (Iter_1).all.all = Value (Iter_2).all.all then
                      return True;
                   end if;
 
