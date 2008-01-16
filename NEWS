@@ -41,6 +41,10 @@ See the features-24 file.
 Bug fixes
 ---------
 
+A PolyORB partition configured to use GIOP version 1.0 only was unable
+to connect to a server providing an IIOP 1.2 profile. The GIOP stack
+now gracefully degrades the connection to GIOP 1.0. (H110-024)
+
 Host names are now kept unresolved in profiles. This allows a partition
 to unmarshall, process and marshall back an object reference even when
 the host name contained in the reference cannot be resolved to an IP
