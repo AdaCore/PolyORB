@@ -91,6 +91,9 @@ all: all-compilers perfect-hash polyorb-idl-stamps do-gnatmake
 IDLAC_bin := compilers/@IDLAC@/@IDLAC@
 IDLAC_WRAPPER := ${top_builddir}/contrib/idlac_wrapper/idlac_wrapper
 
+# IDLAC_bin is rebuilt as part of the all-compilers target
+${IDLAC_bin}: all-compilers
+
 # Path separator -- ":" or ";" for Unix/Windows.
 # Note that @PATH_SEPARATOR@ is : for cygwin, so we need to adjust that.
 @WINDOWS_FALSE@PATH_SEP := @PATH_SEPARATOR@
@@ -573,6 +576,7 @@ ${C_OBJECTS}: %.o: ${top_srcdir}/%.c
 # with idlac, and make the test target depend on building the idl, like this:
 # ${current_dir}<...>.idl-stamp: idlac_flags := <...>
 # ${test_target}: ${current_dir}<...>.idl-stamp
+# Note that ${current_dir} contains a trailing slash.
 
 # local.gpr should contain:
 # with "polyorb", "test_common";
@@ -603,25 +607,19 @@ test_idl_stamps := ${patsubst %.idl,%.idl-stamp,${test_idls}}
 self_idl_stamps += ${test_idl_stamps}
 
 # Macro to invoke at the top of each Makefile.local.
-# This defines macros based on the name of the test directory.
-# ???There's much duplication, here; I'm not sure why we can't say 
-# current_dir := ${dir ${current_makefile}}
-# for example.
+# current_dir will have been defined automatically (see configure.ac).
+
 define define_test
-current_makefile := ${patsubst ${top_srcdir}/%,%,${word ${words ${MAKEFILE_LIST}},${MAKEFILE_LIST}}}
-current_dir := ${dir ${patsubst ${top_srcdir}/%,%,${word ${words ${MAKEFILE_LIST}},${MAKEFILE_LIST}}}}
-test_target := ${dir ${patsubst ${top_srcdir}/%,%,${word ${words ${MAKEFILE_LIST}},${MAKEFILE_LIST}}}}build-test
-test_targets += ${dir ${patsubst ${top_srcdir}/%,%,${word ${words ${MAKEFILE_LIST}},${MAKEFILE_LIST}}}}build-test
+test_target := ${current_dir}build-test
+test_targets += ${test_target}
 endef
 
 # Include all the Makefile.local files. Each one invokes define_test, which adds
 # the test name to test_targets, so test_targets ends up being a list of all
 # tests.
-test_makefiles := ${shell find ${test_dirs} -name 'Makefile.local' 2> /dev/null}
-ifneq (${strip ${test_makefiles}},)
-  include ${test_makefiles}
-endif
-current_makefile :=
+@LOCAL_MAKEFILES@
+
+# Clean up current_dir and test_target
 current_dir :=
 test_target :=
 
@@ -842,7 +840,7 @@ install: all
 
 force::
 
-.PHONY: clean
+.PHONY: clean distclean
 clean:
 	${RM} -f ${all_idl_stamps} ./cos/ir/orb.idl-stamp # ???and more
 	${RM} -f ${idlac_output_files}
@@ -869,6 +867,9 @@ clean:
 	${RM} -f tools/po_catref/polyorb-giop_p-code_sets-description_data.ads-stamp
 	${RM} -f tools/po_dumpir/po_dumpir
 	${RM} -f tools/po_names/po_names
+
+distclean: clean
+	${RM} -f config.*
 
 .SUFFIXES: .c .o
 

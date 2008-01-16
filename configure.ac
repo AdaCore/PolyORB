@@ -708,6 +708,20 @@ AC_SUBST_FILE(PROTO_SERVER_WITHS)
 AC_SUBST_FILE(PO_CATREF_WITHS)
 AC_SUBST_FILE(PO_CREATEREF_WITHS)
 
+#################################################
+# Build code fragments to be substituted in
+#   Makefile
+#################################################
+
+LOCAL_MAKEFILES=config.local.makefiles
+
+(cd ${srcdir} && find . -name Makefile.local) | sed "s,^\./,," | \
+while read mklocal; do
+  echo "current_dir := `dirname ${mklocal}`/"
+  echo "include \$(top_srcdir)/${mklocal}"
+done > ${LOCAL_MAKEFILES}
+AC_SUBST_FILE(LOCAL_MAKEFILES)
+
 ##########################################
 # Output generated files
 ##########################################
