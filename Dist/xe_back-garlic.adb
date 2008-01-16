@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1995-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNATDIST is  free software;  you  can redistribute  it and/or  modify it --
 -- under terms of the  GNU General Public License  as published by the Free --
@@ -1205,7 +1205,8 @@ package body XE_Back.GARLIC is
 
       function Try_Prefix (Prefix : String) return Boolean;
       --  Try to use the given Prefix, return True if it is valid and
-      --  contains a GARLIC installation.
+      --  contains a GARLIC installation. After successful return, command
+      --  line scanning is in the "-largs" state.
 
       function Try_Prefix (Prefix : String) return Boolean is
          GARLIC_Dir : constant String := Prefix & Directory_Separator
@@ -1215,12 +1216,15 @@ package body XE_Back.GARLIC is
          if Prefix'Length = 0 or else not Is_Directory (GARLIC_Dir) then
             return False;
          end if;
-         Scan_Dist_Arg ("-I" & GARLIC_Dir);
+         Scan_Dist_Arg ("-margs");
+         Scan_Dist_Arg ("-aI" & GARLIC_Dir);
+         Scan_Dist_Arg ("-aL" & GARLIC_Dir);
+         Scan_Dist_Arg ("-largs");
+         Scan_Dist_Arg ("-L" & GARLIC_Dir);
          return True;
       end Try_Prefix;
 
    begin
-      Scan_Dist_Arg ("-margs");
       declare
          Runtime_Prefix : constant String := XE_Defs.Get_Dist_Prefix;
          Compile_Prefix : constant String := XE_Defs.Defaults.Default_Prefix;
@@ -1233,7 +1237,6 @@ package body XE_Back.GARLIC is
             raise Fatal_Error;
          end if;
       end;
-      Scan_Dist_Arg ("-largs");
       Scan_Dist_Arg ("-lgarlic");
    end Set_PCS_Dist_Flags;
 
