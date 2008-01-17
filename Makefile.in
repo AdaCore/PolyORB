@@ -91,6 +91,9 @@ all: all-compilers perfect-hash polyorb-idl-stamps do-gnatmake
 IDLAC_bin := compilers/@IDLAC@/@IDLAC@
 IDLAC_WRAPPER := ${top_builddir}/contrib/idlac_wrapper/idlac_wrapper
 
+# Cancel build-in implicit rule
+%: %.o
+
 # IDLAC_bin is rebuilt as part of the all-compilers target
 ${IDLAC_bin}: all-compilers
 
