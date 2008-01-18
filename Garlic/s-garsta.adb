@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1996-2006 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- GARLIC is free software;  you can redistribute it and/or modify it under --
 -- terms of the  GNU General Public License  as published by the Free Soft- --
@@ -130,6 +130,8 @@ package body System.Garlic.Startup is
 
    Performed       : Boolean;
 
+   Heart_Initialized : Boolean := False;
+
 begin
 
    pragma Debug (D ("Entering partition startup phase"));
@@ -158,6 +160,7 @@ begin
 
    System.Garlic.Streams.Initialize;
    System.Garlic.Heart.Initialize;
+   Heart_Initialized := True;
    System.Garlic.Partitions.Initialize;
    System.Garlic.Group.Initialize;
 
@@ -410,6 +413,12 @@ begin
    pragma Debug (D ("Startup phase terminated"));
 
 exception when others =>
-   Heart.Activate_Shutdown;
+   --  Do not attempt to shut down GARLIC if initialization was aborted
+   --  before Heart was started (otherwise Soft_Links might not have been
+   --  set up yet).
+
+   if Heart_Initialized then
+      Heart.Activate_Shutdown;
+   end if;
    raise;
 end System.Garlic.Startup;
