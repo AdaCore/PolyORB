@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2006-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2006-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -46,5 +46,5 @@ package body PolyORB.Partition_Elaboration is
    end Full_Launch;
 
 begin
-   raise Program_Error;
+   raise Program_Error with "dummy version of polyorb-partition_elaboration";
 end PolyORB.Partition_Elaboration;
