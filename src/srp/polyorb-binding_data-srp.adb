@@ -219,8 +219,13 @@ package body PolyORB.Binding_Data.SRP is
       P  : access Profile_Type'Class)
       return Boolean is
    begin
-      return P.all in SRP_Profile_Type
-        and then SRP_Profile_Type (P.all).Address = PF.Address;
+      if P.all in SRP_Profile_Type
+        and then SRP_Profile_Type (P.all).Address = PF.Address
+      then
+         P.Known_Local := True;
+         return True;
+      end if;
+      return False;
    end Is_Local_Profile;
 
    -----------

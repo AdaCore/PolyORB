@@ -344,8 +344,13 @@ package body PolyORB.Binding_Data.SOAP is
    is
       use type PolyORB.Sockets.Sock_Addr_Type;
    begin
-      return P.all in SOAP_Profile_Type
-        and then SOAP_Profile_Type (P.all).Address = PF.Address;
+      if P.all in SOAP_Profile_Type
+        and then SOAP_Profile_Type (P.all).Address = PF.Address
+      then
+         P.Known_Local := True;
+         return True;
+      end if;
+      return False;
    end Is_Local_Profile;
 
    --------------------------------

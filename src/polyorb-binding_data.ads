@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -155,6 +155,11 @@ package PolyORB.Binding_Data is
    --  True iff P designates an object that can be contacted at the access
    --  point associated with PF.
 
+   function Is_Local_Profile (P : Profile_Type'Class) return Boolean;
+   --  True if a previous call to Is_Local_Profile (two-argument version)
+   --  has previously returned True (optimization, used to avoid traversing
+   --  the list of all profile factories again).
+
    function Image (Prof : Profile_Type) return String is abstract;
    --  Used for debugging purposes
 
@@ -227,6 +232,11 @@ private
       Continuation : PolyORB.Smart_Pointers.Ref;
       --  If the profile has been bound, this component designates its
       --  continuation (which is either a local servant, or a binding object).
+
+      Known_Local : Boolean := False;
+      --  Set True by Is_Local_Profile when it is determined that this profile
+      --  is local.
+
    end record;
 
    type Profile_Factory is abstract tagged limited null record;

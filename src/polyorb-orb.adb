@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -631,7 +631,7 @@ package body PolyORB.ORB is
       P   : access Binding_Data.Profile_Type'Class) return Boolean
    is
    begin
-      if P.all in Binding_Data.Local.Local_Profile_Type then
+      if Binding_Data.Is_Local_Profile (P.all) then
          return True;
       end if;
 
