@@ -1218,7 +1218,7 @@ package body XE_Back.GARLIC is
          end if;
          Scan_Dist_Arg ("-margs");
          Scan_Dist_Arg ("-aI" & GARLIC_Dir);
-         Scan_Dist_Arg ("-aL" & GARLIC_Dir);
+         Scan_Dist_Arg ("-aO" & GARLIC_Dir);
          Scan_Dist_Arg ("-largs");
          Scan_Dist_Arg ("-L" & GARLIC_Dir);
          return True;
