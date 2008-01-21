@@ -447,9 +447,6 @@ PRJ_GNATMAKE_FLAGS :=
 # This variable is used to pass additional per-project command line switches
 # to gnatmake.
 
-# Note: The "-" at the beginning of ADA_PROJECT_PATH avoids searching the
-# standard installed projects (which might have an incorrect version of
-# polyorb.gpr, for example).
 .PHONY: ${PROJECT_FILES}
 ${PROJECT_FILES}: %.gpr: \
     ${MKDIR_FLAGS} \
@@ -458,7 +455,7 @@ ${PROJECT_FILES}: %.gpr: \
     build-gen_codeset \
     src/giop/polyorb-giop_p-code_sets-data.ads-stamp \
     tools/po_catref/polyorb-giop_p-code_sets-description_data.ads-stamp
-	ADA_PROJECT_PATH="-${PATH_SEP}${top_builddir}/projects${PATH_SEP}${top_srcdir}/projects${PATH_SEP}$$ADA_PROJECT_PATH" \
+	ADA_PROJECT_PATH="${top_builddir}/projects${PATH_SEP}${top_srcdir}/projects${PATH_SEP}$$ADA_PROJECT_PATH" \
 	  ${GNATMAKE_FOR_TARGET} -P $@ ${GNATMAKE_FLAGS} ${PRJ_GNATMAKE_FLAGS}
 
 .PHONY: libpolyorb-corba-cos-event-impl.a
@@ -633,7 +630,7 @@ test_targets := ${sort ${test_targets}}
 
 .PHONY: ${test_targets}
 ${test_targets}: %/build-test:
-	ADA_PROJECT_PATH="-${PATH_SEP}${top_builddir}/projects${PATH_SEP}${top_srcdir}/projects${PATH_SEP}$$ADA_PROJECT_PATH" \
+	ADA_PROJECT_PATH="${top_builddir}/projects${PATH_SEP}${top_srcdir}/projects${PATH_SEP}$$ADA_PROJECT_PATH" \
 	  ${GNATMAKE} "-XTest_Dir=$*" -P ${top_srcdir}/$*/local.gpr ${GNATMAKE_FLAGS}
 
 # Set active_tests to a subset of test_targets -- remove the ones that are for
