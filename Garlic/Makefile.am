@@ -267,7 +267,7 @@ install-data-local: all-local install-dirs-local install-extra-libs
 			$(CP) $(CP_PRESERVE) $$i $(GARLIC)/;\
 		fi;\
 	done
-	@$(RM) -f $(GARLIC)/s-garela.ali
+	@$(RM) -f $(GARLIC)/s-garela.ali $(GARLIC)/s-gaprco.ali $(GARLIC)/s-gastco.ali
 	$(AR) cq $(GARLIC)/libgarlic.a $(subst s-stratt.o,,$(OBJECTS))
 	$(RANLIB) $(GARLIC)/libgarlic.a
 	chmod a+r $(GARLIC)/*
