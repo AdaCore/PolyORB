@@ -37,8 +37,8 @@ eval "$DOLIST" | while read f; do
   awk '
 /pragma Debug/ { pragma_debug_seen = 1; }
 pragma_debug_seen && /pragma Unreferenced/ {
-  sub (/pragma Unreferenced.*--/, "--");
   pragma_debug_seen = 0;
+  next;
 }
 pragma_debug_seen && /\(O1/ { sub (/\(O1/, "(C1, O1"); pragma_debug_seen = 0; }
 pragma_debug_seen && /\(O2/ { sub (/\(O2/, "(C2, O2"); pragma_debug_seen = 0; }
