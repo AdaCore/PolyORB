@@ -92,8 +92,12 @@ package body PolyORB.Utils.Sockets is
         (Remote_Addr : Sock_Addr_Type; Last : Boolean) return Boolean
       is
          Remote_Addr_Var : Sock_Addr_Type := Remote_Addr;
-         --  WAG:62
-         --  Connect_Socket should take a parameter of mode IN, not IN OUT
+         pragma Warnings (Off, Remote_Addr_Var); --  WAG:61
+         --  Connect_Socket should take a parameter of mode IN, not IN OUT.
+         --  This is fixed in GNAT 6.2, and we can do away with this variable
+         --  when earlier versions aren't supported anymore. In the meantime,
+         --  we need to keep the variable, and for 6.2 and later compilers we
+         --  kill the "variable not modified" warning.
       begin
          pragma Debug
            (O ("... trying " & Image (Remote_Addr)));
