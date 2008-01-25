@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1996-2006 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- GARLIC is free software;  you can redistribute it and/or modify it under --
 -- terms of the  GNU General Public License  as published by the Free Soft- --
@@ -319,12 +319,11 @@ package body System.Garlic.Protocols.Tcp is
 
    function Do_Connect (Sock_Addr : Sock_Addr_Type) return Socket_Type is
       Peer : Socket_Type    := No_Socket;
-      Addr : Sock_Addr_Type := Sock_Addr;
 
    begin
       begin
          Create_Socket (Peer);
-         Connect_Socket (Peer, Addr);
+         Connect_Socket (Peer, Sock_Addr);
       exception when Socket_Error =>
          pragma Debug (D ("Cannot connect to " & Image (Sock_Addr)));
          if Peer /= No_Socket then
