@@ -1548,6 +1548,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
       Received_Flags : Types.Octet;
       Address_Disp   : Addressing_Disposition;
       Sink           : Types.Octet;
+      pragma Unreferenced (Sink);
 
    begin
       pragma Debug (O ("Request_Id :" & MCtx.Request_Id'Img));
@@ -1579,11 +1580,8 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
       for J in 1 .. 3 loop
          Sink := Unmarshall (Buffer);
 
-         --  Ensure all bytes are equal to 0
-
-         if Sink /= 0 then
-            raise GIOP_Error;
-         end if;
+         --  Ignore unmarshalled value. Note that TAO may set these bytes to
+         --  non-zero values.
       end loop;
 
       --  Target Reference
