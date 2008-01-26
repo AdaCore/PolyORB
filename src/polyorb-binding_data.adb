@@ -123,7 +123,7 @@ package body PolyORB.Binding_Data is
       --  and Right. Same_Node is therefore a symmetric predicate.
 
       return Is_Colocated (Left, Right)
-        or else Is_Colocated (Right, Left);
+        or else Is_Colocated (Left => Right, Right => Left);
    end Same_Node;
 
    ---------------------
