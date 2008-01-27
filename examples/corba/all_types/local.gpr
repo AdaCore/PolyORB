@@ -14,6 +14,6 @@ project local is
 
    end Compiler;
 
-   for Main use ("client", "server", "dynclient", "client_moma", "ir_server");
+   for Main use ("client.adb", "server.adb", "dynclient.adb", "client_moma.adb", "ir_server.adb");
 
 end local;

@@ -14,6 +14,6 @@ project local is
 
    end Compiler;
 
-   for Main use ("test_driver");
+   for Main use ("test_driver.adb");
 
 end local;

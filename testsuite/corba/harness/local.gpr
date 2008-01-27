@@ -14,6 +14,6 @@ project local is
 
    end Compiler;
 
-   for Main use ("server_no_tasking", "server_no_tasking2", "server_thread_pool", "server_thread_pool_hahs", "server_thread_pool_lf", "server_thread_per_request", "server_thread_per_session", "client", "local");
+   for Main use ("server_no_tasking.adb", "server_no_tasking2.adb", "server_thread_pool.adb", "server_thread_pool_hahs.adb", "server_thread_pool_lf.adb", "server_thread_per_request.adb", "server_thread_per_session.adb", "client.adb", "local.adb");
 
 end local;

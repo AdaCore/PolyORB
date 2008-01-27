@@ -14,6 +14,6 @@ project local is
 
    end Compiler;
 
-   for Main use ("part1", "part2");
+   for Main use ("part1.adb", "part2.adb");
 
 end local;

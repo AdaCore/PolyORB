@@ -48,6 +48,6 @@ project tools_po_dumpir is
 
    end Compiler;
 
-   for Main use ("po_dumpir");
+   for Main use ("po_dumpir.adb");
 
 end tools_po_dumpir;

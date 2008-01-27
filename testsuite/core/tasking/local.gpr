@@ -14,6 +14,6 @@ project local is
 
    end Compiler;
 
-   for Main use ("test000", "test001", "test002", "test003");
+   for Main use ("test000.adb", "test001.adb", "test002.adb", "test003.adb");
 
 end local;

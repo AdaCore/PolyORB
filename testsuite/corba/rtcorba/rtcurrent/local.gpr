@@ -14,6 +14,6 @@ project local is
 
    end Compiler;
 
-   for Main use ("rtcurrent");
+   for Main use ("rtcurrent.adb");
 
 end local;
