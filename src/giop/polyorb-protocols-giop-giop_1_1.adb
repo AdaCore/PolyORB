@@ -549,7 +549,6 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
                      or Is_Set (Sync_Call_Back,   R.Req.Req_Flags);
       Oid           : constant Object_Id_Access :=
         Binding_Data.Get_Object_Key (R.Target_Profile.all);
-      Sink          : constant Types.Octet := 0;
    begin
       pragma Debug (C, O ("Sending request, Id :" & R.Request_Id'Img));
 
@@ -565,7 +564,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
       Marshall (Buffer, R.Request_Id);
       Marshall (Buffer, Resp_Exp);
       for J in 1 .. 3 loop
-         Marshall (Buffer, Sink);
+         Marshall (Buffer, Types.Octet'(0));
       end loop;
       Marshall
         (Buffer,
@@ -801,9 +800,8 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
       --  Reserved
       for I in 1 .. 3 loop
          Sink :=  Unmarshall (Buffer);
-         if Sink /= 0 then
-            raise GIOP_Error;
-         end if;
+         pragma Debug (C and then Sink /= 0,
+           O ("reserved byte in GIOP 1.1 header is non-zero"));
       end loop;
 
       declare
