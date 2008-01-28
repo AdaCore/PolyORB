@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -47,7 +47,6 @@ package body PolyORB.Binding_Objects is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
-   pragma Unreferenced (C); --  For conditional pragma Debug
 
    use PolyORB.Binding_Data;
 
@@ -67,7 +66,7 @@ package body PolyORB.Binding_Objects is
       Error : Error_Container;
 
    begin
-      pragma Debug (O ("Finalizing binding object."));
+      pragma Debug (C, O ("Finalizing binding object."));
 
       --  First remove the reference to this BO from its ORB so that is does
       --  not get reused while being finalized.
@@ -87,7 +86,7 @@ package body PolyORB.Binding_Objects is
       --  Destroy the transport endpoint at the bottom of the protocol stack
       --  (and all other components connected up).
 
-      pragma Debug (O ("Destroying protocol stack"));
+      pragma Debug (C, O ("Destroying protocol stack"));
       Transport.Destroy (X.Transport_Endpoint);
 
       --  Finalize the data (profile and annotations)
@@ -98,7 +97,7 @@ package body PolyORB.Binding_Objects is
 
       Destroy (X.Notepad);
 
-      pragma Debug (O ("RIP."));
+      pragma Debug (C, O ("RIP."));
    end Finalize;
 
    -------------------
@@ -156,7 +155,7 @@ package body PolyORB.Binding_Objects is
       Referenced_At : BO_Lists.Iterator)
    is
    begin
-      pragma Debug (O ("BO : Registering reference Information."));
+      pragma Debug (C, O ("BO : Registering reference Information."));
       BO.Referenced_In := Referenced_In;
       BO.Referenced_At := Referenced_At;
    end Register_Reference_Information;

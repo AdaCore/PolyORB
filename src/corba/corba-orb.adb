@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -67,7 +67,6 @@ package body CORBA.ORB is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
-   pragma Unreferenced (C); --  For conditional pragma Debug
 
    procedure Register_Initial_Reference
      (Identifier : ObjectId;
@@ -95,7 +94,7 @@ package body CORBA.ORB is
          Raise_Bad_Param (Default_Sys_Member);
 
       else
-         pragma Debug (O ("Registering " & Value (Value'First .. Pos - 1)
+         pragma Debug (C, O ("Registering " & Value (Value'First .. Pos - 1)
                           & " with " & Value (Pos + 1 .. Value'Last)));
 
          Register_Initial_Reference
@@ -151,7 +150,7 @@ package body CORBA.ORB is
          Initialize_World;
       end if;
 
-      pragma Debug (O ("Init: enter"));
+      pragma Debug (C, O ("Init: enter"));
 
       while Pos <= Length (Argv) loop
          declare
@@ -162,12 +161,12 @@ package body CORBA.ORB is
             Space_Index : Positive;
 
          begin
-            pragma Debug (O ("Processing " & Suffix));
+            pragma Debug (C, O ("Processing " & Suffix));
 
             if PolyORB.Utils.Has_Prefix (Suffix, ORB_Prefix) then
 
                pragma Debug
-                 (O ("Possible suffix is "
+                 (C, O ("Possible suffix is "
                      & Suffix (Suffix'First + ORB_Prefix'Length
                                .. Suffix'Last)));
 
@@ -197,7 +196,7 @@ package body CORBA.ORB is
 
                   begin
                      pragma Debug
-                       (O ("Try to initialize ("
+                       (C, O ("Try to initialize ("
                            & Suffix (Suffix'First + ORB_Prefix'Length
                                      .. Suffix'Last)
                            & "," & Value & ")"));
@@ -242,7 +241,7 @@ package body CORBA.ORB is
          Raise_Bad_Param (Default_Sys_Member);
       end if;
 
-      pragma Debug (O ("Init: leave"));
+      pragma Debug (C, O ("Init: leave"));
    end Init;
 
    ---------------------
@@ -445,10 +444,10 @@ package body CORBA.ORB is
       It : Iterator := First (Services_List);
 
    begin
-      pragma Debug (O ("List_Initial_Services: enter"));
+      pragma Debug (C, O ("List_Initial_Services: enter"));
 
       while not Last (It) loop
-         pragma Debug (O ("Service name: " & Value (It).all));
+         pragma Debug (C, O ("Service name: " & Value (It).all));
          IDL_SEQUENCE_ObjectId.Append
            (IDL_SEQUENCE_ObjectId.Sequence (Result),
             To_CORBA_String (Value (It).all));
@@ -457,7 +456,7 @@ package body CORBA.ORB is
 
       Deallocate (Services_List);
 
-      pragma Debug (O ("List_Initial_Services: end"));
+      pragma Debug (C, O ("List_Initial_Services: end"));
       return Result;
    end List_Initial_Services;
 
@@ -484,7 +483,7 @@ package body CORBA.ORB is
       Id : constant Standard.String := To_Standard_String (Identifier);
 
    begin
-      pragma Debug (O ("Register_Initial_Reference: " & Id));
+      pragma Debug (C, O ("Register_Initial_Reference: " & Id));
 
       --  If string id is empty or id is already registered,
       --  then raise InvalidName.
@@ -531,7 +530,7 @@ package body CORBA.ORB is
 
       Result : constant CORBA.Object.Ref := Resolve_Initial_References (Id);
    begin
-      pragma Debug (O ("Resolve_Initial_References: " & Id));
+      pragma Debug (C, O ("Resolve_Initial_References: " & Id));
 
       if Is_Nil (Result) then
          Raise_InvalidName (InvalidName_Members'(null record));

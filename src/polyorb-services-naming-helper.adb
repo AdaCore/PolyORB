@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -52,7 +52,6 @@ package body  PolyORB.Services.Naming.Helper is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
-   pragma Unreferenced (C); --  For conditional pragma Debug
 
    --------------
    -- From_Any --
@@ -62,7 +61,7 @@ package body  PolyORB.Services.Naming.Helper is
    is
       Result : constant PolyORB.Types.String := From_Any (Item);
    begin
-      pragma Debug (O ("From Any : (Istring)"));
+      pragma Debug (C, O ("From Any : (Istring)"));
       return Istring (Result);
    end From_Any;
 
@@ -72,7 +71,7 @@ package body  PolyORB.Services.Naming.Helper is
       Result_id : Istring;
       Result_kind : Istring;
    begin
-      pragma Debug (O ("From Any : (NameComponent)"));
+      pragma Debug (C, O ("From Any : (NameComponent)"));
       Index := Get_Aggregate_Element (Item,
                                       TC_Istring,
                                       PolyORB.Types.Unsigned_Long (0));
@@ -91,14 +90,14 @@ package body  PolyORB.Services.Naming.Helper is
       Result : constant SEQUENCE_NameComponent.Sequence :=
                  Helper.From_Any (Item);
    begin
-      pragma Debug (O ("From Any : (Name)"));
+      pragma Debug (C, O ("From Any : (Name)"));
       return Name (Result);
    end From_Any;
 
    function From_Any (Item : PolyORB.Any.Any)
       return BindingType
    is
-      pragma Debug (O ("From Any : (BindingType)"));
+      pragma Debug (C, O ("From Any : (BindingType)"));
       Index : constant PolyORB.Any.Any :=
                 Get_Aggregate_Element (Item,
                                        TypeCode.TC_Unsigned_Long,
@@ -115,7 +114,7 @@ package body  PolyORB.Services.Naming.Helper is
       Result_binding_name : Name;
       Result_binding_type : BindingType;
    begin
-      pragma Debug (O ("From Any : (Binding)"));
+      pragma Debug (C, O ("From Any : (Binding)"));
       Index := Get_Aggregate_Element (Item,
                                       Helper.TC_Name,
                                       PolyORB.Types.Unsigned_Long (0));
@@ -140,7 +139,7 @@ package body  PolyORB.Services.Naming.Helper is
                                            PolyORB.Types.Unsigned_Long (0)));
       Result : Element_Array (1 .. Integer (Count));
    begin
-      pragma Debug (O ("From Any : (SequenceBinding)"));
+      pragma Debug (C, O ("From Any : (SequenceBinding)"));
       for J in Result'Range loop
          Result (J) := Helper.From_Any
                          (Get_Aggregate_Element
@@ -161,7 +160,7 @@ package body  PolyORB.Services.Naming.Helper is
                                            PolyORB.Types.Unsigned_Long (0)));
       Result : Element_Array (1 .. Integer (Count));
    begin
-      pragma Debug (O ("From Any : (Sequence namecomponent)"));
+      pragma Debug (C, O ("From Any : (Sequence namecomponent)"));
       for J in Result'Range loop
          Result (J) := Helper.From_Any
                          (Get_Aggregate_Element
@@ -186,7 +185,7 @@ package body  PolyORB.Services.Naming.Helper is
    is
       Result : PolyORB.Any.Any := To_Any (PolyORB.Types.String (Item));
    begin
-      pragma Debug (O ("To Any : (Istring)"));
+      pragma Debug (C, O ("To Any : (Istring)"));
       PolyORB.Any.Set_Type (Result, TC_Istring);
       return Result;
    end To_Any;
@@ -196,7 +195,7 @@ package body  PolyORB.Services.Naming.Helper is
      return PolyORB.Any.Any is
       Result : PolyORB.Any.Any := Get_Empty_Any_Aggregate (TC_NameComponent);
    begin
-      pragma Debug (O ("To Any : (NameComponent)"));
+      pragma Debug (C, O ("To Any : (NameComponent)"));
       Add_Aggregate_Element (Result, To_Any (Item.id));
       Add_Aggregate_Element (Result, To_Any (Item.kind));
 
@@ -212,7 +211,7 @@ package body  PolyORB.Services.Naming.Helper is
       Result : PolyORB.Any.Any :=
                  Get_Empty_Any_Aggregate (TC_SEQUENCE_NameComponent);
    begin
-      pragma Debug (O ("To Any : (Sequence NameComponent)"));
+      pragma Debug (C, O ("To Any : (Sequence NameComponent)"));
       Add_Aggregate_Element
         (Result, To_Any (PolyORB.Types.Unsigned_Long (Length (Item))));
 
@@ -230,7 +229,7 @@ package body  PolyORB.Services.Naming.Helper is
       Result : PolyORB.Any.Any :=
         To_Any (SEQUENCE_NameComponent.Sequence (Item));
    begin
-      pragma Debug (O ("To Any : (Name)"));
+      pragma Debug (C, O ("To Any : (Name)"));
       Set_Type (Result, TC_Name);
       return Result;
    end To_Any;
@@ -242,7 +241,7 @@ package body  PolyORB.Services.Naming.Helper is
       Result : PolyORB.Any.Any :=
          Get_Empty_Any_Aggregate (TC_BindingType);
    begin
-      pragma Debug (O ("To Any : (BindingType)"));
+      pragma Debug (C, O ("To Any : (BindingType)"));
       Add_Aggregate_Element
          (Result,
           To_Any (PolyORB.Types.Unsigned_Long (BindingType'Pos (Item))));
@@ -256,7 +255,7 @@ package body  PolyORB.Services.Naming.Helper is
       Result : PolyORB.Any.Any :=
          Get_Empty_Any_Aggregate (TC_Binding);
    begin
-      pragma Debug (O ("To Any : (Binding)"));
+      pragma Debug (C, O ("To Any : (Binding)"));
       Add_Aggregate_Element
          (Result, Helper.To_Any (Item.binding_name));
       Add_Aggregate_Element
@@ -273,7 +272,7 @@ package body  PolyORB.Services.Naming.Helper is
       Result : PolyORB.Any.Any :=
                  Get_Empty_Any_Aggregate (TC_SEQUENCE_Binding);
    begin
-      pragma Debug (O ("To Any : (SequenceBinding)"));
+      pragma Debug (C, O ("To Any : (SequenceBinding)"));
       Add_Aggregate_Element
         (Result,
           To_Any (PolyORB.Types.Unsigned_Long (Length (Item))));
@@ -290,7 +289,7 @@ package body  PolyORB.Services.Naming.Helper is
      return PolyORB.Any.Any is
       Result : PolyORB.Any.Any := To_Any (SEQUENCE_Binding.Sequence (Item));
    begin
-      pragma Debug (O ("To Any : (BindingList)"));
+      pragma Debug (C, O ("To Any : (BindingList)"));
       Set_Type (Result, TC_BindingList);
       return Result;
    end To_Any;

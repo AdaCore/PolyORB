@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -62,12 +62,12 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
       then
          --  XXX Can we suppress the first test ?
 
-         pragma Debug (O1 ("Disable_Polling: Aborting polling task"));
+         pragma Debug (C1, O1 ("Disable_Polling: Aborting polling task"));
          PTI.Request_Abort_Polling (O.AEM_Infos (AEM_Index).TI.all);
          PolyORB.Asynch_Ev.Abort_Check_Sources
            (Selector (O.AEM_Infos (AEM_Index).TI.all).all);
 
-         pragma Debug (O1 ("Disable_Polling: waiting abort is complete"));
+         pragma Debug (C1, O1 ("Disable_Polling: waiting abort is complete"));
          O.AEM_Infos (AEM_Index).Polling_Abort_Counter
            := O.AEM_Infos (AEM_Index).Polling_Abort_Counter + 1;
 
@@ -76,7 +76,7 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
          O.AEM_Infos (AEM_Index).Polling_Abort_Counter
            := O.AEM_Infos (AEM_Index).Polling_Abort_Counter - 1;
 
-         pragma Debug (O1 ("Disable_Polling: aborting done"));
+         pragma Debug (C1, O1 ("Disable_Polling: aborting done"));
       end if;
    end Disable_Polling;
 
@@ -91,14 +91,14 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
       AEM_Index : constant Natural := Index (O, M);
 
    begin
-      pragma Debug (O1 ("Enable_Polling: enter"));
+      pragma Debug (C1, O1 ("Enable_Polling: enter"));
 
       if O.AEM_Infos (AEM_Index).Polling_Abort_Counter = 0
         and then O.Monitoring_Tasks (AEM_Index).Idle then
          --  Awake monitoring task
 
          O.Monitoring_Tasks (AEM_Index).Idle := False;
-         pragma Debug (O1 ("Enable_Polling: awake monitoring task"));
+         pragma Debug (C1, O1 ("Enable_Polling: awake monitoring task"));
          Signal (O.Monitoring_Tasks (AEM_Index).CV);
       end if;
    end Enable_Polling;
@@ -115,7 +115,7 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
       use type PolyORB.Tasking.Threads.Thread_Id;
 
    begin
-      pragma Debug (O1 ("Notify_Event: " & Event_Kind'Image (E.Kind)));
+      pragma Debug (C1, O1 ("Notify_Event: " & Event_Kind'Image (E.Kind)));
 
       case E.Kind is
 
@@ -125,7 +125,7 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
             begin
                --  A task completed polling on a monitor
 
-               pragma Debug (O1 ("End of check sources on monitor #"
+               pragma Debug (C1, O1 ("End of check sources on monitor #"
                                  & Natural'Image (AEM_Index)
                                  & Ada.Tags.External_Tag
                                  (O.AEM_Infos (AEM_Index).Monitor.all'Tag)));
@@ -149,7 +149,7 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
             begin
                if AEM_Index = 0 then
                   --  This monitor was not yet registered, register it
-                  pragma Debug (O1 ("Adding new monitor"));
+                  pragma Debug (C1, O1 ("Adding new monitor"));
 
                   for J in O.AEM_Infos'Range loop
                      if O.AEM_Infos (J).Monitor = null then
@@ -159,7 +159,7 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
                      end if;
                   end loop;
                end if;
-               pragma Debug (O1 ("Added monitor at index:" & AEM_Index'Img
+               pragma Debug (C1, O1 ("Added monitor at index:" & AEM_Index'Img
                                  & " " & Ada.Tags.External_Tag
                                  (O.AEM_Infos (AEM_Index).Monitor.all'Tag)));
 
@@ -217,7 +217,7 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
             for J in O.Monitoring_Tasks'Range loop
                if E.By_Task = Id (O.AEM_Infos (J).TI.all) then
 
-                  pragma Debug (O1 ("Job queued by monitoring task"));
+                  pragma Debug (C1, O1 ("Job queued by monitoring task"));
                   PJ.Queue_Job (O.Monitoring_Tasks (J).Job_Queue, E.Event_Job);
                   return;
                end if;
@@ -244,7 +244,7 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
                if not Job_Queued then
                   --  Default: Queue request to main job queue
 
-                  pragma Debug (O1 ("Queue Request_Job to default queue"));
+                  pragma Debug (C1, O1 ("Queue Request_Job to default queue"));
 
                   O.Number_Of_Pending_Jobs := O.Number_Of_Pending_Jobs + 1;
                   PJ.Queue_Job (O.Job_Queue, E.Request_Job);
@@ -277,12 +277,12 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
                        renames Selector (E.Requesting_Task.all);
 
                   begin
-                     pragma Debug (O1 ("About to abort block"));
+                     pragma Debug (C1, O1 ("About to abort block"));
 
                      pragma Assert (Sel /= null);
                      Abort_Check_Sources (Sel.all);
 
-                     pragma Debug (O1 ("Aborted."));
+                     pragma Debug (C1, O1 ("Aborted."));
                   end;
 
                when Idle =>
@@ -290,7 +290,7 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
                   --  We awake this task. It will then leave Idle
                   --  state and ask for rescheduling.
 
-                  pragma Debug (O1 ("Signal requesting task"));
+                  pragma Debug (C1, O1 ("Signal requesting task"));
 
                   Signal (Condition (E.Requesting_Task.all));
 
@@ -322,7 +322,7 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
 
             for J in O.AEM_Infos'Range loop
                if O.AEM_Infos (J).TI = null then
-                  pragma Debug (O1 ("Registered monitoring task"));
+                  pragma Debug (C1, O1 ("Registered monitoring task"));
                   O.AEM_Infos (J).TI := E.Registered_Task;
                end if;
             end loop;
@@ -336,7 +336,7 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
             Note_Task_Unregistered (O);
       end case;
 
-      pragma Debug (O2 (Status (O)));
+      pragma Debug (C2, O2 (Status (O)));
    end Notify_Event;
 
    -------------------
@@ -350,7 +350,7 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
       AEM_Index : Natural := 0;
 
    begin
-      pragma Debug (O1 ("Schedule_Task "
+      pragma Debug (C1, O1 ("Schedule_Task "
                     & PTI.Image (TI.all) & ": enter"));
 
       pragma Assert (PTI.State (TI.all) = Unscheduled);
@@ -369,8 +369,8 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
 
          Set_State_Terminated (TI.all);
 
-         pragma Debug (O1 ("Task is now terminated"));
-         pragma Debug (O2 (Status (O)));
+         pragma Debug (C1, O1 ("Task is now terminated"));
+         pragma Debug (C2, O2 (Status (O)));
 
       else
          for J in O.AEM_Infos'Range loop
@@ -383,7 +383,7 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
          if AEM_Index > 0 then
             --  Task is the monitoring task
 
-            pragma Debug (O1 ("Scheduling monitor task"));
+            pragma Debug (C1, O1 ("Scheduling monitor task"));
 
             if not PJ.Is_Empty (O.Monitoring_Tasks (AEM_Index).Job_Queue) then
                --  Process event on the monitor
@@ -413,8 +413,8 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
                   O.AEM_Infos (AEM_Index).Monitor,
                   O.AEM_Infos (AEM_Index).Polling_Timeout);
 
-               pragma Debug (O1 ("Task is now blocked"));
-               pragma Debug (O2 (Status (O)));
+               pragma Debug (C1, O1 ("Task is now blocked"));
+               pragma Debug (C2, O2 (Status (O)));
 
             else
                --  Go idle
@@ -425,8 +425,8 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
 
                O.Monitoring_Tasks (AEM_Index).Idle := True;
 
-               pragma Debug (O1 ("Task is now idle"));
-               pragma Debug (O2 (Status (O)));
+               pragma Debug (C1, O1 ("Task is now idle"));
+               pragma Debug (C2, O2 (Status (O)));
 
                Set_State_Idle
                  (TI.all, O.Monitoring_Tasks (AEM_Index).CV, O.ORB_Lock);
@@ -446,8 +446,8 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
 
                Set_State_Running (TI.all, PJ.Fetch_Job (O.Job_Queue));
 
-               pragma Debug (O1 ("Task is now running a job"));
-               pragma Debug (O2 (Status (O)));
+               pragma Debug (C1, O1 ("Task is now running a job"));
+               pragma Debug (C2, O2 (Status (O)));
 
             else
                O.Counters (Unscheduled) := O.Counters (Unscheduled) - 1;
@@ -459,8 +459,8 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
                   Insert_Idle_Task (O.Idle_Tasks, TI),
                   O.ORB_Lock);
 
-               pragma Debug (O1 ("Task is now idle"));
-               pragma Debug (O2 (Status (O)));
+               pragma Debug (C1, O1 ("Task is now idle"));
+               pragma Debug (C2, O2 (Status (O)));
 
             end if;
          end if;

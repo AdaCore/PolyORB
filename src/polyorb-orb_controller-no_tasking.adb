@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -84,7 +84,7 @@ package body PolyORB.ORB_Controller.No_Tasking is
 
    procedure Notify_Event (O : access ORB_Controller_No_Tasking; E : Event) is
    begin
-      pragma Debug (O1 ("Notify_Event: " & Event_Kind'Image (E.Kind)));
+      pragma Debug (C1, O1 ("Notify_Event: " & Event_Kind'Image (E.Kind)));
 
       case E.Kind is
 
@@ -94,7 +94,7 @@ package body PolyORB.ORB_Controller.No_Tasking is
             begin
                --  A task completed polling on a monitor
 
-               pragma Debug (O1 ("End of check sources on monitor #"
+               pragma Debug (C1, O1 ("End of check sources on monitor #"
                                  & Natural'Image (AEM_Index)
                                  & Ada.Tags.External_Tag
                                  (O.AEM_Infos (AEM_Index).Monitor.all'Tag)));
@@ -114,7 +114,7 @@ package body PolyORB.ORB_Controller.No_Tasking is
             begin
                if AEM_Index = 0 then
                   --  This monitor was not yet registered, register it
-                  pragma Debug (O1 ("Adding new monitor"));
+                  pragma Debug (C1, O1 ("Adding new monitor"));
 
                   for J in O.AEM_Infos'Range loop
                      if O.AEM_Infos (J).Monitor = null then
@@ -124,7 +124,7 @@ package body PolyORB.ORB_Controller.No_Tasking is
                      end if;
                   end loop;
                end if;
-               pragma Debug (O1 ("Added monitor at index:" & AEM_Index'Img
+               pragma Debug (C1, O1 ("Added monitor at index:" & AEM_Index'Img
                                  & " " & Ada.Tags.External_Tag
                                  (O.AEM_Infos (AEM_Index).Monitor.all'Tag)));
             end;
@@ -199,7 +199,7 @@ package body PolyORB.ORB_Controller.No_Tasking is
             Note_Task_Unregistered (O);
       end case;
 
-      pragma Debug (O2 (Status (O)));
+      pragma Debug (C2, O2 (Status (O)));
    end Notify_Event;
 
    -------------------
@@ -211,7 +211,7 @@ package body PolyORB.ORB_Controller.No_Tasking is
       TI :        PTI.Task_Info_Access)
    is
    begin
-      pragma Debug (O1 ("Schedule_Task: enter"));
+      pragma Debug (C1, O1 ("Schedule_Task: enter"));
 
       pragma Assert (PTI.State (TI.all) = Unscheduled);
 
@@ -229,8 +229,8 @@ package body PolyORB.ORB_Controller.No_Tasking is
 
          Set_State_Terminated (TI.all);
 
-         pragma Debug (O1 ("Task is now terminated"));
-         pragma Debug (O2 (Status (O)));
+         pragma Debug (C1, O1 ("Task is now terminated"));
+         pragma Debug (C2, O2 (Status (O)));
 
       elsif O.Number_Of_Pending_Jobs > 0 then
 
@@ -242,8 +242,8 @@ package body PolyORB.ORB_Controller.No_Tasking is
 
          Set_State_Running (TI.all, PJ.Fetch_Job (O.Job_Queue));
 
-         pragma Debug (O1 ("Task is now running a job"));
-         pragma Debug (O2 (Status (O)));
+         pragma Debug (C1, O1 ("Task is now running a job"));
+         pragma Debug (C2, O2 (Status (O)));
 
       else
          declare
@@ -263,12 +263,12 @@ package body PolyORB.ORB_Controller.No_Tasking is
                O.AEM_Infos (AEM_Index).Monitor,
                O.AEM_Infos (AEM_Index).Polling_Timeout);
 
-            pragma Debug (O1 ("Task is now blocked on monitor"
+            pragma Debug (C1, O1 ("Task is now blocked on monitor"
                               & Natural'Image (AEM_Index)
                               & " " & Ada.Tags.External_Tag
                               (O.AEM_Infos (AEM_Index).Monitor.all'Tag)));
 
-            pragma Debug (O2 (Status (O)));
+            pragma Debug (C2, O2 (Status (O)));
          end;
       end if;
    end Schedule_Task;

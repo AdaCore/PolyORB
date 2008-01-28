@@ -48,7 +48,6 @@ package body PolyORB.Binding_Data is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
-   pragma Unreferenced (C); --  For conditional pragma Debug
 
    ---------------------
    -- Destroy_Profile --
@@ -62,7 +61,7 @@ package body PolyORB.Binding_Data is
       pragma Assert (P /= null);
 
       pragma Debug
-        (O ("Destroying profile of type "
+        (C, O ("Destroying profile of type "
             & Ada.Tags.External_Tag (P'Tag)));
 
       Release (P.all);

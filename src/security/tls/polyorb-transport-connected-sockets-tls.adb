@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -60,7 +60,6 @@ package body PolyORB.Transport.Connected.Sockets.TLS is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
-   pragma Unreferenced (C); --  For conditional pragma Debug
 
    function Extract_TLS_Credentials
      (Credentials : Credentials_Ref)
@@ -109,10 +108,10 @@ package body PolyORB.Transport.Connected.Sockets.TLS is
            (Connected_Transport_Endpoint (TE.all)'Access);
 
          if TE.TLS_Socket /= No_TLS_Socket then
-            pragma Debug (O ("Closing socket"
+            pragma Debug (C, O ("Closing socket"
                              & PolyORB.Sockets.Image (TE.Socket)));
             Close_Socket (TE.TLS_Socket);
-            pragma Debug (O ("Closed socket"
+            pragma Debug (C, O ("Closed socket"
                              & PolyORB.Sockets.Image (TE.Socket)));
             TE.TLS_Socket := No_TLS_Socket;
             TE.Socket := No_Socket;
@@ -122,7 +121,7 @@ package body PolyORB.Transport.Connected.Sockets.TLS is
 
       exception
          when E : others =>
-            pragma Debug (O ("Close (Socket_Endpoint): got "
+            pragma Debug (C, O ("Close (Socket_Endpoint): got "
                              & Ada.Exceptions.Exception_Information (E)));
             null;
       end;
@@ -376,12 +375,12 @@ package body PolyORB.Transport.Connected.Sockets.TLS is
       procedure Send_Buffer is new Buffers.Send_Buffer (Socket_Send);
 
    begin
-      pragma Debug (O ("Write: enter"));
+      pragma Debug (C, O ("Write: enter"));
 
       --  Send_Buffer is not atomic, needs to be protected.
 
       Enter (TE.Mutex);
-      pragma Debug (O ("TE mutex acquired"));
+      pragma Debug (C, O ("TE mutex acquired"));
 
       begin
          Send_Buffer (Buffer);

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -52,7 +52,6 @@ package body PolyORB.ORB.No_Tasking is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
-   pragma Unreferenced (C); --  For conditional pragma Debug
 
    -----------------------------
    -- Handle_Close_Connection --
@@ -86,7 +85,7 @@ package body PolyORB.ORB.No_Tasking is
 
    begin
 
-      pragma Debug (O ("New client connection"));
+      pragma Debug (C, O ("New client connection"));
 
       Components.Emit_No_Reply (Component_Access (AC.TE),
          Connect_Confirmation'(null record));
@@ -109,7 +108,7 @@ package body PolyORB.ORB.No_Tasking is
       pragma Warnings (On);
 
    begin
-      pragma Debug (O ("New server connection"));
+      pragma Debug (C, O ("New server connection"));
 
       Components.Emit_No_Reply (Component_Access (AC.TE),
          Connect_Indication'(null record));
@@ -131,7 +130,7 @@ package body PolyORB.ORB.No_Tasking is
       pragma Warnings (On);
 
    begin
-      pragma Debug (O ("Request execution"));
+      pragma Debug (C, O ("Request execution"));
 
       Run_Request (RJ);
       --  No tasking: execute the request in the current task.
@@ -153,7 +152,7 @@ package body PolyORB.ORB.No_Tasking is
       pragma Warnings (On);
 
    begin
-      pragma Debug (O ("Dead lock detected !"));
+      pragma Debug (C, O ("Dead lock detected !"));
 
       raise Program_Error;
       --  When there is no tasking, the (only) task in the

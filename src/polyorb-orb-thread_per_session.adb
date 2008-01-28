@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -63,7 +63,6 @@ package body PolyORB.ORB.Thread_Per_Session is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
-   pragma Unreferenced (C); --  For conditional pragma Debug
 
    type Session_Runnable is new Runnable with record
       A_S   : Session_Access := null;
@@ -97,7 +96,7 @@ package body PolyORB.ORB.Thread_Per_Session is
       Request_Queues.Append (S.Request_List.all, RI);
       V (S.Request_Semaphore);
 
-      pragma Debug (O ("A request has been queued"));
+      pragma Debug (C, O ("A request has been queued"));
    end Add_Request;
 
    -----------------------------
@@ -138,7 +137,7 @@ package body PolyORB.ORB.Thread_Per_Session is
             Request_Info'(Job => Jobs.Job_Access (ET)));
       end;
 
-      pragma Debug (O ("A End_Thread_Job has been queued"));
+      pragma Debug (C, O ("A End_Thread_Job has been queued"));
    end Handle_Close_Connection;
 
    ----------------------------------
@@ -152,7 +151,7 @@ package body PolyORB.ORB.Thread_Per_Session is
    is
       pragma Unreferenced (P, ORB);
    begin
-      pragma Debug (O ("New client connection"));
+      pragma Debug (C, O ("New client connection"));
 
       Components.Emit_No_Reply (Component_Access (AC.TE),
          Connect_Confirmation'(null record));
@@ -178,7 +177,7 @@ package body PolyORB.ORB.Thread_Per_Session is
       --  T is assigned but never read
 
    begin
-      pragma Debug (O ("New server connection."));
+      pragma Debug (C, O ("New server connection."));
 
       --  Determine ORB session attached to this connection
 
@@ -187,10 +186,10 @@ package body PolyORB.ORB.Thread_Per_Session is
          Temp := Filters.Filter_Access (Upper (Temp));
       end loop;
 
-      pragma Debug (O ("Found Session access"));
+      pragma Debug (C, O ("Found Session access"));
 
       if S = null then
-         pragma Debug (O ("Session access not defined yet"));
+         pragma Debug (C, O ("Session access not defined yet"));
          null;
          --  XXX What does this mean? Is it an error?
       end if;
@@ -217,7 +216,7 @@ package body PolyORB.ORB.Thread_Per_Session is
    is
       pragma Unreferenced (P);
    begin
-      pragma Debug (O ("Handle_Request_Execution : Queue Job"));
+      pragma Debug (C, O ("Handle_Request_Execution : Queue Job"));
       if RJ.Requestor = Component_Access (ORB) then
          --  Per PolyORB.ORB.Handle_Message, the request has been
          --  queued by a client, meaning we are on the client-side. So
@@ -260,13 +259,13 @@ package body PolyORB.ORB.Thread_Per_Session is
       --  However, it can be set to idle while another thread modifies
       --  ORB internals.
 
-      pragma Debug (O ("Thread "
+      pragma Debug (C, O ("Thread "
                        & Image (PTI.Id (This_Task))
                        & " is going idle."));
 
       Wait (PTI.Condition (This_Task), PTI.Mutex (This_Task));
 
-      pragma Debug (O ("Thread "
+      pragma Debug (C, O ("Thread "
                        & Image (PTI.Id (This_Task))
                        & " is leaving Idle state"));
    end Idle;
@@ -301,7 +300,7 @@ package body PolyORB.ORB.Thread_Per_Session is
       N   : Notepad_Access       := null;
       Q   : Request_Info;
    begin
-      pragma Debug (O ("Session Thread number "
+      pragma Debug (C, O ("Session Thread number "
                        & Image (Current_Task)
                        & " is starting"));
 
@@ -318,13 +317,13 @@ package body PolyORB.ORB.Thread_Per_Session is
       --  Runnable main loop
 
       loop
-         pragma Debug (O ("Thread number"
+         pragma Debug (C, O ("Thread number"
                           & Image (Current_Task)
                           & " is waiting"));
 
          P (Sem);
          Request_Queues.Extract_First (L.all, Q);
-         pragma Debug (O ("Thread number"
+         pragma Debug (C, O ("Thread number"
                           & Image (Current_Task)
                           & " is executing Job"));
 
@@ -332,26 +331,26 @@ package body PolyORB.ORB.Thread_Per_Session is
             Run_Request (Request_Job (Q.Job.all)'Access);
             Jobs.Free (Q.Job);
          elsif Q.Job.all in End_Thread_Job'Class then
-            pragma Debug (O ("Received an End_Thread_Message"));
+            pragma Debug (C, O ("Received an End_Thread_Message"));
             Jobs.Free (Q.Job);
             exit;
          end if;
 
-         pragma Debug (O ("Thread number"
+         pragma Debug (C, O ("Thread number"
                           & Image (Current_Task)
                           & " has executed Job"));
       end loop;
 
       --  Runnable finalization
 
-      pragma Debug (O ("Finalizing thread " & Image (Current_Task)));
+      pragma Debug (C, O ("Finalizing thread " & Image (Current_Task)));
       Request_Queues.Deallocate (L.all);
       Free (L);
       Destroy (Sem);
       Destroy (N.all);
       Free (N);
 
-      pragma Debug (O ("Thread "
+      pragma Debug (C, O ("Thread "
                        & Image (Current_Task)
                        & " stopped"));
    end Run;

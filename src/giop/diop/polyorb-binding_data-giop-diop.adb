@@ -64,7 +64,6 @@ package body PolyORB.Binding_Data.GIOP.DIOP is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
-   pragma Unreferenced (C); --  For conditional pragma Debug
 
    DIOP_Corbaloc_Prefix : constant String := "diop";
 
@@ -229,7 +228,7 @@ package body PolyORB.Binding_Data.GIOP.DIOP is
 
    function Profile_To_Corbaloc (P : Profile_Access) return String is
    begin
-      pragma Debug (O ("DIOP Profile to corbaloc"));
+      pragma Debug (C, O ("DIOP Profile to corbaloc"));
       return
         Common_IIOP_DIOP_Profile_To_Corbaloc
         (P,

@@ -52,7 +52,6 @@ package body PolyORB.Representations.SRP is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
-   pragma Unreferenced (C); --  For conditional pragma Debug
 
    ----------------
    -- Decode_URL --
@@ -354,22 +353,22 @@ package body PolyORB.Representations.SRP is
      (Buffer : access Buffer_Type;
       NV     : in out NamedValue) is
    begin
-      pragma Debug (O ("Unmarshall (NamedValue): enter"));
-      pragma Debug (O ("Unmarshall (NamedValue): is_empty := "
+      pragma Debug (C, O ("Unmarshall (NamedValue): enter"));
+      pragma Debug (C, O ("Unmarshall (NamedValue): is_empty := "
                        & Boolean'Image (PolyORB.Any.Is_Empty
                                         (NV.Argument))));
       Unmarshall_To_Any (Buffer, Get_Container (NV.Argument).all);
-      pragma Debug (O ("Unmarshall (NamedValue): is_empty := "
+      pragma Debug (C, O ("Unmarshall (NamedValue): is_empty := "
                        & Boolean'Image (PolyORB.Any.Is_Empty
                                         (NV.Argument))));
-      pragma Debug (O ("Unmarshall (NamedValue): end"));
+      pragma Debug (C, O ("Unmarshall (NamedValue): end"));
    end Unmarshall;
 
    function Unmarshall
      (Buffer : access Buffer_Type)
      return PolyORB.Types.Boolean is
    begin
-      pragma Debug (O ("Unmarshall (Boolean): enter & end"));
+      pragma Debug (C, O ("Unmarshall (Boolean): enter & end"));
       return PolyORB.Types.Boolean'Val
         (PolyORB.Types.Octet'(Unmarshall (Buffer)));
    end Unmarshall;
@@ -381,7 +380,7 @@ package body PolyORB.Representations.SRP is
       Result : constant Stream_Element_Array
         := Align_Unmarshall_Copy (Buffer, 1, 1);
    begin
-      pragma Debug (O ("Unmarshall (Octet): enter & end"));
+      pragma Debug (C, O ("Unmarshall (Octet): enter & end"));
       return PolyORB.Types.Octet (Result (Result'First));
    end Unmarshall;
 
@@ -393,7 +392,7 @@ package body PolyORB.Representations.SRP is
         (Size => 2, Alignment => 2);
       Z : constant FSU.AZ := FSU.Align_Unmarshall (Buffer);
    begin
-      pragma Debug (O ("Unmarshall (UShort): enter & end"));
+      pragma Debug (C, O ("Unmarshall (UShort): enter & end"));
       if Endianness (Buffer) = Big_Endian then
          return Types.Unsigned_Short (Z (0)) * 256
               + Types.Unsigned_Short (Z (1));
@@ -407,7 +406,7 @@ package body PolyORB.Representations.SRP is
      (Buffer : access Buffer_Type)
      return PolyORB.Types.Char is
    begin
-      pragma Debug (O ("Unmarshall (Char): enter & end"));
+      pragma Debug (C, O ("Unmarshall (Char): enter & end"));
       return PolyORB.Types.Char'Val
         (PolyORB.Types.Octet'(Unmarshall (Buffer)));
    end Unmarshall;
@@ -420,7 +419,7 @@ package body PolyORB.Representations.SRP is
         (Size => 4, Alignment => 4);
       Z : constant FSU.AZ := FSU.Align_Unmarshall (Buffer);
    begin
-      pragma Debug (O ("Unmarshall (ULong): enter & end"));
+      pragma Debug (C, O ("Unmarshall (ULong): enter & end"));
       if Endianness (Buffer) = Big_Endian then
          return Types.Unsigned_Long (Z (0)) * 256**3
               + Types.Unsigned_Long (Z (1)) * 256**2
@@ -438,7 +437,7 @@ package body PolyORB.Representations.SRP is
      return PolyORB.Types.Short
    is
    begin
-      pragma Debug (O ("Unmarshall (Short): enter & end"));
+      pragma Debug (C, O ("Unmarshall (Short): enter & end"));
       return To_Short (Unmarshall (Buffer));
    end Unmarshall;
 
@@ -461,7 +460,7 @@ package body PolyORB.Representations.SRP is
    is
       Long_String : constant Types.String := Unmarshall (Buffer);
    begin
-      pragma Debug (O ("Unmarshall (Long): enter & end"));
+      pragma Debug (C, O ("Unmarshall (Long): enter & end"));
       return Long'Value (To_Standard_String (Long_String));
 --      return To_Long (Unmarshall (Buffer));
    end Unmarshall;
@@ -475,8 +474,8 @@ package body PolyORB.Representations.SRP is
       Equiv  : String (1 .. Natural (Length) - 1);
 
    begin
-      pragma Debug (O ("Unmarshall (String): enter"));
-      pragma Debug (O ("Unmarshall (String): length is " &
+      pragma Debug (C, O ("Unmarshall (String): enter"));
+      pragma Debug (C, O ("Unmarshall (String): length is " &
                     PolyORB.Types.Unsigned_Long'Image (Length)));
       for I in Equiv'Range loop
          Equiv (I) := Character'Val
@@ -490,7 +489,7 @@ package body PolyORB.Representations.SRP is
          raise Unmarshall_Error;
       end if;
 
-      pragma Debug (O ("Unmarshall (String): -> " & Equiv));
+      pragma Debug (C, O ("Unmarshall (String): -> " & Equiv));
 
       return Equiv;
    end Unmarshall;
@@ -511,7 +510,7 @@ package body PolyORB.Representations.SRP is
    begin
       --  XXX The hardcoded values in this case should be replaced
       --  by symbolic constants.
-      pragma Debug (O ("Unmarshall (TypeCode): enter"));
+      pragma Debug (C, O ("Unmarshall (TypeCode): enter"));
       case Nb is
          when 0 =>
             Result := PolyORB.Any.TypeCode.TC_Null;
@@ -563,7 +562,7 @@ package body PolyORB.Representations.SRP is
 --                Nb : PolyORB.Types.Unsigned_Long;
 --                Member_Type : PolyORB.Any.TypeCode.Local_Ref;
 --             begin
---                pragma Debug (O ("unmarshall (TypeCode): dealing "
+--                pragma Debug (C, O ("unmarshall (TypeCode): dealing "
 --                                 & "with a struct"));
 --                Decapsulate (Complex_Encap'Access, Complex_Buffer);
 --                Id   := Unmarshall (Complex_Buffer);
@@ -877,7 +876,7 @@ package body PolyORB.Representations.SRP is
          when others =>
             raise Unmarshall_Error;
       end case;
-      pragma Debug (O ("Unmarshall (TypeCode): end"));
+      pragma Debug (C, O ("Unmarshall (TypeCode): end"));
       return Result;
    end Unmarshall;
 
@@ -889,10 +888,10 @@ package body PolyORB.Representations.SRP is
       Tc     : constant PolyORB.Any.TypeCode.Local_Ref
         := Unmarshall (Buffer);
    begin
-      pragma Debug (O ("Unmarshall (Any): enter"));
+      pragma Debug (C, O ("Unmarshall (Any): enter"));
       Result := Get_Empty_Any (Tc);
       Unmarshall_To_Any (Buffer, Get_Container (Result).all);
-      pragma Debug (O ("Unmarshall (Any): end"));
+      pragma Debug (C, O ("Unmarshall (Any): end"));
       return Result;
    end Unmarshall;
 
@@ -932,10 +931,10 @@ package body PolyORB.Representations.SRP is
      (Buffer : access Buffer_Type;
       Data   :        PolyORB.Types.Boolean) is
    begin
-      pragma Debug (O ("Marshall (Boolean): enter"));
+      pragma Debug (C, O ("Marshall (Boolean): enter"));
       Marshall
         (Buffer, PolyORB.Types.Octet'(PolyORB.Types.Boolean'Pos (Data)));
-      pragma Debug (O ("Marshall (Boolean): end"));
+      pragma Debug (C, O ("Marshall (Boolean): end"));
    end Marshall;
 
    --  Marshalling of a character
@@ -943,9 +942,9 @@ package body PolyORB.Representations.SRP is
      (Buffer : access Buffer_Type;
       Data   :        PolyORB.Types.Char) is
    begin
-      pragma Debug (O ("Marshall (Char): enter"));
+      pragma Debug (C, O ("Marshall (Char): enter"));
       Marshall (Buffer, PolyORB.Types.Octet'(PolyORB.Types.Char'Pos (Data)));
-      pragma Debug (O ("Marshall (Char): end"));
+      pragma Debug (C, O ("Marshall (Char): end"));
    end Marshall;
 
    --  Marshalling of a wide character
@@ -955,13 +954,13 @@ package body PolyORB.Representations.SRP is
    is
 
    begin
-      pragma Debug (O ("Marshall (WChar): enter"));
+      pragma Debug (C, O ("Marshall (WChar): enter"));
       Align_Marshall_Big_Endian_Copy
         (Buffer,
          Stream_Element_Array'
          (Stream_Element (PolyORB.Types.Wchar'Pos (Data) / 256),
          Stream_Element (PolyORB.Types.Wchar'Pos (Data) mod 256)), 2);
-      pragma Debug (O ("Marshall (WChar): end"));
+      pragma Debug (C, O ("Marshall (WChar): end"));
    end Marshall;
 
    --  Marshalling of a Octet
@@ -969,10 +968,10 @@ package body PolyORB.Representations.SRP is
      (Buffer : access Buffer_Type;
       Data   :        PolyORB.Types.Octet) is
    begin
-      pragma Debug (O ("Marshall (Octet): enter"));
+      pragma Debug (C, O ("Marshall (Octet): enter"));
       Align_Marshall_Copy (Buffer, (1 => Stream_Element
                            (PolyORB.Types.Octet'(Data))), 1);
-      pragma Debug (O ("Marshall (Octet): end"));
+      pragma Debug (C, O ("Marshall (Octet): end"));
    end Marshall;
 
    --  Marshalling of an unsigned short
@@ -982,13 +981,13 @@ package body PolyORB.Representations.SRP is
    is
 
    begin
-      pragma Debug (O ("Marshall (UShort): enter"));
+      pragma Debug (C, O ("Marshall (UShort): enter"));
       Align_Marshall_Big_Endian_Copy
         (Buffer,
          Stream_Element_Array'(Stream_Element (Data / 256),
           Stream_Element (Data mod 256)),
          2);
-      pragma Debug (O ("Marshall (UShort): end"));
+      pragma Debug (C, O ("Marshall (UShort): end"));
    end Marshall;
 
    --  Marshalling of an unsigned long
@@ -998,7 +997,7 @@ package body PolyORB.Representations.SRP is
    is
 
    begin
-      pragma Debug (O ("Marshall (ULong): enter"));
+      pragma Debug (C, O ("Marshall (ULong): enter"));
       Align_Marshall_Big_Endian_Copy
         (Buffer,
           Stream_Element_Array'(Stream_Element (Data / 256**3),
@@ -1006,7 +1005,7 @@ package body PolyORB.Representations.SRP is
           Stream_Element ((Data / 256) mod 256),
           Stream_Element (Data mod 256)),
          4);
-      pragma Debug (O ("Marshall (ULong): end"));
+      pragma Debug (C, O ("Marshall (ULong): end"));
    end Marshall;
 
    --  Marshalling of a short
@@ -1014,9 +1013,9 @@ package body PolyORB.Representations.SRP is
      (Buffer : access Buffer_Type;
       Data   :        PolyORB.Types.Short) is
    begin
-      pragma Debug (O ("Marshall (Short): enter"));
+      pragma Debug (C, O ("Marshall (Short): enter"));
       Marshall (Buffer, To_Unsigned_Short (Data));
-      pragma Debug (O ("Marshall (Short): end"));
+      pragma Debug (C, O ("Marshall (Short): end"));
    end Marshall;
 
    --  Marshalling of a long
@@ -1024,9 +1023,9 @@ package body PolyORB.Representations.SRP is
      (Buffer : access Buffer_Type;
       Data   :        PolyORB.Types.Long) is
    begin
-      pragma Debug (O ("Marshall (Long): enter"));
+      pragma Debug (C, O ("Marshall (Long): enter"));
       Marshall (Buffer, To_Unsigned_Long (Data));
-      pragma Debug (O ("Marshall (Long): end"));
+      pragma Debug (C, O ("Marshall (Long): end"));
    end Marshall;
 
    --  Marshalling of a standard string
@@ -1034,7 +1033,7 @@ package body PolyORB.Representations.SRP is
      (Buffer : access Buffer_Type;
       Data   :        Standard.String) is
    begin
-      pragma Debug (O ("Marshall (String): enter"));
+      pragma Debug (C, O ("Marshall (String): enter"));
 
       Marshall (Buffer, PolyORB.Types.Unsigned_Long'(Data'Length + 1));
       for I in Data'Range loop
@@ -1042,7 +1041,7 @@ package body PolyORB.Representations.SRP is
       end loop;
       Marshall (Buffer, PolyORB.Types.Char (ASCII.Nul));
 
-      pragma Debug (O ("Marshall (String): end"));
+      pragma Debug (C, O ("Marshall (String): end"));
    end Marshall;
 
    --  Marshalling of PolyORB.Types.String
@@ -1050,9 +1049,9 @@ package body PolyORB.Representations.SRP is
      (Buffer : access Buffer_Type;
       Data   :        PolyORB.Types.String) is
    begin
-      pragma Debug (O ("Marshall (PolyORB.Types.String): enter"));
+      pragma Debug (C, O ("Marshall (PolyORB.Types.String): enter"));
       Marshall (Buffer, PolyORB.Types.To_Standard_String (Data));
-      pragma Debug (O ("Marshall (PolyORB.Types.String): end"));
+      pragma Debug (C, O ("Marshall (PolyORB.Types.String): end"));
    end Marshall;
 
    --  Marshalling a sequence of octets
@@ -1062,12 +1061,12 @@ package body PolyORB.Representations.SRP is
    is
 
    begin
-      pragma Debug (O ("Marshall (Encapsulation): enter"));
+      pragma Debug (C, O ("Marshall (Encapsulation): enter"));
       Marshall (Buffer, PolyORB.Types.Unsigned_Long (Data'Length));
       for I in Data'Range loop
          Marshall (Buffer, PolyORB.Types.Octet (Data (I)));
       end loop;
-      pragma Debug (O ("Marshall (Encapsulation): end"));
+      pragma Debug (C, O ("Marshall (Encapsulation): end"));
    end Marshall;
 
    --  Marshalling of an Any
@@ -1076,11 +1075,11 @@ package body PolyORB.Representations.SRP is
       Data   : PolyORB.Any.Any)
    is
    begin
-      pragma Debug (O ("Marshall (Any): enter"));
+      pragma Debug (C, O ("Marshall (Any): enter"));
       Marshall (Buffer, Get_Type (Data));
-      pragma Debug (O ("Marshall (Any): type marshalled"));
+      pragma Debug (C, O ("Marshall (Any): type marshalled"));
       Marshall_From_Any (Buffer, Get_Container (Data).all);
-      pragma Debug (O ("Marshall (Any): end"));
+      pragma Debug (C, O ("Marshall (Any): end"));
    end Marshall;
 
    --  Puts the right TypeCode in the buffer
@@ -1090,8 +1089,8 @@ package body PolyORB.Representations.SRP is
    is
 --      Complex_Buffer : Buffer_Access;
    begin
-      pragma Debug (O ("Marshall (Typecode): enter"));
-      pragma Debug (O ("Marshall (Typecode): kind is " &
+      pragma Debug (C, O ("Marshall (Typecode): enter"));
+      pragma Debug (C, O ("Marshall (Typecode): kind is " &
                        TCKind'Image (PolyORB.Any.TypeCode.Kind (Data))));
       case PolyORB.Any.TypeCode.Kind (Data) is
          when Tk_Null =>
@@ -1129,7 +1128,7 @@ package body PolyORB.Representations.SRP is
             raise Program_Error;
          when Tk_Objref =>
 --             Marshall (Buffer, PolyORB.Types.Unsigned_Long'(14));
---             pragma Debug (O ("Marshall (TypeCode): it has "
+--             pragma Debug (C, O ("Marshall (TypeCode): it has "
 --                              & PolyORB.Types.Unsigned_Long'Image
 --                              (PolyORB.Any.TypeCode.Parameter_Count (Data))
 --                              & " parameters"));
@@ -1140,7 +1139,7 @@ package body PolyORB.Representations.SRP is
             raise Program_Error;
 --             Marshall (Buffer, PolyORB.Types.Unsigned_Long'(15));
 --             Start_Encapsulation (Complex_Buffer);
---             pragma Debug (O ("Marshall (TypeCode): marshalling the id"));
+--             pragma Debug (C, O ("Marshall (TypeCode): marshalling the id"));
 --             Marshall (Complex_Buffer,
 --                       PolyORB.Any.TypeCode.Id (Data));
 --             Marshall (Complex_Buffer,
@@ -1149,18 +1148,18 @@ package body PolyORB.Representations.SRP is
 --                Nb : PolyORB.Types.Unsigned_Long :=
 --                  PolyORB.Any.TypeCode.Member_Count (Data);
 --             begin
---                pragma Debug (O ("Marshall (TypeCode): " &
+--                pragma Debug (C, O ("Marshall (TypeCode): " &
 --                                 "marshalling the members. Nb = "
 --                                 & PolyORB.Types.Unsigned_Long'Image (Nb)));
 --                Marshall (Complex_Buffer, Nb);
 --                if Nb /= 0 then
 --                   for I in 0 .. Nb - 1 loop
---                      pragma Debug (O ("Marshall (TypeCode): about "
+--                      pragma Debug (C, O ("Marshall (TypeCode): about "
 --                                       & "to marshall a new  member"));
 --                      Marshall (Complex_Buffer,
 --                                PolyORB.Any.TypeCode.Member_Name (Data, I));
 --                      pragma Debug
---                        (O ("Marshall (TypeCode): marshalling "
+--                        (C, O ("Marshall (TypeCode): marshalling "
 --                            & "the type ("
 --                            & TCKind'Image
 --                            (TypeCode.Kind
@@ -1168,12 +1167,12 @@ package body PolyORB.Representations.SRP is
 --                            & ")"));
 --                      Marshall (Complex_Buffer,
 --                                PolyORB.Any.TypeCode.Member_Type (Data, I));
---                      pragma Debug (O ("Marshall (TypeCode): "
+--                      pragma Debug (C, O ("Marshall (TypeCode): "
 --                                       & "member marshalled"));
 --                   end loop;
 --                end if;
 --             end;
---             pragma Debug (O ("Marshall: all members marshalled"));
+--             pragma Debug (C, O ("Marshall: all members marshalled"));
 --             Marshall (Buffer, Encapsulate (Complex_Buffer));
 --             Release (Complex_Buffer);
          when Tk_Union =>
@@ -1237,12 +1236,12 @@ package body PolyORB.Representations.SRP is
 --             Release (Complex_Buffer);
          when Tk_String =>
             Marshall (Buffer, PolyORB.Types.Unsigned_Long'(18));
-            pragma Debug (O ("marshall (typecode): " &
+            pragma Debug (C, O ("marshall (typecode): " &
                              "about to marshall length: " &
                              PolyORB.Types.Unsigned_Long'Image
                              (PolyORB.Any.TypeCode.Length (Data))));
             Marshall (Buffer, PolyORB.Any.TypeCode.Length (Data));
-            pragma Debug (O ("marshall (typecode): length marshalled"));
+            pragma Debug (C, O ("marshall (typecode): length marshalled"));
          when Tk_Sequence =>
             raise Program_Error;
 --             Marshall (Buffer, PolyORB.Types.Unsigned_Long'(19));
@@ -1398,7 +1397,7 @@ package body PolyORB.Representations.SRP is
          when Tk_Event =>
             raise Program_Error;
       end case;
-      pragma Debug (O ("Marshall (Typecode): end"));
+      pragma Debug (C, O ("Marshall (Typecode): end"));
    end Marshall;
 
    -----------------------
@@ -1422,7 +1421,7 @@ package body PolyORB.Representations.SRP is
       Data_Type : constant PolyORB.Any.TypeCode.Local_Ref :=
                     Unwind_Typedefs (Get_Type (Data));
    begin
-      pragma Debug (O ("Marshall_From_Any: enter"));
+      pragma Debug (C, O ("Marshall_From_Any: enter"));
       --  pragma Debug
       --  (0 (Debug_Any(PolyORB.Any.TypeCode.Kind (Data_Type)'Pos)))
 
@@ -1498,11 +1497,11 @@ package body PolyORB.Representations.SRP is
 --                  (Data,
 --                   PolyORB.Any.TypeCode.Discriminator_Type (Data_Type),
 --                   PolyORB.Types.Unsigned_Long (0));
---                pragma Debug (O ("Marshall_From_Any: got the label"));
+--                pragma Debug (C, O ("Marshall_From_Any: got the label"));
 --                Marshall_From_Any (Buffer, Label_Value);
---                pragma Debug (O ("Marshall_From_Any: label marshalled"));
+--                pragma Debug (C, O ("Marshall_From_Any: label marshalled"));
 --                Nb := PolyORB.Any.Get_Aggregate_Count (Data);
---                pragma Debug (O ("Marshall_From_Any: aggregate count = "
+--                pragma Debug (C, O ("Marshall_From_Any: aggregate count = "
 --                                 & PolyORB.Types.Unsigned_Long'Image (Nb)));
 --                if Nb > 1 then
 --                   for I in 1 .. Nb - 1 loop
@@ -1511,7 +1510,7 @@ package body PolyORB.Representations.SRP is
 --                         PolyORB.Any.TypeCode.Member_Type_With_Label
 --                         (Data_Type, Label_Value, I - 1),
 --                         I);
---                      pragma Debug (O ("Marshall_From_Any: about "
+--                      pragma Debug (C, O ("Marshall_From_Any: about "
 --                                       & "to marshall from any"));
 --                      Marshall_From_Any (Buffer, Value);
 --                   end loop;
@@ -1575,7 +1574,7 @@ package body PolyORB.Representations.SRP is
 --                     (Data,
 --                      Content_True_Type,
 --                      I);
---                   pragma Debug (O ("Marshall_From_Any: value kind is "
+--                   pragma Debug (C, O ("Marshall_From_Any: value kind is "
 --                                    & PolyORB.Any.TCKind'Image
 --                                    (PolyORB.Any.TypeCode.Kind
 --                                     (PolyORB.Any.Get_Type (Value)))));
@@ -1707,7 +1706,7 @@ package body PolyORB.Representations.SRP is
             raise Program_Error;
 
       end case;
-      pragma Debug (O ("Marshall_From_Any: end"));
+      pragma Debug (C, O ("Marshall_From_Any: end"));
    end Marshall_From_Any;
 
 --    procedure Marshall_From_Any
@@ -1722,7 +1721,7 @@ package body PolyORB.Representations.SRP is
 --       --  Coded_URL :=
 --       --       new String'(Base64_Encode (CORBA.To_Standard_String (URL)));
 --       Coded_URL := new String'(Encode_URL (Types.To_Standard_String (URL)));
---       pragma Debug (O ("Coded URL: " & Coded_URL.all));
+--       pragma Debug (C, O ("Coded URL: " & Coded_URL.all));
 
 --       for I in Coded_URL.all'Range loop
 --          Align_Marshall_Copy
@@ -1760,9 +1759,9 @@ package body PolyORB.Representations.SRP is
                    Unwind_Typedefs (Get_Type (Result));
 
    begin
-      pragma Debug (O ("Unmarshall_To_Any: enter"));
+      pragma Debug (C, O ("Unmarshall_To_Any: enter"));
       pragma Debug
-        (O ("Unmarshall_To_Any: Any_Type is " &
+        (C, O ("Unmarshall_To_Any: Any_Type is " &
             PolyORB.Any.TCKind'Image (TypeCode.Kind (Tc))));
 
       case Any.TypeCode.Kind (Tc) is
@@ -1772,7 +1771,7 @@ package body PolyORB.Representations.SRP is
             declare
                S : constant Short := Unmarshall (Buffer);
             begin
-               pragma Debug (O ("Unmarshall_To_Any: its value is "
+               pragma Debug (C, O ("Unmarshall_To_Any: its value is "
                                 & PolyORB.Types.Short'Image (S)));
                Set_Any_Value (S, Result);
             end;
@@ -1858,7 +1857,7 @@ package body PolyORB.Representations.SRP is
 --                Arg : PolyORB.Any.Any;
 --             begin
 --                PolyORB.Any.Set_Any_Aggregate_Value (Result);
---                pragma Debug (O ("unmarshall_to_any: about to "
+--                pragma Debug (C, O ("unmarshall_to_any: about to "
 --                                 & "unmarshall parameters"));
 --                if Nb /= 0 then
 --                   for I in 0 .. Nb - 1 loop
@@ -1870,7 +1869,7 @@ package body PolyORB.Representations.SRP is
 --                            TypeCode.Member_Type (Tc, I),
 --                            I);
 --                      end if;
---                      pragma Debug (O ("unmarshall_to_any: about to "
+--                      pragma Debug (C, O ("unmarshall_to_any: about to "
 --                                       & "unmarshall a parameter"));
 --                      Unmarshall_To_Any (Buffer,
 --                                         Arg);
@@ -1897,11 +1896,11 @@ package body PolyORB.Representations.SRP is
 --                end if;
 --                Unmarshall_To_Any (Buffer, Label);
 --                if Is_Empty then
---                   pragma Debug (O ("Unmarshall_To_Any: about to call "
+--                   pragma Debug (C, O ("Unmarshall_To_Any: about to call "
 --                                    & "add_aggregate"));
 --                   Add_Aggregate_Element (Result, Label);
 --                end if;
---                pragma Debug (O ("Unmarshall_To_Any: about to call "
+--                pragma Debug (C, O ("Unmarshall_To_Any: about to call "
 --                                 & "member_count_with_label"));
 --              Nb := PolyORB.Any.TypeCode.Member_Count_With_Label (Tc, Label);
 --                if Nb > 0 then
@@ -2192,7 +2191,7 @@ package body PolyORB.Representations.SRP is
             --  FIXME : to be done
             null;
       end case;
-      pragma Debug (O ("Unmarshall_To_Any: end"));
+      pragma Debug (C, O ("Unmarshall_To_Any: end"));
    end Unmarshall_To_Any;
 
    -------------------
@@ -2282,7 +2281,7 @@ package body PolyORB.Representations.SRP is
       Result : Types.String;
       Ch : Types.Char;
    begin
-      pragma Debug (O ("Marshall (PolyORB.Types.String): enter"));
+      pragma Debug (C, O ("Marshall (PolyORB.Types.String): enter"));
 
       Ch := Unmarshall (Buffer);
       while Ch /= ASCII.CR and then Ch /= ASCII.NUL loop
@@ -2294,7 +2293,7 @@ package body PolyORB.Representations.SRP is
          pragma Assert (Ch = ASCII.LF);
       end if;
 
-      pragma Debug (O ("Marshall (PolyORB.Types.String): end"));
+      pragma Debug (C, O ("Marshall (PolyORB.Types.String): end"));
 
       return Result;
    end Unmarshall;
@@ -2334,7 +2333,7 @@ package body PolyORB.Representations.SRP is
 --       Coded_URL :=
 --         new Types.String'((From_Any (Join (Local_SRP_Info))));
       Coded_URL := new Types.String'(Encode_URL (Local_SRP_Info));
-      pragma Debug (O ("Coded URL: " & To_Standard_String (Coded_URL.all)));
+      pragma Debug (C, O ("Coded URL: " & To_Standard_String (Coded_URL.all)));
 
       for I in To_Standard_String (Coded_URL.all)'Range loop
          Align_Marshall_Copy

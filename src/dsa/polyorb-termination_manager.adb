@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2006-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2006-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -94,7 +94,6 @@ package body PolyORB.Termination_Manager is
                 renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
                renames L.Enabled;
-   pragma Unreferenced (C); --  For conditional pragma Debug
 
    -------------
    -- Actions --
@@ -150,7 +149,7 @@ package body PolyORB.Termination_Manager is
 
       All_Binding_Objects :
       while not Last (It) loop
-         pragma Debug (O ("Calling Action on a neighbour..."));
+         pragma Debug (C, O ("Calling Action on a neighbour..."));
 
          declare
             use Ada.Exceptions;
@@ -255,7 +254,7 @@ package body PolyORB.Termination_Manager is
    begin
 
       if The_TM.Termination_Policy = Local_Termination then
-         pragma Debug (O ("A partition cannot be the initiator"
+         pragma Debug (C, O ("A partition cannot be the initiator"
                          &" and have a local termination policy."));
          raise Program_Error;
       end if;
@@ -333,7 +332,7 @@ package body PolyORB.Termination_Manager is
             return False;
          when Valid           =>
             null;
-            pragma Debug (O ("New Wave (Is_Terminated) received"));
+            pragma Debug (C, O ("New Wave (Is_Terminated) received"));
       end case;
 
       --  Compute the number of expected non terminating tasks
@@ -352,7 +351,7 @@ package body PolyORB.Termination_Manager is
 
       --  If node is not locally terminated or active, return False
 
-      pragma Debug (O ("Expect" & Non_Terminating_Tasks'Img
+      pragma Debug (C, O ("Expect" & Non_Terminating_Tasks'Img
         & " remaining tasks"));
 
       if not Is_Locally_Terminated (Non_Terminating_Tasks) then
@@ -444,7 +443,7 @@ package body PolyORB.Termination_Manager is
 
    exception
       when E : others =>
-         pragma Debug (O ("Termination_Loop: got "
+         pragma Debug (C, O ("Termination_Loop: got "
                             & Exception_Information (E)));
          PolyORB.Initialization.Shutdown_World (Wait_For_Completion => False);
          raise;
@@ -464,14 +463,14 @@ package body PolyORB.Termination_Manager is
       case Check_Stamp (Stamp) is
          when Valid  =>
             null;
-            pragma Debug (O ("New Wave (Terminate_Now) received"));
+            pragma Debug (C, O ("New Wave (Terminate_Now) received"));
          when others =>
             return True;
       end case;
 
       --  Call Terminate_Now on all of its childs
 
-      pragma Debug (O ("Terminating Childs"));
+      pragma Debug (C, O ("Terminating Childs"));
 
       Status := Call_On_Neighbours (Do_Terminate_Now'Access, TM, Stamp);
       pragma Assert (Status);

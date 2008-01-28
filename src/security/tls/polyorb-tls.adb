@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -54,7 +54,6 @@ package body PolyORB.TLS is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
-   pragma Unreferenced (C); --  For conditional pragma Debug
 
    package Thin is
 
@@ -411,7 +410,7 @@ package body PolyORB.TLS is
 --      loop
 --         Status := Thin.SSL_shutdown (Socket);
 --         pragma Debug
---          (O ("SSL_shutdown:" & Interfaces.C.int'Image (Status)));
+--          (C, O ("SSL_shutdown:" & Interfaces.C.int'Image (Status)));
 --
 --         exit when Status = 1;
 --
@@ -658,7 +657,7 @@ package body PolyORB.TLS is
       X : constant String := Get_Errors_String;
 
    begin
-      pragma Debug (O ("TLS ERROR:" & X));
+      pragma Debug (C, O ("TLS ERROR:" & X));
 
       Ada.Exceptions.Raise_Exception (TLS_Error'Identity, X);
    end Raise_TLS_Error;

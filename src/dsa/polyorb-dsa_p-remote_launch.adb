@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---           Copyright (C) 2006-2007, Free Software Foundation, Inc.        --
+--         Copyright (C) 2006-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -49,7 +49,6 @@ package body PolyORB.DSA_P.Remote_Launch is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
-   pragma Unreferenced (C); --  For conditional pragma Debug
 
    package IC renames Interfaces.C;
 
@@ -81,7 +80,7 @@ package body PolyORB.DSA_P.Remote_Launch is
 
    procedure Launch_Partition (Host : String; Command : String) is
    begin
-      pragma Debug (O ("Launch_Partition: enter"));
+      pragma Debug (C, O ("Launch_Partition: enter"));
 
       --  Local spawn
 
@@ -91,7 +90,7 @@ package body PolyORB.DSA_P.Remote_Launch is
             Spawn_Local : constant String :=
               "sh -c """ & Command & """ &";
          begin
-            pragma Debug (O ("Enter Spawn (local): " & Spawn_Local));
+            pragma Debug (C, O ("Enter Spawn (local): " & Spawn_Local));
             Spawn (Spawn_Local);
          end;
 
@@ -117,12 +116,12 @@ package body PolyORB.DSA_P.Remote_Launch is
             Spawn_Remote : constant String :=
               Remote_Command & " """ & Command & " --polyorb-dsa-detach "" ";
          begin
-            pragma Debug (O ("Enter Spawn (remote): " & Spawn_Remote));
+            pragma Debug (C, O ("Enter Spawn (remote): " & Spawn_Remote));
             Spawn (Spawn_Remote);
          end;
       end if;
 
-      pragma Debug (O ("Launch_Partition: leave"));
+      pragma Debug (C, O ("Launch_Partition: leave"));
    end Launch_Partition;
 
    -----------

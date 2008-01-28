@@ -50,7 +50,6 @@ package body PolyORB.Transport.Datagram.Sockets_Out is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
-   pragma Unreferenced (C); --  For conditional pragma Debug
 
    -------------------------
    -- Create_Event_Source --
@@ -123,8 +122,8 @@ package body PolyORB.Transport.Datagram.Sockets_Out is
       Last : Stream_Element_Offset;
 
    begin
-      pragma Debug (O ("Write: enter"));
-      pragma Debug (O ("Send to : " & Image (TE.Addr)));
+      pragma Debug (C, O ("Write: enter"));
+      pragma Debug (C, O ("Send to : " & Image (TE.Addr)));
 
       begin
          PolyORB.Sockets.Send_Socket (TE.Socket, Data, Last, TE.Addr);
@@ -141,7 +140,7 @@ package body PolyORB.Transport.Datagram.Sockets_Out is
                    System_Exception_Members'
                    (Minor => 0, Completed => Completed_Maybe));
       end;
-      pragma Debug (O ("Write: leave"));
+      pragma Debug (C, O ("Write: leave"));
    end Write;
 
    -----------
@@ -150,7 +149,7 @@ package body PolyORB.Transport.Datagram.Sockets_Out is
 
    procedure Close (TE : access Socket_Out_Endpoint) is
    begin
-      pragma Debug (O ("Closing UDP socket"));
+      pragma Debug (C, O ("Closing UDP socket"));
       if TE.Closed then
          return;
       end if;

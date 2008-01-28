@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -49,7 +49,6 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.User is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
-   pragma Unreferenced (C); --  For conditional pragma Debug
 
    ------------
    -- Create --
@@ -134,10 +133,10 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.User is
         := PolyORB.POA.Obj_Adapter_Access (OA);
 
    begin
-      pragma Debug (O ("Assign_Object_Identifier: enter"));
+      pragma Debug (C, O ("Assign_Object_Identifier: enter"));
 
       if Hint = null then
-         pragma Debug (O ("Hint is null !"));
+         pragma Debug (C, O ("Hint is null !"));
 
          Throw (Error,
                 WrongPolicy_E,
@@ -145,7 +144,7 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.User is
          return;
       end if;
 
-      pragma Debug (O ("Object Name is '"
+      pragma Debug (C, O ("Object Name is '"
                        & PolyORB.Objects.Oid_To_Hex_String (Hint.all)
                        & "'"));
 
@@ -156,7 +155,7 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.User is
            Get_Lifespan_Cookie (POA.Lifespan_Policy.all, OA),
          Creator          => POA.Absolute_Address.all);
 
-      pragma Debug (O ("Assign_Object_Identifier: leave"));
+      pragma Debug (C, O ("Assign_Object_Identifier: leave"));
    end Assign_Object_Identifier;
 
    -----------------------------------

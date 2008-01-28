@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -77,7 +77,6 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
-   pragma Unreferenced (C); --  For conditional pragma Debug
 
    package PTM renames PolyORB.Tasking.Mutexes;
    Critical_Section : PTM.Mutex_Access;
@@ -147,7 +146,7 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
 
       Arg_List    : PolyORB.Any.NVList.Ref;
    begin
-      pragma Debug (O ("The server is executing the request:"
+      pragma Debug (C, O ("The server is executing the request:"
                     & PolyORB.Requests.Image (Request.all)));
 
       Create (Arg_List);
@@ -526,7 +525,7 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
       Result : PolyORB.Any.NVList.Ref;
    begin
       PolyORB.Any.NVList.Create (Result);
-      pragma Debug (O ("Parameter profile for " & Method & " requested."));
+      pragma Debug (C, O ("Parameter profile for " & Method & " requested."));
 
       if Method = "_is_a" then
          Add_Item (Result,
@@ -621,7 +620,7 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
 
    function Get_Result_Profile (Method : String) return PolyORB.Any.Any is
    begin
-      pragma Debug (O ("Result profile for " & Method & " requested."));
+      pragma Debug (C, O ("Result profile for " & Method & " requested."));
 
       if Method = "_is_a" then
          return Get_Empty_Any (TypeCode.TC_Boolean);
@@ -880,12 +879,12 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
       Last : NameComponent;
 
    begin
-      pragma Debug (O ("Bind_Context: enter"));
+      pragma Debug (C, O ("Bind_Context: enter"));
       Get_Ctx_And_Last_NC (Self, N, Len, Ctx, Last);
-      pragma Debug (O ("Bind_Context: len is" & Len'Img));
+      pragma Debug (C, O ("Bind_Context: len is" & Len'Img));
 
       if Len /= 1 then
-         pragma Debug (O ("Bind_Context: binding relative name "
+         pragma Debug (C, O ("Bind_Context: binding relative name "
            & To_String (Last.id)));
          PSNNC.Bind_Context (Ctx, To_Name (Last), NC);
       else
@@ -1050,7 +1049,7 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
       use Names;
 
    begin
-      pragma Debug (O ("Get_Ctx_And_Last_NC: enter"));
+      pragma Debug (C, O ("Get_Ctx_And_Last_NC: enter"));
       Valid (Self.Self);
 
       PTM.Enter (Critical_Section);
@@ -1071,7 +1070,7 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
          if Len > 1 then
             Current_Idx := NCA'First;
             pragma Debug
-              (O ("Get_Ctx_And_Last_NC: resolve "
+              (C, O ("Get_Ctx_And_Last_NC: resolve "
                   & To_String (NCA (Current_Idx).id)));
             Current_Obj := Resolve (Self, To_Name (NCA (Current_Idx)));
             Current_Ctx := NamingContext.Helper.To_Ref (Current_Obj);
@@ -1079,7 +1078,7 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
             Current_Idx := Current_Idx + 1;
             while Current_Idx < NCA'Last loop
                pragma Debug
-                 (O ("Get_Ctx_And_Last_NC: resolve "
+                 (C, O ("Get_Ctx_And_Last_NC: resolve "
                      & To_String (NCA (Current_Idx).id)));
                Current_Obj := PSNNC.Resolve
                  (Current_Ctx, To_Name (NCA (Current_Idx)));

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -43,7 +43,6 @@ package body PolyORB.Utils.Simple_Flags is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
-   pragma Unreferenced (C); --  For conditional pragma Debug
 
    ----------
    -- Mask --
@@ -54,7 +53,7 @@ package body PolyORB.Utils.Simple_Flags is
      return Flags_Type
    is
    begin
-      pragma Debug (O ("Max bit"
+      pragma Debug (C, O ("Max bit"
                        & Bit_Count'Image (Bit_Count'Last)
                        & "; Mask for "
                        & Bit_Count'Image (N)

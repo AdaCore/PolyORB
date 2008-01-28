@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -56,7 +56,6 @@ package body PolyORB.Request_Scheduler.Servant_Lane is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
-   pragma Unreferenced (C); --  For conditional pragma Debug
 
    ---------------------------
    -- Try_Queue_Request_Job --
@@ -80,7 +79,7 @@ package body PolyORB.Request_Scheduler.Servant_Lane is
       Error : Errors.Error_Container;
 
    begin
-      pragma Debug (O ("Try_Queue_Request_Job: enter"));
+      pragma Debug (C, O ("Try_Queue_Request_Job: enter"));
 
       --  First test wether the target is a local servant
       --  managed by a RT-POA.
@@ -127,23 +126,23 @@ package body PolyORB.Request_Scheduler.Servant_Lane is
 
                   if Found (Error) then
                      Catch (Error);
-                     pragma Debug (O ("No priority information"));
-                     pragma Debug (O ("Try_Queue_Request_Job: leave"));
+                     pragma Debug (C, O ("No priority information"));
+                     pragma Debug (C, O ("Try_Queue_Request_Job: leave"));
 
                      return False;
                   end if;
 
                   Queue_Job (To_Lane, Job, Server_External_Priority);
-                  pragma Debug (O ("Job queued"));
-                  pragma Debug (O ("Try_Queue_Request_Job: leave"));
+                  pragma Debug (C, O ("Job queued"));
+                  pragma Debug (C, O ("Try_Queue_Request_Job: leave"));
                   return True;
                end;
             end if;
          end;
       end if;
 
-      pragma Debug (O ("No lane attached to servant, cannot queue job"));
-      pragma Debug (O ("Try_Queue_Request_Job: leave"));
+      pragma Debug (C, O ("No lane attached to servant, cannot queue job"));
+      pragma Debug (C, O ("Try_Queue_Request_Job: leave"));
       return False;
    end Try_Queue_Request_Job;
 

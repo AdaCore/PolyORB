@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -44,7 +44,6 @@ package body PolyORB.Any.NVList is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
-   pragma Unreferenced (C); --  For conditional pragma Debug
 
    --------------
    -- Add_Item --
@@ -56,13 +55,13 @@ package body PolyORB.Any.NVList is
       Item       : Any;
       Item_Flags : Flags) is
    begin
-      pragma Debug (O ("Add_Item (4 params) : enter"));
+      pragma Debug (C, O ("Add_Item (4 params) : enter"));
 
       Add_Item (Self, (Name      => Item_Name,
                        Argument  => Item,
                        Arg_Modes => Item_Flags));
 
-      pragma Debug (O ("Add_Item (4 params) : end"));
+      pragma Debug (C, O ("Add_Item (4 params) : end"));
    end Add_Item;
 
    procedure Add_Item
@@ -71,11 +70,11 @@ package body PolyORB.Any.NVList is
    is
       Obj : constant Object_Ptr := Object_Ptr (Entity_Of (Self));
    begin
-      pragma Debug (O ("Add_Item (2 params) : enter"));
+      pragma Debug (C, O ("Add_Item (2 params) : enter"));
 
       NV_Lists.Append (Obj.List, Item);
 
-      pragma Debug (O ("Add_Item (2 params) : end"));
+      pragma Debug (C, O ("Add_Item (2 params) : end"));
    end Add_Item;
 
    --------------
@@ -100,7 +99,7 @@ package body PolyORB.Any.NVList is
       pragma Warnings (On);
 
    begin
-      pragma Debug (O ("Free"));
+      pragma Debug (C, O ("Free"));
       null;
    end Free;
 

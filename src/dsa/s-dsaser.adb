@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---           Copyright (C) 2006, Free Software Foundation, Inc.             --
+--         Copyright (C) 2006-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -46,7 +46,6 @@ package body System.DSA_Services is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
-   pragma Unreferenced (C); --  For conditional pragma Debug
 
    use PolyORB.DSA_P.Partitions;
    use System.Partition_Interface;
@@ -64,5 +63,5 @@ begin
 
    Set_Local_Partition_ID (RPC.Partition_ID (Allocate_Partition_ID ("")));
 
-   pragma Debug (O ("DSA_Services Initialized"));
+   pragma Debug (C, O ("DSA_Services Initialized"));
 end System.DSA_Services;

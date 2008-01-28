@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -51,7 +51,6 @@ package body PolyORB.Filters.MIOP.MIOP_In is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
-   pragma Unreferenced (C); --  For conditional pragma Debug
 
    ------------
    -- Create --
@@ -92,7 +91,7 @@ package body PolyORB.Filters.MIOP.MIOP_In is
                --  read MIOP header and unique id length
                Unmarshall_MIOP_Header (F.MIOP_Buf, F.Header);
                F.State := Wait_Unique_Id;
-               pragma Debug (O ("Wait for Unique Id, size : "
+               pragma Debug (C, O ("Wait for Unique Id, size : "
                                 & F.Header.Unique_Id_Size'Img));
 
                --  Calculate length to read, unique id length + 8 bytes padding
@@ -107,7 +106,7 @@ package body PolyORB.Filters.MIOP.MIOP_In is
 
                   --  Calculate data length containing in packet
                   F.Payload := F.Header.Packet_Size - Types.Unsigned_Short (N);
-                  pragma Debug (O ("Packet payload : " & F.Payload'Img));
+                  pragma Debug (C, O ("Packet payload : " & F.Payload'Img));
 
                   --  Calculate data length of unique id + padding
                   N := N - MIOP_Header_Size;
@@ -121,7 +120,7 @@ package body PolyORB.Filters.MIOP.MIOP_In is
                Unmarshall_Unique_Id (F.MIOP_Buf,
                                      F.Header.Unique_Id_Size,
                                      F.Header.Unique_Id);
-               pragma Debug (O ("Unique Id : "
+               pragma Debug (C, O ("Unique Id : "
                                 & To_Standard_String (F.Header.Unique_Id)));
 
                Release_Contents (F.MIOP_Buf.all);
@@ -165,7 +164,7 @@ package body PolyORB.Filters.MIOP.MIOP_In is
                  F.Initial_Data_Exp = Remaining (F.In_Buf) - F.Initial_Remain
                then
                   --  All data are here
-                  pragma Debug (O ("Send asked data to upper filter"));
+                  pragma Debug (C, O ("Send asked data to upper filter"));
                   F.Payload := F.Payload - Types.Unsigned_Short (F.Data_Exp);
                   F.State := Wait_GIOP_Ask;
                   return Emit (F.Upper, S);
@@ -175,7 +174,7 @@ package body PolyORB.Filters.MIOP.MIOP_In is
                  F.Header.Packet_Number + 1 = F.Header.Packet_Total
                then
                   --  all fragments are here
-                  pragma Debug (O ("Fragment received, number"
+                  pragma Debug (C, O ("Fragment received, number"
                                    & F.Header.Packet_Number'Img
                                    & " /"
                                    & Types.Unsigned_Long
@@ -185,7 +184,7 @@ package body PolyORB.Filters.MIOP.MIOP_In is
                                    & ", payload :"
                                    & F.Payload'Img));
                   F.Fragment := False;
-                  pragma Debug (O ("Send asked data to upper filter"));
+                  pragma Debug (C, O ("Send asked data to upper filter"));
                   F.State := Wait_GIOP_Ask;
                   return Emit (F.Upper, S);
 
@@ -207,7 +206,7 @@ package body PolyORB.Filters.MIOP.MIOP_In is
                         raise MIOP_Packet_Error;
                   end;
 
-                  pragma Debug (O ("Fragment received, number"
+                  pragma Debug (C, O ("Fragment received, number"
                                    & F.Header.Packet_Number'Img
                                    & " /"
                                    & Types.Unsigned_Long
@@ -216,12 +215,12 @@ package body PolyORB.Filters.MIOP.MIOP_In is
                                    & F.Header.Packet_Size'Img
                                    & ", payload :"
                                    & F.Payload'Img));
-                  pragma Debug (O ("Bytes left to receive:"
+                  pragma Debug (C, O ("Bytes left to receive:"
                                    & F.Data_Exp'Img));
                   F.Fragment := True;
                   F.Old_Header := F.Header;
                   F.State := Wait_MIOP_Header;
-                  pragma Debug (O ("Wait for MIOP Header"));
+                  pragma Debug (C, O ("Wait for MIOP Header"));
                   return Emit (F.Lower,
                                Data_Expected'
                                (In_Buf => F.MIOP_Buf,
@@ -246,7 +245,7 @@ package body PolyORB.Filters.MIOP.MIOP_In is
                   --  GIOP layer ask for next packet
                   pragma Assert (D.State = Expect_Header);
                   F.State := Wait_MIOP_Header;
-                  pragma Debug (O ("Wait for MIOP Header"));
+                  pragma Debug (C, O ("Wait for MIOP Header"));
                   return Emit (F.Lower,
                                Data_Expected'
                                (In_Buf => F.MIOP_Buf,
@@ -257,7 +256,7 @@ package body PolyORB.Filters.MIOP.MIOP_In is
                   if D.State = Expect_Header then
                      --  GIOP layer ask for next packet
                      F.State := Wait_MIOP_Header;
-                     pragma Debug (O ("Wait for MIOP Header"));
+                     pragma Debug (C, O ("Wait for MIOP Header"));
                      return Emit (F.Lower,
                                   Data_Expected'
                                   (In_Buf => F.MIOP_Buf,
@@ -265,7 +264,7 @@ package body PolyORB.Filters.MIOP.MIOP_In is
 
                   else
                      --  GIOP layer ask for data
-                     pragma Debug (O ("Upper requests"
+                     pragma Debug (C, O ("Upper requests"
                                       & F.Data_Exp'Img
                                       & " bytes"));
                      F.State := Wait_GIOP_Data;

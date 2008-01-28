@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -62,7 +62,6 @@ package body PolyORB.Protocols.SRP is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
-   pragma Unreferenced (C); --  For conditional pragma Debug
 
    Rep : constant Rep_SRP_Access := new Rep_SRP;
 
@@ -264,7 +263,7 @@ package body PolyORB.Protocols.SRP is
 
    procedure Handle_Connect_Indication (S : access SRP_Session) is
    begin
-      pragma Debug (O ("Received new connection to SRP service..."));
+      pragma Debug (C, O ("Received new connection to SRP service..."));
 
       --  1. Send greetings to client.
 
@@ -317,7 +316,7 @@ package body PolyORB.Protocols.SRP is
       pragma Unreferenced (Data_Amount, Error);
       pragma Warnings (On);
 
-      pragma Debug (O ("Received data on SRP service..."));
+      pragma Debug (C, O ("Received data on SRP service..."));
       pragma Debug (Buffers.Show (S.Buffer_In));
 
       Request_Received (S);
@@ -338,7 +337,7 @@ package body PolyORB.Protocols.SRP is
    is
       pragma Unreferenced (Error);
    begin
-      pragma Debug (O ("Received disconnect."));
+      pragma Debug (C, O ("Received disconnect."));
 
       --  Cleanup protocol.
       Buffers.Release (S.Buffer_In);
