@@ -61,6 +61,14 @@ esac],
 [WARNINGS_MODE=$DEFAULT_WARNINGS_MODE])
 AC_SUBST(WARNINGS_MODE)
 
+# Set platform-specific CFLAGS
+
+case $host in
+  *-ibm-aix*)
+    PLATFORM_CFLAGS="-mminimal-toc"
+    ;;
+esac
+
 # By default treat all warnings as errors when building directly from the
 # source repository. The packaging procedure changes the default to "n".
 # so that builds from packaged sources do not stop on warnings.
@@ -81,8 +89,11 @@ AM_CONDITIONAL(DEBUG, test x$debug = xtrue)
 ##########################################
 
 AC_PROG_CC
+CFLAGS="${CFLAGS} ${PLATFORM_CFLAGS}"
 if test "${ADAFLAGS-unset}" = unset; then
   ADAFLAGS="${CFLAGS} ${DEFAULT_ADAFLAGS}"
+else
+  ADAFLAGS="${ADAFLAGS} ${PLATFORM_CFLAGS}"
 fi
 
 AC_PROG_INSTALL
