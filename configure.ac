@@ -743,7 +743,6 @@ dnl This section is edited automatically by support/reconfig.
 AC_OUTPUT([
 	Makefile
 	Makefile.common.project
-	Makefile.old
 	support/Makefile
 	compilers/Makefile
 	compilers/common_files/platform.ads
