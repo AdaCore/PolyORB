@@ -824,7 +824,7 @@ install: all
 	# Install documentation only if it has been built:
 	if [ -r docs/polyorb_ug.html ]; \
 	then \
-	  (cd docs && ${MAKE} install prefix="${prefix}"); \
+	  (cd docs && ${MAKE} install-data-local prefix="${prefix}"); \
 	fi
 
 # polyorb-dsa_p-partitions.ali is a special case above.
@@ -835,6 +835,10 @@ install: all
 # Note that any change of the location where DSA application personality
 # files are installed (relative to ${prefix}) must be reflected in
 # gnatdist.
+#
+# install-data-local (as opposed to install) is used for installing the
+# documentation, in order to avoid trying to rebuild the documentation, since
+# users might not have tools like TeX.
 
 ################################################################
 
