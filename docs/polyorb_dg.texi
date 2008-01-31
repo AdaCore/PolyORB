@@ -86,7 +86,7 @@ protocol personalities directly rely on the network.
 
 Actually, one can view three sublayers within the neutral layer. At
 the very heart of the layer, there is the neutral core, which is
-nearly a middleware implementation in itself. Above and below thei
+nearly a middleware implementation in itself. Above and below the
 neutral inner core lie the mechanisms to operate with the
 personalities.
 
@@ -94,7 +94,7 @@ personalities.
 @chapter Main packages
 
 As PolyORB is a rather big program, here is a short description of the
-main packages, in order to help you find what functionnality you
+main packages, in order to help you find what functionality you
 search. All these packages are located in @code{src/}.
 
 @c -------------------
@@ -261,14 +261,14 @@ Base class for all application objects.
 
 @subsection @code{PolyORB.Orb}
 
-The core component: provides the global ORB activites scheduler,
+The core component: provides the global ORB activities scheduler,
 as well as registries for personality components (binding object
 factories, transport access points, object adapters).
 
 @subsection @code{PolyORB.Requests}
 
 The central data structure in PolyORB: an object representing a method
-invocation request to be executed by an object in a way that is independant
+invocation request to be executed by an object in a way that is independent
 of the application and protocol personalities.
 
 @subsection @code{PolyORB.References}
@@ -282,7 +282,7 @@ or creates a binding to a remote object.
 
 @subsection @code{PolyORB.Scheduler}
 
-Coordinates the shceduling policies for the tasks that have been
+Coordinates the scheduling policies for the tasks that have been
 created by the ORB.
 
 @subsection @code{PolyORB.Jobs}
@@ -413,7 +413,7 @@ Once you have created a servant, you have to register it to the
 Neutral layer so that it can be receive requests from clients.
 
 The registering of a servant involves the @acronym{POA} (Portable
-Object Adapter, @pxref{object adapter}), which is concept comming from
+Object Adapter, @pxref{object adapter}), which is concept coming from
 @acronym{CORBA}.
 
 Assuming you have created a POA called @code{The_POA} and you want to
@@ -473,8 +473,8 @@ of a procedure named @code{Invoke}, that more or less corresponds to
 @code{Execute_Servant}.  @code{Invoke} receives an access to the
 request, reads it and then puts the response in it while
 @code{Execute_Request} receives a message containing a request and
-returns another message containg a request (which should be the one
-which has been recieved, carrying the results).
+returns another message containing a request (which should be the one
+which has been received, carrying the results).
 
 Then you just have to call @code{Initiate_Servant}, which associates
 your minimal servant to the object adapter (@pxref{object adapter})
@@ -568,7 +568,7 @@ optional other for the possible exceptions;
 See @ref{references} for information about how to get a neutral
 reference to an object.  The list of arguments is built using
 functions associated to @code{NV-List}s @pxref{nvlists}.  Note that
-the argument list has to acutally contain the arguments the
+the argument list has to actually contain the arguments the
 application wants to send, while the return and exception lists only
 contain the signature of the expected data.
 
@@ -667,7 +667,7 @@ As PolyORB can handle several protocols, references are actually sets
 of several @dfn{profiles}, one for each protocol.  Moreover, a profile
 must be printable according all available reference syntaxes (URI,
 IOR, etc.).  A profile is identified by a @dfn{tag}, which is
-associated to a string prefix that caracterizes the stringified
+associated to a string prefix that characterizes the stringified
 version of the profile (i.e. ``IOR:'' for IORs) and functions to get a
 the profile from a string, and vice-versa.
 
@@ -723,9 +723,9 @@ The filter stack is built using @code{Chain_Factories} located in
 The access points is then registered to the ORB, using
 @code{Register_Access_Point}.
 
-@section Protocol functionnalities
+@section Protocol functionalities
 
-A protocol personality provides functionnalities to perform various
+A protocol personality provides functionalities to perform various
 operations concerning the requests.  To do so, you have to create a
 subpackage @code{PolyORB.Protocols.My_Proto_Perso}, which contains
 concrete implementations of the abstract procedures declared in
