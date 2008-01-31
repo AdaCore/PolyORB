@@ -72,7 +72,8 @@
 @title PolyORB User's Guide
 @subtitle Version @value{EDITION}
 @subtitle Date: @value{UPDATED}
-@author J@'er@^ome Hugues, Laurent Pautet, Thomas Quinot, Samuel Tardieu
+@author Robert Duff, J@'er@^ome Hugues, Laurent Pautet,
+@author Thomas Quinot, Samuel Tardieu
 
 @page
 @vskip 0pt plus 1filll
