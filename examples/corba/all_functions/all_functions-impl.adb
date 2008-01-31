@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -33,6 +33,8 @@
 
 with all_functions.Skel;
 pragma Warnings (Off, all_functions.Skel);
+
+with CORBA.ORB;
 
 package body all_functions.Impl is
    use CORBA; --  WAG:5.03
@@ -337,5 +339,13 @@ package body all_functions.Impl is
    begin
       return Oneway_Value;
    end oneway_checker;
+
+   procedure StopServer (Self : access Object) is
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Warnings (On);
+   begin
+      CORBA.ORB.Shutdown (Wait_For_Completion => False);
+   end StopServer;
 
 end all_functions.Impl;
