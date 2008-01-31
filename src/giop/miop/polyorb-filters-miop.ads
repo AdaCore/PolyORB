@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -38,7 +38,6 @@ with Ada.Streams; use Ada.Streams;
 with PolyORB.Buffers;
 with PolyORB.Types;
 with PolyORB.Utils.Simple_Flags;
-pragma Elaborate_All (PolyORB.Utils.Simple_Flags);
 
 package PolyORB.Filters.MIOP is
 

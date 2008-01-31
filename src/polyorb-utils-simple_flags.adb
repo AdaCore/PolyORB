@@ -31,34 +31,14 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PolyORB.Log;
-
 package body PolyORB.Utils.Simple_Flags is
-
-   use PolyORB.Log;
-
-   package L is new PolyORB.Log.Facility_Log
-     ("polyorb.utils.simple_flags");
-   procedure O (Message : String; Level : Log_Level := Debug)
-     renames L.Output;
-   function C (Level : Log_Level := Debug) return Boolean
-     renames L.Enabled;
 
    ----------
    -- Mask --
    ----------
 
-   function Mask
-     (N : Bit_Count)
-     return Flags_Type
-   is
+   function Mask (N : Bit_Count) return Flags_Type is
    begin
-      pragma Debug (C, O ("Max bit"
-                       & Bit_Count'Image (Bit_Count'Last)
-                       & "; Mask for "
-                       & Bit_Count'Image (N)
-                       & " : "
-                       & Flags_Type'Image (Shift_Left (1, Natural (N)))));
       return Shift_Left (1, Natural (N));
    end Mask;
 
@@ -68,8 +48,7 @@ package body PolyORB.Utils.Simple_Flags is
 
    function Is_Set
      (Flag_To_Test : Flags_Type;
-      In_Flags     : Flags_Type)
-     return Boolean
+      In_Flags     : Flags_Type) return Boolean
    is
    begin
       return ((Flag_To_Test and In_Flags) = Flag_To_Test);
@@ -81,8 +60,7 @@ package body PolyORB.Utils.Simple_Flags is
 
    function Is_Set
      (N        : Bit_Count;
-      In_Flags : Flags_Type)
-     return Boolean
+      In_Flags : Flags_Type) return Boolean
    is
       M : constant Flags_Type := Mask (N);
    begin
@@ -95,8 +73,7 @@ package body PolyORB.Utils.Simple_Flags is
 
    function Set
      (Flag_To_Set : Flags_Type;
-      In_Flags    : Flags_Type)
-     return Flags_Type
+      In_Flags    : Flags_Type) return Flags_Type
    is
    begin
       return (In_Flags and Flag_To_Set);
@@ -108,8 +85,7 @@ package body PolyORB.Utils.Simple_Flags is
 
    function Set
      (N        : Bit_Count;
-      In_Flags : Flags_Type)
-     return Flags_Type
+      In_Flags : Flags_Type) return Flags_Type
    is
       M : constant Flags_Type := Mask (N);
    begin
