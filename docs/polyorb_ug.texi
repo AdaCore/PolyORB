@@ -661,11 +661,13 @@ PolyORB has been compiled and successfully tested on the following
 platforms:
 
 @itemize @bullet
+@item AIX
 @item FreeBSD
 @item HP-UX
 @item Linux
 @item MacOS X
 @item Solaris
+@item Tru64
 @item Windows
 @end itemize
 
