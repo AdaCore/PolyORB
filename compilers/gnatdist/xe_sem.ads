@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                          P O _ G N A T D I S T                           --
+--                               X E _ S E M                                --
 --                                                                          --
---                                 B o d y                                  --
+--                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2007-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,9 +31,11 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with XE_Main;
+--  This package provides the routines to analyze the consistency of
+--  configuration.
 
-procedure PO_Gnatdist is
-begin
-   XE_Main;
-end PO_Gnatdist;
+package XE_Sem is
+
+   procedure Analyze;
+
+end XE_Sem;

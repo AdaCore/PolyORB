@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                          P O _ G N A T D I S T                           --
+--                               X E _ R E G                                --
 --                                                                          --
---                                 B o d y                                  --
+--                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2007-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,9 +31,15 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with XE_Main;
+with GNAT.OS_Lib; use GNAT.OS_Lib;
 
-procedure PO_Gnatdist is
-begin
-   XE_Main;
-end PO_Gnatdist;
+package XE_Reg is
+
+   function Get_GARLIC_Dir return String_Access;
+   --  look in the registry for the GNAT/GARLIC installation directory.
+   --  The key to be read is
+   --  "HKEY_LOCAL_MACHINE\SOFTWARE\Free Software Foundation\GNAT\<version>"
+   --  If the key value can't be retrieved (key does not exist, error opening
+   --  it, can't fetch value...) Get_GARLIC_Dir return null.
+
+end XE_Reg;

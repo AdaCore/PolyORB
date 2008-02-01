@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                          P O _ G N A T D I S T                           --
+--                              X E _ D E F S                               --
 --                                                                          --
---                                 B o d y                                  --
+--                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2007-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,9 +31,20 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with XE_Main;
+package XE_Defs is
 
-procedure PO_Gnatdist is
-begin
-   XE_Main;
-end PO_Gnatdist;
+   --  This package provides the definition of various GLADE parameters
+
+   procedure Initialize;
+   function Get_Rsh_Command return String;
+   function Get_Rsh_Options return String;
+   function Get_Def_Storage_Data return String;
+   function Get_Def_Storage_Name return String;
+   function Get_Def_Protocol_Data return String;
+   function Get_Def_Protocol_Name return String;
+   function Get_PCS_Name return String;
+   function Get_Dist_Prefix return String;
+
+   procedure Set_PCS_Name (S : String);
+
+end XE_Defs;

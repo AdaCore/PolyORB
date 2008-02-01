@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                          P O _ G N A T D I S T                           --
+--                             X E _ T Y P E S                              --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2007-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,9 +31,35 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with XE_Main;
+package body XE_Types is
 
-procedure PO_Gnatdist is
-begin
-   XE_Main;
-end PO_Gnatdist;
+   -----------
+   -- Dummy --
+   -----------
+
+   procedure Dummy (E : Node_Id) is
+   begin
+      if Present (E) then
+         null;
+      end if;
+   end Dummy;
+
+   --------
+   -- No --
+   --------
+
+   function No (E : Node_Id) return Boolean is
+   begin
+      return E = No_Node;
+   end No;
+
+   -------------
+   -- Present --
+   -------------
+
+   function Present (E : Node_Id) return Boolean is
+   begin
+      return E /= No_Node;
+   end Present;
+
+end XE_Types;

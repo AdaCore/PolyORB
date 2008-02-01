@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                          P O _ G N A T D I S T                           --
+--                              X E _ S C A N                               --
 --                                                                          --
---                                 B o d y                                  --
+--                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2007-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,9 +31,46 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with XE_Main;
+--  This package provides routines to scan the configuration file.
 
-procedure PO_Gnatdist is
-begin
-   XE_Main;
-end PO_Gnatdist;
+with XE;       use XE;
+with XE_Types; use XE_Types;
+
+package XE_Scan is
+
+   Token_Name : XE_Types.Name_Id;
+   Token      : Token_Type;
+
+   type Location_Type is
+      record
+         Line  : XE_Types.Int;
+         First : XE_Types.Text_Ptr;
+         Last  : XE_Types.Text_Ptr;
+      end record;
+
+   Null_Location  : constant Location_Type := (0, 0, 0);
+
+   function  Get_Token_Location return Location_Type;
+
+   procedure Initialize;
+   --  Load all kind of keywords
+
+   procedure Load_File (File : XE_Types.File_Name_Type);
+   --  Load this file in a memory buffer
+
+   procedure Location_To_XY
+     (Where : Location_Type;
+      Loc_X : out XE_Types.Int;
+      Loc_Y : out XE_Types.Int);
+
+   procedure Next_Token;
+   --  Find next token and update internal variables
+
+   procedure Set_Token_Location (Where : Location_Type);
+
+   procedure Write_Location (Where : Location_Type);
+   --  Display line and column where the error occured
+
+   procedure Write_Token (T : Token_Type);
+
+end XE_Scan;
