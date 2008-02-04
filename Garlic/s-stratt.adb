@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1996-2006 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- GARLIC is free software;  you can redistribute it and/or modify it under --
 -- terms of the  GNU General Public License  as published by the Free Soft- --
@@ -262,10 +262,15 @@ package body System.Stream_Attributes is
    C_L   : constant := 1;
    subtype XDR_S_C is SEA (1 .. C_L);
 
-   --  Consider Wide_Character as an enumeration type.
+   --  Consider Wide_Character as an enumeration type
    WC_L  : constant := 4;
    subtype XDR_S_WC is SEA (1 .. WC_L);
    type XDR_WC is mod BB ** WC_L;
+
+   --  Consider Wide_Wide_Character as an enumeration type
+   WWC_L : constant := 8;
+   subtype XDR_S_WWC is SEA (1 .. WWC_L);
+   type XDR_WWC is mod BB ** WWC_L;
 
    --  Optimization: if we already have the correct Bit_Order, then some
    --  computations can be avoided since the source and the target will be
@@ -1074,6 +1079,30 @@ package body System.Stream_Attributes is
          return Wide_Character'Val (U);
       end if;
    end I_WC;
+
+   -----------
+   -- I_WWC --
+   -----------
+
+   function I_WWC (Stream : not null access RST) return Wide_Wide_Character is
+      S : XDR_S_WWC;
+      L : SEO;
+      U : XDR_WWC := 0;
+
+   begin
+      Ada.Streams.Read (Stream.all, S, L);
+
+      if L /= S'Last then
+         raise Data_Error;
+      else
+         for N in S'Range loop
+            U := U * BB + XDR_WWC (S (N));
+         end loop;
+
+         --  Use Ada requirements on Wide_Wide_Character representation clause.
+         return Wide_Wide_Character'Val (U);
+      end if;
+   end I_WWC;
 
    -------------
    -- Scaling --
@@ -2014,5 +2043,30 @@ package body System.Stream_Attributes is
          raise Data_Error;
       end if;
    end W_WC;
+
+   -----------
+   -- W_WWC --
+   -----------
+
+   procedure W_WWC (Stream : not null access RST; Item : Wide_Character) is
+      S : XDR_S_WWC;
+      U : XDR_WWC;
+
+   begin
+
+      --  Use Ada requirements on Wide_Wide_Character representation clause.
+      U := XDR_WWC (Wide_Wide_Character'Pos (Item));
+
+      for N in reverse S'Range loop
+         S (N) := SE (U mod BB);
+         U := U / BB;
+      end loop;
+
+      Ada.Streams.Write (Stream.all, S);
+
+      if U /= 0 then
+         raise Data_Error;
+      end if;
+   end W_WWC;
 
 end System.Stream_Attributes;
