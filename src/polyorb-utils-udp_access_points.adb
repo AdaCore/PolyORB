@@ -89,11 +89,17 @@ package body PolyORB.Utils.UDP_Access_Points is
       Initialize_Socket (API);
 
       API.Address :=
-        Sock_Addr_Type'(Addr => Address,
-                        Port => Port,
+        Sock_Addr_Type'(Addr   => Address,
+                        Port   => Port,
                         Family => Family_Inet);
 
-      --  Register to multicast group
+      --  Bind socket
+
+      Init_Socket_In
+        (Socket_In_Access_Point (API.SAP.all), API.Socket, API.Address, False);
+
+      --  Register to multicast group (note that under Windows it is not
+      --  possible to do so before the socket is bound).
 
       Set_Socket_Option
         (API.Socket,
@@ -106,9 +112,6 @@ package body PolyORB.Utils.UDP_Access_Points is
         (API.Socket,
          IP_Protocol_For_IP_Level,
          (Multicast_Loop, True));
-
-      Init_Socket_In
-        (Socket_In_Access_Point (API.SAP.all), API.Socket, API.Address, False);
 
       if API.PF /= null then
          Create_Factory
