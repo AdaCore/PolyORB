@@ -14,12 +14,12 @@ AM_INIT_AUTOMAKE
 LIBVERSIONINFO=1:4:0
 AC_SUBST(LIBVERSIONINFO)
 
-##########################################
+#
 # Check for maintainer (debug) mode.
-# Note, this must come before AC_PROG_CC
-# so we have a chance to set defaults for
-# CFLAGS.
-##########################################
+# This must come before AC_PROG_CC so we can set the default CFLAGS ourselves.
+# Note that these default CFLAGS are used for both the native and the cross
+# compilers.
+#
 
 define(DEBUG_OPTIONS, [dnl
   if test ${CFLAGS-unset} = "unset"; then CFLAGS="-g -O0"; fi
@@ -29,6 +29,7 @@ define(DEBUG_OPTIONS, [dnl
   debug=true])
 
 define(NODEBUG_OPTIONS, [dnl
+  if test ${CFLAGS-unset} = "unset"; then CFLAGS="-g -O2"; fi
   DEFAULT_ADAFLAGS="-XBuild=PRODUCTION"
   BARGS=
   DEBUG_ONLY="--  "
@@ -61,13 +62,19 @@ esac],
 [WARNINGS_MODE=$DEFAULT_WARNINGS_MODE])
 AC_SUBST(WARNINGS_MODE)
 
-# Set platform-specific CFLAGS
+# Set platform-specific supplementary CFLAGS
 
 case $host in
   *-ibm-aix*)
-    PLATFORM_CFLAGS="-mminimal-toc"
+    CFLAGS_FOR_TARGET="-mminimal-toc"
+    ;;
+  *vxworks*)
+    CFLAGS_FOR_TARGET="-mlongcall"
     ;;
 esac
+ADAFLAGS_FOR_TARGET="${CFLAGS_FOR_TARGET}"
+AC_SUBST(CFLAGS_FOR_TARGET)
+AC_SUBST(ADAFLAGS_FOR_TARGET)
 
 # By default treat all warnings as errors when building directly from the
 # source repository. The packaging procedure changes the default to "n".
@@ -89,11 +96,8 @@ AM_CONDITIONAL(DEBUG, test x$debug = xtrue)
 ##########################################
 
 AC_PROG_CC
-CFLAGS="${CFLAGS} ${PLATFORM_CFLAGS}"
 if test "${ADAFLAGS-unset}" = unset; then
   ADAFLAGS="${CFLAGS} ${DEFAULT_ADAFLAGS}"
-else
-  ADAFLAGS="${ADAFLAGS} ${PLATFORM_CFLAGS}"
 fi
 
 AC_PROG_INSTALL

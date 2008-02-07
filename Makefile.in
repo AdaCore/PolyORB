@@ -69,6 +69,7 @@ GNATMAKE		:= @GNATMAKE@
 GNATMAKE_FOR_TARGET	:= @GNATMAKE_FOR_TARGET@
 # ??? distinguish between native tools, cross tools and cross libs
 
+# Flags common to build and target
 CFLAGS                  := @CFLAGS@
 ADAFLAGS                := @ADAFLAGS@
 CPPFLAGS                := @CPPFLAGS@
@@ -77,6 +78,11 @@ PARALLEL_GNATMAKE_FLAGS := -j4
 EXTRA_GNATMAKE_FLAGS    := @EXTRA_GNATMAKE_FLAGS@
 # EXTRA_GNATMAKE_FLAGS are user-provided, empty by default (typically
 # used to specify a non-default --RTS switch).
+
+# Extra flags for target
+CFLAGS_FOR_TARGET         := @CFLAGS_FOR_TARGET@
+ADAFLAGS_FOR_TARGET       := @ADAFLAGS_FOR_TARGET@
+GNATMAKE_FLAGS_FOR_TARGET := ${ADAFLAGS_FOR_TARGET}
 
 XMLADA_INCS	:= @XMLADA_INCS@
 XMLADA_LIBS	:= @XMLADA_LIBS@
@@ -456,7 +462,7 @@ ${PROJECT_FILES}: %.gpr: \
     src/giop/polyorb-giop_p-code_sets-data.ads-stamp \
     tools/po_catref/polyorb-giop_p-code_sets-description_data.ads-stamp
 	ADA_PROJECT_PATH="${top_builddir}/projects${PATH_SEP}${top_srcdir}/projects${PATH_SEP}$$ADA_PROJECT_PATH" \
-	  ${GNATMAKE_FOR_TARGET} -P $@ ${GNATMAKE_FLAGS} ${PRJ_GNATMAKE_FLAGS}
+	  ${GNATMAKE_FOR_TARGET} -P $@ ${GNATMAKE_FLAGS} ${GNATMAKE_FLAGS_FOR_TARGET} ${PRJ_GNATMAKE_FLAGS}
 
 .PHONY: libpolyorb-corba-cos-event-impl.a
 libpolyorb-corba-cos-event-impl.a: cos_event.gpr
@@ -562,7 +568,7 @@ endif
 # Rule for compilation of C source files
 C_OBJECTS=${C_FILES:.c=.o}
 ${C_OBJECTS}: %.o: ${top_srcdir}/%.c
-	${CC_FOR_TARGET} -c -o $@ ${CPPFLAGS} ${CFLAGS} $<
+	${CC_FOR_TARGET} -c -o $@ ${CPPFLAGS} ${CFLAGS} ${CFLAGS_FOR_TARGET} $<
 
 ##########################
 # examples and testsuite #
@@ -631,7 +637,7 @@ test_targets := ${sort ${test_targets}}
 .PHONY: ${test_targets}
 ${test_targets}: %/build-test:
 	ADA_PROJECT_PATH="${top_builddir}/projects${PATH_SEP}${top_srcdir}/projects${PATH_SEP}$$ADA_PROJECT_PATH" \
-	  ${GNATMAKE_FOR_TARGET} "-XTest_Dir=$*" -P ${top_srcdir}/$*/local.gpr ${GNATMAKE_FLAGS}
+	  ${GNATMAKE_FOR_TARGET} "-XTest_Dir=$*" -P ${top_srcdir}/$*/local.gpr ${GNATMAKE_FLAGS} ${GNATMAKE_FLAGS_FOR_TARGET}
 
 # Set active_tests to a subset of test_targets -- remove the ones that are for
 # application personalities that were not configured. Note: examples/polyorb
