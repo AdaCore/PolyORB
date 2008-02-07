@@ -64,7 +64,7 @@ AC_SUBST(WARNINGS_MODE)
 
 # Set platform-specific supplementary CFLAGS
 
-case $host in
+case $target in
   *-ibm-aix*)
     CFLAGS_FOR_TARGET="-mminimal-toc"
     ;;
