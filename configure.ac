@@ -560,7 +560,7 @@ AC_LIBTOOL_HAS_TAG
 host=$host_tmp
 
 ##########################################
-# Windows requires specific targets
+# Some OSes require specific targets
 ##########################################
 
 case "$host_os" in
@@ -579,10 +579,16 @@ case "$target_os" in
   *cygwin* | *mingw*)
     TARGET_EXE_SUFFIX=.exe
     ;;
+  *vxworks*)
+    TARGET_EXE_SUFFIX=.out
+    ;;
   *)
     TARGET_EXE_SUFFIX=
     ;;
 esac
+
+#  Implementation note: the *vxworks* rule above is for VxWorks 5, it can
+#    present some problems for VxWorks 6.
 
 # Compilers are always built using the native Ada compiler. Therefore,
 # their executable suffix depends on the host operating system.
