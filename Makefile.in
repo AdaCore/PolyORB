@@ -60,6 +60,7 @@ RM		:= @RM@
 XARGS_I		:= @XARGS_I@
 INSTALL		:= @INSTALL@
 LN_S		:= @LN_S@
+SHELL           := @SHELL@
 
 TOOL_EXE_SUFFIX		:= @TOOL_EXE_SUFFIX@
 COMPILER_EXE_SUFFIX	:= @COMPILER_EXE_SUFFIX@
@@ -82,7 +83,7 @@ EXTRA_GNATMAKE_FLAGS    := @EXTRA_GNATMAKE_FLAGS@
 # Extra flags for target
 CFLAGS_FOR_TARGET         := @CFLAGS_FOR_TARGET@
 ADAFLAGS_FOR_TARGET       := @ADAFLAGS_FOR_TARGET@
-GNATMAKE_FLAGS_FOR_TARGET := ${ADAFLAGS_FOR_TARGET}
+GNATMAKE_FLAGS_FOR_TARGET := -cargs ${ADAFLAGS_FOR_TARGET}
 
 XMLADA_INCS	:= @XMLADA_INCS@
 XMLADA_LIBS	:= @XMLADA_LIBS@
@@ -462,7 +463,7 @@ ${PROJECT_FILES}: %.gpr: \
     src/giop/polyorb-giop_p-code_sets-data.ads-stamp \
     tools/po_catref/polyorb-giop_p-code_sets-description_data.ads-stamp
 	ADA_PROJECT_PATH="${top_builddir}/projects${PATH_SEP}${top_srcdir}/projects${PATH_SEP}$$ADA_PROJECT_PATH" \
-	  ${GNATMAKE_FOR_TARGET} -P $@ ${GNATMAKE_FLAGS} ${GNATMAKE_FLAGS_FOR_TARGET} ${PRJ_GNATMAKE_FLAGS}
+	  ${GNATMAKE_FOR_TARGET} -P $@ ${GNATMAKE_FLAGS} ${PRJ_GNATMAKE_FLAGS} ${GNATMAKE_FLAGS_FOR_TARGET}
 
 .PHONY: libpolyorb-corba-cos-event-impl.a
 libpolyorb-corba-cos-event-impl.a: cos_event.gpr
@@ -882,6 +883,7 @@ clean:
 	${RM} -f tools/po_names/po_names
 
 distclean: clean
+	${SHELL} support/cleanup-conf-files
 	${RM} -f config.*
 
 .SUFFIXES: .c .o
