@@ -62,19 +62,24 @@ esac],
 [WARNINGS_MODE=$DEFAULT_WARNINGS_MODE])
 AC_SUBST(WARNINGS_MODE)
 
-# Set platform-specific supplementary CFLAGS
+# Set platform-specific supplementary CFLAGS and options
 
+PLATFORM_WINDOWS=False
 case $target in
-  *-ibm-aix*)
+  *-aix*)
     CFLAGS_FOR_TARGET="-mminimal-toc"
     ;;
-  *vxworks*)
+  *-vxworks*)
     CFLAGS_FOR_TARGET="-mlongcall"
+    ;;
+  *-mingw*)
+    PLATFORM_WINDOWS=True
     ;;
 esac
 ADAFLAGS_FOR_TARGET="${CFLAGS_FOR_TARGET}"
 AC_SUBST(CFLAGS_FOR_TARGET)
 AC_SUBST(ADAFLAGS_FOR_TARGET)
+AC_SUBST(PLATFORM_WINDOWS)
 
 # By default treat all warnings as errors when building directly from the
 # source repository. The packaging procedure changes the default to "n".
@@ -527,20 +532,6 @@ then
    AC_MSG_ERROR("CORBA COS require CORBA application personality")
 fi
 
-##########################################################
-# For AIX, the Interface Repository must be built with -O0
-##########################################################
-
-case $target in
-  powerpc-ibm-aix*)
-    DISABLE_IR_OPTIMIZATION=yes
-    ;;
-  *)
-    DISABLE_IR_OPTIMIZATION=no
-    ;;
-esac
-AM_CONDITIONAL(DISABLE_IR_OPTIMIZATION, [test "x$DISABLE_IR_OPTIMIZATION" = "xyes"])
-
 ##########################################
 # Extra gnatmake parameters provided by the user
 ##########################################
@@ -802,6 +793,7 @@ AC_OUTPUT([
 	src/srp/Makefile
 	src/ssl/Makefile
 	src/debug.adc
+	src/polyorb-platform.ads
 	src/polyorb-platform-ssl_linker_options.ads
 	src/ravenscar.adc
 	src/ravenscar_compatible.adc
