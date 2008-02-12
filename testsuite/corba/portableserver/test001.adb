@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -66,6 +66,9 @@ begin
       use CORBA.Impl;
 
       Ignored_Ref : CORBA.Object.Ref;
+      pragma Warnings (Off, Ignored_Ref);
+      --  WAGCC4.2: kill warning on use of Ignored_Ref
+
       pragma Unreferenced (Ignored_Ref);  --  Just passed to Initiate_Servant.
       Group : CORBA.Object.Ref;
 
