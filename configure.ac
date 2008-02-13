@@ -98,6 +98,7 @@ ADAFLAGS_FOR_TARGET="${CFLAGS_FOR_TARGET}"
 AC_SUBST(CFLAGS_FOR_TARGET)
 AC_SUBST(ADAFLAGS_FOR_TARGET)
 AC_SUBST(PLATFORM_WINDOWS)
+AM_CONDITIONAL(WINDOWS, $PLATFORM_WINDOWS)
 
 #  Implementation note: the *vxworks* rule above is for VxWorks 5, it can
 #    present some problems for VxWorks 6.
