@@ -685,7 +685,7 @@ Ada compiler:
 @itemize @bullet
 @item GNAT Pro 5.04a1 or later
 @item GNAT GPL 2006  or later
-@item FSF GCC 4.1.1 or later
+@item FSF GCC 4.2 or later
 @end itemize
 
 For builds for cross targets, both a native and a cross compiler are
