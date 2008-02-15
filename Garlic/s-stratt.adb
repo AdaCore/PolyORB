@@ -1078,6 +1078,15 @@ package body System.Stream_Attributes is
       end if;
    end I_WWC;
 
+   ------------------------
+   -- Is_Default_Version --
+   ------------------------
+
+   function Is_Default_Version return Boolean is
+   begin
+      return False;
+   end Is_Default_Version;
+
    ----------
    -- W_AD --
    ----------
