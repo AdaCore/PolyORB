@@ -24,6 +24,8 @@ compilers/common_files/namet.ads
 compilers/common_files/output.adb
 compilers/common_files/output.ads
 compilers/common_files/platform.ads.in
+compilers/common_files/polyorb_config.adb
+compilers/common_files/polyorb_config.ads
 compilers/common_files/types.adb
 compilers/common_files/types.ads
 compilers/common_files/utils.adb

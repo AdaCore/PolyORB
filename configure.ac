@@ -71,18 +71,19 @@ AC_SUBST(WARNINGS_MODE)
 case "$host_os" in
   cygwin* | mingw*)
     HOST_EXE_SUFFIX=.exe
-    HOST_WINDOWS=true
+    WINDOWS_ON_HOST=True
     ;;
   *)
     HOST_EXE_SUFFIX=
-    HOST_WINDOWS=false
+    WINDOWS_ON_HOST=False
     ;;
 esac
-AM_CONDITIONAL(WINDOWS, $HOST_WINDOWS)
+AC_SUBST(WINDOWS_ON_HOST)
+AM_CONDITIONAL(WINDOWS, test x$WINDOWS_ON_HOST = xTrue)
 
 # Target
 
-PLATFORM_WINDOWS=False
+WINDOWS_ON_TARGET=False
 TARGET_EXE_SUFFIX=
 case $target_os in
   aix*)
@@ -93,14 +94,14 @@ case $target_os in
     TARGET_EXE_SUFFIX=.out
     ;;
   cygwin* | mingw* )
-    PLATFORM_WINDOWS=True
+    WINDOWS_ON_TARGET=True
     TARGET_EXE_SUFFIX=.exe
     ;;
 esac
 ADAFLAGS_FOR_TARGET="${CFLAGS_FOR_TARGET}"
 AC_SUBST(CFLAGS_FOR_TARGET)
 AC_SUBST(ADAFLAGS_FOR_TARGET)
-AC_SUBST(PLATFORM_WINDOWS)
+AC_SUBST(WINDOWS_ON_TARGET)
 
 #  Implementation note: the *vxworks* rule above is for VxWorks 5, it can
 #    present some problems for VxWorks 6.

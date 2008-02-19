@@ -128,9 +128,8 @@ begin
       raise Fatal_Error;
    end if;
 
-   --  Look for a partition list on the command line. Only those
-   --  partitions are build. If no partition list is given, then
-   --  generate all of them.
+   --  Look for a partition list on the command line. Only those partitions are
+   --  built. If no partition list is given, then generate all of them.
 
    if More_Source_Files then
       for J in Partitions.First + 1 .. Partitions.Last loop

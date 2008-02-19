@@ -80,13 +80,13 @@ begin
    Write_Eol;
    Write_Str ("  -t        Keep all temporary files");
    Write_Eol;
-   Write_Str ("  --PCS=... Select PCS variant (default: "
-     & XE_Defs.Defaults.Default_PCS_Name & ")");
+   Write_Str ("  --PCS=... "
+              & "Select PCS variant (default: "
+              & XE_Defs.Defaults.Default_PCS_Name & ")");
    Write_Eol;
    Write_Eol;
 
-   Write_Str ("Gcc switches such as -g, -O, etc.");
-   Write_Str (" are directly passed to gcc");
+   Write_Str ("Other switches are passed directly to gnatmake");
    Write_Eol;
    Write_Eol;
 

@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                             P L A T F O R M                              --
+--                       P O L Y O R B _ C O N F I G                        --
 --                                                                          --
---                                 S p e c                                  --
+--                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
+--           Copyright (C) 2008, Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,30 +31,58 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Defaults set by configure
+with Ada.Command_Line; use Ada.Command_Line;
 
-pragma Style_Checks ("M2048");
---  Configure substitutions may yield long lines
---  @configure_input@
+with GNAT.Directory_Operations; use GNAT.Directory_Operations;
+with GNAT.OS_Lib;               use GNAT.OS_Lib;
 
-package Platform is
+with Platform;
 
-   pragma Pure;
+package body PolyORB_Config is
 
-   Version : constant String := "@VERSION@";
+   function Get_Absolute_Directory (Dir : String) return String;
+   --  Return the absolute directory corresponding to possibly relative path
+   --  Dir.
 
-   Prefix : constant String := "@prefix@";
+   ----------------------------
+   -- Get_Absolute_Directory --
+   ----------------------------
 
-   Windows_On_Host : constant Boolean := @WINDOWS_ON_HOST@;
+   function Get_Absolute_Directory (Dir : String) return String is
+      Save_Current_Dir : constant String := Get_Current_Dir;
+   begin
+      Change_Dir (Dir);
+      declare
+         Absolute_Dir : constant String := Get_Current_Dir;
+      begin
+         Change_Dir (Save_Current_Dir);
+         return Absolute_Dir;
+      end;
+   end Get_Absolute_Directory;
 
-   IDL_Preprocessor : constant String := "@IDLCPP@ @IDLCPPFLAGS@";
-   IDL_Preprocessor_Suffix : constant String := "@IDLCPP_OUTPUT_SUFFIX@";
+   Exec_Name    : constant String_Access := Locate_Exec_On_Path (Command_Name);
+   Exec_Rel_Dir : constant String := Dir_Name (Exec_Name.all);
+   Exec_Abs_Dir : constant String := Get_Absolute_Directory (Exec_Rel_Dir);
 
-   Validity_Check_Name : constant String :=
-   @SUPPRESS_VALIDITY_USE_VALIDITY@"Validity_Check";
-   @SUPPRESS_VALIDITY_USE_RANGE@"Range_Check";
-   --  WAG:5.04
-   --  GNAT versions prior to 6.0.1 only support suppressing validity checks
-   --  by also disabling range checks.
+   Exec_Prefix    : aliased String := Dir_Name (Exec_Abs_Dir);
+   Default_Prefix : aliased String := Platform.Prefix;
 
-end Platform;
+   Prefix_Var : String_Access;
+
+   function Prefix return String is
+   begin
+      if Prefix_Var = null then
+         if Is_Readable_File (Exec_Prefix
+           & Dir_Separator & "include"
+           & Dir_Separator & "polyorb"
+           & Dir_Separator & "polyorb.ads")
+         then
+            Prefix_Var := Exec_Prefix'Access;
+         else
+            Prefix_Var := Default_Prefix'Access;
+         end if;
+      end if;
+      return Prefix_Var.all;
+   end Prefix;
+
+end PolyORB_Config;

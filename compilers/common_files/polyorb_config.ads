@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                             P L A T F O R M                              --
+--                       P O L Y O R B _ C O N F I G                        --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
+--           Copyright (C) 2008, Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,30 +31,9 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Defaults set by configure
+package PolyORB_Config is
 
-pragma Style_Checks ("M2048");
---  Configure substitutions may yield long lines
---  @configure_input@
+   function Prefix return String;
+   --  Return the top-level installation prefix
 
-package Platform is
-
-   pragma Pure;
-
-   Version : constant String := "@VERSION@";
-
-   Prefix : constant String := "@prefix@";
-
-   Windows_On_Host : constant Boolean := @WINDOWS_ON_HOST@;
-
-   IDL_Preprocessor : constant String := "@IDLCPP@ @IDLCPPFLAGS@";
-   IDL_Preprocessor_Suffix : constant String := "@IDLCPP_OUTPUT_SUFFIX@";
-
-   Validity_Check_Name : constant String :=
-   @SUPPRESS_VALIDITY_USE_VALIDITY@"Validity_Check";
-   @SUPPRESS_VALIDITY_USE_RANGE@"Range_Check";
-   --  WAG:5.04
-   --  GNAT versions prior to 6.0.1 only support suppressing validity checks
-   --  by also disabling range checks.
-
-end Platform;
+end PolyORB_Config;

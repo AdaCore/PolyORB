@@ -887,7 +887,9 @@ package body XE_List is
          Load_ALIs (Output);
          ALI := Get_ALI_Id (Afile);
 
-         Remove_Temp_File (Part_Main_Src_Name);
+         --  Do not delete the source file for the fake main subprogram,
+         --  it is needed by List later on.
+
          Remove_Temp_File (Part_Main_ALI_Name);
          Remove_Temp_File (Part_Main_Obj_Name);
 

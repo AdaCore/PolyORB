@@ -36,7 +36,7 @@
 package PolyORB.Platform is
    pragma Pure;
 
-   Windows : constant Boolean := @PLATFORM_WINDOWS@;
-   --  True when platform is Microsoft Windows
+   Windows_On_Target : constant Boolean := @WINDOWS_ON_TARGET@;
+   --  True when target operating system is Microsoft Windows
 
 end PolyORB.Platform;
