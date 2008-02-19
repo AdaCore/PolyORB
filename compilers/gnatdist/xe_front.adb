@@ -902,8 +902,7 @@ package body XE_Front is
             --  Check that it has not already been assigned.
 
             if Current.Executable_Dir = No_Directory_Name then
-               Current.Executable_Dir
-                 := Get_Variable_Name (Attr_Item);
+               Current.Executable_Dir := Get_Variable_Name (Attr_Item);
             else
                Write_Attr_Init_Error ("directory");
             end if;
