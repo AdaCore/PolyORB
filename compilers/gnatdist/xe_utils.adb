@@ -536,9 +536,6 @@ package body XE_Utils is
       Create_Dir (Part_Dir_Name);
 
       GNAT_Driver := Locate ("gnat");
-
-      --  XXX testing
-      Add_Make_Switch ("-df");
    end Initialize;
 
    ----------
