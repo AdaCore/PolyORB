@@ -50,7 +50,7 @@ begin
       Write_Str (" / ");
       Write_Str (Version (Version'First .. Length));
       Write_Eol;
-      Write_Str ("Copyright 1996-2005 Free Software Foundation, Inc.");
+      Write_Str ("Copyright 1996-2008, Free Software Foundation, Inc.");
       Write_Eol;
       Write_Eol;
    end if;
