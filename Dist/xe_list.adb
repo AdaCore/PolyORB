@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1995-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNATDIST is  free software;  you  can redistribute  it and/or  modify it --
 -- under terms of the  GNU General Public License  as published by the Free --
@@ -880,7 +880,9 @@ package body XE_List is
          Load_ALIs (Output);
          ALI := Get_ALI_Id (Afile);
 
-         Remove_Temp_File (Part_Main_Src_Name);
+         --  Do not delete the source file for the fake main subprogram,
+         --  it is needed by List later on.
+
          Remove_Temp_File (Part_Main_ALI_Name);
          Remove_Temp_File (Part_Main_Obj_Name);
 

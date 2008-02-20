@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1995-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 1995-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNATDIST is  free software;  you  can redistribute  it and/or  modify it --
 -- under terms of the  GNU General Public License  as published by the Free --
@@ -121,9 +121,8 @@ begin
       raise Fatal_Error;
    end if;
 
-   --  Look for a partition list on the command line. Only those
-   --  partitions are build. If no partition list is given, then
-   --  generate all of them.
+   --  Look for a partition list on the command line. Only those partitions are
+   --  built. If no partition list is given, then generate all of them.
 
    if More_Source_Files then
       for J in Partitions.First + 1 .. Partitions.Last loop

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1995-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNATDIST is  free software;  you  can redistribute  it and/or  modify it --
 -- under terms of the  GNU General Public License  as published by the Free --
@@ -779,16 +779,13 @@ package body XE_Utils is
          return;
       end if;
 
-      if Program_Args = Binder
-        or else Program_Args = Linker
-      then
+      if Program_Args = Binder or else Program_Args = Linker then
          Add_Make_Switch (Argv);
          return;
       end if;
 
       if Project_File_Name_Present then
-         Project_File_Name :=
-           new String'(Normalize_Pathname (Argv));
+         Project_File_Name         := new String'(Normalize_Pathname (Argv));
          Project_File_Name_Present := False;
 
       elsif Argv (Argv'First) = '-' then
@@ -816,13 +813,14 @@ package body XE_Utils is
             Add_List_Switch (Argv);
             Add_Make_Switch (Argv);
 
-         --  Processing for -aIdir, -aLdir and -aOdir
+         --  Processing for -aIdir, -aLdir, -aOdir, -aPdir
 
          elsif Argv'Length >= 3
            and then Argv (Argv'First + 1) = 'a'
            and then (Argv (Argv'First + 2) = 'I'
              or else Argv (Argv'First + 2) = 'L'
-             or else Argv (Argv'First + 2) = 'O')
+             or else Argv (Argv'First + 2) = 'O'
+             or else Argv (Argv'First + 2) = 'P')
          then
             Add_List_Switch (Argv);
             Add_Make_Switch (Argv);
@@ -854,6 +852,29 @@ package body XE_Utils is
             Add_List_Switch (Argv);
             Add_Make_Switch (Argv);
 
+         --  Debugging switches
+
+         elsif Argv (Argv'First + 1) = 'd' then
+
+            --  -d: debugging traces
+
+            if Argv'Length = 2 then
+               Debug_Mode := True;
+
+            else
+               case Argv (Argv'First + 2) is
+                  --  -df: output base names only in error messages (to ensure
+                  --       constant output for testsuites).
+
+                  when 'f' =>
+                     Add_Make_Switch ("-df");
+
+                  when others =>
+                     Usage_Needed := True;
+
+               end case;
+            end if;
+
          --  Processing for one character switches
 
          elsif Argv'Length = 2 then
@@ -862,41 +883,23 @@ package body XE_Utils is
                   Add_List_Switch (Argv);
                   Add_Make_Switch (Argv);
 
-               when 'f'
-                 |  'g'
-                 |  'O' =>
-                  Add_Make_Switch (Argv);
-
                when 't' =>
                   Keep_Tmp_Files := True;
-
-               when 'd' =>
-                  Debug_Mode   := True;
+                  Add_Make_Switch ("-dn");
 
                when 'q' =>
                   Quiet_Mode   := True;
+                  --  Switch is passed to gnatmake later on
 
                when 'v' =>
                   Verbose_Mode := True;
+                  --  Switch is passed to gnatmake later on
 
                when others =>
-                  Usage_Needed := True;
+                  --  Pass unrecognized switches to gnatmake
+
+                  Add_Make_Switch (Argv);
             end case;
-
-         --  Processing for -O0, -O1, -O2 and -O3
-
-         elsif Argv'Length = 3
-           and then Argv (Argv'First + 1) = 'O'
-           and then Argv (Argv'First + 2) in '0' .. '3'
-         then
-            Add_Make_Switch (Argv);
-
-         --  Processing for -gnat flags
-
-         elsif Argv'Length > 5
-           and then Argv (Argv'First + 1 .. Argv'First + 4) = "gnat"
-         then
-            Add_Make_Switch (Argv);
 
          --  Processing for --PCS=
 
@@ -914,7 +917,7 @@ package body XE_Utils is
             Add_List_Switch (Argv);
 
          else
-            Usage_Needed := True;
+            Add_Make_Switch (Argv);
          end if;
 
       else
@@ -929,10 +932,12 @@ package body XE_Utils is
    procedure Scan_Dist_Args (Args : String) is
       Argv : Argument_List_Access := Argument_String_To_List (Args);
    begin
-      --  We have already processed the user command line: we might be
-      --  in the -cargs or -largs section.
+      --  We have already processed the user command line: we might be in the
+      --  -cargs or -largs section. If so, switch back to -margs now.
 
-      Scan_Dist_Arg ("-margs");
+      if Program_Args /= None then
+         Scan_Dist_Arg ("-margs");
+      end if;
 
       for J in Argv'Range loop
          if Argv (J)'Length > 0 then

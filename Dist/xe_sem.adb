@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1995-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNATDIST is  free software;  you  can redistribute  it and/or  modify it --
 -- under terms of the  GNU General Public License  as published by the Free --
@@ -156,11 +156,15 @@ package body XE_Sem is
       if Partitions.Table (Main_Partition).To_Build then
          Register_Unit_To_Load (Main_Subprogram);
       end if;
+
+      --  Load the closure of all configured RCIs
+
       for U in Conf_Units.First .. Conf_Units.Last loop
          if To_Build (U) then
             Register_Unit_To_Load (Conf_Units.Table (U).Name);
          end if;
       end loop;
+
       Load_All_Registered_Units;
 
       ----------------------------
@@ -634,8 +638,8 @@ package body XE_Sem is
       A : constant ALI_Id         := Get_ALI_Id (N);
 
    begin
-      --  There is no ali file associated to this configured
-      --  unit. The configured unit is not an Ada unit.
+      --  There is no ali file associated to this configured unit.
+      --  The configured unit is not an Ada unit.
 
       if A = No_ALI_Id then
          Message ("configured unit", Quote (N), "is not an Ada unit");

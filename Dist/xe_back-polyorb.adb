@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1995-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNATDIST is  free software;  you  can redistribute  it and/or  modify it --
 -- under terms of the  GNU General Public License  as published by the Free --
@@ -37,11 +37,15 @@ with XE_Utils;    use XE_Utils;
 with XE_Back;
 pragma Elaborate_All (XE_Back);
 
+with Platform;
+with PolyORB_Config;
+
 package body XE_Back.PolyORB is
 
    type PolyORB_Backend is new Backend with null record;
 
    procedure Set_PCS_Dist_Flags (Self : access PolyORB_Backend);
+
    procedure Initialize (Self : access PolyORB_Backend);
    procedure Run_Backend (Self : access PolyORB_Backend);
    function Get_Detach_Flag (Self : access PolyORB_Backend) return Name_Id;
@@ -241,39 +245,32 @@ package body XE_Back.PolyORB is
       Prj_Fname  : File_Name_Type;
       Prj_File   : File_Descriptor;
 
-      --  Get PolyORB/DSA installation directory using polyorb-config
-
-      Status      : aliased Integer;
-      Arg         : String_Access := new String'("--prefix");
-      Install_Dir : constant String :=
-                      Get_Command_Output
-                        ("polyorb-config", (1 => Arg), "", Status'Access);
+      Install_Dir : constant String := PolyORB_Config.Prefix;
       DSA_Inc_Dir : constant String := Install_Dir & "/include/polyorb/";
 
       Secondary_PCS_Project      : Name_Id;
       Secondary_PCS_Project_File : File_Name_Type;
    begin
-      Free (Arg);
-
-      --  Create PCS project with all PCS sources except those units that
-      --  need to be rebuilt for each partition, or that are overridden
-      --  by each partition.
+      --  Create PCS project, extending the main PolyORB project, but removing
+      --  source files that need to be rebuilt as client or server stubs, and
+      --  those that are overridden by each partition.
 
       Prj_Fname := Dir (Id (Root), PCS_Project_File);
       Create_File (Prj_File, Prj_Fname);
       Set_Output (Prj_File);
       Write_Str  ("project ");
       Write_Name (PCS_Project);
+
+      Write_Str  (" extends ""polyorb""");
       Write_Line (" is");
-      Write_Line ("   for Object_Dir use """ & DSA_Inc_Dir & """;");
-      Write_Line ("   for Source_Dirs use (""" & DSA_Inc_Dir & """);");
+      Write_Line ("   for Externally_Built use ""true"";");
       Write_Line ("   for Locally_Removed_Files use");
 
       --  Overridden
 
       Write_Line ("     (""polyorb-partition_elaboration.adb"",");
 
-      --  Rebuilt
+      --  Rebuilt as stubs
 
       Write_Line ("      ""polyorb-dsa_p-partitions.ads"",");
       Write_Line ("      ""polyorb-dsa_p-partitions.adb"");");
@@ -304,7 +301,7 @@ package body XE_Back.PolyORB is
       Write_Str  ("project ");
       Write_Name (Secondary_PCS_Project);
       Write_Line (" is");
-      Write_Str  ("   for Object_Dir use "".."";");
+      Write_Line ("   for Object_Dir use "".."";");
       Write_Line ("   for Source_Dirs use (""" & DSA_Inc_Dir & """);");
       Write_Line ("   for Source_Files use");
       Write_Line ("     (""polyorb-dsa_p-partitions.ads"",");
@@ -315,7 +312,8 @@ package body XE_Back.PolyORB is
       Close (Prj_File);
       Set_Standard_Output;
 
-      --  Create application-wide project, extending user project file
+      --  Create application-wide project, extending user project file if
+      --  provided.
 
       Prj_Fname := Dir (Id (Root), Dist_App_Project_File);
       Create_File (Prj_File, Prj_Fname);
@@ -325,13 +323,42 @@ package body XE_Back.PolyORB is
       Write_Line (""";");
       Write_Str  ("project ");
       Write_Name (Dist_App_Project);
-      Write_Str  (" extends """);
-      Write_Str  (Project_File_Name.all);
-      Write_Line (""" is");
+
+      if Project_File_Name /= null then
+         Write_Str  (" extends """ & Project_File_Name.all & """");
+
+      else
+         --  No user project files: some source files might be outside the
+         --  main source directory, so allow compiling files that aren't
+         --  part of any project.
+
+         Scan_Dist_Args ("-margs");
+         Scan_Dist_Args ("-x");
+      end if;
+
+      Write_Line (" is");
       Write_Line ("   for Object_Dir use "".."";");
+
+      --  If a user project file is provided, inherit source dirs (and also
+      --  use application directory, which contains partition.adb).
+
       Write_Str  ("   for Source_Dirs use ");
-      Write_Str  (Strip_Directory (Project_File_Name.all));
-      Write_Line ("'Source_Dirs;");
+      if Project_File_Name /= null then
+         Write_Str  (Strip_Directory (Project_File_Name.all));
+         Write_Line ("'Source_Dirs & ");
+      else
+         Write_Line ("("".."");");
+      end if;
+
+      --  If a user project file is provided, inherit source files (and also
+      --  include partition.adb).
+
+      Write_Str  ("   for Source_Files use ");
+      if Project_File_Name /= null then
+         Write_Str  (Strip_Directory (Project_File_Name.all));
+         Write_Str ("'Source_Files & ");
+      end if;
+      Write_Line ("(""partition.adb"");");
 
       Write_Str  ("end ");
       Write_Name (Dist_App_Project);
@@ -803,7 +830,7 @@ package body XE_Back.PolyORB is
       if Present (Current.Main_Subprogram) then
          Write_Call (Current.Main_Subprogram);
 
-      --  XXX We launch ORB.Run although this is only required for a
+      --  ??? We launch ORB.Run although this is only required for a
       --  non-tasking server. Note that this can be considered as
       --  incorrect since the env task becomes indirectly part of the
       --  task pool.
@@ -875,9 +902,7 @@ package body XE_Back.PolyORB is
 
       Register_Casing_Rule ("ORB");
 
-      if Project_File_Name /= null then
-         Generate_Application_Project_Files;
-      end if;
+      Generate_Application_Project_Files;
 
       for U in RU_Id'First .. RU_Id'Last loop
          RU (U) := Strip (RU_Id'Image (U));
@@ -1041,19 +1066,35 @@ package body XE_Back.PolyORB is
 
    procedure Set_PCS_Dist_Flags (Self : access PolyORB_Backend) is
       pragma Unreferenced (Self);
-      Status : aliased Integer;
    begin
-      declare
-         PolyORB_Config : constant String :=
-           Get_Command_Output ("polyorb-config", (1 .. 0 => null), "",
-                               Status'Access);
-      begin
-         Scan_Dist_Args (PolyORB_Config);
-      end;
-   exception
-      when others =>
-         Message ("PolyORB installation not found");
-         raise Fatal_Error;
+      Scan_Dist_Arg ("-margs");
+      Scan_Dist_Arg ("-aP" & PolyORB_Config.Prefix & "/lib/gnat");
+
+      --  WAG:61
+      --  We normally get linker switches for the PolyORB runtime library
+      --  through project files, but we also set them here from polyorb-config.
+      --  This allows po_gnatdist to work on UNIX with older compilers. Note
+      --  that this cannot be used in a MinGW context because polyorb-config
+      --  is a shell script (and depends on xmlada-config which is a shell
+      --  script as well).
+
+      if not Platform.Windows_On_Host then
+         begin
+            declare
+               Status : aliased Integer;
+               PolyORB_Config_Output : constant String :=
+                 Get_Command_Output ("polyorb-config", (1 .. 0 => null), "",
+                                     Status'Access);
+            begin
+               Scan_Dist_Args (PolyORB_Config_Output);
+            end;
+         exception
+            when others =>
+               Message
+                 ("PolyORB installation is invalid (polyorb-config failure)");
+               raise Fatal_Error;
+         end;
+      end if;
    end Set_PCS_Dist_Flags;
 
    -----------

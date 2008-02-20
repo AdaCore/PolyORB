@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1995-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNATDIST is  free software;  you  can redistribute  it and/or  modify it --
 -- under terms of the  GNU General Public License  as published by the Free --
@@ -236,9 +236,13 @@ package body XE_Back is
 
       if P /= No_Partition_Id then
          Write_Str  ("   for Exec_Dir use """);
+         Name_Len := 0;
+         if Present (Partitions.Table (P).Executable_Dir) then
+            Get_Name_String (Partitions.Table (P).Executable_Dir);
+         end if;
+
          declare
-            Exec_Dir : constant String :=
-                         Get_Name_String (Partitions.Table (P).Executable_Dir);
+            Exec_Dir : constant String := Name_Buffer (1 .. Name_Len);
          begin
             if Exec_Dir'Length = 0
               or else not Is_Absolute_Path (Exec_Dir)
