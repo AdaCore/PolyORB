@@ -40,31 +40,42 @@ with Platform;
 
 package body PolyORB_Config is
 
-   function Get_Absolute_Directory (Dir : String) return String;
-   --  Return the absolute directory corresponding to possibly relative path
-   --  Dir.
+   function Get_Absolute_Command return String;
+   --  Get the absolute path of the command being executed
 
-   ----------------------------
-   -- Get_Absolute_Directory --
-   ----------------------------
+   --------------------------
+   -- Get_Absolute_Command --
+   --------------------------
 
-   function Get_Absolute_Directory (Dir : String) return String is
-      Save_Current_Dir : constant String := Get_Current_Dir;
+   function Get_Absolute_Command return String is
+      Cmd : constant String := Command_Name;
    begin
-      Change_Dir (Dir);
+      for J in Cmd'Range loop
+         if Cmd (J) = Dir_Separator then
+            return Normalize_Pathname (Cmd);
+         end if;
+      end loop;
+
+      --  Case of command name containing no directory separator
+
       declare
-         Absolute_Dir : constant String := Get_Current_Dir;
+         Abs_Command_Access : String_Access := Locate_Exec_On_Path (Cmd);
+         Abs_Command : constant String := Abs_Command_Access.all;
       begin
-         Change_Dir (Save_Current_Dir);
-         return Absolute_Dir;
+         Free (Abs_Command_Access);
+         return Abs_Command;
       end;
-   end Get_Absolute_Directory;
 
-   Exec_Name    : constant String_Access := Locate_Exec_On_Path (Command_Name);
-   Exec_Rel_Dir : constant String := Dir_Name (Exec_Name.all);
-   Exec_Abs_Dir : constant String := Get_Absolute_Directory (Exec_Rel_Dir);
+   end Get_Absolute_Command;
 
-   Exec_Prefix    : aliased String := Dir_Name (Exec_Abs_Dir);
+   Exec_Abs_Name : constant String := Get_Absolute_Command;
+   Exec_Abs_Dir  : constant String := Dir_Name (Exec_Abs_Name);
+
+   --  Strip trailing separator and remove last component ("bin")
+
+   Exec_Prefix   : aliased String  :=
+                     Dir_Name (Exec_Abs_Dir (Exec_Abs_Dir'First
+                                          .. Exec_Abs_Dir'Last - 1));
    Default_Prefix : aliased String := Platform.Prefix;
 
    Prefix_Var : String_Access;
