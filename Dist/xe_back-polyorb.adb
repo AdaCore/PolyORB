@@ -24,10 +24,12 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with GNAT.Expect; use GNAT.Expect;
-with GNAT.OS_Lib; use GNAT.OS_Lib;
+with GNAT.Directory_Operations; use GNAT.Directory_Operations;
+with GNAT.Expect;               use GNAT.Expect;
+with GNAT.OS_Lib;               use GNAT.OS_Lib;
 
 with XE;          use XE;
+with XE_Defs.Defaults;
 with XE_Front;    use XE_Front;
 with XE_Flags;    use XE_Flags;
 with XE_IO;       use XE_IO;
@@ -36,9 +38,6 @@ with XE_Utils;    use XE_Utils;
 
 with XE_Back;
 pragma Elaborate_All (XE_Back);
-
-with Platform;
-with PolyORB_Config;
 
 package body XE_Back.PolyORB is
 
@@ -202,6 +201,15 @@ package body XE_Back.PolyORB is
    --  the corrsponding project file. (Assumes that the project name is already
    --  all lowercase).
 
+   --  Installation information
+
+   DSA_Inc_Rel_Dir : constant String :=
+                       "include" & Dir_Separator & "polyorb";
+   PolyORB_Prefix  : constant String :=
+                       XE_Back.Prefix
+                         (Check_For => DSA_Inc_Rel_Dir
+                                         & Dir_Separator & "polyorb.ads");
+
    -------------------------------
    -- Generate_Ada_Starter_Code --
    -------------------------------
@@ -245,8 +253,8 @@ package body XE_Back.PolyORB is
       Prj_Fname  : File_Name_Type;
       Prj_File   : File_Descriptor;
 
-      Install_Dir : constant String := PolyORB_Config.Prefix;
-      DSA_Inc_Dir : constant String := Install_Dir & "/include/polyorb/";
+      DSA_Inc_Dir : constant String :=
+                      PolyORB_Prefix & Dir_Separator & DSA_Inc_Rel_Dir;
 
       Secondary_PCS_Project      : Name_Id;
       Secondary_PCS_Project_File : File_Name_Type;
@@ -261,9 +269,10 @@ package body XE_Back.PolyORB is
       Write_Str  ("project ");
       Write_Name (PCS_Project);
 
-      Write_Str  (" extends ""polyorb""");
+      Write_Str  (" extends all ""polyorb""");
       Write_Line (" is");
       Write_Line ("   for Externally_Built use ""true"";");
+      Write_Line ("   for Source_Dirs use (""" & DSA_Inc_Dir & """);");
       Write_Line ("   for Locally_Removed_Files use");
 
       --  Overridden
@@ -318,47 +327,59 @@ package body XE_Back.PolyORB is
       Prj_Fname := Dir (Id (Root), Dist_App_Project_File);
       Create_File (Prj_File, Prj_Fname);
       Set_Output (Prj_File);
+
+      --  Dependency on PCS
+
       Write_Str  ("with """);
       Write_Name (Secondary_PCS_Project);
       Write_Line (""";");
-      Write_Str  ("project ");
-      Write_Name (Dist_App_Project);
+
+      --  Dependency on user project, if any
 
       if Project_File_Name /= null then
-         Write_Str  (" extends """ & Project_File_Name.all & """");
-
-      else
-         --  No user project files: some source files might be outside the
-         --  main source directory, so allow compiling files that aren't
-         --  part of any project.
-
-         Scan_Dist_Args ("-margs");
-         Scan_Dist_Args ("-x");
+         Write_Line ("with """ & Project_File_Name.all & """;");
       end if;
+
+      Write_Str  ("project ");
+      Write_Name (Dist_App_Project);
 
       Write_Line (" is");
       Write_Line ("   for Object_Dir use "".."";");
 
-      --  If a user project file is provided, inherit source dirs (and also
-      --  use application directory, which contains partition.adb).
+      --  If no user project file is provided, add any source directory
+      --  specified on the command line as source directories, in addition to
+      --  the main application directory. The generated main subprogram
+      --  (monolithic_app.adb) and all RCI units must be sources of the
+      --  project (so that they can be individually recompiled).
 
-      Write_Str  ("   for Source_Dirs use ");
-      if Project_File_Name /= null then
-         Write_Str  (Strip_Directory (Project_File_Name.all));
-         Write_Line ("'Source_Dirs & ");
-      else
-         Write_Line ("("".."");");
+      Write_Str  ("   for Source_Dirs use ("".""");
+      if Project_File_Name = null then
+         Write_Line (",");
+         Write_Line ("     ""..""");
+         for J in Source_Directories.First .. Source_Directories.Last loop
+            declare
+               Normalized_Dir : constant String :=
+                                  Normalize_Pathname
+                                    (Source_Directories.Table (J).all);
+            begin
+               if Is_Directory (Normalized_Dir) then
+                  Write_Line (",");
+                  Write_Str ("     """ & Normalized_Dir & """");
+               end if;
+            end;
+         end loop;
       end if;
+      Write_Line (");");
 
-      --  If a user project file is provided, inherit source files (and also
-      --  include partition.adb).
+      --  If a user project file is provided, explicitly specify additional
+      --  source file partition.adb (in addition to all other sources, which
+      --  are sources of this project by virtue of "extends all").
 
-      Write_Str  ("   for Source_Files use ");
       if Project_File_Name /= null then
-         Write_Str  (Strip_Directory (Project_File_Name.all));
-         Write_Str ("'Source_Files & ");
+         Write_Str  ("   for Source_Files use (""");
+         Write_Name (Monolithic_Src_Base_Name);
+         Write_Line (""");");
       end if;
-      Write_Line ("(""partition.adb"");");
 
       Write_Str  ("end ");
       Write_Name (Dist_App_Project);
@@ -536,18 +557,12 @@ package body XE_Back.PolyORB is
 
       --  Compile elaboration file
 
-      Sfile := Elaboration_File & ADB_Suffix_Id;
-      if Project_File_Name = null then
-         Sfile := Dir (Part_Dir, Sfile);
-      end if;
+      Sfile := Dir (Part_Dir, Elaboration_File & ADB_Suffix_Id);
       Compile (Sfile, Comp_Args (1 .. Length));
 
       --  Compile main file
 
-      Sfile := Partition_Main_File & ADB_Suffix_Id;
-      if Project_File_Name = null then
-         Sfile := Dir (Part_Dir, Sfile);
-      end if;
+      Sfile := Dir (Part_Dir, Partition_Main_File & ADB_Suffix_Id);
       Compile (Sfile, Comp_Args (1 .. Length));
 
       Free (Comp_Args (6));
@@ -1067,24 +1082,34 @@ package body XE_Back.PolyORB is
    procedure Set_PCS_Dist_Flags (Self : access PolyORB_Backend) is
       pragma Unreferenced (Self);
    begin
-      Scan_Dist_Arg ("-margs");
-      Scan_Dist_Arg ("-aP" & PolyORB_Config.Prefix & "/lib/gnat");
-
       --  WAG:61
-      --  We normally get linker switches for the PolyORB runtime library
-      --  through project files, but we also set them here from polyorb-config.
-      --  This allows po_gnatdist to work on UNIX with older compilers. Note
-      --  that this cannot be used in a MinGW context because polyorb-config
-      --  is a shell script (and depends on xmlada-config which is a shell
-      --  script as well).
+      --  We would normally get linker switches for the PolyORB runtime library
+      --  through project files. This is the only supported option in MinGW
+      --  context, where we cannot use the polyorb-config shell script.
+      --  In the UNIX case, we still use polyorb-config, so that we get not
+      --  only the project file path but also the legacy -L/-l command line
+      --  switches, which allow correct operation even with older compilers.
+      --  Note that in the UNIX case we rely on polyorb-config to set both
+      --  -aP and -aI, to avoid setting -aP here to a value that might be
+      --  inconsistent with the -aI path set by polyorb-config.
 
-      if not Platform.Windows_On_Host then
+      if XE_Defs.Defaults.Windows_On_Host then
+         Scan_Dist_Arg ("-margs");
+         Scan_Dist_Arg ("-aP" & PolyORB_Prefix
+                                  & Dir_Separator & "lib"
+                                  & Dir_Separator & "gnat");
+
+      else
          begin
             declare
                Status : aliased Integer;
+               PolyORB_Config_Command : constant String :=
+                                          PolyORB_Prefix
+                                            & Dir_Separator & "bin"
+                                            & Dir_Separator & "polyorb-config";
                PolyORB_Config_Output : constant String :=
-                 Get_Command_Output ("polyorb-config", (1 .. 0 => null), "",
-                                     Status'Access);
+                 Get_Command_Output (PolyORB_Config_Command,
+                                     (1 .. 0 => null), "", Status'Access);
             begin
                Scan_Dist_Args (PolyORB_Config_Output);
             end;

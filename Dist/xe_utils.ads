@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 1995-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNATDIST is  free software;  you  can redistribute  it and/or  modify it --
 -- under terms of the  GNU General Public License  as published by the Free --
@@ -58,6 +58,13 @@ package XE_Utils is
    E_Current_Dir : String_Access;
    I_Current_Dir : String_Access;
 
+   Monolithic_App_Unit_Name : File_Name_Type;
+   Monolithic_Src_Base_Name : File_Name_Type;
+
+   Monolithic_Src_Name : File_Name_Type;
+   Monolithic_ALI_Name : File_Name_Type;
+   Monolithic_Obj_Name : File_Name_Type;
+
    Part_Main_Src_Name : File_Name_Type;
    Part_Main_ALI_Name : File_Name_Type;
    Part_Main_Obj_Name : File_Name_Type;
@@ -102,12 +109,15 @@ package XE_Utils is
    -- Command Line Argument Handling --
    ------------------------------------
 
-   procedure Scan_Dist_Arg (Argv : String);
+   procedure Scan_Dist_Arg (Argv : String; Implicit : Boolean := True);
    --  Process one command line argument
+   --  Implicit is set True for additional flags generated internally by
+   --  gnatdist.
 
    procedure Scan_Dist_Args (Args : String);
    --  Split Args into a list of arguments according to usual shell
-   --  splitting semantics, and process each argument using Scan_Dist_Arg.
+   --  splitting semantics, and process each argument using Scan_Dist_Arg
+   --  (such arguments are always implicit).
 
    function More_Source_Files return Boolean;
    function Next_Main_Source return Name_Id;

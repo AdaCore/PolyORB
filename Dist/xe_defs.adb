@@ -24,9 +24,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Command_Line;
-
-with GNAT.Directory_Operations; use GNAT.Directory_Operations;
 with GNAT.OS_Lib; use GNAT.OS_Lib;
 
 with XE_Utils;         use XE_Utils;
@@ -55,25 +52,6 @@ package body XE_Defs is
    begin
       return Defaults.Default_Storage_Name;
    end Get_Def_Storage_Name;
-
-   function Get_Dist_Prefix return String is
-      Dist_Name  : String_Access :=
-                     Locate_Exec_On_Path (Ada.Command_Line.Command_Name);
-      Dist_Dir   : constant String := Dir_Name (Dist_Name.all);
-      Bin_Suffix : constant String := Directory_Separator & "bin"
-                                    & Directory_Separator;
-   begin
-      Free (Dist_Name);
-      if Dist_Dir'Length >= Bin_Suffix'Length
-        and then Dist_Dir (
-                   Dist_Dir'Last - Bin_Suffix'Length + 1 .. Dist_Dir'Last)
-                 = Bin_Suffix
-      then
-         return Dist_Dir (Dist_Dir'First .. Dist_Dir'Last - Bin_Suffix'Length);
-      else
-         return "";
-      end if;
-   end Get_Dist_Prefix;
 
    function Get_PCS_Name return String is
    begin
