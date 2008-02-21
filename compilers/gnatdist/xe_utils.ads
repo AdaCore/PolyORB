@@ -65,6 +65,7 @@ package XE_Utils is
    E_Current_Dir : String_Access;
    I_Current_Dir : String_Access;
 
+   Monolithic_App_Unit_Name : File_Name_Type;
    Monolithic_Src_Base_Name : File_Name_Type;
 
    Monolithic_Src_Name : File_Name_Type;

@@ -513,7 +513,13 @@ package body XE_Utils is
       I_Current_Dir  := new String'("-I.");
       E_Current_Dir  := new String'("-I-");
 
-      Monolithic_Src_Base_Name := Id ("monolithic_app" & ADB_Suffix);
+      Monolithic_App_Unit_Name := Id ("Monolithic_App");
+
+      Get_Name_String (Monolithic_App_Unit_Name);
+      To_Lower (Name_Buffer (1 .. Name_Len));
+      Add_Str_To_Name_Buffer (ADB_Suffix);
+
+      Monolithic_Src_Base_Name := Name_Find;
       Monolithic_Src_Name := Dir (Id (Root), Monolithic_Src_Base_Name);
       Monolithic_ALI_Name := To_Afile (Monolithic_Src_Name);
       Monolithic_Obj_Name := To_Ofile (Monolithic_Src_Name);
