@@ -144,6 +144,12 @@ private
    --  Add a with clause W, a use clause when U is true and an
    --  elaborate clause when E is true.
 
+   function Prefix (Check_For : String) return String;
+   --  Return the PCS installation prefix as dynamically determined by the
+   --  location of the gnatdist executable, or fall back to the default
+   --  (configure-time) prefix. The validity of a candidate prefix is
+   --  checked by testing whether file Check_For exists under that prefix.
+
    procedure Apply_Casing_Rules (S : in out String);
    procedure Register_Casing_Rule (S : String);
    --  ??? documentation needed!

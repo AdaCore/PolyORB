@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Command_Line; use Ada.Command_Line;
-
 with GNAT.Directory_Operations; use GNAT.Directory_Operations;
 with GNAT.Expect;               use GNAT.Expect;
 with GNAT.OS_Lib;               use GNAT.OS_Lib;
@@ -210,76 +208,14 @@ package body XE_Back.PolyORB is
    --  the corrsponding project file. (Assumes that the project name is already
    --  all lowercase).
 
-   package PolyORB_Config is
-      function Prefix return String;
-      --  Return the PolyORB installation prefix as dynamically determined by
-      --  the location of the gnatdist executable, or fall back to the default
-      --  (configure-time) prefix.
-   end PolyORB_Config;
+   --  Installation information
 
-   package body PolyORB_Config is
-
-      function Get_Absolute_Command return String;
-      --  Get the absolute path of the command being executed
-
-      --------------------------
-      -- Get_Absolute_Command --
-      --------------------------
-
-      function Get_Absolute_Command return String is
-         Cmd : constant String := Command_Name;
-      begin
-         for J in Cmd'Range loop
-            if Cmd (J) = Dir_Separator then
-               return Normalize_Pathname (Cmd);
-            end if;
-         end loop;
-
-         --  Case of command name containing no directory separator
-
-         declare
-            Abs_Command_Access : String_Access := Locate_Exec_On_Path (Cmd);
-            Abs_Command : constant String := Abs_Command_Access.all;
-         begin
-            Free (Abs_Command_Access);
-            return Abs_Command;
-         end;
-
-      end Get_Absolute_Command;
-
-      Exec_Abs_Name : constant String := Get_Absolute_Command;
-      Exec_Abs_Dir  : constant String := Dir_Name (Exec_Abs_Name);
-
-      --  Strip trailing separator and remove last component ("bin")
-
-      Exec_Prefix   : aliased String  :=
-                        Dir_Name (Exec_Abs_Dir (Exec_Abs_Dir'First
-                                             .. Exec_Abs_Dir'Last - 1));
-      Default_Prefix : aliased String := XE_Defs.Defaults.Default_Prefix;
-
-      Prefix_Var : String_Access;
-
-      ------------
-      -- Prefix --
-      ------------
-
-      function Prefix return String is
-      begin
-         if Prefix_Var = null then
-            if Is_Readable_File (Exec_Prefix
-              & Dir_Separator & "include"
-              & Dir_Separator & "polyorb"
-              & Dir_Separator & "polyorb.ads")
-            then
-               Prefix_Var := Exec_Prefix'Access;
-            else
-               Prefix_Var := Default_Prefix'Access;
-            end if;
-         end if;
-         return Prefix_Var.all;
-      end Prefix;
-
-   end PolyORB_Config;
+   DSA_Inc_Rel_Dir : constant String :=
+                       "include" & Dir_Separator & "polyorb";
+   PolyORB_Prefix  : constant String :=
+                       XE_Back.Prefix
+                         (Check_For => DSA_Inc_Rel_Dir
+                                         & Dir_Separator & "polyorb.ads");
 
    -------------------------------
    -- Generate_Ada_Starter_Code --
@@ -324,8 +260,8 @@ package body XE_Back.PolyORB is
       Prj_Fname  : File_Name_Type;
       Prj_File   : File_Descriptor;
 
-      Install_Dir : constant String := PolyORB_Config.Prefix;
-      DSA_Inc_Dir : constant String := Install_Dir & "/include/polyorb/";
+      DSA_Inc_Dir : constant String :=
+                      PolyORB_Prefix & Dir_Separator & DSA_Inc_Rel_Dir;
 
       Secondary_PCS_Project      : Name_Id;
       Secondary_PCS_Project_File : File_Name_Type;
@@ -1166,15 +1102,21 @@ package body XE_Back.PolyORB is
 
       if XE_Defs.Defaults.Windows_On_Host then
          Scan_Dist_Arg ("-margs");
-         Scan_Dist_Arg ("-aP" & PolyORB_Config.Prefix & "/lib/gnat");
+         Scan_Dist_Arg ("-aP" & PolyORB_Prefix
+                                  & Dir_Separator & "lib"
+                                  & Dir_Separator & "gnat");
 
       else
          begin
             declare
                Status : aliased Integer;
+               PolyORB_Config_Command : constant String :=
+                                          PolyORB_Prefix
+                                            & Dir_Separator & "bin"
+                                            & Dir_Separator & "polyorb-config";
                PolyORB_Config_Output : constant String :=
-                 Get_Command_Output ("polyorb-config", (1 .. 0 => null), "",
-                                     Status'Access);
+                 Get_Command_Output (PolyORB_Config_Command,
+                                     (1 .. 0 => null), "", Status'Access);
             begin
                Scan_Dist_Args (PolyORB_Config_Output);
             end;

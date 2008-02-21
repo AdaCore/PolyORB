@@ -43,7 +43,6 @@ package XE_Defs is
    function Get_Def_Protocol_Data return String;
    function Get_Def_Protocol_Name return String;
    function Get_PCS_Name return String;
-   function Get_Dist_Prefix return String;
 
    procedure Set_PCS_Name (S : String);
 

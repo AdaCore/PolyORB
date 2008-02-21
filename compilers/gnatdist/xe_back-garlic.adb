@@ -31,10 +31,11 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with GNAT.OS_Lib; use GNAT.OS_Lib;
+with GNAT.Directory_Operations; use GNAT.Directory_Operations;
+with GNAT.OS_Lib;               use GNAT.OS_Lib;
+
 with XE;          use XE;
 with XE_Defs;     use XE_Defs;
-with XE_Defs.Defaults;
 with XE_Flags;    use XE_Flags;
 with XE_Front;    use XE_Front;
 with XE_IO;       use XE_IO;
@@ -1215,10 +1216,11 @@ package body XE_Back.GARLIC is
       --  contains a GARLIC installation. After successful return, command
       --  line scanning is in the "-largs" state.
 
+      GARLIC_Rel_Dir : constant String :=
+                         "lib" & Directory_Separator & "garlic";
       function Try_Prefix (Prefix : String) return Boolean is
          GARLIC_Dir : constant String := Prefix & Directory_Separator
-                                       & "lib" & Directory_Separator
-                                       & "garlic";
+                                       & GARLIC_Rel_Dir;
       begin
          if Prefix'Length = 0 or else not Is_Directory (GARLIC_Dir) then
             return False;
@@ -1232,18 +1234,20 @@ package body XE_Back.GARLIC is
 
    begin
       if Project_File_Name = null then
+         --  Include main application directory in source path while compiling
+         --  the monolithic main (whose body is in the dsa/ subdirectory).
+
          Scan_Dist_Arg ("-margs");
          Scan_Dist_Arg ("-I.");
       end if;
 
       declare
-         Runtime_Prefix : constant String := XE_Defs.Get_Dist_Prefix;
-         Compile_Prefix : constant String := XE_Defs.Defaults.Default_Prefix;
+         Prefix : constant String :=
+                    XE_Back.Prefix
+                      (Check_For => GARLIC_Rel_Dir
+                                      & Dir_Separator & "s-garlic.ali");
       begin
-         if True
-           and then not Try_Prefix (Runtime_Prefix)
-           and then not Try_Prefix (Compile_Prefix)
-         then
+         if not Try_Prefix (Prefix) then
             Message ("GARLIC library not found");
             raise Fatal_Error;
          end if;
