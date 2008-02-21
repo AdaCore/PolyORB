@@ -1223,7 +1223,6 @@ package body XE_Back.GARLIC is
          if Prefix'Length = 0 or else not Is_Directory (GARLIC_Dir) then
             return False;
          end if;
-         Scan_Dist_Arg ("-margs");
          Scan_Dist_Arg ("-aI" & GARLIC_Dir);
          Scan_Dist_Arg ("-aO" & GARLIC_Dir);
          Scan_Dist_Arg ("-largs");
@@ -1232,6 +1231,11 @@ package body XE_Back.GARLIC is
       end Try_Prefix;
 
    begin
+      if Project_File_Name = null then
+         Scan_Dist_Arg ("-margs");
+         Scan_Dist_Arg ("-I.");
+      end if;
+
       declare
          Runtime_Prefix : constant String := XE_Defs.Get_Dist_Prefix;
          Compile_Prefix : constant String := XE_Defs.Defaults.Default_Prefix;
