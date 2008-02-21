@@ -80,4 +80,11 @@ package XE_Flags is
      Table_Initial        => 20,
      Table_Increment      => 100);
 
+   package Source_Directories is new GNAT.Table (
+     Table_Component_Type => String_Access,
+     Table_Index_Type     => Integer,
+     Table_Low_Bound      => 1,
+     Table_Initial        => 20,
+     Table_Increment      => 100);
+
 end XE_Flags;

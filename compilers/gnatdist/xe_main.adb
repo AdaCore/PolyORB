@@ -98,7 +98,7 @@ begin
       Configuration_File_Name := Name_Find;
 
       if not Is_Regular_File (Configuration_File_Name) then
-         Message ("file", Quote (Next_Main_Source), "not found");
+         Message ("file", Quote (Configuration_File_Name), "not found");
          raise Fatal_Error;
       end if;
 

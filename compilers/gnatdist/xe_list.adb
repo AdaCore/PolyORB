@@ -535,19 +535,18 @@ package body XE_List is
 
    procedure Initialize is
       File : File_Descriptor;
-
    begin
       --  Create main body for monolithic application as a temporary file
 
-      Register_Temp_File (File, Part_Main_Src_Name);
+      Register_Temp_File (File, Monolithic_Src_Name);
       Set_Output (File);
       Write_Line ("pragma Warnings (Off);");
 
       --  Record the associated object and ALI files as temporary files to
       --  be cleaned up eventually.
 
-      Register_Temp_File (Part_Main_ALI_Name);
-      Register_Temp_File (Part_Main_Obj_Name);
+      Register_Temp_File (Monolithic_ALI_Name);
+      Register_Temp_File (Monolithic_Obj_Name);
    end Initialize;
 
    ---------------
@@ -880,7 +879,7 @@ package body XE_List is
          --  Build the monolithic application with a fake main subprogram
          --  Partition. Load the info from its ALI file.
 
-         Sfile := Part_Main_Src_Name;
+         Sfile := Monolithic_Src_Name;
          Afile := To_Afile (Sfile);
          Build (Sfile, Make_Flags, Fatal => False);
          List ((1 => Afile), List_Flags, Output);

@@ -45,8 +45,6 @@ package Platform is
 
    Prefix : constant String := "@prefix@";
 
-   Windows_On_Host : constant Boolean := @WINDOWS_ON_HOST@;
-
    IDL_Preprocessor : constant String := "@IDLCPP@ @IDLCPPFLAGS@";
    IDL_Preprocessor_Suffix : constant String := "@IDLCPP_OUTPUT_SUFFIX@";
 

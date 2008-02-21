@@ -197,11 +197,6 @@ build-iac: ${IAC_NODES_SOURCES}
 build-po_gnatdist: \
   compiler_dir := gnatdist
 
-build-po_gnatdist: \
-  PRJ_GNATMAKE_FLAGS := -I${top_srcdir}/compilers/common_files \
-                        -I${top_builddir}/compilers/common_files
-
-
 ################################################
 # Common build rule for all compile-time tools #
 ################################################
