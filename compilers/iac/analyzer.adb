@@ -1162,7 +1162,8 @@ package body Analyzer is
       end loop;
       Pop_Scope;
 
-      --  Check there is no useless choices
+      --  Check for useless choices (explicit choices in alternative that
+      --  includes the default label).
 
       Alternative := First_Entity (Switch_Type_Body (E));
       while Present (Alternative) loop
@@ -1205,13 +1206,13 @@ package body Analyzer is
       Scoped_Names : List_Id;
       Parent_Kind  : Node_Kind;
       Is_Abstract  : constant Boolean :=
-        (Kind (E) = K_Abstract_Value_Declaration);
+                       Kind (E) = K_Abstract_Value_Declaration;
 
    begin
       Enter_Name_In_Scope (Identifier (E));
 
-      --  Analyze value type names in the current scope (before pushing
-      --  a new scope and inheriting from other value types).
+      --  Analyze value type names in the current scope (before pushing a new
+      --  scope and inheriting from other value types).
 
       Scoped_Names := Value_Names (Value_Spec (E));
       if not Is_Empty (Scoped_Names) then
@@ -1235,7 +1236,7 @@ package body Analyzer is
                          "from a non-value type");
                   end if;
 
-                  --  Do not consider this value type later on.
+                  --  Do not consider this value type later on
 
                   Set_Reference (Scoped_Name, No_Node);
 
@@ -1252,8 +1253,8 @@ package body Analyzer is
          end loop;
       end if;
 
-      --  Analyze interface names in the current scope (before pushing
-      --  a new scope).
+      --  Analyze interface names in the current scope (before pushing a
+      --  new scope).
 
       Scoped_Names := Interface_Names (Value_Spec (E));
       if not Is_Empty (Scoped_Names) then
@@ -1274,7 +1275,7 @@ package body Analyzer is
                          "from a non-interface");
                   end if;
 
-                  --  Do not consider this interface later on.
+                  --  Do not consider this interface later on
 
                   Set_Reference (Scoped_Name, No_Node);
                end if;
@@ -1283,8 +1284,7 @@ package body Analyzer is
          end loop;
       end if;
 
-      --  Push a new scope and then inherit from the parent
-      --  value types.
+      --  Push a new scope, then inherit from the parent value types
 
       Push_Scope (E);
       Scoped_Names := Value_Names (Value_Spec (E));
@@ -1299,7 +1299,7 @@ package body Analyzer is
          end loop;
       end if;
 
-      --  Inherit from the parent interfaces.
+      --  Inherit from the parent interfaces
 
       Scoped_Names := Interface_Names (Value_Spec (E));
       if not Is_Empty (Scoped_Names) then
@@ -1342,28 +1342,31 @@ package body Analyzer is
       Unique : Boolean := False) is
    begin
 
-      if Kind (Scope) /= K_Module and then
-        Kind (Scope) /= K_Interface_Declaration and then
-        Kind (Scope) /= K_Forward_Interface_Declaration and then
-        Kind (Scope) /= K_Value_Declaration and then
-        Kind (Scope) /= K_Value_Forward_Declaration and then
-        Kind (Scope) /= K_Value_Box_Declaration and then
-        Kind (Scope) /= K_Constant_Declaration and then
-        Kind (Scope) /= K_Type_Declaration and then
-        Kind (Scope) /= K_Exception_Declaration and then
-        Kind (Scope) /= K_Attribute_Declaration and then
-        Kind (Scope) /= K_Operation_Declaration and then
-        Kind (Scope) /= K_Enumeration_Type
-      then
-         Error_Loc  (1) := Loc (Prefix);
-         DE ("A type Id should not be defined for this entity");
-         return;
-      end if;
+      case Kind (Scope) is
+         when
+           K_Module                        |
+           K_Interface_Declaration         |
+           K_Forward_Interface_Declaration |
+           K_Value_Declaration             |
+           K_Value_Forward_Declaration     |
+           K_Value_Box_Declaration         |
+           K_Constant_Declaration          |
+           K_Type_Declaration              |
+           K_Exception_Declaration         |
+           K_Attribute_Declaration         |
+           K_Operation_Declaration         |
+           K_Enumeration_Type              =>
+            null;
+
+         when others =>
+            Error_Loc  (1) := Loc (Prefix);
+            DE ("A type Id should not be defined for this entity");
+            return;
+      end case;
 
       if Present (Type_Id (Scope))
-        and then
-        (IDL_Name (Type_Id (Scope)) /= IDL_Name (Prefix)
-         or else Unique)
+           and then
+         (IDL_Name (Type_Id (Scope)) /= IDL_Name (Prefix) or else Unique)
       then
          Error_Loc  (1) := Loc (Prefix);
          DE ("type id should not be redefined");
@@ -1380,7 +1383,7 @@ package body Analyzer is
       Prefixes : List_Id;
    begin
 
-      --  The Corba Spec 3.0 states that :
+      --  The Corba Spec 3.0 states that:
 
       --  "The specified prefix applies to Repository Ids generated after the
       --   pragma until the end of the current scope is reached or another
@@ -1388,7 +1391,7 @@ package body Analyzer is
       --   purpose, so a prefix resets to the previous prefix at the end of
       --   the scope of an included file..."
 
-      --  Each time we encounter a type prefix we put it in the Type_Prefixes
+      --  Each time we encounter a type prefix, we put it in the Type_Prefixes
       --  list with its location. The locations will help to assign the right
       --  prefix to a Repository Id constant.
 
@@ -1412,29 +1415,34 @@ package body Analyzer is
 
    procedure Assign_Type_Version (Scope : Node_Id; Prefix : Node_Id) is
    begin
-      if Kind (Scope) /= K_Module and then
-        Kind (Scope) /= K_Interface_Declaration and then
-        Kind (Scope) /= K_Forward_Interface_Declaration and then
-        Kind (Scope) /= K_Value_Declaration and then
-        Kind (Scope) /= K_Value_Forward_Declaration and then
-        Kind (Scope) /= K_Value_Box_Declaration and then
-        Kind (Scope) /= K_Constant_Declaration and then
-        Kind (Scope) /= K_Type_Declaration and then
-        Kind (Scope) /= K_Exception_Declaration and then
-        Kind (Scope) /= K_Attribute_Declaration and then
-        Kind (Scope) /= K_Operation_Declaration and then
-        Kind (Scope) /= K_Enumeration_Type
-      then
-         Error_Loc  (1) := Loc (Prefix);
-         DE ("A Version Id should not be defined for this entity");
-         return;
-      end if;
+      case Kind (Scope) is
+         when
+           K_Module                        |
+           K_Interface_Declaration         |
+           K_Forward_Interface_Declaration |
+           K_Value_Declaration             |
+           K_Value_Forward_Declaration     |
+           K_Value_Box_Declaration         |
+           K_Constant_Declaration          |
+           K_Type_Declaration              |
+           K_Exception_Declaration         |
+           K_Attribute_Declaration         |
+           K_Operation_Declaration         |
+           K_Enumeration_Type              =>
+            null;
+
+         when others =>
+            Error_Loc  (1) := Loc (Prefix);
+            DE ("A Version Id should not be defined for this entity");
+            return;
+      end case;
 
       if Present (Type_Version (Scope))
         and then IDL_Name (Type_Version (Scope)) /= IDL_Name (Prefix)
       then
          Error_Loc  (1) := Loc (Prefix);
          DE ("pragma version should not be redefined");
+
       elsif Present (Type_Id (Scope)) then
          declare
             Rep_Id : constant String
@@ -1443,7 +1451,8 @@ package body Analyzer is
               := Get_Name_String (IDL_Name (Prefix));
          begin
             --  We assume that the version appears at the end of the
-            --  Repository_ID constant
+            --  Repository_ID constant.
+
             if V_Id'Length <= Rep_Id'Length and then
               Rep_Id (Rep_Id'Last - V_Id'Length + 1 .. Rep_Id'Last) /= V_Id
             then
@@ -1473,8 +1482,8 @@ package body Analyzer is
       if K2 = K_Void then
          DE ("value not in range of type of%");
       else
-            Error_Name (2) := Quoted (Image (K2));
-            DE ("value not in range of type of%or%");
+         Error_Name (2) := Quoted (Image (K2));
+         DE ("value not in range of type of%or%");
       end if;
    end Display_Incorrect_Value;
 
@@ -1502,14 +1511,12 @@ package body Analyzer is
       while Present (Identifier) loop
          Entity := Corresponding_Entity (Identifier);
 
-         --  Do not add to the scope a scoped name that was introduced
-         --  in a parent scope. If the interface inherits from parent
-         --  entities, this is a new scope in which the names
-         --  introduced for the parents are no longer considered.
+         --  Do not add to the scope a scoped name that was introduced in a
+         --  parent scope. If the interface inherits from parent entities, this
+         --  is a new scope in which the names introduced for the parents are
+         --  no longer considered.
 
-         if Present (Entity)
-           and then Kind (Entity) /= K_Scoped_Name
-         then
+         if Present (Entity) and then Kind (Entity) /= K_Scoped_Name then
             Enter_Name_In_Scope
               (Make_Identifier
                (Loc (Entity),
@@ -1528,9 +1535,7 @@ package body Analyzer is
    function  Less_Than (Op1, Op2 : Natural) return Boolean is
       N1, N2 : Node_Id;
       V1, V2 : Value_Id;
-
    begin
-
       --  N1 is default
 
       N1 := LT.Table (Op1);
@@ -1569,27 +1574,25 @@ package body Analyzer is
         (E : Node_Id;
          S : String;
          T : Node_Kind);
-      --  Output an error message to indicate that a value cannot be
-      --  cast in a given type. E denotes the entity in which the cast
-      --  occurs, V the source type and K the target type.
+      --  Output an error message to indicate that a value cannot be cast to
+      --  a given type. E denotes the entity in which the cast occurs, V the
+      --  source type and K the target type.
 
       function Convert
-        (E    : Node_Id;
-         T    : Node_Id;
-         K    : Node_Kind)
-        return Value_Type;
-      --  Convert the value from E into type T in the context K. The
-      --  conversion depends on the context since for instance, an
-      --  integer value is not converted the same way whether it is
-      --  performed in a constant declaration or in an expression.
+        (E : Node_Id;
+         T : Node_Id;
+         K : Node_Kind) return Value_Type;
+      --  Convert the value from E into type T in the context K. The conversion
+      --  depends on the context since for instance, an integer value is not
+      --  converted the same way whether it is performed in a constant
+      --  declaration or in an expression.
 
       function In_Range
         (I : Unsigned_Long_Long;
          S : Short_Short;
          F : Long_Long;
-         L : Unsigned_Long_Long)
-        return Boolean;
-      --  Check whether S * I (Sign * Val) is in range F .. L.
+         L : Unsigned_Long_Long) return Boolean;
+      --  Check whether S * I (Sign * Val) is in range F .. L
 
       ----------------------
       -- Cannot_Interpret --
@@ -1639,8 +1642,8 @@ package body Analyzer is
          end if;
          RV := Value (R);
 
-         --  For an enumeration type, check the reference designates
-         --  either an enumerator or a valid constant value.
+         --  For an enumeration type, check the reference designates either an
+         --  enumerator or a valid constant value.
 
          if KT = K_Enumeration_Type then
             KE := Kind (RE);
@@ -2099,10 +2102,11 @@ package body Analyzer is
             when K_Scoped_Name =>
                T := Reference (T);
 
-            when K_Forward_Interface_Declaration
-              |  K_Value_Forward_Declaration
-              |  K_Forward_Structure_Type
-              |  K_Forward_Union_Type =>
+            when
+              K_Forward_Interface_Declaration |
+              K_Value_Forward_Declaration     |
+              K_Forward_Structure_Type        |
+              K_Forward_Union_Type            =>
                T := Forward (T);
 
             when others =>

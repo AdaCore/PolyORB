@@ -92,10 +92,9 @@ package body Backend.BE_CORBA_Ada.Common is
                   begin
                      N := Make_Subprogram_Call (TCS, Make_List_Id (N));
 
-                     --  We use qualified expression to avoid
-                     --  confilicts with CORBA.String redefinition in
-                     --  the CORBA package (Repositoty_Id,
-                     --  Scoped_Name...)
+                     --  We use qualified expression to avoid conflicts with
+                     --  types derived from String in the spec of package CORBA
+                     --  (RepositoryId, ScopedName...)
 
                      N := Make_Qualified_Expression (Ada_Type, N);
                   end;
