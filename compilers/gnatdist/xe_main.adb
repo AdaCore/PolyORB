@@ -88,25 +88,19 @@ begin
    XE_Front.Initialize;
 
    --  Look for the configuration file that is Next_Main_Source or
-   --  Next_Main_Source + ".cfg" if the latter does not exist.
+   --  Next_Main_Source + ".cfg" if the former does not exist.
 
    Configuration_File_Name := Next_Main_Source;
 
    if not Is_Regular_File (Configuration_File_Name) then
+      --  Not found: try to add ".cfg"
+
       Get_Name_String (Configuration_File_Name);
       Add_Str_To_Name_Buffer (Cfg_Suffix);
       Configuration_File_Name := Name_Find;
 
       if not Is_Regular_File (Configuration_File_Name) then
          Message ("file", Quote (Configuration_File_Name), "not found");
-         raise Fatal_Error;
-      end if;
-
-   elsif Name_Buffer (Name_Len - 3 .. Name_Len) /= Cfg_Suffix then
-      if not Quiet_Mode then
-         Message
-           ("configuration file name should be",
-            Quote (Strip_Suffix (Configuration_File_Name) & Cfg_Suffix_Id));
          raise Fatal_Error;
       end if;
    end if;
