@@ -28,8 +28,6 @@ compilers/common_files/types.adb
 compilers/common_files/types.ads
 compilers/common_files/utils.adb
 compilers/common_files/utils.ads
-compilers/gnatdist/Makefile.am
-compilers/gnatdist/Makefile.in
 compilers/gnatdist/po_gnatdist.adb
 compilers/gnatdist/xe.adb
 compilers/gnatdist/xe.ads

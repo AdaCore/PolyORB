@@ -731,7 +731,6 @@ AC_OUTPUT([
 	Makefile.common.project
 	compilers/Makefile
 	compilers/common_files/platform.ads
-	compilers/gnatdist/Makefile
 	compilers/gnatdist/xe_defs-defaults.ads
 	compilers/gnatprfh/Makefile
 	compilers/gnatprfh/gnatprfh.adb
