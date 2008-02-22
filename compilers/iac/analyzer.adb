@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -1081,7 +1081,7 @@ package body Analyzer is
       Alternative : Node_Id;
       Label       : Node_Id;
       Switch_Type : Node_Id := Switch_Type_Spec (E);
-
+      L           : Natural;
    begin
       Enter_Name_In_Scope (Identifier (E));
 
@@ -1161,6 +1161,27 @@ package body Analyzer is
          end if;
       end loop;
       Pop_Scope;
+
+      --  Check there is no useless choices
+
+      Alternative := First_Entity (Switch_Type_Body (E));
+      while Present (Alternative) loop
+         Label := First_Entity (Labels (Alternative));
+         L := Length (Labels (Alternative));
+         if L > 1 then
+            while Present (Label) loop
+               if Value (Label) = No_Value then
+                  --  Display a warning
+
+                  Error_Loc (1) := Loc (Alternative);
+                  DE ("Some labels are useless since one"
+                      & " of them is the default clause?");
+               end if;
+               Label := Next_Entity (Label);
+            end loop;
+         end if;
+         Alternative := Next_Entity (Alternative);
+      end loop;
    end Analyze_Union_Type;
 
    -----------------------------------

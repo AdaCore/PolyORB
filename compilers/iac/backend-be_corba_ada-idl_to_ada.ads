@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -189,6 +189,14 @@ package Backend.BE_CORBA_Ada.IDL_To_Ada is
       Literal_Parent : Node_Id := No_Node)
      return List_Id;
    --  Map a variant record part from an IDL union alternative list
+
+   procedure Map_Choice_List
+     (Labels         :        List_Id;
+      Literal_Parent :        Node_Id;
+      Choices        :    out List_Id;
+      Default_Met    : in out Boolean);
+   --  Converts an IDL case label list into an Ada choice list. Set
+   --  Default_Met to True if 'default:' is in the IDL label list.
 
    -------------------
    -- Stub Routines --

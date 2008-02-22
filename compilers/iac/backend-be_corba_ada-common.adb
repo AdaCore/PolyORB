@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2006-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2006-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -78,13 +78,32 @@ package body Backend.BE_CORBA_Ada.Common is
                N := Make_Subprogram_Call
                  (RE (RE_To_Standard_String_1),
                   Make_List_Id (N));
-               N := Make_Subprogram_Call
-                 (RE (RE_To_CORBA_String),
-                  Make_List_Id (N));
+
                if FEN.Kind (Direct_Type_Node) /= K_String then
+                  declare
+                     Ada_Type : constant Node_Id :=
+                       Map_Expanded_Name (Direct_Type_Node);
+
+                     TCS : constant Node_Id := Make_Selected_Component
+                       (Copy_Node (Prefix (Ada_Type)),
+                        Make_Identifier (SN (S_To_CORBA_String)));
+                     --  To_CORBA_String primitive inherited from the
+                     --  CORBA.String type.
+                  begin
+                     N := Make_Subprogram_Call (TCS, Make_List_Id (N));
+
+                     --  We use qualified expression to avoid
+                     --  confilicts with CORBA.String redefinition in
+                     --  the CORBA package (Repositoty_Id,
+                     --  Scoped_Name...)
+
+                     N := Make_Qualified_Expression (Ada_Type, N);
+                  end;
+               else
                   N := Make_Subprogram_Call
-                    (Map_Expanded_Name (Direct_Type_Node),
+                    (RE (RE_To_CORBA_String),
                      Make_List_Id (N));
+                  N := Make_Qualified_Expression (RE (RE_String_0), N);
                end if;
             end;
 
@@ -123,13 +142,26 @@ package body Backend.BE_CORBA_Ada.Common is
                N := Make_Subprogram_Call
                  (RE (RE_To_Standard_Wide_String_1),
                   Make_List_Id (N));
-               N := Make_Subprogram_Call
-                 (RE (RE_To_CORBA_Wide_String),
-                  Make_List_Id (N));
+
                if FEN.Kind (Direct_Type_Node) /= K_Wide_String then
+                  declare
+                     Ada_Type : constant Node_Id :=
+                       Map_Expanded_Name (Direct_Type_Node);
+
+                     TCWS : constant Node_Id := Make_Selected_Component
+                       (Copy_Node (Prefix (Ada_Type)),
+                        Make_Identifier (SN (S_To_CORBA_Wide_String)));
+                     --  To_CORBA_Wide_String primitive inherited from the
+                     --  CORBA.Wide_String type.
+                  begin
+                     N := Make_Subprogram_Call (TCWS, Make_List_Id (N));
+                     N := Make_Qualified_Expression (Ada_Type, N);
+                  end;
+               else
                   N := Make_Subprogram_Call
-                    (Map_Expanded_Name (Direct_Type_Node),
+                    (RE (RE_To_CORBA_Wide_String),
                      Make_List_Id (N));
+                  N := Make_Qualified_Expression (RE (RE_Wide_String), N);
                end if;
             end;
 
@@ -995,15 +1027,14 @@ package body Backend.BE_CORBA_Ada.Common is
 
          when K_Union_Type =>
             declare
-               Member  : Node_Id;
-               L       : List_Id;
-               Variant : Node_Id;
-               Choice  : Node_Id;
-               Literal_Parent : Node_Id := No_Node;
-               Label   : Node_Id;
-               Choices : List_Id;
+               L                   : List_Id;
+               Literal_Parent      : Node_Id := No_Node;
+               Choices             : List_Id;
                Switch_Alternatives : List_Id;
-               Switch_Node : Node_Id;
+               Switch_Alternative  : Node_Id;
+               Switch_Node         : Node_Id;
+               Switch_Case         : Node_Id;
+               Default_Met         : Boolean := False;
             begin
                Switch_Node := Make_Identifier (CN (C_Switch));
                if Var_Exp /= No_Node then
@@ -1024,30 +1055,24 @@ package body Backend.BE_CORBA_Ada.Common is
                end if;
 
                Switch_Alternatives := New_List (K_Variant_List);
-               Member := First_Entity
-                 (Switch_Type_Body (Rewinded_Type));
+               Switch_Case := First_Entity (Switch_Type_Body (Rewinded_Type));
 
-               while Present (Member) loop
-                  Variant := New_Node (K_Variant);
-                  Choices := New_List (K_Discrete_Choice_List);
-                  Label   := First_Entity (Labels (Member));
-
-                  while Present (Label) loop
-                     Choice := Make_Literal
-                       (Value  => FEN.Value (Label),
-                        Parent => Literal_Parent);
-                     Append_Node_To_List (Choice, Choices);
-                     Label := Next_Entity (Label);
-                  end loop;
+               while Present (Switch_Case) loop
+                  Map_Choice_List
+                    (Labels (Switch_Case),
+                     Literal_Parent,
+                     Choices,
+                     Default_Met);
 
                   L := New_List (K_List_Id);
+
                   C := Make_Selected_Component
                     (Var,
                      Make_Identifier
                      (IDL_Name
                       (Identifier
                        (Declarator
-                        (Element (Member))))));
+                        (Element (Switch_Case))))));
 
                   if Var_Exp /= No_Node then
                      M := Make_Selected_Component
@@ -1056,26 +1081,33 @@ package body Backend.BE_CORBA_Ada.Common is
                         (IDL_Name
                          (Identifier
                           (Declarator
-                           (Element (Member))))));
-                     Marshall_Args (L, Type_Spec (Element (Member)), C, M);
+                           (Element (Switch_Case))))));
+                     Marshall_Args
+                       (L, Type_Spec (Element (Switch_Case)), C, M);
                   else
-                     Marshall_Args (L, Type_Spec (Element (Member)), C);
+                     Marshall_Args (L, Type_Spec (Element (Switch_Case)), C);
                   end if;
 
                   --  Building the switch alternative
 
-                  N := Make_Block_Statement
-                    (Declarative_Part => No_List,
-                     Statements       => L);
+                  Switch_Alternative :=  Make_Case_Statement_Alternative
+                    (Choices, L);
+                  Append_Node_To_List
+                    (Switch_Alternative, Switch_Alternatives);
 
-                  Set_Component (Variant, N);
-                  Set_Discrete_Choices (Variant, Choices);
-                  Append_Node_To_List (Variant, Switch_Alternatives);
-
-                  Member := Next_Entity (Member);
+                  Switch_Case := Next_Entity (Switch_Case);
                end loop;
 
-               N := Make_Variant_Part
+               --  Add an empty when others clause to keep the compiler
+               --  happy.
+
+               if not Default_Met then
+                  Append_Node_To_List
+                    (Make_Case_Statement_Alternative (No_List, No_List),
+                     Switch_Alternatives);
+               end if;
+
+               N := Make_Case_Statement
                  (Switch_Node,
                   Switch_Alternatives);
                Append_Node_To_List (N, Stat);

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -1605,6 +1605,39 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
 
       return Variants;
    end Map_Variant_List;
+
+   ---------------------
+   -- Map_Choice_List --
+   ---------------------
+
+   procedure Map_Choice_List
+     (Labels         :        List_Id;
+      Literal_Parent :        Node_Id;
+      Choices        :    out List_Id;
+      Default_Met    : in out Boolean)
+   is
+      Label  : Node_Id;
+      Choice : Node_Id;
+   begin
+      Choices := New_List (K_Discrete_Choice_List);
+
+      --  Expansion guarantees that the "default:" case is isolated in
+      --  a standalone alternative.
+
+      Label   := First_Entity (Labels);
+
+      if FEN.Value (Label) = No_Value then
+         Default_Met := True;
+      else
+         while Present (Label) loop
+            Choice := Make_Literal
+              (Value  => FEN.Value (Label),
+               Parent => Literal_Parent);
+            Append_Node_To_List (Choice, Choices);
+            Label := Next_Entity (Label);
+         end loop;
+      end if;
+   end Map_Choice_List;
 
    ---------------------------------
    -- Map_Wrap_Element_Identifier --

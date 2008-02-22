@@ -2102,7 +2102,7 @@ package body Backend.BE_CORBA_Ada.Skels is
          --  We add a "with" clause to be able to use the "Hash"
          --  function
 
-         Add_With_Package (Make_Identifier (Hash_Package_Name (E)));
+         Add_With_Package (Make_Defining_Identifier (Hash_Package_Name (E)));
 
          --  Declaration of the total number of subprograms
 

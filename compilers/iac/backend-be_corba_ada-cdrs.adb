@@ -491,7 +491,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
          Buff     : Name_Id)
         return Node_Id;
       --  This function builds the marshalling statements to the
-      --  buffer from the variable var_name
+      --  buffer from the variable Var_Node
 
       function Do_Unmarshall
         (Var_Node : Node_Id;
@@ -499,7 +499,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
          Buff     : Name_Id)
         return Node_Id;
       --  This function builds the unmarshalling statements from the
-      --  buffer into the variable var_name
+      --  buffer into the variable Var_Node
 
       procedure Visit_Attribute_Declaration (E : Node_Id);
       procedure Visit_Interface_Declaration (E : Node_Id);
@@ -1696,8 +1696,10 @@ package body Backend.BE_CORBA_Ada.CDRs is
                   Dcl_Ada_Node : Node_Id;
                begin
                   Member := First_Entity (Members (Type_Spec_Node));
+
                   while Present (Member) loop
                      Declarator := First_Entity (FEN.Declarators (Member));
+
                      while Present (Declarator) loop
 
                         --  Getting the record field name
@@ -1727,15 +1729,14 @@ package body Backend.BE_CORBA_Ada.CDRs is
 
             when K_Union_Type =>
                declare
-                  Switch_Node : Node_Id;
+                  Switch_Node         : Node_Id;
                   Switch_Alternatives : List_Id;
                   Switch_Alternative  : Node_Id;
-                  Variant             : Node_Id;
+                  Switch_Case         : Node_Id;
+                  Default_Met         : Boolean := False;
                   Choices             : List_Id;
-                  Choice              : Node_Id;
-                  Label               : Node_Id;
                   Literal_Parent      : Node_Id := No_Node;
-                  Block_Statements    : List_Id;
+                  Switch_Statements   : List_Id;
                   Switch_Type         : Node_Id;
                   Dcl_Ada_Name        : Name_Id;
                   Dcl_Ada_Node        : Node_Id;
@@ -1767,30 +1768,24 @@ package body Backend.BE_CORBA_Ada.CDRs is
                   end if;
 
                   Switch_Alternatives := New_List (K_Variant_List);
-                  Switch_Alternative := First_Entity
+                  Switch_Case := First_Entity
                     (Switch_Type_Body
                      (Type_Spec_Node));
 
-                  while Present (Switch_Alternative) loop
-                     Variant := New_Node (K_Variant);
-                     Choices := New_List (K_Discrete_Choice_List);
-                     Label   := First_Entity (Labels (Switch_Alternative));
+                  while Present (Switch_Case) loop
+                     Map_Choice_List
+                       (Labels (Switch_Case),
+                        Literal_Parent,
+                        Choices,
+                        Default_Met);
 
-                     while Present (Label) loop
-                        Choice := Make_Literal
-                          (Value  => FEN.Value (Label),
-                           Parent => Literal_Parent);
-                        Append_Node_To_List (Choice, Choices);
-                        Label := Next_Entity (Label);
-                     end loop;
-
-                     Block_Statements := New_List (K_List_Id);
+                     Switch_Statements := New_List (K_List_Id);
 
                      --  Getting the field name
 
                      Declarator := FEN.Declarator
                        (Element
-                        (Switch_Alternative));
+                        (Switch_Case));
 
                      Dcl_Ada_Name := To_Ada_Name
                        (IDL_Name
@@ -1807,22 +1802,28 @@ package body Backend.BE_CORBA_Ada.CDRs is
                        (Var_Node => Dcl_Ada_Node,
                         Var_Type => Declarator,
                         Buff     => Buff);
-                     Append_Node_To_List (N, Block_Statements);
+                     Append_Node_To_List (N, Switch_Statements);
 
                      --  Building the switch alternative
 
-                     N := Make_Block_Statement
-                       (Declarative_Part => No_List,
-                        Statements       => Block_Statements);
+                     Switch_Alternative :=  Make_Case_Statement_Alternative
+                       (Choices, Switch_Statements);
+                     Append_Node_To_List
+                       (Switch_Alternative, Switch_Alternatives);
 
-                     Set_Component (Variant, N);
-                     Set_Discrete_Choices (Variant, Choices);
-                     Append_Node_To_List (Variant, Switch_Alternatives);
-
-                     Switch_Alternative := Next_Entity (Switch_Alternative);
+                     Switch_Case := Next_Entity (Switch_Case);
                   end loop;
 
-                  N := Make_Variant_Part
+                  --  Add an empty when others clause to keep the compiler
+                  --  happy.
+
+                  if not Default_Met then
+                     Append_Node_To_List
+                       (Make_Case_Statement_Alternative (No_List, No_List),
+                        Switch_Alternatives);
+                  end if;
+
+                  N := Make_Case_Statement
                     (Switch_Node,
                      Switch_Alternatives);
                   Append_Node_To_List (N, Block_St);
@@ -1850,14 +1851,23 @@ package body Backend.BE_CORBA_Ada.CDRs is
          Buff     : Name_Id)
         return Node_Id
       is
-         Block_Dcl      : constant List_Id := New_List (K_List_Id);
-         Block_St       : constant List_Id := New_List (K_List_Id);
-         N              : Node_Id;
-         Type_Spec_Node : Node_Id;
+         Block_Dcl        : constant List_Id := New_List (K_List_Id);
+         Block_St         : constant List_Id := New_List (K_List_Id);
+         N                : Node_Id;
+         Type_Spec_Node   : Node_Id;
+         Direct_Type_Node : Node_Id;
       begin
          --  Getting the original type
 
          Type_Spec_Node := FEU.Get_Original_Type_Specifier (Var_Type);
+
+         if FEN.Kind (Var_Type) = K_Simple_Declarator
+           or else FEN.Kind (Var_Type) = K_Complex_Declarator
+         then
+            Direct_Type_Node := Type_Spec (Declaration (Var_Type));
+         else
+            Direct_Type_Node := Var_Type;
+         end if;
 
          case FEN.Kind (Type_Spec_Node) is
 
@@ -2187,13 +2197,12 @@ package body Backend.BE_CORBA_Ada.CDRs is
             when K_Union_Type =>
                declare
                   Switch_Alternatives : List_Id;
+                  Switch_Case         : Node_Id;
                   Switch_Alternative  : Node_Id;
-                  Variant             : Node_Id;
+                  Default_Met         : Boolean := False;
                   Choices             : List_Id;
-                  Choice              : Node_Id;
-                  Label               : Node_Id;
                   Literal_Parent      : Node_Id := No_Node;
-                  Block_Statements    : List_Id;
+                  Switch_Statements   : List_Id;
                   Switch_Type         : Node_Id;
                   Dcl_Ada_Name        : Name_Id;
                   Dcl_Ada_Node        : Node_Id;
@@ -2239,26 +2248,21 @@ package body Backend.BE_CORBA_Ada.CDRs is
                   end if;
 
                   Switch_Alternatives := New_List (K_Variant_List);
-                  Switch_Alternative := First_Entity
+                  Switch_Case := First_Entity
                     (Switch_Type_Body
                      (Type_Spec_Node));
-                  while Present (Switch_Alternative) loop
-                     Variant := New_Node (K_Variant);
-                     Choices := New_List (K_Discrete_Choice_List);
-                     Label   := First_Entity (Labels (Switch_Alternative));
-                     while Present (Label) loop
-                        Choice := Make_Literal
-                          (Value  => FEN.Value (Label),
-                           Parent => Literal_Parent);
-                        Append_Node_To_List (Choice, Choices);
-                        Label := Next_Entity (Label);
-                     end loop;
+                  while Present (Switch_Case) loop
+                     Map_Choice_List
+                       (Labels (Switch_Case),
+                        Literal_Parent,
+                        Choices,
+                        Default_Met);
 
-                     Block_Statements := New_List (K_List_Id);
+                     Switch_Statements := New_List (K_List_Id);
 
                      Declarator := FEN.Declarator
                        (Element
-                        (Switch_Alternative));
+                        (Switch_Case));
 
                      --    Getting an element name
 
@@ -2276,7 +2280,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
                        (Var_Node => Make_Identifier (Union_Element),
                         Var_Type => Declarator,
                         Buff     => Buff);
-                     Append_Node_To_List (N, Block_Statements);
+                     Append_Node_To_List (N, Switch_Statements);
 
                      --  Getting the field name
 
@@ -2304,7 +2308,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
                         --  Intermediary variable with the correct type
 
                         N := Make_Subprogram_Call
-                          (Map_Expanded_Name (Var_Type),
+                          (Map_Expanded_Name (Direct_Type_Node),
                            Make_List_Id
                            (Cast_Variable_From_PolyORB_Type
                             (Switch_Element,
@@ -2328,7 +2332,8 @@ package body Backend.BE_CORBA_Ada.CDRs is
                         --  Qualified expression
 
                         N := Make_Qualified_Expression
-                          (Subtype_Mark => Map_Expanded_Name (Var_Type),
+                          (Subtype_Mark => Map_Expanded_Name
+                             (Direct_Type_Node),
                            Operand      => Make_Identifier (Intermed_Name));
 
                         N := Make_Assignment_Statement (Var_Node, N);
@@ -2339,7 +2344,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
                         N := Make_Block_Statement
                           (Declarative_Part => Inner_Dcl,
                            Statements       => Inner_St);
-                        Append_Node_To_List (N, Block_Statements);
+                        Append_Node_To_List (N, Switch_Statements);
                      end;
 
                      N := Make_Assignment_Statement
@@ -2347,22 +2352,28 @@ package body Backend.BE_CORBA_Ada.CDRs is
                         Cast_Variable_From_PolyORB_Type
                         (Union_Element,
                          Declarator));
-                     Append_Node_To_List (N, Block_Statements);
+                     Append_Node_To_List (N, Switch_Statements);
 
                      --  Building the switch alternative
 
-                     N := Make_Block_Statement
-                       (Declarative_Part => No_List,
-                        Statements       => Block_Statements);
+                     Switch_Alternative :=  Make_Case_Statement_Alternative
+                       (Choices, Switch_Statements);
+                     Append_Node_To_List
+                       (Switch_Alternative, Switch_Alternatives);
 
-                     Set_Component (Variant, N);
-                     Set_Discrete_Choices (Variant, Choices);
-                     Append_Node_To_List (Variant, Switch_Alternatives);
-
-                     Switch_Alternative := Next_Entity (Switch_Alternative);
+                     Switch_Case := Next_Entity (Switch_Case);
                   end loop;
 
-                  N := Make_Variant_Part
+                  --  Add an empty when others clause to keep the compiler
+                  --  happy.
+
+                  if not Default_Met then
+                     Append_Node_To_List
+                       (Make_Case_Statement_Alternative (No_List, No_List),
+                        Switch_Alternatives);
+                  end if;
+
+                  N := Make_Case_Statement
                     (Cast_Variable_From_PolyORB_Type
                      (Switch_Element,
                       Switch_Type_Spec (Type_Spec_Node)),

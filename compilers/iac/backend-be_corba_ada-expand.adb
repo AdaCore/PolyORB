@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -1521,6 +1521,8 @@ package body Backend.BE_CORBA_Ada.Expand is
       Alternative  : Node_Id;
       Element      : Node_Id;
       Type_Spec    : Node_Id;
+      Label        : Node_Id;
+      Case_Labels  : List_Id;
       Parent       : constant Node_Id := Scope_Entity (Identifier (Entity));
    begin
       --  Expanding the switch type spec
@@ -1566,7 +1568,6 @@ package body Backend.BE_CORBA_Ada.Expand is
       --  2nd pass to expand complex declarators into array type
       --  definitions.
 
-      Alternatives := Switch_Type_Body (Entity);
       Alternative := First_Entity (Alternatives);
 
       while Present (Alternative) loop
@@ -1581,6 +1582,35 @@ package body Backend.BE_CORBA_Ada.Expand is
 
          Alternative := Next_Entity (Alternative);
       end loop;
+
+      --  3rd pass to reduce any label choice list containing
+      --  "default:" and other cases to the simple "default:" case
+
+      Alternative := First_Entity (Alternatives);
+
+      External_Loop :
+      while Present (Alternative) loop
+         if FEU.Length (Labels (Alternative)) > 1 then
+            Label := First_Entity (Labels (Alternative));
+
+            while Present (Label) loop
+               if Value (Label) = No_Value then
+                  FEU.Remove_Node_From_List (Label, Labels (Alternative));
+                  Set_Next_Entity (Label, No_Node);
+                  Case_Labels := FEU.New_List
+                    (K_Case_Label_List, Loc (Alternative));
+                  FEU.Append_Node_To_List (Label, Case_Labels);
+                  Set_Labels (Alternative, Case_Labels);
+
+                  exit External_Loop;
+               end if;
+
+               Label := Next_Entity (Label);
+            end loop;
+         end if;
+
+         Alternative := Next_Entity (Alternative);
+      end loop External_Loop;
    end Expand_Union_Type;
 
    ---------------------------------

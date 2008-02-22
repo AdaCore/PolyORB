@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2006-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2006-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -1711,12 +1711,11 @@ package body Backend.BE_CORBA_Ada.Buffers is
                   Switch_Node         : Node_Id;
                   Switch_Alternatives : List_Id;
                   Switch_Alternative  : Node_Id;
-                  Variant             : Node_Id;
+                  Switch_Case         : Node_Id;
+                  Default_Met         : Boolean := False;
                   Choices             : List_Id;
-                  Choice              : Node_Id;
-                  Label               : Node_Id;
                   Literal_Parent      : Node_Id := No_Node;
-                  Block_Statements    : List_Id;
+                  Switch_Statements   : List_Id;
                   Switch_Type         : Node_Id;
                   Dcl_Ada_Name        : Name_Id;
                   Dcl_Ada_Node        : Node_Id;
@@ -1750,29 +1749,25 @@ package body Backend.BE_CORBA_Ada.Buffers is
                   end if;
 
                   Switch_Alternatives := New_List (K_Variant_List);
-                  Switch_Alternative := First_Entity
+                  Switch_Case := First_Entity
                     (Switch_Type_Body
                      (Type_Spec_Node));
 
-                  while Present (Switch_Alternative) loop
-                     Variant := New_Node (K_Variant);
-                     Choices := New_List (K_Discrete_Choice_List);
-                     Label   := First_Entity (Labels (Switch_Alternative));
-                     while Present (Label) loop
+                  while Present (Switch_Case) loop
 
-                        Choice := Make_Literal
-                          (Value  => FEN.Value (Label),
-                           Parent => Literal_Parent);
-                        Append_Node_To_List (Choice, Choices);
-                        Label := Next_Entity (Label);
-                     end loop;
-                     Block_Statements := New_List (K_List_Id);
+                     Map_Choice_List
+                       (Labels (Switch_Case),
+                        Literal_Parent,
+                        Choices,
+                        Default_Met);
+
+                     Switch_Statements := New_List (K_List_Id);
 
                      --  Getting the field name
 
                      Declarator := FEN.Declarator
                        (Element
-                        (Switch_Alternative));
+                        (Switch_Case));
 
                      Dcl_Ada_Name := To_Ada_Name
                        (IDL_Name
@@ -1791,22 +1786,26 @@ package body Backend.BE_CORBA_Ada.Buffers is
                         Subp_Dec => Subp_Dec,
                         Subp_Nod => Subp_Nod);
 
-                     Append_Node_To_List (N, Block_Statements);
+                     Append_Node_To_List (N, Switch_Statements);
 
-                     --  Building the switch alternative
+                     Switch_Alternative :=  Make_Case_Statement_Alternative
+                       (Choices, Switch_Statements);
+                     Append_Node_To_List
+                       (Switch_Alternative, Switch_Alternatives);
 
-                     N := Make_Block_Statement
-                       (Declarative_Part => No_List,
-                        Statements       => Block_Statements);
-
-                     Set_Component (Variant, N);
-                     Set_Discrete_Choices (Variant, Choices);
-                     Append_Node_To_List (Variant, Switch_Alternatives);
-
-                     Switch_Alternative := Next_Entity (Switch_Alternative);
+                     Switch_Case := Next_Entity (Switch_Case);
                   end loop;
 
-                  N := Make_Variant_Part
+                  --  Add an empty when others clause to keep the compiler
+                  --  happy.
+
+                  if not Default_Met then
+                     Append_Node_To_List
+                       (Make_Case_Statement_Alternative (No_List, No_List),
+                        Switch_Alternatives);
+                  end if;
+
+                  N := Make_Case_Statement
                     (Switch_Node,
                      Switch_Alternatives);
                   Append_Node_To_List (N, Block_St);

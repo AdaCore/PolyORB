@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2006-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2006-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -2006,11 +2006,10 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                   Switch_Item         : Node_Id;
                   Component_Node      : Node_Id;
                   Switch_Alternative  : Node_Id;
+                  Switch_Case         : Node_Id;
                   Switch_Alternatives : List_Id;
-                  Variant             : Node_Id;
-                  Choice              : Node_Id;
+                  Default_Met         : Boolean := False;
                   Choices             : List_Id;
-                  Label               : Node_Id;
                   Wrap_Node           : Node_Id;
                   Literal_Parent      : Node_Id := No_Node;
                   Orig_Type           : constant Node_Id :=
@@ -2108,26 +2107,19 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                   end if;
 
                   Switch_Alternatives := New_List (K_Variant_List);
-                  Switch_Alternative := First_Entity (Switch_Type_Body (E));
+                  Switch_Case := First_Entity (Switch_Type_Body (E));
 
-                  while Present (Switch_Alternative) loop
-                     Variant := New_Node (K_Variant);
-                     Choices := New_List (K_Discrete_Choice_List);
-                     Set_Discrete_Choices (Variant, Choices);
-                     Label   := First_Entity (Labels (Switch_Alternative));
+                  while Present (Switch_Case) loop
 
-                     while Present (Label) loop
-                        Choice := Make_Literal
-                          (Value  => FEN.Value (Label),
-                           Parent => Literal_Parent);
-                        Append_Node_To_List (Choice, Choices);
-
-                        Label := Next_Entity (Label);
-                     end loop;
+                     Map_Choice_List
+                       (Labels (Switch_Case),
+                        Literal_Parent,
+                        Choices,
+                        Default_Met);
 
                      --  Get the type spec of the element
 
-                     T := Type_Spec (Element (Switch_Alternative));
+                     T := Type_Spec (Element (Switch_Case));
 
                      --  Get the original type declarator of T
 
@@ -2149,7 +2141,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                           (Identifier
                            (Declarator
                             (Element
-                             (Switch_Alternative)))))));
+                             (Switch_Case)))))));
 
                      --  Cast the component when necessary
 
@@ -2166,17 +2158,28 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
 
                      N := Make_Return_Statement (N);
 
-                     --  Build the variant
+                     --  Build the case alternative
 
-                     Set_Component (Variant, N);
-                     Append_Node_To_List (Variant, Switch_Alternatives);
+                     Switch_Alternative :=  Make_Case_Statement_Alternative
+                       (Choices, Make_List_Id (N));
+                     Append_Node_To_List
+                       (Switch_Alternative, Switch_Alternatives);
 
-                     Switch_Alternative := Next_Entity (Switch_Alternative);
+                     Switch_Case := Next_Entity (Switch_Case);
                   end loop;
+
+                  --  Add an empty when others clause to keep the compiler
+                  --  happy.
+
+                  if not Default_Met then
+                     Append_Node_To_List
+                       (Make_Case_Statement_Alternative (No_List, No_List),
+                        Switch_Alternatives);
+                  end if;
 
                   --  Build the switch case
 
-                  N := Make_Variant_Part (Switch_Item, Switch_Alternatives);
+                  N := Make_Case_Statement (Switch_Item, Switch_Alternatives);
                   Append_Node_To_List (N, Else_Sts);
 
                   --  Build the IF statement
@@ -2190,8 +2193,8 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                declare
                   Component_Node      : Node_Id;
                   Switch_Alternatives : List_Id;
+                  Switch_Alternative  : Node_Id;
                   Switch_Item         : Node_Id;
-                  Variant             : Node_Id;
                   Choices             : List_Id;
                   Member              : Node_Id;
                   Declarator          : Node_Id;
@@ -2220,15 +2223,10 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                      Declarator := First_Entity (Declarators (Member));
 
                      while Present (Declarator) loop
-                        --  Create the variant
-
-                        Variant := New_Node (K_Variant);
-
                         --  Create the unique switch choice
 
                         Choices := Make_List_Id
                           (Make_Literal (New_Integer_Value (Count, 1, 10)));
-                        Set_Discrete_Choices (Variant, Choices);
 
                         --  Get the Wrap fonction corresponding to the
                         --  component type.
@@ -2268,10 +2266,12 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
 
                         N := Make_Return_Statement (N);
 
-                        --  Build the variant
+                        --  Build the case alternative
 
-                        Set_Component (Variant, N);
-                        Append_Node_To_List (Variant, Switch_Alternatives);
+                        Switch_Alternative :=  Make_Case_Statement_Alternative
+                          (Choices, Make_List_Id (N));
+                        Append_Node_To_List
+                          (Switch_Alternative, Switch_Alternatives);
 
                         --  Update the counter of the structure fields
 
@@ -2283,31 +2283,20 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                      Member := Next_Entity (Member);
                   end loop;
 
-                  --  Add a 'others' clause to the alternatives
-
-                  --  Create the variant
-
-                  Variant := New_Node (K_Variant);
-
-                  --  Create an empty switch choice
-
-                  Choices := Make_List_Id (Make_Literal (No_Value));
-                  Set_Discrete_Choices (Variant, Choices);
-
-                  --  Build the exception raising
+                  --  Raise an error if the member index does not match
 
                   N := Make_Raise_Statement
                     (Make_Identifier
                      (EN (E_Constraint_Error)));
 
-                  --  Build the variant
-
-                  Set_Component (Variant, N);
-                  Append_Node_To_List (Variant, Switch_Alternatives);
+                  Append_Node_To_List
+                    (Make_Case_Statement_Alternative
+                     (No_List, Make_List_Id (N)),
+                     Switch_Alternatives);
 
                   --  Build the switch case
 
-                  N := Make_Variant_Part (Switch_Item, Switch_Alternatives);
+                  N := Make_Case_Statement (Switch_Item, Switch_Alternatives);
                   Append_Node_To_List (N, Statements);
                end;
 
@@ -3223,7 +3212,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
 
             when K_Union_Type =>
                declare
-                  Switch_Alternative  : Node_Id;
+                  Switch_Case  : Node_Id;
                   Choice              : Node_Id;
                   Choices             : List_Id;
                   Label               : Node_Id;
@@ -3287,11 +3276,11 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                   --  index, we add the intermediary list to the
                   --  statements list.
 
-                  Switch_Alternative := First_Entity (Switch_Type_Body (E));
+                  Switch_Case := First_Entity (Switch_Type_Body (E));
                   Default_Present := False;
-                  while Present (Switch_Alternative) loop
+                  while Present (Switch_Case) loop
                      Choices := New_List (K_List_Id);
-                     Label   := First_Entity (Labels (Switch_Alternative));
+                     Label   := First_Entity (Labels (Switch_Case));
                      while Present (Label) loop
 
                         Choice := Make_Literal
@@ -3318,12 +3307,12 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                      --  Declaring the argument name "Element" string
 
                      Declarator := FEN.Declarator
-                       (Element (Switch_Alternative));
+                       (Element (Switch_Case));
 
                      --  Getting the TC_XXX constant corresponding to
                      --  the element type.
 
-                     T := Type_Spec (Element (Switch_Alternative));
+                     T := Type_Spec (Element (Switch_Case));
                      Handle_Dependency (T, Statements);
                      TC_Helper := Get_TC_Node (T);
 
@@ -3409,7 +3398,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                         Choice := Next_Node (Choice);
                      end loop;
 
-                     Switch_Alternative := Next_Entity (Switch_Alternative);
+                     Switch_Case := Next_Entity (Switch_Case);
                   end loop;
 
                   if not Default_Present then
