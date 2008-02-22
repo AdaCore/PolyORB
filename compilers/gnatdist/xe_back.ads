@@ -101,6 +101,11 @@ private
    --  main partition subprogram. This can be a shell script or an Ada
    --  program.
 
+   procedure Generate_Application_Project_Files;
+   --  Generate a project file for the appplication code, extending the one
+   --  provided by the user (if any), and including a dependency upon the PCS
+   --  project. This is PCS independent.
+
    function Get_Environment_Vars_Command return String;
    --  Return a shell command that exports all the registered environment vars
 

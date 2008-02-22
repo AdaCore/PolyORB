@@ -56,16 +56,8 @@ package body XE_Back.PolyORB is
    procedure Run_Backend (Self : access PolyORB_Backend);
    function Get_Detach_Flag (Self : access PolyORB_Backend) return Name_Id;
 
-   Elaboration_File  : File_Name_Type;
+   Elaboration_File : File_Name_Type;
    --  Partition elaboration unit
-
-   PCS_Project       : Name_Id;
-   PCS_Project_File  : File_Name_Type;
-   --  Project file for the PCS
-
-   Dist_App_Project      : Name_Id;
-   Dist_App_Project_File : File_Name_Type;
-   --  Project file for the complete distributed application
 
    type RU_Id is
      (RU_PolyORB,
@@ -186,10 +178,8 @@ package body XE_Back.PolyORB is
    --  Create a procedure which "withes" all the RCI or SP receivers
    --  of the partition and insert the main procedure if needed.
 
-   procedure Generate_Application_Project_Files;
-   --  Generate a project file for the PCS, and a project file extending the
-   --  one provided by the user and including a dependency upon the PCS
-   --  project (the application-wide project file).
+   procedure Generate_PCS_Project_Files;
+   --  Generate project files to access the PCS
 
    function Strip (S : String) return Unit_Name_Type;
    --  Return the prefix and a possible suffix from S
@@ -203,15 +193,12 @@ package body XE_Back.PolyORB is
    procedure Reset_Conf;
    --  Clear the configuration table
 
-   procedure Set_Corresponding_Project_File_Name (N : out File_Name_Type);
-   --  Assuming the Name_Buffer contains a project name, set N to the name of
-   --  the corrsponding project file. (Assumes that the project name is already
-   --  all lowercase).
-
    --  Installation information
 
    DSA_Inc_Rel_Dir : constant String :=
                        "include" & Dir_Separator & "polyorb";
+   --  PolyORB include directory, relative to the installation prefix
+
    PolyORB_Prefix  : constant String :=
                        XE_Back.Prefix
                          (Check_For => DSA_Inc_Rel_Dir
@@ -250,158 +237,6 @@ package body XE_Back.PolyORB is
          end if;
       end loop;
    end Generate_Ada_Starter_Code;
-
-   ----------------------------------------
-   -- Generate_Application_Project_Files --
-   ----------------------------------------
-
-   procedure Generate_Application_Project_Files
-   is
-      Prj_Fname  : File_Name_Type;
-      Prj_File   : File_Descriptor;
-
-      DSA_Inc_Dir : constant String :=
-                      PolyORB_Prefix & Dir_Separator & DSA_Inc_Rel_Dir;
-
-      Secondary_PCS_Project      : Name_Id;
-      Secondary_PCS_Project_File : File_Name_Type;
-   begin
-      --  Create PCS project, extending the main PolyORB project, but removing
-      --  source files that need to be rebuilt as client or server stubs, and
-      --  those that are overridden by each partition.
-
-      Prj_Fname := Dir (Id (Root), PCS_Project_File);
-      Create_File (Prj_File, Prj_Fname);
-      Set_Output (Prj_File);
-      Write_Str  ("project ");
-      Write_Name (PCS_Project);
-
-      Write_Str  (" extends all ""polyorb""");
-      Write_Line (" is");
-      Write_Line ("   for Externally_Built use ""true"";");
-      Write_Line ("   for Source_Dirs use (""" & DSA_Inc_Dir & """);");
-      Write_Line ("   for Locally_Removed_Files use");
-
-      --  Overridden
-
-      Write_Line ("     (""polyorb-partition_elaboration.adb"",");
-
-      --  Rebuilt as stubs
-
-      Write_Line ("      ""polyorb-dsa_p-partitions.ads"",");
-      Write_Line ("      ""polyorb-dsa_p-partitions.adb"");");
-
-      Write_Str  ("end ");
-      Write_Name (PCS_Project);
-      Write_Line (";");
-      Close (Prj_File);
-      Set_Standard_Output;
-
-      --  In the two project files below, we use ".." as the object directory,
-      --  relative to the project directory, so that all objects are stored in
-      --  the user's build directory.
-
-      --  Create project for PCS units that need to be rebuilt per-partition
-
-      Get_Name_String (PCS_Project);
-      Add_Char_To_Name_Buffer ('1');
-      Secondary_PCS_Project := Name_Find;
-      Set_Corresponding_Project_File_Name (Secondary_PCS_Project_File);
-
-      Prj_Fname := Dir (Id (Root), Secondary_PCS_Project_File);
-      Create_File (Prj_File, Prj_Fname);
-      Set_Output (Prj_File);
-      Write_Str  ("with """);
-      Write_Name (PCS_Project);
-      Write_Line (""";");
-      Write_Str  ("project ");
-      Write_Name (Secondary_PCS_Project);
-      Write_Line (" is");
-      Write_Line ("   for Object_Dir use "".."";");
-      Write_Line ("   for Source_Dirs use (""" & DSA_Inc_Dir & """);");
-      Write_Line ("   for Source_Files use");
-      Write_Line ("     (""polyorb-dsa_p-partitions.ads"",");
-      Write_Line ("      ""polyorb-dsa_p-partitions.adb"");");
-      Write_Str  ("end ");
-      Write_Name (Secondary_PCS_Project);
-      Write_Line (";");
-      Close (Prj_File);
-      Set_Standard_Output;
-
-      --  Create application-wide project, extending user project file if
-      --  provided.
-
-      Prj_Fname := Dir (Id (Root), Dist_App_Project_File);
-      Create_File (Prj_File, Prj_Fname);
-      Set_Output (Prj_File);
-
-      --  Dependency on PCS
-
-      Write_Str  ("with """);
-      Write_Name (Secondary_PCS_Project);
-      Write_Line (""";");
-
-      --  Dependency on user project, if any
-
-      if Project_File_Name /= null then
-         Write_Line ("with """ & Project_File_Name.all & """;");
-      end if;
-
-      Write_Str  ("project ");
-      Write_Name (Dist_App_Project);
-
-      Write_Line (" is");
-      Write_Line ("   for Object_Dir use "".."";");
-
-      --  If no user project file is provided, add any source directory
-      --  specified on the command line as source directories, in addition to
-      --  the main application directory. The generated main subprogram
-      --  (monolithic_app.adb) and all RCI units must be sources of the
-      --  project (so that they can be individually recompiled).
-
-      Write_Str  ("   for Source_Dirs use ("".""");
-      if Project_File_Name = null then
-         Write_Line (",");
-         Write_Line ("     ""..""");
-         for J in Source_Directories.First .. Source_Directories.Last loop
-            declare
-               Normalized_Dir : constant String :=
-                                  Normalize_Pathname
-                                    (Source_Directories.Table (J).all);
-            begin
-               if Is_Directory (Normalized_Dir) then
-                  Write_Line (",");
-                  Write_Str ("     """ & Normalized_Dir & """");
-               end if;
-            end;
-         end loop;
-      end if;
-      Write_Line (");");
-
-      --  If a user project file is provided, explicitly specify additional
-      --  source file partition.adb (in addition to all other sources, which
-      --  are sources of this project by virtue of "extends all").
-
-      if Project_File_Name /= null then
-         Write_Str  ("   for Source_Files use (""");
-         Write_Name (Monolithic_Src_Base_Name);
-         Write_Line (""");");
-      end if;
-
-      Write_Str  ("end ");
-      Write_Name (Dist_App_Project);
-      Write_Line (";");
-      Close (Prj_File);
-      Set_Standard_Output;
-
-      Free (Project_File_Name);
-
-      --  Distributed app project file extends user provided project, and
-      --  includes the PCS as well.
-
-      Project_File_Name := new String'(
-                             Normalize_Pathname (Get_Name_String (Prj_Fname)));
-   end Generate_Application_Project_Files;
 
    -------------------------------
    -- Generate_Elaboration_File --
@@ -885,6 +720,83 @@ package body XE_Back.PolyORB is
       Set_Standard_Output;
    end Generate_Partition_Main_File;
 
+   --------------------------------
+   -- Generate_PCS_Project_Files --
+   --------------------------------
+
+   procedure Generate_PCS_Project_Files is
+      Prj_Fname  : File_Name_Type;
+      Prj_File   : File_Descriptor;
+
+      DSA_Inc_Dir : constant String :=
+                      PolyORB_Prefix & Dir_Separator & DSA_Inc_Rel_Dir;
+
+      Secondary_PCS_Project      : Name_Id;
+      Secondary_PCS_Project_File : File_Name_Type;
+   begin
+      --  In the two project files below, we use ".." as the object directory,
+      --  relative to the project directory, so that all objects are stored in
+      --  the user's build directory.
+
+      --  Create intermediate PCS project, extending the main PolyORB project,
+      --  but removing source files that need to be rebuilt as client or server
+      --  stubs, and those that are overridden by each partition.
+
+      Get_Name_String (PCS_Project);
+      Add_Char_To_Name_Buffer ('1');
+      Secondary_PCS_Project := Name_Find;
+      Set_Corresponding_Project_File_Name (Secondary_PCS_Project_File);
+
+      Prj_Fname := Dir (Id (Root), Secondary_PCS_Project_File);
+      Create_File (Prj_File, Prj_Fname);
+      Set_Output (Prj_File);
+      Write_Str  ("project ");
+      Write_Name (Secondary_PCS_Project);
+
+      Write_Str  (" extends all ""polyorb""");
+      Write_Line (" is");
+      Write_Line ("   for Externally_Built use ""true"";");
+      Write_Line ("   for Source_Dirs use (""" & DSA_Inc_Dir & """);");
+      Write_Line ("   for Locally_Removed_Files use");
+
+      --  Overridden
+
+      Write_Line ("     (""polyorb-partition_elaboration.adb"",");
+
+      --  Rebuilt as stubs
+
+      Write_Line ("      ""polyorb-dsa_p-partitions.ads"",");
+      Write_Line ("      ""polyorb-dsa_p-partitions.adb"");");
+
+      Write_Str  ("end ");
+      Write_Name (Secondary_PCS_Project);
+      Write_Line (";");
+      Close (Prj_File);
+      Set_Standard_Output;
+
+      --  Create project for PCS units that need to be rebuilt per-partition
+
+      Prj_Fname := Dir (Id (Root), PCS_Project_File);
+      Create_File (Prj_File, Prj_Fname);
+      Set_Output (Prj_File);
+      Write_Str  ("with """);
+      Write_Name (Secondary_PCS_Project);
+      Write_Line (""";");
+      Write_Str  ("project ");
+      Write_Name (PCS_Project);
+      Write_Line (" is");
+      Write_Line ("   for Object_Dir use "".."";");
+      Write_Line ("   for Source_Dirs use (""" & DSA_Inc_Dir & """);");
+      Write_Line ("   for Source_Files use");
+      Write_Line ("     (""polyorb-dsa_p-partitions.ads"",");
+      Write_Line ("      ""polyorb-dsa_p-partitions.adb"");");
+      Write_Str  ("end ");
+      Write_Name (PCS_Project);
+      Write_Line (";");
+      Close (Prj_File);
+      Set_Standard_Output;
+   end Generate_PCS_Project_Files;
+
    ---------------------
    -- Get_Detach_Flag --
    ---------------------
@@ -912,19 +824,10 @@ package body XE_Back.PolyORB is
       --  RCI unit PolyORB.DSA_P.Partition must be automatically configured on
       --  the main partition.
 
-      PCS_Conf_Unit     := Id ("polyorb.dsa_p.partitions");
-
-      PCS_Project           := Id ("pcs_project");
-      Set_Corresponding_Project_File_Name (PCS_Project_File);
-
-      Dist_App_Project      := Id ("dist_app_project");
-      Set_Corresponding_Project_File_Name (Dist_App_Project_File);
-
-      Elaboration_File      := Id ("polyorb-partition_elaboration");
+      PCS_Conf_Unit    := Id ("polyorb.dsa_p.partitions");
+      Elaboration_File := Id ("polyorb-partition_elaboration");
 
       Register_Casing_Rule ("ORB");
-
-      Generate_Application_Project_Files;
 
       for U in RU_Id'First .. RU_Id'Last loop
          RU (U) := Strip (RU_Id'Image (U));
@@ -979,6 +882,9 @@ package body XE_Back.PolyORB is
       for E in PE_Id loop
          PE (E) := Strip (PE_Id'Image (E));
       end loop;
+
+      Generate_PCS_Project_Files;
+      Generate_Application_Project_Files;
    end Initialize;
 
    ----------------
@@ -1071,16 +977,6 @@ package body XE_Back.PolyORB is
       Table (Last).Var := Name_Find;
       Table (Last).Val := Val;
    end Set_Conf;
-
-   -----------------------------------------
-   -- Set_Corresponding_Project_File_Name --
-   -----------------------------------------
-
-   procedure Set_Corresponding_Project_File_Name (N : out File_Name_Type) is
-   begin
-      Add_Str_To_Name_Buffer (".gpr");
-      N := Name_Find;
-   end Set_Corresponding_Project_File_Name;
 
    ------------------------
    -- Set_PCS_Dist_Flags --

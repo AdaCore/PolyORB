@@ -228,6 +228,89 @@ package body XE_Back is
       end loop;
    end Generate_All_Stubs_And_Skels;
 
+   ----------------------------------------
+   -- Generate_Application_Project_Files --
+   ----------------------------------------
+
+   procedure Generate_Application_Project_Files is
+      Prj_Fname : File_Name_Type;
+      Prj_File  : File_Descriptor;
+   begin
+      --  Create application-wide project, extending user project file if
+      --  provided.
+
+      Prj_Fname := Dir (Id (Root), Dist_App_Project_File);
+      Create_File (Prj_File, Prj_Fname);
+      Set_Output (Prj_File);
+
+      --  Dependency on PCS
+
+      Write_Str  ("with """);
+      Write_Name (PCS_Project);
+      Write_Line (""";");
+
+      --  Dependency on user project, if any
+
+      if Project_File_Name /= null then
+         Write_Line ("with """ & Project_File_Name.all & """;");
+      end if;
+
+      Write_Str  ("project ");
+      Write_Name (Dist_App_Project);
+
+      Write_Line (" is");
+      Write_Line ("   for Object_Dir use "".."";");
+
+      --  If no user project file is provided, add any source directory
+      --  specified on the command line as source directories, in addition to
+      --  the main application directory. The generated main subprogram
+      --  (monolithic_app.adb) and all RCI units must be sources of the
+      --  project (so that they can be individually recompiled).
+
+      Write_Str  ("   for Source_Dirs use ("".""");
+      if Project_File_Name = null then
+         Write_Line (",");
+         Write_Line ("     ""..""");
+         for J in Source_Directories.First .. Source_Directories.Last loop
+            declare
+               Normalized_Dir : constant String :=
+                                  Normalize_Pathname
+                                    (Source_Directories.Table (J).all);
+            begin
+               if Is_Directory (Normalized_Dir) then
+                  Write_Line (",");
+                  Write_Str ("     """ & Normalized_Dir & """");
+               end if;
+            end;
+         end loop;
+      end if;
+      Write_Line (");");
+
+      --  If a user project file is provided, explicitly specify additional
+      --  source file partition.adb (in addition to all other sources, which
+      --  are sources of this project by virtue of "extends all").
+
+      if Project_File_Name /= null then
+         Write_Str  ("   for Source_Files use (""");
+         Write_Name (Monolithic_Src_Base_Name);
+         Write_Line (""");");
+      end if;
+
+      Write_Str  ("end ");
+      Write_Name (Dist_App_Project);
+      Write_Line (";");
+      Close (Prj_File);
+      Set_Standard_Output;
+
+      Free (Project_File_Name);
+
+      --  Distributed app project file extends user provided project, and
+      --  includes the PCS as well.
+
+      Project_File_Name := new String'(
+                             Normalize_Pathname (Get_Name_String (Prj_Fname)));
+   end Generate_Application_Project_Files;
+
    -------------------------------------
    -- Generate_Partition_Project_File --
    -------------------------------------

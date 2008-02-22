@@ -171,6 +171,8 @@ package body XE_Back.GARLIC is
    --  Create a procedure which "withes" all the RCI or SP receivers
    --  of the partition and insert the main procedure if needed.
 
+   procedure Generate_PCS_Project_Files;
+
    procedure Generate_Protocol_Config_File (P : Partition_Id);
    --  Create protocol configuration file that includes the protocols
    --  required in the GLADE configuration file for this partition.
@@ -181,6 +183,18 @@ package body XE_Back.GARLIC is
 
    function Name (U : Unit_Id) return Name_Id;
    --  Take a unit id and return its name removing unit suffix.
+
+   DSA_Inc_Rel_Dir : constant String :=
+                      "lib" & Directory_Separator & "garlic";
+   --  GARLIC include directory, relative to the installation prefix
+
+   GARLIC_Prefix : constant String :=
+                     XE_Back.Prefix
+                       (Check_For => DSA_Inc_Rel_Dir
+                                      & Dir_Separator & "s-garlic.ads");
+
+   DSA_Inc_Dir : constant String :=
+                   GARLIC_Prefix & Dir_Separator & DSA_Inc_Rel_Dir;
 
    ------------------
    -- Add_Protocol --
@@ -503,17 +517,14 @@ package body XE_Back.GARLIC is
 
    procedure Generate_Executable_File (P : Partition_Id) is
       Current    : Partition_Type renames Partitions.Table (P);
-      Executable : File_Name_Type;
       Part_Dir   : Directory_Name_Type;
       I_Part_Dir : String_Access;
-      Comp_Args  : String_List (1 .. 8);
+      Comp_Args  : String_List (1 .. 6);
       Make_Args  : String_List (1 .. 8);
       Sfile      : File_Name_Type;
       Prj_Fname  : File_Name_Type;
-      Length     : Natural := 6;
 
    begin
-      Executable := Current.Executable_File;
       Part_Dir   := Current.Partition_Dir;
 
       Name_Len := 2;
@@ -529,46 +540,30 @@ package body XE_Back.GARLIC is
       Comp_Args (2) := I_Part_Dir;
       Comp_Args (3) := A_Stub_Dir;
       Comp_Args (4) := I_Current_Dir;
-
-      --  If there is no project file, then save ali and object files
-      --  in partition directory.
-
-      if Project_File_Name = null then
-         Comp_Args (5) := Object_Dir_Flag;
-         Comp_Args (6) := new String'(Get_Name_String (Part_Dir));
-
-      else
-         Comp_Args (5) := Project_File_Flag;
-         Prj_Fname     := Dir (Part_Dir, Part_Prj_File_Name);
-         Comp_Args (6) := new String'(Get_Name_String (Prj_Fname));
-      end if;
+      Comp_Args (5) := Project_File_Flag;
+      Prj_Fname     := Dir (Part_Dir, Part_Prj_File_Name);
+      Comp_Args (6) := new String'(Get_Name_String (Prj_Fname));
 
       --  Compile Garlic elaboration file
 
       Sfile := Elaboration_File & ADB_Suffix_Id;
-      if Project_File_Name = null then
-         Sfile := Dir (Part_Dir, Sfile);
-      end if;
-      Compile (Sfile, Comp_Args (1 .. Length));
+      Sfile := Dir (Part_Dir, Sfile);
+      Compile (Sfile, Comp_Args);
 
       --  Compile protocol configuration file if any
 
       Sfile := Protocol_Config_File & ADB_Suffix_Id;
       if Is_Regular_File (Dir (Part_Dir, Sfile)) then
-         if Project_File_Name = null then
-            Sfile := Dir (Part_Dir, Sfile);
-         end if;
-         Compile (Sfile, Comp_Args (1 .. Length));
+         Sfile := Dir (Part_Dir, Sfile);
+         Compile (Sfile, Comp_Args);
       end if;
 
       --  Compile storage support configuration file if any
 
       Sfile := Storage_Config_File & ADB_Suffix_Id;
       if Is_Regular_File (Dir (Part_Dir, Sfile)) then
-         if Project_File_Name = null then
-            Sfile := Dir (Part_Dir, Sfile);
-         end if;
-         Compile (Sfile, Comp_Args (1 .. Length));
+         Sfile := Dir (Part_Dir, Sfile);
+         Compile (Sfile, Comp_Args);
       end if;
 
       --  We already checked the consistency of all the partition
@@ -581,13 +576,7 @@ package body XE_Back.GARLIC is
       --  silently and do not exit on errors (keep going).
 
       Sfile := Partition_Main_File & ADB_Suffix_Id;
-      if Project_File_Name = null then
-         Sfile := Dir (Part_Dir, Sfile);
-         Comp_Args (7) := Compile_Only_Flag;
-         Comp_Args (8) := Keep_Going_Flag;
-         Length := 8;
-      end if;
-      Build (Sfile, Comp_Args (1 .. Length), Fatal => False);
+      Build (Sfile, Comp_Args, Fatal => False);
 
       Free (Comp_Args (6));
 
@@ -601,15 +590,9 @@ package body XE_Back.GARLIC is
       Make_Args (5) := Bind_Only_Flag;
       Make_Args (6) := Link_Only_Flag;
 
-      if Project_File_Name = null then
-         Make_Args (7) := Output_Flag;
-         Make_Args (8) := new String'(Get_Name_String (Executable));
-
-      else
-         Make_Args (7) := Project_File_Flag;
-         Prj_Fname := Dir (Part_Dir, Part_Prj_File_Name);
-         Make_Args (8) := new String'(Get_Name_String (Prj_Fname));
-      end if;
+      Make_Args (7) := Project_File_Flag;
+      Prj_Fname := Dir (Part_Dir, Part_Prj_File_Name);
+      Make_Args (8) := new String'(Get_Name_String (Prj_Fname));
 
       Build (Sfile, Make_Args, Fatal => True);
 
@@ -775,6 +758,51 @@ package body XE_Back.GARLIC is
       Close (File);
       Set_Standard_Output;
    end Generate_Partition_Main_File;
+
+   --------------------------------
+   -- Generate_PCS_Project_Files --
+   --------------------------------
+
+   procedure Generate_PCS_Project_Files is
+      Prj_Fname  : File_Name_Type;
+      Prj_File   : File_Descriptor;
+   begin
+      --  Use GARLIC sources, but remove files that need to be overridden
+      --  per-partition.
+
+      Prj_Fname := Dir (Id (Root), PCS_Project_File);
+      Create_File (Prj_File, Prj_Fname);
+      Set_Output (Prj_File);
+      Write_Str  ("project ");
+      Write_Name (PCS_Project);
+
+      Write_Line (" is");
+      Write_Line ("   for Externally_Built use ""true"";");
+      Write_Line ("   for Source_Dirs use (""" & DSA_Inc_Dir & """);");
+      Write_Line ("   for Locally_Removed_Files use");
+
+      --  Overridden
+
+      Write_Str  ("     (""");
+      Write_Name (Elaboration_File);
+      Write_Line (".adb"",");
+
+      Write_Str  ("      """);
+      Write_Name (Protocol_Config_File);
+      Write_Line (".adb"",");
+
+      Write_Str  ("      """);
+      Write_Name (Storage_Config_File);
+      Write_Line (".adb"",");
+
+      Write_Str  ("      ""s-rpc.adb"");");
+
+      Write_Str  ("end ");
+      Write_Name (PCS_Project);
+      Write_Line (";");
+      Close (Prj_File);
+      Set_Standard_Output;
+   end Generate_PCS_Project_Files;
 
    -----------------------------------
    -- Generate_Protocol_Config_File --
@@ -1126,6 +1154,9 @@ package body XE_Back.GARLIC is
             Message (E'Img & " = " & Get_Name_String (RE (E)));
          end if;
       end loop;
+
+      Generate_PCS_Project_Files;
+      Generate_Application_Project_Files;
    end Initialize;
 
    -------------------------
@@ -1210,28 +1241,6 @@ package body XE_Back.GARLIC is
 
    procedure Set_PCS_Dist_Flags (Self : access GARLIC_Backend) is
       pragma Unreferenced (Self);
-
-      function Try_Prefix (Prefix : String) return Boolean;
-      --  Try to use the given Prefix, return True if it is valid and
-      --  contains a GARLIC installation. After successful return, command
-      --  line scanning is in the "-largs" state.
-
-      GARLIC_Rel_Dir : constant String :=
-                         "lib" & Directory_Separator & "garlic";
-      function Try_Prefix (Prefix : String) return Boolean is
-         GARLIC_Dir : constant String := Prefix & Directory_Separator
-                                       & GARLIC_Rel_Dir;
-      begin
-         if Prefix'Length = 0 or else not Is_Directory (GARLIC_Dir) then
-            return False;
-         end if;
-         Scan_Dist_Arg ("-aI" & GARLIC_Dir);
-         Scan_Dist_Arg ("-aO" & GARLIC_Dir);
-         Scan_Dist_Arg ("-largs");
-         Scan_Dist_Arg ("-L" & GARLIC_Dir);
-         return True;
-      end Try_Prefix;
-
    begin
       if Project_File_Name = null then
          --  Include main application directory in source path while compiling
@@ -1241,17 +1250,15 @@ package body XE_Back.GARLIC is
          Scan_Dist_Arg ("-I.");
       end if;
 
-      declare
-         Prefix : constant String :=
-                    XE_Back.Prefix
-                      (Check_For => GARLIC_Rel_Dir
-                                      & Dir_Separator & "s-garlic.ali");
-      begin
-         if not Try_Prefix (Prefix) then
-            Message ("GARLIC library not found");
-            raise Fatal_Error;
-         end if;
-      end;
+      if not Is_Directory (DSA_Inc_Dir) then
+         Message ("GARLIC library not found");
+         raise Fatal_Error;
+      end if;
+
+      Scan_Dist_Arg ("-aI" & DSA_Inc_Dir);
+      Scan_Dist_Arg ("-aO" & DSA_Inc_Dir);
+      Scan_Dist_Arg ("-largs");
+      Scan_Dist_Arg ("-L" & DSA_Inc_Dir);
       Scan_Dist_Arg ("-lgarlic");
    end Set_PCS_Dist_Flags;
 
