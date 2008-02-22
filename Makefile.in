@@ -71,11 +71,15 @@ GNATMAKE_FOR_TARGET	:= @GNATMAKE_FOR_TARGET@
 # ??? distinguish between native tools, cross tools and cross libs
 
 # Flags common to build and target
-CFLAGS                  := @CFLAGS@
-ADAFLAGS                := @ADAFLAGS@
-CPPFLAGS                := @CPPFLAGS@
+# Do not use := for the following flags, so that they can be overriden on
+# the command line if needed. Also, need to specify PARALLEL_GNATMAKE_FLAGS
+# before GNATMAKE_FLAGS, otherwise this variable is simply ignored.
+CFLAGS                  = @CFLAGS@
+ADAFLAGS                = @ADAFLAGS@
+CPPFLAGS                = @CPPFLAGS@
+PARALLEL_GNATMAKE_FLAGS = -j4
+
 GNATMAKE_FLAGS          := @STYLE_SWITCH@ -gnatwa@WARNINGS_MODE@ ${ADAFLAGS} ${PARALLEL_GNATMAKE_FLAGS} ${EXTRA_GNATMAKE_FLAGS}
-PARALLEL_GNATMAKE_FLAGS := -j4
 EXTRA_GNATMAKE_FLAGS    := @EXTRA_GNATMAKE_FLAGS@
 # EXTRA_GNATMAKE_FLAGS are user-provided, empty by default (typically
 # used to specify a non-default --RTS switch).
