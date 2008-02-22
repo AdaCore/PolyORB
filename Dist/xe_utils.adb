@@ -24,7 +24,9 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Command_Line; use Ada.Command_Line;
+with Ada.Characters.Handling; use Ada.Characters.Handling;
+with Ada.Command_Line;        use Ada.Command_Line;
+
 with XE_Defs;          use XE_Defs;
 with XE_Flags;         use XE_Flags;
 with XE_IO;            use XE_IO;
@@ -46,6 +48,13 @@ package body XE_Utils is
    --  Used to indicate if we are scanning gnatmake, gcc, gnatbind, or
    --  gnatbind options within the gnatmake command line.
 
+   procedure Ensure_Make_Args;
+   --  Reset Program_Args to None, adding "-margs" to make switches if needed
+
+   Project_File_Name_Expected : Boolean := False;
+   --  Used to keep state between invocations of Scan_Dist_Arg. True when
+   --  previous argument was "-P".
+
    Usage_Needed : Boolean := False;
 
    function Dup (Fd : File_Descriptor) return File_Descriptor;
@@ -60,8 +69,6 @@ package body XE_Utils is
    Build_Command   : constant String_Access := new String'("make");
    Compile_Command : constant String_Access := new String'("compile");
 
-   Up_To_Low : constant := Character'Pos ('A') - Character'Pos ('a');
-
    function Locate
      (Exec_Name  : String;
       Show_Error : Boolean := True)
@@ -71,6 +78,7 @@ package body XE_Utils is
    --  Show_Error is set to False then null is returned. If Exec_Name is not
    --  found and Show_Error is set to True then Fatal_Error is raised.
 
+   procedure Add_Make_Switch (Argv : String_Access);
    procedure Add_Make_Switch (Argv : String);
    procedure Add_List_Switch (Argv : String);
    procedure Add_Main_Source (Source : String);
@@ -152,6 +160,15 @@ package body XE_Utils is
       Last_Main_Source := Last_Main_Source + 1;
       Main_Sources (Last_Main_Source) := Name_Find;
    end Add_Main_Source;
+
+   -----------------------
+   -- Add_Make_Switch --
+   -----------------------
+
+   procedure Add_Make_Switch (Argv : String_Access) is
+   begin
+      Make_Switches.Append (Argv);
+   end Add_Make_Switch;
 
    -----------------------
    -- Add_Make_Switch --
@@ -294,13 +311,13 @@ package body XE_Utils is
       for J in S'Range loop
          if S (J) in 'a' .. 'z' then
             if Capitalized then
-               S (J) := Character'Val (Character'Pos (S (J)) + Up_To_Low);
+               S (J) := To_Upper (S (J));
             end if;
             Capitalized := False;
 
          elsif S (J) in 'A' .. 'Z' then
             if not Capitalized then
-               S (J) := Character'Val (Character'Pos (S (J)) - Up_To_Low);
+               S (J) := To_Lower (S (J));
             end if;
             Capitalized := False;
 
@@ -411,6 +428,18 @@ package body XE_Utils is
       end if;
    end Compile;
 
+   ----------------------
+   -- Ensure_Make_Args --
+   ----------------------
+
+   procedure Ensure_Make_Args is
+   begin
+      if Program_Args /= None then
+         Add_Make_Switch (Make_Args_Flag);
+         Program_Args := None;
+      end if;
+   end Ensure_Make_Args;
+
    -------------
    -- Execute --
    -------------
@@ -517,6 +546,12 @@ package body XE_Utils is
       Monolithic_ALI_Name := To_Afile (Monolithic_Src_Name);
       Monolithic_Obj_Name := To_Ofile (Monolithic_Src_Name);
 
+      PCS_Project        := Id ("pcs_project");
+      Set_Corresponding_Project_File_Name (PCS_Project_File);
+
+      Dist_App_Project   := Id ("dist_app_project");
+      Set_Corresponding_Project_File_Name (Dist_App_Project_File);
+
       Part_Main_Src_Name := Id ("partition" & ADB_Suffix);
       Part_Main_ALI_Name := To_Afile (Part_Main_Src_Name);
       Part_Main_Obj_Name := To_Ofile (Part_Main_Src_Name);
@@ -532,10 +567,19 @@ package body XE_Utils is
          Scan_Dist_Arg (Argument (J), Implicit => False);
       end loop;
 
-      if Project_File_Name_Present
-        and then Project_File_Name /= null
-      then
+      if Project_File_Name_Expected then
          Fail ("project file name missing after -P");
+      end if;
+
+      if Check_Readonly_Files and then Project_File_Name = null then
+         --  If the user asks for recompilation of files with read-only ALIs
+         --  (in practice recompilation of the GNAT runtime), and no project
+         --  has been provided, then assume that additional files to be
+         --  recompiled won't be covered by the generated project, and pass
+         --  extra flag to gnatmake to allow compiling them anyway.
+
+         Ensure_Make_Args;
+         Add_Make_Switch (External_Units_Flag);
       end if;
 
       XE_Defs.Initialize;
@@ -782,22 +826,22 @@ package body XE_Utils is
 
       if Argv = "-cargs" then
          Program_Args := Compiler;
-         Add_Make_Switch (Argv);
+         Add_Make_Switch (Comp_Args_Flag);
          return;
 
       elsif Argv = "-bargs" then
          Program_Args := Binder;
-         Add_Make_Switch (Argv);
+         Add_Make_Switch (Bind_Args_Flag);
          return;
 
       elsif Argv = "-largs" then
          Program_Args := Linker;
-         Add_Make_Switch (Argv);
+         Add_Make_Switch (Link_Args_Flag);
          return;
 
       elsif Argv = "-margs" then
          Program_Args := None;
-         Add_Make_Switch (Argv);
+         Add_Make_Switch (Make_Args_Flag);
          return;
       end if;
 
@@ -806,9 +850,9 @@ package body XE_Utils is
          return;
       end if;
 
-      if Project_File_Name_Present then
-         Project_File_Name         := new String'(Normalize_Pathname (Argv));
-         Project_File_Name_Present := False;
+      if Project_File_Name_Expected then
+         Project_File_Name          := new String'(Normalize_Pathname (Argv));
+         Project_File_Name_Expected := False;
 
       elsif Argv (Argv'First) = '-' then
 
@@ -855,8 +899,8 @@ package body XE_Utils is
 
          elsif Argv (Argv'First + 1) = 'P' then
 
-            if Project_File_Name_Present
-              or else Project_File_Name /= null
+            if Project_File_Name_Expected
+                 or else Project_File_Name /= null
             then
                Fail ("cannot have several project files specified");
             end if;
@@ -871,7 +915,7 @@ package body XE_Utils is
                Add_Make_Switch (Project_File_Name.all);
 
             else
-               Project_File_Name_Present := True;
+               Project_File_Name_Expected := True;
                Add_List_Switch (Project_File_Flag.all);
                Add_Make_Switch (Project_File_Flag.all);
             end if;
@@ -908,6 +952,7 @@ package body XE_Utils is
          elsif Argv'Length = 2 then
             case Argv (Argv'First + 1) is
                when 'a' =>
+                  Check_Readonly_Files := True;
                   Add_List_Switch (Argv);
                   Add_Make_Switch (Argv);
 
@@ -963,10 +1008,7 @@ package body XE_Utils is
       --  We have already processed the user command line: we might be in the
       --  -cargs or -largs section. If so, switch back to -margs now.
 
-      if Program_Args /= None then
-         Scan_Dist_Arg ("-margs");
-      end if;
-
+      Ensure_Make_Args;
       for J in Argv'Range loop
          if Argv (J)'Length > 0 then
             Scan_Dist_Arg (Argv (J).all);
@@ -974,6 +1016,16 @@ package body XE_Utils is
       end loop;
       Free (Argv);
    end Scan_Dist_Args;
+
+   -----------------------------------------
+   -- Set_Corresponding_Project_File_Name --
+   -----------------------------------------
+
+   procedure Set_Corresponding_Project_File_Name (N : out File_Name_Type) is
+   begin
+      Add_Str_To_Name_Buffer (".gpr");
+      N := Name_Find;
+   end Set_Corresponding_Project_File_Name;
 
    --------------------
    -- Show_Dist_Args --
@@ -1002,24 +1054,10 @@ package body XE_Utils is
    -- To_Lower --
    --------------
 
-   function To_Lower (C : Character) return Character is
-   begin
-      if C in 'A' .. 'Z' then
-         return Character'Val (Character'Pos (C) - Up_To_Low);
-      end if;
-      return C;
-   end To_Lower;
-
-   --------------
-   -- To_Lower --
-   --------------
-
    procedure To_Lower (S : in out String) is
    begin
-      for I in S'Range loop
-         if S (I) in 'A' .. 'Z' then
-            S (I) := Character'Val (Character'Pos (S (I)) - Up_To_Low);
-         end if;
+      for J in S'Range loop
+         S (J) := To_Lower (S (J));
       end loop;
    end To_Lower;
 
