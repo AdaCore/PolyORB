@@ -457,7 +457,7 @@ package body XE_Utils is
       Success   : out Boolean)
    is
    begin
-      if Verbose_Mode then
+      if not Quiet_Mode then
          Set_Standard_Error;
          Write_Str (Command.all);
          for J in Arguments'Range loop
