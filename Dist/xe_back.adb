@@ -59,15 +59,6 @@ package body XE_Back is
       Hash       => Hash,
       Equal      => Eq);
 
-   --------------------------------
-   --  Exported Environment Vars --
-   --------------------------------
-
-   Max_Exported_Vars : constant := 15;
-   Exported_Var_Last : Natural := 0;
-   Exported_Environment_Vars : array (1 .. Max_Exported_Vars) of String_Ptr;
-   --  Contains a list of environment vars to export for the remote partitions
-
    ------------------
    -- Casing Rules --
    ------------------
@@ -146,16 +137,6 @@ package body XE_Back is
       end if;
       return S1.all = S2.all;
    end Eq;
-
-   ----------------------------
-   -- Export_Environment_Var --
-   ----------------------------
-
-   procedure Export_Environment_Var (EV : String) is
-   begin
-      Exported_Var_Last := Exported_Var_Last + 1;
-      Exported_Environment_Vars (Exported_Var_Last) := new String'(EV);
-   end Export_Environment_Var;
 
    ------------------
    -- Find_Backend --
@@ -514,7 +495,7 @@ package body XE_Back is
          --  For the main partition, the command should be
          --    "<pn>" --boot_location "<bl>" <cline>
          --  For other partitions, it should be
-         --    <rshcmd> <host> <rshopts> "<Exported_Vars> '<pn>' --detach ...
+         --    <rshcmd> <host> <rshopts> "<exported_Vars> '<pn>' --detach ...
          --         ... --boot_location '<bs>' <cline> &" ...
          --         ... < /dev/null > /dev/null 2>&1
 
@@ -531,8 +512,7 @@ package body XE_Back is
             Write_Char (' ');
             Write_Char (Ext_Quote);
 
-            --  Export environment vars for remote partitions
-            Write_Str (Get_Environment_Vars_Command);
+            Write_Str (Get_Env_Vars (P));
          end if;
 
          Write_Name (To_Absolute_File (Current.Executable_File));
@@ -543,6 +523,7 @@ package body XE_Back is
          Write_Name (Current.Command_Line);
 
          if P /= Main_Partition then
+            Write_Str  (" ");
             Write_Name (Get_Detach_Flag (Backend));
             Write_Str  (" & ");
             Write_Char (Ext_Quote);
@@ -584,8 +565,7 @@ package body XE_Back is
       Success   : Boolean;
 
    begin
-      --  If all the partitions are not to build then do not build the
-      --  launcher partition.
+      --  Do not build start unless also building all partitions
 
       if not Partitions.Table (Default_Partition_Id).To_Build then
          return;
@@ -785,24 +765,27 @@ package body XE_Back is
 
    end Get_Absolute_Command;
 
-   ----------------------------------
-   -- Get_Environment_Vars_Command --
-   ----------------------------------
+   ------------------
+   -- Get_Env_Vars --
+   ------------------
 
-   function Get_Environment_Vars_Command return String is
+   function Get_Env_Vars (P : Partition_Id) return String is
+      V : Env_Var_Id;
    begin
-      --  Clear the name buffer
+      --  Export environment vars for remote partitions
 
       Name_Len := 0;
 
-      for I in 1 .. Exported_Var_Last loop
-         Add_Str_To_Name_Buffer
-           (Exported_Environment_Vars (I).all
-              & "=$" & Exported_Environment_Vars (I).all & ' ');
+      V := Partitions.Table (P).First_Env_Var;
+      while V /= No_Env_Var_Id loop
+         Get_Name_String_And_Append (Env_Vars.Table (V).Name);
+         Add_Str_To_Name_Buffer ("=$");
+         Get_Name_String_And_Append (Env_Vars.Table (V).Name);
+         Add_Str_To_Name_Buffer (" ");
+         V := Env_Vars.Table (V).Next_Env_Var;
       end loop;
-
-      return Get_Name_String (Name_Find);
-   end Get_Environment_Vars_Command;
+      return Name_Buffer (1 .. Name_Len);
+   end Get_Env_Vars;
 
    ----------
    -- Hash --

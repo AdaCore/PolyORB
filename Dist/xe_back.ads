@@ -65,10 +65,6 @@ private
    procedure Register_Backend
      (PCS_Name : String; The_Backend : Backend_Access);
 
-   procedure Export_Environment_Var (EV : String);
-   --  Add EV environment var to the list of exported variables in the remote
-   --  partitions environments.
-
    procedure Generate_Partition_Project_File
      (D : Directory_Name_Type;
       P : Partition_Id := No_Partition_Id);
@@ -94,13 +90,13 @@ private
    --  main partition subprogram. This can be a shell script or an Ada
    --  program.
 
+   function Get_Env_Vars (P : Partition_Id) return String;
+   --  Return a series of environment variables assignment for partition P
+
    procedure Generate_Application_Project_Files;
    --  Generate a project file for the appplication code, extending the one
    --  provided by the user (if any), and including a dependency upon the PCS
    --  project. This is PCS independent.
-
-   function Get_Environment_Vars_Command return String;
-   --  Return a shell command that exports all the registered environment vars
 
    procedure Initialize;
    --  Initialize PCS-independent backend information
@@ -127,9 +123,9 @@ private
       S3 : String  := No_Str;
       I1_Present : Boolean := False;
       I1         : Int     := -1);
-   --  Insert a procedure call. The first non-null parameter
-   --  is supposed to be the procedure name. The next parameters
-   --  are parameters for this procedure call.
+   --  Insert a procedure call. The first non-null parameter is supposed to be
+   --  the procedure name. The next parameters are parameters for this
+   --  procedure call.
 
    procedure Write_Image (I : out Name_Id; H : Host_Id; P : Partition_Id);
    --  Write in I the text to get the partition hostname. This can be

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1995-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNATDIST is  free software;  you  can redistribute  it and/or  modify it --
 -- under terms of the  GNU General Public License  as published by the Free --
@@ -799,7 +799,8 @@ package body XE_Parse is
          --  Do this variable have the appropriate type.
 
          if Get_Variable_Type (Expression_Node) /= Component_Type then
-            Write_Conflict_Error (Expression_Sloc, Expression_Name);
+            Write_Error_Message
+              (Get_Token_Location, "incorrect element type in aggregate");
          end if;
 
          --  ???
@@ -1315,8 +1316,7 @@ package body XE_Parse is
       Search_Component
         (Attribute_Prefix & Attr_Name, Direct_Type, Attr_Node);
 
-      --  Check that this attribute is a legal attribute for the
-      --  given type.
+      --  Check that this attribute is a legal attribute for the given type
 
       if Attr_Node = Null_Component then
          Write_Error_Message

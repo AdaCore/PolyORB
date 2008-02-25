@@ -244,7 +244,8 @@ package body XE_Back.GARLIC is
            (RE (RE_Register_Partition_To_Launch),
             Capitalize (Id (Boolean'Image (Use_Rem_Host))),
             Get_Name_String (Remote_Host),
-            Quote (To_Absolute_File (Executable) & Current.Command_Line));
+            Quote (Id (Get_Env_Vars (P))
+                     & To_Absolute_File (Executable) & Current.Command_Line));
       end Register_Launched_Partition;
 
       Filename     : File_Name_Type;

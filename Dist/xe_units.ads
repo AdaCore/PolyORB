@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 1995-2006 Free Software Foundation, Inc.           --
+--         Copyright (C) 1995-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNATDIST is  free software;  you  can redistribute  it and/or  modify it --
 -- under terms of the  GNU General Public License  as published by the Free --
@@ -132,6 +132,11 @@ package XE_Units is
 
    No_Stub_Id    : constant Stub_Id := Stub_Id'First;
    First_Stub_Id : constant Stub_Id := No_Stub_Id + 1;
+
+   type Env_Var_Id is range 7_500_000 .. 7_599_999;
+
+   No_Env_Var_Id    : constant Env_Var_Id := Env_Var_Id'First;
+   First_Env_Var_Id : constant Env_Var_Id := No_Env_Var_Id + 1;
 
    --------------------
    -- ALI File Table --
@@ -375,6 +380,12 @@ package XE_Units is
       Last_Channel : Channel_Id;
       --  Id of last channel table entry for this partition
 
+      First_Env_Var : Env_Var_Id;
+      --  Id of first environment variables entry for this partition
+
+      Last_Env_Var : Env_Var_Id;
+      --  Id of last environment variables entry for this partition
+
       Passive : Boolean_Type;
       --  Indicate whether this partition is passive
 
@@ -440,7 +451,7 @@ package XE_Units is
 
    end record;
 
-   package Partitions  is new GNAT.Table
+   package Partitions is new GNAT.Table
      (Table_Component_Type => Partition_Type,
       Table_Index_Type     => Partition_Id,
       Table_Low_Bound      => First_Partition_Id,
@@ -456,6 +467,8 @@ package XE_Units is
       Last_Stub          => No_Stub_Id,
       First_Channel      => No_Channel_Id,
       Last_Channel       => No_Channel_Id,
+      First_Env_Var      => No_Env_Var_Id,
+      Last_Env_Var       => No_Env_Var_Id,
       Passive            => BMaybe,
       Tasking            => '?',
       Task_Pool          => No_Task_Pool,
@@ -597,6 +610,22 @@ package XE_Units is
      (Table_Component_Type => Unit_Name_Type,
       Table_Index_Type     => Stub_Id,
       Table_Low_Bound      => First_Stub_Id,
+      Table_Initial        => 20,
+      Table_Increment      => 10);
+
+   -------------------
+   -- Env var Table --
+   -------------------
+
+   type Env_Var_Type is record
+      Name         : Name_Id;
+      Next_Env_Var : Env_Var_Id;
+   end record;
+
+   package Env_Vars is new GNAT.Table
+     (Table_Component_Type => Env_Var_Type,
+      Table_Index_Type     => Env_Var_Id,
+      Table_Low_Bound      => First_Env_Var_Id,
       Table_Initial        => 20,
       Table_Increment      => 10);
 

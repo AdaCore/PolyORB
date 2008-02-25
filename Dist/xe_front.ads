@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 1995-2006 Free Software Foundation, Inc.           --
+--         Copyright (C) 1995-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNATDIST is  free software;  you  can redistribute  it and/or  modify it --
 -- under terms of the  GNU General Public License  as published by the Free --
@@ -74,6 +74,12 @@ package XE_Front is
       Minor : Name_Id);
    --  Read major and minor from variable and add this pair to
    --  partition location list.
+
+   procedure Add_Environment_Variable
+     (First : in out Env_Var_Id;
+      Last  : in out Env_Var_Id;
+      Name  : Name_Id);
+   --  Add new environment variable to partition's list
 
    procedure Create_Channel
      (Name : Channel_Name_Type;

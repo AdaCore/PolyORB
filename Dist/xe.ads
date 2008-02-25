@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 1995-2006 Free Software Foundation, Inc.           --
+--         Copyright (C) 1995-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNATDIST is  free software;  you  can redistribute  it and/or  modify it --
 -- under terms of the  GNU General Public License  as published by the Free --
@@ -79,24 +79,25 @@ package XE is
    -- Attribute Type --
    --------------------
 
-   type Attribute_Type is new Int range 200 .. 215;
+   type Attribute_Type is new Int range 200 .. 216;
 
-   Attribute_Unknown       : constant Attribute_Type := 200;
-   Attribute_Host          : constant Attribute_Type := 201;
-   Attribute_Directory     : constant Attribute_Type := 202;
-   Attribute_Main          : constant Attribute_Type := 203;
-   Attribute_Command_Line  : constant Attribute_Type := 204;
-   Attribute_Termination   : constant Attribute_Type := 205;
-   Attribute_Leader        : constant Attribute_Type := 206;
-   Attribute_PFilter       : constant Attribute_Type := 207;
-   Attribute_CFilter       : constant Attribute_Type := 208;
-   Attribute_Task_Pool     : constant Attribute_Type := 209;
-   Attribute_Reconnection  : constant Attribute_Type := 210;
-   Attribute_Protocol      : constant Attribute_Type := 211;
-   Attribute_Storage       : constant Attribute_Type := 212;
-   Attribute_Passive       : constant Attribute_Type := 213;
-   Attribute_Priority      : constant Attribute_Type := 214;
-   Attribute_Allow_Light_PCS : constant Attribute_Type := 215;
+   Attribute_Unknown               : constant Attribute_Type := 200;
+   Attribute_Host                  : constant Attribute_Type := 201;
+   Attribute_Directory             : constant Attribute_Type := 202;
+   Attribute_Main                  : constant Attribute_Type := 203;
+   Attribute_Command_Line          : constant Attribute_Type := 204;
+   Attribute_Termination           : constant Attribute_Type := 205;
+   Attribute_Leader                : constant Attribute_Type := 206;
+   Attribute_PFilter               : constant Attribute_Type := 207;
+   Attribute_CFilter               : constant Attribute_Type := 208;
+   Attribute_Task_Pool             : constant Attribute_Type := 209;
+   Attribute_Reconnection          : constant Attribute_Type := 210;
+   Attribute_Protocol              : constant Attribute_Type := 211;
+   Attribute_Storage               : constant Attribute_Type := 212;
+   Attribute_Passive               : constant Attribute_Type := 213;
+   Attribute_Priority              : constant Attribute_Type := 214;
+   Attribute_Allow_Light_PCS       : constant Attribute_Type := 215;
+   Attribute_Environment_Variables : constant Attribute_Type := 216;
 
    -----------------
    -- Pragma Type --
@@ -127,21 +128,22 @@ package XE is
    -- Predefined Type --
    ---------------------
 
-   type Predefined_Type is new Int range 401 .. 413;
+   type Predefined_Type is new Int range 401 .. 414;
 
    Pre_Type_Partition  : constant Predefined_Type := 401;
    Pre_Type_Channel    : constant Predefined_Type := 402;
    Pre_Type_Boolean    : constant Predefined_Type := 403;
    Pre_Type_Integer    : constant Predefined_Type := 404;
    Pre_Type_String     : constant Predefined_Type := 405;
-   Pre_Type_Entity     : constant Predefined_Type := 406;
-   Pre_Type_Convention : constant Predefined_Type := 407;
-   Pre_Type_Ada_Unit   : constant Predefined_Type := 408;
-   Pre_Type_Function   : constant Predefined_Type := 409;
-   Pre_Type_Procedure  : constant Predefined_Type := 410;
-   Pre_Type_Task_Pool  : constant Predefined_Type := 411;
-   Pre_Type_Location   : constant Predefined_Type := 412;
-   Pre_Type_Locations  : constant Predefined_Type := 413;
+   Pre_Type_Strings    : constant Predefined_Type := 406;
+   Pre_Type_Entity     : constant Predefined_Type := 407;
+   Pre_Type_Convention : constant Predefined_Type := 408;
+   Pre_Type_Ada_Unit   : constant Predefined_Type := 409;
+   Pre_Type_Function   : constant Predefined_Type := 410;
+   Pre_Type_Procedure  : constant Predefined_Type := 411;
+   Pre_Type_Task_Pool  : constant Predefined_Type := 412;
+   Pre_Type_Location   : constant Predefined_Type := 413;
+   Pre_Type_Locations  : constant Predefined_Type := 414;
 
    ----------------------
    -- Termination Type --
@@ -226,6 +228,7 @@ package XE is
    Boolean_Type_Node         : Type_Id;
    Integer_Type_Node         : Type_Id;
    String_Type_Node          : Type_Id;
+   String_List_Type_Node     : Type_Id;
    Convention_Type_Node      : Type_Id;
    Ada_Unit_Type_Node        : Type_Id;
    Subprogram_Type_Node      : Type_Id;

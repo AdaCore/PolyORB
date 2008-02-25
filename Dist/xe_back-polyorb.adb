@@ -203,7 +203,6 @@ package body XE_Back.PolyORB is
 
    procedure Generate_Ada_Starter_Code
    is
-      Env : constant String := Get_Environment_Vars_Command;
       Remote_Host : Name_Id;
    begin
       for J in Partitions.First + 1 .. Partitions.Last loop
@@ -213,8 +212,9 @@ package body XE_Back.PolyORB is
             declare
                Partition   : Partition_Type renames Partitions.Table (J);
                Cmd : constant String := Get_Name_String
-                 (To_Absolute_File (Partition.Executable_File)
-                  & Partition.Command_Line);
+                       (To_Absolute_File (Partition.Executable_File)
+                          & Partition.Command_Line);
+               Env : constant String := Get_Env_Vars (J);
                Full_Cmd : constant String := '"' & Env & Cmd & '"';
             begin
                Write_Image (Remote_Host, Partition.Host, J);
@@ -876,6 +876,13 @@ package body XE_Back.PolyORB is
          PE (E) := Strip (PE_Id'Image (E));
       end loop;
 
+      --  Pass name server IOR from starter to all slave partitions
+
+      Add_Environment_Variable
+        (Partitions.Table (Default_Partition_Id).First_Env_Var,
+         Partitions.Table (Default_Partition_Id).Last_Env_Var,
+         Id ("POLYORB_DSA_NAME_SERVICE"));
+
       Generate_PCS_Project_Files;
       Generate_Application_Project_Files;
    end Initialize;
@@ -902,8 +909,6 @@ package body XE_Back.PolyORB is
       Prepare_Directories;
 
       Generate_All_Stubs_And_Skels;
-
-      Export_Environment_Var ("POLYORB_DSA_NAME_SERVICE");
 
       --  For each partition, generate the elaboration, main, executable
       --  and stamp files.

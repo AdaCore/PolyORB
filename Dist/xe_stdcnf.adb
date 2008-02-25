@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1995-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNATDIST is  free software;  you  can redistribute  it and/or  modify it --
 -- under terms of the  GNU General Public License  as published by the Free --
@@ -267,6 +267,17 @@ package body XE_Stdcnf is
          Type_Sloc    => Null_Location,
          Type_Node    => Locations_Type_Node);
 
+      --  type type__string_list (standard)
+
+      Declare_Type
+        (Type_Name    => Type_Prefix & "string list",
+         Type_Kind    => Pre_Type_Strings,
+         Composite    => True,
+         Comp_Type    => String_Type_Node,
+         Array_Len    => Infinite,
+         Type_Sloc    => Null_Location,
+         Type_Node    => String_List_Type_Node);
+
       --  Define attributes for partition
 
       Declare_Type_Attribute
@@ -295,6 +306,13 @@ package body XE_Stdcnf is
          Attribute_Name => Id ("directory"),
          Attr_Type_Node => String_Type_Node,
          Attribute_Kind => Attribute_Directory,
+         Attribute_Sloc => Null_Location);
+
+      Declare_Type_Attribute
+        (Type_Node      => Partition_Type_Node,
+         Attribute_Name => Id ("environment_variables"),
+         Attr_Type_Node => String_List_Type_Node,
+         Attribute_Kind => Attribute_Environment_Variables,
          Attribute_Sloc => Null_Location);
 
       Declare_Type_Attribute
