@@ -82,6 +82,12 @@ package XE_Front is
    --  Read major and minor from variable and add this pair to
    --  partition location list.
 
+   procedure Add_Environment_Variable
+     (First : in out Env_Var_Id;
+      Last  : in out Env_Var_Id;
+      Name  : Name_Id);
+   --  Add new environment variable to partition's list
+
    procedure Create_Channel
      (Name : Channel_Name_Type;
       Node : Node_Id;

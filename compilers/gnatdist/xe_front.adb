@@ -184,6 +184,38 @@ package body XE_Front is
       Partitions.Table (P).Last_Unit := Conf_Units.Last;
    end Add_Conf_Unit;
 
+   ------------------------------
+   -- Add_Environment_Variable --
+   ------------------------------
+
+   procedure Add_Environment_Variable
+     (First : in out Env_Var_Id;
+      Last  : in out Env_Var_Id;
+      Name  : Name_Id)
+   is
+      L : Env_Var_Id;
+
+   begin
+      --  Add a new element in the location table and fill it with the
+      --  given name (major).
+
+      Env_Vars.Increment_Last;
+      L := Env_Vars.Last;
+      Env_Vars.Table (L).Name         := Name;
+      Env_Vars.Table (L).Next_Env_Var := No_Env_Var_Id;
+
+      --  Link this new location to the end of the partition env vars
+      --  list.
+
+      if First = No_Env_Var_Id then
+         First := L;
+
+      else
+         Env_Vars.Table (Last).Next_Env_Var := L;
+      end if;
+      Last := L;
+   end Add_Environment_Variable;
+
    ------------------
    -- Add_Location --
    ------------------
@@ -477,7 +509,8 @@ package body XE_Front is
          HID := Partitions.Table (P).Host;
          if HID /= No_Host_Id
            and then not Hosts.Table (HID).Static
-           and then Hosts.Table (HID).Import = Ada_Import then
+           and then Hosts.Table (HID).Import = Ada_Import
+         then
             Add_Conf_Unit (Hosts.Table (HID).External, P);
          end if;
       end loop;
@@ -938,8 +971,7 @@ package body XE_Front is
             --  Check that it has not already been assigned.
 
             if Current.Main_Subprogram = No_Main_Subprogram then
-               Current.Main_Subprogram
-                 := Get_Variable_Name (Attr_Item);
+               Current.Main_Subprogram := Get_Variable_Name (Attr_Item);
 
                --  We are not sure at this point that this unit
                --  has been configured on partition.
@@ -1150,6 +1182,16 @@ package body XE_Front is
             else
                Write_Attr_Init_Error ("priority");
             end if;
+
+         when Attribute_Environment_Variables =>
+            First_Variable_Component (Attr_Item, Comp_Node);
+            while Comp_Node /= Null_Component loop
+               Add_Environment_Variable
+                 (Current.First_Env_Var,
+                  Current.Last_Env_Var,
+                  Get_Variable_Name (Get_Component_Value (Comp_Node)));
+               Next_Variable_Component (Comp_Node);
+            end loop;
 
          when Attribute_CFilter | Attribute_Unknown =>
             raise Fatal_Error;
@@ -1471,6 +1513,7 @@ package body XE_Front is
       H : Host_Id;
       U : Conf_Unit_Id;
       I : Unit_Id;
+      V : Env_Var_Id;
       Current : Partition_Type renames Partitions.Table (P);
 
    begin
@@ -1633,6 +1676,19 @@ package body XE_Front is
 
             Write_Line (")");
             U := Conf_Units.Table (U).Next_Unit;
+         end loop;
+         Write_Eol;
+      end if;
+
+      if Partitions.Table (P).First_Env_Var /= No_Env_Var_Id then
+         Write_Field (1, "Environment variables");
+         Write_Eol;
+         V := Partitions.Table (P).First_Env_Var;
+         while V /= No_Env_Var_Id loop
+            Write_Str ("             - """);
+            Write_Name (Env_Vars.Table (V).Name);
+            Write_Line ("""");
+            V := Env_Vars.Table (V).Next_Env_Var;
          end loop;
          Write_Eol;
       end if;

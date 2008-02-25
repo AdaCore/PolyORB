@@ -151,8 +151,7 @@ package body XE_Sem is
          CU := Conf_Units.Table (CU).Next_Unit;
       end loop;
 
-      --  PCS may require to configure one of its units on the main
-      --  partition.
+      --  PCS may require to configure one of its units on the main partition
 
       if PCS_Conf_Unit /= No_Name then
          Add_Conf_Unit (PCS_Conf_Unit, Main_Partition);
@@ -411,6 +410,17 @@ package body XE_Sem is
       if Current.First_Network_Loc = No_Location_Id then
          Current.First_Network_Loc := Default.First_Network_Loc;
          Current.Last_Network_Loc  := Default.Last_Network_Loc;
+      end if;
+
+      if Current.First_Env_Var = No_Env_Var_Id then
+         Current.First_Env_Var := Default.First_Env_Var;
+      else
+         Env_Vars.Table (Current.Last_Env_Var).Next_Env_Var :=
+           Default.First_Env_Var;
+      end if;
+
+      if Default.Last_Env_Var /= No_Env_Var_Id then
+         Current.Last_Env_Var := Default.Last_Env_Var;
       end if;
 
       if Current.Reconnection = No_Reconnection then
