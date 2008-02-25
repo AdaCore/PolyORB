@@ -35,6 +35,8 @@ with "common";
 
 project src is
 
+   for Languages use ("Ada", "C");
+
    Dir := "src";
    Obj_Dir := Common.Build_Dir & Dir;
    for Object_Dir use Obj_Dir;

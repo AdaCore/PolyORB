@@ -562,10 +562,12 @@ src.gpr: src_security.gpr src_security_gssup.gpr src_security_x509.gpr src_secur
 
 # Additional dependencies upon C files
 C_FILES += 					\
+	src/csupport.c				\
 	src/ssl/polyorb_ssl.c			\
 	src/security/polyorb_asn1.c		\
 	src/security/x509/polyorb_x509.c
 
+src.gpr:		src/csupport.o
 src_ssl.gpr:		src/ssl/polyorb_ssl.o
 src_security.gpr:	src/security/polyorb_asn1.o
 src_security_x509.gpr:	src/security/x509/polyorb_x509.o

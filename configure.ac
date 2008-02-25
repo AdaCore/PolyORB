@@ -171,6 +171,16 @@ AM_HAS_PRAGMA_SUPPRESS_VALIDITY_CHECK
 AM_HAS_STYLESW_YG
 
 ##########################################
+# Check C environment features (for target)
+##########################################
+
+save_CC="$CC"
+CC="$CC_FOR_TARGET"
+AC_CHECK_HEADERS(fcntl.h)
+AC_CHECK_FUNCS(setsid)
+CC="$save_CC"
+
+##########################################
 # Check platform properties
 ##########################################
 
@@ -455,7 +465,7 @@ AC_SUBST(RSH_OPT)
 AC_MSG_RESULT([${RSH_OPT}])
 
 #
-# Not used by polyORB, set default values for garlic.
+# Not used by PolyORB, set default values for garlic.
 #
 DEFSTORAGENAME="dfs"
 DEFSTORAGEDATA=""
@@ -726,6 +736,7 @@ AC_SUBST_FILE(LOCAL_MAKEFILES)
 dnl Important! One file per line, nothing before or after except whitespace!
 dnl This section is edited automatically by support/reconfig.
 
+AC_CONFIG_HEADERS([src/config.h])
 AC_OUTPUT([
 	Makefile
 	Makefile.common.project
