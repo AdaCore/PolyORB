@@ -793,10 +793,17 @@ package body XE_Back.GARLIC is
 
       Write_Str  ("      """);
       Write_Name (Storage_Config_File);
-      Write_Line (".adb"",");
+      Write_Str  (".adb""");
 
-      Write_Str  ("      ""s-rpc.adb"");");
+      if User_Provided_S_RPC then
+         --  User has provided an alternative version of s-rpc: remove the
+         --  one from GARLIC from the project.
 
+         Write_Line (",");
+         Write_Str  ("      ""s-rpc.adb""");
+      end if;
+
+      Write_Line (");");
       Write_Str  ("end ");
       Write_Name (PCS_Project);
       Write_Line (";");

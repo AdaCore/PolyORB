@@ -44,6 +44,7 @@ package XE_Flags is
    Debug_Mode           : Boolean := False;
    Quiet_Mode           : Boolean := False;
    Check_Readonly_Files : Boolean := False;
+   User_Provided_S_RPC  : Boolean := False;
 
    Readonly_Flag       : constant String_Access := new String'("-a");
    Bind_Only_Flag      : constant String_Access := new String'("-b");

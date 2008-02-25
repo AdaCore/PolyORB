@@ -34,6 +34,8 @@
 with Ada.Characters.Handling; use Ada.Characters.Handling;
 with Ada.Command_Line;        use Ada.Command_Line;
 
+with GNAT.Directory_Operations; use GNAT.Directory_Operations;
+
 with XE_Defs;          use XE_Defs;
 with XE_Flags;         use XE_Flags;
 with XE_IO;            use XE_IO;
@@ -193,6 +195,13 @@ package body XE_Utils is
    procedure Add_Source_Directory (Argv : String) is
    begin
       Source_Directories.Append (new String'(Argv));
+
+      --  Special kludge: if the user provides his own version of s-rpc, the
+      --  PCS should not provide it.
+
+      if Is_Readable_File (Argv & Dir_Separator & "s-rpc.adb") then
+         XE_Flags.User_Provided_S_RPC := True;
+      end if;
    end Add_Source_Directory;
 
    -----------
