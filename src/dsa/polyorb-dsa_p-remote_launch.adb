@@ -63,12 +63,24 @@ package body PolyORB.DSA_P.Remote_Launch is
    -------------------
 
    function Is_Local_Host (Host : String) return Boolean;
+   --  True if Host designates the local machine and we can avoid a remote
+   --  shell execution.
 
    function Is_Local_Host (Host : String) return Boolean
    is
       Name_Of_Host : constant String
                        := Official_Name (Get_Host_By_Name (Host));
    begin
+      --  If force_rsh is True, never optimize away rsh call
+
+      if Parameters.Get_Conf
+           (Section => "dsa",
+            Key     => "force_rsh",
+            Default => False);
+      then
+         return False;
+      end if;
+
       return Host = "localhost"
         or else Name_Of_Host = "localhost"
         or else Name_Of_Host = Official_Name (Get_Host_By_Name (Host_Name));
