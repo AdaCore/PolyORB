@@ -429,7 +429,7 @@ LIBRARY_PROJECT_FILES := ${filter-out tools_%,${PROJECT_FILES}}
 EXE_PROJECT_FILES := ${filter tools_%,${PROJECT_FILES}}
 
 # Additional C sources
-C_FILES=
+C_FILES=	src/csupport.c
 
 .PHONY: do-gnatmake
 do-gnatmake: ${POLYORB_LIBS} ${SERVICE_LIBS} ${EXE_PROJECT_FILES} #??? ${APPLI_EXES} ${SERVICE_EXES}
@@ -552,6 +552,7 @@ libpolyorb-web_common.a: src_web_common.gpr
 
 # Additional dependencies:
 
+src.gpr:		src/csupport.o
 src_corba.gpr: src_corba_dynamicany.gpr src_corba_iop.gpr src_corba_messaging.gpr src_corba_portableinterceptor.gpr src_corba_rtcorba.gpr
 
 ifeq (${HAVE_SSL},yes)
@@ -562,12 +563,10 @@ src.gpr: src_security.gpr src_security_gssup.gpr src_security_x509.gpr src_secur
 
 # Additional dependencies upon C files
 C_FILES += 					\
-	src/csupport.c				\
 	src/ssl/polyorb_ssl.c			\
 	src/security/polyorb_asn1.c		\
 	src/security/x509/polyorb_x509.c
 
-src.gpr:		src/csupport.o
 src_ssl.gpr:		src/ssl/polyorb_ssl.o
 src_security.gpr:	src/security/polyorb_asn1.o
 src_security_x509.gpr:	src/security/x509/polyorb_x509.o
