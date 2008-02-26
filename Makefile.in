@@ -575,7 +575,7 @@ endif
 # Rule for compilation of C source files
 C_OBJECTS=${C_FILES:.c=.o}
 ${C_OBJECTS}: %.o: ${top_srcdir}/%.c
-	${CC_FOR_TARGET} -c -o $@ ${CPPFLAGS} ${CFLAGS} ${CFLAGS_FOR_TARGET} $<
+	${CC_FOR_TARGET} -c -o $@ -I${top_builddir}/src ${CPPFLAGS} ${CFLAGS} ${CFLAGS_FOR_TARGET} $<
 
 ##########################
 # examples and testsuite #
