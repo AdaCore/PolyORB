@@ -76,7 +76,7 @@ package body PolyORB.DSA_P.Remote_Launch is
       if Parameters.Get_Conf
            (Section => "dsa",
             Key     => "force_rsh",
-            Default => False);
+            Default => False)
       then
          return False;
       end if;
@@ -93,6 +93,9 @@ package body PolyORB.DSA_P.Remote_Launch is
    procedure Launch_Partition (Host : String; Command : String) is
    begin
       pragma Debug (C, O ("Launch_Partition: enter"));
+
+      --  ??? This is implemented assuming a UNIX-like shell on both the master
+      --  and the slave hosts. This should be made more portable.
 
       --  Local spawn
 
