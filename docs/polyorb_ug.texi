@@ -4111,6 +4111,7 @@ environment variables.
 * Pragma Import::
 * Partition Attribute Directory::
 * Partition Attribute Command_Line::
+* Partition Attribute Environment_Variables::
 * Partition Attribute Termination::
 * Partition Attribute Reconnection::
 * Channel Declaration::
@@ -4354,7 +4355,7 @@ and assigned to the partition Main attribute.
 PROCEDURE_DECLARATION ::=
    @b{procedure} PROCEDURE_IDENTIFIER;
 
-REPRESENTATION_CLAUSE :=
+REPRESENTATION_CLAUSE ::=
    @b{for} PARTITION_IDENTIFIER'Main @b{use} PROCEDURE_IDENTIFIER;
 
 @end smallexample
@@ -4708,7 +4709,7 @@ REPRESENTATION_CLAUSE ::=
 
 @end smallexample
 
-@node Partition Attribute Command_Line, Partition Attribute Termination, Partition Attribute Directory, The Configuration Language
+@node Partition Attribute Command_Line, Partition Attribute Environment_Variables, Partition Attribute Directory, The Configuration Language
 @subsubsection Partition Attribute Command_Line
 
 The user may want to pass arguments on the command line of a
@@ -4721,6 +4722,30 @@ advantage of the following attribute.
 
 REPRESENTATION_CLAUSE ::=
    @b{for} PARTITION_IDENTIFIER'Command_Line @b{use} STRING_LITERAL;
+
+@end smallexample
+
+@node Partition Attribute Environment_Variables, Partition Attribute Termination, Partition Attribute Command_Line, The Configuration Language
+@subsubsection Partition Attribute Environment_Variables
+
+The attribute Environment_Variables allows the user to specify a list of
+environment variables that should be passed from the main partition
+to slave partitions when using a generated (shell or Ada) launcher.
+
+This attribute can be applied to all partitions by defining it for the
+predefined type @b{Partition}, or to a specific partition. Note that in
+the latter case, the list does not replace the default one but instead
+complements it (i.e. variables specified for @b{Partition} are passed
+in addition to the partition specific ones).
+
+@smallexample
+
+STRING_LITERAL_LIST ::=
+   STRING_LITERAL
+   | STRING_LITERAL@b{,} STRING_LITERAL_LIST
+
+REPRESENTATION_CLAUSE ::=
+   @b{for} PARTITION_IDENTIFIER'Environment_Variables @b{use (}STRING_LITERAL_LIST@b{);}
 
 @end smallexample
 
