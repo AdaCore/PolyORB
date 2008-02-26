@@ -4749,7 +4749,7 @@ REPRESENTATION_CLAUSE ::=
 
 @end smallexample
 
-@node Partition Attribute Termination, Partition Attribute Reconnection, Partition Attribute Command_Line, The Configuration Language
+@node Partition Attribute Termination, Partition Attribute Reconnection, Partition Attribute Environment_Variables, The Configuration Language
 @subsubsection Partition Attribute Termination
 
 The Ada95 Reference Manual does not provide any specific rule to handle
