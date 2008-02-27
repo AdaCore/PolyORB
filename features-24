@@ -17,6 +17,13 @@ NF-24-H226-012 Gnatdist displays executed commands (2008-02-25)
   When not in quiet mode, gnatdist now prints all commands it executes on
   standard error, just as gnatmake.
 
+NF-24-H214-018 po_gnatdist does not depend on polyorb-config (2008-02-21)
+
+  The PolyORB/DSA partitioning tool, po_gnatdist, does not depend on the
+  external shell script polyorb-config to locate the PolyORB runtime library
+  anymore. This allows po_gnatdist to be usable on platforms that do not
+  provide a Bourne shell, such as MinGW.
+
 NF-24-H110-025 Environment variables passing to slave partitions (2008-02-25)
 
   A list of environment variables can now be associated with partitions
