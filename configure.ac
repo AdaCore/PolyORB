@@ -36,7 +36,7 @@ define(NODEBUG_OPTIONS, [dnl
   debug=false])
 
 AC_ARG_ENABLE(debug,
-[  --enable-debug          Turn on debugging options],
+AS_HELP_STRING([--enable-debug], [Turn on debugging options]),
 [if [[ "$enableval" = "yes" ]]; then
   DEBUG_OPTIONS
 else
@@ -52,7 +52,7 @@ fi],
 DEFAULT_WARNINGS_MODE=e
 
 AC_ARG_ENABLE(warnings,
-[  --enable-warnings=X     Set warnings processing to X (e/n/s)],
+AS_HELP_STRING([--enable-warnings=X], [Set warnings processing to X (e/n/s)]),
 [case "$enableval" in
    yes)     WARNINGS_MODE=e ;;
    no)      WARNINGS_MODE=s ;;
@@ -201,7 +201,7 @@ LIBS_LIST=""
 
 AC_MSG_CHECKING([default protocol personalities])
 AC_ARG_WITH(proto-perso,
-[  --with-proto-perso=x    Enumerate protocol personalities],
+AS_HELP_STRING([--with-proto-perso=x], [Enumerate protocol personalities]),
 [
   PROTO_LIST=""
 
@@ -229,7 +229,7 @@ AC_SUBST(PROTO_LIST)
 
 AC_MSG_CHECKING([default application personalities])
 AC_ARG_WITH(appli-perso,
-[  --with-appli-perso=x    Enumerate application personalities],
+AS_HELP_STRING([--with-appli-perso=x], [Enumerate application personalities]),
 [
   APPLI_LIST=""
 
@@ -256,7 +256,7 @@ AC_SUBST(APPLI_LIST)
 ############################################
 
 AC_ARG_WITH(idl-compiler,
-[  --with-idl-compiler=x   Internal configuration flag],
+AS_HELP_STRING([--with-idl-compiler=x], [Internal configuration flag]),
 [
   IDLAC=${withval}
 ],
@@ -272,7 +272,7 @@ AM_IDLCPP_NEEDS_DOT
 
 AC_MSG_CHECKING([default services])
 AC_ARG_WITH(corba-services,
-[  --with-corba-services=x       Enumerate services],
+AS_HELP_STRING([--with-corba-services=x], [Enumerate services]),
 [
   SERVICE_LIST=""
 
@@ -445,11 +445,12 @@ AC_SUBST(PCSNAME)
 #
 # Remote shell command
 #
+AC_CHECK_PROGS(DEFAULT_RSH_CMD, [remsh rsh ssh], rsh)
 AC_MSG_CHECKING(for remote shell command to use)
 AC_ARG_WITH(rshcmd,
-            [  --with-gnatdist-rshcmd=command   Set alternate remote shell command],
-            [RSH_CMD="${withval}"],
-            [RSH_CMD="rsh"])
+ AS_HELP_STRING([--with-rshcmd=command], [Set alternate remote shell command]),
+ [RSH_CMD="${withval}"],
+ [RSH_CMD="${DEFAULT_RSH_CMD}"])
 AC_SUBST(RSH_CMD)
 AC_MSG_RESULT([${RSH_CMD}])
 
@@ -458,9 +459,9 @@ AC_MSG_RESULT([${RSH_CMD}])
 #
 AC_MSG_CHECKING(for remote shell options to use)
 AC_ARG_WITH(rshopt,
-            [  --with-gnatdist-rshopt=command   Set remote shell options],
-            [RSH_OPT="${withval}"],
-            [RSH_OPT="-f"])
+ AS_HELP_STRING([--with-rshopt=command], [Set remote shell options]),
+ [RSH_OPT="${withval}"],
+ [RSH_OPT=""])
 AC_SUBST(RSH_OPT)
 AC_MSG_RESULT([${RSH_OPT}])
 
@@ -481,7 +482,7 @@ AC_SUBST(DEFPROTOCOLNAME)
 # Check whether we remove support for RPC abortion
 #
 AC_ARG_ENABLE(rpc-abortion,
-[  --enable-rpc-abortion   Enable RPC abortion even when not supported],
+AS_HELP_STRING([--enable-rpc-abortion], [Enable RPC abortion even when not supported]),
 [SUPPORT_RPC_ABORTION="True"],
 [SUPPORT_RPC_ABORTION="Default"])
 AM_SUPPORT_RPC_ABORTION
