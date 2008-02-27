@@ -787,8 +787,6 @@ package body PolyORB.Protocols.GIOP.Common is
                end if;
             else
                pragma Debug (C, O ("Use static buffer"));
-               Align_Position (Sess.Buffer_In, Arguments_Alignment);
-               Arguments_Alignment := 1;
 
                declare
                   Buffer : Buffer_Access;
@@ -796,6 +794,7 @@ package body PolyORB.Protocols.GIOP.Common is
                   Buffer := Sess.Buffer_In;
                   Sess.Buffer_In := Static_Buffer.Buffer;
                   Static_Buffer.Buffer := Buffer;
+                  Release_Contents (Sess.Buffer_In.all);
                end;
             end if;
 

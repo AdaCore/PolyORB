@@ -673,8 +673,8 @@ package body Backend.BE_CORBA_Ada.Skels is
                   Make_List_Id (Make_Identifier (VN (V_Session))));
 
                N := Make_Object_Declaration
-                 (Defining_Identifier =>
-                    Make_Defining_Identifier (VN (V_Representation)),
+                 (Defining_Identifier => Make_Defining_Identifier
+                    (VN (V_Representation)),
                   Constant_Present    => True,
                   Object_Definition   => RE (RE_CDR_Representation_Access),
                   Expression          => N);
@@ -979,25 +979,6 @@ package body Backend.BE_CORBA_Ada.Skels is
 
                Param := Next_Entity (Param);
             end loop;
-
-            --  Out parameter corresponding to the result in case of a
-            --  function containing out parameters.
-
-            if Non_Void and then not Is_Ada_Function then
-               Set_Str_To_Name_Buffer ("Setting out argument");
-               Append_Node_To_List (Make_Ada_Comment (Name_Find), Statements);
-
-               Param_Name := PN (P_Returns);
-               Arg_Name := Map_Argument_Name (VN (V_Result));
-
-               C := Make_Defining_Identifier (Param_Name);
-
-               C := Make_Selected_Component
-                 (Make_Identifier (PN (P_Arg_List_Out)), C);
-               N := Make_Assignment_Statement
-                 (C, Make_Identifier (Arg_Name));
-               Append_Node_To_List (N, Statements);
-            end if;
          else
             --  Simply call `Clone_Out_Args' in all cases
 

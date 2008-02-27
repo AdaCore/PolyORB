@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -565,6 +565,9 @@ package Backend.BE_CORBA_Ada.Runtime is
       RE_Bind,                      --  PolyORB.Binding_Data.Bind
       RE_Add_Request_QoS,           --  PolyORB.Request_QoS.Add_Request_QoS
       RE_Get_Request_QoS,           --  PolyORB.Request_QoS.Get_Request_QoS
+      RE_Extract_Request_Parameter,
+      --                                PolyORB.Request_QoS
+      --                                   .Extract_Request_Parameter
       RE_Binding_Object_Access,     --  PolyORB_Binding_Object.
       --                                  Binding_Object_Access
       RE_The_ORB,                   --  PolyORB.Setup.The_ORB
@@ -580,7 +583,7 @@ package Backend.BE_CORBA_Ada.Runtime is
       RE_Get_Buffer,                --  PolyORB.Protocols.GIOP.
       --                                  Get_Buffer
       RE_Get_GIOP_Version,          --  PolyORB.Binding_Data.GIOP
-      RE_Release,                   --  PolyORB.buffers.Release
+      RE_Release,                   --  PolyORB.Buffers.Release
       RE_Operation_Payload,         --  PolyORB.Protocols.GIOP.
       --                                   Operation_Payload
       RE_CDR_Representation,        --  PolyORB.Representations.
@@ -592,6 +595,9 @@ package Backend.BE_CORBA_Ada.Runtime is
       RE_Module_Info,               --  PolyORB.Initialization.Module_Info
       RE_Register_Module,           --  PolyORB.Initialization.Register_Module
       RE_GIOP_Static_Buffer,        --  PolyORB.QoS.GIOP_Static_Buffer
+      RE_QoS_GIOP_Static_Buffer_Parameter_Access,
+      --                                PolyORB.QoS.Static_Buffers.
+      --                                QoS_GIOP_Static_Buffer_Parameter_Access
       RE_QoS_GIOP_Static_Buffer_Parameter,
       --                                PolyORB.QoS.Static_Buffers.
       --                                   QoS_GIOP_Static_Buffer_Parameter
@@ -1207,6 +1213,7 @@ package Backend.BE_CORBA_Ada.Runtime is
          RE_Bind                      => RU_PolyORB_References_Binding,
          RE_Add_Request_QoS           => RU_PolyORB_Request_QoS,
          RE_Get_Request_QoS           => RU_PolyORB_Request_QoS,
+         RE_Extract_Request_Parameter => RU_PolyORB_Request_QoS,
          RE_Binding_Object_Access     => RU_PolyORB_Binding_Objects,
          RE_The_ORB                   => RU_PolyORB_Setup,
          RE_Ref_10                    => RU_PolyORB_Smart_Pointers,
@@ -1237,6 +1244,8 @@ package Backend.BE_CORBA_Ada.Runtime is
          RE_Register_Module           => RU_PolyORB_Initialization,
          RE_GIOP_Static_Buffer        => RU_PolyORB_QoS,
          RE_QoS_GIOP_Static_Buffer_Parameter =>
+           RU_PolyORB_QoS_Static_Buffers,
+         RE_QoS_GIOP_Static_Buffer_Parameter_Access =>
            RU_PolyORB_QoS_Static_Buffers,
          RE_Set_Exception_Information => RU_PolyORB_QoS_Exception_Informations,
          RE_Ref_9                     => RU_PolyORB_References,

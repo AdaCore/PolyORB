@@ -1412,7 +1412,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
             Append_Node_To_List (C, Statements);
          end if;
 
-         --  Add arguments  to argument  list
+         --  Add arguments to argument  list
 
          P := First_Entity (Parameters (E));
 
@@ -1907,6 +1907,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
                 N));
 
             Append_Node_To_List (N, Statements);
+
          end if;
 
          --  Invoking the request (synchronously or asynchronously),
@@ -1944,7 +1945,17 @@ package body Backend.BE_CORBA_Ada.Stubs is
             N := Make_Attribute_Reference (N, A_Access);
             Append_Node_To_List (N, Profile);
 
-            N := Make_Identifier (VN (V_Buffer));
+            N := Make_Subprogram_Call
+              (RE (RE_Extract_Request_Parameter),
+               Make_List_Id
+                 (RE (RE_GIOP_Static_Buffer),
+                  Make_Defining_Identifier (VN (V_Request))));
+
+            N := Make_Type_Conversion
+              (RE (RE_QoS_GIOP_Static_Buffer_Parameter_Access), N);
+
+            N := Make_Selected_Component (N, Make_Identifier (PN (P_Buffer)));
+
             Append_Node_To_List (N, Profile);
 
             N := Make_Explicit_Dereference
@@ -1964,6 +1975,12 @@ package body Backend.BE_CORBA_Ada.Stubs is
             N := Make_Subprogram_Call
               (C, Profile);
             Append_Node_To_List (N, Statements);
+
+            N := Make_Subprogram_Call
+              (RE (RE_Release),
+               Make_List_Id (Make_Identifier (VN (V_Buffer))));
+            Append_Node_To_List (N, Statements);
+
          end if;
 
          --  Raise exception, if needed
@@ -1996,13 +2013,26 @@ package body Backend.BE_CORBA_Ada.Stubs is
                N := Make_Return_Statement (Make_Identifier (VN (V_Result)));
                Append_Node_To_List (N, Statements);
             end if;
+         else
+            --  Non-void IDL opearations with OUT/INOUT parameters are
+            --  mapped into Ada procedures with an additional OUT
+            --  parameter representing the return value.
+
+            if Non_Void and then Use_SII then
+               Set_Str_To_Name_Buffer ("Return value");
+               Append_Node_To_List (Make_Ada_Comment (Name_Find), Statements);
+
+               N := Make_Selected_Component (PN (P_Arg_List), PN (P_Returns));
+               N := Make_Assignment_Statement
+                 (Make_Identifier (PN (P_Returns)), N);
+               Append_Node_To_List (N, Statements);
+            end if;
          end if;
 
-         --  In case of SII or compiler alignment, retreive the out
-         --  parameter values. In case of DII, this is performed
-         --  transparently.
+         --  In case of SII, retreive the out parameter values. In
+         --  case of DII, this is performed transparently.
 
-         if Use_Compiler_Alignment or else Use_SII then
+         if Use_SII then
             P := First_Entity (Parameters (E));
 
             if Present (P) then
@@ -2019,7 +2049,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
                   if Use_Compiler_Alignment then
                      N := Make_Selected_Component
                        (VN (V_Args_Out), Argument_Name);
-                  elsif Use_SII then
+                  else
                      N := Make_Selected_Component
                        (PN (P_Arg_List), Argument_Name);
                   end if;
@@ -2092,7 +2122,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
             end if;
 
             --  In the case of SII, the NVList is not filled by the
-            --  NameValues Corresponding to the operation parameters
+            --  NameValues corresponding to the operation parameters
 
             if not Use_SII then
                --  Handling the case when the operation has a return
@@ -2290,7 +2320,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
                  (Defining_Identifier =>
                     Make_Defining_Identifier (VN (V_Buffer)),
                   Object_Definition => RE (RE_Buffer_Access),
-                  Constant_Present  => True,
+                  Constant_Present  => False,
                   Expression => C);
                Append_Node_To_List (N, L);
 
