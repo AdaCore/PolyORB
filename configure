@@ -3405,19 +3405,19 @@ fi;
   case ${PCSNAME} in
     garlic)
       PCSFLAGS="-I${prefix}/lib/garlic -largs -lgarlic";
-      GLADEDIRS="Dist Garlic";;
+      GLADEDIRS="Garlic";;
     polyorb)
       which polyorb-config 1>/dev/null 2>/dev/null;
       if test "$?" = "0"; then
         PCSFLAGS="`polyorb-config`";
-        GLADEDIRS="Dist";
+        GLADEDIRS="";
       else
         PCSNAME="";
       fi;;
     *)
       PCSNAME="garlic";
       PCSFLAGS="-I${prefix}/lib/garlic -largs -lgarlic";
-      GLADEDIRS="Dist Garlic";;
+      GLADEDIRS="Garlic";;
   esac;
 
 if test "x${PCSNAME}" = "x"; then

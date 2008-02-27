@@ -1,6 +1,4 @@
 COPYING
-Dist/Makefile.am
-Dist/Makefile.in
 Dist/config.sdefault
 Dist/xe.adb
 Dist/xe.ads
