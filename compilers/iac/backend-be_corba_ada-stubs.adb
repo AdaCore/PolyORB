@@ -2014,9 +2014,8 @@ package body Backend.BE_CORBA_Ada.Stubs is
                Append_Node_To_List (N, Statements);
             end if;
          else
-            --  Non-void IDL opearations with OUT/INOUT parameters are
-            --  mapped into Ada procedures with an additional OUT
-            --  parameter representing the return value.
+            --  Non-void IDL operations with OUT/INOUT parameters are mapped to
+            --  Ada procedures with an extra OUT formal for the return value.
 
             if Non_Void and then Use_SII then
                Set_Str_To_Name_Buffer ("Return value");
@@ -2029,8 +2028,8 @@ package body Backend.BE_CORBA_Ada.Stubs is
             end if;
          end if;
 
-         --  In case of SII, retreive the out parameter values. In
-         --  case of DII, this is performed transparently.
+         --  In case of SII, retreive the OUT parameter values. In the case
+         --  of DII, this is performed transparently.
 
          if Use_SII then
             P := First_Entity (Parameters (E));
@@ -2125,20 +2124,17 @@ package body Backend.BE_CORBA_Ada.Stubs is
             --  NameValues corresponding to the operation parameters
 
             if not Use_SII then
-               --  Handling the case when the operation has a return
-               --  type.
+               --  Non-void return type case
 
                if Non_Void then
                   --  Declare the Result_Ü variable
 
                   if Is_Function then
-                     --  There is no Returns parameter in the Ada
-                     --  mapped subprogram.
+                     --  No Returns formal in the Ada mapped subprogram
 
                      N := No_Node;
                   else
-                     --  There is a Returns parameter in the Ada
-                     --  mapped subprogram.
+                     --  Extra Returns formal present
 
                      N := Make_Identifier (PN (P_Returns));
                   end if;
@@ -2154,20 +2150,17 @@ package body Backend.BE_CORBA_Ada.Stubs is
                   --  Disable warning on the returned value
 
                   if Is_Function then
-                     --  There is no Returns parameter in the Ada
-                     --  mapped subprogram.
+                     --  No Returns formal in the Ada mapped subprogram
 
                      N := Make_Identifier (VN (V_Result));
                   else
-                     --  There is a Returns parameter in the Ada
-                     --  mapped subprogram.
+                     --  Extra Returns formal present
 
                      N := Make_Identifier (PN (P_Returns));
                   end if;
 
                   N := Make_Pragma
-                    (Pragma_Warnings,
-                     Make_List_Id (RE (RE_Off), N));
+                         (Pragma_Warnings, Make_List_Id (RE (RE_Off), N));
                   Append_Node_To_List (N, L);
 
                   --  Declaration of the `Content' argument variable
