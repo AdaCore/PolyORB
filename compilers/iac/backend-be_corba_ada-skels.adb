@@ -238,9 +238,7 @@ package body Backend.BE_CORBA_Ada.Skels is
             No_List);
          N := Type_Def_Node (BE_Node (Identifier (E)));
          N := Next_Node (N);
-         N := Make_Subprogram_Call
-           (RE (RE_To_CORBA_String),
-            Make_List_Id (Expand_Designator (N)));
+         N := Expand_Designator (N);
          Append_Node_To_List (N, Profile);
 
          N := Make_Attribute_Reference
@@ -259,14 +257,12 @@ package body Backend.BE_CORBA_Ada.Skels is
            (RE (RE_Register_Skeleton), Profile);
          Append_Node_To_List (N, Statements);
 
-         --  In case of perfect hash function optimization, we
-         --  register the Invoke_XXXX procedures at the package
-         --  initialization.
+         --  In case of perfect hash function optimization, we register the
+         --  Invoke_XXXX procedures at package initialization.
 
          if Use_Minimal_Hash_Function then
             Append_Node_To_List
-              (First_Node (Register_Procedure_List),
-               Statements);
+              (First_Node (Register_Procedure_List), Statements);
          end if;
 
          N := Make_Subprogram_Body (Spec, No_List, Statements);

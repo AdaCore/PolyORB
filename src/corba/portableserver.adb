@@ -58,23 +58,22 @@ package body PortableServer is
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
 
+   use PolyORB.Utils.Strings;
+
    ---------------------------------------
    -- Information about a skeleton unit --
    ---------------------------------------
 
    type Skeleton_Info is record
-      Type_Id     : CORBA.RepositoryId;
+      Type_Id     : String_Ptr;
       Is_A        : Internals.Servant_Class_Predicate;
       Target_Is_A : Internals.Servant_Class_Is_A_Operation;
       Dispatcher  : Internals.Request_Dispatcher;
    end record;
 
-   function Find_Info
-     (For_Servant : Servant)
-     return Skeleton_Info;
+   function Find_Info (For_Servant : Servant) return Skeleton_Info;
 
-   package Skeleton_Lists is new PolyORB.Utils.Chained_Lists
-     (Skeleton_Info);
+   package Skeleton_Lists is new PolyORB.Utils.Chained_Lists (Skeleton_Info);
 
    All_Skeletons : Skeleton_Lists.List;
 
@@ -252,17 +251,12 @@ package body PortableServer is
       -- Get_Type_Id --
       -----------------
 
-      function Get_Type_Id
-        (For_Servant : Servant)
-        return CORBA.RepositoryId
-      is
+      function Get_Type_Id (For_Servant : Servant) return Standard.String is
       begin
-         return Find_Info (For_Servant).Type_Id;
-
+         return Find_Info (For_Servant).Type_Id.all;
       exception
          when Skeleton_Unknown =>
-            return CORBA.To_CORBA_String
-              (PolyORB.CORBA_P.Names.OMG_RepositoryId ("CORBA/OBJECT"));
+            return PolyORB.CORBA_P.Names.OMG_RepositoryId ("CORBA/OBJECT");
       end Get_Type_Id;
 
       -----------------------
@@ -270,24 +264,22 @@ package body PortableServer is
       -----------------------
 
       procedure Register_Skeleton
-        (Type_Id     : CORBA.RepositoryId;
+        (Type_Id     : String;
          Is_A        : Servant_Class_Predicate;
          Target_Is_A : Servant_Class_Is_A_Operation;
          Dispatcher  : Request_Dispatcher := null)
       is
          use Skeleton_Lists;
-
       begin
          pragma Debug (C, O ("Register_Skeleton: Enter."));
 
          Prepend (All_Skeletons,
-                  (Type_Id     => Type_Id,
+                  (Type_Id     => +Type_Id,
                    Is_A        => Is_A,
                    Target_Is_A => Target_Is_A,
                    Dispatcher  => Dispatcher));
 
-         pragma Debug (C, O ("Registered : type_id = " &
-                          CORBA.To_Standard_String (Type_Id)));
+         pragma Debug (C, O ("Registered : type_id = " & Type_Id));
 
       end Register_Skeleton;
 
@@ -297,13 +289,10 @@ package body PortableServer is
 
       function Target_Is_A
         (For_Servant     : Servant;
-         Logical_Type_Id : CORBA.RepositoryId)
-        return CORBA.Boolean
+         Logical_Type_Id : Standard.String) return CORBA.Boolean
       is
       begin
-         return
-           Find_Info (For_Servant).Target_Is_A
-            (CORBA.To_Standard_String (Logical_Type_Id));
+         return Find_Info (For_Servant).Target_Is_A (Logical_Type_Id);
       end Target_Is_A;
 
       -----------------------------------
@@ -311,11 +300,10 @@ package body PortableServer is
       -----------------------------------
 
       function Target_Most_Derived_Interface
-        (For_Servant : Servant)
-        return CORBA.RepositoryId
+        (For_Servant : Servant) return Standard.String
       is
       begin
-         return Find_Info (For_Servant).Type_Id;
+         return Find_Info (For_Servant).Type_Id.all;
       end Target_Most_Derived_Interface;
 
       --------------------------
@@ -363,22 +351,16 @@ package body PortableServer is
    -- Find_Info --
    ---------------
 
-   function Find_Info
-     (For_Servant : Servant)
-     return Skeleton_Info
-   is
+   function Find_Info (For_Servant : Servant) return Skeleton_Info is
       use Skeleton_Lists;
-
       It : Iterator := First (All_Skeletons);
-
    begin
       pragma Debug
         (C, O ("Find_Info: servant of type "
             & Ada.Tags.External_Tag (For_Servant'Tag)));
 
       while not Last (It) loop
-         pragma Debug (C, O ("... skeleton id: "
-           & CORBA.To_Standard_String (Value (It).Type_Id)));
+         pragma Debug (C, O ("... skeleton id: " & Value (It).Type_Id.all));
          exit when Value (It).Is_A (For_Servant);
          Next (It);
       end loop;
@@ -386,8 +368,8 @@ package body PortableServer is
       if Last (It) then
          raise Skeleton_Unknown;
       end if;
-         pragma Debug (C, O ("Selected skeleton of Type_Id "
-           & CORBA.To_Standard_String (Value (It).Type_Id)));
+      pragma Debug
+        (C, O ("Selected skeleton of Type_Id " & Value (It).Type_Id.all));
 
       return Value (It).all;
    end Find_Info;
@@ -493,7 +475,6 @@ package body PortableServer is
 
    use PolyORB.Initialization;
    use PolyORB.Initialization.String_Lists;
-   use PolyORB.Utils.Strings;
 
 begin
    Register_Module

@@ -1480,9 +1480,7 @@ package body PortableServer.POA is
       Oid : PolyORB.Objects.Object_Id_Access;
 
       TID : constant Standard.String :=
-        CORBA.To_Standard_String
-        (PortableServer.Internals.Get_Type_Id (P_Servant));
-
+              PortableServer.Internals.Get_Type_Id (P_Servant);
       P_Result : PolyORB.References.Ref;
       C_Result : CORBA.Object.Ref;
 

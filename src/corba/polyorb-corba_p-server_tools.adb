@@ -149,7 +149,7 @@ package body PolyORB.CORBA_P.Server_Tools is
       CORBA.Object.Set (R, CORBA.Object.Object_Of (
         PortableServer.POA.Create_Reference_With_Id (Serv_POA,
           PortableServer.String_To_ObjectId ("O"),
-          PortableServer.Internals.Get_Type_Id (S))));
+          CORBA.To_CORBA_String (PortableServer.Internals.Get_Type_Id (S)))));
    end Initiate_Well_Known_Service;
 
    --------------------------
