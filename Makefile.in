@@ -38,10 +38,11 @@ host_triplet = @host@
 target_triplet = @target@
 bin_PROGRAMS = Dist/gnatdist$(EXEEXT)
 DIST_COMMON = README $(am__configure_deps) $(srcdir)/Makefile.am \
-	$(srcdir)/Makefile.in $(top_srcdir)/configure COPYING \
-	ChangeLog INSTALL NEWS TODO support/config.guess \
-	support/config.sub support/install-sh support/missing \
-	support/mkinstalldirs
+	$(srcdir)/Makefile.in \
+	$(top_srcdir)/Dist/xe_defs-defaults.ads.in \
+	$(top_srcdir)/configure COPYING ChangeLog INSTALL NEWS TODO \
+	support/config.guess support/config.sub support/install-sh \
+	support/missing support/mkinstalldirs
 subdir = .
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/support/ada.m4 \
@@ -51,7 +52,7 @@ am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 am__CONFIG_DISTCLEAN_FILES = config.status config.cache config.log \
  configure.lineno configure.status.lineno
 mkinstalldirs = $(SHELL) $(top_srcdir)/support/mkinstalldirs
-CONFIG_CLEAN_FILES =
+CONFIG_CLEAN_FILES = Dist/xe_defs-defaults.ads
 am__installdirs = "$(DESTDIR)$(bindir)"
 binPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 PROGRAMS = $(bin_PROGRAMS)
@@ -245,6 +246,8 @@ $(top_srcdir)/configure:  $(am__configure_deps)
 	cd $(srcdir) && $(AUTOCONF)
 $(ACLOCAL_M4):  $(am__aclocal_m4_deps)
 	cd $(srcdir) && $(ACLOCAL) $(ACLOCAL_AMFLAGS)
+Dist/xe_defs-defaults.ads: $(top_builddir)/config.status $(top_srcdir)/Dist/xe_defs-defaults.ads.in
+	cd $(top_builddir) && $(SHELL) ./config.status $@
 install-binPROGRAMS: $(bin_PROGRAMS)
 	@$(NORMAL_INSTALL)
 	test -z "$(bindir)" || $(mkdir_p) "$(DESTDIR)$(bindir)"

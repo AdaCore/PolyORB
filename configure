@@ -4033,7 +4033,7 @@ fi
 #
 # Output
 #
-                                                                                                                                                                                                        ac_config_files="$ac_config_files Makefile Dist/Makefile Dist/xe_defs-defaults.ads Garlic/Makefile Garlic/s-gaplsp.ads Examples/check-config Examples/Makefile Examples/Bank/Makefile Examples/Eratho/Makefile Examples/Eratho/absolute/Makefile Examples/Eratho/cycle/Makefile Examples/Eratho/dynamic/Makefile Examples/Eratho/spiral/Makefile Examples/Filters/Makefile Examples/Messages/Makefile Examples/MultiPro/Makefile Examples/DSMStorage/Makefile Examples/MultiSto/Makefile Examples/Reconnection/Makefile Examples/LightBank/Makefile"
+                                                                                                                                                                                              ac_config_files="$ac_config_files Makefile Dist/xe_defs-defaults.ads Garlic/Makefile Garlic/s-gaplsp.ads Examples/check-config Examples/Makefile Examples/Bank/Makefile Examples/Eratho/Makefile Examples/Eratho/absolute/Makefile Examples/Eratho/cycle/Makefile Examples/Eratho/dynamic/Makefile Examples/Eratho/spiral/Makefile Examples/Filters/Makefile Examples/Messages/Makefile Examples/MultiPro/Makefile Examples/DSMStorage/Makefile Examples/MultiSto/Makefile Examples/Reconnection/Makefile Examples/LightBank/Makefile"
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
 # tests run on this system so they can be shared between configure
@@ -4617,7 +4617,6 @@ do
   case "$ac_config_target" in
   # Handling of arguments.
   "Makefile" ) CONFIG_FILES="$CONFIG_FILES Makefile" ;;
-  "Dist/Makefile" ) CONFIG_FILES="$CONFIG_FILES Dist/Makefile" ;;
   "Dist/xe_defs-defaults.ads" ) CONFIG_FILES="$CONFIG_FILES Dist/xe_defs-defaults.ads" ;;
   "Garlic/Makefile" ) CONFIG_FILES="$CONFIG_FILES Garlic/Makefile" ;;
   "Garlic/s-gaplsp.ads" ) CONFIG_FILES="$CONFIG_FILES Garlic/s-gaplsp.ads" ;;
