@@ -69,6 +69,7 @@ package body System.Garlic.Remote is
 
    type Partition_Info is record
       Remote_Host  : String_Access;
+      Env_Vars     : String_Access;
       Command_Line : String_Access;
       Next         : Partition_List;
    end record;
@@ -95,10 +96,15 @@ package body System.Garlic.Remote is
    -----------------
 
    procedure Full_Launch
-     (Host    : String;
-      Command : String)
+     (Host     : String;
+      Env_Vars : String;
+      Command  : String)
    is
       Argument : constant String := Get_Boot_Locations;
+
+      pragma Unreferenced (Env_Vars);
+      --  Environment variables passing is not implemented in the Windows case
+
    begin
       if Supports_Local_Launch
         and then Host (Host'First) /= '`'
@@ -180,6 +186,7 @@ package body System.Garlic.Remote is
 
          Full_Launch
            (P.Remote_Host.all,
+            P.Env_Vars.all,
             P.Command_Line.all);
 
          Destroy (P.Remote_Host);
@@ -195,12 +202,14 @@ package body System.Garlic.Remote is
    procedure Register_Partition_To_Launch
      (Name_Is_Host : Boolean;
       General_Name : String;
+      Env_Vars     : String;
       Command_Line : String)
    is
       P : Partition_List;
    begin
       P := new Partition_Info;
       P.Command_Line := new String'(Command_Line);
+      P.Env_Vars     := new String'(Env_Vars);
       if Name_Is_Host then
          P.Remote_Host := new String'(General_Name);
       else

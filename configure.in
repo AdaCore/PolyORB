@@ -52,19 +52,19 @@ AC_ARG_WITH(pcs,
   case ${PCSNAME} in
     garlic)
       PCSFLAGS="-I${prefix}/lib/garlic -largs -lgarlic";
-      GLADEDIRS="Dist Garlic";;
+      GLADEDIRS="Garlic";;
     polyorb)
       which polyorb-config 1>/dev/null 2>/dev/null;
       if test "$?" = "0"; then
         PCSFLAGS="`polyorb-config`";
-        GLADEDIRS="Dist";
+        GLADEDIRS="";
       else
         PCSNAME="";
       fi;;
     *)
       PCSNAME="garlic";
       PCSFLAGS="-I${prefix}/lib/garlic -largs -lgarlic";
-      GLADEDIRS="Dist Garlic";;
+      GLADEDIRS="Garlic";;
   esac;
 ]
 if test "x${PCSNAME}" = "x"; then
@@ -76,14 +76,6 @@ fi;
 AC_SUBST(PCSNAME)
 AC_SUBST(PCSFLAGS)
 AC_SUBST(GLADEDIRS)
-#
-# Check for optimization flags
-#
-AC_ARG_WITH(optimization,
-[  --with-optimization=X   Use X as default optimization for gnatdist (O0)],
-[GNATDISTOPT="$withval"],
-[GNATDISTOPT="O0"])
-AC_SUBST(GNATDISTOPT)
 #
 # Check that the GNAT version is recent enough for this version of GLADE
 #
@@ -355,9 +347,26 @@ AC_MSG_CHECKING(for exception model to use)
 AC_MSG_RESULT($EXCEPTION_MODEL)
 AC_SUBST(GNAT_RTS_FLAG)
 AC_SUBST(SUPPORT_RPC_ABORTION)
+
+# Host specific settings
+
+case "$host_os" in
+  cygwin* | mingw*)
+    HOST_EXE_SUFFIX=.exe
+    WINDOWS_ON_HOST=True
+    ;;
+  *)
+    HOST_EXE_SUFFIX=
+    WINDOWS_ON_HOST=False
+    ;;
+esac
+AC_SUBST(WINDOWS_ON_HOST)
+AM_CONDITIONAL(WINDOWS, test x$WINDOWS_ON_HOST = xTrue)
+
 #
 # Header files, only when not cross-compiling
 #
+
 #if test $target = $host; then
 # AC_CHECK_HEADERS([stdio.h sys/types.h sys/socket.h errno.h netdb.h string.h])
 # AC_CHECK_HEADERS([netinet/in.h signal.h fcntl.h termio.h termios.h])
@@ -368,7 +377,6 @@ AC_SUBST(SUPPORT_RPC_ABORTION)
 # Output
 #
 AC_OUTPUT([Makefile
-           Dist/Makefile
            Dist/xe_defs-defaults.ads
            Garlic/Makefile
            Garlic/s-gaplsp.ads

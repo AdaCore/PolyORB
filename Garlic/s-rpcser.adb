@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1996-2006 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- GARLIC is free software;  you can redistribute it and/or modify it under --
 -- terms of the  GNU General Public License  as published by the Free Soft- --
@@ -498,6 +498,7 @@ package body System.RPC.Server is
    --------------
 
    procedure Finalize (Handler : in out Inner_Abort_Handler_Type) is
+      pragma Unmodified (Handler);
    begin
       Finalize
         (Handler.Outer.Partition,

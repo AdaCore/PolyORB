@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1996-2006 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- GARLIC is free software;  you can redistribute it and/or modify it under --
 -- terms of the  GNU General Public License  as published by the Free Soft- --
@@ -31,9 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with System.Garlic.Tasking;
-pragma Elaborate (System.Garlic.Tasking);
-
 package body System.Garlic.Elaboration is
 
    --  This package body is provided for linking purpose. It will be
@@ -41,7 +38,7 @@ package body System.Garlic.Elaboration is
 
    procedure Initialize is
    begin
-      System.Garlic.Tasking.Initialize;
+      raise Program_Error with "dummy version of s-garela";
    end Initialize;
 
 end System.Garlic.Elaboration;

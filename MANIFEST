@@ -1,7 +1,4 @@
 COPYING
-Dist/Makefile.am
-Dist/Makefile.in
-Dist/config.sdefault
 Dist/xe.adb
 Dist/xe.ads
 Dist/xe_back-garlic.adb
@@ -196,12 +193,12 @@ Examples/check-config.in
 Garlic/Makefile.am
 Garlic/Makefile.in
 Garlic/Makefile.zip
+Garlic/config.sdefault
 Garlic/stamp-h.in
 Garlic/s-gaplsp.ads.in
 Garlic/5egarrem.adb
 Garlic/5wgarrem.adb
 Garlic/b_gaprco.adb
-Garlic/isthrbio.adb
 Garlic/linktest.adb
 Garlic/s-dsaser.ads
 Garlic/s-gafizi.adb

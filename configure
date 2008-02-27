@@ -272,7 +272,7 @@ PACKAGE_STRING=
 PACKAGE_BUGREPORT=
 
 ac_unique_file="Dist/xe.ads"
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS build build_cpu build_vendor build_os host host_cpu host_vendor host_os target target_cpu target_vendor target_os INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA CYGPATH_W PACKAGE VERSION ACLOCAL AUTOCONF AUTOMAKE AUTOHEADER MAKEINFO install_sh STRIP ac_ct_STRIP INSTALL_STRIP_PROGRAM mkdir_p AWK SET_MAKE am__leading_dot AMTAR am__tar am__untar CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT DEPDIR am__include am__quote AMDEP_TRUE AMDEP_FALSE AMDEPBACKSLASH CCDEPMODE am__fastdepCC_TRUE am__fastdepCC_FALSE GNAT GNAT_FOR_TARGET RANLIB ac_ct_RANLIB SED TAR AR RM UNZIP GNATMAKE GNAT_FOR_HOST GNATFLAGS LINKTEST PCSNAME PCSFLAGS GLADEDIRS GNATDISTOPT GNATLS PLATFORM_SPECIFIC PSNAME CP_PRESERVE SUPPORTS_LOCAL_LAUNCH RSH_CMD RSH_OPT PROTOCOLSSOURCES PROTOCOLSOBJECTS DEFSTORAGENAME DEFSTORAGEDATA DEFPROTOCOLNAME DEFPROTOCOLDATA FILTERSSOURCES FILTERSOBJECTS FILTERSEXTRALIBS FILTERSINSTALL EXTRA_LIBS GNAT_RTS_FLAG SUPPORT_RPC_ABORTION LIBOBJS LTLIBOBJS'
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS build build_cpu build_vendor build_os host host_cpu host_vendor host_os target target_cpu target_vendor target_os INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA CYGPATH_W PACKAGE VERSION ACLOCAL AUTOCONF AUTOMAKE AUTOHEADER MAKEINFO install_sh STRIP ac_ct_STRIP INSTALL_STRIP_PROGRAM mkdir_p AWK SET_MAKE am__leading_dot AMTAR am__tar am__untar CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT DEPDIR am__include am__quote AMDEP_TRUE AMDEP_FALSE AMDEPBACKSLASH CCDEPMODE am__fastdepCC_TRUE am__fastdepCC_FALSE GNAT GNAT_FOR_TARGET RANLIB ac_ct_RANLIB SED TAR AR RM UNZIP GNATMAKE GNAT_FOR_HOST GNATFLAGS LINKTEST PCSNAME PCSFLAGS GLADEDIRS GNATLS PLATFORM_SPECIFIC PSNAME CP_PRESERVE SUPPORTS_LOCAL_LAUNCH RSH_CMD RSH_OPT PROTOCOLSSOURCES PROTOCOLSOBJECTS DEFSTORAGENAME DEFSTORAGEDATA DEFPROTOCOLNAME DEFPROTOCOLDATA FILTERSSOURCES FILTERSOBJECTS FILTERSEXTRALIBS FILTERSINSTALL EXTRA_LIBS GNAT_RTS_FLAG SUPPORT_RPC_ABORTION WINDOWS_ON_HOST WINDOWS_TRUE WINDOWS_FALSE LIBOBJS LTLIBOBJS'
 ac_subst_files='FILTERSMAKEFILE'
 
 # Initialize some variables set by options.
@@ -819,7 +819,6 @@ Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
   --with-pcs=X            Use X as default pcs for gnatdist (garlic)
-  --with-optimization=X   Use X as default optimization for gnatdist (O0)
   --with-platform=letter  Select another platform's specific files (debug)
   --with-rshcmd=command   Set alternate remote shell command
   --with-rshopt=command   Set remote shell options
@@ -3406,19 +3405,19 @@ fi;
   case ${PCSNAME} in
     garlic)
       PCSFLAGS="-I${prefix}/lib/garlic -largs -lgarlic";
-      GLADEDIRS="Dist Garlic";;
+      GLADEDIRS="Garlic";;
     polyorb)
       which polyorb-config 1>/dev/null 2>/dev/null;
       if test "$?" = "0"; then
         PCSFLAGS="`polyorb-config`";
-        GLADEDIRS="Dist";
+        GLADEDIRS="";
       else
         PCSNAME="";
       fi;;
     *)
       PCSNAME="garlic";
       PCSFLAGS="-I${prefix}/lib/garlic -largs -lgarlic";
-      GLADEDIRS="Dist Garlic";;
+      GLADEDIRS="Garlic";;
   esac;
 
 if test "x${PCSNAME}" = "x"; then
@@ -3431,18 +3430,6 @@ echo "${ECHO_T}${PCSNAME}" >&6
 fi;
 
 
-
-#
-# Check for optimization flags
-#
-
-# Check whether --with-optimization or --without-optimization was given.
-if test "${with_optimization+set}" = set; then
-  withval="$with_optimization"
-  GNATDISTOPT="$withval"
-else
-  GNATDISTOPT="O0"
-fi;
 
 #
 # Check that the GNAT version is recent enough for this version of GLADE
@@ -4008,9 +3995,35 @@ echo "$as_me:$LINENO: result: $EXCEPTION_MODEL" >&5
 echo "${ECHO_T}$EXCEPTION_MODEL" >&6
 
 
+
+# Host specific settings
+
+case "$host_os" in
+  cygwin* | mingw*)
+    HOST_EXE_SUFFIX=.exe
+    WINDOWS_ON_HOST=True
+    ;;
+  *)
+    HOST_EXE_SUFFIX=
+    WINDOWS_ON_HOST=False
+    ;;
+esac
+
+
+
+if test x$WINDOWS_ON_HOST = xTrue; then
+  WINDOWS_TRUE=
+  WINDOWS_FALSE='#'
+else
+  WINDOWS_TRUE='#'
+  WINDOWS_FALSE=
+fi
+
+
 #
 # Header files, only when not cross-compiling
 #
+
 #if test $target = $host; then
 # AC_CHECK_HEADERS([stdio.h sys/types.h sys/socket.h errno.h netdb.h string.h])
 # AC_CHECK_HEADERS([netinet/in.h signal.h fcntl.h termio.h termios.h])
@@ -4020,7 +4033,7 @@ echo "${ECHO_T}$EXCEPTION_MODEL" >&6
 #
 # Output
 #
-                                                                                                                                                                                                        ac_config_files="$ac_config_files Makefile Dist/Makefile Dist/xe_defs-defaults.ads Garlic/Makefile Garlic/s-gaplsp.ads Examples/check-config Examples/Makefile Examples/Bank/Makefile Examples/Eratho/Makefile Examples/Eratho/absolute/Makefile Examples/Eratho/cycle/Makefile Examples/Eratho/dynamic/Makefile Examples/Eratho/spiral/Makefile Examples/Filters/Makefile Examples/Messages/Makefile Examples/MultiPro/Makefile Examples/DSMStorage/Makefile Examples/MultiSto/Makefile Examples/Reconnection/Makefile Examples/LightBank/Makefile"
+                                                                                                                                                                                              ac_config_files="$ac_config_files Makefile Dist/xe_defs-defaults.ads Garlic/Makefile Garlic/s-gaplsp.ads Examples/check-config Examples/Makefile Examples/Bank/Makefile Examples/Eratho/Makefile Examples/Eratho/absolute/Makefile Examples/Eratho/cycle/Makefile Examples/Eratho/dynamic/Makefile Examples/Eratho/spiral/Makefile Examples/Filters/Makefile Examples/Messages/Makefile Examples/MultiPro/Makefile Examples/DSMStorage/Makefile Examples/MultiSto/Makefile Examples/Reconnection/Makefile Examples/LightBank/Makefile"
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
 # tests run on this system so they can be shared between configure
@@ -4154,6 +4167,13 @@ if test -z "${am__fastdepCC_TRUE}" && test -z "${am__fastdepCC_FALSE}"; then
   { { echo "$as_me:$LINENO: error: conditional \"am__fastdepCC\" was never defined.
 Usually this means the macro was only invoked conditionally." >&5
 echo "$as_me: error: conditional \"am__fastdepCC\" was never defined.
+Usually this means the macro was only invoked conditionally." >&2;}
+   { (exit 1); exit 1; }; }
+fi
+if test -z "${WINDOWS_TRUE}" && test -z "${WINDOWS_FALSE}"; then
+  { { echo "$as_me:$LINENO: error: conditional \"WINDOWS\" was never defined.
+Usually this means the macro was only invoked conditionally." >&5
+echo "$as_me: error: conditional \"WINDOWS\" was never defined.
 Usually this means the macro was only invoked conditionally." >&2;}
    { (exit 1); exit 1; }; }
 fi
@@ -4597,7 +4617,6 @@ do
   case "$ac_config_target" in
   # Handling of arguments.
   "Makefile" ) CONFIG_FILES="$CONFIG_FILES Makefile" ;;
-  "Dist/Makefile" ) CONFIG_FILES="$CONFIG_FILES Dist/Makefile" ;;
   "Dist/xe_defs-defaults.ads" ) CONFIG_FILES="$CONFIG_FILES Dist/xe_defs-defaults.ads" ;;
   "Garlic/Makefile" ) CONFIG_FILES="$CONFIG_FILES Garlic/Makefile" ;;
   "Garlic/s-gaplsp.ads" ) CONFIG_FILES="$CONFIG_FILES Garlic/s-gaplsp.ads" ;;
@@ -4767,7 +4786,6 @@ s,@LINKTEST@,$LINKTEST,;t t
 s,@PCSNAME@,$PCSNAME,;t t
 s,@PCSFLAGS@,$PCSFLAGS,;t t
 s,@GLADEDIRS@,$GLADEDIRS,;t t
-s,@GNATDISTOPT@,$GNATDISTOPT,;t t
 s,@GNATLS@,$GNATLS,;t t
 s,@PLATFORM_SPECIFIC@,$PLATFORM_SPECIFIC,;t t
 s,@PSNAME@,$PSNAME,;t t
@@ -4788,6 +4806,9 @@ s,@FILTERSINSTALL@,$FILTERSINSTALL,;t t
 s,@EXTRA_LIBS@,$EXTRA_LIBS,;t t
 s,@GNAT_RTS_FLAG@,$GNAT_RTS_FLAG,;t t
 s,@SUPPORT_RPC_ABORTION@,$SUPPORT_RPC_ABORTION,;t t
+s,@WINDOWS_ON_HOST@,$WINDOWS_ON_HOST,;t t
+s,@WINDOWS_TRUE@,$WINDOWS_TRUE,;t t
+s,@WINDOWS_FALSE@,$WINDOWS_FALSE,;t t
 s,@LIBOBJS@,$LIBOBJS,;t t
 s,@LTLIBOBJS@,$LTLIBOBJS,;t t
 /@FILTERSMAKEFILE@/r $FILTERSMAKEFILE

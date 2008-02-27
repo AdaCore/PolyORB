@@ -82,7 +82,6 @@ FILTERSOBJECTS = @FILTERSOBJECTS@
 FILTERSSOURCES = @FILTERSSOURCES@
 GLADEDIRS = @GLADEDIRS@
 GNAT = @GNAT@
-GNATDISTOPT = @GNATDISTOPT@
 GNATFLAGS = -gnatg @GNATFLAGS@ $(GNAT_RTS_FLAG)
 GNATLS = @GNATLS@
 GNATMAKE = @GNATMAKE@
@@ -126,6 +125,9 @@ SUPPORT_RPC_ABORTION = @SUPPORT_RPC_ABORTION@
 TAR = @TAR@
 UNZIP = @UNZIP@
 VERSION = @VERSION@
+WINDOWS_FALSE = @WINDOWS_FALSE@
+WINDOWS_ON_HOST = @WINDOWS_ON_HOST@
+WINDOWS_TRUE = @WINDOWS_TRUE@
 ac_ct_CC = @ac_ct_CC@
 ac_ct_RANLIB = @ac_ct_RANLIB@
 ac_ct_STRIP = @ac_ct_STRIP@
@@ -505,7 +507,7 @@ install-dirs-local:
 inlining: all-local
 	rm -rf gnatlib >/dev/null 2>&1;\
 	mkdir gnatlib >/dev/null 2>&1;\
-	gnatlibdir=`$(srcdir)/../Dist/config.sdefault $(GNAT_RTS_FLAG)`;\
+	gnatlibdir=`$(srcdir)/config.sdefault $(GNAT_RTS_FLAG)`;\
 	(cd $$gnatlibdir && grep -l "D s-stratt.adb" *.ali)\
 	| $(SED) 's,\.ali$$,.o,' > gnatlib/tocheck;\
 	for i in $(OBJECTS); do\
@@ -545,7 +547,7 @@ install-data-local: all-local install-dirs-local install-extra-libs
 	   exit 1;\
 	fi
 	@-for lib in libgnat.a libgnarl.a libAtasking.a libPtasking.a; do \
-	  pathtolib=`$(srcdir)/../Dist/config.sdefault $(GNAT_RTS_FLAG)`;\
+	  pathtolib=`$(srcdir)/config.sdefault $(GNAT_RTS_FLAG)`;\
 	  if test -f $$pathtolib$$lib; then \
 	    $(CP) $$pathtolib$$lib $(GARLIC)/$$lib;\
 	    chmod u+w $(GARLIC)/$$lib;\

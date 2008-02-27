@@ -41,10 +41,12 @@ package System.Garlic.Remote is
    --  descriptors.
 
    procedure Full_Launch
-     (Host    : String;
-      Command : String);
+     (Host     : String;
+      Env_Vars : String;
+      Command  : String);
    --  Launch the given partition with the correct parameters on the
-   --  command line.
+   --  command line. Env_Vars is prepended to the command to set appropriate
+   --  environment variables.
 
    function Get_Host (Partition : String) return String;
    --  Ask a host name for a partition and return it
@@ -52,11 +54,13 @@ package System.Garlic.Remote is
    procedure Register_Partition_To_Launch
      (Name_Is_Host : Boolean;
       General_Name : String;
+      Env_Vars     : String;
       Command_Line : String);
    --  General_Name represents the name of the machine or the name of
-   --  the partition (depending on the value of
-   --  Name_Is_Host). Command_Line holds the extra options that will
-   --  be given on the command line.
+   --  the partition (depending on the value of Name_Is_Host). Command_Line
+   --  holds the extra options that will be given on the command line.
+   --  Env_Vars contains environment variable assignments to be evaluated on
+   --  the slave partition.
 
    procedure Launch_Registered_Partitions;
 

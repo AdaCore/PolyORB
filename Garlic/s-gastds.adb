@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1996-2006 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- GARLIC is free software;  you can redistribute it and/or modify it under --
 -- terms of the  GNU General Public License  as published by the Free Soft- --
@@ -284,6 +284,7 @@ package body System.Garlic.Storages.Dsm is
       Error    : in out Error_Type)
    is
       pragma Unreferenced (Error);
+      pragma Unmodified (Pkg_Data);
       Var : DSM_Data_Access;
 
    begin

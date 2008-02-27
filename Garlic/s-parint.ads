@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 1996-2006 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- GARLIC is free software;  you can redistribute it and/or modify it under --
 -- terms of the  GNU General Public License  as published by the Free Soft- --
@@ -43,6 +43,12 @@ package System.Partition_Interface is
 
    type DSA_Implementation_Name is (No_DSA, GARLIC_DSA, PolyORB_DSA);
    DSA_Implementation : constant DSA_Implementation_Name := GARLIC_DSA;
+   --  Identification of this DSA implementation variant
+
+   PCS_Version : constant := 1;
+   --  Version of the PCS API (for Exp_Dist consistency check).
+   --  This version number is matched against Gnatvsn.PCS_Version_Number to
+   --  ensure that the versions of Exp_Dist and the PCS are consistent.
 
    subtype Subprogram_Id is System.Garlic.Units.Subprogram_Id;
 

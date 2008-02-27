@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1996-2006 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- GARLIC is free software;  you can redistribute it and/or modify it under --
 -- terms of the  GNU General Public License  as published by the Free Soft- --
@@ -127,6 +127,7 @@ package body System.Garlic.Storages.Dfs is
       Error    : in out Error_Type)
    is
       pragma Unreferenced (Error);
+      pragma Unmodified (Storage);
       Result : DFS_Data_Access;
 
    begin
@@ -183,6 +184,7 @@ package body System.Garlic.Storages.Dfs is
       Error    : in out Error_Type)
    is
       pragma Unreferenced (Error);
+      pragma Unmodified (Pkg_Data);
       Var : constant DFS_Data_Access := new DFS_Data_Type;
 
    begin
@@ -352,7 +354,9 @@ package body System.Garlic.Storages.Dfs is
    procedure Read
      (Data : in out DFS_Data_Type;
       Item : out Ada.Streams.Stream_Element_Array;
-      Last : out Ada.Streams.Stream_Element_Offset) is
+      Last : out Ada.Streams.Stream_Element_Offset)
+   is
+      pragma Unmodified (Data);
    begin
       pragma Debug (D ("read variable file " & Data.Name.all));
 
@@ -377,7 +381,9 @@ package body System.Garlic.Storages.Dfs is
 
    procedure Write
      (Data : in out DFS_Data_Type;
-      Item : Ada.Streams.Stream_Element_Array) is
+      Item : Ada.Streams.Stream_Element_Array)
+   is
+      pragma Unmodified (Data);
    begin
       pragma Debug (D ("write variable file " & Data.Name.all));
 

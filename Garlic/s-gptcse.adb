@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1996-2006 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- GARLIC is free software;  you can redistribute it and/or modify it under --
 -- terms of the  GNU General Public License  as published by the Free Soft- --
@@ -83,7 +83,7 @@ package body System.Garlic.Protocols.Tcp.Server is
    --  Handle incoming connection
 
    procedure Dequeue_Connector (Connector : in out Connect_Access);
-   procedure Enqueue_Connector (Connector : in out Connect_Access);
+   procedure Enqueue_Connector (Connector : Connect_Access);
    Connect_List : Connect_Access;
 
    --------------------
@@ -206,13 +206,12 @@ package body System.Garlic.Protocols.Tcp.Server is
    -- Enqueue_Connector --
    ------------------------
 
-   procedure Enqueue_Connector
-     (Connector : in out Connect_Access) is
+   procedure Enqueue_Connector (Connector : Connect_Access) is
    begin
       pragma Debug (D ("Queue an old connection handler"));
       Enter_Critical_Section;
       Connector.Next := Connect_List;
-      Connect_List := Connector;
+      Connect_List   := Connector;
       Leave_Critical_Section;
    end Enqueue_Connector;
 
