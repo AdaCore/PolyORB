@@ -1,5 +1,4 @@
 COPYING
-Dist/config.sdefault
 Dist/xe.adb
 Dist/xe.ads
 Dist/xe_back-garlic.adb
@@ -199,7 +198,6 @@ Garlic/s-gaplsp.ads.in
 Garlic/5egarrem.adb
 Garlic/5wgarrem.adb
 Garlic/b_gaprco.adb
-Garlic/isthrbio.adb
 Garlic/linktest.adb
 Garlic/s-dsaser.ads
 Garlic/s-gafizi.adb
