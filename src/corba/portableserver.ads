@@ -262,7 +262,7 @@ package PortableServer is
 
       function Get_Type_Id (For_Servant : Servant) return Standard.String;
 
-      --  Subprograms for PortableInterceptor impelmentation
+      --  Subprograms for PortableInterceptor implementation
 
       function Target_Most_Derived_Interface
         (For_Servant : Servant) return Standard.String;
