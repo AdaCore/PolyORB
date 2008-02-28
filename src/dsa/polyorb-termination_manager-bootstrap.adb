@@ -284,7 +284,7 @@ package body PolyORB.Termination_Manager.Bootstrap is
       Bind (R          => The_TM_Ref,
             Local_ORB  => The_ORB,
             Servant    => S,
-            Qos        => (others => null),
+            QoS        => (others => null),
             Pro        => Pro,
             Local_Only => True,
             Error      => Error);
