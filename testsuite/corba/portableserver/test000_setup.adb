@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -901,8 +901,8 @@ package body Test000_Setup is
 
             --  Repository Id sanity check
 
-            Temp := Echo.Repository_Id = To_Standard_String
-              (Get_Type_Id (Reference_To_Servant (POA, Obj_Ref)));
+            Temp := Echo.Repository_Id
+              = Get_Type_Id (Reference_To_Servant (POA, Obj_Ref));
 
             if not Temp then
                pragma Debug (O ("Get_Type_Id failed"));
@@ -1053,8 +1053,8 @@ package body Test000_Setup is
 
          --  Repository Id sanity check
 
-         Temp := Echo.Repository_Id = To_Standard_String
-           (Get_Type_Id (Reference_To_Servant (POA, Obj_Ref)));
+         Temp := Echo.Repository_Id =
+           Get_Type_Id (Reference_To_Servant (POA, Obj_Ref));
 
          if not Temp then
             pragma Debug (O ("Get_Type_Id failed"));
@@ -1132,8 +1132,8 @@ package body Test000_Setup is
          begin
             --  Repository Id sanity check
 
-            Temp := Echo.Repository_Id = To_Standard_String
-              (Get_Type_Id (Reference_To_Servant (POA, Obj_Ref2)));
+            Temp := Echo.Repository_Id =
+              Get_Type_Id (Reference_To_Servant (POA, Obj_Ref2));
 
             if not Temp then
                pragma Debug (O ("Get_Type_Id failed"));
@@ -1811,8 +1811,6 @@ package body Test000_Setup is
          PortableServer.POA.Set_Servant (My_POA, new Echo.Impl.Object);
       end;
 
-      Success := False;
-
       declare
          Oid_1  : PortableServer.ObjectId;
          My_Ref : CORBA.Object.Ref;
@@ -1830,7 +1828,8 @@ package body Test000_Setup is
       exception
          when E : others =>
             Put_Line ("POA::reference_to_id test raised "
-              & Ada.Exceptions.Exception_Information (E));
+                        & Ada.Exceptions.Exception_Information (E));
+            Success := False;
       end;
 
       PolyORB.Utils.Report.Output ("Reference_To_Id (multiple id)", Success);
