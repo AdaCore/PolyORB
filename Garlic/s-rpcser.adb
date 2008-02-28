@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1996-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 1996-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- GARLIC is free software;  you can redistribute it and/or modify it under --
 -- terms of the  GNU General Public License  as published by the Free Soft- --
@@ -205,9 +205,9 @@ package body System.RPC.Server is
 
    procedure Adjust (Self : in out Outer_Abort_Handler_Type) is
    begin
-      Self.Inner.Outer.Partition     := Self.Partition;
-      Self.Inner.Outer.Waiting    := Self.Waiting;
-      Self.Inner.Outer.Session := Self.Session;
+      Self.Inner.Outer.Partition := Self.Partition;
+      Self.Inner.Outer.Waiting   := Self.Waiting;
+      Self.Inner.Outer.Session   := Self.Session;
    end Adjust;
 
    -------------------
