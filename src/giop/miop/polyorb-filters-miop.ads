@@ -56,7 +56,7 @@ private
    Default_Max_MIOP_Message_Size : constant Integer := 1000;
 
    --  Location of flags in MIOP packet
-   Flags_Index       : constant Stream_Element_Offset := 3;
+   Flags_Index       : constant Stream_Element_Offset := 6;
    Bit_Little_Endian : constant Octet_Flags.Bit_Count := 0;
    Bit_Collect_Mode  : constant Octet_Flags.Bit_Count := 1;
 

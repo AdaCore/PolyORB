@@ -79,6 +79,7 @@ package body PolyORB.Filters.MIOP is
       Set (Flags, Bit_Little_Endian, Header.Endianness = Little_Endian);
       Set (Flags, Bit_Collect_Mode, Header.Collect_Mode);
       Marshall (Buffer, Flags);
+      pragma Assert (Endianness (Buffer) = Header.Endianness);
 
       --  Size
       Marshall (Buffer, Header.Packet_Size);
@@ -113,7 +114,7 @@ package body PolyORB.Filters.MIOP is
       --  Get Endianness
       --  This code works only if the endianness bit dont move
       --  in different miop version
-      Flags := Types.Octet (Peek (Buffer, Flags_Index - 1));
+      Flags := Types.Octet (Peek (Buffer, Flags_Index));
 
       if Is_Set (Bit_Little_Endian, Flags) then
          Set_Endianness (Buffer, Little_Endian);
