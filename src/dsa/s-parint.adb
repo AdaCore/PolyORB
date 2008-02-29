@@ -1209,7 +1209,7 @@ package body System.Partition_Interface is
       Bind (R          => R,
             Local_ORB  => PolyORB.Setup.The_ORB,
             Servant    => S,
-            Qos        => (others => null),
+            QoS        => (others => null),
             Pro        => Pro,
             Local_Only => False,
             Error      => Error);
