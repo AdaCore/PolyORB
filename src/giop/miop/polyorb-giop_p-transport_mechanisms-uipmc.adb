@@ -202,11 +202,11 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.UIPMC is
    function Is_Local_Mechanism
      (MF : access UIPMC_Transport_Mechanism_Factory;
       M  : access Transport_Mechanism'Class)
-      return Boolean
-   is
+      return Boolean is
    begin
       return M.all in UIPMC_Transport_Mechanism
-        and then UIPMC_Transport_Mechanism (M.all).Address = MF.Address;
+        and then UIPMC_Transport_Mechanism (M.all).Address.all
+        = MF.Address.all;
    end Is_Local_Mechanism;
 
    ----------------------
