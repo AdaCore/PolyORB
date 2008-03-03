@@ -220,6 +220,7 @@ package body PolyORB.Protocols is
               or else Is_Set (Sync_With_Transport, Req_Flags)
               or else Is_Set (Sync_Call_Back,      Req_Flags)
             then
+               pragma Debug (C, O ("Completed Sync_With_Transport"));
                Req.Completed := True;
                return Executed_Request'(Req => Req);
             end if;
