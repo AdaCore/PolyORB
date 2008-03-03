@@ -112,9 +112,7 @@ package body PolyORB.Filters.MIOP is
       Message_Magic : Stream_Element_Array (Magic'Range);
    begin
       --  Get Endianness
-      Flags := Types.Octet (Peek (Buffer, Flags_Index - 1));
-      --  Note: We need to substract 1 since the CDR_Position of the
-      --  buffer starts at 0.
+      Flags := Types.Octet (Peek (Buffer, Flags_Index));
 
       if Is_Set (Bit_Little_Endian, Flags) then
          Set_Endianness (Buffer, Little_Endian);
