@@ -124,7 +124,7 @@ package CORBA.ORB.Typecode is
       return CORBA.TypeCode.Object;
 
    function Create_Recursive_Tc
-     (Id   : in CORBA.RepositoryId)
+     (Id   : CORBA.RepositoryId)
       return CORBA.TypeCode.Object;
 
    function Create_Abstract_Interface_Tc

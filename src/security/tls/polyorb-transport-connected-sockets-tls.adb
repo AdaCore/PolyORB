@@ -56,7 +56,7 @@ package body PolyORB.Transport.Connected.Sockets.TLS is
 
    package L is new PolyORB.Log.Facility_Log
      ("polyorb.transport.connected.sockets.tls");
-   procedure O (Message : in String; Level : Log.Log_Level := Log.Debug)
+   procedure O (Message : String; Level : Log.Log_Level := Log.Debug)
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
@@ -261,7 +261,7 @@ package body PolyORB.Transport.Connected.Sockets.TLS is
 
    procedure Read
      (TE     : in out TLS_Endpoint;
-      Buffer : in     Buffers.Buffer_Access;
+      Buffer :        Buffers.Buffer_Access;
       Size   : in out Ada.Streams.Stream_Element_Count;
       Error  :    out Errors.Error_Container)
    is
