@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -274,7 +274,7 @@ package body PolyORB.CORBA_P.Naming_Tools is
    -- Unregister --
    ----------------
 
-   procedure Unregister (Name   : in String) is
+   procedure Unregister (Name : String) is
       RNS : constant NamingContext.Ref :=
               To_Ref (CORBA.ORB.Resolve_Initial_References
                       (CORBA.ORB.To_CORBA_String ("NamingService")));
