@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -65,13 +65,13 @@ package CosTime.UTO.Impl is
 
    function compare_time
      (Self : access Object;
-      comparison_type : in ComparisonType;
-      uto : in Ref)
+      comparison_type : ComparisonType;
+      uto : Ref)
      return TimeComparison;
 
    function time_to_interval
      (Self : access Object;
-      uto : in Ref)
+      uto : Ref)
      return TIO_Forward.Ref;
 
    function interval
