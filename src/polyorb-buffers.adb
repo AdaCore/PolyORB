@@ -1019,6 +1019,7 @@ package body PolyORB.Buffers is
 
             Data := System.Null_Address;
             Size := 0;
+
          else
             declare
                Contiguous_Size : constant Stream_Element_Count :=
