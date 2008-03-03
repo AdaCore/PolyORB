@@ -175,7 +175,13 @@ package body PolyORB.Binding_Data.GIOP.UIPMC is
 
       begin
          TResult.Version_Major := UIPMC_Version_Major;
-         TResult.Version_Minor := UIPMC_Version_Minor;
+
+         --  We force Version_Minor to 2 to match MIOP specifications
+         --  that requires MIOP 1.0 profile to be conformant with GIOP
+         --  1.2.
+
+         TResult.Version_Minor := 2;
+
          TResult.Object_Id     := Oid_Access;
          TResult.Components    := Null_Tagged_Component_List;
 
@@ -273,14 +279,11 @@ package body PolyORB.Binding_Data.GIOP.UIPMC is
          raise MIOP_Error;
       end if;
 
-      if TResult.Version_Minor /= UIPMC_Version_Minor then
-         --  XXX for TAO compatibility, minor version is not check
-         --  TAO send profile with UIPMC minor version set to 2 !?
-         pragma Debug (C, O ("Wrong UIPMC minor version :"
-                            & TResult.Version_Minor'Img, Warning));
-         null;
-         --  raise MIOP_Error;
-      end if;
+      --  We force Version_Minor to 2 to match MIOP specifications
+      --  that requires MIOP 1.0 profile to be conformant with GIOP
+      --  1.2.
+
+      TResult.Version_Minor := 2;
 
       Temp_Ref := Get_Component (TResult.Components, Tag_Group);
       if Temp_Ref = null then
@@ -325,6 +328,10 @@ package body PolyORB.Binding_Data.GIOP.UIPMC is
          if S = "" then
             return "";
          end if;
+
+         --  Note: we force Version_Minor to 0 to match MIOP
+         --  specifications that requires MIOP 1.0 profile to be
+         --  conformant with GIOP 1.2.
 
          return UIPMC_Corbaloc_Prefix
            & ":" & Trimmed_Image (Unsigned_Long_Long
@@ -373,6 +380,7 @@ package body PolyORB.Binding_Data.GIOP.UIPMC is
          Destroy_Profile (Result);
          return null;
       end if;
+
       Index := Index2 + 1;
 
       Index2 := Find (S, Index, '@');
@@ -386,6 +394,13 @@ package body PolyORB.Binding_Data.GIOP.UIPMC is
          Destroy_Profile (Result);
          return null;
       end if;
+
+      --  We force Version_Minor to 2 to match MIOP specifications
+      --  that requires MIOP 1.0 profile to be conformant with GIOP
+      --  1.2.
+
+      TResult.Version_Minor := 2;
+
       Index := Index2 + 1;
 
       Index2 := Find (S, Index, '/');
