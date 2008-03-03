@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -42,8 +42,7 @@ with PolyORB.CORBA_P.IR_Hooks;
 package body PolyORB.CORBA_P.IR_Tools is
 
    function Get_Interface_Definition
-     (Id : in CORBA.RepositoryId)
-      return CORBA.Object.Ref'Class;
+     (Id : CORBA.RepositoryId) return CORBA.Object.Ref'Class;
    --  Actual implementation of the Interface Repository hook routine
    --  to be used when the Interface Repository is available.
 
@@ -66,9 +65,7 @@ package body PolyORB.CORBA_P.IR_Tools is
    ------------------------------
 
    function Get_Interface_Definition
-     (Id : in CORBA.RepositoryId)
-      return CORBA.Object.Ref'Class
-   is
+     (Id : CORBA.RepositoryId) return CORBA.Object.Ref'Class is
    begin
       return CORBA.Repository_Root.Repository.lookup_id (Get_IR_Root, Id);
    end Get_Interface_Definition;

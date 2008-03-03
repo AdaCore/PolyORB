@@ -341,13 +341,13 @@ package body PolyORB.Transport.Connected.Sockets.TLS is
 
    procedure Write
      (TE     : in out TLS_Endpoint;
-      Buffer : in     Buffers.Buffer_Access;
+      Buffer :        Buffers.Buffer_Access;
       Error  :    out Errors.Error_Container)
    is
 
       procedure Socket_Send
         (V     : access PolyORB.Buffers.Iovec;
-         N     : in     Integer;
+         N     :        Integer;
          Count :    out System.Storage_Elements.Storage_Offset);
       --  Send gathered data
 
@@ -357,7 +357,7 @@ package body PolyORB.Transport.Connected.Sockets.TLS is
 
       procedure Socket_Send
         (V     : access PolyORB.Buffers.Iovec;
-         N     : in     Integer;
+         N     :        Integer;
          Count :    out System.Storage_Elements.Storage_Offset)
       is
          subtype SV_T is PolyORB.Sockets.Vector_Type (1 .. N);

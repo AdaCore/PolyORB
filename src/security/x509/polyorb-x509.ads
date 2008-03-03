@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -61,7 +61,7 @@ package PolyORB.X509 is
 
    --  X.509 Certificate
 
-   function Read (File_Name : in String) return Certificate;
+   function Read (File_Name : String) return Certificate;
 
    procedure Destroy (The_Certificate : in out Certificate);
 

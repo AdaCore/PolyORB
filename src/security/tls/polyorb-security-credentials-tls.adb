@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -296,8 +296,8 @@ package body PolyORB.Security.Credentials.TLS is
       declare
 
          function Is_None
-           (Description : in String;
-            Parameter   : in String)
+           (Description : String;
+            Parameter   : String)
             return Boolean;
          --  Check is a Parameter have None value or not present
          --  in Description
@@ -307,8 +307,8 @@ package body PolyORB.Security.Credentials.TLS is
          -------------
 
          function Is_None
-           (Description : in String;
-            Parameter   : in String)
+           (Description : String;
+            Parameter   : String)
             return Boolean
          is
             None : constant String := "None";
