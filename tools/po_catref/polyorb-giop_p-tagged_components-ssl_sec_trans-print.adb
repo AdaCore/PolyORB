@@ -42,9 +42,9 @@ package body PolyORB.GIOP_P.Tagged_Components.SSL_Sec_Trans.Print is
    use Common;
    use Output;
 
-   function Image (Options : in Association_Options) return String;
+   function Image (Options : Association_Options) return String;
 
-   function Image (Options : in Association_Options) return String is
+   function Image (Options : Association_Options) return String is
       Result : Unbounded_String
         := To_Unbounded_String (Association_Options'Image (Options));
 
@@ -105,7 +105,7 @@ package body PolyORB.GIOP_P.Tagged_Components.SSL_Sec_Trans.Print is
    ---------------
 
    procedure Output_TC
-     (TC              : in TC_SSL_Sec_Trans;
+     (TC              : TC_SSL_Sec_Trans;
       Primary_Address : Utils.Sockets.Socket_Name)
    is
 
