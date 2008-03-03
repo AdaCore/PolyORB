@@ -366,12 +366,6 @@ package body PolyORB.Buffers is
       Padding : constant Stream_Element_Count
          := (Alignment - Buffer.CDR_Position) mod Alignment;
    begin
-      if Padding = 0 then
-         --  Buffer is already aligned.
-
-         return;
-      end if;
-
       pragma Debug
         (C, O ("Align_Position: pos = "
             & Stream_Element_Offset'Image (Buffer.CDR_Position)));
@@ -379,6 +373,12 @@ package body PolyORB.Buffers is
         (C, O ("Aligning on" & Alignment_Type'Image (Alignment)));
       pragma Debug
         (C, O ("Padding by" & Stream_Element_Count'Image (Padding)));
+
+      if Padding = 0 then
+         --  Buffer is already aligned.
+
+         return;
+      end if;
 
       pragma Assert
         (Buffer.CDR_Position + Padding
@@ -1019,20 +1019,19 @@ package body PolyORB.Buffers is
 
             Data := System.Null_Address;
             Size := 0;
+         else
+            declare
+               Contiguous_Size : constant Stream_Element_Count :=
+                 Stream_Element_Count (Vecs (Last_Index).Iov_Len
+                                         - Offset_Remainder);
+            begin
+               if Size > Contiguous_Size then
+                  Size := Contiguous_Size;
+               end if;
+            end;
+
+            Data := Vecs (Last_Index).Iov_Base + Offset_Remainder;
          end if;
-
-         declare
-            Contiguous_Size : constant Stream_Element_Count :=
-                                Stream_Element_Count (
-                                  Vecs (Last_Index).Iov_Len
-                                  - Offset_Remainder);
-         begin
-            if Size > Contiguous_Size then
-               Size := Contiguous_Size;
-            end if;
-         end;
-
-         Data := Vecs (Last_Index).Iov_Base + Offset_Remainder;
       end Extract_Data;
 
       ----------
