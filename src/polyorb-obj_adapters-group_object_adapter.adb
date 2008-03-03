@@ -343,7 +343,7 @@ package body PolyORB.Obj_Adapters.Group_Object_Adapter is
       GS : PolyORB.Servants.Servant_Access;
 
    begin
-      pragma Debug (C, O ("Get group from ref"));
+      pragma Debug (C, O ("Get group from reference"));
 
       for J in Profs'Range loop
          declare
