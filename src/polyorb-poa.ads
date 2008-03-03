@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -360,7 +360,7 @@ private
    pragma Warnings (On);
    --  Destroys OA's policies
 
-   procedure Destroy_OA (OA : in Obj_Adapter_Access);
+   procedure Destroy_OA (OA : Obj_Adapter_Access);
    --  Destroy OA's components (this does not deallocate the OA itself, since
    --  this is usually done by the reference counting system).
    --  ??? Why isn't this just an override of Finalize?
