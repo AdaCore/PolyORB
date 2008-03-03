@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -94,8 +94,7 @@ package body PolyORB.ASN1 is
    ------------
 
    function Encode
-     (Item : in Object_Identifier)
-      return Ada.Streams.Stream_Element_Array
+     (Item : Object_Identifier) return Ada.Streams.Stream_Element_Array
    is
       use type Interfaces.C.int;
       use type Stream_Element_Pointers.Pointer;

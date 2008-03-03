@@ -43,7 +43,7 @@ package body PolyORB.Security.Identities is
 
    package L is new PolyORB.Log.Facility_Log
      ("polyorb.security.identity_tokens");
-   procedure O (Message : in String; Level : Log_Level := Debug)
+   procedure O (Message : String; Level : Log_Level := Debug)
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
