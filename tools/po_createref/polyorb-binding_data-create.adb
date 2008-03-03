@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---           Copyright (C) 2007, Free Software Foundation, Inc.             --
+--         Copyright (C) 2007-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -51,8 +51,8 @@ package body PolyORB.Binding_Data.Create is
    --------------
 
    procedure Register
-     (Profile : in String;
-      Create  : in Create_Procedure)
+     (Profile : String;
+      Create  : Create_Procedure)
    is
    begin
       Append (Callbacks, Node'(Profile => Profile, Create => Create));
