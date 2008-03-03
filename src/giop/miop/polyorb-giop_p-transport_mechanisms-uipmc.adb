@@ -205,8 +205,8 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.UIPMC is
       return Boolean is
    begin
       return M.all in UIPMC_Transport_Mechanism
-        and then UIPMC_Transport_Mechanism (M.all).Address.all
-        = MF.Address.all;
+               and then
+             UIPMC_Transport_Mechanism (M.all).Address.all = MF.Address.all;
    end Is_Local_Mechanism;
 
    ----------------------
