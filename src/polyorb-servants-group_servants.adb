@@ -270,8 +270,6 @@ package body PolyORB.Servants.Group_Servants is
       pragma Debug (C, O ("Request received on group servant : "
                        & PolyORB.Objects.Image (Self.Oid.all)));
 
-      pragma Assert (Is_Nil (Request.Args));
-
       --  Check if request is oneway
 
       if not Is_Set (Sync_With_Transport, Request.Req_Flags) then
@@ -300,6 +298,14 @@ package body PolyORB.Servants.Group_Servants is
             Args : Ref;
 
          begin
+            if not Is_Nil (Request.Args) then
+               --  We are in the case where a request is issued
+               --  locally, on the same node, we copy directly the
+               --  argument NV list.
+
+               Args := Request.Args;
+            end if;
+
             pragma Debug (C, O ("Forward to : "
                              & PolyORB.References.Image (TPL.Value (It).all)));
 
