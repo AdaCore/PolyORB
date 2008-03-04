@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                    T E S T . P R I N T E R . I M P L                     --
+--                 T E S T . C O N T R O L L E R . I M P L                  --
 --                                                                          --
---                                 B o d y                                  --
+--                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
+--           Copyright (C) 2008, Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,89 +31,28 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Text_IO;
+with CORBA;
+with PortableServer;
 
-with Test.Printer.Skel;
-pragma Warnings (Off, Test.Printer.Skel);
+package Test.Controller.Impl is
 
-package body Test.Printer.Impl is
+   type Object is new PortableServer.Servant_Base with private;
 
-   Var_PrintString_Called : Natural := 0;
-   Var_PrintLong_Called : Natural := 0;
+   function Get_Printer (Self : access Object) return Test.Printer.Ref;
 
-   -----------------
-   -- PrintString --
-   -----------------
+   procedure Set_Printer (Self : access Object; Printer : Test.Printer.Ref);
 
-   procedure PrintString (Self : access Object; Mesg : CORBA.String) is
-      pragma Unreferenced (Self);
-   begin
-      Ada.Text_IO.Put_Line
-        ("Printing string: «" & CORBA.To_Standard_String (Mesg) & "»");
-      Var_PrintString_Called := Var_PrintString_Called + 1;
-   end PrintString;
+   procedure Set_Group_Size (Self : access Object; Size : Natural);
 
-   ---------------
-   -- PrintLong --
-   ---------------
+   procedure StopServer (Self : access Object);
 
-   procedure PrintLong (Self : access Object; K : CORBA.Long) is
-      pragma Unreferenced (Self);
-   begin
-      Ada.Text_IO.Put_Line ("Printing Long: " & CORBA.Long'Image (K));
-      Var_PrintLong_Called := Var_PrintLong_Called + 1;
-   end PrintLong;
+   function Test_OK (Self : access Object) return CORBA.Boolean;
 
-   ----------------
-   -- EchoString --
-   ----------------
+private
 
-   function EchoString
-     (Self : access Object;
-      Mesg : in     CORBA.String)
-     return CORBA.String
-   is
-      pragma Unreferenced (Self);
+   type Object is new PortableServer.Servant_Base with record
+      Printer : Test.Printer.Ref;
+      Group_Size : Natural := 0;
+   end record;
 
-   begin
-      Ada.Text_IO.Put_Line ("Echoing : "
-                            & CORBA.To_Standard_String (Mesg));
-
-      return Mesg;
-   end EchoString;
-
-   --------------
-   -- EchoLong --
-   --------------
-
-   function EchoLong
-     (Self : access Object;
-      K    : in     CORBA.Long)
-     return CORBA.Long
-   is
-      pragma Unreferenced (Self);
-
-   begin
-      Ada.Text_IO.Put_Line ("Echoing : " & CORBA.Long'Image (K));
-      return K;
-   end EchoLong;
-
-   ------------------------
-   -- PrintString_Called --
-   ------------------------
-
-   function PrintString_Called return Natural is
-   begin
-      return Var_Printstring_Called;
-   end PrintString_Called;
-
-   ----------------------
-   -- PrintLong_Called --
-   ----------------------
-
-   function PrintLong_Called return Natural is
-   begin
-      return Var_PrintLong_Called;
-   end PrintLong_Called;
-
-end Test.Printer.Impl;
+end Test.Controller.Impl;

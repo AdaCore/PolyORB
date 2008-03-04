@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                    T E S T . P R I N T E R . I M P L                     --
+--                 T E S T . C O N T R O L L E R . I M P L                  --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
+--           Copyright (C) 2008, Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,89 +31,59 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Text_IO;
+with CORBA.ORB;
 
-with Test.Printer.Skel;
-pragma Warnings (Off, Test.Printer.Skel);
+with Test.Controller.Skel;
+pragma Warnings (Off, Test.Controller.Skel);
+with Test.Printer.Impl;
 
-package body Test.Printer.Impl is
-
-   Var_PrintString_Called : Natural := 0;
-   Var_PrintLong_Called : Natural := 0;
+package body Test.Controller.Impl is
 
    -----------------
-   -- PrintString --
+   -- Get_Printer --
    -----------------
 
-   procedure PrintString (Self : access Object; Mesg : CORBA.String) is
-      pragma Unreferenced (Self);
+   function Get_Printer (Self : access Object) return Test.Printer.Ref is
    begin
-      Ada.Text_IO.Put_Line
-        ("Printing string: «" & CORBA.To_Standard_String (Mesg) & "»");
-      Var_PrintString_Called := Var_PrintString_Called + 1;
-   end PrintString;
+      return Self.Printer;
+   end Get_Printer;
 
-   ---------------
-   -- PrintLong --
-   ---------------
+   -----------------
+   -- Set_Printer --
+   -----------------
 
-   procedure PrintLong (Self : access Object; K : CORBA.Long) is
-      pragma Unreferenced (Self);
+   procedure Set_Printer (Self : access Object; Printer : Test.Printer.Ref) is
    begin
-      Ada.Text_IO.Put_Line ("Printing Long: " & CORBA.Long'Image (K));
-      Var_PrintLong_Called := Var_PrintLong_Called + 1;
-   end PrintLong;
+      Self.Printer := Printer;
+   end Set_Printer;
+
+   --------------------
+   -- Set_Group_Size --
+   --------------------
+
+   procedure Set_Group_Size (Self : access Object; Size : Natural) is
+   begin
+      Self.Group_Size := Size;
+   end Set_Group_Size;
 
    ----------------
-   -- EchoString --
+   -- StopServer --
    ----------------
 
-   function EchoString
-     (Self : access Object;
-      Mesg : in     CORBA.String)
-     return CORBA.String
-   is
+   procedure StopServer (Self : access Object) is
       pragma Unreferenced (Self);
-
    begin
-      Ada.Text_IO.Put_Line ("Echoing : "
-                            & CORBA.To_Standard_String (Mesg));
+      CORBA.ORB.Shutdown (Wait_For_Completion => False);
+   end StopServer;
 
-      return Mesg;
-   end EchoString;
+   -------------
+   -- Test_OK --
+   -------------
 
-   --------------
-   -- EchoLong --
-   --------------
-
-   function EchoLong
-     (Self : access Object;
-      K    : in     CORBA.Long)
-     return CORBA.Long
-   is
-      pragma Unreferenced (Self);
-
+   function Test_OK (Self : access Object) return CORBA.Boolean is
    begin
-      Ada.Text_IO.Put_Line ("Echoing : " & CORBA.Long'Image (K));
-      return K;
-   end EchoLong;
+      return Test.Printer.Impl.PrintString_Called = Self.Group_Size
+        and then Test.Printer.Impl.PrintLong_Called = Self.Group_Size;
+   end Test_OK;
 
-   ------------------------
-   -- PrintString_Called --
-   ------------------------
-
-   function PrintString_Called return Natural is
-   begin
-      return Var_Printstring_Called;
-   end PrintString_Called;
-
-   ----------------------
-   -- PrintLong_Called --
-   ----------------------
-
-   function PrintLong_Called return Natural is
-   begin
-      return Var_PrintLong_Called;
-   end PrintLong_Called;
-
-end Test.Printer.Impl;
+end Test.Controller.Impl;
