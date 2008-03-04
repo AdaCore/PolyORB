@@ -41,8 +41,11 @@ See the features-24 file.
 Bug fixes
 ---------
 
+There was a bug in the function that determined wether a MIOP profile
+is local to a partition, this has been corrected. (H303-005)
+
 A PolyORB partition configured to use MIOP 1.0 did not default to GIOP
-1.2, this has been correct. (H303-004)
+1.2, this has been corrected. (H303-004)
 
 A PolyORB partition configured to use GIOP version 1.0 only was unable
 to connect to a server providing an IIOP 1.2 profile. The GIOP stack
