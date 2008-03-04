@@ -121,7 +121,7 @@ package body PolyORB.Servants.Group_Servants is
                use PolyORB.Any.NVList.Internals.NV_Lists;
 
                Reply : constant Message'Class := Emit (Self.Args_Src, Msg);
-               Req_Args : Ref;
+               Req_Args : Ref renames Unmarshalled_Arguments (Reply).Args;
                It : PolyORB.Any.NVList.Internals.NV_Lists.Iterator;
 
             begin
@@ -130,7 +130,6 @@ package body PolyORB.Servants.Group_Servants is
 
                if Reply in Unmarshalled_Arguments then
                   pragma Debug (C, O ("Arguments unmarshalled, copying"));
-                  Req_Args := Unmarshalled_Arguments (Reply).Args;
 
                   Create (Self.Args);
                   It := First (PolyORB.Any.NVList.Internals.List_Of
@@ -140,16 +139,28 @@ package body PolyORB.Servants.Group_Servants is
                      Next (It);
                   end loop;
 
-                  pragma Debug (C, O ("Send arguments to first"));
-                  --  XXX first what ?
+                  --  Replace the Argument component with a by-value
+                  --  copy of the original one (thus ensuring that the
+                  --  value remains valid even after exiting the
+                  --  current scope).
+
+                  It := First (PolyORB.Any.NVList.Internals.List_Of
+                                 (Self.Args).all);
+                  while not Last (It) loop
+                     Value (It).all.Argument
+                       := PolyORB.Any.Copy_Any (Value (It).all.Argument);
+                     Next (It);
+                  end loop;
+
+                  pragma Debug
+                    (C, O ("Send arguments to first servant in group"));
 
                   Self.State := Wait_Other;
                   Leave (Self.Mutex);
 
                   --  Send result
 
-                  return Unmarshalled_Arguments'
-                    (Args => Unmarshall_Arguments (Msg).Args);
+                  return Unmarshalled_Arguments'(Args => Req_Args);
 
                else
                   pragma Debug (C, O ("Arguments unmarshalling error"));
@@ -181,7 +192,7 @@ package body PolyORB.Servants.Group_Servants is
                   use PolyORB.Any;
                   use PolyORB.Any.NVList.Internals.NV_Lists;
 
-                  Req_Args : constant Ref := Unmarshall_Arguments (Msg).Args;
+                  Req_Args : Ref renames Unmarshall_Arguments (Msg).Args;
                   It1 : PolyORB.Any.NVList.Internals.NV_Lists.Iterator;
                   It2 : PolyORB.Any.NVList.Internals.NV_Lists.Iterator;
                begin
@@ -197,7 +208,7 @@ package body PolyORB.Servants.Group_Servants is
                      pragma Assert (Value (It1).Arg_Modes
                                     = Value (It2).Arg_Modes);
 
-                     Move_Any_Value (Value (It2).Argument,
+                     Copy_Any_Value (Value (It2).Argument,
                                      Value (It1).Argument);
                      Next (It1);
                      Next (It2);
@@ -303,7 +314,7 @@ package body PolyORB.Servants.Group_Servants is
                  PolyORB.Components.Component_Access (Self),
                Req                        => Req,
                Req_Flags                  => Request.Req_Flags);
-            --  XXX Notepad is not copied
+            --  XXX Notepad is not copied, neither are QoS parameters ..
 
             --  Requeue request to ORB
 
