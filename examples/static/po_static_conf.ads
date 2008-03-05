@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---     P O L Y O R B . S E T U P . D E F A U L T _ P A R A M E T E R S      --
+--                       P O _ S T A T I C _ C O N F                        --
 --                                                                          --
---                                 B o d y                                  --
+--                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
+--            Copyright (C) 2008, Free Software Foundation, Inc.            --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -30,22 +30,43 @@
 --                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
-
-with PolyORB.Parameters.Command_Line;
-pragma Warnings (Off, PolyORB.Parameters.Command_Line);
-pragma Elaborate_All (PolyORB.Parameters.Command_Line);
-
-with PolyORB.Parameters.Environment;
-pragma Warnings (Off, PolyORB.Parameters.Environment);
-pragma Elaborate_All (PolyORB.Parameters.Environment);
-
-with PolyORB.Parameters.File;
-pragma Warnings (Off, PolyORB.Parameters.File);
-pragma Elaborate_All (PolyORB.Parameters.File);
-
 with PolyORB.Parameters.Static;
-pragma Warnings (Off, PolyORB.Parameters.Static);
-pragma Elaborate_All (PolyORB.Parameters.Static);
+use  PolyORB.Parameters.Static;
 
-package body PolyORB.Setup.Default_Parameters is
-end PolyORB.Setup.Default_Parameters;
+--  Static configuration of PolyORB
+package PO_Static_Conf is
+
+   --  Strings can be completely static (no need to import memory management
+   --   symbols), or dynamic to ease editing.
+
+   --  Parameters
+   uipmc   : aliased constant String := "[access_points]uipmc";
+   srp     : aliased constant String := "[access_points]srp";
+
+   --  Values
+   enable  : aliased constant String := "enable";
+   disable : aliased constant String := "disable";
+
+   --  Each line can easily commented out during development to test
+   --  different configuration options.
+
+   Static_Parameters : constant Static_Parameter_Array := (
+   --  Parameters for tasking
+--       (new String'("[tasking]max_threads"), new String'("25")),
+
+   --  Enable/Disable access points
+--       (new String'("[access_points]iiop"),  disable'Access),
+--       (srp'Access,                          enable'Access),
+      (uipmc'Access,                        disable'Access),
+
+      --  This MUST be the last element of the array:
+      (null, null)
+   );
+
+   --  The package and variables can have any name, but the array must be
+   --  exported with the following Convetion and External name:
+   pragma Export (Convention    => Ada,
+                  Entity        => Static_Parameters,
+                  External_Name => "__polyorbconf_optional");
+
+end PO_Static_Conf;

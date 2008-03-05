@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---     P O L Y O R B . S E T U P . D E F A U L T _ P A R A M E T E R S      --
+--            P O L Y O R B . P A R A M E T E R S . S T A T I C             --
 --                                                                          --
---                                 B o d y                                  --
+--                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
+--            Copyright (C) 2008, Free Software Foundation, Inc.            --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,21 +31,26 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PolyORB.Parameters.Command_Line;
-pragma Warnings (Off, PolyORB.Parameters.Command_Line);
-pragma Elaborate_All (PolyORB.Parameters.Command_Line);
+package PolyORB.Parameters.Static is
 
-with PolyORB.Parameters.Environment;
-pragma Warnings (Off, PolyORB.Parameters.Environment);
-pragma Elaborate_All (PolyORB.Parameters.Environment);
+   pragma Elaborate_Body;
 
-with PolyORB.Parameters.File;
-pragma Warnings (Off, PolyORB.Parameters.File);
-pragma Elaborate_All (PolyORB.Parameters.File);
+   type Parameter_Ptr is access constant Standard.String;
+   type Value_Ptr     is access constant Standard.String;
 
-with PolyORB.Parameters.Static;
-pragma Warnings (Off, PolyORB.Parameters.Static);
-pragma Elaborate_All (PolyORB.Parameters.Static);
+   type Parameter_Entry is record
+      Parameter : Parameter_Ptr;
+      Value     : Value_Ptr;
+   end record;
 
-package body PolyORB.Setup.Default_Parameters is
-end PolyORB.Setup.Default_Parameters;
+   --  Static array of parameters for link-time configuration of PolyORB.
+   --  Requirements:
+   --  - The last entry must be (null, null)
+   --  - The application must export an array of the following type with
+   --    the External_Name "__polyorbconf_optional".
+   --  See PolyORB's User Manual section 4.2 [Run-time configuration] for
+   --  further information.
+   type Static_Parameter_Array is array (Positive range <>)
+     of Parameter_Entry;
+
+end PolyORB.Parameters.Static;
