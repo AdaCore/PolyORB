@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -77,13 +77,13 @@ package CosTypedEventChannelAdmin.TypedEventChannel.Impl is
    type Interface_Ptr is access function return CORBA.Impl.Object_Ptr;
 
    procedure Register
-     (RepositoryID : in CosTypedEventChannelAdmin.Key;
-     Create_Ptr : in Interface_Ptr);
+     (RepositoryID : CosTypedEventChannelAdmin.Key;
+     Create_Ptr : Interface_Ptr);
    --  Register a couple of Repository ID and
    --  Pointer_to_Create function in a HashTable
 
    function Lookup
-     (RepositoryID : in CosTypedEventChannelAdmin.Key)
+     (RepositoryID : CosTypedEventChannelAdmin.Key)
      return Interface_Ptr;
    --  Lookup an entry in the HashTable
 

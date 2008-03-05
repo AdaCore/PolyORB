@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -1273,7 +1273,7 @@ package body Ada_Be.Idl2Ada.Helper is
    begin
       PL (CU, "");
       PL (CU, "procedure " & Raise_Name (Node));
-      Put (CU, "  (Members : in " & Ada_Name (Members_Type (Node)) & ")");
+      Put (CU, "  (Members : " & Ada_Name (Members_Type (Node)) & ")");
    end Gen_Raise_Profile;
 
    ------------------------
@@ -1453,7 +1453,7 @@ package body Ada_Be.Idl2Ada.Helper is
       NL (CU);
       PL (CU, "procedure To_Any");
       II (CU);
-      PL (CU, "(Item            : in     " & Type_Full_Name & ";");
+      PL (CU, "(Item            : " & Type_Full_Name & ";");
       PL (CU, " Result          : in out CORBA.Any;");
       PL (CU, " Marshalled_List : in out RefAny_Seq.Sequence);");
       DI (CU);
@@ -1728,7 +1728,7 @@ package body Ada_Be.Idl2Ada.Helper is
       PL (CU, "--  Actual To_Any conversion procedure.");
       PL (CU, "procedure To_Any");
       II (CU);
-      PL (CU, "(Item            : in     " & Type_Full_Name & ";");
+      PL (CU, "(Item            : " & Type_Full_Name & ";");
       PL (CU, " Result          : in out CORBA.Any;");
       PL (CU, " Marshalled_List : in out RefAny_Seq.Sequence)");
       DI (CU);

@@ -40,13 +40,13 @@ package Test.Printer.Impl is
 
    type Object_Acc is access Object;
 
-   procedure PrintString (Self : access Object; Mesg : in CORBA.String);
-   procedure PrintLong (Self : access Object; K : in CORBA.Long);
+   procedure PrintString (Self : access Object; Mesg : CORBA.String);
+   procedure PrintLong (Self : access Object; K : CORBA.Long);
 
-   function EchoString (Self : access Object; Mesg : in CORBA.String)
+   function EchoString (Self : access Object; Mesg : CORBA.String)
      return CORBA.String;
 
-   function EchoLong (Self : access Object; K : in CORBA.Long)
+   function EchoLong (Self : access Object; K : CORBA.Long)
      return CORBA.Long;
 
    function PrintString_Called return Natural;

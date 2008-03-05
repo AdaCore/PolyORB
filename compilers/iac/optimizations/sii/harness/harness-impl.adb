@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -45,7 +45,7 @@ package body Harness.Impl is
 
    function echoULong
      (Self : access Object;
-      arg : in CORBA.Unsigned_Long)
+      arg : CORBA.Unsigned_Long)
       return CORBA.Unsigned_Long
    is
       pragma Unreferenced (Self);

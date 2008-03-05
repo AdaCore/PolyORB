@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2004 Free Software Foundation, Inc.             --
+--         Copyright (C) 2004-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -42,7 +42,7 @@ package body Echo_DynImpl is
 
    procedure Invoke
      (Self    : access Object;
-      Request : in     CORBA.ServerRequest.Object_Ptr)
+      Request : CORBA.ServerRequest.Object_Ptr)
    is
       pragma Unreferenced (Self);
 

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2004 Free Software Foundation, Inc.             --
+--         Copyright (C) 2004-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -50,21 +50,21 @@ private
 
    function Is_A
      (Self            : access Object;
-      Logical_Type_Id : in     Standard.String)
+      Logical_Type_Id : Standard.String)
       return Boolean;
 
    --  Derived from ServerRequestInterceptor
 
    procedure Receive_Request_Service_Contexts
      (Self : access Object;
-      RI   : in     PortableInterceptor.ServerRequestInfo.Local_Ref);
+      RI   : PortableInterceptor.ServerRequestInfo.Local_Ref);
 
    procedure Receive_Request
      (Self : access Object;
-      RI   : in     PortableInterceptor.ServerRequestInfo.Local_Ref);
+      RI   : PortableInterceptor.ServerRequestInfo.Local_Ref);
 
    procedure Send_Reply
      (Self : access Object;
-      RI   : in     PortableInterceptor.ServerRequestInfo.Local_Ref);
+      RI   : PortableInterceptor.ServerRequestInfo.Local_Ref);
 
 end Test002_Server_Interceptor.Impl;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -45,8 +45,8 @@ package CosNotifyChannelAdmin.EventChannelFactory.Impl is
 
    procedure Create_Channel
       (Self          : access Object;
-       Initial_QoS   : in CosNotification.QoSProperties;
-       Initial_Admin : in CosNotification.AdminProperties;
+       Initial_QoS   : CosNotification.QoSProperties;
+       Initial_Admin : CosNotification.AdminProperties;
        Id            : out ChannelID;
        Returns       : out CosNotifyChannelAdmin.EventChannel.Ref);
 
@@ -56,7 +56,7 @@ package CosNotifyChannelAdmin.EventChannelFactory.Impl is
 
    function Get_Event_Channel
      (Self : access Object;
-     Id   : in ChannelID)
+     Id   : ChannelID)
      return CosNotifyChannelAdmin.EventChannel.Ref;
 
    ----------------------

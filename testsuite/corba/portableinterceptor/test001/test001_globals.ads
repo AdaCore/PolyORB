@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2004-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -80,12 +80,12 @@ package Test001_Globals is
    Enable_Test_Point    : array (Interception_Point) of Boolean
      := (others => False);
 
-   function Image (Value : in Interception_Point) return String;
+   function Image (Value : Interception_Point) return String;
 
    procedure Output
-     (Point     : in Interception_Point;
-      Operation : in String;
-      Status    : in Boolean;
-      Comment   : in String := "");
+     (Point     : Interception_Point;
+      Operation : String;
+      Status    : Boolean;
+      Comment   : String := "");
 
 end Test001_Globals;

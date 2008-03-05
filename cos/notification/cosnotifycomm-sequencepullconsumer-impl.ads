@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -62,18 +62,18 @@ package CosNotifyComm.SequencePullConsumer.Impl is
 
    procedure Connect_Sequence_Proxy_Pull_Supplier
       (Self  : access Object;
-       Proxy : in     CosNotifyChannelAdmin.SequenceProxyPullSupplier.Ref);
+       Proxy : CosNotifyChannelAdmin.SequenceProxyPullSupplier.Ref);
    --  Call by application to connect object to proxy
 
    function Pull
      (Self       : access Object;
-      Max_Number : in CORBA.Long)
+      Max_Number : CORBA.Long)
      return CosNotification.EventBatch;
    --  Call by application to consume a sequence of structured events
 
    procedure Try_Pull
      (Self       : access Object;
-      Max_Number : in CORBA.Long;
+      Max_Number : CORBA.Long;
       Done       : out    CORBA.Boolean;
       Returns    : out    CosNotification.EventBatch);
    --  Call by application to try to consume a sequence of structured events

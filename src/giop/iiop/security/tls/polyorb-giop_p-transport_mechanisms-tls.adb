@@ -239,8 +239,8 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.TLS is
 --      declare
 --
 --         function Is_None
---           (Description : in String;
---            Parameter   : in String)
+--           (Description : String;
+--            Parameter   : String)
 --            return Boolean;
 --         --  Check is a Parameter have None value or not present
 --         --  in Description
@@ -250,8 +250,8 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.TLS is
 --         -------------
 --
 --         function Is_None
---           (Description : in String;
---            Parameter   : in String)
+--           (Description : String;
+--            Parameter   : String)
 --            return Boolean
 --         is
 --            None : constant String := "None";

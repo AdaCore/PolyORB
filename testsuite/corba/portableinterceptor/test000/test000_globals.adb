@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2004 Free Software Foundation, Inc.             --
+--         Copyright (C) 2004-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -112,7 +112,7 @@ package body Test000_Globals is
    ---------------
 
    procedure Log_Point
-     (Name : in String)
+     (Name : String)
    is
    begin
       Log_Lists.Append (Log, (Object, Name (Name'First)));
@@ -123,8 +123,8 @@ package body Test000_Globals is
    ---------------
 
    procedure Log_Point
-     (Name  : in String;
-      Point : in Test000_Idl.ClientInterceptor.Client_Interception_Point)
+     (Name  : String;
+      Point : Test000_Idl.ClientInterceptor.Client_Interception_Point)
    is
    begin
       Log_Lists.Append (Log, (Client, Name (Name'First), Point));
@@ -135,8 +135,8 @@ package body Test000_Globals is
    ---------------
 
    procedure Log_Point
-     (Name  : in String;
-      Point : in Test000_Idl.ServerInterceptor.Server_Interception_Point)
+     (Name  : String;
+      Point : Test000_Idl.ServerInterceptor.Server_Interception_Point)
    is
    begin
       Log_Lists.Append (Log, (Server, Name (Name'First), Point));
@@ -146,7 +146,7 @@ package body Test000_Globals is
    -- Output --
    ------------
 
-   procedure Output (Log : in Log_Array) is
+   procedure Output (Log : Log_Array) is
       use Ada.Text_IO;
    begin
       for J in Log'Range loop

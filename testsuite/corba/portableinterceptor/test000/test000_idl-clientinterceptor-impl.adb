@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -71,7 +71,7 @@ package body Test000_Idl.ClientInterceptor.Impl is
 
    procedure Init
      (Self : access Object;
-      Name : in     Standard.String)
+      Name : Standard.String)
    is
    begin
       Self.Name   := CORBA.To_CORBA_String (Name);
@@ -85,7 +85,7 @@ package body Test000_Idl.ClientInterceptor.Impl is
 
    function Is_A
      (Self            : access Object;
-      Logical_Type_Id : in     Standard.String)
+      Logical_Type_Id : Standard.String)
       return Boolean
    is
       pragma Unreferenced (Self);
@@ -110,7 +110,7 @@ package body Test000_Idl.ClientInterceptor.Impl is
 
    procedure Receive_Exception
      (Self : access Object;
-      RI   : in     PortableInterceptor.ClientRequestInfo.Local_Ref)
+      RI   : PortableInterceptor.ClientRequestInfo.Local_Ref)
    is
       pragma Unreferenced (RI);
    begin
@@ -139,7 +139,7 @@ package body Test000_Idl.ClientInterceptor.Impl is
 
    procedure Receive_Other
      (Self : access Object;
-      RI   : in     PortableInterceptor.ClientRequestInfo.Local_Ref)
+      RI   : PortableInterceptor.ClientRequestInfo.Local_Ref)
    is
       pragma Unreferenced (RI);
    begin
@@ -165,7 +165,7 @@ package body Test000_Idl.ClientInterceptor.Impl is
 
    procedure Receive_Reply
      (Self : access Object;
-      RI   : in     PortableInterceptor.ClientRequestInfo.Local_Ref)
+      RI   : PortableInterceptor.ClientRequestInfo.Local_Ref)
    is
       pragma Unreferenced (RI);
    begin
@@ -194,7 +194,7 @@ package body Test000_Idl.ClientInterceptor.Impl is
 
    procedure Send_Request
      (Self : access Object;
-      RI   : in     PortableInterceptor.ClientRequestInfo.Local_Ref)
+      RI   : PortableInterceptor.ClientRequestInfo.Local_Ref)
    is
       pragma Unreferenced (RI);
    begin
@@ -223,7 +223,7 @@ package body Test000_Idl.ClientInterceptor.Impl is
 
    procedure Send_Poll
      (Self : access Object;
-      RI   : in     PortableInterceptor.ClientRequestInfo.Local_Ref)
+      RI   : PortableInterceptor.ClientRequestInfo.Local_Ref)
    is
       pragma Unreferenced (RI);
    begin
@@ -249,8 +249,8 @@ package body Test000_Idl.ClientInterceptor.Impl is
 
    procedure Set_Behavior
      (Self     : access Object;
-      Point    : in     Client_Interception_Point;
-      Behavior : in     Interceptor_Behavior)
+      Point    : Client_Interception_Point;
+      Behavior : Interceptor_Behavior)
    is
    begin
       Self.State (Point) := Behavior;

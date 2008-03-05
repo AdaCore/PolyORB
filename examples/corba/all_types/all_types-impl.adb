@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -48,7 +48,7 @@ package body all_types.Impl is
 
    function echoBoolean
      (Self : access Object;
-      arg : in CORBA.Boolean)
+      arg : CORBA.Boolean)
       return CORBA.Boolean
    is
    begin
@@ -57,7 +57,7 @@ package body all_types.Impl is
 
    function echoShort
      (Self : access Object;
-      arg : in CORBA.Short)
+      arg : CORBA.Short)
       return CORBA.Short
    is
    begin
@@ -66,7 +66,7 @@ package body all_types.Impl is
 
    function echoLong
      (Self : access Object;
-      arg : in CORBA.Long)
+      arg : CORBA.Long)
       return CORBA.Long
    is
    begin
@@ -75,7 +75,7 @@ package body all_types.Impl is
 
    function echoUShort
      (Self : access Object;
-      arg : in CORBA.Unsigned_Short)
+      arg : CORBA.Unsigned_Short)
       return CORBA.Unsigned_Short
    is
    begin
@@ -84,7 +84,7 @@ package body all_types.Impl is
 
    function echoULong
      (Self : access Object;
-      arg : in CORBA.Unsigned_Long)
+      arg : CORBA.Unsigned_Long)
       return CORBA.Unsigned_Long
    is
    begin
@@ -93,7 +93,7 @@ package body all_types.Impl is
 
    function echoULLong
      (Self : access Object;
-      arg : in CORBA.Unsigned_Long_Long)
+      arg : CORBA.Unsigned_Long_Long)
       return CORBA.Unsigned_Long_Long
    is
    begin
@@ -102,7 +102,7 @@ package body all_types.Impl is
 
    function echoFloat
      (Self : access Object;
-      arg : in CORBA.Float)
+      arg : CORBA.Float)
       return CORBA.Float
    is
    begin
@@ -111,7 +111,7 @@ package body all_types.Impl is
 
    function echoDouble
      (Self : access Object;
-      arg : in CORBA.Double)
+      arg : CORBA.Double)
       return CORBA.Double
    is
    begin
@@ -120,7 +120,7 @@ package body all_types.Impl is
 
    function echoChar
      (Self : access Object;
-      arg : in CORBA.Char)
+      arg : CORBA.Char)
       return CORBA.Char
    is
    begin
@@ -129,7 +129,7 @@ package body all_types.Impl is
 
    function echoWChar
      (Self : access Object;
-      arg : in CORBA.Wchar)
+      arg : CORBA.Wchar)
      return CORBA.Wchar
    is
    begin
@@ -138,7 +138,7 @@ package body all_types.Impl is
 
    function echoOctet
      (Self : access Object;
-      arg : in CORBA.Octet)
+      arg : CORBA.Octet)
       return CORBA.Octet
    is
    begin
@@ -147,7 +147,7 @@ package body all_types.Impl is
 
    function echoString
      (Self : access Object;
-      arg : in CORBA.String)
+      arg : CORBA.String)
       return CORBA.String
    is
    begin
@@ -160,7 +160,7 @@ package body all_types.Impl is
 
    function echoWString
      (Self : access Object;
-      arg : in CORBA.Wide_String)
+      arg : CORBA.Wide_String)
       return CORBA.Wide_String
    is
    begin
@@ -173,7 +173,7 @@ package body all_types.Impl is
 
    function echoRef
      (Self : access Object;
-      arg : in all_types.Ref)
+      arg : all_types.Ref)
       return all_types.Ref'Class
    is
    begin
@@ -182,7 +182,7 @@ package body all_types.Impl is
 
    function echoObject
      (Self : access Object;
-      arg  : in CORBA.Object.Ref)
+      arg  : CORBA.Object.Ref)
      return CORBA.Object.Ref is
    begin
       return arg;
@@ -190,7 +190,7 @@ package body all_types.Impl is
 
    function echoOtherAllTypes
      (Self : access Object;
-      arg  : in all_types.otherAllTypes)
+      arg  : all_types.otherAllTypes)
      return all_types.otherAllTypes is
    begin
       return arg;
@@ -198,7 +198,7 @@ package body all_types.Impl is
 
    function echoOtherObject
      (Self : access Object;
-      arg  : in all_types.otherObject)
+      arg  : all_types.otherObject)
      return all_types.otherObject is
    begin
       return arg;
@@ -206,7 +206,7 @@ package body all_types.Impl is
 
    function echoBoundedStr
      (Self : access Object;
-      arg  : in all_types.BoundedStr)
+      arg  : all_types.BoundedStr)
      return all_types.BoundedStr is
    begin
       Ada.Text_IO.Put_Line
@@ -219,7 +219,7 @@ package body all_types.Impl is
 
    function echoBoundedWStr
      (Self : access Object;
-      arg  : in all_types.BoundedWStr)
+      arg  : all_types.BoundedWStr)
      return all_types.BoundedWStr is
    begin
       Ada.Wide_Text_IO.Put_Line
@@ -232,7 +232,7 @@ package body all_types.Impl is
 
    function echoColor
      (Self : access Object;
-      arg  : in Color) return Color is
+      arg  : Color) return Color is
    begin
       if Arg'Valid then
          Ada.Text_IO.Put_Line ("echoColor: " & arg'Img);
@@ -244,7 +244,7 @@ package body all_types.Impl is
 
    function echoRainbow
      (Self : access Object;
-      arg  : in Rainbow)
+      arg  : Rainbow)
       return Rainbow is
    begin
       return arg;
@@ -252,7 +252,7 @@ package body all_types.Impl is
 
    function echoMoney
      (Self : access Object;
-      Arg  : in Money)
+      Arg  : Money)
       return Money is
    begin
       Ada.Text_IO.Put_Line ("echoMoney: " & Arg'Img);
@@ -261,7 +261,7 @@ package body all_types.Impl is
 
    function echoArray
      (Self : access Object;
-      Arg : in simple_array)
+      Arg : simple_array)
       return simple_array
    is
    begin
@@ -270,7 +270,7 @@ package body all_types.Impl is
 
    function echoMatrix
      (Self : access Object;
-      arg : in matrix)
+      arg : matrix)
       return matrix
    is
    begin
@@ -279,7 +279,7 @@ package body all_types.Impl is
 
    function echoBigMatrix
      (Self : access Object;
-      arg : in bigmatrix)
+      arg : bigmatrix)
       return bigmatrix
    is
    begin
@@ -288,7 +288,7 @@ package body all_types.Impl is
 
    function echoNestedArray
      (Self : access Object;
-      Arg : in nested_array)
+      Arg : nested_array)
       return nested_array
    is
    begin
@@ -297,7 +297,7 @@ package body all_types.Impl is
 
    function echoSixteenKb
      (Self : access Object;
-      arg : in sixteenKb)
+      arg : sixteenKb)
       return sixteenKb
    is
    begin
@@ -306,7 +306,7 @@ package body all_types.Impl is
 
    procedure testException
      (Self : access Object;
-      arg : in CORBA.Long)
+      arg : CORBA.Long)
    is
    begin
       all_types.Helper.Raise_my_exception
@@ -315,21 +315,21 @@ package body all_types.Impl is
 
    procedure testUnknownException
      (Self : access Object;
-      arg  : in CORBA.Long) is
+      arg  : CORBA.Long) is
    begin
       raise Constraint_Error;
    end testUnknownException;
 
    procedure testSystemException
      (Self : access Object;
-      arg : in CORBA.Long) is
+      arg : CORBA.Long) is
    begin
       CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
    end testSystemException;
 
    function echoStruct
      (Self : access Object;
-      arg  : in simple_struct)
+      arg  : simple_struct)
       return simple_struct is
    begin
       return arg;
@@ -337,7 +337,7 @@ package body all_types.Impl is
 
    function echoArrayStruct
      (Self : access Object;
-      arg  : in array_struct)
+      arg  : array_struct)
       return array_struct is
    begin
       return arg;
@@ -345,7 +345,7 @@ package body all_types.Impl is
 
    function echoNestedStruct
      (Self : access Object;
-      arg  : in nested_struct)
+      arg  : nested_struct)
       return nested_struct is
    begin
       return arg;
@@ -353,7 +353,7 @@ package body all_types.Impl is
 
    function echoUnion
      (Self : access Object;
-      arg : in myUnion)
+      arg : myUnion)
      return myUnion is
    begin
       return arg;
@@ -361,7 +361,7 @@ package body all_types.Impl is
 
    function echoUnionEnumSwitch
      (Self : access Object;
-      arg : in myUnionEnumSwitch)
+      arg : myUnionEnumSwitch)
      return myUnionEnumSwitch is
    begin
       return arg;
@@ -369,14 +369,14 @@ package body all_types.Impl is
 
    function echoNoMemberUnion
      (Self : access Object;
-      arg : in noMemberUnion) return noMemberUnion is
+      arg : noMemberUnion) return noMemberUnion is
    begin
       return arg;
    end echoNoMemberUnion;
 
    function echoUsequence
      (Self : access Object;
-      arg : in U_sequence)
+      arg : U_sequence)
      return U_sequence
    is
       use IDL_SEQUENCE_short;
@@ -391,7 +391,7 @@ package body all_types.Impl is
 
    function echoBsequence
      (Self : access Object;
-      arg : in B_sequence) return B_sequence
+      arg : B_sequence) return B_sequence
    is
    begin
       return arg;
@@ -399,7 +399,7 @@ package body all_types.Impl is
 
    function echoUnionSequence
      (Self : access Object;
-      arg : in unionSequence) return unionSequence
+      arg : unionSequence) return unionSequence
    is
    begin
       return arg;
@@ -407,7 +407,7 @@ package body all_types.Impl is
 
    procedure set_MyColor
      (Self : access Object;
-      arg : in Color)
+      arg : Color)
    is
    begin
       Self.Attr_My_Color := arg;

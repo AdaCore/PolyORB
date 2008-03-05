@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -49,7 +49,7 @@ package CosNotifyChannelAdmin.SequenceProxyPullSupplier.Impl is
 
    procedure Connect_Sequence_Pull_Consumer
      (Self : access Object;
-      Pull_Consumer : in CosNotifyComm.SequencePullConsumer.Ref);
+      Pull_Consumer : CosNotifyComm.SequencePullConsumer.Ref);
 
    --  IDL operations inherited from CosNotifyChannelAdmin::ProxySupplier
 
@@ -67,7 +67,7 @@ package CosNotifyChannelAdmin.SequenceProxyPullSupplier.Impl is
 
    procedure Set_Priority_Filter
      (Self : access Object;
-      To   : in CosNotifyFilter.MappingFilter.Ref);
+      To   : CosNotifyFilter.MappingFilter.Ref);
 
    function Get_Lifetime_Filter
      (Self : access Object)
@@ -75,16 +75,16 @@ package CosNotifyChannelAdmin.SequenceProxyPullSupplier.Impl is
 
    procedure Set_Lifetime_Filter
      (Self : access Object;
-      To   : in CosNotifyFilter.MappingFilter.Ref);
+      To   : CosNotifyFilter.MappingFilter.Ref);
 
    function Obtain_Offered_Types
      (Self : access Object;
-      Mode : in CosNotifyChannelAdmin.ObtainInfoMode)
+      Mode : CosNotifyChannelAdmin.ObtainInfoMode)
      return CosNotification.EventTypeSeq;
 
    procedure Validate_Event_QoS
      (Self          : access Object;
-      Required_QoS  : in CosNotification.QoSProperties;
+      Required_QoS  : CosNotification.QoSProperties;
       Available_QoS : out CosNotification.NamedPropertyRangeSeq);
 
    function Get_QoS
@@ -93,25 +93,25 @@ package CosNotifyChannelAdmin.SequenceProxyPullSupplier.Impl is
 
    procedure Set_QoS
      (Self : access Object;
-      QoS  : in CosNotification.QoSProperties);
+      QoS  : CosNotification.QoSProperties);
 
    procedure Validate_QoS
      (Self          : access Object;
-      Required_QoS  : in CosNotification.QoSProperties;
+      Required_QoS  : CosNotification.QoSProperties;
       Available_QoS : out CosNotification.NamedPropertyRangeSeq);
 
    function Add_Filter
      (Self       : access Object;
-      New_Filter : in CosNotifyFilter.Filter.Ref)
+      New_Filter : CosNotifyFilter.Filter.Ref)
      return CosNotifyFilter.FilterID;
 
    procedure Remove_Filter
      (Self   : access Object;
-      Filter : in CosNotifyFilter.FilterID);
+      Filter : CosNotifyFilter.FilterID);
 
    function Get_Filter
      (Self   : access Object;
-      Filter : in CosNotifyFilter.FilterID)
+      Filter : CosNotifyFilter.FilterID)
      return CosNotifyFilter.Filter.Ref;
 
    function Get_All_Filters
@@ -129,12 +129,12 @@ package CosNotifyChannelAdmin.SequenceProxyPullSupplier.Impl is
 
    function Pull_Structured_Events
      (Self       : access Object;
-      Max_Number : in CORBA.Long)
+      Max_Number : CORBA.Long)
      return CosNotification.EventBatch;
 
    procedure Try_Pull_Structured_Events
      (Self       : access Object;
-      Max_Number : in CORBA.Long;
+      Max_Number : CORBA.Long;
       Has_Event  : out    CORBA.Boolean;
       Returns    : out    CosNotification.EventBatch);
 
@@ -154,7 +154,7 @@ package CosNotifyChannelAdmin.SequenceProxyPullSupplier.Impl is
 
    procedure Sequence_Post
      (Self : access Object;
-      Data : in     CosNotification.EventBatch);
+      Data : CosNotification.EventBatch);
 
 private
 

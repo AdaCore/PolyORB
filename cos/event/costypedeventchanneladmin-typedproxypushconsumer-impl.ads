@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -49,11 +49,11 @@ package CosTypedEventChannelAdmin.TypedProxyPushConsumer.Impl is
 
    procedure Connect_Push_Supplier
      (Self          : access Object;
-      Push_Supplier : in CosEventComm.PushSupplier.Ref);
+      Push_Supplier : CosEventComm.PushSupplier.Ref);
 
    procedure Push
      (Self : access Object;
-      Data : in CORBA.Any);
+      Data : CORBA.Any);
    --  Call by supplier to push an event
    --  No need to implement it in this case
 

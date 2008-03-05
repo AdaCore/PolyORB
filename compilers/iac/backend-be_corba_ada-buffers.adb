@@ -308,10 +308,10 @@ package body Backend.BE_CORBA_Ada.Buffers is
       procedure Visit_Specification (E : Node_Id);
 
       function Compute_Size
-        (Var_Node : in Node_Id;
-         Var_Type : in Node_Id;
-         Subp_Dec : in List_Id;
-         Subp_Nod : in Node_Id)
+        (Var_Node : Node_Id;
+         Var_Type : Node_Id;
+         Subp_Dec : List_Id;
+         Subp_Nod : Node_Id)
         return Node_Id;
 
       function Parameter_Size (N : Node_Id) return Value_Id;
@@ -970,10 +970,10 @@ package body Backend.BE_CORBA_Ada.Buffers is
       -----------------------
 
       function Compute_Size
-        (Var_Node : in Node_Id;
-         Var_Type : in Node_Id;
-         Subp_Dec : in List_Id;
-         Subp_Nod : in Node_Id)
+        (Var_Node : Node_Id;
+         Var_Type : Node_Id;
+         Subp_Dec : List_Id;
+         Subp_Nod : Node_Id)
         return Node_Id
       is
          Block_Dcl        : constant List_Id := New_List (K_List_Id);

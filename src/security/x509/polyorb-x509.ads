@@ -82,7 +82,7 @@ package PolyORB.X509 is
 --
 --   --  Private Key
 --
---   function Read (File_Name : in String) return Private_Key;
+--   function Read (File_Name : String) return Private_Key;
 --
 --   procedure Free (The_Private_Key : in out Private_Key);
 --

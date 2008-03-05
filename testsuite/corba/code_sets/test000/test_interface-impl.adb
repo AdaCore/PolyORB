@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -42,7 +42,7 @@ package body Test_Interface.Impl is
 
    procedure Put
      (Self  : access Object;
-      Value : in     CORBA.Wide_String)
+      Value : CORBA.Wide_String)
    is
       pragma Unreferenced (Self);
       pragma Unreferenced (Value);

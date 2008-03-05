@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---           Copyright (C) 2006, Free Software Foundation, Inc.             --
+--        Copyright (C) 2006-2008, Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -98,8 +98,8 @@ package body DHB.Background_Worker.Impl is
 
    procedure Do_Background_Work
      (Self           : access Object;
-      Kilo_Whetstone : in     DHB.KWIPS;
-      Priority       : in     RTCORBA.Priority)
+      Kilo_Whetstone : DHB.KWIPS;
+      Priority       : RTCORBA.Priority)
    is
       Ada_Priority : RTCORBA.NativePriority;
       Ok : Boolean;

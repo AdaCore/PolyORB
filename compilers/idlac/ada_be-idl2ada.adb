@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -2697,7 +2697,7 @@ package body Ada_Be.Idl2Ada is
               (CU, Declarator (Node), Object_Type);
             case Mode (Node) is
                when Mode_In =>
-                  Put (CU, " : in ");
+                  Put (CU, " : ");
                when Mode_Out =>
                   Put (CU, " : out ");
                when Mode_Inout =>

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2002 Free Software Foundation, Inc.             --
+--         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -49,9 +49,9 @@ package Evoluted_Pkg is
 
    type Instrumented_Penpal is new Penpal_Type with null record;
    procedure New_Message
-     (Sender    : in String;
+     (Sender    : String;
       Recipient : access Instrumented_Penpal;
-      Message   : in String);
+      Message   : String);
 
    Penpal : aliased Instrumented_Penpal;
    --  The penpal representing the user

@@ -1130,8 +1130,8 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
    function Map_Repository_Id_Declaration (Entity : Node_Id) return Node_Id is
 
       procedure Fetch_Prefix
-        (Entity     : in  Node_Id;
-         Parent     : in  Node_Id;
+        (Entity     : Node_Id;
+         Parent     : Node_Id;
          Prefix     : out Name_Id;
          Has_Prefix : out Boolean);
 
@@ -1145,8 +1145,8 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
       ------------------
 
       procedure Fetch_Prefix
-        (Entity     : in  Node_Id;
-         Parent     : in  Node_Id;
+        (Entity     : Node_Id;
+         Parent     : Node_Id;
          Prefix     : out Name_Id;
          Has_Prefix : out Boolean)
       is
@@ -2218,7 +2218,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
    --  one of the parents of the first parent of Child
 
    procedure Map_Any_Converters
-     (Type_Name : in     Name_Id;
+     (Type_Name : Name_Id;
       From_Any  :    out Node_Id;
       To_Any    :    out Node_Id);
    --  Return the From_Any and the To_Any nodes corresponding to type
@@ -2291,7 +2291,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
    ------------------------
 
    procedure Map_Any_Converters
-     (Type_Name : in     Name_Id;
+     (Type_Name : Name_Id;
       From_Any  :    out Node_Id;
       To_Any    :    out Node_Id)
    is

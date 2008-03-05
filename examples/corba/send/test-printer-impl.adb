@@ -70,7 +70,7 @@ package body Test.Printer.Impl is
 
    function EchoString
      (Self : access Object;
-      Mesg : in     CORBA.String)
+      Mesg : CORBA.String)
      return CORBA.String
    is
       pragma Unreferenced (Self);
@@ -88,7 +88,7 @@ package body Test.Printer.Impl is
 
    function EchoLong
      (Self : access Object;
-      K    : in     CORBA.Long)
+      K    : CORBA.Long)
      return CORBA.Long
    is
       pragma Unreferenced (Self);

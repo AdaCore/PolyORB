@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2002 Free Software Foundation, Inc.             --
+--         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -42,7 +42,7 @@ package body Common is
 
    procedure Initialize
      (Penpal : in out Penpal_Type;
-      Name   : in String)
+      Name   : String)
    is
    begin
       if Name = "" then
@@ -69,9 +69,9 @@ package body Common is
    -----------------
 
    procedure New_Message
-     (Sender    : in String;
+     (Sender    : String;
       Recipient : access Penpal_Type;
-      Message   : in String)
+      Message   : String)
    is
       pragma Warnings (Off);
       pragma Unreferenced (Recipient);
@@ -106,7 +106,7 @@ package body Common is
 
    procedure Write
      (Stream : access Ada.Streams.Root_Stream_Type'Class;
-      Penpal : in String_Access)
+      Penpal : String_Access)
    is
    begin
       --  No need to use this

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---           Copyright (C) 2006, Free Software Foundation, Inc.             --
+--        Copyright (C) 2006-2008, Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -35,7 +35,7 @@
 
 package Whetstone is
 
-   procedure Small_Whetstone (Kilo_Whets : in Positive);
+   procedure Small_Whetstone (Kilo_Whets : Positive);
    pragma Inline (Small_Whetstone);
    --  Performs the computational workload of a Hartstone task. The
    --  computation is a scaled-down version of the one performed by the

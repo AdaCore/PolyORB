@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2005 Free Software Foundation, Inc.             --
+--         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -42,11 +42,11 @@ package Test.Factory.Impl is
 
    procedure Preallocate
      (Self  : access Object;
-      Count : in     CORBA.Long);
+      Count : CORBA.Long);
 
    function Create_References
      (Self  : access Object;
-      Count : in     CORBA.Long)
+      Count : CORBA.Long)
       return Test.Factory.EchoSequence;
 
    procedure Shutdown (Self : access Object);

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---           Copyright (C) 2006, Free Software Foundation, Inc.             --
+--        Copyright (C) 2006-2008, Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -42,25 +42,25 @@ package DHB.Worker.Impl is
 
    procedure Do_Some_Work
      (Self           : access Object;
-      Kilo_Whetstone : in     DHB.KWIPS);
+      Kilo_Whetstone : DHB.KWIPS);
 
    procedure Do_Some_Work_With_Payload
      (Self           : access Object;
-      Kilo_Whetstone : in     DHB.KWIPS;
-      Payload        : in     DHB.Worker.U_sequence);
+      Kilo_Whetstone : DHB.KWIPS;
+      Payload        : DHB.Worker.U_sequence);
 
    function Get_KWIPS (Self : access Object) return DHB.KWIPS;
 
-   procedure Ping (Self : access Object; Data : in CORBA.Unsigned_Long);
+   procedure Ping (Self : access Object; Data : CORBA.Unsigned_Long);
 
    function Round_Trip
      (Self : access Object;
-      Data : in     CORBA.Unsigned_Long)
+      Data : CORBA.Unsigned_Long)
      return CORBA.Unsigned_Long;
 
    function Round_Trip_With_Payload
      (Self : access Object;
-      Data : in     DHB.Worker.U_sequence)
+      Data : DHB.Worker.U_sequence)
      return DHB.Worker.U_sequence;
 
    function Running_Priority (Self : access Object) return RTCORBA.Priority;

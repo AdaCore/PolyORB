@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2005 Free Software Foundation, Inc.             --
+--         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -37,8 +37,8 @@ package Test_Support is
 
    procedure Initialize;
 
-   procedure Preallocate (Count : in Natural);
+   procedure Preallocate (Count : Natural);
 
-   function To_Object_Reference (Id : in Natural) return Test.Echo.Ref;
+   function To_Object_Reference (Id : Natural) return Test.Echo.Ref;
 
 end Test_Support;

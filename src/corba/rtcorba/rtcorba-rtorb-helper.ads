@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2004-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
@@ -68,7 +68,7 @@ package RTCORBA.RTORB.Helper is
      (Item : RTCORBA.RTORB.InvalidThreadpool_Members) return CORBA.Any;
 
    procedure Raise_InvalidThreadpool
-     (Members : in InvalidThreadpool_Members);
+     (Members : InvalidThreadpool_Members);
    pragma No_Return (Raise_InvalidThreadpool);
 
 end RTCORBA.RTORB.Helper;

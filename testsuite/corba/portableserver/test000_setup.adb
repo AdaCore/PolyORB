@@ -71,7 +71,7 @@ package body Test000_Setup is
    use PolyORB.Utils.Report;
 
    package L is new PolyORB.Log.Facility_Log ("test000");
-   procedure O (Message : in Standard.String;
+   procedure O (Message : Standard.String;
                 Level : PolyORB.Log.Log_Level := PolyORB.Log.Debug)
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -45,13 +45,13 @@ package CosNotifyFilter.FilterFactory.Impl is
 
    function Create_Filter
      (Self               : access Object;
-      Constraint_Grammar : in CORBA.String)
+      Constraint_Grammar : CORBA.String)
      return CosNotifyFilter.Filter.Ref;
 
    function Create_Mapping_Filter
      (Self               : access Object;
-      Constraint_Grammar : in CORBA.String;
-      Default_Value      : in CORBA.Any)
+      Constraint_Grammar : CORBA.String;
+      Default_Value      : CORBA.Any)
      return CosNotifyFilter.MappingFilter.Ref;
 
    ----------------------

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -125,7 +125,7 @@ package body PortableServer.POA.Helper is
    end Raise_AdapterAlreadyExists_From_Any;
 
    procedure Raise_AdapterAlreadyExists
-     (Members : in AdapterAlreadyExists_Members)
+     (Members : AdapterAlreadyExists_Members)
    is
    begin
       PolyORB.Exceptions.User_Raise_Exception
@@ -171,7 +171,7 @@ package body PortableServer.POA.Helper is
    end Raise_AdapterNonExistent_From_Any;
 
    procedure Raise_AdapterNonExistent
-     (Members : in AdapterNonExistent_Members)
+     (Members : AdapterNonExistent_Members)
    is
    begin
       PolyORB.Exceptions.User_Raise_Exception
@@ -219,7 +219,7 @@ package body PortableServer.POA.Helper is
    end Raise_InvalidPolicy_From_Any;
 
    procedure Raise_InvalidPolicy
-     (Members : in InvalidPolicy_Members)
+     (Members : InvalidPolicy_Members)
    is
    begin
       PolyORB.Exceptions.User_Raise_Exception
@@ -265,7 +265,7 @@ package body PortableServer.POA.Helper is
    end Raise_NoServant_From_Any;
 
    procedure Raise_NoServant
-     (Members : in NoServant_Members)
+     (Members : NoServant_Members)
    is
    begin
       PolyORB.Exceptions.User_Raise_Exception
@@ -403,7 +403,7 @@ package body PortableServer.POA.Helper is
    end Raise_ServantAlreadyActive_From_Any;
 
    procedure Raise_ServantAlreadyActive
-     (Members : in ServantAlreadyActive_Members)
+     (Members : ServantAlreadyActive_Members)
    is
    begin
       PolyORB.Exceptions.User_Raise_Exception
@@ -449,7 +449,7 @@ package body PortableServer.POA.Helper is
    end Raise_ServantNotActive_From_Any;
 
    procedure Raise_ServantNotActive
-     (Members : in ServantNotActive_Members)
+     (Members : ServantNotActive_Members)
    is
    begin
       PolyORB.Exceptions.User_Raise_Exception
@@ -495,7 +495,7 @@ package body PortableServer.POA.Helper is
    end Raise_WrongAdapter_From_Any;
 
    procedure Raise_WrongAdapter
-     (Members : in WrongAdapter_Members)
+     (Members : WrongAdapter_Members)
    is
    begin
       PolyORB.Exceptions.User_Raise_Exception
@@ -541,7 +541,7 @@ package body PortableServer.POA.Helper is
    end Raise_WrongPolicy_From_Any;
 
    procedure Raise_WrongPolicy
-     (Members : in WrongPolicy_Members)
+     (Members : WrongPolicy_Members)
    is
    begin
       PolyORB.Exceptions.User_Raise_Exception

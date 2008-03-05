@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2004-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
@@ -68,7 +68,7 @@ package PortableServer.POA.Helper is
      (Item : PortableServer.POA.AdapterAlreadyExists_Members) return CORBA.Any;
 
    procedure Raise_AdapterAlreadyExists
-     (Members : in AdapterAlreadyExists_Members);
+     (Members : AdapterAlreadyExists_Members);
    pragma No_Return (Raise_AdapterAlreadyExists);
 
    TC_AdapterNonExistent : CORBA.TypeCode.Object;
@@ -79,7 +79,7 @@ package PortableServer.POA.Helper is
      (Item : PortableServer.POA.AdapterNonExistent_Members) return CORBA.Any;
 
    procedure Raise_AdapterNonExistent
-     (Members : in AdapterNonExistent_Members);
+     (Members : AdapterNonExistent_Members);
    pragma No_Return (Raise_AdapterNonExistent);
 
    TC_InvalidPolicy : CORBA.TypeCode.Object;
@@ -90,7 +90,7 @@ package PortableServer.POA.Helper is
      (Item : PortableServer.POA.InvalidPolicy_Members) return CORBA.Any;
 
    procedure Raise_InvalidPolicy
-     (Members : in InvalidPolicy_Members);
+     (Members : InvalidPolicy_Members);
    pragma No_Return (Raise_InvalidPolicy);
 
    TC_NoServant : CORBA.TypeCode.Object;
@@ -101,7 +101,7 @@ package PortableServer.POA.Helper is
      (Item : PortableServer.POA.NoServant_Members) return CORBA.Any;
 
    procedure Raise_NoServant
-     (Members : in NoServant_Members);
+     (Members : NoServant_Members);
    pragma No_Return (Raise_NoServant);
 
    TC_ObjectAlreadyActive : CORBA.TypeCode.Object;
@@ -134,7 +134,7 @@ package PortableServer.POA.Helper is
      (Item : PortableServer.POA.ServantAlreadyActive_Members) return CORBA.Any;
 
    procedure Raise_ServantAlreadyActive
-     (Members : in ServantAlreadyActive_Members);
+     (Members : ServantAlreadyActive_Members);
    pragma No_Return (Raise_ServantAlreadyActive);
 
    TC_ServantNotActive : CORBA.TypeCode.Object;
@@ -145,7 +145,7 @@ package PortableServer.POA.Helper is
      (Item : PortableServer.POA.ServantNotActive_Members) return CORBA.Any;
 
    procedure Raise_ServantNotActive
-     (Members : in ServantNotActive_Members);
+     (Members : ServantNotActive_Members);
    pragma No_Return (Raise_ServantNotActive);
 
    TC_WrongAdapter : CORBA.TypeCode.Object;
@@ -156,7 +156,7 @@ package PortableServer.POA.Helper is
      (Item : PortableServer.POA.WrongAdapter_Members) return CORBA.Any;
 
    procedure Raise_WrongAdapter
-     (Members : in WrongAdapter_Members);
+     (Members : WrongAdapter_Members);
    pragma No_Return (Raise_WrongAdapter);
 
    TC_WrongPolicy : CORBA.TypeCode.Object;
@@ -167,7 +167,7 @@ package PortableServer.POA.Helper is
      (Item : PortableServer.POA.WrongPolicy_Members) return CORBA.Any;
 
    procedure Raise_WrongPolicy
-     (Members : in WrongPolicy_Members);
+     (Members : WrongPolicy_Members);
    pragma No_Return (Raise_WrongPolicy);
 
 end PortableServer.POA.Helper;

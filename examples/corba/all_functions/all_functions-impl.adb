@@ -51,7 +51,7 @@ package body all_functions.Impl is
 
    procedure Set_the_attribute
      (Self : access Object;
-      To   : in CORBA.Short)
+      To   : CORBA.Short)
    is
    begin
       Self.Attribute := To;
@@ -80,9 +80,9 @@ package body all_functions.Impl is
 
    procedure in_proc
      (Self : access Object;
-      a : in CORBA.Short;
-      b : in CORBA.Short;
-      c : in CORBA.Short)
+      a : CORBA.Short;
+      b : CORBA.Short;
+      c : CORBA.Short)
    is
       pragma Warnings (Off);
       pragma Unreferenced (Self, a, b, c);
@@ -121,8 +121,8 @@ package body all_functions.Impl is
 
    procedure in_out_proc
      (Self : access Object;
-      a : in CORBA.Short;
-      b : in CORBA.Short;
+      a : CORBA.Short;
+      b : CORBA.Short;
       c : out CORBA.Short;
       d : out CORBA.Short)
    is
@@ -136,9 +136,9 @@ package body all_functions.Impl is
 
    procedure in_inout_proc
      (Self : access Object;
-      a : in CORBA.Short;
+      a : CORBA.Short;
       b : in out CORBA.Short;
-      c : in CORBA.Short;
+      c : CORBA.Short;
       d : in out CORBA.Short)
    is
       pragma Warnings (Off);
@@ -168,7 +168,7 @@ package body all_functions.Impl is
 
    procedure in_out_inout_proc
      (Self : access Object;
-      a : in CORBA.Short;
+      a : CORBA.Short;
       b : out CORBA.Short;
       c : in out CORBA.Short)
    is
@@ -193,9 +193,9 @@ package body all_functions.Impl is
 
    function in_fun
      (Self : access Object;
-      a : in CORBA.Short;
-      b : in CORBA.Short;
-      c : in CORBA.Short)
+      a : CORBA.Short;
+      b : CORBA.Short;
+      c : CORBA.Short)
       return CORBA.Short
    is
       pragma Warnings (Off);
@@ -239,8 +239,8 @@ package body all_functions.Impl is
 
    procedure in_out_fun
      (Self : access Object;
-      a : in CORBA.Short;
-      b : in CORBA.Short;
+      a : CORBA.Short;
+      b : CORBA.Short;
       c : out CORBA.Short;
       d : out CORBA.Short;
       Returns : out CORBA.Short)
@@ -256,9 +256,9 @@ package body all_functions.Impl is
 
    procedure in_inout_fun
      (Self : access Object;
-      a : in CORBA.Short;
+      a : CORBA.Short;
       b : in out CORBA.Short;
-      c : in CORBA.Short;
+      c : CORBA.Short;
       d : in out CORBA.Short;
       Returns : out CORBA.Short)
    is
@@ -292,7 +292,7 @@ package body all_functions.Impl is
 
    procedure in_out_inout_fun
      (Self : access Object;
-      a : in CORBA.Short;
+      a : CORBA.Short;
       b : out CORBA.Short;
       c : in out CORBA.Short;
       Returns : out CORBA.Short)
@@ -320,8 +320,8 @@ package body all_functions.Impl is
 
    procedure oneway_in_proc
      (Self : access Object;
-      a : in CORBA.Short;
-      b : in CORBA.Short)
+      a : CORBA.Short;
+      b : CORBA.Short)
    is
       pragma Warnings (Off);
       pragma Unreferenced (Self);
