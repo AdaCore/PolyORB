@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -1082,19 +1082,18 @@ package body Parser is
          Save_Lexer (State);
          Scan_Token;
          if Token /= T_Semi_Colon then
+            Error_Loc (1) := Token_Location;
             if Token_Backup = T_Type_Id
               or else Token_Backup = T_Type_Prefix
             then
-               Restore_Lexer (State);
-               Error_Loc (1) := Token_Location;
                DE ("?semicolon expected");
             else
+               DE ("semicolon expected");
                Definition := No_Node;
             end if;
+            Restore_Lexer (State);
          end if;
-      end if;
-
-      if No (Definition) then
+      elsif No (Definition) then
          Restore_Lexer (State);
          Skip_Declaration (T_Semi_Colon);
       end if;
