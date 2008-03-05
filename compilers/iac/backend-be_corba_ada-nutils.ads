@@ -402,8 +402,10 @@ package Backend.BE_CORBA_Ada.Nutils is
 
    type Component_Id is
      (C_Argument,
+      C_Completed,
       C_Dimen,
       C_Indices,
+      C_Minor,
       C_Mode,
       C_Name,
       C_IDL_Type,

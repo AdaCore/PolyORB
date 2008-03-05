@@ -114,20 +114,6 @@ package body PolyORB.Representations.CDR is
    TC_Indirect              : constant PolyORB.Types.Unsigned_Long :=
                                 16#ffffffff#;
 
-   procedure Marshall
-     (R      : access CDR_Representation'Class;
-      Buffer : access Buffer_Type;
-      Data   : TypeCode.Object_Ptr;
-      Error  : in out Errors.Error_Container);
-   --  Marshall a TypeCode object
-
-   procedure Unmarshall
-     (R      : access CDR_Representation'Class;
-      Buffer : access Buffer_Type;
-      Data   : out TypeCode.Local_Ref;
-      Error  : in out Errors.Error_Container);
-   --  Unmarshall a TypeCode object
-
    -----------------------------
    -- Typecode map management --
    -----------------------------
@@ -296,7 +282,7 @@ package body PolyORB.Representations.CDR is
    begin
       pragma Debug (C, O ("Marshall (Any): enter"));
 
-      Marshall (Representation, Buffer, Get_Type_Obj (Data_C), E);
+      Marshall (Buffer, Representation, Get_Type_Obj (Data_C), E);
       pragma Assert (not Found (E));
       --  ??? should propagate error appropriately
 
@@ -313,8 +299,8 @@ package body PolyORB.Representations.CDR is
    --------------
 
    procedure Marshall
-     (R      : access CDR_Representation'Class;
-      Buffer : access Buffer_Type;
+     (Buffer : access Buffer_Type;
+      R      : access CDR_Representation'Class;
       Data   : TypeCode.Object_Ptr;
       Error  : in out Errors.Error_Container)
    is
@@ -406,8 +392,8 @@ package body PolyORB.Representations.CDR is
                         (TypeCode.Kind
                          (TypeCode.Member_Type (Data, J)))
                         & ")"));
-                  Marshall (R,
-                            Complex_Buffer,
+                  Marshall (Complex_Buffer,
+                            R,
                             TypeCode.Member_Type (Data, J),
                             Error);
                   exit when Found (Error);
@@ -428,7 +414,7 @@ package body PolyORB.Representations.CDR is
             Marshall (Complex_Buffer, Any.TypeCode.Id (Data));
             Marshall (Complex_Buffer, Any.TypeCode.Name (Data));
             Marshall
-              (R, Complex_Buffer, TypeCode.Discriminator_Type (Data), Error);
+              (Complex_Buffer, R, TypeCode.Discriminator_Type (Data), Error);
 
             if Found (Error) then
                --  Do not proceed further in error case
@@ -458,8 +444,8 @@ package body PolyORB.Representations.CDR is
                      TypeCode.Member_Name (Data, J));
 
                   Marshall
-                    (R,
-                     Complex_Buffer,
+                    (Complex_Buffer,
+                     R,
                      TypeCode.Member_Type (Data, J),
                      Error);
                   exit when Found (Error);
@@ -496,8 +482,8 @@ package body PolyORB.Representations.CDR is
             Marshall (Buffer, TC_Sequence_Id);
             Complex_Buffer := new Buffer_Type;
             Start_Encapsulation (Complex_Buffer);
-            Marshall (R,
-                      Complex_Buffer,
+            Marshall (Complex_Buffer,
+                      R,
                       TypeCode.Content_Type (Data),
                       Error);
             Marshall (Complex_Buffer, TypeCode.Length (Data));
@@ -509,8 +495,8 @@ package body PolyORB.Representations.CDR is
             Marshall (Buffer, TC_Array_Id);
             Complex_Buffer := new Buffer_Type;
             Start_Encapsulation (Complex_Buffer);
-            Marshall (R,
-                      Complex_Buffer,
+            Marshall (Complex_Buffer,
+                      R,
                       TypeCode.Content_Type (Data),
                       Error);
             Marshall (Complex_Buffer,
@@ -524,8 +510,8 @@ package body PolyORB.Representations.CDR is
             Start_Encapsulation (Complex_Buffer);
             Marshall (Complex_Buffer, Any.TypeCode.Id (Data));
             Marshall (Complex_Buffer, Any.TypeCode.Name (Data));
-            Marshall (R,
-                      Complex_Buffer,
+            Marshall (Complex_Buffer,
+                      R,
                       TypeCode.Content_Type (Data),
                       Error);
             Marshall (Buffer, Encapsulate (Complex_Buffer));
@@ -544,8 +530,8 @@ package body PolyORB.Representations.CDR is
                for J in 0 .. Nb - 1 loop
                   Marshall (Complex_Buffer,
                             Any.TypeCode.Member_Name (Data, J));
-                  Marshall (R,
-                            Complex_Buffer,
+                  Marshall (Complex_Buffer,
+                            R,
                             Any.TypeCode.Member_Type (Data, J),
                             Error);
                   exit when Found (Error);
@@ -587,8 +573,8 @@ package body PolyORB.Representations.CDR is
               (Complex_Buffer,
                TypeCode.Type_Modifier (Data));
             Marshall
-              (R,
-               Complex_Buffer,
+              (Complex_Buffer,
+               R,
                TypeCode.Concrete_Base_Type (Data),
                Error);
 
@@ -606,8 +592,8 @@ package body PolyORB.Representations.CDR is
                     (Complex_Buffer,
                      TypeCode.Member_Name (Data, J));
                   Marshall
-                    (R,
-                     Complex_Buffer,
+                    (Complex_Buffer,
+                     R,
                      TypeCode.Member_Type (Data, J),
                      Error);
                   exit when Found (Error);
@@ -626,8 +612,8 @@ package body PolyORB.Representations.CDR is
             Start_Encapsulation (Complex_Buffer);
             Marshall (Complex_Buffer, Any.TypeCode.Id (Data));
             Marshall (Complex_Buffer, Any.TypeCode.Name (Data));
-            Marshall (R,
-                      Complex_Buffer,
+            Marshall (Complex_Buffer,
+                      R,
                       TypeCode.Content_Type (Data),
                       Error);
             if not Found (Error) then
@@ -690,8 +676,8 @@ package body PolyORB.Representations.CDR is
               (Complex_Buffer,
                TypeCode.Type_Modifier (Data));
             Marshall
-              (R,
-               Complex_Buffer,
+              (Complex_Buffer,
+               R,
                TypeCode.Concrete_Base_Type (Data),
                Error);
 
@@ -707,8 +693,8 @@ package body PolyORB.Representations.CDR is
                         TypeCode.Member_Name (Data, J));
 
                      Marshall
-                       (R,
-                        Complex_Buffer,
+                       (Complex_Buffer,
+                        R,
                         TypeCode.Member_Type (Data, J),
                         Error);
                      exit when Found (Error);
@@ -809,8 +795,8 @@ package body PolyORB.Representations.CDR is
 
          when Tk_TypeCode =>
             Marshall
-              (CDR_Representation'Class (R.all)'Access,
-               Buffer,
+              (Buffer,
+               CDR_Representation'Class (R.all)'Access,
                Object_Of (TypeCode.Local_Ref'(From_Any (CData))),
                Error);
 
@@ -1214,7 +1200,7 @@ package body PolyORB.Representations.CDR is
    begin
       pragma Debug (C, O ("Unmarshall (Any): enter"));
 
-      Unmarshall (Representation, Buffer, TC, E);
+      Unmarshall (Buffer, Representation, TC, E);
       pragma Assert (not Found (E));
       --  ??? Propagate error?
 
@@ -1233,8 +1219,8 @@ package body PolyORB.Representations.CDR is
    ----------------
 
    procedure Unmarshall
-     (R      : access CDR_Representation'Class;
-      Buffer : access Buffer_Type;
+     (Buffer : access Buffer_Type;
+      R      : access CDR_Representation'Class;
       Data   : out TypeCode.Local_Ref;
       Error  : in out Errors.Error_Container)
    is
@@ -1352,7 +1338,7 @@ package body PolyORB.Representations.CDR is
                          (Types.Identifier'
                             (Unmarshall (Complex_Buffer'Access)));
 
-                     Unmarshall (R, Complex_Buffer'Access, Member_Type, Error);
+                     Unmarshall (Complex_Buffer'Access, R, Member_Type, Error);
                      exit when Found (Error);
                      Any.TypeCode.Add_Parameter (Data, To_Any (Member_Type));
                      Any.TypeCode.Add_Parameter (Data, To_Any (Member_Name));
@@ -1394,8 +1380,8 @@ package body PolyORB.Representations.CDR is
                Start_TC
                  (R, Object_Of (Data), Offset, Complex => True);
 
-               Unmarshall (R,
-                 Complex_Buffer'Access, Discriminator_Type, Error);
+               Unmarshall
+                 (Complex_Buffer'Access, R, Discriminator_Type, Error);
 
                if Found (Error) then
                   --  Do not proceed further in error case
@@ -1423,7 +1409,7 @@ package body PolyORB.Representations.CDR is
                        Types.String
                          (Types.Identifier'
                             (Unmarshall (Complex_Buffer'Access)));
-                     Unmarshall (R, Complex_Buffer'Access, Member_Type, Error);
+                     Unmarshall (Complex_Buffer'Access, R, Member_Type, Error);
                      exit when Found (Error);
 
                      TypeCode.Add_Parameter (Data, Member_Label);
@@ -1496,7 +1482,7 @@ package body PolyORB.Representations.CDR is
                Start_TC
                  (R, Object_Of (Data), Offset, Complex => True);
 
-               Unmarshall (R, Complex_Buffer'Access, Content_Type, Error);
+               Unmarshall (Complex_Buffer'Access, R, Content_Type, Error);
 
                if not Found (Error) then
                   Length := Unmarshall (Complex_Buffer'Access);
@@ -1521,7 +1507,7 @@ package body PolyORB.Representations.CDR is
                Complex := True;
                Start_TC (R, Object_Of (Data), Offset, Complex => True);
 
-               Unmarshall (R, Complex_Buffer'Access, Content_Type, Error);
+               Unmarshall (Complex_Buffer'Access, R, Content_Type, Error);
 
                if not Found (Error) then
                   Length := Unmarshall (Complex_Buffer'Access);
@@ -1555,7 +1541,7 @@ package body PolyORB.Representations.CDR is
                Complex := True;
                Start_TC (R, Object_Of (Data), Offset, Complex => True);
 
-               Unmarshall (R, Complex_Buffer'Access, Content_Type, Error);
+               Unmarshall (Complex_Buffer'Access, R, Content_Type, Error);
                if not Found (Error) then
                   Any.TypeCode.Add_Parameter (Data, To_Any (Content_Type));
                end if;
@@ -1596,7 +1582,7 @@ package body PolyORB.Representations.CDR is
                        Types.String
                          (Types.Identifier'
                             (Unmarshall (Complex_Buffer'Access)));
-                     Unmarshall (R, Complex_Buffer'Access, Member_Type, Error);
+                     Unmarshall (Complex_Buffer'Access, R, Member_Type, Error);
                      exit when Found (Error);
 
                      TypeCode.Add_Parameter (Data, To_Any (Member_Type));
@@ -1667,8 +1653,8 @@ package body PolyORB.Representations.CDR is
                  (R, Object_Of (Data), Offset, Complex => True);
 
                Type_Modifier := Unmarshall (Complex_Buffer'Access);
-               Unmarshall (R,
-                 Complex_Buffer'Access, Concrete_Base_Type, Error);
+               Unmarshall
+                 (Complex_Buffer'Access, R, Concrete_Base_Type, Error);
 
                if Found (Error) then
                   --  Do not proceed further in error case
@@ -1688,7 +1674,7 @@ package body PolyORB.Representations.CDR is
                        Types.String
                          (Types.Identifier'
                             (Unmarshall (Complex_Buffer'Access)));
-                     Unmarshall (R, Complex_Buffer'Access, Member_Type, Error);
+                     Unmarshall (Complex_Buffer'Access, R, Member_Type, Error);
                      exit when Found (Error);
 
                      Visibility := Unmarshall (Complex_Buffer'Access);
@@ -1725,7 +1711,7 @@ package body PolyORB.Representations.CDR is
                Start_TC
                  (R, Object_Of (Data), Offset, Complex => True);
 
-               Unmarshall (R, Complex_Buffer'Access, Content_Type, Error);
+               Unmarshall (Complex_Buffer'Access, R, Content_Type, Error);
                if not Found (Error) then
                   TypeCode.Add_Parameter (Data, To_Any (Content_Type));
                end if;
@@ -1846,8 +1832,8 @@ package body PolyORB.Representations.CDR is
                  Types.String
                    (Types.Identifier'(Unmarshall (Complex_Buffer'Access)));
                Type_Modifier := Unmarshall (Complex_Buffer'Access);
-               Unmarshall (R,
-                 Complex_Buffer'Access, Concrete_Base_Type, Error);
+               Unmarshall
+                 (Complex_Buffer'Access, R, Concrete_Base_Type, Error);
 
                if Found (Error) then
                   --  Do not attempt to proceed further in error case
@@ -1870,7 +1856,7 @@ package body PolyORB.Representations.CDR is
                        Types.String
                          (Types.Identifier'
                             (Unmarshall (Complex_Buffer'Access)));
-                     Unmarshall (R, Complex_Buffer'Access, Member_Type, Error);
+                     Unmarshall (Complex_Buffer'Access, R, Member_Type, Error);
                      exit when Found (Error);
                      Visibility := Unmarshall (Complex_Buffer'Access);
                      TypeCode.Add_Parameter (Data, To_Any (Visibility));
@@ -2016,7 +2002,7 @@ package body PolyORB.Representations.CDR is
             declare
                TC : TypeCode.Local_Ref;
             begin
-               Unmarshall (R, Buffer, TC, Error);
+               Unmarshall (Buffer, R, TC, Error);
                if not Found (Error) then
                   Set_Any_Value (TC, CData);
                end if;

@@ -825,7 +825,10 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
                Set_IDL_Unit (D, P);
                Set_Parent (D, M);
                Set_CDR_Package (P, D);
-               Append_Node_To_List (D, L);
+
+               if not Disable_Client_Code_Gen then
+                  Append_Node_To_List (D, L);
+               end if;
 
                --  Aligned package
 
@@ -837,7 +840,10 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
                Set_IDL_Unit (D, P);
                Set_Parent (D, M);
                Set_Aligned_Package (P, D);
-               Append_Node_To_List (D, L);
+
+               if not Disable_Client_Code_Gen then
+                  Append_Node_To_List (D, L);
+               end if;
 
                --  Buffers package
 
@@ -849,7 +855,10 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
                Set_IDL_Unit (D, P);
                Set_Parent (D, M);
                Set_Buffers_Package (P, D);
-               Append_Node_To_List (D, L);
+
+               if not Disable_Client_Code_Gen then
+                  Append_Node_To_List (D, L);
+               end if;
             end if;
 
             --  Implementation package
@@ -1744,6 +1753,38 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
       end if;
    end Map_Predefined_CORBA_Entity;
 
+   -------------------------------
+   -- Map_Predefined_CORBA_Type --
+   -------------------------------
+
+   function Map_Predefined_CORBA_Type
+     (E      : Node_Id;
+      Wrap   : Boolean := False;
+      Withed : Boolean := True)
+     return Node_Id
+   is
+      R :  RE_Id;
+   begin
+      R := Get_Predefined_CORBA_Entity (E => E, Wrap => Wrap);
+
+      case R is
+         when RE_Null =>
+            return No_Node;
+
+         when RE_Get_Domain_Policy =>
+            return RE (RE_Get_Domain_Policy_Args_Type, Withed);
+
+         when RE_Get_Policy_Type =>
+            return RE (RE_Get_Policy_Type_Args_Type, Withed);
+
+         when RE_Copy =>
+            return RE (RE_Copy_Args_Type, Withed);
+
+         when others =>
+            return RE (R, Withed);
+      end case;
+   end Map_Predefined_CORBA_Type;
+
    -------------------------------------
    -- Map_Predefined_CORBA_Initialize --
    -------------------------------------
@@ -2117,6 +2158,93 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
             return No_Node;
       end case;
    end Map_Predefined_CORBA_To_Any;
+
+   ---------------------------------
+   -- Map_Predefined_CORBA_To_Ref --
+   ---------------------------------
+
+   function Map_Predefined_CORBA_To_Ref
+     (E      : Node_Id;
+      Withed : Boolean := True)
+     return Node_Id
+   is
+      R : RE_Id;
+   begin
+      R := Get_Predefined_CORBA_Entity (E);
+
+      case R is
+         when RE_Ref_6 =>
+            return RE (RE_To_Ref_6, Withed);
+
+         when RE_Ref_11 =>
+            return RE (RE_To_Ref_5, Withed);
+
+         when others =>
+            return No_Node;
+      end case;
+   end Map_Predefined_CORBA_To_Ref;
+
+   -------------------------------------
+   -- Map_Predefined_CORBA_Marshaller --
+   -------------------------------------
+
+   function Map_Predefined_CORBA_Marshaller
+     (E      : Node_Id;
+      Withed : Boolean := True)
+     return Node_Id
+   is
+      R : RE_Id;
+   begin
+      pragma Assert (FEN.Kind (E) = FEN.K_Operation_Declaration);
+
+      R := Get_Predefined_CORBA_Entity (E);
+
+      case R is
+         when RE_Get_Domain_Policy =>
+            return RE (RE_Get_Domain_Policy_Marshaller, Withed);
+
+         when RE_Get_Policy_Type =>
+            return RE (RE_Get_Policy_Type_Marshaller, Withed);
+
+         when RE_Copy =>
+            return RE (RE_Copy_Marshaller, Withed);
+
+         when others =>
+            return No_Node;
+      end case;
+
+   end Map_Predefined_CORBA_Marshaller;
+
+   ---------------------------------------
+   -- Map_Predefined_CORBA_Unmarshaller --
+   ---------------------------------------
+
+   function Map_Predefined_CORBA_Unmarshaller
+     (E      : Node_Id;
+      Withed : Boolean := True)
+     return Node_Id
+   is
+      R : RE_Id;
+   begin
+      pragma Assert (FEN.Kind (E) = FEN.K_Operation_Declaration);
+
+      R := Get_Predefined_CORBA_Entity (E);
+
+      case R is
+         when RE_Get_Domain_Policy =>
+            return RE (RE_Get_Domain_Policy_Unmarshaller, Withed);
+
+         when RE_Get_Policy_Type =>
+            return RE (RE_Get_Policy_Type_Unmarshaller, Withed);
+
+         when RE_Copy =>
+            return RE (RE_Copy_Unmarshaller, Withed);
+
+         when others =>
+            return No_Node;
+      end case;
+
+   end Map_Predefined_CORBA_Unmarshaller;
 
    -------------------------------
    -- Map_Predefined_CORBA_Wrap --
@@ -3641,6 +3769,93 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
       end case;
    end Get_To_Any_Node;
 
+   ---------------------
+   -- Get_To_Ref_Node --
+   ---------------------
+
+   function Get_To_Ref_Node
+     (T      : Node_Id;
+      Withed : Boolean := True)
+     return Node_Id is
+   begin
+      case FEN.Kind (T) is
+         when K_Scoped_Name =>
+            declare
+               Result : constant Node_Id :=
+                 Map_Predefined_CORBA_To_Ref (T, Withed);
+            begin
+               --  If result is not nul, then we deal with a
+               --  predefined CORBA entity.
+
+               if Present (Result) then
+                  return Result;
+               end if;
+
+               return Get_To_Ref_Node (Reference (T), Withed);
+            end;
+
+         when others =>
+            declare
+               Orig_Type_Spec : constant Node_Id :=
+                 FEU.Get_Original_Type_Specifier (T);
+            begin
+               return Expand_Designator
+                 (To_Ref_Node (BE_Node (Identifier (Orig_Type_Spec))),
+                  Withed);
+            end;
+      end case;
+   end Get_To_Ref_Node;
+
+   -------------------------
+   -- Get_Marshaller_Node --
+   -------------------------
+
+   function Get_Marshaller_Node
+     (O      : Node_Id;
+      Withed : Boolean := True)
+     return Node_Id
+   is
+      Result : Node_Id;
+   begin
+      pragma Assert (FEN.Kind (O) = FEN.K_Operation_Declaration);
+
+      Result := Map_Predefined_CORBA_Marshaller (O, Withed);
+
+      if No (Result) then
+         Result := Expand_Designator
+           (Marshaller_Node
+            (BE_Node
+             (Identifier (O))));
+      end if;
+
+      return Result;
+   end Get_Marshaller_Node;
+
+   ---------------------------
+   -- Get_Unmarshaller_Node --
+   ---------------------------
+
+   function Get_Unmarshaller_Node
+     (O      : Node_Id;
+      Withed : Boolean := True)
+     return Node_Id
+   is
+      Result : Node_Id;
+   begin
+      pragma Assert (FEN.Kind (O) = FEN.K_Operation_Declaration);
+
+      Result := Map_Predefined_CORBA_Unmarshaller (O, Withed);
+
+      if No (Result) then
+         Result := Expand_Designator
+           (Unmarshaller_Node
+            (BE_Node
+             (Identifier (O))));
+      end if;
+
+      return Result;
+   end Get_Unmarshaller_Node;
+
    ------------------------------
    -- Get_Type_Definition_Node --
    ------------------------------
@@ -3684,7 +3899,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
             --  Handle predefined CORBA entities
 
             declare
-               Result : constant Node_Id := Map_Predefined_CORBA_Entity
+               Result : constant Node_Id := Map_Predefined_CORBA_Type
                  (T, Wrap => Wrap);
             begin
                if Present (Result) then
@@ -3698,7 +3913,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
             --  Handle predefined CORBA entities
 
             declare
-               Result         : constant Node_Id := Map_Predefined_CORBA_Entity
+               Result         : constant Node_Id := Map_Predefined_CORBA_Type
                  (T, Wrap => Wrap);
                Orig_Type_Spec : constant Node_Id :=
                  FEU.Get_Original_Type_Specifier (T);

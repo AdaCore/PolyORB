@@ -1285,10 +1285,11 @@ package body Backend.BE_CORBA_Ada.Stubs is
          --  The flags below indicate whether the operation is mapped
          --  to an Ada function or an Ada procedure.
 
-         Is_Function      : constant Boolean :=
-           Present (Return_Type (Stub_Node (BE_Node (Identifier (E)))));
-         Non_Void         : constant Boolean :=
+         Has_Out_Params  : constant Boolean := Contains_Out_Parameters (E);
+         Non_Void        : constant Boolean :=
            FEN.Kind (Type_Spec (E)) /= K_Void;
+         Is_Function     : constant Boolean :=
+           Non_Void and then not Has_Out_Params;
       begin
          --  Generate nil reference check for Self
 
@@ -1834,11 +1835,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
 
                --  Get the marshaller
 
-               C := Expand_Designator
-                 (Marshaller_Node
-                  (BE_Node
-                   (Identifier
-                    (E))));
+               C := Get_Marshaller_Node (E);
 
                Profile := New_List (K_List_Id);
                Append_Node_To_List (RE (RE_True), Profile);
@@ -1927,16 +1924,12 @@ package body Backend.BE_CORBA_Ada.Stubs is
              N));
          Append_Node_To_List (N, Statements);
 
-         if Use_SII then
+         if Use_SII and then (Has_Out_Params or else Non_Void) then
             --  Unmarshall the request using the generated SII
             --  marshaller. In DII mode the unmarshalling is performed
             --  transparently.
 
-            C := Expand_Designator
-              (Unmarshaller_Node
-               (BE_Node
-                (Identifier
-                 (E))));
+            C := Get_Unmarshaller_Node (E);
 
             Profile := New_List (K_List_Id);
             Append_Node_To_List (RE (RE_True), Profile);
@@ -1974,11 +1967,6 @@ package body Backend.BE_CORBA_Ada.Stubs is
 
             N := Make_Subprogram_Call
               (C, Profile);
-            Append_Node_To_List (N, Statements);
-
-            N := Make_Subprogram_Call
-              (RE (RE_Release),
-               Make_List_Id (Make_Identifier (VN (V_Buffer))));
             Append_Node_To_List (N, Statements);
 
          end if;
@@ -2022,6 +2010,17 @@ package body Backend.BE_CORBA_Ada.Stubs is
                Append_Node_To_List (Make_Ada_Comment (Name_Find), Statements);
 
                N := Make_Selected_Component (PN (P_Arg_List), PN (P_Returns));
+
+               --  If the return value is a class-wide type, cast
+               --  the record field.
+
+               if Is_Class_Wide (E) then
+                  N := Make_Type_Conversion
+                    (Make_Attribute_Reference
+                     (Get_Type_Definition_Node (Type_Spec (E)), A_Class),
+                     N);
+               end if;
+
                N := Make_Assignment_Statement
                  (Make_Identifier (PN (P_Returns)), N);
                Append_Node_To_List (N, Statements);
@@ -2043,6 +2042,9 @@ package body Backend.BE_CORBA_Ada.Stubs is
                if FEN.Parameter_Mode (P) = Mode_Out
                  or else FEN.Parameter_Mode (P) = Mode_Inout
                then
+                  Argument_Name := To_Ada_Name
+                    (IDL_Name (Identifier (Declarator (P))));
+
                   --  Record field:
 
                   if Use_Compiler_Alignment then
@@ -2056,6 +2058,16 @@ package body Backend.BE_CORBA_Ada.Stubs is
                   --  Parameter:
 
                   M := Map_Defining_Identifier (Declarator (P));
+
+                  --  If the parameter type is a class-wide type, cast
+                  --  the record field.
+
+                  if Is_Class_Wide (P) then
+                     N := Make_Type_Conversion
+                       (Make_Attribute_Reference
+                        (Get_Type_Definition_Node (Type_Spec (P)), A_Class),
+                        N);
+                  end if;
 
                   N := Make_Assignment_Statement (M, N);
 
@@ -2095,10 +2107,11 @@ package body Backend.BE_CORBA_Ada.Stubs is
          --  The flags below indicates whether the operation is mapped
          --  to an Ada function or an Ada procedure.
 
-         Is_Function      : constant Boolean :=
-           Present (Return_Type (Stub_Node (BE_Node (Identifier (E)))));
-         Non_Void         : constant Boolean :=
+         Has_Out_Params  : constant Boolean := Contains_Out_Parameters (E);
+         Non_Void        : constant Boolean :=
            FEN.Kind (Type_Spec (E)) /= K_Void;
+         Is_Function     : constant Boolean :=
+           Non_Void and then not Has_Out_Params;
       begin
          if not Local_Interface then
 
@@ -2313,7 +2326,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
                  (Defining_Identifier =>
                     Make_Defining_Identifier (VN (V_Buffer)),
                   Object_Definition => RE (RE_Buffer_Access),
-                  Constant_Present  => False,
+                  Constant_Present  => True,
                   Expression => C);
                Append_Node_To_List (N, L);
 
@@ -2412,71 +2425,62 @@ package body Backend.BE_CORBA_Ada.Stubs is
                Append_Node_To_List (N, Statements (Current_Package));
             end if;
 
-         end if;
+            --  In the case of the SII use, the argument list is an
+            --  aliased record variable.
 
-         --  In the case of the SII use, the argument list is an
-         --  aliased record variable.
+            if Use_Compiler_Alignment then
+               declare
+                  Disc : constant List_Id := New_List (K_List_Id);
+               begin
+                  C := Expand_Designator
+                    (Args_In_Node
+                     (BE_Node
+                      (Identifier
+                       (E))));
 
-         if Use_Compiler_Alignment then
-            declare
-               Disc : constant List_Id := New_List (K_List_Id);
-            begin
-               C := Expand_Designator
-                 (Args_In_Node
-                  (BE_Node
-                   (Identifier
-                    (E))));
+                  P := First_Entity (Parameters (E));
 
-               P := First_Entity (Parameters (E));
+                  while Present (P) loop
+                     if  FEN.Parameter_Mode (P) = Mode_In then
+                        --  FIXME to be factorized !!!!
 
-               while Present (P) loop
-                  if  FEN.Parameter_Mode (P) = Mode_In then
-                     --  FIXME to be factorized !!!!
+                        Get_Discriminants_Value
+                          (P,
+                           Type_Spec (P),
+                           Disc);
+                     end if;
 
-                     Get_Discriminants_Value
-                       (P,
-                        Type_Spec (P),
-                        Disc);
-                  end if;
+                     P := Next_Entity (P);
+                  end loop;
 
-                  P := Next_Entity (P);
-               end loop;
+                  N := Make_Subprogram_Call (C, Disc);
 
-               N := Make_Subprogram_Call (C, Disc);
+                  N := Make_Object_Declaration
+                    (Defining_Identifier =>
+                       Make_Defining_Identifier (VN (V_Args_In)),
+                     Aliased_Present     => True,
+                     Object_Definition   => N);
+                  Append_Node_To_List (N, L);
+               end;
+
+               N := Get_Type_Definition_Node (E);
 
                N := Make_Object_Declaration
                  (Defining_Identifier =>
-                    Make_Defining_Identifier (VN (V_Args_In)),
+                    Make_Defining_Identifier (PN (P_Arg_List)),
                   Aliased_Present     => True,
                   Object_Definition   => N);
                Append_Node_To_List (N, L);
-            end;
 
-            N := Expand_Designator
-              (Type_Def_Node
-               (BE_Node
-                (Identifier
-                 (E))));
-
-            N := Make_Object_Declaration
-              (Defining_Identifier =>
-                 Make_Defining_Identifier (PN (P_Arg_List)),
-               Aliased_Present     => True,
-               Object_Definition   => N);
-            Append_Node_To_List (N, L);
-
-         elsif Use_SII then
-            N := Expand_Designator
-              (Type_Def_Node
-               (BE_Node
-                (Identifier
-                 (E))));
-            N := Make_Object_Declaration
-              (Defining_Identifier =>
-                 Make_Defining_Identifier (PN (P_Arg_List)),
-               Aliased_Present     => True,
-               Object_Definition   => N);
-            Append_Node_To_List (N, L);
+            elsif Use_SII then
+               N := Get_Type_Definition_Node (E);
+               N := Make_Object_Declaration
+                 (Defining_Identifier =>
+                    Make_Defining_Identifier (PN (P_Arg_List)),
+                  Aliased_Present     => True,
+                  Object_Definition   => N);
+               Append_Node_To_List (N, L);
+            end if;
          end if;
 
          return L;

@@ -99,10 +99,12 @@ package Backend.BE_CORBA_Ada.Runtime is
       RU_CORBA_Current_Impl,
       RU_CORBA_Policy_Helper,
       RU_CORBA_Policy_Impl,
+      RU_CORBA_Policy_CDR,
       RU_CORBA_Object_Impl,
       RU_CORBA_TypeCode_Impl,
       RU_CORBA_DomainManager_Impl,
       RU_CORBA_DomainManager_Helper,
+      RU_CORBA_DomainManager_CDR,
       RU_CORBA_Object_Internals,
       RU_CORBA_Object_Helper,
       RU_CORBA_TypeCode_Internals,
@@ -206,10 +208,17 @@ package Backend.BE_CORBA_Ada.Runtime is
       RE_Get_Container_1,           --  CORBA.Get_Container
       RE_Ref_11,                    --  CORBA.DomainManager.Ref
       RE_Object_8,                  --  CORBA.DomainManager.Impl.Object
+      RE_To_Ref_5,                  --  CORBA.DomainManager.Helper.To_Ref
       RE_From_Any_5,                --  CORBA.DomainManager.Helper.From_Any
       RE_To_Any_5,                  --  CORBA.DomainManager.Helper.To_Any
       RE_TC_DomainManager,          --  CORBA.DomainManager.Helper.
       --                                   TC_DomainManager
+      RE_Get_Domain_Policy_Args_Type,   --  CORBA.DomainManager.CDR.
+      --                                   get_domain_policy_Args_Type
+      RE_Get_Domain_Policy_Marshaller,  --  CORBA.DomainManager.CDR.
+      --                                   get_domain_policy_Marshaller
+      RE_Get_Domain_Policy_Unmarshaller,  --  CORBA.DomainManager.CDR.
+      --                                   get_domain_policy_Unmarshaller
       RE_Create_List_1,             --  CORBA.ExceptionList.Create_List
       RE_Add_1,                     --  CORBA.ExceptionList.Add
       RE_Ref_5,                     --  CORBA.ExceptionList.Ref
@@ -242,6 +251,8 @@ package Backend.BE_CORBA_Ada.Runtime is
       RE_Boolean,                   --  CORBA.Boolean
       RE_Octet,                     --  CORBA.Octet
       RE_Get_Domain_Policy,         --  CORBA.DomainManager.Get_Domain_Policy
+      RE_Get_Policy_Type,           --  CORBA.Policy.Get_Policy_Type
+      RE_Copy,                      --  CORBA.Policy.Copy
 
       --  Original Sequence types
 
@@ -406,8 +417,18 @@ package Backend.BE_CORBA_Ada.Runtime is
       RE_Ref_6,                     --  CORBA.Policy.Ref
       RE_Object_3,                  --  CORBA.Policy.Impl.Object
       RE_TC_Policy,                 --  CORBA.Policy.Helper.TC_Policy
+      RE_To_Ref_6,                  --  CORBA.Policy.Helper.To_Ref
       RE_From_Any_6,                --  CORBA.Policy.Helper.From_Any
       RE_To_Any_6,                  --  CORBA.Policy.Helper.To_Any
+      RE_Get_Policy_Type_Args_Type,  --  CORBA.Policy.CDR.
+      --                                  Get_Policy_Type_Args_Type
+      RE_Get_Policy_Type_Marshaller, --  CORBA.Policy.CDR.
+      --                                  Get_Policy_Type_Marshaller
+      RE_Get_Policy_Type_Unmarshaller, --  CORBA.Policy.CDR.
+      --                                  Get_Policy_Type_Unmarshaller
+      RE_Copy_Args_Type,            --  CORBA.Policy.CDR.Copy_Args_Type
+      RE_Copy_Marshaller,           --  CORBA.Policy.CDR.Copy_Marshaller
+      RE_Copy_Unmarshaller,         --  CORBA.Policy.CDR.Copy_Unmarshaller
       RE_Local_Ref,                 --  CORBA.Current.Local_Ref
       RE_Object_4,                  --  CORBA.Current.Impl.Object
       RE_Object_5,                  --  CORBA.Object.Impl.Object
@@ -544,9 +565,12 @@ package Backend.BE_CORBA_Ada.Runtime is
       RE_Ref_3,                     --  PolyORB.Any.NVList.Ref
       RE_Create,                    --  PolyORB.Any.NVList.Create
       RE_Add_Item_1,                --  PolyORB.Any.NVList.Add_Item
+      RE_Local_Ref_1,               --  PolyORB.Any.TypeCode.Local_Ref
       RE_Object_Ptr_2,              --  PolyORB.Any.TypeCode.Object_Ptr
       RE_Object_7,                  --  PolyORB.Any.TypeCode.Object
       RE_TC_Object_1,               --  PolyORB.Any.TypeCode.TC_Object
+      RE_Object_Of_1,               --  PolyORB.Any.TypeCode.Object_Of
+      RE_To_Ref_1,                  --  PolyORB.Any.TypeCode.To_Ref
       RE_TC_Alias,                  --  PolyORB.Any.TypeCode.TC_Alias
       RE_TC_Enum,                   --  PolyORB.Any.TypeCode.TC_Enum
       RE_TC_Except,                 --  PolyORB.Any.TypeCode.TC_Except
@@ -588,8 +612,12 @@ package Backend.BE_CORBA_Ada.Runtime is
       --                                   Operation_Payload
       RE_CDR_Representation,        --  PolyORB.Representations.
       --                                   CDR.CDR_Representation
+      RE_Completed_No,              --  PolyORB.Errors.Completed_No
       RE_Error_Container,           --  PolyORB.Errors.Error_Container
       RE_Found,                     --  PolyORB.Errors.Found
+      RE_Marshal_E,                 --  PolyORB.Errors.Marshal_E
+      RE_System_Exception_Members,  --  PolyORB.Errors.System_Exception_Members
+      RE_Throw,                     --  PolyORB.Errors.Throw
       RE_User_Get_Members,          --  PolyORB.Exceptions.User_get_Members
       RE_User_Raise_Exception,      --  PolyORB.Exceptions.User_Raise_Exception
       RE_Module_Info,               --  PolyORB.Initialization.Module_Info
@@ -746,6 +774,8 @@ package Backend.BE_CORBA_Ada.Runtime is
          RE_Boolean            => RE_Boolean,
          RE_Octet              => RE_Octet,
          RE_Get_Domain_Policy  => RE_Get_Domain_Policy,
+         RE_Get_Policy_Type    => RE_Get_Policy_Type,
+         RE_Copy               => RE_Copy,
          RE_AnySeq_1           => RE_AnySeq_2,
          RE_FloatSeq_1         => RE_FloatSeq_2,
          RE_DoubleSeq_1        => RE_DoubleSeq_2,
@@ -806,6 +836,8 @@ package Backend.BE_CORBA_Ada.Runtime is
          RE_Boolean            => RE_Boolean,
          RE_Octet              => RE_Octet,
          RE_Get_Domain_Policy  => RE_Get_Domain_Policy,
+         RE_Get_Policy_Type    => RE_Get_Policy_Type,
+         RE_Copy               => RE_Copy,
          RE_AnySeq_1           => RE_Sequence_201,
          RE_BooleanSeq_1       => RE_Sequence_202,
          RE_CharSeq_1          => RE_Sequence_203,
@@ -1113,9 +1145,13 @@ package Backend.BE_CORBA_Ada.Runtime is
          RE_Ref_11                    => RU_CORBA_DomainManager,
          RE_Get_Domain_Policy         => RU_CORBA_DomainManager,
          RE_Object_8                  => RU_CORBA_DomainManager_Impl,
+         RE_To_Ref_5                  => RU_CORBA_DomainManager_Helper,
          RE_From_Any_5                => RU_CORBA_DomainManager_Helper,
          RE_To_Any_5                  => RU_CORBA_DomainManager_Helper,
          RE_TC_DomainManager          => RU_CORBA_DomainManager_Helper,
+         RE_Get_Domain_Policy_Args_Type    => RU_CORBA_DomainManager_CDR,
+         RE_Get_Domain_Policy_Marshaller   => RU_CORBA_DomainManager_CDR,
+         RE_Get_Domain_Policy_Unmarshaller => RU_CORBA_DomainManager_CDR,
          RE_Create_List_1             => RU_CORBA_ExceptionList,
          RE_Add_1                     => RU_CORBA_ExceptionList,
          RE_Ref_5                     => RU_CORBA_ExceptionList,
@@ -1144,9 +1180,18 @@ package Backend.BE_CORBA_Ada.Runtime is
          RE_To_Any_3                  => RU_CORBA_Object_Helper,
          RE_Wrap_3                    => RU_CORBA_Object_Helper,
          RE_Ref_6                     => RU_CORBA_Policy,
+         RE_Get_Policy_Type           => RU_CORBA_Policy,
+         RE_Copy                      => RU_CORBA_Policy,
          RE_TC_Policy                 => RU_CORBA_Policy_Helper,
+         RE_To_Ref_6                  => RU_CORBA_Policy_Helper,
          RE_From_Any_6                => RU_CORBA_Policy_Helper,
          RE_To_Any_6                  => RU_CORBA_Policy_Helper,
+         RE_Get_Policy_Type_Args_Type    => RU_CORBA_Policy_CDR,
+         RE_Get_Policy_Type_Marshaller   => RU_CORBA_Policy_CDR,
+         RE_Get_Policy_Type_Unmarshaller => RU_CORBA_Policy_CDR,
+         RE_Copy_Args_Type               => RU_CORBA_Policy_CDR,
+         RE_Copy_Marshaller              => RU_CORBA_Policy_CDR,
+         RE_Copy_Unmarshaller            => RU_CORBA_Policy_CDR,
          RE_Object_3                  => RU_CORBA_Policy_Impl,
          RE_Local_Ref                 => RU_CORBA_Current,
          RE_Object_4                  => RU_CORBA_Current_Impl,
@@ -1193,8 +1238,11 @@ package Backend.BE_CORBA_Ada.Runtime is
          RE_Ref_3                     => RU_PolyORB_Any_NVList,
          RE_Create                    => RU_PolyORB_Any_NVList,
          RE_Add_Item_1                => RU_PolyORB_Any_NVList,
+         RE_Local_Ref_1               => RU_PolyORB_Any_TypeCode,
          RE_Object_Ptr_2              => RU_PolyORB_Any_TypeCode,
          RE_Object_7                  => RU_PolyORB_Any_TypeCode,
+         RE_Object_Of_1               => RU_PolyORB_Any_TypeCode,
+         RE_To_Ref_1                  => RU_PolyORB_Any_TypeCode,
          RE_TC_Alias                  => RU_PolyORB_Any_TypeCode,
          RE_TC_Array                  => RU_PolyORB_Any_TypeCode,
          RE_TC_Enum                   => RU_PolyORB_Any_TypeCode,
@@ -1227,8 +1275,12 @@ package Backend.BE_CORBA_Ada.Runtime is
          RE_Profile_Access            => RU_PolyORB_Binding_Data,
          RE_Get_GIOP_Version          => RU_PolyORB_Binding_Data_GIOP,
          RE_Operation_Payload         => RU_PolyORB_Protocols_GIOP,
+         RE_Completed_No              => RU_PolyORB_Errors,
          RE_Error_Container           => RU_PolyORB_Errors,
          RE_Found                     => RU_PolyORB_Errors,
+         RE_Marshal_E                 => RU_PolyORB_Errors,
+         RE_System_Exception_Members  => RU_PolyORB_Errors,
+         RE_Throw                     => RU_PolyORB_Errors,
          RE_Register_Exception        => RU_PolyORB_Exceptions,
          RE_User_Get_Members          => RU_PolyORB_Exceptions,
          RE_User_Raise_Exception      => RU_PolyORB_Exceptions,
