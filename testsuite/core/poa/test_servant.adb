@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2002 Free Software Foundation, Inc.             --
+--         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -40,7 +40,7 @@ package body Test_Servant is
    ---------------------
 
    function Execute_Servant
-     (S   : access My_Servant;
+     (S   : not null access My_Servant;
       Msg : PolyORB.Components.Message'Class)
      return PolyORB.Components.Message'Class
    is
