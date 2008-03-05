@@ -668,6 +668,7 @@ platforms:
 @item MacOS X
 @item Solaris
 @item Tru64
+@item VxWorks
 @item Windows
 @end itemize
 
@@ -749,6 +750,14 @@ NOTE: you must use GNU make (version 3.80 or later) to build PolyORB.
 The @file{RANLIB} environment variable must be set to the path of the
 cross @file{ranlib} prior to running @file{configure} with the
 appropriate @code{--target} option.
+
+For example, for VxWorks 5 execute:
+@smallexample
+  $ export RANLIB=ranlibppc
+  $ ./configure --target=powerpc-wrs-vxworks [some options]
+  $ make
+  $ make install
+@end smallexample
 
 Only one PolyORB installation (native or cross) is currently possible
 with a given @code{--prefix}. If both a native and a cross
@@ -1231,6 +1240,7 @@ searched parameter.
 * Using a configuration file::
 * Using environment variables::
 * Using the command line::
+* Using a source file::
 @end menu
 
 @c -------------------------------------------------------------------
@@ -1302,6 +1312,43 @@ PolyORB allows to set up configuration variables on the command
 line. The syntax is close to the one described in configuration files.
 A variable @code{Var.Iable} in section @code{[Sec]} can be overridden
 with flag @code{--polyorb-<sec>-<var>-<iable>[=<value>]}.
+
+@c -------------------------------------------------------------------
+@node Using a source file
+@subsection Using a source file
+@c -------------------------------------------------------------------
+
+@noindent
+Many embedded systems do not have a filesystem or a shell, so the
+previous run-time configuration methods cannot be used in these targets.
+A PolyORB node can also be configured using the API of package
+@code{PolyORB.Parameters.Static}. An example configuration file may be
+found in @file{examples/static/po_static_conf.ads}.
+
+An array of PolyORB parameters of type @code{Static_Parameters_Array} is
+first declared containing a list of pairs of Variable and Value strings.
+The syntax is close to the one described in configuration files.
+A variable @code{Var.Iable} in section @code{[Sec]} is specified
+as the pair of strings @code{"[sec]var.iable", "<value>"}.
+
+There is no need to with this @file{po_static_conf.ads} in the application
+source code, the only requirement is that the array is exported with the
+external name "@code{__polyorbconf_optional}". This allows to modify
+PolyORB parameters without recompiling the application, just relinking
+it. For example:
+
+@smallexample
+  $ gnatmake -c po_static_conf.ads `polyorb-config`
+  $ gnatmake -b -l server.adb `polyorb-config` -largs po_static_conf.o
+@end smallexample
+
+Note the @code{-l} flag to gnatmake for linking only, and the need to
+specify to the linker the object file with the array using @code{-largs}
+if no package withs it.
+
+It should be noticed that this static array of parameters is read at
+elaboration time only, this API cannot be used to modify the PolyORB
+configuration at run-time.
 
 @c -------------------------------------------------------------------
 @node Setting up protocol personalities
@@ -2327,7 +2374,7 @@ No polyorb.conf configuration file.
 complete IOR on the command line:
 @smallexample
 $ ./client 'IOR:01534f410d00000049444c3[..]'
-Echoing string: « Hello Ada ! »
+Echoing string: " Hello Ada ! "
 I said : Hello Ada !
 The object answered : Hello Ada !
 @end smallexample
