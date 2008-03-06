@@ -1656,8 +1656,8 @@ src/polyorb-services-naming-tools.ads
 src/polyorb-services-naming.ads
 src/polyorb-services.ads
 src/polyorb-setup-access_points.ads
-src/polyorb-setup-base.adb
-src/polyorb-setup-base.ads
+src/polyorb-setup-common_base.adb
+src/polyorb-setup-common_base.ads
 src/polyorb-setup-default_parameters.adb
 src/polyorb-setup-default_parameters.ads
 src/polyorb-setup-oa-basic_poa.adb
@@ -1881,6 +1881,8 @@ src/security/x509/polyorb-x509.ads
 src/security/x509/polyorb_x509.c
 src/setup/Makefile.am
 src/setup/Makefile.in
+src/setup/polyorb-setup-base.adb.in
+src/setup/polyorb-setup-base.ads
 src/setup/polyorb-setup-client.adb.in
 src/setup/polyorb-setup-client.ads
 src/setup/polyorb-setup-no_tasking_server.adb

@@ -89,10 +89,13 @@ case $target_os in
   aix*)
     CFLAGS_FOR_TARGET="-mminimal-toc"
     ;;
+
   vxworks*)
     CFLAGS_FOR_TARGET="-mlongcall"
     TARGET_EXE_SUFFIX=.out
+    PLATFORM_BASE_LIST="PolyORB.Parameters.Static"
     ;;
+
   cygwin* | mingw* )
     WINDOWS_ON_TARGET=True
     TARGET_EXE_SUFFIX=.exe
@@ -597,25 +600,44 @@ host=$host_tmp
 #       tools/po_createref/po_createref_setup.adb
 #################################################
 
+PLATFORM_BASE_WITHS=config.platform_base_withs.adb
 PROTO_CLIENT_WITHS=config.proto_client_withs.adb
 PROTO_SERVER_WITHS=config.proto_server_withs.adb
 PO_CATREF_WITHS=config.po_catref_withs.adb
 PO_CREATEREF_WITHS=config.po_createref_withs.adb
 
-ALL_WITHS="
+# Dependency files related to protocol personalities
+
+ALL_PROTO_WITHS="
   ${PROTO_CLIENT_WITHS}
   ${PROTO_SERVER_WITHS}
   ${PO_CATREF_WITHS}
   ${PO_CREATEREF_WITHS}"
 
+# All generated dependency files
+
+ALL_WITHS="
+  ${PLATFORM_BASE_WITHS}
+  ${ALL_PROTO_WITHS}"
+
 rm -f ${ALL_WITHS}
+
+for U in ${PLATFORM_BASE_LIST}
+do
+  cat >>${PLATFORM_BASE_WITHS} <<EOF
+
+with ${U};
+pragma Elaborate_All (${U});
+pragma Warnings (Off, ${U});
+EOF
+done
 
 for P in ${PROTO_LIST}
 do
    c1=`echo "-- ${P} --" | tr a-z A-Z`
    c2=`echo "$c1" | sed s/./-/g`
 
-   for f in ${ALL_WITHS}; do
+   for f in ${ALL_PROTO_WITHS}; do
    cat >>${f} <<EOF
 
 $c2
@@ -697,10 +719,13 @@ done
 
 for F in ${ALL_WITHS}
 do
+   # Remove initial blank line
+
    SEDCMD="${SED} -e 1d"
 
    # If we do not have SSL enabled, comment out any mention of SSLIOP
    # in the setup files.
+
    if test "x$HAVE_SSL" != xyes; then
       SEDCMD=["${SEDCMD} -e 's/[^ ].*SSLIOP/--  &/'"]
    fi
@@ -711,6 +736,7 @@ do
    fi
 done
 
+AC_SUBST_FILE(PLATFORM_BASE_WITHS)
 AC_SUBST_FILE(PROTO_CLIENT_WITHS)
 AC_SUBST_FILE(PROTO_SERVER_WITHS)
 AC_SUBST_FILE(PO_CATREF_WITHS)
@@ -781,6 +807,7 @@ AC_OUTPUT([
 	src/security/tls/Makefile
 	src/security/x509/Makefile
 	src/setup/Makefile
+	src/setup/polyorb-setup-base.adb
 	src/setup/polyorb-setup-client.adb
 	src/setup/polyorb-setup-server.adb
 	src/setup/security/Makefile

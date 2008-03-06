@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---        P O L Y O R B . P A R T I T I O N _ E L A B O R A T I O N         --
+--            P O L Y O R B . S E T U P . C O M M O N _ B A S E             --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2006-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,61 +31,10 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Warnings (Off);
+--  Base setup, common to all platforms and all middleware configurations
 
-with PolyORB.Exceptions;
-pragma Elaborate_All (PolyORB.Exceptions);
+package PolyORB.Setup.Common_Base is
 
-with PolyORB.DSA_P.Exceptions;
-pragma Elaborate_All (PolyORB.DSA_P.Exceptions);
-
-with PolyORB.Initialization;
-pragma Elaborate_All (PolyORB.Initialization);
-
-with PolyORB.Log;
-pragma Elaborate_All (PolyORB.Log);
-
-with PolyORB.Parameters;
-pragma Elaborate_All (PolyORB.Parameters);
-
-with PolyORB.ORB;
-pragma Elaborate_All (PolyORB.ORB);
-
-with PolyORB.ORB_Controller.Workers;
-pragma Elaborate_All (PolyORB.ORB_Controller.Workers);
-
-with PolyORB.POA;
-pragma Elaborate_All (PolyORB.POA);
-
-with PolyORB.QoS;
-pragma Elaborate_All (PolyORB.QoS);
-
-with PolyORB.QoS.Term_Manager_Info;
-pragma Elaborate_All (PolyORB.QoS.Term_Manager_Info);
-
-with PolyORB.Services.Naming;
-pragma Elaborate_All (PolyORB.Services.Naming);
-
-with PolyORB.Services.Naming.Helper;
-pragma Elaborate_All (PolyORB.Services.Naming.Helper);
-
-with PolyORB.Services.Naming.NamingContext.Client;
-pragma Elaborate_All (PolyORB.Services.Naming.NamingContext.Client);
-
-with PolyORB.Setup.OA.Basic_POA;
-pragma Elaborate_All (PolyORB.Setup.OA.Basic_POA);
-
-with PolyORB.Termination_Activity;
-pragma Elaborate_All (PolyORB.Termination_Activity);
-
-package PolyORB.Partition_Elaboration is
    pragma Elaborate_Body;
 
-   procedure Full_Launch;
-   --  Launch the slave partitions when using Ada Starter
-
-   --  The body of this package provides further partition-specific
-   --  dependencies that are guaranteed to be elaborated before PCS
-   --  initialization, in addition to the Full_Launch starter.
-
-end PolyORB.Partition_Elaboration;
+end PolyORB.Setup.Common_Base;

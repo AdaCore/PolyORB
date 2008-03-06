@@ -256,6 +256,10 @@ package body XE_Back.PolyORB is
 
       Write_Line  ("pragma Warnings (Off);");
 
+      --  First drag platform the specific base setup
+
+      Write_With_Clause (RU (RU_PolyORB_Setup_Base), False, True);
+
       --  Remote_Launch is only needed when using the Ada Starter,
       --  we avoid "withing" it otherwise since it drags sockets.
 
@@ -264,10 +268,6 @@ package body XE_Back.PolyORB is
       end if;
 
       Write_With_Clause (RU (RU_PolyORB_Setup_IIOP), False, True);
-
-      --  Setup.IIOP must be withed here, because
-      --  polyorb-partition_elaboration.ads does not have visibility over IIOP
-      --  packages.
 
       if Current.Tasking = 'N' then
          Write_With_Clause (RU (RU_PolyORB_Setup_Tasking_No_Tasking));
