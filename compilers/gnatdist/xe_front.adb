@@ -1648,14 +1648,20 @@ package body XE_Front is
          Write_Eol;
          U := Partitions.Table (P).First_Unit;
          while U /= No_Conf_Unit_Id loop
-            I := Conf_Units.Table (U).My_Unit;
             Write_Str ("             - ");
             Write_Name (Conf_Units.Table (U).Name);
             Write_Str (" (");
 
             --  Indicate unit categorization
 
-            if Units.Table (I).RCI then
+            I := Conf_Units.Table (U).My_Unit;
+
+            if I = No_Unit_Id then
+               --  Case where the unit has not been compiled succesfully
+
+               Write_Str ("unavailable");
+
+            elsif Units.Table (I).RCI then
                Write_Str ("rci");
 
             elsif Units.Table (I).Remote_Types then
