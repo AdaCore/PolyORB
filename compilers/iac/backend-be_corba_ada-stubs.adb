@@ -498,7 +498,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
          --  mechanism.
 
          Map_Inherited_Entities_Specs
-           (Current_interface    => E,
+           (Current_Interface    => E,
             Visit_Operation_Subp => Visit_Operation_Declaration'Access,
             Stub                 => True);
 
@@ -1199,7 +1199,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
          --  the first one.
 
          Map_Inherited_Entities_Bodies
-           (Current_interface    => E,
+           (Current_Interface    => E,
             Visit_Operation_Subp => Visit_Operation_Declaration'Access,
             Stub                 => True);
 

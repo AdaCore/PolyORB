@@ -504,7 +504,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
          --  than the first one.
 
          Map_Inherited_Entities_Specs
-           (Current_interface    => E,
+           (Current_Interface    => E,
             Visit_Operation_Subp => null,
             Helper               => True);
 
@@ -2714,7 +2714,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
          --  the first one.
 
          Map_Inherited_Entities_Bodies
-           (Current_interface    => E,
+           (Current_Interface    => E,
             Visit_Operation_Subp => null,
             Helper               => True);
 
