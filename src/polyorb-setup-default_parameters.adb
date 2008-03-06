@@ -50,7 +50,7 @@ pragma Elaborate_All (PolyORB.Parameters.File);
 --  default because in such context, a filesystem can be assumed to be
 --  available, and so a configuration file is the preferred way of tuning
 --  PolyORB. Additionally, the Static parameters source uses a weak external
---  symbol, which is not supported on Windows.
+--  symbol, which is not supported on all platforms.
 
 package body PolyORB.Setup.Default_Parameters is
 
