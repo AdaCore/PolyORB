@@ -43,9 +43,10 @@ with PolyORB.Parameters.File;
 pragma Warnings (Off, PolyORB.Parameters.File);
 pragma Elaborate_All (PolyORB.Parameters.File);
 
-with PolyORB.Parameters.Static;
-pragma Warnings (Off, PolyORB.Parameters.Static);
-pragma Elaborate_All (PolyORB.Parameters.Static);
+--  For embedded platforms, an additional parameter source, "Static",
+--  is provided in the platform-specific base setup to support hard-coded
+--  parameters provided by the application.
 
 package body PolyORB.Setup.Default_Parameters is
+
 end PolyORB.Setup.Default_Parameters;

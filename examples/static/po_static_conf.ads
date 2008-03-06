@@ -67,6 +67,6 @@ package PO_Static_Conf is
    --  exported with the following Convetion and External name:
    pragma Export (Convention    => Ada,
                   Entity        => Static_Parameters,
-                  External_Name => "__polyorbconf_optional");
+                  External_Name => "__PolyORB_static_parameters");
 
 end PO_Static_Conf;
