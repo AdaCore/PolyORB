@@ -45,7 +45,12 @@ pragma Elaborate_All (PolyORB.Parameters.File);
 
 --  For embedded platforms, an additional parameter source, "Static",
 --  is provided in the platform-specific base setup to support hard-coded
---  parameters provided by the application.
+--  parameters provided by the application (see PolyORB.Parameters.Static
+--  for usage details). For native platforms, this unit is not included by
+--  default because in such context, a filesystem can be assumed to be
+--  available, and so a configuration file is the preferred way of tuning
+--  PolyORB. Additionally, the Static parameters source uses a weak external
+--  symbol, which is not supported on Windows.
 
 package body PolyORB.Setup.Default_Parameters is
 
