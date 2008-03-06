@@ -622,15 +622,26 @@ ALL_WITHS="
 
 rm -f ${ALL_WITHS}
 
-for U in ${PLATFORM_BASE_LIST}
-do
+if test -z "${PLATFORM_BASE_LIST}"
+then
+  # Generate a comment line to avoid consecutive white lines
+  # in the resulting file.
+
   cat >>${PLATFORM_BASE_WITHS} <<EOF
+
+--  No additional platform-specific dependencies on $target
+EOF
+else
+  for U in ${PLATFORM_BASE_LIST}
+  do
+    cat >>${PLATFORM_BASE_WITHS} <<EOF
 
 with ${U};
 pragma Elaborate_All (${U});
 pragma Warnings (Off, ${U});
 EOF
-done
+  done
+fi
 
 for P in ${PROTO_LIST}
 do
