@@ -100,9 +100,9 @@ See the PolyORB User's Guide for more details on PolyORB usage.
 Bug reports
 -----------
 
-If you find a bug or would like to submit patches, please do so indicating 
-the release you use. We accept patch files. To produce such a patch file, 
-put your files in the PolyORB directory and our files in the directory 
+If you find a bug or would like to submit patches, please do so indicating
+the release you use. We accept patch files. To produce such a patch file,
+put your files in the PolyORB directory and our files in the directory
 PolyORB.orig, and use the following command:
 
   diff --recursive --context PolyORB.orig PolyORB > patch_file
