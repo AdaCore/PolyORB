@@ -179,7 +179,14 @@ AM_HAS_STYLESW_YG
 
 save_CC="$CC"
 CC="$CC_FOR_TARGET"
-AC_CHECK_HEADERS(fcntl.h)
+
+# Need to provide a non-empty 4th argument to AC_CHECK_HEADERS
+# so that a real compilation test is performed using CC, not a
+# junk preprocessor test that will use the host preprocessor
+# instead of the target compiler.
+
+AC_CHECK_HEADERS([fcntl.h], [], [], [/*relax*/])
+
 AC_CHECK_FUNCS(setsid)
 CC="$save_CC"
 
