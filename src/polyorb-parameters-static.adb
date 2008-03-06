@@ -43,7 +43,7 @@ package body PolyORB.Parameters.Static is
    --  a null access.
    pragma Suppress (Range_Check);
    Parameters : Static_Parameter_Array  (1 .. 1);
-   pragma Import (Ada, Parameters, "__polyorbconf_optional");
+   pragma Import (Ada, Parameters, "__PolyORB_static_parameters");
    pragma Weak_External (Parameters);
    --  This symbol is optional, PolyORB can be configured using other methods
    --  like the command line or environment variables.
