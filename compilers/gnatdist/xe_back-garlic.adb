@@ -1251,14 +1251,6 @@ package body XE_Back.GARLIC is
    procedure Set_PCS_Dist_Flags (Self : access GARLIC_Backend) is
       pragma Unreferenced (Self);
    begin
-      if Project_File_Name = null then
-         --  Include main application directory in source path while compiling
-         --  the monolithic main (whose body is in the dsa/ subdirectory).
-
-         Scan_Dist_Arg ("-margs");
-         Scan_Dist_Arg ("-I.");
-      end if;
-
       if not Is_Directory (DSA_Inc_Dir) then
          Message ("GARLIC library not found");
          raise Fatal_Error;
