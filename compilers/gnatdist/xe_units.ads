@@ -500,9 +500,9 @@ package XE_Units is
    -- Configured Unit Table --
    ---------------------------
 
-   --  Configured units are different from units. Such units come from
-   --  the configuration language and mau not correspond to ada units
-   --  since the configuration file can be erroneous.
+   --  Configured units are different from units. Such units come from the
+   --  configuration language and mau not correspond to Ada units in case
+   --  of an illegal configuration file.
 
    type Conf_Unit_Type is record
 
