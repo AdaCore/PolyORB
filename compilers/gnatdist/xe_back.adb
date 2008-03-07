@@ -522,8 +522,16 @@ package body XE_Back is
             Write_Str (Get_Env_Vars (P));
          end if;
 
+         --  Executable file name must be quoted because it may contain
+         --  spaces, or (on Windows) backslashes that must not be interpreted
+         --  by the shell.
+
+         Write_Char (Int_Quote);
          Write_Name (To_Absolute_File (Current.Executable_File));
+         Write_Char (Int_Quote);
+
          Write_Str  (" --boot_location ");
+
          Write_Char (Int_Quote);
          Write_Str  ("$BOOT_LOCATION");
          Write_Char (Int_Quote);
