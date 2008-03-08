@@ -393,8 +393,9 @@ package body PolyORB.Representations.CDR.Common is
      (Buffer : access Buffer_Type;
       Data   : Standard.String)
    is
+      --  ??? for now, kill GNAT warning about overlaying constant parameter
       pragma Warnings (Off);
-      Str : constant Stream_Element_Array (1 .. Data'Length);
+      Str : Stream_Element_Array (1 .. Data'Length);
       for Str'Address use Data'Address;
       pragma Import (Ada, Str);
       pragma Warnings (On);
