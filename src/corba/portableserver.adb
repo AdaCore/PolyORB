@@ -337,9 +337,13 @@ package body PortableServer is
          use CORBA.IDL_SEQUENCES.IDL_SEQUENCE_Octet;
 
          subtype Elements_Subtype is Element_Array (1 .. Id'Length);
+
+         --  ??? disable warning on overlaying constant value for now
+         pragma Warnings (Off);
          Elements : Elements_Subtype;
          for Elements'Address use Id'Address;
          pragma Import (Ada, Elements);
+         pragma Warnings (On);
 
       begin
          return To_Sequence (Elements);
