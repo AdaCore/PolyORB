@@ -5281,7 +5281,7 @@ and asks for a free Partition_ID. The advantage of this approach is that
 it supports easily client / server solution (client partitions may be
 duplicated, they will obtain different Partition Ids). There is no need
 to recompile or relink all the partitions when a new partition is added
-to the system. The Partition_ID is not tight in any way to a specific
+to the system. The Partition_ID is not tied in any way to a specific
 protocol or to a specific location.
 
 @node Executing Concurrent Remote Calls, Priority Inheritance, Allocating Partition Ids, PolyORB PCS Internals
