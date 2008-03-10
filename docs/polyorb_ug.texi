@@ -1320,8 +1320,8 @@ with flag @code{--polyorb-<sec>-<var>-<iable>[=<value>]}.
 
 @noindent
 Many embedded systems do not have a filesystem or a shell, so the
-previous run-time configuration methods cannot be used in these targets.
-In this platforms a PolyORB node can also be configured using the API of package
+previous run-time configuration methods cannot be used on these targets.
+On these platforms, a PolyORB node can also be configured using the API of package
 @code{PolyORB.Parameters.Static}. An example configuration file may be
 found in @file{examples/static/po_static_conf.ads}.
 
