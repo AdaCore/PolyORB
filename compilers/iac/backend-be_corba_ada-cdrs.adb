@@ -2416,10 +2416,61 @@ package body Backend.BE_CORBA_Ada.CDRs is
                      Buff     => Buff);
                   Append_Node_To_List (N, Block_St);
 
-                  --  We don't update the Union at this point because
-                  --  it's illegal to assign the discriminant a value.
+                  --  2/ Build the union: we cannot build the union by
+                  --  the means of a record aggregate. The solution is
+                  --  to declare an intermediary variable with the
+                  --  correct union type and then to assign the union
+                  --  this variable by means of a qualified
+                  --  expression.
 
-                  --  2/ Depending on the switch value, unmarshall the
+                  declare
+                     Inner_Dcl : constant List_Id := New_List (K_List_Id);
+                     Inner_St  : constant List_Id := New_List (K_List_Id);
+                     Intermed_Name : constant Name_Id := Get_Union_Name;
+                  begin
+                     --  Intermediary variable with the correct type
+
+                     N := Make_Subprogram_Call
+                       (Map_Expanded_Name (Direct_Type_Node),
+                        Make_List_Id
+                        (Cast_Variable_From_PolyORB_Type
+                         (Switch_Element,
+                          Switch_Type_Spec (Type_Spec_Node))));
+                     N := Make_Object_Declaration
+                       (Defining_Identifier => Make_Defining_Identifier
+                          (Intermed_Name),
+                        Object_Definition => N);
+                     Append_Node_To_List (N, Inner_Dcl);
+
+                     --  Disable warning because the variable is not
+                     --  assigned.
+
+                     N := Make_Pragma
+                       (Pragma_Warnings,
+                        Make_List_Id (RE (RE_Off),
+                                      Make_Defining_Identifier
+                                      (Intermed_Name)));
+                     Append_Node_To_List (N, Inner_Dcl);
+
+                     --  Qualified expression
+
+                     N := Make_Qualified_Expression
+                       (Subtype_Mark => Map_Expanded_Name
+                          (Direct_Type_Node),
+                        Operand      => Make_Identifier (Intermed_Name));
+
+                     N := Make_Assignment_Statement (Var_Node, N);
+                     Append_Node_To_List (N, Inner_St);
+
+                     --  Add the new block statements
+
+                     N := Make_Block_Statement
+                       (Declarative_Part => Inner_Dcl,
+                        Statements       => Inner_St);
+                     Append_Node_To_List (N, Block_St);
+                  end;
+
+                  --  3/ Depending on the switch value, unmarshall the
                   --  corresponding flag.
 
                   Switch_Type := FEU.Get_Original_Type_Specifier
@@ -2477,60 +2528,6 @@ package body Backend.BE_CORBA_Ada.CDRs is
                      Dcl_Ada_Node := Make_Selected_Component
                        (Var_Node,
                         Make_Identifier (Dcl_Ada_Name));
-
-                     --  Build the union: we cannot build the union by
-                     --  the means of a record aggregate. The solution
-                     --  is to declare an intermediary variable with
-                     --  the correct union type and then to assign the
-                     --  union this variable by means of a qualified
-                     --  expression.
-
-                     declare
-                        Inner_Dcl : constant List_Id := New_List (K_List_Id);
-                        Inner_St  : constant List_Id := New_List (K_List_Id);
-                        Intermed_Name : constant Name_Id := Get_Union_Name;
-                     begin
-                        --  Intermediary variable with the correct type
-
-                        N := Make_Subprogram_Call
-                          (Map_Expanded_Name (Direct_Type_Node),
-                           Make_List_Id
-                           (Cast_Variable_From_PolyORB_Type
-                            (Switch_Element,
-                             Switch_Type_Spec (Type_Spec_Node))));
-                        N := Make_Object_Declaration
-                          (Defining_Identifier => Make_Defining_Identifier
-                           (Intermed_Name),
-                           Object_Definition => N);
-                        Append_Node_To_List (N, Inner_Dcl);
-
-                        --  Disable warning because the variable is
-                        --  not assigned.
-
-                        N := Make_Pragma
-                          (Pragma_Warnings,
-                           Make_List_Id (RE (RE_Off),
-                                         Make_Defining_Identifier
-                                         (Intermed_Name)));
-                        Append_Node_To_List (N, Inner_Dcl);
-
-                        --  Qualified expression
-
-                        N := Make_Qualified_Expression
-                          (Subtype_Mark => Map_Expanded_Name
-                             (Direct_Type_Node),
-                           Operand      => Make_Identifier (Intermed_Name));
-
-                        N := Make_Assignment_Statement (Var_Node, N);
-                        Append_Node_To_List (N, Inner_St);
-
-                        --  Add the new block statements
-
-                        N := Make_Block_Statement
-                          (Declarative_Part => Inner_Dcl,
-                           Statements       => Inner_St);
-                        Append_Node_To_List (N, Switch_Statements);
-                     end;
 
                      N := Make_Assignment_Statement
                        (Dcl_Ada_Node,
