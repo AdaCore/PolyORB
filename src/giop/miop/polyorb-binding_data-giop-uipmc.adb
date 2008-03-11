@@ -337,7 +337,7 @@ package body PolyORB.Binding_Data.GIOP.UIPMC is
            & ":" & Trimmed_Image (Unsigned_Long_Long
                                   (UIPMC_Profile.Version_Major)) & "."
            & Trimmed_Image (Unsigned_Long_Long
-                            (UIPMC_Profile.Version_Minor)) & "@"
+                            (0)) & "@"
            & S & "/"
            & Image
            (Address_Of
@@ -376,6 +376,7 @@ package body PolyORB.Binding_Data.GIOP.UIPMC is
       end if;
       TResult.Version_Major :=
         Types.Octet'Value (S (Index .. Index2 - 1));
+
       if TResult.Version_Major /= UIPMC_Version_Major then
          Destroy_Profile (Result);
          return null;
