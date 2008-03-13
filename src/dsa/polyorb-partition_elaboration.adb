@@ -34,6 +34,8 @@
 --  Dummy placeholder body, replaced by a partition-specific one by the
 --  partitioning tool.
 
+with Ada.Exceptions;
+
 package body PolyORB.Partition_Elaboration is
 
    -----------------
@@ -46,5 +48,7 @@ package body PolyORB.Partition_Elaboration is
    end Full_Launch;
 
 begin
-   raise Program_Error with "dummy version of polyorb-partition_elaboration";
+   Ada.Exceptions.Raise_Exception
+     (Program_Error'Identity,
+      "dummy version of polyorb-partition_elaboration");
 end PolyORB.Partition_Elaboration;
