@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -81,6 +81,9 @@ package Idlac_Errors is
    --  file : name_of_file, line : line_nb, column : column_nb
    --  or, if Short is True,
    --  name_of_file:line_nb:column_nb
+
+   procedure Set_Path (Loc : in out Location; Filename : String);
+   --  Set Loc.Dirname and Loc.Filename to the appropriate parts of Filename.
 
    --------------------
    -- Error handling --

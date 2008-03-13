@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -93,8 +93,8 @@ package body Idl_Fe.Parser is
 
    --  the buffers themself
    Token_Buffer : Token_Buffer_Type   := (others => T_Error);
-   Location_Buffer : Location_Buffer_Type
-     := (others => (Dirname => null, Filename => null, Line => 0, Col => 0));
+   Location_Buffer : Location_Buffer_Type :=
+     (others => Idlac_Errors.No_Location);
    String_Buffer : String_Buffer_Type := (others => null);
 
    --  index of the current token in the buffer
@@ -427,8 +427,7 @@ package body Idl_Fe.Parser is
       end if;
 
       Token_Buffer := (others => T_Error);
-      Location_Buffer :=
-       (others => (Dirname => null, Filename => null, Line => 0, Col => 0));
+      Location_Buffer := (others => Idlac_Errors.No_Location);
       String_Buffer := (others => null);
       Current_Index := 0;
       Newest_Index := 0;
