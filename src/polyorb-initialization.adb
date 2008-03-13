@@ -35,6 +35,7 @@
 
 with PolyORB.Log;
 with PolyORB.Utils.Chained_Lists;
+with Ada.Exceptions;
 
 package body PolyORB.Initialization is
 
@@ -312,7 +313,7 @@ package body PolyORB.Initialization is
 
    procedure Raise_Program_Error (Msg : String) is
    begin
-      raise Program_Error with Msg;
+      Ada.Exceptions.Raise_Exception (Program_Error'Identity, Msg);
    end Raise_Program_Error;
 
    --------------------------
