@@ -31,6 +31,9 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Strings.Fixed;
+with Ada.Strings.Maps;
+
 with Interfaces.C;
 with PolyORB.Sockets;
 with PolyORB.Log;
@@ -57,6 +60,14 @@ package body PolyORB.DSA_P.Remote_Launch is
 
    procedure Spawn (Command : String);
    --  Spawn a system command
+
+   function Windows_To_Unix (S : String) return String;
+   --  Translate Windows-style pathnames to Unix-style by changing '\' to '/'.
+   --  ???This is a temporary kludge, but we're assuming the existence of a
+   --  Unix-like shell anyway (see below). The goal is to get tests working
+   --  under Windows using Cygwin. The problem is that Cygwin's 'sh' interprets
+   --  '\' as a Unix escape, rather than as a directory separator.
+   --  This should be made more portable.
 
    -------------------
    -- Is_Local_Host --
@@ -91,6 +102,7 @@ package body PolyORB.DSA_P.Remote_Launch is
    ----------------------
 
    procedure Launch_Partition (Host : String; Command : String) is
+      U_Command : constant String := Windows_To_Unix (Command);
    begin
       pragma Debug (C, O ("Launch_Partition: enter"));
 
@@ -103,7 +115,7 @@ package body PolyORB.DSA_P.Remote_Launch is
 
          declare
             Spawn_Local : constant String :=
-              "sh -c """ & Command & """ &";
+              "sh -c """ & U_Command & """ &";
          begin
             pragma Debug (C, O ("Enter Spawn (local): " & Spawn_Local));
             Spawn (Spawn_Local);
@@ -129,7 +141,7 @@ package body PolyORB.DSA_P.Remote_Launch is
               Rsh_Command & ' ' & Host & ' ' & Rsh_Options;
 
             Spawn_Remote : constant String :=
-              Remote_Command & " """ & Command & " --polyorb-dsa-detach "" ";
+              Remote_Command & " """ & U_Command & " --polyorb-dsa-detach "" ";
          begin
             pragma Debug (C, O ("Enter Spawn (remote): " & Spawn_Remote));
             Spawn (Spawn_Remote);
@@ -144,11 +156,18 @@ package body PolyORB.DSA_P.Remote_Launch is
    -----------
 
    procedure Spawn (Command : String) is
-      C_Command : aliased String := Command & ASCII.NUL;
+      U_Command : constant String := Windows_To_Unix (Command);
+      C_Command : aliased String := U_Command & ASCII.NUL;
    begin
       if C_System (C_Command'Address) / 256 /= 0 then
          raise Program_Error;
       end if;
    end Spawn;
+
+   function Windows_To_Unix (S : String) return String is
+      use Ada.Strings.Fixed, Ada.Strings.Maps;
+   begin
+      return Translate (S, To_Mapping ("\", "/"));
+   end Windows_To_Unix;
 
 end PolyORB.DSA_P.Remote_Launch;
