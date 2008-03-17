@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -80,16 +80,16 @@ package body PolyORB.Setup.Access_Points.UIPMC is
    is
       use PolyORB.Parameters;
 
-      Addr : constant String
-        := Get_Conf
-        ("miop", "polyorb.miop.multicast_addr",
-         Default_Multicast_Group);
-      Port : constant Port_Type
-        := Port_Type (Get_Conf
-                      ("miop", "polyorb.miop.multicast_port",
-                       Default_Port));
+      Addr : constant String :=
+               Get_Conf ("miop", "polyorb.miop.multicast_addr", "");
+      Port : constant Port_Type :=
+               Port_Type (Get_Conf ("miop", "polyorb.miop.multicast_port", 0));
    begin
       if Get_Conf ("access_points", "uipmc", True) then
+
+         if Addr = "" or else Port = 0 then
+            return;
+         end if;
 
          Initialize_Multicast_Socket
            (UIPMC_Access_Point, Inet_Addr (Addr), Port);
