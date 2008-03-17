@@ -89,9 +89,6 @@ CFLAGS_FOR_TARGET         := @CFLAGS_FOR_TARGET@
 ADAFLAGS_FOR_TARGET       := @ADAFLAGS_FOR_TARGET@
 GNATMAKE_FLAGS_FOR_TARGET := -cargs ${ADAFLAGS_FOR_TARGET}
 
-XMLADA_INCS	:= @XMLADA_INCS@
-XMLADA_LIBS	:= @XMLADA_LIBS@
-
 HAVE_SSL	:= @HAVE_SSL@
 
 include ${top_builddir}/Makefile.common.project
@@ -2322,7 +2319,6 @@ debug-makefile:
 	@echo MAKECMDGOALS = ${MAKECMDGOALS}
 	@echo polyorb_idl_stamps = ${polyorb_idl_stamps}
 	@echo all_idl_stamps = ${all_idl_stamps}
-	@echo XMLADA_INCS = ${XMLADA_INCS}
 	@echo POLYORB_LIBS = ${POLYORB_LIBS}
 	@echo SERVICE_LIBS = ${SERVICE_LIBS}
 	@echo ALL_PROJECT_FILES = ${ALL_PROJECT_FILES}
