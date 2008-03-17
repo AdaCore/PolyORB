@@ -737,27 +737,32 @@ package body Analyzer is
       Iface         : constant Node_Id := Current_Scope;
       Is_Local      : constant Boolean := Is_A_Local_Type (Iface);
       Oneway        : Boolean := Is_Oneway (E);
-      Param_Type    : Node_Id;
-      Op_Parameter  : Node_Id;
-      Op_Exception  : Node_Id;
-      Op_Context    : Node_Id;
+
+      Return_Type_Id : Node_Id;
+      Return_Type    : Node_Id;
+
+      Param_Type     : Node_Id;
+      Op_Parameter   : Node_Id;
+      Op_Exception   : Node_Id;
+      Op_Context     : Node_Id;
 
    begin
       Enter_Name_In_Scope (Identifier (E));
 
       if Kind (E) /= K_Initializer_Declaration then
-         Param_Type := Type_Spec (E);
-         Analyze (Param_Type);
+         Return_Type_Id := Type_Spec (E);
+         Analyze (Return_Type_Id);
 
-         if Kind (Param_Type) = K_Scoped_Name then
-            Param_Type := Reference (Param_Type);
+         Return_Type := Return_Type_Id;
+         if Kind (Return_Type) = K_Scoped_Name then
+            Return_Type := Reference (Return_Type);
          end if;
 
-         --  When operation is oneway, check return type is void.
+         --  When operation is oneway, check return type is void
 
-         if Oneway and then Kind (Param_Type) /= K_Void then
+         if Oneway and then Kind (Return_Type) /= K_Void then
             Oneway := False;
-            Error_Loc (1)  := Loc (E);
+            Error_Loc (1) := Loc (E);
             DE ("oneway operation cannot return a non-void result");
          end if;
 
@@ -765,7 +770,7 @@ package body Analyzer is
          --  operations do not use local types.
 
          if not Is_Local then
-            No_Operation_Parameter_Of_Local_Type (Param_Type, Iface);
+            No_Operation_Parameter_Of_Local_Type (Return_Type, Iface);
          end if;
       end if;
 
