@@ -3504,10 +3504,10 @@ package body Parser is
    -----------------------
    -- Resolve_Base_Type --
    -----------------------
+
    function Resolve_Base_Type
      (L   : Token_List_Type;
-      Loc : Location)
-     return Node_Id
+      Loc : Location) return Node_Id
    is
       Info   : Nat;
       Result : Node_Id;

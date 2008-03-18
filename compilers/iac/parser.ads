@@ -39,10 +39,9 @@ package Parser is
 
    function Resolve_Base_Type
      (L   : Token_List_Type;
-      Loc : Location)
-     return Node_Id;
-   --  Take the sequence of tokens in the parameter list to return a
-   --  new node for the IDL predefined type.
+      Loc : Location) return Node_Id;
+   --  Take the sequence of tokens in the parameter list to return a new node
+   --  for the IDL predefined type.
 
    procedure Process (IDL_Spec : out Node_Id);
    --  Process the IDL specification
