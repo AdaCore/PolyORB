@@ -626,6 +626,7 @@ examples/corba/send/Makefile.in
 examples/corba/send/Makefile.local
 examples/corba/send/listener.adb
 examples/corba/send/local.gpr
+examples/corba/send/polyorb.conf
 examples/corba/send/print.idl
 examples/corba/send/send.adb
 examples/corba/send/test-printer-impl.adb
