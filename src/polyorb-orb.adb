@@ -1117,7 +1117,8 @@ package body PolyORB.ORB is
 
             end if;
          end;
-         pragma Debug (C, O ("Run_Request: executed request"));
+         pragma Debug (C, O ("Run_Request: task " & Image (Current_Task)
+                               & " executed request"));
       end;
    end Run_Request;
 
