@@ -2726,9 +2726,9 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
            (Var_Name : Name_Id; Value : Value_Id) return Node_Id;
          --  Makes a variable declaration using the given parameters
 
-         function TypeCode_Initialization return Node_Id;
-         --  Initialization for the TypeCode variable
-         --  declated in the Helper spec.
+         procedure TypeCode_Initialization;
+         --  Initialization for the TypeCode variable declated in the
+         --  Helper spec.
 
          -------------------
          -- Add_Parameter --
@@ -2775,8 +2775,9 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
          -- TypeCode_Initialization --
          -----------------------------
 
-         function TypeCode_Initialization return Node_Id is
+         procedure TypeCode_Initialization is
             Expr : Node_Id;
+            N    : Node_Id;
          begin
             case FEN.Kind (E) is
                when K_Enumeration_Type =>
@@ -2817,6 +2818,11 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                      Make_List_Id (RE (RE_TC_Except)));
 
                when K_Simple_Declarator =>
+                  --  Ensure the original type specifier if E is
+                  --  initilized before building the current TypeCode.
+
+                  Handle_Dependency (Type_Spec (Declaration (E)), Statements);
+
                   Expr := Make_Subprogram_Call
                     (RE (RE_Build_Alias_TC),
                      Make_List_Id
@@ -2835,6 +2841,12 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                      Max_Size_Literal : Node_Id;
                      TC_Element       : Node_Id;
                   begin
+                     --  Ensure the element type specifier is
+                     --  initilized before building the current
+                     --  TypeCode.
+
+                     Handle_Dependency (Type_Spec (E), Statements);
+
                      --  Unbounded sequences are identified by a maximum
                      --  length of 0.
 
@@ -2878,9 +2890,10 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                       & FEN.Node_Kind'Image (FEN.Kind (E));
             end case;
 
-            return Make_Assignment_Statement
+            N := Make_Assignment_Statement
               (Get_TC_Node (T => E, Resolve_Forward => False),
                Expr);
+            Append_Node_To_List (N, Statements);
          end TypeCode_Initialization;
 
          --  Local variables
@@ -2901,8 +2914,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
       begin
          --  Initialize the TypeCode variable
 
-         N := TypeCode_Initialization;
-         Append_Node_To_List (N, Statements);
+         TypeCode_Initialization;
 
          --  Extract from polyorb-any.ads concerning the Encoding of
          --  TypeCodes:
@@ -3113,9 +3125,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                   --  initialize the instantiated package.
 
                   if not FEU.Has_Local_Component (E) then
-                     Handle_Dependency (Type_Spec (E), Statements);
-
-                     TC_Element := Get_TC_Node (Type_Spec (E));
+                     TC_Element  := Get_TC_Node (Type_Spec (E));
                      TC_Sequence := Get_TC_Node (E);
                      Seq_Package := Make_Defining_Identifier
                        (Map_Sequence_Pkg_Helper_Name (E));
@@ -3175,6 +3185,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
          if FEN.Kind (E) /= K_Sequence_Type
            and then FEN.Kind (E) /= K_String_Type
            and then FEN.Kind (E) /= K_Wide_String_Type
+           and then FEN.Kind (E) /= K_Simple_Declarator
          then
             N := Add_Parameter (Entity_TC_Name, Param1);
             Append_Node_To_List (N, Statements);
@@ -3583,28 +3594,16 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                end;
 
             when K_Simple_Declarator =>
-               declare
-                  T : Node_Id;
                begin
-                  T := Type_Spec (Declaration (E));
+                  --  Generate the dependency upon possible CORBA
+                  --  predefined units.
 
-                  --  Handle the dependancy between `Helper' packages
-
-                  Handle_Dependency (T, Statements);
-
-                  --  Get the TypeCode corresponding to the typespec
-                  --  of the type declaration od the simple
-                  --  declarator.
-
-                  N := Get_TC_Node (T);
+                  N := Get_TC_Node (Type_Spec (Declaration (E)));
 
                   Add_Dependency
                     (Get_Parent_Unit_Name (N),
                      Dependencies,
                      D_Helper);
-
-                  N := Add_Parameter (Entity_TC_Name, N);
-                  Append_Node_To_List (N, Statements);
                end;
 
             when others =>
