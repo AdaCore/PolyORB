@@ -35,6 +35,7 @@ with Ada.Strings.Fixed;
 with Ada.Strings.Maps;
 
 with Interfaces.C;
+with PolyORB.Platform;
 with PolyORB.Sockets;
 with PolyORB.Log;
 with PolyORB.Parameters;
@@ -68,6 +69,7 @@ package body PolyORB.DSA_P.Remote_Launch is
    --  under Windows using Cygwin. The problem is that Cygwin's 'sh' interprets
    --  '\' as a Unix escape, rather than as a directory separator.
    --  This should be made more portable.
+   --  This is a no-op on non-Windows systems.
 
    -------------------
    -- Is_Local_Host --
@@ -167,7 +169,11 @@ package body PolyORB.DSA_P.Remote_Launch is
    function Windows_To_Unix (S : String) return String is
       use Ada.Strings.Fixed, Ada.Strings.Maps;
    begin
-      return Translate (S, To_Mapping ("\", "/"));
+      if Platform.Windows_On_Target then
+         return Translate (S, To_Mapping ("\", "/"));
+      else
+         return S;
+      end if;
    end Windows_To_Unix;
 
 end PolyORB.DSA_P.Remote_Launch;
