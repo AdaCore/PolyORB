@@ -73,6 +73,9 @@ The PolyORB architecture also permits the automatic,
 just-in-time creation of proxies between incompatible environments
 (although this feature is not implemented yet).
 
+PolyORB can be used in Ada 95 and Ada 2005 applications alike. It is
+implemented in Ada 2005 and C.
+
 Installation
 ------------
 
