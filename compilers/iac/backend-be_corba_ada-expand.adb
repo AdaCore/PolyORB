@@ -947,7 +947,7 @@ package body Backend.BE_CORBA_Ada.Expand is
 
             Set_Type_Spec
               (Accessor,
-               Parser.Resolve_Base_Type ((1 => Lexer.T_Void)));
+               Parser.Resolve_Base_Type ((1 => Lexer.T_Void), FEN.Loc (D)));
 
             Parameters := FEU.New_List (K_Parameter_List, FEN.Loc (D));
             Set_Parameters (Accessor, Parameters);

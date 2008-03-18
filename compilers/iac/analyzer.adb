@@ -762,7 +762,7 @@ package body Analyzer is
 
          if Oneway and then Kind (Return_Type) /= K_Void then
             Oneway := False;
-            Error_Loc (1) := Loc (E);
+            Error_Loc (1) := Loc (Return_Type);
             DE ("oneway operation cannot return a non-void result");
          end if;
 
