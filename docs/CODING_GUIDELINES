@@ -46,10 +46,12 @@ Usage of Ada 2005 features is restricted as follows:
 
   * The following Ada 2005 features are allowed:
 
-     - raise .. with "";
-     - object.method notation
-     - anonymous access fields/parameters
-     - use of overriding keyword.
+     - use of Ada.Directories
+     - use of Ada.Containers and children thereof
+     - raise EXC with STR
+     - Object.Method notation
+     - anonymous access components and objects
+     - use of "overriding" and "not overriding" indicators
 
   * All other Ada 2005 features are prohibited. In particular, the code must
     be compatible with application components using Ada 95 and Ada 2005 alike.
