@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -32,6 +32,10 @@
 ------------------------------------------------------------------------------
 
 --  Implementation of Threads under the Full_Tasking profile.
+
+pragma Warnings (Off, "* is an internal GNAT unit");
+pragma Warnings (Off, "use of this unit is non-portable*");
+--  This unit depends on System.Tasking.Utilities, an internal GNAT unit
 
 with System.Tasking.Utilities;
 

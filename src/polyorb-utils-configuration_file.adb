@@ -31,11 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Warnings (Off);
---  Disable warning that this is an Ada 2005 unit
 with Ada.Directories;
-pragma Warnings (On);
-
 with Ada.Text_IO;
 
 with PolyORB.Initialization;

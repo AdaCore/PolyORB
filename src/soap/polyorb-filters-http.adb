@@ -780,8 +780,7 @@ package body PolyORB.Filters.HTTP is
       Tok_First, Tok_Last : Integer;
    begin
       if Colon > S'Last then
-         Ada.Exceptions.Raise_Exception
-           (HTTP_Error'Identity, "Malformed HTTP header: " & S);
+         raise HTTP_Error with "Malformed HTTP header: " & S;
       end if;
       Header_Kind := PolyORB.HTTP_Headers.In_Word_Set
         (S (S'First .. Colon - 1));

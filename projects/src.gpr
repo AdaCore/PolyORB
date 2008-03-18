@@ -49,36 +49,8 @@ project src is
 
    package Compiler is
 
-      for Default_Switches ("Ada")
-        use Common.Compiler'Default_Switches ("Ada");
-
-      for Switches ("polyorb-initialization.adb")
-        use Common.Compiler'Default_Switches ("Ada")
-          & "-gnat05";  --  this unit requires Ada 2005 semantics (raise
-                        --  with msg in a Preelaborate unit), but can
-                        --  be mixed with Ada 95 code.
-
-      Implementation_Switches :=
-        Common.Compiler'Default_Switches ("Ada")
-          & "-gnatg"   --  Internal GNAT runtime implementation mode
-          & ("-gnatw" & Common.Warnings_Mode)
-          & "-gnati1"; --  Allow full ISO-8859-1 character set
-      --  Notes on switch ordering:
-      --    1. -gnatg should come after -gnaty, because -gnatg enables
-      --        more style checks than -gnaty, and if -gnaty came second,
-      --        it would override those additional style checks.
-      --    2.  -gnati1 must come after -gnatg, because -gnatg resets the
-      --        input character set to -gnatin. -gnati1 is required for
-      --        CORBA applicative personality files generated from IDL.
-      --    3.  warnings mode needs to be reset after -gnatg because -gnatg
-      --        resets it to "treat warnings as errors".
-
-      for Switches ("polyorb-tasking-profiles-ravenscar-threads.adb")
-        use Implementation_Switches;
-      for Switches ("polyorb-tasking-profiles-full_tasking-mutexes.adb")
-        use Implementation_Switches;
-      for Switches ("polyorb-tasking-profiles-full_tasking-threads.adb")
-        use Implementation_Switches;
+      for Default_Switches ("Ada") use
+        Common.Compiler'Default_Switches ("Ada");
 
    end Compiler;
 

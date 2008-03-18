@@ -33,6 +33,10 @@
 
 --  Implementation of Threads under the Ravenscar profile.
 
+pragma Warnings (Off, "* is an internal GNAT unit");
+pragma Warnings (Off, "use of this unit is non-portable*");
+--  This unit depends on System.Tasking.Utilities, an internal GNAT unit
+
 with System.Tasking.Utilities;
 
 with Ada.Real_Time;

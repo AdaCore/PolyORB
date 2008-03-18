@@ -32,7 +32,6 @@
 ------------------------------------------------------------------------------
 
 with PolyORB.Binding_Objects;
-with Ada.Exceptions;
 
 package body PolyORB.Binding_Data.GIOP is
 
@@ -107,8 +106,7 @@ package body PolyORB.Binding_Data.GIOP is
       if Minor in To_GIOP_Version'Range then
          return To_GIOP_Version (Minor);
       else
-         Ada.Exceptions.Raise_Exception
-           (GIOP_Error'Identity, "unsupported GIOP version 1." & Minor'Img);
+         raise GIOP_Error with "unsupported GIOP version 1." & Minor'Img;
       end if;
    end Get_GIOP_Version;
 

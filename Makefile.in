@@ -82,7 +82,11 @@ EXTRA_GNATMAKE_FLAGS    = @EXTRA_GNATMAKE_FLAGS@
 # EXTRA_GNATMAKE_FLAGS are user-provided, empty by default (typically
 # used to specify a non-default --RTS switch).
 
-GNATMAKE_FLAGS          := @STYLE_SWITCH@ -gnatwa@WARNINGS_MODE@ ${ADAFLAGS} ${PARALLEL_GNATMAKE_FLAGS} ${EXTRA_GNATMAKE_FLAGS}
+BASE_GNATMAKE_FLAGS	  := ${ADAFLAGS} ${PARALLEL_GNATMAKE_FLAGS} ${EXTRA_GNATMAKE_FLAGS}
+# Gnatmake flags for units built from project files
+
+COMP_TOOLS_GNATMAKE_FLAGS := @STYLE_SWITCH@ -gnatwa@WARNINGS_MODE@ -gnat05 ${BASE_GNATMAKE_FLAGS}
+# Gnatmake flags for compilation tools mains, built without project files
 
 # Extra flags for target
 CFLAGS_FOR_TARGET         := @CFLAGS_FOR_TARGET@
@@ -218,8 +222,7 @@ build-po_gnatdist \
 	cd compilers/${compiler_dir} && \
 	  ${GNATMAKE} -m \
 	   $* \
-	   -gnat05 \
-	   ${GNATMAKE_FLAGS} \
+	   ${COMP_TOOLS_GNATMAKE_FLAGS} \
 	   -I${top_srcdir}/compilers/${compiler_dir} \
 	   ${PRJ_GNATMAKE_FLAGS}
 
@@ -299,7 +302,7 @@ GEN_CODESET = src/giop/gen_codeset
 
 build-gen_codeset:
 	cd src/giop && \
-	  ${GNATMAKE} gen_codeset -I${top_srcdir}/src/giop ${GNATMAKE_FLAGS}
+	  ${GNATMAKE} gen_codeset -I${top_srcdir}/src/giop ${COMP_TOOLS_GNATMAKE_FLAGS}
 
 src/giop/polyorb-giop_p-code_sets-data.ads-stamp: ${top_srcdir}/src/giop/cs_registry1.2h ${GEN_CODESET}
 	cd src/giop && ./gen_codeset -c "PolyORB.GIOP_P.Code_Sets.Data" \
@@ -420,7 +423,7 @@ ALL_PROJECT_FILES := ${sort \
 IGNORED_PROJECT_FILES := build_all.gpr common.gpr config.gpr
 PROJECT_FILES := ${filter-out ${IGNORED_PROJECT_FILES},${ALL_PROJECT_FILES}}
 
-# The ones that start with "tools_" are for building executables;
+# The ones that start with "tools_" are for building (target) executables;
 # the rest are for building libraries.
 LIBRARY_PROJECT_FILES := ${filter-out tools_%,${PROJECT_FILES}}
 EXE_PROJECT_FILES := ${filter tools_%,${PROJECT_FILES}}
@@ -465,7 +468,7 @@ ${PROJECT_FILES}: %.gpr: \
     src/giop/polyorb-giop_p-code_sets-data.ads-stamp \
     tools/po_catref/polyorb-giop_p-code_sets-description_data.ads-stamp
 	ADA_PROJECT_PATH="${top_builddir}/projects${PATH_SEP}${top_srcdir}/projects${PATH_SEP}$$ADA_PROJECT_PATH" \
-	  ${GNATMAKE_FOR_TARGET} -P $@ ${GNATMAKE_FLAGS} ${PRJ_GNATMAKE_FLAGS} ${GNATMAKE_FLAGS_FOR_TARGET}
+	  ${GNATMAKE_FOR_TARGET} -P $@ ${BASE_GNATMAKE_FLAGS} ${PRJ_GNATMAKE_FLAGS} ${GNATMAKE_FLAGS_FOR_TARGET}
 
 .PHONY: libpolyorb-corba-cos-event-impl.a
 libpolyorb-corba-cos-event-impl.a: cos_event.gpr
@@ -641,7 +644,7 @@ test_targets := ${sort ${test_targets}}
 .PHONY: ${test_targets}
 ${test_targets}: %/build-test:
 	ADA_PROJECT_PATH="${top_builddir}/projects${PATH_SEP}${top_srcdir}/projects${PATH_SEP}$$ADA_PROJECT_PATH" \
-	  ${GNATMAKE_FOR_TARGET} "-XTest_Dir=$*" -P ${top_srcdir}/$*/local.gpr ${GNATMAKE_FLAGS} ${GNATMAKE_FLAGS_FOR_TARGET}
+	  ${GNATMAKE_FOR_TARGET} "-XTest_Dir=$*" -P ${top_srcdir}/$*/local.gpr ${BASE_GNATMAKE_FLAGS} ${GNATMAKE_FLAGS_FOR_TARGET}
 
 # Set active_tests to a subset of test_targets -- remove the ones that are for
 # application personalities that were not configured. Note: examples/polyorb

@@ -34,13 +34,18 @@
 --  Implementation of POSIX-like mutexes with full Ada tasking.
 --  This variant uses GNAT-specific library facilities.
 
-with Ada.Unchecked_Deallocation;
+pragma Warnings (Off, "* is an internal GNAT unit");
+pragma Warnings (Off, "use of this unit is non-portable*");
+--  This unit depends on System.Task_Primitives.Operations, an internal GNAT
+--  unit.
 
-with System;
 with System.Task_Primitives.Operations;
 
-with PolyORB.Initialization;
+with System;
 
+with Ada.Unchecked_Deallocation;
+
+with PolyORB.Initialization;
 with PolyORB.Log;
 with PolyORB.Utils.Strings;
 

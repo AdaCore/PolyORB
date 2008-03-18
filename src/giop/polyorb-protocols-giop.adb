@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Exceptions;
-
 with PolyORB.Annotations;
 with PolyORB.Binding_Data.GIOP;
 with PolyORB.Components;
@@ -868,8 +866,7 @@ package body PolyORB.Protocols.GIOP is
          pragma Debug (C, O ("... using version " & Use_Version'Img));
          Initialize_Session (Sess.Implem, Sess);
       else
-         Ada.Exceptions.Raise_Exception
-           (GIOP_Error'Identity, "could not find a suitable GIOP version");
+         raise GIOP_Error with "could not find a suitable GIOP version";
       end if;
    end Get_GIOP_Implem;
 
