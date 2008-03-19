@@ -598,7 +598,6 @@ package body XE_Back is
             Create_File (File, Main_Subprogram, True);
             Set_Output  (File);
             Write_Line  ("#! /bin/sh");
-            Write_Line  ("PATH=/usr/ucb:${PATH}");
 
             for J in Partitions.First + 1 .. Partitions.Last loop
                if J /= Main_Partition then
