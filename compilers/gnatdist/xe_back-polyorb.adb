@@ -217,12 +217,12 @@ package body XE_Back.PolyORB is
            and then Partitions.Table (J).Passive /= BTrue
          then
             declare
-               Partition   : Partition_Type renames Partitions.Table (J);
-               Cmd : constant String := Get_Name_String
-                       (To_Absolute_File (Partition.Executable_File)
-                          & Partition.Command_Line);
-               Env : constant String := Get_Env_Vars (J);
-               Full_Cmd : constant String := '"' & Env & Cmd & '"';
+               Partition : Partition_Type renames Partitions.Table (J);
+               Full_Cmd  : constant String := Get_Name_String
+                             (Quote (To_Absolute_File
+                                       (Partition.Executable_File)
+                                     & Partition.Command_Line));
+               Env : constant String := Get_Env_Vars (J, Names_Only => True);
             begin
                Write_Image (Remote_Host, Partition.Host, J);
                if not Present (Remote_Host) then
@@ -232,7 +232,8 @@ package body XE_Back.PolyORB is
                Write_Call (RU (RE_Unit_Table (RE_Launch_Partition))
                            and RE (RE_Launch_Partition),
                            Remote_Host,
-                           Full_Cmd);
+                           Full_Cmd,
+                           Quote (Id (Env)));
             end;
          end if;
       end loop;

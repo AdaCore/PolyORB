@@ -519,7 +519,7 @@ package body XE_Back is
             Write_Char (' ');
             Write_Char (Ext_Quote);
 
-            Write_Str (Get_Env_Vars (P));
+            Write_Str (Get_Env_Vars (P, Names_Only => False));
          end if;
 
          --  Executable file name must be quoted because it may contain
@@ -783,7 +783,9 @@ package body XE_Back is
    -- Get_Env_Vars --
    ------------------
 
-   function Get_Env_Vars (P : Partition_Id) return String is
+   function Get_Env_Vars
+     (P : Partition_Id; Names_Only : Boolean) return String
+   is
       V : Env_Var_Id;
    begin
       --  Export environment vars for remote partitions
@@ -793,8 +795,10 @@ package body XE_Back is
       V := Partitions.Table (P).First_Env_Var;
       while V /= No_Env_Var_Id loop
          Get_Name_String_And_Append (Env_Vars.Table (V).Name);
-         Add_Str_To_Name_Buffer ("=$");
-         Get_Name_String_And_Append (Env_Vars.Table (V).Name);
+         if not Names_Only then
+            Add_Str_To_Name_Buffer ("=$");
+            Get_Name_String_And_Append (Env_Vars.Table (V).Name);
+         end if;
          Add_Str_To_Name_Buffer (" ");
          V := Env_Vars.Table (V).Next_Env_Var;
       end loop;

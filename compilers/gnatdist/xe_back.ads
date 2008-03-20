@@ -97,8 +97,11 @@ private
    --  main partition subprogram. This can be a shell script or an Ada
    --  program.
 
-   function Get_Env_Vars (P : Partition_Id) return String;
+   function Get_Env_Vars
+     (P : Partition_Id; Names_Only : Boolean) return String;
    --  Return a series of environment variables assignment for partition P
+   --  (if Names_Only is False), or a space separated list of environment
+   --  variable names only (if Names_Only is True).
 
    procedure Generate_Application_Project_Files;
    --  Generate a project file for the appplication code, extending the one
