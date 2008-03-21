@@ -394,6 +394,13 @@ package body PolyORB.Representations.CDR.Common is
       Data   : Standard.String)
    is
       Str : Stream_Element_Array (1 .. Data'Length);
+      --  WAG:62
+      --  Str should be a deferred constant, whose completion is the
+      --  pragma Import below. Declaring Str as a variable object loses
+      --  valuable information (we are overlaying it over a constant, which
+      --  might warrant a compiler warning...). However GNAT incorrectly
+      --  rejects a deferred constant declaration here.
+
       for Str'Address use Data'Address;
       pragma Import (Ada, Str);
 
