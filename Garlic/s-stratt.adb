@@ -281,14 +281,14 @@ package body System.Stream_Attributes is
    Optimize_Integers : constant Boolean :=
      Default_Bit_Order = High_Order_First;
 
-   --------------------------
-   -- Built_With_GNAT_Body --
-   --------------------------
+   -----------------
+   -- Block_IO_OK --
+   -----------------
 
-   function Built_With_GNAT_Body return Boolean is
+   function Block_IO_OK return Boolean is
    begin
       return False;
-   end Built_With_GNAT_Body;
+   end Block_IO_OK;
 
    ----------
    -- I_AD --
