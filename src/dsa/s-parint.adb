@@ -108,9 +108,9 @@ package body System.Partition_Interface is
    TC_Opaque_Cache : PATC.Local_Ref;
    --  Typecode for the opaque octet sequence
 
-   --------------------------------------------------------------
-   -- Special operation names for remote call interface objets --
-   --------------------------------------------------------------
+   ---------------------------------------------------------------
+   -- Special operation names for remote call interface objects --
+   ---------------------------------------------------------------
 
    Op_Resolve : constant String := "resolve";
    --  Corresponds to the CORBA CosNaming::NamingContext::resolve operation.
@@ -306,7 +306,7 @@ package body System.Partition_Interface is
         (Stream.Buf,
          Stream.Arr'Length,
          Stream.Arr (Stream.Arr'First)'Address,
-         PolyORB.Buffers.Endianness_Type'First, --  XXX Irrevelant
+         PolyORB.Buffers.Endianness_Type'First, --  XXX Irrelevant
          0);
    end Any_To_BS;
 
@@ -749,7 +749,7 @@ package body System.Partition_Interface is
       --  RCI_Info.Is_Local attribute, since RCI_Info will only be available
       --  after the RCI receiving stub is registered (and this is not
       --  guaranteed to happen before a call to Get_Active_Partition_Id is
-      --  isssued).
+      --  issued).
       --  Thus we use the configuration parameters set up by po_gnatdist in the
       --  per-partition specific unit 'PolyORB.Parameters.Partition'.
 

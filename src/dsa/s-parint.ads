@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2004-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -115,7 +115,7 @@ package System.Partition_Interface is
    type RAS_Proxy_Type_Access is access RAS_Proxy_Type;
    --  This type is used by the expansion to implement distributed objects.
    --  Do not change its definition or its layout without updating
-   --  Exp_Dist.Build_Remote_Supbrogram_Proxy_Type.
+   --  Exp_Dist.Build_Remote_Subprogram_Proxy_Type.
 
    procedure Get_RAS_Info
      (Pkg_Name        :     String;
@@ -298,7 +298,7 @@ package System.Partition_Interface is
       Typ      :        String;
       Receiver : access Servant;
       Ref      :    out PolyORB.References.Ref);
-   --  Create a reference that can be used to desginate the object whose
+   --  Create a reference that can be used to designate the object whose
    --  address is Addr, whose type is the designated type of a RACW type
    --  associated with Servant.
 
@@ -648,7 +648,7 @@ private
 
    type Receiving_Stub is new Private_Info with record
       Kind                : Receiving_Stub_Kind;
-      --  Indicates whetger this info is relative to RACW type or a RCI
+      --  Indicates whether this info is relative to RACW type or a RCI
 
       Name                : PolyORB.Utils.Strings.String_Ptr;
       --  Fully qualified name of the RACW or RCI
