@@ -403,6 +403,7 @@ package Backend.BE_CORBA_Ada.Nutils is
    type Component_Id is
      (C_Argument,
       C_Completed,
+      C_Deferred_Arguments_Session,
       C_Dimen,
       C_Indices,
       C_Minor,

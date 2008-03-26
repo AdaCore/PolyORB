@@ -174,13 +174,13 @@ package PolyORB.Protocols.GIOP is
    Fetch_Secure_Transport_QoS : Fetch_Secure_Transport_QoS_Hook := null;
 
    function Get_Representation
-     (Sess : GIOP_Session)
+     (Sess : access GIOP_Session)
      return PolyORB.Representations.CDR.CDR_Representation_Access;
    --  Return the representation object used by the session.
    --  Note: the user is not allowed to destroy this object
 
    function Get_Buffer
-     (Sess : GIOP_Session)
+     (Sess : access GIOP_Session)
      return PolyORB.Buffers.Buffer_Access;
    --  Return the buffer object used by the session.
    --  Note: the user is not allowed to destroy this object

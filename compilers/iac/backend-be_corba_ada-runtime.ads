@@ -144,6 +144,7 @@ package Backend.BE_CORBA_Ada.Runtime is
       RU_PolyORB_Representations_CDR_Common_Fixed_Point,
       RU_PolyORB_Protocols,
       RU_PolyORB_Protocols_GIOP,
+      RU_PolyORB_Protocols_Iface,
       RU_PolyORB_Requests,
       RU_PolyORB_Request_QoS,
       RU_PolyORB_Sequences,
@@ -600,6 +601,8 @@ package Backend.BE_CORBA_Ada.Runtime is
       RE_Get_Component,             --  PolyORB.Binding_Object.Get_Component
       RE_Get_Profile,               --  PolyORB.Binding_Object.Get_Profile
       RE_Entity_Of,                 --  PolyORB.Smart_Pointers.Entity_Of
+      RE_Message,                   --  PolyORB_Components.Message
+      RE_Emit_No_Reply,             --  PolyORB_Components.Emit_No_Reply
       RE_Component_Access,          --  PolyORB_Components.Component_Access
       RE_Profile_Access,            --  PolyORB.Binding_Data.Profile_Access
       RE_Get_Representation,        --  PolyORB.Protocols.GIOP.
@@ -610,6 +613,7 @@ package Backend.BE_CORBA_Ada.Runtime is
       RE_Release,                   --  PolyORB.Buffers.Release
       RE_Operation_Payload,         --  PolyORB.Protocols.GIOP.
       --                                   Operation_Payload
+      RE_Flush,                     --  PolyORB.Protocols.Iface.Flush
       RE_CDR_Representation,        --  PolyORB.Representations.
       --                                   CDR.CDR_Representation
       RE_Completed_No,              --  PolyORB.Errors.Completed_No
@@ -1271,10 +1275,13 @@ package Backend.BE_CORBA_Ada.Runtime is
          RE_Entity_Of                 => RU_PolyORB_Smart_Pointers,
          RE_Get_Representation        => RU_PolyORB_Protocols_GIOP,
          RE_Get_Buffer                => RU_PolyORB_Protocols_GIOP,
+         RE_Message                   => RU_PolyORB_Components,
+         RE_Emit_No_Reply             => RU_PolyORB_Components,
          RE_Component_Access          => RU_PolyORB_Components,
          RE_Profile_Access            => RU_PolyORB_Binding_Data,
          RE_Get_GIOP_Version          => RU_PolyORB_Binding_Data_GIOP,
          RE_Operation_Payload         => RU_PolyORB_Protocols_GIOP,
+         RE_Flush                     => RU_PolyORB_Protocols_Iface,
          RE_Completed_No              => RU_PolyORB_Errors,
          RE_Error_Container           => RU_PolyORB_Errors,
          RE_Found                     => RU_PolyORB_Errors,

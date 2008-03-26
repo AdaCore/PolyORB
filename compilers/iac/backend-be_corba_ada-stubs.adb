@@ -1771,13 +1771,15 @@ package body Backend.BE_CORBA_Ada.Stubs is
             Append_Node_To_List (N, Statements);
 
             --  The session resulting of the bind operation and the
-            --  session representation
+            --  session representation.
 
             N := Make_Type_Conversion
               (RE (RE_GIOP_Session),
                (Make_Explicit_Dereference
-                  (Make_Identifier
-                     (VN (V_Component)))));
+                (Make_Identifier
+                 (VN (V_Component)))));
+
+            N := Make_Attribute_Reference (N, A_Unrestricted_Access);
 
             N := Make_Subprogram_Call
               (RE (RE_Get_Representation),

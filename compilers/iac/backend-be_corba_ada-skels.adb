@@ -659,8 +659,7 @@ package body Backend.BE_CORBA_Ada.Skels is
                M := Make_Explicit_Dereference
                  (Make_Identifier (VN (V_Component)));
 
-               N := Make_Subprogram_Call
-                      (RE (RE_GIOP_Session), Make_List_Id (M));
+               N := Make_Type_Conversion (RE (RE_GIOP_Session), M);
 
                N := Make_Object_Declaration
                  (Defining_Identifier => Make_Defining_Identifier
@@ -671,7 +670,10 @@ package body Backend.BE_CORBA_Ada.Skels is
 
                N := Make_Subprogram_Call
                  (RE (RE_Get_Representation),
-                  Make_List_Id (Make_Identifier (VN (V_Session))));
+                  Make_List_Id
+                  (Make_Attribute_Reference
+                   (Make_Identifier (VN (V_Session)),
+                    A_Unrestricted_Access)));
 
                N := Make_Object_Declaration
                  (Defining_Identifier => Make_Defining_Identifier
@@ -727,7 +729,10 @@ package body Backend.BE_CORBA_Ada.Skels is
 
                M := Make_Subprogram_Call
                  (RE (RE_Get_Buffer),
-                  Make_List_Id (Make_Identifier (VN (V_Session))));
+                  Make_List_Id
+                  (Make_Attribute_Reference
+                   (Make_Identifier (VN (V_Session)),
+                    A_Unrestricted_Access)));
 
                Append_Node_To_List (M, Params);
 
@@ -764,8 +769,32 @@ package body Backend.BE_CORBA_Ada.Skels is
                N := Make_If_Statement
                  (Condition       => C,
                   Then_Statements => Make_List_Id (N));
-
                Append_Node_To_List (N, Statements);
+
+               --  In case oneway operation, client does not need to
+               --  wait.
+
+               if Is_Oneway (E) then
+                  Set_Str_To_Name_Buffer ("Oneway operation,"
+                                          & " release the client");
+                  Append_Node_To_List
+                    (Make_Ada_Comment (Name_Find), Statements);
+
+                  N := Make_Assignment_Statement
+                    (Make_Selected_Component
+                     (VN (V_Request),
+                      CN (C_Deferred_Arguments_Session)),
+                     Make_Null_Statement);
+                  Append_Node_To_List (N, Statements);
+
+                  N := Make_Qualified_Expression
+                    (RE (RE_Flush),
+                     Make_Record_Aggregate (No_List, RE (RE_Message)));
+                  N := Make_Subprogram_Call
+                    (RE (RE_Emit_No_Reply),
+                     Make_List_Id (Make_Identifier (VN (V_Component)), N));
+                  Append_Node_To_List (N, Statements);
+               end if;
             end;
          else
             Set_Str_To_Name_Buffer ("Processing request");
@@ -1091,15 +1120,6 @@ package body Backend.BE_CORBA_Ada.Skels is
 
                Append_Node_To_List
                  (Make_Defining_Identifier (VN (V_Buffer)), Params);
-               M := Make_Explicit_Dereference
-                 (Make_Identifier (VN (V_Component)));
-
-               --  GIOP_Session is used to get the representation
-               --  attribute (the declarative part the block).
-
-               N := Make_Subprogram_Call
-                 (RE (RE_GIOP_Session),
-                  Make_List_Id (M));
 
                N := Make_Explicit_Dereference
                  (Make_Identifier (VN (V_Representation)));

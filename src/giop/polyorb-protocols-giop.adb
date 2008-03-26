@@ -1073,7 +1073,7 @@ package body PolyORB.Protocols.GIOP is
    ------------------------
 
    function Get_Representation
-     (Sess : GIOP_Session)
+     (Sess : access GIOP_Session)
      return PolyORB.Representations.CDR.CDR_Representation_Access
    is
    begin
@@ -1085,11 +1085,12 @@ package body PolyORB.Protocols.GIOP is
    ----------------
 
    function Get_Buffer
-     (Sess : GIOP_Session)
+     (Sess : access GIOP_Session)
      return Buffer_Access
    is
+      Buffer : constant Buffer_Access := Sess.Buffer_In;
    begin
-      return Sess.Buffer_In;
+      return Buffer;
    end Get_Buffer;
 
 end PolyORB.Protocols.GIOP;

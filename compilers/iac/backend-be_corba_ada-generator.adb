@@ -1898,6 +1898,10 @@ package body Backend.BE_CORBA_Ada.Generator is
             Write_Line (Tok_Comma);
             Write_Indentation;
          end loop;
+      else
+         Write (Tok_Null);
+         Write_Space;
+         Write (Tok_Record);
       end if;
 
       Write (Tok_Right_Paren);
