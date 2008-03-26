@@ -34,12 +34,16 @@
 --  Implementation of POSIX-like mutexes with full Ada tasking.
 --  This variant uses GNAT-specific library facilities.
 
-pragma Warnings (Off, "* is an internal GNAT unit");
-pragma Warnings (Off, "use of this unit is non-portable*");
---  This unit depends on System.Task_Primitives.Operations, an internal GNAT
---  unit.
+--  WAG:601
+--  pragma Warnings (Off) with pattern not supported in that compiler version
+--  so use plain pragma Warnings (Off/On) instead.
+--  pragma Warnings (Off, "* is an internal GNAT unit");
+--  pragma Warnings (Off, "use of this unit is non-portable*");
 
+pragma Warnings (Off);
+--  Depends on System.Task_Primitives.Operations, an internal GNAT unit
 with System.Task_Primitives.Operations;
+pragma Warnings (On);
 
 with System;
 

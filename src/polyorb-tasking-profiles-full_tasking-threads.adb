@@ -33,11 +33,16 @@
 
 --  Implementation of Threads under the Full_Tasking profile.
 
-pragma Warnings (Off, "* is an internal GNAT unit");
-pragma Warnings (Off, "use of this unit is non-portable*");
---  This unit depends on System.Tasking.Utilities, an internal GNAT unit
+--  WAG:601
+--  pragma Warnings (Off) with pattern not supported in that compiler version
+--  so use plain pragma Warnings (Off/On) instead.
+--  pragma Warnings (Off, "* is an internal GNAT unit");
+--  pragma Warnings (Off, "use of this unit is non-portable*");
 
+pragma Warnings (Off);
+--  Depends on System.Tasking.Utilities, an internal GNAT unit
 with System.Tasking.Utilities;
+pragma Warnings (On);
 
 with Ada.Real_Time;
 with Ada.Unchecked_Deallocation;
