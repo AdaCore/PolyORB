@@ -6270,6 +6270,11 @@ following limitations in both the CORBA API and the IDL-to-Ada compiler
 compiler used. Please refer to its documentation for more
 information.}
 
+Confirming to requirements from section 4.11 of the IDL-to-Ada
+specification @cite{[OMG01]}, the user should note that PolyORB's
+implementation of CORBA is @i{tasking-safe}. The use of the CORBA
+personality on typical GNAT runtimes is @i{task-blocking}, unless
+specified in platform notes.
 
 @c -------------------------------------------------------------------
 @node CORBA Core
