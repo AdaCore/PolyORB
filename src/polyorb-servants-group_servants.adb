@@ -280,7 +280,6 @@ package body PolyORB.Servants.Group_Servants is
       end if;
 
       if Self.State = Wait_Other then
-         Free (Self.Args);
          Catch (Self.Error);
       end if;
 

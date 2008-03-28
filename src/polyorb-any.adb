@@ -32,6 +32,7 @@
 ------------------------------------------------------------------------------
 
 with Ada.Strings.Fixed;
+with Ada.Unchecked_Deallocation;
 
 with PolyORB.Log;
 with PolyORB.Utils.Dynamic_Tables;
