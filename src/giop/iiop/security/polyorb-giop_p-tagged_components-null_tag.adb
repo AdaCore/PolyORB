@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -42,6 +42,7 @@ with PolyORB.Utils.Strings;
 package body PolyORB.GIOP_P.Tagged_Components.Null_Tag is
 
    use PolyORB.Representations.CDR.Common;
+   use PolyORB.GIOP_P.Transport_Mechanisms;
 
    function Create_Empty_Component return Tagged_Component_Access;
 
@@ -57,10 +58,10 @@ package body PolyORB.GIOP_P.Tagged_Components.Null_Tag is
       return
        PolyORB.Security.Transport_Mechanisms.Client_Transport_Mechanism_Access;
 
-   function Create_GIOP_Transport_Mechanisms
+   procedure Create_GIOP_Transport_Mechanisms
      (TC      : PolyORB.GIOP_P.Tagged_Components.Tagged_Component_Access;
-      Profile : PolyORB.Binding_Data.Profile_Access)
-      return PolyORB.GIOP_P.Transport_Mechanisms.Transport_Mechanism_List;
+      Profile : PolyORB.Binding_Data.Profile_Access;
+      Mechs   : in out Transport_Mechanism_List);
 
    ----------------------------
    -- Create_Empty_Component --
@@ -75,23 +76,16 @@ package body PolyORB.GIOP_P.Tagged_Components.Null_Tag is
    -- Create_GIOP_Transport_Mechanisms --
    --------------------------------------
 
-   function Create_GIOP_Transport_Mechanisms
+   procedure Create_GIOP_Transport_Mechanisms
      (TC      : PolyORB.GIOP_P.Tagged_Components.Tagged_Component_Access;
-      Profile : PolyORB.Binding_Data.Profile_Access)
-      return PolyORB.GIOP_P.Transport_Mechanisms.Transport_Mechanism_List
+      Profile : PolyORB.Binding_Data.Profile_Access;
+      Mechs   : in out Transport_Mechanism_List)
    is
       pragma Unreferenced (TC);
-
       use PolyORB.Binding_Data.GIOP;
-      use PolyORB.GIOP_P.Transport_Mechanisms;
-
-      Result : Transport_Mechanism_List;
-
    begin
-      Append (Result, Get_Primary_Transport_Mechanism
-                      (GIOP_Profile_Type (Profile.all)));
-
-      return Result;
+      Append (Mechs,
+        Get_Primary_Transport_Mechanism (GIOP_Profile_Type (Profile.all)));
    end Create_GIOP_Transport_Mechanisms;
 
    ---------------

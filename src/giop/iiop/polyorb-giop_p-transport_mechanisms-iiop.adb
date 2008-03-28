@@ -54,10 +54,10 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.IIOP is
 
    procedure Initialize;
 
-   function Create
+   procedure Create
      (TC      : Tagged_Components.Tagged_Component_Access;
-      Profile : Binding_Data.Profile_Access)
-     return Transport_Mechanism_List;
+      Profile : Binding_Data.Profile_Access;
+      Mechs   : in out Transport_Mechanism_List);
    --  Create list of Transport Mechanism from list of Tagged Component
 
    --------------------
@@ -140,11 +140,16 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.IIOP is
    -- Create --
    ------------
 
-   function Create
+   procedure Create
      (TC      : Tagged_Components.Tagged_Component_Access;
-      Profile : Binding_Data.Profile_Access)
-     return Transport_Mechanism_List
+      Profile : Binding_Data.Profile_Access;
+      Mechs   : in out Transport_Mechanism_List)
    is
+      pragma Unreferenced (Mechs);
+      --  Behaviour is not conformant with spec, we add the additional address
+      --  from TC directly into the primary transport mechanism, instead of
+      --  creating a separate mechanism???
+
       use PolyORB.Binding_Data.GIOP;
 
       Mechanism : constant Transport_Mechanism_Access :=
@@ -154,8 +159,6 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.IIOP is
       Append
         (IIOP_Transport_Mechanism (Mechanism.all).Addresses,
          new Socket_Name'(TC_Alternate_IIOP_Address (TC.all).Address.all));
-
-      return Transport_Mechanism_List (Transport_Mechanism_Lists.Empty);
    end Create;
 
    --------------------
