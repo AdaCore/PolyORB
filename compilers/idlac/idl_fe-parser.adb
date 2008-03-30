@@ -8000,13 +8000,13 @@ package body Idl_Fe.Parser is
          Offset := 2;
          case S (S'First + 1) is
             when LC_N =>
-               Result := Wide_Character'Val (Character'Pos (ASCII.Lf));
+               Result := Wide_Character'Val (Character'Pos (ASCII.LF));
             when LC_T =>
-               Result := Wide_Character'Val (Character'Pos (ASCII.Ht));
+               Result := Wide_Character'Val (Character'Pos (ASCII.HT));
             when LC_V =>
-               Result := Wide_Character'Val (Character'Pos (ASCII.Vt));
+               Result := Wide_Character'Val (Character'Pos (ASCII.VT));
             when LC_B =>
-               Result := Wide_Character'Val (Character'Pos (ASCII.Bs));
+               Result := Wide_Character'Val (Character'Pos (ASCII.BS));
             when LC_R =>
                Result := Wide_Character'Val (Character'Pos (CR));
             when LC_F =>

@@ -224,7 +224,7 @@ package body Idl_Fe.Files is
       --  Pass user options to the preprocessor.
 
       Goto_Section ("cppargs");
-      while Getopt ("*") /= ASCII.Nul loop
+      while Getopt ("*") /= ASCII.NUL loop
          Add_Argument (Full_Switch);
       end loop;
 
