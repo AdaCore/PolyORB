@@ -409,7 +409,7 @@ package body PolyORB.Representations.CDR.Common is
 
       Marshall (Buffer, PolyORB.Types.Unsigned_Long'(Data'Length + 1));
       Align_Marshall_Copy (Buffer, Str);
-      Marshall_Latin_1_Char (Buffer, PolyORB.Types.Char (ASCII.Nul));
+      Marshall_Latin_1_Char (Buffer, PolyORB.Types.Char (ASCII.NUL));
 
       pragma Debug (C, O ("Marshall (String) : end"));
    end Marshall_Latin_1_String;
@@ -856,7 +856,7 @@ package body PolyORB.Representations.CDR.Common is
 
       if Character'Val
            (PolyORB.Types.Char'Pos (Unmarshall_Latin_1_Char (Buffer)))
-        /= ASCII.Nul
+        /= ASCII.NUL
       then
          raise Constraint_Error;
       end if;
