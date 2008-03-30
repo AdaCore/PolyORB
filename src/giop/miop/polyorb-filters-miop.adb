@@ -214,7 +214,7 @@ package body PolyORB.Filters.MIOP is
       --  A 0 must end the string
       if Character'Val
            (PolyORB.Types.Char'Pos (Unmarshall_Latin_1_Char (Buffer)))
-        /= ASCII.Nul
+        /= ASCII.NUL
       then
          raise Constraint_Error;
       end if;

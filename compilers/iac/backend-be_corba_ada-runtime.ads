@@ -675,7 +675,7 @@ package Backend.BE_CORBA_Ada.Runtime is
       RE_Natural,                   --  PolyORB.Std.Natural
       RE_Positive,                  --  PolyORB.Std.Positive
       RE_String_2,                  --  PolyORB.Std.String
-      RE_Nul,                       --  PolyORB.Std.ASCII.Nul
+      RE_Nul,                       --  PolyORB.Std.ASCII.NUL
       RE_Identifier,                --  PolyORB.Types.Identifier
       RE_Long_1,                    --  PolyORB.Types.Long
       RE_Long_Long_1,               --  PolyORB.Types.Long_Long

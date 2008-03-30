@@ -484,7 +484,7 @@ package body PolyORB.Representations.SRP is
       end loop;
 
       if Character'Val (PolyORB.Types.Char'Pos (Unmarshall (Buffer)))
-        /= ASCII.Nul
+        /= ASCII.NUL
       then
          raise Unmarshall_Error;
       end if;
@@ -1039,7 +1039,7 @@ package body PolyORB.Representations.SRP is
       for I in Data'Range loop
          Marshall (Buffer, PolyORB.Types.Char (Data (I)));
       end loop;
-      Marshall (Buffer, PolyORB.Types.Char (ASCII.Nul));
+      Marshall (Buffer, PolyORB.Types.Char (ASCII.NUL));
 
       pragma Debug (C, O ("Marshall (String): end"));
    end Marshall;

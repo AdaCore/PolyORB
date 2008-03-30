@@ -360,7 +360,7 @@ begin
 
       loop
          case Getopt ("i n s I:") is
-            when ASCII.Nul =>
+            when ASCII.NUL =>
                exit;
 
             when 's' =>
