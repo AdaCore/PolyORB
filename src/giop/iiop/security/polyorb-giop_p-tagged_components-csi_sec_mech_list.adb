@@ -101,9 +101,12 @@ package body PolyORB.GIOP_P.Tagged_Components.CSI_Sec_Mech_List is
 
    function Unmarshall (Buffer : access Buffer_Type) return Mechanism;
 
+   --  WAG:504 need fully qualified name for visibility on sibling of parent
+   --  (PolyORB.Binding_Data).
+
    procedure Create_Transport_Mechanisms
      (TC      : Tagged_Components.Tagged_Component_Access;
-      Profile : PolyORB.Binding_Data.Profile_Access; --  WAG:GCC4.2
+      Profile : PolyORB.Binding_Data.Profile_Access;
       Mechs   : in out Transport_Mechanism_List);
 
    procedure Fetch_QoS
@@ -153,9 +156,12 @@ package body PolyORB.GIOP_P.Tagged_Components.CSI_Sec_Mech_List is
    -- Create_Transport_Mechanisms --
    ---------------------------------
 
+   --  WAG:504 need fully qualified name for visibility on sibling of parent
+   --  (PolyORB.Binding_Data).
+
    procedure Create_Transport_Mechanisms
      (TC      : Tagged_Components.Tagged_Component_Access;
-      Profile : PolyORB.Binding_Data.Profile_Access; --  WAG:GCC4.2
+      Profile : PolyORB.Binding_Data.Profile_Access;
       Mechs   : in out Transport_Mechanism_List)
    is
       Iter   : Mechanism_Lists.Iterator :=
