@@ -103,7 +103,7 @@ package body PolyORB.GIOP_P.Tagged_Components.CSI_Sec_Mech_List is
 
    procedure Create_Transport_Mechanisms
      (TC      : Tagged_Components.Tagged_Component_Access;
-      Profile : Binding_Data.Profile_Access;
+      Profile : PolyORB.Binding_Data.Profile_Access; --  WAG:GCC4.2
       Mechs   : in out Transport_Mechanism_List);
 
    procedure Fetch_QoS
@@ -155,7 +155,7 @@ package body PolyORB.GIOP_P.Tagged_Components.CSI_Sec_Mech_List is
 
    procedure Create_Transport_Mechanisms
      (TC      : Tagged_Components.Tagged_Component_Access;
-      Profile : Binding_Data.Profile_Access;
+      Profile : PolyORB.Binding_Data.Profile_Access; --  WAG:GCC4.2
       Mechs   : in out Transport_Mechanism_List)
    is
       Iter   : Mechanism_Lists.Iterator :=
