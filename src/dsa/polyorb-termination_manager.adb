@@ -71,6 +71,27 @@ package body PolyORB.Termination_Manager is
    --  This procedure is executed in the termination loop for
    --  nodes which are not the initiator.
 
+   type Action is access
+     function (TM : Term_Manager_Access; Stamp : Stamp_Type) return Boolean;
+   --  Comment needed???
+
+   function Call_On_Neighbours
+     (A     : Action;
+      Stamp : Stamp_Type) return Boolean;
+   --  Call action A on all the neighbours of the local partition, and return
+   --  the global AND of every neighbour return value to A.
+
+   function ">" (S1, S2 : Stamp_Type) return Boolean;
+   --  Compare two stamps. S1 > S2 means that S1 is very likely to have been
+   --  issued prior to S2. (Borrowed from GLADE s-garter).
+
+   function Is_Locally_Terminated
+     (Expected_Running_Tasks : Natural) return Boolean;
+   --  Wrapper for the Is_Locally_Terminated function defined in ORB_Controller
+
+   type Request_Status is (Outdated, Not_From_Father, Valid);
+   --  Comment needed???
+
    ----------------------
    -- Critical Section --
    ----------------------
@@ -130,10 +151,8 @@ package body PolyORB.Termination_Manager is
    ------------------------
 
    function Call_On_Neighbours
-     (A : Action; TM : access Term_Manager; Stamp : Stamp_Type) return Boolean
+     (A : Action; Stamp : Stamp_Type) return Boolean
    is
-      pragma Unreferenced (TM);
-
       use BO_Ref_Lists;
       use References;
       use Smart_Pointers;
@@ -332,7 +351,7 @@ package body PolyORB.Termination_Manager is
             return False;
          when Valid           =>
             null;
-            pragma Debug (C, O ("New Wave (Is_Terminated) received"));
+            pragma Debug (C, O ("New wave (Is_Terminated) received"));
       end case;
 
       --  Compute the number of expected non terminating tasks
@@ -374,7 +393,7 @@ package body PolyORB.Termination_Manager is
       --  This is to reset the activity counter in all the childs partitions.
 
       Neighbours_Decision :=
-        Call_On_Neighbours (Do_Is_Terminated'Access, TM, Stamp);
+        Call_On_Neighbours (Do_Is_Terminated'Access, Stamp);
 
       --  Reset Activity counter
 
@@ -463,16 +482,16 @@ package body PolyORB.Termination_Manager is
       case Check_Stamp (Stamp) is
          when Valid  =>
             null;
-            pragma Debug (C, O ("New Wave (Terminate_Now) received"));
+            pragma Debug (C, O ("New wave (Terminate_Now) received"));
          when others =>
             return True;
       end case;
 
       --  Call Terminate_Now on all of its childs
 
-      pragma Debug (C, O ("Terminating Childs"));
+      pragma Debug (C, O ("Terminating children"));
 
-      Status := Call_On_Neighbours (Do_Terminate_Now'Access, TM, Stamp);
+      Status := Call_On_Neighbours (Do_Terminate_Now'Access, Stamp);
       pragma Assert (Status);
 
       --  Terminate this partition but for Deferred Termination
