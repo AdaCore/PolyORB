@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1996-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 1996-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- GARLIC is free software;  you can redistribute it and/or modify it under --
 -- terms of the  GNU General Public License  as published by the Free Soft- --
@@ -66,6 +66,43 @@ package body System.Shared_Storage is
       end if;
       Initiate_Request (VS, Lock, Ok);
    end Shared_Var_Lock;
+
+   ----------------------
+   -- Shared_Var_Procs --
+   ----------------------
+
+   package body Shared_Var_Procs is
+
+      use type SIO.Stream_Access;
+
+      ----------
+      -- Read --
+      ----------
+
+      procedure Read is
+         S : SIO.Stream_Access := null;
+      begin
+         S := Shared_Var_ROpen (Full_Name);
+         if S /= null then
+            Typ'Read (S, V);
+            Shared_Var_Close (S);
+         end if;
+      end Read;
+
+      ------------
+      -- Write --
+      ------------
+
+      procedure Write is
+         S : SIO.Stream_Access := null;
+      begin
+         S := Shared_Var_WOpen (Full_Name);
+         Typ'Write (S, V);
+         Shared_Var_Close (S);
+         return;
+      end Write;
+
+   end Shared_Var_Procs;
 
    ----------------------
    -- Shared_Var_ROpen --
