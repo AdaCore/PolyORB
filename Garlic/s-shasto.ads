@@ -195,7 +195,7 @@ package System.Shared_Storage is
 
    generic
 
-      type Typ is private;
+      type Typ is limited private;
       --  Shared passive variable type
 
       V : in out Typ;
