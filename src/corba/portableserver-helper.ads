@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2006-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2006-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
@@ -80,7 +80,7 @@ package PortableServer.Helper is
      (Item : PortableServer.ForwardRequest_Members) return CORBA.Any;
 
    procedure Raise_ForwardRequest
-     (Members : in ForwardRequest_Members);
+     (Members : ForwardRequest_Members);
    pragma No_Return (Raise_ForwardRequest);
    function Wrap (X : access PortableServer.ThreadPolicyValue) return PolyORB.Any.Content'Class;
 

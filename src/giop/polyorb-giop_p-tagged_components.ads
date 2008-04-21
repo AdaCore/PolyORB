@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -130,21 +130,13 @@ package PolyORB.GIOP_P.Tagged_Components is
       CL   :        Tagged_Component_List);
    --  Add a list of components to a tagged component list
 
-   procedure Replace
-     (List : in out Tagged_Component_List;
-      C1   :        Tagged_Component_Access;
-      C2   :        Tagged_Component_Access);
-   --  Replace component C1 with component C2. C1 and C2 must have the
-   --  same tag.
-
    procedure Remove
      (List : in out Tagged_Component_List;
-      Comp :        Tagged_Component_Access);
+      Comp : Tagged_Component_Access);
    --  Remove Comp from List
 
    function Deep_Copy
-     (List : Tagged_Component_List)
-     return Tagged_Component_List;
+     (List : Tagged_Component_List) return Tagged_Component_List;
    --  Return a deep copy of List
 
    -------------------------

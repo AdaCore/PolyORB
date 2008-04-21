@@ -68,7 +68,6 @@ package body PolyORB.Binding_Data.GIOP.IIOP is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
-   pragma Unreferenced (C); --  For conditional pragma Debug
 
    IIOP_Corbaloc_Prefix : constant String := "iiop";
 
@@ -113,9 +112,8 @@ package body PolyORB.Binding_Data.GIOP.IIOP is
      (P : access IIOP_Profile_Type)
    is
    begin
-      P.Mechanisms :=
-        P.Mechanisms
-        & Create_Transport_Mechanisms (P.Components, Profile_Access (P));
+      Create_Transport_Mechanisms
+        (P.Components, Profile_Access (P), P.Mechanisms);
    end Add_Additional_Transport_Mechanisms;
 
    ---------------------
@@ -407,7 +405,7 @@ package body PolyORB.Binding_Data.GIOP.IIOP is
 
    function Profile_To_Corbaloc (P : Profile_Access) return String is
    begin
-      pragma Debug (O ("IIOP Profile to corbaloc"));
+      pragma Debug (C, O ("IIOP Profile to corbaloc"));
       return Common_IIOP_DIOP_Profile_To_Corbaloc
         (P,
          Get_Primary_IIOP_Address (IIOP_Profile_Type (P.all)),

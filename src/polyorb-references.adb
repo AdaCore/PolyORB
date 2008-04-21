@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -53,7 +53,6 @@ package body PolyORB.References is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
-   pragma Unreferenced (C); --  For conditional pragma Debug
 
    function Reference_Equivalence
      (Left, Right : Ref'Class;
@@ -87,7 +86,7 @@ package body PolyORB.References is
       Prefix_Info_Lists.Append (Prefixes,
                                 Prefix_Info'(Prefix => new String'(Prefix),
                                              Func   => Func));
-      pragma Debug (O ("register prefix: " & Prefix));
+      pragma Debug (C, O ("register prefix: " & Prefix));
    end Register_String_To_Object;
 
    ----------------------
@@ -120,7 +119,7 @@ package body PolyORB.References is
          end;
       end if;
 
-      pragma Debug (O ("New " & Image (R)));
+      pragma Debug (C, O ("New " & Image (R)));
    end Create_Reference;
 
    --------------
@@ -129,13 +128,13 @@ package body PolyORB.References is
 
    procedure Finalize (RI : in out Reference_Info) is
    begin
-      pragma Debug (O ("Finalize (Reference_Info): enter"));
+      pragma Debug (C, O ("Finalize (Reference_Info): enter"));
 
       Free (RI.Type_Id);
 
       for J in RI.Profiles'Range loop
          pragma Debug
-           (O ("Destroying profile of type "
+           (C, O ("Destroying profile of type "
                & Ada.Tags.External_Tag (RI.Profiles (J)'Tag)));
          Binding_Data.Destroy_Profile (RI.Profiles (J));
       end loop;
@@ -144,7 +143,7 @@ package body PolyORB.References is
       Binding_Info_Lists.Deallocate (RI.Binding_Info);
       Annotations.Destroy (RI.Notepad);
 
-      pragma Debug (O ("Finalize (Reference_Info): leave"));
+      pragma Debug (C, O ("Finalize (Reference_Info): leave"));
    end Finalize;
 
    ----------------------
@@ -171,7 +170,7 @@ package body PolyORB.References is
          --  If the binding object has become invalid, forget about it
 
          if not Valid (BO) then
-            pragma Debug (O ("Removing invalid binding object"));
+            pragma Debug (C, O ("Removing invalid binding object"));
             Remove (RI.Binding_Info, Iter);
 
          --  If existing BO QoS is compatible with requested QoS, reuse it
@@ -334,7 +333,7 @@ package body PolyORB.References is
          if E.all in Reference_Info'Class then
             return Reference_Info_Access (E);
          else
-            pragma Debug (O ("Ref_Info_Of: entity is a "
+            pragma Debug (C, O ("Ref_Info_Of: entity is a "
                              & Ada.Tags.External_Tag (E'Tag)));
             --  XXX does it make sense to have a non-child of
             --  Reference_Info stored into a PolyORB.ReferenceS.Ref ?
@@ -342,7 +341,7 @@ package body PolyORB.References is
             null;
          end if;
       else
-         pragma Debug (O ("Ref_Info_Of: nil ref."));
+         pragma Debug (C, O ("Ref_Info_Of: nil ref."));
          null;
       end if;
 

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -50,7 +50,6 @@ package body PolyORB.Transport.Connected is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
-   pragma Unreferenced (C); --  For conditional pragma Debug
 
    ------------------
    -- Handle_Event --
@@ -66,7 +65,7 @@ package body PolyORB.Transport.Connected is
 
       New_TE : Transport_Endpoint_Access;
    begin
-      pragma Debug (O ("Handle_Event: Connected TAP AES"));
+      pragma Debug (C, O ("Handle_Event: Connected TAP AES"));
 
       --  Create transport endpoint
 
@@ -128,7 +127,7 @@ package body PolyORB.Transport.Connected is
               (TE => Transport_Endpoint_Access (TE)));
 
       elsif Msg in Data_Indication then
-         pragma Debug (O ("Data received"));
+         pragma Debug (C, O ("Data received"));
 
          declare
             use type Ada.Streams.Stream_Element_Count;

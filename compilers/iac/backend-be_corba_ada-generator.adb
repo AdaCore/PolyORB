@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -114,6 +114,10 @@ package body Backend.BE_CORBA_Ada.Generator is
    --  Generate an Ada file name from the package node given as
    --  parameter
 
+   function Needs_Begin_End (B : Node_Id) return Boolean;
+   --  Return True if the statement block B needs to be surrounded by
+   --  begin..end.
+
    -------------------
    -- Get_File_Name --
    -------------------
@@ -155,6 +159,18 @@ package body Backend.BE_CORBA_Ada.Generator is
       return Name_Find;
 
    end Get_File_Name;
+
+   ---------------------
+   -- Needs_Begin_End --
+   ---------------------
+
+   function Needs_Begin_End (B : Node_Id) return Boolean is
+   begin
+      pragma Assert (Kind (B) = K_Block_Statement);
+
+      return not (Is_Empty (Declarative_Part (B)) and then
+                  Is_Empty (Exception_Handler (B)));
+   end Needs_Begin_End;
 
    --------------
    -- Generate --
@@ -600,7 +616,8 @@ package body Backend.BE_CORBA_Ada.Generator is
    ------------------------------
 
    procedure Generate_Block_Statement (N : Node_Id) is
-      D : Node_Id;
+      D           : Node_Id;
+      N_Begin_End :  Boolean renames Needs_Begin_End (N);
    begin
       if Present (Defining_Identifier (N)) then
          Write_Eol;
@@ -627,19 +644,28 @@ package body Backend.BE_CORBA_Ada.Generator is
          Decrement_Indentation;
          Write_Indentation;
       end if;
-      Write (Tok_Begin);
-      Write_Eol;
-      Increment_Indentation;
+
+      if N_Begin_End then
+         Write (Tok_Begin);
+         Write_Eol;
+         Increment_Indentation;
+         Write_Indentation;
+      end if;
+
       D := First_Node (Statements (N));
       loop
-         Write_Indentation;
          Generate (D);
          Generate_Statement_Delimiter (D);
          D := Next_Node (D);
          exit when No (D);
+         Write_Indentation;
       end loop;
-      Decrement_Indentation;
-      Write_Indentation;
+
+      if N_Begin_End then
+         Decrement_Indentation;
+         Write_Indentation;
+      end if;
+
       if not Is_Empty (Exception_Handler (N)) then
          declare
             Excp_Handler_Alternative : Node_Id;
@@ -650,30 +676,9 @@ package body Backend.BE_CORBA_Ada.Generator is
 
             --  Generation of the exception handler
 
-            Write_Indentation;
             Excp_Handler_Alternative := First_Node (Exception_Handler (N));
             while Present (Excp_Handler_Alternative) loop
-               Write (Tok_When);
-               Write_Space;
-
-               --  Generate the different part of the component
-               --  association but add a new line after "=>"
-
-               Generate
-                 (Defining_Identifier
-                  (Excp_Handler_Alternative));
-               Write_Space;
-               Write (Tok_Arrow);
-               Write_Eol;
-               Increment_Indentation;
-               Write_Indentation;
-               Generate
-                 (Expression
-                  (Excp_Handler_Alternative));
-               Generate_Statement_Delimiter
-                 (Expression
-                  (Excp_Handler_Alternative));
-               Decrement_Indentation;
+               Generate (Excp_Handler_Alternative);
 
                Excp_Handler_Alternative :=
                  Next_Node (Excp_Handler_Alternative);
@@ -682,7 +687,10 @@ package body Backend.BE_CORBA_Ada.Generator is
             Write_Indentation;
          end;
       end if;
-      Write (Tok_End);
+
+      if N_Begin_End then
+         Write (Tok_End);
+      end if;
    end Generate_Block_Statement;
 
    -----------------------------
@@ -708,7 +716,7 @@ package body Backend.BE_CORBA_Ada.Generator is
       while Present (D) loop
          if Is_Empty (Discret_Choice_List (D)) then
             --  Postpone the generation of the `when others' to the
-            --  ned of the case statement.
+            --  end of the case statement.
 
             O := D;
          else
@@ -776,14 +784,21 @@ package body Backend.BE_CORBA_Ada.Generator is
       --  Generate the statements
 
       Increment_Indentation;
-      M := First_Node (Statements (N));
 
-      while Present (M) loop
+      if Is_Empty (Statements (N)) then
          Write_Indentation;
-         Generate (M);
-         Generate_Statement_Delimiter (M);
-         M := Next_Node (M);
-      end loop;
+         Write (Tok_Null);
+         Write_Line (Tok_Semicolon);
+      else
+         M := First_Node (Statements (N));
+
+         while Present (M) loop
+            Write_Indentation;
+            Generate (M);
+            Generate_Statement_Delimiter (M);
+            M := Next_Node (M);
+         end loop;
+      end if;
 
       Decrement_Indentation;
 
@@ -936,10 +951,9 @@ package body Backend.BE_CORBA_Ada.Generator is
       Write_Line (Tok_Then);
       Increment_Indentation;
       D := First_Node (Then_Statements (N));
-      loop
+      while Present (D) loop
          Write_Indentation;
          Generate (D);
-         exit when No (Next_Node (D));
          Generate_Statement_Delimiter (D);
          D := Next_Node (D);
       end loop;
@@ -1217,7 +1231,6 @@ package body Backend.BE_CORBA_Ada.Generator is
          loop
             Write_Indentation;
             Generate (I);
-            Generate_Statement_Delimiter (I);
             I := Next_Node (I);
             exit when No (I);
          end loop;
@@ -1885,6 +1898,10 @@ package body Backend.BE_CORBA_Ada.Generator is
             Write_Line (Tok_Comma);
             Write_Indentation;
          end loop;
+      else
+         Write (Tok_Null);
+         Write_Space;
+         Write (Tok_Record);
       end if;
 
       Write (Tok_Right_Paren);
@@ -2272,11 +2289,12 @@ package body Backend.BE_CORBA_Ada.Generator is
 
       if Present (O) then
          Generate (Component (O));
+         Generate_Statement_Delimiter (Component (O));
       else
          Write (Tok_Null);
+         Generate_Statement_Delimiter (O);
       end if;
 
-      Generate_Statement_Delimiter (O);
       Decrement_Indentation;
 
       if No (O) then
@@ -2352,7 +2370,11 @@ package body Backend.BE_CORBA_Ada.Generator is
 
    procedure Generate_Statement_Delimiter (N : Node_Id) is
    begin
-      if No (N) or else Kind (N) /= K_Ada_Comment then
+      if No (N)
+        or else (Kind (N) = K_Block_Statement and then Needs_Begin_End (N))
+        or else (Kind (N) /= K_Block_Statement
+                   and then Kind (N) /= K_Ada_Comment)
+      then
          Write_Line (Tok_Semicolon);
       else
          Write_Eol;

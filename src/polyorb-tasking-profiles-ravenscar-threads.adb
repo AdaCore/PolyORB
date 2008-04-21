@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -33,7 +33,16 @@
 
 --  Implementation of Threads under the Ravenscar profile.
 
+--  WAG:601
+--  pragma Warnings (Off) with pattern not supported in that compiler version
+--  so use plain pragma Warnings (Off/On) instead.
+--  pragma Warnings (Off, "* is an internal GNAT unit");
+--  pragma Warnings (Off, "use of this unit is non-portable*");
+
+pragma Warnings (Off);
+--  Depends on System.Tasking.Utilities, an internal GNAT unit
 with System.Tasking.Utilities;
+pragma Warnings (On);
 
 with Ada.Real_Time;
 with Ada.Task_Identification;
@@ -52,7 +61,6 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
-   pragma Unreferenced (C); --  For conditional pragma Debug
 
    ---------
    -- Ids --
@@ -267,11 +275,11 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
    procedure Abort_Suspend
      (S : Synchro_Index_Type) is
    begin
-      pragma Debug (O ("abort suspend on " & Integer'Image (Integer (S))));
+      pragma Debug (C, O ("abort suspend on " & Integer'Image (Integer (S))));
 
       Sync_Pool (S).Abort_Wait;
 
-      pragma Debug (O ("abort done on " & Integer'Image (Integer (S))));
+      pragma Debug (C, O ("abort done on " & Integer'Image (Integer (S))));
 
       Synchro_Index_Manager.Release (Synchro_Index_Manager.Index_Type (S));
    end Abort_Suspend;
@@ -363,7 +371,7 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
       begin
          pragma Assert (Waiting);
          --  Error : Prepare_Wait have not been called before.
-         pragma Debug (O ("wait done!"));
+         pragma Debug (C, O ("wait done!"));
 
          Signaled := False;
          Waiting := False;
@@ -504,9 +512,9 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
       B : Boolean;
    begin
       Synchro_Index_Manager.Get (Synchro_Index_Manager.Index_Type (S));
-      pragma Debug (O ("prepare suspend on" & S'Img));
+      pragma Debug (C, O ("prepare suspend on" & S'Img));
       Sync_Pool (S).Prepare_Wait;
-      pragma Debug (O ("prepared susped on" & S'Img));
+      pragma Debug (C, O ("prepared susped on" & S'Img));
       return S;
    exception
       when others =>
@@ -600,7 +608,7 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
          My_Thread_Arr (Current).Id := A_To_P_Task_Id (Tid);
          My_Task_Id_Arr (Current) := Tid;
          Current := Current + 1;
-         pragma Debug (O ("number of tasks initialized : "
+         pragma Debug (C, O ("number of tasks initialized : "
                           & Integer'Image (Current)));
       end Initialize_Id;
 
@@ -682,7 +690,7 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
            := Ravenscar_Thread_Access (T);
       begin
          pragma Assert (Get_Thread_Index (RT.Id) /= Main_Task_Index);
-         pragma Debug (O ("launch task "
+         pragma Debug (C, O ("launch task "
                           & Image (RT.Id)
                           &" waiting on "
                           & Integer'Image (Integer (RT.Sync_Id))));
@@ -727,7 +735,7 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
            := Ravenscar_Thread_Access (T);
       begin
          pragma Assert (Get_Thread_Index (RT.Id) /= Main_Task_Index);
-         pragma Debug (O ("launch task "
+         pragma Debug (C, O ("launch task "
                           & Image (RT.Id)
                           &" waiting on "
                           & Integer'Image (Integer (RT.Sync_Id))));
@@ -773,7 +781,7 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
 
    procedure Resume (S : Synchro_Index_Type) is
    begin
-      pragma Debug (O ("Resume on " & Integer'Image (Integer (S))));
+      pragma Debug (C, O ("Resume on " & Integer'Image (Integer (S))));
       Sync_Pool (S).Signal;
    end Resume;
 
@@ -783,7 +791,7 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
 
    procedure Suspend (S : Synchro_Index_Type) is
    begin
-      pragma Debug (O ("will suspend: " & Integer'Image (Integer (S))));
+      pragma Debug (C, O ("will suspend: " & Integer'Image (Integer (S))));
 
       Sync_Pool (S).Wait;
 
@@ -792,7 +800,7 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
       --  XXX might fail because of a bug in GNAT 3.15a1 ...
       --  The call to wait didn't work.
 
-      pragma Debug (O ("end suspend: " & Integer'Image (Integer (S))));
+      pragma Debug (C, O ("end suspend: " & Integer'Image (Integer (S))));
 
       Synchro_Index_Manager.Release (Synchro_Index_Manager.Index_Type (S));
    end Suspend;

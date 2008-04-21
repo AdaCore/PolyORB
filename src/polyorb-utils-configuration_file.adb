@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -50,7 +50,6 @@ package body PolyORB.Utils.Configuration_File is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
-   pragma Unreferenced (C); --  For conditional pragma Debug
 
    use Configuration_Table;
 
@@ -175,12 +174,12 @@ package body PolyORB.Utils.Configuration_File is
 
       if not Ada.Directories.Exists (Configuration_Filename) then
 
-         pragma Debug (O ("No " & Configuration_Filename
+         pragma Debug (C, O ("No " & Configuration_Filename
                           & " configuration file."));
          return;
       end if;
 
-      pragma Debug (O ("Loading configuration from "
+      pragma Debug (C, O ("Loading configuration from "
                        & Configuration_Filename));
 
       Open (Conf_File, In_File, Configuration_Filename);
@@ -222,15 +221,15 @@ package body PolyORB.Utils.Configuration_File is
                   begin
                      if Current_Section = null then
                         O ("Assignment out of any section on line" &
-                           Integer'Image (Current_Line) &
-                           ": " & Line (Line'First .. Last));
+                           Current_Line'Img & ": "
+                           & Line (Line'First .. Last), Error);
                         raise Constraint_Error;
                      end if;
 
-                     if Eq not in Line'First + 1 .. Last - 1 then
+                     if Eq not in Line'First + 1 .. Last then
                         O ("Syntax error on line" &
-                           Integer'Image (Current_Line) &
-                           ": " & Line (Line'First .. Last));
+                           Current_Line'Img & ": "
+                           & Line (Line'First .. Last), Error);
                         raise Constraint_Error;
                      end if;
 
@@ -240,7 +239,7 @@ package body PolyORB.Utils.Configuration_File is
                                 (Section => Current_Section.all,
                                  Key     => Line (Line'First .. Eq - 1));
                         V : String_Ptr      :=
-                           Configuration_Table.Lookup (Table, K, null);
+                              Configuration_Table.Lookup (Table, K, null);
                      begin
                         if V /= null then
                            Free (V);

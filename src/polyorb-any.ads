@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -33,7 +33,6 @@
 
 --  Definition of the universal container/wrapper type 'Any'
 
-with Ada.Unchecked_Deallocation;
 with Ada.Strings.Superbounded;
 with Ada.Strings.Wide_Superbounded;
 
@@ -51,9 +50,6 @@ package PolyORB.Any is
    type Any is private;
 
    procedure Initialize (Self : in out Any);
-
-   type Any_Ptr is access all Any;
-   --  The end of this part is after the typecode part;
 
    function Image (A : Any) return Standard.String;
    --  For debugging purposes.
@@ -985,9 +981,6 @@ private
    --  Non_Controlled_Entity type).
 
    --  Some methods to deal with the Any fields.
-
-   --  Deallocation of Any pointers.
-   procedure Deallocate is new Ada.Unchecked_Deallocation (Any, Any_Ptr);
 
    -----------------------
    -- Aggregate_Content --

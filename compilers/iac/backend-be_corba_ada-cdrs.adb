@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -32,6 +32,7 @@
 ------------------------------------------------------------------------------
 
 with Namet;     use Namet;
+with Values;    use Values;
 
 with Frontend.Nodes;  use Frontend.Nodes;
 with Frontend.Nutils;
@@ -99,7 +100,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
             while Present (Parameter) loop
 
                --  If the parameter type is a class-wide type, we
-               --  remove the "'Class" attribute from the type name
+               --  remove the "'Class" attribute from the type name.
 
                Par_Type := Parameter_Type (Parameter);
 
@@ -139,11 +140,10 @@ package body Backend.BE_CORBA_Ada.CDRs is
          --  Type Declaration
 
          Args_Type := Make_Full_Type_Declaration
-           (Defining_Identifier => Make_Selected_Component
-              (Defining_Identifier (CDR_Package (Current_Entity)),
-               Map_Args_Type_Identifier (Defining_Identifier (Spec))),
+           (Defining_Identifier => Map_Args_Type_Identifier
+              (Defining_Identifier (Spec)),
             Type_Definition     => Make_Record_Definition
-            (Components));
+              (Components));
 
          return Args_Type;
       end Args_Type_Record;
@@ -222,9 +222,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
          --  Subprogram Specification
 
          S := Make_Subprogram_Specification
-           (Make_Selected_Component
-            (Defining_Identifier (CDR_Package (Current_Entity)),
-             Map_Marshaller_Identifier (Defining_Identifier (Spec))),
+           (Map_Marshaller_Identifier (Defining_Identifier (Spec)),
             Profile,
             No_Node);
 
@@ -305,9 +303,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
          --  Subprogram Specification
 
          S := Make_Subprogram_Specification
-           (Make_Selected_Component
-            (Defining_Identifier (CDR_Package (Current_Entity)),
-             Map_Unmarshaller_Identifier (Defining_Identifier (Spec))),
+           (Map_Unmarshaller_Identifier (Defining_Identifier (Spec)),
             Profile,
             No_Node);
 
@@ -496,7 +492,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
          Buff     : Name_Id)
         return Node_Id;
       --  This function builds the marshalling statements to the
-      --  buffer from the variable var_name
+      --  buffer from the variable Var_Node
 
       function Do_Unmarshall
         (Var_Node : Node_Id;
@@ -504,7 +500,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
          Buff     : Name_Id)
         return Node_Id;
       --  This function builds the unmarshalling statements from the
-      --  buffer into the variable var_name
+      --  buffer into the variable Var_Node
 
       procedure Visit_Attribute_Declaration (E : Node_Id);
       procedure Visit_Interface_Declaration (E : Node_Id);
@@ -1125,8 +1121,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
                      PN (P_Args),
                      PN (P_Buffer),
                      PN (P_Representation),
-                     PN (P_First_Arg_Alignment),
-                     PN (P_Error));
+                     PN (P_First_Arg_Alignment));
             begin
                for Index in Unref_Entities'Range loop
                   N := Make_Pragma
@@ -1235,12 +1230,58 @@ package body Backend.BE_CORBA_Ada.CDRs is
             Append_Node_To_List (N, Subp_Statements);
          end if;
 
+         --  Add an exception handler to the unmarshalling functions
+         --  in case something wrong happens, e.g. a Constraint_Error
+         --  exception is raised.
+
+         declare
+            Result     : Node_Id;
+            M          : Node_Id;
+            S          : constant List_Id := New_List (K_List_Id);
+            Excep_St   : List_Id := New_List (K_List_Id);
+            Profile    : constant List_Id := New_List (K_Parameter_Profile);
+         begin
+            --  Body of the exception handler
+
+            --  Set the exception informations
+
+            M := Make_Identifier (PN (P_Error));
+            Append_Node_To_List (M, Profile);
+
+            M := RE (RE_Marshal_E);
+            Append_Node_To_List (M, Profile);
+
+            M := Make_Qualified_Expression
+              (RE (RE_System_Exception_Members),
+               Make_Record_Aggregate
+               (Make_List_Id
+                  (Make_Component_Association
+                     (Make_Identifier (CN (C_Minor)),
+                      Make_Literal (Values.New_Integer_Value (4, 1, 10))),
+                   Make_Component_Association
+                     (Make_Identifier (CN (C_Completed)),
+                      RE (RE_Completed_No)))));
+            Append_Node_To_List (M, Profile);
+
+            M := Make_Subprogram_Call (RE (RE_Throw), Profile);
+            Append_Node_To_List (M, S);
+
+            Result := Make_Case_Statement_Alternative (No_List, S);
+
+            Excep_St := Make_List_Id (Result);
+
+            N := Make_Block_Statement
+              (Declarative_Part => No_List,
+               Statements       => Subp_Statements,
+               Exception_Handler => Excep_St);
+         end;
+
          --  Building the subprogram implementation
 
          N := Make_Subprogram_Body
            (Specification => Subp_Spec,
             Declarations  => Subp_Declarations,
-            Statements    => Subp_Statements);
+            Statements    => Make_List_Id (N));
 
          return N;
       end Unmarshaller_Body;
@@ -1337,11 +1378,26 @@ package body Backend.BE_CORBA_Ada.CDRs is
                  (Defining_Identifier => Make_Defining_Identifier (Var_Name),
                   Object_Definition   => RE (RE_Boolean_1));
 
-            when K_Object
-              | K_Interface_Declaration =>
+            when K_Object =>
                N := Make_Object_Declaration
                  (Defining_Identifier => Make_Defining_Identifier (Var_Name),
                   Object_Definition   => RE (RE_Ref_9));
+
+            when K_Interface_Declaration
+              | K_Forward_Interface_Declaration =>
+               --  Check whether we are dealing with a TypeCode
+
+               if Get_Predefined_CORBA_Entity (Orig_Type) = RE_Object then
+                  N := Make_Object_Declaration
+                    (Defining_Identifier => Make_Defining_Identifier
+                       (Var_Name),
+                     Object_Definition   => RE (RE_Local_Ref_1));
+               else
+                  N := Make_Object_Declaration
+                    (Defining_Identifier => Make_Defining_Identifier
+                       (Var_Name),
+                     Object_Definition   => RE (RE_Ref_9));
+               end if;
 
             when K_Fixed_Point_Type =>
                declare
@@ -1381,7 +1437,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
                begin
                   --  Getting the instantiated package node
 
-                  Seq_Package_Node := Defining_Identifier
+                  Seq_Package_Node := Expand_Designator
                     (Instantiation_Node (BE_Node (Orig_Type)));
 
                   --  Sequence type
@@ -1405,15 +1461,16 @@ package body Backend.BE_CORBA_Ada.CDRs is
                      Expression          => Seq_Exp);
                end;
 
+            when K_Any =>
+               N := Make_Object_Declaration
+                 (Defining_Identifier => Make_Defining_Identifier (Var_Name),
+                  Object_Definition   => RE (RE_Any_1));
+
             when others =>
-               Get_Name_String (Var_Name);
-               Add_Str_To_Name_Buffer (" : ");
-               Add_Str_To_Name_Buffer
-                 (FEN.Node_Kind'Image
-                  (FEN.Kind
-                   (Orig_Type)));
-               Add_Str_To_Name_Buffer (": Not Yet Implemented!");
-               N := Make_Ada_Comment (Name_Find);
+               raise Program_Error with
+                 "Storage_Variable_Declaration: "
+                 & FEN.Node_Kind'Image (FEN.Kind (Orig_Type))
+                 & ": Not Yet Implemented!";
          end case;
 
          return N;
@@ -1461,8 +1518,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
               | K_Unsigned_Long_Long
               | K_Unsigned_Short
               | K_Enumeration_Type
-              | K_Object
-              | K_Interface_Declaration =>
+              | K_Object =>
 
                N := Make_Subprogram_Call
                  (RE (RE_Marshall_2),
@@ -1544,6 +1600,57 @@ package body Backend.BE_CORBA_Ada.CDRs is
                   Append_Node_To_List (N, Block_St);
                end;
 
+            when K_Interface_Declaration
+              | K_Forward_Interface_Declaration =>
+               --  Check whether we are dealing with a TypeCode
+
+               if Get_Predefined_CORBA_Entity (Type_Spec_Node) = RE_Object then
+                  declare
+                     Profile : constant List_Id := New_List (K_List_Id);
+                  begin
+                     N := Make_Identifier (Buff);
+                     Append_Node_To_List (N, Profile);
+
+                     N := Make_Attribute_Reference
+                       (Make_Type_Conversion
+                        (Make_Attribute_Reference
+                         (RE (RE_CDR_Representation), A_Class),
+                         Make_Identifier (PN (P_Representation))),
+                        A_Unrestricted_Access);
+                     Append_Node_To_List (N, Profile);
+
+                     Append_Node_To_List
+                       (Cast_Variable_To_PolyORB_Type
+                        (Var_Node, Direct_Type_Node),
+                        Profile);
+
+                     N := Make_Identifier (PN (P_Error));
+                     Append_Node_To_List (N, Profile);
+
+                     N := Make_Subprogram_Call (RE (RE_Marshall_1), Profile);
+                     Append_Node_To_List (N, Block_St);
+
+                     --  Handling the error
+
+                     N := Make_Subprogram_Call
+                       (RE (RE_Found),
+                        Make_List_Id (Make_Identifier (PN (P_Error))));
+                     N := Make_If_Statement
+                       (Condition       => N,
+                        Then_Statements => Make_List_Id
+                          (Make_Return_Statement (No_Node)));
+                     Append_Node_To_List (N, Block_St);
+                  end;
+               else
+                  N := Make_Subprogram_Call
+                    (RE (RE_Marshall_2),
+                     Make_List_Id
+                     (Make_Identifier (Buff),
+                      Cast_Variable_To_PolyORB_Type
+                      (Var_Node, Direct_Type_Node)));
+                  Append_Node_To_List (N, Block_St);
+               end if;
+
             when K_Sequence_Type =>
                declare
                   Seq_Package_Node : Node_Id;
@@ -1556,7 +1663,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
                begin
                   --  Getting the instantiated package node
 
-                  Seq_Package_Node := Defining_Identifier
+                  Seq_Package_Node := Expand_Designator
                     (Instantiation_Node (BE_Node (Type_Spec_Node)));
 
                   --  Getting the sequence length
@@ -1701,8 +1808,10 @@ package body Backend.BE_CORBA_Ada.CDRs is
                   Dcl_Ada_Node : Node_Id;
                begin
                   Member := First_Entity (Members (Type_Spec_Node));
+
                   while Present (Member) loop
                      Declarator := First_Entity (FEN.Declarators (Member));
+
                      while Present (Declarator) loop
 
                         --  Getting the record field name
@@ -1732,15 +1841,14 @@ package body Backend.BE_CORBA_Ada.CDRs is
 
             when K_Union_Type =>
                declare
-                  Switch_Node : Node_Id;
+                  Switch_Node         : Node_Id;
                   Switch_Alternatives : List_Id;
                   Switch_Alternative  : Node_Id;
-                  Variant             : Node_Id;
+                  Switch_Case         : Node_Id;
+                  Default_Met         : Boolean := False;
                   Choices             : List_Id;
-                  Choice              : Node_Id;
-                  Label               : Node_Id;
                   Literal_Parent      : Node_Id := No_Node;
-                  Block_Statements    : List_Id;
+                  Switch_Statements   : List_Id;
                   Switch_Type         : Node_Id;
                   Dcl_Ada_Name        : Name_Id;
                   Dcl_Ada_Node        : Node_Id;
@@ -1772,30 +1880,24 @@ package body Backend.BE_CORBA_Ada.CDRs is
                   end if;
 
                   Switch_Alternatives := New_List (K_Variant_List);
-                  Switch_Alternative := First_Entity
+                  Switch_Case := First_Entity
                     (Switch_Type_Body
                      (Type_Spec_Node));
 
-                  while Present (Switch_Alternative) loop
-                     Variant := New_Node (K_Variant);
-                     Choices := New_List (K_Discrete_Choice_List);
-                     Label   := First_Entity (Labels (Switch_Alternative));
+                  while Present (Switch_Case) loop
+                     Map_Choice_List
+                       (Labels (Switch_Case),
+                        Literal_Parent,
+                        Choices,
+                        Default_Met);
 
-                     while Present (Label) loop
-                        Choice := Make_Literal
-                          (Value  => FEN.Value (Label),
-                           Parent => Literal_Parent);
-                        Append_Node_To_List (Choice, Choices);
-                        Label := Next_Entity (Label);
-                     end loop;
-
-                     Block_Statements := New_List (K_List_Id);
+                     Switch_Statements := New_List (K_List_Id);
 
                      --  Getting the field name
 
                      Declarator := FEN.Declarator
                        (Element
-                        (Switch_Alternative));
+                        (Switch_Case));
 
                      Dcl_Ada_Name := To_Ada_Name
                        (IDL_Name
@@ -1812,30 +1914,63 @@ package body Backend.BE_CORBA_Ada.CDRs is
                        (Var_Node => Dcl_Ada_Node,
                         Var_Type => Declarator,
                         Buff     => Buff);
-                     Append_Node_To_List (N, Block_Statements);
+                     Append_Node_To_List (N, Switch_Statements);
 
                      --  Building the switch alternative
 
-                     N := Make_Block_Statement
-                       (Declarative_Part => No_List,
-                        Statements       => Block_Statements);
+                     Switch_Alternative :=  Make_Case_Statement_Alternative
+                       (Choices, Switch_Statements);
+                     Append_Node_To_List
+                       (Switch_Alternative, Switch_Alternatives);
 
-                     Set_Component (Variant, N);
-                     Set_Discrete_Choices (Variant, Choices);
-                     Append_Node_To_List (Variant, Switch_Alternatives);
-
-                     Switch_Alternative := Next_Entity (Switch_Alternative);
+                     Switch_Case := Next_Entity (Switch_Case);
                   end loop;
 
-                  N := Make_Variant_Part
+                  --  Add an empty when others clause to keep the compiler
+                  --  happy.
+
+                  if not Default_Met then
+                     Append_Node_To_List
+                       (Make_Case_Statement_Alternative (No_List, No_List),
+                        Switch_Alternatives);
+                  end if;
+
+                  N := Make_Case_Statement
                     (Switch_Node,
                      Switch_Alternatives);
                   Append_Node_To_List (N, Block_St);
 
                end;
 
+            when K_Any =>
+               declare
+                  Profile : constant List_Id := New_List (K_List_Id);
+               begin
+                  N := Make_Identifier (Buff);
+                  Append_Node_To_List (N, Profile);
+
+                  N := Make_Attribute_Reference
+                    (Make_Type_Conversion
+                     (Make_Attribute_Reference
+                      (RE (RE_CDR_Representation), A_Class),
+                      Make_Identifier (PN (P_Representation))),
+                     A_Unrestricted_Access);
+                  Append_Node_To_List (N, Profile);
+
+                  Append_Node_To_List
+                    (Cast_Variable_To_PolyORB_Type
+                     (Var_Node, Direct_Type_Node),
+                     Profile);
+
+                  N := Make_Subprogram_Call (RE (RE_Marshall_1), Profile);
+                  Append_Node_To_List (N, Block_St);
+               end;
+
             when others =>
-               Append_Node_To_List (Make_Null_Statement, Block_St);
+               raise Program_Error with
+                 "Do_Marshall: "
+                 & FEN.Node_Kind'Image (FEN.Kind (Type_Spec_Node))
+                 & ": Not Yet Implemented!";
          end case;
 
          N := Make_Block_Statement
@@ -1855,14 +1990,23 @@ package body Backend.BE_CORBA_Ada.CDRs is
          Buff     : Name_Id)
         return Node_Id
       is
-         Block_Dcl      : constant List_Id := New_List (K_List_Id);
-         Block_St       : constant List_Id := New_List (K_List_Id);
-         N              : Node_Id;
-         Type_Spec_Node : Node_Id;
+         Block_Dcl        : constant List_Id := New_List (K_List_Id);
+         Block_St         : constant List_Id := New_List (K_List_Id);
+         N                : Node_Id;
+         Type_Spec_Node   : Node_Id;
+         Direct_Type_Node : Node_Id;
       begin
          --  Getting the original type
 
          Type_Spec_Node := FEU.Get_Original_Type_Specifier (Var_Type);
+
+         if FEN.Kind (Var_Type) = K_Simple_Declarator
+           or else FEN.Kind (Var_Type) = K_Complex_Declarator
+         then
+            Direct_Type_Node := Type_Spec (Declaration (Var_Type));
+         else
+            Direct_Type_Node := Var_Type;
+         end if;
 
          case FEN.Kind (Type_Spec_Node) is
 
@@ -1878,8 +2022,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
               | K_Unsigned_Long_Long
               | K_Unsigned_Short
               | K_Enumeration_Type
-              | K_Object
-              | K_Interface_Declaration =>
+              | K_Object =>
 
                begin
                   N := Make_Subprogram_Call
@@ -1958,6 +2101,53 @@ package body Backend.BE_CORBA_Ada.CDRs is
                   Append_Node_To_List (N, Block_St);
                end;
 
+            when K_Interface_Declaration
+              | K_Forward_Interface_Declaration =>
+               --  Check whether we are dealing with a TypeCode
+
+               if Get_Predefined_CORBA_Entity (Type_Spec_Node) = RE_Object then
+                  declare
+                     Profile : constant List_Id := New_List (K_List_Id);
+                  begin
+                     N := Make_Identifier (Buff);
+                     Append_Node_To_List (N, Profile);
+
+                     N := Make_Attribute_Reference
+                       (Make_Type_Conversion
+                        (Make_Attribute_Reference
+                         (RE (RE_CDR_Representation), A_Class),
+                         Make_Identifier (PN (P_Representation))),
+                        A_Unrestricted_Access);
+                     Append_Node_To_List (N, Profile);
+
+                     Append_Node_To_List (Var_Node, Profile);
+
+                     N := Make_Identifier (PN (P_Error));
+                     Append_Node_To_List (N, Profile);
+
+                     N := Make_Subprogram_Call (RE (RE_Unmarshall_1), Profile);
+                     Append_Node_To_List (N, Block_St);
+
+                     --  Handling the error
+
+                     N := Make_Subprogram_Call
+                       (RE (RE_Found),
+                        Make_List_Id (Make_Identifier (PN (P_Error))));
+                     N := Make_If_Statement
+                       (Condition       => N,
+                        Then_Statements => Make_List_Id
+                          (Make_Return_Statement (No_Node)));
+                     Append_Node_To_List (N, Block_St);
+                  end;
+               else
+                  N := Make_Subprogram_Call
+                    (RE (RE_Unmarshall_2),
+                     Make_List_Id
+                     (Make_Identifier (Buff)));
+                  N := Make_Assignment_Statement (Var_Node, N);
+                  Append_Node_To_List (N, Block_St);
+               end if;
+
             when K_Sequence_Type =>
                declare
                   Seq_Package_Node : Node_Id;
@@ -1971,7 +2161,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
                begin
                   --  Getting the instantiated package node
 
-                  Seq_Package_Node := Defining_Identifier
+                  Seq_Package_Node := Expand_Designator
                     (Instantiation_Node (BE_Node (Type_Spec_Node)));
 
                   --  Getting the sequence length
@@ -2192,13 +2382,12 @@ package body Backend.BE_CORBA_Ada.CDRs is
             when K_Union_Type =>
                declare
                   Switch_Alternatives : List_Id;
+                  Switch_Case         : Node_Id;
                   Switch_Alternative  : Node_Id;
-                  Variant             : Node_Id;
+                  Default_Met         : Boolean := False;
                   Choices             : List_Id;
-                  Choice              : Node_Id;
-                  Label               : Node_Id;
                   Literal_Parent      : Node_Id := No_Node;
-                  Block_Statements    : List_Id;
+                  Switch_Statements   : List_Id;
                   Switch_Type         : Node_Id;
                   Dcl_Ada_Name        : Name_Id;
                   Dcl_Ada_Node        : Node_Id;
@@ -2227,10 +2416,61 @@ package body Backend.BE_CORBA_Ada.CDRs is
                      Buff     => Buff);
                   Append_Node_To_List (N, Block_St);
 
-                  --  We don't update the Union at this point because
-                  --  it's illegal to assign the discriminant a value.
+                  --  2/ Build the union: we cannot build the union by
+                  --  the means of a record aggregate. The solution is
+                  --  to declare an intermediary variable with the
+                  --  correct union type and then to assign the union
+                  --  this variable by means of a qualified
+                  --  expression.
 
-                  --  2/ Depending on the switch value, unmarshall the
+                  declare
+                     Inner_Dcl : constant List_Id := New_List (K_List_Id);
+                     Inner_St  : constant List_Id := New_List (K_List_Id);
+                     Intermed_Name : constant Name_Id := Get_Union_Name;
+                  begin
+                     --  Intermediary variable with the correct type
+
+                     N := Make_Subprogram_Call
+                       (Map_Expanded_Name (Direct_Type_Node),
+                        Make_List_Id
+                        (Cast_Variable_From_PolyORB_Type
+                         (Switch_Element,
+                          Switch_Type_Spec (Type_Spec_Node))));
+                     N := Make_Object_Declaration
+                       (Defining_Identifier => Make_Defining_Identifier
+                          (Intermed_Name),
+                        Object_Definition => N);
+                     Append_Node_To_List (N, Inner_Dcl);
+
+                     --  Disable warning because the variable is not
+                     --  assigned.
+
+                     N := Make_Pragma
+                       (Pragma_Warnings,
+                        Make_List_Id (RE (RE_Off),
+                                      Make_Defining_Identifier
+                                      (Intermed_Name)));
+                     Append_Node_To_List (N, Inner_Dcl);
+
+                     --  Qualified expression
+
+                     N := Make_Qualified_Expression
+                       (Subtype_Mark => Map_Expanded_Name
+                          (Direct_Type_Node),
+                        Operand      => Make_Identifier (Intermed_Name));
+
+                     N := Make_Assignment_Statement (Var_Node, N);
+                     Append_Node_To_List (N, Inner_St);
+
+                     --  Add the new block statements
+
+                     N := Make_Block_Statement
+                       (Declarative_Part => Inner_Dcl,
+                        Statements       => Inner_St);
+                     Append_Node_To_List (N, Block_St);
+                  end;
+
+                  --  3/ Depending on the switch value, unmarshall the
                   --  corresponding flag.
 
                   Switch_Type := FEU.Get_Original_Type_Specifier
@@ -2244,26 +2484,21 @@ package body Backend.BE_CORBA_Ada.CDRs is
                   end if;
 
                   Switch_Alternatives := New_List (K_Variant_List);
-                  Switch_Alternative := First_Entity
+                  Switch_Case := First_Entity
                     (Switch_Type_Body
                      (Type_Spec_Node));
-                  while Present (Switch_Alternative) loop
-                     Variant := New_Node (K_Variant);
-                     Choices := New_List (K_Discrete_Choice_List);
-                     Label   := First_Entity (Labels (Switch_Alternative));
-                     while Present (Label) loop
-                        Choice := Make_Literal
-                          (Value  => FEN.Value (Label),
-                           Parent => Literal_Parent);
-                        Append_Node_To_List (Choice, Choices);
-                        Label := Next_Entity (Label);
-                     end loop;
+                  while Present (Switch_Case) loop
+                     Map_Choice_List
+                       (Labels (Switch_Case),
+                        Literal_Parent,
+                        Choices,
+                        Default_Met);
 
-                     Block_Statements := New_List (K_List_Id);
+                     Switch_Statements := New_List (K_List_Id);
 
                      Declarator := FEN.Declarator
                        (Element
-                        (Switch_Alternative));
+                        (Switch_Case));
 
                      --    Getting an element name
 
@@ -2281,7 +2516,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
                        (Var_Node => Make_Identifier (Union_Element),
                         Var_Type => Declarator,
                         Buff     => Buff);
-                     Append_Node_To_List (N, Block_Statements);
+                     Append_Node_To_List (N, Switch_Statements);
 
                      --  Getting the field name
 
@@ -2294,80 +2529,33 @@ package body Backend.BE_CORBA_Ada.CDRs is
                        (Var_Node,
                         Make_Identifier (Dcl_Ada_Name));
 
-                     --  Build the union: we cannot build the union by
-                     --  the means of a record aggregate. The solution
-                     --  is to declare an intermediary variable with
-                     --  the correct union type and then to assign the
-                     --  union this variable by means of a qualified
-                     --  expression.
-
-                     declare
-                        Inner_Dcl : constant List_Id := New_List (K_List_Id);
-                        Inner_St  : constant List_Id := New_List (K_List_Id);
-                        Intermed_Name : constant Name_Id := Get_Union_Name;
-                     begin
-                        --  Intermediary variable with the correct type
-
-                        N := Make_Subprogram_Call
-                          (Map_Expanded_Name (Var_Type),
-                           Make_List_Id
-                           (Cast_Variable_From_PolyORB_Type
-                            (Switch_Element,
-                             Switch_Type_Spec (Type_Spec_Node))));
-                        N := Make_Object_Declaration
-                          (Defining_Identifier => Make_Defining_Identifier
-                           (Intermed_Name),
-                           Object_Definition => N);
-                        Append_Node_To_List (N, Inner_Dcl);
-
-                        --  Disable warning because the variable is
-                        --  not assigned.
-
-                        N := Make_Pragma
-                          (Pragma_Warnings,
-                           Make_List_Id (RE (RE_Off),
-                                         Make_Defining_Identifier
-                                         (Intermed_Name)));
-                        Append_Node_To_List (N, Inner_Dcl);
-
-                        --  Qualified expression
-
-                        N := Make_Qualified_Expression
-                          (Subtype_Mark => Map_Expanded_Name (Var_Type),
-                           Operand      => Make_Identifier (Intermed_Name));
-
-                        N := Make_Assignment_Statement (Var_Node, N);
-                        Append_Node_To_List (N, Inner_St);
-
-                        --  Add the new block statements
-
-                        N := Make_Block_Statement
-                          (Declarative_Part => Inner_Dcl,
-                           Statements       => Inner_St);
-                        Append_Node_To_List (N, Block_Statements);
-                     end;
-
                      N := Make_Assignment_Statement
                        (Dcl_Ada_Node,
                         Cast_Variable_From_PolyORB_Type
                         (Union_Element,
                          Declarator));
-                     Append_Node_To_List (N, Block_Statements);
+                     Append_Node_To_List (N, Switch_Statements);
 
                      --  Building the switch alternative
 
-                     N := Make_Block_Statement
-                       (Declarative_Part => No_List,
-                        Statements       => Block_Statements);
+                     Switch_Alternative :=  Make_Case_Statement_Alternative
+                       (Choices, Switch_Statements);
+                     Append_Node_To_List
+                       (Switch_Alternative, Switch_Alternatives);
 
-                     Set_Component (Variant, N);
-                     Set_Discrete_Choices (Variant, Choices);
-                     Append_Node_To_List (Variant, Switch_Alternatives);
-
-                     Switch_Alternative := Next_Entity (Switch_Alternative);
+                     Switch_Case := Next_Entity (Switch_Case);
                   end loop;
 
-                  N := Make_Variant_Part
+                  --  Add an empty when others clause to keep the compiler
+                  --  happy.
+
+                  if not Default_Met then
+                     Append_Node_To_List
+                       (Make_Case_Statement_Alternative (No_List, No_List),
+                        Switch_Alternatives);
+                  end if;
+
+                  N := Make_Case_Statement
                     (Cast_Variable_From_PolyORB_Type
                      (Switch_Element,
                       Switch_Type_Spec (Type_Spec_Node)),
@@ -2376,13 +2564,37 @@ package body Backend.BE_CORBA_Ada.CDRs is
 
                end;
 
+            when K_Any =>
+               declare
+                  Profile : constant List_Id := New_List (K_List_Id);
+               begin
+                  N := Make_Identifier (Buff);
+                  Append_Node_To_List (N, Profile);
+
+                  N := Make_Attribute_Reference
+                    (Make_Type_Conversion
+                     (Make_Attribute_Reference
+                      (RE (RE_CDR_Representation), A_Class),
+                      Make_Identifier (PN (P_Representation))),
+                     A_Unrestricted_Access);
+                  Append_Node_To_List (N, Profile);
+
+                  N := Make_Subprogram_Call (RE (RE_Unmarshall_1), Profile);
+                  N := Make_Assignment_Statement (Var_Node, N);
+                  Append_Node_To_List (N, Block_St);
+               end;
+
             when others =>
-               Append_Node_To_List (Make_Null_Statement, Block_St);
+               raise Program_Error with
+                 "Do_Unmarshall: "
+                 & FEN.Node_Kind'Image (FEN.Kind (Type_Spec_Node))
+                 & ": Not Yet Implemented!";
          end case;
 
          N := Make_Block_Statement
            (Declarative_Part => Block_Dcl,
             Statements       => Block_St);
+
          return N;
       end Do_Unmarshall;
 

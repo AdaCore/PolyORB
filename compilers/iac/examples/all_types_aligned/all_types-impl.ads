@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -42,91 +42,91 @@ package all_types.Impl is
 
    function echoBoolean
      (Self : access Object;
-      arg : in CORBA.Boolean) return CORBA.Boolean;
+      arg : CORBA.Boolean) return CORBA.Boolean;
 
    function echoShort
      (Self : access Object;
-      arg : in CORBA.Short) return CORBA.Short;
+      arg : CORBA.Short) return CORBA.Short;
 
    function echoLong
      (Self : access Object;
-      arg : in CORBA.Long) return CORBA.Long;
+      arg : CORBA.Long) return CORBA.Long;
 
    function echoUShort
      (Self : access Object;
-      arg : in CORBA.Unsigned_Short) return CORBA.Unsigned_Short;
+      arg : CORBA.Unsigned_Short) return CORBA.Unsigned_Short;
 
    function echoULong
      (Self : access Object;
-      arg : in CORBA.Unsigned_Long) return CORBA.Unsigned_Long;
+      arg : CORBA.Unsigned_Long) return CORBA.Unsigned_Long;
 
    function echoULLong
      (Self : access Object;
-      arg : in CORBA.Unsigned_Long_Long) return CORBA.Unsigned_Long_Long;
+      arg : CORBA.Unsigned_Long_Long) return CORBA.Unsigned_Long_Long;
 
    function echoFloat
      (Self : access Object;
-      arg : in CORBA.Float) return CORBA.Float;
+      arg : CORBA.Float) return CORBA.Float;
 
    function echoDouble
      (Self : access Object;
-      arg : in CORBA.Double) return CORBA.Double;
+      arg : CORBA.Double) return CORBA.Double;
 
    function echoChar
      (Self : access Object;
-      arg : in CORBA.Char) return CORBA.Char;
+      arg : CORBA.Char) return CORBA.Char;
 
    function echoWChar
      (Self : access Object;
-      arg : in CORBA.Wchar) return CORBA.Wchar;
+      arg : CORBA.Wchar) return CORBA.Wchar;
 
    function echoOctet
      (Self : access Object;
-      arg : in CORBA.Octet) return CORBA.Octet;
+      arg : CORBA.Octet) return CORBA.Octet;
 
    function EchoBooleanAndLong
      (Self : access Object;
-      arg1 : in CORBA.Boolean;
-      arg2 : in CORBA.Long) return CORBA.Long;
+      arg1 : CORBA.Boolean;
+      arg2 : CORBA.Long) return CORBA.Long;
 
    function EchoBooleanAndShort
      (Self : access Object;
-      arg1 : in CORBA.Boolean;
-      arg2 : in CORBA.Short) return CORBA.Short;
+      arg1 : CORBA.Boolean;
+      arg2 : CORBA.Short) return CORBA.Short;
 
    function echoString
      (Self : access Object;
-      arg : in CORBA.String) return CORBA.String;
+      arg : CORBA.String) return CORBA.String;
 
    function echoWString
      (Self : access Object;
-      arg : in CORBA.Wide_String) return CORBA.Wide_String;
+      arg : CORBA.Wide_String) return CORBA.Wide_String;
 
    function echoUnion
      (Self : access Object;
-      arg : in Simple_Union) return Simple_Union;
+      arg : Simple_Union) return Simple_Union;
 
    function echoUnionAndString
      (Self : access Object;
-      arg1 : in Simple_Union;
-      arg2 : in CORBA.string) return Simple_Union;
+      arg1 : Simple_Union;
+      arg2 : CORBA.string) return Simple_Union;
 
    function echoStringAndUnion
      (Self : access Object;
-      arg1 : in Simple_Union;
-      arg2 : in CORBA.string) return CORBA.String;
+      arg1 : Simple_Union;
+      arg2 : CORBA.string) return CORBA.String;
 
    function echoStruct
      (Self : access Object;
-      arg : in Simple_Struct) return Simple_Struct;
+      arg : Simple_Struct) return Simple_Struct;
 
    function echoUsequence
      (Self : access Object;
-      arg  : in U_sequence) return U_sequence;
+      arg  : U_sequence) return U_sequence;
 
    function echoBsequence
      (Self : access Object;
-      arg  : in B_sequence) return B_Sequence;
+      arg  : B_sequence) return B_Sequence;
 
    procedure StopServer (Self : access Object);
 

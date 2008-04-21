@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                 PolyORB is maintained by AdaCore                         --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -51,20 +51,20 @@ package CosTime.TimeService.Impl is
 
    function new_universal_time
      (Self : access Object;
-      time : in TimeBase.TimeT;
-      inaccuracy : in TimeBase.InaccuracyT;
-      tdf : in TimeBase.TdfT)
+      time : TimeBase.TimeT;
+      inaccuracy : TimeBase.InaccuracyT;
+      tdf : TimeBase.TdfT)
      return CosTime.UTO.Ref;
 
    function uto_from_utc
      (Self : access Object;
-      utc : in TimeBase.UtcT)
+      utc : TimeBase.UtcT)
      return CosTime.UTO.Ref;
 
    function new_interval
      (Self : access Object;
-      lower : in TimeBase.TimeT;
-      upper : in TimeBase.TimeT)
+      lower : TimeBase.TimeT;
+      upper : TimeBase.TimeT)
      return CosTime.TIO.Ref;
 
 end CosTime.TimeService.Impl;

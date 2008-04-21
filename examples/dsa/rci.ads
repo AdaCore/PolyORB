@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2002 Free Software Foundation, Inc.             --
+--         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -54,7 +54,7 @@ package RCI is
 
    type Trit is range 0 .. 2;
 
-   procedure My_Proc (X : in Integer; Y : in out Predicate; Z : out Trit);
+   procedure My_Proc (X : Integer; Y : in out Predicate; Z : out Trit);
 
    function My_Func (S : String) return Color;
 

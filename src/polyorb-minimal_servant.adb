@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -46,7 +46,6 @@ package body PolyORB.Minimal_Servant is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
-   pragma Unreferenced (C); --  For conditional pragma Debug
 
    ---------------------
    -- Execute_Servant --
@@ -70,7 +69,7 @@ package body PolyORB.Minimal_Servant is
       use PolyORB.Servants.Iface;
 
    begin
-      pragma Debug (O ("Handling message of type "
+      pragma Debug (C, O ("Handling message of type "
                 & Ada.Tags.External_Tag (Msg'Tag)));
 
       if Msg in Execute_Request then

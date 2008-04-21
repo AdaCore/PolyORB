@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -112,7 +112,7 @@ package body PortableServer.Current.Helper is
    end Raise_NoContext_From_Any;
 
    procedure Raise_NoContext
-     (Members : in NoContext_Members)
+     (Members : NoContext_Members)
    is
    begin
       PolyORB.Exceptions.User_Raise_Exception

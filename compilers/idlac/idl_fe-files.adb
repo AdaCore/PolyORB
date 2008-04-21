@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -93,7 +93,7 @@ package body Idl_Fe.Files is
       Separator : Natural;
 
    begin
-      --  If file can't have IDL file extension then add it.
+      --  If file doesn't have IDL file extension then add it.
 
       if File_Extension (File_Name) /= IDL_File_Suffix then
          return Locate_IDL_File (File_Name & IDL_File_Suffix);
@@ -117,14 +117,9 @@ package body Idl_Fe.Files is
 
       --  Check in the current working directory
 
-      declare
-         Full_Path : constant String := '.' & Dir_Separator & File_Name;
-
-      begin
-         if Is_Regular_File (Full_Path) then
-            return Full_Path;
-         end if;
-      end;
+      if Is_Regular_File (File_Name) then
+         return File_Name;
+      end if;
 
       for J in Search_Path.First .. Search_Path.Last loop
          declare
@@ -229,7 +224,7 @@ package body Idl_Fe.Files is
       --  Pass user options to the preprocessor.
 
       Goto_Section ("cppargs");
-      while Getopt ("*") /= ASCII.Nul loop
+      while Getopt ("*") /= ASCII.NUL loop
          Add_Argument (Full_Switch);
       end loop;
 

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -70,7 +70,7 @@ package PolyORB.CORBA_P.Naming_Tools is
    --  If Rebind is True, then a rebind will be performed if the name
    --  is already bound.
 
-   procedure Unregister (Name : in String);
+   procedure Unregister (Name : String);
    --  Unregister an object by its name by unbinding it
 
    type Server_Guard is limited private;

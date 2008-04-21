@@ -54,7 +54,6 @@ package body PolyORB.Transport.Datagram.Sockets_In is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
-   pragma Unreferenced (C); --  For conditional pragma Debug
 
    --------------------
    -- Init_Socket_In --
@@ -187,7 +186,7 @@ package body PolyORB.Transport.Datagram.Sockets_In is
 
       Control_Socket (TE.Socket, Request);
       Size := Stream_Element_Offset (Request.Size);
-      pragma Debug (O ("To read :" & Size'Img));
+      pragma Debug (C, O ("To read :" & Size'Img));
       begin
          Receive_Buffer (Buffer, Size, Data_Received);
       exception
@@ -205,7 +204,7 @@ package body PolyORB.Transport.Datagram.Sockets_In is
       end;
 
       pragma Assert (Data_Received /= 0);
-      pragma Debug (O (Data_Received'Img & " byte(s) received"));
+      pragma Debug (C, O (Data_Received'Img & " byte(s) received"));
       pragma Assert (Data_Received <= Size);
 
       Size := Data_Received;
@@ -231,7 +230,7 @@ package body PolyORB.Transport.Datagram.Sockets_In is
 
    procedure Close (TE : access Socket_In_Endpoint) is
    begin
-      pragma Debug (O ("Closing UDP socket"));
+      pragma Debug (C, O ("Closing UDP socket"));
       if TE.Closed then
          return;
       end if;
@@ -253,7 +252,7 @@ package body PolyORB.Transport.Datagram.Sockets_In is
         := new Socket_In_Endpoint;
 
    begin
-      pragma Debug (O ("Create Endpoint for UDP socket"));
+      pragma Debug (C, O ("Create Endpoint for UDP socket"));
 
       Socket_In_Endpoint (TE.all).Addr := TAP.Addr;
       Socket_In_Endpoint (TE.all).Socket := TAP.Socket;

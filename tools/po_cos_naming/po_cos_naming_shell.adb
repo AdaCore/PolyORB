@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -200,9 +200,8 @@ procedure PO_COS_Naming_Shell is
    ----------
 
    function From
-     (S   : in  String;
-      Sep : in  Character := '/')
-     return NamingContext.Ref is
+     (S   : String;
+      Sep : Character := '/') return NamingContext.Ref is
    begin
       if S (S'First) = Sep then
          return Root;
@@ -216,9 +215,8 @@ procedure PO_COS_Naming_Shell is
    ------------
 
    function To_Dir
-     (S   : in String;
-      Sep : in Character := '/')
-     return NamingContext.Ref is
+     (S   : String;
+      Sep : Character := '/') return NamingContext.Ref is
    begin
       return NamingContext.Helper.To_Ref
         (resolve (From (S, Sep), To_Name (S, Sep)));
@@ -362,7 +360,7 @@ begin
 
       loop
          case Getopt ("i n s I:") is
-            when ASCII.Nul =>
+            when ASCII.NUL =>
                exit;
 
             when 's' =>

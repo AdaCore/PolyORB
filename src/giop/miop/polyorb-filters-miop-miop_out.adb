@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -51,7 +51,6 @@ package body PolyORB.Filters.MIOP.MIOP_Out is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
-   pragma Unreferenced (C); --  For conditional pragma Debug
 
    ------------
    -- Create --
@@ -126,12 +125,12 @@ package body PolyORB.Filters.MIOP.MIOP_Out is
               := Types.Unsigned_Short (Length (D.Out_Buf));
             H : MIOP_Header;
          begin
-            pragma Debug (O ("Encapsulate GIOP data in a MIOP Packet,"
+            pragma Debug (C, O ("Encapsulate GIOP data in a MIOP Packet,"
                              & L'Img
                              & " bytes"));
             --  Create the request Unique Id
             H.Unique_Id := Generate_Unique_Id;
-            pragma Debug (O ("Unique Id :"
+            pragma Debug (C, O ("Unique Id :"
                              & To_Standard_String (H.Unique_Id)));
 
             --  Calculate the packet size
@@ -159,7 +158,7 @@ package body PolyORB.Filters.MIOP.MIOP_Out is
                --  Size check
                pragma Assert (Types.Unsigned_Short (CDR_Position (F.MIOP_Buff))
                              = H.Packet_Size);
-               pragma Debug (O ("Send MIOP Message, size : "
+               pragma Debug (C, O ("Send MIOP Message, size : "
                                 & H.Packet_Size'Img));
 
                --  Send packet
@@ -179,7 +178,7 @@ package body PolyORB.Filters.MIOP.MIOP_Out is
                      Packet_Total := Packet_Total + 1;
                   end if;
 
-                  pragma Debug (O ("Fragmenting MIOP packet, size : "
+                  pragma Debug (C, O ("Fragmenting MIOP packet, size : "
                                    & Types.Unsigned_Short
                                    (Header_Size + L)'Img
                                    & ", need "
@@ -208,7 +207,7 @@ package body PolyORB.Filters.MIOP.MIOP_Out is
                            F.MIOP_Buff,
                            H.Packet_Size - Header_Size);
 
-                     pragma Debug (O ("Send MIOP Fragment, number :"
+                     pragma Debug (C, O ("Send MIOP Fragment, number :"
                                       & H.Packet_Number'Img
                                       & ", size :"
                                       & H.Packet_Size'Img

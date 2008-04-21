@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -48,7 +48,9 @@ with PortableServer.POA.GOA;
 with PolyORB.CORBA_P.CORBALOC;
 with PolyORB.CORBA_P.Server_Tools;
 
+with Test.Controller.Impl;
 with Test.Printer.Impl;
+with Test.Printer.Helper;
 
 procedure Listener is
 
@@ -65,8 +67,7 @@ procedure Listener is
    -- Print_List --
    ----------------
 
-   procedure Print_List (List : IDs)
-   is
+   procedure Print_List (List : IDs) is
       use Sequence_IDs;
 
    begin
@@ -92,7 +93,7 @@ begin
    declare
       use CORBA.Impl;
 
-      Ref1, Ref2, Ref3 : CORBA.Object.Ref;
+      Ref1, Ref2, Ref3, Ref4 : CORBA.Object.Ref;
       Group : CORBA.Object.Ref;
 
       Policies : CORBA.Policy.PolicyList;
@@ -105,12 +106,9 @@ begin
           PortableServer.POA.Get_The_POAManager (Get_Root_POA),
           Policies));
 
-      Obj1 : constant CORBA.Impl.Object_Ptr
-        := new Test.Printer.Impl.Object;
-      Obj2 : constant CORBA.Impl.Object_Ptr
-        := new Test.Printer.Impl.Object;
-      Obj3 : constant CORBA.Impl.Object_Ptr
-        := new Test.Printer.Impl.Object;
+      Obj1 : constant CORBA.Impl.Object_Ptr := new Test.Printer.Impl.Object;
+      Obj2 : constant CORBA.Impl.Object_Ptr := new Test.Printer.Impl.Object;
+      Obj3 : constant CORBA.Impl.Object_Ptr := new Test.Printer.Impl.Object;
 
       Oid1 : constant PortableServer.ObjectId
         := Servant_To_Id (GOA, PortableServer.Servant (Obj1));
@@ -119,10 +117,14 @@ begin
       Oid3 : constant PortableServer.ObjectId
         := Servant_To_Id (GOA, PortableServer.Servant (Obj3));
 
+      Controller_Obj : constant CORBA.Impl.Object_Ptr
+        := new Test.Controller.Impl.Object;
+
    begin
       Initiate_Servant (PortableServer.Servant (Obj1), Ref1);
       Initiate_Servant (PortableServer.Servant (Obj2), Ref2);
       Initiate_Servant (PortableServer.Servant (Obj3), Ref3);
+      Initiate_Servant (PortableServer.Servant (Controller_Obj), Ref4);
 
       CORBA.ORB.String_To_Object
         (CORBA.To_CORBA_String (Group_Id),
@@ -135,6 +137,20 @@ begin
       Print_List (Reference_To_Ids (GOA, Group));
 
       Ada.Text_IO.Put_Line
+        ("IOR of the test controller '"
+           & CORBA.To_Standard_String (Object_To_String (Ref4))
+           & "'");
+      Ada.Text_IO.New_Line;
+
+      Test.Controller.Impl.Set_Printer
+        (Test.Controller.Impl.Object (Controller_Obj.all)'Access,
+         Test.Printer.Helper.Unchecked_To_Ref (Group));
+
+      Test.Controller.Impl.Set_Group_Size
+        (Test.Controller.Impl.Object (Controller_Obj.all)'Access,
+         Length (Reference_To_Ids (GOA, Group)));
+
+      Ada.Text_IO.Put_Line
         ("Group IOR: '"
          & CORBA.To_Standard_String (Object_To_String (Group))
          & "'");
@@ -144,19 +160,6 @@ begin
         ("Group corbaloc: '"
          & CORBA.To_Standard_String
          (PolyORB.CORBA_P.CORBALOC.Object_To_Corbaloc (Group))
-         & "'");
-      Ada.Text_IO.New_Line;
-
-      Ada.Text_IO.Put_Line
-        ("IOR of one object in group: '"
-         & CORBA.To_Standard_String (Object_To_String (Ref1))
-         & "'");
-      Ada.Text_IO.New_Line;
-
-      Ada.Text_IO.Put_Line
-        ("corbaloc of one object in group: '"
-         & CORBA.To_Standard_String
-         (PolyORB.CORBA_P.CORBALOC.Object_To_Corbaloc (Ref1))
          & "'");
       Ada.Text_IO.New_Line;
 

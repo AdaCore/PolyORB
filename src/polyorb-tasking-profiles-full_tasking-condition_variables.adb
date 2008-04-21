@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -51,7 +51,6 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Condition_Variables is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
-   pragma Unreferenced (C); --  For conditional pragma Debug
 
    -----------------------------------------------------------------
    -- Underlying protected object for Full_Tasking_Condition_Type --
@@ -91,7 +90,7 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Condition_Variables is
       entry Broadcast when To_Free = 0 is
       begin
          To_Free := Condition_PO.Wait'Count;
-         pragma Debug (O ("Broadcast: will release:"
+         pragma Debug (C, O ("Broadcast: will release:"
                           & Natural'Image (To_Free)
                           & " tasks."));
       end Broadcast;
@@ -105,7 +104,7 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Condition_Variables is
          if Condition_PO.Wait'Count /= 0 then
             To_Free := 1;
          end if;
-         pragma Debug (O ("Signal."));
+         pragma Debug (C, O ("Signal."));
       end Signal;
 
       ------------------------------------
@@ -157,7 +156,7 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Condition_Variables is
         := new Full_Tasking_Condition_Type;
 
    begin
-      pragma Debug (O ("Create"));
+      pragma Debug (C, O ("Create"));
       Cond.The_PO := new Condition_PO;
       return PTCV.Condition_Access (Cond);
    end Create;
@@ -181,7 +180,7 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Condition_Variables is
       pragma Warnings (On);
 
    begin
-      pragma Debug (O ("Destroy"));
+      pragma Debug (C, O ("Destroy"));
       Free (Full_Tasking_Condition_Access (Cond).The_PO);
       Free (Cond);
    end Destroy;
@@ -204,9 +203,9 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Condition_Variables is
       M    : access PTM.Mutex_Type'Class)
    is
    begin
-      pragma Debug (O ("Wait: enter"));
+      pragma Debug (C, O ("Wait: enter"));
       Cond.The_PO.Release_Then_Wait (PTM.Mutex_Access (M));
-      pragma Debug (O ("Wait: Leave"));
+      pragma Debug (C, O ("Wait: Leave"));
       PTM.Enter (M);
    end Wait;
 

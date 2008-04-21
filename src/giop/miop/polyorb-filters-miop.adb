@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -48,7 +48,6 @@ package body PolyORB.Filters.MIOP is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
-   pragma Unreferenced (C); --  For conditional pragma Debug
 
    --  Unique Id counter
    Index_Unique_Id : Natural := 0;
@@ -80,6 +79,7 @@ package body PolyORB.Filters.MIOP is
       Set (Flags, Bit_Little_Endian, Header.Endianness = Little_Endian);
       Set (Flags, Bit_Collect_Mode, Header.Collect_Mode);
       Marshall (Buffer, Flags);
+      pragma Assert (Endianness (Buffer) = Header.Endianness);
 
       --  Size
       Marshall (Buffer, Header.Packet_Size);
@@ -112,9 +112,7 @@ package body PolyORB.Filters.MIOP is
       Message_Magic : Stream_Element_Array (Magic'Range);
    begin
       --  Get Endianness
-      --  This code works only if the endianness bit dont move
-      --  in different miop version
-      Flags := Types.Octet (Peek (Buffer, Flags_Index - 1));
+      Flags := Types.Octet (Peek (Buffer, Flags_Index));
 
       if Is_Set (Bit_Little_Endian, Flags) then
          Set_Endianness (Buffer, Little_Endian);
@@ -141,7 +139,7 @@ package body PolyORB.Filters.MIOP is
          raise MIOP_Packet_Error;
       end if;
 
-      pragma Debug (O ("MIOP Version OK"));
+      pragma Debug (C, O ("MIOP Version OK"));
 
       --  Flags
       Flags := Unmarshall (Buffer);
@@ -153,7 +151,7 @@ package body PolyORB.Filters.MIOP is
       end if;
       pragma Assert (Header.Endianness = Endianness (Buffer));
 
-      pragma Debug (O ("Message Endianness : "
+      pragma Debug (C, O ("Message Endianness : "
                        & Header.Endianness'Img));
 
       if Is_Set (Bit_Collect_Mode, Flags) then
@@ -161,27 +159,27 @@ package body PolyORB.Filters.MIOP is
       else
          Header.Collect_Mode := False;
       end if;
-      pragma Debug (O ("Collect Mode       : "
+      pragma Debug (C, O ("Collect Mode       : "
                        & Header.Collect_Mode'Img));
 
       --  Extract size
       Header.Packet_Size := Unmarshall (Buffer);
-      pragma Debug (O ("Packer Size        :"
+      pragma Debug (C, O ("Packer Size        :"
                        & Header.Packet_Size'Img));
 
       --  Extract Number
       Header.Packet_Number := Unmarshall (Buffer);
-      pragma Debug (O ("Packet Number      :"
+      pragma Debug (C, O ("Packet Number      :"
                        & Header.Packet_Number'Img));
 
       --  Extract Total
       Header.Packet_Total := Unmarshall (Buffer);
-      pragma Debug (O ("Packet Total       :"
+      pragma Debug (C, O ("Packet Total       :"
                        & Header.Packet_Total'Img));
 
       --  Unique_Id_Size, Unique Id will be extracted later
       Header.Unique_Id_Size := Unmarshall (Buffer);
-      pragma Debug (O ("Unique Id Size     :"
+      pragma Debug (C, O ("Unique Id Size     :"
                        & Header.Unique_Id_Size'Img));
 
    end Unmarshall_MIOP_Header;
@@ -216,7 +214,7 @@ package body PolyORB.Filters.MIOP is
       --  A 0 must end the string
       if Character'Val
            (PolyORB.Types.Char'Pos (Unmarshall_Latin_1_Char (Buffer)))
-        /= ASCII.Nul
+        /= ASCII.NUL
       then
          raise Constraint_Error;
       end if;

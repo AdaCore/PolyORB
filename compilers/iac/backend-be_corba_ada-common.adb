@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2006-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2006-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -45,7 +45,6 @@ package body Backend.BE_CORBA_Ada.Common is
 
    package FEN renames Frontend.Nodes;
    package FEU renames Frontend.Nutils;
-   package BEN renames Backend.BE_CORBA_Ada.Nodes;
 
    -------------------------------------
    -- Cast_Variable_From_PolyORB_Type --
@@ -78,13 +77,31 @@ package body Backend.BE_CORBA_Ada.Common is
                N := Make_Subprogram_Call
                  (RE (RE_To_Standard_String_1),
                   Make_List_Id (N));
-               N := Make_Subprogram_Call
-                 (RE (RE_To_CORBA_String),
-                  Make_List_Id (N));
+
                if FEN.Kind (Direct_Type_Node) /= K_String then
+                  declare
+                     Ada_Type : constant Node_Id :=
+                       Map_Expanded_Name (Direct_Type_Node);
+
+                     TCS : constant Node_Id := Make_Selected_Component
+                       (Copy_Node (Prefix (Ada_Type)),
+                        Make_Identifier (SN (S_To_CORBA_String)));
+                     --  To_CORBA_String primitive inherited from the
+                     --  CORBA.String type.
+                  begin
+                     N := Make_Subprogram_Call (TCS, Make_List_Id (N));
+
+                     --  We use qualified expression to avoid conflicts with
+                     --  types derived from String in the spec of package CORBA
+                     --  (RepositoryId, ScopedName...)
+
+                     N := Make_Qualified_Expression (Ada_Type, N);
+                  end;
+               else
                   N := Make_Subprogram_Call
-                    (Map_Expanded_Name (Direct_Type_Node),
+                    (RE (RE_To_CORBA_String),
                      Make_List_Id (N));
+                  N := Make_Qualified_Expression (RE (RE_String_0), N);
                end if;
             end;
 
@@ -123,13 +140,26 @@ package body Backend.BE_CORBA_Ada.Common is
                N := Make_Subprogram_Call
                  (RE (RE_To_Standard_Wide_String_1),
                   Make_List_Id (N));
-               N := Make_Subprogram_Call
-                 (RE (RE_To_CORBA_Wide_String),
-                  Make_List_Id (N));
+
                if FEN.Kind (Direct_Type_Node) /= K_Wide_String then
+                  declare
+                     Ada_Type : constant Node_Id :=
+                       Map_Expanded_Name (Direct_Type_Node);
+
+                     TCWS : constant Node_Id := Make_Selected_Component
+                       (Copy_Node (Prefix (Ada_Type)),
+                        Make_Identifier (SN (S_To_CORBA_Wide_String)));
+                     --  To_CORBA_Wide_String primitive inherited from the
+                     --  CORBA.Wide_String type.
+                  begin
+                     N := Make_Subprogram_Call (TCWS, Make_List_Id (N));
+                     N := Make_Qualified_Expression (Ada_Type, N);
+                  end;
+               else
                   N := Make_Subprogram_Call
-                    (Map_Expanded_Name (Direct_Type_Node),
+                    (RE (RE_To_CORBA_Wide_String),
                      Make_List_Id (N));
+                  N := Make_Qualified_Expression (RE (RE_Wide_String), N);
                end if;
             end;
 
@@ -177,7 +207,8 @@ package body Backend.BE_CORBA_Ada.Common is
            | K_Short
            | K_Unsigned_Short
            | K_Boolean
-           | K_Fixed_Point_Type =>
+           | K_Fixed_Point_Type
+           | K_Any =>
             declare
                CORBA_Type : constant Node_Id := Map_Expanded_Name
                  (Direct_Type_Node);
@@ -199,21 +230,27 @@ package body Backend.BE_CORBA_Ada.Common is
                   Make_List_Id (N));
             end;
 
-         when K_Interface_Declaration =>
-            declare
-               To_Ref_Node : constant Node_Id := Expand_Designator
-                 (BEN.To_Ref_Node
-                  (BE_Node
-                   (Identifier
-                    (Orig_Type))));
-            begin
+         when K_Interface_Declaration |  K_Forward_Interface_Declaration =>
+            --  Check whether we are dealing with a TypeCode
+
+            if Get_Predefined_CORBA_Entity (Orig_Type) = RE_Object then
                N := Make_Subprogram_Call
-                 (RE (RE_To_CORBA_Ref),
-                  Make_List_Id (N));
-               N := Make_Subprogram_Call
-                 (To_Ref_Node,
-                  Make_List_Id (N));
-            end;
+                 (RE (RE_To_CORBA_Object),
+                  Make_List_Id
+                  (N));
+            else
+               declare
+                  To_Ref_Node : constant Node_Id := Get_To_Ref_Node
+                    (Direct_Type_Node);
+               begin
+                  N := Make_Subprogram_Call
+                    (RE (RE_To_CORBA_Ref),
+                     Make_List_Id (N));
+                  N := Make_Subprogram_Call
+                    (To_Ref_Node,
+                     Make_List_Id (N));
+               end;
+            end if;
 
          when K_Enumeration_Type =>
             declare
@@ -257,80 +294,67 @@ package body Backend.BE_CORBA_Ada.Common is
 
          when K_Long =>
             begin
-               N := Make_Subprogram_Call
-                 (RE (RE_Long_1), Make_List_Id (N));
+               N := Make_Type_Conversion (RE (RE_Long_1), N);
             end;
 
          when K_Long_Long =>
             begin
-               N := Make_Subprogram_Call
-                 (RE (RE_Long_Long_1), Make_List_Id (N));
+               N := Make_Type_Conversion (RE (RE_Long_Long_1), N);
             end;
 
          when K_Unsigned_Long =>
             begin
-               N := Make_Subprogram_Call
-                 (RE (RE_Unsigned_Long_1), Make_List_Id (N));
+               N := Make_Type_Conversion (RE (RE_Unsigned_Long_1), N);
             end;
 
          when K_Unsigned_Long_Long =>
             begin
-               N := Make_Subprogram_Call
-                 (RE (RE_Unsigned_Long_Long_1), Make_List_Id (N));
+               N := Make_Type_Conversion (RE (RE_Unsigned_Long_Long_1), N);
             end;
 
          when K_Short =>
             begin
-               N := Make_Subprogram_Call
-                 (RE (RE_Short_1), Make_List_Id (N));
+               N := Make_Type_Conversion (RE (RE_Short_1), N);
             end;
 
          when K_Unsigned_Short =>
             begin
-               N := Make_Subprogram_Call
-                 (RE (RE_Unsigned_Short_1), Make_List_Id (N));
+               N := Make_Type_Conversion (RE (RE_Unsigned_Short_1), N);
             end;
 
          when K_Float =>
             begin
-               N := Make_Subprogram_Call
-                 (RE (RE_Float_1), Make_List_Id (N));
+               N := Make_Type_Conversion (RE (RE_Float_1), N);
             end;
 
          when K_Double =>
             begin
-               N := Make_Subprogram_Call
-                 (RE (RE_Double_1), Make_List_Id (N));
+               N := Make_Type_Conversion (RE (RE_Double_1), N);
             end;
 
          when K_Long_Double =>
             begin
-               N := Make_Subprogram_Call
-                 (RE (RE_Long_Double_1), Make_List_Id (N));
+               N := Make_Type_Conversion (RE (RE_Long_Double_1), N);
             end;
 
          when K_Char =>
             begin
-               N := Make_Subprogram_Call
-                 (RE (RE_Char_1), Make_List_Id (N));
+               N := Make_Type_Conversion (RE (RE_Char_1), N);
             end;
 
          when K_Wide_Char =>
             begin
-               N := Make_Subprogram_Call
-                 (RE (RE_Wchar_1), Make_List_Id (N));
+               N := Make_Type_Conversion (RE (RE_Wchar_1), N);
             end;
 
          when K_Octet =>
             begin
-               N := Make_Subprogram_Call
-                 (RE (RE_Octet_1), Make_List_Id (N));
+               N := Make_Type_Conversion (RE (RE_Octet_1), N);
             end;
 
          when K_Boolean =>
             begin
-               N := Make_Subprogram_Call
-                 (RE (RE_Boolean_1), Make_List_Id (N));
+               N := Make_Type_Conversion (RE (RE_Boolean_1), N);
             end;
 
          when K_Fixed_Point_Type =>
@@ -343,8 +367,7 @@ package body Backend.BE_CORBA_Ada.Common is
                FP_Type_Node := Expand_Designator
                  (Type_Def_Node (BE_Node (Orig_Type)));
 
-               N := Make_Subprogram_Call
-                 (FP_Type_Node, Make_List_Id (N));
+               N := Make_Type_Conversion (FP_Type_Node, N);
             end;
 
          when K_Object =>
@@ -353,13 +376,21 @@ package body Backend.BE_CORBA_Ada.Common is
                  (RE (RE_To_PolyORB_Ref), Make_List_Id (N));
             end;
 
-         when K_Interface_Declaration =>
-            begin
+         when K_Interface_Declaration | K_Forward_Interface_Declaration =>
+            --  Check whether we are dealing with a TypeCode
+
+            if Get_Predefined_CORBA_Entity (Orig_Type) = RE_Object then
                N := Make_Subprogram_Call
-                 (RE (RE_Ref_2), Make_List_Id (N));
+                 (RE (RE_Object_Of_1),
+                  Make_List_Id
+                  (Make_Subprogram_Call
+                   (RE (RE_To_PolyORB_Object),
+                    Make_List_Id (N))));
+            else
+               N := Make_Type_Conversion (RE (RE_Ref_2), N);
                N := Make_Subprogram_Call
                  (RE (RE_To_PolyORB_Ref), Make_List_Id (N));
-            end;
+            end if;
 
          when K_Enumeration_Type =>
             declare
@@ -374,9 +405,8 @@ package body Backend.BE_CORBA_Ada.Common is
                  and then FEN.Kind (Reference (Var_Type))
                  /= K_Enumeration_Type
                then
-                  N := Make_Subprogram_Call
-                    (Ada_Enum_Type,
-                     Make_List_Id (N));
+                  N := Make_Type_Conversion (Ada_Enum_Type,
+                     N);
                end if;
 
                --  Even if the type is not directly an enumeration and
@@ -387,17 +417,13 @@ package body Backend.BE_CORBA_Ada.Common is
 
                M := Make_Attribute_Reference (Ada_Enum_Type, A_Pos);
                M := Make_Subprogram_Call (M, Make_List_Id (N));
-               N := Make_Subprogram_Call
-                 (RE (RE_Unsigned_Long_1),
-                  Make_List_Id (M));
+               N := Make_Type_Conversion (RE (RE_Unsigned_Long_1), M);
             end;
 
          when K_String =>
             begin
                if FEN.Kind (Var_Type) /= K_String then
-                  N := Make_Subprogram_Call
-                    (RE (RE_String_0),
-                     Make_List_Id (N));
+                  N := Make_Type_Conversion (RE (RE_String_0), N);
                end if;
 
                N := Make_Subprogram_Call
@@ -430,9 +456,7 @@ package body Backend.BE_CORBA_Ada.Common is
                  (Str_Package_Node,
                   Make_Identifier (SN (S_To_String)));
 
-               N := Make_Subprogram_Call
-                 (Str_Type,
-                  Make_List_Id (N));
+               N := Make_Type_Conversion (Str_Type, N);
 
                N := Make_Subprogram_Call
                  (Str_Convert_Subp,
@@ -446,9 +470,7 @@ package body Backend.BE_CORBA_Ada.Common is
          when K_Wide_String =>
             begin
                if FEN.Kind (Var_Type) /= K_Wide_String then
-                  N := Make_Subprogram_Call
-                    (RE (RE_Wide_String),
-                     Make_List_Id (N));
+                  N := Make_Type_Conversion (RE (RE_Wide_String), N);
                end if;
 
                N := Make_Subprogram_Call
@@ -481,9 +503,7 @@ package body Backend.BE_CORBA_Ada.Common is
                  (Str_Package_Node,
                   Make_Identifier (SN (S_To_Wide_String)));
 
-               N := Make_Subprogram_Call
-                 (Str_Type,
-                  Make_List_Id (N));
+               N := Make_Type_Conversion (Str_Type, N);
 
                N := Make_Subprogram_Call
                  (Str_Convert_Subp,
@@ -502,7 +522,7 @@ package body Backend.BE_CORBA_Ada.Common is
 
                --  Getting the instantiated package node
 
-               Seq_Package_Node := Defining_Identifier
+               Seq_Package_Node := Expand_Designator
                  (Instantiation_Node (BE_Node (Orig_Type)));
 
                --  Sequence type
@@ -511,9 +531,12 @@ package body Backend.BE_CORBA_Ada.Common is
                  (Seq_Package_Node,
                   Make_Identifier (TN (T_Sequence)));
 
-               N := Make_Subprogram_Call
-                 (Seq_Type,
-                  Make_List_Id (N));
+               N := Make_Type_Conversion (Seq_Type, N);
+            end;
+
+         when K_Any =>
+            begin
+               N := Make_Type_Conversion (RE (RE_Any_1), N);
             end;
 
          when others =>
@@ -751,74 +774,62 @@ package body Backend.BE_CORBA_Ada.Common is
 
          when K_Long =>
             begin
-               N := Make_Subprogram_Call
-                 (RE (RE_Long_10), Make_List_Id (N));
+               N := Make_Type_Conversion (RE (RE_Long_10), N);
             end;
 
          when K_Long_Long =>
             begin
-               N := Make_Subprogram_Call
-                 (RE (RE_Long_Long_10), Make_List_Id (N));
+               N := Make_Type_Conversion (RE (RE_Long_Long_10), N);
             end;
 
          when K_Unsigned_Long =>
             begin
-               N := Make_Subprogram_Call
-                 (RE (RE_Unsigned_Long_10), Make_List_Id (N));
+               N := Make_Type_Conversion (RE (RE_Unsigned_Long_10), N);
             end;
 
          when K_Unsigned_Long_Long =>
             begin
-               N := Make_Subprogram_Call
-                 (RE (RE_Unsigned_Long_Long_10), Make_List_Id (N));
+               N := Make_Type_Conversion (RE (RE_Unsigned_Long_Long_10), N);
             end;
 
          when K_Short =>
             begin
-               N := Make_Subprogram_Call
-                 (RE (RE_Short_10), Make_List_Id (N));
+               N := Make_Type_Conversion (RE (RE_Short_10), N);
             end;
 
          when K_Unsigned_Short =>
             begin
-               N := Make_Subprogram_Call
-                 (RE (RE_Unsigned_Short_10), Make_List_Id (N));
+               N := Make_Type_Conversion (RE (RE_Unsigned_Short_10), N);
             end;
 
          when K_Float =>
             begin
-               N := Make_Subprogram_Call
-                 (RE (RE_Float_10), Make_List_Id (N));
+               N := Make_Type_Conversion (RE (RE_Float_10), N);
             end;
 
          when K_Double =>
             begin
-               N := Make_Subprogram_Call
-                 (RE (RE_Double_10), Make_List_Id (N));
+               N := Make_Type_Conversion (RE (RE_Double_10), N);
             end;
 
          when K_Long_Double =>
             begin
-               N := Make_Subprogram_Call
-                 (RE (RE_Long_Double_10), Make_List_Id (N));
+               N := Make_Type_Conversion (RE (RE_Long_Double_10), N);
             end;
 
          when K_Char =>
             begin
-               N := Make_Subprogram_Call
-                 (RE (RE_Char_10), Make_List_Id (N));
+               N := Make_Type_Conversion (RE (RE_Char_10), N);
             end;
 
          when K_Octet =>
             begin
-               N := Make_Subprogram_Call
-                 (RE (RE_Octet_10), Make_List_Id (N));
+               N := Make_Type_Conversion (RE (RE_Octet_10), N);
             end;
 
          when K_Boolean =>
             begin
-               N := Make_Subprogram_Call
-                 (RE (RE_Boolean_10), Make_List_Id (N));
+               N := Make_Type_Conversion (RE (RE_Boolean_10), N);
             end;
 
          when K_Fixed_Point_Type =>
@@ -830,8 +841,7 @@ package body Backend.BE_CORBA_Ada.Common is
                FP_Type_Node := Expand_Designator
                  (Type_Def_Node (BE_Node (Orig_Type)));
 
-               N := Make_Subprogram_Call
-                 (FP_Type_Node, Make_List_Id (N));
+               N := Make_Type_Conversion (FP_Type_Node, N);
             end;
 
          when K_Enumeration_Type =>
@@ -847,9 +857,7 @@ package body Backend.BE_CORBA_Ada.Common is
                  and then FEN.Kind (Reference (Var_Type))
                  /= K_Enumeration_Type
                then
-                  N := Make_Subprogram_Call
-                    (Ada_Enum_Type,
-                     Make_List_Id (N));
+                  N := Make_Type_Conversion (Ada_Enum_Type, N);
                end if;
 
                --  Even if the type is not directly an enumeration and
@@ -860,17 +868,13 @@ package body Backend.BE_CORBA_Ada.Common is
 
                M := Make_Attribute_Reference (Ada_Enum_Type, A_Pos);
                M := Make_Subprogram_Call (M, Make_List_Id (N));
-               N := Make_Subprogram_Call
-                 (RE (RE_Unsigned_Long_10),
-                  Make_List_Id (M));
+               N := Make_Type_Conversion (RE (RE_Unsigned_Long_10), M);
             end;
 
          when K_String =>
             begin
                if FEN.Kind (Var_Type) /= K_String then
-                  N := Make_Subprogram_Call
-                    (RE (RE_String_0),
-                     Make_List_Id (N));
+                  N := Make_Type_Conversion (RE (RE_String_0), N);
                end if;
 
                N := Make_Subprogram_Call
@@ -900,9 +904,7 @@ package body Backend.BE_CORBA_Ada.Common is
                  (Str_Package_Node,
                   Make_Identifier (SN (S_To_String)));
 
-               N := Make_Subprogram_Call
-                 (Str_Type,
-                  Make_List_Id (N));
+               N := Make_Type_Conversion (Str_Type, N);
 
                N := Make_Subprogram_Call
                  (Str_Convert_Subp,
@@ -919,9 +921,9 @@ package body Backend.BE_CORBA_Ada.Common is
                Seq_Type         : Node_Id;
             begin
                --  Getting the instantiated package node in aligned
-               --  backend
+               --  backend.
 
-               Seq_Package_Node := Defining_Identifier
+               Seq_Package_Node := Expand_Designator
                  (Instantiation_Node (BE_Node (Orig_Type)));
 
                --  Sequence type
@@ -930,9 +932,7 @@ package body Backend.BE_CORBA_Ada.Common is
                  (Seq_Package_Node,
                   Make_Identifier (TN (T_Sequence)));
 
-               N := Make_Subprogram_Call
-                 (Seq_Type,
-                  Make_List_Id (N));
+               N := Make_Type_Conversion (Seq_Type, N);
             end;
 
          when others =>
@@ -995,15 +995,14 @@ package body Backend.BE_CORBA_Ada.Common is
 
          when K_Union_Type =>
             declare
-               Member  : Node_Id;
-               L       : List_Id;
-               Variant : Node_Id;
-               Choice  : Node_Id;
-               Literal_Parent : Node_Id := No_Node;
-               Label   : Node_Id;
-               Choices : List_Id;
+               L                   : List_Id;
+               Literal_Parent      : Node_Id := No_Node;
+               Choices             : List_Id;
                Switch_Alternatives : List_Id;
-               Switch_Node : Node_Id;
+               Switch_Alternative  : Node_Id;
+               Switch_Node         : Node_Id;
+               Switch_Case         : Node_Id;
+               Default_Met         : Boolean := False;
             begin
                Switch_Node := Make_Identifier (CN (C_Switch));
                if Var_Exp /= No_Node then
@@ -1024,30 +1023,24 @@ package body Backend.BE_CORBA_Ada.Common is
                end if;
 
                Switch_Alternatives := New_List (K_Variant_List);
-               Member := First_Entity
-                 (Switch_Type_Body (Rewinded_Type));
+               Switch_Case := First_Entity (Switch_Type_Body (Rewinded_Type));
 
-               while Present (Member) loop
-                  Variant := New_Node (K_Variant);
-                  Choices := New_List (K_Discrete_Choice_List);
-                  Label   := First_Entity (Labels (Member));
-
-                  while Present (Label) loop
-                     Choice := Make_Literal
-                       (Value  => FEN.Value (Label),
-                        Parent => Literal_Parent);
-                     Append_Node_To_List (Choice, Choices);
-                     Label := Next_Entity (Label);
-                  end loop;
+               while Present (Switch_Case) loop
+                  Map_Choice_List
+                    (Labels (Switch_Case),
+                     Literal_Parent,
+                     Choices,
+                     Default_Met);
 
                   L := New_List (K_List_Id);
+
                   C := Make_Selected_Component
                     (Var,
                      Make_Identifier
                      (IDL_Name
                       (Identifier
                        (Declarator
-                        (Element (Member))))));
+                        (Element (Switch_Case))))));
 
                   if Var_Exp /= No_Node then
                      M := Make_Selected_Component
@@ -1056,26 +1049,33 @@ package body Backend.BE_CORBA_Ada.Common is
                         (IDL_Name
                          (Identifier
                           (Declarator
-                           (Element (Member))))));
-                     Marshall_Args (L, Type_Spec (Element (Member)), C, M);
+                           (Element (Switch_Case))))));
+                     Marshall_Args
+                       (L, Type_Spec (Element (Switch_Case)), C, M);
                   else
-                     Marshall_Args (L, Type_Spec (Element (Member)), C);
+                     Marshall_Args (L, Type_Spec (Element (Switch_Case)), C);
                   end if;
 
                   --  Building the switch alternative
 
-                  N := Make_Block_Statement
-                    (Declarative_Part => No_List,
-                     Statements       => L);
+                  Switch_Alternative :=  Make_Case_Statement_Alternative
+                    (Choices, L);
+                  Append_Node_To_List
+                    (Switch_Alternative, Switch_Alternatives);
 
-                  Set_Component (Variant, N);
-                  Set_Discrete_Choices (Variant, Choices);
-                  Append_Node_To_List (Variant, Switch_Alternatives);
-
-                  Member := Next_Entity (Member);
+                  Switch_Case := Next_Entity (Switch_Case);
                end loop;
 
-               N := Make_Variant_Part
+               --  Add an empty when others clause to keep the compiler
+               --  happy.
+
+               if not Default_Met then
+                  Append_Node_To_List
+                    (Make_Case_Statement_Alternative (No_List, No_List),
+                     Switch_Alternatives);
+               end if;
+
+               N := Make_Case_Statement
                  (Switch_Node,
                   Switch_Alternatives);
                Append_Node_To_List (N, Stat);
@@ -1125,8 +1125,7 @@ package body Backend.BE_CORBA_Ada.Common is
                     (RE (RE_Length_2), Make_List_Id (Var));
                end if;
 
-               N := Make_Subprogram_Call
-                 (RE (RE_Unsigned_Long_10), Make_List_Id (N));
+               N := Make_Type_Conversion (RE (RE_Unsigned_Long_10), N);
 
                Range_Constraint := Make_Range_Constraint
                  (Make_Literal (Int1_Val), N);
@@ -1143,8 +1142,7 @@ package body Backend.BE_CORBA_Ada.Common is
                     (N, Make_List_Id (Index_Node));
 
                   M := Make_Identifier (Fully_Qualified_Name (Var_Exp));
-                  K := Make_Subprogram_Call
-                    (RE (RE_Integer), Make_List_Id (Index_Node));
+                  K := Make_Type_Conversion (RE (RE_Integer), Index_Node);
                   M := Make_Subprogram_Call
                     (RE (RE_Get_Element), Make_List_Id (M, K));
 
@@ -1163,8 +1161,7 @@ package body Backend.BE_CORBA_Ada.Common is
                     (N, Make_List_Id (Index_Node));
 
                   M := Make_Identifier (Fully_Qualified_Name (Var));
-                  K := Make_Subprogram_Call
-                    (RE (RE_Integer), Make_List_Id (Index_Node));
+                  K := Make_Type_Conversion (RE (RE_Integer), Index_Node);
                   M := Make_Subprogram_Call
                     (RE (RE_Get_Element), Make_List_Id (M, K));
 
@@ -1301,8 +1298,7 @@ package body Backend.BE_CORBA_Ada.Common is
             if not Present (Max_Size (Rewinded_Type)) then
                C := Make_Subprogram_Call
                  (RE (RE_Length_2), Make_List_Id (Var));
-               C := Make_Subprogram_Call
-                 (RE (RE_Unsigned_Long_10), Make_List_Id (C));
+               C := Make_Type_Conversion (RE (RE_Unsigned_Long_10), C);
                Append_Node_To_List (C, L);
             end if;
 

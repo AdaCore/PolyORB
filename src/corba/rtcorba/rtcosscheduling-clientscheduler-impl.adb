@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -49,7 +49,6 @@ package body RTCosScheduling.ClientScheduler.Impl is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
-   pragma Unreferenced (C); --  For conditional pragma Debug
 
    -----------------------------
    -- Load_Configuration_File --
@@ -78,14 +77,14 @@ package body RTCosScheduling.ClientScheduler.Impl is
                      (CORBA.ORB.To_CORBA_String ("RTCurrent")));
 
    begin
-      pragma Debug (O ("Configuring activity: "
+      pragma Debug (C, O ("Configuring activity: "
                        & CORBA.To_String (Activity_Name)));
 
       Priority := PolyORB.Parameters.Get_Conf
         ("activity " & CORBA.To_String (Activity_Name),
          "priority");
 
-      pragma Debug (O ("Set priority to:" & Integer'Image (Priority)));
+      pragma Debug (C, O ("Set priority to:" & Integer'Image (Priority)));
 
       RTCORBA.Current.Set_The_Priority (Current, RTCORBA.Priority (Priority));
 

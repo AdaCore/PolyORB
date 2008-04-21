@@ -70,7 +70,6 @@ package body PolyORB.Binding_Data.GIOP.UIPMC is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
-   pragma Unreferenced (C); --  For conditional pragma Debug
 
    UIPMC_Corbaloc_Prefix : constant String := "miop";
 
@@ -176,7 +175,13 @@ package body PolyORB.Binding_Data.GIOP.UIPMC is
 
       begin
          TResult.Version_Major := UIPMC_Version_Major;
-         TResult.Version_Minor := UIPMC_Version_Minor;
+
+         --  We force Version_Minor to 2 to match MIOP specifications
+         --  that requires MIOP 1.0 profile to be conformant with GIOP
+         --  1.2.
+
+         TResult.Version_Minor := 2;
+
          TResult.Object_Id     := Oid_Access;
          TResult.Components    := Null_Tagged_Component_List;
 
@@ -261,7 +266,7 @@ package body PolyORB.Binding_Data.GIOP.UIPMC is
       Temp_Ref : Tagged_Component_Access;
 
    begin
-      pragma Debug (O ("Unmarshall_UIPMC_Profile_body: enter"));
+      pragma Debug (C, O ("Unmarshall_UIPMC_Profile_body: enter"));
 
       --  Create transport mechanism
 
@@ -274,14 +279,11 @@ package body PolyORB.Binding_Data.GIOP.UIPMC is
          raise MIOP_Error;
       end if;
 
-      if TResult.Version_Minor /= UIPMC_Version_Minor then
-         --  XXX for TAO compatibility, minor version is not check
-         --  TAO send profile with UIPMC minor version set to 2 !?
-         pragma Debug (O ("Wrong UIPMC minor version :"
-                            & TResult.Version_Minor'Img, Warning));
-         null;
-         --  raise MIOP_Error;
-      end if;
+      --  We force Version_Minor to 2 to match MIOP specifications
+      --  that requires MIOP 1.0 profile to be conformant with GIOP
+      --  1.2.
+
+      TResult.Version_Minor := 2;
 
       Temp_Ref := Get_Component (TResult.Components, Tag_Group);
       if Temp_Ref = null then
@@ -291,7 +293,7 @@ package body PolyORB.Binding_Data.GIOP.UIPMC is
       TResult.G_I       := TC_Group_Info_Access (Temp_Ref).G_I'Access;
       TResult.Object_Id := To_Object_Id (TResult.G_I.all);
 
-      pragma Debug (O ("Unmarshall_UIPMC_Profile_body: leave"));
+      pragma Debug (C, O ("Unmarshall_UIPMC_Profile_body: leave"));
 
       return Result;
    end Unmarshall_UIPMC_Profile_Body;
@@ -313,7 +315,7 @@ package body PolyORB.Binding_Data.GIOP.UIPMC is
         := Get_Component (UIPMC_Profile.Components, Tag_Group);
 
    begin
-      pragma Debug (O ("UIPMC Profile to corbaloc"));
+      pragma Debug (C, O ("UIPMC Profile to corbaloc"));
 
       if TC_G_I = null then
          return "";
@@ -327,11 +329,15 @@ package body PolyORB.Binding_Data.GIOP.UIPMC is
             return "";
          end if;
 
+         --  Note: we force Version_Minor to 0 to match MIOP
+         --  specifications that requires MIOP 1.0 profile to be
+         --  conformant with GIOP 1.2.
+
          return UIPMC_Corbaloc_Prefix
            & ":" & Trimmed_Image (Unsigned_Long_Long
                                   (UIPMC_Profile.Version_Major)) & "."
            & Trimmed_Image (Unsigned_Long_Long
-                            (UIPMC_Profile.Version_Minor)) & "@"
+                            (0)) & "@"
            & S & "/"
            & Image
            (Address_Of
@@ -361,7 +367,7 @@ package body PolyORB.Binding_Data.GIOP.UIPMC is
       Index2  : Integer;
       Temp_Ref : TC_Group_Info_Access;
    begin
-      pragma Debug (O ("UIPMC corbaloc to profile: enter"));
+      pragma Debug (C, O ("UIPMC corbaloc to profile: enter"));
 
       Index2 := Find (S, Index, '.');
       if Index2 = S'Last + 1 then
@@ -370,10 +376,12 @@ package body PolyORB.Binding_Data.GIOP.UIPMC is
       end if;
       TResult.Version_Major :=
         Types.Octet'Value (S (Index .. Index2 - 1));
+
       if TResult.Version_Major /= UIPMC_Version_Major then
          Destroy_Profile (Result);
          return null;
       end if;
+
       Index := Index2 + 1;
 
       Index2 := Find (S, Index, '@');
@@ -387,6 +395,13 @@ package body PolyORB.Binding_Data.GIOP.UIPMC is
          Destroy_Profile (Result);
          return null;
       end if;
+
+      --  We force Version_Minor to 2 to match MIOP specifications
+      --  that requires MIOP 1.0 profile to be conformant with GIOP
+      --  1.2.
+
+      TResult.Version_Minor := 2;
+
       Index := Index2 + 1;
 
       Index2 := Find (S, Index, '/');
@@ -400,7 +415,7 @@ package body PolyORB.Binding_Data.GIOP.UIPMC is
          Destroy_Profile (Result);
          return null;
       end if;
-      pragma Debug (O ("Group Info : " & Image (Temp_Ref.G_I)));
+      pragma Debug (C, O ("Group Info : " & Image (Temp_Ref.G_I)));
 
       TResult.G_I := Temp_Ref.G_I'Access;
       TResult.Components := Null_Tagged_Component_List;
@@ -412,12 +427,12 @@ package body PolyORB.Binding_Data.GIOP.UIPMC is
          Destroy_Profile (Result);
          return null;
       end if;
-      pragma Debug (O ("Address = " & S (Index .. Index2 - 1)));
+      pragma Debug (C, O ("Address = " & S (Index .. Index2 - 1)));
       Host_First := Index;
       Host_Last := Index2 - 1;
       Index := Index2 + 1;
 
-      pragma Debug (O ("Port = " & S (Index .. S'Last)));
+      pragma Debug (C, O ("Port = " & S (Index .. S'Last)));
       Port := PolyORB.Sockets.Port_Type'Value (S (Index .. S'Last));
 
       TResult.Object_Id := To_Object_Id (TResult.G_I.all);
@@ -427,7 +442,7 @@ package body PolyORB.Binding_Data.GIOP.UIPMC is
       Append (TResult.Mechanisms,
         Create_Transport_Mechanism (S (Host_First .. Host_Last) + Port));
 
-      pragma Debug (O ("UIPMC corbaloc to profile: leave"));
+      pragma Debug (C, O ("UIPMC corbaloc to profile: leave"));
       return Result;
    end Corbaloc_To_Profile;
 

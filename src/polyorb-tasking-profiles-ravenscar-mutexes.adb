@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -46,7 +46,6 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Mutexes is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
-   pragma Unreferenced (C); --  For conditional pragma Debug
 
    package PTM renames PolyORB.Tasking.Mutexes;
 
@@ -175,7 +174,7 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Mutexes is
       S              : Synchro_Index_Type;
 
    begin
-      pragma Debug (O ("Enter"));
+      pragma Debug (C, O ("Enter"));
       S := Prepare_Suspend;
       The_Mutex_PO_Arr (M.Id).Test_And_Set_Entry
         (Exit_Condition,
@@ -209,7 +208,7 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Mutexes is
       To_Free            : Synchro_Index_Type;
       Someone_Is_Waiting : Boolean;
    begin
-      pragma Debug (O ("Leave"));
+      pragma Debug (C, O ("Leave"));
       The_Mutex_PO_Arr (M.Id).Leave (Someone_Is_Waiting, To_Free);
 
       if Someone_Is_Waiting then
@@ -240,13 +239,13 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Mutexes is
 
             if Marked (Synchro_Index_Type (Current)) then
                --  Loop in the queue
-               pragma Debug (O ("loop in the queue!!!"));
+               pragma Debug (C, O ("loop in the queue!!!"));
                return False;
             end if;
 
             if not Waiters (Synchro_Index_Type (Current)).Is_Waiting then
                --  Someone is in the queue, but does not wait
-               pragma Debug (O ("active task in the queue!!! Id= "
+               pragma Debug (C, O ("active task in the queue!!! Id= "
                                 & Integer'Image (Current)));
                return False;
             end if;

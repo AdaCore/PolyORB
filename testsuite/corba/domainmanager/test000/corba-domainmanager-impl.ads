@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2005 Free Software Foundation, Inc.             --
+--         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
@@ -47,7 +47,7 @@ package CORBA.DomainManager.Impl is
 
    function Get_Domain_Policy
      (Self        : access Object;
-      Policy_Type : in     CORBA.PolicyType)
+      Policy_Type : CORBA.PolicyType)
       return CORBA.Policy.Ref;
 
 private

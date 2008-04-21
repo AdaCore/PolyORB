@@ -61,7 +61,6 @@ package body PolyORB.POA is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
-   pragma Unreferenced (C); --  For conditional pragma Debug
 
    --------------------
    -- Oid_To_Rel_URI --
@@ -87,7 +86,7 @@ package body PolyORB.POA is
          return;
       end if;
       URI := To_PolyORB_String ("/");
-      pragma Debug (O ("Oid: Creator: "
+      pragma Debug (C, O ("Oid: Creator: "
                          & To_Standard_String (U_Oid.Creator)
                          & ", Id: " & To_Standard_String (U_Oid.Id)
                          & ", sys = " & Boolean'Image
@@ -113,7 +112,7 @@ package body PolyORB.POA is
          URI := URI & ";pf=" & Trim (U_Oid.Persistency_Flag'Img, Left);
       end if;
 
-      pragma Debug (O ("-> URI: " & To_Standard_String (URI)));
+      pragma Debug (C, O ("-> URI: " & To_Standard_String (URI)));
 
    end Oid_To_Rel_URI;
 
@@ -137,7 +136,7 @@ package body PolyORB.POA is
       Persistency_Flag : Lifespan_Cookie;
 
    begin
-      pragma Debug (O ("URI: " & URI));
+      pragma Debug (C, O ("URI: " & URI));
 
       while URI (Last_Slash) /= '/'
         and then Last_Slash >= URI'First loop
@@ -172,7 +171,7 @@ package body PolyORB.POA is
          Persistency_Flag := Null_Time_Stamp;
       end if;
 
-      pragma Debug (O ("-> Oid: Creator: "
+      pragma Debug (C, O ("-> Oid: Creator: "
                        & URI (Creator_First .. Creator_Last)
                        & ", Id: "
                        & URI (Id_First .. Id_Last)
@@ -244,7 +243,7 @@ package body PolyORB.POA is
             if OA.Thread_Policy = null or else not Default then
                if OA.Thread_Policy /= null then
                   pragma Debug
-                    (O ("Duplicate in ThreadPolicy: using last one"));
+                    (C, O ("Duplicate in ThreadPolicy: using last one"));
                   null;
                end if;
                OA.Thread_Policy := ThreadPolicy_Access (A_Policy);
@@ -254,7 +253,7 @@ package body PolyORB.POA is
             if OA.Lifespan_Policy = null or else not Default then
                if OA.Lifespan_Policy /= null then
                   pragma Debug
-                    (O ("Duplicate in LifespanPolicy: using last one"));
+                    (C, O ("Duplicate in LifespanPolicy: using last one"));
                   null;
                end if;
                OA.Lifespan_Policy := LifespanPolicy_Access (A_Policy);
@@ -264,7 +263,7 @@ package body PolyORB.POA is
             if OA.Id_Uniqueness_Policy = null or else not Default then
                if OA.Id_Uniqueness_Policy /= null then
                   pragma Debug
-                    (O ("Duplicate in IdUniquenessPolicy: using last one"));
+                    (C, O ("Duplicate in IdUniquenessPolicy: using last one"));
                   null;
                end if;
                OA.Id_Uniqueness_Policy := IdUniquenessPolicy_Access (A_Policy);
@@ -274,7 +273,7 @@ package body PolyORB.POA is
             if OA.Id_Assignment_Policy = null or else not Default then
                if OA.Id_Assignment_Policy /= null then
                   pragma Debug
-                    (O ("Duplicate in IdAssignmentPolicy: using last one"));
+                    (C, O ("Duplicate in IdAssignmentPolicy: using last one"));
                   null;
                end if;
                OA.Id_Assignment_Policy := IdAssignmentPolicy_Access (A_Policy);
@@ -284,7 +283,7 @@ package body PolyORB.POA is
             if OA.Servant_Retention_Policy = null or else not Default then
                if OA.Servant_Retention_Policy /= null then
                   pragma Debug
-                    (O ("Duplicate in ServantRetentionPolicy:"
+                    (C, O ("Duplicate in ServantRetentionPolicy:"
                         & " using last one"));
                   null;
                end if;
@@ -296,7 +295,7 @@ package body PolyORB.POA is
             if OA.Request_Processing_Policy = null or else not Default then
                if OA.Request_Processing_Policy /= null then
                   pragma Debug
-                    (O ("Duplicate in RequestProcessingPolicy:"
+                    (C, O ("Duplicate in RequestProcessingPolicy:"
                         & " using last one"));
                   null;
                end if;
@@ -308,7 +307,7 @@ package body PolyORB.POA is
             if OA.Implicit_Activation_Policy = null or else not Default then
                if OA.Implicit_Activation_Policy /= null then
                   pragma Debug
-                    (O ("Duplicate in ImplicitActivationPolicy:"
+                    (C, O ("Duplicate in ImplicitActivationPolicy:"
                         & "using last one"));
                   null;
                end if;
@@ -318,7 +317,7 @@ package body PolyORB.POA is
 
          else
             null;
-            pragma Debug (O ("Unknown policy ignored"));
+            pragma Debug (C, O ("Unknown policy ignored"));
          end if;
 
          Next (It);
@@ -335,7 +334,7 @@ package body PolyORB.POA is
      (OA       : access Obj_Adapter;
       Policies :        POA_Policies.PolicyList) is
    begin
-      pragma Debug (O ("Init POA with user provided policies"));
+      pragma Debug (C, O ("Init POA with user provided policies"));
 
       Set_Policies (OA, Policies, Default => False);
    end Init_With_User_Policies;
@@ -347,7 +346,7 @@ package body PolyORB.POA is
    procedure Init_With_Default_Policies
      (OA : access Obj_Adapter) is
    begin
-      pragma Debug (O ("Init POA with default policies"));
+      pragma Debug (C, O ("Init POA with default policies"));
 
       Set_Policies
         (OA,
@@ -366,7 +365,7 @@ package body PolyORB.POA is
       OA_Policies : AllPolicies;
 
    begin
-      pragma Debug (O ("Check compatibilities between policies: enter"));
+      pragma Debug (C, O ("Check compatibilities between policies: enter"));
       Enter (OA.POA_Lock);
 
       OA_Policies (1) := Policy_Access (OA.Thread_Policy);
@@ -413,7 +412,7 @@ package body PolyORB.POA is
          Error);
 
       Leave (OA.POA_Lock);
-      pragma Debug (O ("Check compatibilities between policies: leave"));
+      pragma Debug (C, O ("Check compatibilities between policies: leave"));
    end Check_Policies_Compatibility;
 
    ----------------------
@@ -447,7 +446,7 @@ package body PolyORB.POA is
         (Object_Map'Class, Object_Map_Access);
 
    begin
-      pragma Debug (O ("Destroy_OA: enter"));
+      pragma Debug (C, O ("Destroy_OA: enter"));
 
       if not Is_Nil (OA.POA_Manager) then
          Remove_POA (POA_Manager_Of (OA),
@@ -500,7 +499,7 @@ package body PolyORB.POA is
       --  so there is no need to deallocate the OA itself.
       --  XXX is it pertinent to have this ???
 
-      pragma Debug (O ("Destroy_OA: end"));
+      pragma Debug (C, O ("Destroy_OA: end"));
    end Destroy_OA;
 
    ---------------------
@@ -511,7 +510,7 @@ package body PolyORB.POA is
       use PolyORB.POA_Types.POA_HTables;
 
    begin
-      pragma Debug (O ("Create Root_POA"));
+      pragma Debug (C, O ("Create Root_POA"));
 
       --  Create new Obj Adapter
 
@@ -565,7 +564,7 @@ package body PolyORB.POA is
       Ref : PolyORB.POA_Types.Obj_Adapter_Ref;
 
    begin
-      pragma Debug (O ("Creating POA: " & Adapter_Name));
+      pragma Debug (C, O ("Creating POA: " & Adapter_Name));
 
       --  Validity checks on Adapter_Name:
       --    name must be non-empty and may not contain POA_Path_Separator
@@ -591,7 +590,7 @@ package body PolyORB.POA is
       Enter (Self.Children_Lock);
 
       if Self.Children /= null then
-         pragma Debug (O ("Check if a POA with the same name exists."));
+         pragma Debug (C, O ("Check if a POA with the same name exists."));
 
          if not Is_Null (Lookup (Self.Children.all,
                                  Adapter_Name,
@@ -658,7 +657,7 @@ package body PolyORB.POA is
       end if;
 
       pragma Debug
-        (O ("Absolute name of new POA is " & POA.Absolute_Address.all));
+        (C, O ("Absolute name of new POA is " & POA.Absolute_Address.all));
 
       --  First initialize POA with default policies
 
@@ -673,7 +672,7 @@ package body PolyORB.POA is
       Check_Policies_Compatibility (POA, Error);
 
       if Found (Error) then
-         pragma Debug (O ("Got Error, destroying POA"));
+         pragma Debug (C, O ("Got Error, destroying POA"));
          Destroy (POA, False, False);
          return;
       end if;
@@ -681,7 +680,7 @@ package body PolyORB.POA is
       --  Insert POA into Global_POATable
 
       pragma Debug
-        (O ("Insert "
+        (C, O ("Insert "
             & POA_Path_Separator
             & POA.Absolute_Address.all
             & " into Global_POATable"));
@@ -692,7 +691,7 @@ package body PolyORB.POA is
 
       --  Return the created POA
 
-      pragma Debug (O ("POA " & Adapter_Name & " created."));
+      pragma Debug (C, O ("POA " & Adapter_Name & " created."));
    end Initialize_POA;
 
    -------------
@@ -715,11 +714,11 @@ package body PolyORB.POA is
          return;
       end if;
 
-      pragma Debug (O ("Start destroying POA: " & Self.Name.all));
+      pragma Debug (C, O ("Start destroying POA: " & Self.Name.all));
 
       --  Remove Self from Global POA Table
 
-      pragma Debug (O ("Removing POA from Global POA Table"));
+      pragma Debug (C, O ("Removing POA from Global POA Table"));
 
       PolyORB.POA_Types.POA_HTables.Delete
         (Global_POATable, POA_Path_Separator & Self.Absolute_Address.all);
@@ -729,7 +728,7 @@ package body PolyORB.POA is
       if Self.Children /= null
         and then not Is_Empty (Self.Children.all)
       then
-         pragma Debug (O ("Removing child POAs"));
+         pragma Debug (C, O ("Removing child POAs"));
 
          Enter (Self.Children_Lock);
 
@@ -765,7 +764,7 @@ package body PolyORB.POA is
       --  Tell father to remove current POA from its list of children
 
       if Self.Father /= null then
-         pragma Debug (O ("Requesting parent to detach POA: "
+         pragma Debug (C, O ("Requesting parent to detach POA: "
                           & Self.Name.all));
 
          POA.Remove_POA_By_Name
@@ -775,7 +774,7 @@ package body PolyORB.POA is
 
       --  Destroy self (also unregister from the POAManager)
 
-      pragma Debug (O ("About to destroy POA: " & Self.Name.all));
+      pragma Debug (C, O ("About to destroy POA: " & Self.Name.all));
 
       Free (Self.Absolute_Address);
       Free (Self.Name);
@@ -784,7 +783,7 @@ package body PolyORB.POA is
 
       Destroy_OA (Obj_Adapter_Access (Self));
 
-      pragma Debug (O ("POA destroyed"));
+      pragma Debug (C, O ("POA destroyed"));
 
       --  XXX Add code for Etherealize_Objects and Wait_For_Completion ???
 
@@ -819,7 +818,7 @@ package body PolyORB.POA is
       U_Oid     :    out Unmarshalled_Oid;
       Error     : in out PolyORB.Errors.Error_Container) is
    begin
-      pragma Debug (O ("Activate_Object: enter"));
+      pragma Debug (C, O ("Activate_Object: enter"));
 
       --  Build a well formed Oid from the 'Hint' provided by the user
 
@@ -845,7 +844,7 @@ package body PolyORB.POA is
          return;
       end if;
 
-      pragma Debug (O ("Activate_Object: leave"));
+      pragma Debug (C, O ("Activate_Object: leave"));
    end Activate_Object;
 
    -----------------------
@@ -859,7 +858,7 @@ package body PolyORB.POA is
    is
       U_Oid : Unmarshalled_Oid;
    begin
-      pragma Debug (O ("Deactivate_Object: enter"));
+      pragma Debug (C, O ("Deactivate_Object: enter"));
 
       Reconstruct_Object_Identifier
         (Self.Id_Assignment_Policy.all,
@@ -875,7 +874,7 @@ package body PolyORB.POA is
       if Self.Servant_Manager /= null
         and then Self.Servant_Manager.all in ServantActivator'Class
       then
-         pragma Debug (O ("Deactivate_Object: Etherealizing"));
+         pragma Debug (C, O ("Deactivate_Object: Etherealizing"));
 
          declare
             Activator : aliased ServantActivator'Class :=
@@ -891,12 +890,12 @@ package body PolyORB.POA is
                Error);
 
             if Found (Error) then
-               pragma Debug (O ("Deactivate_Object: "
+               pragma Debug (C, O ("Deactivate_Object: "
                                 & "Failed to retrieve servant"));
                return;
             end if;
 
-            pragma Debug (O ("Deactivate_Object: "
+            pragma Debug (C, O ("Deactivate_Object: "
                              & "Etherealizing corresponding servant"));
             Etherealize
               (Activator'Access,
@@ -910,7 +909,7 @@ package body PolyORB.POA is
          end;
       end if;
 
-      pragma Debug (O ("Deactivate_Object: Forget_Servant_Association"));
+      pragma Debug (C, O ("Deactivate_Object: Forget_Servant_Association"));
       Forget_Servant_Association
         (Self.Servant_Retention_Policy.all,
          POA_Types.Obj_Adapter_Access (Self),
@@ -923,7 +922,7 @@ package body PolyORB.POA is
 
       --  XXX ??? Wait for completion?
 
-      pragma Debug (O ("Deactivate_Object: leave"));
+      pragma Debug (C, O ("Deactivate_Object: leave"));
    end Deactivate_Object;
 
    -------------------
@@ -1045,7 +1044,7 @@ package body PolyORB.POA is
          Split_Point : Integer;
 
       begin
-         pragma Debug (O ("Find_POA_Recursively: enter, Name = " & Name));
+         pragma Debug (C, O ("Find_POA_Recursively: enter, Name = " & Name));
 
          --  Name is null => return Self
 
@@ -1137,7 +1136,7 @@ package body PolyORB.POA is
            & Name;
 
       begin
-         pragma Debug (O ("Find_POA: enter, Name = "
+         pragma Debug (C, O ("Find_POA: enter, Name = "
                           & Full_POA_Name));
 
          POA := PolyORB.POA.Obj_Adapter_Access
@@ -1147,14 +1146,14 @@ package body PolyORB.POA is
                         Null_POA_Ref)));
 
          if POA /= null then
-            pragma Debug (O ("Found POA in Global_POATable"));
+            pragma Debug (C, O ("Found POA in Global_POATable"));
             return;
          end if;
       end;
 
       --  Then make a recursive look up, activating POA if necessary
 
-      pragma Debug (O ("Looking for " & Name & " recursively"));
+      pragma Debug (C, O ("Looking for " & Name & " recursively"));
 
       Find_POA_Recursively
         (Self,
@@ -1163,7 +1162,7 @@ package body PolyORB.POA is
          POA,
          Error);
 
-      pragma Debug (O ("Find_POA: leave"));
+      pragma Debug (C, O ("Find_POA: leave"));
    end Find_POA;
 
    -----------------
@@ -1253,14 +1252,14 @@ package body PolyORB.POA is
    is
       use PolyORB.POA_Types.POA_HTables;
    begin
-      pragma Debug (O ("Get_The_Children: enter"));
+      pragma Debug (C, O ("Get_The_Children: enter"));
 
       if Self.Children /= null
         and then not Is_Empty (Self.Children.all)
       then
          PolyORB.Tasking.Mutexes.Enter (Self.Children_Lock);
 
-         pragma Debug (O ("Iterate over existing children"));
+         pragma Debug (C, O ("Iterate over existing children"));
          declare
             It : Iterator := First (Self.Children.all);
          begin
@@ -1273,7 +1272,7 @@ package body PolyORB.POA is
          PolyORB.Tasking.Mutexes.Leave (Self.Children_Lock);
       end if;
 
-      pragma Debug (O ("Get_The_Children: end"));
+      pragma Debug (C, O ("Get_The_Children: end"));
    end Get_The_Children;
 
    ----------------------
@@ -1316,7 +1315,7 @@ package body PolyORB.POA is
      (Self       : access Obj_Adapter;
       Child_Name :        Standard.String) is
    begin
-      pragma Debug (O (Self.Name.all
+      pragma Debug (C, O (Self.Name.all
                        & ": removing POA with name "
                        & Child_Name
                        & " from my children."));
@@ -1477,7 +1476,7 @@ package body PolyORB.POA is
 --        S : Servants.Servant_Access;
       Nil_Result : Any.NVList.Ref;
    begin
---        pragma Debug (O ("Get_Empty_Arg_List for Id "
+--        pragma Debug (C, O ("Get_Empty_Arg_List for Id "
 --                         & Objects.To_String (Oid.all)));
 --        S := Servants.Servant_Access (Find_Servant (OA, Oid, NO_CHECK));
 
@@ -1521,7 +1520,7 @@ package body PolyORB.POA is
    is
       --  S : Servants.Servant_Access;
    begin
---        pragma Debug (O ("Get_Empty_Result for Id "
+--        pragma Debug (C, O ("Get_Empty_Result for Id "
 --                         & Objects.To_String (Oid.all)));
 --        S := Servants.Servant_Access (Find_Servant (OA, Oid, NO_CHECK));
 --        if S.If_Desc.RP_Desc /= null then
@@ -1558,7 +1557,7 @@ package body PolyORB.POA is
 
       Obj_OA   : Obj_Adapter_Access;
    begin
-      pragma Debug (O ("Find_Servant: Enter."));
+      pragma Debug (C, O ("Find_Servant: Enter."));
 
       Find_POA (OA,
                 Get_Creator (Id.all),
@@ -1613,7 +1612,7 @@ package body PolyORB.POA is
       --  Find servant
 
       pragma Debug
-        (O ("OA : " & Obj_OA.Name.all
+        (C, O ("OA : " & Obj_OA.Name.all
             & " looks for servant associated with Id "
             & Objects.Oid_To_Hex_String (Id.all)));
 
@@ -1634,7 +1633,7 @@ package body PolyORB.POA is
         and then Obj_OA.Servant_Manager /= null
         and then Obj_OA.Servant_Manager.all in ServantActivator'Class
       then
-         pragma Debug (O ("Try to activate one servant !"));
+         pragma Debug (C, O ("Try to activate one servant !"));
 
          declare
             Activator : aliased ServantActivator'Class :=
@@ -1676,7 +1675,7 @@ package body PolyORB.POA is
          return;
       end if;
       Servants.Set_Executor (Servant, Executor (OA.Thread_Policy));
-      pragma Debug (O ("Find_Servant: Leave."));
+      pragma Debug (C, O ("Find_Servant: Leave."));
    end Find_Servant;
 
    ---------------------

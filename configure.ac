@@ -14,12 +14,12 @@ AM_INIT_AUTOMAKE
 LIBVERSIONINFO=1:4:0
 AC_SUBST(LIBVERSIONINFO)
 
-##########################################
+#
 # Check for maintainer (debug) mode.
-# Note, this must come before AC_PROG_CC
-# so we have a chance to set defaults for
-# CFLAGS.
-##########################################
+# This must come before AC_PROG_CC so we can set the default CFLAGS ourselves.
+# Note that these default CFLAGS are used for both the native and the cross
+# compilers.
+#
 
 define(DEBUG_OPTIONS, [dnl
   if test ${CFLAGS-unset} = "unset"; then CFLAGS="-g -O0"; fi
@@ -29,13 +29,14 @@ define(DEBUG_OPTIONS, [dnl
   debug=true])
 
 define(NODEBUG_OPTIONS, [dnl
+  if test ${CFLAGS-unset} = "unset"; then CFLAGS="-g -O2"; fi
   DEFAULT_ADAFLAGS="-XBuild=PRODUCTION"
   BARGS=
   DEBUG_ONLY="--  "
   debug=false])
 
 AC_ARG_ENABLE(debug,
-[  --enable-debug          Turn on debugging options],
+AS_HELP_STRING([--enable-debug], [Turn on debugging options]),
 [if [[ "$enableval" = "yes" ]]; then
   DEBUG_OPTIONS
 else
@@ -51,7 +52,7 @@ fi],
 DEFAULT_WARNINGS_MODE=e
 
 AC_ARG_ENABLE(warnings,
-[  --enable-warnings=X     Set warnings processing to X (e/n/s)],
+AS_HELP_STRING([--enable-warnings=X], [Set warnings processing to X (e/n/s)]),
 [case "$enableval" in
    yes)     WARNINGS_MODE=e ;;
    no)      WARNINGS_MODE=s ;;
@@ -60,6 +61,65 @@ AC_ARG_ENABLE(warnings,
 esac],
 [WARNINGS_MODE=$DEFAULT_WARNINGS_MODE])
 AC_SUBST(WARNINGS_MODE)
+
+##########################################
+# Set platform-specific supplementary CFLAGS and options
+##########################################
+
+# Host
+
+case "$host_os" in
+  cygwin* | mingw*)
+    HOST_EXE_SUFFIX=.exe
+    WINDOWS_ON_HOST=True
+    ;;
+  *)
+    HOST_EXE_SUFFIX=
+    WINDOWS_ON_HOST=False
+    ;;
+esac
+AC_SUBST(WINDOWS_ON_HOST)
+AM_CONDITIONAL(WINDOWS, test x$WINDOWS_ON_HOST = xTrue)
+
+# Target
+
+WINDOWS_ON_TARGET=False
+TARGET_EXE_SUFFIX=
+case $target_os in
+  aix*)
+    CFLAGS_FOR_TARGET="-mminimal-toc"
+    ;;
+
+  vxworks*)
+    CFLAGS_FOR_TARGET="-mlongcall"
+    TARGET_EXE_SUFFIX=.out
+    PLATFORM_BASE_LIST="PolyORB.Parameters.Static"
+    ;;
+
+  cygwin* | mingw* )
+    WINDOWS_ON_TARGET=True
+    TARGET_EXE_SUFFIX=.exe
+    ;;
+esac
+ADAFLAGS_FOR_TARGET="${CFLAGS_FOR_TARGET}"
+AC_SUBST(CFLAGS_FOR_TARGET)
+AC_SUBST(ADAFLAGS_FOR_TARGET)
+AC_SUBST(WINDOWS_ON_TARGET)
+
+#  Implementation note: the *vxworks* rule above is for VxWorks 5, it can
+#    present some problems for VxWorks 6.
+
+# Compilers are always built using the native Ada compiler. Therefore,
+# their executable suffix depends on the host operating system.
+
+COMPILER_EXE_SUFFIX=$HOST_EXE_SUFFIX
+AC_SUBST(COMPILER_EXE_SUFFIX)
+
+# Tools are using the cross Ada compiler. Therefore, their executable
+# suffix depends on the target operating system.
+
+TOOL_EXE_SUFFIX=$TARGET_EXE_SUFFIX
+AC_SUBST(TOOL_EXE_SUFFIX)
 
 # By default treat all warnings as errors when building directly from the
 # source repository. The packaging procedure changes the default to "n".
@@ -114,6 +174,23 @@ AM_HAS_PRAGMA_SUPPRESS_VALIDITY_CHECK
 AM_HAS_STYLESW_YG
 
 ##########################################
+# Check C environment features (for target)
+##########################################
+
+save_CC="$CC"
+CC="$CC_FOR_TARGET"
+
+# Need to provide a non-empty 4th argument to AC_CHECK_HEADERS
+# so that a real compilation test is performed using CC, not a
+# junk preprocessor test that will use the host preprocessor
+# instead of the target compiler.
+
+AC_CHECK_HEADERS([fcntl.h], [], [], [/*relax*/])
+
+AC_CHECK_FUNCS(setsid)
+CC="$save_CC"
+
+##########################################
 # Check platform properties
 ##########################################
 
@@ -134,7 +211,7 @@ LIBS_LIST=""
 
 AC_MSG_CHECKING([default protocol personalities])
 AC_ARG_WITH(proto-perso,
-[  --with-proto-perso=x    Enumerate protocol personalities],
+AS_HELP_STRING([--with-proto-perso=x], [Enumerate protocol personalities]),
 [
   PROTO_LIST=""
 
@@ -162,7 +239,7 @@ AC_SUBST(PROTO_LIST)
 
 AC_MSG_CHECKING([default application personalities])
 AC_ARG_WITH(appli-perso,
-[  --with-appli-perso=x    Enumerate application personalities],
+AS_HELP_STRING([--with-appli-perso=x], [Enumerate application personalities]),
 [
   APPLI_LIST=""
 
@@ -189,7 +266,7 @@ AC_SUBST(APPLI_LIST)
 ############################################
 
 AC_ARG_WITH(idl-compiler,
-[  --with-idl-compiler=x   Internal configuration flag],
+AS_HELP_STRING([--with-idl-compiler=x], [Internal configuration flag]),
 [
   IDLAC=${withval}
 ],
@@ -205,7 +282,7 @@ AM_IDLCPP_NEEDS_DOT
 
 AC_MSG_CHECKING([default services])
 AC_ARG_WITH(corba-services,
-[  --with-corba-services=x       Enumerate services],
+AS_HELP_STRING([--with-corba-services=x], [Enumerate services]),
 [
   SERVICE_LIST=""
 
@@ -378,11 +455,12 @@ AC_SUBST(PCSNAME)
 #
 # Remote shell command
 #
+AC_CHECK_PROGS(DEFAULT_RSH_CMD, [remsh rsh ssh], rsh)
 AC_MSG_CHECKING(for remote shell command to use)
 AC_ARG_WITH(rshcmd,
-            [  --with-gnatdist-rshcmd=command   Set alternate remote shell command],
-            [RSH_CMD="${withval}"],
-            [RSH_CMD="rsh"])
+ AS_HELP_STRING([--with-rshcmd=command], [Set alternate remote shell command]),
+ [RSH_CMD="${withval}"],
+ [RSH_CMD="${DEFAULT_RSH_CMD}"])
 AC_SUBST(RSH_CMD)
 AC_MSG_RESULT([${RSH_CMD}])
 
@@ -391,14 +469,14 @@ AC_MSG_RESULT([${RSH_CMD}])
 #
 AC_MSG_CHECKING(for remote shell options to use)
 AC_ARG_WITH(rshopt,
-            [  --with-gnatdist-rshopt=command   Set remote shell options],
-            [RSH_OPT="${withval}"],
-            [RSH_OPT="-f"])
+ AS_HELP_STRING([--with-rshopt=command], [Set remote shell options]),
+ [RSH_OPT="${withval}"],
+ [RSH_OPT=""])
 AC_SUBST(RSH_OPT)
 AC_MSG_RESULT([${RSH_OPT}])
 
 #
-# Not used by polyORB, set default values for garlic.
+# Not used by PolyORB, set default values for garlic.
 #
 DEFSTORAGENAME="dfs"
 DEFSTORAGEDATA=""
@@ -411,19 +489,10 @@ AC_SUBST(DEFPROTOCOLDATA)
 AC_SUBST(DEFPROTOCOLNAME)
 
 #
-# Check for optimization flags
-# 
-AC_ARG_WITH(optimization,
-            [  --with-gnatdist-optimization=X   Use X as default optimization for gnatdist (O0)],
-            [GNATDISTOPT="$withval"],
-            [GNATDISTOPT="O0"])
-AC_SUBST(GNATDISTOPT)
-
-#
 # Check whether we remove support for RPC abortion
 #
 AC_ARG_ENABLE(rpc-abortion,
-[  --enable-rpc-abortion   Enable RPC abortion even when not supported],
+AS_HELP_STRING([--enable-rpc-abortion], [Enable RPC abortion even when not supported]),
 [SUPPORT_RPC_ABORTION="True"],
 [SUPPORT_RPC_ABORTION="Default"])
 AM_SUPPORT_RPC_ABORTION
@@ -512,20 +581,6 @@ then
    AC_MSG_ERROR("CORBA COS require CORBA application personality")
 fi
 
-##########################################################
-# For AIX, the Interface Repository must be built with -O0
-##########################################################
-
-case $target in
-  powerpc-ibm-aix*)
-    DISABLE_IR_OPTIMIZATION=yes
-    ;;
-  *)
-    DISABLE_IR_OPTIMIZATION=no
-    ;;
-esac
-AM_CONDITIONAL(DISABLE_IR_OPTIMIZATION, [test "x$DISABLE_IR_OPTIMIZATION" = "xyes"])
-
 ##########################################
 # Extra gnatmake parameters provided by the user
 ##########################################
@@ -544,43 +599,6 @@ AM_PROG_LIBTOOL
 AC_LIBTOOL_HAS_TAG
 host=$host_tmp
 
-##########################################
-# Windows requires specific targets
-##########################################
-
-case "$host_os" in
-  cygwin* | mingw*)
-    windows_host=true
-    HOST_EXE_SUFFIX=.exe
-    ;;
-  *)
-    windows_host=false
-    HOST_EXE_SUFFIX=
-    ;;
-esac
-AM_CONDITIONAL(WINDOWS, $windows_host)
-
-case "$target_os" in
-  *cygwin* | *mingw*)
-    TARGET_EXE_SUFFIX=.exe
-    ;;
-  *)
-    TARGET_EXE_SUFFIX=
-    ;;
-esac
-
-# Compilers are always built using the native Ada compiler. Therefore,
-# their executable suffix depends on the host operating system.
-
-COMPILER_EXE_SUFFIX=$HOST_EXE_SUFFIX
-AC_SUBST(COMPILER_EXE_SUFFIX)
-
-# Tools are using the cross Ada compiler. Therefore, their executable
-# suffix depends on the target operating system.
-
-TOOL_EXE_SUFFIX=$TARGET_EXE_SUFFIX
-AC_SUBST(TOOL_EXE_SUFFIX)
-
 #################################################
 # Build code fragments to be substituted in
 #       src/setup/polyorb-setup-client.adb
@@ -589,25 +607,55 @@ AC_SUBST(TOOL_EXE_SUFFIX)
 #       tools/po_createref/po_createref_setup.adb
 #################################################
 
+PLATFORM_BASE_WITHS=config.platform_base_withs.adb
 PROTO_CLIENT_WITHS=config.proto_client_withs.adb
 PROTO_SERVER_WITHS=config.proto_server_withs.adb
 PO_CATREF_WITHS=config.po_catref_withs.adb
 PO_CREATEREF_WITHS=config.po_createref_withs.adb
 
-ALL_WITHS="
+# Dependency files related to protocol personalities
+
+ALL_PROTO_WITHS="
   ${PROTO_CLIENT_WITHS}
   ${PROTO_SERVER_WITHS}
   ${PO_CATREF_WITHS}
   ${PO_CREATEREF_WITHS}"
 
+# All generated dependency files
+
+ALL_WITHS="
+  ${PLATFORM_BASE_WITHS}
+  ${ALL_PROTO_WITHS}"
+
 rm -f ${ALL_WITHS}
+
+if test -z "${PLATFORM_BASE_LIST}"
+then
+  # Generate a comment line to avoid consecutive white lines
+  # in the resulting file.
+
+  cat >>${PLATFORM_BASE_WITHS} <<EOF
+
+--  No additional platform-specific dependencies on $target
+EOF
+else
+  for U in ${PLATFORM_BASE_LIST}
+  do
+    cat >>${PLATFORM_BASE_WITHS} <<EOF
+
+with ${U};
+pragma Elaborate_All (${U});
+pragma Warnings (Off, ${U});
+EOF
+  done
+fi
 
 for P in ${PROTO_LIST}
 do
    c1=`echo "-- ${P} --" | tr a-z A-Z`
    c2=`echo "$c1" | sed s/./-/g`
 
-   for f in ${ALL_WITHS}; do
+   for f in ${ALL_PROTO_WITHS}; do
    cat >>${f} <<EOF
 
 $c2
@@ -689,10 +737,13 @@ done
 
 for F in ${ALL_WITHS}
 do
+   # Remove initial blank line
+
    SEDCMD="${SED} -e 1d"
 
    # If we do not have SSL enabled, comment out any mention of SSLIOP
    # in the setup files.
+
    if test "x$HAVE_SSL" != xyes; then
       SEDCMD=["${SEDCMD} -e 's/[^ ].*SSLIOP/--  &/'"]
    fi
@@ -703,6 +754,7 @@ do
    fi
 done
 
+AC_SUBST_FILE(PLATFORM_BASE_WITHS)
 AC_SUBST_FILE(PROTO_CLIENT_WITHS)
 AC_SUBST_FILE(PROTO_SERVER_WITHS)
 AC_SUBST_FILE(PO_CATREF_WITHS)
@@ -729,14 +781,12 @@ AC_SUBST_FILE(LOCAL_MAKEFILES)
 dnl Important! One file per line, nothing before or after except whitespace!
 dnl This section is edited automatically by support/reconfig.
 
+AC_CONFIG_HEADERS([src/config.h])
 AC_OUTPUT([
 	Makefile
 	Makefile.common.project
-	Makefile.old
-	support/Makefile
 	compilers/Makefile
 	compilers/common_files/platform.ads
-	compilers/gnatdist/Makefile
 	compilers/gnatdist/xe_defs-defaults.ads
 	compilers/gnatprfh/Makefile
 	compilers/gnatprfh/gnatprfh.adb
@@ -775,6 +825,7 @@ AC_OUTPUT([
 	src/security/tls/Makefile
 	src/security/x509/Makefile
 	src/setup/Makefile
+	src/setup/polyorb-setup-base.adb
 	src/setup/polyorb-setup-client.adb
 	src/setup/polyorb-setup-server.adb
 	src/setup/security/Makefile
@@ -782,6 +833,7 @@ AC_OUTPUT([
 	src/srp/Makefile
 	src/ssl/Makefile
 	src/debug.adc
+	src/polyorb-platform.ads
 	src/polyorb-platform-ssl_linker_options.ads
 	src/ravenscar.adc
 	src/ravenscar_compatible.adc

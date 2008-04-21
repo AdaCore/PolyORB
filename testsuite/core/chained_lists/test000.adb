@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--            Copyright (C) 2008, Free Software Foundation, Inc.            --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -75,7 +75,7 @@ begin
    Append (L2, 789);
    Output ("double L1", To_Array (L2) = (1 => 456, 2 => 789));
 
-   L3 := L1 & 999 & L2;
+   L3 := L1 & 999 & 456 & 789;
    Output ("concat", To_Array (L3) = (666, 123, 999, 456, 789));
 
    It := First (L3);

@@ -64,30 +64,7 @@ def read_files (dir):
   return l
 
 # Additional checks for src/:
-#  Makefile.am
 #  allsrc
-
-def read_Makefile (dir):
-  Makefile = []
-  st = 0
-  for l in open (dir + "/Makefile.am", "r").readlines ():
-    if re.match ("^ADA_SPECS_WITH_BODY =", l):
-      st = 2
-      continue
-    if re.match ("^ADA_SPECS =", l):
-      st = 1
-      continue
-    if re.match ("^$", l):
-      st = 0
-      continue
-    if st > 0:
-      m = re.match ("^\s*(\S*\.ad)[sb]", l)
-      if m:
-        Makefile.append (dir + "/" + m.group (1) + 's')
-        if st > 1:
-          Makefile.append (dir + "/" + m.group (1) + 'b')
-          
-  return Makefile
 
 alis_seen = []
 
@@ -147,13 +124,10 @@ for d in subdirs:
   
   MANIFEST = read_MANIFEST (d)
   files = read_files (d)
-  Makefile = read_Makefile (d)
 
   compare_lists ("files", "MANIFEST", 1)
-  compare_lists ("files", "Makefile", 1)
 
-subdirs = get_subdirs ("compilers") \
-  + get_subdirs ("examples") + get_subdirs ("cos") + get_subdirs ("idls")
+subdirs = get_subdirs ("examples") + get_subdirs ("cos") + get_subdirs ("idls")
 
 for d in subdirs:
   print "Checking " + d + "/...\n"

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---           Copyright (C) 2006, Free Software Foundation, Inc.             --
+--         Copyright (C) 2006-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -94,13 +94,11 @@ package body CORBA.Repository_Root.ExtAbstractInterfaceDef.Impl is
          Name                        : Identifier;
          Version                     : VersionSpec;
          Defined_In                  : Container_Forward.Ref;
-         Contents                    : in
-           Contained.Impl.Contained_Seq.Sequence;
+         Contents                    : Contained.Impl.Contained_Seq.Sequence;
          Contained_View              : Contained.Impl.Object_Ptr;
          IDLType_View                : IDLType.Impl.Object_Ptr;
          Base_Interfaces             : AbstractInterfaceDefSeq;
-         InterfaceAttrExtension_View : in
-           InterfaceAttrExtension.Impl.Object_Ptr)
+         InterfaceAttrExtension_View : InterfaceAttrExtension.Impl.Object_Ptr)
       is
       begin
          AbstractInterfaceDef.Impl.Internals.Init

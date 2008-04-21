@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -52,7 +52,7 @@ package body Echo.Impl is
 
    function EchoString
      (Self : access Object;
-      Mesg : in     CORBA.String)
+      Mesg : CORBA.String)
      return CORBA.String
    is
       use Ada.Dynamic_Priorities;

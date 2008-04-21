@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -38,33 +38,30 @@ pragma Warnings (Off, Test.Printer.Skel);
 
 package body Test.Printer.Impl is
 
+   Var_PrintString_Called : Natural := 0;
+   Var_PrintLong_Called : Natural := 0;
+
    -----------------
    -- PrintString --
    -----------------
 
-   procedure PrintString
-     (Self : access Object;
-      Mesg : in     CORBA.String)
-   is
+   procedure PrintString (Self : access Object; Mesg : CORBA.String) is
       pragma Unreferenced (Self);
    begin
       Ada.Text_IO.Put_Line
-        ("Printing string: «" & CORBA.To_Standard_String (Mesg)
-         & "»");
+        ("Printing string: «" & CORBA.To_Standard_String (Mesg) & "»");
+      Var_PrintString_Called := Var_PrintString_Called + 1;
    end PrintString;
 
    ---------------
    -- PrintLong --
    ---------------
 
-   procedure PrintLong
-     (Self : access Object;
-      K    : in     CORBA.Long)
-   is
+   procedure PrintLong (Self : access Object; K : CORBA.Long) is
       pragma Unreferenced (Self);
-
    begin
       Ada.Text_IO.Put_Line ("Printing Long: " & CORBA.Long'Image (K));
+      Var_PrintLong_Called := Var_PrintLong_Called + 1;
    end PrintLong;
 
    ----------------
@@ -73,7 +70,7 @@ package body Test.Printer.Impl is
 
    function EchoString
      (Self : access Object;
-      Mesg : in     CORBA.String)
+      Mesg : CORBA.String)
      return CORBA.String
    is
       pragma Unreferenced (Self);
@@ -91,7 +88,7 @@ package body Test.Printer.Impl is
 
    function EchoLong
      (Self : access Object;
-      K    : in     CORBA.Long)
+      K    : CORBA.Long)
      return CORBA.Long
    is
       pragma Unreferenced (Self);
@@ -100,5 +97,23 @@ package body Test.Printer.Impl is
       Ada.Text_IO.Put_Line ("Echoing : " & CORBA.Long'Image (K));
       return K;
    end EchoLong;
+
+   ------------------------
+   -- PrintString_Called --
+   ------------------------
+
+   function PrintString_Called return Natural is
+   begin
+      return Var_Printstring_Called;
+   end PrintString_Called;
+
+   ----------------------
+   -- PrintLong_Called --
+   ----------------------
+
+   function PrintLong_Called return Natural is
+   begin
+      return Var_PrintLong_Called;
+   end PrintLong_Called;
 
 end Test.Printer.Impl;

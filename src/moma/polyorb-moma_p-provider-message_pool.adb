@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -56,7 +56,6 @@ package body PolyORB.MOMA_P.Provider.Message_Pool is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
-   pragma Unreferenced (C); --  For conditional pragma Debug
 
    --  Actual functions implemented by the servant.
 
@@ -111,7 +110,7 @@ package body PolyORB.MOMA_P.Provider.Message_Pool is
 
       Error : Error_Container;
    begin
-      pragma Debug (O ("The server is executing the request:"
+      pragma Debug (C, O ("The server is executing the request:"
                        & PolyORB.Requests.Image (Req.all)));
 
       Create (Args);
@@ -156,13 +155,13 @@ package body PolyORB.MOMA_P.Provider.Message_Pool is
             (PolyORB.Types.String'
              (PolyORB.Any.From_Any
               (Value (First (List_Of (Args).all)).Argument))));
-         pragma Debug (O ("Result: " & Image (Req.Result)));
+         pragma Debug (C, O ("Result: " & Image (Req.Result)));
 
       elsif Req.Operation.all = "Register_Handler" then
 
          --  Register Message call_back handler
 
-         pragma Debug (O ("Register_Handler request"));
+         pragma Debug (C, O ("Register_Handler request"));
          Args := Get_Parameter_Profile (Req.Operation.all);
 
          PolyORB.Requests.Arguments (Req, Args, Error);
@@ -190,10 +189,10 @@ package body PolyORB.MOMA_P.Provider.Message_Pool is
                (MOMA.Types.To_Standard_String
                 (MOMA.Types.From_Any (Behavior.Argument))));
 
-            pragma Debug (O ("Registered message handler"));
+            pragma Debug (C, O ("Registered message handler"));
          end;
       else
-         pragma Debug (O ("Unrecognized request " & Req.Operation.all));
+         pragma Debug (C, O ("Unrecognized request " & Req.Operation.all));
          raise Program_Error;
       end if;
    end Invoke;
@@ -209,7 +208,7 @@ package body PolyORB.MOMA_P.Provider.Message_Pool is
       Result : PolyORB.Any.NVList.Ref;
    begin
       PolyORB.Any.NVList.Create (Result);
-      pragma Debug (O ("Parameter profile for " & Method & " requested."));
+      pragma Debug (C, O ("Parameter profile for " & Method & " requested."));
 
       if Method = "Publish" then
          Add_Item (Result,
@@ -284,7 +283,7 @@ package body PolyORB.MOMA_P.Provider.Message_Pool is
       then
          --  Send the message to the Message Call_Back Handler.
          --  Do not store the message locally.
-         pragma Debug (O ("Got new message " & Image (Message)
+         pragma Debug (C, O ("Got new message " & Image (Message)
                           & " with Id " & Key & ", forwarding to Message_"
                           & "Handler with Handle request"));
          declare
@@ -318,13 +317,13 @@ package body PolyORB.MOMA_P.Provider.Message_Pool is
       else
 
          if Id = "moma" then
-            pragma Debug (O ("Got new message " & Image (Message)
+            pragma Debug (C, O ("Got new message " & Image (Message)
                              & " with Id " & Key));
             Self.Message_Id := Self.Message_Id + 1;
             PolyORB.MOMA_P.Provider.Warehouse.Register (Self.W, Key, Message);
 
          else
-            pragma Debug (O ("Got new message " & Image (Message)
+            pragma Debug (C, O ("Got new message " & Image (Message)
                              & " with Id " & Id));
             PolyORB.MOMA_P.Provider.Warehouse.Register (Self.W, Id, Message);
          end if;
@@ -332,7 +331,7 @@ package body PolyORB.MOMA_P.Provider.Message_Pool is
          if Self.Behavior = Notify
            and then not PolyORB.References.Is_Nil (Self.Message_Handler)
          then
-            pragma Debug (O ("Forwarding to Message_Handler"
+            pragma Debug (C, O ("Forwarding to Message_Handler"
                              & " with Notify request"));
             --  Notify call_back Handler.
             --  The Message is stored locally.
@@ -384,11 +383,11 @@ package body PolyORB.MOMA_P.Provider.Message_Pool is
          PolyORB.MOMA_P.Provider.Warehouse.Unregister (Self.W, Key);
          Self.Last_Read_Id := Self.Last_Read_Id + 1;
 
-         pragma Debug (O ("Sending back message " & Image (Result)
+         pragma Debug (C, O ("Sending back message " & Image (Result)
                           & " with id " & Key));
       else
          Result := PolyORB.MOMA_P.Provider.Warehouse.Lookup (Self.W, Key);
-         pragma Debug (O ("Sending back message " & Image (Result)
+         pragma Debug (C, O ("Sending back message " & Image (Result)
                           & " with id " & Key));
 
       end if;

@@ -110,14 +110,14 @@ AC_DEFUN([AM_WITH_OPENSSL],
 ])
 
 # Convert the space-separated SSL_LDFLAGS into a sequence of string literals
-# concatenated with ASCII.Nul separators, which is what prama Linker_Options
+# concatenated with ASCII.NUL separators, which is what prama Linker_Options
 # expects.
 
 set_linker_options() {
   while test @S|@# -gt 0; do
     SSL_LINKER_OPTIONS="${SSL_LINKER_OPTIONS}\"@S|@1\""
     if test @S|@# -gt 1; then
-      SSL_LINKER_OPTIONS="${SSL_LINKER_OPTIONS} & ASCII.Nul & "
+      SSL_LINKER_OPTIONS="${SSL_LINKER_OPTIONS} & ASCII.NUL & "
     fi
     shift
   done

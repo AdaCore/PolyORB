@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -47,7 +47,6 @@ package body PolyORB.POA_Types is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
-   pragma Unreferenced (C); --  For conditional pragma Debug
 
    --  Object ids are represented as stream element arrays
    --  using a private representation, that need not be
@@ -516,7 +515,7 @@ package body PolyORB.POA_Types is
       Oid_A : constant Object_Id_Access := new Object_Id'(Oid);
 
    begin
-      pragma Debug (O ("Oid is " & Image (Oid)));
+      pragma Debug (C, O ("Oid is " & Image (Oid)));
       return Oid_A;
    end U_Oid_To_Oid;
 

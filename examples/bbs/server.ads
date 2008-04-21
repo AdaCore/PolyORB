@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2002 Free Software Foundation, Inc.             --
+--         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -39,8 +39,8 @@ package Server is
    --  This package can be called remotely
 
    procedure Post_Message
-     (Sender  : in String;
-      Message : in String);
+     (Sender  : String;
+      Message : String);
    --  Add a message to the BBS service. Sender_Error will be raised if the
    --  sender's name is empty, Message_Error if the message is empty.
 
@@ -58,7 +58,7 @@ package Server is
    type Penpal_Pointer is access all Penpal_Type'Class;
    --  A Penpal_Pointer can designated any descendent of the Penpal_Type type
 
-   procedure Register (Penpal : in Penpal_Pointer);
+   procedure Register (Penpal : Penpal_Pointer);
    --  Register a penpal in the connected users database. Sender_Error will
    --  be raised if the penpal has not been correctly initialized. If a
    --  penpal with this name has been registered already, then it will be
@@ -69,7 +69,7 @@ package Server is
    --  Return the object representing a penpal of a given type, or raise
    --  No_Such_Penpal if no penpal by this name has been registered.
 
-   procedure Broadcast (Sender : in String; Message : in String);
+   procedure Broadcast (Sender : String; Message : String);
    --  Broadcast a message to every registered penpal
 
 end Server;

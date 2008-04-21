@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2004-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -115,7 +115,7 @@ package System.Partition_Interface is
    type RAS_Proxy_Type_Access is access RAS_Proxy_Type;
    --  This type is used by the expansion to implement distributed objects.
    --  Do not change its definition or its layout without updating
-   --  Exp_Dist.Build_Remote_Supbrogram_Proxy_Type.
+   --  Exp_Dist.Build_Remote_Subprogram_Proxy_Type.
 
    procedure Get_RAS_Info
      (Pkg_Name        :     String;
@@ -298,7 +298,7 @@ package System.Partition_Interface is
       Typ      :        String;
       Receiver : access Servant;
       Ref      :    out PolyORB.References.Ref);
-   --  Create a reference that can be used to desginate the object whose
+   --  Create a reference that can be used to designate the object whose
    --  address is Addr, whose type is the designated type of a RACW type
    --  associated with Servant.
 
@@ -561,6 +561,8 @@ package System.Partition_Interface is
 
    procedure Any_To_BS (Item : Any; Stream : out Buffer_Stream_Type);
    procedure BS_To_Any (Stream : Buffer_Stream_Type; Item : out Any);
+   --  Conversion between an Any for an opaque sequence of octets and an Ada
+   --  Stream based on a PolyORB buffer.
 
    procedure Allocate_Buffer (Stream : in out Buffer_Stream_Type);
    procedure Release_Buffer (Stream : in out Buffer_Stream_Type);
@@ -577,28 +579,25 @@ package System.Partition_Interface is
       Operation :        String;
       Arg_List  :        PolyORB.Any.NVList.Ref;
       Result    : in out PolyORB.Any.NamedValue;
-      Exc_List  :        PolyORB.Any.ExceptionList.Ref
-        := PolyORB.Any.ExceptionList.Nil_Ref;
+      Exc_List  :        PolyORB.Any.ExceptionList.Ref :=
+                           PolyORB.Any.ExceptionList.Nil_Ref;
       Req       :    out PolyORB.Requests.Request_Access;
       Req_Flags :        PolyORB.Requests.Flags;
-      Deferred_Arguments_Session :
-        PolyORB.Components.Component_Access := null;
-      Identification : PolyORB.Requests.Arguments_Identification
-        := PolyORB.Requests.Ident_By_Position;
-      Dependent_Binding_Object : PolyORB.Smart_Pointers.Entity_Ptr
-        := null
+      Deferred_Arguments_Session : PolyORB.Components.Component_Access := null;
+      Identification :   PolyORB.Requests.Arguments_Identification :=
+                           PolyORB.Requests.Ident_By_Position;
+      Dependent_Binding_Object : PolyORB.Smart_Pointers.Entity_Ptr := null
      ) renames PolyORB.Requests.Create_Request;
 
    procedure Request_Invoke
      (R            : PolyORB.Requests.Request_Access;
-      Invoke_Flags : PolyORB.Requests.Flags          := 0);
+      Invoke_Flags : PolyORB.Requests.Flags := 0);
 
    procedure Request_Arguments
      (R     :        PolyORB.Requests.Request_Access;
       Args  : in out PolyORB.Any.NVList.Ref);
 
-   procedure Request_Set_Out
-     (R     : PolyORB.Requests.Request_Access);
+   procedure Request_Set_Out (R : PolyORB.Requests.Request_Access);
 
    procedure Set_Result
      (Self : PolyORB.Requests.Request_Access;
@@ -648,7 +647,7 @@ private
 
    type Receiving_Stub is new Private_Info with record
       Kind                : Receiving_Stub_Kind;
-      --  Indicates whetger this info is relative to RACW type or a RCI
+      --  Indicates whether this info is relative to RACW type or a RCI
 
       Name                : PolyORB.Utils.Strings.String_Ptr;
       --  Fully qualified name of the RACW or RCI

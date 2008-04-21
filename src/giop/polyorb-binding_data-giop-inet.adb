@@ -59,7 +59,6 @@ package body PolyORB.Binding_Data.GIOP.INET is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
-   pragma Unreferenced (C); --  For conditional pragma Debug
 
    ------------------------------------------
    -- Common_IIOP_DIOP_Corbaloc_To_Profile --
@@ -86,7 +85,7 @@ package body PolyORB.Binding_Data.GIOP.INET is
       --  Returned in error case
 
    begin
-      pragma Debug (O ("Common_IIOP_DIOP_Corbaloc_To_Profile: enter"));
+      pragma Debug (C, O ("Common_IIOP_DIOP_Corbaloc_To_Profile: enter"));
 
       --  Index is at start of iiop_addr
 
@@ -126,13 +125,13 @@ package body PolyORB.Binding_Data.GIOP.INET is
             Destroy_Profile (Profile.all);
             return Empty_Name;
          end if;
-         pragma Debug (O ("Address = " & S (Index .. Index2)));
+         pragma Debug (C, O ("Address = " & S (Index .. Index2)));
          Host_First := Index;
          Host_Last  := Index2;
 
          if Colon < Slash then
             if Colon + 1 < Slash then
-               pragma Debug (O ("Port = " & S (Colon + 1 .. Slash - 1)));
+               pragma Debug (C, O ("Port = " & S (Colon + 1 .. Slash - 1)));
                Port :=
                   PolyORB.Sockets.Port_Type'Value (S (Colon + 1 .. Slash - 1));
             else
@@ -170,10 +169,10 @@ package body PolyORB.Binding_Data.GIOP.INET is
          return Empty_Name;
       end if;
 
-      pragma Debug (O ("Oid = " & Image (TResult.Object_Id.all)));
+      pragma Debug (C, O ("Oid = " & Image (TResult.Object_Id.all)));
 
       TResult.Components := Null_Tagged_Component_List;
-      pragma Debug (O ("Common_IIOP_DIOP_Corbaloc_To_Profile: leave"));
+      pragma Debug (C, O ("Common_IIOP_DIOP_Corbaloc_To_Profile: leave"));
       return S (Host_First .. Host_Last) + Port;
    end Common_IIOP_DIOP_Corbaloc_To_Profile;
 
@@ -196,7 +195,7 @@ package body PolyORB.Binding_Data.GIOP.INET is
       for Oid_Str'Address use
         Profile.Object_Id (Profile.Object_Id'First)'Address;
    begin
-      pragma Debug (O ("Common_IIOP_DIOP_Profile_To_Corbaloc"));
+      pragma Debug (C, O ("Common_IIOP_DIOP_Profile_To_Corbaloc"));
 
       return Prefix & ":" &
         Trimmed_Image (Unsigned_Long_Long (GIOP_Profile.Version_Major)) & "." &
@@ -220,7 +219,7 @@ package body PolyORB.Binding_Data.GIOP.INET is
       Profile_Body : Buffer_Access := new Buffer_Type;
 
    begin
-      pragma Debug (O ("Common_Marshall_Profile_Body: enter"));
+      pragma Debug (C, O ("Common_Marshall_Profile_Body: enter"));
 
       --  A Profile Body is an encapsulation
 
@@ -232,13 +231,13 @@ package body PolyORB.Binding_Data.GIOP.INET is
       Marshall (Profile_Body, GIOP_Profile.Version_Minor);
 
       pragma Debug
-        (O ("  Version = " & GIOP_Profile.Version_Major'Img & "."
+        (C, O ("  Version = " & GIOP_Profile.Version_Major'Img & "."
             & GIOP_Profile.Version_Minor'Img));
 
       --  Marshalling of a Socket
 
       Marshall_Socket (Profile_Body, Sock);
-      pragma Debug (O ("  Address = " & Image (Sock)));
+      pragma Debug (C, O ("  Address = " & Image (Sock)));
 
       --  Marshalling the object id
 
@@ -257,7 +256,7 @@ package body PolyORB.Binding_Data.GIOP.INET is
       Marshall (Buffer, Encapsulate (Profile_Body));
       Release (Profile_Body);
 
-      pragma Debug (O ("Common_Marshall_Profile_Body: leave"));
+      pragma Debug (C, O ("Common_Marshall_Profile_Body: leave"));
    end Common_Marshall_Profile_Body;
 
    ------------------------------------
@@ -275,7 +274,7 @@ package body PolyORB.Binding_Data.GIOP.INET is
       Profile_Body   : aliased Encapsulation := Unmarshall (Buffer);
       Profile_Buffer : Buffer_Access := new Buffers.Buffer_Type;
    begin
-      pragma Debug (O ("Common_Unmarshall_Profile_Body: enter"));
+      pragma Debug (C, O ("Common_Unmarshall_Profile_Body: enter"));
 
       --  A Profile Body is an encapsulation
 
@@ -285,7 +284,7 @@ package body PolyORB.Binding_Data.GIOP.INET is
       TResult.Version_Minor := Unmarshall (Profile_Buffer);
 
       pragma Debug
-        (O ("  Version = " & TResult.Version_Major'Img & "."
+        (C, O ("  Version = " & TResult.Version_Major'Img & "."
             & TResult.Version_Minor'Img));
 
       --  Unmarshalling the socket name
@@ -293,7 +292,7 @@ package body PolyORB.Binding_Data.GIOP.INET is
       declare
          Address : constant Socket_Name := Unmarshall_Socket (Profile_Buffer);
       begin
-         pragma Debug (O ("  Address = " & Image (Address)));
+         pragma Debug (C, O ("  Address = " & Image (Address)));
 
          --  Unmarshalling the object id
 
@@ -315,7 +314,7 @@ package body PolyORB.Binding_Data.GIOP.INET is
 
          Release (Profile_Buffer);
 
-         pragma Debug (O ("Common_Unmarshall_Profile_body: leave"));
+         pragma Debug (C, O ("Common_Unmarshall_Profile_body: leave"));
          return Address;
       end;
    end Common_Unmarshall_Profile_Body;

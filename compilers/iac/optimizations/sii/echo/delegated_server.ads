@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2002 Free Software Foundation, Inc.             --
+--         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -38,7 +38,7 @@ package Delegated_Server is
 
    function Echo_With_Delegation
      (Self : access Integer;
-      Mesg : in CORBA.String)
+      Mesg : CORBA.String)
      return CORBA.String;
    --  Function that will be called when a delegation is used. Note that
    --  the Self integer has no meaning here, but a Self is mandatory.

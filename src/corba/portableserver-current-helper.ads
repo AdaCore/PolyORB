@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
@@ -68,7 +68,7 @@ package PortableServer.Current.Helper is
      (Item : PortableServer.Current.NoContext_Members) return CORBA.Any;
 
    procedure Raise_NoContext
-     (Members : in NoContext_Members);
+     (Members : NoContext_Members);
    pragma No_Return (Raise_NoContext);
 
 end PortableServer.Current.Helper;

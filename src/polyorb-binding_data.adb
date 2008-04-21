@@ -48,7 +48,6 @@ package body PolyORB.Binding_Data is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
-   pragma Unreferenced (C); --  For conditional pragma Debug
 
    ---------------------
    -- Destroy_Profile --
@@ -62,7 +61,7 @@ package body PolyORB.Binding_Data is
       pragma Assert (P /= null);
 
       pragma Debug
-        (O ("Destroying profile of type "
+        (C, O ("Destroying profile of type "
             & Ada.Tags.External_Tag (P'Tag)));
 
       Release (P.all);
@@ -122,7 +121,7 @@ package body PolyORB.Binding_Data is
       --  Same_Node takes into account both the derived Is_Colocated for Left
       --  and Right. Same_Node is therefore a symmetric predicate.
 
-      return Is_Colocated (Left, Right)
+      return Is_Colocated (Left => Left, Right => Right)
         or else Is_Colocated (Left => Right, Right => Left);
    end Same_Node;
 

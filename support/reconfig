@@ -86,6 +86,9 @@ rm -f support/ltmain.sh.orig
 echo "Running aclocal"
 aclocal -I support
 
+echo "Running autoheader"
+autoheader
+
 echo "Running autoconf"
 autoconf
 

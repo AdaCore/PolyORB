@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -34,13 +34,22 @@
 --  Implementation of POSIX-like mutexes with full Ada tasking.
 --  This variant uses GNAT-specific library facilities.
 
-with Ada.Unchecked_Deallocation;
+--  WAG:601
+--  pragma Warnings (Off) with pattern not supported in that compiler version
+--  so use plain pragma Warnings (Off/On) instead.
+--  pragma Warnings (Off, "* is an internal GNAT unit");
+--  pragma Warnings (Off, "use of this unit is non-portable*");
+
+pragma Warnings (Off);
+--  Depends on System.Task_Primitives.Operations, an internal GNAT unit
+with System.Task_Primitives.Operations;
+pragma Warnings (On);
 
 with System;
-with System.Task_Primitives.Operations;
+
+with Ada.Unchecked_Deallocation;
 
 with PolyORB.Initialization;
-
 with PolyORB.Log;
 with PolyORB.Utils.Strings;
 
@@ -55,7 +64,6 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Mutexes is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
-   pragma Unreferenced (C); --  For conditional pragma Debug
 
    ----------
    -- Free --
@@ -86,7 +94,7 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Mutexes is
 
       M : constant Full_Tasking_Mutex_Access := new Full_Tasking_Mutex_Type;
    begin
-      pragma Debug (O ("Create Mutex"));
+      pragma Debug (C, O ("Create Mutex"));
       M.The_Lock := new Mutex_Lock;
       Initialize_Lock (Prio => System.Any_Priority'Last, L => M.The_Lock);
       return PTM.Mutex_Access (M);
@@ -105,7 +113,7 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Mutexes is
       pragma Warnings (On);
 
    begin
-      pragma Debug (O ("Destroy mutex"));
+      pragma Debug (C, O ("Destroy mutex"));
       Finalize_Lock (Full_Tasking_Mutex_Access (M).The_Lock);
       Free (Full_Tasking_Mutex_Access (M).The_Lock);
       Free (M);
@@ -118,7 +126,7 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Mutexes is
    procedure Enter (M : access Full_Tasking_Mutex_Type) is
       Ceiling_Violation : Boolean;
    begin
-      pragma Debug (O ("Enter mutex"));
+      pragma Debug (C, O ("Enter mutex"));
       Write_Lock (M.The_Lock, Ceiling_Violation);
       if Ceiling_Violation then
          raise Program_Error;
@@ -131,7 +139,7 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Mutexes is
 
    procedure Leave (M : access Full_Tasking_Mutex_Type) is
    begin
-      pragma Debug (O ("Leave mutex"));
+      pragma Debug (C, O ("Leave mutex"));
       Unlock (M.The_Lock);
    end Leave;
 
@@ -143,7 +151,7 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Mutexes is
 
    procedure Initialize is
    begin
-      pragma Debug (O ("Initialize package Profiles.Full_Tasking.Mutexes"));
+      pragma Debug (C, O ("Initialize package Profiles.Full_Tasking.Mutexes"));
       PTM.Register_Mutex_Factory (PTM.Mutex_Factory_Access
                                     (The_Mutex_Factory));
    end Initialize;

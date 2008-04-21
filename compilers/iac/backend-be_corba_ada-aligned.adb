@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -632,22 +632,22 @@ package body Backend.BE_CORBA_Ada.Aligned is
       ----------------------
 
       procedure Visit_Union_Type (E : Node_Id) is
-         N              : Node_Id;
-         S              : Node_Id := Switch_Type_Spec (E);
-         Orig_Type      : constant Node_Id :=
+         N                   : Node_Id;
+         S                   : Node_Id := Switch_Type_Spec (E);
+         Orig_Type           : constant Node_Id :=
            FEU.Get_Original_Type_Specifier (S);
-         L              : List_Id;
-         Discr          : List_Id;
-         Components     : List_Id;
-         Choices        : List_Id;
-         Variants       : List_Id;
-         Literal_Parent : Node_Id := No_Node;
-         T              : Node_Id;
-         Member         : Node_Id;
-         M              : Node_Id;
-         Variant        : Node_Id;
-         Label          : Node_Id;
-         Choice         : Node_Id;
+         L                   : List_Id;
+         Discr               : List_Id;
+         Components          : List_Id;
+         Choices             : List_Id;
+         Variants            : List_Id;
+         Literal_Parent      : Node_Id := No_Node;
+         T                   : Node_Id;
+         Switch_Case         : Node_Id;
+         M                   : Node_Id;
+         Variant             : Node_Id;
+         Label               : Node_Id;
+         Choice              : Node_Id;
       begin
          Set_Aligned_Spec;
          T := Make_Type_Designator (S);
@@ -669,14 +669,19 @@ package body Backend.BE_CORBA_Ada.Aligned is
          Components := New_List (K_Component_List);
 
          Variants := New_List (K_Variant_List);
-         Member := First_Entity (Switch_Type_Body (E));
-         while Present (Member) loop
+         Switch_Case := First_Entity (Switch_Type_Body (E));
+
+         while Present (Switch_Case) loop
             Variant := New_Node (K_Variant);
             Choices := New_List (K_Discrete_Choice_List);
             Set_Discrete_Choices (Variant, Choices);
-            Label   := First_Entity (Labels (Member));
 
             --  Make the switchs
+
+            --  Expansion guarantees that the "default:" case is
+            --  isolated in a standalone alternative.
+
+            Label := First_Entity (Labels (Switch_Case));
 
             while Present (Label) loop
                Choice := Make_Literal
@@ -691,15 +696,16 @@ package body Backend.BE_CORBA_Ada.Aligned is
             end loop;
 
             N := Map_Defining_Identifier
-              (Identifier (Declarator (Element (Member))));
+              (Identifier (Declarator (Element (Switch_Case))));
 
             M := Make_Type_Designator
-              (Type_Spec (Element (Member)),
-               Declarator (Element (Member)));
+              (Type_Spec (Element (Switch_Case)),
+               Declarator (Element (Switch_Case)));
 
-            if Is_Unbounded_Type (Type_Spec (Element (Member))) then
-               Get_Discriminants (Element (Member), L);
-               M := Make_Variable_Type (M, Type_Spec (Element (Member)), L);
+            if Is_Unbounded_Type (Type_Spec (Element (Switch_Case))) then
+               Get_Discriminants (Element (Switch_Case), L);
+               M := Make_Variable_Type
+                 (M, Type_Spec (Element (Switch_Case)), L);
                Append_Node_To_List (First_Node (L), Discr);
                L := New_List (K_Component_List);
             end if;
@@ -707,7 +713,7 @@ package body Backend.BE_CORBA_Ada.Aligned is
             Set_Component (Variant, Make_Component_Declaration (N, M));
 
             Append_Node_To_List (Variant, Variants);
-            Member := Next_Entity (Member);
+            Switch_Case := Next_Entity (Switch_Case);
          end loop;
 
          Append_Node_To_List

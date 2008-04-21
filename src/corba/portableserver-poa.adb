@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -79,7 +79,6 @@ package body PortableServer.POA is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
-   pragma Unreferenced (C); --  For conditional pragma Debug
 
    procedure Initialize;
    --  Register root POA and set it to HOLD state
@@ -183,7 +182,7 @@ package body PortableServer.POA is
 
    begin
       if CORBA.DomainManager.Is_Nil (Policy_Manager) then
-         pragma Debug (O ("No policy domain manager registered"));
+         pragma Debug (C, O ("No policy domain manager registered"));
          return;
       end if;
 
@@ -199,7 +198,7 @@ package body PortableServer.POA is
           (CORBA.Impl.Object (P_Servant.all)'Access)).all,
          Note);
 
-      pragma Debug (O ("Servant associated with policy domain manager"));
+      pragma Debug (C, O ("Servant associated with policy domain manager"));
    end Associate_To_Domain_Managers;
 
    ---------------------------------
@@ -279,7 +278,7 @@ package body PortableServer.POA is
       Indices : CORBA.Unsigned_Short;
 
    begin
-      pragma Debug (O ("Creating POA "
+      pragma Debug (C, O ("Creating POA "
                        & CORBA.To_Standard_String (Adapter_Name)));
 
       --  Convert list of policies into policy override Note
@@ -351,7 +350,7 @@ package body PortableServer.POA is
          end if;
       end if;
 
-      pragma Debug (O ("POA created"));
+      pragma Debug (C, O ("POA created"));
       return Internals.To_CORBA_POA (Res);
    end Create_POA;
 
@@ -548,7 +547,7 @@ package body PortableServer.POA is
       Error : Error_Container;
 
    begin
-      pragma Debug (O ("Extract_Reference_Info: enter"));
+      pragma Debug (C, O ("Extract_Reference_Info: enter"));
       PolyORB.References.Binding.Bind
         (CORBA.Object.Internals.To_PolyORB_Ref
          (CORBA.Object.Ref (Reference)),
@@ -560,7 +559,7 @@ package body PortableServer.POA is
          Error      => Error);
 
       if Found (Error) then
-         pragma Debug (O ("Extract_Reference_Info: Bind failed"));
+         pragma Debug (C, O ("Extract_Reference_Info: Bind failed"));
          PolyORB.CORBA_P.Exceptions.Raise_From_Error (Error);
       end if;
 
@@ -585,17 +584,17 @@ package body PortableServer.POA is
 
          if Found (Error) then
             pragma Debug
-              (O ("Extract_Reference_Info: Oid_To_U_Oid failed"));
+              (C, O ("Extract_Reference_Info: Oid_To_U_Oid failed"));
             PolyORB.CORBA_P.Exceptions.Raise_From_Error (Error);
          end if;
 
          if U_Oid.Creator /= To_POA (Self).Absolute_Address.all then
             pragma Debug
-              (O ("Extract_Reference_Info: Wrong adapter"));
+              (C, O ("Extract_Reference_Info: Wrong adapter"));
             pragma Debug
-              (O (PolyORB.Types.To_Standard_String (U_Oid.Creator)));
+              (C, O (PolyORB.Types.To_Standard_String (U_Oid.Creator)));
             pragma Debug
-              (O (To_POA (Self).Absolute_Address.all));
+              (C, O (To_POA (Self).Absolute_Address.all));
 
             Raise_WrongAdapter
               (WrongAdapter_Members'
@@ -606,7 +605,7 @@ package body PortableServer.POA is
       Ref_Servant := Servant (CORBA.Impl.Internals.To_CORBA_Servant
                                 (PolyORB.Servants.Servant_Access
                                   (The_Servant)));
-      pragma Debug (O ("Extract_Reference_Info: leave"));
+      pragma Debug (C, O ("Extract_Reference_Info: leave"));
    end Extract_Reference_Info;
 
    --------------
@@ -950,7 +949,7 @@ package body PortableServer.POA is
       POA_List : PolyORB.POA_Types.POA_Lists.List;
 
    begin
-      pragma Debug (O ("Get_The_Children: enter"));
+      pragma Debug (C, O ("Get_The_Children: enter"));
 
       PolyORB.POA.Get_The_Children (POA, POA_List);
 
@@ -959,7 +958,7 @@ package body PortableServer.POA is
 
       begin
          while not Last (It) loop
-            pragma Debug (O ("++"));
+            pragma Debug (C, O ("++"));
             Append (Result,
                     Convert.To_Forward
                     (Internals.To_CORBA_POA
@@ -971,7 +970,7 @@ package body PortableServer.POA is
 
       Deallocate (POA_List);
 
-      pragma Debug (O ("Get_The_Children: end"));
+      pragma Debug (C, O ("Get_The_Children: end"));
       return Result;
    end Get_The_Children;
 
@@ -1011,12 +1010,12 @@ package body PortableServer.POA is
       Res : PortableServer.POAManager.Local_Ref;
 
    begin
-      pragma Debug (O ("Get_The_POAManager: enter"));
+      pragma Debug (C, O ("Get_The_POAManager: enter"));
 
       Set (Res, Entity_Ptr (PolyORB.POA_Manager.Entity_Of
                             (To_POA (Self).POA_Manager)));
 
-      pragma Debug (O ("Get_The_POAManager: leave"));
+      pragma Debug (C, O ("Get_The_POAManager: leave"));
       return Res;
    end Get_The_POAManager;
 
@@ -1149,7 +1148,7 @@ package body PortableServer.POA is
       Message : Standard.String)
    is
    begin
-      pragma Debug (O ("Raise_From_Error: enter"));
+      pragma Debug (C, O ("Raise_From_Error: enter"));
 
       pragma Assert (Is_Error (Error));
 
@@ -1481,9 +1480,7 @@ package body PortableServer.POA is
       Oid : PolyORB.Objects.Object_Id_Access;
 
       TID : constant Standard.String :=
-        CORBA.To_Standard_String
-        (PortableServer.Internals.Get_Type_Id (P_Servant));
-
+              PortableServer.Internals.Get_Type_Id (P_Servant);
       P_Result : PolyORB.References.Ref;
       C_Result : CORBA.Object.Ref;
 

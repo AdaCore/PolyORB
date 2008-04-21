@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,14 +31,17 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Types; use Types;
-with Lexer; use Lexer;
+with Locations; use Locations;
+with Types;     use Types;
+with Lexer;     use Lexer;
 
 package Parser is
 
-   function Resolve_Base_Type (L : Token_List_Type) return Node_Id;
-   --  Take the sequence of tokens in the parameter list to return the
-   --  node of the IDL predefined type.
+   function Resolve_Base_Type
+     (L   : Token_List_Type;
+      Loc : Location) return Node_Id;
+   --  Take the sequence of tokens in the parameter list to return a new node
+   --  for the IDL predefined type.
 
    procedure Process (IDL_Spec : out Node_Id);
    --  Process the IDL specification

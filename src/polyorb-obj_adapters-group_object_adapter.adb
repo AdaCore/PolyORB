@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -51,7 +51,6 @@ package body PolyORB.Obj_Adapters.Group_Object_Adapter is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
-   pragma Unreferenced (C); --  For conditional pragma Debug
 
    ------------
    -- Create --
@@ -134,7 +133,7 @@ package body PolyORB.Obj_Adapters.Group_Object_Adapter is
       Enter (GOA.Lock);
       GS := Lookup (GOA.Registered_Groups, Image (Oid.all), null);
       if GS /= null then
-         pragma Debug (O ("Group "
+         pragma Debug (C, O ("Group "
                           & Image (Oid.all)
                           & " has been registered before"));
          Throw (Error, NotAGroupObject_E, Null_Members'(Null_Member));
@@ -144,7 +143,7 @@ package body PolyORB.Obj_Adapters.Group_Object_Adapter is
          --  Register the group
 
          pragma Debug
-           (O ("Group servant : " & Image (Oid.all) & " exported"));
+           (C, O ("Group servant : " & Image (Oid.all) & " exported"));
          Insert (GOA.Registered_Groups, Image (Oid.all), Obj);
          PolyORB.Servants.Set_Executor (Obj, GOA.S_Exec'Access);
          --  XXX questionable
@@ -173,14 +172,14 @@ package body PolyORB.Obj_Adapters.Group_Object_Adapter is
       GS := Lookup (GOA.Registered_Groups, Oid_To_Hex_String (Id.all), null);
 
       if GS = null then
-         pragma Debug (O ("Invalid group : " & Oid_To_Hex_String (Id.all)));
+         pragma Debug (C, O ("Invalid group : " & Oid_To_Hex_String (Id.all)));
          Throw (Error,
                 Invalid_Object_Id_E,
                 Null_Members'(Null_Member));
       else
          Destroy_Group_Servant (GS);
          Delete (GOA.Registered_Groups, Oid_To_Hex_String (Id.all));
-         pragma Debug (O ("Group removed with success : "
+         pragma Debug (C, O ("Group removed with success : "
                           & Oid_To_Hex_String (Id.all)));
       end if;
 
@@ -247,7 +246,7 @@ package body PolyORB.Obj_Adapters.Group_Object_Adapter is
       Result : Any.NVList.Ref;
 
    begin
-      pragma Debug (O ("Get empty args list called, return empty list"));
+      pragma Debug (C, O ("Get empty args list called, return empty list"));
       return Result;
    end Get_Empty_Arg_List;
 
@@ -268,7 +267,7 @@ package body PolyORB.Obj_Adapters.Group_Object_Adapter is
       Result : Any.Any;
 
    begin
-      pragma Debug (O ("Get empty result list called, return no type"));
+      pragma Debug (C, O ("Get empty result list called, return no type"));
       return Result;
    end Get_Empty_Result;
 
@@ -286,19 +285,19 @@ package body PolyORB.Obj_Adapters.Group_Object_Adapter is
       use type PolyORB.Servants.Servant_Access;
 
    begin
-      pragma Debug (O ("Find_Servant " & Oid_To_Hex_String (Id.all)));
+      pragma Debug (C, O ("Find_Servant " & Oid_To_Hex_String (Id.all)));
 
       Enter (GOA.Lock);
 
       Servant := Lookup (GOA.Registered_Groups,
                          Oid_To_Hex_String (Id.all), null);
       if Servant = null then
-         pragma Debug (O ("Servant not found"));
+         pragma Debug (C, O ("Servant not found"));
          Throw (Error,
                 Invalid_Object_Id_E,
                 Null_Members'(Null_Member));
       else
-         pragma Debug (O ("Servant found"));
+         pragma Debug (C, O ("Servant found"));
          null;
       end if;
 
@@ -344,7 +343,7 @@ package body PolyORB.Obj_Adapters.Group_Object_Adapter is
       GS : PolyORB.Servants.Servant_Access;
 
    begin
-      pragma Debug (O ("Get group from ref"));
+      pragma Debug (C, O ("Get group from reference"));
 
       for J in Profs'Range loop
          declare
@@ -354,7 +353,7 @@ package body PolyORB.Obj_Adapters.Group_Object_Adapter is
             if OA_Entity /= null
               and then OA_Entity.all in Group_Object_Adapter'Class
             then
-               pragma Debug (O ("Searching group using a group profile"));
+               pragma Debug (C, O ("Searching group using a group profile"));
 
                Find_Servant
                  (Group_Object_Adapter (OA_Entity.all)'Access,
@@ -363,12 +362,12 @@ package body PolyORB.Obj_Adapters.Group_Object_Adapter is
                   Error);
 
                if not Found (Error) then
-                  pragma Debug (O ("Group found"));
+                  pragma Debug (C, O ("Group found"));
                   return GS;
                end if;
 
                if Allow_Group_Creation then
-                  pragma Debug (O ("Create a new group"));
+                  pragma Debug (C, O ("Create a new group"));
                   GS := PolyORB.Servants.Group_Servants.Create_Group_Servant
                     (Get_Object_Key (Profs (J).all));
 
@@ -386,11 +385,11 @@ package body PolyORB.Obj_Adapters.Group_Object_Adapter is
                      if Found (Error)
                        or else Oid.all /= Get_Object_Key (Profs (J).all).all
                      then
-                        pragma Debug (O ("Exporting group error"));
+                        pragma Debug (C, O ("Exporting group error"));
                         return null;
                      end if;
 
-                     pragma Debug (O ("Group Exported"));
+                     pragma Debug (C, O ("Group Exported"));
                      return GS;
                   end;
                end if;
@@ -398,7 +397,7 @@ package body PolyORB.Obj_Adapters.Group_Object_Adapter is
          end;
       end loop;
 
-      pragma Debug (O ("Group not found"));
+      pragma Debug (C, O ("Group not found"));
       return null;
    end Get_Group;
 

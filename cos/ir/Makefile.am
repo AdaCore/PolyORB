@@ -1,11 +1,5 @@
 include $(top_srcdir)/cos/Makefile.common
 
-# Override initial ADAFLAGS value to disable optimization if required
-
-if DISABLE_IR_OPTIMIZATION
-  ADAFLAGS+=-O0
-endif
-
 alidir = $(includedir)/polyorb/corba/cos
 
 IMPL_SPECS_WITH_BODY= \

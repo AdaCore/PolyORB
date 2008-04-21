@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -67,7 +67,6 @@ package body PolyORB.CORBA_P.TSS_State_Machine_Actions is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
-   pragma Unreferenced (C); --  For conditional pragma Debug
 
    function Get_Object_Adapter_Security_Configuration
      (Profile : PolyORB.Binding_Data.Profile_Access)
@@ -424,7 +423,7 @@ package body PolyORB.CORBA_P.TSS_State_Machine_Actions is
             return True;
 
          else
-            pragma Debug (O ("Unprotected POA, secure transport"));
+            pragma Debug (C, O ("Unprotected POA, secure transport"));
 
             return False;
          end if;
@@ -445,7 +444,7 @@ package body PolyORB.CORBA_P.TSS_State_Machine_Actions is
 
          else
             pragma Debug
-              (O ("Unprotected transport, POA require protection"));
+              (C, O ("Unprotected transport, POA require protection"));
 
             return False;
          end if;
@@ -492,7 +491,7 @@ package body PolyORB.CORBA_P.TSS_State_Machine_Actions is
 
                else
                   pragma Debug
-                    (O ("Transport mechanism match,"
+                    (C, O ("Transport mechanism match,"
                      & " POA requies authentication or delegation"));
 
                   return False;
@@ -502,7 +501,7 @@ package body PolyORB.CORBA_P.TSS_State_Machine_Actions is
             Next (Iter);
          end loop;
 
-         pragma Debug (O ("Transport mechanism not matched"));
+         pragma Debug (C, O ("Transport mechanism not matched"));
 
          return False;
       end;

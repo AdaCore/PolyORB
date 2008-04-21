@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -63,7 +63,6 @@ package body PolyORB.Protocols.GIOP.Common is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
-   pragma Unreferenced (C); --  For conditional pragma Debug
 
    ----------------------
    -- Generic_Marshall --
@@ -178,24 +177,24 @@ package body PolyORB.Protocols.GIOP.Common is
    begin
       Get_Note (Request.Notepad, N);
 
-      pragma Debug (O ("Process reply of request id =" & Request_Id'Img));
+      pragma Debug (C, O ("Process reply of request id =" & Request_Id'Img));
 
       if PolyORB.Any.Is_Empty (Request.Exception_Info) then
          Reply_Status := No_Exception;
-         pragma Debug (O ("Sending reply, Status: " & Reply_Status'Img));
+         pragma Debug (C, O ("Sending reply, Status: " & Reply_Status'Img));
 
       else
          if Get_Type (Request.Exception_Info) = TC_ForwardRequest then
             Reply_Status := Location_Forward;
-            pragma Debug (O ("Sending reply, Status: " & Reply_Status'Img));
+            pragma Debug (C, O ("Sending reply, Status: " & Reply_Status'Img));
 
          elsif Get_Type (Request.Exception_Info) = TC_ForwardRequestPerm then
             Reply_Status := Location_Forward_Perm;
-            pragma Debug (O ("Sending reply, Status: " & Reply_Status'Img));
+            pragma Debug (C, O ("Sending reply, Status: " & Reply_Status'Img));
 
          elsif Get_Type (Request.Exception_Info) = TC_NeedsAddressingMode then
             Reply_Status := Needs_Addressing_Mode;
-            pragma Debug (O ("Sending reply, Status: " & Reply_Status'Img));
+            pragma Debug (C, O ("Sending reply, Status: " & Reply_Status'Img));
 
          else
             declare
@@ -214,8 +213,8 @@ package body PolyORB.Protocols.GIOP.Common is
                end if;
 
                pragma Debug
-                 (O ("Sending reply, Status: " & Reply_Status'Img));
-               pragma Debug (O ("Exception ID: " & Exception_Id));
+                 (C, O ("Sending reply, Status: " & Reply_Status'Img));
+               pragma Debug (C, O ("Exception ID: " & Exception_Id));
             end;
          end if;
       end if;
@@ -268,7 +267,7 @@ package body PolyORB.Protocols.GIOP.Common is
 
          when No_Exception =>
             if Static_Buffer = null then
-               pragma Debug (O ("Using Any to send reply data"));
+               pragma Debug (C, O ("Using Any to send reply data"));
 
                if TypeCode.Kind (Get_Type (Request.Result.Argument)) /=
                  Tk_Void then
@@ -325,7 +324,7 @@ package body PolyORB.Protocols.GIOP.Common is
                end if;
             else
                if Length (Static_Buffer.Buffer) /= 0 then
-                  pragma Debug (O ("Using buffer to send reply data"));
+                  pragma Debug (C, O ("Using buffer to send reply data"));
                   --  The arguments were marshalled and stored in the
                   --  request QoS attribute. We insert the data
                   --  contained in the request QoS in the buffer.
@@ -428,7 +427,7 @@ package body PolyORB.Protocols.GIOP.Common is
       Emit_Message (Sess.Implem, Sess, MCtx, Buffer_Out, Error);
 
       Release (Buffer_Out);
-      pragma Debug (O ("Reply sent"));
+      pragma Debug (C, O ("Reply sent"));
    end Common_Send_Reply;
 
    -------------------------
@@ -451,7 +450,7 @@ package body PolyORB.Protocols.GIOP.Common is
                         Reserve (Buffer, GIOP_Header_Size);
 
    begin
-      pragma Debug (O ("Sending Locate Reply, Request Id :"
+      pragma Debug (C, O ("Sending Locate Reply, Request Id :"
                        & MCtx.Request_Id'Img
                        & " , type: "
                        & Loc_Type'Img));
@@ -492,7 +491,7 @@ package body PolyORB.Protocols.GIOP.Common is
         := PolyORB.ORB.ORB_Access (Sess.Server);
 
    begin
-      pragma Debug (O ("Locate Reply received, Request Id :"
+      pragma Debug (C, O ("Locate Reply received, Request Id :"
                        & Locate_Request_Id'Img
                        & " , type: "
                        & Loc_Type'Img));
@@ -717,7 +716,7 @@ package body PolyORB.Protocols.GIOP.Common is
 
       Static_Buffer : QoS_GIOP_Static_Buffer_Parameter_Access;
    begin
-      pragma Debug (O ("Reply received: status = "
+      pragma Debug (C, O ("Reply received: status = "
                        & Reply_Status_Type'Image (Reply_Status)
                        & ", id ="
                        & Types.Unsigned_Long'Image (Request_Id)));
@@ -744,7 +743,7 @@ package body PolyORB.Protocols.GIOP.Common is
             --  Unmarshall reply body.
 
             if Static_Buffer = null then
-               pragma Debug (O ("Use Anys"));
+               pragma Debug (C, O ("Use Anys"));
 
                if TypeCode.Kind
                  (Get_Type (Current_Req.Req.Result.Argument))
@@ -787,9 +786,7 @@ package body PolyORB.Protocols.GIOP.Common is
                   end if;
                end if;
             else
-               pragma Debug (O ("Use static buffer"));
-               Align_Position (Sess.Buffer_In, Arguments_Alignment);
-               Arguments_Alignment := 1;
+               pragma Debug (C, O ("Use static buffer"));
 
                declare
                   Buffer : Buffer_Access;
@@ -797,6 +794,7 @@ package body PolyORB.Protocols.GIOP.Common is
                   Buffer := Sess.Buffer_In;
                   Sess.Buffer_In := Static_Buffer.Buffer;
                   Static_Buffer.Buffer := Buffer;
+                  Release_Contents (Sess.Buffer_In.all);
                end;
             end if;
 
@@ -829,7 +827,7 @@ package body PolyORB.Protocols.GIOP.Common is
                  := Any.ExceptionList.Search_Exception_Id
                  (Current_Req.Req.Exc_List, Types.String (RepositoryId));
             begin
-               pragma Debug (O ("Exception repository ID:"
+               pragma Debug (C, O ("Exception repository ID:"
                                 & To_Standard_String (RepositoryId)));
                if Except_Index = 0 then
                   declare
@@ -901,7 +899,7 @@ package body PolyORB.Protocols.GIOP.Common is
                   end if;
 
                   pragma Debug
-                    (O ("Exception: "
+                    (C, O ("Exception: "
                         & Any.Image (Current_Req.Req.Exception_Info)));
                end if;
 

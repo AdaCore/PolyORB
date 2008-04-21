@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -47,7 +47,7 @@ package CosNotifyChannelAdmin.StructuredProxyPushConsumer.Impl is
 
    procedure Connect_Structured_Push_Supplier
      (Self : access Object;
-      Push_Supplier : in CosNotifyComm.StructuredPushSupplier.Ref);
+      Push_Supplier : CosNotifyComm.StructuredPushSupplier.Ref);
 
    --  IDL operations inherited from CosNotifyChannelAdmin::ProxyConsumer
 
@@ -61,12 +61,12 @@ package CosNotifyChannelAdmin.StructuredProxyPushConsumer.Impl is
 
    function Obtain_Subscription_Types
      (Self : access Object;
-      Mode : in CosNotifyChannelAdmin.ObtainInfoMode)
+      Mode : CosNotifyChannelAdmin.ObtainInfoMode)
      return CosNotification.EventTypeSeq;
 
    procedure Validate_Event_QoS
      (Self          : access Object;
-      Required_QoS  : in CosNotification.QoSProperties;
+      Required_QoS  : CosNotification.QoSProperties;
       Available_QoS : out CosNotification.NamedPropertyRangeSeq);
 
    function Get_QoS
@@ -75,25 +75,25 @@ package CosNotifyChannelAdmin.StructuredProxyPushConsumer.Impl is
 
    procedure Set_QoS
      (Self : access Object;
-      QoS  : in CosNotification.QoSProperties);
+      QoS  : CosNotification.QoSProperties);
 
    procedure Validate_QoS
      (Self          : access Object;
-      Required_QoS  : in CosNotification.QoSProperties;
+      Required_QoS  : CosNotification.QoSProperties;
       Available_QoS : out CosNotification.NamedPropertyRangeSeq);
 
    function Add_Filter
      (Self       : access Object;
-      New_Filter : in CosNotifyFilter.Filter.Ref)
+      New_Filter : CosNotifyFilter.Filter.Ref)
      return CosNotifyFilter.FilterID;
 
    procedure Remove_Filter
      (Self   : access Object;
-      Filter : in CosNotifyFilter.FilterID);
+      Filter : CosNotifyFilter.FilterID);
 
    function Get_Filter
      (Self   : access Object;
-      Filter : in CosNotifyFilter.FilterID)
+      Filter : CosNotifyFilter.FilterID)
      return CosNotifyFilter.Filter.Ref;
 
    function Get_All_Filters
@@ -111,7 +111,7 @@ package CosNotifyChannelAdmin.StructuredProxyPushConsumer.Impl is
 
    procedure Push_Structured_Event
      (Self         : access Object;
-      Notification : in CosNotification.StructuredEvent);
+      Notification : CosNotification.StructuredEvent);
 
    procedure Disconnect_Structured_Push_Consumer (Self : access Object);
 

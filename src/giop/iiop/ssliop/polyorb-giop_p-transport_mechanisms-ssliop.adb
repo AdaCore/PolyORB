@@ -62,10 +62,10 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.SSLIOP is
 
    procedure Initialize;
 
-   function Create
+   procedure Create
      (TC      : Tagged_Components.Tagged_Component_Access;
-      Profile : Binding_Data.Profile_Access)
-     return Transport_Mechanism_List;
+      Profile : Binding_Data.Profile_Access;
+      Mechs   : in out Transport_Mechanism_List);
    --  Create list of Transport Mechanism from list of Tagged Component
 
    Binding_Context : SSL_Context_Type;
@@ -138,14 +138,13 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.SSLIOP is
    -- Create --
    ------------
 
-   function Create
+   procedure Create
      (TC      : Tagged_Components.Tagged_Component_Access;
-      Profile : Binding_Data.Profile_Access)
-     return Transport_Mechanism_List
+      Profile : Binding_Data.Profile_Access;
+      Mechs   : in out Transport_Mechanism_List)
    is
-      Result    : Transport_Mechanism_List;
-      Mechanism : constant Transport_Mechanism_Access
-        := new SSLIOP_Transport_Mechanism;
+      Mechanism : constant Transport_Mechanism_Access :=
+                    new SSLIOP_Transport_Mechanism;
 
    begin
       SSLIOP_Transport_Mechanism (Mechanism.all).Address :=
@@ -156,9 +155,7 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.SSLIOP is
       SSLIOP_Transport_Mechanism (Mechanism.all).Address.Port :=
         TC_SSL_Sec_Trans (TC.all).Port;
 
-      Append (Result, Mechanism);
-
-      return Result;
+      Append (Mechs, Mechanism);
    end Create;
 
    --------------------

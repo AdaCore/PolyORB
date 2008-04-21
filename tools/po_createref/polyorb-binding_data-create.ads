@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---           Copyright (C) 2007, Free Software Foundation, Inc.             --
+--         Copyright (C) 2007-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -37,17 +37,17 @@ with PO_CreateRef_Parse_Cmd; use PO_CreateRef_Parse_Cmd;
 package PolyORB.Binding_Data.Create is
 
    type Create_Procedure is access procedure
-     (Param          : Parameter_Profile;
-      Profile        : out PolyORB.Binding_Data.Profile_Access;
-      Error          : out Boolean);
+     (Param   : Parameter_Profile;
+      Profile : out PolyORB.Binding_Data.Profile_Access;
+      Error   : out Boolean);
 
    procedure Register
-     (Profile : in String;
-      Create  : in Create_Procedure);
+     (Profile : String;
+      Create  : Create_Procedure);
 
    procedure Create_Profile
-     (Param          : Parameter_Profile;
-      Profile        : out PolyORB.Binding_Data.Profile_Access;
-      Error          : out Boolean);
+     (Param   : Parameter_Profile;
+      Profile : out PolyORB.Binding_Data.Profile_Access;
+      Error   : out Boolean);
 
 end PolyORB.Binding_Data.Create;

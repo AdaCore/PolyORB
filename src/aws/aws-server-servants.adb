@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2006-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2006-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -64,7 +64,6 @@ package body AWS.Server.Servants is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
-   pragma Unreferenced (C); --  For conditional pragma Debug
    --  the polyorb logging facility
 
    procedure Request_Handler
@@ -141,7 +140,7 @@ package body AWS.Server.Servants is
 --         The_Reference : PolyORB.References.Ref;
       begin
 
-         pragma Debug (O (PolyORB.References.Image
+         pragma Debug (C, O (PolyORB.References.Image
                           (PolyORB_Request.Target)));
 
          declare
@@ -175,7 +174,7 @@ package body AWS.Server.Servants is
          begin
             Parameters.Set.Reset (P_List);
             pragma Debug
-              (O ("Extract_Data: structures have been initialized"));
+              (C, O ("Extract_Data: structures have been initialized"));
             Create (Args);
             Arguments (PolyORB_Request, Args, Error, Can_Extend => True);
 
@@ -184,12 +183,12 @@ package body AWS.Server.Servants is
             end if;
 
             Number_Of_Args := Get_Count (Args);
-            pragma Debug (O ("Extract_Data: parameters have been fetched"));
-            pragma Debug (O ("Extract_Data: " & Long'Image (Number_Of_Args)
+            pragma Debug (C, O ("Extract_Data: parameters have been fetched"));
+            pragma Debug (C, O ("Extract_Data: " & Long'Image (Number_Of_Args)
                              & " parameters"));
 
             if PolyORB_Servant.all in Web_Servant'Class then
-               pragma Debug (O ("Extract_Data: got a Web request"));
+               pragma Debug (C, O ("Extract_Data: got a Web request"));
 
                if PolyORB_Request.Operation.all = "GET" then
                   HTTP_Method := GET;
@@ -228,7 +227,7 @@ package body AWS.Server.Servants is
                --  then we set the parameter list
 
             elsif PolyORB_Servant.all in SOAP_Servant'Class then
-               pragma Debug (O ("Extract_Data: got a SOAP request named "
+               pragma Debug (C, O ("Extract_Data: got a SOAP request named "
                                 & PolyORB_Request.Operation.all));
 
                AWS.Status.Set.Request
@@ -306,7 +305,7 @@ package body AWS.Server.Servants is
          use AWS.Response;
       begin
          if Mode (AWS_Response) = Message then
-            pragma Debug (O ("Integrate_Data: classical Web response"));
+            pragma Debug (C, O ("Integrate_Data: classical Web response"));
 
             Set_Result (PolyORB_Request,
                         To_Any (To_PolyORB_String
@@ -315,12 +314,12 @@ package body AWS.Server.Servants is
          elsif Mode (AWS_Response) = Header
            or else  Mode (AWS_Response) = No_Data
          then
-            pragma Debug (O ("Integrate_Data: Header or No_Data response"));
+            pragma Debug (C, O ("Integrate_Data: Header or No_Data response"));
             Set_Result (PolyORB_Request,
                         Get_Empty_Any (TC_Null));
 
          elsif Mode (AWS_Response) = File then
-            pragma Debug (O ("Integrate_Data:"
+            pragma Debug (C, O ("Integrate_Data:"
                              & " byte sequence response (file)"));
             declare
                Sq_Type : PolyORB.Any.TypeCode.Local_Ref
@@ -367,7 +366,7 @@ package body AWS.Server.Servants is
             end;
 
          elsif AWS.Response.Mode (AWS_Response) = SOAP_Message then
-            pragma Debug (O ("Integrate_Data: SOAP response"));
+            pragma Debug (C, O ("Integrate_Data: SOAP response"));
             Set_Result (PolyORB_Request,
                         SOAP.Types.To_Any
                         (SOAP.Parameters.Argument
@@ -385,7 +384,7 @@ package body AWS.Server.Servants is
       use PolyORB.Requests;
 
    begin
-      pragma Debug (O ("Request_Handler: received a request"));
+      pragma Debug (C, O ("Request_Handler: received a request"));
       Extract_Context;
 
       if Found (Error) then
@@ -443,10 +442,10 @@ package body AWS.Server.Servants is
             R : constant Request_Access := Execute_Request (Msg).Req;
             Error : Error_Container;
          begin
-            pragma Debug (O ("Execute_Servant: processing a Web request"));
+            pragma Debug (C, O ("Execute_Servant: processing a Web request"));
             Request_Handler (S, R);
 
-            pragma Debug (O ("Execute_Servant:"
+            pragma Debug (C, O ("Execute_Servant:"
                              & " executed, setting out args"));
             Set_Out_Args (R, Error);
 
@@ -454,11 +453,11 @@ package body AWS.Server.Servants is
                raise Program_Error;
             end if;
 
-            pragma Debug (O ("Execute_Servant: leave"));
+            pragma Debug (C, O ("Execute_Servant: leave"));
             return Executed_Request'(Req => R);
          end;
       else
-         pragma Debug (O ("Execute_Servant: this is not a request!"));
+         pragma Debug (C, O ("Execute_Servant: this is not a request!"));
          raise Program_Error;
       end if;
    end Execute_Servant;
@@ -479,10 +478,10 @@ package body AWS.Server.Servants is
             R : constant Request_Access := Execute_Request (Msg).Req;
             Error : Error_Container;
          begin
-            pragma Debug (O ("Execute_Servant: processing a SOAP request"));
+            pragma Debug (C, O ("Execute_Servant: processing a SOAP request"));
             Request_Handler (S, R);
 
-            pragma Debug (O ("Execute_Servant:"
+            pragma Debug (C, O ("Execute_Servant:"
                              & " executed, setting out args"));
             Set_Out_Args (R, Error);
 
@@ -490,11 +489,11 @@ package body AWS.Server.Servants is
                raise Program_Error;
             end if;
 
-            pragma Debug (O ("Execute_Servant: leave"));
+            pragma Debug (C, O ("Execute_Servant: leave"));
             return Executed_Request'(Req => R);
          end;
       else
-         pragma Debug (O ("Execute_Servant: this is not a request!"));
+         pragma Debug (C, O ("Execute_Servant: this is not a request!"));
          raise Program_Error;
       end if;
    end Execute_Servant;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -35,7 +35,6 @@ with GNAT.Table;
 with GNAT.OS_Lib;       use GNAT.OS_Lib;
 
 with Errors;            use Errors;
-with Locations;         use Locations;
 with Namet;             use Namet;
 with Scopes;            use Scopes;
 with Values;            use Values;
@@ -1082,19 +1081,18 @@ package body Parser is
          Save_Lexer (State);
          Scan_Token;
          if Token /= T_Semi_Colon then
+            Error_Loc (1) := Token_Location;
             if Token_Backup = T_Type_Id
               or else Token_Backup = T_Type_Prefix
             then
-               Restore_Lexer (State);
-               Error_Loc (1) := Token_Location;
                DE ("?semicolon expected");
             else
+               DE ("semicolon expected");
                Definition := No_Node;
             end if;
+            Restore_Lexer (State);
          end if;
-      end if;
-
-      if No (Definition) then
+      elsif No (Definition) then
          Restore_Lexer (State);
          Skip_Declaration (T_Semi_Colon);
       end if;
@@ -1957,7 +1955,7 @@ package body Parser is
       end if;
 
       if Token = T_Void then
-         Param_Type_Spec := Resolve_Base_Type ((1 => T_Void));
+         Param_Type_Spec := Resolve_Base_Type ((1 => T_Void), Token_Location);
 
       else
          Restore_Lexer (State);
@@ -2389,6 +2387,7 @@ package body Parser is
       List  : Token_List_Type (1 .. 3) := (others => T_Error);
       Size  : Natural := 0;
       Next  : Token_Type;
+      Loc   : Location;
 
       procedure Push_Base_Type_Token (T : Token_Type);
       --  Push token in the list above. This token is either T_Float,
@@ -2412,7 +2411,7 @@ package body Parser is
 
       function Resolve_Base_Type return Node_Id is
       begin
-         return Resolve_Base_Type (List (1 .. Size));
+         return Resolve_Base_Type (List (1 .. Size), Loc);
       end Resolve_Base_Type;
 
    begin
@@ -2422,6 +2421,7 @@ package body Parser is
       case Next is
          when T_Long =>
             Scan_Token; -- skip long
+            Loc := Token_Location;
             Next := Next_Token;
             if Next = T_Double
               or else Next = T_Long
@@ -2442,10 +2442,12 @@ package body Parser is
            | T_Object
            | T_Value_Base =>
             Scan_Token;
+            Loc := Token_Location;
             return Resolve_Base_Type;
 
          when T_Unsigned =>
             Scan_Token; --  skip unsigned
+            Loc := Token_Location;
             Scan_Token ((T_Short, T_Long));
             Push_Base_Type_Token (Token);
             if Token = T_Error then
@@ -2604,7 +2606,7 @@ package body Parser is
       Prev_Loc := Token_Location;
 
       if Next_Token /= T_Less then
-         return Resolve_Base_Type ((1 => Prev_Tok));
+         return Resolve_Base_Type ((1 => Prev_Tok), Prev_Loc);
       end if;
 
       Scan_Token; --  past '<'
@@ -3503,14 +3505,28 @@ package body Parser is
    -- Resolve_Base_Type --
    -----------------------
 
-   function Resolve_Base_Type (L : Token_List_Type) return Node_Id is
+   function Resolve_Base_Type
+     (L   : Token_List_Type;
+      Loc : Location) return Node_Id
+   is
+      Info   : Nat;
+      Result : Node_Id;
    begin
       Set_Str_To_Name_Buffer (Image (L (L'First)));
       for I in L'First + 1 .. L'Last loop
          Add_Char_To_Name_Buffer (' ');
          Add_Str_To_Name_Buffer  (Image (L (I)));
       end loop;
-      return Node_Id (Get_Name_Table_Info (Name_Find));
+
+      Info := Get_Name_Table_Info (Name_Find);
+
+      if Info = 0 then
+         return No_Node;
+      else
+         Result := New_Node (Kind (Node_Id (Info)), Loc);
+         Set_Image (Base_Type (Result), Image (Base_Type (Info)));
+         return Result;
+      end if;
    end Resolve_Base_Type;
 
 end Parser;

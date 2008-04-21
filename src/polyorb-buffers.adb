@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -50,14 +50,12 @@ package body PolyORB.Buffers is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
-   pragma Unreferenced (C); --  For conditional pragma Debug
 
    package L2 is new PolyORB.Log.Facility_Log ("polyorb.buffers_show");
    procedure O2 (Message : String; Level : Log_Level := Debug)
      renames L2.Output;
    function C2 (Level : Log_Level := Debug) return Boolean
      renames L2.Enabled;
-   pragma Unreferenced (C2); --  For conditional pragma Debug
 
    -----------------------
    -- Local subprograms --
@@ -317,11 +315,11 @@ package body PolyORB.Buffers is
       end if;
 
       pragma Debug
-        (O ("Pad_Align: pos = "
+        (C, O ("Pad_Align: pos = "
             & Stream_Element_Offset'Image (Buffer.CDR_Position)));
       pragma Debug
-        (O ("Aligning on" & Alignment_Type'Image (Alignment)));
-      pragma Debug (O ("Padding by"
+        (C, O ("Aligning on" & Alignment_Type'Image (Alignment)));
+      pragma Debug (C, O ("Padding by"
                        & Stream_Element_Count'Image (Padding)));
 
       --  Try to extend Buffer.Content's last Iovec
@@ -368,19 +366,19 @@ package body PolyORB.Buffers is
       Padding : constant Stream_Element_Count
          := (Alignment - Buffer.CDR_Position) mod Alignment;
    begin
+      pragma Debug
+        (C, O ("Align_Position: pos = "
+            & Stream_Element_Offset'Image (Buffer.CDR_Position)));
+      pragma Debug
+        (C, O ("Aligning on" & Alignment_Type'Image (Alignment)));
+      pragma Debug
+        (C, O ("Padding by" & Stream_Element_Count'Image (Padding)));
+
       if Padding = 0 then
          --  Buffer is already aligned.
 
          return;
       end if;
-
-      pragma Debug
-        (O ("Align_Position: pos = "
-            & Stream_Element_Offset'Image (Buffer.CDR_Position)));
-      pragma Debug
-        (O ("Aligning on" & Alignment_Type'Image (Alignment)));
-      pragma Debug
-        (O ("Padding by" & Stream_Element_Count'Image (Padding)));
 
       pragma Assert
         (Buffer.CDR_Position + Padding
@@ -393,7 +391,7 @@ package body PolyORB.Buffers is
       --  Post-condition: the buffer is aligned as requested.
 
       pragma Debug
-        (O ("Align_Position: now at"
+        (C, O ("Align_Position: now at"
             & Stream_Element_Offset'Image (Buffer.CDR_Position)));
 
    end Align_Position;
@@ -602,14 +600,14 @@ package body PolyORB.Buffers is
         := Buffer.CDR_Position;
 
    begin
-      pragma Debug (O ("Receive_Buffer: Max =" & Max'Img));
+      pragma Debug (C, O ("Receive_Buffer: Max =" & Max'Img));
 
       Allocate_And_Insert_Cooked_Data (Buffer, Max, V.Iov_Base);
       V.Iov_Len := Storage_Offset (Max);
       Lowlevel_Receive (V'Access);
       Received := Stream_Element_Offset (V.Iov_Len);
 
-      pragma Debug (O ("Receive_Buffer: Received =" & Received'Img));
+      pragma Debug (C, O ("Receive_Buffer: Received =" & Received'Img));
       Unuse_Allocation (Buffer, Max - Received);
       Buffer.CDR_Position := Saved_CDR_Position;
    end Receive_Buffer;
@@ -662,7 +660,7 @@ package body PolyORB.Buffers is
          end if;
 
          if Index_Hexa > Hexa'Length then
-            pragma Debug (O2 (Hexa & "   " & ASCII));
+            pragma Debug (C2, O2 (Hexa & "   " & ASCII));
             Index_Hexa := 1;
             Hexa := Nil_Hexa;
             Index_ASCII := 1;
@@ -671,14 +669,14 @@ package body PolyORB.Buffers is
       end loop;
 
       if Index_Hexa /= 1 then
-         pragma Debug (O2 (Hexa & "   " & ASCII));
+         pragma Debug (C2, O2 (Hexa & "   " & ASCII));
          null;
       end if;
    end Show;
 
    procedure Show (Buffer : access Buffer_Type) is
    begin
-      pragma Debug (O2 ("Dumping "
+      pragma Debug (C2, O2 ("Dumping "
                        & Endianness_Type'Image (Buffer.Endianness)
                        & " buffer, CDR position is "
                        & Stream_Element_Offset'Image
@@ -793,7 +791,7 @@ package body PolyORB.Buffers is
                      --  Cannot grow last chunk: leave Data unchanged.
 
                      pragma Debug
-                       (O ("Cannot satisfy growth request of size"
+                       (C, O ("Cannot satisfy growth request of size"
                            & Stream_Element_Offset'Image (Size)));
                      null;
                   end if;
@@ -1021,20 +1019,20 @@ package body PolyORB.Buffers is
 
             Data := System.Null_Address;
             Size := 0;
+
+         else
+            declare
+               Contiguous_Size : constant Stream_Element_Count :=
+                 Stream_Element_Count (Vecs (Last_Index).Iov_Len
+                                         - Offset_Remainder);
+            begin
+               if Size > Contiguous_Size then
+                  Size := Contiguous_Size;
+               end if;
+            end;
+
+            Data := Vecs (Last_Index).Iov_Base + Offset_Remainder;
          end if;
-
-         declare
-            Contiguous_Size : constant Stream_Element_Count :=
-                                Stream_Element_Count (
-                                  Vecs (Last_Index).Iov_Len
-                                  - Offset_Remainder);
-         begin
-            if Size > Contiguous_Size then
-               Size := Contiguous_Size;
-            end if;
-         end;
-
-         Data := Vecs (Last_Index).Iov_Base + Offset_Remainder;
       end Extract_Data;
 
       ----------

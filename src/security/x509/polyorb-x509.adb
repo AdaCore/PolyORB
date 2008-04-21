@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -166,7 +166,7 @@ package body PolyORB.X509 is
       --------------------------------
 
       function ERR_get_error return SSL_Error_Code;
-      function ERR_error_string (Error_Code : in SSL_Error_Code) return String;
+      function ERR_error_string (Error_Code : SSL_Error_Code) return String;
 
       -----------------------
       -- Memory management --
@@ -668,7 +668,7 @@ package body PolyORB.X509 is
    -- Read --
    ----------
 
-   function Read (File_Name : in String) return Certificate is
+   function Read (File_Name : String) return Certificate is
 
       function PEM_read_certificate_file
         (File : Interfaces.C.char_array)
@@ -687,7 +687,7 @@ package body PolyORB.X509 is
       return Aux;
    end Read;
 
---   function Read (File_Name : in String) return Private_Key is
+--   function Read (File_Name : String) return Private_Key is
 --
 --      function PEM_read_PrivateKey_file
 --        (File : Interfaces.C.char_array)
@@ -728,13 +728,13 @@ package body PolyORB.X509 is
       ----------------------
 
       function ERR_error_string
-        (Error_Code : in SSL_Error_Code)
+        (Error_Code : SSL_Error_Code)
          return String
       is
          procedure ERR_error_string_n
-           (Error_Code : in SSL_Error_Code;
-            Buf        : in Interfaces.C.char_array;
-            Len        : in Interfaces.C.size_t);
+           (Error_Code : SSL_Error_Code;
+            Buf        : Interfaces.C.char_array;
+            Len        : Interfaces.C.size_t);
          pragma Import (C, ERR_error_string_n, "ERR_error_string_n");
 
          Buffer : Interfaces.C.char_array (1 .. 1024);

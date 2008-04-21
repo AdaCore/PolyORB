@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -33,6 +33,8 @@
 
 with Ada.Characters.Handling;
 with Ada.Unchecked_Conversion;
+
+with System.Address_To_Access_Conversions;
 
 with GNAT.HTable;
 
@@ -70,9 +72,6 @@ with PolyORB.Tasking.Threads;
 with PolyORB.Termination_Activity;
 with PolyORB.Utils.Strings.Lists;
 
-with Interfaces.C;
-with System.Address_To_Access_Conversions;
-
 package body System.Partition_Interface is
 
    use Ada.Characters.Handling;
@@ -88,7 +87,6 @@ package body System.Partition_Interface is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
-   pragma Unreferenced (C); --  For conditional pragma Debug
 
    --  A few handy aliases
 
@@ -110,9 +108,9 @@ package body System.Partition_Interface is
    TC_Opaque_Cache : PATC.Local_Ref;
    --  Typecode for the opaque octet sequence
 
-   --------------------------------------------------------------
-   -- Special operation names for remote call interface objets --
-   --------------------------------------------------------------
+   ---------------------------------------------------------------
+   -- Special operation names for remote call interface objects --
+   ---------------------------------------------------------------
 
    Op_Resolve : constant String := "resolve";
    --  Corresponds to the CORBA CosNaming::NamingContext::resolve operation.
@@ -308,7 +306,7 @@ package body System.Partition_Interface is
         (Stream.Buf,
          Stream.Arr'Length,
          Stream.Arr (Stream.Arr'First)'Address,
-         PolyORB.Buffers.Endianness_Type'First, --  XXX Irrevelant
+         PolyORB.Buffers.Endianness_Type'First, --  XXX Irrelevant
          0);
    end Any_To_BS;
 
@@ -363,7 +361,7 @@ package body System.Partition_Interface is
    is
       use Ada.Exceptions;
    begin
-      pragma Debug (O ("Check: checking RCI versions consistency"));
+      pragma Debug (C, O ("Check: checking RCI versions consistency"));
 
       if not RCI then
          return;
@@ -751,7 +749,7 @@ package body System.Partition_Interface is
       --  RCI_Info.Is_Local attribute, since RCI_Info will only be available
       --  after the RCI receiving stub is registered (and this is not
       --  guaranteed to happen before a call to Get_Active_Partition_Id is
-      --  isssued).
+      --  issued).
       --  Thus we use the configuration parameters set up by po_gnatdist in the
       --  per-partition specific unit 'PolyORB.Parameters.Partition'.
 
@@ -933,7 +931,7 @@ package body System.Partition_Interface is
       Seq_Any : PolyORB.Any.Any;
       Tc      : constant PATC.Local_Ref := Get_Type (Value);
    begin
-      pragma Debug (O ("Get_Nested_Sequence_Length: enter,"
+      pragma Debug (C, O ("Get_Nested_Sequence_Length: enter,"
                        & " Depth =" & Depth'Img & ","
                        & " Tc = " & Image (Tc)));
 
@@ -943,14 +941,14 @@ package body System.Partition_Interface is
               := PATC.Member_Count (Tc) - 1;
          begin
             pragma Debug
-              (O ("Index of last member is" & Index'Img));
+              (C, O ("Index of last member is" & Index'Img));
 
             Seq_Any := Get_Aggregate_Element (Value,
               PATC.Member_Type (Tc, Index),
               Index);
          end;
       else
-         pragma Debug (O ("Tc is (assumed to be) a Tk_Sequence"));
+         pragma Debug (C, O ("Tc is (assumed to be) a Tk_Sequence"));
          Seq_Any := Value;
       end if;
 
@@ -1001,7 +999,7 @@ package body System.Partition_Interface is
             --  The following is ugly and inefficient (two levels of linear
             --  search) and should probably be optimized in some way.
 
-            pragma Debug (O ("Looking up RAS ref for " &
+            pragma Debug (C, O ("Looking up RAS ref for " &
                                Subprogram_Name & " in " &
                                Pkg_Name));
 
@@ -1129,9 +1127,9 @@ package body System.Partition_Interface is
    exception
       when E : others =>
          pragma Debug
-           (O ("Get_Reference: got exception "
+           (C, O ("Get_Reference: got exception "
                  & Ada.Exceptions.Exception_Information (E)));
-         pragma Debug (O ("returning a nil ref."));
+         pragma Debug (C, O ("returning a nil ref."));
          null;
 
    end Get_Reference;
@@ -1211,7 +1209,7 @@ package body System.Partition_Interface is
       Bind (R          => R,
             Local_ORB  => PolyORB.Setup.The_ORB,
             Servant    => S,
-            Qos        => (others => null),
+            QoS        => (others => null),
             Pro        => Pro,
             Local_Only => False,
             Error      => Error);
@@ -1357,7 +1355,7 @@ package body System.Partition_Interface is
       declare
          Stub : Receiving_Stub renames Value (First (All_Receiving_Stubs)).all;
       begin
-         pragma Debug (O ("Setting up RPC receiver: " & Stub.Name.all));
+         pragma Debug (C, O ("Setting up RPC receiver: " & Stub.Name.all));
          Setup_Object_RPC_Receiver (Stub.Name.all, Stub.Receiver);
       end;
 
@@ -1436,7 +1434,7 @@ package body System.Partition_Interface is
          Ref : PolyORB.References.Ref;
 
       begin
-         pragma Debug (O ("Setting up RPC receiver: " & Stub.Name.all));
+         pragma Debug (C, O ("Setting up RPC receiver: " & Stub.Name.all));
          Setup_Object_RPC_Receiver (Stub.Name.all, Stub.Receiver);
 
          --  Establish a child POA for this stub. For RACWs, this POA will
@@ -1466,7 +1464,7 @@ package body System.Partition_Interface is
 
          PolyORB.Objects.Free (Oid);
 
-         pragma Debug (O ("Registering local RCI: " & Stub.Name.all));
+         pragma Debug (C, O ("Registering local RCI: " & Stub.Name.all));
 
          Known_RCIs.Register
            (To_Lower (Stub.Name.all), RCI_Info'
@@ -1489,7 +1487,7 @@ package body System.Partition_Interface is
       --  the application: terminate PCS and propagate.
 
       when E : others =>
-         pragma Debug (O ("exception raised during RCI registration: "
+         pragma Debug (C, O ("exception raised during RCI registration: "
                           & Ada.Exceptions.Exception_Information (E)));
          PolyORB.Initialization.Shutdown_World (Wait_For_Completion => False);
          raise;
@@ -1510,7 +1508,7 @@ package body System.Partition_Interface is
       The_TM_Oid      := Oid;
       The_TM_Address  := Address;
       The_TM_Shutdown := Shutdown;
-      pragma Debug (O ("Registered the termination manager"));
+      pragma Debug (C, O ("Registered the termination manager"));
    end Register_Termination_Manager;
 
    ----------------------------------
@@ -1526,7 +1524,7 @@ package body System.Partition_Interface is
       Id : constant PolyORB.Services.Naming.Name := To_Name (Name, Kind);
       Reg_Obj : PolyORB.References.Ref;
    begin
-      pragma Debug (O ("About to register " & Name & " on nameserver"));
+      pragma Debug (C, O ("About to register " & Name & " on nameserver"));
 
       begin
          Reg_Obj := PSNNC.Client.Resolve (Naming_Context, Id);
@@ -1679,7 +1677,7 @@ package body System.Partition_Interface is
 
       Retry_Count : Natural := 0;
    begin
-      pragma Debug (O ("Retrieve RCI info: enter, Name = " & Name));
+      pragma Debug (C, O ("Retrieve RCI info: enter, Name = " & Name));
       Info := Known_RCIs.Lookup (LName, Info);
 
       --  If RCI information is not available locally, we request it from the
@@ -1725,7 +1723,7 @@ package body System.Partition_Interface is
 
          Known_RCIs.Register (LName, Info);
       end if;
-      pragma Debug (O ("Retrieve_RCI_Info: leave"));
+      pragma Debug (C, O ("Retrieve_RCI_Info: leave"));
       return Info;
    end Retrieve_RCI_Info;
 
@@ -1968,36 +1966,11 @@ package body System.Partition_Interface is
    -- Detach --
    ------------
 
-   procedure Detach
-   is
-      --  C Imports for Detaching partitions.
-      --  XXX (F831-006) should be replaced with something more portable.
-
-      use Interfaces.C;
-
-      package IC renames Interfaces.C;
-
-      procedure C_Dup2 (Fd1, Fd2 : IC.int);
-      pragma Import (C, C_Dup2, "dup2");
-
-      function C_Open
-        (Path  : IC.char_array;
-         Oflag : IC.int;
-         Mode  : IC.int := 0)
-        return IC.int;
-      pragma Import (C, C_Open, "open");
-
-      procedure C_Setsid;
-      pragma Import (C, C_Setsid, "setsid");
-
-      Dev_Null      : IC.int;
-      Dev_Null_Name : constant IC.char_array := To_C ("/dev/null");
+   procedure Detach is
+      procedure C_Detach;
+      pragma Import (C, C_Detach, "__PolyORB_detach");
    begin
-         Dev_Null := C_Open (Dev_Null_Name, 2);
-         C_Dup2 (Dev_Null, 0);
-         C_Dup2 (Dev_Null, 1);
-         C_Dup2 (Dev_Null, 2);
-         C_Setsid;
+      C_Detach;
    end Detach;
 
    ---------------------

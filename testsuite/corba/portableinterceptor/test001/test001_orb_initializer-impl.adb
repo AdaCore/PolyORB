@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -52,7 +52,7 @@ package body Test001_ORB_Initializer.Impl is
 
    function Is_A
      (Self            : access Object;
-      Logical_Type_Id : in     Standard.String)
+      Logical_Type_Id : Standard.String)
       return Boolean
    is
       pragma Unreferenced (Self);
@@ -75,7 +75,7 @@ package body Test001_ORB_Initializer.Impl is
 
    procedure Post_Init
      (Self : access Object;
-      Info : in     PortableInterceptor.ORBInitInfo.Local_Ref)
+      Info : PortableInterceptor.ORBInitInfo.Local_Ref)
    is
       pragma Unreferenced (Self);
 

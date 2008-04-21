@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -53,12 +53,12 @@ package CosTypedEventChannelAdmin.TypedSupplierAdmin.Impl is
 
    function obtain_typed_push_consumer
      (Self : access Object;
-      supported_interface : in CosTypedEventChannelAdmin.Key)
+      supported_interface : CosTypedEventChannelAdmin.Key)
      return TypedProxyPushConsumer.Ref;
 
    function obtain_typed_pull_consumer
      (Self : access Object;
-      uses_interface : in CosTypedEventChannelAdmin.Key)
+      uses_interface : CosTypedEventChannelAdmin.Key)
       return CosEventChannelAdmin.ProxyPullConsumer.Ref;
 
    --  Iherited IDL operations from
@@ -86,13 +86,13 @@ package CosTypedEventChannelAdmin.TypedSupplierAdmin.Impl is
 
    function Post
       (Self : access Object;
-       uses_interface : in CosTypedEventChannelAdmin.Key)
+       uses_interface : CosTypedEventChannelAdmin.Key)
       return CORBA.Object.Ref;
    --  Get mutually agreed interface from Typed PushConsumers
 
    function Pull
       (Self : access Object;
-       uses_interface : in CosTypedEventChannelAdmin.Key)
+       uses_interface : CosTypedEventChannelAdmin.Key)
       return CORBA.Object.Ref;
    --  Get mutually agreed interface from Typed PullSuppliers
 

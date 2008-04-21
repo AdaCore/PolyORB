@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -55,7 +55,7 @@ begin
 
    loop
       case Getopt ("q e") is
-         when ASCII.Nul => exit;
+         when ASCII.NUL => exit;
 
          when 'q' =>
             --  Quiet.

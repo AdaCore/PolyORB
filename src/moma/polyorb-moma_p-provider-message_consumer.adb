@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -61,7 +61,6 @@ package body PolyORB.MOMA_P.Provider.Message_Consumer is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
-   pragma Unreferenced (C); --  For conditional pragma Debug
 
    --  Actual function implemented by the servant
 
@@ -160,7 +159,7 @@ package body PolyORB.MOMA_P.Provider.Message_Consumer is
       Result : PolyORB.Any.NVList.Ref;
    begin
       PolyORB.Any.NVList.Create (Result);
-      pragma Debug (O ("Parameter profile for " & Method & " requested."));
+      pragma Debug (C, O ("Parameter profile for " & Method & " requested."));
 
       if Method = "Get" then
          Add_Item (Result,
@@ -217,7 +216,7 @@ package body PolyORB.MOMA_P.Provider.Message_Consumer is
 
       QoS_Params  : PolyORB.QoS.QoS_Parameters;
    begin
-      pragma Debug (O ("The server is executing the request:"
+      pragma Debug (C, O ("The server is executing the request:"
                        & PolyORB.Requests.Image (Req.all)));
 
       PolyORB.Any.NVList.Create (Args);
@@ -249,13 +248,13 @@ package body PolyORB.MOMA_P.Provider.Message_Consumer is
                  (PolyORB.Types.String'(PolyORB.Any.From_Any
                                         (Value (It).Argument))),
                  QoS_Params));
-         pragma Debug (O ("Result: " & Image (Req.Result)));
+         pragma Debug (C, O ("Result: " & Image (Req.Result)));
 
       elsif Req.Operation.all = "Register_Handler" then
 
          --  Register Message call_back handler
 
-         pragma Debug (O ("Register_Handler request"));
+         pragma Debug (C, O ("Register_Handler request"));
          Args := Get_Parameter_Profile (Req.Operation.all);
 
          PolyORB.Requests.Arguments (Req, Args, Error);
@@ -281,11 +280,11 @@ package body PolyORB.MOMA_P.Provider.Message_Consumer is
               MOMA.Types.Call_Back_Behavior'Value
                (MOMA.Types.To_Standard_String
                 (MOMA.Types.From_Any (Behavior.Argument))));
-            pragma Debug (O ("Handler registered"));
+            pragma Debug (C, O ("Handler registered"));
          end;
 
       else
-         pragma Debug (O ("Unrecognized request "
+         pragma Debug (C, O ("Unrecognized request "
                           & Req.Operation.all));
          null;
       end if;
@@ -307,7 +306,7 @@ package body PolyORB.MOMA_P.Provider.Message_Consumer is
         MOMA.Destinations.Create_Destination
         (To_PolyORB_String (""), Handler_Ref);
    begin
-      pragma Debug (O ("Registering Message_Handler with " &
+      pragma Debug (C, O ("Registering Message_Handler with " &
                        Call_Back_Behavior'Image (Behavior) & " behavior"));
 
       PolyORB.Any.NVList.Create (Arg_List);
@@ -338,10 +337,10 @@ package body PolyORB.MOMA_P.Provider.Message_Consumer is
          Req       => Request);
 
       PolyORB.Requests.Invoke (Request);
-      pragma Debug (O ("Register_Handler request complete"));
+      pragma Debug (C, O ("Register_Handler request complete"));
 
       PolyORB.Requests.Destroy_Request (Request);
-      pragma Debug (O ("Register_Handler request destroyed"));
+      pragma Debug (C, O ("Register_Handler request destroyed"));
    end Register_Handler;
 
    --------------------

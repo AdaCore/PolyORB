@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -33,7 +33,16 @@
 
 --  Implementation of Threads under the Full_Tasking profile.
 
+--  WAG:601
+--  pragma Warnings (Off) with pattern not supported in that compiler version
+--  so use plain pragma Warnings (Off/On) instead.
+--  pragma Warnings (Off, "* is an internal GNAT unit");
+--  pragma Warnings (Off, "use of this unit is non-portable*");
+
+pragma Warnings (Off);
+--  Depends on System.Tasking.Utilities, an internal GNAT unit
 with System.Tasking.Utilities;
+pragma Warnings (On);
 
 with Ada.Real_Time;
 with Ada.Unchecked_Deallocation;

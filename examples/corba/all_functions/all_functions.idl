@@ -52,4 +52,9 @@ interface all_functions {
 
   short oneway_checker() ;
 
+
+  // Shut down server
+
+  void StopServer ();
+
 };

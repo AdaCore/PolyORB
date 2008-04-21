@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -89,9 +89,9 @@ procedure Dynclient is
       return From_Any (Result.Argument);
    end Get_The_Attribute;
 
-   procedure Set_The_Attribute (To   : in CORBA.Short);
+   procedure Set_The_Attribute (To   : CORBA.Short);
 
-   procedure Set_The_Attribute (To   : in CORBA.Short)
+   procedure Set_The_Attribute (To   : CORBA.Short)
    is
       Operation_Name : constant CORBA.Identifier :=
                          To_CORBA_String ("_set_the_attribute");
@@ -189,9 +189,9 @@ procedure Dynclient is
       CORBA.Request.Invoke (Request, 0);
    end Void_Proc;
 
-   procedure In_Proc (A, B, C : in CORBA.Short);
+   procedure In_Proc (A, B, C : CORBA.Short);
 
-   procedure In_Proc (A, B, C : in CORBA.Short)
+   procedure In_Proc (A, B, C : CORBA.Short)
    is
       Operation_Name : constant CORBA.Identifier :=
                          To_CORBA_String ("in_proc");
@@ -237,10 +237,10 @@ procedure Dynclient is
       CORBA.Request.Invoke (Request, 0);
    end In_Proc;
 
---     procedure Out_Proc (Self : in CORBA.Object.Ref;
+--     procedure Out_Proc (Self : CORBA.Object.Ref;
 --                         A, B, C : out CORBA.Short);
 
---     procedure Out_Proc (Self : in CORBA.Object.Ref;
+--     procedure Out_Proc (Self : CORBA.Object.Ref;
 --                         A, B, C : out CORBA.Short) is
 --        Operation_Name : CORBA.Identifier := To_CORBA_String ("out_proc");
 --        Request : CORBA.Request.Object;
@@ -283,10 +283,10 @@ procedure Dynclient is
 --        CORBA.Request.Invoke (Request, 0);
 --     end Out_Proc;
 
---     procedure Inout_Proc (Self : in CORBA.Object.Ref;
+--     procedure Inout_Proc (Self : CORBA.Object.Ref;
 --                           A, B : in out CORBA.Short);
 
---     procedure Inout_Proc (Self : in CORBA.Object.Ref;
+--     procedure Inout_Proc (Self : CORBA.Object.Ref;
 --                           A, B : in out CORBA.Short) is
 --        Operation_Name : CORBA.Identifier := To_CORBA_String ("inout_proc");
 --        Arg_Name_A : CORBA.Identifier := To_CORBA_String ("a");
@@ -327,10 +327,10 @@ procedure Dynclient is
 --        CORBA.Request.Invoke (Request, 0);
 --     end Inout_Proc;
 
-   procedure In_Out_Proc (A, B : in CORBA.Short;
+   procedure In_Out_Proc (A, B : CORBA.Short;
                           C, D : out CORBA.Short);
 
-   procedure In_Out_Proc (A, B : in CORBA.Short;
+   procedure In_Out_Proc (A, B : CORBA.Short;
                           C, D : out CORBA.Short)
    is
       Operation_Name : constant CORBA.Identifier :=
@@ -391,14 +391,14 @@ procedure Dynclient is
       D := CORBA.From_Any (Argument_D);
    end In_Out_Proc;
 
-   procedure In_Inout_Proc (A : in CORBA.Short;
+   procedure In_Inout_Proc (A : CORBA.Short;
                             B : in out CORBA.Short;
-                            C : in CORBA.Short;
+                            C : CORBA.Short;
                             D : in out CORBA.Short);
 
-   procedure In_Inout_Proc (A : in CORBA.Short;
+   procedure In_Inout_Proc (A : CORBA.Short;
                             B : in out CORBA.Short;
-                            C : in CORBA.Short;
+                            C : CORBA.Short;
                             D : in out CORBA.Short)
    is
       Operation_Name : constant CORBA.Identifier :=
@@ -454,13 +454,13 @@ procedure Dynclient is
       D := CORBA.From_Any (Argument_D);
    end In_Inout_Proc;
 
---     procedure Out_Inout_Proc (Self : in CORBA.Object.Ref;
+--     procedure Out_Inout_Proc (Self : CORBA.Object.Ref;
 --                               A : out CORBA.Short;
 --                               B : in out CORBA.Short;
 --                               C : in out CORBA.Short;
 --                               D : out CORBA.Short);
 
---     procedure Out_Inout_Proc (Self : in CORBA.Object.Ref;
+--     procedure Out_Inout_Proc (Self : CORBA.Object.Ref;
 --                               A : out CORBA.Short;
 --                               B : in out CORBA.Short;
 --                               C : in out CORBA.Short;
@@ -519,11 +519,11 @@ procedure Dynclient is
 --        CORBA.Request.Invoke (Request, 0);
 --     end Out_Inout_Proc;
 
-   procedure In_Out_Inout_Proc (A : in CORBA.Short;
+   procedure In_Out_Inout_Proc (A : CORBA.Short;
                                 B : out CORBA.Short;
                                 C : in out CORBA.Short);
 
-   procedure In_Out_Inout_Proc (A : in CORBA.Short;
+   procedure In_Out_Inout_Proc (A : CORBA.Short;
                                 B : out CORBA.Short;
                                 C : in out CORBA.Short)
    is
@@ -609,10 +609,10 @@ procedure Dynclient is
       return From_Any (Result.Argument);
    end Void_Fun;
 
-   function In_Fun (A, B, C : in CORBA.Short)
+   function In_Fun (A, B, C : CORBA.Short)
                    return CORBA.Short;
 
-   function In_Fun (A, B, C : in CORBA.Short)
+   function In_Fun (A, B, C : CORBA.Short)
                    return CORBA.Short
    is
       Operation_Name : constant CORBA.Identifier := To_CORBA_String ("in_fun");
@@ -768,11 +768,11 @@ procedure Dynclient is
    end Inout_Fun;
 
    procedure In_Out_Fun
-     (A, B : in CORBA.Short;
+     (A, B : CORBA.Short;
       C, D, Returns : out CORBA.Short);
 
    procedure In_Out_Fun
-     (A, B : in CORBA.Short;
+     (A, B : CORBA.Short;
       C, D, Returns : out CORBA.Short)
    is
       Operation_Name : constant CORBA.Identifier :=
@@ -833,16 +833,16 @@ procedure Dynclient is
    end In_Out_Fun;
 
    procedure In_Inout_Fun
-     (A : in CORBA.Short;
+     (A : CORBA.Short;
       B : in out CORBA.Short;
-      C : in CORBA.Short;
+      C : CORBA.Short;
       D : in out CORBA.Short;
       Returns : out CORBA.Short);
 
    procedure In_Inout_Fun
-     (A : in CORBA.Short;
+     (A : CORBA.Short;
       B : in out CORBA.Short;
-      C : in CORBA.Short;
+      C : CORBA.Short;
       D : in out CORBA.Short;
       Returns : out CORBA.Short)
    is
@@ -973,12 +973,12 @@ procedure Dynclient is
       Returns := From_Any (Result.Argument);
    end Out_Inout_Fun;
 
-   procedure In_Out_Inout_Fun (A : in CORBA.Short;
+   procedure In_Out_Inout_Fun (A : CORBA.Short;
                                B : out CORBA.Short;
                                C : in out CORBA.Short;
                                Returns : out CORBA.Short);
 
-   procedure In_Out_Inout_Fun (A : in CORBA.Short;
+   procedure In_Out_Inout_Fun (A : CORBA.Short;
                                B : out CORBA.Short;
                                C : in out CORBA.Short;
                                Returns : out CORBA.Short)
@@ -1064,9 +1064,9 @@ procedure Dynclient is
       CORBA.Request.Invoke (Request, 0);
    end Oneway_Void_Proc;
 
-   procedure Oneway_In_Proc (A, B : in CORBA.Short);
+   procedure Oneway_In_Proc (A, B : CORBA.Short);
 
-   procedure Oneway_In_Proc (A, B : in CORBA.Short)
+   procedure Oneway_In_Proc (A, B : CORBA.Short)
    is
       Operation_Name : constant CORBA.Identifier :=
                          To_CORBA_String ("oneway_in_proc");

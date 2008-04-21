@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -50,7 +50,6 @@ package body PolyORB.Components is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
-   pragma Unreferenced (C); --  For conditional pragma Debug
 
    -------------
    -- Connect --
@@ -81,7 +80,7 @@ package body PolyORB.Components is
       procedure Free is new Ada.Unchecked_Deallocation
         (Component'Class, Component_Access);
    begin
-      pragma Debug (O ("Destroying component "
+      pragma Debug (C, O ("Destroying component "
         & Ada.Tags.External_Tag (Comp'Tag)));
 
       Destroy (Comp.all);
@@ -101,12 +100,12 @@ package body PolyORB.Components is
    begin
       if Port /= null then
          pragma Debug
-           (O ("Sending message " & External_Tag (Msg'Tag)
+           (C, O ("Sending message " & External_Tag (Msg'Tag)
                & " to target " & External_Tag (Port.all'Tag)));
          return Handle_Message (Port, Msg);
       else
          pragma Debug
-           (O ("Message " & External_Tag (Msg'Tag)
+           (C, O ("Message " & External_Tag (Msg'Tag)
                & " ignored (null target)"));
          return Res;
       end if;

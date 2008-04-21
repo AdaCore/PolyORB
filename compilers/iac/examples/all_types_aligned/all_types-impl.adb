@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -49,7 +49,7 @@ package body all_types.Impl is
 
    function echoBoolean
      (Self : access Object;
-      arg : in CORBA.Boolean)
+      arg : CORBA.Boolean)
       return CORBA.Boolean
    is
    begin
@@ -58,7 +58,7 @@ package body all_types.Impl is
 
    function echoShort
      (Self : access Object;
-      arg : in CORBA.Short)
+      arg : CORBA.Short)
       return CORBA.Short
    is
    begin
@@ -67,7 +67,7 @@ package body all_types.Impl is
 
    function echoLong
      (Self : access Object;
-      arg : in CORBA.Long)
+      arg : CORBA.Long)
       return CORBA.Long
    is
    begin
@@ -76,7 +76,7 @@ package body all_types.Impl is
 
    function echoUShort
      (Self : access Object;
-      arg : in CORBA.Unsigned_Short)
+      arg : CORBA.Unsigned_Short)
       return CORBA.Unsigned_Short
    is
    begin
@@ -85,7 +85,7 @@ package body all_types.Impl is
 
    function echoULong
      (Self : access Object;
-      arg : in CORBA.Unsigned_Long)
+      arg : CORBA.Unsigned_Long)
       return CORBA.Unsigned_Long
    is
    begin
@@ -94,7 +94,7 @@ package body all_types.Impl is
 
    function echoULLong
      (Self : access Object;
-      arg : in CORBA.Unsigned_Long_Long)
+      arg : CORBA.Unsigned_Long_Long)
       return CORBA.Unsigned_Long_Long
    is
    begin
@@ -103,7 +103,7 @@ package body all_types.Impl is
 
    function echoFloat
      (Self : access Object;
-      arg : in CORBA.Float)
+      arg : CORBA.Float)
       return CORBA.Float
    is
    begin
@@ -112,7 +112,7 @@ package body all_types.Impl is
 
    function echoDouble
      (Self : access Object;
-      arg : in CORBA.Double)
+      arg : CORBA.Double)
       return CORBA.Double
    is
    begin
@@ -121,7 +121,7 @@ package body all_types.Impl is
 
    function echoChar
      (Self : access Object;
-      arg : in CORBA.Char)
+      arg : CORBA.Char)
       return CORBA.Char
    is
    begin
@@ -130,7 +130,7 @@ package body all_types.Impl is
 
    function echoWChar
      (Self : access Object;
-      arg : in CORBA.Wchar)
+      arg : CORBA.Wchar)
      return CORBA.Wchar
    is
    begin
@@ -139,7 +139,7 @@ package body all_types.Impl is
 
    function echoOctet
      (Self : access Object;
-      arg : in CORBA.Octet)
+      arg : CORBA.Octet)
       return CORBA.Octet
    is
    begin
@@ -148,7 +148,7 @@ package body all_types.Impl is
 
    function echoString
      (Self : access Object;
-      arg : in CORBA.String)
+      arg : CORBA.String)
       return CORBA.String
    is
    begin
@@ -161,7 +161,7 @@ package body all_types.Impl is
 
    function echoWString
      (Self : access Object;
-      arg : in CORBA.Wide_String)
+      arg : CORBA.Wide_String)
       return CORBA.Wide_String
    is
    begin
@@ -174,8 +174,8 @@ package body all_types.Impl is
 
    function echoBooleanAndLong
      (Self : access Object;
-      arg1 : in CORBA.Boolean;
-      arg2 : in CORBA.Long) return CORBA.Long
+      arg1 : CORBA.Boolean;
+      arg2 : CORBA.Long) return CORBA.Long
    is
    begin
       return Arg2;
@@ -183,8 +183,8 @@ package body all_types.Impl is
 
    function echoBooleanAndShort
      (Self : access Object;
-      arg1 : in CORBA.Boolean;
-      arg2 : in CORBA.Short) return CORBA.Short
+      arg1 : CORBA.Boolean;
+      arg2 : CORBA.Short) return CORBA.Short
    is
    begin
       return Arg2;
@@ -192,7 +192,7 @@ package body all_types.Impl is
 
    function echoUnion
      (Self : access Object;
-      arg : in Simple_Union) return Simple_Union
+      arg : Simple_Union) return Simple_Union
    is
    begin
       return Arg;
@@ -200,8 +200,8 @@ package body all_types.Impl is
 
    function echoStringAndUnion
      (Self : access Object;
-      arg1 : in Simple_Union;
-      arg2 : in CORBA.string) return CORBA.String
+      arg1 : Simple_Union;
+      arg2 : CORBA.string) return CORBA.String
    is
    begin
       return Arg2;
@@ -209,8 +209,8 @@ package body all_types.Impl is
 
    function echoUnionAndString
      (Self : access Object;
-      arg1 : in Simple_Union;
-      arg2 : in CORBA.string) return Simple_Union
+      arg1 : Simple_Union;
+      arg2 : CORBA.string) return Simple_Union
    is
    begin
       return Arg1;
@@ -218,7 +218,7 @@ package body all_types.Impl is
 
    function echoStruct
      (Self : access Object;
-      arg : in Simple_Struct) return Simple_Struct
+      arg : Simple_Struct) return Simple_Struct
    is
    begin
       return Arg;
@@ -226,7 +226,7 @@ package body all_types.Impl is
 
    function echoUsequence
      (Self : access Object;
-      arg  : in U_sequence) return U_Sequence
+      arg  : U_sequence) return U_Sequence
    is
    begin
       return Arg;
@@ -234,7 +234,7 @@ package body all_types.Impl is
 
    function echoBsequence
      (Self : access Object;
-      arg  : in B_sequence) return B_Sequence
+      arg  : B_sequence) return B_Sequence
    is
    begin
       return Arg;

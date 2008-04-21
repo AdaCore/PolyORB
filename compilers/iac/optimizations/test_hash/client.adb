@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -61,8 +61,8 @@ procedure Client is
    use GNAT.Calendar.Time_IO;
 
    type Echo_Long_Access is access function
-     (Self : in test_hash.Ref;
-      data : in CORBA.Long)
+     (Self : test_hash.Ref;
+      data : CORBA.Long)
      return CORBA.Long;
    N_Echo_Long : constant PolyORB.Types.Unsigned_Long := 100;
 

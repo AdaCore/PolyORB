@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Generic chained list.
+--  Generic chained list
 
 generic
    type T is private;
@@ -54,27 +54,23 @@ package PolyORB.Utils.Chained_Lists is
    procedure Extract_First
      (L      : in out List;
       Result : out T);
-   --  Return the first element of L into Result,
-   --  and remove it from the list.
+   --  Return the first element of L into Result, and remove if from L
 
    function First (L : List) return Iterator;
    --  Return an iterator on L positioned at L's first element
 
    function Value (I : Iterator) return Element_Access;
-   --  Return an access to the value of the list element currently
-   --  designated by I.
+   --  Return an access to the value of the element designated by I
 
    procedure Next (I : in out Iterator);
    --  Move I to the next element in the list
 
    function Last (L : List) return Iterator;
-   --  Return an iterator position at the end of L (i.e. immediately
-   --  after the last element in L; this iterator has no associated
-   --  value).
+   --  Return an iterator position at the end of L (i.e. immediately after the
+   --  last element in L; this iterator has no associated value).
 
    function Last (I : Iterator) return Boolean;
-   --  True when I is positioned at the end of L (i.e. after the
-   --  last element).
+   --  True when I is positioned at the end of L (i.e. after the last element)
 
    procedure Prepend (L : in out List; I : T);
    --  Prepend value I at the beginning of L
@@ -84,27 +80,22 @@ package PolyORB.Utils.Chained_Lists is
 
    procedure Insert (L : in out List; I : T; Before : in out Iterator);
    --  Insert I into L before the designated position.
-   --  If Before is not either First (L) or Last (L), then the
-   --  list must be doubly linked for the operation to succeed
-   --  (Program_Error will be raised if it is not).
+   --  If Before is not either First (L) or Last (L), then the list must be
+   --  be doubly linked (else Program_Error is raised).
 
    procedure Remove (L : in out List; I : in out Iterator);
-   --  Remove the item designated by I from L, and advance I to the next
-   --  item in L. This procedure can be used only if Doubly_Chained is
-   --  True (Program_Error will be raised if not).
+   --  Remove the item designated by I from L, and advance I to the next item
+   --  in L. This procedure can be used only if Doubly_Chained is True (else
+   --  Program_Error is raised).
 
    generic
       with function Predicate (X : T) return Boolean;
-   procedure Remove_G
-     (L : in out List;
-      All_Occurrences : Boolean := True);
-   --  Remove from L items for which Predicate is True. If All_Occurrences
-   --  is True, remove all such items, else only the first such item (if any).
+   procedure Remove_G (L : in out List; All_Occurrences : Boolean := True);
+   --  Remove from L items for which Predicate is True. If All_Occurrences is
+   --  True, remove all such items, else only the first such item (if any).
 
    procedure Remove
-     (L : in out List;
-      I : T;
-      All_Occurrences : Boolean := True);
+     (L : in out List; I : T; All_Occurrences : Boolean := True);
    --  Remove first/all occurences of value I from list L
 
    function Is_Empty (L : List) return Boolean;
@@ -113,20 +104,14 @@ package PolyORB.Utils.Chained_Lists is
    Empty : constant List;
    --  A list that contains no elements
 
-   --  NOTE: No guarantee is made that a list for which Is_Empty is
-   --  true is equal to Empty.
+   --  NOTE: No guarantee is made that a list for which Is_Empty is true is
+   --  equal to Empty.
 
    function "+" (I : T) return List;
    --  Make a list with I as its only element
 
-   function "&" (I : T; L : List) return List;
-   --  Prepend I to L
-
    function "&" (L : List; I : T) return List;
-   --  Append I to L
-
-   function "&" (L1, L2 : List) return List;
-   --  Concatenate L1 and L2
+   --  Append I to L and return L
 
    function Duplicate (L : List) return List;
    --  Return a copy of list L
@@ -148,8 +133,8 @@ private
    type Node;
    type Node_Access is access all Node;
 
-   --  For simply chained lists, we only have one Next pointer in each
-   --  node; for doubly chained lists, we have Next and Prev.
+   --  For simply chained lists, we only have one Next pointer in each node;
+   --  for doubly chained lists, we have Next and Prev.
 
    type Node_Chain is array (False .. Doubly_Chained) of Node_Access;
    pragma Suppress (Index_Check, Node_Chain);
@@ -166,8 +151,8 @@ private
 
       Chain : Node_Chain;
       --  Next and optional Prev nodes.
-      --  Note that all accesses to Chain (Prev_Node) must be protected
-      --  by an 'if Doubly_Chained' conditition.
+      --  Note that all accesses to Chain (Prev_Node) must be protected by an
+      --  'if Doubly_Chained' conditition.
    end record;
 
    type Iterator is record

@@ -70,10 +70,10 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.TLS is
 
    procedure Initialize;
 
-   function Create
+   procedure Create
      (TC      : Tagged_Components.Tagged_Component_Access;
-      Profile : Binding_Data.Profile_Access)
-     return Transport_Mechanism_List;
+      Profile : Binding_Data.Profile_Access;
+      Mechs   : in out Transport_Mechanism_List);
    --  Create list of Transport Mechanism from list of Tagged Component
 
    function Create_QoS
@@ -176,25 +176,20 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.TLS is
    -- Create --
    ------------
 
-   function Create
+   procedure Create
      (TC      : Tagged_Components.Tagged_Component_Access;
-      Profile : Binding_Data.Profile_Access)
-     return Transport_Mechanism_List
+      Profile : Binding_Data.Profile_Access;
+      Mechs   : in out Transport_Mechanism_List)
    is
       pragma Unreferenced (Profile);
-
-      Result    : Transport_Mechanism_List;
-      Mechanism : constant Transport_Mechanism_Access
-        := new TLS_Transport_Mechanism;
-
+      Mechanism : constant Transport_Mechanism_Access :=
+                    new TLS_Transport_Mechanism;
    begin
       --  XXX Setup Target_Supports and Target_Requires
       TLS_Transport_Mechanism (Mechanism.all).Addresses :=
         Duplicate (TC_TLS_Sec_Trans (TC.all).Addresses);
 
-      Append (Result, Mechanism);
-
-      return Result;
+      Append (Mechs, Mechanism);
    end Create;
 
 --   --------------------
@@ -239,8 +234,8 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.TLS is
 --      declare
 --
 --         function Is_None
---           (Description : in String;
---            Parameter   : in String)
+--           (Description : String;
+--            Parameter   : String)
 --            return Boolean;
 --         --  Check is a Parameter have None value or not present
 --         --  in Description
@@ -250,8 +245,8 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.TLS is
 --         -------------
 --
 --         function Is_None
---           (Description : in String;
---            Parameter   : in String)
+--           (Description : String;
+--            Parameter   : String)
 --            return Boolean
 --         is
 --            None : constant String := "None";

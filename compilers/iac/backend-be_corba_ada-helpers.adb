@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -504,7 +504,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
          --  than the first one.
 
          Map_Inherited_Entities_Specs
-           (Current_interface    => E,
+           (Current_Interface    => E,
             Visit_Operation_Subp => null,
             Helper               => True);
 
@@ -1217,16 +1217,15 @@ package body Backend.BE_CORBA_Ada.Helpers is
 
          function Union_Type_Body (E : Node_Id) return Node_Id is
             Alternative_Name    : Name_Id;
-            Switch_Alternative  : Node_Id;
+            Switch_Case         : Node_Id;
             Switch_Alternatives : List_Id;
-            Variant             : Node_Id;
-            Choice              : Node_Id;
+            Switch_Alternative  : Node_Id;
+            Switch_Statements   : List_Id;
+            Default_Met         : Boolean := False;
             Choices             : List_Id;
-            Label               : Node_Id;
             From_Any_Helper     : Node_Id;
             TC_Helper           : Node_Id;
             Switch_Type         : Node_Id;
-            Block_List          : List_Id;
             Literal_Parent      : Node_Id := No_Node;
             Orig_Type           : constant Node_Id :=
               FEU.Get_Original_Type_Specifier (Switch_Type_Spec (E));
@@ -1309,23 +1308,17 @@ package body Backend.BE_CORBA_Ada.Helpers is
 
             --  Statements
 
-            Switch_Alternatives := New_List (K_Variant_List);
-            Switch_Alternative := First_Entity (Switch_Type_Body (E));
+            Switch_Alternatives := New_List (K_List_Id);
+            Switch_Case := First_Entity (Switch_Type_Body (E));
 
-            while Present (Switch_Alternative) loop
-               Variant := New_Node (K_Variant);
-               Choices := New_List (K_Discrete_Choice_List);
-               Set_Discrete_Choices (Variant, Choices);
-               Label   := First_Entity (Labels (Switch_Alternative));
+            while Present (Switch_Case) loop
+               Switch_Statements := New_List (K_Statement_List);
 
-               while Present (Label) loop
-                  Choice := Make_Literal
-                    (Value  => FEN.Value (Label),
-                     Parent => Literal_Parent);
-                  Append_Node_To_List (Choice, Choices);
-
-                  Label := Next_Entity (Label);
-               end loop;
+               Map_Choice_List
+                 (Labels (Switch_Case),
+                  Literal_Parent,
+                  Choices,
+                  Default_Met);
 
                --  Getting the field full name
 
@@ -1334,7 +1327,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
                   (Identifier
                    (Declarator
                     (Element
-                     (Switch_Alternative)))));
+                     (Switch_Case)))));
                Get_Name_String (PN (P_Result));
                Add_Char_To_Name_Buffer ('.');
                Get_Name_String_And_Append (Alternative_Name);
@@ -1347,26 +1340,26 @@ package body Backend.BE_CORBA_Ada.Helpers is
                TC_Helper := Get_TC_Node
                  (Type_Spec
                   (Element
-                   (Switch_Alternative)));
+                   (Switch_Case)));
                From_Any_Helper := Get_From_Any_Node
                  (Type_Spec
                   (Element
-                   (Switch_Alternative)));
+                   (Switch_Case)));
 
-               if Is_Base_Type (Type_Spec (Element (Switch_Alternative))) then
+               if Is_Base_Type (Type_Spec (Element (Switch_Case))) then
                   Switch_Type := RE
                     (Convert
                      (FEN.Kind
                       (Type_Spec
                        (Element
-                        (Switch_Alternative)))));
-               elsif FEN.Kind (Type_Spec (Element (Switch_Alternative))) =
+                        (Switch_Case)))));
+               elsif FEN.Kind (Type_Spec (Element (Switch_Case))) =
                  K_Scoped_Name
                then
                   Switch_Type := Map_Expanded_Name
                     (Type_Spec
                      (Element
-                      (Switch_Alternative)));
+                      (Switch_Case)));
                else
                   declare
                      Msg : constant String := "Could not fetch From_Any "
@@ -1374,13 +1367,11 @@ package body Backend.BE_CORBA_Ada.Helpers is
                        & FEN.Node_Kind'Image (Kind
                                               (Type_Spec
                                                (Element
-                                                (Switch_Alternative))));
+                                                (Switch_Case))));
                   begin
                      raise Program_Error with Msg;
                   end;
                end if;
-
-               Block_List := New_List (K_List_Id);
 
                --  Assigning the value to the "Index" variable
 
@@ -1395,7 +1386,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
                N := Make_Assignment_Statement
                  (Make_Defining_Identifier (VN (V_Index)),
                   N);
-               Append_Node_To_List (N, Block_List);
+               Append_Node_To_List (N, Switch_Statements);
 
                --  Converting the Any value
 
@@ -1406,19 +1397,26 @@ package body Backend.BE_CORBA_Ada.Helpers is
                N := Make_Assignment_Statement
                  (Make_Defining_Identifier (Alternative_Name),
                   N);
-               Append_Node_To_List (N, Block_List);
 
-               N := Make_Block_Statement
-                 (Declarative_Part => No_List,
-                  Statements       => Block_List);
+               Append_Node_To_List (N, Switch_Statements);
 
-               Set_Component (Variant, N);
-               Append_Node_To_List (Variant, Switch_Alternatives);
+               Switch_Alternative :=  Make_Case_Statement_Alternative
+                 (Choices, Switch_Statements);
+               Append_Node_To_List (Switch_Alternative, Switch_Alternatives);
 
-               Switch_Alternative := Next_Entity (Switch_Alternative);
+               Switch_Case := Next_Entity (Switch_Case);
             end loop;
 
-            N := Make_Variant_Part
+            --  Add an empty when others clause to keep the compiler
+            --  happy.
+
+            if not Default_Met then
+               Append_Node_To_List
+                 (Make_Case_Statement_Alternative (No_List, No_List),
+                  Switch_Alternatives);
+            end if;
+
+            N := Make_Case_Statement
             (Make_Defining_Identifier (VN (V_Label)),
              Switch_Alternatives);
             Append_Node_To_List (N, S);
@@ -2113,12 +2111,12 @@ package body Backend.BE_CORBA_Ada.Helpers is
          function Union_Type_Body (E : Node_Id) return Node_Id is
             Switch_Item         : Node_Id;
             Alternative_Name    : Name_Id;
-            Switch_Alternative  : Node_Id;
+            Switch_Case         : Node_Id;
             Switch_Alternatives : List_Id;
-            Variant             : Node_Id;
-            Choice              : Node_Id;
+            Switch_Alternative  : Node_Id;
+            Switch_Statements   : List_Id;
+            Default_Met         : Boolean := False;
             Choices             : List_Id;
-            Label               : Node_Id;
             To_Any_Helper       : Node_Id;
             Literal_Parent      : Node_Id := No_Node;
             Orig_Type           : constant Node_Id :=
@@ -2170,22 +2168,17 @@ package body Backend.BE_CORBA_Ada.Helpers is
                 N));
             Append_Node_To_List (N, S);
 
-            Switch_Alternatives := New_List (K_Variant_List);
-            Switch_Alternative := First_Entity (Switch_Type_Body (E));
+            Switch_Alternatives := New_List (K_List_Id);
+            Switch_Case := First_Entity (Switch_Type_Body (E));
 
-            while Present (Switch_Alternative) loop
-               Variant := New_Node (K_Variant);
-               Choices := New_List (K_Discrete_Choice_List);
-               Set_Discrete_Choices (Variant, Choices);
-               Label   := First_Entity (Labels (Switch_Alternative));
+            while Present (Switch_Case) loop
+               Switch_Statements := New_List (K_Statement_List);
 
-               while Present (Label) loop
-                  Choice := Make_Literal
-                    (Value  => FEN.Value (Label),
-                     Parent => Literal_Parent);
-                  Append_Node_To_List (Choice, Choices);
-                  Label := Next_Entity (Label);
-               end loop;
+               Map_Choice_List
+                 (Labels (Switch_Case),
+                  Literal_Parent,
+                  Choices,
+                  Default_Met);
 
                --  Getting the field full name
 
@@ -2194,7 +2187,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
                   (Identifier
                    (Declarator
                     (Element
-                     (Switch_Alternative)))));
+                     (Switch_Case)))));
                Get_Name_String (PN (P_Item));
                Add_Char_To_Name_Buffer ('.');
                Get_Name_String_And_Append (Alternative_Name);
@@ -2206,7 +2199,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
                To_Any_Helper := Get_To_Any_Node
                  (Type_Spec
                   (Element
-                   (Switch_Alternative)));
+                   (Switch_Case)));
 
                N := Make_Subprogram_Call
                  (To_Any_Helper,
@@ -2219,13 +2212,25 @@ package body Backend.BE_CORBA_Ada.Helpers is
                   Make_List_Id
                   (Make_Defining_Identifier (PN (P_Result)),
                    N));
-               Set_Component (Variant, N);
-               Append_Node_To_List (Variant, Switch_Alternatives);
+               Append_Node_To_List (N, Switch_Statements);
 
-               Switch_Alternative := Next_Entity (Switch_Alternative);
+               Switch_Alternative :=  Make_Case_Statement_Alternative
+                 (Choices, Switch_Statements);
+               Append_Node_To_List (Switch_Alternative, Switch_Alternatives);
+
+               Switch_Case := Next_Entity (Switch_Case);
             end loop;
 
-            N := Make_Variant_Part
+            --  Add an empty when others clause to keep the compiler
+            --  happy.
+
+            if not Default_Met then
+               Append_Node_To_List
+                 (Make_Case_Statement_Alternative (No_List, No_List),
+                  Switch_Alternatives);
+            end if;
+
+            N := Make_Case_Statement
             (Switch_Item, Switch_Alternatives);
             Append_Node_To_List (N, S);
 
@@ -2709,7 +2714,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
          --  the first one.
 
          Map_Inherited_Entities_Bodies
-           (Current_interface    => E,
+           (Current_Interface    => E,
             Visit_Operation_Subp => null,
             Helper               => True);
 

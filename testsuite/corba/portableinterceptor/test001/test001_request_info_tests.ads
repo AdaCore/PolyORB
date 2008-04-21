@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2004-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -38,60 +38,60 @@ with Test001_Globals;
 package Test001_Request_Info_Tests is
 
    procedure Test_Request_Id
-     (Point    : in Test001_Globals.Interception_Point;
-      Info     : in PortableInterceptor.RequestInfo.Local_Ref'Class;
-      Suppress : in Boolean := False);
+     (Point    : Test001_Globals.Interception_Point;
+      Info     : PortableInterceptor.RequestInfo.Local_Ref'Class;
+      Suppress : Boolean := False);
 
    procedure Test_Operation
-     (Point : in Test001_Globals.Interception_Point;
-      Info  : in PortableInterceptor.RequestInfo.Local_Ref'Class);
+     (Point : Test001_Globals.Interception_Point;
+      Info  : PortableInterceptor.RequestInfo.Local_Ref'Class);
 
    procedure Test_Arguments
-     (Point : in Test001_Globals.Interception_Point;
-      Info  : in PortableInterceptor.RequestInfo.Local_Ref'Class);
+     (Point : Test001_Globals.Interception_Point;
+      Info  : PortableInterceptor.RequestInfo.Local_Ref'Class);
 
    procedure Test_Exceptions
-     (Point : in Test001_Globals.Interception_Point;
-      Info  : in PortableInterceptor.RequestInfo.Local_Ref'Class);
+     (Point : Test001_Globals.Interception_Point;
+      Info  : PortableInterceptor.RequestInfo.Local_Ref'Class);
 
    procedure Test_Contexts
-     (Point : in Test001_Globals.Interception_Point;
-      Info  : in PortableInterceptor.RequestInfo.Local_Ref'Class);
+     (Point : Test001_Globals.Interception_Point;
+      Info  : PortableInterceptor.RequestInfo.Local_Ref'Class);
 
    procedure Test_Operation_Context
-     (Point : in Test001_Globals.Interception_Point;
-      Info  : in PortableInterceptor.RequestInfo.Local_Ref'Class);
+     (Point : Test001_Globals.Interception_Point;
+      Info  : PortableInterceptor.RequestInfo.Local_Ref'Class);
 
    procedure Test_Result
-     (Point : in Test001_Globals.Interception_Point;
-      Info  : in PortableInterceptor.RequestInfo.Local_Ref'Class);
+     (Point : Test001_Globals.Interception_Point;
+      Info  : PortableInterceptor.RequestInfo.Local_Ref'Class);
 
    procedure Test_Response_Expected
-     (Point : in Test001_Globals.Interception_Point;
-      Info  : in PortableInterceptor.RequestInfo.Local_Ref'Class);
+     (Point : Test001_Globals.Interception_Point;
+      Info  : PortableInterceptor.RequestInfo.Local_Ref'Class);
 
    procedure Test_Sync_Scope
-     (Point : in Test001_Globals.Interception_Point;
-      Info  : in PortableInterceptor.RequestInfo.Local_Ref'Class);
+     (Point : Test001_Globals.Interception_Point;
+      Info  : PortableInterceptor.RequestInfo.Local_Ref'Class);
 
    procedure Test_Reply_Status
-     (Point : in Test001_Globals.Interception_Point;
-      Info  : in PortableInterceptor.RequestInfo.Local_Ref'Class);
+     (Point : Test001_Globals.Interception_Point;
+      Info  : PortableInterceptor.RequestInfo.Local_Ref'Class);
 
    procedure Test_Forward_Reference
-     (Point : in Test001_Globals.Interception_Point;
-      Info  : in PortableInterceptor.RequestInfo.Local_Ref'Class);
+     (Point : Test001_Globals.Interception_Point;
+      Info  : PortableInterceptor.RequestInfo.Local_Ref'Class);
 
    procedure Test_Get_Slot
-     (Point : in Test001_Globals.Interception_Point;
-      Info  : in PortableInterceptor.RequestInfo.Local_Ref'Class);
+     (Point : Test001_Globals.Interception_Point;
+      Info  : PortableInterceptor.RequestInfo.Local_Ref'Class);
 
    procedure Test_Get_Request_Service_Context
-     (Point : in Test001_Globals.Interception_Point;
-      Info  : in PortableInterceptor.RequestInfo.Local_Ref'Class);
+     (Point : Test001_Globals.Interception_Point;
+      Info  : PortableInterceptor.RequestInfo.Local_Ref'Class);
 
    procedure Test_Get_Reply_Service_Context
-     (Point : in Test001_Globals.Interception_Point;
-      Info  : in PortableInterceptor.RequestInfo.Local_Ref'Class);
+     (Point : Test001_Globals.Interception_Point;
+      Info  : PortableInterceptor.RequestInfo.Local_Ref'Class);
 
 end Test001_Request_Info_Tests;

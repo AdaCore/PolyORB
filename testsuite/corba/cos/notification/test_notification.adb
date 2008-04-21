@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -247,14 +247,14 @@ procedure Test_Notification is
    --------------------
 
    procedure Connect_Entity
-     (Entity  : in CORBA.Object.Ref;
-      Kind    : in Entity_Kind;
-      Channel : in CosNotifyChannelAdmin.EventChannel.Ref);
+     (Entity  : CORBA.Object.Ref;
+      Kind    : Entity_Kind;
+      Channel : CosNotifyChannelAdmin.EventChannel.Ref);
 
    procedure Connect_Entity
-     (Entity  : in CORBA.Object.Ref;
-      Kind    : in Entity_Kind;
-      Channel : in CosNotifyChannelAdmin.EventChannel.Ref)
+     (Entity  : CORBA.Object.Ref;
+      Kind    : Entity_Kind;
+      Channel : CosNotifyChannelAdmin.EventChannel.Ref)
    is
       O : CORBA.Impl.Object_Ptr;
    begin
@@ -1215,11 +1215,11 @@ procedure Test_Notification is
 
    procedure Create_Entity
      (Entity : out CORBA.Object.Ref;
-      Kind   : in  Entity_Kind);
+      Kind   : Entity_Kind);
 
    procedure Create_Entity
      (Entity : out CORBA.Object.Ref;
-      Kind   : in  Entity_Kind) is
+      Kind   : Entity_Kind) is
    begin
       case Kind is
          when K_Channel =>
@@ -1365,12 +1365,12 @@ procedure Test_Notification is
    -----------------
 
    procedure Find_Entity
-     (Name   : in  String_Access;
+     (Name   : String_Access;
       Entity : out CORBA.Object.Ref;
       Kind   : out Entity_Kind);
 
    procedure Find_Entity
-     (Name   : in  String_Access;
+     (Name   : String_Access;
       Entity : out CORBA.Object.Ref;
       Kind   : out Entity_Kind)
    is

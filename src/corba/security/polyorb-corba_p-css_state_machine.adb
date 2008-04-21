@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -68,8 +68,8 @@ package body PolyORB.CORBA_P.CSS_State_Machine is
    procedure Initialize;
 
    procedure Security_Client_Invoke
-     (Request : in PolyORB.Requests.Request_Access;
-      Flags   : in PolyORB.Requests.Flags);
+     (Request : PolyORB.Requests.Request_Access;
+      Flags   : PolyORB.Requests.Flags);
 
    ----------------
    -- Initialize --
@@ -86,8 +86,8 @@ package body PolyORB.CORBA_P.CSS_State_Machine is
    ----------------------------
 
    procedure Security_Client_Invoke
-     (Request : in PolyORB.Requests.Request_Access;
-      Flags   : in PolyORB.Requests.Flags)
+     (Request : PolyORB.Requests.Request_Access;
+      Flags   : PolyORB.Requests.Flags)
    is
       use PolyORB.CORBA_P.Security_Policy;
       use PolyORB.QoS.Clients_Security.Client_Mechanism_Lists;

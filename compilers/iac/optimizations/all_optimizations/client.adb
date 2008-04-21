@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -61,8 +61,8 @@ procedure Client is
    use GNAT.Calendar.Time_IO;
 
    type Echo_SixteenKb_Access is access function
-     (Self : in test_all_optims.Ref;
-      data : in test_all_optims.sixteenKb)
+     (Self : test_all_optims.Ref;
+      data : test_all_optims.sixteenKb)
      return test_all_optims.sixteenKb;
    N_Echo_SixteenKb : constant PolyORB.Types.Unsigned_Long := 100;
 
@@ -191,7 +191,7 @@ begin
       return;
    end if;
 
-   -- Getting the refernce
+   --  Getting the reference
 
    IOR_Utils.Get_Ref ("ref.ref", My_Test_All_Optims);
 

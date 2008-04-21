@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2004 Free Software Foundation, Inc.             --
+--          Copyright (C) 2004-2008, Free Software Foundation, Inc.         --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -37,8 +37,8 @@ package PolyORB.Binding_Data.Print is
      (Profile : PolyORB.Binding_Data.Profile_Access);
 
    procedure Register
-     (Profile : in PolyORB.Binding_Data.Profile_Tag;
-      Print   : in Print_Procedure);
+     (Profile : PolyORB.Binding_Data.Profile_Tag;
+      Print   : Print_Procedure);
 
    procedure Print_Profile (Profile : Profile_Access);
 

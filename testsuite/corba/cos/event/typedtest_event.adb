@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -173,14 +173,14 @@ procedure TypedTest_Event is
    --------------------
 
    procedure Connect_Entity
-     (Entity  : in CORBA.Object.Ref;
-      Kind    : in Entity_Kind;
-      Channel : in TypedEventChannel.Ref);
+     (Entity  : CORBA.Object.Ref;
+      Kind    : Entity_Kind;
+      Channel : TypedEventChannel.Ref);
 
    procedure Connect_Entity
-     (Entity  : in CORBA.Object.Ref;
-      Kind    : in Entity_Kind;
-      Channel : in TypedEventChannel.Ref)
+     (Entity  : CORBA.Object.Ref;
+      Kind    : Entity_Kind;
+      Channel : TypedEventChannel.Ref)
    is
       O : CORBA.Impl.Object_Ptr;
    begin
@@ -257,14 +257,14 @@ procedure TypedTest_Event is
    -----------------------------
 
    procedure Get_Typed_Object_Entity
-     (Entity  : in CORBA.Object.Ref;
-      Kind    : in Entity_Kind;
-      Channel : in TypedEventChannel.Ref);
+     (Entity  : CORBA.Object.Ref;
+      Kind    : Entity_Kind;
+      Channel : TypedEventChannel.Ref);
 
    procedure Get_Typed_Object_Entity
-     (Entity  : in CORBA.Object.Ref;
-      Kind    : in Entity_Kind;
-      Channel : in TypedEventChannel.Ref)
+     (Entity  : CORBA.Object.Ref;
+      Kind    : Entity_Kind;
+      Channel : TypedEventChannel.Ref)
    is
       O : CORBA.Impl.Object_Ptr;
    begin
@@ -360,11 +360,11 @@ procedure TypedTest_Event is
 
    procedure Create_Entity
      (Entity : out CORBA.Object.Ref;
-      Kind   : in  Entity_Kind);
+      Kind   : Entity_Kind);
 
    procedure Create_Entity
      (Entity : out CORBA.Object.Ref;
-      Kind   : in  Entity_Kind) is
+      Kind   : Entity_Kind) is
    begin
       case Kind is
          when K_Channel =>
@@ -439,12 +439,12 @@ procedure TypedTest_Event is
    -----------------
 
    procedure Find_Entity
-     (Name   : in  String_Access;
+     (Name   : String_Access;
       Entity : out CORBA.Object.Ref;
       Kind   : out Entity_Kind);
 
    procedure Find_Entity
-     (Name   : in  String_Access;
+     (Name   : String_Access;
       Entity : out CORBA.Object.Ref;
       Kind   : out Entity_Kind)
    is

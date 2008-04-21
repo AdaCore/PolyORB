@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -126,7 +126,7 @@ package body RTCORBA.RTORB.Helper is
    end Raise_InvalidThreadpool_From_Any;
 
    procedure Raise_InvalidThreadpool
-     (Members : in InvalidThreadpool_Members)
+     (Members : InvalidThreadpool_Members)
    is
    begin
       PolyORB.Exceptions.User_Raise_Exception

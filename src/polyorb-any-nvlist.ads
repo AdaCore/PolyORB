@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -41,41 +41,29 @@ package PolyORB.Any.NVList is
    type Ref is new PolyORB.Smart_Pointers.Ref with private;
 
    procedure Add_Item
-     (Self       :    Ref;
+     (Self       : Ref;
       Item_Name  : Types.Identifier;
       Item       : Any;
       Item_Flags : Flags);
-   --  Create a NamedValue and add it to this NVList.
+   --  Create a NamedValue and add it to this NVList
 
    procedure Add_Item
-     (Self :    Ref;
+     (Self : Ref;
       Item : NamedValue);
-   --  Add a NamedValue to this NVList.
+   --  Add a NamedValue to this NVList
 
-   function Get_Count
-     (Self : Ref)
-     return PolyORB.Types.Long;
-   --  Return the number of items in this NVList.
-
-   procedure Free
-     (Self : Ref);
-
-   procedure Free_Memory
-     (Self : Ref)
-     renames Free;
-   --  Free and Free_Memory are no-ops in Ada.
+   function Get_Count (Self : Ref) return PolyORB.Types.Long;
+   --  Return the number of items in this NVList
 
    ------------------------------------------
    -- The following is specific to PolyORB --
    ------------------------------------------
 
    procedure Create (NVList : out Ref);
-   --  Create a new NVList object and return a reference to it.
+   --  Create a new NVList object and return a reference to it
 
-   function Image
-     (NVList : Ref)
-     return Standard.String;
-   --  For debugging purposes.
+   function Image (NVList : Ref) return Standard.String;
+   --  For debugging purposes
 
    package Internals is
 

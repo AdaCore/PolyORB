@@ -60,6 +60,7 @@ RM		:= @RM@
 XARGS_I		:= @XARGS_I@
 INSTALL		:= @INSTALL@
 LN_S		:= @LN_S@
+SHELL           := @SHELL@
 
 TOOL_EXE_SUFFIX		:= @TOOL_EXE_SUFFIX@
 COMPILER_EXE_SUFFIX	:= @COMPILER_EXE_SUFFIX@
@@ -69,17 +70,28 @@ GNATMAKE		:= @GNATMAKE@
 GNATMAKE_FOR_TARGET	:= @GNATMAKE_FOR_TARGET@
 # ??? distinguish between native tools, cross tools and cross libs
 
-CFLAGS                  := @CFLAGS@
-ADAFLAGS                := @ADAFLAGS@
-CPPFLAGS                := @CPPFLAGS@
-GNATMAKE_FLAGS          := @STYLE_SWITCH@ -gnatwa@WARNINGS_MODE@ ${ADAFLAGS} ${PARALLEL_GNATMAKE_FLAGS} ${EXTRA_GNATMAKE_FLAGS}
-PARALLEL_GNATMAKE_FLAGS := -j4
-EXTRA_GNATMAKE_FLAGS    := @EXTRA_GNATMAKE_FLAGS@
+# Flags common to build and target
+# Do not use := for the following flags, so that they can be overriden on
+# the command line if needed. Also, need to specify PARALLEL_GNATMAKE_FLAGS
+# before GNATMAKE_FLAGS, otherwise this variable is simply ignored.
+CFLAGS                  = @CFLAGS@
+ADAFLAGS                = @ADAFLAGS@
+CPPFLAGS                = @CPPFLAGS@
+PARALLEL_GNATMAKE_FLAGS = -j4
+EXTRA_GNATMAKE_FLAGS    = @EXTRA_GNATMAKE_FLAGS@
 # EXTRA_GNATMAKE_FLAGS are user-provided, empty by default (typically
 # used to specify a non-default --RTS switch).
 
-XMLADA_INCS	:= @XMLADA_INCS@
-XMLADA_LIBS	:= @XMLADA_LIBS@
+BASE_GNATMAKE_FLAGS	  := ${ADAFLAGS} ${PARALLEL_GNATMAKE_FLAGS} ${EXTRA_GNATMAKE_FLAGS}
+# Gnatmake flags for units built from project files
+
+COMP_TOOLS_GNATMAKE_FLAGS := @STYLE_SWITCH@ -gnatwa@WARNINGS_MODE@ -gnat05 ${BASE_GNATMAKE_FLAGS}
+# Gnatmake flags for compilation tools mains, built without project files
+
+# Extra flags for target
+CFLAGS_FOR_TARGET         := @CFLAGS_FOR_TARGET@
+ADAFLAGS_FOR_TARGET       := @ADAFLAGS_FOR_TARGET@
+GNATMAKE_FLAGS_FOR_TARGET := -cargs ${ADAFLAGS_FOR_TARGET}
 
 HAVE_SSL	:= @HAVE_SSL@
 
@@ -187,7 +199,8 @@ build-iac: ${IAC_NODES_SOURCES}
 
 .PHONY: build-po_gnatdist
 
-build-po_gnatdist: compiler_dir := gnatdist
+build-po_gnatdist: \
+  compiler_dir := gnatdist
 
 ################################################
 # Common build rule for all compile-time tools #
@@ -209,8 +222,7 @@ build-po_gnatdist \
 	cd compilers/${compiler_dir} && \
 	  ${GNATMAKE} -m \
 	   $* \
-	   -gnat05 \
-	   ${GNATMAKE_FLAGS} \
+	   ${COMP_TOOLS_GNATMAKE_FLAGS} \
 	   -I${top_srcdir}/compilers/${compiler_dir} \
 	   ${PRJ_GNATMAKE_FLAGS}
 
@@ -290,7 +302,7 @@ GEN_CODESET = src/giop/gen_codeset
 
 build-gen_codeset:
 	cd src/giop && \
-	  ${GNATMAKE} gen_codeset -I${top_srcdir}/src/giop ${GNATMAKE_FLAGS}
+	  ${GNATMAKE} gen_codeset -I${top_srcdir}/src/giop ${COMP_TOOLS_GNATMAKE_FLAGS}
 
 src/giop/polyorb-giop_p-code_sets-data.ads-stamp: ${top_srcdir}/src/giop/cs_registry1.2h ${GEN_CODESET}
 	cd src/giop && ./gen_codeset -c "PolyORB.GIOP_P.Code_Sets.Data" \
@@ -411,13 +423,13 @@ ALL_PROJECT_FILES := ${sort \
 IGNORED_PROJECT_FILES := build_all.gpr common.gpr config.gpr
 PROJECT_FILES := ${filter-out ${IGNORED_PROJECT_FILES},${ALL_PROJECT_FILES}}
 
-# The ones that start with "tools_" are for building executables;
+# The ones that start with "tools_" are for building (target) executables;
 # the rest are for building libraries.
 LIBRARY_PROJECT_FILES := ${filter-out tools_%,${PROJECT_FILES}}
 EXE_PROJECT_FILES := ${filter tools_%,${PROJECT_FILES}}
 
 # Additional C sources
-C_FILES=
+C_FILES=	src/csupport.c
 
 .PHONY: do-gnatmake
 do-gnatmake: ${POLYORB_LIBS} ${SERVICE_LIBS} ${EXE_PROJECT_FILES} #??? ${APPLI_EXES} ${SERVICE_EXES}
@@ -456,7 +468,7 @@ ${PROJECT_FILES}: %.gpr: \
     src/giop/polyorb-giop_p-code_sets-data.ads-stamp \
     tools/po_catref/polyorb-giop_p-code_sets-description_data.ads-stamp
 	ADA_PROJECT_PATH="${top_builddir}/projects${PATH_SEP}${top_srcdir}/projects${PATH_SEP}$$ADA_PROJECT_PATH" \
-	  ${GNATMAKE_FOR_TARGET} -P $@ ${GNATMAKE_FLAGS} ${PRJ_GNATMAKE_FLAGS}
+	  ${GNATMAKE_FOR_TARGET} -P $@ ${BASE_GNATMAKE_FLAGS} ${PRJ_GNATMAKE_FLAGS} ${GNATMAKE_FLAGS_FOR_TARGET}
 
 .PHONY: libpolyorb-corba-cos-event-impl.a
 libpolyorb-corba-cos-event-impl.a: cos_event.gpr
@@ -540,6 +552,7 @@ libpolyorb-web_common.a: src_web_common.gpr
 
 # Additional dependencies:
 
+src.gpr:		src/csupport.o
 src_corba.gpr: src_corba_dynamicany.gpr src_corba_iop.gpr src_corba_messaging.gpr src_corba_portableinterceptor.gpr src_corba_rtcorba.gpr
 
 ifeq (${HAVE_SSL},yes)
@@ -562,7 +575,7 @@ endif
 # Rule for compilation of C source files
 C_OBJECTS=${C_FILES:.c=.o}
 ${C_OBJECTS}: %.o: ${top_srcdir}/%.c
-	${CC_FOR_TARGET} -c -o $@ ${CPPFLAGS} ${CFLAGS} $<
+	${CC_FOR_TARGET} -c -o $@ -I${top_builddir}/src ${CPPFLAGS} ${CFLAGS} ${CFLAGS_FOR_TARGET} $<
 
 ##########################
 # examples and testsuite #
@@ -631,7 +644,7 @@ test_targets := ${sort ${test_targets}}
 .PHONY: ${test_targets}
 ${test_targets}: %/build-test:
 	ADA_PROJECT_PATH="${top_builddir}/projects${PATH_SEP}${top_srcdir}/projects${PATH_SEP}$$ADA_PROJECT_PATH" \
-	  ${GNATMAKE_FOR_TARGET} "-XTest_Dir=$*" -P ${top_srcdir}/$*/local.gpr ${GNATMAKE_FLAGS}
+	  ${GNATMAKE_FOR_TARGET} "-XTest_Dir=$*" -P ${top_srcdir}/$*/local.gpr ${BASE_GNATMAKE_FLAGS} ${GNATMAKE_FLAGS_FOR_TARGET}
 
 # Set active_tests to a subset of test_targets -- remove the ones that are for
 # application personalities that were not configured. Note: examples/polyorb
@@ -689,7 +702,7 @@ print_active_tests:
 	@echo "Tests to build: ${patsubst %/build-test,%,${active_tests}}"
 
 .PHONY: testsuite
-testsuite: print_active_tests ${active_tests}
+testsuite: print_active_tests ${active_tests} build-test_driver
 
 # Create the 'examples' target as a subset of 'testsuite' -- just the ones
 # under the 'examples' subdirectory:
@@ -698,6 +711,11 @@ active_examples := ${filter examples/%,${active_tests}}
 
 .PHONY: examples
 examples: ${active_examples}
+
+.PHONY: build-test_driver
+build-test_driver: 
+	ADA_PROJECT_PATH="${top_builddir}/projects${PATH_SEP}${top_srcdir}/projects${PATH_SEP}$$ADA_PROJECT_PATH" \
+	  ${GNATMAKE_FOR_TARGET} -P projects/testsuite_utils.gpr ${BASE_GNATMAKE_FLAGS} ${PRJ_GNATMAKE_FLAGS} ${GNATMAKE_FLAGS_FOR_TARGET}
 
 ################################################################
 
@@ -827,7 +845,7 @@ install: all
 	# Install documentation only if it has been built:
 	if [ -r docs/polyorb_ug.html ]; \
 	then \
-	  (cd docs && ${MAKE} install prefix="${prefix}"); \
+	  (cd docs && ${MAKE} install-data-local prefix="${prefix}"); \
 	fi
 
 # polyorb-dsa_p-partitions.ali is a special case above.
@@ -838,6 +856,10 @@ install: all
 # Note that any change of the location where DSA application personality
 # files are installed (relative to ${prefix}) must be reflected in
 # gnatdist.
+#
+# install-data-local (as opposed to install) is used for installing the
+# documentation, in order to avoid trying to rebuild the documentation, since
+# users might not have tools like TeX.
 
 ################################################################
 
@@ -872,6 +894,7 @@ clean:
 	${RM} -f tools/po_names/po_names
 
 distclean: clean
+	${SHELL} support/cleanup-conf-files
 	${RM} -f config.*
 
 .SUFFIXES: .c .o
@@ -2304,7 +2327,6 @@ debug-makefile:
 	@echo MAKECMDGOALS = ${MAKECMDGOALS}
 	@echo polyorb_idl_stamps = ${polyorb_idl_stamps}
 	@echo all_idl_stamps = ${all_idl_stamps}
-	@echo XMLADA_INCS = ${XMLADA_INCS}
 	@echo POLYORB_LIBS = ${POLYORB_LIBS}
 	@echo SERVICE_LIBS = ${SERVICE_LIBS}
 	@echo ALL_PROJECT_FILES = ${ALL_PROJECT_FILES}

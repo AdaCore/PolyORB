@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2002 Free Software Foundation, Inc.             --
+--         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -40,7 +40,7 @@ package body DSA_Common.Penpal_Type.Impl is
 
    procedure Initialize
      (Self : access Object;
-      Name : in CORBA.String) is
+      Name : CORBA.String) is
    begin
       Self.Name := Name;
    end Initialize;
@@ -55,8 +55,8 @@ package body DSA_Common.Penpal_Type.Impl is
 
    procedure New_Message
      (Self : access Object;
-      Sender : in CORBA.String;
-      Message : in CORBA.String)
+      Sender : CORBA.String;
+      Message : CORBA.String)
    is
       pragma Unreferenced (Self);
       use CORBA;

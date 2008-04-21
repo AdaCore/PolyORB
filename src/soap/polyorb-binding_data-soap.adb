@@ -82,7 +82,6 @@ package body PolyORB.Binding_Data.SOAP is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
-   pragma Unreferenced (C); --  For conditional pragma Debug
 
    Preference : Profile_Preference;
    --  Global variable: the preference to be returned
@@ -436,7 +435,7 @@ package body PolyORB.Binding_Data.SOAP is
 
       SOAP_Profile : SOAP_Profile_Type renames SOAP_Profile_Type (P.all);
    begin
-      pragma Debug (O ("SOAP Profile to URI"));
+      pragma Debug (C, O ("SOAP Profile to URI"));
       return SOAP_URI_Prefix
         & Image (SOAP_Profile.Address.all)
         & To_Standard_String (SOAP_Profile.URI_Path);
@@ -464,13 +463,13 @@ package body PolyORB.Binding_Data.SOAP is
             Index   : Integer := S'First;
             Index2  : Integer;
          begin
-            pragma Debug (O ("SOAP URI to profile: enter"));
+            pragma Debug (C, O ("SOAP URI to profile: enter"));
 
             Index2 := Find (S, Index, ':');
             if Index2 = S'Last + 1 then
                return null;
             end if;
-            pragma Debug (O ("Address = " & S (Index .. Index2 - 1)));
+            pragma Debug (C, O ("Address = " & S (Index .. Index2 - 1)));
             Host_First := Index;
             Host_Last := Index2 - 1;
             Index := Index2 + 1;
@@ -479,7 +478,7 @@ package body PolyORB.Binding_Data.SOAP is
             if Index2 = S'Last + 1 then
                return null;
             end if;
-            pragma Debug (O ("Port = " & S (Index .. Index2 - 1)));
+            pragma Debug (C, O ("Port = " & S (Index .. Index2 - 1)));
             TResult.Address :=
               new Socket_Name'(S (Host_First .. Host_Last)
                                + Sockets.Port_Type'Value
@@ -487,8 +486,8 @@ package body PolyORB.Binding_Data.SOAP is
             Index := Index2;
             TResult.URI_Path := To_PolyORB_String (S (Index .. S'Last));
 
-            pragma Debug (O ("URI_Path is " & S (Index .. S'Last)));
-            pragma Debug (O ("SOAP URI to profile: leave"));
+            pragma Debug (C, O ("URI_Path is " & S (Index .. S'Last)));
+            pragma Debug (C, O ("SOAP URI to profile: leave"));
             return Result;
          end;
       else

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -384,6 +384,8 @@ package Backend.BE_CORBA_Ada.Nutils is
       S_To_Any,
       S_To_Bounded_String,
       S_To_Bounded_Wide_String,
+      S_To_CORBA_String,
+      S_To_CORBA_Wide_String,
       S_To_Local_Ref,
       S_To_Ref,
       S_To_String,
@@ -400,8 +402,11 @@ package Backend.BE_CORBA_Ada.Nutils is
 
    type Component_Id is
      (C_Argument,
+      C_Completed,
+      C_Deferred_Arguments_Session,
       C_Dimen,
       C_Indices,
+      C_Minor,
       C_Mode,
       C_Name,
       C_IDL_Type,

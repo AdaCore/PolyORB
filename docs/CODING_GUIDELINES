@@ -39,25 +39,24 @@ All the code shall be compilable with pragma Profile (Ravenscar), except for
 code dedicated to very specific functions such as concurrent constructions.
 This should be clearly indicated in package name and source code.
 
-The code shall not produce warnings when compiled with -gnatwa -gnaty.
+The code shall not produce warnings when compiled with -gnatwa -gnatyg.
 Any use of pragma Warnings (Off) shall be documented by a comment.
 
 Usage of Ada 2005 features is restricted as follows:
 
-  * in the IDL to Ada compilers, the following Ada 2005 features are allowed:
+  * The following Ada 2005 features are allowed:
 
-     - raise .. with "";
-     - object.method notation
-     - limited with
-     - anonymous access fields/parameters
-     - use of overriding keyword.
+     - use of Ada.Directories
+     - use of Ada.Containers and children thereof
+     - raise EXC with STR
+     - Object.Method notation
+     - anonymous access components and objects
+     - use of "overriding" and "not overriding" indicators
 
-    All other Ada 2005 features are prohibited.
+  * All other Ada 2005 features are prohibited. In particular, the code must
+    be compatible with application components using Ada 95 and Ada 2005 alike.
 
-  * elsewhere in PolyORB, Ada 2005 specific features are prohibited; the
-    code must be legal in both Ada 95 and Ada 2005.
-
-  * in addition to the restrictions below, there is a general requirement
+  * In addition to the restrictions above, there is a general requirement
     that PolyORB can be compiled with any GNAT version that is listed as
     supported in the PolyORB User's Guide.
 
@@ -65,13 +64,15 @@ When necessary, tag the code with
 
 - 'XXX' to indicate dubious code.
 
-- 'WAG:Y.ZZ' to indicate constructions used to work around a behavior
-  in GNAT version Y.ZZ.
+- 'WAG:Y.ZZ' to indicate constructs used to work around a behavior
+  in GNAT version Y.ZZ (the intent of these markers is to allow such
+  work-arounds to be removed once version Y.ZZ is not listed anymore
+  as supported for building PolyORB).
 
 - 'Implementation note:' to indicate modifications to a 'should be'
   implementation to work around specific problems.
 
-Whenever possible, do not add new exceptions and exception handlers to
+Whenever possible, do not add new exceptions or exception handlers to
 PolyORB's neutral core and protocol personalities. Instead, use error
 handling mechanisms provided by PolyORB.Exceptions.
 
@@ -109,13 +110,3 @@ gives an overview of what PolyORB provides.
 
 Any modification to NEWS must be propagated to the PolyORB User's
 guide to ensure consistency.
-
-Recompute build dependencies every time the semantic dependencies
-of a unit are modified.
-
-To do so, run 'make depend' from PolyORB's root directory.
-Note that you must ensure that:
-
-- Build is made _without_ debug
-
-- Source tree and build tree are equal

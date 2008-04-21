@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---           Copyright (C) 2007, Free Software Foundation, Inc.             --
+--        Copyright (C) 2007-2008, Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -109,7 +109,7 @@ package body benchs.Impl is
 
    function echoBoolean
      (Self : access Object;
-      arg : in CORBA.Boolean)
+      arg : CORBA.Boolean)
      return CORBA.Boolean
    is
       pragma Unreferenced (Self);
@@ -119,7 +119,7 @@ package body benchs.Impl is
 
    function echoShort
      (Self : access Object;
-      arg : in CORBA.Short)
+      arg : CORBA.Short)
      return CORBA.Short
    is
       pragma Unreferenced (Self);
@@ -129,7 +129,7 @@ package body benchs.Impl is
 
    function echoLong
      (Self : access Object;
-      arg : in CORBA.Long)
+      arg : CORBA.Long)
       return CORBA.Long
    is
       pragma Unreferenced (Self);
@@ -139,7 +139,7 @@ package body benchs.Impl is
 
    function echoUShort
      (Self : access Object;
-      arg : in CORBA.Unsigned_Short)
+      arg : CORBA.Unsigned_Short)
      return CORBA.Unsigned_Short
    is
       pragma Unreferenced (Self);
@@ -149,7 +149,7 @@ package body benchs.Impl is
 
    function echoULong
      (Self : access Object;
-      arg : in CORBA.Unsigned_Long)
+      arg : CORBA.Unsigned_Long)
      return CORBA.Unsigned_Long
    is
       pragma Unreferenced (Self);
@@ -159,7 +159,7 @@ package body benchs.Impl is
 
    function echoULLong
      (Self : access Object;
-      arg : in CORBA.Unsigned_Long_Long)
+      arg : CORBA.Unsigned_Long_Long)
      return CORBA.Unsigned_Long_Long
    is
       pragma Unreferenced (Self);
@@ -169,7 +169,7 @@ package body benchs.Impl is
 
    function echoFloat
      (Self : access Object;
-      arg : in CORBA.Float)
+      arg : CORBA.Float)
       return CORBA.Float
    is
       pragma Unreferenced (Self);
@@ -179,7 +179,7 @@ package body benchs.Impl is
 
    function echoDouble
      (Self : access Object;
-      arg : in CORBA.Double)
+      arg : CORBA.Double)
      return CORBA.Double
    is
       pragma Unreferenced (Self);
@@ -189,7 +189,7 @@ package body benchs.Impl is
 
    function echoChar
      (Self : access Object;
-      arg : in CORBA.Char)
+      arg : CORBA.Char)
      return CORBA.Char
    is
       pragma Unreferenced (Self);
@@ -199,7 +199,7 @@ package body benchs.Impl is
 
    function echoWChar
      (Self : access Object;
-      arg : in CORBA.Wchar)
+      arg : CORBA.Wchar)
      return CORBA.Wchar
    is
       pragma Unreferenced (Self);
@@ -209,7 +209,7 @@ package body benchs.Impl is
 
    function echoOctet
      (Self : access Object;
-      arg : in CORBA.Octet)
+      arg : CORBA.Octet)
      return CORBA.Octet
    is
       pragma Unreferenced (Self);
@@ -219,7 +219,7 @@ package body benchs.Impl is
 
    function echoString
      (Self : access Object;
-      arg : in CORBA.String)
+      arg : CORBA.String)
      return CORBA.String
    is
       pragma Unreferenced (Self);
@@ -229,7 +229,7 @@ package body benchs.Impl is
 
    function echoWString
      (Self : access Object;
-      arg : in CORBA.Wide_String)
+      arg : CORBA.Wide_String)
      return CORBA.Wide_String
    is
       pragma Unreferenced (Self);
@@ -239,7 +239,7 @@ package body benchs.Impl is
 
    function echoColor
      (Self : access Object;
-      arg  : in Color)
+      arg  : Color)
       return Color is
       pragma Unreferenced (Self);
    begin
@@ -248,7 +248,7 @@ package body benchs.Impl is
 
    function echoRainbow
      (Self : access Object;
-      arg  : in Rainbow)
+      arg  : Rainbow)
       return Rainbow is
       pragma Unreferenced (Self);
    begin
@@ -257,7 +257,7 @@ package body benchs.Impl is
 
    function echoStruct
      (Self : access Object;
-      arg  : in simple_struct)
+      arg  : simple_struct)
       return simple_struct is
       pragma Unreferenced (Self);
    begin
@@ -266,7 +266,7 @@ package body benchs.Impl is
 
    function echoArrayStruct
      (Self : access Object;
-      arg  : in array_struct)
+      arg  : array_struct)
       return array_struct is
       pragma Unreferenced (Self);
    begin
@@ -275,7 +275,7 @@ package body benchs.Impl is
 
    function echoSixteenKb
      (Self : access Object;
-      arg : in sixteenKb)
+      arg : sixteenKb)
      return sixteenKb
    is
       pragma Unreferenced (Self);
@@ -285,7 +285,7 @@ package body benchs.Impl is
 
    function echoNestedStruct
      (Self : access Object;
-      arg  : in nested_struct)
+      arg  : nested_struct)
       return nested_struct is
       pragma Unreferenced (Self);
    begin
@@ -294,7 +294,7 @@ package body benchs.Impl is
 
    function echoUnion
      (Self : access Object;
-      arg : in myUnion)
+      arg : myUnion)
      return myUnion is
       pragma Unreferenced (Self);
    begin
@@ -303,7 +303,7 @@ package body benchs.Impl is
 
    function echoUnionEnumSwitch
      (Self : access Object;
-      arg : in myUnionEnumSwitch)
+      arg : myUnionEnumSwitch)
      return myUnionEnumSwitch is
       pragma Unreferenced (Self);
    begin
@@ -312,7 +312,7 @@ package body benchs.Impl is
 
    function echoUsequence
      (Self : access Object;
-      arg : in U_sequence)
+      arg : U_sequence)
      return U_sequence
    is
       pragma Unreferenced (Self);

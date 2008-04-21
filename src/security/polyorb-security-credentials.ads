@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -115,7 +115,7 @@ package PolyORB.Security.Credentials is
 --   --  from CSIv2: Identity_Assertion, Delegation_By_Client
 
 --   function Get_Security_Feature
---     (Self : Ref; Feature : in Security_Feature) return Boolean;
+--     (Self : Ref; Feature : Security_Feature) return Boolean;
 
 --   type Received_Credentials is abstract new Ref with null record;
 

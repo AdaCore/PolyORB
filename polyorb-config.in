@@ -36,6 +36,7 @@ else
   prefix="@prefix@"
 fi
 
+have_gnatmake_aPdir=@HAVE_GNATMAKE_APDIR@
 default_appli="@APPLI_LIST@"
 default_proto="@PROTO_LIST@"
 default_services="@SERVICE_LIST@"
@@ -260,8 +261,12 @@ if $require_xmlada; then
   xmlada_lib="`xmlada-config --libs`"
 fi
 
+if test x$have_gnatmake_aPdir = xyes; then
+  apdir="-aP${prefix}/lib/gnat"
+fi
+
 if test ! x"$echo_prefix" = x"true"  -a ! x"$echo_exec_prefix" = x"true" -a ! x"$echo_cflags" = x"true" -a ! x"$echo_libs" = x"true" -a ! x"$echo_idls" = x"true"; then
-   echo -aI${polyorb_dir} -aO${libdir}/polyorb -aL${libdir}/polyorb ${xmlada_dir} -largs ${polyorb_lib} ${xmlada_lib}
+   echo ${apdir} -aI${polyorb_dir} -aO${libdir}/polyorb -aL${libdir}/polyorb ${xmlada_dir} -largs ${polyorb_lib} ${xmlada_lib}
 fi
 
 if test x"$echo_prefix" = x"true" ; then

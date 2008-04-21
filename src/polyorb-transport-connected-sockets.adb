@@ -57,7 +57,6 @@ package body PolyORB.Transport.Connected.Sockets is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
-   pragma Unreferenced (C); --  For conditional pragma Debug
 
    -----------------------
    -- Accept_Connection --
@@ -195,7 +194,7 @@ package body PolyORB.Transport.Connected.Sockets is
    begin
       Control_Socket (TE.Socket, Request);
 
-      pragma Debug (O ("Found" & Request.Size'Img & " bytes waiting"));
+      pragma Debug (C, O ("Found" & Request.Size'Img & " bytes waiting"));
 
       return Request.Size >= N;
    end Is_Data_Available;
@@ -296,12 +295,12 @@ package body PolyORB.Transport.Connected.Sockets is
       procedure Send_Buffer is new Buffers.Send_Buffer (Socket_Send);
 
    begin
-      pragma Debug (O ("Write: enter"));
+      pragma Debug (C, O ("Write: enter"));
 
       --  Send_Buffer is not atomic, needs to be protected.
 
       Enter (TE.Mutex);
-      pragma Debug (O ("TE mutex acquired"));
+      pragma Debug (C, O ("TE mutex acquired"));
 
       begin
          Send_Buffer (Buffer);
@@ -336,7 +335,7 @@ package body PolyORB.Transport.Connected.Sockets is
          PolyORB.Transport.Connected.Close
            (Connected_Transport_Endpoint (TE.all)'Access);
          if TE.Socket /= No_Socket then
-            pragma Debug (O ("Closing socket"
+            pragma Debug (C, O ("Closing socket"
                              & PolyORB.Sockets.Image (TE.Socket)));
             Close_Socket (TE.Socket);
             TE.Socket := No_Socket;
@@ -344,7 +343,7 @@ package body PolyORB.Transport.Connected.Sockets is
          Leave (TE.Mutex);
       exception
          when E : others =>
-            pragma Debug (O ("Close (Socket_Endpoint): got "
+            pragma Debug (C, O ("Close (Socket_Endpoint): got "
                              & Ada.Exceptions.Exception_Information (E)));
             null;
       end;

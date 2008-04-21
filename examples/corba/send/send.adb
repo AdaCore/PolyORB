@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2003-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -37,6 +37,7 @@ with Ada.Text_IO;
 with CORBA.ORB;
 
 with Test.Printer;
+with Test.Controller;
 
 with PolyORB.Setup.Client;
 pragma Warnings (Off, PolyORB.Setup.Client);
@@ -50,12 +51,7 @@ procedure Send is
 
    use PolyORB.Utils.Report;
 
-   How_Many : Integer := 1;
-
-   type Send_Type is (Long, String, EchoString, EchoLong);
-   T : Send_Type := String;
-
-   Tempo : Integer;
+   Ok : Boolean := False;
 
 begin
    CORBA.ORB.Initialize ("ORB");
@@ -64,101 +60,72 @@ begin
 
    --  Parse command line
 
-   if Argument_Count < 1 then
-      Put_Line ("usage : ./send <IOR|corbaloc> [number of calls] "
-                & "[time between calls (in ms)] [type]");
-      Put_Line ("type = s | l | tws | twl ");
-      Put_Line ("       s   : one way call, send a string (default)");
-      Put_Line ("       l   : one way call, send a long");
-      Put_Line ("       tws : two way call, echo a string");
-      Put_Line ("       twl : two way call, echo a long");
+   if Argument_Count /= 1 then
+      Put_Line ("usage : ./send <IOR|corbaloc>");
       return;
-   end if;
-
-   if Argument_Count >= 2 then
-      How_Many := Integer'Value (Argument (2));
-   end if;
-
-   if Argument_Count >= 3 then
-      Tempo := Integer'Value (Argument (3));
-   else
-      Tempo := 1;
-   end if;
-
-   if Argument_Count >= 4 then
-      if Argument (4) = "l" then
-         T := Long;
-      elsif Argument (4) = "tws" then
-         T := EchoString;
-      elsif Argument (4) = "twl" then
-         T := EchoLong;
-      end if;
    end if;
 
    declare
       Sent_Msg : constant Standard.String
         := "Hello Multicast world !";
---          & "ggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggg"
---          & "ggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggg"
---          & "ggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggg"
---          & "ggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggg"
---          & "ggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggg"
---          & "gggggggggggggggggggggggggggggggggggggggggggggggggggggggggggga";
-      myprint : Test.Printer.Ref;
+
+      The_Controller : Test.Controller.Ref;
+      Printer : Test.Printer.Ref;
 
    begin
       CORBA.ORB.String_To_Object
-        (CORBA.To_CORBA_String (Ada.Command_Line.Argument (1)), myprint);
+        (CORBA.To_CORBA_String (Ada.Command_Line.Argument (1)),
+         The_Controller);
+
+      Printer := Test.Controller.Get_Printer (The_Controller);
 
       --  Check reference is correct
 
-      if Test.Printer.Is_Nil (myprint) then
+      if Test.Printer.Is_Nil (Printer) then
          Put_Line ("main : cannot invoke on a nil reference");
          return;
       end if;
 
-      --  Send message
+      --  Send messages
 
-      while How_Many > 0 loop
-         case T is
-            when String =>
-               Test.Printer.printString
-                 (myprint,
-                  CORBA.To_CORBA_String (Integer'Image (How_Many)
-                                         & " " & Sent_Msg));
+      Test.Printer.printString
+        (Printer,
+         CORBA.To_CORBA_String (Sent_Msg));
 
-            when EchoString =>
-               declare
-                  use CORBA;
-                  Str : constant CORBA.String
-                    := To_CORBA_String (Integer'Image (How_Many)
-                                        & " " & Sent_Msg);
+      Output ("Sending CORBA.String", True);
 
-               begin
-                  if Str /= Test.Printer.echoString (myprint, Str) then
-                     Put_Line ("Bad return value");
-                  end if;
-               end;
+      Test.Printer.printLong (Printer, CORBA.Long (1234));
 
-            when EchoLong =>
-               declare
-                  use CORBA;
+      Output ("Sending CORBA.Long", True);
 
-                  L : constant CORBA.Long := CORBA.Long (How_Many);
-               begin
-                  if L /= Test.Printer.echoLong (myprint, L) then
-                     Put_Line ("Bad return value");
-                  end if;
-               end;
+      Output ("Previous tests went OK on the server side",
+              Test.Controller.Test_OK (The_Controller));
 
-            when Long =>
-               Test.Printer.printLong (myprint, CORBA.Long (How_Many));
-         end case;
+      declare
+         Result : CORBA.String;
+         pragma Unreferenced (Result);
 
-         delay Duration (Tempo / 1000);
+      begin
+         Result := Test.Printer.EchoString
+           (Printer, CORBA.To_CORBA_String (Sent_Msg));
+         Output ("Calling function with return value raised an exception",
+                 False);
+      exception
+         when others =>
+         Output ("Calling function with return value raised an exception",
+                 True);
+      end;
 
-         How_Many := How_Many - 1;
-      end loop;
+      begin
+         Test.Controller.StopServer (The_Controller);
+         Ok := True;
+      exception
+         when others =>
+            Ok := False;
+            raise;
+      end;
+
+      Output ("Shut down server(s)", Ok);
 
    exception
       when E : CORBA.Transient =>

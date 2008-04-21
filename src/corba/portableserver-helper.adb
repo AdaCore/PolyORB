@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2006-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2006-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -132,7 +132,7 @@ package body PortableServer.Helper is
    end Raise_ForwardRequest_From_Any;
 
    procedure Raise_ForwardRequest
-     (Members : in ForwardRequest_Members)
+     (Members : ForwardRequest_Members)
    is
    begin
       PolyORB.Exceptions.User_Raise_Exception

@@ -52,7 +52,6 @@ package body PolyORB.Utils.Sockets is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
-   pragma Unreferenced (C); --  For conditional pragma Debug
 
    ---------
    -- "+" --
@@ -100,7 +99,7 @@ package body PolyORB.Utils.Sockets is
          --  kill the "variable not modified" warning.
       begin
          pragma Debug
-           (O ("... trying " & Image (Remote_Addr)));
+           (C, O ("... trying " & Image (Remote_Addr)));
          PolyORB.Sockets.Connect_Socket (Sock, Remote_Addr_Var);
          return True;
       exception
@@ -116,7 +115,7 @@ package body PolyORB.Utils.Sockets is
 
    begin
       pragma Debug
-        (O ("connect socket" & Image (Sock)
+        (C, O ("connect socket" & Image (Sock)
             & " to " & Image (Remote_Name)));
 
       if Is_IP_Address (Host_Name) then

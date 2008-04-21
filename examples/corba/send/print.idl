@@ -5,4 +5,15 @@ module Test {
     string echoString (in string K);
     long echoLong (in long K);
   };
+
+  interface Controller {
+    Printer Get_Printer ();
+
+    void StopServer ();
+    // Shut down server
+
+    boolean test_OK ();
+    
+  };
+
 };
