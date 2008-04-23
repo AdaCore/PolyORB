@@ -109,7 +109,7 @@ package body Backend.BE_CORBA_Ada is
       Write_Line
         (Hdr & "-d       Generate delegation package (defunct)");
       Write_Line
-        (Hdr & "-ir      Generate code for interface repository (defunct)");
+        (Hdr & "-ir      Generate code for interface repository");
       Write_Line
         (Hdr & "-noir    Do not generate code for interface repository "
          & "(default)");
