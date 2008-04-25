@@ -1,4 +1,13 @@
-To add a new test:
+1) To run tests:
+----------------
+
+Execute ./autotest.sh in the testsuite directory.
+
+Note that autotest.sh expects PolyORB to be installed, and iac and
+polyorb-config to be in your PATH variable.
+
+2) To add a new test:
+---------------------
 
  - Create a directory (<test_dir>) and put all the IDL files needed
    for the test in this directory.
