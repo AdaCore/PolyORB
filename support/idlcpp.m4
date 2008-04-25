@@ -32,21 +32,20 @@ elif test "$HAVE_GCC_XIDL" = yes; then
 
 else
   # IDLCPP provided by C++ compiler
-  AC_REQUIRE([AC_PROG_CXXCPP])
+  AC_PROG_CXXCPP
   IDLCPP="$CXXCPP"
 
   case "$CXXCPP" in
     *g++*)
       if test "${CXXCPPFLAGS}" = ""; then
-        CXXCPPFLAGS="-x c++ -ansi"
-        # Default options for the GNU CXXCPP:
+        IDLCPPFLAGS="-x c++ -ansi"
+        # Options to use GNU C++ preprocessor as IDL preprocessor
         # -x c++       force C++ preprocessor mode (even though it cannot be
         #              inferred from filename extension .idl)
         # -ansi        disable GCC-specific behaviour
       fi
       ;;
   esac
-  IDLCPPFLAGS="$CXXCPPFLAGS"
 fi
 AC_MSG_RESULT([$IDLCPP $IDLCPPFLAGS])
 AC_SUBST(IDLCPP)
