@@ -1040,7 +1040,7 @@ private
 
       function Unchecked_Get_V (X : access T_Content) return T_Ptr;
       pragma Inline (Unchecked_Get_V);
-      --  Unchecked access to the wrapper value
+      --  Unchecked access to the wrapped value
 
       function Get_Aggregate_Element
         (Value : Any_Container'Class;
