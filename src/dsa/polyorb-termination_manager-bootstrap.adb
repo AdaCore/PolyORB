@@ -416,10 +416,11 @@ package body PolyORB.Termination_Manager.Bootstrap is
 
       --  Then use it to get a reference to TM
 
-      Get_Reference (Addr     => Term_Manager_To_Address (TM),
-                     Typ      => RACW_Type_Name,
-                     Receiver => Receiver,
-                     Ref      => Result);
+      Build_Local_Reference
+        (Addr     => Term_Manager_To_Address (TM),
+         Typ      => RACW_Type_Name,
+         Receiver => Receiver,
+         Ref      => Result);
 
       return Result;
    end Term_Manager_Access_To_Ref;

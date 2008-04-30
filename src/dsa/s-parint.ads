@@ -41,6 +41,7 @@ pragma Warnings (On);
 
 with Ada.Exceptions;
 with Ada.Streams;
+with Ada.Tags;
 
 with PolyORB.Any;
 with PolyORB.Any.ExceptionList;
@@ -71,7 +72,7 @@ package System.Partition_Interface is
    DSA_Implementation : constant DSA_Implementation_Name := PolyORB_DSA;
    --  Identification of this DSA implementation variant
 
-   PCS_Version : constant := 1;
+   PCS_Version : constant := 2;
    --  Version of the PCS API (for Exp_Dist consistency check).
    --  This version number is matched against Gnatvsn.PCS_Version_Number to
    --  ensure that the versions of Exp_Dist and the PCS are consistent.
@@ -293,14 +294,39 @@ package System.Partition_Interface is
    --  to the object's actual address, else Is_Local is set to False and Addr
    --  is set to Null_Address.
 
-   procedure Get_Reference
+   function Get_Reference
+     (RACW             : System.Address;
+      Type_Name        : String;
+      Stub_Tag         : Ada.Tags.Tag;
+      Is_RAS           : Boolean;
+      Receiver         : access Servant) return PolyORB.References.Ref;
+   --  Create a reference from an RACW value with designated type Type_Name.
+   --  Stub_Tag is the tag of the associated stub type. Is_RAS is True if the
+   --  RACW is implementing a remote access-to-subprogram type.
+   --  Receiver is the associated servant.
+
+   procedure Build_Local_Reference
      (Addr     :        System.Address;
       Typ      :        String;
       Receiver : access Servant;
       Ref      :    out PolyORB.References.Ref);
-   --  Create a reference that can be used to designate the object whose
+   --  Create a reference that can be used to designate the local object whose
    --  address is Addr, whose type is the designated type of a RACW type
    --  associated with Servant.
+
+   function Get_RACW
+     (Ref              : PolyORB.References.Ref;
+      Stub_Tag         : Ada.Tags.Tag;
+      Is_RAS           : Boolean;
+      Asynchronous     : Boolean) return System.Address;
+   --  From an object reference, create a remote access-to-classwide value
+   --  designating the same object. Is_RAS indicates whether the RACW is
+   --  implementing a remote access-to-subprogram type.
+   --  The returned address is either the address of a local object, or the
+   --  address of a stub object having the given tag if the designated object
+   --  is remote. For a nil ref, a null address is returned. If All_Calls_
+   --  Remote is True, the address of a stub object is returned even if the
+   --  reference is local.
 
    ------------------------------
    -- Any and associated types --
