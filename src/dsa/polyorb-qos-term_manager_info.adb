@@ -136,7 +136,7 @@ package body PolyORB.QoS.Term_Manager_Info is
 
       declare
          TMInfo : QoS_DSA_TM_Info_Parameter
-         renames QoS_DSA_TM_Info_Parameter (QoS.all);
+                    renames QoS_DSA_TM_Info_Parameter (QoS.all);
          Buffer : Buffer_Access := new Buffer_Type;
 
       begin
