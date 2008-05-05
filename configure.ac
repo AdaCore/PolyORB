@@ -266,7 +266,7 @@ AC_SUBST(APPLI_LIST)
 ############################################
 
 AC_ARG_WITH(idl-compiler,
-AS_HELP_STRING([--with-idl-compiler=x], [Internal configuration flag]),
+AS_HELP_STRING([--with-idl-compiler=x], [Select IDL compiler]),
 [
   IDLAC=${withval}
 ],
