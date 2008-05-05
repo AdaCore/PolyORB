@@ -1,5 +1,5 @@
-orb.idl:44:01: Conforming to the IDL grammar, a semi-colon is expected here
-CORBA_InterfaceRepository.idl:10:01: Conforming to the IDL grammar, a semi-colon is expected here
+orb.idl:66:05: warning: semicolon expected
+CORBA_InterfaceRepository.idl:10:05: warning: semicolon expected
 iac: 2 warning(s)
 import ::CORBA::ORB;
 module p {
