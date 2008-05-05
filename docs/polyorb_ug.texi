@@ -809,6 +809,12 @@ Available options for the 'configure' script include:
       e.g.   @option{--with-proto-perso="giop soap"} to build both the GIOP
              and SOAP personalities
 
+@item  @option{--with-idl-compiler="..."}: select default IDL compiler
+
+       Available IDL compilers: iac, idlac
+
+       e.g.  @option{--with-idl-compiler=''iac''} to build iac
+
 @item  @option{--with-corba-services="..."}: CORBA COS services to build
 
       Available services: event, ir, naming, notification, time
