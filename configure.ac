@@ -271,7 +271,7 @@ AS_HELP_STRING([--with-idl-compiler=x], [Select IDL compiler]),
   IDLAC=${withval}
 ],
 [
-  IDLAC=idlac
+  IDLAC=iac
 ])
 AC_SUBST(IDLAC)
 AM_IDLCPP_NEEDS_DOT
