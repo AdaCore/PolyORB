@@ -1,5 +1,5 @@
 ========================================================
-PolyORB 2.4 NEW FEATURES LIST Current as of Mar 17, 2008
+PolyORB 2.4 NEW FEATURES LIST Current as of May 05, 2008
 ========================================================
 
 Copyright (c) 2008, AdaCore
@@ -11,6 +11,15 @@ An ISO date (YYYY-MM-DD) appears in parentheses after the description line.
 This date shows the implementation date of the feature. Any 2.4w wavefront
 subsequent to this date will contain the indicated feature, as will any
 subsequent releases.
+
+NF-24-G726-017 IAC is now the default IDL compiler (2008-05-08)
+
+  iac is the new IDL compiler provided by PolyORB. It reuse idlac's
+  command line interface, preserving compatibility. It also has new
+  features, including:
+  - use of minimum perfect hashing tables for optimising skeletons 
+  - generation of static marshallers for faster request management 
+  - pretty printing of IDL file
 
 NF-24-H311-027 No default MIOP access point address (2008-03-17)
 
