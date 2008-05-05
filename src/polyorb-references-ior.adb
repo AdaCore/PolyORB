@@ -66,8 +66,20 @@ package body PolyORB.References.IOR is
 
    Callbacks : Profile_Record_List.List;
 
+   type IOR_Streamer is new Ref_Streamer with null record;
+
+   procedure Read
+     (R : access IOR_Streamer;
+      S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out Ref'Class);
+
+   procedure Write
+     (R : access IOR_Streamer;
+      S : access Ada.Streams.Root_Stream_Type'Class;
+      V : Ref'Class);
+
    ----------------------
-   -- Marshall Profile --
+   -- Marshall_Profile --
    ----------------------
 
    procedure Marshall_Profile
@@ -107,6 +119,21 @@ package body PolyORB.References.IOR is
          Next (Iter);
       end loop;
    end Marshall_Profile;
+
+   ----------
+   -- Read --
+   ----------
+
+   procedure Read
+     (R : access IOR_Streamer;
+      S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out Ref'Class)
+   is
+      pragma Unreferenced (R);
+      Opaque : aliased Stream_Element_Array := Stream_Element_Array'Input (S);
+   begin
+      Ref (V) := Opaque_To_Object (Opaque'Access);
+   end Read;
 
    ------------------------
    -- Unmarshall_Profile --
@@ -363,6 +390,20 @@ package body PolyORB.References.IOR is
       Append (Callbacks, Elt);
    end Register;
 
+   -----------
+   -- Write --
+   -----------
+
+   procedure Write
+     (R : access IOR_Streamer;
+      S : access Ada.Streams.Root_Stream_Type'Class;
+      V : Ref'Class)
+   is
+      pragma Unreferenced (R);
+   begin
+      Stream_Element_Array'Output (S, Object_To_Opaque (Ref (V)));
+   end Write;
+
    ----------------
    -- Initialize --
    ----------------
@@ -372,6 +413,7 @@ package body PolyORB.References.IOR is
    procedure Initialize is
    begin
       Register_String_To_Object (IOR_Prefix, String_To_Object'Access);
+      References.The_Ref_Streamer := new IOR_Streamer;
    end Initialize;
 
    use PolyORB.Initialization;

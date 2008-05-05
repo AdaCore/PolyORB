@@ -791,7 +791,6 @@ AC_OUTPUT([
 	compilers/gnatprfh/Makefile
 	compilers/gnatprfh/gnatprfh.adb
 	compilers/iac/Makefile
-	compilers/iac/testsuite/Makefile
 	compilers/idlac/Makefile
 	compilers/idlac/testsuite/Makefile
 	docs/Makefile

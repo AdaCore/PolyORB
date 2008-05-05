@@ -331,6 +331,71 @@ package body System.Partition_Interface is
       PolyORB.Opaque.Free (S);
    end BS_To_Any;
 
+   ---------------------------
+   -- Build_Local_Reference --
+   ---------------------------
+
+   procedure Build_Local_Reference
+     (Addr     :        System.Address;
+      Typ      :        String;
+      Receiver : access Servant;
+      Ref      :    out PolyORB.References.Ref)
+   is
+      use PolyORB.Errors;
+      use type PolyORB.Obj_Adapters.Obj_Adapter_Access;
+
+      Last : Integer := Typ'Last;
+
+      Error : Error_Container;
+   begin
+      if Last in Typ'Range and then Typ (Last) = ASCII.NUL then
+         Last := Last - 1;
+      end if;
+
+      if Addr /= Null_Address then
+         pragma Assert (Receiver.Object_Adapter /= null);
+
+         declare
+            Key : aliased PolyORB.Objects.Object_Id := To_Local_Oid (Addr);
+
+            U_Oid : PolyORB.POA_Types.Unmarshalled_Oid;
+            Oid : PolyORB.POA_Types.Object_Id_Access;
+
+         begin
+            PolyORB.POA.Activate_Object
+              (Self      => PolyORB.POA.Obj_Adapter_Access
+                              (Receiver.Object_Adapter),
+               P_Servant => null,
+               Hint      => Key'Unchecked_Access,
+               U_Oid     => U_Oid,
+               Error     => Error);
+
+            if Found (Error) then
+               PolyORB.DSA_P.Exceptions.Raise_From_Error (Error);
+            end if;
+
+            Oid := PolyORB.POA_Types.U_Oid_To_Oid (U_Oid);
+
+            if Found (Error) then
+               PolyORB.DSA_P.Exceptions.Raise_From_Error (Error);
+            end if;
+
+            PolyORB.ORB.Create_Reference
+              (PolyORB.Setup.The_ORB,
+               Oid, "DSA:" & Typ (Typ'First .. Last), Ref);
+
+            PolyORB.Objects.Free (Oid);
+         end;
+      end if;
+   exception
+      when E : others =>
+         pragma Debug
+           (C, O ("Build_Local_Reference: got exception "
+                 & Ada.Exceptions.Exception_Information (E)));
+         pragma Debug (C, O ("returning a nil ref."));
+         null;
+   end Build_Local_Reference;
+
    ------------------------
    -- Caseless_String_Eq --
    ------------------------
@@ -968,6 +1033,71 @@ package body System.Partition_Interface is
       end;
    end Get_Nested_Sequence_Length;
 
+   --------------
+   -- Get_RACW --
+   --------------
+
+   function Get_RACW
+     (Ref              : PolyORB.References.Ref;
+      Stub_Tag         : Ada.Tags.Tag;
+      Is_RAS           : Boolean;
+      Asynchronous     : Boolean) return System.Address
+   is
+      Is_Local     : Boolean;
+      Addr         : System.Address;
+
+      Stub_Obj     : aliased RACW_Stub_Type;
+      Stub_Acc     : RACW_Stub_Type_Access := Stub_Obj'Unchecked_Access;
+
+      Stub_Obj_Tag : access Ada.Tags.Tag;
+
+   begin
+      --  Case of a nil reference: return a null address
+
+      if Is_Nil (Ref) then
+         return Null_Address;
+      end if;
+
+      Get_Local_Address (Ref, Is_Local, Addr);
+
+      --  Local case: return address of local object
+
+      if Is_Local then
+         declare
+            RAS_Proxy : RAS_Proxy_Type;
+            for RAS_Proxy'Address use Addr;
+            pragma Import (Ada, RAS_Proxy);
+         begin
+            if not (Is_RAS and then RAS_Proxy.All_Calls_Remote) then
+               return Addr;
+            end if;
+         end;
+      end if;
+
+      --  Remote case: return address of stub
+
+      Stub_Obj.Target := Entity_Of (Ref);
+      Inc_Usage (Stub_Obj.Target);
+
+      Stub_Obj.Asynchronous := Asynchronous;
+
+      Get_Unique_Remote_Pointer (Stub_Acc);
+
+      --  Fix up stub tag. This is safe because we carefully ensure that
+      --  all stub types have the same layout as RACW_Stub_Type.
+
+      declare
+         CW_Stub_Obj : RACW_Stub_Type'Class
+                         renames RACW_Stub_Type'Class (Stub_Acc.all);
+         --  Class-wide view of stub object, to which 'Tag can be applied
+      begin
+         Stub_Obj_Tag := CW_Stub_Obj'Tag'Unrestricted_Access;
+         Stub_Obj_Tag.all := Stub_Tag;
+      end;
+
+      return Stub_Acc.all'Address;
+   end Get_RACW;
+
    ------------------
    -- Get_RAS_Info --
    ------------------
@@ -1013,8 +1143,7 @@ package body System.Partition_Interface is
                     (0 .. Rec_Stub.Subp_Info_Len - 1);
 
                   package Subp_Info_Addr_Conv is
-                     new System.Address_To_Access_Conversions
-                    (Subp_Array);
+                     new System.Address_To_Access_Conversions (Subp_Array);
 
                   Subp_Info : constant Subp_Info_Addr_Conv.Object_Pointer
                     := Subp_Info_Addr_Conv.To_Pointer (Rec_Stub.Subp_Info);
@@ -1050,8 +1179,7 @@ package body System.Partition_Interface is
 
             pragma Assert (Addr /= System.Null_Address);
 
-            Get_Reference
-              (Addr, Pkg_Name, Receiver, Subp_Ref);
+            Build_Local_Reference (Addr, Pkg_Name, Receiver, Subp_Ref);
          end;
       else
          declare
@@ -1060,7 +1188,7 @@ package body System.Partition_Interface is
             PSNNC.Set (Ctx_Ref, Entity_Of (Info.Base_Ref));
 
             Subp_Ref := PSNNC.Client.Resolve
-              (Ctx_Ref, To_Name (Subprogram_Name, "SUBP"));
+                          (Ctx_Ref, To_Name (Subprogram_Name, "SUBP"));
          end;
       end if;
    end Get_RAS_Info;
@@ -1069,69 +1197,58 @@ package body System.Partition_Interface is
    -- Get_Reference --
    -------------------
 
-   procedure Get_Reference
-     (Addr     :        System.Address;
-      Typ      :        String;
-      Receiver : access Servant;
-      Ref      :    out PolyORB.References.Ref)
+   function Get_Reference
+     (RACW             : System.Address;
+      Type_Name        : String;
+      Stub_Tag         : Ada.Tags.Tag;
+      Is_RAS           : Boolean;
+      Receiver         : access Servant) return PolyORB.References.Ref
    is
-      use PolyORB.Errors;
-      use type PolyORB.Obj_Adapters.Obj_Adapter_Access;
+      RACW_Stub : RACW_Stub_Type;
+      for RACW_Stub'Address use RACW;
+      pragma Import (Ada, RACW_Stub);
 
-      Last : Integer := Typ'Last;
+      CW_RACW_Stub : RACW_Stub_Type'Class
+                       renames RACW_Stub_Type'Class (RACW_Stub);
 
-      Error : Error_Container;
+      use type Ada.Tags.Tag;
+
    begin
-      if Last in Typ'Range and then Typ (Last) = ASCII.NUL then
-         Last := Last - 1;
-      end if;
+      --  Null case
 
-      if Addr /= Null_Address then
-         pragma Assert (Receiver.Object_Adapter /= null);
+      if RACW = System.Null_Address then
+         --  Nothing to do, default initialization for Result is Nil
+
+         return Nil_Ref;
+
+      --  Case of a remote object
+
+      elsif CW_RACW_Stub'Tag = Stub_Tag then
+         return Make_Ref (RACW_Stub.Target);
+
+      --  Case of a local object
+
+      elsif Is_RAS then
+         --  Remote access to subprogram: use ref from proxy
 
          declare
-            Key : aliased PolyORB.Objects.Object_Id
-              := To_Local_Oid (Addr);
-
-            U_Oid : PolyORB.POA_Types.Unmarshalled_Oid;
-            Oid : PolyORB.POA_Types.Object_Id_Access;
-
+            RAS_Proxy : RAS_Proxy_Type;
+            for RAS_Proxy'Address use RACW;
+            pragma Import (Ada, RAS_Proxy);
          begin
-            PolyORB.POA.Activate_Object
-              (Self      => PolyORB.POA.Obj_Adapter_Access
-                 (Receiver.Object_Adapter),
-               P_Servant => null,
-               Hint      => Key'Unchecked_Access,
-               U_Oid     => U_Oid,
-               Error     => Error);
+            return Make_Ref (RAS_Proxy.Target);
+         end;
 
-            if Found (Error) then
-               PolyORB.DSA_P.Exceptions.Raise_From_Error (Error);
-            end if;
+      else
+         --  Local object
 
-            Oid := PolyORB.POA_Types.U_Oid_To_Oid (U_Oid);
-
-            if Found (Error) then
-               PolyORB.DSA_P.Exceptions.Raise_From_Error (Error);
-            end if;
-
-            PolyORB.ORB.Create_Reference
-              (PolyORB.Setup.The_ORB,
-               Oid,
-               "DSA:" & Typ (Typ'First .. Last),
-               Ref);
-
-            PolyORB.Objects.Free (Oid);
+         declare
+            Result : PolyORB.References.Ref;
+         begin
+            Build_Local_Reference (RACW, Type_Name, Receiver, Result);
+            return Result;
          end;
       end if;
-   exception
-      when E : others =>
-         pragma Debug
-           (C, O ("Get_Reference: got exception "
-                 & Ada.Exceptions.Exception_Information (E)));
-         pragma Debug (C, O ("returning a nil ref."));
-         null;
-
    end Get_Reference;
 
    -------------------------------
