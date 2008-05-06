@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -51,6 +51,8 @@
 --  This is a derived version of GNAT.Dynamic_Table, simplified in order
 --  to be preelaborable.
 
+pragma Ada_2005;
+
 generic
    type Table_Component_Type is private;
    type Table_Index_Type     is range <>;
@@ -88,27 +90,35 @@ generic
 package PolyORB.Utils.Dynamic_Tables is
 
    pragma Preelaborate;
+   pragma Remote_Types;
 
    type Table_Type is
      array (Table_Index_Type range <>) of Table_Component_Type;
-
-   type Table_Ptr is access all Table_Type;
-   --  The table is actually represented as a pointer to allow
-   --  reallocation.
 
    type Table_Private is private;
    --  Table private data that is not exported in Instance
 
    type Instance is record
-      Table : aliased Table_Ptr := null;
+      Table : access Table_Type;
       --  The table itself. The lower bound is the value of Low_Bound.
       --  Logically the upper bound is the current value of Last (although
       --  the actual size of the allocated table may be larger than this).
       --  The program may only access and modify Table entries in the
       --  range First .. Last.
 
-      P : Table_Private;
+      P     : Table_Private;
    end record;
+
+   procedure Read
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      X : out Instance);
+
+   procedure Write
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      X : Instance);
+
+   for Instance'Read  use Read;
+   for Instance'Write use Write;
 
    procedure Initialize (T : in out Instance);
    --  This procedure allocates a new table of size Initial (freeing any

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -54,6 +54,10 @@ package body PolyORB.Utils.Dynamic_Tables is
    --  in Max. Works correctly to do an initial allocation if the table
    --  is currently null.
 
+   type Table_Ptr is access all Table_Type;
+   --  The table is actually represented as a pointer to allow
+   --  reallocation.
+
    procedure Free_Table is
      new Ada.Unchecked_Deallocation (Table_Type, Table_Ptr);
 
@@ -76,7 +80,7 @@ package body PolyORB.Utils.Dynamic_Tables is
 
    procedure Deallocate (T : in out Instance) is
    begin
-      Free_Table (T.Table);
+      Free_Table (Table_Ptr (T.Table));
       T.P.Length := 0;
    end Deallocate;
 
@@ -178,13 +182,31 @@ package body PolyORB.Utils.Dynamic_Tables is
       return Result;
    end Duplicate;
 
+   ----------
+   -- Read --
+   ----------
+
+   procedure Read
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      X : out Instance)
+   is
+      Last : Table_Index_Type;
+      Len  : constant Natural := Natural'Input (S);
+   begin
+      if Len > 0 then
+         Table_Index_Type'Read (S, Last);
+         Set_Last (X, Last);
+         for I in X.Table'Range loop
+            Table_Component_Type'Read (S, X.Table (I));
+         end loop;
+      end if;
+   end Read;
+
    ----------------
    -- Reallocate --
    ----------------
 
    procedure Reallocate (T : in out Instance) is
-      Old_Table : Table_Ptr := T.Table;
-
    begin
       if T.P.Max < T.P.Last_Val then
          while T.P.Max < T.P.Last_Val loop
@@ -203,14 +225,17 @@ package body PolyORB.Utils.Dynamic_Tables is
 
       if T.Table = null then
          T.Table := new Table_Type (Table_Low_Bound ..
-                                    Table_Index_Type (T.P.Max));
+                                      Table_Index_Type (T.P.Max));
 
       elsif T.P.Max >= Table_First then
-         T.Table := new Table_Type (Table_Low_Bound ..
-                                    Table_Index_Type (T.P.Max));
-
-         T.Table (Old_Table'Range) := Old_Table (Old_Table'Range);
-         Free_Table (Old_Table);
+         declare
+            Old_Table : Table_Ptr := T.Table.all'Unchecked_Access;
+         begin
+            T.Table := new Table_Type (Table_Low_Bound ..
+                                         Table_Index_Type (T.P.Max));
+            T.Table (Old_Table'Range) := Old_Table (Old_Table'Range);
+            Free_Table (Old_Table);
+         end;
       end if;
    end Reallocate;
 
@@ -246,5 +271,24 @@ package body PolyORB.Utils.Dynamic_Tables is
    begin
       return Integer (Table_Low_Bound);
    end Table_First;
+
+   -----------
+   -- Write --
+   -----------
+
+   procedure Write
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      X : Instance) is
+   begin
+      if X.P.Initialized = False or X.Table'Length = 0 then
+         Natural'Write (S, 0);
+      else
+         Natural'Write (S, X.Table'Length);
+         Table_Index_Type'Write (S, Last (X));
+         for I in X.Table'Range loop
+            Table_Component_Type'Write (S, X.Table (I));
+         end loop;
+      end if;
+   end Write;
 
 end PolyORB.Utils.Dynamic_Tables;
