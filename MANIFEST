@@ -136,7 +136,6 @@ compilers/iac/parser.adb
 compilers/iac/parser.ads
 compilers/iac/scopes.adb
 compilers/iac/scopes.ads
-compilers/iac/testsuite/
 compilers/iac/usage.adb
 compilers/iac/usage.ads
 compilers/iac/values.adb
