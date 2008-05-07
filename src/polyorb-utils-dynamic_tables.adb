@@ -229,12 +229,13 @@ package body PolyORB.Utils.Dynamic_Tables is
       end if;
 
       if Table_Address = System.Null_Address then
-      --  WAG:62
-      --  Here we need to test if Table is null. In equality below,
-      --  "null" is a valid literal for the anonymous access type of
-      --  the record component in Ada 2005, but when the instance of
-      --  this generic package is compiled in Ada 95 mode, this generates
-      --  an instanciation error.
+
+         --  WAG:62
+         --  Here we need to test if Table is null. In equality below, "null"
+         --  is a valid literal for the anonymous access type of the record
+         --  component in Ada 2005, but when the instance of this generic
+         --  package is compiled in Ada 95 mode, this generates an
+         --  instantiation error.
 
          T.Table := new Table_Type (Table_Low_Bound ..
                                       Table_Index_Type (T.P.Max));
