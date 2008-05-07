@@ -34,7 +34,10 @@
 --  This package provides one-dimensional, variable-size arrays support.
 --  See the package specification for more details.
 
+pragma Ada_2005;
+
 with Ada.Unchecked_Deallocation;
+with System;
 
 package body PolyORB.Utils.Dynamic_Tables is
 
@@ -190,16 +193,13 @@ package body PolyORB.Utils.Dynamic_Tables is
      (S : access Ada.Streams.Root_Stream_Type'Class;
       X : out Instance)
    is
-      Last : Table_Index_Type;
-      Len  : constant Natural := Natural'Input (S);
+      Last_Index : Table_Index_Type;
    begin
-      if Len > 0 then
-         Table_Index_Type'Read (S, Last);
-         Set_Last (X, Last);
-         for I in X.Table'Range loop
-            Table_Component_Type'Read (S, X.Table (I));
-         end loop;
-      end if;
+      Table_Index_Type'Read (S, Last_Index);
+      Set_Last (X, Last_Index);
+      for J in First (X) .. Last (X) loop
+         Table_Component_Type'Read (S, X.Table (J));
+      end loop;
    end Read;
 
    ----------------
@@ -207,6 +207,11 @@ package body PolyORB.Utils.Dynamic_Tables is
    ----------------
 
    procedure Reallocate (T : in out Instance) is
+      use type System.Address;
+      Table_Address : System.Address;
+      for Table_Address'Address use T.Table'Address;
+      pragma Import (Ada, Table_Address);
+
    begin
       if T.P.Max < T.P.Last_Val then
          while T.P.Max < T.P.Last_Val loop
@@ -223,7 +228,14 @@ package body PolyORB.Utils.Dynamic_Tables is
          end loop;
       end if;
 
-      if T.Table = null then
+      if Table_Address = System.Null_Address then
+      --  WAG:62
+      --  Here we need to test if Table is null. In equality below,
+      --  "null" is a valid literal for the anonymous access type of
+      --  the record component in Ada 2005, but when the instance of
+      --  this generic package is compiled in Ada 95 mode, this generates
+      --  an instanciation error.
+
          T.Table := new Table_Type (Table_Low_Bound ..
                                       Table_Index_Type (T.P.Max));
 
@@ -280,15 +292,10 @@ package body PolyORB.Utils.Dynamic_Tables is
      (S : access Ada.Streams.Root_Stream_Type'Class;
       X : Instance) is
    begin
-      if X.P.Initialized = False or X.Table'Length = 0 then
-         Natural'Write (S, 0);
-      else
-         Natural'Write (S, X.Table'Length);
-         Table_Index_Type'Write (S, Last (X));
-         for I in X.Table'Range loop
-            Table_Component_Type'Write (S, X.Table (I));
-         end loop;
-      end if;
+      Table_Index_Type'Write (S, Last (X));
+      for J in First (X) .. Last (X) loop
+         Table_Component_Type'Write (S, X.Table (J));
+      end loop;
    end Write;
 
 end PolyORB.Utils.Dynamic_Tables;
