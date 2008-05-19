@@ -169,11 +169,11 @@ begin
       K := K + 1;
    end loop;
 
-   Initialize (Seed, Default_K_To_V, Optim);
-
    V := 2 * K + 1;
    loop
       begin
+         K_To_V := Float (V) / Float (K);
+         Initialize (Seed, K_To_V, Optim);
          Compute (Position.all);
          exit;
       exception when others =>
@@ -181,11 +181,9 @@ begin
             raise;
          end if;
          V := V + 1;
-         K_To_V := Float (V) / Float (K);
-         Initialize (Seed, K_To_V, Optim);
       end;
    end loop;
 
    Produce (Pkg_Name.all);
-
+   Finalize;
 end GNATPrfh;
