@@ -163,13 +163,13 @@ begin
       Set_Input (File);
    end if;
 
-   Initialize (Seed, Default_K_To_V, Optim);
-
    while not End_Of_File (Current_Input) loop
       Get_Line (Buffer, Last);
       Insert (Buffer (1 .. Last));
       K := K + 1;
    end loop;
+
+   Initialize (Seed, Default_K_To_V, Optim);
 
    V := 2 * K + 1;
    loop
