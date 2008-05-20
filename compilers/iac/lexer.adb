@@ -251,6 +251,10 @@ package body Lexer is
    procedure New_Line;
    --  Increment the line number and save the current position in the
    --  buffer in order to compute later on the column number.
+   --  Also, if we have CRLF (carriage return followed by line feed), skip
+   --  ahead one character, in order to treat the two characters as a single
+   --  end-of-line. We do the same for LFCR, even though no supported operating
+   --  systems use that sequence, because that's what the GNAT compiler does.
 
    procedure Skip_Spaces;
    --  Skip all spaces
@@ -447,6 +451,26 @@ package body Lexer is
 
    procedure New_Line is
    begin
+      --  If we have CRLF or LFCR, skip ahead one character, so we treat that
+      --  as a single end-of-line
+
+      case Buffer (Token_Location.Scan) is
+         when LF =>
+            if Buffer (Token_Location.Scan + 1) = CR then
+               Token_Location.Scan := Token_Location.Scan + 1;
+            end if;
+         when CR =>
+            if Buffer (Token_Location.Scan + 1) = LF then
+               Token_Location.Scan := Token_Location.Scan + 1;
+            end if;
+         when FF | VT =>
+            null;
+         when others =>
+            raise Program_Error;  --  Caller makes sure we're at end-of-line
+      end case;
+
+      --  Increment line number and save current position
+
       Token_Location.Scan := Token_Location.Scan + 1;
       Token_Location.First := Token_Location.Scan;
       Token_Location.Last  := Token_Location.Scan;
@@ -1770,7 +1794,7 @@ package body Lexer is
    begin
       loop
          Save_Lexer (State);
-         Scan_Token (False);
+         Scan_Token (Fatal => False);
 
          exit when Token = T_EOF;
 
