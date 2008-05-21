@@ -53,6 +53,8 @@ project Common is
    Source_Dir := Config.Top_Source_Dir;
    --  Used to set source dir of importing projects
 
+   Cfg_Pragmas_Switch := "-gnatec=" & Build_Dir & "src/config.adc";
+
    package Compiler is
 
       Base_Ada_Compiler_Switches :=
@@ -60,6 +62,7 @@ project Common is
          "-gnati1",           --  Full ISO 8859-1 character set allowed in
                               --  source code (for generated CORBA stubs)
          "-gnatf",            --  Full compiler error messages
+         Cfg_Pragmas_Switch,  --  Configuration pragmas from configure
          Config.Style_Switch, --  Enable style checks
          "-gnatwal" & Warnings_Mode);
                               --  Enable all warnings, also enable elaboration
