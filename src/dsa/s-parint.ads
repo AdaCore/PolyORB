@@ -61,6 +61,7 @@ with PolyORB.Utils.Chained_Lists;
 with PolyORB.Utils.Strings;
 with PolyORB.Initialization;
 
+with System.DSA_Types;
 with System.RPC;
 with System.Unsigned_Types;
 
@@ -76,6 +77,8 @@ package System.Partition_Interface is
    --  Version of the PCS API (for Exp_Dist consistency check).
    --  This version number is matched against Gnatvsn.PCS_Version_Number to
    --  ensure that the versions of Exp_Dist and the PCS are consistent.
+
+   package DSAT renames System.DSA_Types;
 
    type Subprogram_Id is new Natural;
    --  This type is used exclusively by stubs
@@ -391,6 +394,7 @@ package System.Partition_Interface is
 --       function FA_AD (Item : Any) return X;
 --       function FA_AS (Item : Any) return X;
 
+   function FA_A (Item : Any) return DSAT.Any_Container_Ptr;
    function FA_B (Item : Any) return Boolean;
    function FA_C (Item : Any) return Character;
    function FA_F (Item : Any) return Float;
@@ -423,9 +427,7 @@ package System.Partition_Interface is
 --     function TA_AD (X) return Any;
 --     function TA_AS (X) return Any;
 
-   function TA_A (A : Any) return Any
-     renames PolyORB.Any.To_Any;
-
+   function TA_A (Item : DSAT.Any_Container_Ptr) return Any;
    function TA_B (Item : Boolean) return Any;
    function TA_C (Item : Character) return Any;
    function TA_F (Item : Float) return Any;
@@ -461,6 +463,8 @@ package System.Partition_Interface is
    --  The typecodes below define the mapping of Ada elementary
    --  types onto PolyORB types.
 
+   function TC_A return PolyORB.Any.TypeCode.Local_Ref
+     renames PolyORB.Any.TC_Any;
    function TC_B return PolyORB.Any.TypeCode.Local_Ref
      renames PolyORB.Any.TC_Boolean;
    function TC_C return PolyORB.Any.TypeCode.Local_Ref
@@ -473,8 +477,6 @@ package System.Partition_Interface is
    --  (or the biggest PolyORB type for each Ada type should be selected, if
    --  cross-platform interoperability is desired.
 
-   function TC_Any return PolyORB.Any.TypeCode.Local_Ref
-     renames PolyORB.Any.TC_Any;
    function TC_I return PolyORB.Any.TypeCode.Local_Ref
      renames PolyORB.Any.TC_Long;
    function TC_LF return PolyORB.Any.TypeCode.Local_Ref

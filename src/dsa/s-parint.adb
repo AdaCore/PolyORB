@@ -687,6 +687,11 @@ package body System.Partition_Interface is
    -- From_Any --
    --------------
 
+   function FA_A (Item : PolyORB.Any.Any) return DSAT.Any_Container_Ptr is
+   begin
+      return DSAT.Any_Container_Ptr (Entity_Of (Unchecked_Get_V (Item).all));
+   end FA_A;
+
    function FA_B (Item : PolyORB.Any.Any) return Boolean is
    begin
       return Boolean (PolyORB.Types.Boolean'(From_Any (Item)));
@@ -1948,6 +1953,13 @@ package body System.Partition_Interface is
    ------------
    -- To_Any --
    ------------
+
+   function TA_A (Item : DSAT.Any_Container_Ptr) return PolyORB.Any.Any is
+      Item_A : PolyORB.Any.Any;
+   begin
+      Set (Item_A, Item);
+      return PolyORB.Any.To_Any (Item_A);
+   end TA_A;
 
    function TA_B (Item : Boolean) return PolyORB.Any.Any is
    begin
