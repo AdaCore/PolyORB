@@ -837,7 +837,6 @@ AC_OUTPUT([
 	src/soap/Makefile
 	src/srp/Makefile
 	src/ssl/Makefile
-	src/debug.adc
 	src/polyorb-platform.ads
 	src/polyorb-platform-ssl_linker_options.ads
 	src/ravenscar.adc
