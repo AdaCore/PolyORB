@@ -571,6 +571,9 @@ package PolyORB.Any is
    function Get_Container (A : Any) return Any_Container_Ptr;
    --  Get the container designated by A
 
+   procedure Set_Container (A : in out Any; ACP : Any_Container_Ptr);
+   --  Set the container designated by A to ACP
+
    function Get_Value (C : Any_Container'Class) return Content_Ptr;
    --  Retrieve a pointer to C's contents wrapper. This pointer shall not be
    --  permanently saved.

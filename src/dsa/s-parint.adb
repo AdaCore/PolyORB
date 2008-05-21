@@ -688,8 +688,12 @@ package body System.Partition_Interface is
    --------------
 
    function FA_A (Item : PolyORB.Any.Any) return DSAT.Any_Container_Ptr is
+      Item_ACP : constant PolyORB.Any.Any_Container_Ptr :=
+                   PolyORB.Any.Get_Container (PolyORB.Any.From_Any (Item));
+      function To_DSAT_ACP is new Ada.Unchecked_Conversion
+        (PolyORB.Any.Any_Container_Ptr, DSAT.Any_Container_Ptr);
    begin
-      return DSAT.Any_Container_Ptr (Entity_Of (Unchecked_Get_V (Item).all));
+      return To_DSAT_ACP (Item_ACP);
    end FA_A;
 
    function FA_B (Item : PolyORB.Any.Any) return Boolean is
@@ -1955,9 +1959,11 @@ package body System.Partition_Interface is
    ------------
 
    function TA_A (Item : DSAT.Any_Container_Ptr) return PolyORB.Any.Any is
+      function To_PolyORB_ACP is new Ada.Unchecked_Conversion
+        (DSAT.Any_Container_Ptr, PolyORB.Any.Any_Container_Ptr);
       Item_A : PolyORB.Any.Any;
    begin
-      Set (Item_A, Item);
+      PolyORB.Any.Set_Container (Item_A, To_PolyORB_ACP (Item));
       return PolyORB.Any.To_Any (Item_A);
    end TA_A;
 

@@ -2110,6 +2110,15 @@ package body PolyORB.Any is
            (X, Max_Length => Bound), C);
    end Set_Any_Value;
 
+   -------------------
+   -- Set_Container --
+   -------------------
+
+   procedure Set_Container (A : in out Any; ACP : Any_Container_Ptr) is
+   begin
+      Set (A, Smart_Pointers.Entity_Ptr (ACP));
+   end Set_Container;
+
    --------------
    -- Set_Type --
    --------------
