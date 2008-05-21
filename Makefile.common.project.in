@@ -27,16 +27,6 @@ srp_lib=$(top_builddir)/src/srp/libpolyorb-srp.la
 
 web_common_lib=$(top_builddir)/src/web_common/libpolyorb-web_common.la
 
-POLYORB_LIBS=	$(top_builddir)/src/libpolyorb.la \
-		$(top_builddir)/src/setup/libpolyorb-setup.la \
-		@PROTO_LIBS@ \
-		@APPLI_LIBS@ \
-		@LIBS_LIBS@
-
-ifeq (${HAVE_SSL},yes)
-POLYORB_LIBS += $(top_builddir)/src/ssl/libpolyorb-ssl.la
-endif
-
 #
 # PolyORB's libraries -- NEW (should replace above)???
 #
@@ -63,11 +53,14 @@ srp_lib=libpolyorb-srp.a
 
 web_common_lib=libpolyorb-web_common.a
 
+# Build libpolyorb-setup last, since its project file has dependencies on
+# the various personality projects.
+
 POLYORB_LIBS=	libpolyorb.a \
-		libpolyorb-setup.a \
 		@PROTO_LIBS@ \
 		@APPLI_LIBS@ \
-		@LIBS_LIBS@
+		@LIBS_LIBS@ \
+		libpolyorb-setup.a
 
 ifeq (${HAVE_SSL},yes)
 POLYORB_LIBS += libpolyorb-ssl.a
