@@ -690,6 +690,11 @@ package body System.Partition_Interface is
    function FA_A (Item : PolyORB.Any.Any) return DSAT.Any_Container_Ptr is
       Item_ACP : constant PolyORB.Any.Any_Container_Ptr :=
                    PolyORB.Any.Get_Container (PolyORB.Any.From_Any (Item));
+      pragma Warnings (Off);
+      --  No aliasing issues since DSAT.Any_Container_Ptr values are never
+      --  dereferenced without first being converted back to
+      --  PolyORB.Any.Any_Container_Ptr.
+
       function To_DSAT_ACP is new Ada.Unchecked_Conversion
         (PolyORB.Any.Any_Container_Ptr, DSAT.Any_Container_Ptr);
    begin
@@ -1959,8 +1964,13 @@ package body System.Partition_Interface is
    ------------
 
    function TA_A (Item : DSAT.Any_Container_Ptr) return PolyORB.Any.Any is
+      pragma Warnings (Off);
+      --  No aliasing issues since DSAT.Any_Container_Ptr always originally
+      --  comes from a PolyORB.Any.Any_Container_Ptr.
+
       function To_PolyORB_ACP is new Ada.Unchecked_Conversion
         (DSAT.Any_Container_Ptr, PolyORB.Any.Any_Container_Ptr);
+      pragma Warnings (On);
       Item_A : PolyORB.Any.Any;
    begin
       PolyORB.Any.Set_Container (Item_A, To_PolyORB_ACP (Item));

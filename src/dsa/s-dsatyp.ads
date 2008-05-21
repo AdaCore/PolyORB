@@ -48,5 +48,11 @@ package System.DSA_Types is
 
 private
    type Dummy_Any_Container is abstract tagged limited null record;
+
    type Any_Container_Ptr is access all Dummy_Any_Container'Class;
+   for Any_Container_Ptr'Storage_Size use 0;
+
+   --  This access type must never be derefenced, it is meant to be
+   --  unchecked-converted to PolyORB.Any.Any_Container_Ptr.
+
 end System.DSA_Types;
