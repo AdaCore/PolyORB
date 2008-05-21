@@ -181,7 +181,7 @@ Configuration
 * Compile-time configuration::
 * Run-time configuration::
 * Setting up protocol personalities::
-* Activating debug information::
+* Activating debugging traces::
 * Tracing exceptions::
 * polyorb.gpr::
 * polyorb-config::
@@ -1109,7 +1109,7 @@ communication protocol for Web Services.
 * Compile-time configuration::
 * Run-time configuration::
 * Setting up protocol personalities::
-* Activating debug information::
+* Activating debugging traces::
 * Tracing exceptions::
 * polyorb.gpr::
 * polyorb-config::
@@ -1437,17 +1437,17 @@ Each protocol supports a variety of configuration parameters, please
 refer to the protocols' sections for more details.
 
 @c -------------------------------------------------------------------
-@node Activating debug information
-@section Activating debug information
-@cindex Debug information
+@node Activating debugging traces
+@section Activating debugging traces
+@cindex Debugging traces
 @c -------------------------------------------------------------------
 
 @noindent
 To activate the output of debug information, you must first configure
-and compile PolyORB with debug activated, see
-@command{--enable-debug} flag in @ref{Installation}.
+and compile PolyORB with debugging traces activated (which is the default,
+unless your build is configured with @command{--enable-debug-policy=ignore}).
 
-To output debug information on a selected package, create a
+To output debugging traces on a selected package, create a
 configuration file with a @code{[log]} section and the name of the
 packages for which you want debug information:
 
@@ -1460,7 +1460,7 @@ polyorb.a_package=debug
 @noindent
 Note that some packages may not provide such information. See the sample
 configuration file @file{src/polyorb.conf} for the complete list of
-packages that provide debug information.
+packages that provide traces.
 
 @c -------------------------------------------------------------------
 @node Tracing exceptions
@@ -1469,12 +1469,8 @@ packages that provide debug information.
 @c -------------------------------------------------------------------
 
 @noindent
-To trace exception propagation in PolyORB's source code, it is
-necessary to:
-
-@enumerate
-@item compile PolyORB with debug activated,
-@item activate debug information on package @code{PolyORB.Exceptions}.
+To trace exception propagation in PolyORB's source code, activate debugging
+traces for package @code{PolyORB.Exceptions}.
 @end enumerate
 
 @c -------------------------------------------------------------------
