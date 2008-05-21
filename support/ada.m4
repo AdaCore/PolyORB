@@ -374,3 +374,32 @@ else
   EXCEPTION_MODEL="sjlj"
 fi
 ])
+
+dnl Usage: AM_ARG_ENABLE_POLICY(what, default)
+dnl Allow user to set configuration pragmas Assertion_Policy and Debug_Policy.
+dnl The provided default value may be overridden by earlier configure.ac
+dnl macros by setting xxx_POLICY_DEFAULT.
+
+define([downcase], [translit([$1], [A-Z], [a-z])])
+define([upcase], [translit([$1], [a-z], [A-Z])])
+
+AC_DEFUN([AM_ARG_ENABLE_POLICY],
+[
+define([_argname],downcase($1)[-policy])
+define([_varname],upcase($1)[_POLICY])
+define([_defname],upcase($1)[_POLICY_DEFAULT])
+_varname=${_defname:=$2}
+AC_ARG_ENABLE(_argname,
+AS_HELP_STRING([--enable-]_argname[=(Check|Ignore)], [Set ]$1[ policy @<:@default=$2@:>@]),
+[
+  case "`echo "${enableval}" | tr A-Z a-z`" in
+    yes|check) _varname=Check ;;
+    no|ignore) _varname=Ignore ;;
+    *) AC_MSG_ERROR("Invalid $1 policy identifier: ${enableval}") ;;
+  esac
+])
+AC_SUBST(_varname)
+undefine([_argname])
+undefine([_varname])
+undefine([_defname])
+])

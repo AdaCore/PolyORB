@@ -1,5 +1,5 @@
 ========================================================
-PolyORB 2.4 NEW FEATURES LIST Current as of May 07, 2008
+PolyORB 2.4 NEW FEATURES LIST Current as of May 21, 2008
 ========================================================
 
 Copyright (c) 2008, AdaCore
@@ -11,6 +11,14 @@ An ISO date (YYYY-MM-DD) appears in parentheses after the description line.
 This date shows the implementation date of the feature. Any 2.4w wavefront
 subsequent to this date will contain the indicated feature, as will any
 subsequent releases.
+
+NF-24-H521-008 Debug_Policy is now enabled by default (2008-05-21)
+
+  Configuration pragma Debug_Policy is now set to Check by default in all
+  PolyORB builds, to allow the user to obtain debugging traces under control
+  of the run-time configuration. Two new configure command line switches
+  are provided (--enable-assertion-policy and --enable-debug-policy) which
+  allow the user to override these two policies.
 
 NF-24-H311-027 No default MIOP access point address (2008-03-17)
 

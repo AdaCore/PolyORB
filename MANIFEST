@@ -889,6 +889,7 @@ src/Makefile.common
 src/Makefile.in
 src/ROADMAP
 src/TODO
+src/config.adc.in
 src/config.h.in
 src/corba/Makefile.am
 src/corba/Makefile.genfiles

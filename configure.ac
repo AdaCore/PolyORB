@@ -25,6 +25,8 @@ define(DEBUG_OPTIONS, [dnl
   if test ${CFLAGS-unset} = "unset"; then CFLAGS="-g -O0"; fi
   DEFAULT_ADAFLAGS="-XBuild=DEBUG"
   BARGS=-E
+  ASSERTION_POLICY_DEFAULT=Check
+  DEBUG_POLICY_DEFAULT=Check
   DEBUG_ONLY=""
   debug=true])
 
@@ -61,6 +63,9 @@ AS_HELP_STRING([--enable-warnings=X], [Set warnings processing to X (e/n/s)]),
 esac],
 [WARNINGS_MODE=$DEFAULT_WARNINGS_MODE])
 AC_SUBST(WARNINGS_MODE)
+
+AM_ARG_ENABLE_POLICY(assertion, Ignore)
+AM_ARG_ENABLE_POLICY(debug, Check)
 
 ##########################################
 # Set platform-specific supplementary CFLAGS and options
@@ -800,6 +805,7 @@ AC_OUTPUT([
 	projects-distrib/polyorb.gpr
 	projects-distrib/polyorb/src_setup.gpr
 	src/Makefile
+	src/config.adc
 	src/corba/Makefile
 	src/corba/dynamicany/Makefile
 	src/corba/iop/Makefile
