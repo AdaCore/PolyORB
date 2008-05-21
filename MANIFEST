@@ -1201,6 +1201,8 @@ src/dsa/polyorb-termination_manager.adb
 src/dsa/polyorb-termination_manager.ads
 src/dsa/s-dsaser.adb
 src/dsa/s-dsaser.ads
+src/dsa/s-dsatyp.adb
+src/dsa/s-dsatyp.ads
 src/dsa/s-parint.adb
 src/dsa/s-parint.ads
 src/giop/Makefile.am

@@ -58,8 +58,8 @@ project src_dsa is
 
       for Switches ("s-parint.adb") use Ada_RTL_Switches;
       for Switches ("s-dsaser.adb") use Ada_RTL_Switches;
+      for Switches ("s-dsatyp.adb") use Ada_RTL_Switches;
 
    end Compiler;
 
 end src_dsa;
-
