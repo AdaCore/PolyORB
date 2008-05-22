@@ -48,6 +48,8 @@ package Platform is
    IDL_Preprocessor : constant String := "@IDLCPP@ @IDLCPPFLAGS@";
    IDL_Preprocessor_Suffix : constant String := "@IDLCPP_OUTPUT_SUFFIX@";
 
+   Windows_On_Host : constant Boolean := @WINDOWS_ON_HOST@;
+
    Validity_Check_Name : constant String :=
    @SUPPRESS_VALIDITY_USE_VALIDITY@"Validity_Check";
    @SUPPRESS_VALIDITY_USE_RANGE@"Range_Check";

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,8 +31,12 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Charset;   use Charset;
-with Namet;     use Namet;
+with Ada.Command_Line;
+with Ada.Directories;
+with Charset;                   use Charset;
+with GNAT.Directory_Operations; use GNAT;
+with Namet;                     use Namet;
+with Platform;
 
 package body Utils is
 
@@ -57,6 +61,15 @@ package body Utils is
          end if;
       end loop;
    end Capitalize;
+
+   ----------------------
+   -- Is_Dir_Separator --
+   ----------------------
+
+   function Is_Dir_Separator (C : Character) return Boolean is
+   begin
+      return C = Directory_Operations.Dir_Separator or else C = '/';
+   end Is_Dir_Separator;
 
    ------------
    -- Quoted --
@@ -96,6 +109,23 @@ package body Utils is
    begin
       return Quoted (Get_Name_String (N), D);
    end Quoted;
+
+   -------------------------
+   -- Simple_Command_Name --
+   -------------------------
+
+   function Simple_Command_Name return String is
+      use Ada, Ada.Directories;
+      Name : constant String := Simple_Name (Command_Line.Command_Name);
+      Exe : constant String := "exe";
+   begin
+      if Platform.Windows_On_Host then
+         if To_Lower (Extension (Name)) = Exe then
+            return Base_Name (Name);
+         end if;
+      end if;
+      return Name;
+   end Simple_Command_Name;
 
    --------------
    -- To_Lower --

@@ -31,6 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with GNAT.Directory_Operations;
 with GNAT.Table;
 with GNAT.OS_Lib;       use GNAT.OS_Lib;
 
@@ -229,7 +230,7 @@ package body Parser is
             declare
                Full_Path : constant String
                  := IAC_Search_Paths (Index).all
-                 & Directory_Separator
+                 & GNAT.Directory_Operations.Dir_Separator
                  & File_Name_Str;
             begin
                if Is_Regular_File (Full_Path) then

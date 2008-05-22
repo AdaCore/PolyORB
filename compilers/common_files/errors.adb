@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,10 +31,9 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Command_Line;  use Ada.Command_Line;
-
-with Output;    use Output;
-with Namet;     use Namet;
+with Output; use Output;
+with Namet;  use Namet;
+with Utils;  use Utils;
 
 package body Errors is
 
@@ -72,7 +71,7 @@ package body Errors is
 
    begin
       if Error_Loc (L) = No_Location then
-         Set_Str_To_Name_Buffer (Command_Name);
+         Set_Str_To_Name_Buffer (Utils.Simple_Command_Name);
       else
          Set_Str_To_Name_Buffer (Image (Error_Loc (L)));
       end if;

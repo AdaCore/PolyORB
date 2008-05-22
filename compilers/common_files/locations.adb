@@ -31,9 +31,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with GNAT.OS_Lib; use GNAT.OS_Lib;
-
 with Namet; use Namet;
+with Utils; use Utils;
 
 package body Locations is
 
@@ -85,7 +84,7 @@ package body Locations is
       Get_Name_String (Name);
       Len := Name_Len;
       for I in reverse 1 .. Name_Len loop
-         if Name_Buffer (I) = Directory_Separator then
+         if Is_Dir_Separator (Name_Buffer (I)) then
             Name_Len := I - 1;
             Loc.Dir  := Name_Find;
             Set_Str_To_Name_Buffer (Name_Buffer (I + 1 .. Len));

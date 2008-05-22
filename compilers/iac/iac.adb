@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -34,8 +34,9 @@
 with Ada.Exceptions;
 with Ada.Command_Line;  use Ada.Command_Line;
 
-with GNAT.Command_Line; use GNAT.Command_Line;
-with GNAT.OS_Lib;       use GNAT.OS_Lib;
+with GNAT.Command_Line;         use GNAT.Command_Line;
+with GNAT.Directory_Operations; use GNAT;
+with GNAT.OS_Lib;               use GNAT.OS_Lib;
 
 with Analyzer;  use Analyzer;
 with Backend;   use Backend;
@@ -48,6 +49,7 @@ with Parser;    use Parser;
 with Scopes;    use Scopes;
 with Types;     use Types;
 with Usage;
+with Utils;     use Utils;
 
 with Frontend.Debug;
 
@@ -166,7 +168,7 @@ procedure IAC is
                --  We add the parameter WITHOUT the ending
                --  directory separator
 
-               if Parameter (Parameter'Last) = Directory_Separator then
+               if Is_Dir_Separator (Parameter (Parameter'Last)) then
                   Add_IAC_Search_Path
                     (Parameter (Parameter'First .. Parameter'Last - 1));
                else
@@ -211,11 +213,11 @@ procedure IAC is
                then
                   raise Invalid_Parameter;
                else
-                  if Parameter (Parameter'Last) = Directory_Separator then
+                  if Is_Dir_Separator (Parameter (Parameter'Last)) then
                      Output_Directory := new String'(Parameter);
                   else
                      Output_Directory := new String'
-                       (Parameter & Directory_Separator);
+                       (Parameter & Directory_Operations.Dir_Separator);
                   end if;
                end if;
 

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2004-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -46,4 +46,14 @@ package Utils is
    --  Embrace string S or name N with character D
 
    function To_Lower  (N : Name_Id) return Name_Id;
+
+   function Is_Dir_Separator (C : Character) return Boolean;
+   --  Returns True if C is a directory separator. Always True for '/', since
+   --  this is acceptable on Windows even though the "standard" one is '\'.
+
+   function Simple_Command_Name return String;
+   --  Returns the simple name of the command. Same as
+   --  Ada.Command_Line.Command_Name, except this strips off the directory and
+   --  extension, if any.
+
 end Utils;

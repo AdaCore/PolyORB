@@ -70,7 +70,7 @@ package body Idl_Fe.Files is
    is
    begin
       if Is_Directory (Path) then
-         if Path (Path'Last) = Dir_Separator then
+         if Is_Dir_Separator (Path (Path'Last)) then
             Search_Path.Append (new String'(Path));
          else
             Search_Path.Append (new String'(Path & Dir_Separator));
@@ -103,7 +103,7 @@ package body Idl_Fe.Files is
       --  and return File_Name as result.
 
       Separator := Index
-        (File_Name, To_Set (Directory_Separator & "/"), Inside, Backward);
+        (File_Name, To_Set (Dir_Separator & "/"), Inside, Backward);
 
       if Separator /= 0 then
          --  Directory prefix present: check file existence
