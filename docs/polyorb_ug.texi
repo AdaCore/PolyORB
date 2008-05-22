@@ -1471,7 +1471,6 @@ packages that provide traces.
 @noindent
 To trace exception propagation in PolyORB's source code, activate debugging
 traces for package @code{PolyORB.Exceptions}.
-@end enumerate
 
 @c -------------------------------------------------------------------
 @node polyorb.gpr
