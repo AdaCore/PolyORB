@@ -37,7 +37,7 @@ with Ada.Strings.Unbounded;
 with GNAT.Case_Util;
 with GNAT.Table;
 
-with Utils; use Utils;
+with Idlac_Utils; use Idlac_Utils;
 with Idl_Fe.Files;
 with Idl_Fe.Tree.Synthetic; use Idl_Fe.Tree, Idl_Fe.Tree.Synthetic;
 with Idl_Fe.Debug;

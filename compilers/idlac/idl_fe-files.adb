@@ -42,6 +42,7 @@ with GNAT.Table;
 
 with Idlac_Errors;
 with Platform;
+with Utils;
 
 package body Idl_Fe.Files is
 
@@ -70,7 +71,7 @@ package body Idl_Fe.Files is
    is
    begin
       if Is_Directory (Path) then
-         if Is_Dir_Separator (Path (Path'Last)) then
+         if Utils.Is_Dir_Separator (Path (Path'Last)) then
             Search_Path.Append (new String'(Path));
          else
             Search_Path.Append (new String'(Path & Dir_Separator));

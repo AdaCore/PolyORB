@@ -45,7 +45,7 @@ pragma Elaborate_All (Ada_Be.Debug);
 with Idlac_Errors; use Idlac_Errors;
 with Platform;     use Platform;
 with String_Sets;  use String_Sets;
-with Utils;        use Utils;
+with Idlac_Utils;  use Idlac_Utils;
 
 package body Ada_Be.Idl2Ada.Helper is
 
@@ -2873,10 +2873,10 @@ package body Ada_Be.Idl2Ada.Helper is
 
       if Is_Wide (Node) then
          PL (CU, "CORBA.TypeCode.Internals.Build_Wstring_TC ("
-             & Utils.Img (Expr_Value (Bound (Node))) & ");");
+             & Img (Expr_Value (Bound (Node))) & ");");
       else
          PL (CU, "CORBA.TypeCode.Internals.Build_String_TC ("
-             & Utils.Img (Expr_Value (Bound (Node))) & ");");
+             & Img (Expr_Value (Bound (Node))) & ");");
       end if;
 
       PL (CU, "CORBA.TypeCode.Internals.Disable_Reference_Counting ("

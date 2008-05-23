@@ -34,9 +34,10 @@
 with Ada.Strings.Fixed; use Ada.Strings, Ada.Strings.Fixed;
 with Ada.Strings.Maps;
 with Ada.Text_IO;       use Ada.Text_IO;
-with GNAT.OS_Lib;
+with GNAT.Directory_Operations;
 with Idlac_Flags;       use Idlac_Flags;
-with Utils;             use Utils;
+with Idlac_Utils;       use Idlac_Utils;
+with Utils;
 
 package body Idlac_Errors is
 
@@ -203,7 +204,7 @@ package body Idlac_Errors is
          return "<standard input>";
       elsif Loc.Dirname = null then
          return Loc.Filename.all;
-      elsif Is_Dir_Separator (Loc.Dirname (Loc.Dirname'Last)) then
+      elsif Utils.Is_Dir_Separator (Loc.Dirname (Loc.Dirname'Last)) then
          return Loc.Dirname.all & Loc.Filename.all;
       else
          return Loc.Dirname.all & GNAT.Directory_Operations.Dir_Separator

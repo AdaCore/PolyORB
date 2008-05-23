@@ -42,6 +42,7 @@ pragma Elaborate_All (Ada_Be.Debug);
 
 with Output;
 with Platform;
+with Utils;
 
 package body Ada_Be.Source_Streams is
 
@@ -684,7 +685,7 @@ package body Ada_Be.Source_Streams is
       end if;
 
       Output_Directory := To_Unbounded_String (Dir);
-      if not Is_Dir_Separator (Dir (Dir'Last)) then
+      if not Utils.Is_Dir_Separator (Dir (Dir'Last)) then
          Append (Output_Directory, GNAT.Directory_Operations.Dir_Separator);
       end if;
       return True;

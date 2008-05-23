@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -37,7 +37,7 @@ with Idl_Fe.Types; use Idl_Fe.Types;
 with Idl_Fe.Tree; use Idl_Fe.Tree;
 with System;
 
-package Utils is
+package Idlac_Utils is
 
    function Img (N : Character) return String;
    function Img (N : Integer) return String;
@@ -72,4 +72,4 @@ package Utils is
    function Img (A : Constant_Value_Ptr) return String;
    --  Return the image of a constant
 
-end Utils;
+end Idlac_Utils;

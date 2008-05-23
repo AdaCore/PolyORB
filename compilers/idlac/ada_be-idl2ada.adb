@@ -63,7 +63,7 @@ with Ada_Be.Mappings;       use Ada_Be.Mappings;
 with Ada_Be.Mappings.CORBA; use Ada_Be.Mappings.CORBA;
 
 with Idlac_Errors;          use Idlac_Errors;
-with Utils;                 use Utils;
+with Idlac_Utils;           use Idlac_Utils;
 
 with Ada.Strings.Fixed;     use Ada.Strings.Fixed;
 
