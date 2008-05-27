@@ -239,8 +239,6 @@ compilers/idlac/testsuite/parser/alldefinitions.idl
 compilers/idlac/testsuite/parser/allerrors.idl
 compilers/idlac/testsuite/parser/testparser.idl
 compilers/idlac/testsuite/parser/testparser_include.idl
-compilers/idlac/utils.adb
-compilers/idlac/utils.ads
 configure
 configure.ac
 contrib/README
