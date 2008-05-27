@@ -202,6 +202,8 @@ compilers/idlac/idlac.adb
 compilers/idlac/idlac_errors.adb
 compilers/idlac/idlac_errors.ads
 compilers/idlac/idlac_flags.ads
+compilers/idlac/idlac_utils.adb
+compilers/idlac/idlac_utils.ads
 compilers/idlac/make_nodes.py
 compilers/idlac/nodes.txt
 compilers/idlac/string_sets.adb
