@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -57,6 +57,7 @@ package body PolyORB.MOMA_P.Provider.Message_Handler is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    --  Actual function implemented by the servant.
 
@@ -102,7 +103,7 @@ package body PolyORB.MOMA_P.Provider.Message_Handler is
       Operation   : String renames Req.Operation.all;
       Error       : Error_Container;
    begin
-      pragma Debug (C, O ("The message handler is executing the request:"
+      pragma Debug (O ("The message handler is executing the request:"
                     & PolyORB.Requests.Image (Req.all)));
 
       Args := Get_Parameter_Profile (Operation);
@@ -137,7 +138,7 @@ package body PolyORB.MOMA_P.Provider.Message_Handler is
       Result : PolyORB.Any.NVList.Ref;
    begin
       PolyORB.Any.NVList.Create (Result);
-      pragma Debug (C, O ("Parameter profile for " & Method & " requested."));
+      pragma Debug (O ("Parameter profile for " & Method & " requested."));
 
       if Method = "Notify" then
          null;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -50,6 +50,7 @@ package body PolyORB.Utils.Configuration_File is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    use Configuration_Table;
 
@@ -174,12 +175,12 @@ package body PolyORB.Utils.Configuration_File is
 
       if not Ada.Directories.Exists (Configuration_Filename) then
 
-         pragma Debug (C, O ("No " & Configuration_Filename
+         pragma Debug (O ("No " & Configuration_Filename
                           & " configuration file."));
          return;
       end if;
 
-      pragma Debug (C, O ("Loading configuration from "
+      pragma Debug (O ("Loading configuration from "
                        & Configuration_Filename));
 
       Open (Conf_File, In_File, Configuration_Filename);

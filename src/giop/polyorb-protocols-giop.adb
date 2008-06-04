@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -39,7 +39,9 @@ with PolyORB.Protocols.GIOP.Common;
 with PolyORB.GIOP_P.Exceptions;
 with PolyORB.Log;
 with PolyORB.Parameters;
+with PolyORB.QoS.Static_Buffers;
 with PolyORB.References.Binding;
+with PolyORB.Request_QoS;
 with PolyORB.Representations.CDR.Common;
 with PolyORB.Representations.CDR.GIOP_Utils;
 with PolyORB.Servants.Iface;
@@ -52,6 +54,8 @@ package body PolyORB.Protocols.GIOP is
    use PolyORB.Protocols.GIOP.Common;
    use PolyORB.Log;
    use PolyORB.ORB;
+   use PolyORB.QoS.Static_Buffers;
+   use PolyORB.Request_QoS;
    use PolyORB.Representations.CDR;
    use PolyORB.Representations.CDR.Common;
    use PolyORB.Representations.CDR.GIOP_Utils;
@@ -63,6 +67,7 @@ package body PolyORB.Protocols.GIOP is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    GIOP_Factories : array (GIOP_Version) of GIOP_Factory;
    --  It is assumed this array is written once at initialization
@@ -81,7 +86,7 @@ package body PolyORB.Protocols.GIOP is
       pragma Warnings (On);
    begin
       Session := new GIOP_Session;
-      pragma Debug (C, O ("Create GIOP Session"));
+      pragma Debug (O ("Create GIOP Session"));
       Initialize (GIOP_Session (Session.all));
    end Create;
 
@@ -101,11 +106,11 @@ package body PolyORB.Protocols.GIOP is
       use PolyORB.Utils;
 
    begin
-      pragma Debug (C, O ("Initialize parameters for GIOP Protocol"));
-      pragma Debug (C, O ("Conf Section : " & Section));
-      pragma Debug (C, O ("Conf Prefix : " & Prefix));
+      pragma Debug (O ("Initialize parameters for GIOP Protocol"));
+      pragma Debug (O ("Conf Section : " & Section));
+      pragma Debug (O ("Conf Prefix : " & Prefix));
 
-      pragma Debug (C, O ("Permitted sync scope" & Permitted_Sync_Scopes'Img));
+      pragma Debug (O ("Permitted sync scope" & Permitted_Sync_Scopes'Img));
       Conf.Permitted_Sync_Scopes := Permitted_Sync_Scopes;
 
       --  ??? The following assumes that the GIOP major version is always 1
@@ -125,7 +130,7 @@ package body PolyORB.Protocols.GIOP is
             True)
            and then GIOP_Factories (J) /= null
          then
-            pragma Debug (C, O ("Enable GIOP Version : 1."
+            pragma Debug (O ("Enable GIOP Version : 1."
                              & Trimmed_Image (Unsigned_Long_Long
                                               (To_Minor_GIOP (J)))));
 
@@ -152,7 +157,7 @@ package body PolyORB.Protocols.GIOP is
    procedure Initialize
      (S : in out GIOP_Session) is
    begin
-      pragma Debug (C, O ("Initializing GIOP session"));
+      pragma Debug (O ("Initializing GIOP session"));
       Tasking.Mutexes.Create (S.Mutex);
       S.Buffer_In  := new Buffer_Type;
    end Initialize;
@@ -163,7 +168,7 @@ package body PolyORB.Protocols.GIOP is
 
    procedure Destroy (S : in out GIOP_Session) is
    begin
-      pragma Debug (C, O ("Destroying GIOP session"));
+      pragma Debug (O ("Destroying GIOP session"));
       pragma Assert (S.State = Not_Initialized);
 
       --  We assume that this session has already been disconnected.
@@ -201,7 +206,7 @@ package body PolyORB.Protocols.GIOP is
 
       Version : GIOP_Version;
    begin
-      pragma Debug (C, O ("Received data in state " & Sess.State'Img));
+      pragma Debug (O ("Received data in state " & Sess.State'Img));
 
       pragma Assert (Sess.State /= Not_Initialized);
 
@@ -214,24 +219,87 @@ package body PolyORB.Protocols.GIOP is
 
             Sess.State := Expect_Body;
 
-            pragma Debug (C, O ("GIOP Header OK, ask for body, size :"
+            pragma Debug (O ("GIOP Header OK, ask for body, size :"
                              & Sess.MCtx.Message_Size'Img));
 
             if Sess.MCtx.Message_Size = 0 then
                Process_Message (Sess.Implem, Sess);
 
             else
+               --  If Reply message ask for the Request_Id
+
+               if Sess.MCtx.Message_Type = Reply then
+                  Sess.State := Expect_Request_Id;
+                  Emit_No_Reply
+                    (Port => Lower (Sess),
+                     Msg  => GIOP_Data_Expected'
+                     (In_Buf => Sess.Buffer_In,
+                      Max    => Request_Id_Size,
+                      State  => Sess.State));
+               else
+                  --  Else ask for the whole message
+
+                  Emit_No_Reply
+                    (Port => Lower (Sess),
+                     Msg  => GIOP_Data_Expected'
+                     (In_Buf => Sess.Buffer_In,
+                      Max    => Stream_Element_Count
+                      (Sess.MCtx.Message_Size),
+                      State  => Sess.State));
+               end if;
+            end if;
+
+         when Expect_Request_Id =>
+            declare
+               Success         : Boolean;
+               Current_Request : Pending_Request;
+               Buffer          : Buffer_Access;
+            begin
+               if CDR_Position (Sess.Buffer_In) = GIOP_Header_Size then
+                  Sess.MCtx.Request_Id := Unmarshall (Sess.Buffer_In);
+               end if;
+
+               Get_Pending_Request
+                 (Sess, Sess.MCtx.Request_Id, Current_Request,
+                  Success, False);
+
+               declare
+                  Static_Buffer :
+                    constant QoS_GIOP_Static_Buffer_Parameter_Access :=
+                    QoS_GIOP_Static_Buffer_Parameter_Access
+                    (Extract_Request_Parameter
+                     (PolyORB.QoS.GIOP_Static_Buffer, Current_Request.Req));
+               begin
+                  --  In the case of a reply message, use request's
+                  --  internal buffer if available to store the
+                  --  result. This will allow its direct marshalling
+                  --  by the skeleton later.
+
+                  if Static_Buffer /= null then
+                     Buffer := Sess.Buffer_In;
+                     Release_Contents (Static_Buffer.Buffer.all);
+                     Sess.Buffer_In := Static_Buffer.Buffer;
+                     Static_Buffer.Buffer := Buffer;
+                  end if;
+               end;
+
+               --  In Reply message if we have received just the request
+               --  Id, we send a message to the filter-slicer component
+               --  to receive the message's header and body.
+
+               Sess.State := Expect_Body;
+
                Emit_No_Reply
                  (Port => Lower (Sess),
                   Msg  => GIOP_Data_Expected'
-                    (In_Buf => Sess.Buffer_In,
-                     Max    => Stream_Element_Count
-                       (Sess.MCtx.Message_Size),
-                     State  => Sess.State));
-            end if;
+                  (In_Buf => Sess.Buffer_In,
+                   Max    => Stream_Element_Count
+                   (Sess.MCtx.Message_Size) - Request_Id_Size,
+                   State  => Sess.State));
+            end;
 
          when Expect_Body =>
-            pragma Debug (C, O ("Received GIOP message body"));
+            pragma Debug (O ("Received GIOP message body"));
             pragma Debug (Show (Sess.Buffer_In));
             Process_Message (Sess.Implem, Sess);
 
@@ -261,7 +329,7 @@ package body PolyORB.Protocols.GIOP is
       use PolyORB.Errors;
 
    begin
-      pragma Debug (C, O ("Unmarshalling_Request_Arguments"));
+      pragma Debug (O ("Unmarshalling_Request_Arguments"));
       pragma Assert (Sess.State = Waiting_Unmarshalling);
 
       Unmarshall_Argument_List
@@ -292,7 +360,7 @@ package body PolyORB.Protocols.GIOP is
    procedure Handle_Connect_Indication
      (Sess : access GIOP_Session) is
    begin
-      pragma Debug (C, O ("Handle_Connect_Indication"));
+      pragma Debug (O ("Handle_Connect_Indication"));
       pragma Assert (Sess.State = Not_Initialized);
 
       Sess.Role := Server;
@@ -307,22 +375,20 @@ package body PolyORB.Protocols.GIOP is
       use PolyORB.Binding_Data.GIOP;
       use PolyORB.Binding_Objects;
    begin
-      pragma Debug (C, O ("Handle_Connect_Confirmation"));
+      pragma Debug (O ("Handle_Connect_Confirmation"));
       pragma Assert (Sess.State = Not_Initialized);
 
       Sess.Role := Client;
 
       if Sess.Implem = null then
          --  Initialize session with GIOP version specified by the profile
-         --  used to create the session. As a client, we are allowed to use
-         --  a lower protocol version than the one advertised by the server.
+         --  used to create the session.
 
          Get_GIOP_Implem
            (Sess,
             Get_GIOP_Version
               (GIOP_Profile_Type'Class
-                (Get_Profile (Sess.Dependent_Binding_Object).all)),
-            Allow_Downgrade => True);
+                (Get_Profile (Sess.Dependent_Binding_Object).all)));
       end if;
 
       Expect_GIOP_Header (Sess);
@@ -340,7 +406,7 @@ package body PolyORB.Protocols.GIOP is
       ORB   : constant ORB_Access := ORB_Access (Sess.Server);
 
    begin
-      pragma Debug (C, O ("Handle_Disconnect"));
+      pragma Debug (O ("Handle_Disconnect"));
 
       if Sess.Buffer_In /= null then
          Release (Sess.Buffer_In);
@@ -383,7 +449,7 @@ package body PolyORB.Protocols.GIOP is
       if (Sess.Conf.Permitted_Sync_Scopes and R.Req_Flags) = 0
         or else (Sess.Implem.Permitted_Sync_Scopes and R.Req_Flags) = 0
       then
-         pragma Debug (C, O ("Requested sync scope not supported"));
+         pragma Debug (O ("Requested sync scope not supported"));
          raise GIOP_Error;
       end if;
 
@@ -484,7 +550,7 @@ package body PolyORB.Protocols.GIOP is
       pragma Unreferenced (Sess);
       pragma Warnings (On);
    begin
-      pragma Debug (C, O ("Cancelling pending request"));
+      pragma Debug (O ("Cancelling pending request"));
       --  XXX Cancelling pending requests for a session before closing
       --  Not Implemented
       --  This function must stop request which are running
@@ -571,7 +637,7 @@ package body PolyORB.Protocols.GIOP is
       --  Check if buffer has been totally read
 
       if Remaining (Sess.Buffer_In) /= 0 then
-         pragma Debug (C, O ("Remaining data in buffer :"
+         pragma Debug (O ("Remaining data in buffer :"
                           & Remaining (Sess.Buffer_In)'Img
                           & " bytes"));
          null;
@@ -579,7 +645,7 @@ package body PolyORB.Protocols.GIOP is
          --  e.g. in the case of an (unexpected) unknown user exception.
       end if;
 
-      pragma Debug (C, O ("Waiting for next message"));
+      pragma Debug (O ("Waiting for next message"));
 
       Buffers.Release_Contents (Sess.Buffer_In.all);
       Sess.State := Expect_Header;
@@ -610,7 +676,7 @@ package body PolyORB.Protocols.GIOP is
       --  This code works only if the endianness bit dont move
       --  in different giop version
       Flags := Types.Octet (Peek (Buffer, Flags_Index - 1));
-      pragma Debug (C, O ("Flags : " & Flags'Img));
+      pragma Debug (O ("Flags : " & Flags'Img));
 
       if Is_Set (Bit_Little_Endian, Flags) then
          Set_Endianness (Buffer, Little_Endian);
@@ -642,7 +708,7 @@ package body PolyORB.Protocols.GIOP is
 
       Version := To_GIOP_Version (Integer (Version_Data));
 
-      pragma Debug (C, O ("Received GIOP message, version: "
+      pragma Debug (O ("Received GIOP message, version:"
                        & GIOP_Version'Image (Version)));
 
       if Sess.Implem = null then
@@ -779,7 +845,7 @@ package body PolyORB.Protocols.GIOP is
            or else Arg.Arg_Modes = Direction
            or else Arg.Arg_Modes = ARG_INOUT
          then
-            pragma Debug (C, O ("Marshalling argument "
+            pragma Debug (O ("Marshalling argument "
                              & Types.To_Standard_String (Arg.Name)
                              & " = " & Image (Arg.Argument)));
 
@@ -844,30 +910,17 @@ package body PolyORB.Protocols.GIOP is
    ---------------------
 
    procedure Get_GIOP_Implem
-     (Sess            : access GIOP_Session;
-      Version         : GIOP_Version;
-      Allow_Downgrade : Boolean := False)
+     (Sess    : access GIOP_Session;
+      Version :        GIOP_Version)
    is
       use PolyORB.Utils;
-      Use_Version : GIOP_Version := Version;
+
    begin
-      pragma Debug (C, O ("Looking up implementation for "
+      pragma Debug (O ("Looking up implementation for "
                        & GIOP_Version'Image (Version)));
 
-      loop
-         Sess.Implem := Sess.Conf.GIOP_Implems (Use_Version);
-         exit when Sess.Implem /= null
-           or else not Allow_Downgrade
-           or else Use_Version = Sess.Conf.GIOP_Implems'First;
-         Use_Version := GIOP_Version'Pred (Use_Version);
-      end loop;
-
-      if Sess.Implem /= null then
-         pragma Debug (C, O ("... using version " & Use_Version'Img));
-         Initialize_Session (Sess.Implem, Sess);
-      else
-         raise GIOP_Error with "could not find a suitable GIOP version";
-      end if;
+      Sess.Implem := Sess.Conf.GIOP_Implems (Version);
+      Initialize_Session (Sess.Implem, Sess);
    end Get_GIOP_Implem;
 
    -------------------------
@@ -885,7 +938,7 @@ package body PolyORB.Protocols.GIOP is
 
       PRA : Pending_Request_Access;
    begin
-      pragma Debug (C, O ("Retrieving pending request with id"
+      pragma Debug (O ("Retrieving pending request with id"
                        & Types.Unsigned_Long'Image (Id)));
 
       Success := False;
@@ -923,7 +976,7 @@ package body PolyORB.Protocols.GIOP is
    is
       use Pend_Req_Tables;
    begin
-      pragma Debug (C, O ("Retrieving pending request with locate id"
+      pragma Debug (O ("Retrieving pending request with locate id"
                        & Types.Unsigned_Long'Image (Id)));
 
       Success := False;
@@ -955,7 +1008,7 @@ package body PolyORB.Protocols.GIOP is
 
       PRA : Pending_Request_Access;
    begin
-      pragma Debug (C, O ("Retrieving pending request with id"
+      pragma Debug (O ("Retrieving pending request with id"
                        & Types.Unsigned_Long'Image (Id)));
 
       Success := False;
@@ -989,7 +1042,7 @@ package body PolyORB.Protocols.GIOP is
 
       PRA : Pending_Request_Access;
    begin
-      pragma Debug (C, O ("Removing pending request with locate id"
+      pragma Debug (O ("Removing pending request with locate id"
                        & Types.Unsigned_Long'Image (Id)));
 
       Success := False;
@@ -1022,7 +1075,7 @@ package body PolyORB.Protocols.GIOP is
       Request_Id : Types.Unsigned_Long;
    begin
       Request_Id := Get_Request_Id (Sess);
-      pragma Debug (C, O ("Adding pending request with id" & Request_Id'Img));
+      pragma Debug (O ("Adding pending request with id" & Request_Id'Img));
       Set_Note
         (Pend_Req.Req.Notepad,
          Request_Note'(Annotations.Note with Id => Request_Id));

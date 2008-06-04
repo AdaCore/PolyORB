@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -164,8 +164,6 @@ package all_functions.Impl is
       b : in CORBA.Short);
 
    function oneway_checker (Self : access Object) return CORBA.Short;
-
-   procedure StopServer (Self : access Object);
 
 private
 

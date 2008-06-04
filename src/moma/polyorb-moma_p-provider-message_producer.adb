@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -58,6 +58,7 @@ package body PolyORB.MOMA_P.Provider.Message_Producer is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    --  Actual function implemented by the servant
 
@@ -100,7 +101,7 @@ package body PolyORB.MOMA_P.Provider.Message_Producer is
       QoS_Params : PolyORB.QoS.QoS_Parameters;
 
    begin
-      pragma Debug (C, O ("The server is executing the request:"
+      pragma Debug (O ("The server is executing the request:"
                     & PolyORB.Requests.Image (Req.all)));
 
       Create (Args);
@@ -146,7 +147,7 @@ package body PolyORB.MOMA_P.Provider.Message_Producer is
       Result      : PolyORB.Any.NamedValue;
 
    begin
-      pragma Debug (C, O ("Publishing Message " & Image (Message)));
+      pragma Debug (O ("Publishing Message " & Image (Message)));
 
       PolyORB.Any.NVList.Create (Arg_List);
 
@@ -172,7 +173,7 @@ package body PolyORB.MOMA_P.Provider.Message_Producer is
 
       PolyORB.Requests.Destroy_Request (Request);
 
-      pragma Debug (C, O ("Message published"));
+      pragma Debug (O ("Message published"));
    end Publish;
 
    --------------------

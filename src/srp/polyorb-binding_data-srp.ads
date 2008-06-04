@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -33,7 +33,7 @@
 
 --  Binding data for the Simple Request Protocol over TCP.
 
-with PolyORB.Utils.Sockets;
+with PolyORB.Sockets;
 
 package PolyORB.Binding_Data.SRP is
 
@@ -96,12 +96,12 @@ package PolyORB.Binding_Data.SRP is
 private
 
    type SRP_Profile_Type is new Profile_Type with record
-      Address   : Utils.Sockets.Socket_Name_Ptr;
+      Address   : Sockets.Sock_Addr_Type;
    end record;
 
    type SRP_Profile_Factory is new Profile_Factory
      with record
-        Address : Utils.Sockets.Socket_Name_Ptr;
+        Address : Sockets.Sock_Addr_Type;
      end record;
 
 end PolyORB.Binding_Data.SRP;

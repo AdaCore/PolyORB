@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -46,6 +46,7 @@ package body PolyORB.Smart_Pointers is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    procedure Unchecked_Inc_Usage (Obj : Entity_Ptr);
    --  Internal procedure to increment Obj's usage counter. This must be
@@ -66,16 +67,16 @@ package body PolyORB.Smart_Pointers is
    procedure Adjust
      (The_Ref : in out Ref) is
    begin
-      pragma Debug (C, O ("Adjust: enter"));
+      pragma Debug (O ("Adjust: enter"));
 
       if The_Ref.A_Ref /= null then
          Inc_Usage (The_Ref.A_Ref);
       else
-         pragma Debug (C, O ("Adjust: null ref"));
+         pragma Debug (O ("Adjust: null ref"));
          null;
       end if;
 
-      pragma Debug (C, O ("Adjust: leave"));
+      pragma Debug (O ("Adjust: leave"));
    end Adjust;
 
    ---------------
@@ -103,7 +104,7 @@ package body PolyORB.Smart_Pointers is
 
       if Obj.Counter = 0 then
 
-         pragma Debug (C, O ("Dec_Usage: deallocating "
+         pragma Debug (O ("Dec_Usage: deallocating "
                           & Entity_External_Tag (Obj.all)));
 
          Entity_Unlock (Obj.all);
@@ -118,7 +119,7 @@ package body PolyORB.Smart_Pointers is
 
          Free (Obj);
 
-         pragma Debug (C, O ("Dec_Usage: deallocation done"));
+         pragma Debug (O ("Dec_Usage: deallocation done"));
       else
          Entity_Unlock (Obj.all);
       end if;
@@ -228,17 +229,17 @@ package body PolyORB.Smart_Pointers is
       end Return_Ref_External_Tag;
 
    begin
-      pragma Debug (C, O (Return_Ref_External_Tag));
+      pragma Debug (O (Return_Ref_External_Tag));
 
       if The_Ref.A_Ref /= null then
          Dec_Usage (The_Ref.A_Ref);
       else
-         pragma Debug (C, O ("Finalize: null ref"));
+         pragma Debug (O ("Finalize: null ref"));
          null;
       end if;
 
       The_Ref.A_Ref := null;
-      pragma Debug (C, O ("Finalize: leave"));
+      pragma Debug (O ("Finalize: leave"));
    end Finalize;
 
    ---------------
@@ -277,7 +278,7 @@ package body PolyORB.Smart_Pointers is
    procedure Initialize
      (X : in out Entity_Controller) is
    begin
-      pragma Debug (C, O ("Initializing Entity"));
+      pragma Debug (O ("Initializing Entity"));
       Initialize (X.E.all);
    end Initialize;
 

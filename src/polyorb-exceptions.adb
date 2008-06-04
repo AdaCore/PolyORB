@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -62,6 +62,7 @@ package body PolyORB.Exceptions is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    -----------------------------
    -- User exception handling --
@@ -186,9 +187,9 @@ package body PolyORB.Exceptions is
 
    begin
       Enter (Exc_Occ_Lock);
-      pragma Debug (C, O ("Get_Members: "
+      pragma Debug (O ("Get_Members: "
                        & Ada.Exceptions.Exception_Name (Exc_Occ)));
-      pragma Debug (C, O ("    message: "
+      pragma Debug (O ("    message: "
                        & Ada.Exceptions.Exception_Message (Exc_Occ)));
       pragma Debug (Dump_All_Occurrences);
 
@@ -349,7 +350,7 @@ package body PolyORB.Exceptions is
          Free (New_Node.Mbr);
       end if;
 
-      pragma Debug (C, O ("Assigning ID: " & Image (Seed_Id)));
+      pragma Debug (O ("Assigning ID: " & Image (Seed_Id)));
       pragma Debug (Dump_All_Occurrences);
 
       --  Generate a fresh exception occurrence id
@@ -367,7 +368,7 @@ package body PolyORB.Exceptions is
 
       Append (Exc_Occ_List, New_Node);
 
-      pragma Debug (C, O ("Raise ("
+      pragma Debug (O ("Raise ("
                        & Ada.Exceptions.Exception_Name (Id)
                        & ", " & Image (New_Node.Id) & ")."));
       pragma Debug (Dump_All_Occurrences);
@@ -420,7 +421,7 @@ package body PolyORB.Exceptions is
       Raiser : Raise_From_Any_Procedure) is
    begin
       pragma Debug
-        (C, O ("Registering exception: "
+        (O ("Registering exception: "
             & Types.To_Standard_String (TypeCode.Id (TC))));
 
       Enter (All_Exceptions_Lock);
@@ -444,7 +445,7 @@ package body PolyORB.Exceptions is
 
    begin
       pragma Debug
-        (C, O ("Looking up einfo for " & To_Standard_String (For_Exception)));
+        (O ("Looking up einfo for " & To_Standard_String (For_Exception)));
 
       Enter (All_Exceptions_Lock);
       It := First (All_Exceptions);
@@ -457,7 +458,7 @@ package body PolyORB.Exceptions is
       if Last (It) then
          Leave (All_Exceptions_Lock);
 
-         pragma Debug (C, O ("no einfo found, returning 'Unknown' exception"));
+         pragma Debug (O ("no einfo found, returning 'Unknown' exception"));
          --         Raise_Unknown;
       end if;
 
@@ -485,7 +486,7 @@ package body PolyORB.Exceptions is
         := Find (Repository_Id, Colon1 + 1, ':');
 
    begin
-      pragma Debug (C, O ("Exception_Name " & Repository_Id));
+      pragma Debug (O ("Exception_Name " & Repository_Id));
 
       if Repository_Id'First <= Colon1
         and then Colon1 <= Colon2
@@ -520,7 +521,7 @@ package body PolyORB.Exceptions is
                        Name'Last - Version_Length) & "_E";
 
          begin
-            pragma Debug (C, O ("Error_Id_Name : " & Error_Id_Name));
+            pragma Debug (O ("Error_Id_Name : " & Error_Id_Name));
 
             Is_Error := True;
             Id := Error_Id'Value (Error_Id_Name);
@@ -530,7 +531,7 @@ package body PolyORB.Exceptions is
          Id := No_Error;
       end if;
 
-      pragma Debug (C, O (Name & " is a PolyORB error ? "
+      pragma Debug (O (Name & " is a PolyORB error ? "
                        & Boolean'Image (Is_Error)));
    end Exception_Name_To_Error_Id;
 
@@ -558,7 +559,7 @@ package body PolyORB.Exceptions is
          end if;
       end loop;
 
-      pragma Debug (C, O ("Exception Id : " & Internal_Name));
+      pragma Debug (O ("Exception Id : " & Internal_Name));
 
       return To_Exception_Id
         (System.Exception_Table.Internal_Exception (Internal_Name));

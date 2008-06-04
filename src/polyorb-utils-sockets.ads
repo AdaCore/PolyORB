@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2003-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -33,8 +33,6 @@
 
 --  General purpose functions for using sockets with string and buffers
 
-with Ada.Unchecked_Deallocation;
-
 with PolyORB.Buffers;
 with PolyORB.Sockets;
 
@@ -42,42 +40,23 @@ package PolyORB.Utils.Sockets is
 
    function String_To_Addr
      (Str : Standard.String) return PolyORB.Sockets.Inet_Addr_Type;
-   --  Convert an IP address in dotted decimal form or a host name into an
-   --  Inet_Addr_Type value.
-
-   type Socket_Name (Name_Len : Natural) is record
-      Host_Name : String (1 .. Name_Len);
-      Port      : PolyORB.Sockets.Port_Type;
-   end record;
-
-   type Socket_Name_Ptr is access all Socket_Name;
-   procedure Free is
-     new Ada.Unchecked_Deallocation (Socket_Name, Socket_Name_Ptr);
-
-   function "+"
-     (Host_Name : String;
-      Port      : PolyORB.Sockets.Port_Type) return Socket_Name;
-   --  Return a Socket_Name with the given contents
-
-   function Image (SN : Socket_Name) return String;
-   --  Return representation of SN as <host_name>:<port>
+   --  Convert an IP address in dotted decimal form or a host name into
+   --  an Inet_Addr_Type value.
 
    procedure Marshall_Socket
      (Buffer : access PolyORB.Buffers.Buffer_Type;
-      Sock   : Socket_Name);
+      Sock   : PolyORB.Sockets.Sock_Addr_Type);
    --  Marshall socket address and port in a buffer
 
-   function Unmarshall_Socket
-     (Buffer : access PolyORB.Buffers.Buffer_Type) return Socket_Name;
+   procedure Unmarshall_Socket
+     (Buffer : access PolyORB.Buffers.Buffer_Type;
+      Sock   :    out PolyORB.Sockets.Sock_Addr_Type);
    --  Unmarshall socket address and port from a buffer
 
    procedure Connect_Socket
      (Sock        : PolyORB.Sockets.Socket_Type;
-      Remote_Name : Socket_Name);
-   --  Front-end to PolyORB.Sockets.Connect_Socket, handles production of log
-   --  trace if the operation fails.
-
-   function Is_IP_Address (Name : String) return Boolean;
-   --  True iff S is an IP address in dotted quad notation
+      Remote_Addr : in out PolyORB.Sockets.Sock_Addr_Type);
+   --  Front-end to PolyORB.Sockets.Connect_Socket, handles production
+   --  of log trace if the operation fails.
 
 end PolyORB.Utils.Sockets;

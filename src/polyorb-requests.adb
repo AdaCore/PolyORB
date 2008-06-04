@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -52,6 +52,7 @@ package body PolyORB.Requests is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    procedure Pump_Up_Arguments_Unspecified
      (Dst_Args        : in out Any.NVList.Ref;
@@ -111,7 +112,7 @@ package body PolyORB.Requests is
       use type Smart_Pointers.Entity_Ptr;
 
    begin
-      pragma Debug (C, O ("Create_Request: enter"));
+      pragma Debug (O ("Create_Request: enter"));
 
       Req := new Request;
       Req.Target     := Target;
@@ -130,7 +131,7 @@ package body PolyORB.Requests is
          Smart_Pointers.Set
            (Req.Dependent_Binding_Object, Dependent_Binding_Object);
       end if;
-      pragma Debug (C, O ("Create_Request: leave"));
+      pragma Debug (O ("Create_Request: leave"));
    end Create_Request;
 
    ---------------------
@@ -285,7 +286,7 @@ package body PolyORB.Requests is
                                 := (Minor => 1, Completed => Completed_No);
                            begin
                               Throw (Error, Bad_Param_E, Member);
-                              pragma Debug (C, O ("arg not found"));
+                              pragma Debug (O ("arg not found"));
                               return;
                            end;
                         end if;
@@ -299,7 +300,7 @@ package body PolyORB.Requests is
       end loop;
 
       if Can_Extend then
-         pragma Debug (C, O ("Appending remaining arguments"));
+         pragma Debug (O ("Appending remaining arguments"));
          --  If Dst_Args is an extensible NV_List, then we append the
          --  remaining Src_Args
          while not Last (Src_It) loop
@@ -366,7 +367,7 @@ package body PolyORB.Requests is
 
                Src_It := First (List_Of (Src_Args).all);
                Src_Idx := Copied_Src_Args'First;
-               pragma Debug (C, O ("Dst_Arg: "
+               pragma Debug (O ("Dst_Arg: "
                                 & To_String (Value (Dst_It).Name)));
                loop
                   if (Ignore_Src_Mode
@@ -374,14 +375,14 @@ package body PolyORB.Requests is
                       or else Value (Src_It).Arg_Modes = Direction)
                     and then Copied_Src_Args (Src_Idx) = False
                   then
-                     pragma Debug (C, O ("Src_Arg: "
+                     pragma Debug (O ("Src_Arg: "
                                       & To_String (Value (Src_It).Name)));
                      if PolyORB.Any.TypeCode.Equal
                           (Get_Unwound_Type (Value (Dst_It).Argument),
                            Get_Unwound_Type (Value (Src_It).Argument))
                        and then Value (Dst_It).Name = Value (Src_It).Name
                      then
-                        pragma Debug (C, O ("Found the argument: copying"));
+                        pragma Debug (O ("Found the argument: copying"));
                         Src_Arg_Found := True;
                         Move_Any_Value (Value (Dst_It).Argument,
                                         Value (Src_It).Argument);
@@ -404,7 +405,7 @@ package body PolyORB.Requests is
                        := (Minor => 1, Completed => Completed_No);
                   begin
                      Throw (Error, Bad_Param_E, Member);
-                     pragma Debug (C, O ("arg not found"));
+                     pragma Debug (O ("arg not found"));
                      return;
                   end;
                end if;
@@ -420,7 +421,7 @@ package body PolyORB.Requests is
          Src_It := First (List_Of (Src_Args).all);
          Src_Idx := Copied_Src_Args'First;
 
-         pragma Debug (C, O ("Appending remaining arguments"));
+         pragma Debug (O ("Appending remaining arguments"));
          while not Last (Src_It) loop
             if (Ignore_Src_Mode
                 or else Value (Src_It).Arg_Modes = ARG_INOUT
@@ -516,7 +517,7 @@ package body PolyORB.Requests is
 
                Src_It := First (List_Of (Src_Args).all);
                Src_Idx := Copied_Src_Args'First;
-               pragma Debug (C, O ("Dst_Arg: "
+               pragma Debug (O ("Dst_Arg: "
                                 & To_String (Value (Dst_It).Name)));
                loop
                   Copy_Argument := False;
@@ -533,7 +534,7 @@ package body PolyORB.Requests is
                                          Get_Unwound_Type
                                            (Value (Dst_It).Argument);
                      begin
-                        pragma Debug (C, O ("Src_Arg: "
+                        pragma Debug (O ("Src_Arg: "
                                          & To_String (Value (Src_It).Name)));
                         if PolyORB.Any.TypeCode.Equal
                           (Dst_Arg_Type,
@@ -575,7 +576,7 @@ package body PolyORB.Requests is
 
                               else
                                  Identification_By_Name := False;
-                                 pragma Debug (C, O ("no more ident by name"));
+                                 pragma Debug (O ("no more ident by name"));
                                  --  If we were identifying the arguments
                                  --  by their names and the name does not
                                  --  match and does not exist in the hash
@@ -592,7 +593,7 @@ package body PolyORB.Requests is
                                              Completed => Completed_No);
                                     begin
                                        Throw (Error, Bad_TypeCode_E, Member);
-                                       pragma Debug (C, O ("dead end"));
+                                       pragma Debug (O ("dead end"));
                                        return;
 
                                     --  We must identify the arguments either
@@ -604,7 +605,7 @@ package body PolyORB.Requests is
                            end if;
                         else
                            Identification_By_Position := False;
-                           pragma Debug (C, O ("no more ident by pos"));
+                           pragma Debug (O ("no more ident by pos"));
                            --  If we were identifying arguments by their
                            --  positions, the types should have matched
                            --  (first unused src_arg with first unused
@@ -625,7 +626,7 @@ package body PolyORB.Requests is
                                           Completed => Completed_No);
                                  begin
                                     Throw (Error, Bad_Param_E, Member);
-                                    pragma Debug (C, O ("name not found"));
+                                    pragma Debug (O ("name not found"));
                                     return;
                                  end;
                               end if;
@@ -644,7 +645,7 @@ package body PolyORB.Requests is
                               begin
                                  Throw (Error, Bad_TypeCode_E, Member);
                                  pragma Debug
-                                   (C, O ("by position impossible"));
+                                   (O ("by position impossible"));
                                  return;
                                  --  We must identify the arguments either
                                  --  by their name or their position. If
@@ -656,7 +657,7 @@ package body PolyORB.Requests is
                   end if;
 
                   if Copy_Argument then
-                     pragma Debug (C, O ("Found the argument: copying"));
+                     pragma Debug (O ("Found the argument: copying"));
                      Src_Arg_Found := True;
                      Move_Any_Value (Value (Dst_It).Argument,
                                      Value (Src_It).Argument);
@@ -678,7 +679,7 @@ package body PolyORB.Requests is
                        := (Minor => 1, Completed => Completed_No);
                   begin
                      Throw (Error, Bad_Param_E, Member);
-                     pragma Debug (C, O ("arg not found"));
+                     pragma Debug (O ("arg not found"));
                      return;
                   end;
                end if;
@@ -694,7 +695,7 @@ package body PolyORB.Requests is
          Src_It := First (List_Of (Src_Args).all);
          Src_Idx := Copied_Src_Args'First;
 
-         pragma Debug (C, O ("Appending remaining arguments"));
+         pragma Debug (O ("Appending remaining arguments"));
          while not Last (Src_It) loop
             if (Ignore_Src_Mode
                 or else Value (Src_It).Arg_Modes = ARG_INOUT
@@ -745,7 +746,7 @@ package body PolyORB.Requests is
             Member : constant System_Exception_Members
               := (Minor => 7, Completed => Completed_No);
          begin
-            pragma Debug (C, O ("Arguments called twice"));
+            pragma Debug (O ("Arguments called twice"));
             Throw (Error, Bad_Inv_Order_E, Member);
             return;
          end;
@@ -766,11 +767,11 @@ package body PolyORB.Requests is
             pragma Assert (Reply in Unmarshalled_Arguments
                              or else Reply in Arguments_Error);
             if Reply in Unmarshalled_Arguments then
-               pragma Debug (C, O ("Unmarshalled deferred arguments"));
+               pragma Debug (O ("Unmarshalled deferred arguments"));
                Args := Unmarshalled_Arguments (Reply).Args;
                Self.Args := Args;
             else
-               pragma Debug (C, O ("Unmarshalling deferred arguments error"));
+               pragma Debug (O ("Unmarshalling deferred arguments error"));
                Error := Arguments_Error (Reply).Error;
             end if;
          end;
@@ -778,7 +779,7 @@ package body PolyORB.Requests is
 
       else
          pragma Assert (Self.Deferred_Arguments_Session = null);
-         pragma Debug (C, O ("in Arguments: " & Image (Self.Args)));
+         pragma Debug (O ("in Arguments: " & Image (Self.Args)));
 
          declare
             Identification_Method : constant Arguments_Identification
@@ -848,7 +849,7 @@ package body PolyORB.Requests is
             Member : constant System_Exception_Members :=
                        (Minor => 8, Completed => Completed_No);
          begin
-            pragma Debug (C, O ("Invalid Set_Result call"));
+            pragma Debug (O ("Invalid Set_Result call"));
             Throw (Error, Bad_Inv_Order_E, Member);
             return;
          end;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -47,6 +47,7 @@ package body PolyORB.Lanes is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    ---------
    -- Run --
@@ -54,16 +55,16 @@ package body PolyORB.Lanes is
 
    procedure Run (R : access Lane_Runnable) is
    begin
-      pragma Debug (C, O ("Entering lane's main loop"));
+      pragma Debug (O ("Entering lane's main loop"));
 
       Enter (R.L.Lock);
       loop
-         pragma Debug (C, O ("Inside lane's main loop"));
+         pragma Debug (O ("Inside lane's main loop"));
 
          --  Process queued jobs
 
          while not Is_Empty (R.L.Job_Queue) loop
-            pragma Debug (C, O ("Thread from lane at priority ("
+            pragma Debug (O ("Thread from lane at priority ("
                              & R.L.ORB_Priority'Img & ","
                              & R.L.Ext_Priority'Img & ")"
                              & " will execute a job"));
@@ -83,7 +84,7 @@ package body PolyORB.Lanes is
 
          --  else go idle
 
-         pragma Debug (C, O ("No job to process, go idle"));
+         pragma Debug (O ("No job to process, go idle"));
 
          R.L.Idle_Tasks := R.L.Idle_Tasks + 1;
          PTCV.Wait (R.L.CV, R.L.Lock);
@@ -92,7 +93,7 @@ package body PolyORB.Lanes is
       end loop;
 
       Leave (R.L.Lock);
-      pragma Debug (C, O ("Exiting from lane's main loop"));
+      pragma Debug (O ("Exiting from lane's main loop"));
    end Run;
 
    --------------
@@ -146,7 +147,7 @@ package body PolyORB.Lanes is
                      Max_Buffer_Size => Max_Buffer_Size);
 
    begin
-      pragma Debug (C, O ("Creating lane with"
+      pragma Debug (O ("Creating lane with"
                        & Positive'Image (Base_Number_Of_Threads)
                        & " threads at priority ("
                        & ORB_Priority'Img & ","
@@ -214,7 +215,7 @@ package body PolyORB.Lanes is
       pragma Unreferenced (Hint_Priority);
 
    begin
-      pragma Debug (C, O ("Queue job in lane at priority ("
+      pragma Debug (O ("Queue job in lane at priority ("
                        & L.ORB_Priority'Img & ","
                        & L.Ext_Priority'Img & ")"));
 
@@ -228,7 +229,7 @@ package body PolyORB.Lanes is
         (L.Buffer_Request
          and then Length (L.Job_Queue) < Natural (L.Max_Buffered_Requests))
       then
-         pragma Debug (C, O ("Queue job on job queue"));
+         pragma Debug (O ("Queue job on job queue"));
 
          Queue_Job (L.Job_Queue, J);
 
@@ -277,7 +278,7 @@ package body PolyORB.Lanes is
          --  Cannot queue job
 
          Leave (L.Lock);
-         pragma Debug (C, O ("Cannot queue job"));
+         pragma Debug (O ("Cannot queue job"));
          raise Program_Error;
       end if;
    end Queue_Job;
@@ -300,7 +301,7 @@ package body PolyORB.Lanes is
 
    begin
       if Parameter /= null then
-         pragma Debug (C, O ("About to queue a job at priority"
+         pragma Debug (O ("About to queue a job at priority"
                           & QoS_Static_Priority (Parameter.all).EP'Img));
 
          Queuing_Priority := QoS_Static_Priority (Parameter.all).EP;
@@ -311,17 +312,17 @@ package body PolyORB.Lanes is
             new QoS_Parameter'Class'(Parameter.all));
 
       elsif Hint_Priority /= Invalid_Priority then
-         pragma Debug (C, O ("About to queue a job at priority"
+         pragma Debug (O ("About to queue a job at priority"
                           & Hint_Priority'Img));
          Queuing_Priority := Hint_Priority;
 
       else
-         pragma Debug (C, O ("No priority information !"));
+         pragma Debug (O ("No priority information !"));
          raise Program_Error;
       end if;
 
       for K in L.Set'Range loop
-         pragma Debug (C, O ("Testing lane, priority"
+         pragma Debug (O ("Testing lane, priority"
                           & ORB_Priority'Image (L.Set (K).ORB_Priority)));
 
          if L.Set (K).Ext_Priority = Queuing_Priority then
@@ -332,7 +333,7 @@ package body PolyORB.Lanes is
       end loop;
 
       pragma Debug
-        (C, O ("Cannot queue job, no lane matches request priority"));
+        (O ("Cannot queue job, no lane matches request priority"));
       raise Program_Error;
    end Queue_Job;
 

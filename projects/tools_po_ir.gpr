@@ -50,6 +50,6 @@ project tools_po_ir is
 
    end Compiler;
 
-   for Main use ("po_ir.adb");
+   for Main use ("po_ir");
 
 end tools_po_ir;

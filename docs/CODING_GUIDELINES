@@ -109,3 +109,13 @@ gives an overview of what PolyORB provides.
 
 Any modification to NEWS must be propagated to the PolyORB User's
 guide to ensure consistency.
+
+Recompute build dependencies every time the semantic dependencies
+of a unit are modified.
+
+To do so, run 'make depend' from PolyORB's root directory.
+Note that you must ensure that:
+
+- Build is made _without_ debug
+
+- Source tree and build tree are equal

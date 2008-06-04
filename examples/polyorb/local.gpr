@@ -14,6 +14,6 @@ project local is
 
    end Compiler;
 
-   for Main use ("polyorb-test-no_tasking.adb", "polyorb-test-thread_pool.adb", "polyorb-test-no_tasking_poa.adb", "polyorb-test-thread_pool_poa.adb");
+   for Main use ("polyorb-test-no_tasking", "polyorb-test-thread_pool", "polyorb-test-no_tasking_poa", "polyorb-test-thread_pool_poa");
 
 end local;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -57,6 +57,7 @@ package body PolyORB.Servants.Group_Servants is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    package TPL renames Target_List_Package;
 
@@ -90,7 +91,7 @@ package body PolyORB.Servants.Group_Servants is
          when Wait_First =>
             --  Wait for first argument ask
 
-            pragma Debug (C, O ("Try to unmarshall arguments"));
+            pragma Debug (O ("Try to unmarshall arguments"));
             pragma Assert (Self.Args_Src /= null);
 
             --  Check that request is oneway
@@ -129,7 +130,7 @@ package body PolyORB.Servants.Group_Servants is
                                 or else Reply in Arguments_Error);
 
                if Reply in Unmarshalled_Arguments then
-                  pragma Debug (C, O ("Arguments unmarshalled, copying"));
+                  pragma Debug (O ("Arguments unmarshalled, copying"));
                   Req_Args := Unmarshalled_Arguments (Reply).Args;
 
                   Create (Self.Args);
@@ -140,7 +141,7 @@ package body PolyORB.Servants.Group_Servants is
                      Next (It);
                   end loop;
 
-                  pragma Debug (C, O ("Send arguments to first"));
+                  pragma Debug (O ("Send arguments to first"));
                   --  XXX first what ?
 
                   Self.State := Wait_Other;
@@ -152,7 +153,7 @@ package body PolyORB.Servants.Group_Servants is
                     (Args => Unmarshall_Arguments (Msg).Args);
 
                else
-                  pragma Debug (C, O ("Arguments unmarshalling error"));
+                  pragma Debug (O ("Arguments unmarshalling error"));
 
                   --  Reply in Arguments_Error
 
@@ -176,7 +177,7 @@ package body PolyORB.Servants.Group_Servants is
             --  Copy arguments (or error) and send it
 
             if not Found (Self.Error) then
-               pragma Debug (C, O ("Get previously unmarshalled arguments"));
+               pragma Debug (O ("Get previously unmarshalled arguments"));
                declare
                   use PolyORB.Any;
                   use PolyORB.Any.NVList.Internals.NV_Lists;
@@ -207,7 +208,7 @@ package body PolyORB.Servants.Group_Servants is
                   return Unmarshalled_Arguments'(Args => Req_Args);
                end;
             else
-               pragma Debug (C, O ("Copy unmarshalling arguments error"));
+               pragma Debug (O ("Copy unmarshalling arguments error"));
 
                declare
                   Aux : Error_Container;
@@ -246,7 +247,7 @@ package body PolyORB.Servants.Group_Servants is
 
       Request := Execute_Request (Msg).Req;
       if TPL.Length (Self.Target_List) = 0 then
-         pragma Debug (C, O ("Request received in empty group !!!",
+         pragma Debug (O ("Request received in empty group !!!",
                           PolyORB.Log.Warning));
          return Executed_Request'(Req => Request);
       end if;
@@ -256,7 +257,7 @@ package body PolyORB.Servants.Group_Servants is
       Enter (Self.Group_Lock);
       Enter (Self.Mutex);
 
-      pragma Debug (C, O ("Request received on group servant : "
+      pragma Debug (O ("Request received on group servant : "
                        & PolyORB.Objects.Image (Self.Oid.all)));
 
       pragma Assert (Is_Nil (Request.Args));
@@ -289,7 +290,7 @@ package body PolyORB.Servants.Group_Servants is
             Args : Ref;
 
          begin
-            pragma Debug (C, O ("Forward to : "
+            pragma Debug (O ("Forward to : "
                              & PolyORB.References.Image (TPL.Value (It).all)));
 
             Create_Request
@@ -312,14 +313,14 @@ package body PolyORB.Servants.Group_Servants is
                 (Request   => Req,
                  Requestor => PolyORB.Components.Component_Access (Self)));
 
-            pragma Debug (C, O ("Request sent"));
+            pragma Debug (O ("Request sent"));
             TPL.Next (It);
          end;
       end loop;
 
       Leave (Self.Mutex);
 
-      pragma Debug (C, O ("Request dispatched to all servants in group"));
+      pragma Debug (O ("Request dispatched to all servants in group"));
 
       return Res;
    end Execute_Servant;
@@ -339,7 +340,7 @@ package body PolyORB.Servants.Group_Servants is
       Res : PolyORB.Components.Null_Message;
 
    begin
-      pragma Debug (C, O ("Handling message of type "
+      pragma Debug (O ("Handling message of type "
                        & Ada.Tags.External_Tag (Msg'Tag)));
 
       if Msg in Unmarshall_Arguments then
@@ -353,7 +354,7 @@ package body PolyORB.Servants.Group_Servants is
             Req : Request_Access := Executed_Request (Msg).Req;
 
          begin
-            pragma Debug (C, O ("Destroy request"));
+            pragma Debug (O ("Destroy request"));
             Destroy_Request (Req);
          end;
 
@@ -383,14 +384,14 @@ package body PolyORB.Servants.Group_Servants is
      (Self : access Group_Servant;
       Ref  :        PolyORB.References.Ref) is
    begin
-      pragma Debug (C, O ("Register on group servant : "
+      pragma Debug (O ("Register on group servant : "
                        & PolyORB.Objects.Image (Self.Oid.all)));
-      pragma Debug (C, O ("Ref : " & PolyORB.References.Image (Ref)));
+      pragma Debug (O ("Ref : " & PolyORB.References.Image (Ref)));
 
       Enter (Self.Group_Lock);
 
       TPL.Append (Self.Target_List, Ref);
-      pragma Debug (C, O ("Group size:" & TPL.Length (Self.Target_List)'Img));
+      pragma Debug (O ("Group size:" & TPL.Length (Self.Target_List)'Img));
 
       Leave (Self.Group_Lock);
    end Register;
@@ -406,14 +407,14 @@ package body PolyORB.Servants.Group_Servants is
       use PolyORB.References;
 
    begin
-      pragma Debug (C, O ("Unregister on group servant: "
+      pragma Debug (O ("Unregister on group servant: "
                        & PolyORB.Objects.Image (Self.Oid.all)));
-      pragma Debug (C, O ("Ref : " & PolyORB.References.Image (Ref)));
+      pragma Debug (O ("Ref : " & PolyORB.References.Image (Ref)));
 
       Enter (Self.Group_Lock);
 
       TPL.Remove (Self.Target_List, Ref);
-      pragma Debug (C, O ("Group size:" & TPL.Length (Self.Target_List)'Img));
+      pragma Debug (O ("Group size:" & TPL.Length (Self.Target_List)'Img));
 
       Leave (Self.Group_Lock);
    end Unregister;
@@ -445,7 +446,7 @@ package body PolyORB.Servants.Group_Servants is
       GS : constant Group_Servant_Access := new Group_Servant;
 
    begin
-      pragma Debug (C, O ("Create group servant : "
+      pragma Debug (O ("Create group servant : "
                        & PolyORB.Objects.Image (Oid.all)));
       GS.Oid := Oid;
       Create (GS.Mutex);

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -62,6 +62,7 @@ package body PolyORB.ORB.Thread_Per_Request is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    type Request_Runnable is new Runnable with record
       A_Job : Jobs.Job_Access;
@@ -98,7 +99,7 @@ package body PolyORB.ORB.Thread_Per_Request is
    is
       pragma Unreferenced (P, ORB);
    begin
-      pragma Debug (C, O ("New client connection"));
+      pragma Debug (O ("New client connection"));
 
       Components.Emit_No_Reply (Component_Access (AC.TE),
          Connect_Confirmation'(null record));
@@ -115,7 +116,7 @@ package body PolyORB.ORB.Thread_Per_Request is
    is
       pragma Unreferenced (P, ORB);
    begin
-      pragma Debug (C, O ("New server connection. "));
+      pragma Debug (O ("New server connection. "));
 
       Components.Emit_No_Reply (Component_Access (AC.TE),
          Connect_Indication'(null record));
@@ -139,7 +140,7 @@ package body PolyORB.ORB.Thread_Per_Request is
       --  T is assigned but never read
 
    begin
-      pragma Debug (C, O ("Handle_Request_Execution : Run Job"));
+      pragma Debug (O ("Handle_Request_Execution : Run Job"));
       Request_Runnable (R.all).A_Job := PolyORB.ORB.Duplicate_Request_Job (RJ);
 
       T := Run_In_Task
@@ -166,13 +167,13 @@ package body PolyORB.ORB.Thread_Per_Request is
       --  However, it can be set to idle while another thread modifies
       --  ORB internals.
 
-      pragma Debug (C, O ("Thread "
+      pragma Debug (O ("Thread "
                        & Image (PTI.Id (This_Task))
                        & " is going idle."));
 
       Wait (PTI.Condition (This_Task), PTI.Mutex (This_Task));
 
-      pragma Debug (C, O ("Thread "
+      pragma Debug (O ("Thread "
                        & Image (PTI.Id (This_Task))
                        & " is leaving Idle state"));
    end Idle;
@@ -195,7 +196,7 @@ package body PolyORB.ORB.Thread_Per_Request is
 
       --  Running Job
 
-      pragma Debug (C, O ("Thread " & Image (Current_Task)
+      pragma Debug (O ("Thread " & Image (Current_Task)
                        & " is executing a job"));
 
       Run_Request (Request_Job (R.A_Job.all)'Access);
@@ -204,7 +205,7 @@ package body PolyORB.ORB.Thread_Per_Request is
 
       Jobs.Free (R.A_Job);
 
-      pragma Debug (C, O ("Thread " & Image (Current_Task)
+      pragma Debug (O ("Thread " & Image (Current_Task)
                        & " has executed and destroyed a job"));
    end Run;
 

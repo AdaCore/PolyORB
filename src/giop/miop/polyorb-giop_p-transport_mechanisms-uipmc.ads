@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PolyORB.Utils.Sockets;
+with PolyORB.Sockets;
 
 package PolyORB.GIOP_P.Transport_Mechanisms.UIPMC is
 
@@ -49,9 +49,8 @@ package PolyORB.GIOP_P.Transport_Mechanisms.UIPMC is
 
    --  UIPMC Transport Mechanism specific subprograms
 
-   function Address_Of
-     (M : UIPMC_Transport_Mechanism)
-      return Utils.Sockets.Socket_Name;
+   function Address_Of (M : UIPMC_Transport_Mechanism)
+     return Sockets.Sock_Addr_Type;
    --  Return address of transport mechanism's transport access point.
 
    type UIPMC_Transport_Mechanism_Factory is
@@ -63,7 +62,8 @@ package PolyORB.GIOP_P.Transport_Mechanisms.UIPMC is
 
    function Is_Local_Mechanism
      (MF : access UIPMC_Transport_Mechanism_Factory;
-      M  : access Transport_Mechanism'Class) return Boolean;
+      M  : access Transport_Mechanism'Class)
+      return Boolean;
 
    function Create_Tagged_Components
      (MF : UIPMC_Transport_Mechanism_Factory)
@@ -77,7 +77,7 @@ package PolyORB.GIOP_P.Transport_Mechanisms.UIPMC is
    --  Create transport mechanism
 
    function Create_Transport_Mechanism
-     (Address : Utils.Sockets.Socket_Name)
+     (Address : Sockets.Sock_Addr_Type)
       return Transport_Mechanism_Access;
    --  Create transport mechanism for specified transport access point address
 
@@ -96,13 +96,13 @@ private
    Default_TTL : constant Natural := 15;
 
    type UIPMC_Transport_Mechanism is new Transport_Mechanism with record
-      Address : Utils.Sockets.Socket_Name_Ptr;
+      Address : Sockets.Sock_Addr_Type;
    end record;
 
    type UIPMC_Transport_Mechanism_Factory is
      new Transport_Mechanism_Factory with
    record
-      Address : Utils.Sockets.Socket_Name_Ptr;
+      Address : Sockets.Sock_Addr_Type;
    end record;
 
 end PolyORB.GIOP_P.Transport_Mechanisms.UIPMC;

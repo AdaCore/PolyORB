@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -46,6 +46,7 @@ package body PolyORB.Transport.Datagram is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    ---------------------
    -- Create_Endpoint --
@@ -60,7 +61,7 @@ package body PolyORB.Transport.Datagram is
       pragma Warnings (On);
 
    begin
-      pragma Debug (C, O ("Return null endpoint"));
+      pragma Debug (O ("Return null endpoint"));
       return null;
    end Create_Endpoint;
 
@@ -84,7 +85,7 @@ package body PolyORB.Transport.Datagram is
 
    begin
       if New_TE /= null then
-         pragma Debug (C, O ("Create and register endpoint"));
+         pragma Debug (O ("Create and register endpoint"));
 
          Binding_Objects.Setup_Binding_Object
            (TE      => New_TE,
@@ -135,7 +136,7 @@ package body PolyORB.Transport.Datagram is
               (TE => Transport_Endpoint_Access (TE)));
 
       elsif Msg in Data_Indication then
-         pragma Debug (C, O ("Data received"));
+         pragma Debug (O ("Data received"));
 
          declare
             use type Ada.Streams.Stream_Element_Count;

@@ -14,6 +14,6 @@ project local is
 
    end Compiler;
 
-   for Main use ("test000_client.adb", "test001_client.adb");
+   for Main use ("test000_client", "test001_client");
 
 end local;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,8 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PolyORB.Utils.Chained_Lists;
-with PolyORB.Utils.Sockets;
+with PolyORB.Sockets;
 
 package PolyORB.GIOP_P.Transport_Mechanisms.IIOP is
 
@@ -50,9 +49,9 @@ package PolyORB.GIOP_P.Transport_Mechanisms.IIOP is
 
    --  IIOP Transport Mechanism specific subprograms
 
-   function Primary_Address_Of
-     (M : IIOP_Transport_Mechanism) return Utils.Sockets.Socket_Name;
-   --  Return the primary access point name of M
+   function Primary_Address_Of (M : IIOP_Transport_Mechanism)
+     return Sockets.Sock_Addr_Type;
+   --  Return address of transport mechanism's transport access point.
 
    type IIOP_Transport_Mechanism_Factory is
      new Transport_Mechanism_Factory with private;
@@ -82,32 +81,32 @@ package PolyORB.GIOP_P.Transport_Mechanisms.IIOP is
    --  Create transport mechanism
 
    function Create_Transport_Mechanism
-     (Address : Utils.Sockets.Socket_Name)
+     (Address : Sockets.Sock_Addr_Type)
       return Transport_Mechanism_Access;
-   --  Create transport mechanism for specified transport access point name
+   --  Create transport mechanism for specified transport access point address
 
    procedure Disable_Transport_Mechanism
      (MF : in out IIOP_Transport_Mechanism_Factory);
    --  Disable transport mechanism if it is a primary mechanism
 
    function Duplicate
-     (TMA : IIOP_Transport_Mechanism) return IIOP_Transport_Mechanism;
+     (TMA : IIOP_Transport_Mechanism)
+     return IIOP_Transport_Mechanism;
 
 private
 
-   use Utils.Sockets;
+   package Sock_Addr_Lists is
+     new PolyORB.Utils.Chained_Lists (Sockets.Sock_Addr_Type, Sockets."=");
 
-   package Socket_Name_Lists is
-     new PolyORB.Utils.Chained_Lists (Socket_Name_Ptr);
    type IIOP_Transport_Mechanism is new Transport_Mechanism with record
-      Addresses : Socket_Name_Lists.List;
+      Addresses : Sock_Addr_Lists.List;
    end record;
 
    type IIOP_Transport_Mechanism_Factory is
      new Transport_Mechanism_Factory with
    record
       Disabled  : Boolean := False;
-      Addresses : Socket_Name_Lists.List;
+      Addresses : Sock_Addr_Lists.List;
    end record;
 
 end PolyORB.GIOP_P.Transport_Mechanisms.IIOP;

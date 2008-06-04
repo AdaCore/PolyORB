@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -50,6 +50,7 @@ package body PolyORB.POA_Policies.Thread_Policy.Main_Thread is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    Main_Thread_Lock : PolyORB.Tasking.Mutexes.Mutex_Access;
    Initialized : Boolean := False;
@@ -133,24 +134,24 @@ package body PolyORB.POA_Policies.Thread_Policy.Main_Thread is
       --  all upcalls made on all main_thread POAs ?  cf
       --  PolyORB.ORB.Thread_Per_Session for a pattern.
 
-      pragma Debug (C, O ("Handle_Request_Execution: Enter"));
+      pragma Debug (O ("Handle_Request_Execution: Enter"));
 
       if not Initialized then
-         pragma Debug (C, O ("Initialize policy"));
+         pragma Debug (O ("Initialize policy"));
          Create (Main_Thread_Lock);
          Initialized := True;
       end if;
 
-      pragma Debug (C, O ("Waiting on Main Thread's lock"));
+      pragma Debug (O ("Waiting on Main Thread's lock"));
       Enter (Main_Thread_Lock);
-      pragma Debug (C, O ("Waiting done"));
+      pragma Debug (O ("Waiting done"));
 
       declare
          Result : constant PolyORB.Components.Message'Class :=
            Execute_Servant (Servant_Access (Requestor), Msg);
       begin
          Leave (Main_Thread_Lock);
-         pragma Debug (C, O ("Handle_Request_Execution: Leave"));
+         pragma Debug (O ("Handle_Request_Execution: Leave"));
          return Result;
       end;
 

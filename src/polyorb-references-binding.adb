@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -55,6 +55,7 @@ package body PolyORB.References.Binding is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    function Find_Tagged_Profile
      (R      : Ref;
@@ -94,7 +95,7 @@ package body PolyORB.References.Binding is
       Best_Profile_Is_Local : Boolean;
 
    begin
-      pragma Debug (C, O ("Bind: enter"));
+      pragma Debug (O ("Bind: enter"));
 
       if Is_Nil (R) then
          Throw (Error,
@@ -111,7 +112,7 @@ package body PolyORB.References.Binding is
       --  First check whether the reference is already bound,
       --  and in that case reuse the binding object.
 
-      pragma Debug (C, O ("Bind: Check for already bound reference"));
+      pragma Debug (O ("Bind: Check for already bound reference"));
 
       Get_Binding_Info (R, QoS, Existing_Servant, Existing_Profile);
 
@@ -122,7 +123,7 @@ package body PolyORB.References.Binding is
          then
             Servant := Existing_Servant;
             Pro := Existing_Profile;
-            pragma Debug (C, O ("Bind: The reference is already bound"));
+            pragma Debug (O ("Bind: The reference is already bound"));
          end if;
 
          return;
@@ -153,14 +154,14 @@ package body PolyORB.References.Binding is
       --  Check if there is a binding object which we can reuse (remote case)
 
       if not Best_Profile_Is_Local then
-         pragma Debug (C, O ("Bind: Check for reusable BO"));
+         pragma Debug (O ("Bind: Check for reusable BO"));
          Existing_BO := Find_Reusable_Binding_Object
                           (Local_ORB, Selected_Profile, QoS);
 
          if not Smart_Pointers.Is_Nil (Existing_BO) then
             Pro := Selected_Profile;
             Servant := Get_Component (Existing_BO);
-            pragma Debug (C, O ("Bind: Found reusable BO for reference"));
+            pragma Debug (O ("Bind: Found reusable BO for reference"));
             return;
          end if;
       end if;
@@ -178,7 +179,7 @@ package body PolyORB.References.Binding is
          S : PolyORB.Servants.Servant_Access;
       begin
          pragma Debug
-           (C, O ("Found profile: " & Ada.Tags.External_Tag
+           (O ("Found profile: " & Ada.Tags.External_Tag
                (Selected_Profile'Tag)));
 
          if Best_Profile_Is_Local then
@@ -188,7 +189,7 @@ package body PolyORB.References.Binding is
             Object_Id := Get_Object_Key (Selected_Profile.all);
 
             if Object_Id = null then
-               pragma Debug (C, O ("Unable to locate object"));
+               pragma Debug (O ("Unable to locate object"));
                return;
             end if;
 
@@ -240,7 +241,7 @@ package body PolyORB.References.Binding is
                     (Selected_Profile,
                      Smart_Pointers.Ref (Continuation));
 
-                  pragma Debug (C, O ("Bind: recursing on proxy ref"));
+                  pragma Debug (O ("Bind: recursing on proxy ref"));
                   Bind (Continuation,
                         Local_ORB,
                         QoS,
@@ -252,13 +253,13 @@ package body PolyORB.References.Binding is
                      return;
                   end if;
 
-                  pragma Debug (C, O ("Recursed."));
+                  pragma Debug (O ("Recursed."));
 
                   Share_Binding_Info
                     (Dest => Ref (R), Source => Continuation);
-                  pragma Debug (C, O ("Cached binding data."));
+                  pragma Debug (O ("Cached binding data."));
                end if;
-               pragma Debug (C, O ("About to finalize Continuation"));
+               pragma Debug (O ("About to finalize Continuation"));
             end;
 
             --  End of processing for local profile case.
@@ -276,8 +277,8 @@ package body PolyORB.References.Binding is
             BO : Smart_Pointers.Ref;
 
          begin
-            pragma Debug (C, O ("Binding non-local profile"));
-            pragma Debug (C, O ("Creating new binding object"));
+            pragma Debug (O ("Binding non-local profile"));
+            pragma Debug (O ("Creating new binding object"));
 
             PolyORB.Binding_Data.Bind_Profile
               (Selected_Profile,
@@ -297,7 +298,7 @@ package body PolyORB.References.Binding is
 
             Servant := Get_Component (BO);
             Pro     := Selected_Profile;
-            pragma Debug (C, O ("... done"));
+            pragma Debug (O ("... done"));
          end;
       end;
    end Bind;
@@ -415,7 +416,7 @@ package body PolyORB.References.Binding is
          --  This ref has no profile with that tag:
          --  try to create one.
 
-         pragma Debug (C, O ("Get_Tagged_Profile: creating proxy"));
+         pragma Debug (O ("Get_Tagged_Profile: creating proxy"));
 
          declare
             use PolyORB.Obj_Adapters;
@@ -441,9 +442,9 @@ package body PolyORB.References.Binding is
 
                Result := Find_Tagged_Profile
                  (Proxy_Ref, Tag, Delete => True);
-               pragma Debug (C, O ("Created a proxy profile."));
+               pragma Debug (O ("Created a proxy profile."));
             else
-               pragma Debug (C, O ("Could not create proxy oid."));
+               pragma Debug (O ("Could not create proxy oid."));
                null;
             end if;
 
@@ -461,7 +462,7 @@ package body PolyORB.References.Binding is
                   Reference_Info (Entity_Of (R).all).Profiles := New_Array;
                end;
             else
-               pragma Debug (C, O ("Could not create proxy."));
+               pragma Debug (O ("Could not create proxy."));
                null;
             end if;
          end;

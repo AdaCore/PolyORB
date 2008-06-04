@@ -47,6 +47,6 @@ project tools_po_names is
 
    end Compiler;
 
-   for Main use ("po_names.adb");
+   for Main use ("po_names");
 
 end tools_po_names;

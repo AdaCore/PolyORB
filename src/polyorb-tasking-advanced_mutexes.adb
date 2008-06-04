@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -48,6 +48,7 @@ package body PolyORB.Tasking.Advanced_Mutexes is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    ------------
    -- Create --
@@ -56,7 +57,7 @@ package body PolyORB.Tasking.Advanced_Mutexes is
    procedure Create (M : out Adv_Mutex_Access) is
       use PolyORB.Tasking.Threads;
    begin
-      pragma Debug (C, O ("Create"));
+      pragma Debug (O ("Create"));
 
       M := new Adv_Mutex_Type;
       M.Current := Current_Task;
@@ -77,7 +78,7 @@ package body PolyORB.Tasking.Advanced_Mutexes is
       procedure Free is
         new Ada.Unchecked_Deallocation (Adv_Mutex_Type, Adv_Mutex_Access);
    begin
-      pragma Debug (C, O ("Destroy"));
+      pragma Debug (O ("Destroy"));
 
       PTM.Destroy (M.MMutex);
       PTCV.Destroy (M.MCondition);
@@ -94,12 +95,12 @@ package body PolyORB.Tasking.Advanced_Mutexes is
    begin
       PTM.Enter (M.MMutex);
 
-      pragma Debug (C, O (PTT.Image (Self)
+      pragma Debug (O (PTT.Image (Self)
                        & " tries to Enter Adv_Mutex"));
 
       while not M.Empty and then M.Current /= Self loop
 
-         pragma Debug (C, O (PTT.Image (Self)
+         pragma Debug (O (PTT.Image (Self)
                           & " will wait for Adv_Mutex, current owner is "
                           & PTT.Image (M.Current)));
 
@@ -115,8 +116,8 @@ package body PolyORB.Tasking.Advanced_Mutexes is
       M.Level := M.Level + 1;
       M.Current := Self;
 
-      pragma Debug (C, O ("Enter: " & PTT.Image (M.Current)));
-      pragma Debug (C, O (" new level:" & Integer'Image (M.Level)));
+      pragma Debug (O ("Enter: " & PTT.Image (M.Current)));
+      pragma Debug (O (" new level:" & Integer'Image (M.Level)));
       PTM.Leave (M.MMutex);
    end Enter;
 
@@ -130,7 +131,7 @@ package body PolyORB.Tasking.Advanced_Mutexes is
    begin
       PTM.Enter (M.MMutex);
 
-      pragma Debug (C, O ("Leave, owner was "
+      pragma Debug (O ("Leave, owner was "
                        & PTT.Image (Self)));
 
       pragma Assert (M.Current = Self);
@@ -144,7 +145,7 @@ package body PolyORB.Tasking.Advanced_Mutexes is
          PTCV.Signal (M.MCondition);
       end if;
 
-      pragma Debug (C, O (" new level:" & Integer'Image (M.Level)));
+      pragma Debug (O (" new level:" & Integer'Image (M.Level)));
       PTM.Leave (M.MMutex);
    end Leave;
 

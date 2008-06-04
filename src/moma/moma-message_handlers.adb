@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -64,6 +64,7 @@ package body MOMA.Message_Handlers is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    procedure Register_To_Servant (Self : access Message_Handler);
    --  Register the Message_Handler or change the Behavior,
@@ -184,7 +185,7 @@ package body MOMA.Message_Handlers is
         MOMA.Destinations.Create_Destination
         (To_PolyORB_String (""), Self.Servant_Ref);
    begin
-      pragma Debug (C, O ("Registering Message_Handler with "
+      pragma Debug (O ("Registering Message_Handler with "
                        & Call_Back_Behavior'Image (Self.Behavior)
                        & " behavior"));
 
@@ -217,10 +218,10 @@ package body MOMA.Message_Handlers is
             Req       => Request);
 
          PolyORB.Requests.Invoke (Request);
-         pragma Debug (C, O ("Register_Handler request complete"));
+         pragma Debug (O ("Register_Handler request complete"));
 
          PolyORB.Requests.Destroy_Request (Request);
-         pragma Debug (C, O ("Register_Handler request destroyed"));
+         pragma Debug (O ("Register_Handler request destroyed"));
       end if;
    end Register_To_Servant;
 
@@ -296,7 +297,7 @@ package body MOMA.Message_Handlers is
         MOMA.Types.To_Standard_String (MOMA.Messages.Get_Message_Id (Message));
 
    begin
-      pragma Debug (C, O ("Message_Handler is handling message"));
+      pragma Debug (O ("Message_Handler is handling message"));
 
       if Id = "Stop handling messages" then
          Set_Behavior (Self, None);
@@ -315,7 +316,7 @@ package body MOMA.Message_Handlers is
       pragma Warnings (On);
 
    begin
-      pragma Debug (C, O ("Message_Handler is being notified of a message"));
+      pragma Debug (O ("Message_Handler is being notified of a message"));
       null;
    end Template_Notifier;
 

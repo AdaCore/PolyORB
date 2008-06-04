@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -63,13 +63,13 @@ package body PolyORB.ORB_Controller.Leader_Followers is
       TI :        PTI.Task_Info_Access)
    is
    begin
-      pragma Debug (C1, O1 ("Register_Task (LF): enter"));
+      pragma Debug (O1 ("Register_Task (LF): enter"));
 
       Register_Task (ORB_Controller (O.all)'Access, TI);
       Set_Note (Get_Current_Thread_Notepad.all,
                 LF_Task_Note'(Note with TI => Id (TI.all), Job => null));
 
-      pragma Debug (C1, O1 ("Register_Task (LF): leave"));
+      pragma Debug (O1 ("Register_Task (LF): leave"));
    end Register_Task;
 
    ---------------------
@@ -86,12 +86,12 @@ package body PolyORB.ORB_Controller.Leader_Followers is
       --  Force all tasks currently waiting on this monitor to abort
 
       if O.AEM_Infos (AEM_Index).TI /= null then
-         pragma Debug (C1, O1 ("Disable_Polling: Aborting polling task"));
+         pragma Debug (O1 ("Disable_Polling: Aborting polling task"));
          PTI.Request_Abort_Polling (O.AEM_Infos (AEM_Index).TI.all);
          PolyORB.Asynch_Ev.Abort_Check_Sources
            (Selector (O.AEM_Infos (AEM_Index).TI.all).all);
 
-         pragma Debug (C1, O1 ("Disable_Polling: waiting abort is complete"));
+         pragma Debug (O1 ("Disable_Polling: waiting abort is complete"));
          O.AEM_Infos (AEM_Index).Polling_Abort_Counter
            := O.AEM_Infos (AEM_Index).Polling_Abort_Counter + 1;
 
@@ -100,7 +100,7 @@ package body PolyORB.ORB_Controller.Leader_Followers is
          O.AEM_Infos (AEM_Index).Polling_Abort_Counter
            := O.AEM_Infos (AEM_Index).Polling_Abort_Counter - 1;
 
-         pragma Debug (C1, O1 ("Disable_Polling: aborting done"));
+         pragma Debug (O1 ("Disable_Polling: aborting done"));
       end if;
    end Disable_Polling;
 
@@ -115,7 +115,7 @@ package body PolyORB.ORB_Controller.Leader_Followers is
       AEM_Index : constant Natural := Index (O, M);
 
    begin
-      pragma Debug (C1, O1 ("Enable_Polling"));
+      pragma Debug (O1 ("Enable_Polling"));
 
       if O.AEM_Infos (AEM_Index).Polling_Abort_Counter = 0 then
 
@@ -135,7 +135,7 @@ package body PolyORB.ORB_Controller.Leader_Followers is
    is
       use type PRS.Request_Scheduler_Access;
    begin
-      pragma Debug (C1, O1 ("Notify_Event: " & Event_Kind'Image (E.Kind)));
+      pragma Debug (O1 ("Notify_Event: " & Event_Kind'Image (E.Kind)));
 
       case E.Kind is
 
@@ -145,7 +145,7 @@ package body PolyORB.ORB_Controller.Leader_Followers is
             begin
                --  A task completed polling on a monitor
 
-               pragma Debug (C1, O1 ("End of check sources on monitor #"
+               pragma Debug (O1 ("End of check sources on monitor #"
                                  & Natural'Image (AEM_Index)
                                  & Ada.Tags.External_Tag
                                  (O.AEM_Infos (AEM_Index).Monitor.all'Tag)));
@@ -173,7 +173,7 @@ package body PolyORB.ORB_Controller.Leader_Followers is
             begin
                if AEM_Index = 0 then
                   --  This monitor was not yet registered, register it
-                  pragma Debug (C1, O1 ("Adding new monitor"));
+                  pragma Debug (O1 ("Adding new monitor"));
 
                   for J in O.AEM_Infos'Range loop
                      if O.AEM_Infos (J).Monitor = null then
@@ -183,7 +183,7 @@ package body PolyORB.ORB_Controller.Leader_Followers is
                      end if;
                   end loop;
                end if;
-               pragma Debug (C1, O1 ("Added monitor at index:" & AEM_Index'Img
+               pragma Debug (O1 ("Added monitor at index:" & AEM_Index'Img
                                  & " " & Ada.Tags.External_Tag
                                  (O.AEM_Infos (AEM_Index).Monitor.all'Tag)));
 
@@ -287,7 +287,7 @@ package body PolyORB.ORB_Controller.Leader_Followers is
                      then
                         --  Queue event directly into task attribute
 
-                        pragma Debug (C1, O1 ("Queue request in task area"));
+                        pragma Debug (O1 ("Queue request in task area"));
 
                         Set_Note
                           (Get_Current_Thread_Notepad.all,
@@ -329,12 +329,12 @@ package body PolyORB.ORB_Controller.Leader_Followers is
                        renames Selector (E.Requesting_Task.all);
 
                   begin
-                     pragma Debug (C1, O1 ("About to abort block"));
+                     pragma Debug (O1 ("About to abort block"));
 
                      pragma Assert (Sel /= null);
                      Abort_Check_Sources (Sel.all);
 
-                     pragma Debug (C1, O1 ("Aborted."));
+                     pragma Debug (O1 ("Aborted."));
                   end;
 
                when Idle =>
@@ -342,7 +342,7 @@ package body PolyORB.ORB_Controller.Leader_Followers is
                   --  We awake this task. It will then leave Idle
                   --  state and ask for rescheduling.
 
-                  pragma Debug (C1, O1 ("Signal requesting task"));
+                  pragma Debug (O1 ("Signal requesting task"));
 
                   Signal (Condition (E.Requesting_Task.all));
 
@@ -379,7 +379,7 @@ package body PolyORB.ORB_Controller.Leader_Followers is
             Note_Task_Unregistered (O);
       end case;
 
-      pragma Debug (C2, O2 (Status (O)));
+      pragma Debug (O2 (Status (O)));
    end Notify_Event;
 
    -------------------
@@ -393,7 +393,7 @@ package body PolyORB.ORB_Controller.Leader_Followers is
       Note : LF_Task_Note;
 
    begin
-      pragma Debug (C1, O1 ("Schedule_Task "
+      pragma Debug (O1 ("Schedule_Task "
         & PTI.Image (TI.all) & ": enter"));
 
       pragma Assert (PTI.State (TI.all) = Unscheduled);
@@ -414,8 +414,8 @@ package body PolyORB.ORB_Controller.Leader_Followers is
 
          Set_State_Terminated (TI.all);
 
-         pragma Debug (C1, O1 ("Task is now terminated"));
-         pragma Debug (C2, O2 (Status (O)));
+         pragma Debug (O1 ("Task is now terminated"));
+         pragma Debug (O2 (Status (O)));
 
       elsif Note.Job /= null then
 
@@ -464,12 +464,12 @@ package body PolyORB.ORB_Controller.Leader_Followers is
                   O.AEM_Infos (AEM_Index).Monitor,
                   O.AEM_Infos (AEM_Index).Polling_Timeout);
 
-               pragma Debug (C1, O1 ("Task is now blocked on monitor"
+               pragma Debug (O1 ("Task is now blocked on monitor"
                                  & Natural'Image (AEM_Index)
                                  & " " & Ada.Tags.External_Tag
                                  (O.AEM_Infos (AEM_Index).Monitor.all'Tag)));
 
-               pragma Debug (C2, O2 (Status (O)));
+               pragma Debug (O2 (Status (O)));
             end if;
          end;
       end if;
@@ -484,8 +484,8 @@ package body PolyORB.ORB_Controller.Leader_Followers is
             Insert_Idle_Task (O.Idle_Tasks, TI),
             O.ORB_Lock);
 
-         pragma Debug (C1, O1 ("Task is now idle"));
-         pragma Debug (C2, O2 (Status (O)));
+         pragma Debug (O1 ("Task is now idle"));
+         pragma Debug (O2 (Status (O)));
 
       end if;
    end Schedule_Task;

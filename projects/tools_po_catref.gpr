@@ -47,6 +47,6 @@ project tools_po_catref is
 
    end Compiler;
 
-   for Main use ("po_catref.adb");
+   for Main use ("po_catref");
 
 end tools_po_catref;

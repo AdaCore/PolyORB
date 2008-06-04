@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -55,6 +55,7 @@ package body PolyORB.Protocols is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    ---------------------------------
    -- Handle_Unmarshall_Arguments --
@@ -89,7 +90,7 @@ package body PolyORB.Protocols is
 
    begin
       pragma Debug
-        (C, O ("Handling message of type "
+        (O ("Handling message of type "
             & Ada.Tags.External_Tag (S'Tag)));
       if S in Connect_Indication then
          Handle_Connect_Indication (Session_Access (Sess));
@@ -177,18 +178,18 @@ package body PolyORB.Protocols is
                   pragma Assert (Reply in Unmarshalled_Arguments
                                  or else Reply in Arguments_Error);
                   if Reply in Unmarshalled_Arguments then
-                     pragma Debug (C, O ("Unmarshalled deferred arguments"));
+                     pragma Debug (O ("Unmarshalled deferred arguments"));
                      Req.Args := Unmarshalled_Arguments (Reply).Args;
                      Req.Result.Argument := Get_Empty_Result
                        (Desc, Req.Target, Req.Operation.all);
 
                      Req.Deferred_Arguments_Session := null;
                      pragma Debug
-                       (C, O ("Proxying request: " & Image (Req.all)));
+                       (O ("Proxying request: " & Image (Req.all)));
 
                   else
                      pragma Debug
-                       (C, O ("Unmarshall deferred arguments error"));
+                       (O ("Unmarshall deferred arguments error"));
                      Set_Exception (Req, Arguments_Error (Reply).Error);
 
                      --  Free data associated to Arguments_Error (Reply).Error

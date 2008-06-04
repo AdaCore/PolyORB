@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -69,6 +69,7 @@ package body RTCosScheduling.ServerScheduler.Impl is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    -----------------------------
    -- Load_Configuration_File --
@@ -104,7 +105,7 @@ package body RTCosScheduling.ServerScheduler.Impl is
       Thread_Pool_Policy_Ref : RTCORBA.ThreadpoolPolicy.Local_Ref;
 
    begin
-      pragma Debug (C, O ("Configuring POA "
+      pragma Debug (O ("Configuring POA "
                        & CORBA.To_String (Adapter_Name)));
 
       --  Retrieve parameters for the PriorityModel Policy, if any
@@ -121,7 +122,7 @@ package body RTCosScheduling.ServerScheduler.Impl is
 
       begin
          if Priority_Model = "CLIENT_PROPAGATED" then
-            pragma Debug (C, O ("Configuring CLIENT_PROPAGATED policy"));
+            pragma Debug (O ("Configuring CLIENT_PROPAGATED policy"));
 
             Priority_Model_Policy_Ref
               := RTCORBA.RTORB.Create_Priority_Model_Policy
@@ -133,7 +134,7 @@ package body RTCosScheduling.ServerScheduler.Impl is
               (All_Policies, CORBA.Policy.Ref (Priority_Model_Policy_Ref));
 
          elsif Priority_Model = "SERVER_DECLARED" then
-            pragma Debug (C, O ("Configuring SERVER_DECLARED policy"));
+            pragma Debug (O ("Configuring SERVER_DECLARED policy"));
 
             Priority_Model_Policy_Ref
               := RTCORBA.RTORB.Create_Priority_Model_Policy
@@ -145,7 +146,7 @@ package body RTCosScheduling.ServerScheduler.Impl is
               (All_Policies, CORBA.Policy.Ref (Priority_Model_Policy_Ref));
 
          else
-            pragma Debug (C, O ("No PriorityModel policy to configure"));
+            pragma Debug (O ("No PriorityModel policy to configure"));
             null;
 
          end if;
@@ -159,7 +160,7 @@ package body RTCosScheduling.ServerScheduler.Impl is
            ("poa " & CORBA.To_String (Adapter_Name), "threadpool_id", -1);
       begin
          if Threadpool_Id /= -1 then
-            pragma Debug (C, O ("Create Threadpool policy"));
+            pragma Debug (O ("Create Threadpool policy"));
 
             Thread_Pool_Policy_Ref
               := RTCORBA.RTORB.Create_Threadpool_Policy
@@ -169,7 +170,7 @@ package body RTCosScheduling.ServerScheduler.Impl is
               (All_Policies, CORBA.Policy.Ref (Thread_Pool_Policy_Ref));
 
          else
-            pragma Debug (C, O ("No ThreadPool policy to configure"));
+            pragma Debug (O ("No ThreadPool policy to configure"));
             null;
 
          end if;
@@ -208,14 +209,14 @@ package body RTCosScheduling.ServerScheduler.Impl is
       U_Oid : PolyORB.POA_Types.Unmarshalled_Oid;
 
    begin
-      pragma Debug (C, O ("Configuring object " & CORBA.To_String (Name)));
+      pragma Debug (O ("Configuring object " & CORBA.To_String (Name)));
 
       --  Retrieve CORBA Priority
 
       CORBA_Priority := PolyORB.Parameters.Get_Conf
         ("object " & CORBA.To_String (Name), "priority");
 
-      pragma Debug (C, O ("Set priority to:" & CORBA_Priority'Img));
+      pragma Debug (O ("Set priority to:" & CORBA_Priority'Img));
 
       --  Compute corresponding Native priority
 

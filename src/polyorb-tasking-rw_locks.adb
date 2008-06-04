@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -49,6 +49,7 @@ package body PolyORB.Tasking.Rw_Locks is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    Rw_Lock_Counter : Natural := 0;
    --  For debugging purposes.
@@ -73,7 +74,7 @@ package body PolyORB.Tasking.Rw_Locks is
 
       Rw_Lock_Counter := Rw_Lock_Counter + 1;
       Result.Serial := Rw_Lock_Counter;
-      pragma Debug (C, O ("Create, Serial ="
+      pragma Debug (O ("Create, Serial ="
                        & Integer'Image (Result.Serial)));
 
       Leave (All_Rw_Locks);
@@ -94,11 +95,11 @@ package body PolyORB.Tasking.Rw_Locks is
 
    procedure Destroy (L : in out Rw_Lock_Access) is
    begin
-      pragma Debug (C, O ("Destroy, Serial =" & Integer'Image (L.Serial)));
+      pragma Debug (O ("Destroy, Serial =" & Integer'Image (L.Serial)));
 
       Destroy (L.Guard_Values);
       Free (L);
-      pragma Debug (C, O ("Desroy: end"));
+      pragma Debug (O ("Desroy: end"));
    end Destroy;
 
    --------------
@@ -127,7 +128,7 @@ package body PolyORB.Tasking.Rw_Locks is
 
    procedure Lock_W (L : access Rw_Lock_Type) is
    begin
-      pragma Debug (C, O ("Lock_W Serial =" & Integer'Image (L.Serial)));
+      pragma Debug (O ("Lock_W Serial =" & Integer'Image (L.Serial)));
 
       Enter (All_Rw_Locks);
 
@@ -150,7 +151,7 @@ package body PolyORB.Tasking.Rw_Locks is
 
    procedure Lock_R (L : access Rw_Lock_Type) is
    begin
-      pragma Debug (C, O ("Lock_R Serial =" & Integer'Image (L.Serial)));
+      pragma Debug (O ("Lock_R Serial =" & Integer'Image (L.Serial)));
 
       Enter (All_Rw_Locks);
 
@@ -174,12 +175,12 @@ package body PolyORB.Tasking.Rw_Locks is
 
    procedure Unlock_W (L : access Rw_Lock_Type) is
    begin
-      pragma Debug (C, O ("Unlock_W Serial =" & Integer'Image (L.Serial)));
+      pragma Debug (O ("Unlock_W Serial =" & Integer'Image (L.Serial)));
 
       Enter (All_Rw_Locks);
 
       if L.Count /= -1 then
-         pragma Debug (C, O ("Lock has not been previously taken !"));
+         pragma Debug (O ("Lock has not been previously taken !"));
          raise Program_Error;
       else
          L.Count := 0;
@@ -195,7 +196,7 @@ package body PolyORB.Tasking.Rw_Locks is
 
    procedure Unlock_R (L : access Rw_Lock_Type) is
    begin
-      pragma Debug (C, O ("Unlock_R Serial =" & Integer'Image (L.Serial)));
+      pragma Debug (O ("Unlock_R Serial =" & Integer'Image (L.Serial)));
 
       Enter (All_Rw_Locks);
 

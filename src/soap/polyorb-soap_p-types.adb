@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2000-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2000-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -58,6 +58,7 @@ package body PolyORB.SOAP_P.Types is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    function xsi_type (Name : String) return String;
    --  Returns the xsi:type field for the XML type representation whose name
@@ -297,7 +298,7 @@ package body PolyORB.SOAP_P.Types is
       Kind : constant TCKind := TypeCode.Kind (TC);
    begin
       pragma Debug
-        (C, O ("Image: enter, Kind is "
+        (O ("Image: enter, Kind is "
                        & TCKind'Image (Kind)));
       case Kind is
          when
@@ -339,7 +340,7 @@ package body PolyORB.SOAP_P.Types is
          when others =>
             --  XXX ???
             pragma Debug
-              (C, O ("Image: Unsupported TCKind:" & TCKind'Image (Kind)));
+              (O ("Image: Unsupported TCKind:" & TCKind'Image (Kind)));
             raise Data_Error;
       end case;
    end Image;
@@ -551,7 +552,7 @@ package body PolyORB.SOAP_P.Types is
       Kind : constant TCKind := TypeCode.Kind (Get_Unwound_Type (NV.Argument));
    begin
       pragma Debug
-        (C, O ("XML_Image: arg """
+        (O ("XML_Image: arg """
                          & To_Standard_String (XML_Image.NV.Name)
                          & """ is a " & TCKind'Image (Kind)));
 
@@ -574,7 +575,7 @@ package body PolyORB.SOAP_P.Types is
               & " xsi:null=""1""/>";
 
          when others =>
-            pragma Debug (C, O ("Defaulting."));
+            pragma Debug (O ("Defaulting."));
             return "<" & To_Standard_String (NV.Name)
               & xsi_type (XML_Type (NV)) & '>'
               & Image (NV)
@@ -704,7 +705,7 @@ package body PolyORB.SOAP_P.Types is
               := To_URI (SOAP_Profile_Type (SOAP_Profile.all));
          begin
             pragma Debug
-              (C, O ("Exporting object with URI: " & URI));
+              (O ("Exporting object with URI: " & URI));
             Append (Result, URI);
          end;
       else
@@ -768,7 +769,7 @@ package body PolyORB.SOAP_P.Types is
                     Get_Unwound_Type (NV.Argument);
       New_Line : constant String := ASCII.CR & ASCII.LF;
    begin
-      pragma Debug (C, O ("XML_Record_Image: enter"));
+      pragma Debug (O ("XML_Record_Image: enter"));
       Append (Result, SOAP.Utils.Tag
               (To_Standard_String (NV.Name), Start => True));
       Append (Result, New_Line);
@@ -798,7 +799,7 @@ package body PolyORB.SOAP_P.Types is
       Append (Result, SOAP.Utils.Tag
               (To_Standard_String (NV.Name), Start => False));
 
-      pragma Debug (C, O ("XML_Record_Image: leave"));
+      pragma Debug (O ("XML_Record_Image: leave"));
       return To_String (Result);
    end XML_Record_Image;
 

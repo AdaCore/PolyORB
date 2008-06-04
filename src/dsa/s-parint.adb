@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -88,6 +88,7 @@ package body System.Partition_Interface is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    --  A few handy aliases
 
@@ -362,7 +363,7 @@ package body System.Partition_Interface is
    is
       use Ada.Exceptions;
    begin
-      pragma Debug (C, O ("Check: checking RCI versions consistency"));
+      pragma Debug (O ("Check: checking RCI versions consistency"));
 
       if not RCI then
          return;
@@ -932,7 +933,7 @@ package body System.Partition_Interface is
       Seq_Any : PolyORB.Any.Any;
       Tc      : constant PATC.Local_Ref := Get_Type (Value);
    begin
-      pragma Debug (C, O ("Get_Nested_Sequence_Length: enter,"
+      pragma Debug (O ("Get_Nested_Sequence_Length: enter,"
                        & " Depth =" & Depth'Img & ","
                        & " Tc = " & Image (Tc)));
 
@@ -942,14 +943,14 @@ package body System.Partition_Interface is
               := PATC.Member_Count (Tc) - 1;
          begin
             pragma Debug
-              (C, O ("Index of last member is" & Index'Img));
+              (O ("Index of last member is" & Index'Img));
 
             Seq_Any := Get_Aggregate_Element (Value,
               PATC.Member_Type (Tc, Index),
               Index);
          end;
       else
-         pragma Debug (C, O ("Tc is (assumed to be) a Tk_Sequence"));
+         pragma Debug (O ("Tc is (assumed to be) a Tk_Sequence"));
          Seq_Any := Value;
       end if;
 
@@ -1000,7 +1001,7 @@ package body System.Partition_Interface is
             --  The following is ugly and inefficient (two levels of linear
             --  search) and should probably be optimized in some way.
 
-            pragma Debug (C, O ("Looking up RAS ref for " &
+            pragma Debug (O ("Looking up RAS ref for " &
                                Subprogram_Name & " in " &
                                Pkg_Name));
 
@@ -1128,9 +1129,9 @@ package body System.Partition_Interface is
    exception
       when E : others =>
          pragma Debug
-           (C, O ("Get_Reference: got exception "
+           (O ("Get_Reference: got exception "
                  & Ada.Exceptions.Exception_Information (E)));
-         pragma Debug (C, O ("returning a nil ref."));
+         pragma Debug (O ("returning a nil ref."));
          null;
 
    end Get_Reference;
@@ -1356,7 +1357,7 @@ package body System.Partition_Interface is
       declare
          Stub : Receiving_Stub renames Value (First (All_Receiving_Stubs)).all;
       begin
-         pragma Debug (C, O ("Setting up RPC receiver: " & Stub.Name.all));
+         pragma Debug (O ("Setting up RPC receiver: " & Stub.Name.all));
          Setup_Object_RPC_Receiver (Stub.Name.all, Stub.Receiver);
       end;
 
@@ -1435,7 +1436,7 @@ package body System.Partition_Interface is
          Ref : PolyORB.References.Ref;
 
       begin
-         pragma Debug (C, O ("Setting up RPC receiver: " & Stub.Name.all));
+         pragma Debug (O ("Setting up RPC receiver: " & Stub.Name.all));
          Setup_Object_RPC_Receiver (Stub.Name.all, Stub.Receiver);
 
          --  Establish a child POA for this stub. For RACWs, this POA will
@@ -1465,7 +1466,7 @@ package body System.Partition_Interface is
 
          PolyORB.Objects.Free (Oid);
 
-         pragma Debug (C, O ("Registering local RCI: " & Stub.Name.all));
+         pragma Debug (O ("Registering local RCI: " & Stub.Name.all));
 
          Known_RCIs.Register
            (To_Lower (Stub.Name.all), RCI_Info'
@@ -1488,7 +1489,7 @@ package body System.Partition_Interface is
       --  the application: terminate PCS and propagate.
 
       when E : others =>
-         pragma Debug (C, O ("exception raised during RCI registration: "
+         pragma Debug (O ("exception raised during RCI registration: "
                           & Ada.Exceptions.Exception_Information (E)));
          PolyORB.Initialization.Shutdown_World (Wait_For_Completion => False);
          raise;
@@ -1509,7 +1510,7 @@ package body System.Partition_Interface is
       The_TM_Oid      := Oid;
       The_TM_Address  := Address;
       The_TM_Shutdown := Shutdown;
-      pragma Debug (C, O ("Registered the termination manager"));
+      pragma Debug (O ("Registered the termination manager"));
    end Register_Termination_Manager;
 
    ----------------------------------
@@ -1525,7 +1526,7 @@ package body System.Partition_Interface is
       Id : constant PolyORB.Services.Naming.Name := To_Name (Name, Kind);
       Reg_Obj : PolyORB.References.Ref;
    begin
-      pragma Debug (C, O ("About to register " & Name & " on nameserver"));
+      pragma Debug (O ("About to register " & Name & " on nameserver"));
 
       begin
          Reg_Obj := PSNNC.Client.Resolve (Naming_Context, Id);
@@ -1678,7 +1679,7 @@ package body System.Partition_Interface is
 
       Retry_Count : Natural := 0;
    begin
-      pragma Debug (C, O ("Retrieve RCI info: enter, Name = " & Name));
+      pragma Debug (O ("Retrieve RCI info: enter, Name = " & Name));
       Info := Known_RCIs.Lookup (LName, Info);
 
       --  If RCI information is not available locally, we request it from the
@@ -1724,7 +1725,7 @@ package body System.Partition_Interface is
 
          Known_RCIs.Register (LName, Info);
       end if;
-      pragma Debug (C, O ("Retrieve_RCI_Info: leave"));
+      pragma Debug (O ("Retrieve_RCI_Info: leave"));
       return Info;
    end Retrieve_RCI_Info;
 

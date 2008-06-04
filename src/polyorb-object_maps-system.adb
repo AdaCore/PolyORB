@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -47,6 +47,7 @@ package body PolyORB.Object_Maps.System is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    ----------------
    -- Initialize --
@@ -75,7 +76,7 @@ package body PolyORB.Object_Maps.System is
       Obj   : Object_Map_Entry_Access)
      return Integer is
    begin
-      pragma Debug (C, O ("Add: enter"));
+      pragma Debug (O ("Add: enter"));
 
       if Obj.Oid /= null then
          raise Program_Error;
@@ -85,21 +86,21 @@ package body PolyORB.Object_Maps.System is
 
       for J in First (O_Map.System_Map) .. Last (O_Map.System_Map) loop
          if Is_Null (O_Map.System_Map.Table (J)) then
-            pragma Debug (C, O ("Replacing element" & Integer'Image (J)));
+            pragma Debug (O ("Replacing element" & Integer'Image (J)));
             O_Map.System_Map.Table (1 + J - First (O_Map.System_Map)) := Obj;
 
-            pragma Debug (C, O ("Add: leave"));
+            pragma Debug (O ("Add: leave"));
             return J;
          end if;
       end loop;
 
       --  else, allocate one new element in table
 
-      pragma Debug (C, O ("Appending element"));
+      pragma Debug (O ("Appending element"));
       Increment_Last (O_Map.System_Map);
       O_Map.System_Map.Table (Last (O_Map.System_Map)) := Obj;
 
-      pragma Debug (C, O ("Add: leave"));
+      pragma Debug (O ("Add: leave"));
       return Last (O_Map.System_Map);
    end Add;
 
@@ -111,7 +112,7 @@ package body PolyORB.Object_Maps.System is
       use type PolyORB.Servants.Servant_Access;
 
    begin
-      pragma Debug (C, O ("Add: enter"));
+      pragma Debug (O ("Add: enter"));
 
       if False
         or else not Obj.Oid.System_Generated
@@ -137,7 +138,7 @@ package body PolyORB.Object_Maps.System is
 
       O_Map.System_Map.Table (1 + Index - First (O_Map.System_Map)) := Obj;
 
-      pragma Debug (C, O ("Add: leave"));
+      pragma Debug (O ("Add: leave"));
    end Add;
 
    ---------------
@@ -149,14 +150,14 @@ package body PolyORB.Object_Maps.System is
       Item  : PolyORB.POA_Types.Unmarshalled_Oid)
      return Object_Map_Entry_Access is
    begin
-      pragma Debug (C, O ("Get_By_Id: enter"));
-      pragma Debug (C, O ("Looking for: " & To_Standard_String (Item.Id)));
+      pragma Debug (O ("Get_By_Id: enter"));
+      pragma Debug (O ("Looking for: " & To_Standard_String (Item.Id)));
 
       if not Item.System_Generated then
          raise Program_Error;
       end if;
 
-      pragma Debug (C, O ("System generated OID, directly return element"));
+      pragma Debug (O ("System generated OID, directly return element"));
       return O_Map.System_Map.Table
         (Integer'Value (To_Standard_String (Item.Id)));
    end Get_By_Id;
@@ -173,22 +174,22 @@ package body PolyORB.Object_Maps.System is
       use type PolyORB.Servants.Servant_Access;
 
    begin
-      pragma Debug (C, O ("Get_By_Servant: enter"));
+      pragma Debug (O ("Get_By_Servant: enter"));
 
       for J in First (O_Map.System_Map) .. Last (O_Map.System_Map) loop
          if not Is_Null (O_Map.System_Map.Table (J)) then
-            pragma Debug (C, O ("Examinating elt: "
+            pragma Debug (O ("Examinating elt: "
                              & To_Standard_String
                              (O_Map.System_Map.Table (J).Oid.Id)));
 
             if O_Map.System_Map.Table (J).Servant = Item then
-               pragma Debug (C, O ("Found !"));
+               pragma Debug (O ("Found !"));
                return O_Map.System_Map.Table (J);
             end if;
          end if;
       end loop;
 
-      pragma Debug (C, O ("Not Found !"));
+      pragma Debug (O ("Not Found !"));
       return null;
 
    end Get_By_Servant;
@@ -205,14 +206,14 @@ package body PolyORB.Object_Maps.System is
       Old_Entry : Object_Map_Entry_Access;
 
    begin
-      pragma Debug (C, O ("Remove_By_Id: enter"));
-      pragma Debug (C, O ("Looking for: " & To_Standard_String (Item.Id)));
+      pragma Debug (O ("Remove_By_Id: enter"));
+      pragma Debug (O ("Looking for: " & To_Standard_String (Item.Id)));
 
       if not Item.System_Generated then
          raise Program_Error;
       end if;
 
-      pragma Debug (C, O ("System generated OID, directly remove element"));
+      pragma Debug (O ("System generated OID, directly remove element"));
 
       declare
          Index : constant Integer

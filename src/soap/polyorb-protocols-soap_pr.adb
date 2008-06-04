@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -72,6 +72,7 @@ package body PolyORB.Protocols.SOAP_Pr is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    --------------------
    -- Implementation --
@@ -123,8 +124,8 @@ package body PolyORB.Protocols.SOAP_Pr is
 
       exception
          when E : others =>
-            pragma Debug (C, O ("SOAP message: exception in Image:"));
-            pragma Debug (C, O (Ada.Exceptions.Exception_Information (E)));
+            pragma Debug (O ("SOAP message: exception in Image:"));
+            pragma Debug (O (Ada.Exceptions.Exception_Information (E)));
 
             --  Cleanup before propagating exception to caller.
 
@@ -243,7 +244,7 @@ package body PolyORB.Protocols.SOAP_Pr is
 
       Buffer_Sources.Set_Buffer (Src, S.In_Buf);
       PolyORB.SOAP_P.Message.XML.Load_Response (Src'Access, Return_Args);
-      pragma Debug (C, O ("Process_Reply: processed "
+      pragma Debug (O ("Process_Reply: processed "
                        & PolyORB.Types.Long'Image
                        (PolyORB.Any.NVList.Get_Count
                         (Return_Args))
@@ -341,7 +342,7 @@ package body PolyORB.Protocols.SOAP_Pr is
             is
             begin
                pragma Debug
-                 (C, O ("Path_To_Oid: " & To_Standard_String (Path)));
+                 (O ("Path_To_Oid: " & To_Standard_String (Path)));
 
                return PolyORB.Obj_Adapters.Rel_URI_To_Oid
                  (PolyORB.ORB.Object_Adapter (The_ORB),

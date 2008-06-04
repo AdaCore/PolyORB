@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -53,6 +53,7 @@ package body PolyORB.Representations.CDR is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    type Registry_Item is record
       Major   : Octet;
@@ -217,7 +218,7 @@ package body PolyORB.Representations.CDR is
       use TC_Maps;
       T : TC_Maps.Instance renames Representation.TC_Map;
    begin
-      pragma Debug (C, O ("End_TC: Complex = " & Complex'Img
+      pragma Debug (O ("End_TC: Complex = " & Complex'Img
         & ", Current_Complex =" & Representation.Current_Complex'Img));
 
       if not Complex then
@@ -230,7 +231,7 @@ package body PolyORB.Representations.CDR is
       if Representation.Current_Complex = -1 then
          --  Outermost complex typecode completed
 
-         pragma Debug (C, O ("End_TC: left outermost complex"));
+         pragma Debug (O ("End_TC: left outermost complex"));
          Deallocate (T);
       end if;
    end End_TC;
@@ -249,7 +250,7 @@ package body PolyORB.Representations.CDR is
       Hi : Types.Long := Last (T);
       Cur : Types.Long;
    begin
-      pragma Debug (C, O ("Find_TC: Offset =" & Offset'Img));
+      pragma Debug (O ("Find_TC: Offset =" & Offset'Img));
 
       --  Dichotomic search in map, assumes that entries are in ascending
       --  offset order.
@@ -257,7 +258,7 @@ package body PolyORB.Representations.CDR is
       while Lo <= Hi loop
          Cur := (Lo + Hi) / 2;
          if T.Table (Cur).Offset = Offset then
-            pragma Debug (C, O ("Find_TC: found at" & Cur'Img));
+            pragma Debug (O ("Find_TC: found at" & Cur'Img));
             return T.Table (Cur).TC_Ref;
 
          elsif T.Table (Cur).Offset < Offset then
@@ -267,7 +268,7 @@ package body PolyORB.Representations.CDR is
          end if;
       end loop;
 
-      pragma Debug (C, O ("Find_TC: not found"));
+      pragma Debug (O ("Find_TC: not found"));
       raise Constraint_Error;
    end Find_TC;
 
@@ -294,18 +295,18 @@ package body PolyORB.Representations.CDR is
       E      : Errors.Error_Container;
       Data_C : Any_Container'Class renames Get_Container (Data).all;
    begin
-      pragma Debug (C, O ("Marshall (Any): enter"));
+      pragma Debug (O ("Marshall (Any): enter"));
 
       Marshall (Representation, Buffer, Get_Type_Obj (Data_C), E);
       pragma Assert (not Found (E));
       --  ??? should propagate error appropriately
 
-      pragma Debug (C, O ("Marshall (Any): type marshalled"));
+      pragma Debug (O ("Marshall (Any): type marshalled"));
       Marshall_From_Any (Representation, Buffer, Data_C, E);
       pragma Assert (not Found (E));
       --  ??? should propagate error appropriately
 
-      pragma Debug (C, O ("Marshall (Any): end"));
+      pragma Debug (O ("Marshall (Any): end"));
    end Marshall;
 
    --------------
@@ -321,7 +322,7 @@ package body PolyORB.Representations.CDR is
       Complex_Buffer : Buffer_Access;
       Nb : PolyORB.Types.Unsigned_Long;
    begin
-      pragma Debug (C, O ("Marshall (Typecode): enter, kind = " &
+      pragma Debug (O ("Marshall (Typecode): enter, kind = " &
                        TCKind'Image (TypeCode.Kind (Data))));
 
       case TypeCode.Kind (Data) is
@@ -372,9 +373,9 @@ package body PolyORB.Representations.CDR is
             Marshall (Buffer, TC_Object_Id);
             Complex_Buffer := new Buffer_Type;
             Start_Encapsulation (Complex_Buffer);
-            pragma Debug (C, O ("Marshall (TypeCode): marshalling the id"));
+            pragma Debug (O ("Marshall (TypeCode): marshalling the id"));
             Marshall (Complex_Buffer, Any.TypeCode.Id (Data));
-            pragma Debug (C, O ("Marshall (TypeCode): marshalling the name"));
+            pragma Debug (O ("Marshall (TypeCode): marshalling the name"));
             Marshall (Complex_Buffer, Any.TypeCode.Name (Data));
             Marshall (Buffer, Encapsulate (Complex_Buffer));
             Release (Complex_Buffer);
@@ -383,24 +384,24 @@ package body PolyORB.Representations.CDR is
             Marshall (Buffer, TC_Struct_Id);
             Complex_Buffer := new Buffer_Type;
             Start_Encapsulation (Complex_Buffer);
-            pragma Debug (C, O ("Marshall (TypeCode): marshalling the id"));
+            pragma Debug (O ("Marshall (TypeCode): marshalling the id"));
             Marshall (Complex_Buffer, Any.TypeCode.Id (Data));
-            pragma Debug (C, O ("Marshall (TypeCode): marshalling the name"));
+            pragma Debug (O ("Marshall (TypeCode): marshalling the name"));
             Marshall (Complex_Buffer, Any.TypeCode.Name (Data));
 
             Nb := Any.TypeCode.Member_Count (Data);
-            pragma Debug (C, O ("Marshall (TypeCode): " &
+            pragma Debug (O ("Marshall (TypeCode): " &
                              "marshalling the members. Nb = "
                              & PolyORB.Types.Unsigned_Long'Image (Nb)));
             Marshall (Complex_Buffer, Nb);
             if Nb /= 0 then
                for J in 0 .. Nb - 1 loop
-                  pragma Debug (C, O ("Marshall (TypeCode): about "
+                  pragma Debug (O ("Marshall (TypeCode): about "
                                    & "to marshall a new  member"));
                   Marshall (Complex_Buffer,
                             TypeCode.Member_Name (Data, J));
                   pragma Debug
-                    (C, O ("Marshall (TypeCode): marshalling "
+                    (O ("Marshall (TypeCode): marshalling "
                         & "the type ("
                         & TCKind'Image
                         (TypeCode.Kind
@@ -412,12 +413,12 @@ package body PolyORB.Representations.CDR is
                             Error);
                   exit when Found (Error);
 
-                  pragma Debug (C, O ("Marshall (TypeCode): "
+                  pragma Debug (O ("Marshall (TypeCode): "
                                    & "member marshalled"));
                end loop;
             end if;
 
-            pragma Debug (C, O ("Marshall: all members marshalled"));
+            pragma Debug (O ("Marshall: all members marshalled"));
             Marshall (Buffer, Encapsulate (Complex_Buffer));
             Release (Complex_Buffer);
 
@@ -722,7 +723,7 @@ package body PolyORB.Representations.CDR is
             Marshall (Buffer, Encapsulate (Complex_Buffer));
             Release (Complex_Buffer);
       end case;
-      pragma Debug (C, O ("Marshall (Typecode): end"));
+      pragma Debug (O ("Marshall (Typecode): end"));
    end Marshall;
 
    -----------------------
@@ -762,8 +763,8 @@ package body PolyORB.Representations.CDR is
       TCK : constant TCKind := TypeCode.Kind (Data_Type);
 
    begin
-      pragma Debug (C, O ("Marshall_From_Any: enter"));
-      pragma Debug (C, O ("Marshall_From_Any: CData = " & Image (CData)));
+      pragma Debug (O ("Marshall_From_Any: enter"));
+      pragma Debug (O ("Marshall_From_Any: CData = " & Image (CData)));
 
       case TCK is
 
@@ -845,7 +846,7 @@ package body PolyORB.Representations.CDR is
                   return;
                end if;
 
-               pragma Debug (C, O ("Marshall_From_Any: "
+               pragma Debug (O ("Marshall_From_Any: "
                  & "union label marshalled"));
 
                declare
@@ -860,7 +861,7 @@ package body PolyORB.Representations.CDR is
                   if Any.TypeCode.Kind (Member_TC) /= Tk_Void then
                      Marshall_Aggregate_Element (Member_TC, ACC'Access, 1);
                   else
-                     pragma Debug (C, O ("Marshall_From_Any: "
+                     pragma Debug (O ("Marshall_From_Any: "
                        & "union with no member for this label"));
                      null;
                   end if;
@@ -871,7 +872,7 @@ package body PolyORB.Representations.CDR is
                end if;
 
                pragma Debug
-                 (C, O ("Marshall_From_Any: union member value marshalled"));
+                 (O ("Marshall_From_Any: union member value marshalled"));
             end;
 
          when Tk_Enum =>
@@ -1095,7 +1096,7 @@ package body PolyORB.Representations.CDR is
             --  FIXME : to be done
             raise Program_Error;
       end case;
-      pragma Debug (C, O ("Marshall_From_Any: end"));
+      pragma Debug (O ("Marshall_From_Any: end"));
    end Marshall_From_Any;
 
    ----------------------
@@ -1147,7 +1148,7 @@ package body PolyORB.Representations.CDR is
       use TC_Maps;
       T : TC_Maps.Instance renames Representation.TC_Map;
    begin
-      pragma Debug (C, O ("Start_TC: Complex = " & Complex'Img
+      pragma Debug (O ("Start_TC: Complex = " & Complex'Img
         & ", Current_Complex =" & Representation.Current_Complex'Img
         & ", (rel) Offset =" & Offset'Img));
 
@@ -1168,7 +1169,7 @@ package body PolyORB.Representations.CDR is
          TC_Ref            => TC_Ref,
          Offset            => To_Absolute_Offset (Representation, Offset));
 
-      pragma Debug (C, O ("Start_TC: new entry @" & Last (T)'Img & ": "
+      pragma Debug (O ("Start_TC: new entry @" & Last (T)'Img & ": "
                        & Image (T.Table (Last (T)))));
 
       if Complex then
@@ -1212,7 +1213,7 @@ package body PolyORB.Representations.CDR is
       TC     : TypeCode.Local_Ref;
       E      : Errors.Error_Container;
    begin
-      pragma Debug (C, O ("Unmarshall (Any): enter"));
+      pragma Debug (O ("Unmarshall (Any): enter"));
 
       Unmarshall (Representation, Buffer, TC, E);
       pragma Assert (not Found (E));
@@ -1224,7 +1225,7 @@ package body PolyORB.Representations.CDR is
       pragma Assert (not Found (E));
       --  ??? Propagate error?
 
-      pragma Debug (C, O ("Unmarshall (Any): end"));
+      pragma Debug (O ("Unmarshall (Any): end"));
       return Result;
    end Unmarshall;
 
@@ -1253,7 +1254,7 @@ package body PolyORB.Representations.CDR is
       --  we might need to skip some alignment padding first.
 
    begin
-      pragma Debug (C, O ("Unmarshall (TypeCode): enter"));
+      pragma Debug (O ("Unmarshall (TypeCode): enter"));
 
       case TypeCode_Id is
          when TC_Null_Id =>
@@ -1890,7 +1891,7 @@ package body PolyORB.Representations.CDR is
                   raise Constraint_Error;
                end if;
 
-               pragma Debug (C, O ("Unmarshall (TypeCode): @" & Current'Img
+               pragma Debug (O ("Unmarshall (TypeCode): @" & Current'Img
                  & ": found indirect reference with relative offset "
                  & Offset'Img));
 
@@ -1910,7 +1911,7 @@ package body PolyORB.Representations.CDR is
          End_TC   (R, Complex => False);
       end if;
 
-      pragma Debug (C, O ("Unmarshall (TypeCode): end"));
+      pragma Debug (O ("Unmarshall (TypeCode): end"));
    end Unmarshall;
 
    -----------------------
@@ -1928,7 +1929,7 @@ package body PolyORB.Representations.CDR is
       TCK : constant TCKind := TypeCode.Kind (TC);
    begin
       pragma Debug
-        (C, O ("Unmarshall_To_Any: Any_Type is " &
+        (O ("Unmarshall_To_Any: Any_Type is " &
             PolyORB.Any.TCKind'Image (TypeCode.Kind (TC))));
 
       case TCK is
@@ -1940,7 +1941,7 @@ package body PolyORB.Representations.CDR is
             declare
                S : constant Short := Unmarshall (Buffer);
             begin
-               pragma Debug (C, O ("Unmarshall_To_Any: value is "
+               pragma Debug (O ("Unmarshall_To_Any: value is "
                                 & PolyORB.Types.Short'Image (S)));
                Set_Any_Value (S, CData);
             end;
@@ -1978,7 +1979,7 @@ package body PolyORB.Representations.CDR is
                D : constant Double := Unmarshall (Buffer);
             begin
                pragma Debug
-                 (C, O ("Unmarshall_To_Any: value is " & Double'Image (D)));
+                 (O ("Unmarshall_To_Any: value is " & Double'Image (D)));
                Set_Any_Value (D, CData);
             end;
 
@@ -2144,7 +2145,7 @@ package body PolyORB.Representations.CDR is
                   end if;
 
                   for J in First_Index .. Nb - 1 loop
-                     pragma Debug (C, O ("Unmarshall_To_Any: get element"));
+                     pragma Debug (O ("Unmarshall_To_Any: get element"));
 
                      --  Determine aggregate element typecode
 
@@ -2185,7 +2186,7 @@ package body PolyORB.Representations.CDR is
                            Set_Value (El_C, El_CC'Unchecked_Access);
                         end if;
 
-                        pragma Debug (C, O ("Unmarshall_To_Any: about to "
+                        pragma Debug (O ("Unmarshall_To_Any: about to "
                           & "unmarshall a member"));
 
                         Unmarshall_To_Any
@@ -2207,7 +2208,7 @@ package body PolyORB.Representations.CDR is
                         end if;
 
                         if El_M = By_Value then
-                           pragma Debug (C, O ("Setting element By_Value"));
+                           pragma Debug (O ("Setting element By_Value"));
                            Set_Aggregate_Element
                              (ACC, El_TC, J, From_C => El_C);
                            Finalize_Value (El_C);
@@ -2417,7 +2418,7 @@ package body PolyORB.Representations.CDR is
          when Tk_Event =>
             raise Program_Error;
       end case;
-      pragma Debug (C, O ("Unmarshall_To_Any: end"));
+      pragma Debug (O ("Unmarshall_To_Any: end"));
    end Unmarshall_To_Any;
 
 end PolyORB.Representations.CDR;

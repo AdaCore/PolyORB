@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -40,7 +40,7 @@ package PolyORB.GIOP_P.Transport_Mechanisms.TLS is
    type TLS_Transport_Mechanism is new Transport_Mechanism with record
 --      Target_Supports : Tagged_Components.SSL_Sec_Trans.Association_Options;
 --      Target_Requires : Tagged_Components.SSL_Sec_Trans.Association_Options;
-      Addresses       : Tagged_Components.TLS_Sec_Trans.Socket_Name_Lists.List;
+      Addresses       : Tagged_Components.TLS_Sec_Trans.Sock_Addr_Lists.List;
    end record;
 
    procedure Bind_Mechanism

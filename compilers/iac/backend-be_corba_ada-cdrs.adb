@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -139,10 +139,11 @@ package body Backend.BE_CORBA_Ada.CDRs is
          --  Type Declaration
 
          Args_Type := Make_Full_Type_Declaration
-           (Defining_Identifier => Map_Args_Type_Identifier
-              (Defining_Identifier (Spec)),
+           (Defining_Identifier => Make_Selected_Component
+              (Defining_Identifier (CDR_Package (Current_Entity)),
+               Map_Args_Type_Identifier (Defining_Identifier (Spec))),
             Type_Definition     => Make_Record_Definition
-              (Components));
+            (Components));
 
          return Args_Type;
       end Args_Type_Record;
@@ -221,7 +222,9 @@ package body Backend.BE_CORBA_Ada.CDRs is
          --  Subprogram Specification
 
          S := Make_Subprogram_Specification
-           (Map_Marshaller_Identifier (Defining_Identifier (Spec)),
+           (Make_Selected_Component
+            (Defining_Identifier (CDR_Package (Current_Entity)),
+             Map_Marshaller_Identifier (Defining_Identifier (Spec))),
             Profile,
             No_Node);
 
@@ -302,7 +305,9 @@ package body Backend.BE_CORBA_Ada.CDRs is
          --  Subprogram Specification
 
          S := Make_Subprogram_Specification
-           (Map_Unmarshaller_Identifier (Defining_Identifier (Spec)),
+           (Make_Selected_Component
+            (Defining_Identifier (CDR_Package (Current_Entity)),
+             Map_Unmarshaller_Identifier (Defining_Identifier (Spec))),
             Profile,
             No_Node);
 

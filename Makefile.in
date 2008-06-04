@@ -60,7 +60,6 @@ RM		:= @RM@
 XARGS_I		:= @XARGS_I@
 INSTALL		:= @INSTALL@
 LN_S		:= @LN_S@
-SHELL           := @SHELL@
 
 TOOL_EXE_SUFFIX		:= @TOOL_EXE_SUFFIX@
 COMPILER_EXE_SUFFIX	:= @COMPILER_EXE_SUFFIX@
@@ -70,20 +69,12 @@ GNATMAKE		:= @GNATMAKE@
 GNATMAKE_FOR_TARGET	:= @GNATMAKE_FOR_TARGET@
 # ??? distinguish between native tools, cross tools and cross libs
 
-# Flags common to build and target
-CFLAGS                  := @CFLAGS@
-ADAFLAGS                := @ADAFLAGS@
-CPPFLAGS                := @CPPFLAGS@
-GNATMAKE_FLAGS          := @STYLE_SWITCH@ -gnatwa@WARNINGS_MODE@ ${ADAFLAGS} ${PARALLEL_GNATMAKE_FLAGS} ${EXTRA_GNATMAKE_FLAGS}
-PARALLEL_GNATMAKE_FLAGS := -j4
-EXTRA_GNATMAKE_FLAGS    := @EXTRA_GNATMAKE_FLAGS@
+CFLAGS		:= @CFLAGS@
+ADAFLAGS	:= @ADAFLAGS@
+CPPFLAGS	:= @CPPFLAGS@
+GNATMAKE_FLAGS	:= @STYLE_SWITCH@ -gnatwa@WARNINGS_MODE@ ${ADAFLAGS} @EXTRA_GNATMAKE_FLAGS@
 # EXTRA_GNATMAKE_FLAGS are user-provided, empty by default (typically
 # used to specify a non-default --RTS switch).
-
-# Extra flags for target
-CFLAGS_FOR_TARGET         := @CFLAGS_FOR_TARGET@
-ADAFLAGS_FOR_TARGET       := @ADAFLAGS_FOR_TARGET@
-GNATMAKE_FLAGS_FOR_TARGET := -cargs ${ADAFLAGS_FOR_TARGET}
 
 XMLADA_INCS	:= @XMLADA_INCS@
 XMLADA_LIBS	:= @XMLADA_LIBS@
@@ -97,12 +88,6 @@ all: all-compilers perfect-hash polyorb-idl-stamps do-gnatmake
 
 IDLAC_bin := compilers/@IDLAC@/@IDLAC@
 IDLAC_WRAPPER := ${top_builddir}/contrib/idlac_wrapper/idlac_wrapper
-
-# Cancel build-in implicit rule
-%: %.o
-
-# IDLAC_bin is rebuilt as part of the all-compilers target
-${IDLAC_bin}: all-compilers
 
 # Path separator -- ":" or ";" for Unix/Windows.
 # Note that @PATH_SEPARATOR@ is : for cygwin, so we need to adjust that.
@@ -194,13 +179,7 @@ build-iac: ${IAC_NODES_SOURCES}
 
 .PHONY: build-po_gnatdist
 
-build-po_gnatdist: \
-  compiler_dir := gnatdist
-
-build-po_gnatdist: \
-  PRJ_GNATMAKE_FLAGS := -I${top_srcdir}/compilers/common_files \
-                        -I${top_builddir}/compilers/common_files
-
+build-po_gnatdist: compiler_dir := gnatdist
 
 ################################################
 # Common build rule for all compile-time tools #
@@ -469,7 +448,7 @@ ${PROJECT_FILES}: %.gpr: \
     src/giop/polyorb-giop_p-code_sets-data.ads-stamp \
     tools/po_catref/polyorb-giop_p-code_sets-description_data.ads-stamp
 	ADA_PROJECT_PATH="${top_builddir}/projects${PATH_SEP}${top_srcdir}/projects${PATH_SEP}$$ADA_PROJECT_PATH" \
-	  ${GNATMAKE_FOR_TARGET} -P $@ ${GNATMAKE_FLAGS} ${PRJ_GNATMAKE_FLAGS} ${GNATMAKE_FLAGS_FOR_TARGET}
+	  ${GNATMAKE_FOR_TARGET} -P $@ ${GNATMAKE_FLAGS} ${PRJ_GNATMAKE_FLAGS}
 
 .PHONY: libpolyorb-corba-cos-event-impl.a
 libpolyorb-corba-cos-event-impl.a: cos_event.gpr
@@ -575,7 +554,7 @@ endif
 # Rule for compilation of C source files
 C_OBJECTS=${C_FILES:.c=.o}
 ${C_OBJECTS}: %.o: ${top_srcdir}/%.c
-	${CC_FOR_TARGET} -c -o $@ ${CPPFLAGS} ${CFLAGS} ${CFLAGS_FOR_TARGET} $<
+	${CC_FOR_TARGET} -c -o $@ ${CPPFLAGS} ${CFLAGS} $<
 
 ##########################
 # examples and testsuite #
@@ -592,7 +571,6 @@ ${C_OBJECTS}: %.o: ${top_srcdir}/%.c
 # with idlac, and make the test target depend on building the idl, like this:
 # ${current_dir}<...>.idl-stamp: idlac_flags := <...>
 # ${test_target}: ${current_dir}<...>.idl-stamp
-# Note that ${current_dir} contains a trailing slash.
 
 # local.gpr should contain:
 # with "polyorb", "test_common";
@@ -623,19 +601,25 @@ test_idl_stamps := ${patsubst %.idl,%.idl-stamp,${test_idls}}
 self_idl_stamps += ${test_idl_stamps}
 
 # Macro to invoke at the top of each Makefile.local.
-# current_dir will have been defined automatically (see configure.ac).
-
+# This defines macros based on the name of the test directory.
+# ???There's much duplication, here; I'm not sure why we can't say 
+# current_dir := ${dir ${current_makefile}}
+# for example.
 define define_test
-test_target := ${current_dir}build-test
-test_targets += ${test_target}
+current_makefile := ${patsubst ${top_srcdir}/%,%,${word ${words ${MAKEFILE_LIST}},${MAKEFILE_LIST}}}
+current_dir := ${dir ${patsubst ${top_srcdir}/%,%,${word ${words ${MAKEFILE_LIST}},${MAKEFILE_LIST}}}}
+test_target := ${dir ${patsubst ${top_srcdir}/%,%,${word ${words ${MAKEFILE_LIST}},${MAKEFILE_LIST}}}}build-test
+test_targets += ${dir ${patsubst ${top_srcdir}/%,%,${word ${words ${MAKEFILE_LIST}},${MAKEFILE_LIST}}}}build-test
 endef
 
 # Include all the Makefile.local files. Each one invokes define_test, which adds
 # the test name to test_targets, so test_targets ends up being a list of all
 # tests.
-@LOCAL_MAKEFILES@
-
-# Clean up current_dir and test_target
+test_makefiles := ${shell find ${test_dirs} -name 'Makefile.local' 2> /dev/null}
+ifneq (${strip ${test_makefiles}},)
+  include ${test_makefiles}
+endif
+current_makefile :=
 current_dir :=
 test_target :=
 
@@ -644,7 +628,7 @@ test_targets := ${sort ${test_targets}}
 .PHONY: ${test_targets}
 ${test_targets}: %/build-test:
 	ADA_PROJECT_PATH="${top_builddir}/projects${PATH_SEP}${top_srcdir}/projects${PATH_SEP}$$ADA_PROJECT_PATH" \
-	  ${GNATMAKE_FOR_TARGET} "-XTest_Dir=$*" -P ${top_srcdir}/$*/local.gpr ${GNATMAKE_FLAGS} ${GNATMAKE_FLAGS_FOR_TARGET}
+	  ${GNATMAKE} "-XTest_Dir=$*" -P ${top_srcdir}/$*/local.gpr ${GNATMAKE_FLAGS}
 
 # Set active_tests to a subset of test_targets -- remove the ones that are for
 # application personalities that were not configured. Note: examples/polyorb
@@ -860,7 +844,7 @@ install: all
 
 force::
 
-.PHONY: clean distclean
+.PHONY: clean
 clean:
 	${RM} -f ${all_idl_stamps} ./cos/ir/orb.idl-stamp # ???and more
 	${RM} -f ${idlac_output_files}
@@ -887,10 +871,6 @@ clean:
 	${RM} -f tools/po_catref/polyorb-giop_p-code_sets-description_data.ads-stamp
 	${RM} -f tools/po_dumpir/po_dumpir
 	${RM} -f tools/po_names/po_names
-
-distclean: clean
-	${SHELL} support/cleanup-conf-files
-	${RM} -f config.*
 
 .SUFFIXES: .c .o
 

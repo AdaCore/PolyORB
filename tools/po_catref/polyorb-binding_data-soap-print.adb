@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -56,7 +56,7 @@ package body PolyORB.Binding_Data.SOAP.Print is
 
       Put_Line ("SOAP", "(no version information)");
 
-      Output_Address_Information (SOAP_Prof.Address.all);
+      Output_Address_Information (SOAP_Prof.Address);
 
       Put_Line ("SOAP URI", PolyORB.Types.To_String (SOAP_Prof.URI_Path));
 

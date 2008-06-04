@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -32,7 +32,7 @@
 ------------------------------------------------------------------------------
 
 with PolyORB.GIOP_P.Tagged_Components.SSL_Sec_Trans;
-with PolyORB.Utils.Sockets;
+with PolyORB.Sockets;
 
 package PolyORB.GIOP_P.Transport_Mechanisms.SSLIOP is
 
@@ -77,7 +77,7 @@ private
    type SSLIOP_Transport_Mechanism is new Transport_Mechanism with record
       Target_Supports : Tagged_Components.SSL_Sec_Trans.Association_Options;
       Target_Requires : Tagged_Components.SSL_Sec_Trans.Association_Options;
-      Address         : Utils.Sockets.Socket_Name_Ptr;
+      Address         : Sockets.Sock_Addr_Type;
    end record;
 
    type SSLIOP_Transport_Mechanism_Factory is
@@ -85,7 +85,7 @@ private
    record
       Target_Supports : Tagged_Components.SSL_Sec_Trans.Association_Options;
       Target_Requires : Tagged_Components.SSL_Sec_Trans.Association_Options;
-      Address         : Utils.Sockets.Socket_Name_Ptr;
+      Address         : Sockets.Sock_Addr_Type;
    end record;
 
 end PolyORB.GIOP_P.Transport_Mechanisms.SSLIOP;

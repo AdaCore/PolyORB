@@ -48,6 +48,6 @@ project tools_po_cos_naming is
 
    end Compiler;
 
-   for Main use ("po_cos_naming.adb", "po_cos_naming_shell.adb", "ir_ab_names.adb");
+   for Main use ("po_cos_naming", "po_cos_naming_shell", "ir_ab_names");
 
 end tools_po_cos_naming;

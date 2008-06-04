@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -38,8 +38,8 @@ with PolyORB.Filters;
 with PolyORB.ORB;
 with PolyORB.Protocols.SRP;
 with PolyORB.Setup;
-with PolyORB.Sockets;
 with PolyORB.Transport.Connected.Sockets;
+with PolyORB.Utils.Sockets;
 
 package body PolyORB.Binding_Data.SRP is
 
@@ -47,7 +47,6 @@ package body PolyORB.Binding_Data.SRP is
    use PolyORB.Sockets;
    use PolyORB.Transport;
    use PolyORB.Transport.Connected.Sockets;
-   use PolyORB.Utils.Sockets;
 
    ---------------
    -- Duplicate --
@@ -68,9 +67,9 @@ package body PolyORB.Binding_Data.SRP is
    -- Release --
    -------------
 
-   procedure Release (P : in out SRP_Profile_Type) is
+   procedure Release (P : in out SRP_Profile_Type)
+   is
    begin
-      Free (P.Address);
       Free (P.Object_Id);
    end Release;
 
@@ -97,10 +96,11 @@ package body PolyORB.Binding_Data.SRP is
       use PolyORB.ORB;
 
       S : Socket_Type;
+      Remote_Addr : Sock_Addr_Type := Profile.Address;
       TE : constant Transport_Endpoint_Access := new Socket_Endpoint;
    begin
       Create_Socket (S);
-      Utils.Sockets.Connect_Socket (S, Profile.Address.all);
+      Utils.Sockets.Connect_Socket (S, Remote_Addr);
       Create (Socket_Endpoint (TE.all), S);
 
       --  Create (P'Access, Filters.Filter_Access (Session));
@@ -164,8 +164,7 @@ package body PolyORB.Binding_Data.SRP is
       pragma Warnings (Off);
       pragma Unreferenced (ORB);
       pragma Warnings (On);
-      PF.Address :=
-        new Socket_Name'(Address_Of (Socket_Access_Point (TAP.all)));
+      PF.Address := Address_Of (Socket_Access_Point (TAP.all));
    end Create_Factory;
 
    --------------------
@@ -184,7 +183,7 @@ package body PolyORB.Binding_Data.SRP is
         renames SRP_Profile_Type (Result.all);
    begin
       TResult.Object_Id := new Object_Id'(Oid);
-      TResult.Address   := new Socket_Name'(PF.Address.all);
+      TResult.Address   := PF.Address;
       return  Result;
    end Create_Profile;
 
@@ -205,7 +204,7 @@ package body PolyORB.Binding_Data.SRP is
 
    begin
       TResult.Object_Id := new Object_Id'(PP.Object_Id.all);
-      TResult.Address   := new Socket_Name'(PP.Address.all);
+      TResult.Address   := PP.Address;
 
       return Result;
    end Duplicate_Profile;
@@ -219,13 +218,8 @@ package body PolyORB.Binding_Data.SRP is
       P  : access Profile_Type'Class)
       return Boolean is
    begin
-      if P.all in SRP_Profile_Type
-        and then SRP_Profile_Type (P.all).Address = PF.Address
-      then
-         P.Known_Local := True;
-         return True;
-      end if;
-      return False;
+      return P.all in SRP_Profile_Type
+        and then SRP_Profile_Type (P.all).Address = PF.Address;
    end Is_Local_Profile;
 
    -----------
@@ -234,7 +228,7 @@ package body PolyORB.Binding_Data.SRP is
 
    function Image (Prof : SRP_Profile_Type) return String is
    begin
-      return "Address : " & Image (Prof.Address.all) &
+      return "Address : " & Image (Prof.Address) &
         ", Object_Id : " & PolyORB.Objects.Image (Prof.Object_Id.all);
    end Image;
 

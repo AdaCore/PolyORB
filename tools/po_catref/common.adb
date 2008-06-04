@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2008, Free Software Foundation, Inc.          --
+--            Copyright (C) 2004 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
--- Floor, Boston, MA 02111-1301, USA.                                       --
+-- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
+-- Boston, MA 02111-1307, USA.                                              --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                  PolyORB is maintained by AdaCore                        --
---                     (email: sales@adacore.com)                           --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -35,6 +35,7 @@ with Output;
 
 package body Common is
 
+   use PolyORB.Sockets;
    use Output;
 
    --------------------------------
@@ -42,10 +43,24 @@ package body Common is
    --------------------------------
 
    procedure Output_Address_Information
-     (Addr : PolyORB.Utils.Sockets.Socket_Name)
+     (Addr : PolyORB.Sockets.Sock_Addr_Type)
    is
    begin
-      Put_Line ("Address", PolyORB.Utils.Sockets.Image (Addr));
+      declare
+         Host : constant Host_Entry_Type := Get_Host_By_Address (Addr.Addr);
+
+      begin
+         Put_Line ("Host Name", Official_Name (Host));
+         Put_Line ("Address", Image (Addr.Addr));
+         Put_Line ("Family", Family_Type'Image (Addr.Family));
+         Put_Line ("Port", Port_Type'Image (Addr.Port));
+      end;
+
+   exception
+      when Host_Error =>
+         Put_Line ("Address", Image (Addr.Addr));
+         Put_Line ("Family", Family_Type'Image (Addr.Family));
+         Put_Line ("Port", Port_Type'Image (Addr.Port));
    end Output_Address_Information;
 
    -------------------------------

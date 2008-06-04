@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -56,12 +56,12 @@ package body PolyORB.ORB_Controller.Workers is
       --  Force all tasks currently waiting on this monitor to abort
 
       if O.AEM_Infos (AEM_Index).TI /= null then
-         pragma Debug (C1, O1 ("Disable_Polling: Aborting polling task"));
+         pragma Debug (O1 ("Disable_Polling: Aborting polling task"));
          PTI.Request_Abort_Polling (O.AEM_Infos (AEM_Index).TI.all);
          PolyORB.Asynch_Ev.Abort_Check_Sources
            (Selector (O.AEM_Infos (AEM_Index).TI.all).all);
 
-         pragma Debug (C1, O1 ("Disable_Polling: waiting abort is complete"));
+         pragma Debug (O1 ("Disable_Polling: waiting abort is complete"));
          O.AEM_Infos (AEM_Index).Polling_Abort_Counter
            := O.AEM_Infos (AEM_Index).Polling_Abort_Counter + 1;
 
@@ -70,7 +70,7 @@ package body PolyORB.ORB_Controller.Workers is
          O.AEM_Infos (AEM_Index).Polling_Abort_Counter
            := O.AEM_Infos (AEM_Index).Polling_Abort_Counter - 1;
 
-         pragma Debug (C1, O1 ("Disable_Polling: aborting done"));
+         pragma Debug (O1 ("Disable_Polling: aborting done"));
       end if;
    end Disable_Polling;
 
@@ -85,7 +85,7 @@ package body PolyORB.ORB_Controller.Workers is
       AEM_Index : constant Natural := Index (O, M);
 
    begin
-      pragma Debug (C1, O1 ("Enable_Polling"));
+      pragma Debug (O1 ("Enable_Polling"));
 
       if O.AEM_Infos (AEM_Index).Polling_Abort_Counter = 0 then
 
@@ -106,7 +106,7 @@ package body PolyORB.ORB_Controller.Workers is
       use type PRS.Request_Scheduler_Access;
 
    begin
-      pragma Debug (C1, O1 ("Notify_Event: " & Event_Kind'Image (E.Kind)));
+      pragma Debug (O1 ("Notify_Event: " & Event_Kind'Image (E.Kind)));
 
       case E.Kind is
 
@@ -116,7 +116,7 @@ package body PolyORB.ORB_Controller.Workers is
             begin
                --  A task completed polling on a monitor
 
-               pragma Debug (C1, O1 ("End of check sources on monitor #"
+               pragma Debug (O1 ("End of check sources on monitor #"
                                  & Natural'Image (AEM_Index)
                                  & Ada.Tags.External_Tag
                                  (O.AEM_Infos (AEM_Index).Monitor.all'Tag)));
@@ -144,7 +144,7 @@ package body PolyORB.ORB_Controller.Workers is
             begin
                if AEM_Index = 0 then
                   --  This monitor was not yet registered, register it
-                  pragma Debug (C1, O1 ("Adding new monitor"));
+                  pragma Debug (O1 ("Adding new monitor"));
 
                   for J in O.AEM_Infos'Range loop
                      if O.AEM_Infos (J).Monitor = null then
@@ -154,7 +154,7 @@ package body PolyORB.ORB_Controller.Workers is
                      end if;
                   end loop;
                end if;
-               pragma Debug (C1, O1 ("Added monitor at index:" & AEM_Index'Img
+               pragma Debug (O1 ("Added monitor at index:" & AEM_Index'Img
                                  & " " & Ada.Tags.External_Tag
                                  (O.AEM_Infos (AEM_Index).Monitor.all'Tag)));
 
@@ -208,7 +208,7 @@ package body PolyORB.ORB_Controller.Workers is
 
             --  Queue event to main job queue
 
-            pragma Debug (C1, O1 ("Queue Event_Job to default queue"));
+            pragma Debug (O1 ("Queue Event_Job to default queue"));
 
             O.Number_Of_Pending_Jobs := O.Number_Of_Pending_Jobs + 1;
             PJ.Queue_Job (O.Job_Queue, E.Event_Job);
@@ -230,7 +230,7 @@ package body PolyORB.ORB_Controller.Workers is
 
                   --  Default: Queue request to main job queue
 
-                  pragma Debug (C1, O1 ("Queue Request_Job to default queue"));
+                  pragma Debug (O1 ("Queue Request_Job to default queue"));
 
                   O.Number_Of_Pending_Jobs := O.Number_Of_Pending_Jobs + 1;
                   PJ.Queue_Job (O.Job_Queue, E.Request_Job);
@@ -263,12 +263,12 @@ package body PolyORB.ORB_Controller.Workers is
                        renames Selector (E.Requesting_Task.all);
 
                   begin
-                     pragma Debug (C1, O1 ("About to abort block"));
+                     pragma Debug (O1 ("About to abort block"));
 
                      pragma Assert (Sel /= null);
                      Abort_Check_Sources (Sel.all);
 
-                     pragma Debug (C1, O1 ("Aborted."));
+                     pragma Debug (O1 ("Aborted."));
                   end;
 
                when Idle =>
@@ -276,7 +276,7 @@ package body PolyORB.ORB_Controller.Workers is
                   --  We awake this task. It will then leave Idle
                   --  state and ask for rescheduling.
 
-                  pragma Debug (C1, O1 ("Signal requesting task"));
+                  pragma Debug (O1 ("Signal requesting task"));
 
                   Signal (Condition (E.Requesting_Task.all));
 
@@ -322,7 +322,7 @@ package body PolyORB.ORB_Controller.Workers is
             Note_Task_Unregistered (O);
       end case;
 
-      pragma Debug (C2, O2 (Status (O)));
+      pragma Debug (O2 (Status (O)));
    end Notify_Event;
 
    -------------------
@@ -334,7 +334,7 @@ package body PolyORB.ORB_Controller.Workers is
       TI :        PTI.Task_Info_Access)
    is
    begin
-      pragma Debug (C1, O1 ("Schedule_Task: enter " & Image (TI.all)));
+      pragma Debug (O1 ("Schedule_Task: enter " & Image (TI.all)));
 
       pragma Assert (PTI.State (TI.all) = Unscheduled);
 
@@ -352,8 +352,8 @@ package body PolyORB.ORB_Controller.Workers is
 
          Set_State_Terminated (TI.all);
 
-         pragma Debug (C1, O1 ("Task is now terminated"));
-         pragma Debug (C2, O2 (Status (O)));
+         pragma Debug (O1 ("Task is now terminated"));
+         pragma Debug (O2 (Status (O)));
 
       elsif O.Number_Of_Pending_Jobs > 0 then
 
@@ -365,8 +365,8 @@ package body PolyORB.ORB_Controller.Workers is
 
          Set_State_Running (TI.all, PJ.Fetch_Job (O.Job_Queue));
 
-         pragma Debug (C1, O1 ("Task is now running a job"));
-         pragma Debug (C2, O2 (Status (O)));
+         pragma Debug (O1 ("Task is now running a job"));
+         pragma Debug (O2 (Status (O)));
 
       elsif May_Poll (TI.all) then
          declare
@@ -385,12 +385,12 @@ package body PolyORB.ORB_Controller.Workers is
                   O.AEM_Infos (AEM_Index).Monitor,
                   O.AEM_Infos (AEM_Index).Polling_Timeout);
 
-               pragma Debug (C1, O1 ("Task is now blocked on monitor"
+               pragma Debug (O1 ("Task is now blocked on monitor"
                                  & Natural'Image (AEM_Index)
                                  & " " & Ada.Tags.External_Tag
                                  (O.AEM_Infos (AEM_Index).Monitor.all'Tag)));
 
-               pragma Debug (C2, O2 (Status (O)));
+               pragma Debug (O2 (Status (O)));
             end if;
          end;
       end if;
@@ -405,8 +405,8 @@ package body PolyORB.ORB_Controller.Workers is
             Insert_Idle_Task (O.Idle_Tasks, TI),
             O.ORB_Lock);
 
-         pragma Debug (C1, O1 ("Task is now idle"));
-         pragma Debug (C2, O2 (Status (O)));
+         pragma Debug (O1 ("Task is now idle"));
+         pragma Debug (O2 (Status (O)));
 
       end if;
    end Schedule_Task;

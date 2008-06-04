@@ -1,5 +1,5 @@
 AC_PREREQ(2.57)
-AC_INIT(polyorb, 2.4.0w, polyorb-bugs@lists.adacore.com)
+AC_INIT(polyorb, 2.3.1, polyorb-bugs@lists.adacore.com)
 AC_CONFIG_SRCDIR(src/polyorb.ads)
 AC_CONFIG_AUX_DIR(support)
 
@@ -14,12 +14,12 @@ AM_INIT_AUTOMAKE
 LIBVERSIONINFO=1:4:0
 AC_SUBST(LIBVERSIONINFO)
 
-#
+##########################################
 # Check for maintainer (debug) mode.
-# This must come before AC_PROG_CC so we can set the default CFLAGS ourselves.
-# Note that these default CFLAGS are used for both the native and the cross
-# compilers.
-#
+# Note, this must come before AC_PROG_CC
+# so we have a chance to set defaults for
+# CFLAGS.
+##########################################
 
 define(DEBUG_OPTIONS, [dnl
   if test ${CFLAGS-unset} = "unset"; then CFLAGS="-g -O0"; fi
@@ -29,7 +29,6 @@ define(DEBUG_OPTIONS, [dnl
   debug=true])
 
 define(NODEBUG_OPTIONS, [dnl
-  if test ${CFLAGS-unset} = "unset"; then CFLAGS="-g -O2"; fi
   DEFAULT_ADAFLAGS="-XBuild=PRODUCTION"
   BARGS=
   DEBUG_ONLY="--  "
@@ -62,61 +61,24 @@ esac],
 [WARNINGS_MODE=$DEFAULT_WARNINGS_MODE])
 AC_SUBST(WARNINGS_MODE)
 
-##########################################
 # Set platform-specific supplementary CFLAGS and options
-##########################################
 
-# Host
-
-case "$host_os" in
-  cygwin* | mingw*)
-    HOST_EXE_SUFFIX=.exe
-    WINDOWS_ON_HOST=True
-    ;;
-  *)
-    HOST_EXE_SUFFIX=
-    WINDOWS_ON_HOST=False
-    ;;
-esac
-AC_SUBST(WINDOWS_ON_HOST)
-AM_CONDITIONAL(WINDOWS, test x$WINDOWS_ON_HOST = xTrue)
-
-# Target
-
-WINDOWS_ON_TARGET=False
-TARGET_EXE_SUFFIX=
-case $target_os in
-  aix*)
+PLATFORM_WINDOWS=False
+case $target in
+  *-aix*)
     CFLAGS_FOR_TARGET="-mminimal-toc"
     ;;
-  vxworks*)
+  *-vxworks*)
     CFLAGS_FOR_TARGET="-mlongcall"
-    TARGET_EXE_SUFFIX=.out
     ;;
-  cygwin* | mingw* )
-    WINDOWS_ON_TARGET=True
-    TARGET_EXE_SUFFIX=.exe
+  *-mingw*)
+    PLATFORM_WINDOWS=True
     ;;
 esac
 ADAFLAGS_FOR_TARGET="${CFLAGS_FOR_TARGET}"
 AC_SUBST(CFLAGS_FOR_TARGET)
 AC_SUBST(ADAFLAGS_FOR_TARGET)
-AC_SUBST(WINDOWS_ON_TARGET)
-
-#  Implementation note: the *vxworks* rule above is for VxWorks 5, it can
-#    present some problems for VxWorks 6.
-
-# Compilers are always built using the native Ada compiler. Therefore,
-# their executable suffix depends on the host operating system.
-
-COMPILER_EXE_SUFFIX=$HOST_EXE_SUFFIX
-AC_SUBST(COMPILER_EXE_SUFFIX)
-
-# Tools are using the cross Ada compiler. Therefore, their executable
-# suffix depends on the target operating system.
-
-TOOL_EXE_SUFFIX=$TARGET_EXE_SUFFIX
-AC_SUBST(TOOL_EXE_SUFFIX)
+AC_SUBST(PLATFORM_WINDOWS)
 
 # By default treat all warnings as errors when building directly from the
 # source repository. The packaging procedure changes the default to "n".
@@ -587,6 +549,43 @@ AM_PROG_LIBTOOL
 AC_LIBTOOL_HAS_TAG
 host=$host_tmp
 
+##########################################
+# Windows requires specific targets
+##########################################
+
+case "$host_os" in
+  cygwin* | mingw*)
+    windows_host=true
+    HOST_EXE_SUFFIX=.exe
+    ;;
+  *)
+    windows_host=false
+    HOST_EXE_SUFFIX=
+    ;;
+esac
+AM_CONDITIONAL(WINDOWS, $windows_host)
+
+case "$target_os" in
+  *cygwin* | *mingw*)
+    TARGET_EXE_SUFFIX=.exe
+    ;;
+  *)
+    TARGET_EXE_SUFFIX=
+    ;;
+esac
+
+# Compilers are always built using the native Ada compiler. Therefore,
+# their executable suffix depends on the host operating system.
+
+COMPILER_EXE_SUFFIX=$HOST_EXE_SUFFIX
+AC_SUBST(COMPILER_EXE_SUFFIX)
+
+# Tools are using the cross Ada compiler. Therefore, their executable
+# suffix depends on the target operating system.
+
+TOOL_EXE_SUFFIX=$TARGET_EXE_SUFFIX
+AC_SUBST(TOOL_EXE_SUFFIX)
+
 #################################################
 # Build code fragments to be substituted in
 #       src/setup/polyorb-setup-client.adb
@@ -714,20 +713,6 @@ AC_SUBST_FILE(PROTO_SERVER_WITHS)
 AC_SUBST_FILE(PO_CATREF_WITHS)
 AC_SUBST_FILE(PO_CREATEREF_WITHS)
 
-#################################################
-# Build code fragments to be substituted in
-#   Makefile
-#################################################
-
-LOCAL_MAKEFILES=config.local.makefiles
-
-(cd ${srcdir} && find . -name Makefile.local) | sed "s,^\./,," | \
-while read mklocal; do
-  echo "current_dir := `dirname ${mklocal}`/"
-  echo "include \$(top_srcdir)/${mklocal}"
-done > ${LOCAL_MAKEFILES}
-AC_SUBST_FILE(LOCAL_MAKEFILES)
-
 ##########################################
 # Output generated files
 ##########################################
@@ -738,6 +723,8 @@ dnl This section is edited automatically by support/reconfig.
 AC_OUTPUT([
 	Makefile
 	Makefile.common.project
+	Makefile.old
+	support/Makefile
 	compilers/Makefile
 	compilers/common_files/platform.ads
 	compilers/gnatdist/Makefile

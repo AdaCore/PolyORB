@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -37,7 +37,6 @@ with PolyORB.Filters.MIOP.MIOP_Out;
 with PolyORB.ORB;
 with PolyORB.Parameters;
 with PolyORB.Protocols.GIOP.UIPMC;
-with PolyORB.Sockets;
 with PolyORB.Transport.Datagram.Sockets_In;
 with PolyORB.Transport.Datagram.Sockets_Out;
 
@@ -49,17 +48,16 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.UIPMC is
    use PolyORB.Sockets;
    use PolyORB.Transport.Datagram.Sockets_In;
    use PolyORB.Transport.Datagram.Sockets_Out;
-   use PolyORB.Utils.Sockets;
 
    ----------------
    -- Address_Of --
    ----------------
 
-   function Address_Of
-     (M : UIPMC_Transport_Mechanism) return Utils.Sockets.Socket_Name
+   function Address_Of (M : UIPMC_Transport_Mechanism)
+     return Sockets.Sock_Addr_Type
    is
    begin
-      return M.Address.all;
+      return M.Address;
    end Address_Of;
 
    --------------------
@@ -88,9 +86,9 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.UIPMC is
       use PolyORB.Binding_Objects;
 
       Sock        : Socket_Type;
-      TTL         : constant Natural :=
-                      Natural (Get_Conf ("miop", "polyorb.miop.ttl",
-                                         Default_TTL));
+      Remote_Addr : constant Sock_Addr_Type := Mechanism.Address;
+      TTL         : constant Natural
+        := Natural (Get_Conf ("miop", "polyorb.miop.ttl", Default_TTL));
 
       TE          : Transport.Transport_Endpoint_Access;
 
@@ -105,19 +103,21 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.UIPMC is
 
       Create_Socket (Socket => Sock,
                      Family => Family_Inet,
-                     Mode   => Socket_Datagram);
+                     Mode => Socket_Datagram);
 
       Set_Socket_Option
         (Sock,
-         Socket_Level, (Reuse_Address, True));
+         Socket_Level,
+         (Reuse_Address, True));
 
       Set_Socket_Option
         (Sock,
-         IP_Protocol_For_IP_Level, (Multicast_TTL, TTL));
+         IP_Protocol_For_IP_Level,
+         (Multicast_TTL, TTL));
 
       TE := new Socket_Out_Endpoint;
 
-      Create (Socket_Out_Endpoint (TE.all), Sock, Mechanism.Address.all);
+      Create (Socket_Out_Endpoint (TE.all), Sock, Remote_Addr);
 
       Binding_Objects.Setup_Binding_Object
         (TE,
@@ -145,8 +145,7 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.UIPMC is
       TAP :     Transport.Transport_Access_Point_Access)
    is
    begin
-      MF.Address :=
-        new Socket_Name'(Address_Of (Socket_In_Access_Point (TAP.all)));
+      MF.Address := Address_Of (Socket_In_Access_Point (TAP.all));
    end Create_Factory;
 
    ------------------------------
@@ -177,12 +176,12 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.UIPMC is
         renames UIPMC_Transport_Mechanism (Result.all);
 
    begin
-      TResult.Address := new Socket_Name'(MF.Address.all);
+      TResult.Address := MF.Address;
       return Result;
    end Create_Transport_Mechanism;
 
    function Create_Transport_Mechanism
-     (Address : Utils.Sockets.Socket_Name)
+     (Address : Sockets.Sock_Addr_Type)
       return Transport_Mechanism_Access
    is
       Result  : constant Transport_Mechanism_Access
@@ -191,7 +190,7 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.UIPMC is
         renames UIPMC_Transport_Mechanism (Result.all);
 
    begin
-      TResult.Address := new Socket_Name'(Address);
+      TResult.Address := Address;
       return Result;
    end Create_Transport_Mechanism;
 
@@ -214,8 +213,10 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.UIPMC is
    ----------------------
 
    procedure Release_Contents (M : access UIPMC_Transport_Mechanism) is
+      pragma Unreferenced (M);
+
    begin
-      Free (M.Address);
+      null;
    end Release_Contents;
 
    ---------------
@@ -227,8 +228,7 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.UIPMC is
      return UIPMC_Transport_Mechanism
    is
    begin
-      return UIPMC_Transport_Mechanism'
-               (Address => new Socket_Name'(TMA.Address.all));
+      return TMA;
    end Duplicate;
 
    ------------------

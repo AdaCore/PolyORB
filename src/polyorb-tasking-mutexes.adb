@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -46,6 +46,7 @@ package body PolyORB.Tasking.Mutexes is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    My_Factory : Mutex_Factory_Access;
    --  Real factory, corresponding to the chosen tasking profile.
@@ -58,7 +59,7 @@ package body PolyORB.Tasking.Mutexes is
      (M    : out Mutex_Access;
       Name : String := "") is
    begin
-      pragma Debug (C, O ("Create"));
+      pragma Debug (O ("Create"));
       pragma Assert (My_Factory /= null);
 
       M := Create (My_Factory, Name);
@@ -71,7 +72,7 @@ package body PolyORB.Tasking.Mutexes is
    procedure Destroy
      (M    : in out Mutex_Access) is
    begin
-      pragma Debug (C, O ("Destroy"));
+      pragma Debug (O ("Destroy"));
       pragma Assert (My_Factory /= null);
 
       Destroy (My_Factory, M);

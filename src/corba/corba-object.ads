@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
@@ -161,8 +161,8 @@ package CORBA.Object is
       --   with a CORBA.Object.Ref. This can be done only when R designates
       --   an object located on this middleware instance.
 
-      function To_PolyORB_Ref (R : Ref) return PolyORB.References.Ref;
-      function To_CORBA_Ref (R : PolyORB.References.Ref) return Ref;
+      function To_PolyORB_Ref (R : Ref)
+                              return PolyORB.References.Ref;
       procedure Convert_To_CORBA_Ref
         (Neutral_Ref : PolyORB.References.Ref;
          CORBA_Ref   : in out CORBA.Object.Ref'Class);

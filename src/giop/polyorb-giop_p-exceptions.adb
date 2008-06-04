@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -51,6 +51,7 @@ package body PolyORB.GIOP_P.Exceptions is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    CORBA_Exc_Root    : constant String := "IDL:omg.org/CORBA/";
    CORBA_Exc_Version : constant String := ":1.0";
@@ -126,13 +127,13 @@ package body PolyORB.GIOP_P.Exceptions is
                        Name'Last - Version_Length) & "_E";
 
          begin
-            pragma Debug (C, O ("Error_Id_Name : " & Error_Id_Name));
+            pragma Debug (O ("Error_Id_Name : " & Error_Id_Name));
 
             Result := Error_Id'Value (Error_Id_Name) in ORB_System_Error;
          end;
       end if;
 
-      pragma Debug (C, O (Name & " is a system exception ? "
+      pragma Debug (O (Name & " is a system exception ? "
                        & Boolean'Image (Result)));
 
       return Result;
@@ -155,7 +156,7 @@ package body PolyORB.GIOP_P.Exceptions is
          raise Program_Error;
       end if;
 
-      pragma Debug (C, O ("System exception name :"
+      pragma Debug (O ("System exception name :"
                        & Name (Name'First + CER_Length
                                .. Name'Last - CEV_Length)));
 
@@ -190,8 +191,8 @@ package body PolyORB.GIOP_P.Exceptions is
       Result_TC : constant TypeCode.Local_Ref := TypeCode.TC_Except;
 
    begin
-      pragma Debug (C, O ("Exception Id was: " & Id));
-      pragma Debug (C, O ("New exception Id is: "
+      pragma Debug (O ("Exception Id was: " & Id));
+      pragma Debug (O ("New exception Id is: "
                        & To_Standard_String (New_Name)));
 
       --  Name
@@ -230,19 +231,19 @@ package body PolyORB.GIOP_P.Exceptions is
       Result : Any.Any;
 
    begin
-      pragma Debug (C, O ("To_CORBA_Exception: enter"));
+      pragma Debug (O ("To_CORBA_Exception: enter"));
 
       --  Construct exception typecode
 
       Result_TC := To_CORBA_Exception_TypeCode (Exc_TC);
 
       if Exc_TC /= Result_TC then
-         pragma Debug (C, O ("Must modify exception content"));
+         pragma Debug (O ("Must modify exception content"));
 
          Set_Type (Result, Result_TC);
 
          Result := Get_Empty_Any_Aggregate (Result_TC);
-         pragma Debug (C, O (Image (Result_TC)));
+         pragma Debug (O (Image (Result_TC)));
 
          declare
             Exception_Name : constant String :=
@@ -256,7 +257,7 @@ package body PolyORB.GIOP_P.Exceptions is
                             Types.Unsigned_Long (0)));
 
          begin
-            pragma Debug (C, O ("Exception Name: " & Exception_Name));
+            pragma Debug (O ("Exception Name: " & Exception_Name));
             if Id in ORB_System_Error then
                if Minor in 1 .. Exception_Code_Upper_Bounds (Id) then
                   Add_Aggregate_Element (Result, To_Any (OMGVMCID or Minor));
@@ -279,12 +280,12 @@ package body PolyORB.GIOP_P.Exceptions is
                                    TC_Completion_Status,
                                    Types.Unsigned_Long (1)));
 
-         pragma Debug (C, O ("To_CORBA_Exception: leave"));
+         pragma Debug (O ("To_CORBA_Exception: leave"));
          return Result;
 
       else
-         pragma Debug (C, O ("No need to modify exception TypeCode"));
-         pragma Debug (C, O ("To_CORBA_Exception: leave"));
+         pragma Debug (O ("No need to modify exception TypeCode"));
+         pragma Debug (O ("To_CORBA_Exception: leave"));
          return Exc;
 
       end if;
@@ -345,7 +346,7 @@ package body PolyORB.GIOP_P.Exceptions is
       TypeCode.Add_Parameter
         (TC, To_Any (To_PolyORB_String ("completed")));
 
-      pragma Debug (C, O ("Built Exception TypeCode for: "
+      pragma Debug (O ("Built Exception TypeCode for: "
                        & To_Standard_String (Repository_Id)));
 
       Register (Name, TC);

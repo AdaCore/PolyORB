@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -49,6 +49,7 @@ package body PolyORB.POA.Basic_POA is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    ----------------
    -- Create_POA --
@@ -129,10 +130,10 @@ package body PolyORB.POA.Basic_POA is
       Oid   :    out Object_Id_Access;
       Error : in out PolyORB.Errors.Error_Container) is
    begin
-      pragma Debug (C, O ("To_Proxy_Oid: enter"));
+      pragma Debug (O ("To_Proxy_Oid: enter"));
 
       if OA.Proxies_OA = null then
-         pragma Debug (C, O ("No Proxies_OA."));
+         pragma Debug (O ("No Proxies_OA."));
          Oid := null;
          return;
       end if;
@@ -144,7 +145,7 @@ package body PolyORB.POA.Basic_POA is
          U_Oid : Unmarshalled_Oid;
 
       begin
-         pragma Debug (C, O ("To_Proxy_Oid: Oid data length:"
+         pragma Debug (O ("To_Proxy_Oid: Oid data length:"
                           & Integer'Image (Oid_Data'Length)));
 
          Assign_Object_Identifier
@@ -158,7 +159,7 @@ package body PolyORB.POA.Basic_POA is
             return;
          end if;
 
-         pragma Debug (C, O ("To_Proxy_Oid: leave"));
+         pragma Debug (O ("To_Proxy_Oid: leave"));
 
          Oid := U_Oid_To_Oid (U_Oid);
       end;
@@ -193,7 +194,7 @@ package body PolyORB.POA.Basic_POA is
                         Objects.Hex_String_To_Oid (
                           To_Standard_String (U_Oid.Id)));
       begin
-         pragma Debug (C, O ("PTR: Oid data length:"
+         pragma Debug (O ("PTR: Oid data length:"
                           & Integer'Image (Oid_Data'Length)));
          Ref := References.IOR.Opaque_To_Object (Oid_Data'Access);
       end;

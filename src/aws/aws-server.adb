@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2000-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2000-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -76,6 +76,7 @@ package body AWS.Server is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    Security_Initialized : Boolean := False;
 
@@ -109,7 +110,7 @@ package body AWS.Server is
       use PolyORB.Utils.Strings;
       use PolyORB.Log.Internals;
    begin
-      pragma Debug (C, O ("AWS.initialization: initializing PolyORB"));
+      pragma Debug (O ("AWS.initialization: initializing PolyORB"));
 
       if not Is_Initialized then
          Initialize_World;
@@ -124,7 +125,7 @@ package body AWS.Server is
 
    procedure Run is
    begin
-      pragma Debug (C, O ("AWS.Server.Run"));
+      pragma Debug (O ("AWS.Server.Run"));
       PolyORB.ORB.Run (PolyORB.Setup.The_ORB, May_Poll => True);
    end Run;
 
@@ -448,7 +449,7 @@ package body AWS.Server is
 
       Counter.Add;
 
-      pragma Debug (C, O ("Start: attempting to create a new POA"));
+      pragma Debug (O ("Start: attempting to create a new POA"));
       declare
          use PolyORB.POA.Basic_POA;
          use PolyORB.POA_Policies;
@@ -492,10 +493,10 @@ package body AWS.Server is
          --  Activation policy is incompatible with Non_Retain, so we
          --  use No_Activation.
 
-         pragma Debug (C, O ("Start: set POA policies"));
+         pragma Debug (O ("Start: set POA policies"));
 
          Create (The_POA_Manager);
-         pragma Debug (C, O ("Start: Created a new POA Manager"));
+         pragma Debug (O ("Start: Created a new POA Manager"));
 
          PolyORB.POA.Basic_POA.Create_POA
            (PolyORB.POA.Basic_POA.Basic_Obj_Adapter
@@ -514,14 +515,14 @@ package body AWS.Server is
          if PolyORB.Errors.Found (Error) then
             O ("Start: unable to create new POA", Critical);
          else
-            pragma Debug (C, O ("Start: a new POA has been created"));
+            pragma Debug (O ("Start: a new POA has been created"));
 
             PolyORB.POA_Manager.Basic_Manager.Activate
               (The_POA_Manager,
                Error);
 
             if PolyORB.Errors.Found (Error) then
-               pragma Debug (C, O ("AWS_Init: "
+               pragma Debug (O ("AWS_Init: "
                                 & "unable to activate the POA Manager",
                                 Critical));
                null;
@@ -535,7 +536,7 @@ package body AWS.Server is
             The_POA.Default_Servant := The_Server'Unchecked_Access;
 
             if PolyORB.Errors.Found (Error) then
-               pragma Debug (C, O ("Start: unable to register the servant"));
+               pragma Debug (O ("Start: unable to register the servant"));
                return;
             else
                declare
@@ -553,7 +554,7 @@ package body AWS.Server is
 
                   if PolyORB.Errors.Found (Error) then
                      pragma Debug
-                       (C, O ("Start: unable to register the servant"));
+                       (O ("Start: unable to register the servant"));
                      null;
                   else
                      Create_Reference (The_ORB,

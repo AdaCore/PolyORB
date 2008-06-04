@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -57,6 +57,7 @@ package body PortableServer is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    ---------------------------------------
    -- Information about a skeleton unit --
@@ -121,7 +122,7 @@ package body PortableServer is
       use PolyORB.Servants.Iface;
 
    begin
-      pragma Debug (C, O ("Execute_Servant: enter"));
+      pragma Debug (O ("Execute_Servant: enter"));
 
       if Msg in Execute_Request then
          declare
@@ -186,7 +187,7 @@ package body PortableServer is
             then
 
                pragma Debug
-                 (C, O ("Execute_Servant: executed, setting out args"));
+                 (O ("Execute_Servant: executed, setting out args"));
                Set_Out_Args (R, Error);
 
                if Found (Error) then
@@ -196,12 +197,12 @@ package body PortableServer is
                end if;
             end if;
 
-            pragma Debug (C, O ("Execute_Servant: leave"));
+            pragma Debug (O ("Execute_Servant: leave"));
             return Executed_Request'(Req => R);
          end;
 
       else
-         pragma Debug (C, O ("Execute_Servant: bad message, leave"));
+         pragma Debug (O ("Execute_Servant: bad message, leave"));
          raise Program_Error;
 
       end if;
@@ -227,7 +228,7 @@ package body PortableServer is
       Dispatcher : Dispatcher_Note;
 
    begin
-      pragma Debug (C, O ("Invoke on a static skeleton: enter"));
+      pragma Debug (O ("Invoke on a static skeleton: enter"));
 
       --  Information about servant's skeleton is cached in its notepad.
 
@@ -235,7 +236,7 @@ package body PortableServer is
         (Notepad.all, Dispatcher, Null_Dispatcher_Note);
 
       if Dispatcher.Skeleton = null then
-         pragma Debug (C, O ("Cacheing information about skeleton"));
+         pragma Debug (O ("Cacheing information about skeleton"));
 
          Dispatcher.Skeleton := Find_Info (Servant (Self)).Dispatcher;
          PolyORB.Annotations.Set_Note (Notepad.all, Dispatcher);
@@ -243,7 +244,7 @@ package body PortableServer is
 
       Dispatcher.Skeleton (Servant (Self), Request);
 
-      pragma Debug (C, O ("Invoke on a static skeleton: leave"));
+      pragma Debug (O ("Invoke on a static skeleton: leave"));
    end Invoke;
 
    package body Internals is
@@ -278,7 +279,7 @@ package body PortableServer is
          use Skeleton_Lists;
 
       begin
-         pragma Debug (C, O ("Register_Skeleton: Enter."));
+         pragma Debug (O ("Register_Skeleton: Enter."));
 
          Prepend (All_Skeletons,
                   (Type_Id     => Type_Id,
@@ -286,7 +287,7 @@ package body PortableServer is
                    Target_Is_A => Target_Is_A,
                    Dispatcher  => Dispatcher));
 
-         pragma Debug (C, O ("Registered : type_id = " &
+         pragma Debug (O ("Registered : type_id = " &
                           CORBA.To_Standard_String (Type_Id)));
 
       end Register_Skeleton;
@@ -373,11 +374,11 @@ package body PortableServer is
 
    begin
       pragma Debug
-        (C, O ("Find_Info: servant of type "
+        (O ("Find_Info: servant of type "
             & Ada.Tags.External_Tag (For_Servant'Tag)));
 
       while not Last (It) loop
-         pragma Debug (C, O ("... skeleton id: "
+         pragma Debug (O ("... skeleton id: "
            & CORBA.To_Standard_String (Value (It).Type_Id)));
          exit when Value (It).Is_A (For_Servant);
          Next (It);
@@ -386,7 +387,7 @@ package body PortableServer is
       if Last (It) then
          raise Skeleton_Unknown;
       end if;
-         pragma Debug (C, O ("Selected skeleton of Type_Id "
+         pragma Debug (O ("Selected skeleton of Type_Id "
            & CORBA.To_Standard_String (Value (It).Type_Id)));
 
       return Value (It).all;

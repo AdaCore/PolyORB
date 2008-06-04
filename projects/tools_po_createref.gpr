@@ -47,6 +47,6 @@ project tools_po_createref is
 
    end Compiler;
 
-   for Main use ("po_createref.adb");
+   for Main use ("po_createref");
 
 end tools_po_createref;

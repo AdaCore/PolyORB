@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -51,6 +51,7 @@ package body PolyORB.Representations.CDR.Common is
       renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    --------------------------------
    -- Types conversion functions --
@@ -179,7 +180,7 @@ package body PolyORB.Representations.CDR.Common is
    --           Value : PolyORB.Any.Any;
    --        begin
    --           pragma Debug
-   --             (C, O ("Marshall_From_Any : dealing with a value"));
+   --             (O ("Marshall_From_Any : dealing with a value"));
    --           Marshall (Buffer, Default_Value_Tag);
 
    --           Aggregate_Nb := PolyORB.Any.Get_Aggregate_Count(Data);
@@ -222,10 +223,10 @@ package body PolyORB.Representations.CDR.Common is
       Data   : PolyORB.Types.Boolean)
    is
    begin
-      pragma Debug (C, O ("Marshall (Boolean) : enter"));
+      pragma Debug (O ("Marshall (Boolean) : enter"));
       Marshall
         (Buffer, PolyORB.Types.Octet'(PolyORB.Types.Boolean'Pos (Data)));
-      pragma Debug (C, O ("Marshall (Boolean) : end"));
+      pragma Debug (O ("Marshall (Boolean) : end"));
    end Marshall;
 
    --  Marshalling of a Character
@@ -235,9 +236,9 @@ package body PolyORB.Representations.CDR.Common is
       Data   : PolyORB.Types.Char)
    is
    begin
-      pragma Debug (C, O ("Marshall (Char) : enter"));
+      pragma Debug (O ("Marshall (Char) : enter"));
       Marshall (Buffer, PolyORB.Types.Octet'(PolyORB.Types.Char'Pos (Data)));
-      pragma Debug (C, O ("Marshall (Char) : end"));
+      pragma Debug (O ("Marshall (Char) : end"));
    end Marshall_Latin_1_Char;
 
    --  Marshalling of an Octet
@@ -247,10 +248,10 @@ package body PolyORB.Representations.CDR.Common is
       Data   : PolyORB.Types.Octet)
    is
    begin
-      pragma Debug (C, O ("Marshall (Octet) : enter"));
+      pragma Debug (O ("Marshall (Octet) : enter"));
       Align_Marshall_Copy (Buffer, (1 => Stream_Element
                            (PolyORB.Types.Octet'(Data))), 1);
-      pragma Debug (C, O ("Marshall (Octet) : end"));
+      pragma Debug (O ("Marshall (Octet) : end"));
    end Marshall;
 
    --  Marshalling of an Unsigned Short
@@ -260,13 +261,13 @@ package body PolyORB.Representations.CDR.Common is
       Data   : PolyORB.Types.Unsigned_Short)
    is
    begin
-      pragma Debug (C, O ("Marshall (UShort) : enter"));
+      pragma Debug (O ("Marshall (UShort) : enter"));
       Align_Marshall_Big_Endian_Copy
         (Buffer,
          Stream_Element_Array'(Stream_Element (Data / 256),
           Stream_Element (Data mod 256)),
          2);
-      pragma Debug (C, O ("Marshall (UShort) : end"));
+      pragma Debug (O ("Marshall (UShort) : end"));
    end Marshall;
 
    --  Marshalling of an Unsigned Long
@@ -276,7 +277,7 @@ package body PolyORB.Representations.CDR.Common is
       Data   : PolyORB.Types.Unsigned_Long)
    is
    begin
-      pragma Debug (C, O ("Marshall (ULong) : enter"));
+      pragma Debug (O ("Marshall (ULong) : enter"));
       Align_Marshall_Big_Endian_Copy
         (Buffer,
           Stream_Element_Array'(Stream_Element (Data / 256**3),
@@ -284,7 +285,7 @@ package body PolyORB.Representations.CDR.Common is
           Stream_Element ((Data / 256) mod 256),
           Stream_Element (Data mod 256)),
          4);
-      pragma Debug (C, O ("Marshall (ULong) : end"));
+      pragma Debug (O ("Marshall (ULong) : end"));
    end Marshall;
 
    --  Marshalling of an Unsigned Long Long
@@ -294,7 +295,7 @@ package body PolyORB.Representations.CDR.Common is
       Data   : PolyORB.Types.Unsigned_Long_Long)
    is
    begin
-      pragma Debug (C, O ("Marshall (ULongLong) : enter"));
+      pragma Debug (O ("Marshall (ULongLong) : enter"));
       Align_Marshall_Big_Endian_Copy
         (Buffer,
          Stream_Element_Array'(Stream_Element (Data / 256**7),
@@ -306,7 +307,7 @@ package body PolyORB.Representations.CDR.Common is
           Stream_Element ((Data / 256) mod 256),
           Stream_Element (Data mod 256)),
          8);
-      pragma Debug (C, O ("Marshall (ULongLong) : end"));
+      pragma Debug (O ("Marshall (ULongLong) : end"));
    end Marshall;
 
    --  Marshalling of a Long Long
@@ -316,9 +317,9 @@ package body PolyORB.Representations.CDR.Common is
       Data   : PolyORB.Types.Long_Long)
    is
    begin
-      pragma Debug (C, O ("Marshall (LongLong) : enter"));
+      pragma Debug (O ("Marshall (LongLong) : enter"));
       Marshall (Buffer, To_Unsigned_Long_Long (Data));
-      pragma Debug (C, O ("Marshall (LongLong) : end"));
+      pragma Debug (O ("Marshall (LongLong) : end"));
    end Marshall;
 
    --  Marshalling of a Long
@@ -328,9 +329,9 @@ package body PolyORB.Representations.CDR.Common is
       Data   : PolyORB.Types.Long)
    is
    begin
-      pragma Debug (C, O ("Marshall (Long) : enter"));
+      pragma Debug (O ("Marshall (Long) : enter"));
       Marshall (Buffer, To_Unsigned_Long (Data));
-      pragma Debug (C, O ("Marshall (Long) : end"));
+      pragma Debug (O ("Marshall (Long) : end"));
    end Marshall;
 
    --  Marshalling of a Short
@@ -340,9 +341,9 @@ package body PolyORB.Representations.CDR.Common is
       Data   : PolyORB.Types.Short)
    is
    begin
-      pragma Debug (C, O ("Marshall (Short) : enter"));
+      pragma Debug (O ("Marshall (Short) : enter"));
       Marshall (Buffer, To_Unsigned_Short (Data));
-      pragma Debug (C, O ("Marshall (Short) : end"));
+      pragma Debug (O ("Marshall (Short) : end"));
    end Marshall;
 
    --  Marshalling of a Float
@@ -352,9 +353,9 @@ package body PolyORB.Representations.CDR.Common is
       Data   : PolyORB.Types.Float)
    is
    begin
-      pragma Debug (C, O ("Marshall (Float) : enter"));
+      pragma Debug (O ("Marshall (Float) : enter"));
       Marshall (Buffer, To_Unsigned_Long (Data));
-      pragma Debug (C, O ("Marshall (Float) : end"));
+      pragma Debug (O ("Marshall (Float) : end"));
    end Marshall;
 
    --  Marshalling of a Double
@@ -366,10 +367,10 @@ package body PolyORB.Representations.CDR.Common is
       Buf : constant Double_Buf := To_Double_Buf (Data);
 
    begin
-      pragma Debug (C, O ("Marshall (Double): enter, Data = "
+      pragma Debug (O ("Marshall (Double): enter, Data = "
                        & PolyORB.Types.Double'Image (Data)));
       Align_Marshall_Host_Endian_Copy (Buffer, Buf, 8);
-      pragma Debug (C, O ("Marshall (Double): end"));
+      pragma Debug (O ("Marshall (Double): end"));
    end Marshall;
 
    --  Marshalling of a Long Double
@@ -382,9 +383,9 @@ package body PolyORB.Representations.CDR.Common is
       --   Buf : Long_Double_Buf := To_Long_Double_Buf (Data);
    begin
       raise Program_Error;
-      --      pragma Debug (C, O ("Marshall (LongDouble) : enter"));
+      --      pragma Debug (O ("Marshall (LongDouble) : enter"));
       --      Align_Marshall_Host_Endian_Copy (Buffer, Buf, 8);
-      --      pragma Debug (C, O ("Marshall (LongDouble) : end"));
+      --      pragma Debug (O ("Marshall (LongDouble) : end"));
    end Marshall;
 
    --  Marshalling of a Standard String
@@ -398,13 +399,13 @@ package body PolyORB.Representations.CDR.Common is
       pragma Import (Ada, Str);
 
    begin
-      pragma Debug (C, O ("Marshall (String) : enter"));
+      pragma Debug (O ("Marshall (String) : enter"));
 
       Marshall (Buffer, PolyORB.Types.Unsigned_Long'(Data'Length + 1));
       Align_Marshall_Copy (Buffer, Str);
       Marshall_Latin_1_Char (Buffer, PolyORB.Types.Char (ASCII.Nul));
 
-      pragma Debug (C, O ("Marshall (String) : end"));
+      pragma Debug (O ("Marshall (String) : end"));
    end Marshall_Latin_1_String;
 
    --  Marshalling of a PolyORB.Types.String
@@ -414,10 +415,10 @@ package body PolyORB.Representations.CDR.Common is
       Data   : PolyORB.Types.String)
    is
    begin
-      pragma Debug (C, O ("Marshall (PolyORB.Types.String) : enter"));
+      pragma Debug (O ("Marshall (PolyORB.Types.String) : enter"));
       Marshall_Latin_1_String
         (Buffer, PolyORB.Types.To_Standard_String (Data));
-      pragma Debug (C, O ("Marshall (PolyORB.Types.String) : end"));
+      pragma Debug (O ("Marshall (PolyORB.Types.String) : end"));
    end Marshall_Latin_1_String;
 
    --  Marshalling of an Identifier
@@ -427,9 +428,9 @@ package body PolyORB.Representations.CDR.Common is
       Data   : PolyORB.Types.Identifier)
    is
    begin
-      pragma Debug (C, O ("Marshall (Identifier) : enter"));
+      pragma Debug (O ("Marshall (Identifier) : enter"));
       Marshall_Latin_1_String (Buffer, PolyORB.Types.String (Data));
-      pragma Debug (C, O ("Marshall (Identifier) : end"));
+      pragma Debug (O ("Marshall (Identifier) : end"));
    end Marshall;
 
    --  Marshalling of a Repository Identifier
@@ -439,9 +440,9 @@ package body PolyORB.Representations.CDR.Common is
       Data   : PolyORB.Types.RepositoryId)
    is
    begin
-      pragma Debug (C, O ("Marshall (RepositoryId) : enter"));
+      pragma Debug (O ("Marshall (RepositoryId) : enter"));
       Marshall_Latin_1_String (Buffer, PolyORB.Types.String (Data));
-      pragma Debug (C, O ("Marshall (RepositoryId) : end"));
+      pragma Debug (O ("Marshall (RepositoryId) : end"));
    end Marshall;
 
    --  Marshalling of a Value Modifier type (short)
@@ -451,9 +452,9 @@ package body PolyORB.Representations.CDR.Common is
       Data   : PolyORB.Any.ValueModifier)
    is
    begin
-      pragma Debug (C, O ("Marshall (ValueModifier) : enter"));
+      pragma Debug (O ("Marshall (ValueModifier) : enter"));
       Marshall (Buffer, PolyORB.Types.Short (Data));
-      pragma Debug (C, O ("Marshall (ValueModifier) : end"));
+      pragma Debug (O ("Marshall (ValueModifier) : end"));
    end Marshall;
 
    --  Marshalling of a Visibility Type (short)
@@ -463,9 +464,9 @@ package body PolyORB.Representations.CDR.Common is
       Data   : PolyORB.Any.Visibility)
    is
    begin
-      pragma Debug (C, O ("Marshall (Visibility) : enter"));
+      pragma Debug (O ("Marshall (Visibility) : enter"));
       Marshall (Buffer, PolyORB.Types.Short (Data));
-      pragma Debug (C, O ("Marshall (Visibility) : end"));
+      pragma Debug (O ("Marshall (Visibility) : end"));
    end Marshall;
 
    --  Marshall a sequence of octets
@@ -475,22 +476,22 @@ package body PolyORB.Representations.CDR.Common is
       Data   : Stream_Element_Array)
    is
    begin
-      pragma Debug (C, O ("Marshall (Encapsulation) : enter"));
+      pragma Debug (O ("Marshall (Encapsulation) : enter"));
       Marshall (Buffer, PolyORB.Types.Unsigned_Long (Data'Length));
       Align_Marshall_Copy (Buffer, Data);
-      pragma Debug (C, O ("Marshall (Encapsulation) : end"));
+      pragma Debug (O ("Marshall (Encapsulation) : end"));
    end Marshall;
 
    --  procedure Marshall
    --    (Buffer : access Buffer_Type;
    --     Data   : Encapsulation) is
    --  begin
-   --     pragma Debug (C, O ("Marshall (Encapsulation) : enter"));
+   --     pragma Debug (O ("Marshall (Encapsulation) : enter"));
    --     Marshall (Buffer, PolyORB.Types.Unsigned_Long (Data'Length));
    --     for I in Data'Range loop
    --        Marshall (Buffer, PolyORB.Types.Octet (Data (I)));
    --     end loop;
-   --     pragma Debug (C, O ("Marshall (Encapsulation) : end"));
+   --     pragma Debug (O ("Marshall (Encapsulation) : end"));
    --  end Marshall;
 
    procedure Marshall
@@ -674,7 +675,7 @@ package body PolyORB.Representations.CDR.Common is
      return PolyORB.Types.Boolean
    is
    begin
-      pragma Debug (C, O ("Unmarshall (Boolean) : enter & end"));
+      pragma Debug (O ("Unmarshall (Boolean) : enter & end"));
       return PolyORB.Types.Boolean'Val
         (PolyORB.Types.Octet'(Unmarshall (Buffer)));
    end Unmarshall;
@@ -684,7 +685,7 @@ package body PolyORB.Representations.CDR.Common is
      return PolyORB.Types.Char
    is
    begin
-      pragma Debug (C, O ("Unmarshall (Char) : enter & end"));
+      pragma Debug (O ("Unmarshall (Char) : enter & end"));
       return PolyORB.Types.Char'Val
         (PolyORB.Types.Octet'(Unmarshall (Buffer)));
    end Unmarshall_Latin_1_Char;
@@ -697,7 +698,7 @@ package body PolyORB.Representations.CDR.Common is
         := Align_Unmarshall_Copy (Buffer, 1, 1);
 
    begin
-      pragma Debug (C, O ("Unmarshall (Octet) : enter & end"));
+      pragma Debug (O ("Unmarshall (Octet) : enter & end"));
       return PolyORB.Types.Octet (Result (Result'First));
    end Unmarshall;
 
@@ -766,7 +767,7 @@ package body PolyORB.Representations.CDR.Common is
      (Buffer : access Buffer_Type) return PolyORB.Types.Long_Long
    is
    begin
-      pragma Debug (C, O ("Unmarshall (LongLong) : enter & end"));
+      pragma Debug (O ("Unmarshall (LongLong) : enter & end"));
       return To_Long_Long (Unmarshall (Buffer));
    end Unmarshall;
 
@@ -775,7 +776,7 @@ package body PolyORB.Representations.CDR.Common is
      return PolyORB.Types.Long
    is
    begin
-      pragma Debug (C, O ("Unmarshall (Long) : enter & end"));
+      pragma Debug (O ("Unmarshall (Long) : enter & end"));
       return To_Long (Unmarshall (Buffer));
    end Unmarshall;
 
@@ -784,7 +785,7 @@ package body PolyORB.Representations.CDR.Common is
      return PolyORB.Types.Short
    is
    begin
-      pragma Debug (C, O ("Unmarshall (Short) : enter & end"));
+      pragma Debug (O ("Unmarshall (Short) : enter & end"));
       return To_Short (Unmarshall (Buffer));
    end Unmarshall;
 
@@ -793,7 +794,7 @@ package body PolyORB.Representations.CDR.Common is
      return PolyORB.Types.Float
    is
    begin
-      pragma Debug (C, O ("Unmarshall (Float) : enter & end"));
+      pragma Debug (O ("Unmarshall (Float) : enter & end"));
       return To_Float (Unmarshall (Buffer));
    end Unmarshall;
 
@@ -805,7 +806,7 @@ package body PolyORB.Representations.CDR.Common is
         := Align_Unmarshall_Host_Endian_Copy (Buffer, 8, 8);
 
    begin
-      pragma Debug (C, O ("Unmarshall (Double): enter & end"));
+      pragma Debug (O ("Unmarshall (Double): enter & end"));
       return To_Double (Double_Buf (Octets));
    end Unmarshall;
 
@@ -816,7 +817,7 @@ package body PolyORB.Representations.CDR.Common is
       --  Octets : constant Stream_Element_Array :=
       --  Align_Unmarshall_Host_Endian_Copy (Buffer, 12, 8);
    begin
-      --  pragma Debug (C, O ("Unmarshall (LongDouble) : enter & end"));
+      --  pragma Debug (O ("Unmarshall (LongDouble) : enter & end"));
       --  return To_Long_Double (Long_Double_Buf (Octets));
       raise Program_Error;
       pragma Warnings (Off);
@@ -834,8 +835,8 @@ package body PolyORB.Representations.CDR.Common is
       Equiv  : String (1 .. Natural (Length) - 1);
 
    begin
-      pragma Debug (C, O ("Unmarshall (String): enter"));
-      pragma Debug (C, O ("Unmarshall (String): length is " &
+      pragma Debug (O ("Unmarshall (String): enter"));
+      pragma Debug (O ("Unmarshall (String): length is " &
                     PolyORB.Types.Unsigned_Long'Image (Length)));
 
       if Length = 0 then
@@ -854,7 +855,7 @@ package body PolyORB.Representations.CDR.Common is
          raise Constraint_Error;
       end if;
 
-      pragma Debug (C, O ("Unmarshall (String): -> " & Equiv));
+      pragma Debug (O ("Unmarshall (String): -> " & Equiv));
 
       return Equiv;
    end Unmarshall_Latin_1_String;
@@ -873,7 +874,7 @@ package body PolyORB.Representations.CDR.Common is
      return PolyORB.Types.Identifier
    is
    begin
-      pragma Debug (C, O ("Unmarshall (Identifier) : enter & end"));
+      pragma Debug (O ("Unmarshall (Identifier) : enter & end"));
       return PolyORB.Types.Identifier
         (PolyORB.Types.String'(Unmarshall_Latin_1_String (Buffer)));
    end Unmarshall;
@@ -883,7 +884,7 @@ package body PolyORB.Representations.CDR.Common is
      return PolyORB.Types.RepositoryId
    is
    begin
-      pragma Debug (C, O ("Unmarshall (RepositoryId) : enter & end"));
+      pragma Debug (O ("Unmarshall (RepositoryId) : enter & end"));
       return PolyORB.Types.RepositoryId
         (PolyORB.Types.String'(Unmarshall_Latin_1_String (Buffer)));
    end Unmarshall;
@@ -893,7 +894,7 @@ package body PolyORB.Representations.CDR.Common is
      return PolyORB.Any.ValueModifier
    is
    begin
-      pragma Debug (C, O ("Unmarshall (ValueModifier) : enter & end"));
+      pragma Debug (O ("Unmarshall (ValueModifier) : enter & end"));
       return PolyORB.Any.ValueModifier
         (PolyORB.Types.Short'(Unmarshall (Buffer)));
    end Unmarshall;
@@ -903,7 +904,7 @@ package body PolyORB.Representations.CDR.Common is
      return PolyORB.Any.Visibility
    is
    begin
-      pragma Debug (C, O ("Unmarshall (Visibility) : enter & end"));
+      pragma Debug (O ("Unmarshall (Visibility) : enter & end"));
       return PolyORB.Any.Visibility
         (PolyORB.Types.Short'(Unmarshall (Buffer)));
    end Unmarshall;
@@ -914,7 +915,7 @@ package body PolyORB.Representations.CDR.Common is
    --      Length : constant PolyORB.Types.Unsigned_Long
    --        := Unmarshall (Buffer);
    --   begin
-   --      pragma Debug (C, O ("Unmarshall (Encapsulation):
+   --      pragma Debug (O ("Unmarshall (Encapsulation):
    --                length is" & Length'Img));
    --      declare
    --         E : Encapsulation (1 .. Stream_Element_Offset(Length));
@@ -923,7 +924,7 @@ package body PolyORB.Representations.CDR.Common is
    --            E (I) := Stream_Element(PolyORB.Types.Octet'
    --                (Unmarshall (Buffer)));
    --         end loop;
-   --         pragma Debug (C, O ("Unmarshall (Encapsulation): end"));
+   --         pragma Debug (O ("Unmarshall (Encapsulation): end"));
    --         return E;
    --      end;
    --   end Unmarshall;
@@ -959,7 +960,7 @@ package body PolyORB.Representations.CDR.Common is
       Length : constant PolyORB.Types.Unsigned_Long := Unmarshall (Buffer);
 
    begin
-      pragma Debug (C, O ("Unmarshall (Encapsulation): length" & Length'Img));
+      pragma Debug (O ("Unmarshall (Encapsulation): length" & Length'Img));
       declare
          E : Stream_Element_Array (1 .. Stream_Element_Offset (Length));
       begin
@@ -967,7 +968,7 @@ package body PolyORB.Representations.CDR.Common is
             E (J) := Stream_Element
                      (PolyORB.Types.Octet'(Unmarshall (Buffer)));
          end loop;
-         pragma Debug (C, O ("Unmarshall (Encapsulation): end"));
+         pragma Debug (O ("Unmarshall (Encapsulation): end"));
          return E;
       end;
    end Unmarshall;

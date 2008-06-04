@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -46,6 +46,7 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Condition_Variables is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    package PTM renames PolyORB.Tasking.Mutexes;
    package PTCV renames PolyORB.Tasking.Condition_Variables;
@@ -122,7 +123,7 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Condition_Variables is
       To_Free : Thread_Queue;
 
    begin
-      pragma Debug (C, O ("Broadcast"));
+      pragma Debug (O ("Broadcast"));
       The_Condition_PO_Arr (Cond.Id).Broadcast (To_Free);
       for J in To_Free'Range loop
          if To_Free (J).Is_Waiting then
@@ -150,7 +151,7 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Condition_Variables is
       Cond  : Ravenscar_Condition_Access;
 
    begin
-      pragma Debug (C, O ("Create"));
+      pragma Debug (O ("Create"));
       Condition_Index_Manager.Get (Index);
       Cond := The_Condition_Pool (Index)'Access;
       Cond.Id := Index;
@@ -172,7 +173,7 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Condition_Variables is
       pragma Warnings (On);
 
    begin
-      pragma Debug (C, O ("Destroy"));
+      pragma Debug (O ("Destroy"));
       Condition_Index_Manager.Release (Ravenscar_Condition_Access (Cond).Id);
    end Destroy;
 
@@ -330,7 +331,7 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Condition_Variables is
       To_Free            : Synchro_Index_Type;
 
    begin
-      pragma Debug (C, O ("Signal"));
+      pragma Debug (O ("Signal"));
       The_Condition_PO_Arr (Cond.Id).Signal (Someone_Is_Waiting, To_Free);
 
       if Someone_Is_Waiting then
@@ -349,7 +350,7 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Condition_Variables is
       S : Synchro_Index_Type;
 
    begin
-      pragma Debug (C, O ("Wait"));
+      pragma Debug (O ("Wait"));
       S := Prepare_Suspend;
       The_Condition_PO_Arr (Cond.Id).Prepare_Wait (S);
       PTM.Leave (M);

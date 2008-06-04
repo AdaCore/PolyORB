@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -47,7 +47,7 @@ with PolyORB.Parameters;
 with PolyORB.Protocols;
 with PolyORB.Protocols.SOAP_Pr;
 with PolyORB.Setup;
-with PolyORB.Sockets;
+
 with PolyORB.References.IOR;
 with PolyORB.References.URI;
 with PolyORB.Representations.CDR.Common;
@@ -57,6 +57,7 @@ with PolyORB.Representations.CDR.Common;
 --  say that the notion of IOR is cross-platform!).
 
 with PolyORB.Transport.Connected.Sockets;
+with PolyORB.Utils.Sockets;
 with PolyORB.Utils.Strings;
 with PolyORB.Log;
 
@@ -75,13 +76,13 @@ package body PolyORB.Binding_Data.SOAP is
    use PolyORB.Transport;
    use PolyORB.Transport.Connected.Sockets;
    use PolyORB.Types;
-   use PolyORB.Utils.Sockets;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.binding_data.soap");
    procedure O (Message : Standard.String; Level : Log_Level := Debug)
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    Preference : Profile_Preference;
    --  Global variable: the preference to be returned
@@ -105,9 +106,9 @@ package body PolyORB.Binding_Data.SOAP is
    -- Release --
    -------------
 
-   procedure Release (P : in out SOAP_Profile_Type) is
+   procedure Release (P : in out SOAP_Profile_Type)
+   is
    begin
-      Free (P.Address);
       Free (P.Object_Id);
    end Release;
 
@@ -138,12 +139,13 @@ package body PolyORB.Binding_Data.SOAP is
       use PolyORB.Sockets;
 
       Sock : Socket_Type;
+      Remote_Addr : Sock_Addr_Type := Profile.Address;
       TE   : constant Transport.Transport_Endpoint_Access :=
                new Socket_Endpoint;
 
    begin
       Create_Socket (Sock);
-      Utils.Sockets.Connect_Socket (Sock, Profile.Address.all);
+      Utils.Sockets.Connect_Socket (Sock, Remote_Addr);
       Create (Socket_Endpoint (TE.all), Sock);
 
       Binding_Objects.Setup_Binding_Object
@@ -233,8 +235,7 @@ package body PolyORB.Binding_Data.SOAP is
       pragma Warnings (On);
 
    begin
-      PF.Address :=
-        new Socket_Name'(Address_Of (Socket_Access_Point (TAP.all)));
+      PF.Address := Address_Of (Socket_Access_Point (TAP.all));
    end Create_Factory;
 
    --------------------
@@ -257,7 +258,7 @@ package body PolyORB.Binding_Data.SOAP is
 
    begin
       TResult.Object_Id := new Object_Id'(Oid);
-      TResult.Address   := new Socket_Name'(PF.Address.all);
+      TResult.Address   := PF.Address;
 
       Obj_Adapters.Oid_To_Rel_URI
         (PolyORB.ORB.Object_Adapter (Setup.The_ORB),
@@ -272,10 +273,6 @@ package body PolyORB.Binding_Data.SOAP is
          return Result;
       end if;
    end Create_Profile;
-
-   --------------------
-   -- Create_Profile --
-   --------------------
 
    function Create_Profile
      (URI : Types.String)
@@ -293,9 +290,16 @@ package body PolyORB.Binding_Data.SOAP is
         renames SOAP_Profile_Type (Result.all);
    begin
       Normalize (URL);
-      TResult.Address  := new Socket_Name'
-                            (Server_Name (URL)
-                             + Port_Type (Positive'(Port (URL))));
+      begin
+         TResult.Address.Addr := Inet_Addr (Server_Name (URL));
+      exception
+         when Socket_Error =>
+            TResult.Address.Addr :=
+              Addresses (Get_Host_By_Name (Server_Name (URL)), 1);
+      end;
+
+      TResult.Address.Port := Port_Type (Positive'(Port (URL)));
+
       TResult.URI_Path := To_PolyORB_String (AWS.URL.URI (URL));
 
       if ORB.Is_Profile_Local (Setup.The_ORB, Result) then
@@ -315,7 +319,9 @@ package body PolyORB.Binding_Data.SOAP is
    -- Duplicate_Profile --
    -----------------------
 
-   function Duplicate_Profile (P : SOAP_Profile_Type) return Profile_Access
+   function Duplicate_Profile
+     (P : SOAP_Profile_Type)
+     return Profile_Access
    is
       Result : constant Profile_Access := new SOAP_Profile_Type;
 
@@ -326,7 +332,7 @@ package body PolyORB.Binding_Data.SOAP is
 
    begin
       TResult.Object_Id := new Object_Id'(PP.Object_Id.all);
-      TResult.Address   := new Socket_Name'(PP.Address.all);
+      TResult.Address   := PP.Address;
       TResult.URI_Path  := PP.URI_Path;
 
       return Result;
@@ -343,13 +349,8 @@ package body PolyORB.Binding_Data.SOAP is
    is
       use type PolyORB.Sockets.Sock_Addr_Type;
    begin
-      if P.all in SOAP_Profile_Type
-        and then SOAP_Profile_Type (P.all).Address = PF.Address
-      then
-         P.Known_Local := True;
-         return True;
-      end if;
-      return False;
+      return P.all in SOAP_Profile_Type
+        and then SOAP_Profile_Type (P.all).Address = PF.Address;
    end Is_Local_Profile;
 
    --------------------------------
@@ -360,6 +361,8 @@ package body PolyORB.Binding_Data.SOAP is
      (Buf     : access Buffer_Type;
       Profile : Profile_Access)
    is
+      use PolyORB.Utils.Sockets;
+
       SOAP_Profile : SOAP_Profile_Type renames SOAP_Profile_Type (Profile.all);
       Profile_Body : Buffer_Access := new Buffer_Type;
 
@@ -371,7 +374,7 @@ package body PolyORB.Binding_Data.SOAP is
 
       --  Marshalling the socket address
 
-      Marshall_Socket (Profile_Body, SOAP_Profile.Address.all);
+      Marshall_Socket (Profile_Body, SOAP_Profile.Address);
 
       --  Marshalling the Object Id
 
@@ -392,8 +395,11 @@ package body PolyORB.Binding_Data.SOAP is
    ----------------------------------
 
    function Unmarshall_SOAP_Profile_Body
-     (Buffer       : access Buffer_Type) return Profile_Access
+     (Buffer       : access Buffer_Type)
+     return Profile_Access
    is
+      use PolyORB.Utils.Sockets;
+
       Profile_Body   : aliased Encapsulation := Unmarshall (Buffer);
       Profile_Buffer : Buffer_Access := new Buffers.Buffer_Type;
       Result         : constant Profile_Access := new SOAP_Profile_Type;
@@ -407,13 +413,13 @@ package body PolyORB.Binding_Data.SOAP is
 
       --  Unmarshalling the socket address
 
-      TResult.Address := new Socket_Name'(Unmarshall_Socket (Profile_Buffer));
+      Unmarshall_Socket (Profile_Buffer, TResult.Address);
 
       --  Unmarshalling the Object Id
 
       declare
          Str  : aliased constant Stream_Element_Array :=
-                  Unmarshall (Profile_Buffer);
+           Unmarshall (Profile_Buffer);
       begin
          TResult.Object_Id := new Object_Id'(Object_Id (Str));
       end;
@@ -435,9 +441,10 @@ package body PolyORB.Binding_Data.SOAP is
 
       SOAP_Profile : SOAP_Profile_Type renames SOAP_Profile_Type (P.all);
    begin
-      pragma Debug (C, O ("SOAP Profile to URI"));
+      pragma Debug (O ("SOAP Profile to URI"));
       return SOAP_URI_Prefix
-        & Image (SOAP_Profile.Address.all)
+        & Image (SOAP_Profile.Address.Addr) & ":"
+        & Trimmed_Image (Long_Long (SOAP_Profile.Address.Port))
         & To_Standard_String (SOAP_Profile.URI_Path);
    end Profile_To_URI;
 
@@ -448,8 +455,8 @@ package body PolyORB.Binding_Data.SOAP is
    function URI_To_Profile (Str : String) return Profile_Access is
       use PolyORB.Utils;
       use PolyORB.Utils.Strings;
+      use PolyORB.Utils.Sockets;
 
-      Host_First, Host_Last : Natural;
    begin
       if Str'Length > SOAP_URI_Prefix'Length
         and then Str (Str'First .. Str'First + SOAP_URI_Prefix'Length - 1)
@@ -463,31 +470,28 @@ package body PolyORB.Binding_Data.SOAP is
             Index   : Integer := S'First;
             Index2  : Integer;
          begin
-            pragma Debug (C, O ("SOAP URI to profile: enter"));
+            pragma Debug (O ("SOAP URI to profile: enter"));
 
             Index2 := Find (S, Index, ':');
             if Index2 = S'Last + 1 then
                return null;
             end if;
-            pragma Debug (C, O ("Address = " & S (Index .. Index2 - 1)));
-            Host_First := Index;
-            Host_Last := Index2 - 1;
+            pragma Debug (O ("Address = " & S (Index .. Index2 - 1)));
+            TResult.Address.Addr := String_To_Addr (S (Index .. Index2 - 1));
             Index := Index2 + 1;
 
             Index2 := Find (S, Index, '/');
             if Index2 = S'Last + 1 then
                return null;
             end if;
-            pragma Debug (C, O ("Port = " & S (Index .. Index2 - 1)));
-            TResult.Address :=
-              new Socket_Name'(S (Host_First .. Host_Last)
-                               + Sockets.Port_Type'Value
-                                 (S (Index .. Index2 - 1)));
+            pragma Debug (O ("Port = " & S (Index .. Index2 - 1)));
+            TResult.Address.Port :=
+              PolyORB.Sockets.Port_Type'Value (S (Index .. Index2 - 1));
             Index := Index2;
             TResult.URI_Path := To_PolyORB_String (S (Index .. S'Last));
 
-            pragma Debug (C, O ("URI_Path is " & S (Index .. S'Last)));
-            pragma Debug (C, O ("SOAP URI to profile: leave"));
+            pragma Debug (O ("URI_Path is " & S (Index .. S'Last)));
+            pragma Debug (O ("SOAP URI to profile: leave"));
             return Result;
          end;
       else
@@ -502,7 +506,7 @@ package body PolyORB.Binding_Data.SOAP is
    function Image (Prof : SOAP_Profile_Type) return String
    is
       Result : PolyORB.Types.String := To_PolyORB_String
-        ("Address: " & Image (Prof.Address.all));
+        ("Address: " & Sockets.Image (Prof.Address));
    begin
       if Prof.Object_Id /= null then
          Append
@@ -521,7 +525,7 @@ package body PolyORB.Binding_Data.SOAP is
 
    function To_URI (Prof : SOAP_Profile_Type) return String is
    begin
-      return "http://" & Image (Prof.Address.all)
+      return "http://" & Sockets.Image (Prof.Address)
         & To_Standard_String (Prof.URI_Path);
    end To_URI;
 

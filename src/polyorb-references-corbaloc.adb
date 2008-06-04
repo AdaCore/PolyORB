@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -48,6 +48,7 @@ package body PolyORB.References.Corbaloc is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    Corbaloc_Prefix : constant String := "corbaloc:";
 
@@ -125,7 +126,7 @@ package body PolyORB.References.Corbaloc is
          end if;
       end loop;
 
-      pragma Debug (C, O ("Profile found :" & Natural'Image (N)));
+      pragma Debug (O ("Profile found :" & Natural'Image (N)));
    end Get_Corbaloc_List;
 
    -----------------------
@@ -141,7 +142,7 @@ package body PolyORB.References.Corbaloc is
       Iter : Iterator := First (Callbacks);
    begin
       pragma Assert (P /= null);
-      pragma Debug (C, O ("Profile to string with tag:"
+      pragma Debug (O ("Profile to string with tag:"
                        & Profile_Tag'Image (Get_Profile_Tag (P.all))));
 
       T := Get_Profile_Tag (P.all);
@@ -157,7 +158,7 @@ package body PolyORB.References.Corbaloc is
          Next (Iter);
       end loop;
 
-      pragma Debug (C, O ("Profile not ok"));
+      pragma Debug (O ("Profile not ok"));
       return Null_String;
    end Profile_To_String;
 
@@ -175,7 +176,7 @@ package body PolyORB.References.Corbaloc is
 
       Iter : Iterator := First (Callbacks);
    begin
-      pragma Debug (C, O ("String_To_Profile: enter, parsing " & Obj_Addr));
+      pragma Debug (O ("String_To_Profile: enter, parsing " & Obj_Addr));
 
       if Obj_Addr (Obj_Addr'First .. Obj_Addr'First + 1) = "//"
         or else (Sep = Obj_Addr'First and then Sep <= Obj_Addr'Last)
@@ -193,7 +194,7 @@ package body PolyORB.References.Corbaloc is
       while Iter /= Last (Callbacks) loop
          if Prot_Id.all = Value (Iter).Proto_Ident.all then
             pragma Debug
-              (C, O ("Try to unmarshall profile with profile factory tag "
+              (O ("Try to unmarshall profile with profile factory tag "
                   & Profile_Tag'Image (Value (Iter).Tag)));
             Free (Prot_Id);
             return Value (Iter).String_To_Profile_Body
@@ -202,7 +203,7 @@ package body PolyORB.References.Corbaloc is
          Next (Iter);
       end loop;
       Free (Prot_Id);
-      pragma Debug (C, O ("Profile not found for " & Obj_Addr));
+      pragma Debug (O ("Profile not found for " & Obj_Addr));
       return null;
    end String_To_Profile;
 
@@ -213,10 +214,10 @@ package body PolyORB.References.Corbaloc is
    function Object_To_String_With_Best_Profile
      (Corbaloc : Corbaloc_Type) return String is
    begin
-      pragma Debug (C, O ("Create corbaloc with best profile: Enter"));
+      pragma Debug (O ("Create corbaloc with best profile: Enter"));
 
       if Is_Nil (Corbaloc) then
-         pragma Debug (C, O ("Corbaloc Empty"));
+         pragma Debug (O ("Corbaloc Empty"));
          return Corbaloc_Prefix;
       else
          declare
@@ -252,7 +253,7 @@ package body PolyORB.References.Corbaloc is
                  & To_Standard_String (SL (Best_Profile_Index));
             end if;
 
-            pragma Debug (C, O ("Create corbaloc with best profile: Leave"));
+            pragma Debug (O ("Create corbaloc with best profile: Leave"));
             return Corbaloc_Prefix;
          end;
       end if;
@@ -268,7 +269,7 @@ package body PolyORB.References.Corbaloc is
       Result : Corbaloc_Type;
       Pro    : Profile_Access;
    begin
-      pragma Debug (C, O ("Try to decode Corbaloc: enter "));
+      pragma Debug (O ("Try to decode Corbaloc: enter "));
       if Utils.Has_Prefix (Str, Corbaloc_Prefix) then
          Pro := String_To_Profile
            (Str (Corbaloc_Prefix'Length + Str'First .. Str'Last));
@@ -277,7 +278,7 @@ package body PolyORB.References.Corbaloc is
          end if;
       end if;
 
-      pragma Debug (C, O ("Try to decode Corbaloc: leave "));
+      pragma Debug (O ("Try to decode Corbaloc: leave "));
       return Result;
    end String_To_Object;
 

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -36,7 +36,6 @@
 
 with PolyORB.Sockets;
 with PolyORB.Tasking.Mutexes;
-with PolyORB.Utils.Sockets;
 
 package PolyORB.Transport.Connected.Sockets is
 
@@ -67,9 +66,8 @@ package PolyORB.Transport.Connected.Sockets is
      (TAP : Socket_Access_Point;
       TE  : out Transport_Endpoint_Access);
 
-   function Address_Of
-     (SAP : Socket_Access_Point) return Utils.Sockets.Socket_Name;
-   --  Return a socket name denoting SAP
+   function Address_Of (SAP : Socket_Access_Point)
+     return Sock_Addr_Type;
 
    type Socket_Endpoint is new Transport_Endpoint with private;
    --  An opened transport endpoint as a connected stream-oriented socket

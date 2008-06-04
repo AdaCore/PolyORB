@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -48,6 +48,7 @@ package body PolyORB.Filters.MIOP is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    --  Unique Id counter
    Index_Unique_Id : Natural := 0;
@@ -140,7 +141,7 @@ package body PolyORB.Filters.MIOP is
          raise MIOP_Packet_Error;
       end if;
 
-      pragma Debug (C, O ("MIOP Version OK"));
+      pragma Debug (O ("MIOP Version OK"));
 
       --  Flags
       Flags := Unmarshall (Buffer);
@@ -152,7 +153,7 @@ package body PolyORB.Filters.MIOP is
       end if;
       pragma Assert (Header.Endianness = Endianness (Buffer));
 
-      pragma Debug (C, O ("Message Endianness : "
+      pragma Debug (O ("Message Endianness : "
                        & Header.Endianness'Img));
 
       if Is_Set (Bit_Collect_Mode, Flags) then
@@ -160,27 +161,27 @@ package body PolyORB.Filters.MIOP is
       else
          Header.Collect_Mode := False;
       end if;
-      pragma Debug (C, O ("Collect Mode       : "
+      pragma Debug (O ("Collect Mode       : "
                        & Header.Collect_Mode'Img));
 
       --  Extract size
       Header.Packet_Size := Unmarshall (Buffer);
-      pragma Debug (C, O ("Packer Size        :"
+      pragma Debug (O ("Packer Size        :"
                        & Header.Packet_Size'Img));
 
       --  Extract Number
       Header.Packet_Number := Unmarshall (Buffer);
-      pragma Debug (C, O ("Packet Number      :"
+      pragma Debug (O ("Packet Number      :"
                        & Header.Packet_Number'Img));
 
       --  Extract Total
       Header.Packet_Total := Unmarshall (Buffer);
-      pragma Debug (C, O ("Packet Total       :"
+      pragma Debug (O ("Packet Total       :"
                        & Header.Packet_Total'Img));
 
       --  Unique_Id_Size, Unique Id will be extracted later
       Header.Unique_Id_Size := Unmarshall (Buffer);
-      pragma Debug (C, O ("Unique Id Size     :"
+      pragma Debug (O ("Unique Id Size     :"
                        & Header.Unique_Id_Size'Img));
 
    end Unmarshall_MIOP_Header;

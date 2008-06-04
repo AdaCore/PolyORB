@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -45,6 +45,7 @@ package body PolyORB.Tasking.Idle_Tasks_Managers is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    function Allocate_CV
      (ITM : access Idle_Tasks_Manager)
@@ -91,7 +92,7 @@ package body PolyORB.Tasking.Idle_Tasks_Managers is
 
    begin
       if ITM.Idle_Task_List /= Task_Lists.Empty then
-         pragma Debug (C, O ("Awake one idle task"));
+         pragma Debug (O ("Awake one idle task"));
 
          --  Signal one idle task, and puts its CV in Free_CV list
 

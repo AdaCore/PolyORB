@@ -14,6 +14,6 @@ project local is
 
    end Compiler;
 
-   for Main use ("rtcorba_iiop_client.adb", "rtcorba_iiop_server.adb");
+   for Main use ("rtcorba_iiop_client", "rtcorba_iiop_server");
 
 end local;

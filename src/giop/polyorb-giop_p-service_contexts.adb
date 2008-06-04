@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -49,6 +49,7 @@ package body PolyORB.GIOP_P.Service_Contexts is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    -----------------------------------
    -- Marshall_Service_Context_List --
@@ -67,7 +68,7 @@ package body PolyORB.GIOP_P.Service_Contexts is
          return;
       end if;
 
-      pragma Debug (C, O ("Marshall_Service_Context_List: enter, length="
+      pragma Debug (O ("Marshall_Service_Context_List: enter, length="
                        & Integer'Image (Length (SCP.Service_Contexts))));
 
       Iter := First (SCP.Service_Contexts);
@@ -80,7 +81,7 @@ package body PolyORB.GIOP_P.Service_Contexts is
          Next (Iter);
       end loop;
 
-      pragma Debug (C, O ("Marshall_Service_Context_List: leave"));
+      pragma Debug (O ("Marshall_Service_Context_List: leave"));
    end Marshall_Service_Context_List;
 
    -------------------------------------
@@ -96,7 +97,7 @@ package body PolyORB.GIOP_P.Service_Contexts is
       Length : constant PolyORB.Types.Unsigned_Long := Unmarshall (Buffer);
 
    begin
-      pragma Debug (C, O ("Unmarshall_Service_Context_List: enter, length ="
+      pragma Debug (O ("Unmarshall_Service_Context_List: enter, length ="
                        & PolyORB.Types.Unsigned_Long'Image (Length)));
 
       if Length = 0 then
@@ -113,7 +114,7 @@ package body PolyORB.GIOP_P.Service_Contexts is
              new Encapsulation'(Unmarshall (Buffer))));
       end loop;
 
-      pragma Debug (C, O ("Unmarshall_Service_Context_List: leave"));
+      pragma Debug (O ("Unmarshall_Service_Context_List: leave"));
    end Unmarshall_Service_Context_List;
 
 end PolyORB.GIOP_P.Service_Contexts;

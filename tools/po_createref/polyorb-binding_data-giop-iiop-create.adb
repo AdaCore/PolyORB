@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2007-2008, Free Software Foundation, Inc.          --
+--           Copyright (C) 2007, Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -39,7 +39,6 @@ with PolyORB.GIOP_P.Transport_Mechanisms;
 with PolyORB.GIOP_P.Transport_Mechanisms.IIOP;
 with PolyORB.Sockets;
 with PolyORB.POA_Types;
-with PolyORB.Utils.Sockets;
 with PolyORB.Utils.Strings;
 
 package body PolyORB.Binding_Data.GIOP.IIOP.Create is
@@ -49,8 +48,28 @@ package body PolyORB.Binding_Data.GIOP.IIOP.Create is
    use PolyORB.GIOP_P.Transport_Mechanisms.IIOP;
    use PolyORB.GIOP_P.Transport_Mechanisms;
    use PolyORB.POA_Types;
-   use PolyORB.Sockets;
-   use PolyORB.Utils.Sockets;
+
+   procedure Create_Primary_IIOP_Address
+     (Param          : Parameter_Address;
+      Addr           : out PolyORB.Sockets.Sock_Addr_Type;
+      Error          : out Boolean);
+
+   ---------------------------------
+   -- Create_Primary_IIOP_Address --
+   ---------------------------------
+
+   procedure Create_Primary_IIOP_Address
+     (Param          : Parameter_Address;
+      Addr           : out PolyORB.Sockets.Sock_Addr_Type;
+      Error          : out Boolean)
+   is
+      use PolyORB.Sockets;
+   begin
+      Error := False;
+
+      Addr.Addr := Inet_Addr (Param.Inet_Addr.all);
+      Addr.Port := Port_Type (Param.Port);
+   end Create_Primary_IIOP_Address;
 
    -------------------------
    -- Create_IIOP_Profile --
@@ -62,6 +81,10 @@ package body PolyORB.Binding_Data.GIOP.IIOP.Create is
       Error          : out Boolean)
    is
       use PolyORB.Utils;
+      use PolyORB.Sockets;
+
+      Addr        : Sock_Addr_Type;
+      V_Error     : Boolean;
    begin
       --  <Object_Id> -vmj <Major> -vmn <Minor>
       --   -a <IP_Address> -p <Port> -cn <Component_Number>
@@ -91,11 +114,15 @@ package body PolyORB.Binding_Data.GIOP.IIOP.Create is
          TProfile.Version_Minor := Param.Version_Minor;
 
          --  Create server address and add transport mechanism
-
+         Create_Primary_IIOP_Address (Param.Address, Addr, V_Error);
+         if V_Error then
+            Error := True;
+            return;
+         end if;
          Append
            (TProfile.Mechanisms,
             PolyORB.GIOP_P.Transport_Mechanisms.IIOP.Create_Transport_Mechanism
-            (Param.Address.Inet_Addr.all + Port_Type (Param.Address.Port)));
+            (Addr));
 
          --  Add Tagged_Components
          Create_Tagged_Components

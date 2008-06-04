@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2000-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2000-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -62,6 +62,7 @@ package body PolyORB.SOAP_P.Message.XML is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    NL         : constant String := ASCII.CR & ASCII.LF;
 
@@ -771,7 +772,7 @@ package body PolyORB.SOAP_P.Message.XML is
       P : PolyORB.Binding_Data.Profile_Access;
       R : PolyORB.References.Ref;
    begin
-      pragma Debug (C, O ("Parse_ObjRef: Type_Id = " & Type_Id));
+      pragma Debug (O ("Parse_ObjRef: Type_Id = " & Type_Id));
       Normalize (N);
       P := PolyORB.Binding_Data.SOAP.Create_Profile
         (To_PolyORB_String (Node_Value (First_Child (N))));
@@ -1027,11 +1028,11 @@ package body PolyORB.SOAP_P.Message.XML is
       Field : DOM.Core.Node;
       I : Unsigned_Long := 0;
    begin
-      pragma Debug (C, O ("Parse_Record: enter"));
+      pragma Debug (O ("Parse_Record: enter"));
       Field := First_Child (N);
 
       while Field /= null loop
-         pragma Debug (C, O ("Parsing field" & Unsigned_Long'Image (I)));
+         pragma Debug (O ("Parsing field" & Unsigned_Long'Image (I)));
          declare
             Field_TC : constant PolyORB.Any.TypeCode.Local_Ref
               := Member_Type (Unwound_Expected_Type, I);
@@ -1044,7 +1045,7 @@ package body PolyORB.SOAP_P.Message.XML is
          Field := Next_Sibling (Field);
       end loop;
 
-      pragma Debug (C, O ("Parse_Record: leaver"));
+      pragma Debug (O ("Parse_Record: leaver"));
       return NamedValue'
         (Name => Name,
          Argument => Any_Record,

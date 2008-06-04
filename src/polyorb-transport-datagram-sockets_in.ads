@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2003-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -34,7 +34,6 @@
 --  Datagram Socket Access Point and End Point to recieve data from network
 
 with PolyORB.Sockets;
-with PolyORB.Utils.Sockets;
 
 package PolyORB.Transport.Datagram.Sockets_In is
 
@@ -63,9 +62,7 @@ package PolyORB.Transport.Datagram.Sockets_In is
      (TAP : access Socket_In_Access_Point)
       return Asynch_Ev.Asynch_Ev_Source_Access;
 
-   function Address_Of
-     (SAP : Socket_In_Access_Point) return Utils.Sockets.Socket_Name;
-   --  Return a Socket_Name designating SAP
+   function Address_Of (SAP : Socket_In_Access_Point) return Sock_Addr_Type;
 
    ---------------
    -- End Point --

@@ -14,6 +14,6 @@ project local is
 
    end Compiler;
 
-   for Main use ("test_time.adb");
+   for Main use ("test_time");
 
 end local;

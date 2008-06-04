@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -34,20 +34,19 @@
 --  Used only as transport_mech in TAG_CSI_SEC_MECH_LIST tagged component
 
 with PolyORB.Security.Types;
-with PolyORB.Utils.Sockets;
+with PolyORB.Sockets;
 
 package PolyORB.GIOP_P.Tagged_Components.TLS_Sec_Trans is
 
-   use PolyORB.Utils.Sockets;
-   package Socket_Name_Lists is
-     new PolyORB.Utils.Chained_Lists (Utils.Sockets.Socket_Name_Ptr);
+   package Sock_Addr_Lists is
+     new PolyORB.Utils.Chained_Lists (Sockets.Sock_Addr_Type, Sockets."=");
 
    type TC_TLS_Sec_Trans is new Tagged_Component
      (Tag => Tag_TLS_Sec_Trans, At_Most_Once => False)
    with record
       Target_Supports : PolyORB.Security.Types.Association_Options;
       Target_Requires : PolyORB.Security.Types.Association_Options;
-      Addresses       : Socket_Name_Lists.List;
+      Addresses       : Sock_Addr_Lists.List;
    end record;
 
    procedure Marshall_Component_Data

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2000-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2000-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -57,6 +57,7 @@ package body SOAP.Types is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
    --  the polyorb logging facility
 
    procedure Free is
@@ -940,7 +941,7 @@ package body SOAP.Types is
               := PolyORB.Any.TypeCode.TC_Array;
          begin
 
-            pragma Debug (C, O ("To_Any: SOAP_Array: nb of elements= "
+            pragma Debug (O ("To_Any: SOAP_Array: nb of elements= "
                              & Natural'Image (Size (SOAP_Array (Obj)))));
 
             PolyORB.Any.TypeCode.Add_Parameter
@@ -1034,7 +1035,7 @@ package body SOAP.Types is
         := PolyORB.Any.TypeCode.Kind
         (PolyORB.Any.Get_Unwound_Type (Item));
    begin
-      pragma Debug (C, O ("From_Any: handling an Any of type "
+      pragma Debug (O ("From_Any: handling an Any of type "
                        & PolyORB.Any.Image (Get_Unwound_Type (Item))));
 
       if Kind_Of_Any = Tk_Null then
@@ -1107,7 +1108,7 @@ package body SOAP.Types is
             then
                raise Data_Error;
             else
-               pragma Debug (C, O ("From_Any: Tk_Sequence (base 64): "
+               pragma Debug (O ("From_Any: Tk_Sequence (base 64): "
                                 & "attempting to retrieve"
                                 & Unsigned_Long'Image (Number_Of_Elements)
                                 & " octets"));
@@ -1136,7 +1137,7 @@ package body SOAP.Types is
               := Unsigned_Long (PolyORB.Any.TypeCode.Length
                                 (PolyORB.Any.Get_Type (Item)));
 
-            pragma Debug (C, O ("From_Any: Tk_Array: nb of elements= "
+            pragma Debug (O ("From_Any: Tk_Array: nb of elements= "
                              & Unsigned_Long'Image (Number_Of_Elements)));
 
             OS : Object_Set (1 .. Integer (Number_Of_Elements));
@@ -1154,7 +1155,7 @@ package body SOAP.Types is
                       (Index - 1)));
                begin
                   New_Object.Name := To_Unbounded_String ("item");
-                  pragma Debug (C, O ("From_Any: Tk_Array: index="
+                  pragma Debug (O ("From_Any: Tk_Array: index="
                                    & Positive'Image (Positive (Index))));
                   OS (Positive (Index)) := +(New_Object.all);
                end;
@@ -1192,7 +1193,7 @@ package body SOAP.Types is
             return new SOAP_Record'(R (OS, "item"));
          end;
       else
-         pragma Debug (C, O ("From_Any: no handler found for TCKind "
+         pragma Debug (O ("From_Any: no handler found for TCKind "
                           & Image (Get_Unwound_Type (Item)), Critical));
          raise Data_Error;
       end if;

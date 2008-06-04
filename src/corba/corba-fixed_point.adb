@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -49,6 +49,7 @@ package body CORBA.Fixed_Point is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    package CDR_Fixed_F is
      new PolyORB.Representations.CDR.Common.Fixed_Point (F);
@@ -97,12 +98,12 @@ package body CORBA.Fixed_Point is
       use type PolyORB.Any.TCKind;
 
    begin
-      pragma Debug (C, O ("From_Any (Fixed) : enter"));
+      pragma Debug (O ("From_Any (Fixed) : enter"));
       if PolyORB.Any.TypeCode.Kind (Internals.Get_Unwound_Type (Item))
         /= PolyORB.Any.Tk_Fixed
       then
          pragma Debug
-           (C, O ("From_Any (Fixed) : Bad_TypeCode, type is " &
+           (O ("From_Any (Fixed) : Bad_TypeCode, type is " &
                PolyORB.Any.TCKind'Image
                 (PolyORB.Any.TypeCode.Kind
                  (Internals.Get_Unwound_Type (Item)))));
@@ -118,18 +119,18 @@ package body CORBA.Fixed_Point is
            (others => 0);
       begin
          for J in Octets'Range loop
-            pragma Debug (C, O ("From_Any (Fixed) : yet another octet"));
+            pragma Debug (O ("From_Any (Fixed) : yet another octet"));
             Octets (J) :=
               Stream_Element
                (PolyORB.Types.Octet'(PolyORB.Any.Get_Aggregate_Element
                 (PolyORB.Any.Any (Item),
                  PolyORB.Types.Unsigned_Long (J - 1))));
          end loop;
-         pragma Debug (C, O ("From_Any (Fixed) : return"));
+         pragma Debug (O ("From_Any (Fixed) : return"));
          return CDR_Fixed_F.Octets_To_Fixed (Octets);
 
       exception when CORBA.Marshal =>
-         pragma Debug (C, O ("From_Any (Fixed) : exception catched" &
+         pragma Debug (O ("From_Any (Fixed) : exception catched" &
                           "while returning"));
          raise CORBA.Bad_TypeCode;
       end;

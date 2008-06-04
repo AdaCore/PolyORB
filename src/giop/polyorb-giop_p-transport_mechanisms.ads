@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -47,8 +47,6 @@ package PolyORB.GIOP_P.Transport_Mechanisms is
    --  Transport mechanism
 
    type Transport_Mechanism is abstract tagged null record;
-   --  ??? Should be made a limited type, really, since derived types may
-   --  use (non-controlled) chained lists as components.
 
    type Transport_Mechanism_Access is access all Transport_Mechanism'Class;
 

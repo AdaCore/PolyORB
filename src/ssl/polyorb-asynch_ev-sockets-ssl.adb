@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -44,6 +44,7 @@ package body PolyORB.Asynch_Ev.Sockets.SSL is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    type Socket_Event_Monitor_Access is access all Socket_Event_Monitor;
 
@@ -107,22 +108,22 @@ package body PolyORB.Asynch_Ev.Sockets.SSL is
       AES     :        Asynch_Ev_Source_Access;
       Success :    out Boolean) is
    begin
-      pragma Debug (C, O ("Register_Source: enter"));
+      pragma Debug (O ("Register_Source: enter"));
 
       Success := False;
       if AES.all not in SSL_Event_Source then
-         pragma Debug (C, O ("Register_Source: leave"));
+         pragma Debug (O ("Register_Source: leave"));
          return;
       end if;
 
       Set (AEM.Monitored_Set, SSL_Event_Source (AES.all).Socket);
       Source_Lists.Append (AEM.Sources, AES);
-      pragma Debug (C, O ("Register_Source: Sources'Length:="
+      pragma Debug (O ("Register_Source: Sources'Length:="
                        & Integer'Image (Source_Lists.Length (AEM.Sources))));
       AES.Monitor := Asynch_Ev_Monitor_Access (AEM);
 
       Success := True;
-      pragma Debug (C, O ("Register_Source: leave"));
+      pragma Debug (O ("Register_Source: leave"));
    end Register_Source;
 
    -------------------
@@ -140,7 +141,7 @@ package body PolyORB.Asynch_Ev.Sockets.SSL is
       Last   : Integer := 0;
 
    begin
-      pragma Debug (C, O ("Check_Sources: enter"));
+      pragma Debug (O ("Check_Sources: enter"));
 
       --  SSL transport may cache data in the internal buffer, so if cached
       --  data available then adding event source to the result.

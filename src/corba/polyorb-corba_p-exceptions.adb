@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -53,6 +53,7 @@ package body PolyORB.CORBA_P.Exceptions is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    ------------------------
    -- Is_Forward_Request --
@@ -123,7 +124,7 @@ package body PolyORB.CORBA_P.Exceptions is
       Error    : Error_Container;
 
    begin
-      pragma Debug (C, O ("Raise_From_Any: enter"));
+      pragma Debug (O ("Raise_From_Any: enter"));
 
       Exception_Name_To_Error_Id (EId, Is_Error, Id);
 
@@ -140,11 +141,11 @@ package body PolyORB.CORBA_P.Exceptions is
                Error.Member := new Null_Members'(Null_Member);
          end case;
 
-         pragma Debug (C, O ("Raising " & Error_Id'Image (Error.Kind)));
+         pragma Debug (O ("Raising " & Error_Id'Image (Error.Kind)));
          Raise_From_Error (Error, Message);
 
       else
-         pragma Debug (C, O ("Raising " & EId));
+         pragma Debug (O ("Raising " & EId));
          Raise_User_Exception_From_Any (Repository_Id, Occurrence, Message);
       end if;
 
@@ -172,16 +173,16 @@ package body PolyORB.CORBA_P.Exceptions is
       Result        : PolyORB.Any.Any;
 
    begin
-      pragma Debug (C, O ("System_Exception_To_Any: enter."));
-      pragma Debug (C, O ("Exception_Name: " & Exception_Name (E)));
-      pragma Debug (C, O ("Exception_Message: " & Exception_Message (E)));
+      pragma Debug (O ("System_Exception_To_Any: enter."));
+      pragma Debug (O ("Exception_Name: " & Exception_Name (E)));
+      pragma Debug (O ("Exception_Message: " & Exception_Message (E)));
 
       begin
          Repository_Id := To_PolyORB_String (Occurrence_To_Name (E));
          CORBA.Get_Members (E, Members);
       exception
          when others =>
-            pragma Debug (C, O ("No matching system exception found, "
+            pragma Debug (O ("No matching system exception found, "
                              & "will use CORBA/UNKNOWN"));
             Repository_Id := To_PolyORB_String ("CORBA/UNKNOWN");
             Members := (1, CORBA.Completed_Maybe);
@@ -209,7 +210,7 @@ package body PolyORB.CORBA_P.Exceptions is
       Add_Aggregate_Element (Result,
         PolyORB.Any.Any (CORBA.To_Any (Members.Completed)));
 
-      pragma Debug (C, O ("System_Exception_To_Any: leave"));
+      pragma Debug (O ("System_Exception_To_Any: leave"));
       return Result;
    end System_Exception_To_Any;
 
@@ -222,27 +223,27 @@ package body PolyORB.CORBA_P.Exceptions is
       Message : String := "")
    is
    begin
-      pragma Debug (C, O ("About to raise exception: "
+      pragma Debug (O ("About to raise exception: "
                        & Error_Id'Image (Error.Kind)));
 
       pragma Assert (Is_Error (Error));
 
       if Error.Kind in ORB_System_Error then
-         pragma Debug (C, O ("Raising CORBA Exception"));
+         pragma Debug (O ("Raising CORBA Exception"));
          CORBA_Raise_From_Error (Error, Message);
 
       elsif Error.Kind in POA_Error then
-         pragma Debug (C, O ("Raising PORTABLESERVER.POA Exception"));
+         pragma Debug (O ("Raising PORTABLESERVER.POA Exception"));
          POA_Raise_From_Error (Error, Message);
 
       elsif Error.Kind in POAManager_Error then
-         pragma Debug (C, O ("Raising PORTABLESERVER.POAManager Exception"));
+         pragma Debug (O ("Raising PORTABLESERVER.POAManager Exception"));
          POAManager_Raise_From_Error (Error, Message);
 
       elsif Error.Kind in PolyORB_Internal_Error then
          --  PolyORB internal errors are mapped to CORBA.Unknown
 
-         pragma Debug (C, O ("Raising CORBA.UNKNOWN"));
+         pragma Debug (O ("Raising CORBA.UNKNOWN"));
          CORBA.Raise_Unknown (CORBA.Default_Sys_Member);
       end if;
 

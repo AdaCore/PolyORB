@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -44,6 +44,7 @@ package body PolyORB.Any.ExceptionList is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    ---------------
    -- Get_Count --
@@ -135,13 +136,13 @@ package body PolyORB.Any.ExceptionList is
       Obj : constant Object_Ptr := Object_Ptr (Entity_Of (Self));
 
    begin
-      pragma Debug (C, O ("Search_Exception_Id : Obj.list length is " &
+      pragma Debug (O ("Search_Exception_Id : Obj.list length is " &
                        PolyORB.Types.Unsigned_Long'Image (Get_Count (Self))));
-      pragma Debug (C, O ("Search_Exception_Id : Name = """ &
+      pragma Debug (O ("Search_Exception_Id : Name = """ &
                          To_Standard_String (Name) & """"));
 
       if Obj = null then
-         pragma Debug (C, O ("Search_Exception_Id: null list."));
+         pragma Debug (O ("Search_Exception_Id: null list."));
          return 0;
       end if;
 

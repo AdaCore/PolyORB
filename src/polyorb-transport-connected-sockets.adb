@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -49,7 +49,6 @@ package body PolyORB.Transport.Connected.Sockets is
    use PolyORB.Log;
    use PolyORB.Parameters;
    use PolyORB.Tasking.Mutexes;
-   use PolyORB.Utils.Sockets;
 
    package L is new PolyORB.Log.Facility_Log
      ("polyorb.transport.connected.sockets");
@@ -57,6 +56,7 @@ package body PolyORB.Transport.Connected.Sockets is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    -----------------------
    -- Accept_Connection --
@@ -81,11 +81,10 @@ package body PolyORB.Transport.Connected.Sockets is
    -- Address_Of --
    ----------------
 
-   function Address_Of
-     (SAP : Socket_Access_Point) return Utils.Sockets.Socket_Name
-   is
+   function Address_Of (SAP : Socket_Access_Point)
+     return Sock_Addr_Type is
    begin
-      return Image (SAP.Addr.Addr) + SAP.Addr.Port;
+      return SAP.Addr;
    end Address_Of;
 
    ------------
@@ -106,8 +105,6 @@ package body PolyORB.Transport.Connected.Sockets is
 
          --  Address is unspecified, choose one IP for the SAP looking
          --  up hostname.
-         --  ??? Instead SAP.Addr should be a Socket_Name, and we should keep
-         --  Host_Name unresolved.
 
          SAP.Addr.Addr := Addresses (Get_Host_By_Name (Host_Name), 1);
          Address := SAP.Addr;
@@ -194,7 +191,7 @@ package body PolyORB.Transport.Connected.Sockets is
    begin
       Control_Socket (TE.Socket, Request);
 
-      pragma Debug (C, O ("Found" & Request.Size'Img & " bytes waiting"));
+      pragma Debug (O ("Found" & Request.Size'Img & " bytes waiting"));
 
       return Request.Size >= N;
    end Is_Data_Available;
@@ -295,12 +292,12 @@ package body PolyORB.Transport.Connected.Sockets is
       procedure Send_Buffer is new Buffers.Send_Buffer (Socket_Send);
 
    begin
-      pragma Debug (C, O ("Write: enter"));
+      pragma Debug (O ("Write: enter"));
 
       --  Send_Buffer is not atomic, needs to be protected.
 
       Enter (TE.Mutex);
-      pragma Debug (C, O ("TE mutex acquired"));
+      pragma Debug (O ("TE mutex acquired"));
 
       begin
          Send_Buffer (Buffer);
@@ -335,7 +332,7 @@ package body PolyORB.Transport.Connected.Sockets is
          PolyORB.Transport.Connected.Close
            (Connected_Transport_Endpoint (TE.all)'Access);
          if TE.Socket /= No_Socket then
-            pragma Debug (C, O ("Closing socket"
+            pragma Debug (O ("Closing socket"
                              & PolyORB.Sockets.Image (TE.Socket)));
             Close_Socket (TE.Socket);
             TE.Socket := No_Socket;
@@ -343,7 +340,7 @@ package body PolyORB.Transport.Connected.Sockets is
          Leave (TE.Mutex);
       exception
          when E : others =>
-            pragma Debug (C, O ("Close (Socket_Endpoint): got "
+            pragma Debug (O ("Close (Socket_Endpoint): got "
                              & Ada.Exceptions.Exception_Information (E)));
             null;
       end;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -88,15 +88,14 @@ package body Ada_Be.Identifiers is
    --------------
 
    function Ada_Name (Node : Node_Id) return String is
-      NK : constant Node_Kind := Kind (Node);
-
-      Result : String := Name (Node) & "U";
-      --  Reserve an additional character for the case of a terminal underscore
-
+      Result : String
+        := Name (Node);
       First : Integer := Result'First;
-      Last  : Integer := Result'Last - 1;
+      NK : constant Node_Kind
+        := Kind (Node);
    begin
-      while First <= Last and then Result (First) = '_' loop
+      while First <= Result'Last
+        and then Result (First) = '_' loop
          First := First + 1;
       end loop;
 
@@ -113,25 +112,21 @@ package body Ada_Be.Identifiers is
          end if;
       end if;
 
-      for J in First .. Last loop
+      for J in First .. Result'Last loop
          if Result (J) = '_'
-           and then J < Last
+           and then J < Result'Last
            and then Result (J + 1) = '_' then
             Result (J + 1) := 'U';
          end if;
       end loop;
 
-      if Result (Last) = '_' then
-         Last := Last + 1;
-      end if;
-
       if False
         or else NK = K_Forward_Interface
         or else NK = K_Forward_ValueType
       then
-         return Result (First .. Last) & "_Forward";
+         return Result (First .. Result'Last) & "_Forward";
       else
-         return Result (First .. Last);
+         return Result (First .. Result'Last);
       end if;
    end Ada_Name;
 

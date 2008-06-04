@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -47,6 +47,7 @@ package body PolyORB.Errors.Helper is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    ------------------
    -- Error_To_Any --
@@ -59,9 +60,9 @@ package body PolyORB.Errors.Helper is
         := Error_Name (Error_Name'First .. Error_Name'Last - 2);
 
    begin
-      pragma Debug (C, O ("Error_To_Any: enter."));
-      pragma Debug (C, O ("Error is: " & Error_Name));
-      pragma Debug (C, O ("Exception name is: " & Exception_Name));
+      pragma Debug (O ("Error_To_Any: enter."));
+      pragma Debug (O ("Error is: " & Error_Name));
+      pragma Debug (O ("Exception name is: " & Exception_Name));
 
       if Error.Kind in ORB_System_Error then
          Result := To_Any (Exception_Name,
@@ -84,7 +85,7 @@ package body PolyORB.Errors.Helper is
          --  Never happens
       end if;
 
-      pragma Debug (C, O ("Error_To_Any: leave."));
+      pragma Debug (O ("Error_To_Any: leave."));
       return Result;
    end Error_To_Any;
 
@@ -545,11 +546,11 @@ package body PolyORB.Errors.Helper is
          TypeCode.Add_Parameter
            (TC, To_Any ("completed"));
 
-         pragma Debug (C, O ("Built Exception TypeCode for: "
+         pragma Debug (O ("Built Exception TypeCode for: "
                           & Repository_Id));
       end;
 
-      pragma Debug (C, O (" " & PolyORB.Any.Image (TC)));
+      pragma Debug (O (" " & PolyORB.Any.Image (TC)));
       return TC;
    end System_Exception_TypeCode;
 

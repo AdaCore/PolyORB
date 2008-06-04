@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -51,6 +51,7 @@ package body PolyORB.POA_Manager.Basic_Manager is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    procedure Do_Wait_For_Completion  (Self : access Basic_POA_Manager);
    --  Wait for completion
@@ -74,9 +75,9 @@ package body PolyORB.POA_Manager.Basic_Manager is
       use Requests_Queues;
 
    begin
-      pragma Debug (C, O ("Activate POAManager: enter"));
+      pragma Debug (O ("Activate POAManager: enter"));
       Enter (Self.Lock);
-      pragma Debug (C, O ("Activate POAManager: locked, state is "
+      pragma Debug (O ("Activate POAManager: locked, state is "
         & Self.Current_State'Img));
 
       --  Test invocation validity
@@ -98,14 +99,14 @@ package body PolyORB.POA_Manager.Basic_Manager is
 
       --  If we were holding requests, reemit them
 
-      pragma Debug (C, O ("Activate POAManager: checking for held requests"));
+      pragma Debug (O ("Activate POAManager: checking for held requests"));
       if Self.PM_Hold_Servant /= null
         and then not Is_Empty (Self.Held_Requests)
       then
          Reemit_Requests (Self);
       end if;
       Leave (Self.Lock);
-      pragma Debug (C, O ("Activate POAManager: leave"));
+      pragma Debug (O ("Activate POAManager: leave"));
    end Activate;
 
    -------------------
@@ -118,7 +119,7 @@ package body PolyORB.POA_Manager.Basic_Manager is
       Error               : in out PolyORB.Errors.Error_Container)
    is
    begin
-      pragma Debug (C, O ("Hold requests, Wait_For_Completion is "
+      pragma Debug (O ("Hold requests, Wait_For_Completion is "
                        & Boolean'Image (Wait_For_Completion)));
 
       if Wait_For_Completion then
@@ -155,7 +156,7 @@ package body PolyORB.POA_Manager.Basic_Manager is
       Error               : in out PolyORB.Errors.Error_Container)
    is
    begin
-      pragma Debug (C, O ("Discard requests, Wait_For_Completion is "
+      pragma Debug (O ("Discard requests, Wait_For_Completion is "
                        & Boolean'Image (Wait_For_Completion)));
 
       if Wait_For_Completion then
@@ -192,7 +193,7 @@ package body PolyORB.POA_Manager.Basic_Manager is
       Wait_For_Completion :        Boolean)
    is
    begin
-      pragma Debug (C, O ("Deactivate: Wait_For_Completion is "
+      pragma Debug (O ("Deactivate: Wait_For_Completion is "
                        & Boolean'Image (Wait_For_Completion)
                        & ", Etherealize_Objects is "
                        & Boolean'Image (Etherealize_Objects)));
@@ -236,7 +237,7 @@ package body PolyORB.POA_Manager.Basic_Manager is
    procedure Create (M : access Basic_POA_Manager) is
       use Requests_Queues;
    begin
-      pragma Debug (C, O ("Create a new Basic_POA_Manager"));
+      pragma Debug (O ("Create a new Basic_POA_Manager"));
 
       Create (M.Lock);
       pragma Assert (M.Held_Requests = Empty);
@@ -254,7 +255,7 @@ package body PolyORB.POA_Manager.Basic_Manager is
       use POA_Lists;
 
    begin
-      pragma Debug (C, O ("Register a new POA"));
+      pragma Debug (O ("Register a new POA"));
 
       Enter (Self.Lock);
       Append (Self.Managed_POAs, OA);
@@ -276,7 +277,7 @@ package body PolyORB.POA_Manager.Basic_Manager is
       It : Iterator := First (Self.Managed_POAs);
 
    begin
-      pragma Debug (C, O ("Remove a POA: enter"));
+      pragma Debug (O ("Remove a POA: enter"));
 
       Enter (Self.Lock);
 
@@ -286,7 +287,7 @@ package body PolyORB.POA_Manager.Basic_Manager is
          if A_Child = OA then
             Remove (Self.Managed_POAs, It);
             Leave (Self.Lock);
-            pragma Debug (C, O ("Remove a POA: end"));
+            pragma Debug (O ("Remove a POA: end"));
             return;
          end if;
 
@@ -312,7 +313,7 @@ package body PolyORB.POA_Manager.Basic_Manager is
       pragma Warnings (On);
 
    begin
-      pragma Debug (C, O ("Get a Hold_Servant"));
+      pragma Debug (O ("Get a Hold_Servant"));
 
       Enter (Self.Lock);
 
@@ -369,7 +370,7 @@ package body PolyORB.POA_Manager.Basic_Manager is
       R : Request_Access;
 
    begin
-      pragma Debug (C, O ("POAManager is no longer used, destroying it"));
+      pragma Debug (O ("POAManager is no longer used, destroying it"));
 
       Destroy (Self.Lock);
 
@@ -386,7 +387,7 @@ package body PolyORB.POA_Manager.Basic_Manager is
 
       Deallocate (Self.Held_Requests);
 
-      pragma Debug (C, O ("POAManager destroyed."));
+      pragma Debug (O ("POAManager destroyed."));
    end Finalize;
 
    ----------------------------------
@@ -405,7 +406,7 @@ package body PolyORB.POA_Manager.Basic_Manager is
       R : Request_Access;
 
    begin
-      pragma Debug (C, O ("Number of requests to reemit:"
+      pragma Debug (O ("Number of requests to reemit:"
                        & Integer'Image (Length (Self.Held_Requests))));
 
       while not Is_Empty (Self.Held_Requests) loop
@@ -432,12 +433,12 @@ package body PolyORB.POA_Manager.Basic_Manager is
 
    begin
       if Msg in Execute_Request then
-         pragma Debug (C, O ("Hold_Servant: Queuing request"));
+         pragma Debug (O ("Hold_Servant: Queuing request"));
          Enter (S.PM.Lock);
          Append (S.PM.Held_Requests, Execute_Request (Msg).Req);
          Leave (S.PM.Lock);
       else
-         pragma Debug (C, O ("Hold_Servant: Message not in Execute_Request"));
+         pragma Debug (O ("Hold_Servant: Message not in Execute_Request"));
          raise Program_Error;
       end if;
 

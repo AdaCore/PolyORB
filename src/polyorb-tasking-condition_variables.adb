@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -46,6 +46,7 @@ package body PolyORB.Tasking.Condition_Variables is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    My_Factory : Condition_Factory_Access;
    --  Real factory, corresponding to the chosen tasking profile.
@@ -56,10 +57,10 @@ package body PolyORB.Tasking.Condition_Variables is
 
    procedure Create (Cond : out Condition_Access; Name : String := "") is
    begin
-      pragma Debug (C, O ("Create: enter"));
+      pragma Debug (O ("Create: enter"));
       pragma Assert (My_Factory /= null);
       Cond := Create (My_Factory, Name);
-      pragma Debug (C, O ("Create: leave"));
+      pragma Debug (O ("Create: leave"));
    end Create;
 
    -------------
@@ -68,10 +69,10 @@ package body PolyORB.Tasking.Condition_Variables is
 
    procedure Destroy (Cond : in out Condition_Access) is
    begin
-      pragma Debug (C, O ("Destroy: enter"));
+      pragma Debug (O ("Destroy: enter"));
       pragma Assert (My_Factory /= null);
       Destroy (My_Factory, Cond);
-      pragma Debug (C, O ("Destroy: leave"));
+      pragma Debug (O ("Destroy: leave"));
    end Destroy;
 
    --------------------------------

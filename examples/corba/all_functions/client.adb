@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -267,16 +267,6 @@ begin
       Ok := False;
    end;
    Output ("test in param one way procedure", Ok);
-
-   begin
-      StopServer (MyObj);
-      Ok := True;
-   exception when others =>
-      Ok := False;
-      raise;
-   end;
-
-   Output ("shut down server", Ok);
 
    End_Report;
 end Client;

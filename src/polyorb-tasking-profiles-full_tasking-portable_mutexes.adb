@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -52,6 +52,7 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Portable_Mutexes is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    -------------------------------------------------------------
    -- Underlying protected object for Full_Tasking_Mutex_Type --
@@ -102,7 +103,7 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Portable_Mutexes is
 
       M : constant Full_Tasking_Mutex_Access := new Full_Tasking_Mutex_Type;
    begin
-      pragma Debug (C, O ("Create Mutex"));
+      pragma Debug (O ("Create Mutex"));
       M.The_PO := new Mutex_PO;
       return PTM.Mutex_Access (M);
    end Create;
@@ -120,7 +121,7 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Portable_Mutexes is
       pragma Warnings (On);
 
    begin
-      pragma Debug (C, O ("Destroy mutex"));
+      pragma Debug (O ("Destroy mutex"));
       Free (Full_Tasking_Mutex_Access (M).The_PO);
       Free (M);
    end Destroy;
@@ -155,7 +156,7 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Portable_Mutexes is
 
       entry Enter when not Locked is
       begin
-         pragma Debug (C, O ("Enter mutex"));
+         pragma Debug (O ("Enter mutex"));
 
          Locked := True;
       end Enter;
@@ -167,7 +168,7 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Portable_Mutexes is
       procedure Leave is
       begin
          pragma Assert (Locked);
-         pragma Debug (C, O ("Leave mutex"));
+         pragma Debug (O ("Leave mutex"));
          Locked := False;
       end Leave;
 
@@ -181,7 +182,7 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Portable_Mutexes is
 
    procedure Initialize is
    begin
-      pragma Debug (C, O ("Initialize package Profiles.Full_Tasking.Mutexes"));
+      pragma Debug (O ("Initialize package Profiles.Full_Tasking.Mutexes"));
       PTM.Register_Mutex_Factory (PTM.Mutex_Factory_Access
                                     (The_Mutex_Factory));
    end Initialize;

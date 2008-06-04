@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -79,7 +79,7 @@ package body PolyORB.ORB_Controller is
    is
       use PolyORB.Tasking.Threads;
    begin
-      pragma Debug (C2, O2 ("Is_Locally_Terminated: " & Status (O)));
+      pragma Debug (O2 ("Is_Locally_Terminated: " & Status (O)));
 
       if O.Transient_Tasks > 0
         or else O.Counters (Running) > Expected_Running_Tasks
@@ -197,7 +197,7 @@ package body PolyORB.ORB_Controller is
       TI :        PTI.Task_Info_Access)
    is
    begin
-      pragma Debug (C1, O1 ("Register_Task: enter"));
+      pragma Debug (O1 ("Register_Task: enter"));
       pragma Assert (State (TI.all) = Unscheduled);
 
       Notify_Event (ORB_Controller'Class (O.all)'Access,
@@ -207,8 +207,8 @@ package body PolyORB.ORB_Controller is
          O.Transient_Tasks := O.Transient_Tasks + 1;
       end if;
 
-      pragma Debug (C2, O2 (Status (O)));
-      pragma Debug (C1, O1 ("Register_Task: leave"));
+      pragma Debug (O2 (Status (O)));
+      pragma Debug (O1 ("Register_Task: leave"));
    end Register_Task;
 
    ---------------------
@@ -220,7 +220,7 @@ package body PolyORB.ORB_Controller is
       TI :        PTI.Task_Info_Access)
    is
    begin
-      pragma Debug (C1, O1 ("Unregister_Task: enter"));
+      pragma Debug (O1 ("Unregister_Task: enter"));
       pragma Assert (State (TI.all) = Terminated);
 
       Notify_Event (ORB_Controller'Class (O.all)'Access, Task_Unregistered_E);
@@ -229,8 +229,8 @@ package body PolyORB.ORB_Controller is
          O.Transient_Tasks := O.Transient_Tasks - 1;
       end if;
 
-      pragma Debug (C2, O2 (Status (O)));
-      pragma Debug (C1, O1 ("Unregister_Task: leave"));
+      pragma Debug (O2 (Status (O)));
+      pragma Debug (O1 ("Unregister_Task: leave"));
    end Unregister_Task;
 
    --------------------------
@@ -268,14 +268,14 @@ package body PolyORB.ORB_Controller is
 
    procedure Try_Allocate_One_Task (O : access ORB_Controller) is
    begin
-      pragma Debug (C1, O1 ("Try_Allocate_One_Task: enter"));
+      pragma Debug (O1 ("Try_Allocate_One_Task: enter"));
 
       if O.Counters (Unscheduled) > 0 then
 
          --  Some tasks are not scheduled. We assume one of them will
          --  be allocated to handle current event.
 
-         pragma Debug (C1, O1 ("Unassigned task will handle event"));
+         pragma Debug (O1 ("Unassigned task will handle event"));
          null;
 
       elsif O.Counters (Idle) > 0 then
@@ -283,12 +283,12 @@ package body PolyORB.ORB_Controller is
          Awake_One_Idle_Task (O.Idle_Tasks);
 
       else
-         pragma Debug (C1, O1 ("No idle tasks"));
+         pragma Debug (O1 ("No idle tasks"));
          null;
 
       end if;
 
-      pragma Debug (C1, O1 ("Try_Allocate_One_Task: end"));
+      pragma Debug (O1 ("Try_Allocate_One_Task: end"));
    end Try_Allocate_One_Task;
 
    -----------------------

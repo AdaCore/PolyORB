@@ -14,6 +14,6 @@ project local is
 
    end Compiler;
 
-   for Main use ("send.adb", "listener.adb");
+   for Main use ("send", "listener");
 
 end local;

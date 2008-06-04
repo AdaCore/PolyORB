@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -60,6 +60,7 @@ package body PolyORB.ORB.Thread_Pool is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    Default_Threads : constant := 4;
    --  Default number of threads in thread pool
@@ -87,7 +88,7 @@ package body PolyORB.ORB.Thread_Pool is
 
    procedure Main_Thread_Pool is
    begin
-      pragma Debug (C, O ("Thread "
+      pragma Debug (O ("Thread "
                        & Image (Current_Task)
                        & " is initialized"));
       Enter (Mutex);
@@ -107,7 +108,7 @@ package body PolyORB.ORB.Thread_Pool is
       PolyORB.ORB.Run (Setup.The_ORB,
                        Exit_Condition => (null, null),
                        May_Poll => True);
-      pragma Debug (C, O ("Thread "
+      pragma Debug (O ("Thread "
                        & Image (Current_Task)
                        & " is released"));
    end Main_Thread_Pool;
@@ -143,7 +144,7 @@ package body PolyORB.ORB.Thread_Pool is
       pragma Warnings (On);
 
    begin
-      pragma Debug (C, O ("New server connection"));
+      pragma Debug (O ("New server connection"));
 
       Components.Emit_No_Reply (Component_Access (AC.TE),
          Connect_Indication'(null record));
@@ -167,7 +168,7 @@ package body PolyORB.ORB.Thread_Pool is
       pragma Warnings (On);
 
    begin
-      pragma Debug (C, O ("New client connection"));
+      pragma Debug (O ("New client connection"));
 
       Components.Emit_No_Reply (Component_Access (AC.TE),
          Connect_Confirmation'(null record));
@@ -196,13 +197,13 @@ package body PolyORB.ORB.Thread_Pool is
       then
          Threads_Count := Threads_Count + 1;
          Leave (Mutex);
-         pragma Debug (C, O ("Creating new task"));
+         pragma Debug (O ("Creating new task"));
          Create_Task (Main_Thread_Pool'Access);
       else
          Leave (Mutex);
       end if;
 
-      pragma Debug (C, O ("Thread "
+      pragma Debug (O ("Thread "
                        & Image (Current_Task)
                        & " handles request execution"));
 
@@ -235,7 +236,7 @@ package body PolyORB.ORB.Thread_Pool is
          begin
             for J in The_Pool'Range loop
                if The_Pool (J) = This_Task_Id then
-                  pragma Debug (C, O ("Terminating Task "
+                  pragma Debug (O ("Terminating Task "
                                    & Image (PTI.Id (This_Task))));
 
                   The_Pool (J) := Null_Thread_Id;
@@ -250,13 +251,13 @@ package body PolyORB.ORB.Thread_Pool is
 
       Leave (Mutex);
 
-      pragma Debug (C, O ("Thread "
+      pragma Debug (O ("Thread "
                        & Image (PTI.Id (This_Task))
                        & " is going idle."));
 
       PTCV.Wait (PTI.Condition (This_Task), PTI.Mutex (This_Task));
 
-      pragma Debug (C, O ("Thread "
+      pragma Debug (O ("Thread "
                        & Image (PTI.Id (This_Task))
                        & " is leaving Idle state"));
    end Idle;
@@ -281,7 +282,7 @@ package body PolyORB.ORB.Thread_Pool is
 
    procedure Initialize_Threads is
    begin
-      pragma Debug (C, O ("Initialize_threads : enter"));
+      pragma Debug (O ("Initialize_threads : enter"));
 
       Minimum_Spare_Threads := Get_Conf
         ("tasking",
@@ -310,7 +311,7 @@ package body PolyORB.ORB.Thread_Pool is
          The_Pool (J) := Null_Thread_Id;
       end loop;
 
-      pragma Debug (C, O ("Creating"
+      pragma Debug (O ("Creating"
                        & Natural'Image (Minimum_Spare_Threads)
                        & " spare threads"));
 
@@ -320,7 +321,7 @@ package body PolyORB.ORB.Thread_Pool is
          Create_Task (Main_Thread_Pool'Access);
       end loop;
 
-      pragma Debug (C, O ("Initialize_threads : leave"));
+      pragma Debug (O ("Initialize_threads : leave"));
    end Initialize_Threads;
 
    use PolyORB.Initialization;

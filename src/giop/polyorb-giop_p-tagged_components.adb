@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -52,6 +52,7 @@ package body PolyORB.GIOP_P.Tagged_Components is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    type Bind_Tag is record
       Tag  : Tag_Value;
@@ -203,14 +204,14 @@ package body PolyORB.GIOP_P.Tagged_Components is
       It : Iterator := First (Components);
 
    begin
-      pragma Debug (C, O ("Marshall"
+      pragma Debug (O ("Marshall"
                        & Integer'Image (Length (Components))
                        & " component()s"));
 
       Marshall (Buffer, Types.Unsigned_Long (Length (Components)));
 
       while not Last (It) loop
-         pragma Debug (C, O (Ada.Tags.External_Tag (Value (It).all'Tag)));
+         pragma Debug (O (Ada.Tags.External_Tag (Value (It).all'Tag)));
 
          Marshall_Tagged_Component (Buffer, Value (It).all);
          Next (It);
@@ -245,7 +246,7 @@ package body PolyORB.GIOP_P.Tagged_Components is
       use type PolyORB.Types.Unsigned_Long;
 
    begin
-      pragma Debug (C, O ("Search for tag :" & Tag'Img));
+      pragma Debug (O ("Search for tag :" & Tag'Img));
 
       for J in 1 .. Bind_Index loop
          if Binding_List (J).Tag = Tag then
@@ -253,7 +254,7 @@ package body PolyORB.GIOP_P.Tagged_Components is
          end if;
       end loop;
 
-      pragma Debug (C, O ("Tag not found, return a TC_Unknown_Component"));
+      pragma Debug (O ("Tag not found, return a TC_Unknown_Component"));
 
       declare
          C : constant Tagged_Component_Access := new TC_Unknown_Component;
@@ -276,7 +277,7 @@ package body PolyORB.GIOP_P.Tagged_Components is
 
    begin
       Length := Unmarshall (Buffer);
-      pragma Debug (C, O ("Unmarshall" & Types.Unsigned_Long'Image (Length)
+      pragma Debug (O ("Unmarshall" & Types.Unsigned_Long'Image (Length)
                        & " component(s)"));
 
       for J in 1 .. Length loop
@@ -427,7 +428,7 @@ package body PolyORB.GIOP_P.Tagged_Components is
      (List : in out Tagged_Component_List;
       Comp :        Tagged_Component_Access) is
    begin
-      pragma Debug (C, O ("Add component to list with tag :"
+      pragma Debug (O ("Add component to list with tag :"
                        & PolyORB.Types.Unsigned_Long'Image
                            (PolyORB.Types.Unsigned_Long (Comp.Tag))));
 
@@ -506,7 +507,7 @@ package body PolyORB.GIOP_P.Tagged_Components is
      (Comp   : access TC_Unknown_Component;
       Buffer : access Buffer_Type) is
    begin
-      pragma Debug (C, O ("Marshall unknown component, tag = "
+      pragma Debug (O ("Marshall unknown component, tag = "
                        & PolyORB.Types.Unsigned_Long'Image
                        (PolyORB.Types.Unsigned_Long (Comp.Unknown_Tag))));
 
@@ -525,10 +526,10 @@ package body PolyORB.GIOP_P.Tagged_Components is
       pragma Unreferenced (Error);
 
    begin
-      pragma Debug (C, O ("Unmarshall unknown component"));
+      pragma Debug (O ("Unmarshall unknown component"));
 
       Comp.Data := new Stream_Element_Array'(Unmarshall (Buffer));
-      pragma Debug (C, O ("done"));
+      pragma Debug (O ("done"));
    end Unmarshall_Component_Data;
 
    ---------------

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2000-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2000-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -54,6 +54,7 @@ package body AWS.Client is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
 --     type Auth_Attempts_Count is
 --       array (Authentication_Level) of Natural range 0 .. 2;
@@ -447,9 +448,9 @@ package body AWS.Client is
         & File (Connection.Host_URL);
    begin
 
-      pragma Debug (C, O ("Handle_Request: building a "
+      pragma Debug (O ("Handle_Request: building a "
                        & Method & " request"));
-      pragma Debug (C, O ("Handle_Request: Reference is " & Reference));
+      pragma Debug (O ("Handle_Request: Reference is " & Reference));
 
       Create (Args);
       declare
@@ -466,16 +467,16 @@ package body AWS.Client is
          --  string in order to handle uniform pattern for parameters:
          --  name=value&
 
-         pragma Debug (C, O ("Handle_Request: parameter string is <"
+         pragma Debug (O ("Handle_Request: parameter string is <"
                           & To_String (Params) & ">"));
 
          while Length (Params) > 1 loop
             Eq_Idx := Ada.Strings.Unbounded.Index (Params, "=");
             Amp_Idx := Ada.Strings.Unbounded.Index (Params, "&");
 
-            pragma Debug (C, O ("Handle_Request: parameter name: "
+            pragma Debug (O ("Handle_Request: parameter name: "
                              & (Slice (Params, 1, Eq_Idx - 1))));
-            pragma Debug (C, O ("Handle_Request: parameter val.: "
+            pragma Debug (O ("Handle_Request: parameter val.: "
                              & (Slice (Params, Eq_Idx + 1, Amp_Idx - 1))));
 
             Add_Item (Args,
@@ -502,7 +503,7 @@ package body AWS.Client is
          --  and the content of the parameters, and then we
          --  create an any of typecode string
 
-         pragma Debug (C, O ("Handle_Request: parameter string is now <"
+         pragma Debug (O ("Handle_Request: parameter string is now <"
                           & To_String (Params) & ">"));
 
       end;
@@ -516,7 +517,7 @@ package body AWS.Client is
 
       Invoke (PolyORB_Request);
 
-      pragma Debug (C, O ("Type of response is " & Image
+      pragma Debug (O ("Type of response is " & Image
                        (Get_Unwound_Type
                         (PolyORB_Request.Result.Argument))));
 
@@ -553,7 +554,7 @@ package body AWS.Client is
                  (0 .. Stream_Element_Offset (Number_Of_Elements) - 1);
 
             begin
-               pragma Debug (C, O ("Handle_Request: Tk_Sequence: "
+               pragma Debug (O ("Handle_Request: Tk_Sequence: "
                                 & "attempting to retrieve"
                                 & Unsigned_Long'Image (Number_Of_Elements)
                                 & " bytes"));

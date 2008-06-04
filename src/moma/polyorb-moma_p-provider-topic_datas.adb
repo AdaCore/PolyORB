@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -50,6 +50,7 @@ package body PolyORB.MOMA_P.Provider.Topic_Datas is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    --------------------
    -- Add_Subscriber --
@@ -63,7 +64,7 @@ package body PolyORB.MOMA_P.Provider.Topic_Datas is
       V : Topic;
       T : constant String := To_Standard_String (Topic_Id);
    begin
-      pragma Debug (C, O ("Adding to topic " & T & " the Pool "
+      pragma Debug (O ("Adding to topic " & T & " the Pool "
                        & MOMA.Destinations.Image (Pool)));
 
       Lock_W (Data.T_Lock);
@@ -145,7 +146,7 @@ package body PolyORB.MOMA_P.Provider.Topic_Datas is
       V     : Topic;
       T     : constant String := To_Standard_String (Topic_Id);
    begin
-      pragma Debug (C, O ("Removing from topic " & T & " the Pool "
+      pragma Debug (O ("Removing from topic " & T & " the Pool "
                        & MOMA.Destinations.Image (Pool)));
 
       Lock_W (Data.T_Lock);

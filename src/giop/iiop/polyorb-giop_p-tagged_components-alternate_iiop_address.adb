@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -32,13 +32,14 @@
 ------------------------------------------------------------------------------
 
 with PolyORB.Initialization;
+with PolyORB.Utils.Sockets;
 with PolyORB.Utils.Strings;
 with PolyORB.Representations.CDR.Common;
 
 package body PolyORB.GIOP_P.Tagged_Components.Alternate_IIOP_Address is
 
-   use PolyORB.Representations.CDR.Common;
    use PolyORB.Utils.Sockets;
+   use PolyORB.Representations.CDR.Common;
 
    function Create_Empty_Component return Tagged_Component_Access;
 
@@ -63,8 +64,9 @@ package body PolyORB.GIOP_P.Tagged_Components.Alternate_IIOP_Address is
    ----------------------
 
    procedure Release_Contents (C : access TC_Alternate_IIOP_Address) is
+      pragma Unreferenced (C);
    begin
-      Free (C.Address);
+      null;
    end Release_Contents;
 
    -----------------------------
@@ -79,7 +81,7 @@ package body PolyORB.GIOP_P.Tagged_Components.Alternate_IIOP_Address is
 
    begin
       Start_Encapsulation (Temp_Buf);
-      Marshall_Socket (Temp_Buf, C.Address.all);
+      Marshall_Socket (Temp_Buf, C.Address);
       Marshall (Buffer, Encapsulate (Temp_Buf));
       Release (Temp_Buf);
    end Marshall_Component_Data;
@@ -102,7 +104,7 @@ package body PolyORB.GIOP_P.Tagged_Components.Alternate_IIOP_Address is
    begin
       Decapsulate (Tag_Body'Access, Temp_Buf);
 
-      C.Address := new Socket_Name'(Unmarshall_Socket (Temp_Buf));
+      Unmarshall_Socket (Temp_Buf, C.Address);
 
       pragma Assert (Remaining (Temp_Buf) = 0);
       Release (Temp_Buf);
@@ -123,11 +125,10 @@ package body PolyORB.GIOP_P.Tagged_Components.Alternate_IIOP_Address is
      (C : TC_Alternate_IIOP_Address)
      return Tagged_Component_Access
    is
-      Result : constant Tagged_Component_Access :=
-                 new TC_Alternate_IIOP_Address;
+      Result : constant Tagged_Component_Access
+        := new TC_Alternate_IIOP_Address;
    begin
-      TC_Alternate_IIOP_Address (Result.all).Address :=
-        new Socket_Name'(C.Address.all);
+      TC_Alternate_IIOP_Address (Result.all).Address := C.Address;
 
       return Result;
    end Duplicate;

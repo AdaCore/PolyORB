@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -44,6 +44,7 @@ package body PolyORB.Initialization is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    use String_Lists;
 
@@ -298,7 +299,7 @@ package body PolyORB.Initialization is
    procedure Check_Duplicate (Name : String) is
       Duplicate : constant Module_Access := Lookup_Module (Name);
    begin
-      pragma Debug (C, O ("Registering " & Name));
+      pragma Debug (O ("Registering " & Name));
 
       if Duplicate /= null then
          Raise_Program_Error
@@ -407,7 +408,7 @@ package body PolyORB.Initialization is
       while not Last (MI) loop
          Dep := Value (MI).all;
 
-         pragma Debug (C, O ("DEP: """
+         pragma Debug (O ("DEP: """
                           & Module_Name (M).all & """ -> """
                           & Module_Name (Dep.Target).all & """;"));
 
@@ -445,7 +446,7 @@ package body PolyORB.Initialization is
       end loop;
 
       M.Deps_In_Progress := False;
-      pragma Debug (C, O ("Processed dependencies of " & Module_Name (M).all));
+      pragma Debug (O ("Processed dependencies of " & Module_Name (M).all));
 
       if Get_Conf_Hook /= null and then
         not Utils.Strings.To_Boolean
@@ -524,7 +525,7 @@ package body PolyORB.Initialization is
          Raise_Program_Error ("Already initialized");
       end if;
 
-      pragma Debug (C, O ("Initializing PolyORB"));
+      pragma Debug (O ("Initializing PolyORB"));
 
       if Init_Info /= null then
 
@@ -583,15 +584,15 @@ package body PolyORB.Initialization is
       L : Module_Lists.List renames Init_Info.Shutdown_Order;
       M : Module_Access;
    begin
-      pragma Debug (C, O ("Shutting down PolyORB"));
+      pragma Debug (O ("Shutting down PolyORB"));
 
       while not Is_Empty (L) loop
          Extract_First (L, M);
-         pragma Debug (C, O ("Shutting down module " & Module_Name (M).all));
+         pragma Debug (O ("Shutting down module " & Module_Name (M).all));
          M.Info.Shutdown (Wait_For_Completion);
       end loop;
 
-      pragma Debug (C, O ("Shutdown of PolyORB completed"));
+      pragma Debug (O ("Shutdown of PolyORB completed"));
    end Shutdown_World;
 
 end PolyORB.Initialization;

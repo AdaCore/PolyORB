@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -52,6 +52,7 @@ package body PolyORB.Tasking.Watchers is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    ---------
    -- "<" --
@@ -69,7 +70,7 @@ package body PolyORB.Tasking.Watchers is
 
    procedure Create (W : in out Watcher_Type) is
    begin
-      pragma Debug (C, O ("Create"));
+      pragma Debug (O ("Create"));
       W.Version := Version_Id'First;
       PTM.Create (W.WMutex);
       PTCV.Create (W.WCondition);
@@ -89,7 +90,7 @@ package body PolyORB.Tasking.Watchers is
 
    procedure Destroy (W : in out Watcher_Type) is
    begin
-      pragma Debug (C, O ("Destroy"));
+      pragma Debug (O ("Destroy"));
       PTM.Destroy (W.WMutex);
       PTCV.Destroy (W.WCondition);
    end Destroy;
@@ -114,32 +115,32 @@ package body PolyORB.Tasking.Watchers is
      (W : in out Watcher_Type;
       V : Version_Id) is
    begin
-      pragma Debug (C, O ("Differ: enter, V =" & Version_Id'Image (V)));
+      pragma Debug (O ("Differ: enter, V =" & Version_Id'Image (V)));
       PTM.Enter (W.WMutex);
-      pragma Debug (C, O ("... W.Version =" & Version_Id'Image (W.Version)));
+      pragma Debug (O ("... W.Version =" & Version_Id'Image (W.Version)));
 
       while W.Version = V loop
 
          while W.Updated loop
-            pragma Debug (C, O ("Pending update"));
+            pragma Debug (O ("Pending update"));
             PTCV.Wait (W.WCondition, W.WMutex);
-            pragma Debug (C, O ("Resumed from pending update, W.Version ="
+            pragma Debug (O ("Resumed from pending update, W.Version ="
               & Version_Id'Image (W.Version)));
          end loop;
 
          if W.Version = V then
             W.Await_Count := W.Await_Count + 1;
-            pragma Debug (C, O ("Differ: suspend, Cnt =" & W.Await_Count'Img));
+            pragma Debug (O ("Differ: suspend, Cnt =" & W.Await_Count'Img));
             while not W.Updated loop
                PTCV.Wait (W.WCondition, W.WMutex);
-               pragma Debug (C, O ("Differ: resume, Cnt =" & W.Await_Count'Img
+               pragma Debug (O ("Differ: resume, Cnt =" & W.Await_Count'Img
                  & ", W.Version =" & Version_Id'Image (W.Version)));
             end loop;
-            pragma Debug (C, O ("Differ: updated!"));
+            pragma Debug (O ("Differ: updated!"));
             W.Await_Count := W.Await_Count - 1;
 
             if W.Await_Count = 0 then
-               pragma Debug (C, O ("Clearing Updated"));
+               pragma Debug (O ("Clearing Updated"));
                W.Updated := False;
                PTCV.Broadcast (W.WCondition);
             end if;
@@ -147,7 +148,7 @@ package body PolyORB.Tasking.Watchers is
          end if;
 
       end loop;
-      pragma Debug (C, O ("Differ: end"));
+      pragma Debug (O ("Differ: end"));
       PTM.Leave (W.WMutex);
    end Differ;
 
@@ -166,7 +167,7 @@ package body PolyORB.Tasking.Watchers is
       V : out Version_Id) is
    begin
       Enter (W.WMutex);
-      pragma Debug (C, O ("Lookup"));
+      pragma Debug (O ("Lookup"));
       V := W.Version;
       Leave (W.WMutex);
    end Lookup;
@@ -187,10 +188,10 @@ package body PolyORB.Tasking.Watchers is
       Enter (W.WMutex);
 
       W.Version := W.Version + 1;
-      pragma Debug (C, O ("Update: new version " & W.Version'Img));
+      pragma Debug (O ("Update: new version " & W.Version'Img));
 
       if W.Await_Count /= 0 then
-         pragma Debug (C, O ("Clients waiting:" & W.Await_Count'Img));
+         pragma Debug (O ("Clients waiting:" & W.Await_Count'Img));
          W.Updated := True;
          Broadcast (W.WCondition);
       end if;

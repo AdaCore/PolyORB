@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -46,7 +46,6 @@ package body PolyORB.Transport.Datagram.Sockets_In is
 
    use PolyORB.Asynch_Ev.Sockets;
    use PolyORB.Log;
-   use PolyORB.Utils.Sockets;
 
    package L is new PolyORB.Log.Facility_Log
      ("polyorb.transport.datagram.sockets_in");
@@ -54,6 +53,7 @@ package body PolyORB.Transport.Datagram.Sockets_In is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    --------------------
    -- Init_Socket_In --
@@ -73,9 +73,6 @@ package body PolyORB.Transport.Datagram.Sockets_In is
       if Update_Addr then
          SAP.Addr := Get_Socket_Name (Socket);
          if SAP.Addr.Addr = Any_Inet_Addr then
-            --  ??? Should keep Host_Name unresolved here, see comments in
-            --  PolyORB.Transport.Connected.Sockets.Create.
-
             SAP.Addr.Addr := Addresses (Get_Host_By_Name (Host_Name), 1);
          end if;
          Address := SAP.Addr;
@@ -108,11 +105,9 @@ package body PolyORB.Transport.Datagram.Sockets_In is
    -- Address_Of --
    ----------------
 
-   function Address_Of
-     (SAP : Socket_In_Access_Point) return Utils.Sockets.Socket_Name
-   is
+   function Address_Of (SAP : Socket_In_Access_Point) return Sock_Addr_Type is
    begin
-      return Image (SAP.Addr.Addr) + SAP.Addr.Port;
+      return SAP.Addr;
    end Address_Of;
 
    ------------
@@ -186,7 +181,7 @@ package body PolyORB.Transport.Datagram.Sockets_In is
 
       Control_Socket (TE.Socket, Request);
       Size := Stream_Element_Offset (Request.Size);
-      pragma Debug (C, O ("To read :" & Size'Img));
+      pragma Debug (O ("To read :" & Size'Img));
       begin
          Receive_Buffer (Buffer, Size, Data_Received);
       exception
@@ -204,7 +199,7 @@ package body PolyORB.Transport.Datagram.Sockets_In is
       end;
 
       pragma Assert (Data_Received /= 0);
-      pragma Debug (C, O (Data_Received'Img & " byte(s) received"));
+      pragma Debug (O (Data_Received'Img & " byte(s) received"));
       pragma Assert (Data_Received <= Size);
 
       Size := Data_Received;
@@ -230,7 +225,7 @@ package body PolyORB.Transport.Datagram.Sockets_In is
 
    procedure Close (TE : access Socket_In_Endpoint) is
    begin
-      pragma Debug (C, O ("Closing UDP socket"));
+      pragma Debug (O ("Closing UDP socket"));
       if TE.Closed then
          return;
       end if;
@@ -252,7 +247,7 @@ package body PolyORB.Transport.Datagram.Sockets_In is
         := new Socket_In_Endpoint;
 
    begin
-      pragma Debug (C, O ("Create Endpoint for UDP socket"));
+      pragma Debug (O ("Create Endpoint for UDP socket"));
 
       Socket_In_Endpoint (TE.all).Addr := TAP.Addr;
       Socket_In_Endpoint (TE.all).Socket := TAP.Socket;

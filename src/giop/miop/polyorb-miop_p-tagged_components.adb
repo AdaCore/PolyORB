@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -52,6 +52,7 @@ package body PolyORB.MIOP_P.Tagged_Components is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    ----------------------
    -- Create_Component --
@@ -77,8 +78,8 @@ package body PolyORB.MIOP_P.Tagged_Components is
       use PolyORB.Types;
       Temp_Buf : Buffer_Access := new Buffer_Type;
    begin
-      pragma Debug (C, O ("Marshall Group_Info"));
-      pragma Debug (C, O ("Group : " & Image (Comp.G_I)));
+      pragma Debug (O ("Marshall Group_Info"));
+      pragma Debug (O ("Group : " & Image (Comp.G_I)));
 
       Start_Encapsulation (Temp_Buf);
 
@@ -112,7 +113,7 @@ package body PolyORB.MIOP_P.Tagged_Components is
    begin
       Decapsulate (Tag_Body'Access, Temp_Buf);
 
-      pragma Debug (C, O ("Unmarshall Group_Info"));
+      pragma Debug (O ("Unmarshall Group_Info"));
       Temp := Unmarshall (Temp_Buf);
       pragma Assert (Temp = TC_Group_Info_Version_Major);
 
@@ -123,7 +124,7 @@ package body PolyORB.MIOP_P.Tagged_Components is
         Types.String (Types.Identifier'(Unmarshall (Temp_Buf)));
       Comp.G_I.Object_Group_Id := Unmarshall (Temp_Buf);
       Comp.G_I.Object_Group_Ref_Version := Unmarshall (Temp_Buf);
-      pragma Debug (C, O ("Group Info : " & Image (Comp.G_I)));
+      pragma Debug (O ("Group Info : " & Image (Comp.G_I)));
 
       pragma Assert (Remaining (Temp_Buf) = 0);
       Release (Temp_Buf);
@@ -164,8 +165,8 @@ package body PolyORB.MIOP_P.Tagged_Components is
       use PolyORB.Types;
       use PolyORB.Utils;
    begin
-      pragma Debug (C, O ("To_String Group_Info"));
-      pragma Debug (C, O ("Group : " & Image (Comp.G_I)));
+      pragma Debug (O ("To_String Group_Info"));
+      pragma Debug (O ("Group : " & Image (Comp.G_I)));
       declare
          S : constant String :=
            Trimmed_Image (Unsigned_Long_Long
@@ -201,7 +202,7 @@ package body PolyORB.MIOP_P.Tagged_Components is
       Index2 : Integer;
       G_I    : TC_Group_Info_Access;
    begin
-      pragma Debug (C, O ("Extract Group_Info from string"));
+      pragma Debug (O ("Extract Group_Info from string"));
 
       Index2 := Find (S, Index, '.');
       if Index2 = S'Last + 1 then
@@ -248,7 +249,7 @@ package body PolyORB.MIOP_P.Tagged_Components is
            := Types.Unsigned_Long'Value (S (Index2 + 1 .. S'Last));
       end if;
 
-      pragma Debug (C, O ("Group Info : " & Image (G_I.G_I)));
+      pragma Debug (O ("Group Info : " & Image (G_I.G_I)));
       return G_I;
    end From_String;
 

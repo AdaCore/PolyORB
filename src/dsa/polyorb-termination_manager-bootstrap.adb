@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2006-2008, Free Software Foundation, Inc.          --
+--           Copyright (C) 2006, Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -71,6 +71,7 @@ package body PolyORB.Termination_Manager.Bootstrap is
                 renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
                renames L.Enabled;
+   pragma Unreferenced (C); --  For conditional pragma Debug
 
    -------------------------
    -- Stub Types managing --
@@ -129,7 +130,7 @@ package body PolyORB.Termination_Manager.Bootstrap is
       pragma Assert (BO /= null);
 
       if Get_Profile (BO) = null then
-         pragma Debug (C, O ("Extracting TM ref from Server BO"));
+         pragma Debug (O ("Extracting TM ref from Server BO"));
 
          --  BO is a server side BO
 
@@ -153,7 +154,7 @@ package body PolyORB.Termination_Manager.Bootstrap is
          NK := DSA_Node;
          Ref := Note.TM_Ref;
       else
-         pragma Debug (C, O ("Extracting TM ref from Client BO"));
+         pragma Debug (O ("Extracting TM ref from Client BO"));
 
          --  BO is a client side BO
 
@@ -183,7 +184,7 @@ package body PolyORB.Termination_Manager.Bootstrap is
 
       end if;
 
-      pragma Debug (C, O ("Extracted Ref is:" & Image (Ref)));
+      pragma Debug (O ("Extracted Ref is:" & Image (Ref)));
    end Extract_TM_Reference_From_BO;
 
    ---------------
@@ -250,7 +251,7 @@ package body PolyORB.Termination_Manager.Bootstrap is
       end Term_Policy_Value;
 
    begin
-      pragma Debug (C, O ("Initialize_Termination_Manager: enter"));
+      pragma Debug (O ("Initialize_Termination_Manager: enter"));
 
       if not Tasking_Available then
          if Term_Policy_Value (Term_Policy) = Local_Termination then
@@ -258,7 +259,7 @@ package body PolyORB.Termination_Manager.Bootstrap is
             --  If our profile is a no_tasking node with local_termination
             --  then there is nothing more to do!
 
-            pragma Debug (C, O ("No-tasking, Local_Termination node"));
+            pragma Debug (O ("No-tasking, Local_Termination node"));
             return;
          else
 
@@ -295,7 +296,7 @@ package body PolyORB.Termination_Manager.Bootstrap is
 
       --  Start the Well Known Service
 
-      pragma Debug (C, O ("Initiating Well Known Service"));
+      pragma Debug (O ("Initiating Well Known Service"));
       Initiate_Well_Known_Service
         (S    => Servants.Servant_Access (S),
          Name => TM_Name_Space);
@@ -314,7 +315,7 @@ package body PolyORB.Termination_Manager.Bootstrap is
          Term_Manager_To_Address (Term_Manager_Access (TM)),
          Shutdown'Access);
 
-      pragma Debug (C, O ("Initialize_Termination_Manager: leave"));
+      pragma Debug (O ("Initialize_Termination_Manager: leave"));
    end Initialize_Termination_Manager;
 
    ---------------------------------

@@ -14,6 +14,6 @@ project local is
 
    end Compiler;
 
-   for Main use ("ir_evolutedp.adb", "ir_serverp.adb", "evolutedp_corba.adb", "simplep.adb", "evolutedp.adb", "serverp.adb");
+   for Main use ("ir_evolutedp", "ir_serverp", "evolutedp_corba", "simplep", "evolutedp", "serverp");
 
 end local;
