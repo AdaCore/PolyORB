@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 1995-2006 Free Software Foundation, Inc.           --
+--         Copyright (C) 1995-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNATDIST is  free software;  you  can redistribute  it and/or  modify it --
 -- under terms of the  GNU General Public License  as published by the Free --
@@ -67,6 +67,13 @@ package XE_Flags is
      Table_Increment      => 100);
 
    package List_Switches is new GNAT.Table (
+     Table_Component_Type => String_Access,
+     Table_Index_Type     => Integer,
+     Table_Low_Bound      => 1,
+     Table_Initial        => 20,
+     Table_Increment      => 100);
+
+   package Source_Directories is new GNAT.Table (
      Table_Component_Type => String_Access,
      Table_Index_Type     => Integer,
      Table_Low_Bound      => 1,

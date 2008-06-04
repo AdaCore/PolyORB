@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 1995-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNATDIST is  free software;  you  can redistribute  it and/or  modify it --
 -- under terms of the  GNU General Public License  as published by the Free --
@@ -136,6 +136,12 @@ private
       E : Boolean := False);
    --  Add a with clause W, a use clause when U is true and an
    --  elaborate clause when E is true.
+
+   function Prefix (Check_For : String) return String;
+   --  Return the PCS installation prefix as dynamically determined by the
+   --  location of the gnatdist executable, or fall back to the default
+   --  (configure-time) prefix. The validity of a candidate prefix is
+   --  checked by testing whether file Check_For exists under that prefix.
 
    procedure Apply_Casing_Rules (S : in out String);
    procedure Register_Casing_Rule (S : String);

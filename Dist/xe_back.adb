@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1995-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNATDIST is  free software;  you  can redistribute  it and/or  modify it --
 -- under terms of the  GNU General Public License  as published by the Free --
@@ -24,10 +24,14 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Command_Line; use Ada.Command_Line;
+
 with GNAT.HTable;
-with GNAT.OS_Lib; use GNAT.OS_Lib;
+with GNAT.Directory_Operations; use GNAT.Directory_Operations;
+with GNAT.OS_Lib;               use GNAT.OS_Lib;
 
 with XE;       use XE;
+with XE_Defs.Defaults;
 with XE_Flags; use XE_Flags;
 with XE_Front; use XE_Front;
 with XE_IO;    use XE_IO;
@@ -76,6 +80,9 @@ package body XE_Back is
 
    Rules : array (1 .. 64) of Casing_Rule;
    Rules_Last : Natural := 0;
+
+   function Get_Absolute_Command return String;
+   --  Get the absolute path of the command being executed
 
    -----------
    -- "and" --
@@ -236,9 +243,13 @@ package body XE_Back is
 
       if P /= No_Partition_Id then
          Write_Str  ("   for Exec_Dir use """);
+         Name_Len := 0;
+         if Present (Partitions.Table (P).Executable_Dir) then
+            Get_Name_String (Partitions.Table (P).Executable_Dir);
+         end if;
+
          declare
-            Exec_Dir : constant String :=
-                         Get_Name_String (Partitions.Table (P).Executable_Dir);
+            Exec_Dir : constant String := Name_Buffer (1 .. Name_Len);
          begin
             if Exec_Dir'Length = 0
               or else not Is_Absolute_Path (Exec_Dir)
@@ -666,6 +677,31 @@ package body XE_Back is
       end if;
    end Generate_Stub;
 
+   --------------------------
+   -- Get_Absolute_Command --
+   --------------------------
+
+   function Get_Absolute_Command return String is
+      Cmd : constant String := Command_Name;
+   begin
+      for J in Cmd'Range loop
+         if Cmd (J) = Dir_Separator then
+            return Normalize_Pathname (Cmd);
+         end if;
+      end loop;
+
+      --  Case of command name containing no directory separator
+
+      declare
+         Abs_Command_Access : String_Access := Locate_Exec_On_Path (Cmd);
+         Abs_Command : constant String := Abs_Command_Access.all;
+      begin
+         Free (Abs_Command_Access);
+         return Abs_Command;
+      end;
+
+   end Get_Absolute_Command;
+
    ----------------------------------
    -- Get_Environment_Vars_Command --
    ----------------------------------
@@ -708,6 +744,30 @@ package body XE_Back is
       Partition_Main_File := Id ("partition");
       Partition_Main_Name := Id ("Partition");
    end Initialize;
+
+   --  Local declarations for Prefix
+
+   Exec_Abs_Name : constant String := Get_Absolute_Command;
+   Exec_Abs_Dir  : constant String := Dir_Name (Exec_Abs_Name);
+
+   --  Strip trailing separator and remove last component ("bin")
+
+   Exec_Prefix   : constant String  :=
+                     Dir_Name (Exec_Abs_Dir (Exec_Abs_Dir'First
+                                          .. Exec_Abs_Dir'Last - 1));
+
+   ------------
+   -- Prefix --
+   ------------
+
+   function Prefix (Check_For : String) return String is
+   begin
+      if Is_Readable_File (Exec_Prefix & Check_For) then
+         return Exec_Prefix;
+      else
+         return XE_Defs.Defaults.Default_Prefix;
+      end if;
+   end Prefix;
 
    -------------------------
    -- Prepare_Directories --

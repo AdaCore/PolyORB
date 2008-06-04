@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 1995-2006 Free Software Foundation, Inc.           --
+--         Copyright (C) 1995-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNATDIST is  free software;  you  can redistribute  it and/or  modify it --
 -- under terms of the  GNU General Public License  as published by the Free --
@@ -36,7 +36,6 @@ package XE_Defs is
    function Get_Def_Protocol_Data return String;
    function Get_Def_Protocol_Name return String;
    function Get_PCS_Name return String;
-   function Get_Dist_Prefix return String;
 
    procedure Set_PCS_Name (S : String);
 

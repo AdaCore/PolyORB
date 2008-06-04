@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1995-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNATDIST is  free software;  you  can redistribute  it and/or  modify it --
 -- under terms of the  GNU General Public License  as published by the Free --
@@ -74,6 +74,7 @@ package body XE_Utils is
    procedure Add_Make_Switch (Argv : String);
    procedure Add_List_Switch (Argv : String);
    procedure Add_Main_Source (Source : String);
+   procedure Add_Source_Directory (Argv : String);
 
    procedure Fail
      (S1 : String;
@@ -160,6 +161,15 @@ package body XE_Utils is
    begin
       Make_Switches.Append (new String'(Argv));
    end Add_Make_Switch;
+
+   --------------------------
+   -- Add_Source_Directory --
+   --------------------------
+
+   procedure Add_Source_Directory (Argv : String) is
+   begin
+      Source_Directories.Append (new String'(Argv));
+   end Add_Source_Directory;
 
    -----------
    -- Build --
@@ -330,7 +340,8 @@ package body XE_Utils is
 
       N_Flags := N_Flags + 1;
       Get_Name_String (Source);
-      Flags (N_Flags) := new String'(Name_Buffer (1 .. Name_Len));
+      Flags (N_Flags) :=
+        new String'(Normalize_Pathname (Name_Buffer (1 .. Name_Len)));
 
       --  Check whether we have a predefined unit
 
@@ -495,6 +506,17 @@ package body XE_Utils is
       I_Current_Dir  := new String'("-I.");
       E_Current_Dir  := new String'("-I-");
 
+      Monolithic_App_Unit_Name := Id ("Monolithic_App");
+
+      Get_Name_String (Monolithic_App_Unit_Name);
+      To_Lower (Name_Buffer (1 .. Name_Len));
+      Add_Str_To_Name_Buffer (ADB_Suffix);
+
+      Monolithic_Src_Base_Name := Name_Find;
+      Monolithic_Src_Name := Dir (Id (Root), Monolithic_Src_Base_Name);
+      Monolithic_ALI_Name := To_Afile (Monolithic_Src_Name);
+      Monolithic_Obj_Name := To_Ofile (Monolithic_Src_Name);
+
       Part_Main_Src_Name := Id ("partition" & ADB_Suffix);
       Part_Main_ALI_Name := To_Afile (Part_Main_Src_Name);
       Part_Main_Obj_Name := To_Ofile (Part_Main_Src_Name);
@@ -507,7 +529,7 @@ package body XE_Utils is
       A_Stub_Dir := new String'(Name_Buffer (1 .. Name_Len));
 
       for J in 1 .. Argument_Count loop
-         Scan_Dist_Arg (Argument (J));
+         Scan_Dist_Arg (Argument (J), Implicit => False);
       end loop;
 
       if Project_File_Name_Present
@@ -752,7 +774,7 @@ package body XE_Utils is
    -- Scan_Dist_Arg --
    -------------------
 
-   procedure Scan_Dist_Arg (Argv : String) is
+   procedure Scan_Dist_Arg (Argv : String; Implicit : Boolean := True) is
    begin
       if Argv'Length = 0 then
          return;
@@ -779,16 +801,13 @@ package body XE_Utils is
          return;
       end if;
 
-      if Program_Args = Binder
-        or else Program_Args = Linker
-      then
+      if Program_Args = Binder or else Program_Args = Linker then
          Add_Make_Switch (Argv);
          return;
       end if;
 
       if Project_File_Name_Present then
-         Project_File_Name :=
-           new String'(Normalize_Pathname (Argv));
+         Project_File_Name         := new String'(Normalize_Pathname (Argv));
          Project_File_Name_Present := False;
 
       elsif Argv (Argv'First) = '-' then
@@ -815,17 +834,24 @@ package body XE_Utils is
          then
             Add_List_Switch (Argv);
             Add_Make_Switch (Argv);
+            if Argv (Argv'First + 1) = 'I' and then not Implicit then
+               Add_Source_Directory (Argv (Argv'First + 2 .. Argv'Last));
+            end if;
 
-         --  Processing for -aIdir, -aLdir and -aOdir
+         --  Processing for -aIdir, -aLdir, -aOdir, -aPdir
 
          elsif Argv'Length >= 3
            and then Argv (Argv'First + 1) = 'a'
            and then (Argv (Argv'First + 2) = 'I'
              or else Argv (Argv'First + 2) = 'L'
-             or else Argv (Argv'First + 2) = 'O')
+             or else Argv (Argv'First + 2) = 'O'
+             or else Argv (Argv'First + 2) = 'P')
          then
             Add_List_Switch (Argv);
             Add_Make_Switch (Argv);
+            if Argv (Argv'First + 2) = 'I' and then not Implicit then
+               Add_Source_Directory (Argv (Argv'First + 3 .. Argv'Last));
+            end if;
 
          elsif Argv (Argv'First + 1) = 'P' then
 
@@ -854,6 +880,29 @@ package body XE_Utils is
             Add_List_Switch (Argv);
             Add_Make_Switch (Argv);
 
+         --  Debugging switches
+
+         elsif Argv (Argv'First + 1) = 'd' then
+
+            --  -d: debugging traces
+
+            if Argv'Length = 2 then
+               Debug_Mode := True;
+
+            else
+               case Argv (Argv'First + 2) is
+                  --  -df: output base names only in error messages (to ensure
+                  --       constant output for testsuites).
+
+                  when 'f' =>
+                     Add_Make_Switch ("-df");
+
+                  when others =>
+                     Usage_Needed := True;
+
+               end case;
+            end if;
+
          --  Processing for one character switches
 
          elsif Argv'Length = 2 then
@@ -862,41 +911,23 @@ package body XE_Utils is
                   Add_List_Switch (Argv);
                   Add_Make_Switch (Argv);
 
-               when 'f'
-                 |  'g'
-                 |  'O' =>
-                  Add_Make_Switch (Argv);
-
                when 't' =>
                   Keep_Tmp_Files := True;
-
-               when 'd' =>
-                  Debug_Mode   := True;
+                  Add_Make_Switch ("-dn");
 
                when 'q' =>
                   Quiet_Mode   := True;
+                  --  Switch is passed to gnatmake later on
 
                when 'v' =>
                   Verbose_Mode := True;
+                  --  Switch is passed to gnatmake later on
 
                when others =>
-                  Usage_Needed := True;
+                  --  Pass unrecognized switches to gnatmake
+
+                  Add_Make_Switch (Argv);
             end case;
-
-         --  Processing for -O0, -O1, -O2 and -O3
-
-         elsif Argv'Length = 3
-           and then Argv (Argv'First + 1) = 'O'
-           and then Argv (Argv'First + 2) in '0' .. '3'
-         then
-            Add_Make_Switch (Argv);
-
-         --  Processing for -gnat flags
-
-         elsif Argv'Length > 5
-           and then Argv (Argv'First + 1 .. Argv'First + 4) = "gnat"
-         then
-            Add_Make_Switch (Argv);
 
          --  Processing for --PCS=
 
@@ -914,7 +945,7 @@ package body XE_Utils is
             Add_List_Switch (Argv);
 
          else
-            Usage_Needed := True;
+            Add_Make_Switch (Argv);
          end if;
 
       else
@@ -929,10 +960,12 @@ package body XE_Utils is
    procedure Scan_Dist_Args (Args : String) is
       Argv : Argument_List_Access := Argument_String_To_List (Args);
    begin
-      --  We have already processed the user command line: we might be
-      --  in the -cargs or -largs section.
+      --  We have already processed the user command line: we might be in the
+      --  -cargs or -largs section. If so, switch back to -margs now.
 
-      Scan_Dist_Arg ("-margs");
+      if Program_Args /= None then
+         Scan_Dist_Arg ("-margs");
+      end if;
 
       for J in Argv'Range loop
          if Argv (J)'Length > 0 then
