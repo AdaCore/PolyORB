@@ -410,7 +410,7 @@ LIBRARY_PROJECT_FILES := ${filter-out tools_%,${PROJECT_FILES}}
 EXE_PROJECT_FILES := ${filter tools_%,${PROJECT_FILES}}
 
 # Additional C sources
-C_FILES=
+C_FILES=	src/csupport.c
 
 .PHONY: do-gnatmake
 do-gnatmake: ${POLYORB_LIBS} ${SERVICE_LIBS} ${EXE_PROJECT_FILES} #??? ${APPLI_EXES} ${SERVICE_EXES}
@@ -533,6 +533,7 @@ libpolyorb-web_common.a: src_web_common.gpr
 
 # Additional dependencies:
 
+src.gpr:		src/csupport.o
 src_corba.gpr: src_corba_dynamicany.gpr src_corba_iop.gpr src_corba_messaging.gpr src_corba_portableinterceptor.gpr src_corba_rtcorba.gpr
 
 ifeq (${HAVE_SSL},yes)
@@ -555,7 +556,7 @@ endif
 # Rule for compilation of C source files
 C_OBJECTS=${C_FILES:.c=.o}
 ${C_OBJECTS}: %.o: ${top_srcdir}/%.c
-	${CC_FOR_TARGET} -c -o $@ ${CPPFLAGS} ${CFLAGS} $<
+	${CC_FOR_TARGET} -c -o $@ -I${top_builddir}/src ${CPPFLAGS} ${CFLAGS} $<
 
 ##########################
 # examples and testsuite #

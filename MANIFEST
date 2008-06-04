@@ -854,6 +854,7 @@ src/Makefile.common
 src/Makefile.in
 src/ROADMAP
 src/TODO
+src/config.h.in
 src/corba/Makefile.am
 src/corba/Makefile.genfiles
 src/corba/Makefile.in
@@ -1140,6 +1141,7 @@ src/corba/security/polyorb-corba_p-tss_state_machine.adb
 src/corba/security/polyorb-corba_p-tss_state_machine.ads
 src/corba/security/polyorb-corba_p-tss_state_machine_actions.adb
 src/corba/security/polyorb-corba_p-tss_state_machine_actions.ads
+src/csupport.c
 src/dsa/Makefile.am
 src/dsa/Makefile.in
 src/dsa/polyorb-dsa_p-exceptions.adb
