@@ -61,7 +61,9 @@ esac],
 [WARNINGS_MODE=$DEFAULT_WARNINGS_MODE])
 AC_SUBST(WARNINGS_MODE)
 
+##########################################
 # Set platform-specific supplementary CFLAGS and options
+##########################################
 
 # Host
 
@@ -81,21 +83,39 @@ AM_CONDITIONAL(WINDOWS, test x$WINDOWS_ON_HOST = xTrue)
 # Target
 
 WINDOWS_ON_TARGET=False
-case $target in
-  *-aix*)
+TARGET_EXE_SUFFIX=
+case $target_os in
+  aix*)
     CFLAGS_FOR_TARGET="-mminimal-toc"
     ;;
-  *-vxworks*)
+  vxworks*)
     CFLAGS_FOR_TARGET="-mlongcall"
+    TARGET_EXE_SUFFIX=.out
     ;;
-  *-mingw*)
+  cygwin* | mingw* )
     WINDOWS_ON_TARGET=True
+    TARGET_EXE_SUFFIX=.exe
     ;;
 esac
 ADAFLAGS_FOR_TARGET="${CFLAGS_FOR_TARGET}"
 AC_SUBST(CFLAGS_FOR_TARGET)
 AC_SUBST(ADAFLAGS_FOR_TARGET)
 AC_SUBST(WINDOWS_ON_TARGET)
+
+#  Implementation note: the *vxworks* rule above is for VxWorks 5, it can
+#    present some problems for VxWorks 6.
+
+# Compilers are always built using the native Ada compiler. Therefore,
+# their executable suffix depends on the host operating system.
+
+COMPILER_EXE_SUFFIX=$HOST_EXE_SUFFIX
+AC_SUBST(COMPILER_EXE_SUFFIX)
+
+# Tools are using the cross Ada compiler. Therefore, their executable
+# suffix depends on the target operating system.
+
+TOOL_EXE_SUFFIX=$TARGET_EXE_SUFFIX
+AC_SUBST(TOOL_EXE_SUFFIX)
 
 # By default treat all warnings as errors when building directly from the
 # source repository. The packaging procedure changes the default to "n".
@@ -576,43 +596,6 @@ AM_PROG_LIBTOOL
 AC_LIBTOOL_HAS_TAG
 host=$host_tmp
 
-##########################################
-# Windows requires specific targets
-##########################################
-
-case "$host_os" in
-  cygwin* | mingw*)
-    windows_host=true
-    HOST_EXE_SUFFIX=.exe
-    ;;
-  *)
-    windows_host=false
-    HOST_EXE_SUFFIX=
-    ;;
-esac
-AM_CONDITIONAL(WINDOWS, $windows_host)
-
-case "$target_os" in
-  *cygwin* | *mingw*)
-    TARGET_EXE_SUFFIX=.exe
-    ;;
-  *)
-    TARGET_EXE_SUFFIX=
-    ;;
-esac
-
-# Compilers are always built using the native Ada compiler. Therefore,
-# their executable suffix depends on the host operating system.
-
-COMPILER_EXE_SUFFIX=$HOST_EXE_SUFFIX
-AC_SUBST(COMPILER_EXE_SUFFIX)
-
-# Tools are using the cross Ada compiler. Therefore, their executable
-# suffix depends on the target operating system.
-
-TOOL_EXE_SUFFIX=$TARGET_EXE_SUFFIX
-AC_SUBST(TOOL_EXE_SUFFIX)
-
 #################################################
 # Build code fragments to be substituted in
 #       src/setup/polyorb-setup-client.adb
@@ -751,8 +734,6 @@ AC_CONFIG_HEADERS([src/config.h])
 AC_OUTPUT([
 	Makefile
 	Makefile.common.project
-	Makefile.old
-	support/Makefile
 	compilers/Makefile
 	compilers/common_files/platform.ads
 	compilers/gnatdist/Makefile

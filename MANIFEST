@@ -1940,8 +1940,6 @@ src/web_common/md5.ads
 src/web_common/soap-utils.adb
 src/web_common/soap-utils.ads
 src/web_common/soap.ads
-support/Makefile.am
-support/Makefile.in
 support/ada.m4
 support/adacompiler.in
 support/config.guess
