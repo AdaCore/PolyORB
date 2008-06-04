@@ -62,7 +62,8 @@ package XE_Defs.Defaults is
    Default_Dist_Flags : constant String :=
      "@GNAT_RTS_FLAG@ -@GNATDISTOPT@";
 
-   Default_Prefix : constant String :=
-     "@prefix@";
+   Default_Prefix : constant String := "@prefix@";
+
+   Windows_On_Host       : constant Boolean := @WINDOWS_ON_HOST@;
 
 end XE_Defs.Defaults;

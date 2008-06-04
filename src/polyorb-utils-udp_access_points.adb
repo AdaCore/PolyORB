@@ -94,7 +94,7 @@ package body PolyORB.Utils.UDP_Access_Points is
       --  Bind socket: for UNIX it needs to be bound to the group address;
       --  for Windows to INADDR_ANY.
 
-      if PolyORB.Platform.Windows then
+      if PolyORB.Platform.Windows_On_Target then
          AP_Info.Address.Addr := Any_Inet_Addr;
       end if;
 

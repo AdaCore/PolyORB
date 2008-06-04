@@ -179,7 +179,8 @@ build-iac: ${IAC_NODES_SOURCES}
 
 .PHONY: build-po_gnatdist
 
-build-po_gnatdist: compiler_dir := gnatdist
+build-po_gnatdist: \
+  compiler_dir := gnatdist
 
 ################################################
 # Common build rule for all compile-time tools #

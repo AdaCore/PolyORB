@@ -63,7 +63,24 @@ AC_SUBST(WARNINGS_MODE)
 
 # Set platform-specific supplementary CFLAGS and options
 
-PLATFORM_WINDOWS=False
+# Host
+
+case "$host_os" in
+  cygwin* | mingw*)
+    HOST_EXE_SUFFIX=.exe
+    WINDOWS_ON_HOST=True
+    ;;
+  *)
+    HOST_EXE_SUFFIX=
+    WINDOWS_ON_HOST=False
+    ;;
+esac
+AC_SUBST(WINDOWS_ON_HOST)
+AM_CONDITIONAL(WINDOWS, test x$WINDOWS_ON_HOST = xTrue)
+
+# Target
+
+WINDOWS_ON_TARGET=False
 case $target in
   *-aix*)
     CFLAGS_FOR_TARGET="-mminimal-toc"
@@ -72,13 +89,13 @@ case $target in
     CFLAGS_FOR_TARGET="-mlongcall"
     ;;
   *-mingw*)
-    PLATFORM_WINDOWS=True
+    WINDOWS_ON_TARGET=True
     ;;
 esac
 ADAFLAGS_FOR_TARGET="${CFLAGS_FOR_TARGET}"
 AC_SUBST(CFLAGS_FOR_TARGET)
 AC_SUBST(ADAFLAGS_FOR_TARGET)
-AC_SUBST(PLATFORM_WINDOWS)
+AC_SUBST(WINDOWS_ON_TARGET)
 
 # By default treat all warnings as errors when building directly from the
 # source repository. The packaging procedure changes the default to "n".
