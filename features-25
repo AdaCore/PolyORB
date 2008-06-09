@@ -19,3 +19,15 @@ NF-25-H521-008 Debug_Policy is now enabled by default (2008-05-21)
   of the run-time configuration. Two new configure command line switches
   are provided (--enable-assertion-policy and --enable-debug-policy) which
   allow the user to override these two policies.
+
+NF-25-G726-017 IAC is now the default IDL compiler (2008-05-08)
+
+  IAC is the new default IDL compiler provided by PolyORB. Its command
+  line interface is compatible with the legacy idlac compiler, making
+  it suitable as a drop-in replacement. IAC also offers a number of
+  new features, including optional generation of minimal perfect hash
+  tables for skeletons, generation of static marshallers for faster
+  handling of remote calls, and the ability to pretty-print IDL files.
+  Detailed documentation of these new features can be found in the
+  PolyORB User's Guide. Note that the legacy idlac compiler is still
+  provided in the PolyORB source tree.
