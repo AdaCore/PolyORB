@@ -628,6 +628,8 @@ examples/corba/send/local.gpr
 examples/corba/send/polyorb.conf
 examples/corba/send/print.idl
 examples/corba/send/send.adb
+examples/corba/send/test-controller-impl.adb
+examples/corba/send/test-controller-impl.ads
 examples/corba/send/test-printer-impl.adb
 examples/corba/send/test-printer-impl.ads
 examples/dsa/Makefile.local
