@@ -37,6 +37,7 @@ with Ada.Exceptions;
 
 with PolyORB.Components;
 with PolyORB.Log;
+with PolyORB.Platform;
 with PolyORB.Setup;
 with PolyORB.Transport.Datagram.Sockets_In;
 
