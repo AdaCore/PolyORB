@@ -237,7 +237,8 @@ package body Backend.BE_CORBA_Ada.Impls is
          Impl_Param := Make_Parameter_Specification
            (Make_Defining_Identifier (PN (P_Self)),
             Make_Access_Type_Definition
-            (Make_Defining_Identifier (TN (T_Object))));
+              (Make_Defining_Identifier (TN (T_Object)),
+               Is_Not_Null => True));
          Append_Node_To_List (Impl_Param, Profile);
 
          Stub_Param := Next_Node (First_Node (Parameter_Profile (Stub)));
@@ -474,7 +475,8 @@ package body Backend.BE_CORBA_Ada.Impls is
       Param := Make_Parameter_Specification
         (Make_Defining_Identifier (PN (P_Self)),
          Make_Access_Type_Definition
-         (Make_Defining_Identifier (TN (T_Object))));
+           (Make_Defining_Identifier (TN (T_Object)),
+            Is_Not_Null => True));
       Append_Node_To_List (Param, Profile);
 
       Param := Make_Parameter_Specification
