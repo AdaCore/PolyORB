@@ -4066,11 +4066,11 @@ application should be configured. It is up to the user to define what
 are the partitions in his program and on which machines they should be
 executed.
 
-The tool @t{gnatdist} and its configuration language
+The tool @t{po_gnatdist} and its configuration language
 allows the user to partition his program and to specify the
 machines on which the individual partitions are to execute.
 
-@t{gnatdist} reads a configuration file (whose syntax is described in
+@t{po_gnatdist} reads a configuration file (whose syntax is described in
 section @ref{The Configuration Language}) and builds several
 executables, one for each partition. It also takes care of launching the
 different partitions (default) with parameters that can be specific to
@@ -4094,7 +4094,7 @@ types packages.  Specify the main procedure of the distributed
 application (see @ref{Partition Attribute Main}).
 
 @item
-Type `gnatdist @i{<configuration-file>}'.
+Type `po_gnatdist @i{<configuration-file>}'.
 
 @item
 Start the distributed application by invoking the start-up shell script
@@ -4108,18 +4108,18 @@ Starter}).
 
 @smallexample
 
-gnatdist [switches] configuration-file [list-of-partitions]
+po_gnatdist [switches] configuration-file [list-of-partitions]
 
 @end smallexample
 
 @c We should add some explanations of the gnatdist specific flags
 @c -n, -M and on some particular mechanism (a spec without a body).
 
-The switches of @t{gnatdist} are, for the time being, exactly the same
+The switches of @t{po_gnatdist} are, for the time being, exactly the same
 as those of gnatmake, with the addition of @t{--PCS}, which allows the
 user to override the default selection of distribution runtime library
-(PCS). By default @t{gnatdist} outputs a configuration
-report and the actions performed. The switch -n allows @t{gnatdist} to
+(PCS). By default @t{po_gnatdist} outputs a configuration
+report and the actions performed. The switch -n allows @t{po_gnatdist} to
 skip the first stage of recompilation of the non-distributed
 application.
 
@@ -4129,13 +4129,13 @@ distributed application, as the user may want to use different
 distributed configurations depending on load and other characteristics
 of the computing environment.
 
-If a list of partitions is provided on the command line of the gnatdist
+If a list of partitions is provided on the command line of the po_gnatdist
 command, only these partitions will be built. In the following
 configuration example, the user can type :
 
 @smallexample
 
-gnatdist @i{<configuration> <partition_2> <partition_3>}
+po_gnatdist @i{<configuration> <partition_2> <partition_3>}
 
 @end smallexample
 
@@ -4181,7 +4181,7 @@ environment variables.
 @subsubsection Language Keywords
 
 All the Ada keywords are reserved keywords of the configuration
-language. @t{gnatdist} generates full Ada code in order to build the
+language. @t{po_gnatdist} generates full Ada code in order to build the
 different executables. To avoid naming conflicts between Ada and the
 configuration language, all the Ada keywords have been reserved even if
 they are not used in the configuration language.
@@ -4264,7 +4264,7 @@ CONFIGURATION_UNIT ::=
 @subsubsection Partition Declaration
 
 In the declarative part, the user declares his partitions and can change
-their default behavior. @t{gnatdist} provides a predefined type
+their default behavior. @t{po_gnatdist} provides a predefined type
 @b{Partition}. The user can declare a list of partitions and can also
 initialize these partitions with an initial list of Ada units.
 
@@ -4303,7 +4303,7 @@ Once declared, a partition is an empty list of Ada units. The operator
 @b{":="} adds the Ada units list on the right side to the current list
 of Ada units that are already mapped to the partition. This is a
 non-destructive operation. Whether a unit is a relevant Ada unit or not
-is checked later on by the back-end of @t{gnatdist}. These assignments
+is checked later on by the back-end of @t{po_gnatdist}. These assignments
 can occur in the declarative part as well as in the body part.
 
 @smallexample
@@ -4379,7 +4379,7 @@ approach has several advantages.
 
 In a non-distributed case, the user executes only one main executable
 possibly with a name corresponding to the main unit name of his
-application. With @t{gnatdist}, in a distributed case, a main executable
+application. With @t{po_gnatdist}, in a distributed case, a main executable
 with a name corresponding to the main unit name is responsible for
 starting the entire distributed application. Therefore, the user can
 start his application the same way he used to do in the non-distributed
@@ -4547,7 +4547,7 @@ executable is the @i{tcp} protocol.
 @subsubsection Partition Attribute Passive
 
 By default, a partition is an active partition. This attribute allows to
-define a passive partition. In this case, @t{gnatdist} checks that only
+define a passive partition. In this case, @t{po_gnatdist} checks that only
 shared passive units are mapped on the partition. As this partition
 cannot register itself, its location is hard-coded in all the partitions
 that depend on its shared passive units.
@@ -4600,20 +4600,20 @@ change dynamically its location either.
 @node  Partition Attribute Allow_Light_PCS, Pragma Priority, Partition Attribute Data_Location, The Configuration Language
 @subsubsection Partition Attribute Allow_Light_PCS
 
-On some circumstances, @t{gnatdist} can detect that a partition does not need
+On some circumstances, @t{po_gnatdist} can detect that a partition does not need
 the full PCS functionalities. This occurs in particular when the
 partition does use any task, any RCI unit or any RACW object. Therefore,
 the partition does not receive any message that is not a reply to a
 previous request. In this case, the PCS does not drag in the tasking
 library and a light PCS is linked in the partition executable.
-This specific configuration is automatically determined by GNATDIST with
-the ALI file information.
+This specific configuration is automatically determined by
+@t{po_gnatdist} with the ALI file information.
 
 This optimization can be inappropriate especially when the user wants to
 use the "Distributed Shared Memory" storage support which runs Li and
 Hudak's algorithm. In this case, messages are exchanged without being
 replies to previously sent requests and the normal PCS should be linked
-instead of the light one. Note also that GNATDIST cannot know for sure
+instead of the light one. Note also that @t{po_gnatdist} cannot know for sure
 that the DSM storage support assigned at configuration time is used at
 run-time. The user can configure this optimization with the following
 attribute.
@@ -5005,16 +5005,16 @@ types:
 
 @smallexample
 
-gnatdist myconfig.cfg
+po_gnatdist myconfig.cfg
 
 @end smallexample
 
 If the user wants to build only some partitions then he will list the
-partitions to build on the @t{gnatdist} command line as follows:
+partitions to build on the @t{po_gnatdist} command line as follows:
 
 @smallexample
 
-gnatdist myconfig.cfg partition_2 partition_3
+po_gnatdist myconfig.cfg partition_2 partition_3
 
 @end smallexample
 
@@ -5030,7 +5030,7 @@ this example. If the line @i{procedure Master_Procedure is in
 Partition_1;} was missing, Partition 1 would be completely empty. This is
 forbidden, because a partition has to contain at least one library unit.
 
-@t{gnatdist} produces an executable with the name of @i{Master_Procedure}
+@t{po_gnatdist} produces an executable with the name of @i{Master_Procedure}
 which will start the various partitions on their host machines in the
 background. The main partition is launched in foreground. Note that by
 killing this main procedure the whole distributed application is terminated.
@@ -5196,7 +5196,7 @@ use to spawn remote programs.
 @node Gnatdist Internals, PolyORB PCS Internals, Partition Runtime Parameters, Building a DSA application with PolyORB
 @subsection Gnatdist Internals
 
-Here is what goes on in @t{gnatdist} when building a distributed application:
+Here is what goes on in @t{po_gnatdist} when building a distributed application:
 
 @itemize @bullet
 @item
@@ -5211,7 +5211,7 @@ partition running on machine B). Several timestamp checks are performed
 to avoid useless code recompilation and stub generation.
 
 @item
-@t{gnatdist} performs a number of consistency checks. For instance it checks
+@t{po_gnatdist} performs a number of consistency checks. For instance it checks
 that all packages marked as remote call interface (RCI) and shared
 passive (SP) are mapped onto partitions. It also checks that a RCI or SP
 package is mapped onto only one partition.
