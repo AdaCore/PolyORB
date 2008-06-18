@@ -5350,11 +5350,15 @@ You'll have to start each of these programs manually.
 
 In both cases you must specify a name server for your application.
 You can use for example the one included in PolyORB:
-@file{po_cos_naming}.
+@file{po_cos_naming}. When running this name server it will output its
+IOR URI named @code{POLYORB_CORBA_NAME_SERVICE}.
 
 Just ensure that you set the global environment variable
 @code{POLYORB_DSA_NAME_SERVICE} to an IOR URI referencing the
-running name server.
+running name server. When using the @file{po_cos_naming} name server
+just set @code{POLYORB_DSA_NAME_SERVICE} environment variable to the
+first value output for @code{POLYORB_DSA_NAME_SERVICE} before
+launching each DSA partition.
 
 @c -------------------------------------------------------------------
 @node MOMA
