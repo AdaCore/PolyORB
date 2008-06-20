@@ -477,15 +477,6 @@ AC_SUBST(DEFPROTOCOLDATA)
 AC_SUBST(DEFPROTOCOLNAME)
 
 #
-# Check for optimization flags
-# 
-AC_ARG_WITH(optimization,
-            [  --with-gnatdist-optimization=X   Use X as default optimization for gnatdist (O0)],
-            [GNATDISTOPT="$withval"],
-            [GNATDISTOPT="O0"])
-AC_SUBST(GNATDISTOPT)
-
-#
 # Check whether we remove support for RPC abortion
 #
 AC_ARG_ENABLE(rpc-abortion,

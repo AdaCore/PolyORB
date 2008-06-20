@@ -38,32 +38,16 @@ pragma Style_Checks ("M2048");
 --  @configure_input@
 
 package XE_Defs.Defaults is
-   Default_RSH_Command : constant String :=
-     "@RSH_CMD@";
 
-   Default_RSH_Options : constant String :=
-     "@RSH_OPT@";
-
-   Default_PCS_Name : constant String :=
-     "@PCSNAME@";
-
-   Default_Storage_Data : constant String :=
-     "@DEFSTORAGEDATA@";
-
-   Default_Storage_Name : constant String :=
-     "@DEFSTORAGENAME@";
-
-   Default_Protocol_Data : constant String :=
-     "@DEFPROTOCOLDATA@";
-
-   Default_Protocol_Name : constant String :=
-     "@DEFPROTOCOLNAME@";
-
-   Default_Dist_Flags : constant String :=
-     "@GNAT_RTS_FLAG@ -@GNATDISTOPT@";
-
-   Default_Prefix : constant String := "@prefix@";
-
+   Default_RSH_Command   : constant String := "@RSH_CMD@";
+   Default_RSH_Options   : constant String := "@RSH_OPT@";
+   Default_PCS_Name      : constant String := "@PCSNAME@";
+   Default_Storage_Data  : constant String := "@DEFSTORAGEDATA@";
+   Default_Storage_Name  : constant String := "@DEFSTORAGENAME@";
+   Default_Protocol_Data : constant String := "@DEFPROTOCOLDATA@";
+   Default_Protocol_Name : constant String := "@DEFPROTOCOLNAME@";
+   Default_Dist_Flags    : constant String := "@GNAT_RTS_FLAG@";
+   Default_Prefix        : constant String := "@prefix@";
    Windows_On_Host       : constant Boolean := @WINDOWS_ON_HOST@;
 
 end XE_Defs.Defaults;
