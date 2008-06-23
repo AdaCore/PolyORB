@@ -195,6 +195,7 @@ Examples/check-config.in
 Garlic/Makefile.am
 Garlic/Makefile.in
 Garlic/Makefile.zip
+Garlic/config.sdefault
 Garlic/stamp-h.in
 Garlic/s-gaplsp.ads.in
 Garlic/5egarrem.adb

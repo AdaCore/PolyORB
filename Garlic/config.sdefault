@@ -1,0 +1,18 @@
+#!/bin/sh
+# we use temporary file to workaround a bug under Windows-NT. MKS
+# toolkit as a problem with \a (found in \adalib) which is transformed
+# by ^G.
+
+gnatls -v $* | \
+   sed -e '1,/Object Search Path/ d' | grep -v 'Current_Directory' > tmp1
+sed -e 's,\\,/,g' tmp1 > tmp2
+for i in `cat tmp2`; do
+  if [ -f ${i}libgnat.a ]; then
+    LIBGNAT_DIR=${i}
+    break
+  fi
+done
+rm tmp1 tmp2
+
+echo "${LIBGNAT_DIR}" | sed 's,^[a-zA-Z]:,,;s,\\,/,g'
+exit 0
