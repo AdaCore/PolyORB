@@ -195,8 +195,10 @@ package body PolyORB.Utils.Dynamic_Tables is
    is
       Last_Index : Table_Index_Type;
    begin
+      Initialize (X);
       Table_Index_Type'Read (S, Last_Index);
       Set_Last (X, Last_Index);
+
       for J in First (X) .. Last (X) loop
          Table_Component_Type'Read (S, X.Table (J));
       end loop;
