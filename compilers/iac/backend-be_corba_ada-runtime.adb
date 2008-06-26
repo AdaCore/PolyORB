@@ -215,6 +215,8 @@ package body Backend.BE_CORBA_Ada.Runtime is
       Register_Casing_Rule ("pk_objref");
       Register_Casing_Rule ("pk_any");
 
+      RUD (RU_Id'First) := No_Node;
+
       for U in RU_Id'Succ (RU_Id'First) .. RU_Id'Last loop
          Set_Str_To_Name_Buffer (RU_Id'Image (U));
          Set_Str_To_Name_Buffer (Name_Buffer (4 .. Name_Len));
@@ -314,24 +316,34 @@ package body Backend.BE_CORBA_Ada.Runtime is
       Declare_Subunit
         (RUD (RU_CORBA_Repository_Root_InterfaceDef_Convert_Forward));
 
-      for E in RE_Id loop
-         Set_Str_To_Name_Buffer (RE_Id'Image (E));
-         Set_Str_To_Name_Buffer (Name_Buffer (4 .. Name_Len));
-         Apply_Casing_Rules (Name_Buffer (1 .. Name_Len));
+      RED (RE_Id'First) := No_Node;
 
-         while Name_Buffer (Name_Len) in '0' .. '9'
-           or else Name_Buffer (Name_Len) = '_'
-         loop
-            Name_Len := Name_Len - 1;
-         end loop;
+      for E in RE_Id'Succ (RE_Id'First) .. RE_Id'Last loop
+         case E is
+            when RE_Add =>
+               Set_Str_To_Name_Buffer (Quoted ("+"));
 
-         if E = RE_Add then
-            Set_Str_To_Name_Buffer (Quoted ("+"));
-         end if;
+            when RE_And =>
+               Set_Str_To_Name_Buffer (Quoted ("&"));
 
-         if E = RE_And then
-            Set_Str_To_Name_Buffer (Quoted ("&"));
-         end if;
+            when others =>
+               declare
+                  RE_Id_Img : constant String := RE_Id'Image (E);
+               begin
+                  --  Strip "RE_" prefix
+
+                  Set_Str_To_Name_Buffer
+                    (RE_Id_Img (RE_Id_Img'First + 3 .. RE_Id_Img'Last));
+               end;
+
+               Apply_Casing_Rules (Name_Buffer (1 .. Name_Len));
+
+               while Name_Buffer (Name_Len) in '0' .. '9'
+                 or else Name_Buffer (Name_Len) = '_'
+               loop
+                  Name_Len := Name_Len - 1;
+               end loop;
+         end case;
 
          Name := Name_Find;
 
@@ -339,14 +351,13 @@ package body Backend.BE_CORBA_Ada.Runtime is
 
          if Present (RUD (RE_Unit_Table (E))) then
             RED (E) := Make_Selected_Component
-              (RUD (RE_Unit_Table (E)), RED (E));
+                         (RUD (RE_Unit_Table (E)), RED (E));
          end if;
       end loop;
 
-      --  For CORBA predefined units and CORBA predefined entities,
-      --  put the enumerator position in the Info field of their
-      --  expanded name id. This should save time and memory space
-      --  when fetching CORBA predefined entities.
+      --  For CORBA predefined units and CORBA predefined entities, record
+      --  the enumerator position in the Info field of the expanded name id, to
+      --  save time and space when fetching CORBA predefined entities.
 
       for U in CORBA_Predefined_RU'Range loop
          Get_Name_String (To_Lower (Fully_Qualified_Name (RUD (U))));
