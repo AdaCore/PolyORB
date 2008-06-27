@@ -60,16 +60,28 @@ package XE_Utils is
 
    Monolithic_App_Unit_Name : File_Name_Type;
    Monolithic_Src_Base_Name : File_Name_Type;
+   --  Monolithic application main
 
    Monolithic_Src_Name : File_Name_Type;
    Monolithic_ALI_Name : File_Name_Type;
    Monolithic_Obj_Name : File_Name_Type;
+   --  Monolithic application main
+
+   PCS_Project       : Name_Id;
+   PCS_Project_File  : File_Name_Type;
+   --  Project file for the PCS
+
+   Dist_App_Project      : Name_Id;
+   Dist_App_Project_File : File_Name_Type;
+   --  Project file for the complete distributed application
 
    Part_Main_Src_Name : File_Name_Type;
    Part_Main_ALI_Name : File_Name_Type;
    Part_Main_Obj_Name : File_Name_Type;
+   --  Partition main subprogram
 
    Part_Prj_File_Name : File_Name_Type;
+   --  Partition project file
 
    No_Args : constant Argument_List (1 .. 0) := (others => null);
 
@@ -97,13 +109,17 @@ package XE_Utils is
    function Capitalize (S : String) return String;
    --  Capitalize string or name id
 
-   function  To_Lower   (C : Character) return Character;
-   procedure To_Lower   (S : in out String);
-   procedure To_Lower   (N : in out Name_Id);
-   function  To_Lower   (N : Name_Id) return Name_Id;
+   procedure To_Lower (S : in out String);
+   procedure To_Lower (N : in out Name_Id);
+   function  To_Lower (N : Name_Id) return Name_Id;
 
    function Name (N : Name_Id) return Name_Id;
    --  Remove any encoded info from unit name (%s or %b)
+
+   procedure Set_Corresponding_Project_File_Name (N : out File_Name_Type);
+   --  Assuming the Name_Buffer contains a project name, set N to the name of
+   --  the corrsponding project file. (Assumes that the project name is already
+   --  all lowercase).
 
    ------------------------------------
    -- Command Line Argument Handling --

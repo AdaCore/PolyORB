@@ -32,32 +32,35 @@ with GNAT.OS_Lib; use GNAT.OS_Lib;
 
 package XE_Flags is
 
-   Keep_Tmp_Files     : Boolean;
-   Verbose_Mode       : Boolean;
-   Debug_Mode         : Boolean;
-   Quiet_Mode         : Boolean;
+   Keep_Tmp_Files       : Boolean := False;
+   Verbose_Mode         : Boolean := False;
+   Debug_Mode           : Boolean := False;
+   Quiet_Mode           : Boolean := False;
+   Check_Readonly_Files : Boolean := False;
+   User_Provided_S_RPC  : Boolean := False;
 
-   Readonly_Flag      : constant String_Access := new String'("-a");
-   Bind_Only_Flag     : constant String_Access := new String'("-b");
-   Compile_Only_Flag  : constant String_Access := new String'("-c");
-   Object_Dir_Flag    : constant String_Access := new String'("-D");
-   Dependencies_Flag  : constant String_Access := new String'("-d");
-   Keep_Going_Flag    : constant String_Access := new String'("-k");
-   Link_Only_Flag     : constant String_Access := new String'("-l");
-   Output_Flag        : constant String_Access := new String'("-o");
-   Project_File_Flag  : constant String_Access := new String'("-P");
-   Quiet_Flag         : constant String_Access := new String'("-q");
-   Verbose_Flag       : constant String_Access := new String'("-v");
-   GLADE_List_Flag    : constant String_Access := new String'("-V");
-   Semantic_Only_Flag : constant String_Access := new String'("-gnatc");
-   Skel_Flag          : constant String_Access := new String'("-gnatzr");
-   Stub_Flag          : constant String_Access := new String'("-gnatzc");
-   Comp_Arg_Flag      : constant String_Access := new String'("-cargs");
-   Bind_Arg_Flag      : constant String_Access := new String'("-bargs");
-   Link_Arg_Flag      : constant String_Access := new String'("-largs");
+   Readonly_Flag       : constant String_Access := new String'("-a");
+   Bind_Only_Flag      : constant String_Access := new String'("-b");
+   Compile_Only_Flag   : constant String_Access := new String'("-c");
+   Object_Dir_Flag     : constant String_Access := new String'("-D");
+   Dependencies_Flag   : constant String_Access := new String'("-d");
+   Keep_Going_Flag     : constant String_Access := new String'("-k");
+   Link_Only_Flag      : constant String_Access := new String'("-l");
+   Output_Flag         : constant String_Access := new String'("-o");
+   Project_File_Flag   : constant String_Access := new String'("-P");
+   Quiet_Flag          : constant String_Access := new String'("-q");
+   Verbose_Flag        : constant String_Access := new String'("-v");
+   GLADE_List_Flag     : constant String_Access := new String'("-V");
+   External_Units_Flag : constant String_Access := new String'("-x");
+   Semantic_Only_Flag  : constant String_Access := new String'("-gnatc");
+   Skel_Flag           : constant String_Access := new String'("-gnatzr");
+   Stub_Flag           : constant String_Access := new String'("-gnatzc");
+   Comp_Args_Flag      : constant String_Access := new String'("-cargs");
+   Bind_Args_Flag      : constant String_Access := new String'("-bargs");
+   Link_Args_Flag      : constant String_Access := new String'("-largs");
+   Make_Args_Flag      : constant String_Access := new String'("-margs");
 
-   Project_File_Name_Present : Boolean := False;
-   Project_File_Name         : String_Access;
+   Project_File_Name : String_Access;
 
    package Make_Switches is new GNAT.Table (
      Table_Component_Type => String_Access,
