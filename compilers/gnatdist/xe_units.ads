@@ -157,10 +157,10 @@ package XE_Units is
    type ALIs_Record is record
 
       Ofile : File_Name_Type;
-      --  Name of object file (because GNATLS does not return the ali file)
+      --  Name of object file
 
       Afile : File_Name_Type;
-      --  Name of ALI file (based on object file)
+      --  Name of ALI file
 
       Sfile : File_Name_Type;
       --  Name of source file that generates this ALI file (which is equal
