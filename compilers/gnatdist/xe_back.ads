@@ -153,6 +153,7 @@ private
    --  location of the gnatdist executable, or fall back to the default
    --  (configure-time) prefix. The validity of a candidate prefix is
    --  checked by testing whether file Check_For exists under that prefix.
+   --  The returned string always ends with a directory separator.
 
    procedure Apply_Casing_Rules (S : in out String);
    procedure Register_Casing_Rule (S : String);

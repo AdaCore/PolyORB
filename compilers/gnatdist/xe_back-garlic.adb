@@ -193,8 +193,7 @@ package body XE_Back.GARLIC is
                        (Check_For => DSA_Inc_Rel_Dir
                                       & Dir_Separator & "s-garlic.ads");
 
-   DSA_Inc_Dir : constant String :=
-                   GARLIC_Prefix & Dir_Separator & DSA_Inc_Rel_Dir;
+   DSA_Inc_Dir : constant String := GARLIC_Prefix & DSA_Inc_Rel_Dir;
 
    ------------------
    -- Add_Protocol --

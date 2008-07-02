@@ -849,7 +849,7 @@ package body XE_Back is
       if Is_Readable_File (Exec_Prefix & Check_For) then
          return Exec_Prefix;
       else
-         return XE_Defs.Defaults.Default_Prefix;
+         return XE_Defs.Defaults.Default_Prefix & Dir_Separator;
       end if;
    end Prefix;
 

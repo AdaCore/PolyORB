@@ -729,8 +729,7 @@ package body XE_Back.PolyORB is
       Prj_Fname  : File_Name_Type;
       Prj_File   : File_Descriptor;
 
-      DSA_Inc_Dir : constant String :=
-                      PolyORB_Prefix & Dir_Separator & DSA_Inc_Rel_Dir;
+      DSA_Inc_Dir : constant String := PolyORB_Prefix & DSA_Inc_Rel_Dir;
 
       Secondary_PCS_Project      : Name_Id;
       Secondary_PCS_Project_File : File_Name_Type;
@@ -1014,8 +1013,8 @@ package body XE_Back.PolyORB is
                Status : aliased Integer;
                PolyORB_Config_Command : constant String :=
                                           PolyORB_Prefix
-                                            & Dir_Separator & "bin"
-                                            & Dir_Separator & "polyorb-config";
+                                            & "bin" & Dir_Separator
+                                            & "polyorb-config";
                PolyORB_Config_Output : constant String :=
                  Get_Command_Output (PolyORB_Config_Command,
                                      (1 .. 0 => null), "", Status'Access);
