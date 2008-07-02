@@ -591,6 +591,9 @@ package body XE_IO is
       if Fname = No_File_Name then
          Create_Temp_File (File, Buffer);
          Set_Str_To_Name_Buffer (Buffer);
+
+         pragma Assert (Name_Buffer (Name_Len) = ASCII.NUL);
+         Name_Len := Name_Len - 1;
          Fname := Name_Find;
 
       else
