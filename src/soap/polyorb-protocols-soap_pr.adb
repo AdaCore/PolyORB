@@ -435,6 +435,8 @@ package body PolyORB.Protocols.SOAP_Pr is
    is
       use type PolyORB.Buffers.Buffer_Access;
       use PolyORB.SOAP_P.Message.Payload;
+      P : PolyORB.Requests.Request_Access;
+      ORB   : constant ORB_Access := ORB_Access (S.Server);
 
    begin
       if S.In_Buf /= null then
@@ -446,12 +448,13 @@ package body PolyORB.Protocols.SOAP_Pr is
       end if;
 
       if S.Pending_Rq /= null then
-         Set_Exception (S.Pending_Rq, Error);
-         References.Binding.Unbind (S.Pending_Rq.Target);
-         Components.Emit_No_Reply
-           (S.Pending_Rq.Requesting_Component,
-            Servants.Iface.Executed_Request'(Req => S.Pending_Rq));
+         P := S.Pending_Rq;
          S.Pending_Rq := null;
+         Set_Exception (P, Error);
+         References.Binding.Unbind (P.Target);
+         Components.Emit_No_Reply
+           (PolyORB.Components.Component_Access (ORB),
+            Servants.Iface.Executed_Request'(Req => P));
       end if;
    end Handle_Disconnect;
 
