@@ -895,7 +895,7 @@ package body Test000_Setup is
             Temp := Invoke_On_Servant (Obj_Ref);
 
             if not Temp then
-               pragma Debug (O ("FATAL: Invooke_On_Servant failed"));
+               pragma Debug (O ("FATAL: Invoke_On_Servant failed"));
                Result.Fatal := True;
             end if;
 
@@ -927,7 +927,7 @@ package body Test000_Setup is
                      Temp := Invoke_On_Servant (Obj_Ref2);
 
                      if not Temp then
-                        pragma Debug (O ("FATAL: Invooke_On_Servant failed"));
+                        pragma Debug (O ("FATAL: Invoke_On_Servant failed"));
                         Result.Fatal := True;
                      end if;
                   end;
@@ -1085,7 +1085,7 @@ package body Test000_Setup is
          Temp := Invoke_On_Servant (Obj_Ref);
 
          if not Temp then
-            pragma Debug (O ("FATAL: Invooke_On_Servant failed"));
+            pragma Debug (O ("FATAL: Invoke_On_Servant failed"));
             Result.Fatal := True;
          end if;
 
@@ -1245,7 +1245,7 @@ package body Test000_Setup is
                Temp := Invoke_On_Servant (Obj_Ref2);
 
                if not Temp then
-                  pragma Debug (O ("FATAL: Invooke_On_Servant failed"));
+                  pragma Debug (O ("FATAL: Invoke_On_Servant failed"));
                   Result.Fatal := True;
                end if;
             end;
