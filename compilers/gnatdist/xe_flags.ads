@@ -37,14 +37,27 @@
 with GNAT.Table;
 with GNAT.OS_Lib; use GNAT.OS_Lib;
 
+with XE_Defs.Defaults;
+
 package XE_Flags is
 
-   Keep_Tmp_Files       : Boolean := False;
+   Quiet_Mode           : Boolean := False;
    Verbose_Mode         : Boolean := False;
    Debug_Mode           : Boolean := False;
-   Quiet_Mode           : Boolean := False;
    Check_Readonly_Files : Boolean := False;
+
+   Keep_Tmp_Files       : Boolean := False;
+   --  Do not remove temporary files
+
    User_Provided_S_RPC  : Boolean := False;
+   --  User provided his own version of s-rpc.adb, overriding the one from the
+   --  PCS.
+
+   Use_PolyORB_Project  : Boolean := XE_Defs.Defaults.Windows_On_Host;
+   --  True when the installed project file must be used to reference the
+   --  PolyORB PCS (otherwise the external script polyorb-config is used,
+   --  exception on Windows where the MinGW environment does not support
+   --  spawning arbitrary shell scripts).
 
    Readonly_Flag       : constant String_Access := new String'("-a");
    Bind_Only_Flag      : constant String_Access := new String'("-b");

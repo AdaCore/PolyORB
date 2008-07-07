@@ -775,13 +775,14 @@ package body XE_Sem is
       while CU /= No_Conf_Unit_Id loop
          A := Conf_Units.Table (CU).My_ALI;
 
+         F := Dir (Monolithic_Obj_Dir, ALIs.Table (A).Afile);
          if Debug_Mode then
-            Message ("update stamp from", ALIs.Table (A).Afile);
+            Message ("update stamp from", F);
          end if;
 
          --  Update most recent stamp of this partition
 
-         Update_Most_Recent_Stamp (Partition, ALIs.Table (A).Afile);
+         Update_Most_Recent_Stamp (Partition, F);
 
          for J in
            ALIs.Table (A).First_Unit .. ALIs.Table (A).Last_Unit
@@ -809,11 +810,17 @@ package body XE_Sem is
          --  Some units may not have ALI files like generic units
 
          if A = No_ALI_Id then
+            if Debug_Mode then
+               Write_Str ("no ALI info found for ");
+               Write_Name (F);
+               Write_Eol;
+            end if;
             goto Next_With;
          end if;
 
          U := ALIs.Table (A).Last_Unit;
 
+         F := Dir (Monolithic_Obj_Dir, F);
          if Debug_Mode then
             Message ("check stamp", F);
          end if;
@@ -822,8 +829,8 @@ package body XE_Sem is
 
          Update_Most_Recent_Stamp (Partition, F);
 
-         --  This unit has already been assigned to this
-         --  partition. No need to explore any further.
+         --  This unit has already been assigned to this partition: no need to
+         --  explore any further.
 
          if Get_Partition_Id (ALIs.Table (A).Uname) = Partition then
             null;
