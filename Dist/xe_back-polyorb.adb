@@ -29,7 +29,6 @@ with GNAT.Expect;               use GNAT.Expect;
 with GNAT.OS_Lib;               use GNAT.OS_Lib;
 
 with XE;          use XE;
-with XE_Defs.Defaults;
 with XE_Front;    use XE_Front;
 with XE_Flags;    use XE_Flags;
 with XE_IO;       use XE_IO;
@@ -989,11 +988,10 @@ package body XE_Back.PolyORB is
       --  -aP and -aI, to avoid setting -aP here to a value that might be
       --  inconsistent with the -aI path set by polyorb-config.
 
-      if XE_Defs.Defaults.Windows_On_Host then
+      if XE_Flags.Use_PolyORB_Project then
          Scan_Dist_Arg ("-margs");
          Scan_Dist_Arg ("-aP" & PolyORB_Prefix
-                                  & Dir_Separator & "lib"
-                                  & Dir_Separator & "gnat");
+                              & "lib" & Dir_Separator & "gnat");
 
       else
          begin

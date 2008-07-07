@@ -874,11 +874,16 @@ package body XE_List is
          Set_Standard_Output;
 
          --  Build the monolithic application with a fake main subprogram
-         --  Partition. Load the info from its ALI file.
+         --  Partition. Note that we must pass the bare file name (without
+         --  directory information) to gnat make, Monolithic_Src_Base_Name,
+         --  not Monolithic_Src_Name.
 
-         Sfile := Monolithic_Src_Name;
+         Sfile := Monolithic_Src_Base_Name;
          Afile := To_Afile (Sfile);
          Build (Sfile, Make_Flags, Fatal => False);
+
+         --  Load the info from its ALI file
+
          List ((1 => Afile), List_Flags, Output);
          Load_ALIs (Output);
          ALI := Get_ALI_Id (Afile);

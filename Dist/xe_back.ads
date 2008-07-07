@@ -152,6 +152,10 @@ private
    procedure Register_Casing_Rule (S : String);
    --  ??? documentation needed!
 
+   function Partition_Dir_Flag (P : Partition_Id) return String;
+   --  Return a gnatmake command line flag setting external variable
+   --  PARTITION_DIR for partition P.
+
    Build_Stamp_File    : File_Name_Type;
    Partition_Main_File : File_Name_Type;
    Partition_Main_Name : Unit_Name_Type;
