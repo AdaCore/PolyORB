@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -76,7 +76,7 @@ package PolyORB.Asynch_Ev is
    --  An Asynch_Ev_Source is an annotable object (cf. PolyORB.Annotations),
    --  so clients can associate it with any information that is necessary
    --  to process events that occur on it.
-   --  This functions returns an access to AES' Notepad attribute.
+   --  This function returns an access to AES' Notepad attribute.
 
    function AEM_Factory_Of
      (AES : Asynch_Ev_Source)
@@ -134,7 +134,7 @@ package PolyORB.Asynch_Ev is
    --  until an event occurs.
 
    procedure Abort_Check_Sources (AEM : Asynch_Ev_Monitor) is abstract;
-   --  Send an persistent abort signal to AEM. This signal aborts any
+   --  Send a persistent abort signal to AEM. This signal aborts any
    --  task currently executing Check_Sources on AEM, or will abort
    --  next call to Check_Sources.
 
@@ -143,7 +143,7 @@ package PolyORB.Asynch_Ev is
    -------------------------------------
 
    --  The middleware core implements the Reactor pattern to handle
-   --  event occurring on asynchronous event sources.  An event
+   --  events occurring on asynchronous event sources. An event
    --  handler is associated with each asynchronous event source. The
    --  handling of an event constitutes a Job that can be performed by
    --  an ORB task.

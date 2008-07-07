@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -172,8 +172,8 @@ package PolyORB.Tasking.Threads is
      is abstract;
    --  This function plays the same role that the first one; the
    --  difference is that the code of the Thread is P.  In some
-   --  profiles, this function ensure that no dynamic allocation is
-   --  done. A Storage_Size of 0 means the Thread will use default
+   --  profiles, this function ensures that no dynamic allocation is
+   --  done. A Storage_Size of 0 means the Thread will use the default
    --  value for its stack size, else it will use the value provided
    --  by Storage_Size.
 
@@ -232,7 +232,7 @@ package PolyORB.Tasking.Threads is
 
    function Awake_Count return Natural;
    function Independent_Count return Natural;
-   --  Wrappers for the functions below
+   --  Wrappers for the functions below, passing the registered Thread_Factory
 
    function Awake_Count (TF : access Thread_Factory_Type)
      return Natural is abstract;

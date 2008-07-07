@@ -57,7 +57,8 @@ package PolyORB.Utils.Chained_Lists is
    --  Return the first element of L into Result, and remove if from L
 
    function First (L : List) return Iterator;
-   --  Return an iterator on L positioned at L's first element
+   --  Return an iterator on L positioned at L's first element. If L is empty,
+   --  returns the same value as Last (L).
 
    function Value (I : Iterator) return Element_Access;
    --  Return an access to the value of the element designated by I

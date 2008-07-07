@@ -89,7 +89,7 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
    type Simple_Runnable is new PTT.Runnable with record
       Main_Subprogram : PTT.Parameterless_Procedure;
    end record;
-   --  Simplified runnable for parameter less procedure.
+   --  Simplified runnable for parameterless procedure.
 
    procedure Run (SR : access Simple_Runnable);
 
