@@ -272,7 +272,7 @@ PACKAGE_STRING=
 PACKAGE_BUGREPORT=
 
 ac_unique_file="Dist/xe.ads"
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS build build_cpu build_vendor build_os host host_cpu host_vendor host_os target target_cpu target_vendor target_os INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA CYGPATH_W PACKAGE VERSION ACLOCAL AUTOCONF AUTOMAKE AUTOHEADER MAKEINFO install_sh STRIP ac_ct_STRIP INSTALL_STRIP_PROGRAM mkdir_p AWK SET_MAKE am__leading_dot AMTAR am__tar am__untar CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT DEPDIR am__include am__quote AMDEP_TRUE AMDEP_FALSE AMDEPBACKSLASH CCDEPMODE am__fastdepCC_TRUE am__fastdepCC_FALSE GNAT GNAT_FOR_TARGET RANLIB ac_ct_RANLIB SED TAR AR RM UNZIP GNATMAKE GNAT_FOR_HOST GNATFLAGS LINKTEST PCSNAME PCSFLAGS GLADEDIRS GNATLS PLATFORM_SPECIFIC PSNAME CP_PRESERVE SUPPORTS_LOCAL_LAUNCH RSH_CMD RSH_OPT PROTOCOLSSOURCES PROTOCOLSOBJECTS DEFSTORAGENAME DEFSTORAGEDATA DEFPROTOCOLNAME DEFPROTOCOLDATA FILTERSSOURCES FILTERSOBJECTS FILTERSEXTRALIBS FILTERSINSTALL EXTRA_LIBS GNAT_RTS_FLAG SUPPORT_RPC_ABORTION WINDOWS_ON_HOST WINDOWS_TRUE WINDOWS_FALSE LIBOBJS LTLIBOBJS'
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS build build_cpu build_vendor build_os host host_cpu host_vendor host_os target target_cpu target_vendor target_os INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA CYGPATH_W PACKAGE VERSION ACLOCAL AUTOCONF AUTOMAKE AUTOHEADER MAKEINFO install_sh STRIP ac_ct_STRIP INSTALL_STRIP_PROGRAM mkdir_p AWK SET_MAKE am__leading_dot AMTAR am__tar am__untar CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT DEPDIR am__include am__quote AMDEP_TRUE AMDEP_FALSE AMDEPBACKSLASH CCDEPMODE am__fastdepCC_TRUE am__fastdepCC_FALSE GNAT GNAT_FOR_TARGET RANLIB ac_ct_RANLIB SED TAR AR RM UNZIP GNATMAKE GNAT_FOR_HOST GNATFLAGS LINKTEST PCSNAME PCSFLAGS GLADEDIRS GNATLS PLATFORM_SPECIFIC PSNAME CP_PRESERVE SUPPORTS_LOCAL_LAUNCH RSH_CMD RSH_OPT PROTOCOLSSOURCES PROTOCOLSOBJECTS DEFSTORAGENAME DEFSTORAGEDATA DEFPROTOCOLNAME DEFPROTOCOLDATA FILTERSSOURCES FILTERSOBJECTS FILTERSEXTRALIBS FILTERSINSTALL EXTRA_LIBS GNAT_RTS_FLAG SUPPORT_RPC_ABORTION LIBOBJS LTLIBOBJS'
 ac_subst_files='FILTERSMAKEFILE'
 
 # Initialize some variables set by options.
@@ -3995,35 +3995,9 @@ echo "$as_me:$LINENO: result: $EXCEPTION_MODEL" >&5
 echo "${ECHO_T}$EXCEPTION_MODEL" >&6
 
 
-
-# Host specific settings
-
-case "$host_os" in
-  cygwin* | mingw*)
-    HOST_EXE_SUFFIX=.exe
-    WINDOWS_ON_HOST=True
-    ;;
-  *)
-    HOST_EXE_SUFFIX=
-    WINDOWS_ON_HOST=False
-    ;;
-esac
-
-
-
-if test x$WINDOWS_ON_HOST = xTrue; then
-  WINDOWS_TRUE=
-  WINDOWS_FALSE='#'
-else
-  WINDOWS_TRUE='#'
-  WINDOWS_FALSE=
-fi
-
-
 #
 # Header files, only when not cross-compiling
 #
-
 #if test $target = $host; then
 # AC_CHECK_HEADERS([stdio.h sys/types.h sys/socket.h errno.h netdb.h string.h])
 # AC_CHECK_HEADERS([netinet/in.h signal.h fcntl.h termio.h termios.h])
@@ -4167,13 +4141,6 @@ if test -z "${am__fastdepCC_TRUE}" && test -z "${am__fastdepCC_FALSE}"; then
   { { echo "$as_me:$LINENO: error: conditional \"am__fastdepCC\" was never defined.
 Usually this means the macro was only invoked conditionally." >&5
 echo "$as_me: error: conditional \"am__fastdepCC\" was never defined.
-Usually this means the macro was only invoked conditionally." >&2;}
-   { (exit 1); exit 1; }; }
-fi
-if test -z "${WINDOWS_TRUE}" && test -z "${WINDOWS_FALSE}"; then
-  { { echo "$as_me:$LINENO: error: conditional \"WINDOWS\" was never defined.
-Usually this means the macro was only invoked conditionally." >&5
-echo "$as_me: error: conditional \"WINDOWS\" was never defined.
 Usually this means the macro was only invoked conditionally." >&2;}
    { (exit 1); exit 1; }; }
 fi
@@ -4807,9 +4774,6 @@ s,@FILTERSINSTALL@,$FILTERSINSTALL,;t t
 s,@EXTRA_LIBS@,$EXTRA_LIBS,;t t
 s,@GNAT_RTS_FLAG@,$GNAT_RTS_FLAG,;t t
 s,@SUPPORT_RPC_ABORTION@,$SUPPORT_RPC_ABORTION,;t t
-s,@WINDOWS_ON_HOST@,$WINDOWS_ON_HOST,;t t
-s,@WINDOWS_TRUE@,$WINDOWS_TRUE,;t t
-s,@WINDOWS_FALSE@,$WINDOWS_FALSE,;t t
 s,@LIBOBJS@,$LIBOBJS,;t t
 s,@LTLIBOBJS@,$LTLIBOBJS,;t t
 /@FILTERSMAKEFILE@/r $FILTERSMAKEFILE

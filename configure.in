@@ -347,26 +347,9 @@ AC_MSG_CHECKING(for exception model to use)
 AC_MSG_RESULT($EXCEPTION_MODEL)
 AC_SUBST(GNAT_RTS_FLAG)
 AC_SUBST(SUPPORT_RPC_ABORTION)
-
-# Host specific settings
-
-case "$host_os" in
-  cygwin* | mingw*)
-    HOST_EXE_SUFFIX=.exe
-    WINDOWS_ON_HOST=True
-    ;;
-  *)
-    HOST_EXE_SUFFIX=
-    WINDOWS_ON_HOST=False
-    ;;
-esac
-AC_SUBST(WINDOWS_ON_HOST)
-AM_CONDITIONAL(WINDOWS, test x$WINDOWS_ON_HOST = xTrue)
-
 #
 # Header files, only when not cross-compiling
 #
-
 #if test $target = $host; then
 # AC_CHECK_HEADERS([stdio.h sys/types.h sys/socket.h errno.h netdb.h string.h])
 # AC_CHECK_HEADERS([netinet/in.h signal.h fcntl.h termio.h termios.h])

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1995-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNATDIST is  free software;  you  can redistribute  it and/or  modify it --
 -- under terms of the  GNU General Public License  as published by the Free --
@@ -156,15 +156,11 @@ package body XE_Sem is
       if Partitions.Table (Main_Partition).To_Build then
          Register_Unit_To_Load (Main_Subprogram);
       end if;
-
-      --  Load the closure of all configured RCIs
-
       for U in Conf_Units.First .. Conf_Units.Last loop
          if To_Build (U) then
             Register_Unit_To_Load (Conf_Units.Table (U).Name);
          end if;
       end loop;
-
       Load_All_Registered_Units;
 
       ----------------------------
@@ -638,8 +634,8 @@ package body XE_Sem is
       A : constant ALI_Id         := Get_ALI_Id (N);
 
    begin
-      --  There is no ali file associated to this configured unit.
-      --  The configured unit is not an Ada unit.
+      --  There is no ali file associated to this configured
+      --  unit. The configured unit is not an Ada unit.
 
       if A = No_ALI_Id then
          Message ("configured unit", Quote (N), "is not an Ada unit");
@@ -758,14 +754,13 @@ package body XE_Sem is
       while CU /= No_Conf_Unit_Id loop
          A := Conf_Units.Table (CU).My_ALI;
 
-         F := Dir (Monolithic_Obj_Dir, ALIs.Table (A).Afile);
          if Debug_Mode then
-            Message ("update stamp from", F);
+            Message ("update stamp from", ALIs.Table (A).Afile);
          end if;
 
          --  Update most recent stamp of this partition
 
-         Update_Most_Recent_Stamp (Partition, F);
+         Update_Most_Recent_Stamp (Partition, ALIs.Table (A).Afile);
 
          for J in
            ALIs.Table (A).First_Unit .. ALIs.Table (A).Last_Unit
@@ -793,17 +788,11 @@ package body XE_Sem is
          --  Some units may not have ALI files like generic units
 
          if A = No_ALI_Id then
-            if Debug_Mode then
-               Write_Str ("no ALI info found for ");
-               Write_Name (F);
-               Write_Eol;
-            end if;
             goto Next_With;
          end if;
 
          U := ALIs.Table (A).Last_Unit;
 
-         F := Dir (Monolithic_Obj_Dir, F);
          if Debug_Mode then
             Message ("check stamp", F);
          end if;
@@ -812,8 +801,8 @@ package body XE_Sem is
 
          Update_Most_Recent_Stamp (Partition, F);
 
-         --  This unit has already been assigned to this partition: no need to
-         --  explore any further.
+         --  This unit has already been assigned to this
+         --  partition. No need to explore any further.
 
          if Get_Partition_Id (ALIs.Table (A).Uname) = Partition then
             null;

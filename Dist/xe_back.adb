@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1995-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNATDIST is  free software;  you  can redistribute  it and/or  modify it --
 -- under terms of the  GNU General Public License  as published by the Free --
@@ -24,14 +24,10 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Command_Line; use Ada.Command_Line;
-
 with GNAT.HTable;
-with GNAT.Directory_Operations; use GNAT.Directory_Operations;
-with GNAT.OS_Lib;               use GNAT.OS_Lib;
+with GNAT.OS_Lib; use GNAT.OS_Lib;
 
 with XE;       use XE;
-with XE_Defs.Defaults;
 with XE_Flags; use XE_Flags;
 with XE_Front; use XE_Front;
 with XE_IO;    use XE_IO;
@@ -80,9 +76,6 @@ package body XE_Back is
 
    Rules : array (1 .. 64) of Casing_Rule;
    Rules_Last : Natural := 0;
-
-   function Get_Absolute_Command return String;
-   --  Get the absolute path of the command being executed
 
    -----------
    -- "and" --
@@ -221,89 +214,6 @@ package body XE_Back is
       end loop;
    end Generate_All_Stubs_And_Skels;
 
-   ----------------------------------------
-   -- Generate_Application_Project_Files --
-   ----------------------------------------
-
-   procedure Generate_Application_Project_Files is
-      Prj_Fname : File_Name_Type;
-      Prj_File  : File_Descriptor;
-   begin
-      --  Create application-wide project, extending user project file if
-      --  provided.
-
-      Prj_Fname := Dir (Id (Root), Dist_App_Project_File);
-      Create_File (Prj_File, Prj_Fname);
-      Set_Output (Prj_File);
-
-      --  Dependency on PCS
-
-      Write_Str  ("with """);
-      Write_Name (PCS_Project);
-      Write_Line (""";");
-
-      --  Dependency on user project, if any
-
-      Write_Str  ("project ");
-      Write_Name (Dist_App_Project);
-
-      if Project_File_Name /= null then
-         Write_Str (" extends all """ & Project_File_Name.all & """");
-      end if;
-
-      Write_Line (" is");
-      Write_Line ("   for Object_Dir use ""obj"";");
-
-      --  If no user project file is provided, add any source directory
-      --  specified on the command line as source directories, in addition to
-      --  the main application directory. The generated main subprogram
-      --  (monolithic_app.adb) and all RCI units must be sources of the
-      --  project (so that they can be individually recompiled).
-
-      Write_Str  ("   for Source_Dirs use ("".""");
-      if Project_File_Name = null then
-         Write_Line (",");
-         Write_Line ("     ""..""");
-         for J in Source_Directories.First .. Source_Directories.Last loop
-            declare
-               Normalized_Dir : constant String :=
-                                  Normalize_Pathname
-                                    (Source_Directories.Table (J).all);
-            begin
-               if Is_Directory (Normalized_Dir) then
-                  Write_Line (",");
-                  Write_Str ("     """ & Normalized_Dir & """");
-               end if;
-            end;
-         end loop;
-      end if;
-      Write_Line (");");
-
-      --  If a user project file is provided, explicitly specify additional
-      --  source file partition.adb (in addition to all other sources, which
-      --  are sources of this project by virtue of "extends all").
-
-      if Project_File_Name /= null then
-         Write_Str  ("   for Source_Files use (""");
-         Write_Name (Monolithic_Src_Base_Name);
-         Write_Line (""");");
-      end if;
-
-      Write_Str  ("end ");
-      Write_Name (Dist_App_Project);
-      Write_Line (";");
-      Close (Prj_File);
-      Set_Standard_Output;
-
-      Free (Project_File_Name);
-
-      --  Distributed app project file extends user provided project, and
-      --  includes the PCS as well.
-
-      Project_File_Name := new String'(
-                             Normalize_Pathname (Get_Name_String (Prj_Fname)));
-   end Generate_Application_Project_Files;
-
    -------------------------------------
    -- Generate_Partition_Project_File --
    -------------------------------------
@@ -319,7 +229,6 @@ package body XE_Back is
       Prj_Fname := Dir (D, Part_Prj_File_Name);
       Create_File (Prj_File, Prj_Fname);
       Set_Output (Prj_File);
-
       Write_Str  ("project Partition extends all """);
       Write_Str  (Project_File_Name.all);
       Write_Line (""" is");
@@ -327,13 +236,9 @@ package body XE_Back is
 
       if P /= No_Partition_Id then
          Write_Str  ("   for Exec_Dir use """);
-         Name_Len := 0;
-         if Present (Partitions.Table (P).Executable_Dir) then
-            Get_Name_String (Partitions.Table (P).Executable_Dir);
-         end if;
-
          declare
-            Exec_Dir : constant String := Name_Buffer (1 .. Name_Len);
+            Exec_Dir : constant String :=
+                         Get_Name_String (Partitions.Table (P).Executable_Dir);
          begin
             if Exec_Dir'Length = 0
               or else not Is_Absolute_Path (Exec_Dir)
@@ -365,31 +270,19 @@ package body XE_Back is
    -------------------
 
    procedure Generate_Skel (A : ALI_Id; P : Partition_Id) is
+      Obsolete       : Boolean;
       Full_Unit_File : File_Name_Type;
       Full_ALI_File  : File_Name_Type;
       Skel_Object    : File_Name_Type;
       Skel_ALI       : File_Name_Type;
-      Arguments      : Argument_List (1 .. 4);
+      Arguments      : Argument_List (1 .. 3);
       Part_Prj_Fname : File_Name_Type;
       Directory      : Directory_Name_Type
         renames Partitions.Table (P).Partition_Dir;
 
    begin
       Full_Unit_File := Units.Table (ALIs.Table (A).First_Unit).Sfile;
-      Full_ALI_File  := Dir (Monolithic_Obj_Dir, ALIs.Table (A).Afile);
-
-      if not Is_Regular_File (Full_ALI_File) then
-
-         --  No ALI in monolithic application: this must be the PCS_Conf_Unit.
-         --  In this case the Full_ALI_File is deemed to be older than any
-         --  existing stubs file, and so the stubs will be considered to be
-         --  always up-to-date if present.
-
-         pragma Assert
-           (PCS_Conf_Unit /= No_Name
-              and then ALIs.Table (A).Uname = PCS_Conf_Unit);
-         null;
-      end if;
+      Full_ALI_File  := ALIs.Table (A).Afile;
 
       --  Determination of skel ALI file name
 
@@ -398,56 +291,59 @@ package body XE_Back is
 
       --  Do we need to generate the skel files
 
+      Obsolete := False;
       if not Is_Regular_File (Skel_Object) then
          if Verbose_Mode then
             Write_Missing_File (Skel_Object);
          end if;
+         Obsolete := True;
+      end if;
 
-      elsif not Is_Regular_File (Skel_ALI) then
+      if not Obsolete
+        and then not Is_Regular_File (Skel_ALI)
+      then
          if Verbose_Mode then
             Write_Missing_File (Skel_ALI);
          end if;
+         Obsolete := True;
+      end if;
 
-      elsif File_Time_Stamp (Full_ALI_File) > File_Time_Stamp (Skel_ALI) then
+      if not Obsolete
+        and then File_Time_Stamp (Full_ALI_File) > File_Time_Stamp (Skel_ALI)
+      then
          if Verbose_Mode then
             Write_Stamp_Comparison (Full_ALI_File, Skel_ALI);
          end if;
+         Obsolete := True;
+      end if;
 
-      else
+      if Obsolete then
          if not Quiet_Mode then
-            Message ("  ", ALIs.Table (A).Uname,
-                     "receiver stubs is up to date");
+            Message
+              ("building", ALIs.Table (A).Uname,
+               "receiver stubs from", Normalize_CWD (Full_Unit_File));
          end if;
-         return;
+
+         Arguments (1) := Skel_Flag;
+
+         if Project_File_Name = null then
+            Arguments (2) := Object_Dir_Flag;
+            Arguments (3) := new String'(Get_Name_String (Directory));
+
+         else
+            Arguments (2) := Project_File_Flag;
+            Part_Prj_Fname := Dir (Directory, Part_Prj_File_Name);
+            Get_Name_String (Part_Prj_Fname);
+            Arguments (3) := new String'(Name_Buffer (1 .. Name_Len));
+         end if;
+
+         Compile (Full_Unit_File, Arguments, Fatal => False);
+
+         Free (Arguments (3));
+
+      elsif not Quiet_Mode then
+         Message ("  ", ALIs.Table (A).Uname, "receiver stubs is up to date");
       end if;
-
-      --  Here if stubs need to be rebuilt
-
-      if not Quiet_Mode then
-         Message
-           ("building", ALIs.Table (A).Uname,
-            "receiver stubs from", Normalize_CWD (Full_Unit_File));
-      end if;
-
-      Arguments (1) := Skel_Flag;
-
-      if Project_File_Name = null then
-         Arguments (2) := Object_Dir_Flag;
-         Arguments (3) := new String'(Get_Name_String (Directory));
-
-      else
-         Arguments (2)  := Project_File_Flag;
-         Part_Prj_Fname := Dir (Directory, Part_Prj_File_Name);
-         Get_Name_String (Part_Prj_Fname);
-         Arguments (3)  := new String'(Name_Buffer (1 .. Name_Len));
-      end if;
-
-      Arguments (4) := new String'(Partition_Dir_Flag (P));
-
-      Compile (Full_Unit_File, Arguments, Fatal => False);
-
-      Free (Arguments (3));
-      Free (Arguments (4));
    end Generate_Skel;
 
    -------------------------
@@ -650,6 +546,7 @@ package body XE_Back is
    -------------------
 
    procedure Generate_Stub (A : ALI_Id) is
+      Obsolete         : Boolean;
       Full_Unit_File   : File_Name_Type;
       Full_ALI_File    : File_Name_Type;
       Full_ALI_Base    : File_Name_Type;
@@ -666,21 +563,8 @@ package body XE_Back is
       end if;
 
       Full_Unit_File := Units.Table (Unit).Sfile;
-      Full_ALI_File  := Dir (Monolithic_Obj_Dir, ALIs.Table (A).Afile);
-      Full_ALI_Base  := ALIs.Table (A).Afile;
-
-      if not Is_Regular_File (Full_ALI_File) then
-
-         --  No ALI in monolithic application: this must be the PCS_Conf_Unit.
-         --  In this case the Full_ALI_File is deemed to be older than any
-         --  existing stubs file, and so the stubs will be considered to be
-         --  always up-to-date if present.
-
-         pragma Assert
-           (PCS_Conf_Unit /= No_Name
-              and then ALIs.Table (A).Uname = PCS_Conf_Unit);
-         null;
-      end if;
+      Full_ALI_File  := ALIs.Table (A).Afile;
+      Full_ALI_Base  := Strip_Directory (Full_ALI_File);
 
       --  Determination of stub ALI file name
 
@@ -698,108 +582,89 @@ package body XE_Back is
 
       --  Do we need to regenerate the caller stub and its ali?
 
+      Obsolete := False;
       if not Is_Regular_File (Stub_Object) then
          if Verbose_Mode then
             Write_Missing_File (Stub_Object);
          end if;
+         Obsolete := True;
+      end if;
 
-      elsif not Is_Regular_File (Stub_ALI) then
+      if not Obsolete
+        and then not Is_Regular_File (Stub_ALI)
+      then
          if Verbose_Mode then
             Write_Missing_File (Stub_ALI);
          end if;
+         Obsolete := True;
+      end if;
 
-      elsif File_Time_Stamp (Full_ALI_File) > File_Time_Stamp (Stub_ALI) then
+      if not Obsolete
+        and then File_Time_Stamp (Full_ALI_File) > File_Time_Stamp (Stub_ALI)
+      then
          if Verbose_Mode then
             Write_Stamp_Comparison (Full_ALI_File, Stub_ALI);
          end if;
+         Obsolete := True;
+      end if;
 
-      else
+      if Obsolete then
          if not Quiet_Mode then
-            Message ("  ", ALIs.Table (A).Uname, "caller stubs is up to date");
+            Message
+              ("building", ALIs.Table (A).Uname,
+               "caller stubs from", Normalize_CWD (Full_Unit_File));
          end if;
-         return;
-      end if;
 
-      --  Here if stubs need to be rebuilt
+         Arguments (1) := Stub_Flag;
 
-      if not Quiet_Mode then
-         Message
-           ("building", ALIs.Table (A).Uname,
-            "caller stubs from", Normalize_CWD (Full_Unit_File));
-      end if;
+         if Project_File_Name = null then
+            Arguments (2) := Object_Dir_Flag;
+            Arguments (3) := Stub_Dir;
 
-      Arguments (1) := Stub_Flag;
+         else
+            Arguments (2)  := Project_File_Flag;
+            Part_Prj_Fname := Dir (Stub_Dir, Part_Prj_File_Name);
+            Get_Name_String (Part_Prj_Fname);
+            Arguments (3)  := new String'(Name_Buffer (1 .. Name_Len));
+         end if;
 
-      if Project_File_Name = null then
-         Arguments (2) := Object_Dir_Flag;
-         Arguments (3) := Stub_Dir;
+         Compile (Full_Unit_File, Arguments, Fatal => False);
 
-      else
-         Arguments (2)  := Project_File_Flag;
-         Part_Prj_Fname := Dir (Stub_Dir, Part_Prj_File_Name);
-         Get_Name_String (Part_Prj_Fname);
-         Arguments (3)  := new String'(Name_Buffer (1 .. Name_Len));
-      end if;
+         --  Now rename output files if required (see comments above)
 
-      Compile (Full_Unit_File, Arguments, Fatal => False);
+         if Full_ALI_Base /= Stub_ALI_Base then
+            declare
+               Final_ALI : constant File_Name_Type :=
+                             Dir (Stub_Dir_Name, Full_ALI_Base);
+               Final_Object : constant File_Name_Type := To_Ofile (Final_ALI);
 
-      --  Now rename output files if required (see comments above)
+               procedure Do_Rename (Src, Target : File_Name_Type);
+               --  Call Rename_File (Src, Target), also outputting a message
+               --  if in debug mode.
 
-      if Full_ALI_Base /= Stub_ALI_Base then
-         declare
-            Final_ALI : constant File_Name_Type :=
-                          Dir (Stub_Dir_Name, Full_ALI_Base);
-            Final_Object : constant File_Name_Type := To_Ofile (Final_ALI);
+               procedure Do_Rename (Src, Target : File_Name_Type) is
+               begin
+                  if Debug_Mode then
+                     Message ("renaming", Src, "to", Target);
+                  end if;
+                  Delete_File (Target);
+                  Rename_File (Src, Target);
+               end Do_Rename;
 
-            procedure Do_Rename (Src, Target : File_Name_Type);
-            --  Call Rename_File (Src, Target), also outputting a message
-            --  if in debug mode.
-
-            procedure Do_Rename (Src, Target : File_Name_Type) is
             begin
-               if Debug_Mode then
-                  Message ("renaming", Src, "to", Target);
-               end if;
-               Delete_File (Target);
-               Rename_File (Src, Target);
-            end Do_Rename;
-
-         begin
-            Do_Rename (Stub_ALI,    Final_ALI);
-            Do_Rename (Stub_Object, Final_Object);
-         end;
-      end if;
-
-      if Present (Part_Prj_Fname) then
-         Free (Arguments (3));
-      end if;
-
-   end Generate_Stub;
-
-   --------------------------
-   -- Get_Absolute_Command --
-   --------------------------
-
-   function Get_Absolute_Command return String is
-      Cmd : constant String := Command_Name;
-   begin
-      for J in Cmd'Range loop
-         if Cmd (J) = Dir_Separator then
-            return Normalize_Pathname (Cmd);
+               Do_Rename (Stub_ALI,    Final_ALI);
+               Do_Rename (Stub_Object, Final_Object);
+            end;
          end if;
-      end loop;
 
-      --  Case of command name containing no directory separator
+         if Present (Part_Prj_Fname) then
+            Free (Arguments (3));
+         end if;
 
-      declare
-         Abs_Command_Access : String_Access := Locate_Exec_On_Path (Cmd);
-         Abs_Command : constant String := Abs_Command_Access.all;
-      begin
-         Free (Abs_Command_Access);
-         return Abs_Command;
-      end;
-
-   end Get_Absolute_Command;
+      elsif not Quiet_Mode then
+         Message ("  ", ALIs.Table (A).Uname, "caller stubs is up to date");
+      end if;
+   end Generate_Stub;
 
    ----------------------------------
    -- Get_Environment_Vars_Command --
@@ -843,41 +708,6 @@ package body XE_Back is
       Partition_Main_File := Id ("partition");
       Partition_Main_Name := Id ("Partition");
    end Initialize;
-
-   ------------------------
-   -- Partition_Dir_Flag --
-   ------------------------
-
-   function Partition_Dir_Flag (P : Partition_Id) return String is
-   begin
-      Set_Str_To_Name_Buffer ("-XPARTITION_DIR=");
-      Get_Name_String_And_Append (Partitions.Table (P).Partition_Dir);
-      return Name_Buffer (1 .. Name_Len);
-   end Partition_Dir_Flag;
-
-   --  Local declarations for Prefix
-
-   Exec_Abs_Name : constant String := Get_Absolute_Command;
-   Exec_Abs_Dir  : constant String := Dir_Name (Exec_Abs_Name);
-
-   --  Strip trailing separator and remove last component ("bin")
-
-   Exec_Prefix   : constant String  :=
-                     Dir_Name (Exec_Abs_Dir (Exec_Abs_Dir'First
-                                          .. Exec_Abs_Dir'Last - 1));
-
-   ------------
-   -- Prefix --
-   ------------
-
-   function Prefix (Check_For : String) return String is
-   begin
-      if Is_Readable_File (Exec_Prefix & Check_For) then
-         return Exec_Prefix;
-      else
-         return XE_Defs.Defaults.Default_Prefix;
-      end if;
-   end Prefix;
 
    -------------------------
    -- Prepare_Directories --

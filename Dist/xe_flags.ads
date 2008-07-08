@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 1995-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2006 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GNATDIST is  free software;  you  can redistribute  it and/or  modify it --
 -- under terms of the  GNU General Public License  as published by the Free --
@@ -30,50 +30,34 @@
 with GNAT.Table;
 with GNAT.OS_Lib; use GNAT.OS_Lib;
 
-with XE_Defs.Defaults;
-
 package XE_Flags is
 
-   Quiet_Mode           : Boolean := False;
-   Verbose_Mode         : Boolean := False;
-   Debug_Mode           : Boolean := False;
-   Check_Readonly_Files : Boolean := False;
+   Keep_Tmp_Files     : Boolean;
+   Verbose_Mode       : Boolean;
+   Debug_Mode         : Boolean;
+   Quiet_Mode         : Boolean;
 
-   Keep_Tmp_Files       : Boolean := False;
-   --  Do not remove temporary files
+   Readonly_Flag      : constant String_Access := new String'("-a");
+   Bind_Only_Flag     : constant String_Access := new String'("-b");
+   Compile_Only_Flag  : constant String_Access := new String'("-c");
+   Object_Dir_Flag    : constant String_Access := new String'("-D");
+   Dependencies_Flag  : constant String_Access := new String'("-d");
+   Keep_Going_Flag    : constant String_Access := new String'("-k");
+   Link_Only_Flag     : constant String_Access := new String'("-l");
+   Output_Flag        : constant String_Access := new String'("-o");
+   Project_File_Flag  : constant String_Access := new String'("-P");
+   Quiet_Flag         : constant String_Access := new String'("-q");
+   Verbose_Flag       : constant String_Access := new String'("-v");
+   GLADE_List_Flag    : constant String_Access := new String'("-V");
+   Semantic_Only_Flag : constant String_Access := new String'("-gnatc");
+   Skel_Flag          : constant String_Access := new String'("-gnatzr");
+   Stub_Flag          : constant String_Access := new String'("-gnatzc");
+   Comp_Arg_Flag      : constant String_Access := new String'("-cargs");
+   Bind_Arg_Flag      : constant String_Access := new String'("-bargs");
+   Link_Arg_Flag      : constant String_Access := new String'("-largs");
 
-   User_Provided_S_RPC  : Boolean := False;
-   --  User provided his own version of s-rpc.adb, overriding the one from the
-   --  PCS.
-
-   Use_PolyORB_Project  : Boolean := XE_Defs.Defaults.Windows_On_Host;
-   --  True when the installed project file must be used to reference the
-   --  PolyORB PCS (otherwise the external script polyorb-config is used,
-   --  exception on Windows where the MinGW environment does not support
-   --  spawning arbitrary shell scripts).
-
-   Readonly_Flag       : constant String_Access := new String'("-a");
-   Bind_Only_Flag      : constant String_Access := new String'("-b");
-   Compile_Only_Flag   : constant String_Access := new String'("-c");
-   Object_Dir_Flag     : constant String_Access := new String'("-D");
-   Dependencies_Flag   : constant String_Access := new String'("-d");
-   Keep_Going_Flag     : constant String_Access := new String'("-k");
-   Link_Only_Flag      : constant String_Access := new String'("-l");
-   Output_Flag         : constant String_Access := new String'("-o");
-   Project_File_Flag   : constant String_Access := new String'("-P");
-   Quiet_Flag          : constant String_Access := new String'("-q");
-   Verbose_Flag        : constant String_Access := new String'("-v");
-   GLADE_List_Flag     : constant String_Access := new String'("-V");
-   External_Units_Flag : constant String_Access := new String'("-x");
-   Semantic_Only_Flag  : constant String_Access := new String'("-gnatc");
-   Skel_Flag           : constant String_Access := new String'("-gnatzr");
-   Stub_Flag           : constant String_Access := new String'("-gnatzc");
-   Comp_Args_Flag      : constant String_Access := new String'("-cargs");
-   Bind_Args_Flag      : constant String_Access := new String'("-bargs");
-   Link_Args_Flag      : constant String_Access := new String'("-largs");
-   Make_Args_Flag      : constant String_Access := new String'("-margs");
-
-   Project_File_Name : String_Access;
+   Project_File_Name_Present : Boolean := False;
+   Project_File_Name         : String_Access;
 
    package Make_Switches is new GNAT.Table (
      Table_Component_Type => String_Access,
@@ -83,13 +67,6 @@ package XE_Flags is
      Table_Increment      => 100);
 
    package List_Switches is new GNAT.Table (
-     Table_Component_Type => String_Access,
-     Table_Index_Type     => Integer,
-     Table_Low_Bound      => 1,
-     Table_Initial        => 20,
-     Table_Increment      => 100);
-
-   package Source_Directories is new GNAT.Table (
      Table_Component_Type => String_Access,
      Table_Index_Type     => Integer,
      Table_Low_Bound      => 1,

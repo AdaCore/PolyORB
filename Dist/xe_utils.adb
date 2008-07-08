@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1995-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNATDIST is  free software;  you  can redistribute  it and/or  modify it --
 -- under terms of the  GNU General Public License  as published by the Free --
@@ -24,11 +24,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Characters.Handling; use Ada.Characters.Handling;
-with Ada.Command_Line;        use Ada.Command_Line;
-
-with GNAT.Directory_Operations; use GNAT.Directory_Operations;
-
+with Ada.Command_Line; use Ada.Command_Line;
 with XE_Defs;          use XE_Defs;
 with XE_Flags;         use XE_Flags;
 with XE_IO;            use XE_IO;
@@ -50,13 +46,6 @@ package body XE_Utils is
    --  Used to indicate if we are scanning gnatmake, gcc, gnatbind, or
    --  gnatbind options within the gnatmake command line.
 
-   procedure Ensure_Make_Args;
-   --  Reset Program_Args to None, adding "-margs" to make switches if needed
-
-   Project_File_Name_Expected : Boolean := False;
-   --  Used to keep state between invocations of Scan_Dist_Arg. True when
-   --  previous argument was "-P".
-
    Usage_Needed : Boolean := False;
 
    function Dup (Fd : File_Descriptor) return File_Descriptor;
@@ -71,6 +60,8 @@ package body XE_Utils is
    Build_Command   : constant String_Access := new String'("make");
    Compile_Command : constant String_Access := new String'("compile");
 
+   Up_To_Low : constant := Character'Pos ('A') - Character'Pos ('a');
+
    function Locate
      (Exec_Name  : String;
       Show_Error : Boolean := True)
@@ -80,11 +71,9 @@ package body XE_Utils is
    --  Show_Error is set to False then null is returned. If Exec_Name is not
    --  found and Show_Error is set to True then Fatal_Error is raised.
 
-   procedure Add_Make_Switch (Argv : String_Access);
    procedure Add_Make_Switch (Argv : String);
    procedure Add_List_Switch (Argv : String);
    procedure Add_Main_Source (Source : String);
-   procedure Add_Source_Directory (Argv : String);
 
    procedure Fail
      (S1 : String;
@@ -102,10 +91,6 @@ package body XE_Utils is
    pragma Convention (C, Sigint_Intercepted);
    --  Called when the program is interrupted by Ctrl-C to delete the
    --  temporary mapping files and configuration pragmas files.
-
-   procedure Check_User_Provided_S_RPC (Dir : String);
-   --  Check whether the given directory contains a user-provided version of
-   --  s-rpc.adb, and if so set the global flag User_Provided_S_RPC to True.
 
    ---------
    -- "&" --
@@ -143,9 +128,9 @@ package body XE_Utils is
       return Name_Find;
    end "&";
 
-   ---------------------
+   -----------------------
    -- Add_List_Switch --
-   ---------------------
+   -----------------------
 
    procedure Add_List_Switch (Argv : String) is
    begin
@@ -167,33 +152,14 @@ package body XE_Utils is
       Main_Sources (Last_Main_Source) := Name_Find;
    end Add_Main_Source;
 
-   ---------------------
+   -----------------------
    -- Add_Make_Switch --
-   ---------------------
-
-   procedure Add_Make_Switch (Argv : String_Access) is
-   begin
-      Make_Switches.Append (Argv);
-   end Add_Make_Switch;
-
-   ---------------------
-   -- Add_Make_Switch --
-   ---------------------
+   -----------------------
 
    procedure Add_Make_Switch (Argv : String) is
    begin
       Make_Switches.Append (new String'(Argv));
    end Add_Make_Switch;
-
-   --------------------------
-   -- Add_Source_Directory --
-   --------------------------
-
-   procedure Add_Source_Directory (Argv : String) is
-   begin
-      Check_User_Provided_S_RPC (Argv);
-      Source_Directories.Append (new String'(Argv));
-   end Add_Source_Directory;
 
    -----------
    -- Build --
@@ -318,13 +284,13 @@ package body XE_Utils is
       for J in S'Range loop
          if S (J) in 'a' .. 'z' then
             if Capitalized then
-               S (J) := To_Upper (S (J));
+               S (J) := Character'Val (Character'Pos (S (J)) + Up_To_Low);
             end if;
             Capitalized := False;
 
          elsif S (J) in 'A' .. 'Z' then
             if not Capitalized then
-               S (J) := To_Lower (S (J));
+               S (J) := Character'Val (Character'Pos (S (J)) - Up_To_Low);
             end if;
             Capitalized := False;
 
@@ -333,20 +299,6 @@ package body XE_Utils is
          end if;
       end loop;
    end Capitalize;
-
-   -------------------------------
-   -- Check_User_Provided_S_RPC --
-   -------------------------------
-
-   procedure Check_User_Provided_S_RPC (Dir : String) is
-   begin
-      --  Special kludge: if the user provides his own version of s-rpc, the
-      --  PCS should not provide it.
-
-      if Is_Readable_File (Dir & Dir_Separator & "s-rpc.adb") then
-         XE_Flags.User_Provided_S_RPC := True;
-      end if;
-   end Check_User_Provided_S_RPC;
 
    -------------
    -- Compile --
@@ -378,8 +330,7 @@ package body XE_Utils is
 
       N_Flags := N_Flags + 1;
       Get_Name_String (Source);
-      Flags (N_Flags) :=
-        new String'(Normalize_Pathname (Name_Buffer (1 .. Name_Len)));
+      Flags (N_Flags) := new String'(Name_Buffer (1 .. Name_Len));
 
       --  Check whether we have a predefined unit
 
@@ -448,18 +399,6 @@ package body XE_Utils is
          raise Compilation_Error;
       end if;
    end Compile;
-
-   ----------------------
-   -- Ensure_Make_Args --
-   ----------------------
-
-   procedure Ensure_Make_Args is
-   begin
-      if Program_Args /= None then
-         Add_Make_Switch (Make_Args_Flag);
-         Program_Args := None;
-      end if;
-   end Ensure_Make_Args;
 
    -------------
    -- Execute --
@@ -556,32 +495,11 @@ package body XE_Utils is
       I_Current_Dir  := new String'("-I.");
       E_Current_Dir  := new String'("-I-");
 
-      Monolithic_App_Unit_Name := Id ("Monolithic_App");
-
-      Get_Name_String (Monolithic_App_Unit_Name);
-      To_Lower (Name_Buffer (1 .. Name_Len));
-      Add_Str_To_Name_Buffer (ADB_Suffix);
-
-      Monolithic_Src_Base_Name := Name_Find;
-      Monolithic_Src_Name := Dir (Id (Root), Monolithic_Src_Base_Name);
-      Monolithic_ALI_Name := To_Afile (Monolithic_Src_Name);
-      Monolithic_Obj_Name := To_Ofile (Monolithic_Src_Name);
-
-      Monolithic_Obj_Dir  := Dir (Id (Root), Id ("obj"));
-
-      PCS_Project        := Id ("pcs_project");
-      Set_Corresponding_Project_File_Name (PCS_Project_File);
-
-      Dist_App_Project   := Id ("dist_app_project");
-      Set_Corresponding_Project_File_Name (Dist_App_Project_File);
-
       Part_Main_Src_Name := Id ("partition" & ADB_Suffix);
       Part_Main_ALI_Name := To_Afile (Part_Main_Src_Name);
       Part_Main_Obj_Name := To_Ofile (Part_Main_Src_Name);
 
       Part_Prj_File_Name := Id ("partition.gpr");
-
-      Overridden_PCS_Units := Id ("pcs_excluded.lst");
 
       Name_Len := 2;
       Name_Buffer (1 .. 2) := "-A";
@@ -589,22 +507,13 @@ package body XE_Utils is
       A_Stub_Dir := new String'(Name_Buffer (1 .. Name_Len));
 
       for J in 1 .. Argument_Count loop
-         Scan_Dist_Arg (Argument (J), Implicit => False);
+         Scan_Dist_Arg (Argument (J));
       end loop;
 
-      if Project_File_Name_Expected then
+      if Project_File_Name_Present
+        and then Project_File_Name /= null
+      then
          Fail ("project file name missing after -P");
-      end if;
-
-      if Check_Readonly_Files and then Project_File_Name = null then
-         --  If the user asks for recompilation of files with read-only ALIs
-         --  (in practice recompilation of the GNAT runtime), and no project
-         --  has been provided, then assume that additional files to be
-         --  recompiled won't be covered by the generated project, and pass
-         --  extra flag to gnatmake to allow compiling them anyway.
-
-         Ensure_Make_Args;
-         Add_Make_Switch (External_Units_Flag);
       end if;
 
       XE_Defs.Initialize;
@@ -618,11 +527,8 @@ package body XE_Utils is
 
       Create_Dir (Stub_Dir_Name);
       Create_Dir (Part_Dir_Name);
-      Create_Dir (Monolithic_Obj_Dir);
 
       GNAT_Driver := Locate ("gnat");
-
-      Check_User_Provided_S_RPC (".");
    end Initialize;
 
    ----------
@@ -846,7 +752,7 @@ package body XE_Utils is
    -- Scan_Dist_Arg --
    -------------------
 
-   procedure Scan_Dist_Arg (Argv : String; Implicit : Boolean := True) is
+   procedure Scan_Dist_Arg (Argv : String) is
    begin
       if Argv'Length = 0 then
          return;
@@ -854,33 +760,36 @@ package body XE_Utils is
 
       if Argv = "-cargs" then
          Program_Args := Compiler;
-         Add_Make_Switch (Comp_Args_Flag);
+         Add_Make_Switch (Argv);
          return;
 
       elsif Argv = "-bargs" then
          Program_Args := Binder;
-         Add_Make_Switch (Bind_Args_Flag);
+         Add_Make_Switch (Argv);
          return;
 
       elsif Argv = "-largs" then
          Program_Args := Linker;
-         Add_Make_Switch (Link_Args_Flag);
+         Add_Make_Switch (Argv);
          return;
 
       elsif Argv = "-margs" then
          Program_Args := None;
-         Add_Make_Switch (Make_Args_Flag);
-         return;
-      end if;
-
-      if Program_Args = Binder or else Program_Args = Linker then
          Add_Make_Switch (Argv);
          return;
       end if;
 
-      if Project_File_Name_Expected then
-         Project_File_Name          := new String'(Normalize_Pathname (Argv));
-         Project_File_Name_Expected := False;
+      if Program_Args = Binder
+        or else Program_Args = Linker
+      then
+         Add_Make_Switch (Argv);
+         return;
+      end if;
+
+      if Project_File_Name_Present then
+         Project_File_Name :=
+           new String'(Normalize_Pathname (Argv));
+         Project_File_Name_Present := False;
 
       elsif Argv (Argv'First) = '-' then
 
@@ -906,29 +815,22 @@ package body XE_Utils is
          then
             Add_List_Switch (Argv);
             Add_Make_Switch (Argv);
-            if Argv (Argv'First + 1) = 'I' and then not Implicit then
-               Add_Source_Directory (Argv (Argv'First + 2 .. Argv'Last));
-            end if;
 
-         --  Processing for -aIdir, -aLdir, -aOdir, -aPdir
+         --  Processing for -aIdir, -aLdir and -aOdir
 
          elsif Argv'Length >= 3
            and then Argv (Argv'First + 1) = 'a'
            and then (Argv (Argv'First + 2) = 'I'
              or else Argv (Argv'First + 2) = 'L'
-             or else Argv (Argv'First + 2) = 'O'
-             or else Argv (Argv'First + 2) = 'P')
+             or else Argv (Argv'First + 2) = 'O')
          then
             Add_List_Switch (Argv);
             Add_Make_Switch (Argv);
-            if Argv (Argv'First + 2) = 'I' and then not Implicit then
-               Add_Source_Directory (Argv (Argv'First + 3 .. Argv'Last));
-            end if;
 
          elsif Argv (Argv'First + 1) = 'P' then
 
-            if Project_File_Name_Expected
-                 or else Project_File_Name /= null
+            if Project_File_Name_Present
+              or else Project_File_Name /= null
             then
                Fail ("cannot have several project files specified");
             end if;
@@ -943,7 +845,7 @@ package body XE_Utils is
                Add_Make_Switch (Project_File_Name.all);
 
             else
-               Project_File_Name_Expected := True;
+               Project_File_Name_Present := True;
                Add_List_Switch (Project_File_Flag.all);
                Add_Make_Switch (Project_File_Flag.all);
             end if;
@@ -952,61 +854,49 @@ package body XE_Utils is
             Add_List_Switch (Argv);
             Add_Make_Switch (Argv);
 
-         --  Debugging switches
-
-         elsif Argv (Argv'First + 1) = 'd' then
-
-            --  -d: debugging traces
-
-            if Argv'Length = 2 then
-               Debug_Mode := True;
-
-            else
-               case Argv (Argv'First + 2) is
-                  --  -df: output base names only in error messages (to ensure
-                  --       constant output for testsuites).
-
-                  when 'f' =>
-                     Add_Make_Switch ("-df");
-
-                  --  -dP: Force using project files to reference the PolyORB
-                  --       PCS even on non-Windows platforms.
-
-                  when 'P' =>
-                     Use_PolyORB_Project := True;
-
-                  when others =>
-                     Usage_Needed := True;
-
-               end case;
-            end if;
-
          --  Processing for one character switches
 
          elsif Argv'Length = 2 then
             case Argv (Argv'First + 1) is
                when 'a' =>
-                  Check_Readonly_Files := True;
                   Add_List_Switch (Argv);
+                  Add_Make_Switch (Argv);
+
+               when 'f'
+                 |  'g'
+                 |  'O' =>
                   Add_Make_Switch (Argv);
 
                when 't' =>
                   Keep_Tmp_Files := True;
-                  Add_Make_Switch ("-dn");
+
+               when 'd' =>
+                  Debug_Mode   := True;
 
                when 'q' =>
-                  Quiet_Mode := True;
-                  --  Switch is passed to gnatmake later on
+                  Quiet_Mode   := True;
 
                when 'v' =>
                   Verbose_Mode := True;
-                  --  Switch is passed to gnatmake later on
 
                when others =>
-                  --  Pass unrecognized switches to gnatmake
-
-                  Add_Make_Switch (Argv);
+                  Usage_Needed := True;
             end case;
+
+         --  Processing for -O0, -O1, -O2 and -O3
+
+         elsif Argv'Length = 3
+           and then Argv (Argv'First + 1) = 'O'
+           and then Argv (Argv'First + 2) in '0' .. '3'
+         then
+            Add_Make_Switch (Argv);
+
+         --  Processing for -gnat flags
+
+         elsif Argv'Length > 5
+           and then Argv (Argv'First + 1 .. Argv'First + 4) = "gnat"
+         then
+            Add_Make_Switch (Argv);
 
          --  Processing for --PCS=
 
@@ -1024,7 +914,7 @@ package body XE_Utils is
             Add_List_Switch (Argv);
 
          else
-            Add_Make_Switch (Argv);
+            Usage_Needed := True;
          end if;
 
       else
@@ -1039,10 +929,11 @@ package body XE_Utils is
    procedure Scan_Dist_Args (Args : String) is
       Argv : Argument_List_Access := Argument_String_To_List (Args);
    begin
-      --  We have already processed the user command line: we might be in the
-      --  -cargs or -largs section. If so, switch back to -margs now.
+      --  We have already processed the user command line: we might be
+      --  in the -cargs or -largs section.
 
-      Ensure_Make_Args;
+      Scan_Dist_Arg ("-margs");
+
       for J in Argv'Range loop
          if Argv (J)'Length > 0 then
             Scan_Dist_Arg (Argv (J).all);
@@ -1050,16 +941,6 @@ package body XE_Utils is
       end loop;
       Free (Argv);
    end Scan_Dist_Args;
-
-   -----------------------------------------
-   -- Set_Corresponding_Project_File_Name --
-   -----------------------------------------
-
-   procedure Set_Corresponding_Project_File_Name (N : out File_Name_Type) is
-   begin
-      Add_Str_To_Name_Buffer (".gpr");
-      N := Name_Find;
-   end Set_Corresponding_Project_File_Name;
 
    --------------------
    -- Show_Dist_Args --
@@ -1088,10 +969,24 @@ package body XE_Utils is
    -- To_Lower --
    --------------
 
+   function To_Lower (C : Character) return Character is
+   begin
+      if C in 'A' .. 'Z' then
+         return Character'Val (Character'Pos (C) - Up_To_Low);
+      end if;
+      return C;
+   end To_Lower;
+
+   --------------
+   -- To_Lower --
+   --------------
+
    procedure To_Lower (S : in out String) is
    begin
-      for J in S'Range loop
-         S (J) := To_Lower (S (J));
+      for I in S'Range loop
+         if S (I) in 'A' .. 'Z' then
+            S (I) := Character'Val (Character'Pos (S (I)) - Up_To_Low);
+         end if;
       end loop;
    end To_Lower;
 

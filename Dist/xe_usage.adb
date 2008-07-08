@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1995-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNATDIST is  free software;  you  can redistribute  it and/or  modify it --
 -- under terms of the  GNU General Public License  as published by the Free --
@@ -43,7 +43,7 @@ begin
       Write_Str (" / ");
       Write_Str (Version (Version'First .. Length));
       Write_Eol;
-      Write_Str ("Copyright 1996-2008, Free Software Foundation, Inc.");
+      Write_Str ("Copyright 1996-2005 Free Software Foundation, Inc.");
       Write_Eol;
       Write_Eol;
    end if;
@@ -73,13 +73,13 @@ begin
    Write_Eol;
    Write_Str ("  -t        Keep all temporary files");
    Write_Eol;
-   Write_Str ("  --PCS=... "
-              & "Select PCS variant (default: "
-              & XE_Defs.Defaults.Default_PCS_Name & ")");
+   Write_Str ("  --PCS=... Select PCS variant (default: "
+     & XE_Defs.Defaults.Default_PCS_Name & ")");
    Write_Eol;
    Write_Eol;
 
-   Write_Str ("Other switches are passed directly to gnatmake");
+   Write_Str ("Gcc switches such as -g, -O, etc.");
+   Write_Str (" are directly passed to gcc");
    Write_Eol;
    Write_Eol;
 

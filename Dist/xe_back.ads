@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 1995-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNATDIST is  free software;  you  can redistribute  it and/or  modify it --
 -- under terms of the  GNU General Public License  as published by the Free --
@@ -94,11 +94,6 @@ private
    --  main partition subprogram. This can be a shell script or an Ada
    --  program.
 
-   procedure Generate_Application_Project_Files;
-   --  Generate a project file for the appplication code, extending the one
-   --  provided by the user (if any), and including a dependency upon the PCS
-   --  project. This is PCS independent.
-
    function Get_Environment_Vars_Command return String;
    --  Return a shell command that exports all the registered environment vars
 
@@ -142,19 +137,9 @@ private
    --  Add a with clause W, a use clause when U is true and an
    --  elaborate clause when E is true.
 
-   function Prefix (Check_For : String) return String;
-   --  Return the PCS installation prefix as dynamically determined by the
-   --  location of the gnatdist executable, or fall back to the default
-   --  (configure-time) prefix. The validity of a candidate prefix is
-   --  checked by testing whether file Check_For exists under that prefix.
-
    procedure Apply_Casing_Rules (S : in out String);
    procedure Register_Casing_Rule (S : String);
    --  ??? documentation needed!
-
-   function Partition_Dir_Flag (P : Partition_Id) return String;
-   --  Return a gnatmake command line flag setting external variable
-   --  PARTITION_DIR for partition P.
 
    Build_Stamp_File    : File_Name_Type;
    Partition_Main_File : File_Name_Type;
