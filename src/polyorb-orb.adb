@@ -377,7 +377,7 @@ package body PolyORB.ORB is
    procedure Run
      (ORB            : access ORB_Type;
       Exit_Condition :        Exit_Condition_T := (null, null);
-      May_Poll       :        Boolean := False)
+      May_Poll       :        Boolean)
    is
       use PolyORB.Task_Info;
 
