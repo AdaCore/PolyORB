@@ -1,0 +1,8 @@
+abstract interface AbsInf {
+ short op1();
+};
+interface Inf {
+ AbsInf op2(in AbsInf inp, inout AbsInf iop, out AbsInf outp);
+};
+interface Itfderiv : AbsInf {
+};

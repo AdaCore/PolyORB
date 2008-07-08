@@ -1,0 +1,19 @@
+with "polyorb", "test_common", "cos_time";
+
+project local is
+
+   Dir := external ("Test_Dir");
+   Obj_Dir := Test_Common.Build_Dir & Dir;
+   for Object_Dir use Obj_Dir;
+   for Source_Dirs use (Obj_Dir, Test_Common.Source_Dir & Dir);
+
+   package Compiler is
+
+      for Default_Switches ("Ada")
+         use Test_Common.Compiler'Default_Switches ("Ada");
+
+   end Compiler;
+
+   for Main use ("test_time");
+
+end local;

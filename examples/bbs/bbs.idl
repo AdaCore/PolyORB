@@ -1,0 +1,13 @@
+#include "common.idl"
+
+interface DSA_Server {
+#pragma ID DSA_Server "DSA:Server:878a82d5"
+   void Post_Message (in string Sender, in string Message);
+   long Number_Of_Messages ();
+   string Get_Sender (in long N);
+   string Get_Message (in long N);
+      typedef ::DSA_Common::Penpal_Type Penpal_Pointer;
+   void Register (in ::DSA_Server::Penpal_Pointer Penpal);
+   ::DSA_Server::Penpal_Pointer Get_Penpal (in string Name);
+   void Broadcast (in string Sender, in string Message);
+};

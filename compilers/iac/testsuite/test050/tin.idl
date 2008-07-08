@@ -1,0 +1,51 @@
+//
+// Copyright (c) 1997 X/Open Company Ltd., A member of The Open Group.
+//
+// All rights reserved. No part of this source code may be reproduced,
+// stored in a retrieval system, or transmitted, in any form or by any
+// means, electronic, mechanical, photocopying, recording or otherwise,
+// except as stated in the end-user licence agreement, without the prior
+// permission of the copyright owners.
+//
+// Developed for X/Open by ApTest Ireland Limited.
+//
+// Project: CORVAL2
+//
+
+
+union Broadbeans switch (char) {
+  case 'a':
+    float ButterBean;
+  case 'z':
+    double Cinnamon;
+  default :
+    long BreadFruit;
+  case '!':
+    short BambooShoot;
+  case '\0':
+    unsigned long Fennell;
+  case 'S':
+    unsigned short Pineapple;
+  case 'R':
+    char Radish;
+  case 's':
+    boolean Damsons;
+  case 'E':
+    octet Mullberry;
+};
+
+interface idlServer {
+
+  exception BroadbeansExcpt{
+    ::Broadbeans ex1;
+  };
+
+  attribute ::Broadbeans BroadbeansAttr;
+
+  ::Broadbeans BroadbeansOp(
+    in    ::Broadbeans p1,
+    out   ::Broadbeans p2,
+    inout ::Broadbeans p3
+  ) raises (BroadbeansExcpt);
+};
+

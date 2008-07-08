@@ -1,0 +1,38 @@
+// File: CORBA_Pollable.idl
+// CORBA 3.0, Chapter 7
+
+    // interface for the Pollable sets of invocations
+
+//PolyORB:NI:    local interface PollableSet;
+//PolyORB:NI:
+//PolyORB:NI:    abstract valuetype Pollable {
+//PolyORB:NI:        boolean is_ready(
+//PolyORB:NI:            in unsigned long       timeout
+//PolyORB:NI:        );
+//PolyORB:NI:
+//PolyORB:NI:        PollableSet create_pollable_set();
+//PolyORB:NI:    };
+//PolyORB:NI:
+//PolyORB:NI:    abstract valuetype DIIPollable : Pollable {};
+//PolyORB:NI:
+//PolyORB:NI:    local interface PollableSet {
+//PolyORB:NI:
+//PolyORB:NI:        exception NoPossiblePollable {};
+//PolyORB:NI:        exception UnknownPollable {};
+//PolyORB:NI:
+//PolyORB:NI:        DIIPollable create_dii_pollable();
+//PolyORB:NI:
+//PolyORB:NI:        void add_pollable(
+//PolyORB:NI:            in Pollable             potential
+//PolyORB:NI:        );
+//PolyORB:NI:
+//PolyORB:NI:        Pollable get_ready_pollable(
+//PolyORB:NI:            in unsigned long        timeout
+//PolyORB:NI:        ) raises(NoPossiblePollable);
+//PolyORB:NI:
+//PolyORB:NI:        void remove(
+//PolyORB:NI:            in Pollable             potential
+//PolyORB:NI:        ) raises(UnknownPollable);
+//PolyORB:NI:
+//PolyORB:NI:        unsigned short number_left();
+//PolyORB:NI:    };

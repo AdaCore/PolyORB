@@ -1,0 +1,13 @@
+The project files in this directory are for building clients of PolyORB.
+See ../projects for building PolyORB itself.
+
+Clients should import polyorb.gpr, which imports others as necessary.
+
+These project files end up being installed in the <prefix>/lib/gnat/polyorb
+directory, except for polyorb.gpr itself, which is installed in
+<prefix>/lib/gnat.
+
+For each project file in ../projects that builds a library, there is a project
+file in this directory with the same name, which has the necessary commands to
+allow gnatmake to find the corresponding installed .a file.
+In addition, we have common.gpr and polyorb.gpr.

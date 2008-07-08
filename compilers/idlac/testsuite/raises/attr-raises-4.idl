@@ -1,0 +1,8 @@
+interface Attr_Raises_4 {
+    exception Exc_1 {};
+    exception Exc_2 {};
+
+    attribute long a getraises (Exc_1);
+    attribute long b setraises (Exc_2);
+    attribute long c getraises (Exc_1) setraises (Exc_2);
+};

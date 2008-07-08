@@ -1,0 +1,122 @@
+#! /bin/sh
+
+# Wrapper for GNAT
+# @configure_input@
+
+set -e
+
+NATIVE_GNATMAKE="@GNATMAKE@"
+CROSS_GNATMAKE="@GNATMAKE_FOR_TARGET@"
+SED="@SED@"
+GREP="@GREP@"
+RM="@RM@"
+
+case "`basename "$0"`" in
+  native-*)
+    GNATMAKE="${NATIVE_GNATMAKE}"
+    ;;
+  *)
+    GNATMAKE="${CROSS_GNATMAKE}"
+    ;;
+esac
+
+mline=""
+cline=""
+
+while [ $# -gt 1 ]; do
+    case "$1" in
+      *.ad[sb])
+        src="$1"
+	srcdir=`dirname "$src"`
+	if [ "x$srcdir" = "x" ]
+	then
+	  srcdir=.
+	fi
+        mline="${mline}$1 "
+        case $1 in
+          s-*)
+            mline="${mline}-a "
+            ;;
+        esac
+        ;;
+      -I*)
+        include_path="$include_path:`echo $1 | ${SED} -e 's/^-I//'`"
+        mline="$mline$1 "
+        ;;
+      -aI*)
+        mline="$mline$1 "
+        include_path="$include_path:`echo $1 | ${SED} -e 's/^-aI//'`"
+        ;;
+      -aO*|-gnatg|-a)
+        mline="$mline$1 "
+        ;;
+      -o)
+        # Ignore "-o path/file.o" at end of command line for now
+        # (handled elsewhere)
+        ;;
+      *)
+        cline="$cline$1 "
+        ;;
+    esac
+    shift
+done
+
+# Last args are '-o xxx.o'; -o has been eaten up above
+ofile="$1"
+
+add_cfg_pragma_file() {
+  case "${cfg_pragma_arg}" in
+    *-gnatec=$1*)
+      ;;
+    *)
+      cfg_pragma_arg="${cfg_pragma_arg} -gnatec=$1"
+      ;;
+  esac
+}
+
+_IFS="${IFS}"
+IFS=": 	"
+for srcdir in `echo $include_path`; do
+  srcdir=`echo ${srcdir} | ${SED} -e 's,^./,,'`
+  for cfg_pragma_file in ${srcdir}/*.adc; do
+    if [ ! -f "${cfg_pragma_file}" ]; then
+       # Case where no configuration pragmas file exists
+       # in srcdir: cfg_pragma_file still contains the glob
+       # pattern.
+       continue
+    fi
+
+    if ${GREP} "INCLUDE:" ${cfg_pragma_file} > /dev/null 2>&1; then
+      default_include=false
+    else
+      default_include=true
+    fi
+
+    pat="EXCLUDE: `basename $src`"
+    if ${GREP} "${pat}" ${cfg_pragma_file} > /dev/null 2>&1; then
+      no_specific_exclude=false
+    else
+      no_specific_exclude=true
+    fi
+
+    pat="INCLUDE: `basename $src`"
+    if ${GREP} "${pat}" $cfg_pragma_file > /dev/null 2>&1 ||
+       (${default_include} && ${no_specific_exclude})
+    then
+      # If unit included explicitly, or (unit not excluded explicitly,
+      # and file applicability is not specified by explicit inclusion)
+      add_cfg_pragma_file ${cfg_pragma_file}
+    fi
+  done
+done
+IFS="${_IFS}"
+
+$GNATMAKE -c -u @EXTRA_GNATMAKE_FLAGS@ $mline $newname -cargs $cfg_pragma_arg $cline
+
+# gnatmake stores ali and o files in the current directory. Move the
+# object file to its final destination.
+
+case "x`dirname $ofile`" in
+  x.|x) ;;
+  *)  mv `basename $ofile` $ofile ;;
+esac

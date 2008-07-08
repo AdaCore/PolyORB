@@ -1,0 +1,13 @@
+typedef long measure;
+interface Feed {
+    attribute measure weight;
+};
+interface Animal {
+    enum State {SLEEPING, AWAKE};
+    boolean eat(inout Feed bag);
+    // returns true if animal is full
+    attribute State alertness;
+};
+interface Horse : Animal{
+    void trot(in short distance);
+};

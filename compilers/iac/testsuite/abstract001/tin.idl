@@ -1,0 +1,7 @@
+module m {
+  abstract interface AbsInt {
+    long op1 (in long var1, inout short var2, out string var3);
+    attribute long MyAttr;
+  };
+};
+

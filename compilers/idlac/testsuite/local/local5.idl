@@ -1,0 +1,5 @@
+
+local interface A {};
+
+//  illegal
+interface B : A {};

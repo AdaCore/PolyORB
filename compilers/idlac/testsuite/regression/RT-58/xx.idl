@@ -1,0 +1,4 @@
+interface xx {
+  enum Color {Red, Blue, Green};
+  // An interface that does not contain any user-defined operation.
+};

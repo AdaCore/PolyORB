@@ -1,0 +1,16 @@
+Examples using the AWS application personality
+----------------------------------------------
+
+client_web <uri>
+client_soap <uri>
+
+where <uri> MUST be an URI, as AWS only handles URIs. So entering an
+IOR or a corbaloc will not work.
+
+server instantiates two servants: 
+- one for the classical web
+- another for web services
+
+Keep in mind that a web server only accepts a few method names (get,
+post, etc.); so the web server will raise an exception if another
+method is invoked. The soap server will accept any method name.

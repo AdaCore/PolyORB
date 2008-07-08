@@ -1,0 +1,3 @@
+interface TypedTest_Interface {
+  string echoString (in string Mesg);
+};

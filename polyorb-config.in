@@ -1,0 +1,289 @@
+#!/bin/sh
+
+# This script provides tool chain command line switches used to build
+# applications that use PolyORB.
+
+# @configure_input@
+
+# Determine installation prefix
+
+case "$0" in
+  */*)
+    # Already has a directory indication
+    exec_name="$0"
+    ;;
+
+  *)
+    # Just base filename, retrieve from PATH
+    exec_name=`which $0`
+    ;;
+esac
+exec_rel_dir=`dirname "${exec_name}"`
+exec_abs_dir=`cd ${exec_rel_dir} && pwd`
+exec_prefix=`dirname "${exec_abs_dir}"`
+
+# Translate Cygwin-style path to Windows equivalent
+
+case "$OS" in
+   Windows_NT)
+      exec_prefix=`cygpath -w $exec_prefix`
+esac
+
+if [ -f "${exec_prefix}"/include/polyorb/polyorb.ads ]; then
+  prefix="${exec_prefix}"
+else
+  # Fall back to configure-time prefix
+  prefix="@prefix@"
+fi
+
+have_gnatmake_aPdir=@HAVE_GNATMAKE_APDIR@
+default_appli="@APPLI_LIST@"
+default_proto="@PROTO_LIST@"
+default_services="@SERVICE_LIST@"
+require_xmlada=false
+
+appli="${default_appli}"
+proto="${default_proto}"
+services="${default_services}"
+
+# is_in NEEDLE HAY1 HAY2 ...
+# True if NEEDLE is equal to any of the HAY*
+
+is_in () {
+  needle=$1
+  shift
+  while [ "$#" != 0 ]; do
+    if [ "$needle" = "$1" ]; then
+      return 0
+    fi
+    shift
+  done
+  return 1
+}
+
+# set_components MSG VAR VALUE,VALUE,VALUE
+# Set VAR to the listed set of VALUEs, with commas replaced with spaces,
+# checking that all VALUEs are present in default_VAR.
+# MSG is the user-friendly name of the component being set.
+set_components () {
+  failed=false
+  values=`echo $3 | tr , ' '`
+  for value in $values; do
+    if eval "is_in '$value' \$default_$2"; then
+      : OK
+    else
+      echo "$1 $value not available." 1>&2
+      failed=true
+    fi
+  done
+  if $failed; then exit 1; fi
+  eval "$2='$values'"
+}
+
+usage() {
+   cat <<EOF 1>&2
+Usage: polyorb-config [OPTIONS]
+Options:
+        No option:
+            Output all the flags (compiler and linker) required
+            to compile your program.
+        [--prefix[=DIR]]
+            Output the directory in which PolyORB architecture-independent 
+           files are installed, or set this directory to DIR.
+        [--exec-prefix[=DIR]]
+            Output the directory in which PolyORB architecture-dependent 
+           files are installed, or set this directory to DIR.
+        [--version|-v]
+            Output the version of PolyORB.
+        [--config]
+            Output PolyORB's configuration parameters.
+        [--libs]
+            Output the linker flags to use for PolyORB.
+        [--cflags]
+            Output the compiler flags to use for PolyORB.
+        [--idls]
+            Output flags to set up path to CORBA's IDL for idlac.
+        [--with-appli-perso=P,P,P]
+            Restrict output to only those flags relevant to the listed
+            applicative personalities.
+        [--with-proto-perso=P,P,P]
+            Restrict output to only those flags relevant to the listed
+            protocol personalities.
+        [--with-corba-services=S,S,S]
+            Restrict output to only those flags relevant to the listed
+            services.
+        [--help]
+            Output this message
+EOF
+}
+
+while test $# -gt 0; do
+  case "$1" in
+  -*=*) optarg=`echo "$1" | sed 's/[-_a-zA-Z0-9]*=//'` ;;
+  *) optarg= ;;
+  esac
+
+  case $1 in
+    --help|-h)
+      usage 1>&2
+      exit 1
+      ;;
+    --prefix=*)
+      prefix=$optarg;
+      if test "x$exec_prefix_set" = x ; then
+	  exec_prefix=$prefix
+      fi
+      ;;
+    --prefix)
+      echo_prefix=true      
+      ;;
+    --exec-prefix=*)
+      exec_prefix=$optarg
+      ;;
+    --exec-prefix)
+      echo_exec_prefix=true
+      ;;
+    --version|-v)
+      echo "PolyORB @VERSION@" 1>&2
+      exit 0
+      ;;
+    --config)
+      cat <<EOF 1>&2
+Personalities built :
+* Application personalities : @APPLI_LIST@
+* Protocol    personalities : @PROTO_LIST@
+* Services                  : @SERVICE_LIST@
+* SSL support               : @HAVE_SSL@
+EOF
+      exit 0
+      ;;  
+    --libs)
+      echo_libs=true
+      ;;
+    --idls)
+      echo_idls=true
+      ;;
+    --cflags)
+      echo_cflags=true
+      ;;
+    --with-appli-perso=*)
+      set_components "Applicative personality" appli "$optarg" ;;
+
+    --with-proto-perso=*)
+      set_components "Protocol personality" proto "$optarg" ;;
+
+    --with-corba-services=*)
+      set_components "Service" services "$optarg" ;;
+
+    *)
+      usage 1>&2
+      exit 1
+      ;;
+  esac
+  shift
+done
+
+exec_prefix="@exec_prefix@"
+includedir="@includedir@"
+libdir="@libdir@"
+polyorb_dir="${includedir}/polyorb"
+polyorb_lib="@LDFLAGS@ -L${libdir}"
+corba_idl_dir="-I${includedir}/polyorb"
+
+for P in $appli; do
+ polyorb_lib="$polyorb_lib -lpolyorb-${P}"
+
+ if [ "x$P" = "xcorba" ]
+ then
+   polyorb_lib="$polyorb_lib -lpolyorb-corba-dynamicany -lpolyorb-corba-iop -lpolyorb-corba-messaging -lpolyorb-corba-portableinterceptor -lpolyorb-corba-rtcorba"
+   for S in $services; do
+     # In general we have two libraries for each service: cos-${S} for client
+     # stubs and helpers, and cos-${S}-impl for implementation. A user
+     # application does not need the impl library in general, and it is
+     # therefore not included in the default set of libraries we output.
+     # The interface repository is an exception to this rule, because in this
+     # case we build a single library with client stubs and implementation.
+     if [ "${S}" = "ir" ]; then
+        polyorb_lib="$polyorb_lib -lpolyorb-corba-cos-${S}-impl"
+     else
+        polyorb_lib="$polyorb_lib -lpolyorb-corba-cos-${S}"
+     fi
+   done
+   if [ "x@HAVE_SSL@" = "xyes" ]; then
+     polyorb_lib="$polyorb_lib -lpolyorb-corba-security -lpolyorb-corba-security-gssup"
+   fi
+ fi 
+
+ if [ "x$P" = "xaws" ]
+ then
+   polyorb_lib="$polyorb_lib -lpolyorb-web_common"
+   require_xmlada=true
+ fi 
+done
+
+for P in $proto; do
+ polyorb_lib="$polyorb_lib -lpolyorb-${P}"
+
+ if [ "x$P" = "xgiop" ]
+ then
+   polyorb_lib="$polyorb_lib -lpolyorb-giop-diop -lpolyorb-giop-iiop -lpolyorb-giop-miop"  
+   if [ "x@HAVE_SSL@" = "xyes" ]
+   then
+     polyorb_lib="$polyorb_lib -lpolyorb-giop-iiop-ssliop"
+     polyorb_lib="$polyorb_lib -lpolyorb-giop-iiop-security -lpolyorb-giop-iiop-security-tls"
+   fi
+ fi
+
+ if [ "x$P" = "xsoap" ]
+ then
+   polyorb_lib="$polyorb_lib -lpolyorb-web_common"
+   require_xmlada=true
+ fi
+done
+
+if [ "x@HAVE_SSL@" = "xyes" ]
+then
+  polyorb_lib="$polyorb_lib -lpolyorb-ssl"
+  polyorb_lib="$polyorb_lib -lpolyorb-security -lpolyorb-security-gssup -lpolyorb-security-x509 -lpolyorb-security-tls -lpolyorb-setup-security"
+fi
+
+polyorb_lib="$polyorb_lib -lpolyorb-setup"
+
+# Dependencies on XML/Ada are appended at the end of the command line,
+# so that they are passed to the linker after any other object, right
+# before the dependency on libgnat. This is necessary so that in the case
+# of dynamic XML/Ada libraries, an implicit dependency on the dynamic libgnat
+# does not take precedence over symbols that are overridden by PolyORB
+# (specifically, System.Partition_Interface.*).
+
+if $require_xmlada; then
+  xmlada_dir="`xmlada-config --cflags`"
+  xmlada_lib="`xmlada-config --libs`"
+fi
+
+if test x$have_gnatmake_aPdir = xyes; then
+  apdir="-aP${prefix}/lib/gnat"
+fi
+
+if test ! x"$echo_prefix" = x"true"  -a ! x"$echo_exec_prefix" = x"true" -a ! x"$echo_cflags" = x"true" -a ! x"$echo_libs" = x"true" -a ! x"$echo_idls" = x"true"; then
+   echo ${apdir} -aI${polyorb_dir} -aO${libdir}/polyorb -aL${libdir}/polyorb ${xmlada_dir} -largs ${polyorb_lib} ${xmlada_lib}
+fi
+
+if test x"$echo_prefix" = x"true" ; then
+    echo $prefix
+fi
+if test x"$echo_exec_prefix" = x"true" ; then
+    echo $exec_prefix
+fi
+
+if test x"$echo_cflags" = x"true"; then
+    echo -I${polyorb_dir} ${xmlada_dir}
+fi
+
+if test x"$echo_libs" = x"true"; then
+    echo ${polyorb_lib} ${xmlada_lib}
+fi
+
+if test x"$echo_idls" = x"true"; then
+    echo $corba_idl_dir
+fi

@@ -1,0 +1,80 @@
+//
+// Copyright (c) 1997 X/Open Company Ltd., A member of The Open Group.
+//
+// All rights reserved. No part of this source code may be reproduced,
+// stored in a retrieval system, or transmitted, in any form or by any
+// means, electronic, mechanical, photocopying, recording or otherwise,
+// except as stated in the end-user licence agreement, without the prior
+// permission of the copyright owners.
+//
+// Developed for X/Open by ApTest Ireland Limited.
+//
+// Project: CORVAL2
+//
+
+
+const float Apple = .2;
+const float Banana = .2E3;
+const float Carrots = .2e3;
+const float Lemon = .2E+3;
+const float BlackCherry = .2e+3;
+const float Starfruit = .2E-3;
+const float Rhubarb = .2e-3;
+const float PassionFruit = 1E3;
+const float Pumpkin = 1e3;
+const float Mango = 1E+3;
+const float WaterMelon = 1e+3;
+const float Lime = 1E-3;
+const float Dates = 1e-3;
+const float Coconut = 1.;
+const float Lychees = 1.E3;
+const float Cabbage = 1.e3;
+const float Cucumber = 1.E+3;
+const float Ginger = 1.e+3;
+const float Apricots = 1.E-3;
+const float BlackEyedBeans = 1.e-3;
+const float Leek = 1.2          ;
+const float Mint = 1.2E3;
+const float GardenPeas = 1.2e3;
+const float Asparagus = 1.2E+3;
+const float GaliaMelon = 1.2e+3;
+const float Sultana = 1.2E-3;
+const float Turnip = 1.2e-3;
+
+
+
+const double Orange = .2;
+const double LoganBerry = .2E3;
+const double Parsnip = .2e3;
+const double Celery = .2E+3;
+const double WhiteCabbage = .2e+3;
+const double Aniseed = .2E-3;
+const double Bayleaf = .2e-3;
+const double Dill = 1E3;
+const double Oregano = 1e3;
+const double Beansprout = 1E+3;
+const double Almonds = 1e+3;
+const double Guava = 1E-3;
+const double Mushroom = 1e-3;
+const double Runnerbean = 1.;
+const double Tofu = 1.E3;
+const double Prunes = 1.e3;
+const double Brocoli = 1.E+3;
+const double GrannySmith = 1.e+3;
+const double BrazilNut = 1.E-3;
+const double SweetPotato = 1.e-3;
+const double Onion = 1.2          ;
+const double Tangarine = 1.2E3;
+const double Billberries = 1.2e3;
+const double CantelopeMelon = 1.2E+3;
+const double LolloRossa = 1.2e+3;
+const double RowanBerry = 1.2E-3;
+const double Sweetcorn = 1.2e-3;
+
+
+
+interface idlServer{
+
+  void  Plum();
+};
+

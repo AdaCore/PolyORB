@@ -1,0 +1,5 @@
+interface int1 {
+   typedef long type1;
+   type1 op1 (in short data);
+};
+

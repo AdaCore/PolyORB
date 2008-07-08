@@ -1,0 +1,197 @@
+//
+// Copyright (c) 1997 X/Open Company Ltd., A member of The Open Group.
+//
+// All rights reserved. No part of this source code may be reproduced,
+// stored in a retrieval system, or transmitted, in any form or by any
+// means, electronic, mechanical, photocopying, recording or otherwise,
+// except as stated in the end-user licence agreement, without the prior
+// permission of the copyright owners.
+//
+// Developed for X/Open by ApTest Ireland Limited.
+//
+// Project: CORVAL2
+//
+
+
+typedef struct GooseBerry138{
+  struct HazelNut138{
+    struct Onion138{
+      struct RowanBerry138{
+        sequence<long>  LolloRossa138;
+      } Sweetcorn138;
+    } RedOnion138[18];
+  } Cinnamon138;
+} EggPlant138;
+
+typedef struct GooseBerry139{
+  struct HazelNut139{
+    struct CrabApple139{
+      struct Lentil139{
+        sequence<short>  GoldenDelicous139;
+      } Fig139;
+    } RedOnion139;
+  } Cinnamon139;
+} EggPlant139;
+
+typedef struct CrabApple140{
+  struct Lentil140{
+    struct CantelopeMelon140{
+      struct Sultana140{
+        sequence<short,18>  GaliaMelon140[13];
+      } Billberries140[15];
+    } GoldenDelicous140[11];
+  } Fig140;
+} RedOnion140;
+
+typedef struct CrabApple141{
+  struct Lentil141{
+    struct Avocado141{
+      struct Oregano141{
+        sequence<unsigned long,7>  Dill141[10];
+      } ButterBean141[19];
+    } GoldenDelicous141;
+  } Fig141;
+} RedOnion141;
+
+typedef struct Lentil142{
+  struct Avocado142{
+    struct Tangarine142{
+      struct BrazilNut142{
+        sequence<unsigned short,12>  GrannySmith142[6];
+      } SweetPotato142;
+    } ButterBean142[9];
+  } GoldenDelicous142;
+} Fig142;
+
+typedef struct Lentil143{
+  struct Avocado143{
+    struct Zucchini143{
+      struct Plum143{
+        sequence<char,7>  Shallots143[4];
+      } KidneyBean143;
+    } ButterBean143;
+  } GoldenDelicous143;
+} Fig143;
+
+typedef struct Zucchini144{
+  struct Plum144{
+    struct Brocoli144{
+      struct BlackEyedBeans144{
+        sequence<boolean,2>  Apricots144;
+      } Prunes144[5];
+    } Shallots144[3];
+  } KidneyBean144;
+} ButterBean144;
+
+interface idlServer {
+
+  exception EggPlant138Excpt{
+    ::EggPlant138 ex1;
+  };
+
+  attribute ::EggPlant138 EggPlant138Attr;
+
+  ::EggPlant138 EggPlant138Op(
+    in    ::EggPlant138 p1,
+    out   ::EggPlant138 p2,
+    inout ::EggPlant138 p3
+  ) raises (EggPlant138Excpt);
+
+  exception GooseBerry138Excpt{
+    ::GooseBerry138 ex1;
+  };
+
+  attribute ::GooseBerry138 GooseBerry138Attr;
+
+  ::GooseBerry138 GooseBerry138Op(
+    in    ::GooseBerry138 p1,
+    out   ::GooseBerry138 p2,
+    inout ::GooseBerry138 p3
+  ) raises (GooseBerry138Excpt);
+
+  exception HazelNut138Excpt{
+    ::GooseBerry138::HazelNut138 ex1;
+  };
+
+  attribute ::GooseBerry138::HazelNut138 HazelNut138Attr;
+
+  ::GooseBerry138::HazelNut138 HazelNut138Op(
+    in    ::GooseBerry138::HazelNut138 p1,
+    out   ::GooseBerry138::HazelNut138 p2,
+    inout ::GooseBerry138::HazelNut138 p3
+  ) raises (HazelNut138Excpt);
+
+  exception Onion138Excpt{
+    ::GooseBerry138::HazelNut138::Onion138 ex1;
+  };
+
+  attribute ::GooseBerry138::HazelNut138::Onion138 Onion138Attr;
+
+  ::GooseBerry138::HazelNut138::Onion138 Onion138Op(
+    in    ::GooseBerry138::HazelNut138::Onion138 p1,
+    out   ::GooseBerry138::HazelNut138::Onion138 p2,
+    inout ::GooseBerry138::HazelNut138::Onion138 p3
+  ) raises (Onion138Excpt);
+
+  exception RowanBerry138Excpt{
+    ::GooseBerry138::HazelNut138::Onion138::RowanBerry138 ex1;
+  };
+
+  attribute ::GooseBerry138::HazelNut138::Onion138::RowanBerry138 RowanBerry138Attr;
+
+  ::GooseBerry138::HazelNut138::Onion138::RowanBerry138 RowanBerry138Op(
+    in    ::GooseBerry138::HazelNut138::Onion138::RowanBerry138 p1,
+    out   ::GooseBerry138::HazelNut138::Onion138::RowanBerry138 p2,
+    inout ::GooseBerry138::HazelNut138::Onion138::RowanBerry138 p3
+  ) raises (RowanBerry138Excpt);
+
+  exception EggPlant139Excpt{
+    ::EggPlant139 ex1;
+  };
+
+  attribute ::EggPlant139 EggPlant139Attr;
+
+  ::EggPlant139 EggPlant139Op(
+    in    ::EggPlant139 p1,
+    out   ::EggPlant139 p2,
+    inout ::EggPlant139 p3
+  ) raises (EggPlant139Excpt);
+
+  exception GooseBerry139Excpt{
+    ::GooseBerry139 ex1;
+  };
+
+  attribute ::GooseBerry139 GooseBerry139Attr;
+
+  ::GooseBerry139 GooseBerry139Op(
+    in    ::GooseBerry139 p1,
+    out   ::GooseBerry139 p2,
+    inout ::GooseBerry139 p3
+  ) raises (GooseBerry139Excpt);
+
+  exception HazelNut139Excpt{
+    ::GooseBerry139::HazelNut139 ex1;
+  };
+
+  attribute ::GooseBerry139::HazelNut139 HazelNut139Attr;
+
+  ::GooseBerry139::HazelNut139 HazelNut139Op(
+    in    ::GooseBerry139::HazelNut139 p1,
+    out   ::GooseBerry139::HazelNut139 p2,
+    inout ::GooseBerry139::HazelNut139 p3
+  ) raises (HazelNut139Excpt);
+
+  exception CrabApple139Excpt{
+    ::GooseBerry139::HazelNut139::CrabApple139 ex1;
+  };
+
+  attribute ::GooseBerry139::HazelNut139::CrabApple139 CrabApple139Attr;
+
+  ::GooseBerry139::HazelNut139::CrabApple139 CrabApple139Op(
+    in    ::GooseBerry139::HazelNut139::CrabApple139 p1,
+    out   ::GooseBerry139::HazelNut139::CrabApple139 p2,
+    inout ::GooseBerry139::HazelNut139::CrabApple139 p3
+  ) raises (CrabApple139Excpt);
+
+};
+

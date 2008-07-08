@@ -1,0 +1,44 @@
+#!/bin/sh
+#
+# VERSION.INFO,v 1.11 1996/05/24 14:05:48 tardieu Exp
+#
+# This file will perform version substitution when building a release. It
+# has to be tagged "to_be_released" and to be kept in synch as new releases
+# appear.
+#
+# DO NOT CALL THIS FILE EXPLICITLY. IT WILL BE CALLED BY prepare_distrib
+
+# sed_in_place FILE ARG...
+# Apply "sed ARG..." transformation to FILE
+sed_in_place() {
+  oldfile=$1; shift
+  newfile=$oldfile.new.$$
+  sed "$@" < $oldfile > $newfile
+  mv -f $newfile $oldfile
+}
+
+#
+# If there is an argument on the command line, append it to the version number
+#
+if [ "x$1" != "x" ]
+then
+  sed_in_place configure.ac \
+    "s/^AC_INIT(\([^,]*\), *\([^,]*\), *\(.*\))/AC_INIT(\1, \2$1, \3)/"
+fi
+
+#
+# Now extract version number to be substituted
+#
+polyorb_version=`awk -F", *" '/^AC_INIT/ {print $2}' < configure.ac`
+
+#
+# files hold the list of files in which substitutions will occur
+#
+files="README VERSION"
+
+#
+# Do the job
+#
+for f in ${files}; do
+  sed_in_place $f "s/@polyorb_version@/${polyorb_version}/g"
+done

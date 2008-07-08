@@ -1,0 +1,34 @@
+typedef string Apple;
+typedef string<39> Banana;
+typedef union Broadbeans switch (long) {
+ case 1042 :
+ float ButterBean;
+ case 306 :
+ double Cinnamon;
+ case -57 :
+ long BreadFruit;
+ case 9877 :
+ short BambooShoot;
+ case -7667 :
+ unsigned long Fennell;
+ case 11 :
+ unsigned short Pineapple;
+ case 76 :
+ char Radish;
+ case 75 :
+ boolean Damsons;
+ default :
+ octet Mullberry;
+} Orange;
+interface idlServer {
+ exception BroadbeansExcpt {
+ Broadbeans ex1;
+ };
+ attribute Broadbeans BroadbeansAttr;
+ Broadbeans BroadbeansOp(in Broadbeans p1, out Broadbeans p2, inout Broadbeans p3) raises (idlServer::BroadbeansExcpt);
+ exception OrangeExcpt {
+ Orange ex1;
+ };
+ attribute Orange OrangeAttr;
+ Orange OrangeOp(in Orange p1, out Orange p2, inout Orange p3) raises (idlServer::OrangeExcpt);
+};

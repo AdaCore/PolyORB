@@ -1,0 +1,10 @@
+abstract valuetype AbsVal1 {
+ short op1();
+};
+abstract valuetype AbsVal2 {
+ long op2();
+};
+valuetype Val : AbsVal1, AbsVal2 {
+ public any anyMbr;
+ factory init(in any anyMbr);
+};

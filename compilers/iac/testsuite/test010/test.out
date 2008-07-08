@@ -1,0 +1,12 @@
+module Apple {
+ module BlackCherry {
+ typedef short Carrots;
+ };
+ typedef long Carrots;
+ module BlackCherry {
+ typedef float Starfruit;
+ };
+};
+interface idlServer {
+ void Rhubarb(in Apple::Carrots p1, out Apple::BlackCherry::Carrots p2, inout Apple::BlackCherry::Starfruit p3);
+};

@@ -1,0 +1,3 @@
+interface tin {
+  typedef wchar Alexandrin[12];
+};

@@ -1,0 +1,7 @@
+interface tin {
+  struct example {
+    fixed<12,5> fixedMember;
+    sequence<wstring> Seq;
+    };
+  typedef char character;
+};

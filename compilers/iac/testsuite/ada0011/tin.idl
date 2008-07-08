@@ -1,0 +1,6 @@
+interface Inter2 {
+ 
+  typedef float New_Float; 
+  attribute New_Float attr1; 
+  New_Float ConvertNew (in float N);
+}; 

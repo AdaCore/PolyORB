@@ -1,0 +1,9 @@
+
+module Test003 {
+
+    typeprefix Test003 "aaa.ru";
+
+    local interface T2 { };
+
+};
+

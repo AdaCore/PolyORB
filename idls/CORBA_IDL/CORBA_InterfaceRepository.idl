@@ -1,0 +1,823 @@
+// File: CORBA_InterfaceRepository.idl
+// CORBA 3.0, Chapter 10
+
+#ifdef _PRE_3_0_COMPILER_
+#pragma prefix "omg.org"
+#else
+typeprefix CORBA "omg.org"
+#endif
+
+    typedef string ScopedName;
+    typedef string RepositoryId;
+
+    enum DefinitionKind {
+        dk_none,        dk_all,
+        dk_Attribute,   dk_Constant,    dk_Exception,   dk_Interface,
+        dk_Module,      dk_Operation,   dk_Typedef,
+        dk_Alias,       dk_Struct,      dk_Union,       dk_Enum,
+        dk_Primitive,   dk_String,      dk_Sequence,    dk_Array,
+        dk_Repository,
+        dk_Wstring,     dk_Fixed,
+        dk_Value,       dk_ValueBox,    dk_ValueMember,
+        dk_Native,
+        dk_AbstractInterface,
+        dk_LocalInterface,
+	dk_Component, dk_Home,
+	dk_Factory, dk_Finder,
+	dk_Emits, dk_Publishes, dk_Consumes,
+	dk_Provides, dk_Uses,
+	dk_Event
+    };
+  
+    interface IRObject {
+        // read interface
+        readonly attribute  DefinitionKind  def_kind;
+        // write interface
+        void                destroy ();
+    };
+   
+    typedef string VersionSpec;
+
+    interface Contained : IRObject {
+
+        // read/write interface
+        attribute           RepositoryId    id;
+        attribute           Identifier      name;
+        attribute           VersionSpec     version;
+        // read interface
+        readonly attribute  Container       defined_in;
+        readonly attribute  ScopedName      absolute_name;
+        readonly attribute  Repository      containing_repository;
+        struct Description {
+            DefinitionKind  kind;
+            any             value; 
+        }; 
+        Description         describe ();
+        // write interface
+        void                move (  in Container    new_container,
+                                    in Identifier   new_name,
+                                    in VersionSpec  new_version
+        );
+    };
+
+    interface ModuleDef;
+    interface ConstantDef;
+    interface IDLType;
+    interface StructDef;
+    interface UnionDef;
+    interface EnumDef;
+    interface AliasDef;
+    interface ExceptionDef;
+    interface NativeDef;
+    interface InterfaceDef;
+    typedef sequence <InterfaceDef> InterfaceDefSeq;
+    interface ValueDef;
+    typedef sequence <ValueDef> ValueDefSeq;
+    interface ValueBoxDef;
+    interface AbstractInterfaceDef;
+    typedef sequence <AbstractInterfaceDef> AbstractInterfaceDefSeq; 
+    interface LocalInterfaceDef;
+    typedef sequence <LocalInterfaceDef> LocalInterfaceDefSeq; 
+    interface ExtInterfaceDef;
+    typedef sequence <ExtInterfaceDef> ExtInterfaceDefSeq;
+//PolyORB:NI:    interface ExtValueDef;
+//PolyORB:NI:    typedef sequence <ExtValueDef> ExtValueDefSeq;
+    interface ExtAbstractInterfaceDef;
+    typedef sequence <ExtAbstractInterfaceDef> ExtAbstractInterfaceDefSeq;
+    interface ExtLocalInterfaceDef;
+    typedef sequence <ExtLocalInterfaceDef> ExtLocalInterfaceDefSeq;
+    typedef sequence <Contained> ContainedSeq;
+    
+    struct StructMember {
+        Identifier          name;
+        TypeCode            type;
+        IDLType             type_def;
+    };
+    typedef sequence <StructMember> StructMemberSeq;
+    struct Initializer {
+        StructMemberSeq     members;
+        Identifier          name;
+    };
+    typedef sequence <Initializer> InitializerSeq;
+    struct UnionMember {
+        Identifier          name;
+        any                 label;
+        TypeCode            type;
+        IDLType             type_def;
+    };
+
+    struct ExceptionDescription {
+      Identifier name;
+      RepositoryId id;
+      RepositoryId defined_in;
+      VersionSpec version;
+      TypeCode type;
+    };
+
+    typedef sequence <ExceptionDescription> ExcDescriptionSeq;
+
+    struct ExtInitializer {
+      StructMemberSeq members;
+      ExcDescriptionSeq exceptions;
+      Identifier name;
+    };
+
+    typedef sequence <ExtInitializer> ExtInitializerSeq;
+
+    typedef sequence <UnionMember> UnionMemberSeq;
+    typedef sequence <Identifier> EnumMemberSeq;
+    interface Container : IRObject {
+        // read interface
+        Contained lookup (
+            in ScopedName                   search_name);
+        ContainedSeq contents (
+            in DefinitionKind               limit_type,
+            in boolean                      exclude_inherited
+        );
+        ContainedSeq lookup_name (
+            in Identifier                   search_name, 
+            in long                         levels_to_search, 
+            in DefinitionKind               limit_type,
+            in boolean                      exclude_inherited
+        );
+        struct Description {
+            Contained                       contained_object; 
+            DefinitionKind                  kind;
+            any                             value; 
+        };
+        typedef sequence<Description> DescriptionSeq;
+        DescriptionSeq describe_contents (
+            in DefinitionKind               limit_type,
+            in boolean                      exclude_inherited,
+            in long                         max_returned_objs
+        );
+        // write interface
+        ModuleDef create_module (
+            in RepositoryId                 id,
+            in Identifier                   name,
+            in VersionSpec                  version
+        );
+        ConstantDef create_constant (
+            in RepositoryId                 id,
+            in Identifier                   name,
+            in VersionSpec                  version,
+            in IDLType                      type,
+            in any                          value
+        );
+        StructDef create_struct (
+            in RepositoryId                 id,
+            in Identifier                   name,
+            in VersionSpec                  version,
+            in StructMemberSeq              members
+        );
+        UnionDef create_union (
+            in RepositoryId                 id,
+            in Identifier                   name,
+            in VersionSpec                  version,
+            in IDLType                      discriminator_type,
+            in UnionMemberSeq               members
+        );
+        EnumDef create_enum (
+            in RepositoryId                 id,
+            in Identifier                   name,
+            in VersionSpec                  version,
+            in EnumMemberSeq                members
+        );
+        AliasDef create_alias (
+            in RepositoryId                 id,
+            in Identifier                   name,
+            in VersionSpec                  version,
+            in IDLType                      original_type
+        );
+        InterfaceDef create_interface (
+            in RepositoryId                 id,
+            in Identifier                   name,
+            in VersionSpec                  version,
+            in InterfaceDefSeq              base_interfaces,
+            in boolean                      is_abstract
+        );
+        ValueDef create_value(
+            in RepositoryId                 id,
+            in Identifier                   name,
+            in VersionSpec                  version,
+            in boolean                      is_custom,
+            in boolean                      is_abstract,
+            in ValueDef                     base_value,
+            in boolean                      is_truncatable,
+            in ValueDefSeq                  abstract_base_values,
+            in InterfaceDefSeq              supported_interfaces,
+            in InitializerSeq               initializers
+        );
+        ValueBoxDef create_value_box(
+            in RepositoryId                 id,
+            in Identifier                   name,
+            in VersionSpec                  version,
+            in IDLType                      original_type_def
+        );
+        ExceptionDef create_exception(
+            in RepositoryId                 id,
+            in Identifier                   name,
+            in VersionSpec                  version,
+            in StructMemberSeq              members
+        );
+        NativeDef create_native(
+            in RepositoryId                 id,
+            in Identifier                   name,
+            in VersionSpec                  version
+        );
+        AbstractInterfaceDef create_abstract_interface (
+            in RepositoryId                 id,
+            in Identifier                   name,
+            in VersionSpec                  version,
+            in AbstractInterfaceDefSeq      base_interfaces
+        );
+        LocalInterfaceDef create_local_interface (
+            in RepositoryId                 id,
+            in Identifier                   name,
+            in VersionSpec                  version,
+            in InterfaceDefSeq              base_interfaces
+        );
+//PolyORB:NI:        ExtValueDef create_ext_value (
+//PolyORB:NI:	    in RepositoryId id,
+//PolyORB:NI:	    in Identifier name,
+//PolyORB:NI:	    in VersionSpec version,
+//PolyORB:NI:	    in boolean is_custom,
+//PolyORB:NI:	    in boolean is_abstract,
+//PolyORB:NI:	    in ValueDef base_value,
+//PolyORB:NI:	    in boolean is_truncatable,
+//PolyORB:NI:	    in ValueDefSeq abstract_base_values,
+//PolyORB:NI:	    in InterfaceDefSeq supported_interfaces,
+//PolyORB:NI:	    in ExtInitializerSeq initializers
+//PolyORB:NI:	);    
+    };
+    interface IDLType : IRObject {
+        readonly attribute TypeCode     type;
+    };
+
+    enum PrimitiveKind {
+        pk_null,    pk_void,      pk_short,     pk_long,   pk_ushort, pk_ulong,
+        pk_float,   pk_double,    pk_boolean,   pk_char,   pk_octet,
+        pk_any,     pk_TypeCode,  pk_Principal, pk_string, pk_objref,
+        pk_longlong,pk_ulonglong, pk_longdouble, 
+        pk_wchar,   pk_wstring,   pk_value_base
+    };
+    
+    interface Repository : Container {
+        // read interface
+        Contained   lookup_id               (in RepositoryId    search_id);
+        TypeCode    get_canonical_typecode  (in TypeCode        tc); 
+        PrimitiveDef get_primitive          (in PrimitiveKind   kind);
+        // write interface
+        StringDef   create_string           (in unsigned long   bound);
+        WstringDef  create_wstring          (in unsigned long   bound);
+        SequenceDef create_sequence         (in unsigned long   bound,
+                                             in IDLType         element_type
+        );
+        ArrayDef create_array               (in unsigned long   length,
+                                             in IDLType         element_type
+        );
+        FixedDef create_fixed               (in unsigned short  digits,
+                                             in short           scale
+        );
+    };
+    interface ModuleDef : Container, Contained {
+    };
+    
+    struct ModuleDescription {
+        Identifier                      name; 
+        RepositoryId                    id; 
+        RepositoryId                    defined_in;
+        VersionSpec                     version;
+    };
+
+    interface ConstantDef : Contained {
+        readonly attribute TypeCode     type;
+        attribute IDLType               type_def;
+        attribute any                   value;
+    };
+    struct ConstantDescription {
+        Identifier                      name; 
+        RepositoryId                    id; 
+        RepositoryId                    defined_in; 
+        VersionSpec                     version;
+        TypeCode                        type; 
+        any                             value; 
+    };
+    
+    interface TypedefDef : Contained, IDLType {
+    };
+    
+    struct TypeDescription {
+        Identifier                      name; 
+        RepositoryId                    id; 
+        RepositoryId                    defined_in; 
+        VersionSpec                     version;
+        TypeCode                        type; 
+    };
+    
+    interface StructDef : TypedefDef, Container {
+        attribute StructMemberSeq       members;
+    };
+    
+    interface UnionDef : TypedefDef, Container {
+        readonly attribute TypeCode     discriminator_type;
+        attribute IDLType               discriminator_type_def;
+        attribute UnionMemberSeq        members;
+    };
+
+    interface EnumDef : TypedefDef {
+        attribute EnumMemberSeq         members;
+    };
+    interface AliasDef : TypedefDef {
+        attribute IDLType               original_type_def;
+    };
+    interface NativeDef : TypedefDef {
+    };
+    interface PrimitiveDef: IDLType {
+        readonly attribute PrimitiveKind kind;
+    };
+    interface StringDef : IDLType {
+        attribute unsigned long         bound;
+    };
+    interface WstringDef : IDLType {
+        attribute unsigned long         bound;
+    };
+    interface FixedDef : IDLType {
+        attribute unsigned short        digits;
+        attribute short                 scale;
+    };
+    interface SequenceDef : IDLType {
+        attribute unsigned long         bound;
+        readonly attribute TypeCode     element_type;
+        attribute IDLType               element_type_def;
+    };
+    interface ArrayDef : IDLType {
+        attribute unsigned long         length;
+        readonly attribute TypeCode     element_type;
+        attribute IDLType               element_type_def;
+    };
+    interface ExceptionDef : Contained, Container {
+        readonly attribute TypeCode     type;
+        attribute StructMemberSeq       members;
+    };
+    enum AttributeMode {ATTR_NORMAL, ATTR_READONLY};
+    interface AttributeDef : Contained {
+        readonly attribute TypeCode     type;
+        attribute IDLType               type_def;
+        attribute AttributeMode         mode;
+    };
+    struct AttributeDescription {
+        Identifier                      name; 
+        RepositoryId                    id; 
+        RepositoryId                    defined_in; 
+        VersionSpec                     version;
+        TypeCode                        type;
+        AttributeMode                   mode; 
+    };
+    struct ExtAttributeDescription {
+      Identifier name;
+      RepositoryId id;
+      RepositoryId defined_in;
+      VersionSpec version;
+      TypeCode type;
+      AttributeMode mode;
+      ExcDescriptionSeq get_exceptions;
+      ExcDescriptionSeq put_exceptions;
+    };
+    interface ExtAttributeDef : AttributeDef {
+      // read/write interface
+      attribute ExcDescriptionSeq get_exceptions;
+      attribute ExcDescriptionSeq set_exceptions;
+      // read interface
+      ExtAttributeDescription describe_attribute ();
+    };
+    enum OperationMode {OP_NORMAL, OP_ONEWAY};
+    enum ParameterMode {PARAM_IN, PARAM_OUT, PARAM_INOUT};
+    struct ParameterDescription {
+        Identifier                      name; 
+        TypeCode                        type; 
+        IDLType                         type_def;
+        ParameterMode                   mode;
+    };
+    typedef sequence <ParameterDescription> ParDescriptionSeq;
+    typedef Identifier                      ContextIdentifier;
+    typedef sequence <ContextIdentifier>    ContextIdSeq;
+    typedef sequence <ExceptionDef>         ExceptionDefSeq;
+    
+    interface OperationDef : Contained {
+        readonly attribute TypeCode     result;
+        attribute IDLType               result_def;
+        attribute ParDescriptionSeq     params;
+        attribute OperationMode         mode; 
+        attribute ContextIdSeq          contexts;
+        attribute ExceptionDefSeq       exceptions;
+    };
+    
+    struct OperationDescription {
+        Identifier                      name; 
+        RepositoryId                    id; 
+        RepositoryId                    defined_in; 
+        VersionSpec                     version;
+        TypeCode                        result; 
+        OperationMode                   mode; 
+        ContextIdSeq                    contexts; 
+        ParDescriptionSeq               parameters;
+        ExcDescriptionSeq               exceptions;
+    };
+    typedef sequence <RepositoryId>         RepositoryIdSeq;
+    typedef sequence <OperationDescription> OpDescriptionSeq;
+    typedef sequence <AttributeDescription> AttrDescriptionSeq;
+    typedef sequence <ExtAttributeDescription> ExtAttrDescriptionSeq;
+    
+    interface InterfaceDef : Container, Contained, IDLType {
+        // read/write interface
+        attribute InterfaceDefSeq       base_interfaces;
+        attribute boolean               is_abstract;
+        // read interface
+        boolean is_a (in RepositoryId   interface_id
+        );
+        struct FullInterfaceDescription {
+            Identifier                  name;
+            RepositoryId                id;
+            RepositoryId                defined_in;
+            VersionSpec                 version;
+            OpDescriptionSeq            operations;
+            AttrDescriptionSeq          attributes;
+            RepositoryIdSeq             base_interfaces;
+            TypeCode                    type;
+            boolean                     is_abstract;
+        };
+        FullInterfaceDescription describe_interface();
+        // write interface
+        AttributeDef create_attribute (
+            in RepositoryId             id,
+            in Identifier               name,
+            in VersionSpec              version,
+            in IDLType                  type,
+            in AttributeMode            mode
+        );
+        OperationDef create_operation ( 
+            in RepositoryId             id,
+            in Identifier               name,
+            in VersionSpec              version,
+            in IDLType                  result,
+            in OperationMode            mode, 
+            in ParDescriptionSeq        params,
+            in ExceptionDefSeq          exceptions,
+            in ContextIdSeq             contexts
+        );
+    };
+    struct InterfaceDescription {
+        Identifier                      name; 
+        RepositoryId                    id; 
+        RepositoryId                    defined_in; 
+        VersionSpec                     version;
+        RepositoryIdSeq                 base_interfaces;
+        boolean                         is_abstract;
+    };
+
+    interface InterfaceAttrExtension {
+      // read interface
+      struct ExtFullInterfaceDescription {
+	Identifier name;
+	RepositoryId id;
+	RepositoryId defined_in;
+	VersionSpec version;
+	OpDescriptionSeq operations;
+	ExtAttrDescriptionSeq attributes;
+	RepositoryIdSeq base_interfaces;
+	TypeCode type;
+      };
+      ExtFullInterfaceDescription describe_ext_interface ();
+      // write interface
+      ExtAttributeDef create_ext_attribute (
+        in RepositoryId id,
+	in Identifier name,
+	in VersionSpec version,
+	in IDLType type,
+	in AttributeMode mode,
+	in ExceptionDefSeq get_exceptions,
+	in ExceptionDefSeq set_exceptions
+      );
+    };
+
+    interface ExtInterfaceDef : InterfaceDef, InterfaceAttrExtension {};
+
+    typedef short Visibility;
+    const Visibility PRIVATE_MEMBER = 0;
+    const Visibility PUBLIC_MEMBER  = 1;
+    
+    struct ValueMember {
+        Identifier                      name;
+        RepositoryId                    id;
+        RepositoryId                    defined_in;
+        VersionSpec                     version;
+        TypeCode                        type;
+        IDLType                         type_def;
+        Visibility                      access; 
+    };
+    typedef sequence <ValueMember> ValueMemberSeq;
+    interface ValueMemberDef : Contained {
+        readonly attribute              TypeCode type;
+        attribute IDLType               type_def;
+        attribute Visibility            access;
+    };
+    interface ValueDef : Container, Contained, IDLType {
+        // read/write interface
+        attribute InterfaceDefSeq       supported_interfaces;
+        attribute InitializerSeq        initializers;
+        attribute ValueDef              base_value;
+        attribute ValueDefSeq           abstract_base_values;
+        attribute boolean               is_abstract;
+        attribute boolean               is_custom;
+        attribute boolean               is_truncatable;
+        // read interface
+        boolean is_a(in RepositoryId    id);
+        struct FullValueDescription {
+            Identifier                  name;
+            RepositoryId                id;
+            boolean                     is_abstract;
+            boolean                     is_custom;
+            RepositoryId                defined_in;
+            VersionSpec                 version;
+            OpDescriptionSeq            operations;
+            AttrDescriptionSeq          attributes;
+            ValueMemberSeq              members;
+            InitializerSeq              initializers;
+            RepositoryIdSeq             supported_interfaces;
+            RepositoryIdSeq             abstract_base_values;
+            boolean                     is_truncatable;
+            RepositoryId                base_value;
+            TypeCode                    type;
+        };
+        FullValueDescription describe_value();
+        ValueMemberDef create_value_member(
+            in RepositoryId             id,
+            in Identifier               name,
+            in VersionSpec              version,
+            in IDLType                  type,
+            in Visibility               access
+        );
+        AttributeDef create_attribute(
+            in RepositoryId             id,
+            in Identifier               name,
+            in VersionSpec              version,
+            in IDLType                  type,
+            in AttributeMode            mode
+        );
+        OperationDef create_operation (
+            in RepositoryId             id,
+            in Identifier               name,
+            in VersionSpec              version,
+            in IDLType                  result,
+            in OperationMode            mode,
+            in ParDescriptionSeq        params,
+            in ExceptionDefSeq          exceptions,
+            in ContextIdSeq             contexts
+        );
+    };
+    struct ValueDescription {
+        Identifier                      name;
+        RepositoryId                    id;
+        boolean                         is_abstract;
+        boolean                         is_custom;
+        RepositoryId                    defined_in;
+        VersionSpec                     version;
+        RepositoryIdSeq                 supported_interfaces;
+        RepositoryIdSeq                 abstract_base_values;
+        boolean                         is_truncatable;
+        RepositoryId                    base_value; 
+    };
+
+//PolyORB:WAidlac: idlac/ALM for interface function which return interface
+//                 itself generates an Ada function which return Ref.
+//                 By Ada rules this function is a primitive operation
+//                 of Ref and should be overridden for each child type.
+//                 idlac doesn't generate this override function, so
+//                 code generated for ExtValueDef is wrong.
+//PolyORB:IL:    interface ExtValueDef : ValueDef {
+//PolyORB:IL:      // read/write interface
+//PolyORB:IL:      attribute ExtInitializerSeq ext_initializers;
+//PolyORB:IL:      // read interface
+//PolyORB:IL:      struct ExtFullValueDescription {
+//PolyORB:IL:	Identifier name;
+//PolyORB:IL:	RepositoryId id;
+//PolyORB:IL:	boolean is_abstract;
+//PolyORB:IL:	boolean is_custom;
+//PolyORB:IL:	RepositoryId defined_in;
+//PolyORB:IL:	VersionSpec version;
+//PolyORB:IL:	OpDescriptionSeq operations;
+//PolyORB:IL:	ExtAttrDescriptionSeq attributes;
+//PolyORB:IL:	ValueMemberSeq members;
+//PolyORB:IL:	ExtInitializerSeq initializers;
+//PolyORB:IL:	RepositoryIdSeq supported_interfaces;
+//PolyORB:IL:	RepositoryIdSeq abstract_base_values;
+//PolyORB:IL:	boolean is_truncatable;
+//PolyORB:IL:	RepositoryId base_value;
+//PolyORB:IL:	TypeCode type;
+//PolyORB:IL:      };
+//PolyORB:IL:      ExtFullValueDescription describe_ext_value ();
+//PolyORB:IL:      // write interface
+//PolyORB:IL:      ExtAttributeDef create_ext_attribute (
+//PolyORB:IL:        in RepositoryId id,
+//PolyORB:IL:	in Identifier name,
+//PolyORB:IL:	in VersionSpec version,
+//PolyORB:IL:	in IDLType type,
+//PolyORB:IL:	in AttributeMode mode,
+//PolyORB:IL:	in ExceptionDefSeq get_exceptions,
+//PolyORB:IL:	in ExceptionDefSeq set_exceptions
+//PolyORB:IL:      );
+//PolyORB:IL:    };
+
+    interface ValueBoxDef : TypedefDef {
+        attribute IDLType original_type_def;
+    };
+    interface AbstractInterfaceDef : InterfaceDef {
+    };
+    interface ExtAbstractInterfaceDef : AbstractInterfaceDef,
+      InterfaceAttrExtension {
+    };
+    interface LocalInterfaceDef : InterfaceDef {
+    };
+    interface ExtLocalInterfaceDef : LocalInterfaceDef,
+      InterfaceAttrExtension {
+    };   
+ 
+#ifdef _COMPONENT_REPOSITORY_
+
+//PolyORB:NI:  module ComponentIR {
+//PolyORB:NI:    typeprefix ComponentIR "omg.org";
+//PolyORB:NI:    interface ComponentDef;
+//PolyORB:NI:    interface HomeDef;
+//PolyORB:NI:    interface EventDef : ExtValueDef {};
+//PolyORB:NI:    interface Container{
+//PolyORB:NI:      ComponentDef create_component (
+//PolyORB:NI:	in RepositoryId id,
+//PolyORB:NI:	in Identifier name,
+//PolyORB:NI:	in VersionSpec version,
+//PolyORB:NI:	in ComponentDef base_component,
+//PolyORB:NI:	in InterfaceDefSeq supports_interfaces
+//PolyORB:NI:      );
+//PolyORB:NI:      HomeDef create_home (
+//PolyORB:NI:	in RepositoryId id,
+//PolyORB:NI:	in Identifier name,
+//PolyORB:NI:	in VersionSpec version,
+//PolyORB:NI:	in HomeDef base_home,
+//PolyORB:NI:	in ComponentDef managed_component,
+//PolyORB:NI:	in InterfaceDefSeq supports_interfaces,
+//PolyORB:NI:	in ValueDef primary_key
+//PolyORB:NI:      );
+//PolyORB:NI:      EventDef create_event (
+//PolyORB:NI:        in RepositoryId id,
+//PolyORB:NI:	in Identifier name,
+//PolyORB:NI:	in VersionSpec version,
+//PolyORB:NI:	in boolean is_custom,
+//PolyORB:NI:	in boolean is_abstract,
+//PolyORB:NI:	in ValueDef base_value,
+//PolyORB:NI:	in boolean is_truncatable,
+//PolyORB:NI:	in ValueDefSeq abstract_base_values,
+//PolyORB:NI:	in InterfaceDefSeq supported_interfaces,
+//PolyORB:NI:	in ExtInitializerSeq initializers
+//PolyORB:NI:      );
+//PolyORB:NI:    };
+//PolyORB:NI:    interface ModuleDef : CORBA::ModuleDef, Container{};
+//PolyORB:NI:    interface Repository : CORBA::Repository, Container{};
+//PolyORB:NI:    interface ProvidesDef : Contained {
+//PolyORB:NI:      attribute InterfaceDef interface_type;
+//PolyORB:NI:    };
+//PolyORB:NI:    struct ProvidesDescription {
+//PolyORB:NI:      Identifier name;
+//PolyORB:NI:      RepositoryId id;
+//PolyORB:NI:      RepositoryId defined_in;
+//PolyORB:NI:      VersionSpec version;
+//PolyORB:NI:      RepositoryId interface_type;
+//PolyORB:NI:    };
+//PolyORB:NI:    interface UsesDef : Contained {
+//PolyORB:NI:      attribute InterfaceDef interface_type;
+//PolyORB:NI:      attribute boolean is_multiple;
+//PolyORB:NI:    };
+//PolyORB:NI:    struct UsesDescription {
+//PolyORB:NI:      Identifier name;
+//PolyORB:NI:      RepositoryId id;
+//PolyORB:NI:      RepositoryId defined_in;
+//PolyORB:NI:      VersionSpec version;
+//PolyORB:NI:      RepositoryId interface_type;
+//PolyORB:NI:      boolean is_multiple;
+//PolyORB:NI:    };
+//PolyORB:NI:    interface EventPortDef : Contained {
+//PolyORB:NI:      // read/write interface
+//PolyORB:NI:      attribute EventDef event;
+//PolyORB:NI:      // read interface
+//PolyORB:NI:      boolean is_a (in RepositoryId event_id);
+//PolyORB:NI:    };
+//PolyORB:NI:    struct EventPortDescription {
+//PolyORB:NI:      Identifier name;
+//PolyORB:NI:      RepositoryId id;
+//PolyORB:NI:      RepositoryId defined_in;
+//PolyORB:NI:      VersionSpec version;
+//PolyORB:NI:      RepositoryId event;
+//PolyORB:NI:    };
+//PolyORB:NI:    interface EmitsDef : EventPortDef {};
+//PolyORB:NI:    interface PublishesDef : EventPortDef {};
+//PolyORB:NI:    interface ConsumesDef : EventPortDef {};
+//PolyORB:NI:    interface ComponentDef : ExtInterfaceDef {
+//PolyORB:NI:      // read/write interface
+//PolyORB:NI:      attribute ComponentDef base_component;
+//PolyORB:NI:      attribute InterfaceDefSeq supported_interfaces;
+//PolyORB:NI:      // write interface
+//PolyORB:NI:      ProvidesDef create_provides (
+//PolyORB:NI:	in RepositoryId id,
+//PolyORB:NI:	in Identifier name,
+//PolyORB:NI:	in VersionSpec version,
+//PolyORB:NI:	in InterfaceDef interface_type
+//PolyORB:NI:      );
+//PolyORB:NI:      UsesDef create_uses (
+//PolyORB:NI:        in RepositoryId id,
+//PolyORB:NI:	in Identifier name,
+//PolyORB:NI:	in VersionSpec version,
+//PolyORB:NI:	in InterfaceDef interface_type,
+//PolyORB:NI:	in boolean is_multiple
+//PolyORB:NI:      );
+//PolyORB:NI:      EmitsDef create_emits (
+//PolyORB:NI:	in RepositoryId id,
+//PolyORB:NI:	in Identifier name,
+//PolyORB:NI:	in VersionSpec version,
+//PolyORB:NI:	in EventDef event
+//PolyORB:NI:      );
+//PolyORB:NI:      PublishesDef create_publishes (
+//PolyORB:NI:	in RepositoryId id,
+//PolyORB:NI:	in Identifier name,
+//PolyORB:NI:	in VersionSpec version,
+//PolyORB:NI:	in EventDef event
+//PolyORB:NI:      );
+//PolyORB:NI:      ConsumesDef create_consumes (
+//PolyORB:NI:	in RepositoryId id,
+//PolyORB:NI:	in Identifier name,
+//PolyORB:NI:	in VersionSpec version,
+//PolyORB:NI:	in EventDef event
+//PolyORB:NI:      );
+//PolyORB:NI:    };
+//PolyORB:NI:    typedef sequence<ProvidesDescription>
+//PolyORB:NI:    ProvidesDescriptionSeq;
+//PolyORB:NI:    typedef sequence<UsesDescription> UsesDescriptionSeq;
+//PolyORB:NI:    typedef sequence<EventPortDescription>
+//PolyORB:NI:    EventPortDescriptionSeq;
+//PolyORB:NI:    struct ComponentDescription {
+//PolyORB:NI:      Identifier name;
+//PolyORB:NI:      RepositoryId id;
+//PolyORB:NI:      RepositoryId defined_in;
+//PolyORB:NI:      VersionSpec version;
+//PolyORB:NI:      RepositoryId base_component;
+//PolyORB:NI:      RepositoryIdSeq supported_interfaces;
+//PolyORB:NI:      ProvidesDescriptionSeq provided_interfaces;
+//PolyORB:NI:      UsesDescriptionSeq used_interfaces;
+//PolyORB:NI:      EventPortDescriptionSeq emits_events;
+//PolyORB:NI:      EventPortDescriptionSeq publishes_events;
+//PolyORB:NI:      EventPortDescriptionSeq consumes_events;
+//PolyORB:NI:      ExtAttrDescriptionSeq attributes;
+//PolyORB:NI:      TypeCode type;
+//PolyORB:NI:    };
+//PolyORB:NI:    interface FactoryDef : OperationDef {};
+//PolyORB:NI:    interface FinderDef : OperationDef {};
+//PolyORB:NI:    interface HomeDef : ExtInterfaceDef {
+//PolyORB:NI:      // read/write interface
+//PolyORB:NI:      attribute HomeDef base_home;
+//PolyORB:NI:      attribute InterfaceDefSeq supported_interfaces;
+//PolyORB:NI:      attribute ComponentDef managed_component;
+//PolyORB:NI:      attribute ValueDef primary_key;
+//PolyORB:NI:      // write interface
+//PolyORB:NI:      FactoryDef create_factory (
+//PolyORB:NI:	in RepositoryId id,
+//PolyORB:NI:	in Identifier name,
+//PolyORB:NI:	in VersionSpec version,
+//PolyORB:NI:	in ParDescriptionSeq params,
+//PolyORB:NI:	in ExceptionDefSeq exceptions
+//PolyORB:NI:      );
+//PolyORB:NI:      FinderDef create_finder (
+//PolyORB:NI:	in RepositoryId id,
+//PolyORB:NI:	in Identifier name,
+//PolyORB:NI:	in VersionSpec version,
+//PolyORB:NI:	in ParDescriptionSeq params,
+//PolyORB:NI:	in ExceptionDefSeq exceptions
+//PolyORB:NI:      );
+//PolyORB:NI:    };
+//PolyORB:NI:    struct HomeDescription {
+//PolyORB:NI:      Identifier name;
+//PolyORB:NI:      RepositoryId id;
+//PolyORB:NI:      RepositoryId defined_in;
+//PolyORB:NI:      VersionSpec version;
+//PolyORB:NI:      RepositoryId base_home;
+//PolyORB:NI:      RepositoryId managed_component;
+//PolyORB:NI:      ValueDescription primary_key;
+//PolyORB:NI:      OpDescriptionSeq factories;
+//PolyORB:NI:      OpDescriptionSeq finders;
+//PolyORB:NI:      OpDescriptionSeq operations;
+//PolyORB:NI:      ExtAttrDescriptionSeq attributes;
+//PolyORB:NI:      TypeCode type;
+//PolyORB:NI:    };
+//PolyORB:NI:  };
+#endif // _COMPONENT_REPOSITORY_
+
+
+
+
