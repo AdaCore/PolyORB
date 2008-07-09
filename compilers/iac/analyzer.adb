@@ -363,14 +363,21 @@ package body Analyzer is
       end if;
 
       K := Kind (T);
-      if K /= K_Fixed_Point_Type
-        and then K not in K_Float .. K_Octet
-        and then K /= K_Enumeration_Type
-      then
-         Error_Loc (1) := Loc (Type_Spec (E));
-         DE ("invalid type for constant");
-         return;
-      end if;
+      case K is
+         when
+            K_Fixed_Point_Type |
+            K_String_Type      |
+            K_Wide_String_Type |
+            K_Enumeration_Type |
+            K_Float .. K_Octet =>
+
+            null;
+
+         when others =>
+            Error_Loc (1) := Loc (Type_Spec (E));
+            DE ("invalid type for constant");
+            return;
+      end case;
 
       --  Analyze expression, evaluate it and then convert result
 

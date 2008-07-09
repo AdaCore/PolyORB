@@ -173,8 +173,9 @@ package body Backend.BE_CORBA_Ada.Stubs is
          N             : Node_Id;
          Expression    : Node_Id;
          Constant_Type : constant Node_Id := Map_Expanded_Name (Type_Spec (E));
-         S             : Node_Id;
          K             : FEN.Node_Kind;
+         Otyp          : constant Node_Id :=
+                           FEU.Get_Original_Type_Specifier (Type_Spec (E));
       begin
          Set_Main_Spec;
 
@@ -210,33 +211,65 @@ package body Backend.BE_CORBA_Ada.Stubs is
          end case;
 
          --  If the constant type is of a string type, it needs to be
-         --  converted using To_CORBA_[Wide_]String.
+         --  converted using To_CORBA_[Wide_]String (for the unbounded case),
+         --  To_Bounded_[Wide_]String (for the bounded case).
          --  Determine the expanded name of these subprograms according to
          --  whether the type is directly CORBA.[Wide_]String, or a derived
          --  type thereof.
 
-         K := FEN.Kind (FEU.Get_Original_Type_Specifier (Type_Spec (E)));
+         K := FEN.Kind (Otyp);
 
          case K is
-            when K_String | K_Wide_String =>
-               declare
-                  Converter : RE_Id;
-               begin
-                  if K = K_String then
-                     Converter := RE_To_CORBA_String;
-                  else
-                     Converter := RE_To_CORBA_Wide_String;
-                  end if;
+            when K_String           |
+                 K_String_Type      |
+                 K_Wide_String      |
+                 K_Wide_String_Type =>
 
-                  if FEN.Kind (Type_Spec (E)) = K then
+               declare
+                  S : Node_Id := No_Node;
+                  --  Selected_Component denoting a conversion function, for
+                  --  the case where the constant's type is not a root
+                  --  unbounded string type.
+
+                  Converter : Node_Id;
+               begin
+                  case K is
+                     when K_String =>
+                        Converter := RE (RE_To_CORBA_String);
+                     when K_Wide_String =>
+                        Converter := RE (RE_To_CORBA_Wide_String);
+
+                     when K_String_Type      |
+                          K_Wide_String_Type =>
+                        declare
+                           Str_Instance : constant Node_Id :=
+                                            Defining_Identifier
+                                              (Instantiation_Node
+                                                (BE_Node (Otyp)));
+                           Id : Node_Id;
+                        begin
+                           if K = K_String_Type then
+                              Id := Make_Identifier
+                                      (SN ((S_To_Bounded_String)));
+                           else
+                              Id := Make_Identifier
+                                      (SN ((S_To_Bounded_Wide_String)));
+                           end if;
+                           Converter := Make_Selected_Component
+                                          (Str_Instance, Id);
+                        end;
+                     when others =>
+                        raise Program_Error;
+                  end case;
+
+                  if Otyp = Type_Spec (E) then
                      Expression := Make_Subprogram_Call
-                                     (RE (Converter),
-                                      Make_List_Id (Expression));
+                                     (Converter, Make_List_Id (Expression));
                   else
                      S := Make_Selected_Component
-                       (Get_Parent_Unit_Name
-                        (Get_Type_Definition_Node (Type_Spec (E))),
-                        Selector_Name (RE (Converter, False)));
+                            (Get_Parent_Unit_Name
+                               (Get_Type_Definition_Node (Type_Spec (E))),
+                                  Selector_Name (Converter));
 
                      --  The call to Copy_Node ensures the addition of
                      --  necessary WITH clauses.
