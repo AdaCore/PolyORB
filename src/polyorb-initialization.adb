@@ -59,11 +59,10 @@ package body PolyORB.Initialization is
 
    type Dependency is record
       Target   : Module_Access;
-      --  The module being depended upon.
+      --  The module being depended upon
 
       Optional : Boolean;
-      --  If True, failure to initialize the target is not a
-      --  fatal error.
+      --  If True, failure to initialize the target is not a fatal error
    end record;
 
    package Dep_Lists is new PolyORB.Utils.Chained_Lists (Dependency);
@@ -123,10 +122,9 @@ package body PolyORB.Initialization is
    --  Raise Program_Error with the given exception message
 
    procedure Check_Conflicts;
-   --  For each module, check that it does not conflict
-   --  with any other registered module. If no conflicts
-   --  are detected, the name of the modules and its aliases
-   --  (the names of the subsystems it implements) are entered
+   --  For each module, check that it does not conflict with any other
+   --  registered module. If no conflicts are detected, the name of the modules
+   --  and its aliases (the names of the subsystems it implements) are entered
    --  into the global World list.
 
    procedure Resolve_Dependencies;
@@ -239,14 +237,23 @@ package body PolyORB.Initialization is
 
             declare
                Name    : String renames Value (SI).all;
-               Virtual : Module_Access := Lookup_Module (Name);
+               Last    : Integer := Name'Last;
+               Virtual : Module_Access;
             begin
+               if Name (Last) = '!' then
+                  Last := Last - 1;
+                  String_Lists.Append
+                    (Current.Info.Conflicts, Name (Name'First .. Last));
+               end if;
+
+               Virtual := Lookup_Module (Name (Name'First .. Last));
                if Virtual = null then
                   Virtual := new Module (Virtual => True);
                   Virtual.Name := Value (SI);
                   Check_Duplicate (Name);
                   Append (Init_Info.World, Virtual);
                end if;
+
                Prepend (Virtual.Deps, Dependency'(
                  Target   => Current,
                  Optional => False));
@@ -279,9 +286,35 @@ package body PolyORB.Initialization is
             Conflicting := Lookup_Module (Value (SI).all);
 
             if Conflicting /= null then
-               Raise_Program_Error
-                 ("Conflict between " & Module_Name (Current).all
-                  & " and " & Module_Name (Conflicting).all);
+               if Conflicting.Virtual then
+                  declare
+                     First_Provider : constant Module_Access :=
+                                        Value
+                                          (First (Conflicting.Deps)).Target;
+                  begin
+                     --  For a conflict against a virtual module, do not fail
+                     --  if Current is the only provider: the conflict entry
+                     --  means in this case "conflict with any other provider".
+
+                     if First_Provider = Current
+                          and then Length (Conflicting.Deps) = 1
+                     then
+                        null;
+                     else
+                        Raise_Program_Error
+                          ("Conflict between "
+                           & Module_Name (Current).all
+                           & " and "
+                           & Module_Name (Conflicting).all
+                           & " provided by "
+                           & Module_Name (First_Provider).all);
+                     end if;
+                  end;
+               else
+                  Raise_Program_Error
+                    ("Conflict between " & Module_Name (Current).all
+                     & " and " & Module_Name (Conflicting).all);
+               end if;
             end if;
 
             Next (SI);

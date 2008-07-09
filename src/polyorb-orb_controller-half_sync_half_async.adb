@@ -515,9 +515,9 @@ begin
       (Name      => +"orb_controller.half_sync_half_async",
        Conflicts => +"orb.no_tasking",
        Depends   => +"tasking.condition_variables"
-       & "tasking.mutexes"
-       & "request_scheduler?",
-       Provides  => +"orb_controller",
+         & "tasking.mutexes"
+         & "request_scheduler?",
+       Provides  => +"orb_controller!",
        Implicit  => False,
        Init      => Initialize'Access,
        Shutdown  => null));

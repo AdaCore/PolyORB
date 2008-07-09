@@ -333,7 +333,7 @@ begin
       (Name      => +"orb.thread_pool",
        Conflicts => +"no_tasking",
        Depends   => +"tasking.threads",
-       Provides  => +"orb.tasking_policy",
+       Provides  => +"orb.tasking_policy!",
        Implicit  => False,
        Init      => Initialize_Tasking_Policy_Access'Access,
        Shutdown  => null));

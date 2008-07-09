@@ -12,6 +12,13 @@ This date shows the implementation date of the feature. Any 2.5w wavefront
 subsequent to this date will contain the indicated feature, as will any
 subsequent releases.
 
+NF-25-H704-004 Better detection of conflicting middleware setups (2008-07-09)
+
+  Middleware setups that include more than one ORB tasking policy or more than
+  one ORB controller are now detected at initialization time and cause an
+  exception to be raised instead of silently proceeding with execution of the
+  inconsistent partition.
+
 NF-25-H624-006 New IAC command line switch -nocpp (2008-07-09)
 
   A new command line switch "-nocpp" is supported by IAC, indicating that

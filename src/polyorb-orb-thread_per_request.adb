@@ -218,7 +218,7 @@ begin
       (Name      => +"orb.thread_per_request",
        Conflicts => +"no_tasking",
        Depends   => +"tasking.condition_variables",
-       Provides  => +"orb.tasking_policy",
+       Provides  => +"orb.tasking_policy!",
        Implicit  => False,
        Init      => Initialize'Access,
        Shutdown  => null));

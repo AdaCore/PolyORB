@@ -454,9 +454,9 @@ begin
       (Name      => +"orb_controller.workers",
        Conflicts => Empty,
        Depends   => +"tasking.condition_variables"
-       & "tasking.mutexes"
-       & "request_scheduler?",
-       Provides  => +"orb_controller",
+         & "tasking.mutexes"
+         & "request_scheduler?",
+       Provides  => +"orb_controller!",
        Implicit  => False,
        Init      => Initialize'Access,
        Shutdown  => null));

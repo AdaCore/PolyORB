@@ -316,7 +316,7 @@ begin
       (Name      => +"orb_controller.no_tasking",
        Conflicts => Empty,
        Depends   => +"orb.no_tasking",
-       Provides  => +"orb_controller",
+       Provides  => +"orb_controller!",
        Implicit  => False,
        Init      => Initialize'Access,
        Shutdown  => null));

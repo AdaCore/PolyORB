@@ -181,7 +181,7 @@ begin
       (Name      => +"orb.no_tasking",
        Conflicts => Empty,
        Depends   => Empty,
-       Provides  => +"orb.tasking_policy",
+       Provides  => +"orb.tasking_policy!",
        Implicit  => False,
        Init      => Initialize'Access,
        Shutdown  => null));
