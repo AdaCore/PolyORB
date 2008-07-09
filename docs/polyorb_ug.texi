@@ -2029,6 +2029,7 @@ OPTIONS
   -cppargs Pass arguments to the C++ preprocessor
   -I <dir> Shortcut -cppargs -I directory. Use this flag
            for the imported entities
+  -nocpp   Do not preprocess input
 
   -<lang>  Generate code for a supported language
 
