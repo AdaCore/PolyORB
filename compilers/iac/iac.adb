@@ -112,7 +112,7 @@ procedure IAC is
       Initialize_Option_Scan ('-', False, "cppargs");
       loop
          case Getopt ("b: c d g! E e h! I: i k o: p q r! s t! ada idl "
-                      & "ir noir types") is
+                      & "ir noir nocpp types") is
 
             when ASCII.NUL =>
                exit;
@@ -205,6 +205,9 @@ procedure IAC is
             when 'n' =>
                if Full_Switch = "noir" then
                   BEA.IR_Info_Packages_Gen := False;
+
+               elsif Full_Switch = "nocpp" then
+                  No_Preprocess := True;
                end if;
 
             when 'o' =>

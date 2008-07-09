@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -46,6 +46,9 @@ package Flags is
 
    Preprocess_Only  : Boolean       := False;
    --  True when we only preprocess the IDL source file and output it
+
+   No_Preprocess    : Boolean       := False;
+   --  No preprocessing pass, assume input file has already been preprocessed
 
    Compile_Only     : Boolean       := False;
    --  True when we only compile the IDL source file and exit

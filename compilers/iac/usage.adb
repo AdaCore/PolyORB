@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -62,6 +62,7 @@ begin
    Write_Line ("  -cppargs Pass arguments to the C++ preprocessor");
    Write_Line ("  -I <dir> Shortcut -cppargs -I directory. Use this flag");
    Write_Line ("           for the imported entities");
+   Write_Line ("  -nocpp   Do not preprocess input");
    Write_Eol;
    Write_Line ("  -<lang>  Generate code for a supported language");
    Write_Eol;

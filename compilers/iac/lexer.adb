@@ -35,6 +35,7 @@ with GNAT.Command_Line; use GNAT.Command_Line;
 
 with Charset;   use Charset;
 with Errors;    use Errors;
+with Flags;     use Flags;
 with Namet;     use Namet;
 with Output;    use Output;
 with Utils;     use Utils;
@@ -256,8 +257,8 @@ package body Lexer is
    --  end-of-line. We do the same for LFCR, even though no supported operating
    --  systems use that sequence, because that's what the GNAT compiler does.
 
-   procedure Skip_Spaces;
-   --  Skip all spaces
+   procedure Skip_Spaces (Except_Newline : Boolean := False);
+   --  Skip all spaces, except end-of-line markers if Except_Newline is True
 
    function To_Token (Name : Name_Id) return Token_Type;
    --  Return the token matching Name. Otherwise, return T_Error.
@@ -548,12 +549,33 @@ package body Lexer is
       Tmp_FDesc                   : File_Descriptor;
       Tmp_FName                   : Temp_File_Name;
       Preprocessor                : String_Access;
-      Prep_And_Flags_List : constant Argument_List_Access
-        := Argument_String_To_List (Platform.IDL_Preprocessor);
+      Prep_And_Flags_List : constant Argument_List_Access :=
+                              Argument_String_To_List
+                                (Platform.IDL_Preprocessor);
+
+      procedure Open_Original_Source;
+      --  Set Result to an open file descriptor for the original source file
+      --  (not preprocessed).
+
+      --------------------------
+      -- Open_Original_Source --
+      --------------------------
+
+      procedure Open_Original_Source is
+      begin
+         Get_Name_String (Source);
+         Add_Char_To_Name_Buffer (ASCII.NUL);
+         Result := Open_Read (Name_Buffer'Address, Binary);
+      end Open_Original_Source;
 
    begin
       if Initialized then
          Push_Lexer_State;
+      end if;
+
+      if No_Preprocess then
+         Open_Original_Source;
+         return;
       end if;
 
       --  Reinitialize the CPP arguments
@@ -609,33 +631,30 @@ package body Lexer is
 
       Preprocessor := Locate_Exec_On_Path
         (Prep_And_Flags_List (Prep_And_Flags_List'First).all);
+
       if Preprocessor = null then
          DE ("?cannot locate "
              & Prep_And_Flags_List (Prep_And_Flags_List'First).all);
-         Get_Name_String (Source);
-         Add_Char_To_Name_Buffer (ASCII.NUL);
-         Tmp_FDesc := Open_Read (Name_Buffer'Address, Binary);
-      else
-         Spawn
-           (Preprocessor.all, CPP_Arg_Values (1 .. CPP_Arg_Count), Success);
-
-         if not Success then
-            Error_Name (1) := Source;
-            DE ("fail to preprocess%");
-            raise Fatal_Error;
-         end if;
-
-         Name_Buffer (1 .. Temp_File_Len) := Tmp_FName;
-         Name_Buffer (Temp_File_Len + 1)  := ASCII.NUL;
-
-         Tmp_FDesc := Open_Read (Name_Buffer'Address, Binary);
-         if Tmp_FDesc = Invalid_FD then
-            DE ("cannot open preprocessor output");
-            raise Fatal_Error;
-         end if;
+         Open_Original_Source;
+         return;
       end if;
 
-      Result := Tmp_FDesc;
+      Spawn (Preprocessor.all, CPP_Arg_Values (1 .. CPP_Arg_Count), Success);
+
+      if not Success then
+         Error_Name (1) := Source;
+         DE ("fail to preprocess%");
+         raise Fatal_Error;
+      end if;
+
+      Name_Buffer (1 .. Temp_File_Len) := Tmp_FName;
+      Name_Buffer (Temp_File_Len + 1)  := ASCII.NUL;
+
+      Result := Open_Read (Name_Buffer'Address, Binary);
+      if Result = Invalid_FD then
+         DE ("cannot open preprocessor output");
+         raise Fatal_Error;
+      end if;
 
    exception when others =>
       Make_Cleanup;
@@ -1438,10 +1457,16 @@ package body Lexer is
       --  Scan past '#'
 
       Token_Location.Scan := Token_Location.Scan + 1;
-      Skip_Spaces;
+      Skip_Spaces (Except_Newline => True);
+
       C := Buffer (Token_Location.Scan);
 
-      --  Read line directive: "# <line> "<file>" <code>
+      --  Read line marker:
+      --    # <line>
+      --    # <line> "<file>"
+      --    # <line> "<file>" <flags>
+
+      --  The line marker is terminated by end-of-line
 
       if C in '0' .. '9' then
          declare
@@ -1450,20 +1475,25 @@ package body Lexer is
             Scan_Integer_Literal_Value (10, True);
             Line := Natural (Integer_Literal_Value);
 
-            Skip_Spaces;
-            if Buffer (Token_Location.Scan) = '"' then --  "
+            Skip_Spaces (Except_Newline => True);
+
+            --  Scan optional file name
+
+            if Buffer (Token_Location.Scan) = '"' then
                Token_Location.Scan := Token_Location.Scan + 1;
                Token := T_String_Literal;
                Scan_Chars_Literal_Value (T_String_Literal, True, False);
                Get_Name_String (String_Literal_Value);
 
-               --  Remove CPP special info
+               --  Remove marker for built-in or command line text
+
                if Name_Buffer (1) = '<'
                  and then Name_Buffer (Name_Len) = '>'
                then
                   Skip_Line;
 
                --  Check the suffix is ".idl"
+
                elsif Name_Len < 5
                  or else Name_Buffer (Name_Len - 3 .. Name_Len) /= ".idl"
                then
@@ -1475,9 +1505,14 @@ package body Lexer is
                   Set_New_Location
                     (Token_Location, String_Literal_Value, Int (Line));
                end if;
+            else
+               --  No file name
 
-               return;
+               Skip_Line;
+               Token_Location.Line := Int (Line);
             end if;
+
+            return;
          end;
       end if;
 
@@ -1583,6 +1618,8 @@ package body Lexer is
             when '{' =>
                Token_Location.Scan := Token_Location.Scan + 1;
                Token := T_Left_Brace;
+
+      --  The line marker is terminated by end-of-line
 
             when '}' =>
                Token_Location.Scan := Token_Location.Scan + 1;
@@ -1755,7 +1792,7 @@ package body Lexer is
 
                      --  Read wide string literal
 
-                     elsif Buffer (Token_Location.Scan + 1) = '"' then --  "
+                     elsif Buffer (Token_Location.Scan + 1) = '"' then
                         Token_Location.Scan := Token_Location.Scan + 2;
                         Scan_Chars_Literal_Value
                           (T_Wide_String_Literal, Fatal, True);
@@ -1854,15 +1891,20 @@ package body Lexer is
    -- Skip_Spaces --
    -----------------
 
-   procedure Skip_Spaces is
+   procedure Skip_Spaces (Except_Newline : Boolean := False) is
    begin
       loop
          case Buffer (Token_Location.Scan) is
-            when ' '
-              | HT =>
+            when ' ' | HT =>
                Token_Location.Scan := Token_Location.Scan + 1;
+
             when LF | FF | CR | VT =>
-               New_Line;
+               if Except_Newline then
+                  exit;
+               else
+                  New_Line;
+               end if;
+
             when others =>
                exit;
          end case;
