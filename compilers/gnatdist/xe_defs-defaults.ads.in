@@ -47,6 +47,7 @@ package XE_Defs.Defaults is
    Default_Protocol_Name : constant String := "@DEFPROTOCOLNAME@";
    Default_Dist_Flags    : constant String := "@GNAT_RTS_FLAG@";
    Default_Prefix        : constant String := "@prefix@";
+   Version               : constant String := "@VERSION@";
 
    Windows_On_Host       : constant Boolean := @WINDOWS_ON_HOST@;
 
