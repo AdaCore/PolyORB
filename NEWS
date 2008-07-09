@@ -27,6 +27,23 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+* PolyORB 2.5
+=============
+
+This release contains the PolyORB generic middleware, and its CORBA
+and DSA instantiations. In addition to the 2.4 release, it includes:
+
+New features
+------------
+
+See the features-25 file.
+
+Bug fixes
+---------
+
+IDL constants of a bounded string type were not handled correctly by the
+IDL to Ada compilers. Both have been fixed. (H707-023)
+
 * PolyORB 2.4
 =============
 
