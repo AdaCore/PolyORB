@@ -138,6 +138,24 @@ package body Idl_Fe.Types is
         & Minor_Image (Major_Image'First + 1 .. Minor_Image'Last);
    end Image;
 
+   --------
+   -- No --
+   --------
+
+   function No (N : Node_Id) return Boolean is
+   begin
+      return N = No_Node;
+   end No;
+
+   -------------
+   -- Present --
+   -------------
+
+   function Present (N : Node_Id) return Boolean is
+   begin
+      return N /= No_Node;
+   end Present;
+
    --------------------------------
    -- Management of const values --
    --------------------------------

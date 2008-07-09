@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -40,12 +40,18 @@ with Idlac_Errors;
 
 package Idl_Fe.Types is
 
-   -------------------------------
-   --  simple type definitions  --
-   -------------------------------
+   -----------------------------
+   -- Simple type definitions --
+   -----------------------------
 
    type Node_Id is new Integer;
    No_Node : constant Node_Id := 0;
+
+   function No (N : Node_Id) return Boolean;
+   --  True when N is No_Node
+
+   function Present (N : Node_Id) return Boolean;
+   --  True when N is not No_Node
 
    --  used for the identifiers
    type String_Cacc is access constant String;

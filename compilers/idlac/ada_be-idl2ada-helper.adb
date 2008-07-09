@@ -135,10 +135,6 @@ package body Ada_Be.Idl2Ada.Helper is
       Node : Node_Id);
    --  Generate the profile of the Wrap function
 
-   function Root_Type (Typ : Node_Id) return Node_Id;
-   --  Return the ultimate type derivation ancestor of Typ (unwinding all
-   --  typedefs and type references).
-
    -----------------------------------------------------------
    -- Specialised generation subprograms for each node kind --
    -----------------------------------------------------------
@@ -4047,38 +4043,6 @@ package body Ada_Be.Idl2Ada.Helper is
       pragma Assert (Kind (Node) = K_Exception);
       return "Raise_" & Ada_Name (Node);
    end Raise_Name;
-
-   ---------------
-   -- Root_Type --
-   ---------------
-
-   function Root_Type (Typ : Node_Id) return Node_Id is
-      Root_Typ : Node_Id;
-   begin
-      Root_Typ := Typ;
-
-      --  Unwind typedefs and scoped names
-
-      loop
-         case Kind (Root_Typ) is
-            when K_Scoped_Name =>
-               Root_Typ := Value (Root_Typ);
-
-            when K_Declarator =>
-               if Length (Array_Bounds (Root_Typ)) > 0
-                 or else Kind (T_Type (Parent (Root_Typ))) = K_Fixed
-               then
-                  exit;
-               end if;
-               Root_Typ := T_Type (Parent (Root_Typ));
-
-            when others =>
-               exit;
-         end case;
-      end loop;
-
-      return Root_Typ;
-   end Root_Type;
 
    -------------------
    -- Type_Modifier --
