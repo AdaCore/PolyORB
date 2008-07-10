@@ -1,5 +1,5 @@
 ========================================================
-PolyORB 2.5 NEW FEATURES LIST Current as of Jul 09, 2008
+PolyORB 2.5 NEW FEATURES LIST Current as of Jul 10, 2008
 ========================================================
 
 Copyright (c) 2008, AdaCore
@@ -29,7 +29,7 @@ NF-25-H616-002 IAC generates NOT NULL constraints in impl (2008-06-18)
 
   When generating implementation templates, the IDL to Ada compiler, IAC,
   now generates explicit NOT NULL constraints for the Self formal parameter
-  of primitive operations. This allows the use subprogram renaming
+  of primitive operations. This allows the use of subprogram renaming
   declarations as the bodies of such primitive operations when operating
   in Ada 2005 mode.
 
