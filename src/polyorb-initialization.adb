@@ -249,8 +249,8 @@ package body PolyORB.Initialization is
                Virtual := Lookup_Module (Name (Name'First .. Last));
                if Virtual = null then
                   Virtual := new Module (Virtual => True);
-                  Virtual.Name := Value (SI);
-                  Check_Duplicate (Name);
+                  Virtual.Name := new String'(Name (Name'First .. Last));
+                  Check_Duplicate (Virtual.Name.all);
                   Append (Init_Info.World, Virtual);
                end if;
 
