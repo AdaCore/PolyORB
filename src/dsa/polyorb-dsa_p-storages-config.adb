@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                     S Y S T E M . D S A _ T Y P E S                      --
+--        P O L Y O R B . D S A _ P . S T O R A G E S . C O N F I G         --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---           Copyright (C) 2008, Free Software Foundation, Inc.             --
+--         Copyright (C) 2006-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,30 +31,18 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-package body System.DSA_Types is
+--  Dummy placeholder body, replaced by a partition-specific one by the
+--  partitioning tool.
 
-   ----------
-   -- Read --
-   ----------
+package body PolyORB.DSA_P.Storages.Config is
 
-   procedure Read
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out Any_Container_Ptr) is
+   -------------------------
+   -- Initialyze_Storages --
+   -------------------------
+
+   procedure Initialize_Storages is
    begin
-      raise Program_Error
-        with "System.DSA_Types.Any_Container_Ptr'Read should not be called";
-   end Read;
+      null;
+   end Initialize_Storages;
 
-   -----------
-   -- Write --
-   -----------
-
-   procedure Write
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : Any_Container_Ptr) is
-   begin
-      raise Program_Error
-        with "System.DSA_Types.Any_Container_Ptr'Write should not be called";
-   end Write;
-
-end System.DSA_Types;
+end PolyORB.DSA_P.Storages.Config;

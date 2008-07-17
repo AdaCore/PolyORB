@@ -82,6 +82,14 @@ package XE_Front is
    --  Read major and minor from variable and add this pair to
    --  partition location list.
 
+   procedure Add_Withed_Storage
+     (First    : in out Withed_Storage_Id;
+      Last     : in out Withed_Storage_Id;
+      Location : Location_Id;
+      Unit     : Unit_Id;
+      Owner    : Boolean);
+   --  Add a node in the withed storages chained list of a partition
+
    procedure Add_Environment_Variable
      (First : in out Env_Var_Id;
       Last  : in out Env_Var_Id;

@@ -52,6 +52,9 @@ package XE_Back is
    procedure Run_Backend (Self : access Backend) is abstract;
    --  Generate stubs, skels, PCS units and executables.
 
+   procedure Register_Storages (Self : access Backend) is abstract;
+   --  Register available storage supports
+
    function Find_Backend (PCS_Name : String) return Backend_Access;
    --  Return an instance of the backend appropriate for the specified PCS
 

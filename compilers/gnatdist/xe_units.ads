@@ -36,6 +36,7 @@
 --  Ada units, configured units, partitions, channels, locations, ...
 
 with GNAT.Table;
+
 with XE;       use XE;
 with XE_Types; use XE_Types;
 
@@ -144,6 +145,13 @@ package XE_Units is
 
    No_Env_Var_Id    : constant Env_Var_Id := Env_Var_Id'First;
    First_Env_Var_Id : constant Env_Var_Id := No_Env_Var_Id + 1;
+
+   type Withed_Storage_Id is range 7_600_000 .. 7_699_999;
+
+   No_Withed_Storage_Id    : constant Withed_Storage_Id :=
+                                 Withed_Storage_Id'First;
+   First_Withed_Storage_Id : constant Withed_Storage_Id :=
+                                 No_Withed_Storage_Id + 1;
 
    --------------------
    -- ALI File Table --
@@ -435,6 +443,14 @@ package XE_Units is
       Storage_Loc : Location_Id;
       --  Id of storage location table entry for this partition
 
+      First_Withed_Storage : Withed_Storage_Id;
+      --  Id of first storage location needed by this partition
+      --  to manage shared memory
+
+      Last_Withed_Storage : Withed_Storage_Id;
+      --  Id of last storage location needed by this partition
+      --  to manage shared memory
+
       Filter : Filter_Name_Type;
       --  Name of filter to apply during filter registration
 
@@ -466,35 +482,37 @@ package XE_Units is
       Table_Increment      => 10);
 
    Null_Partition : constant Partition_Type :=
-     (Name               => No_Partition_Name,
-      First_Unit         => No_Conf_Unit_Id,
-      Last_Unit          => No_Conf_Unit_Id,
-      Main_Subprogram    => No_Unit_Name,
-      First_Stub         => First_Stub_Id,
-      Last_Stub          => No_Stub_Id,
-      First_Channel      => No_Channel_Id,
-      Last_Channel       => No_Channel_Id,
-      First_Env_Var      => No_Env_Var_Id,
-      Last_Env_Var       => No_Env_Var_Id,
-      Passive            => BMaybe,
-      Tasking            => '?',
-      Task_Pool          => No_Task_Pool,
-      Priority           => No_Priority,
-      Light_PCS          => BMaybe,
-      Termination        => No_Termination,
-      Reconnection       => No_Reconnection,
-      Command_Line       => No_Command_Line,
-      Host               => No_Host_Id,
-      First_Network_Loc  => No_Location_Id,
-      Last_Network_Loc   => No_Location_Id,
-      Storage_Loc        => No_Location_Id,
-      Filter             => No_Filter_Name,
-      Partition_Dir      => No_Directory_Name,
-      Executable_Dir     => No_Directory_Name,
-      Executable_File    => No_File_Name,
-      To_Build           => True,
-      Node               => Null_Node,
-      Most_Recent        => No_File_Name);
+     (Name                 => No_Partition_Name,
+      First_Unit           => No_Conf_Unit_Id,
+      Last_Unit            => No_Conf_Unit_Id,
+      Main_Subprogram      => No_Unit_Name,
+      First_Stub           => First_Stub_Id,
+      Last_Stub            => No_Stub_Id,
+      First_Channel        => No_Channel_Id,
+      Last_Channel         => No_Channel_Id,
+      First_Env_Var        => No_Env_Var_Id,
+      Last_Env_Var         => No_Env_Var_Id,
+      Passive              => BMaybe,
+      Tasking              => '?',
+      Task_Pool            => No_Task_Pool,
+      Priority             => No_Priority,
+      Light_PCS            => BMaybe,
+      Termination          => No_Termination,
+      Reconnection         => No_Reconnection,
+      Command_Line         => No_Command_Line,
+      Host                 => No_Host_Id,
+      First_Network_Loc    => No_Location_Id,
+      Last_Network_Loc     => No_Location_Id,
+      Storage_Loc          => No_Location_Id,
+      First_Withed_Storage => No_Withed_Storage_Id,
+      Last_Withed_Storage  => No_Withed_Storage_Id,
+      Filter               => No_Filter_Name,
+      Partition_Dir        => No_Directory_Name,
+      Executable_Dir       => No_Directory_Name,
+      Executable_File      => No_File_Name,
+      To_Build             => True,
+      Node                 => Null_Node,
+      Most_Recent          => No_File_Name);
 
    ---------------------------
    -- Configured Unit Table --
@@ -633,6 +651,24 @@ package XE_Units is
      (Table_Component_Type => Env_Var_Type,
       Table_Index_Type     => Env_Var_Id,
       Table_Low_Bound      => First_Env_Var_Id,
+      Table_Initial        => 20,
+      Table_Increment      => 10);
+
+   ----------------------------
+   -- Storage Location Table --
+   ----------------------------
+
+   type Withed_Storage_Type is record
+      Location     : Location_Id;
+      Is_Owner     : Boolean;
+      Unit         : Unit_Id;
+      Next_Storage : Withed_Storage_Id;
+   end record;
+
+   package Withed_Storages is new GNAT.Table
+     (Table_Component_Type => Withed_Storage_Type,
+      Table_Index_Type     => Withed_Storage_Id,
+      Table_Low_Bound      => First_Withed_Storage_Id,
       Table_Initial        => 20,
       Table_Increment      => 10);
 

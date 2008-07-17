@@ -651,6 +651,26 @@ package System.Partition_Interface is
       Shutdown : PolyORB.Initialization.Finalizer);
    --  Register the termination manager of the local partition
 
+   procedure Register_Passive_Package
+     (Name    : Unit_Name;
+      Version : String := "");
+   --  This procedure is unused for PolyORB (it is used only for the GARLIC
+   --  implementation of Shared Passive.)
+
+   procedure Register_RACW_In_Name_Server
+     (Addr     : System.Address;
+      Type_Tag : Ada.Tags.Tag;
+      Name     : String;
+      Kind     : String);
+   --  Register a RACW in name server. Type_Tag is the name of pointed type.
+
+   procedure Retrieve_RACW_From_Name_Server
+     (Name     : String;
+      Kind     : String;
+      Stub_Tag : Ada.Tags.Tag;
+      Addr     : out System.Address);
+   --  Retreive a RACW from name server.
+
 private
 
    pragma Inline

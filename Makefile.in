@@ -840,6 +840,7 @@ install: all
 	  ${top_builddir}/ali \
 	  -name '*.ali' \
 	  -a ! -name 'polyorb-dsa_p-partitions.ali' \
+	  -a ! -name 'polyorb-dsa_p-storages-config.ali' \
 	  -a ! -name 'polyorb-partition_elaboration.ali') | \
 	${XARGS_I} ${INSTALL} -m 444 {} ${prefix}/lib/polyorb
 	# Install documentation only if it has been built:

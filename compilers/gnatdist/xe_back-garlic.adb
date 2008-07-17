@@ -41,6 +41,7 @@ with XE_Front;    use XE_Front;
 with XE_IO;       use XE_IO;
 with XE_Names;    use XE_Names;
 with XE_Utils;    use XE_Utils;
+with XE_Storages; use XE_Storages;
 
 with XE_Back;
 pragma Elaborate_All (XE_Back);
@@ -51,6 +52,7 @@ package body XE_Back.GARLIC is
 
    procedure Set_PCS_Dist_Flags (Self : access GARLIC_Backend);
    procedure Initialize (Self : access GARLIC_Backend);
+   procedure Register_Storages (Self : access GARLIC_Backend);
    procedure Run_Backend (Self : access GARLIC_Backend);
    function Get_Detach_Flag (Self : access GARLIC_Backend) return Name_Id;
 
@@ -1267,6 +1269,30 @@ package body XE_Back.GARLIC is
    begin
       return Name (Units.Table (U).Uname);
    end Name;
+
+   -----------------------
+   -- Register_Storages --
+   -----------------------
+
+   procedure Register_Storages (Self : access GARLIC_Backend)
+   is
+      pragma Unreferenced (Self);
+   begin
+      Register_Storage
+        (Storage_Name     => "dfs",
+         Allow_Passive    => True,
+         Allow_Local_Term => True,
+         Need_Tasking     => False);
+      --  Registrer "dfs" storage support
+
+      Register_Storage
+        (Storage_Name     => "dsm",
+         Allow_Passive    => False,
+         Allow_Local_Term => False,
+         Need_Tasking     => True);
+      --  Registrer "dsm" storage support
+
+   end Register_Storages;
 
    -----------------
    -- Run_Backend --

@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                     S Y S T E M . D S A _ T Y P E S                      --
+--                          X E _ S T O R A G E S                           --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---           Copyright (C) 2008, Free Software Foundation, Inc.             --
+--         Copyright (C) 1995-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,30 +31,50 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-package body System.DSA_Types is
+with XE_Utils; use XE_Utils;
+with XE_Names; use XE_Names;
 
-   ----------
-   -- Read --
-   ----------
-
-   procedure Read
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out Any_Container_Ptr) is
-   begin
-      raise Program_Error
-        with "System.DSA_Types.Any_Container_Ptr'Read should not be called";
-   end Read;
+package body XE_Storages is
 
    -----------
-   -- Write --
+   -- Equal --
    -----------
 
-   procedure Write
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : Any_Container_Ptr) is
+   function Equal (N1, N2 : Name_Id) return Boolean is
    begin
-      raise Program_Error
-        with "System.DSA_Types.Any_Container_Ptr'Write should not be called";
-   end Write;
+      return N1 = N2;
+   end Equal;
 
-end System.DSA_Types;
+   ----------
+   -- Hash --
+   ----------
+
+   function Hash (N : Name_Id) return Hash_Header is
+      Name : constant String  := Get_Name_String (N);
+      H    : Natural          := 0;
+
+   begin
+      for J in Name'Range loop
+         H := (H + Character'Pos (Name (J))) mod (Hash_Header'Last + 1);
+      end loop;
+      return H;
+   end Hash;
+
+   ----------------------
+   -- Register_Storage --
+   ----------------------
+
+   procedure Register_Storage
+     (Storage_Name     : String;
+      Allow_Passive    : Boolean;
+      Allow_Local_Term : Boolean;
+      Need_Tasking     : Boolean)
+   is
+   begin
+      Storage_Supports.Set
+        (Id (Storage_Name),
+         Storage_Support_Type'
+           (Allow_Passive, Allow_Local_Term, Need_Tasking));
+   end Register_Storage;
+
+end XE_Storages;

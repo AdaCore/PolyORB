@@ -37,6 +37,7 @@ with XE_Flags;    use XE_Flags;
 with XE_IO;       use XE_IO;
 with XE_Names;    use XE_Names;
 with XE_Utils;    use XE_Utils;
+with XE_Storages; use XE_Storages;
 
 package body XE_Front is
 
@@ -249,6 +250,41 @@ package body XE_Front is
       end if;
       Last := L;
    end Add_Location;
+
+   ------------------------
+   -- Add_Withed_Storage --
+   ------------------------
+
+   procedure Add_Withed_Storage
+     (First    : in out Withed_Storage_Id;
+      Last     : in out Withed_Storage_Id;
+      Location : Location_Id;
+      Unit     : Unit_Id;
+      Owner    : Boolean)
+   is
+      W : Withed_Storage_Id;
+
+   begin
+      --  Add a new element in the withed storage table.
+
+      Withed_Storages.Increment_Last;
+      W := Withed_Storages.Last;
+      Withed_Storages.Table (W).Location     := Location;
+      Withed_Storages.Table (W).Unit         := Unit;
+      Withed_Storages.Table (W).Is_Owner     := Owner;
+      Withed_Storages.Table (W).Next_Storage := No_Withed_Storage_Id;
+
+      --  Link this new withed storage to the end of the partition
+      --  withed storage list.
+
+      if First = No_Withed_Storage_Id then
+         First := W;
+
+      else
+         Withed_Storages.Table (Last).Next_Storage := W;
+      end if;
+      Last := W;
+   end Add_Withed_Storage;
 
    -----------------------
    -- Build_New_Channel --
@@ -873,7 +909,6 @@ package body XE_Front is
       end Write_Attr_Kind_Error;
 
    begin
-
       --  If this attribute applies to partition type itself, it may not
       --  have a value. No big deal, we use defaults.
 
@@ -1098,6 +1133,14 @@ package body XE_Front is
                Name := Get_Variable_Name (Get_Component_Value (Comp_Node));
                Next_Variable_Component (Comp_Node);
                Data := Get_Variable_Name (Get_Component_Value (Comp_Node));
+
+               --  Check validity of choosen storage support
+
+               if Storage_Supports.Get (Name) = Unknown_Storage_Support then
+                  Write_Attr_Kind_Error ("storage",
+                                         "an available storage support");
+               end if;
+
                declare
                   LID : Location_Id;
                begin

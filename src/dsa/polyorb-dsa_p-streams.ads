@@ -2,9 +2,9 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                  S Y S T E M . D S A _ S E R V I C E S                   --
+--                 P O L Y O R B . D S A _ P . S T R E A M S                --
 --                                                                          --
---                                 B o d y                                  --
+--                                 S p e c                                  --
 --                                                                          --
 --         Copyright (C) 2006-2008, Free Software Foundation, Inc.          --
 --                                                                          --
@@ -31,44 +31,57 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PolyORB.DSA_P.Partitions;
-pragma Elaborate_All (PolyORB.DSA_P.Partitions);
-with PolyORB.Initialization;
-with PolyORB.Log;
-with PolyORB.DSA_P.Storages.Config;
-pragma Elaborate_All (PolyORB.DSA_P.Storages.Config);
-with PolyORB.Termination_Manager.Bootstrap;
-pragma Elaborate_All (PolyORB.Termination_Manager.Bootstrap);
+with Ada.Streams;
+use  Ada.Streams;
 
-package body System.DSA_Services is
-   use PolyORB.Log;
+package PolyORB.DSA_P.Streams is
 
-   package L is new PolyORB.Log.Facility_Log ("system.dsa_services");
-   procedure O (Message : String; Level : Log_Level := Debug)
-     renames L.Output;
-   function C (Level : Log_Level := Debug) return Boolean
-     renames L.Enabled;
+   type Memory_Resident_Stream (Size : Stream_Element_Count) is
+      new Root_Stream_Type with private;
+   --  A stream type that holds the stream elements in memory
 
-   use PolyORB.DSA_P.Partitions;
-   use System.Partition_Interface;
+   procedure Read (This : in out Memory_Resident_Stream;
+                   Item :    out Stream_Element_Array;
+                   Last :    out Stream_Element_Offset);
+   --  Reads the entire value of Item from the stream This,
+   --  setting Last to the last index of Item that is assigned.
+   --  If the length of Item is greater than the number of
+   --  elements in the stream, reading stops and Last will not
+   --  be equal to Item'Last.
 
-begin
+   procedure Write (This : in out Memory_Resident_Stream;
+                    Item : Stream_Element_Array);
+   --  Writes the elements in Item to the stream.
 
-   --  Check that PCS is initialized
+   procedure Reset_Reading (This : access Memory_Resident_Stream);
+   --  Start reading from the beginning of the stream.
 
-   pragma Assert (PolyORB.Initialization.Is_Initialized);
+   procedure Reset_Writing (This : access Memory_Resident_Stream);
+   --  Start writing to the beginning of the stream.
 
-   --  Initialize the termination manager
+   function Empty (This : Memory_Resident_Stream) return Boolean;
+   --  Returns whether the stream contains any stream elements.
 
-   PolyORB.Termination_Manager.Bootstrap.Initialize_Termination_Manager;
+   procedure Reset (This : access Memory_Resident_Stream);
+   --  Performs a complete reset, as if no reading or writing
+   --  had ever occurred.
 
-   --  Initialize shared storage supports
+   function Extent (This : Memory_Resident_Stream) return Stream_Element_Count;
+   --  Returns the number of elements in the stream.
 
-   PolyORB.DSA_P.Storages.Config.Initialize_Storages;
+private
 
-   --  Allocate to this partition a local partition ID
+   type Memory_Resident_Stream (Size : Stream_Element_Count) is
+      new Root_Stream_Type with
+         record
+            Count    : Stream_Element_Count := 0;
+            --  The number of stream elements currently held
+            Next_In  : Stream_Element_Offset := 1;
+            --  The index of the next stream element to be written
+            Next_Out : Stream_Element_Offset := 1;
+            --  The index of the next stream element to be read
+            Values   : Stream_Element_Array (1 .. Size);
+            --  The stream elements currently held
+         end record;
 
-   Set_Local_Partition_ID (RPC.Partition_ID (Allocate_Partition_ID ("")));
-
-   pragma Debug (C, O ("DSA_Services Initialized"));
-end System.DSA_Services;
+end PolyORB.DSA_P.Streams;

@@ -481,9 +481,9 @@ AC_SUBST(RSH_OPT)
 AC_MSG_RESULT([${RSH_OPT}])
 
 #
-# Not used by PolyORB, set default values for garlic.
+# Default storage location.
 #
-DEFSTORAGENAME="dfs"
+DEFSTORAGENAME="dsm"
 DEFSTORAGEDATA=""
 AC_SUBST(DEFSTORAGENAME)
 AC_SUBST(DEFSTORAGEDATA)

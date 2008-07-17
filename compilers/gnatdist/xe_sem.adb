@@ -43,6 +43,7 @@ with XE_Names;         use XE_Names;
 with XE_Types;         use XE_Types;
 with XE_Units;         use XE_Units;
 with XE_Utils;         use XE_Utils;
+with XE_Storages;      use XE_Storages;
 
 package body XE_Sem is
 
@@ -128,6 +129,15 @@ package body XE_Sem is
    --  the version consistency between stubs and skels. In the same
    --  time, compute the most recent file time stamp to see whether we
    --  need to update the partition executable file.
+
+   procedure Analyse_Withed_Storage_Supports
+     (Partition : Partition_Id;
+      Success   : in out Boolean);
+   --  For the given partition, build the withed storages table by
+   --  analyzing shared passive packages configured on this partition
+   --  and stub packages configured on other partitions.
+   --  Also ensure that storage location specific constraints aren't
+   --  violated (see nested procedure Detect_Storage_Constraint_Violation).
 
    -------------
    -- Analyze --
@@ -327,18 +337,155 @@ package body XE_Sem is
       Partitions.Table (Main_Partition).Tasking := 'P';
 
       if Debug_Mode then
-         Message ("configure partition termination");
          Message ("find partition stub-only units");
          Message ("update partition most recent stamp");
       end if;
 
       for J in Partitions.First + 1 .. Partitions.Last loop
          if Partitions.Table (J).To_Build then
-            Assign_Partition_Termination (J);
             Find_Stubs_And_Stamps_From_Closure (J);
          end if;
       end loop;
+
+      if Debug_Mode then
+         Message ("find needed storage supports");
+      end if;
+
+      --  As the analysis of needed storage supports can
+      --  update partition tasking, it must be performed
+      --  before the termination analysis.
+
+      for J in Partitions.First + 1 .. Partitions.Last loop
+         Analyse_Withed_Storage_Supports (J, OK);
+      end loop;
+
+      if not OK then
+         raise Partitioning_Error;
+      end if;
+
+      if Debug_Mode then
+         Message ("configure partition termination");
+      end if;
+
+      for J in Partitions.First + 1 .. Partitions.Last loop
+         if Partitions.Table (J).To_Build then
+            Assign_Partition_Termination (J);
+         end if;
+      end loop;
+
    end Analyze;
+
+   -------------------------------------
+   -- Analyse_Withed_Storage_Supports --
+   -------------------------------------
+
+   procedure Analyse_Withed_Storage_Supports
+     (Partition : Partition_Id;
+      Success   : in out Boolean)
+   is
+      procedure Detect_Storage_Constraint_Violation (SLID : Location_Id);
+
+      Current : Partition_Type renames Partitions.Table (Partition);
+
+      -----------------------------------------
+      -- Detect_Storage_Constraint_Violation --
+      -----------------------------------------
+
+      procedure Detect_Storage_Constraint_Violation (SLID : Location_Id)
+      is
+         Location           : Location_Type renames Locations.Table (SLID);
+         Storage_Properties : constant Storage_Support_Type :=
+                                Storage_Supports.Get (Location.Major);
+
+      begin
+         --  Some storage supports cannot be used on passive partitions
+
+         if Current.Passive = BTrue
+           and then not Storage_Properties.Allow_Passive
+         then
+            Message ("passive partition", Quote (Current.Name),
+                     "cannot use", Quote (Location.Major),
+                     "storage support");
+            Success := False;
+            return;
+         end if;
+
+         --  Some storage supports cannot be used on partition wich
+         --  localy terminate
+
+         if Current.Termination = Local_Termination
+           and then not Storage_Properties.Allow_Local_Term
+         then
+            Message ("partition", Quote (Current.Name),
+                     "cannot locally terminate while using",
+                     Quote (Location.Major),
+                     "storage support");
+            Success := False;
+            return;
+         end if;
+
+         --  Some storage supports need a full tasking profile
+
+         if Storage_Properties.Need_Tasking then
+            Current.Tasking := 'U';
+         end if;
+      end Detect_Storage_Constraint_Violation;
+
+      Uname     : Name_Id;
+      Unit      : Unit_Id;
+      Conf_Unit : Conf_Unit_Id;
+      Part      : Partition_Id;
+      Location  : Location_Id;
+
+   begin
+      --  Lookup storage supports needed for shared passive stub
+      --  packages configured on other partitions.
+
+      for S in Current.First_Stub .. Current.Last_Stub loop
+         Uname := Stubs.Table (S);
+         Unit  := ALIs.Table (Get_ALI_Id (Uname)).Last_Unit;
+
+         if Units.Table (Unit).Shared_Passive then
+            Part     := Get_Partition_Id (Uname);
+            Location := Partitions.Table (Part).Storage_Loc;
+
+            if Location = No_Location_Id then
+               Location := Default_Data_Location;
+            end if;
+            Detect_Storage_Constraint_Violation (Location);
+            Add_Withed_Storage
+              (Current.First_Withed_Storage,
+               Current.Last_Withed_Storage,
+               Location,
+               Unit,
+               Owner => False);
+         end if;
+      end loop;
+
+      --  Lookup storage supports needed for shared passive packages
+      --  configured on this partition.
+
+      Conf_Unit := Current.First_Unit;
+      while Conf_Unit /= No_Conf_Unit_Id loop
+         Unit := Conf_Units.Table (Conf_Unit).My_Unit;
+         if Units.Table (Unit).Shared_Passive then
+            Location := Current.Storage_Loc;
+
+            if Location = No_Location_Id then
+               Location := Default_Data_Location;
+            end if;
+            Detect_Storage_Constraint_Violation (Location);
+            Add_Withed_Storage
+              (Current.First_Withed_Storage,
+               Current.Last_Withed_Storage,
+               Location,
+               Unit,
+               Owner => True);
+         end if;
+
+         Conf_Unit := Conf_Units.Table (Conf_Unit).Next_Unit;
+      end loop;
+   end Analyse_Withed_Storage_Supports;
 
    --------------------------------------
    -- Apply_Default_Channel_Attributes --
@@ -429,6 +576,11 @@ package body XE_Sem is
 
       if Current.Storage_Loc = No_Location_Id then
          Current.Storage_Loc := Default.Storage_Loc;
+      end if;
+
+      if Current.First_Withed_Storage = No_Withed_Storage_Id then
+         Current.First_Withed_Storage := Default.First_Withed_Storage;
+         Current.Last_Withed_Storage  := Default.Last_Withed_Storage;
       end if;
 
       if Current.Task_Pool = No_Task_Pool then

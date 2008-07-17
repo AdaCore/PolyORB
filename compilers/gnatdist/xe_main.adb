@@ -87,6 +87,8 @@ begin
    XE_Stdcnf.Initialize;
    XE_Front.Initialize;
 
+   XE_Back.Register_Storages (Backend);
+
    --  Look for the configuration file that is Next_Main_Source or
    --  Next_Main_Source + ".cfg" if the former does not exist.
 

@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                     S Y S T E M . D S A _ T Y P E S                      --
+--                 P O L Y O R B . D S A _ P . S T R E A M S                --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---           Copyright (C) 2008, Free Software Foundation, Inc.             --
+--         Copyright (C) 2006-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,30 +31,94 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-package body System.DSA_Types is
+package body PolyORB.DSA_P.Streams is
 
-   ----------
-   -- Read --
-   ----------
+   -----------
+   -- Reset --
+   -----------
 
-   procedure Read
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out Any_Container_Ptr) is
+   procedure Reset (This : access Memory_Resident_Stream) is
    begin
-      raise Program_Error
-        with "System.DSA_Types.Any_Container_Ptr'Read should not be called";
-   end Read;
+      This.Count    := 0;
+      This.Next_In  := 1;
+      This.Next_Out := 1;
+   end Reset;
 
    -----------
    -- Write --
    -----------
 
    procedure Write
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : Any_Container_Ptr) is
+      (This : in out Memory_Resident_Stream;
+       Item : Stream_Element_Array)
+   is
    begin
-      raise Program_Error
-        with "System.DSA_Types.Any_Container_Ptr'Write should not be called";
+      for K in Item'Range loop
+         This.Values (This.Next_In) := Item (K);
+         This.Next_In := (This.Next_In mod This.Size) + 1;
+      end loop;
+      This.Count := This.Count + Item'Length;
    end Write;
 
-end System.DSA_Types;
+   ----------
+   -- Read --
+   ----------
+
+   procedure Read
+      (This : in out Memory_Resident_Stream;
+       Item :    out Stream_Element_Array;
+       Last :    out Stream_Element_Offset)
+   is
+   begin
+      if This.Count = 0 then
+         Last := Item'First - 1;
+         return;
+      end if;
+      Last := Item'First;
+      for K in Item'Range loop
+         Item (K) := This.Values (This.Next_Out);
+         This.Next_Out := (This.Next_Out mod This.Size) + 1;
+         This.Count := This.Count - 1;
+         Last := Last + 1;
+         exit when This.Count = 0;
+      end loop;
+   end Read;
+
+   -------------------
+   -- Reset_Reading --
+   -------------------
+
+   procedure Reset_Reading (This : access Memory_Resident_Stream) is
+   begin
+      This.Next_Out := 1;
+   end Reset_Reading;
+
+   -------------------
+   -- Reset_Writing --
+   -------------------
+
+   procedure Reset_Writing (This : access Memory_Resident_Stream) is
+   begin
+      This.Next_In := 1;
+   end Reset_Writing;
+
+   -----------
+   -- Empty --
+   -----------
+
+   function Empty (This : Memory_Resident_Stream) return Boolean is
+   begin
+      return This.Count = 0;
+   end Empty;
+
+   ------------
+   -- Extent --
+   ------------
+
+   function Extent (This : Memory_Resident_Stream)
+                    return Stream_Element_Count is
+   begin
+      return This.Count;
+   end Extent;
+
+end PolyORB.DSA_P.Streams;

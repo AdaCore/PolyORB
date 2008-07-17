@@ -1516,6 +1516,17 @@ package body System.Partition_Interface is
       return null;
    end Retrieve_Receiving_Stub;
 
+   ------------------------------
+   -- Register_Passive_Package --
+   ------------------------------
+
+   procedure Register_Passive_Package
+     (Name    : Unit_Name;
+      Version : String := "") is
+   begin
+      null;
+   end Register_Passive_Package;
+
    ---------------------------------
    -- Register_Pkg_Receiving_Stub --
    ---------------------------------
@@ -1739,6 +1750,63 @@ package body System.Partition_Interface is
       end if;
    end Request_Raise_Occurrence;
 
+   ----------------------------------
+   -- Register_RACW_In_Name_Server --
+   ----------------------------------
+
+   procedure Register_RACW_In_Name_Server
+     (Addr     : System.Address;
+      Type_Tag : Ada.Tags.Tag;
+      Name     : String;
+      Kind     : String)
+   is
+      use type PolyORB.Obj_Adapters.Obj_Adapter_Access;
+      use PolyORB.Errors;
+      use PolyORB.ORB;
+      use PolyORB.Obj_Adapters;
+      use PolyORB.Setup;
+
+      Key   : aliased PolyORB.Objects.Object_Id := To_Local_Oid (Addr);
+      U_Oid : PolyORB.POA_Types.Unmarshalled_Oid;
+      Oid   : PolyORB.POA_Types.Object_Id_Access;
+      Error : Error_Container;
+      Ref   : PolyORB.References.Ref;
+      Receiver : System.Partition_Interface.Servant_Access;
+
+   begin
+      pragma Debug (C, O ("Register RACW In Name Server: enter"));
+      Receiver := Retrieve_Receiving_Stub
+        (Ada.Tags.External_Tag (Type_Tag), Obj_Stub);
+
+      PolyORB.POA.Activate_Object
+        (Self      => PolyORB.POA.Obj_Adapter_Access
+           (Receiver.Object_Adapter),
+         P_Servant => null,
+         Hint      => Key'Unchecked_Access,
+         U_Oid     => U_Oid,
+         Error     => Error);
+
+      if Found (Error) then
+         PolyORB.DSA_P.Exceptions.Raise_From_Error (Error);
+      end if;
+
+      Oid := PolyORB.POA_Types.U_Oid_To_Oid (U_Oid);
+      PolyORB.ORB.Create_Reference
+        (ORB => The_ORB,
+         Oid => Oid,
+         Typ => "DSA:" & Name,
+         Ref => Ref);
+
+      PolyORB.Objects.Free (Oid);
+
+      Register_Unit_On_Name_Server
+        (Name => To_Lower (Name),
+         Kind => Kind,
+         Obj  => Ref);
+
+      pragma Debug (C, O ("Register RACW In Name Server: leave"));
+   end Register_RACW_In_Name_Server;
+
    ---------------------
    -- Request_Set_Out --
    ---------------------
@@ -1857,6 +1925,73 @@ package body System.Partition_Interface is
       pragma Debug (C, O ("Retrieve_RCI_Info: leave"));
       return Info;
    end Retrieve_RCI_Info;
+
+   ------------------------------------
+   -- Retrieve_RACW_From_Name_Server --
+   ------------------------------------
+
+   procedure Retrieve_RACW_From_Name_Server
+     (Name     : String;
+      Kind     : String;
+      Stub_Tag : Ada.Tags.Tag;
+      Addr     : out System.Address)
+   is
+      use PolyORB.Parameters;
+      use PolyORB.Errors;
+      use PolyORB.References.Binding;
+
+      Reg_Obj     : PolyORB.References.Ref;
+      Retry_Count : Natural := 0;
+
+      Time_Between_Requests : constant Duration :=
+        Get_Conf
+          (Section => "dsa",
+           Key     => "delay_between_failed_requests",
+           Default => 1.0);
+
+      Max_Requests : constant Natural :=
+        Get_Conf
+          (Section => "dsa",
+           Key     => "max_failed_requests",
+           Default => 10);
+
+   begin
+      pragma Debug (C, O ("Retrieve RACW From Name Server: enter"));
+
+      loop
+         begin
+            Reg_Obj := PSNNC.Client.Resolve
+              (Naming_Context, To_Name (Name, Kind));
+
+            exit when Is_Reference_Valid (Reg_Obj);
+            --  Resolve succeeded: exit loop
+
+         exception
+               --  Catch all exceptions: we will retry resolution, and bail
+               --  out after Max_Requests iterations.
+
+            when others =>
+               null;
+         end;
+
+         if Retry_Count = Max_Requests then
+            O ("Cannot retrieve information for"
+               & "RACW " & Name & ":" & Kind & " from name server.", Error);
+            raise System.RPC.Communication_Error;
+         end if;
+         Retry_Count := Retry_Count + 1;
+         PolyORB.Tasking.Threads.Relative_Delay (Time_Between_Requests);
+      end loop;
+
+      Addr := Get_RACW
+        (Ref          => Reg_Obj,
+         Stub_Tag     => Stub_Tag,
+         Is_RAS       => False,
+         Asynchronous => True);
+
+      pragma Debug (C, O ("Retrieve RACW From Name Server: leave"));
+
+   end Retrieve_RACW_From_Name_Server;
 
    --------------------
    -- Same_Partition --

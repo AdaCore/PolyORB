@@ -41,6 +41,7 @@ with XE_Flags;    use XE_Flags;
 with XE_IO;       use XE_IO;
 with XE_Names;    use XE_Names;
 with XE_Utils;    use XE_Utils;
+with XE_Storages; use XE_Storages;
 
 with XE_Back;
 pragma Elaborate_All (XE_Back);
@@ -52,11 +53,15 @@ package body XE_Back.PolyORB is
    procedure Set_PCS_Dist_Flags (Self : access PolyORB_Backend);
 
    procedure Initialize (Self : access PolyORB_Backend);
+   procedure Register_Storages (Self : access PolyORB_Backend);
    procedure Run_Backend (Self : access PolyORB_Backend);
    function Get_Detach_Flag (Self : access PolyORB_Backend) return Name_Id;
 
    Elaboration_File : File_Name_Type;
    --  Partition elaboration unit
+
+   Storage_Config_File : File_Name_Type;
+   --  Shared storage configuration unit
 
    type RU_Id is
      (RU_PolyORB,
@@ -71,6 +76,8 @@ package body XE_Back.PolyORB is
       RU_PolyORB_ORB_Thread_Pool,
       RU_PolyORB_DSA_P,
       RU_PolyORB_DSA_P_Remote_Launch,
+      RU_PolyORB_DSA_P_Storages,
+      RU_PolyORB_DSA_P_Storages_Config,
       RU_PolyORB_Parameters,
       RU_PolyORB_Partition_Elaboration,
       RU_PolyORB_Setup,
@@ -164,8 +171,8 @@ package body XE_Back.PolyORB is
    --  overloads the default PCS settings.
 
    procedure Generate_Executable_File (P : Partition_Id);
-   --  Compile main partition file and elaboration file.
-   --  Bind and link partition to create executable.
+   --  Compile main partition file, storages configuration file and
+   --  elaboration file. Bind and link partition to create executable.
 
    procedure Generate_Parameters_Source (P : Partition_Id);
    --  Create fragment of elaboration file that declares and registers a
@@ -176,6 +183,10 @@ package body XE_Back.PolyORB is
    procedure Generate_Partition_Main_File (P : Partition_Id);
    --  Create a procedure which "withes" all the RCI or SP receivers
    --  of the partition and insert the main procedure if needed.
+
+   procedure Generate_Storage_Config_File (P : Partition_Id);
+   --  Create storage configuration file that includes the storages
+   --  required in the configuration file for this partition.
 
    procedure Generate_PCS_Project_Files;
    --  Generate project files to access the PCS
@@ -400,6 +411,11 @@ package body XE_Back.PolyORB is
       --  Compile elaboration file
 
       Sfile := Dir (Part_Dir, Elaboration_File & ADB_Suffix_Id);
+      Compile (Sfile, Comp_Args (1 .. Length));
+
+      --  Compile storage support configuration file
+
+      Sfile := Dir (Part_Dir, Storage_Config_File & ADB_Suffix_Id);
       Compile (Sfile, Comp_Args (1 .. Length));
 
       --  Compile main file
@@ -627,6 +643,89 @@ package body XE_Back.PolyORB is
    end Generate_Parameters_Source;
 
    ----------------------------------
+   -- Generate_Storage_Config_File --
+   ----------------------------------
+
+   procedure Generate_Storage_Config_File (P : Partition_Id) is
+      Filename         : File_Name_Type;
+      File             : File_Descriptor := Invalid_FD;
+      Current          : Partition_Type renames Partitions.Table (P);
+      Major            : Name_Id;
+      Withed_Storage   : Withed_Storage_Id;
+      Location         : Location_Id;
+
+   begin
+      Filename := Storage_Config_File & ADB_Suffix_Id;
+      Filename := Dir (Current.Partition_Dir, Filename);
+      Create_File (File, Filename);
+      Set_Output  (File);
+      Write_Line  ("pragma Warnings (Off);");
+
+      --  Import the storage supports used by this partition
+
+      Withed_Storage := Partitions.Table (P).First_Withed_Storage;
+      while Withed_Storage /= No_Withed_Storage_Id loop
+         Location := Withed_Storages.Table (Withed_Storage).Location;
+         Major    := Capitalize (Locations.Table (Location).Major);
+         Major    := RU (RU_PolyORB_DSA_P_Storages) and Major;
+         Write_With_Clause (Major, False, True);
+
+         Withed_Storage := Withed_Storages.Table
+           (Withed_Storage).Next_Storage;
+      end loop;
+
+      --  Initialize storage supports
+
+      Write_Str  ("package body ");
+      Write_Name (RU (RU_PolyORB_DSA_P_Storages_Config));
+      Write_Line (" is");
+      Increment_Indentation;
+      Write_Indentation;
+      Write_Line ("procedure Initialize_Storages is");
+      Write_Indentation;
+      Write_Line ("begin");
+
+      Increment_Indentation;
+
+      --  Follow the same approach as for package importation
+
+      Withed_Storage := Partitions.Table (P).First_Withed_Storage;
+      while Withed_Storage /= No_Withed_Storage_Id loop
+         Location := Withed_Storages.Table (Withed_Storage).Location;
+         Major    := Capitalize (Locations.Table (Location).Major);
+         Write_Call
+           (RU (RU_PolyORB_DSA_P_Storages)
+            and Capitalize (Major)
+            and "Register_Passive_Package",
+            Quote (Name (Units.Table
+              (Withed_Storages.Table (Withed_Storage).Unit).Uname)),
+            Boolean'Image (Withed_Storages.Table (Withed_Storage).Is_Owner));
+
+         Withed_Storage := Withed_Storages.Table
+           (Withed_Storage).Next_Storage;
+      end loop;
+
+      --  Write a null statement, so that partitions which have
+      --  an empty Initialize_Storages can still compile.
+
+      Write_Indentation;
+      Write_Line  ("null;");
+
+      Decrement_Indentation;
+      Write_Indentation;
+      Write_Line ("end Initialize_Storages;");
+      Decrement_Indentation;
+
+      Write_Eol;
+      Write_Str  ("end ");
+      Write_Name (RU (RU_PolyORB_DSA_P_Storages_Config));
+      Write_Line (";");
+
+      Close (File);
+      Set_Standard_Output;
+   end Generate_Storage_Config_File;
+
+   ----------------------------------
    -- Generate_Partition_Main_File --
    ----------------------------------
 
@@ -636,6 +735,7 @@ package body XE_Back.PolyORB is
       Current   : Partition_Type renames Partitions.Table (P);
       Conf_Unit : Conf_Unit_Id;
       Unit      : Unit_Id;
+
    begin
       Filename := Partition_Main_File & ADB_Suffix_Id;
       Filename := Dir (Current.Partition_Dir, Filename);
@@ -647,7 +747,6 @@ package body XE_Back.PolyORB is
       Write_With_Clause (RU (RU_PolyORB_Initialization));
       Write_With_Clause (RU (RU_PolyORB_Setup));
       Write_With_Clause (RU (RU_System_Partition_Interface));
-
       Write_With_Clause (RU (RU_System_DSA_Services));
 
       --  Assign RCI or SP skels on the partition
@@ -761,6 +860,7 @@ package body XE_Back.PolyORB is
       --  Overridden
 
       Write_Line ("     (""polyorb-partition_elaboration.adb"",");
+      Write_Line ("      ""polyorb-dsa_p-storages-config.adb"",");
 
       --  Rebuilt as stubs
 
@@ -823,8 +923,9 @@ package body XE_Back.PolyORB is
       --  RCI unit PolyORB.DSA_P.Partition must be automatically configured on
       --  the main partition.
 
-      PCS_Conf_Unit    := Id ("polyorb.dsa_p.partitions");
-      Elaboration_File := Id ("polyorb-partition_elaboration");
+      PCS_Conf_Unit       := Id ("polyorb.dsa_p.partitions");
+      Elaboration_File    := Id ("polyorb-partition_elaboration");
+      Storage_Config_File := Id ("polyorb-dsa_p-storages-config");
 
       Register_Casing_Rule ("ORB");
 
@@ -902,6 +1003,23 @@ package body XE_Back.PolyORB is
       Last := -1;
    end Reset_Conf;
 
+   -----------------------
+   -- Register_Storages --
+   -----------------------
+
+   procedure Register_Storages (Self : access PolyORB_Backend)
+   is
+      pragma Unreferenced (Self);
+   begin
+      Register_Storage
+        (Storage_Name     => "dsm",
+         Allow_Passive    => False,
+         Allow_Local_Term => False,
+         Need_Tasking     => True);
+      --  Registrer "dsm" storage support
+
+   end Register_Storages;
+
    -----------------
    -- Run_Backend --
    -----------------
@@ -943,6 +1061,7 @@ package body XE_Back.PolyORB is
                      Message ("building partition", Current.Name);
                   end if;
 
+                  Generate_Storage_Config_File (J);
                   Generate_Elaboration_File (J);
                   Generate_Partition_Main_File (J);
                   Generate_Executable_File (J);
