@@ -2,6 +2,7 @@ AC_PREREQ(2.57)
 AC_INIT(polyorb, 2.5.0w, polyorb-bugs@lists.adacore.com)
 AC_CONFIG_SRCDIR(src/polyorb.ads)
 AC_CONFIG_AUX_DIR(support)
+AM_SUBVERSION(unknown)
 
 # $Id$
 
@@ -778,6 +779,13 @@ while read mklocal; do
   echo "include \$(top_srcdir)/${mklocal}"
 done > ${LOCAL_MAKEFILES}
 AC_SUBST_FILE(LOCAL_MAKEFILES)
+
+# GNATDIST version
+# This is set differently for the GLADE and PolyORB distributions, which
+# share the same source tree.
+
+GNATDIST_VERSION="$VERSION (rev. $SVNREVISION)"
+AC_SUBST(GNATDIST_VERSION)
 
 ##########################################
 # Output generated files

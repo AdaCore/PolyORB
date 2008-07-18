@@ -5,9 +5,6 @@
 # This script performs all the necessary steps to transform a checked
 # out copy of PolyORB into a source tree suitable for packaging.
 #
-# The VERSION.INFO file will be used to substitute some variables in files
-# such as README, etc.
-#
 # The file MANIFEST contains the list of files to be included in this
 # archive, one file per line.
 #
@@ -56,29 +53,59 @@ if [ ! -z "$change" ]; then
   taginfo="CHANGE_${change}"
 
   if [ ! -f "${taginfo}" ]; then
-    LANG=C date "+Pacakged from repository rev. ${change} on %c" > ${taginfo}
+    LANG=C date "+Packaged from repository rev. ${change} on %c" > ${taginfo}
   fi
   echo ${taginfo} >> MANIFEST
 fi
 
 ###################################################
-# Update VERSION in all files
+# Update version in all files
 ###################################################
 
-if [ -f utils/VERSION.INFO ]; then
-  echo "Calling version file, then deleting it"
+# sed_in_place FILE ARG...
+# Apply "sed ARG..." transformation to FILE
 
-  if [ -z "$additional_version" ]; then
-    echo "(with no additional version information)"
-    sh utils/VERSION.INFO
-  else
-    echo "(with additional version information: $additional_version)"
-    sh utils/VERSION.INFO "$additional_version"
-  fi
-  rm -f utils/VERSION.INFO
-else
-  echo "WARNING: unable to locate VERSION.INFO in directory utils"
+sed_in_place() {
+  oldfile=$1; shift
+  newfile=$oldfile.new.$$
+  sed "$@" < $oldfile > $newfile
+  mv -f $newfile $oldfile
+}
+
+#
+# Substitutions for information passed on the command line
+#
+
+# Additional version information (appended to the package version)
+
+if [ ! -z "$additional_version" ]; then
+  sedcmds='-e "s/^AC_INIT(\([^,]*\), *\([^,]*\), *\(.*\))/AC_INIT(\1, \2${additional_version}, \3)/"'
 fi
+
+# Subversion revision
+
+if [ ! -z "$change" ]; then
+  sedcmds="$sedcmds"' -e "s/^AM_SUBVERSION.*$/AM_SUBVERSION($change)/"'
+fi
+
+if [ ! -z "$sedcmds" ]; then
+then
+  eval "sed_in_place configure.ac $sedcmds"
+fi
+
+#
+# Extract version number to be substituted
+#
+
+polyorb_version=`awk -F", *" '/^AC_INIT/ {print $2}' < configure.ac`
+
+#
+# Propagate version info to required files
+#
+
+for f in "README VERSION"; do
+  sed_in_place $f "s/@polyorb_version@/${polyorb_version}/g"
+done
 
 ###################################################
 # Generating *.in files

@@ -2021,6 +2021,7 @@ support/reconfig
 support/run_cpp.ksh
 support/run_script.adb
 support/ssl.m4
+support/subversion.m4
 support/texinfo.tex
 support/utils.m4
 tools/Makefile.am

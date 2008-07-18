@@ -41,7 +41,7 @@ package Platform is
 
    pragma Pure;
 
-   Version : constant String := "@VERSION@";
+   Version : constant String := "@VERSION@ (rev. @SVNREVISION@)";
 
    Prefix : constant String := "@prefix@";
 
