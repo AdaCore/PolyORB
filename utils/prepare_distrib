@@ -89,7 +89,6 @@ if [ ! -z "$change" ]; then
 fi
 
 if [ ! -z "$sedcmds" ]; then
-then
   eval "sed_in_place configure.ac $sedcmds"
 fi
 
