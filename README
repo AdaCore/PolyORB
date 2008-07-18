@@ -122,6 +122,8 @@ e-mail at the address
 	polyorb-bugs@lists.adacore.com
 
 Please use the Problem Report Form in docs/PROBLEM-REPORT-FORM.
+Please include the complete output of "polyorb-config --version"
+in any problem report.
 
 If you are interested in becoming a supported PolyORB user, you should
 send an email to sales@adacore.com.
