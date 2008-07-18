@@ -102,7 +102,7 @@ polyorb_version=`awk -F", *" '/^AC_INIT/ {print $2}' < configure.ac`
 # Propagate version info to required files
 #
 
-for f in "README VERSION"; do
+for f in README VERSION; do
   sed_in_place $f "s/@polyorb_version@/${polyorb_version}/g"
 done
 
