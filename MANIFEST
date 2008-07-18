@@ -62,6 +62,8 @@ compilers/gnatdist/xe_sem.adb
 compilers/gnatdist/xe_sem.ads
 compilers/gnatdist/xe_stdcnf.adb
 compilers/gnatdist/xe_stdcnf.ads
+compilers/gnatdist/xe_storages.adb
+compilers/gnatdist/xe_storages.ads
 compilers/gnatdist/xe_types.adb
 compilers/gnatdist/xe_types.ads
 compilers/gnatdist/xe_units.ads
@@ -1190,6 +1192,14 @@ src/dsa/polyorb-dsa_p-partitions.adb
 src/dsa/polyorb-dsa_p-partitions.ads
 src/dsa/polyorb-dsa_p-remote_launch.adb
 src/dsa/polyorb-dsa_p-remote_launch.ads
+src/dsa/polyorb-dsa_p-storages-config.adb
+src/dsa/polyorb-dsa_p-storages-config.ads
+src/dsa/polyorb-dsa_p-storages-dsm.adb
+src/dsa/polyorb-dsa_p-storages-dsm.ads
+src/dsa/polyorb-dsa_p-storages.adb
+src/dsa/polyorb-dsa_p-storages.ads
+src/dsa/polyorb-dsa_p-streams.adb
+src/dsa/polyorb-dsa_p-streams.ads
 src/dsa/polyorb-dsa_p.ads
 src/dsa/polyorb-partition_elaboration.adb
 src/dsa/polyorb-partition_elaboration.ads
@@ -1209,6 +1219,8 @@ src/dsa/s-dsatyp.adb
 src/dsa/s-dsatyp.ads
 src/dsa/s-parint.adb
 src/dsa/s-parint.ads
+src/dsa/s-shasto.adb
+src/dsa/s-shasto.ads
 src/giop/Makefile.am
 src/giop/Makefile.in
 src/giop/cs_registry1.2h
