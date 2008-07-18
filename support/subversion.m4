@@ -18,7 +18,7 @@ AC_DEFUN([AM_SUBVERSION],[
     if ! test -z $SVN; then
       SVNINFO=`cd ${srcdir} && ${SVN} info .`
       if test $? = 0; then
-        SVNREVISION=`echo "$SVNINFO" | grep '^Revision' | cut -f 2- -d ' '`
+        SVNREVISION=`echo "$SVNINFO" | sed -n "s/^Last Changed Rev: \(.*\)\$/\1/p"`
         # SVNDATE=`echo $SVNINFO | grep 'Last Changed Date' | cut -f 4-6 -d ' '`
       fi
     fi
