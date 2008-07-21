@@ -1255,29 +1255,24 @@ package body Lexer is
          C := To_Lower (Buffer (L.Scan));
       end if;
 
-      --  Read the base when base is 16.
+      --  Case of an hexadecimal literal (C must not be clobbered here if the
+      --  next character turns out to be other than 'x').
 
-      if C = '0' then
-         C := To_Lower (Buffer (L.Scan + 1));
+      if C = '0' and then To_Lower (Buffer (L.Scan + 1)) = 'x' then
+         Integer_Literal_Base := 16;
+         L.Scan := L.Scan + 2;
 
-         --  Base is 16
+         --  Check the next character is a digit
 
-         if C = 'x' then
-            Integer_Literal_Base := 16;
-            L.Scan := L.Scan + 2;
-
-            --  Check the next character is a digit
-
-            C := To_Lower (Buffer (L.Scan));
-            if C not in '0' .. '9' and then C not in 'a' .. 'f' then
-               if Fatal then
-                  Error_Loc (1) := L;
-                  DE ("digit excepted");
-               end if;
-               Skip_Identifier;
-               Token := T_Error;
-               return;
+         C := To_Lower (Buffer (L.Scan));
+         if C not in '0' .. '9' and then C not in 'a' .. 'f' then
+            if Fatal then
+               Error_Loc (1) := L;
+               DE ("digit excepted");
             end if;
+            Skip_Identifier;
+            Token := T_Error;
+            return;
          end if;
       end if;
 

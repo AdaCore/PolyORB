@@ -41,6 +41,9 @@ See the features-25 file.
 Bug fixes
 ---------
 
+IDL real literals starting with "0." were erroneously rejected by IAC.
+(H721-014)
+
 IDL constants of a bounded string type were not handled correctly by the
 IDL to Ada compilers. Both have been fixed. (H707-023)
 
