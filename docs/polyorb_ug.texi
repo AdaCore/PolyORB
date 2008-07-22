@@ -900,21 +900,17 @@ or newer, automake 1.6.3 or newer, and libtool 1.5.8 or newer.
 @c -------------------------------------------------------------------
 
 @noindent
+Solaris (all versions):
+
+/usr/ucb/tr is not suitable to build PolyORB. Your PATH must
+be set to that tr(1) is /usr/bin/tr, /use/xpg4/bin/tr or GNU tr.
+
+@noindent
 Solaris 2.8:
 
-@itemize @bullet
-
-@item /usr/bin/sed and /usr/ucb/sed will silently chop long
-    lines, and /usr/xpg4/bin/sed will enter an endless loop while
-    processing PolyORB files.
-    GNU sed is required to configure and build PolyORB.
-
-@item /usr/ucb/tr does not handle control character escape sequences: it
-    cannot be used to recompute dependencies ('make depend');
-    /usr/bin/tr or /usr/xpg4/bin/tr must be used.
-
-
-@end itemize
+/usr/bin/sed and /usr/ucb/sed will silently chop long
+lines, and /usr/xpg4/bin/sed will enter an endless loop while
+processing PolyORB files. GNU sed is required to configure and build PolyORB.
 
 @noindent
 Tru64 5.1A:
