@@ -1236,6 +1236,22 @@ package body XE_Front is
                Next_Variable_Component (Comp_Node);
             end loop;
 
+         when Attribute_ORB_Tasking_Policy =>
+
+            if Get_Variable_Type (Attr_Item) /= Integer_Type_Node then
+               Write_Attr_Kind_Error ("ORB tasking policy",
+                                      "of ORB tasking policy type");
+            end if;
+
+            --  Check that it has not already been assigned.
+
+            if Current.ORB_Tasking_Policy = No_ORB_Tasking_Policy then
+               Current.ORB_Tasking_Policy :=
+                 ORB_Tasking_Policy_Type (Get_Scalar_Value (Attr_Item));
+            else
+               Write_Attr_Init_Error ("ORB_Tasking_Policy");
+            end if;
+
          when Attribute_CFilter | Attribute_Unknown =>
             raise Fatal_Error;
       end case;
@@ -1606,6 +1622,24 @@ package body XE_Front is
       if Present (Current.Command_Line) then
          Write_Field (1, "Command");
          Write_Name (Current.Command_Line);
+         Write_Eol;
+      end if;
+
+      if Current.ORB_Tasking_Policy /= No_ORB_Tasking_Policy then
+         Write_Field (1, "ORB_Tasking_policy");
+         case Current.ORB_Tasking_Policy is
+            when Thread_Pool =>
+               Write_Str ("thread pool");
+
+            when Thread_Per_Session =>
+               Write_Str ("thread per session");
+
+            when Thread_Per_Request =>
+               Write_Str ("thread per request");
+
+            when No_ORB_Tasking_Policy =>
+               null;
+         end case;
          Write_Eol;
       end if;
 

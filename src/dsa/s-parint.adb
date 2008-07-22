@@ -2302,6 +2302,10 @@ begin
 
    Initialize_World;
 
+   --  Run additional tasks if needed
+
+   PolyORB.Partition_Elaboration.Run_Additional_Tasks;
+
    --  Elaboration of the PCS is finished, launch others partitions if needed
 
    PolyORB.Partition_Elaboration.Full_Launch;

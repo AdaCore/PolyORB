@@ -84,6 +84,10 @@ package PolyORB.Partition_Elaboration is
    procedure Full_Launch;
    --  Launch the slave partitions when using Ada Starter
 
+   procedure Run_Additional_Tasks;
+   --  Run needed additional tasks according to selected
+   --  ORB tasking policy.
+
    --  The body of this package provides further partition-specific
    --  dependencies that are guaranteed to be elaborated before PCS
    --  initialization, in addition to the Full_Launch starter.

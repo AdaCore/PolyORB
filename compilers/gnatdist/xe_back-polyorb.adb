@@ -73,7 +73,6 @@ package body XE_Back.PolyORB is
       RU_PolyORB_ORB_Controller_Workers,
       RU_PolyORB_ORB,
       RU_PolyORB_ORB_No_Tasking,
-      RU_PolyORB_ORB_Thread_Pool,
       RU_PolyORB_DSA_P,
       RU_PolyORB_DSA_P_Remote_Launch,
       RU_PolyORB_DSA_P_Storages,
@@ -90,6 +89,8 @@ package body XE_Back.PolyORB is
       RU_PolyORB_Setup_Tasking,
       RU_PolyORB_Setup_Tasking_Full_Tasking,
       RU_PolyORB_Setup_Tasking_No_Tasking,
+      RU_PolyORB_Tasking,
+      RU_PolyORB_Tasking_Threads,
       RU_PolyORB_Utils,
       RU_PolyORB_Utils_Strings,
       RU_PolyORB_Utils_Strings_Lists,
@@ -106,17 +107,19 @@ package body XE_Back.PolyORB is
      (RE_Check,
       RE_Launch_Partition,
       RE_Run,
+      RE_Run_In_Task,
       RE_Shutdown_World,
       RE_The_ORB);
 
    RE : array (RE_Id) of Unit_Name_Type;
 
    RE_Unit_Table : constant array (RE_Id) of RU_Id :=
-     (RE_Check             => RU_System_Partition_Interface,
-      RE_Launch_Partition  => RU_PolyORB_DSA_P_Remote_Launch,
-      RE_Run               => RU_PolyORB_ORB,
-      RE_Shutdown_World    => RU_PolyORB_Initialization,
-      RE_The_ORB           => RU_PolyORB_Setup);
+     (RE_Check            => RU_System_Partition_Interface,
+      RE_Launch_Partition => RU_PolyORB_DSA_P_Remote_Launch,
+      RE_Run              => RU_PolyORB_ORB,
+      RE_Run_In_Task      => RU_PolyORB_Tasking_Threads,
+      RE_Shutdown_World   => RU_PolyORB_Initialization,
+      RE_The_ORB          => RU_PolyORB_Setup);
 
    ---------------------
    -- Parameter types --
@@ -288,13 +291,16 @@ package body XE_Back.PolyORB is
       else
          Write_With_Clause (RU (RU_PolyORB_Setup_Tasking_Full_Tasking));
 
-         if Current.Tasking = 'T' then
+         if Current.Tasking = 'U' then
             Write_With_Clause (RU (RU_PolyORB_ORB_No_Tasking));
             Write_With_Clause (RU (RU_PolyORB_Binding_Data_GIOP_IIOP));
 
          else
-            Write_With_Clause (RU (RU_PolyORB_ORB_Thread_Pool));
+            Write_With_Clause
+              (RU (RU_PolyORB_ORB) and ORB_Tasking_Policy_Img
+               (Current.ORB_Tasking_Policy));
             Write_With_Clause (RU (RU_PolyORB_Setup_Access_Points_IIOP));
+
          end if;
       end if;
 
@@ -305,6 +311,8 @@ package body XE_Back.PolyORB is
       Write_With_Clause (RU (RU_PolyORB_Utils), True);
       Write_With_Clause (RU (RU_PolyORB_Utils_Strings), True);
       Write_With_Clause (RU (RU_PolyORB_Utils_Strings_Lists), True);
+      Write_With_Clause (RU (RU_PolyORB_Utils_Strings_Lists), True);
+      Write_With_Clause (RU (RU_PolyORB_Tasking_Threads), True);
 
       Write_Str  ("package body ");
       Write_Name (RU (RU_PolyORB_Partition_Elaboration));
@@ -332,6 +340,67 @@ package body XE_Back.PolyORB is
       Decrement_Indentation;
       Write_Indentation;
       Write_Line  ("end Full_Launch;");
+
+      --  Run additional tasks if needed.
+      --  Only Thread_Per_Request and Thread_Per_Session policies
+      --  need an additional ORB task, as there is no task dedicated
+      --  to process incoming requests.
+
+      if Current.Tasking = 'P'
+        and then Current.ORB_Tasking_Policy /= Thread_Pool
+      then
+         --  Generate a wrapper procedure that allow to give a
+         --  parameterless procedure access to Run_In_task call.
+
+         Write_Indentation;
+         Write_Line ("procedure Run_In_Task_Wrapper is");
+         Write_Indentation;
+         Write_Line ("begin");
+         Increment_Indentation;
+
+         Write_Call
+           (RU (RE_Unit_Table (RE_Run)) and RE (RE_Run),
+            RU (RE_Unit_Table (RE_The_ORB)) and RE (RE_The_ORB),
+            "May_Poll => True");
+
+         Decrement_Indentation;
+         Write_Indentation;
+         Write_Line  ("end Run_In_Task_Wrapper;");
+      end if;
+
+      Write_Indentation;
+      Write_Line ("procedure Run_Additional_Tasks is");
+
+      if Current.Tasking = 'P'
+        and then Current.ORB_Tasking_Policy /= Thread_Pool
+      then
+         Increment_Indentation;
+         Write_Indentation;
+         Write_Line ("Thread_Acc : Thread_Access;");
+         Decrement_Indentation;
+         Write_Indentation;
+         Write_Line ("begin");
+         Increment_Indentation;
+         Write_Indentation;
+         Write_Str ("Thread_Acc := ");
+         Write_Call (RU (RE_Unit_Table (RE_Run_In_Task))
+                     and RE (RE_Run_In_Task),
+                     S1 => "TF => Get_Thread_Factory",
+                     S2 => "P => Run_In_Task_Wrapper'Access");
+      else
+         --  Write a null statement, so that partitions which have
+         --  an empty Run_Additional_Tasks can still compile.
+
+         Write_Indentation;
+         Write_Line ("begin");
+         Increment_Indentation;
+         Write_Indentation;
+         Write_Line  ("null;");
+      end if;
+
+      Decrement_Indentation;
+      Write_Indentation;
+      Write_Line  ("end Run_Additional_Tasks;");
 
       Generate_Parameters_Source (P);
 

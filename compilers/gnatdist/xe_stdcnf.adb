@@ -153,6 +153,18 @@ package body XE_Stdcnf is
          Set_Scalar_Value (Variable_Node, Int (R));
       end loop;
 
+      --  type ORB_tasking_policy. To easily retrieve the enumeration
+      --  literal and their image.
+
+      for R in ORB_Tasking_Policy_Img'Range loop
+         Declare_Variable
+           (To_Lower (ORB_Tasking_Policy_Img (R)),
+            Integer_Type_Node,
+            Null_Location,
+            Variable_Node);
+         Set_Scalar_Value (Variable_Node, Int (R));
+      end loop;
+
       --  type type__host_function (standard)
       --     function F (...: String) return String;
 
@@ -405,6 +417,13 @@ package body XE_Stdcnf is
          Attr_Type_Node => Boolean_Type_Node,
          Attribute_Kind => Attribute_Allow_Light_PCS,
          Attribute_Sloc => Null_Location);
+
+      Declare_Type_Attribute
+        (Type_Node        => Partition_Type_Node,
+         Attribute_Name   => Id ("orb_tasking_policy"),
+         Attr_Type_Node   => Integer_Type_Node,
+         Attribute_Kind   => Attribute_ORB_Tasking_Policy,
+         Attribute_Sloc   => Null_Location);
 
       --  type Channel (standard)
 

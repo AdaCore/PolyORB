@@ -139,6 +139,11 @@ package body XE_Sem is
    --  Also ensure that storage location specific constraints aren't
    --  violated (see nested procedure Detect_Storage_Constraint_Violation).
 
+   procedure Assign_ORB_Tasking_Policy (Partition : Partition_Id);
+   --  Assign ORB tasking policy to default if hasn't been assigned by
+   --  user. Write warning messages if selected policy is incompatible
+   --  with partition tasking or Task_Pool attribute.
+
    -------------
    -- Analyze --
    -------------
@@ -370,6 +375,7 @@ package body XE_Sem is
       for J in Partitions.First + 1 .. Partitions.Last loop
          if Partitions.Table (J).To_Build then
             Assign_Partition_Termination (J);
+            Assign_ORB_Tasking_Policy (J);
          end if;
       end loop;
 
@@ -427,7 +433,7 @@ package body XE_Sem is
          --  Some storage supports need a full tasking profile
 
          if Storage_Properties.Need_Tasking then
-            Current.Tasking := 'U';
+            Current.Tasking := 'P';
          end if;
       end Detect_Storage_Constraint_Violation;
 
@@ -590,7 +596,56 @@ package body XE_Sem is
       if Current.Termination = No_Termination then
          Current.Termination := Default.Termination;
       end if;
+
+      if Current.ORB_Tasking_Policy = No_ORB_Tasking_Policy then
+         Current.ORB_Tasking_Policy := Default.ORB_Tasking_Policy;
+      end if;
    end Apply_Default_Partition_Attributes;
+
+   -------------------------------
+   -- Assign_ORB_Tasking_Policy --
+   -------------------------------
+
+   procedure Assign_ORB_Tasking_Policy (Partition : Partition_Id) is
+      Current : Partition_Type renames Partitions.Table (Partition);
+
+   begin
+      if Current.Tasking = 'P' then
+
+         --  If ORB tasking policy isn't assigned yet, use default
+
+         if Current.ORB_Tasking_Policy = No_ORB_Tasking_Policy then
+            Current.ORB_Tasking_Policy := Default_ORB_Tasking_Policy;
+         end if;
+
+         if Debug_Mode then
+            Message ("partition", Current.Name, "has ORB tasking policy ",
+                     ORB_Tasking_Policy_Img (Current.ORB_Tasking_Policy));
+         end if;
+      else
+
+         --  Write a warning message if ORB tasking policy is assigned
+         --  when partition has no ORB tasking.
+
+         if Current.ORB_Tasking_Policy /= No_ORB_Tasking_Policy then
+            Message ("Attribute ORB_Tasking_Policy has no effect when" &
+                     "partition has no ORB tasking");
+         end if;
+      end if;
+
+      --  Write a warning message if Task_Pool attribute is set
+      --  when another than Thread_Pool ORB tasking poliy is
+      --  selected.
+
+      if Current.ORB_Tasking_Policy /= Thread_Pool
+        and then Current.Task_Pool /= No_Task_Pool
+      then
+         Message ("Attribute Task_Pool has no effect when ",
+                  ORB_Tasking_Policy_Img (Current.ORB_Tasking_Policy),
+                  "ORB tasking policy is set");
+      end if;
+
+   end Assign_ORB_Tasking_Policy;
 
    ----------------------------------
    -- Assign_Partition_Termination --

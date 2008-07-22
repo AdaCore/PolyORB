@@ -411,6 +411,10 @@ package XE_Units is
       --  requires tasking because of user needs, 'P' when the
       --  partition requires tasking because of PCS needs.
 
+      ORB_Tasking_Policy : ORB_Tasking_Policy_Type;
+      --  ORB tasking policy to activate on this partition.
+      --  Has no effect in Garlic PCS.
+
       Task_Pool : Task_Pool_Type;
       --  Configuration of the task pool
 
@@ -494,6 +498,7 @@ package XE_Units is
       Last_Env_Var         => No_Env_Var_Id,
       Passive              => BMaybe,
       Tasking              => '?',
+      ORB_Tasking_Policy   => No_ORB_Tasking_Policy,
       Task_Pool            => No_Task_Pool,
       Priority             => No_Priority,
       Light_PCS            => BMaybe,

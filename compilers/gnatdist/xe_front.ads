@@ -49,15 +49,16 @@ package XE_Front is
    Default_Partition_Id : Partition_Id;
    Default_Channel_Id   : Channel_Id;
 
-   Default_Registration_Filter : Filter_Name_Type     := No_Filter_Name;
-   Default_First_Boot_Location : Location_Id          := No_Location_Id;
-   Default_Last_Boot_Location  : Location_Id          := No_Location_Id;
-   Default_Data_Location       : Location_Id          := No_Location_Id;
-   Default_Starter             : Import_Method_Type   := Ada_Import;
-   Default_Version_Check       : Boolean              := True;
-   Default_Rsh_Command         : Name_Id              := No_Name;
-   Default_Rsh_Options         : Name_Id              := No_Name;
-   Default_Priority_Policy     : Priority_Policy_Type := No_Priority_Policy;
+   Default_Registration_Filter : Filter_Name_Type        := No_Filter_Name;
+   Default_First_Boot_Location : Location_Id             := No_Location_Id;
+   Default_Last_Boot_Location  : Location_Id             := No_Location_Id;
+   Default_Data_Location       : Location_Id             := No_Location_Id;
+   Default_Starter             : Import_Method_Type      := Ada_Import;
+   Default_Version_Check       : Boolean                 := True;
+   Default_Rsh_Command         : Name_Id                 := No_Name;
+   Default_Rsh_Options         : Name_Id                 := No_Name;
+   Default_Priority_Policy     : Priority_Policy_Type    := No_Priority_Policy;
+   Default_ORB_Tasking_Policy  : ORB_Tasking_Policy_Type := Thread_Pool;
 
    Configuration : Unit_Name_Type := No_Unit_Name;
    --  Name of the configuration.
