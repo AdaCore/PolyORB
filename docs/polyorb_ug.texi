@@ -4171,6 +4171,7 @@ environment variables.
 * Pragma Registration_Filter::
 * Pragma Version::
 * Partition Attribute Task_Pool::
+* Partition Attribute ORB_Tasking_Policy::
 * A Complete Example::
 @end menu
 
@@ -4933,7 +4934,7 @@ PRAGMA ::=
 
 @end smallexample
 
-@node Partition Attribute Task_Pool, A Complete Example, Pragma Version, The Configuration Language
+@node Partition Attribute Task_Pool, Partition Attribute ORB_Tasking_Policy, Pragma Version, The Configuration Language
 @subsubsection Partition Attribute Task_Pool
 
 When multiple remote subprogram calls occur on the same partition, they
@@ -4986,7 +4987,30 @@ configuration is declared as follows:
 
 @end smallexample
 
-@node A Complete Example,  , Partition Attribute Task_Pool, The Configuration Language
+@node Partition Attribute ORB_Tasking_Policy, A Complete Example, Partition Attribute Task_Pool, The Configuration Language
+@subsubsection Partition Attribute ORB_Tasking_Policy
+
+By default, a partition use Thread_Pool ORB tasking policy. This attribute
+allows to activate an ORB tasking policy among those
+provided by the PolyORB tasking model (see @ref{PolyORB ORB Tasking policies}),
+ and thus to choose a specific ORB tasking policy for each partition of a
+distributed application.
+
+@smallexample
+
+ORB_TASKING_POLICY_LITERAL ::= Thread_Pool         |
+                                Thread_Per_Session |
+                                Thread_Per_Request
+
+REPRESENTATION_CLAUSE ::=
+   @b{for} PARTITION_IDENTIFIER'ORB_Tasking_Policy @b{use} ORB_TASKING_POLICY_LITERAL;
+
+@end smallexample
+
+@i{Note: @ref{Partition Attribute Task_Pool} has no effect when another policy
+than Thread_Pool is activated.}
+
+@node A Complete Example,  , Partition Attribute ORB_Tasking_Policy, The Configuration Language
 @subsubsection A Complete Example
 
 Almost every keyword and construct defined in the configuration language
