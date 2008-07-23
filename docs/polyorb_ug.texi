@@ -4990,17 +4990,15 @@ configuration is declared as follows:
 @node Partition Attribute ORB_Tasking_Policy, A Complete Example, Partition Attribute Task_Pool, The Configuration Language
 @subsubsection Partition Attribute ORB_Tasking_Policy
 
-By default, a partition use Thread_Pool ORB tasking policy. This attribute
-allows to activate an ORB tasking policy among those
-provided by the PolyORB tasking model (see @ref{PolyORB ORB Tasking policies}),
- and thus to choose a specific ORB tasking policy for each partition of a
-distributed application.
+By default, the Thread_Pool ORB tasking policy is used for all partitions.
+This attribute allows selection of an alternate policy among those
+provided by PolyORB (see @ref{PolyORB ORB Tasking policies}) for
+each partition.
 
 @smallexample
-
-ORB_TASKING_POLICY_LITERAL ::= Thread_Pool         |
-                                Thread_Per_Session |
-                                Thread_Per_Request
+ORB_TASKING_POLICY_LITERAL ::= Thread_Pool        |
+                               Thread_Per_Session |
+                               Thread_Per_Request
 
 REPRESENTATION_CLAUSE ::=
    @b{for} PARTITION_IDENTIFIER'ORB_Tasking_Policy @b{use} ORB_TASKING_POLICY_LITERAL;
