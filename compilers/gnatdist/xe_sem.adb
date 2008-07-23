@@ -356,12 +356,14 @@ package body XE_Sem is
          Message ("find needed storage supports");
       end if;
 
-      --  As the analysis of needed storage supports can
+      --  As the analysis of needed storage supports should
       --  update partition tasking, it must be performed
       --  before the termination analysis.
 
       for J in Partitions.First + 1 .. Partitions.Last loop
-         Analyse_Withed_Storage_Supports (J, OK);
+         if Partitions.Table (J).To_Build then
+            Analyse_Withed_Storage_Supports (J, OK);
+         end if;
       end loop;
 
       if not OK then
