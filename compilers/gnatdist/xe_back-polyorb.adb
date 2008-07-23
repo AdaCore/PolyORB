@@ -720,7 +720,7 @@ package body XE_Back.PolyORB is
       File             : File_Descriptor := Invalid_FD;
       Current          : Partition_Type renames Partitions.Table (P);
       Major            : Name_Id;
-      Withed_Storage   : Withed_Storage_Id;
+      Required_Storage : Required_Storage_Id;
       Location         : Location_Id;
 
    begin
@@ -732,15 +732,15 @@ package body XE_Back.PolyORB is
 
       --  Import the storage supports used by this partition
 
-      Withed_Storage := Partitions.Table (P).First_Withed_Storage;
-      while Withed_Storage /= No_Withed_Storage_Id loop
-         Location := Withed_Storages.Table (Withed_Storage).Location;
+      Required_Storage := Partitions.Table (P).First_Required_Storage;
+      while Required_Storage /= No_Required_Storage_Id loop
+         Location := Required_Storages.Table (Required_Storage).Location;
          Major    := Capitalize (Locations.Table (Location).Major);
          Major    := RU (RU_PolyORB_DSA_P_Storages) and Major;
          Write_With_Clause (Major, False, True);
 
-         Withed_Storage := Withed_Storages.Table
-           (Withed_Storage).Next_Storage;
+         Required_Storage := Required_Storages.Table
+           (Required_Storage).Next_Storage;
       end loop;
 
       --  Initialize storage supports
@@ -758,20 +758,21 @@ package body XE_Back.PolyORB is
 
       --  Follow the same approach as for package importation
 
-      Withed_Storage := Partitions.Table (P).First_Withed_Storage;
-      while Withed_Storage /= No_Withed_Storage_Id loop
-         Location := Withed_Storages.Table (Withed_Storage).Location;
+      Required_Storage := Partitions.Table (P).First_Required_Storage;
+      while Required_Storage /= No_Required_Storage_Id loop
+         Location := Required_Storages.Table (Required_Storage).Location;
          Major    := Capitalize (Locations.Table (Location).Major);
          Write_Call
            (RU (RU_PolyORB_DSA_P_Storages)
             and Capitalize (Major)
             and "Register_Passive_Package",
             Quote (Name (Units.Table
-              (Withed_Storages.Table (Withed_Storage).Unit).Uname)),
-            Boolean'Image (Withed_Storages.Table (Withed_Storage).Is_Owner));
+              (Required_Storages.Table (Required_Storage).Unit).Uname)),
+            Boolean'Image
+              (Required_Storages.Table (Required_Storage).Is_Owner));
 
-         Withed_Storage := Withed_Storages.Table
-           (Withed_Storage).Next_Storage;
+         Required_Storage := Required_Storages.Table
+           (Required_Storage).Next_Storage;
       end loop;
 
       --  Write a null statement, so that partitions which have

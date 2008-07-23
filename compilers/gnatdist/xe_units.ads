@@ -146,12 +146,12 @@ package XE_Units is
    No_Env_Var_Id    : constant Env_Var_Id := Env_Var_Id'First;
    First_Env_Var_Id : constant Env_Var_Id := No_Env_Var_Id + 1;
 
-   type Withed_Storage_Id is range 7_600_000 .. 7_699_999;
+   type Required_Storage_Id is range 7_600_000 .. 7_699_999;
 
-   No_Withed_Storage_Id    : constant Withed_Storage_Id :=
-                                 Withed_Storage_Id'First;
-   First_Withed_Storage_Id : constant Withed_Storage_Id :=
-                                 No_Withed_Storage_Id + 1;
+   No_Required_Storage_Id    : constant Required_Storage_Id :=
+                                 Required_Storage_Id'First;
+   First_Required_Storage_Id : constant Required_Storage_Id :=
+                                 No_Required_Storage_Id + 1;
 
    --------------------
    -- ALI File Table --
@@ -447,11 +447,11 @@ package XE_Units is
       Storage_Loc : Location_Id;
       --  Id of storage location table entry for this partition
 
-      First_Withed_Storage : Withed_Storage_Id;
+      First_Required_Storage : Required_Storage_Id;
       --  Id of first storage location needed by this partition
       --  to manage shared memory
 
-      Last_Withed_Storage : Withed_Storage_Id;
+      Last_Required_Storage : Required_Storage_Id;
       --  Id of last storage location needed by this partition
       --  to manage shared memory
 
@@ -509,8 +509,8 @@ package XE_Units is
       First_Network_Loc    => No_Location_Id,
       Last_Network_Loc     => No_Location_Id,
       Storage_Loc          => No_Location_Id,
-      First_Withed_Storage => No_Withed_Storage_Id,
-      Last_Withed_Storage  => No_Withed_Storage_Id,
+      First_Required_Storage => No_Required_Storage_Id,
+      Last_Required_Storage  => No_Required_Storage_Id,
       Filter               => No_Filter_Name,
       Partition_Dir        => No_Directory_Name,
       Executable_Dir       => No_Directory_Name,
@@ -660,20 +660,20 @@ package XE_Units is
       Table_Increment      => 10);
 
    ----------------------------
-   -- Storage Location Table --
+   -- Required Storage Table --
    ----------------------------
 
-   type Withed_Storage_Type is record
+   type Required_Storage_Type is record
       Location     : Location_Id;
       Is_Owner     : Boolean;
       Unit         : Unit_Id;
-      Next_Storage : Withed_Storage_Id;
+      Next_Storage : Required_Storage_Id;
    end record;
 
-   package Withed_Storages is new GNAT.Table
-     (Table_Component_Type => Withed_Storage_Type,
-      Table_Index_Type     => Withed_Storage_Id,
-      Table_Low_Bound      => First_Withed_Storage_Id,
+   package Required_Storages is new GNAT.Table
+     (Table_Component_Type => Required_Storage_Type,
+      Table_Index_Type     => Required_Storage_Id,
+      Table_Low_Bound      => First_Required_Storage_Id,
       Table_Initial        => 20,
       Table_Increment      => 10);
 

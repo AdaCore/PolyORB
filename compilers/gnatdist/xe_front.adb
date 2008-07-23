@@ -251,40 +251,40 @@ package body XE_Front is
       Last := L;
    end Add_Location;
 
-   ------------------------
-   -- Add_Withed_Storage --
-   ------------------------
+   --------------------------
+   -- Add_Required_Storage --
+   --------------------------
 
-   procedure Add_Withed_Storage
-     (First    : in out Withed_Storage_Id;
-      Last     : in out Withed_Storage_Id;
+   procedure Add_Required_Storage
+     (First    : in out Required_Storage_Id;
+      Last     : in out Required_Storage_Id;
       Location : Location_Id;
       Unit     : Unit_Id;
       Owner    : Boolean)
    is
-      W : Withed_Storage_Id;
+      W : Required_Storage_Id;
 
    begin
-      --  Add a new element in the withed storage table.
+      --  Add a new element in the required storage table.
 
-      Withed_Storages.Increment_Last;
-      W := Withed_Storages.Last;
-      Withed_Storages.Table (W).Location     := Location;
-      Withed_Storages.Table (W).Unit         := Unit;
-      Withed_Storages.Table (W).Is_Owner     := Owner;
-      Withed_Storages.Table (W).Next_Storage := No_Withed_Storage_Id;
+      Required_Storages.Increment_Last;
+      W := Required_Storages.Last;
+      Required_Storages.Table (W).Location     := Location;
+      Required_Storages.Table (W).Unit         := Unit;
+      Required_Storages.Table (W).Is_Owner     := Owner;
+      Required_Storages.Table (W).Next_Storage := No_Required_Storage_Id;
 
-      --  Link this new withed storage to the end of the partition
-      --  withed storage list.
+      --  Link this new required storage to the end of the partition
+      --  required storage list.
 
-      if First = No_Withed_Storage_Id then
+      if First = No_Required_Storage_Id then
          First := W;
 
       else
-         Withed_Storages.Table (Last).Next_Storage := W;
+         Required_Storages.Table (Last).Next_Storage := W;
       end if;
       Last := W;
-   end Add_Withed_Storage;
+   end Add_Required_Storage;
 
    -----------------------
    -- Build_New_Channel --

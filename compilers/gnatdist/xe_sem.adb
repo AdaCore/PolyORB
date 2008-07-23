@@ -130,10 +130,10 @@ package body XE_Sem is
    --  time, compute the most recent file time stamp to see whether we
    --  need to update the partition executable file.
 
-   procedure Analyse_Withed_Storage_Supports
+   procedure Analyze_Required_Storage_Supports
      (Partition : Partition_Id;
       Success   : in out Boolean);
-   --  For the given partition, build the withed storages table by
+   --  For the given partition, build the required storages table by
    --  analyzing shared passive packages configured on this partition
    --  and stub packages configured on other partitions.
    --  Also ensure that storage location specific constraints aren't
@@ -362,7 +362,7 @@ package body XE_Sem is
 
       for J in Partitions.First + 1 .. Partitions.Last loop
          if Partitions.Table (J).To_Build then
-            Analyse_Withed_Storage_Supports (J, OK);
+            Analyze_Required_Storage_Supports (J, OK);
          end if;
       end loop;
 
@@ -383,11 +383,11 @@ package body XE_Sem is
 
    end Analyze;
 
-   -------------------------------------
-   -- Analyse_Withed_Storage_Supports --
-   -------------------------------------
+   ---------------------------------------
+   -- Analyze_Required_Storage_Supports --
+   ---------------------------------------
 
-   procedure Analyse_Withed_Storage_Supports
+   procedure Analyze_Required_Storage_Supports
      (Partition : Partition_Id;
       Success   : in out Boolean)
    is
@@ -461,9 +461,9 @@ package body XE_Sem is
                Location := Default_Data_Location;
             end if;
             Detect_Storage_Constraint_Violation (Location);
-            Add_Withed_Storage
-              (Current.First_Withed_Storage,
-               Current.Last_Withed_Storage,
+            Add_Required_Storage
+              (Current.First_Required_Storage,
+               Current.Last_Required_Storage,
                Location,
                Unit,
                Owner => False);
@@ -483,9 +483,9 @@ package body XE_Sem is
                Location := Default_Data_Location;
             end if;
             Detect_Storage_Constraint_Violation (Location);
-            Add_Withed_Storage
-              (Current.First_Withed_Storage,
-               Current.Last_Withed_Storage,
+            Add_Required_Storage
+              (Current.First_Required_Storage,
+               Current.Last_Required_Storage,
                Location,
                Unit,
                Owner => True);
@@ -493,7 +493,7 @@ package body XE_Sem is
 
          Conf_Unit := Conf_Units.Table (Conf_Unit).Next_Unit;
       end loop;
-   end Analyse_Withed_Storage_Supports;
+   end Analyze_Required_Storage_Supports;
 
    --------------------------------------
    -- Apply_Default_Channel_Attributes --
@@ -586,9 +586,9 @@ package body XE_Sem is
          Current.Storage_Loc := Default.Storage_Loc;
       end if;
 
-      if Current.First_Withed_Storage = No_Withed_Storage_Id then
-         Current.First_Withed_Storage := Default.First_Withed_Storage;
-         Current.Last_Withed_Storage  := Default.Last_Withed_Storage;
+      if Current.First_Required_Storage = No_Required_Storage_Id then
+         Current.First_Required_Storage := Default.First_Required_Storage;
+         Current.Last_Required_Storage  := Default.Last_Required_Storage;
       end if;
 
       if Current.Task_Pool = No_Task_Pool then
