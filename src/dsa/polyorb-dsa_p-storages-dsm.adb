@@ -169,8 +169,7 @@ package body PolyORB.DSA_P.Storages.DSM is
    overriding
    function Create
      (Manager_Factory : access DSM_Manager;
-      Full_Name       : String)
-      return Shared_Data_Manager_RACW;
+      Full_Name       : String) return Shared_Data_Manager_RACW;
 
    --------------------------
    -- Unchecked_Conversion --
@@ -185,6 +184,8 @@ package body PolyORB.DSA_P.Storages.DSM is
      new Ada.Unchecked_Conversion
        (System.Address, DSM_Manager_RACW);
    --  Convert system address to DSM_Manager_Access
+   --  To DSM_Manager_Access or to DSM_Manager_RACW???
+   --  Causes strict-aliasing warning under -O2???
 
    -------------
    -- Logging --
@@ -300,9 +301,8 @@ package body PolyORB.DSA_P.Storages.DSM is
    begin
       --  Asynchronous procedure
 
-      --  Invalidate only if local partition have read access
-      --  on the shared variable and if variable version number
-      --  isn't obslete.
+      --  Invalidate only if local partition has read access to the variable
+      --  and if variable version isn't obsolete.
 
       if Self.Status = Read and Version >= Self.Version then
          pragma Debug (C, O ("Invalidation request received"));
@@ -325,13 +325,15 @@ package body PolyORB.DSA_P.Storages.DSM is
 
          Self.Prob_Owner := Rqst_Node;
          Self.Status     := None;
+
+         --  Reset copy set
+
          Initialize (Self.Copies);
-         --  reestablishing table for new use
 
-         return;
+      else
+         pragma Debug (C, O ("Invalidation request ignored"));
+         null;
       end if;
-
-      pragma Debug (C, O ("Invalidation request ignored"));
    end Invalidate_Request;
 
    ----------
@@ -343,10 +345,11 @@ package body PolyORB.DSA_P.Storages.DSM is
       Enter (Self.Synchs.Protected_Object);
       Enter (Self.Synchs.Critical_Section);
 
-      --  If local partition isn't the owner, sending write
-      --  request to become the owner and obtain write access.
-      --  So the next read and write calls within the protected
-      --  object critical section won't generate remote requests.
+      --  If local partition isn't the owner, send write request in order to
+      --  to become owner and obtain write access.
+      --  So the next read and write calls within the protected object critical
+      --  section won't generate remote requests.
+      --  Can't parse the above sentence???
 
       if Self.Prob_Owner /= DSM_Manager_RACW (Self) then
          pragma Debug (C, O ("Sending write request to probable owner"));
@@ -387,14 +390,13 @@ package body PolyORB.DSA_P.Storages.DSM is
          pragma Debug (C, O ("Sending read request to probable owner"));
          Enter (Self.Synchs.Wait_Mutex);
 
-         --  Ask for read access to probable owner.
+         --  Ask for read access to probable owner
 
          Read_Request
            (Self      => Self.Prob_Owner,
             Rqst_Node => DSM_Manager_RACW (Self));
 
-         --  Awaiting reply from first node which have read
-         --  access on the varaible.
+         --  Awaiting reply from first node which has read access
 
          Wait  (Self.Synchs.Wait_Barrier, Self.Synchs.Wait_Mutex);
          Leave (Self.Synchs.Wait_Mutex);
@@ -402,8 +404,9 @@ package body PolyORB.DSA_P.Storages.DSM is
          Self.Status := Read;
       end if;
 
-      Var := AC_To_DAC (Get_Container (Self.Data));
       --  Assign out data value to container value
+
+      Var := AC_To_DAC (Get_Container (Self.Data));
 
       Leave (Self.Synchs.Critical_Section);
    end Read;
@@ -427,8 +430,9 @@ package body PolyORB.DSA_P.Storages.DSM is
       Self.Prob_Owner := Reply_Node;
       Self.Version    := Version;
 
+      --  Signal blocked task
+
       Broadcast (Self.Synchs.Wait_Barrier);
-      --  Unlock thread waiting reply
 
       Leave (Self.Synchs.Wait_Mutex);
    end Read_Reply;
@@ -449,19 +453,20 @@ package body PolyORB.DSA_P.Storages.DSM is
       Enter (Self.Synchs.Critical_Section);
       pragma Debug (C, O ("Read request received"));
 
-      --  Handling request if local partition has read or
-      --  write access, else forwarding it.
+      --  If local partition has read or write access, handle request locally,
+      --  else forward it to the probable owner.
 
       if Self.Status /= None then
+         --  Write access lost
 
          Self.Status := Read;
-         --  Lost any write access on the variable
+
+         --  Add requesting node to the copy set
 
          Increment_Last (Self.Copies);
          Self.Copies.Table (Last (Self.Copies)) := Rqst_Node;
-         --  Add request node to the copy set
 
-         --  Replying to request node
+         --  Send reply
 
          Self.Version := Self.Version + 1;
          Read_Reply
@@ -472,12 +477,9 @@ package body PolyORB.DSA_P.Storages.DSM is
       else
          pragma Debug (C, O ("Forwarding read request to probable owner"));
 
-         --  Forwarding request to probable owner
+         --  Forward request to probable owner
 
-         Read_Request
-           (Self      => Self.Prob_Owner,
-            Rqst_Node => Rqst_Node);
-
+         Read_Request (Self => Self.Prob_Owner, Rqst_Node => Rqst_Node);
          Self.Prob_Owner := Rqst_Node;
       end if;
 
@@ -493,13 +495,12 @@ package body PolyORB.DSA_P.Storages.DSM is
       Is_Owner : Boolean)
    is
       Factory : constant DSM_Manager_Access := new DSM_Manager;
-
    begin
       pragma Debug (C, O ("Register DSM factory for package "
         & Pkg_Name));
 
-      --  If local partition is the initial owner of the shared
-      --  passive package, register it in the name server.
+      --  If local partition is the initial owner of the shared passive unit,
+      --  register it in the name server.
 
       if Is_Owner then
          Factory.Prob_Owner := DSM_Manager_RACW (Factory);
@@ -519,7 +520,7 @@ package body PolyORB.DSA_P.Storages.DSM is
 
    procedure Unlock (Self : access DSM_Manager) is
    begin
-      --  Terminate the protected object critical section
+      --  Exit the protected object critical section
 
       Self.Locked := False;
       Leave (Self.Synchs.Protected_Object);
@@ -545,13 +546,13 @@ package body PolyORB.DSA_P.Storages.DSM is
 
          Enter (Self.Synchs.Wait_Mutex);
 
-         --  Ask for write access to probable owner
+         --  Request write access from probable owner
 
          Write_Request
            (Self      => Self.Prob_Owner,
             Rqst_Node => DSM_Manager_RACW (Self));
 
-         --  Awaiting reply from real owner of the variable
+         --  Wait for reply from real owner
 
          Wait  (Self.Synchs.Wait_Barrier, Self.Synchs.Wait_Mutex);
          Leave (Self.Synchs.Wait_Mutex);
@@ -574,11 +575,14 @@ package body PolyORB.DSA_P.Storages.DSM is
 
       Self.Prob_Owner := DSM_Manager_RACW (Self);
       Self.Status     := Write;
+
+      --  Reset copy set
+
       Initialize (Self.Copies);
-      --  reestablishing table for new use
+
+      --  Assign out data value to container value
 
       Set_Container (Self.Data, DAC_To_AC (Var));
-      --  Assign out data value to container value
 
       Leave (Self.Synchs.Critical_Section);
    end Write;
@@ -602,8 +606,9 @@ package body PolyORB.DSA_P.Storages.DSM is
       Self.Version := Version;
       Set_Container (Self.Data, DAC_To_AC (Var_Data));
 
+      --  Unblock waiting task
+
       Broadcast (Self.Synchs.Wait_Barrier);
-      --  Unlock thread awaiting reply
 
       Leave (Self.Synchs.Wait_Mutex);
    end Write_Reply;
@@ -614,14 +619,15 @@ package body PolyORB.DSA_P.Storages.DSM is
 
    procedure Write_Request
      (Self      : access DSM_Manager;
-      Rqst_Node : DSM_Manager_RACW) is
+      Rqst_Node : DSM_Manager_RACW)
+   is
    begin
       --  Asynchronous procedure
 
       Enter (Self.Synchs.Critical_Section);
 
-      --  If variable is a protected object and is curently in
-      --  use, waiting end of protected object critical section.
+      --  If variable is a protected object and is curently in use, block until
+      --  exit of protected object critical section.
 
       if Self.Locked then
          Enter (Self.Synchs.Protected_Object);
@@ -629,15 +635,15 @@ package body PolyORB.DSA_P.Storages.DSM is
 
       pragma Debug (C, O ("Write request received"));
 
-      --  Handling request if local partition is the owner, else
-      --  forwarding it. In both case Rqst_Node node will obtain
-      --  write access on the variable, so we lost any access on
-      --  variable,
+      --  If local partition has read or write access, handle request locally,
+      --  else forward it to the probable owner. In both cases, Rqst_Node node
+      --  will obtain write access on the variable, so record now that we have
+      --  lost all access.
 
       Self.Status := None;
       if Self.Prob_Owner = DSM_Manager_RACW (Self) then
 
-         --  Replying to request node
+         --  Send reply
 
          Self.Version := Self.Version + 1;
          Write_Reply
@@ -649,7 +655,7 @@ package body PolyORB.DSA_P.Storages.DSM is
       else
          pragma Debug (C, O ("Forwarding write request to probable owner"));
 
-         --  Forwarding request to probable owner
+         --  Forward request to probable owner
 
          Write_Request
            (Self      => Self.Prob_Owner,
