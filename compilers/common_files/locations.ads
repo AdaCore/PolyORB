@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2004-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -38,7 +38,7 @@ package Locations is
    type Location is record
       File  : Name_Id;
       Dir   : Name_Id;
-      Line  : Int;
+      Line  : Nat;
       First : Text_Ptr;
       Last  : Text_Ptr;
       Scan  : Text_Ptr;
@@ -54,5 +54,7 @@ package Locations is
       Line : Int);
 
    function "<" (Op1, Op2 : Location) return Boolean;
+   --  If Op1 and Op2 are in the same file, returns True if and only if Op1 is
+   --  before Op2. Returns False if Op1 and Op2 are not in the same file.
 
 end Locations;

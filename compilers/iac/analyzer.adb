@@ -353,7 +353,7 @@ package body Analyzer is
 
       Analyze (T);
 
-      --  Resolve base type of T. Types of constant declaration are
+      --  Resolve base type of T. Types of constant declarations are
       --  limited to integer types, character types, string types,
       --  floating point types, fixed point types.
 
@@ -928,11 +928,10 @@ package body Analyzer is
             end if;
          end if;
 
-      --  Analyze multiple scoped names. Analyze parent P first and
-      --  then and the entity itself. Find the entity in the
-      --  newly-analyzed parent scope. Check whether the scope is a
-      --  correct scope for a scoped name (not an operation for
-      --  instance).
+      --  Analyze multiple scoped names. Analyze parent of P first and then the
+      --  entity itself. Find the entity in the newly-analyzed parent
+      --  scope. Check whether the scope is a correct scope for a scoped name
+      --  (not an operation for instance).
 
       else
          Analyze_Scoped_Name (P);
@@ -1588,7 +1587,7 @@ package body Analyzer is
          T : Node_Kind);
       --  Output an error message to indicate that a value cannot be cast to
       --  a given type. E denotes the entity in which the cast occurs, V the
-      --  source type and K the target type.
+      --  source type and K the target type.  ???There's no V or K.
 
       function Convert
         (E : Node_Id;
@@ -1941,11 +1940,10 @@ package body Analyzer is
       RV, LV : Value_Type;
       O      : Token_Type;
 
+      --  Start of processing for Resolve_Expr
+
    begin
-      if No (T) then
-         return;
-      end if;
-      if No (E) then
+      if No (T) or else No (E) then
          return;
       end if;
       KE := Kind (E);

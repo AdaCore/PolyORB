@@ -62,6 +62,20 @@ package body Utils is
       end loop;
    end Capitalize;
 
+   -----------
+   -- Image --
+   -----------
+
+   function Image (N : Int) return String is
+      S : constant String := Int'Image (N);
+   begin
+      case S (S'First) is
+         when ' ' => return S (S'First + 1 .. S'Last);
+         when '-' => return S;
+         when others => raise Program_Error;
+      end case;
+   end Image;
+
    ----------------------
    -- Is_Dir_Separator --
    ----------------------

@@ -53,20 +53,31 @@ package body Locations is
 
    function Image (Loc : Location) return String
    is
-      Column : constant Nat := Nat (Loc.Last - Loc.First + 1);
    begin
       if Loc.File = No_Name then
          return No_Str;
       end if;
-      Get_Name_String (Loc.File);
-      Add_Char_To_Name_Buffer (':');
-      Add_Nat_To_Name_Buffer (Nat (Loc.Line));
-      Add_Char_To_Name_Buffer (':');
-      if Column < 10 then
-         Add_Char_To_Name_Buffer ('0');
-      end if;
-      Add_Nat_To_Name_Buffer (Column);
-      return Name_Buffer (1 .. Name_Len);
+      declare
+         Column : constant Nat := Nat (Loc.Last - Loc.First + 1);
+
+         function Column_Image return String;
+         --  Return the image of Column, with a leading blank if necessary to
+         --  make it at least 2 characters.
+
+         function Column_Image return String is
+            Im : constant String := Image (Column);
+         begin
+            if Column < 10 then
+               return "0" & Im;
+            else
+               return Im;
+            end if;
+         end Column_Image;
+
+      begin
+         return Get_Name_String (Loc.File) & ":" & Image (Loc.Line)
+           & ":" & Column_Image;
+      end;
    end Image;
 
    ----------------------

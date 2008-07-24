@@ -35,6 +35,9 @@ with Types;     use Types;
 
 package Utils is
 
+   function Image (N : Int) return String;
+   --  Return the image of N without the annoying leading blank
+
    procedure Capitalize (S : in out String);
    --  Change in S any leading character or any successor of an
    --  underscore into its corresponding uppercase character.

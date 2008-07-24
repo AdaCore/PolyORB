@@ -56,18 +56,17 @@ package body Errors is
          end if;
       end Check_Space;
 
-      --  ??? All the declarations below need clearer, meaningful names nad
-      --  explanatory comments.
+      --  N, L, and I are the indices mentioned in the spec
 
-      L : Natural := 1;
-      I : Natural := 1;
-      N : Natural := 1;
-      M : Boolean := False;
+      N : Natural range 1 .. 3 := 1;  --  Index into Error_Name
+      L : Natural range 1 .. 3 := 1;  --  Index into Error_Loc
+      I : Natural range 1 .. 3 := 1;  --  Index into Error_Int
+
+      Special : Boolean := False;
       --  True when the current character is a special insertion character
-      J : Natural := S'First;
 
       type Message_Kind is (K_Error, K_Warning, K_Continuation);
-      K : Message_Kind;
+      Kind : Message_Kind;
 
    begin
       if Error_Loc (L) = No_Location then
@@ -78,21 +77,21 @@ package body Errors is
       L := L + 1;
       Add_Str_To_Name_Buffer (": ");
 
-      K := K_Error;
+      Kind := K_Error;
       for J in S'Range loop
          case S (J) is
             when '\' =>
-               K := K_Continuation;
+               Kind := K_Continuation;
                exit;
             when '?' =>
-               K := K_Warning;
+               Kind := K_Warning;
                exit;
             when others =>
                null;
          end case;
       end loop;
 
-      case K is
+      case Kind is
          when K_Error =>
             N_Errors := N_Errors + 1;
 
@@ -104,7 +103,7 @@ package body Errors is
             null;
       end case;
 
-      while J <= S'Last loop
+      for J in S'Range loop
 
          --  Process special insertion characters
 
@@ -113,7 +112,7 @@ package body Errors is
                Check_Space;
                Get_Name_String_And_Append (Error_Name (N));
                N := N + 1;
-               M := True;
+               Special := True;
 
             when '#' =>
                Check_Space;
@@ -121,29 +120,34 @@ package body Errors is
                Get_Name_String_And_Append (Error_Name (N));
                Add_Char_To_Name_Buffer ('"');
                N := N + 1;
-               M := True;
+               Special := True;
 
             when '!' =>
-               if L = 1 then
-                  Add_Str_To_Name_Buffer (Image (Error_Loc (1)));
+               case L is
+                  when 1 =>
+                     Add_Str_To_Name_Buffer (Image (Error_Loc (1)));
 
-               elsif Error_Loc (1).File = Error_Loc (L).File then
-                  Check_Space;
-                  Add_Str_To_Name_Buffer ("at line ");
-                  Add_Nat_To_Name_Buffer (Error_Loc (L).Line);
+                  when 2 =>
+                     Check_Space;
+                     if Error_Loc (1).File = Error_Loc (2).File then
+                        Add_Str_To_Name_Buffer ("at line ");
+                        Add_Nat_To_Name_Buffer (Error_Loc (2).Line);
 
-               else
-                  Check_Space;
-                  Add_Str_To_Name_Buffer ("in ");
-                  Add_Str_To_Name_Buffer (Image (Error_Loc (1)));
-               end if;
+                     else
+                        Add_Str_To_Name_Buffer ("at ");
+                        Add_Str_To_Name_Buffer (Image (Error_Loc (2)));
+                     end if;
+
+                  when 3 => raise Program_Error;
+               end case;
+
                L := L + 1;
-               M := True;
+               Special := True;
 
             when '$' =>
                Add_Nat_To_Name_Buffer (Error_Int (I));
                I := I + 1;
-               M := False;
+               Special := True;
 
             when '?' | '\' =>
                --  Already dealt with
@@ -153,17 +157,15 @@ package body Errors is
             when others =>
                --  Add space after insertion if not provided by S
 
-               if M then
+               if Special then
                   if S (J) /= ' ' then
                      Add_Char_To_Name_Buffer (' ');
                   end if;
-                  M := False;
+                  Special := False;
                end if;
 
                Add_Char_To_Name_Buffer (S (J));
          end case;
-
-         J := J + 1;
       end loop;
 
       Set_Standard_Error;
