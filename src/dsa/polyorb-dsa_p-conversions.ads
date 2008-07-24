@@ -49,6 +49,11 @@ pragma Warnings (On);
 
 package PolyORB.DSA_P.Conversions is
 
+   pragma Warnings (Off);
+   --  No strict aliasing issues, since System.DSA_Types.Any_Container_Ptr
+   --  is a dummy type and it only ever used in the context of unchecked
+   --  conversions from and to PolyORB.Any.Any_Container_Ptr.
+
    function DAC_To_AC is
      new Ada.Unchecked_Conversion
        (System.DSA_Types.Any_Container_Ptr, PolyORB.Any.Any_Container_Ptr);
@@ -58,5 +63,7 @@ package PolyORB.DSA_P.Conversions is
      new Ada.Unchecked_Conversion
        (PolyORB.Any.Any_Container_Ptr, System.DSA_Types.Any_Container_Ptr);
    --  Convert Any_Container_Ptr PolyORB type to DSA one
+
+   pragma Warnings (On);
 
 end PolyORB.DSA_P.Conversions;
