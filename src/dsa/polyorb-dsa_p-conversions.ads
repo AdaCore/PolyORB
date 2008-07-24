@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2006-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2008, Free Software Foundation, Inc.               --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -37,11 +37,15 @@ with Ada.Unchecked_Conversion;
 
 with PolyORB.Any;
 
-pragma Warnings (Off, "* is an internal GNAT unit");
-pragma Warnings (Off, "use of this unit is non-portable*");
+--  WAG:601
+--  pragma Warnings (Off) with pattern not supported in that compiler version
+--  so use plain pragma Warnings (Off/On) instead.
+--  pragma Warnings (Off, "* is an internal GNAT unit");
+--  pragma Warnings (Off, "use of this unit is non-portable*");
+
+pragma Warnings (Off);
 with System.DSA_Types;
-pragma Warnings (On, "* is an internal GNAT unit");
-pragma Warnings (On, "use of this unit is non-portable*");
+pragma Warnings (On);
 
 package PolyORB.DSA_P.Conversions is
 
