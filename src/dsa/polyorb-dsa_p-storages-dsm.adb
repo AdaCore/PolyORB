@@ -182,10 +182,8 @@ package body PolyORB.DSA_P.Storages.DSM is
 
    function Address_To_DSM_Manager is
      new Ada.Unchecked_Conversion
-       (System.Address, DSM_Manager_RACW);
+       (System.Address, DSM_Manager_Access);
    --  Convert system address to DSM_Manager_Access
-   --  To DSM_Manager_Access or to DSM_Manager_RACW???
-   --  Causes strict-aliasing warning under -O2???
 
    -------------
    -- Logging --
@@ -345,11 +343,20 @@ package body PolyORB.DSA_P.Storages.DSM is
       Enter (Self.Synchs.Protected_Object);
       Enter (Self.Synchs.Critical_Section);
 
-      --  If local partition isn't the owner, send write request in order to
-      --  to become owner and obtain write access.
-      --  So the next read and write calls within the protected object critical
-      --  section won't generate remote requests.
-      --  Can't parse the above sentence???
+      --  Critical section of protected objects has the following concept :
+      --
+      --     lock ();
+      --     read ();
+      --       protected_object.procedure_call ();
+      --     write ();
+      --     unlock ();
+      --
+      --  So if local partition isn't the owner of the shared protected object,
+      --  we send a write request to the owner to get the ownership.
+      --  As we don't handle any incoming request until the unlock () call
+      --  (in fact, while Self.Locked = True), we ensure that no other
+      --  partition could use the protected object between local read () and
+      --  write () calls.
 
       if Self.Prob_Owner /= DSM_Manager_RACW (Self) then
          pragma Debug (C, O ("Sending write request to probable owner"));
