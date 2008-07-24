@@ -1835,7 +1835,8 @@ package body Ada_Be.Idl2Ada is
                               end if;
 
                               Put (CU, "0 .. ");
-                              Gen_Node_Stubs_Spec (CU, Bound_Node);
+                              Gen_Constant_Value
+                                (CU, Expr => Bound_Node, Typ => No_Node);
                               Put (CU, " - 1");
                            end loop;
                            PL (CU, ") of");
@@ -3013,9 +3014,11 @@ package body Ada_Be.Idl2Ada is
             begin
                --  If the value is negative, we use an expanded name for the
                --  "-" operator, because it might not be directly visible. For
-               --  example, CORBA."-" (1234).
+               --  example, CORBA."-" (1234). If Typ is not provided, assume
+               --  that the "-" operator is directly visible (case of the
+               --  index type of an IDL array, which is Standard.Integer).
 
-               if Int_Val < 0 then
+               if Present (Typ) and then Int_Val < 0 then
                   Put (CU, Library_Unit_Name (Mapping, Typ) & ".""-"" (");
                   Put (CU, Img (-Int_Val));
                   Put (CU, ")");

@@ -451,7 +451,7 @@ package body Ada_Be.Idl2Ada.Helper is
                end if;
 
                Put (CU, Img (Index) & " => ");
-               Gen_Node_Stubs_Spec (CU, Bound_Node);
+               Gen_Constant_Value (CU, Expr => Bound_Node, Typ => No_Node);
 
                Index := Index + 1;
             end loop;
@@ -3475,7 +3475,7 @@ package body Ada_Be.Idl2Ada.Helper is
 
                   NL (CU);
                   Put (CU, "for " & Loop_Parameter (Dim) & " in 0 .. ");
-                  Gen_Node_Stubs_Spec (CU, Bound_Node);
+                  Gen_Constant_Value (CU, Expr => Bound_Node, Typ => No_Node);
                   PL (CU, " - 1 loop");
                   II (CU);
 
@@ -3601,7 +3601,7 @@ package body Ada_Be.Idl2Ada.Helper is
 
                   NL (CU);
                   Put (CU, "for " & Loop_Parameter (Dim) & " in 0 .. ");
-                  Gen_Node_Stubs_Spec (CU, Bound_Node);
+                  Gen_Constant_Value (CU, Expr => Bound_Node, Typ => No_Node);
                   PL (CU, " - 1 loop");
                   II (CU);
 
@@ -3939,7 +3939,7 @@ package body Ada_Be.Idl2Ada.Helper is
             Put (CU, Ada_TC_Name (Decl_Node) & "_TC_Dimension_" & Img (Index));
          end if;
          Put (CU, ", CORBA.To_Any (CORBA.Unsigned_Long (");
-         Gen_Node_Stubs_Spec (CU, Bound_Node);
+         Gen_Constant_Value (CU, Expr => Bound_Node, Typ => No_Node);
          PL (CU, ")));");
          Put (CU, "CORBA.Internals.Add_Parameter (");
          if First_Bound then
