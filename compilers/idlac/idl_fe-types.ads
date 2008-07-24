@@ -150,7 +150,7 @@ package Idl_Fe.Types is
    Idl_ULong_Max : constant Idl_Integer := (2 ** 32) - 1;
    Idl_ULongLong_Min : constant Idl_Integer := 0;
    Idl_ULongLong_Max : constant Idl_Integer := Idl_ULong_Max
-; --  (2 ** 64) - 1;
+; --  (2 ** 64) - 1;  ???
    Idl_Float_Min : constant Idl_Float := Long_Long_Float (Float'First);
    Idl_Float_Max : constant Idl_Float := Long_Long_Float (Float'Last);
    Idl_Double_Min : constant Idl_Float := Long_Long_Float (Long_Float'First);
