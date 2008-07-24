@@ -32,35 +32,22 @@
 ------------------------------------------------------------------------------
 
 with Ada.Streams.Stream_IO;
-with Ada.Unchecked_Conversion;
 
 with System.DSA_Types;
 
 with PolyORB.Any;
+with PolyORB.DSA_P.Conversions;
 with PolyORB.DSA_P.Storages;
 with PolyORB.DSA_P.Streams;
 
 package body System.Shared_Storage is
 
    use PolyORB.Any;
+   use PolyORB.DSA_P.Conversions;
    use PolyORB.DSA_P.Storages;
    use PolyORB.DSA_P.Streams;
 
    package SDT renames System.DSA_Types;
-
-   --------------------------
-   -- Unchecked_Conversion --
-   --------------------------
-
-   function DAC_To_AC is
-     new Ada.Unchecked_Conversion
-       (SDT.Any_Container_Ptr, Any_Container_Ptr);
-   --  Convert Any_Container_Ptr DSA type to PolyORB one
-
-   function AC_To_DAC is
-     new Ada.Unchecked_Conversion
-       (Any_Container_Ptr, SDT.Any_Container_Ptr);
-   --  Convert Any_Container_Ptr PolyORB type to DSA one
 
    ---------------------
    -- Shared_Var_Lock --

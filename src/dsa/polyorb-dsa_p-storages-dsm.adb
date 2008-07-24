@@ -53,6 +53,7 @@ with Ada.Unchecked_Conversion;
 with System.Partition_Interface;
 
 with PolyORB.Any;
+with PolyORB.DSA_P.Conversions;
 with PolyORB.Log;
 with PolyORB.Tasking.Mutexes;
 with PolyORB.Tasking.Condition_Variables;
@@ -61,6 +62,7 @@ package body PolyORB.DSA_P.Storages.DSM is
 
    use System.Partition_Interface;
    use PolyORB.Any;
+   use PolyORB.DSA_P.Conversions;
    use PolyORB.Log;
    use PolyORB.Tasking.Mutexes;
    use PolyORB.Tasking.Condition_Variables;
@@ -173,16 +175,6 @@ package body PolyORB.DSA_P.Storages.DSM is
    --------------------------
    -- Unchecked_Conversion --
    --------------------------
-
-   function DAC_To_AC is
-     new Ada.Unchecked_Conversion
-       (SDT.Any_Container_Ptr, Any_Container_Ptr);
-   --  Convert Any_Container_Ptr DSA type to PolyORB one
-
-   function AC_To_DAC is
-     new Ada.Unchecked_Conversion
-       (Any_Container_Ptr, SDT.Any_Container_Ptr);
-   --  Convert Any_Container_Ptr PolyORB type to DSA one
 
    function DSM_Manager_To_Address is
      new Ada.Unchecked_Conversion
