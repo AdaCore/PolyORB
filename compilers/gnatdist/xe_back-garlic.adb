@@ -294,7 +294,7 @@ package body XE_Back.GARLIC is
       Write_With_Clause (RU (RU_System_Garlic_Remote), True);
       Write_With_Clause (RU (RU_System_Garlic_Types), True);
 
-      if Current.Tasking = 'N' then
+      if Current.Tasking = No_Tasking then
          Write_With_Clause (RU (RU_System_Garlic_No_Tasking), False, True);
 
       else
@@ -428,11 +428,11 @@ package body XE_Back.GARLIC is
 
       --  Set tasking policy and with appropriate package
 
-      if Current.Tasking = 'N' then
+      if Current.Tasking = No_Tasking then
          Write_Call (RE (RE_Initialize_0));
          Write_Call (RE (RE_Set_Light_PCS), Id ("True"));
 
-      elsif Current.Tasking = 'U' then
+      elsif Current.Tasking = User_Tasking then
          Write_Call (RE (RE_Initialize_1));
          Write_Call (RE (RE_Set_Pure_Client), Id ("True"));
 
@@ -659,7 +659,7 @@ package body XE_Back.GARLIC is
 
       Write_With_Clause (RU (RU_System_Partition_Interface), True);
       Write_With_Clause (RU (RU_System_RPC));
-      if Current.Tasking /= 'N' then
+      if Current.Tasking /= No_Tasking then
          Write_With_Clause (RU (RU_System_RPC_Server));
       end if;
       Write_With_Clause (RU (RU_System_Garlic_Startup), False, True);
@@ -871,7 +871,7 @@ package body XE_Back.GARLIC is
       Filename := Dir (Current.Partition_Dir, Protocol_Config_File);
       Location := Current.First_Network_Loc;
 
-      Light_PCS := Current.Tasking = 'N'
+      Light_PCS := Current.Tasking = No_Tasking
         and then Current.Light_PCS /= BFalse;
 
       --  Having no protocol configured on this partition is not
@@ -902,7 +902,7 @@ package body XE_Back.GARLIC is
       Set_Output  (File);
       Write_Line  ("pragma Warnings (Off);");
 
-      --  Withed location protocols
+      --  Required location protocols
 
       while Location /= No_Location_Id loop
          Add_Protocol (First_Loc, Last_Loc, Locations.Table (Location).Major);
@@ -927,7 +927,7 @@ package body XE_Back.GARLIC is
          Major := Capitalize (Locations.Table (Location).Major);
          Major := RU (RU_System_Garlic_Protocols) and Major;
          Write_With_Clause (Major, False, True);
-         if Current.Tasking /= 'N' then
+         if Current.Tasking /= No_Tasking then
             Major := Major and "Server";
             Write_With_Clause (Major, False, True);
          end if;

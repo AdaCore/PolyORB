@@ -212,6 +212,18 @@ package XE is
    Thread_Per_Request     : constant ORB_Tasking_Policy_Type := 903;
    ORB_Tasking_Policy_Img : array (ORB_Tasking_Policy_Type) of Name_Id;
 
+   ------------------
+   -- Tasking Type --
+   ------------------
+
+   type Tasking_Type is new Int range 1000 .. 1003;
+
+   Unknown_Tasking : constant Tasking_Type := 1000;
+   PCS_Tasking     : constant Tasking_Type := 1001;
+   User_Tasking    : constant Tasking_Type := 1002;
+   No_Tasking      : constant Tasking_Type := 1003;
+   Tasking_Img     : array (Tasking_Type) of Name_Id;
+
    -------------
    -- Node Id --
    -------------

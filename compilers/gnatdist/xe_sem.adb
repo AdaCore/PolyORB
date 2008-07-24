@@ -310,13 +310,6 @@ package body XE_Sem is
       end if;
 
       --  This step checks whether we need tasking on a partition.
-      --
-      --  Notation:
-      --     '?' : unknown
-      --     'P' : tasking is required because of PCS code
-      --     'U' : tasking is required because of user code
-      --     'N' : tasking is not required for this unit
-      --
       --  Check whether a unit comes with tasking. Possibly because of
       --  its dependencies. Note that we do not look any further a
       --  dependency designating a RCI unit since it may not be
@@ -339,7 +332,7 @@ package body XE_Sem is
             Update_Partition_Tasking (A, P);
          end if;
       end loop;
-      Partitions.Table (Main_Partition).Tasking := 'P';
+      Partitions.Table (Main_Partition).Tasking := PCS_Tasking;
 
       if Debug_Mode then
          Message ("find partition stub-only units");
@@ -435,7 +428,7 @@ package body XE_Sem is
          --  Some storage supports need a full tasking profile
 
          if Storage_Properties.Need_Tasking then
-            Current.Tasking := 'P';
+            Current.Tasking := PCS_Tasking;
          end if;
       end Detect_Storage_Constraint_Violation;
 
@@ -551,7 +544,7 @@ package body XE_Sem is
          Current.Light_PCS := Default.Light_PCS;
       end if;
       if Current.Light_PCS = BFalse then
-         Current.Tasking := 'P';
+         Current.Tasking := PCS_Tasking;
       end if;
 
       if Current.Passive = BMaybe then
@@ -612,7 +605,7 @@ package body XE_Sem is
       Current : Partition_Type renames Partitions.Table (Partition);
 
    begin
-      if Current.Tasking = 'P' then
+      if Current.Tasking = PCS_Tasking then
 
          --  If ORB tasking policy isn't assigned yet, use default
 
@@ -658,11 +651,12 @@ package body XE_Sem is
 
    begin
       if Debug_Mode then
-         Message ("partition", Current.Name, "has tasking " & Current.Tasking);
+         Message ("partition", Current.Name, "has tasking ",
+                  Tasking_Img (Current.Tasking));
       end if;
 
       if Current.Termination = No_Termination
-        and then Current.Tasking /= 'P'
+        and then Current.Tasking /= PCS_Tasking
       then
          Current.Termination := Local_Termination;
 
@@ -677,7 +671,7 @@ package body XE_Sem is
    -------------------------
 
    procedure Assign_Unit_Tasking (ALI : ALI_Id) is
-      T : Character := Get_Tasking (ALI);
+      T : Tasking_Type := Get_Tasking (ALI);
 
    begin
       for J in ALIs.Table (ALI).First_Unit .. ALIs.Table (ALI).Last_Unit loop
@@ -688,19 +682,19 @@ package body XE_Sem is
          if Units.Table (J).RCI
            or else Units.Table (J).Has_RACW
          then
-            T := 'P';
+            T := PCS_Tasking;
             exit;
          end if;
       end loop;
 
-      if T = '?' then
-         T := 'N';
+      if T = Unknown_Tasking then
+         T := No_Tasking;
       end if;
       Set_Tasking (ALI, T);
 
       if Debug_Mode then
          Message ("unit", ALIs.Table (ALI).Uname,
-                  "has tasking " & Get_Tasking (ALI));
+                  "has tasking ", Tasking_Img (Get_Tasking (ALI)));
       end if;
    end Assign_Unit_Tasking;
 
@@ -1101,12 +1095,12 @@ package body XE_Sem is
       F : File_Name_Type;
       N : Unit_Name_Type;
       U : Unit_Id;
-      T : Character renames Partitions.Table (Partition).Tasking;
+      T : Tasking_Type renames Partitions.Table (Partition).Tasking;
 
    begin
       if Debug_Mode then
          Message ("update partition", Partitions.Table (Partition).Name,
-                  "tasking " & T);
+                  "tasking ", Tasking_Img (T));
       end if;
 
       Files.Append (ALIs.Table (ALI).Afile);
@@ -1121,14 +1115,14 @@ package body XE_Sem is
 
          --  Update partition tasking to unit tasking
 
-         if T = 'P' then
+         if T = PCS_Tasking then
             null;
 
-         elsif T = 'U' then
-            if ALIs.Table (A).Tasking = 'P' then
+         elsif T = User_Tasking then
+            if ALIs.Table (A).Tasking = PCS_Tasking then
                if Debug_Mode then
-                  Message ("update tasking from " &
-                           T & " to " & ALIs.Table (A).Tasking);
+                  Message ("update tasking from ", Tasking_Img (T),
+                           " to ", Tasking_Img (ALIs.Table (A).Tasking));
                end if;
 
                T := ALIs.Table (A).Tasking;
@@ -1137,8 +1131,8 @@ package body XE_Sem is
          else
             if T /= ALIs.Table (A).Tasking then
                if Debug_Mode then
-                  Message ("update tasking from " &
-                           T & " to " & ALIs.Table (A).Tasking);
+                  Message ("update tasking from ", Tasking_Img (T),
+                           " to ", Tasking_Img (ALIs.Table (A).Tasking));
                end if;
 
                T := ALIs.Table (A).Tasking;

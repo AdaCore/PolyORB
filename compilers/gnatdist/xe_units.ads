@@ -193,14 +193,16 @@ package XE_Units is
       Main_Program : Main_Program_Type;
       --  Indicator of whether first unit can be used as main program.
 
-      Tasking : Character;
+      Tasking : Tasking_Type;
       --  Indicator of whether the unit (or the collocated units it
-      --  depends on) drags tasking. 'P' indicates that tasking is
-      --  required by the PCS (for concurrent remote calls), 'U' that
-      --  tasking is required in user code, '?' that the use of
-      --  tasking is still unknown and 'N' that the tasking is not
-      --  used. Note that 'P' is a stronger property than 'U' as this
-      --  has also an impact on the termination policy.
+      --  depends on) drags tasking.
+      --  Notation:
+      --     Unknown_Tasking : tasking has not been established
+      --     PCS_Tasking     : tasking is required because of PCS code
+      --     User_Tasking    : tasking is required because of user code
+      --     No_Tasking      : tasking is not required for this unit
+      --  Note that PCS_Tasking is a stronger property than User_Tasking
+      --  as this has also an impact on the termination policy.
 
    end record;
 
@@ -214,7 +216,7 @@ package XE_Units is
       First_Sdep   => First_Sdep_Id,
       Last_Sdep    => No_Sdep_Id,
       Main_Program => None,
-      Tasking      => '?');
+      Tasking      => Unknown_Tasking);
 
    package ALIs is new GNAT.Table (
      Table_Component_Type => ALIs_Record,
@@ -404,12 +406,13 @@ package XE_Units is
       Passive : Boolean_Type;
       --  Indicate whether this partition is passive
 
-      Tasking : Character;
-      --  Indicate why this partition requires tasking. '?' when the
-      --  use of tasking has not been established. 'N' when the
-      --  partition does not require tasking, 'U' when the partition
-      --  requires tasking because of user needs, 'P' when the
-      --  partition requires tasking because of PCS needs.
+      Tasking : Tasking_Type;
+      --  Indicate why this partition requires tasking.
+      --  Notation:
+      --     Unknown_Tasking : tasking has not been established
+      --     PCS_Tasking     : tasking is required because of PCS code
+      --     User_Tasking    : tasking is required because of user code
+      --     No_Tasking      : tasking is not required for this unit
 
       ORB_Tasking_Policy : ORB_Tasking_Policy_Type;
       --  ORB tasking policy to activate on this partition.
@@ -497,7 +500,7 @@ package XE_Units is
       First_Env_Var        => No_Env_Var_Id,
       Last_Env_Var         => No_Env_Var_Id,
       Passive              => BMaybe,
-      Tasking              => '?',
+      Tasking              => Unknown_Tasking,
       ORB_Tasking_Policy   => No_ORB_Tasking_Policy,
       Task_Pool            => No_Task_Pool,
       Priority             => No_Priority,

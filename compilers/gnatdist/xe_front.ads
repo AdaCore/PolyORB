@@ -129,8 +129,8 @@ package XE_Front is
    procedure Set_Partition_Id (N : Name_Id; P : Partition_Id);
    procedure Set_Unit_Id      (N : Name_Id; U : Unit_Id);
 
-   function  Get_Tasking (A : ALI_Id) return Character;
-   procedure Set_Tasking (A : ALI_Id; T : Character);
+   function  Get_Tasking (A : ALI_Id) return Tasking_Type;
+   procedure Set_Tasking (A : ALI_Id; T : Tasking_Type);
 
    function Get_Rsh_Command return Name_Id;
    function Get_Rsh_Options return Name_Id;

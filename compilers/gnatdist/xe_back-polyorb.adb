@@ -258,9 +258,9 @@ package body XE_Back.PolyORB is
 
    procedure Generate_Elaboration_File (P : Partition_Id) is
 
-      Filename     : File_Name_Type;
-      File         : File_Descriptor;
-      Current      : Partition_Type renames Partitions.Table (P);
+      Filename : File_Name_Type;
+      File     : File_Descriptor;
+      Current  : Partition_Type renames Partitions.Table (P);
 
    begin
       Filename := Elaboration_File & ADB_Suffix_Id;
@@ -283,7 +283,7 @@ package body XE_Back.PolyORB is
 
       Write_With_Clause (RU (RU_PolyORB_Setup_IIOP), False, True);
 
-      if Current.Tasking = 'N' then
+      if Current.Tasking = No_Tasking then
          Write_With_Clause (RU (RU_PolyORB_Setup_Tasking_No_Tasking));
          Write_With_Clause (RU (RU_PolyORB_ORB_No_Tasking));
          Write_With_Clause (RU (RU_PolyORB_Binding_Data_GIOP_IIOP));
@@ -291,7 +291,7 @@ package body XE_Back.PolyORB is
       else
          Write_With_Clause (RU (RU_PolyORB_Setup_Tasking_Full_Tasking));
 
-         if Current.Tasking = 'U' then
+         if Current.Tasking = User_Tasking then
             Write_With_Clause (RU (RU_PolyORB_ORB_No_Tasking));
             Write_With_Clause (RU (RU_PolyORB_Binding_Data_GIOP_IIOP));
 
@@ -346,7 +346,7 @@ package body XE_Back.PolyORB is
       --  need an additional ORB task, as there is no task dedicated
       --  to process incoming requests.
 
-      if Current.Tasking = 'P'
+      if Current.Tasking = PCS_Tasking
         and then Current.ORB_Tasking_Policy /= Thread_Pool
       then
          --  Generate a wrapper procedure that allow to give a
@@ -371,7 +371,7 @@ package body XE_Back.PolyORB is
       Write_Indentation;
       Write_Line ("procedure Run_Additional_Tasks is");
 
-      if Current.Tasking = 'P'
+      if Current.Tasking = PCS_Tasking
         and then Current.ORB_Tasking_Policy /= Thread_Pool
       then
          Increment_Indentation;
@@ -1112,7 +1112,7 @@ package body XE_Back.PolyORB is
             Current := Partitions.Table (J);
 
             if not Is_Initiator_Set
-              and then Current.Tasking /= 'N'
+              and then Current.Tasking /= No_Tasking
               and then Current.Termination /= Local_Termination
             then
                Set_Str_To_Name_Buffer ("true");

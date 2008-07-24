@@ -35,6 +35,7 @@ with GNAT.Directory_Operations; use GNAT.Directory_Operations;
 with GNAT.OS_Lib;               use GNAT.OS_Lib;
 with GNAT.Table;
 
+with XE;
 with XE_Front;    use XE_Front;
 with XE_Flags;    use XE_Flags;
 with XE_IO;       use XE_IO;
@@ -650,7 +651,7 @@ package body XE_List is
                if Name_Len > 8
                  and then Name_Buffer (1 .. 8) = "s-taskin"
                then
-                  ALIs.Table (My_ALI).Tasking := 'U';
+                  ALIs.Table (My_ALI).Tasking := XE.User_Tasking;
                end if;
 
             when T_Afile =>

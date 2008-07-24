@@ -675,7 +675,7 @@ package body XE_Front is
    -- Get_Tasking --
    -----------------
 
-   function Get_Tasking (A : ALI_Id) return Character is
+   function Get_Tasking (A : ALI_Id) return Tasking_Type is
    begin
       return ALIs.Table (A).Tasking;
    end Get_Tasking;
@@ -1417,7 +1417,7 @@ package body XE_Front is
    -- Set_Tasking --
    -----------------
 
-   procedure Set_Tasking (A : ALI_Id; T : Character) is
+   procedure Set_Tasking (A : ALI_Id; T : Tasking_Type) is
    begin
       ALIs.Table (A).Tasking := T;
    end Set_Tasking;
@@ -1626,7 +1626,7 @@ package body XE_Front is
       end if;
 
       if Current.ORB_Tasking_Policy /= No_ORB_Tasking_Policy then
-         Write_Field (1, "ORB_Tasking_policy");
+         Write_Field (1, "ORB tasking");
          case Current.ORB_Tasking_Policy is
             when Thread_Pool =>
                Write_Str ("thread pool");

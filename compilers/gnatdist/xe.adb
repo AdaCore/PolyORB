@@ -1017,6 +1017,13 @@ package body XE is
             Thread_Pool           => Id ("Thread_Pool"),
             Thread_Per_Session    => Id ("Thread_Per_Session"),
             Thread_Per_Request    => Id ("Thread_Per_Request"));
+
+      Tasking_Img
+        := (Unknown_Tasking => Id ("Undefined Tasking"),
+            PCS_Tasking     => Id ("PCS_Tasking"),
+            User_Tasking    => Id ("User_Tasking"),
+            No_Tasking      => Id ("No_Tasking"));
+
    end Initialize;
 
    ------------------
