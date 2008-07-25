@@ -265,7 +265,7 @@ package body XE_Front is
       W : Required_Storage_Id;
 
    begin
-      --  Add a new element in the required storage table.
+      --  Add a new element in the required storage table
 
       Required_Storages.Increment_Last;
       W := Required_Storages.Last;
@@ -274,8 +274,8 @@ package body XE_Front is
       Required_Storages.Table (W).Is_Owner     := Owner;
       Required_Storages.Table (W).Next_Storage := No_Required_Storage_Id;
 
-      --  Link this new required storage to the end of the partition
-      --  required storage list.
+      --  Link this new required storage to the end of the partition required
+      --  storage list.
 
       if First = No_Required_Storage_Id then
          First := W;

@@ -451,12 +451,10 @@ package XE_Units is
       --  Id of storage location table entry for this partition
 
       First_Required_Storage : Required_Storage_Id;
-      --  Id of first storage location needed by this partition
-      --  to manage shared memory
+      --  Id of first location needed by this partition for shared storage
 
       Last_Required_Storage : Required_Storage_Id;
-      --  Id of last storage location needed by this partition
-      --  to manage shared memory
+      --  Id of last location needed by this partition for shared storage
 
       Filter : Filter_Name_Type;
       --  Name of filter to apply during filter registration
@@ -489,38 +487,38 @@ package XE_Units is
       Table_Increment      => 10);
 
    Null_Partition : constant Partition_Type :=
-     (Name                 => No_Partition_Name,
-      First_Unit           => No_Conf_Unit_Id,
-      Last_Unit            => No_Conf_Unit_Id,
-      Main_Subprogram      => No_Unit_Name,
-      First_Stub           => First_Stub_Id,
-      Last_Stub            => No_Stub_Id,
-      First_Channel        => No_Channel_Id,
-      Last_Channel         => No_Channel_Id,
-      First_Env_Var        => No_Env_Var_Id,
-      Last_Env_Var         => No_Env_Var_Id,
-      Passive              => BMaybe,
-      Tasking              => Unknown_Tasking,
-      ORB_Tasking_Policy   => No_ORB_Tasking_Policy,
-      Task_Pool            => No_Task_Pool,
-      Priority             => No_Priority,
-      Light_PCS            => BMaybe,
-      Termination          => No_Termination,
-      Reconnection         => No_Reconnection,
-      Command_Line         => No_Command_Line,
-      Host                 => No_Host_Id,
-      First_Network_Loc    => No_Location_Id,
-      Last_Network_Loc     => No_Location_Id,
-      Storage_Loc          => No_Location_Id,
+     (Name                   => No_Partition_Name,
+      First_Unit             => No_Conf_Unit_Id,
+      Last_Unit              => No_Conf_Unit_Id,
+      Main_Subprogram        => No_Unit_Name,
+      First_Stub             => First_Stub_Id,
+      Last_Stub              => No_Stub_Id,
+      First_Channel          => No_Channel_Id,
+      Last_Channel           => No_Channel_Id,
+      First_Env_Var          => No_Env_Var_Id,
+      Last_Env_Var           => No_Env_Var_Id,
+      Passive                => BMaybe,
+      Tasking                => Unknown_Tasking,
+      ORB_Tasking_Policy     => No_ORB_Tasking_Policy,
+      Task_Pool              => No_Task_Pool,
+      Priority               => No_Priority,
+      Light_PCS              => BMaybe,
+      Termination            => No_Termination,
+      Reconnection           => No_Reconnection,
+      Command_Line           => No_Command_Line,
+      Host                   => No_Host_Id,
+      First_Network_Loc      => No_Location_Id,
+      Last_Network_Loc       => No_Location_Id,
+      Storage_Loc            => No_Location_Id,
       First_Required_Storage => No_Required_Storage_Id,
       Last_Required_Storage  => No_Required_Storage_Id,
-      Filter               => No_Filter_Name,
-      Partition_Dir        => No_Directory_Name,
-      Executable_Dir       => No_Directory_Name,
-      Executable_File      => No_File_Name,
-      To_Build             => True,
-      Node                 => Null_Node,
-      Most_Recent          => No_File_Name);
+      Filter                 => No_Filter_Name,
+      Partition_Dir          => No_Directory_Name,
+      Executable_Dir         => No_Directory_Name,
+      Executable_File        => No_File_Name,
+      To_Build               => True,
+      Node                   => Null_Node,
+      Most_Recent            => No_File_Name);
 
    ---------------------------
    -- Configured Unit Table --
