@@ -637,7 +637,9 @@ package body PolyORB.DSA_P.Storages.DSM is
       --  exit of protected object critical section.
 
       if Self.Locked then
+         Leave (Self.Synchs.Critical_Section);
          Enter (Self.Synchs.Protected_Object);
+         Enter (Self.Synchs.Critical_Section);
       end if;
 
       pragma Debug (C, O ("Write request received"));
