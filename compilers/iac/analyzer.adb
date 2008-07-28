@@ -41,6 +41,7 @@ with Scopes;    use Scopes;
 with Utils;     use Utils;
 with Values;    use Values;
 with Namet;     use Namet;
+with Parser;
 
 with Frontend.Debug;  use Frontend.Debug;
 with Frontend.Nodes;  use Frontend.Nodes;
@@ -324,6 +325,8 @@ package body Analyzer is
    procedure Analyze_Complex_Declarator (E : Node_Id)
    is
       C : Node_Id;
+      Unsigned_Long_Long : constant Node_Id :=
+        Parser.Resolve_Base_Type ((T_Unsigned, T_Long, T_Long), Loc (E));
    begin
       Enter_Name_In_Scope (Identifier (E));
 
@@ -332,6 +335,7 @@ package body Analyzer is
       C := First_Entity (Array_Sizes (E));
       while Present (C) loop
          Analyze (C);
+         Resolve_Expr (C, Unsigned_Long_Long);
          C := Next_Entity (C);
       end loop;
    end Analyze_Complex_Declarator;

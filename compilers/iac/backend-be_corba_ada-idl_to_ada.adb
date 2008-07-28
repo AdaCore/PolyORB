@@ -1051,18 +1051,22 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
 
       while Present (S) loop
 
-         --  The range constraints may be :
-         --  * Literal values
-         --  * Previously declared constants (concretely, scoped
-         --  names)
+         --  If the array size is a previously declared constant (concretely, a
+         --  scoped name), then use the value of that constant.
 
          if FEN.Kind (S) = K_Scoped_Name then
             V := Value (FEN.Value (Reference (S)));
-            V.IVal := V.IVal - 1;
+
+         --  Otherwise, it's some other constant expression; use the
+         --  expression's value.
+
          else
             V := Value (FEN.Value (S));
-            V.IVal := V.IVal - 1;
          end if;
+
+         --  Subtract 1 for zero-based arrays
+
+         V.IVal := V.IVal - 1;
 
          R := Make_Range_Constraint
            (Make_Literal (Int0_Val),
