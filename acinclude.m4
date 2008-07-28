@@ -29,7 +29,7 @@ AC_DEFUN([FILTER_OUTPUT_FILES],[esyscmd(
   mkdir conftest
   sort < $1 | uniq | sed -n 's/\.in$//p' > conftest/list
   echo "$2" | sort | uniq > conftest/files
-  comm -13 conftest/list conftest/files
+  comm -12 conftest/list conftest/files
   rm -fr conftest
 else
   echo "$2"
