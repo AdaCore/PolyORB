@@ -7,7 +7,7 @@ dnl If DISTRIB_SVNREVISION is undefined, assume we are configuring from a
 dnl Subversion checkout, and use "svn info" to retrieve the values.
 
 AC_DEFUN([AM_SUBVERSION],[
-  ifdef(DISTRIB_SVNREVISION, [SVNREVISION=DISTRIB_SVNREVISION],[
+  ifdef([DISTRIB_SVNREVISION], [SVNREVISION=DISTRIB_SVNREVISION],[
     AC_CHECK_PROG([SVN],[svn],[`which svn`])
 
     if ! test -z $SVN; then
