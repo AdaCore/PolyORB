@@ -1,10 +1,16 @@
+# $Id$
+
+define(POLYORB_RELEASE, [2.5.0w])
+
 AC_PREREQ(2.57)
-AC_INIT(polyorb, 2.5.0w, polyorb-bugs@lists.adacore.com)
+AC_INIT(PolyORB, pkg_version(POLYORB_RELEASE), polyorb-bugs@lists.adacore.com)
+
 AC_CONFIG_SRCDIR(src/polyorb.ads)
 AC_CONFIG_AUX_DIR(support)
-AM_SUBVERSION(unknown)
 
-# $Id$
+AM_SUBVERSION
+POLYORB_VERSION="$PACKAGE_VERSION (rev. $SVNREVISION)"
+AC_SUBST(POLYORB_VERSION)
 
 ##########################################
 # Initialization.
@@ -12,6 +18,7 @@ AM_SUBVERSION(unknown)
 
 AC_CANONICAL_SYSTEM
 AM_INIT_AUTOMAKE
+
 LIBVERSIONINFO=1:4:0
 AC_SUBST(LIBVERSIONINFO)
 
@@ -52,7 +59,10 @@ fi],
 #  n (normal processing)
 #  s (suppress all warnings)
 
-DEFAULT_WARNINGS_MODE=e
+# Here we set WARNINGS_MODE to "e", unless another default has been set
+# in aclocal.m4 (see prepare_distrib).
+
+WARNINGS_MODE=ifdef([DEFAULT_WARNINGS_MODE],DEFAULT_WARNINGS_MODE,e)
 
 AC_ARG_ENABLE(warnings,
 AS_HELP_STRING([--enable-warnings=X], [Set warnings processing to X (e/n/s)]),
@@ -61,8 +71,7 @@ AS_HELP_STRING([--enable-warnings=X], [Set warnings processing to X (e/n/s)]),
    no)      WARNINGS_MODE=s ;;
    [[ens]]) WARNINGS_MODE="$enableval" ;;
    *)       AC_ERROR([invalid argument to --enable-warnings: $enableval]) ;;
-esac],
-[WARNINGS_MODE=$DEFAULT_WARNINGS_MODE])
+esac])
 AC_SUBST(WARNINGS_MODE)
 
 AM_ARG_ENABLE_POLICY(assertion, Ignore)
@@ -784,18 +793,16 @@ AC_SUBST_FILE(LOCAL_MAKEFILES)
 # This is set differently for the GLADE and PolyORB distributions, which
 # share the same source tree.
 
-GNATDIST_VERSION="$VERSION (rev. $SVNREVISION)"
+GNATDIST_VERSION="$POLYORB_VERSION"
 AC_SUBST(GNATDIST_VERSION)
 
 ##########################################
 # Output generated files
 ##########################################
 
-dnl Important! One file per line, nothing before or after except whitespace!
-dnl This section is edited automatically by support/reconfig.
-
 AC_CONFIG_HEADERS([src/config.h])
-AC_OUTPUT([
+
+AC_OUTPUT(FILTER_OUTPUT_FILES(OUTPUT_FILTER,[
 	Makefile
 	Makefile.common.project
 	compilers/Makefile
@@ -960,7 +967,7 @@ AC_OUTPUT([
 	support/adacompiler
 	support/linker
 	polyorb-config
-],
+]),
 [
 ##########################################
 # Copy files

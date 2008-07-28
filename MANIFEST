@@ -8,6 +8,7 @@ Makefile.in
 NEWS
 README
 VERSION
+acinclude.m4
 aclocal.m4
 compilers/Makefile.am
 compilers/Makefile.common
@@ -2004,6 +2005,7 @@ support/adacompiler.in
 support/cleanup-conf-files
 support/config.guess
 support/config.sub
+support/distrib.m4
 support/gensedfile
 support/gentexifile
 support/gnatsrc.m4

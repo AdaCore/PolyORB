@@ -49,13 +49,15 @@ dir=$1
 
 cd $dir
 
+rm -f MANIFEST.distrib
+
 if [ ! -z "$change" ]; then
   taginfo="CHANGE_${change}"
 
   if [ ! -f "${taginfo}" ]; then
     LANG=C date "+Packaged from repository rev. ${change} on %c" > ${taginfo}
   fi
-  echo ${taginfo} >> MANIFEST
+  echo ${taginfo} >> MANIFEST.distrib
 fi
 
 ###################################################
@@ -73,48 +75,45 @@ sed_in_place() {
 }
 
 #
-# Substitutions for information passed on the command line
+# Generate configure script
 #
 
-# Additional version information (appended to the package version)
+# Generate distrib.m4 to pass additional information related to packaged
+# sources to autoconf.
 
-if [ ! -z "$additional_version" ]; then
-  sedcmds='-e "s/^AC_INIT(\([^,]*\), *\([^,]*\), *\(.*\))/AC_INIT(\1, \2${additional_version}, \3)/"'
+(
+# Switch default warnings mode to "n" (default is "e" when building from
+# a checkout).
+
+echo "define(DEFAULT_WARNINGS_MODE, [n])"
+
+# Additional version information from the prepare_distrib command line
+# (may be empty).
+
+echo "define([ADDITIONAL_VERSION],[$additional_version])"
+
+# Subversion revision information (optional)
+
+if [ -n "$change" ]; then
+  echo "define([SVNREVISION],[${change}])"
 fi
 
-# Subversion revision
+# Use MANIFEST to filter output files
 
-if [ ! -z "$change" ]; then
-  sedcmds="$sedcmds"' -e "s/^AM_SUBVERSION.*$/AM_SUBVERSION($change)/"'
-fi
+echo "define([OUTPUT_FILTER],[MANIFEST])"
+) > support/distrib.m4
 
-if [ ! -z "$sedcmds" ]; then
-  eval "sed_in_place configure.ac $sedcmds"
-fi
+echo support/distrib.m4 >> MANIFEST.distrib
 
-#
-# Extract version number to be substituted
-#
+echo Generating auto-generated files
+sh support/reconfig -w
 
-polyorb_version=`awk -F", *" '/^AC_INIT/ {print $2}' < configure.ac`
-
-#
-# Propagate version info to required files
-#
+polyorb_version=`./configure --version | sed -n 's/^PolyORB configure //p'`
+echo "Setting version: ${polyorb_version}"
 
 for f in README VERSION; do
   sed_in_place $f "s/@polyorb_version@/${polyorb_version}/g"
 done
-
-###################################################
-# Generating *.in files
-###################################################
-
-echo Generating auto-generated files
-if [ -f support/reconfig ]
-then
-  sh support/reconfig -w
-fi
 
 ###################################################
 # Build documentation (optional)
@@ -125,9 +124,12 @@ if $with_doc; then
   cd docs
   make
   cd ..
-  (cat MANIFEST ; sed 's#^#docs/#' < docs/MANIFEST) | sort | uniq > MANIFEST.new
-  mv -f MANIFEST.new MANIFEST
+  sed 's#^#docs/#' < docs/MANIFEST >> MANIFEST.distrib
 fi
+
+echo 'Updating MANIFEST'
+cat MANIFEST.distrib >> MANIFEST
+utils/sort_MANIFEST
 
 echo "Adapting modes"
 chmod -R og=u-w .
