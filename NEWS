@@ -51,6 +51,9 @@ IAC would generate garbled error messages when referring to declarations in
 #include files, such as "X" conflicts with declaration at included.idl:12:03.
 (H723-022).
 
+IAC and IDLAC required array sizes to be literals or constants. Arbitrary
+integer expressions are now allowed. (H723-024).
+
 * PolyORB 2.4
 =============
 
