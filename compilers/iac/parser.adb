@@ -664,7 +664,7 @@ package body Parser is
                      when T_Identifier
                        | T_Colon_Colon
                        | T_Left_Paren
-                       | T_Integer_Literal .. T_Wide_String_Literal =>
+                       | Literal_Type =>
 
                         --  Look for an expression value (a scoped
                         --  name, a literal or a parenthesized
