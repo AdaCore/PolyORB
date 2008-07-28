@@ -27,8 +27,8 @@ dnl   $2)])
 AC_DEFUN([FILTER_OUTPUT_FILES],[esyscmd(
 [if test -f $1; then
   mkdir conftest
-  sort < $1 | uniq | sed -n 's/\.in$//p' > conftest/list
-  echo "$2" | sort | uniq > conftest/files
+  sed -n 's/\.in$//p' < $1 | sort | uniq > conftest/list
+  echo "$2" | tr -d ' \t' | grep -v '^$' | sort | uniq > conftest/files
   comm -12 conftest/list conftest/files
   rm -fr conftest
 else
