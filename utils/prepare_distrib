@@ -95,7 +95,7 @@ echo "define([ADDITIONAL_VERSION],[$additional_version])"
 # Subversion revision information (optional)
 
 if [ -n "$change" ]; then
-  echo "define([SVNREVISION],[${change}])"
+  echo "define([DISTRIB_SVNREVISION],[${change}])"
 fi
 
 # Use MANIFEST to filter output files
