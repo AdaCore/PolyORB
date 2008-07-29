@@ -41,18 +41,25 @@ See the features-25 file.
 Bug fixes
 ---------
 
+IAC incorrectly rejected negative real literals. They are now accpted.
+Workaround: add a pair of parentheses around the absolute value. (H728-026)
+
+IAC and IDLAC required array sizes to be literals or constants. Arbitrary
+integer expressions are now allowed. Workaround: introduce a named
+constant. (H723-024)
+
+IAC would generate garbled error messages when referring to declarations in
+#include files, such as "X" conflicts with declaration at included.idl:12:03.
+Workaround: fix the underlying error.
+(H723-022)
+
 IDL real literals starting with "0." were erroneously rejected by IAC.
+Workaround: use an expression yielding the same value but avoiding such
+literals.
 (H721-014)
 
 IDL constants of a bounded string type were not handled correctly by the
 IDL to Ada compilers. Both have been fixed. (H707-023)
-
-IAC would generate garbled error messages when referring to declarations in
-#include files, such as "X" conflicts with declaration at included.idl:12:03.
-(H723-022).
-
-IAC and IDLAC required array sizes to be literals or constants. Arbitrary
-integer expressions are now allowed. (H723-024).
 
 * PolyORB 2.4
 =============
