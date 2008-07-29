@@ -405,8 +405,7 @@ package body XE_Sem is
            and then not Storage_Properties.Allow_Passive
          then
             Message ("passive partition", Quote (Current.Name),
-                     "cannot use", Quote (Location.Major),
-                     "storage support");
+                     "cannot use", Quote (Location.Major), "storage support");
             Success := False;
             return;
          end if;
@@ -419,16 +418,17 @@ package body XE_Sem is
          then
             Message ("partition", Quote (Current.Name),
                      "cannot locally terminate while using",
-                     Quote (Location.Major),
-                     "storage support");
+                     Quote (Location.Major), "storage support");
             Success := False;
             return;
          end if;
 
-         --  Some storage supports need a full tasking profile
+         --  Some storage supports need a PCS tasking profile
 
          if Storage_Properties.Need_Tasking then
             Current.Tasking := PCS_Tasking;
+            Message ("PCS tasking forced for", Current.Name,
+                     "to use", Quote (Location.Major), "storage support");
          end if;
       end Detect_Storage_Constraint_Violation;
 
