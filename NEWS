@@ -41,6 +41,9 @@ See the features-25 file.
 Bug fixes
 ---------
 
+IAC did not generate all code in user-specified output directory when
+using hash optimizations, this is now corrected. (H730-014)
+
 IAC incorrectly rejected negative real literals. They are now accpted.
 Workaround: add a pair of parentheses around the absolute value. (H728-026)
 
