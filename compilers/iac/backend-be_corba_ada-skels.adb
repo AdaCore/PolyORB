@@ -34,6 +34,8 @@
 with Namet;     use Namet;
 with Values;    use Values;
 
+with Flags;     use Flags;
+
 with Frontend.Nodes;  use Frontend.Nodes;
 with Frontend.Nutils;
 
@@ -2179,10 +2181,17 @@ package body Backend.BE_CORBA_Ada.Skels is
             end;
          end loop;
 
-         --  Produce the package containing the Hash function
-
          Get_Name_String (Hash_Package_Name (E));
-         Produce (Name_Buffer (1 .. Name_Len));
+
+         --  Produce the package containing the Hash function; if the
+         --  user specified an output directory, ensure the package is
+         --  output here.
+
+         if Output_Directory /= null then
+            Produce (Output_Directory.all & Name_Buffer (1 .. Name_Len));
+         else
+            Produce (Name_Buffer (1 .. Name_Len));
+         end if;
 
          --  Finalize the generator
 
