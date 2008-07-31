@@ -2185,7 +2185,7 @@ package body Backend.BE_CORBA_Ada.Skels is
 
          --  Produce the package containing the Hash function; if the
          --  user specified an output directory, ensure the package is
-         --  output here.
+         --  output there.
 
          if Output_Directory /= null then
             Produce (Output_Directory.all & Name_Buffer (1 .. Name_Len));
