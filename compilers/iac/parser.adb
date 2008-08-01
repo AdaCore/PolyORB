@@ -2301,17 +2301,7 @@ package body Parser is
       end if;
 
       if Token = T_Comma then
-         Scan_Token (T_Integer_Literal);
-         if Token = T_Error then
-            return No_Node;
-         end if;
-
-         Size := New_Node (K_Integer_Literal, Token_Location);
-         Set_Value
-           (Size,
-            New_Integer_Value (Value => Integer_Literal_Value,
-                               Sign  => 1,
-                               Base  => Integer_Literal_Base));
+         Size := P_Constant_Expression;
 
          if Sequencing_Level > 1 then
             Scan_Token ((T_Greater, T_Greater_Greater));
@@ -2599,35 +2589,23 @@ package body Parser is
    function P_String_Type return Node_Id is
       Node     : Node_Id;
       Size     : Node_Id;
-      Prev_Loc : Location;
-      Prev_Tok : Token_Type;
+      subtype Any_String is Token_Type range T_String .. T_Wstring;
    begin
       Scan_Token;
-      Prev_Tok := Token;
-      Prev_Loc := Token_Location;
+
+      case Any_String'(Token) is
+         when T_String =>
+            Node := New_Node (K_String_Type, Token_Location);
+         when T_Wstring =>
+            Node := New_Node (K_Wide_String_Type, Token_Location);
+      end case;
 
       if Next_Token /= T_Less then
-         return Resolve_Base_Type ((1 => Prev_Tok), Prev_Loc);
+         return Resolve_Base_Type ((1 => Token), Token_Location);
       end if;
 
       Scan_Token; --  past '<'
-      Scan_Token (T_Integer_Literal);
-      if Token = T_Error then
-         return No_Node;
-      end if;
-
-      if Prev_Tok = T_String then
-         Node := New_Node (K_String_Type, Prev_Loc);
-      else
-         Node := New_Node (K_Wide_String_Type, Prev_Loc);
-      end if;
-
-      Size := New_Node (K_Integer_Literal, Token_Location);
-      Set_Value
-        (Size,
-         New_Integer_Value (Value => Integer_Literal_Value,
-                            Sign  => 1,
-                            Base  => Integer_Literal_Base));
+      Size := P_Constant_Expression;
       Set_Max_Size (Node, Size);
 
       Scan_Token (T_Greater);
