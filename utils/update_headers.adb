@@ -306,7 +306,7 @@ procedure Update_Headers is
 
    begin
       Open   (F, In_File, Filename);
-      Create (Outf, Out_File, Ofilename);
+      Create (Outf, Out_File, Ofilename, Form => "Text_Translation=No");
 
       begin
          --  Check for file kind suffix, but omit possible trailing ".in"
