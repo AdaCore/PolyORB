@@ -425,9 +425,11 @@ package body XE_Sem is
 
          --  Some storage supports need a PCS tasking profile
 
-         if Storage_Properties.Need_Tasking then
+         if Storage_Properties.Need_Tasking
+           and then Current.Tasking /= PCS_Tasking
+         then
             Current.Tasking := PCS_Tasking;
-            Message ("PCS tasking forced for", Current.Name,
+            Message ("PCS tasking forced for", Quote (Current.Name),
                      "to use", Quote (Location.Major), "storage support");
          end if;
       end Detect_Storage_Constraint_Violation;
