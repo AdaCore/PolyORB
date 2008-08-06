@@ -114,11 +114,9 @@ begin
 
    --  Configuration name and configuration file name do not match
 
-   Get_Name_String (Configuration_File_Name);
+   Get_Name_String (Strip_Directory (Configuration_File_Name));
    Name_Len := Name_Len - Cfg_Suffix'Length;
-   if not Quiet_Mode
-     and then Configuration /= Name_Find
-   then
+   if Configuration /= Name_Find then
       Message ("configuration file name should be",
                Quote (Configuration & Cfg_Suffix_Id));
       raise Fatal_Error;
