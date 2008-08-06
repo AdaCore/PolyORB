@@ -40,7 +40,6 @@ with XE_Defs;          use XE_Defs;
 with XE_Flags;         use XE_Flags;
 with XE_IO;            use XE_IO;
 with XE_Names;         use XE_Names;
-with XE_Usage;
 
 package body XE_Utils is
 
@@ -63,8 +62,6 @@ package body XE_Utils is
    Project_File_Name_Expected : Boolean := False;
    --  Used to keep state between invocations of Scan_Dist_Arg. True when
    --  previous argument was "-P".
-
-   Usage_Needed : Boolean := False;
 
    function Dup (Fd : File_Descriptor) return File_Descriptor;
    pragma Import (C, Dup);
@@ -616,11 +613,6 @@ package body XE_Utils is
 
       XE_Defs.Initialize;
 
-      if Usage_Needed then
-         XE_Usage;
-         raise Usage_Error;
-      end if;
-
       Install_Int_Handler (Sigint_Intercepted'Access);
 
       Create_Dir (Stub_Dir_Name);
@@ -983,7 +975,9 @@ package body XE_Utils is
                      Use_PolyORB_Project := True;
 
                   when others =>
-                     Usage_Needed := True;
+                  --  Other debugging flags are passed to the builder untouched
+
+                  Add_Make_Switch (Argv);
 
                end case;
             end if;
