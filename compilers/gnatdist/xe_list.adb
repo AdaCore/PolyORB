@@ -535,12 +535,11 @@ package body XE_List is
    ----------------
 
    procedure Initialize is
-      File : File_Descriptor;
    begin
       --  Create main body for monolithic application as a temporary file
 
-      Register_Temp_File (File, Monolithic_Src_Name);
-      Set_Output (File);
+      Register_Temp_File (Monolithic_Src_File, Monolithic_Src_Name);
+      Set_Output (Monolithic_Src_File);
       Write_Line ("pragma Warnings (Off);");
 
       --  Record the associated object and ALI files as temporary files to
@@ -879,6 +878,7 @@ package body XE_List is
          Write_Str  ("end ");
          Write_Name (Monolithic_App_Unit_Name);
          Write_Line (";");
+         Close (Monolithic_Src_File);
          Set_Standard_Output;
 
          --  Build the monolithic application with a fake main subprogram

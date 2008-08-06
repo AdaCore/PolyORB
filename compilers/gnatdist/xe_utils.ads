@@ -36,7 +36,8 @@
 
 with GNAT.OS_Lib; use GNAT.OS_Lib;
 pragma Elaborate_All (GNAT.OS_Lib);
-with XE_Types;    use XE_Types;
+
+with XE_Types; use XE_Types;
 
 package XE_Utils is
 
@@ -67,6 +68,7 @@ package XE_Utils is
 
    Monolithic_App_Unit_Name : File_Name_Type;
    Monolithic_Src_Base_Name : File_Name_Type;
+   Monolithic_Src_File      : File_Descriptor;
    --  Monolithic application main
 
    Monolithic_Src_Name : File_Name_Type;

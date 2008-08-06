@@ -182,7 +182,8 @@ package body XE_IO is
    procedure Create_File
      (File  : out File_Descriptor;
       Fname : File_Name_Type;
-      Exec  : Boolean := False) is
+      Exec  : Boolean := False)
+   is
    begin
       if Debug_Mode then
          Message ("creating file", Fname);
