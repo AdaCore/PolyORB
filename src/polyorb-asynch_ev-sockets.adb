@@ -33,6 +33,8 @@
 
 --  An asynchrous event source that is a set of socket descriptors.
 
+with Ada.Exceptions;
+
 with PolyORB.Constants;
 with PolyORB.Log;
 
@@ -181,6 +183,10 @@ package body PolyORB.Asynch_Ev.Sockets is
 
                   null;
                else
+                  O ("unexpected Socket_Error raised by Check_Selector: "
+                     & Ada.Exceptions.Exception_Message (E), Error);
+                  pragma Debug
+                    (C, O ("Monitored set: " & Image (AEM.Monitored_Set)));
                   raise;
                end if;
          end;
@@ -198,7 +204,7 @@ package body PolyORB.Asynch_Ev.Sockets is
             while not Source_Lists.Last (It) loop
 
                declare
-                  S : Asynch_Ev_Source_Access renames Value (It).all;
+                  S    : Asynch_Ev_Source_Access renames Value (It).all;
                   Sock : Socket_Type
                     renames Socket_Event_Source (S.all).Socket;
                begin
