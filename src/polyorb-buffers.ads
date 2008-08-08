@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -121,9 +121,9 @@ package PolyORB.Buffers is
 
    procedure Copy_Data
      (From : Buffer_Type;
-      Into :    Reservation);
-   --  Fill reservation Into using the data from From.
-   --  The position and length of From and Into must match.
+      Into : Reservation);
+   --  Copy data from From into reservation Into. The position and length of
+   --  From and Into must match.
 
    function Copy
      (Buffer : access Buffer_Type)
