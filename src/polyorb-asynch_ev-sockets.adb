@@ -185,8 +185,13 @@ package body PolyORB.Asynch_Ev.Sockets is
                else
                   O ("unexpected Socket_Error raised by Check_Selector: "
                      & Ada.Exceptions.Exception_Message (E), Error);
-                  pragma Debug
-                    (C, O ("Monitored set: " & Image (AEM.Monitored_Set)));
+
+                  --  Image function for socket sets is not present in all
+                  --  supported compilers, only in recent versions of GNAT Pro
+                  --  (added on 2008-07-29).
+
+                  --  pragma Debug
+                  --    (C, O ("Monitored set: " & Image (AEM.Monitored_Set)));
                   raise;
                end if;
          end;
