@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1996-2006 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- GARLIC is free software;  you can redistribute it and/or modify it under --
 -- terms of the  GNU General Public License  as published by the Free Soft- --
@@ -118,8 +118,8 @@ package body System.Garlic.Streams is
      (Stream : access Ada.Streams.Stream_Element_Array;
       Key    : System.Garlic.Debug.Debug_Key)
    is
-      Index   : Natural := 1;
-      Output  : Output_Line;
+      Index  : Natural := 1;
+      Output : Output_Line;
    begin
       if Debug_Mode (Key) and then Debug_Mode (Private_Debug_Key) then
          for I in Stream'Range loop
@@ -156,7 +156,6 @@ package body System.Garlic.Streams is
 
    procedure Initialize is
    begin
-      null;
       Streams_Pools.Initialize;
    end Initialize;
 
@@ -192,7 +191,8 @@ package body System.Garlic.Streams is
    procedure Read
      (Stream : in out Params_Stream_Type;
       Item   : out Stream_Element_Array;
-      Last   : out Stream_Element_Offset) is
+      Last   : out Stream_Element_Offset)
+   is
       First  : Node_Ptr renames Stream.First;
       Other  : Node_Ptr;
       Offset : Stream_Element_Offset := Item'First;
@@ -258,7 +258,8 @@ package body System.Garlic.Streams is
    function To_Stream_Element_Access
      (Params : access Params_Stream_Type;
       Unused : Ada.Streams.Stream_Element_Count := 0)
-     return Stream_Element_Access is
+     return Stream_Element_Access
+   is
       First   : Node_Ptr := new Node (Node_Size);
       Current : Node_Ptr := First;
       Total   : Stream_Element_Count := 0;
@@ -312,8 +313,8 @@ package body System.Garlic.Streams is
    -----------
 
    procedure Write
-     (Stream : in out Params_Stream_Type;
-      Item   : Stream_Element_Array) is
+     (Stream  : in out Params_Stream_Type;
+      Item    : Stream_Element_Array) is
       Length  : constant Stream_Element_Count := Item'Length;
       Current : Node_Ptr renames Stream.Current;
    begin
@@ -341,7 +342,7 @@ package body System.Garlic.Streams is
 
          declare
             Insert : constant Node_Ptr :=
-             new Node (Stream_Element_Count'Max (Node_Size, Length));
+              new Node (Stream_Element_Count'Max (Node_Size, Length));
          begin
             Insert.Next  := Stream.First;
             Stream.First := Insert;
@@ -369,8 +370,7 @@ package body System.Garlic.Streams is
             Current.Next := Old_Next;
          end;
       end if;
-      Current.Content (Current.Last .. Current.Last + Length - 1) :=
-        Item;
+      Current.Content (Current.Last .. Current.Last + Length - 1) := Item;
       Current.Last := Current.Last + Length;
    end Write;
 
