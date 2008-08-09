@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 1996-2006 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- GARLIC is free software;  you can redistribute it and/or modify it under --
 -- terms of the  GNU General Public License  as published by the Free Soft- --
@@ -128,7 +128,7 @@ package System.Garlic.Streams is
    --  Same as Print_Debug_info except that this procedure prints
    --  Stream content.
 
-   function Empty (Params  : access Params_Stream_Type) return Boolean;
+   function Empty (Params : access Params_Stream_Type) return Boolean;
 
    procedure Free is
      new Ada.Unchecked_Deallocation
@@ -159,7 +159,6 @@ package System.Garlic.Streams is
    --  also let Unused places to store extra information.
 
    procedure Free is
-     new Ada.Unchecked_Deallocation
-     (Params_Stream_Type, Params_Stream_Access);
+     new Ada.Unchecked_Deallocation (Params_Stream_Type, Params_Stream_Access);
 
 end System.Garlic.Streams;
