@@ -187,7 +187,7 @@ package body PolyORB.Any is
       -- Unchecked_Get_V --
       ---------------------
 
-      function Unchecked_Get_V (X : access T_Content) return T_Ptr is
+      function Unchecked_Get_V (X : not null access T_Content) return T_Ptr is
       begin
          return X.V;
       end Unchecked_Get_V;
@@ -196,7 +196,9 @@ package body PolyORB.Any is
       -- Unchecked_Get_V --
       ---------------------
 
-      function Unchecked_Get_V (X : access T_Content) return System.Address is
+      function Unchecked_Get_V
+        (X : not null access T_Content) return System.Address
+      is
       begin
          return X.V.all'Address;
       end Unchecked_Get_V;
@@ -2309,7 +2311,9 @@ package body PolyORB.Any is
    -- Unchecked_Get_V --
    ---------------------
 
-   function Unchecked_Get_V (X : access Content) return System.Address is
+   function Unchecked_Get_V
+     (X : not null access Content) return System.Address
+   is
       pragma Unreferenced (X);
    begin
       --  By default, content wrappers do not provide direct access to the

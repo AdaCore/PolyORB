@@ -216,7 +216,7 @@ package body PolyORB.Sequences.Helper is
    ----------------------
 
    function Unchecked_Get_V
-     (ACC : access Sequence_Content) return System.Address
+     (ACC : not null access Sequence_Content) return System.Address
    is
    begin
       if ACC.V = null or else Length (ACC.V.all) = 0 then

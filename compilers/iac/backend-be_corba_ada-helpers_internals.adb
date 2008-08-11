@@ -626,7 +626,8 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
             Subtype_Mark        =>
               Make_Access_Type_Definition
                 (Subtype_Indication =>
-                   Make_Identifier (Map_Container_Name (E))),
+                   Make_Identifier (Map_Container_Name (E)),
+                 Is_Not_Null        => True),
             Parameter_Mode      => Mode_In);
          Append_Node_To_List (N, Profile);
 

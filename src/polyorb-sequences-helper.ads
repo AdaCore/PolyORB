@@ -107,7 +107,7 @@ private
       Into : PolyORB.Any.Content_Ptr := null) return PolyORB.Any.Content_Ptr;
 
    function Unchecked_Get_V
-     (ACC : access Sequence_Content) return System.Address;
+     (ACC : not null access Sequence_Content) return System.Address;
    --  Return the address of the first stored element
 
    procedure Finalize_Value

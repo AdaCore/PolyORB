@@ -96,7 +96,8 @@ package PolyORB.Any is
    --  Dummy Wrap function for types that do not implement proper wrapping
    --  (should never be called).
 
-   function Unchecked_Get_V (X : access Content) return System.Address;
+   function Unchecked_Get_V
+     (X : not null access Content) return System.Address;
    pragma Inline (Unchecked_Get_V);
    --  Unchecked access to the wrapped value. Default implementation returns
    --  Null_Address; derived types are allowed not to redefine it.
@@ -1048,10 +1049,11 @@ private
 
       function Wrap (X : access T) return Content'Class;
 
-      function Unchecked_Get_V (X : access T_Content) return System.Address;
+      function Unchecked_Get_V
+        (X : not null access T_Content) return System.Address;
       pragma Inline (Unchecked_Get_V);
 
-      function Unchecked_Get_V (X : access T_Content) return T_Ptr;
+      function Unchecked_Get_V (X : not null access T_Content) return T_Ptr;
       pragma Inline (Unchecked_Get_V);
       --  Unchecked access to the wrapped value
 
