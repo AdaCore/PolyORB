@@ -5886,7 +5886,7 @@ PolyORB supports the following list of code sets:
 
 @noindent
 Some ORBs report incompatiblity in code sets because fallback
-converters are not explicitely present in the reference.
+converters are not explicitly present in the reference.
 To work around this issue, you may use the following parameters:
 
 @smallexample
