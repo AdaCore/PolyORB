@@ -56,7 +56,7 @@ module Frontend::Nodes {
     Node_Id    Scope_Entity;
     Node_Id    Potential_Scope;
     boolean    Visible;
-    boolean    Implicitely_Visible;
+    boolean    Implicitly_Visible;
     Node_Id    Next_Identifier;
   };
 

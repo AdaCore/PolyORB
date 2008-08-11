@@ -185,7 +185,7 @@ package body Frontend.Debug is
         or else A = "Homonym"
         or else A = "Name"
         or else A = "Visible"
-        or else A = "Implicitely_Visible"
+        or else A = "Implicitly_Visible"
         or else A = "Scoped_Identifiers"
         or else A = "Next_Identifier"
       then
