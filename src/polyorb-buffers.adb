@@ -341,15 +341,11 @@ package body PolyORB.Buffers is
               (Iovec_Pool => Buffer.Contents,
                An_Iovec   => Padding_Iovec);
          end;
-      else
-
-         --  Grow_Shrink allocated padding space by growing an existing chunk.
-         --  If debugging, make sure this space is initialized with a known
-         --  value.
-
-         pragma Debug (Fill (Padding_Space, Padding));
-         null;
       end if;
+
+      --  Note that Grow_Shrink allocated padding space by growing an existing
+      --  chunk. For debugging purposes, pragma Initialize_Scalars should be
+      --  activated so that this space is initialized with known values.
 
       Buffer.Length := Buffer.Length + Padding;
       Align_Position (Buffer, Alignment);
