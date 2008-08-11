@@ -101,6 +101,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
       function Set_Aggregate_Count_Spec (E : Node_Id) return Node_Id;
       function Get_Aggregate_Element_Spec (E : Node_Id) return Node_Id;
       function Set_Aggregate_Element_Spec (E : Node_Id) return Node_Id;
+      function Unchecked_Get_V_Spec (E : Node_Id) return Node_Id;
       --  Specs for the routines that manipulate the aggregate
       --  container.
 
@@ -288,9 +289,8 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
          N          : Node_Id;
          Components : constant List_Id := New_List (K_Component_List);
       begin
-         --  If E is a complex declarator and then if the dimension
-         --  of the array is greater than 1, then we declare an array
-         --  type having the 'Dim - 1' size
+         --  If E is a complex declarator for a multidimensional array,
+         --  declare indices type holding Dim - 1 stored indices.
 
          if FEN.Kind (E) = K_Complex_Declarator
            and then FEU.Is_Multidimensional_Array (E)
@@ -324,7 +324,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
          N := Make_Component_Declaration
            (Defining_Identifier => Make_Defining_Identifier (CN (C_V)),
             Subtype_Indication  => Make_Identifier
-              (Map_Pointer_Type_Name (E)));
+                                     (Map_Pointer_Type_Name (E)));
          Append_Node_To_List (N, Components);
 
          case FEN.Kind (E) is
@@ -611,6 +611,36 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
          return N;
       end Set_Aggregate_Element_Spec;
 
+      --------------------------
+      -- Unchecked_Get_V_Spec --
+      --------------------------
+
+      function Unchecked_Get_V_Spec (E : Node_Id) return Node_Id is
+         Profile : constant List_Id := New_List (K_Parameter_Profile);
+         N       : Node_Id;
+      begin
+         --  Build the parameters list
+
+         N := Make_Parameter_Specification
+           (Defining_Identifier => Make_Defining_Identifier (PN (P_ACC)),
+            Subtype_Mark        =>
+              Make_Access_Type_Definition
+                (Subtype_Indication =>
+                   Make_Identifier (Map_Container_Name (E))),
+            Parameter_Mode      => Mode_In);
+         Append_Node_To_List (N, Profile);
+
+         --  Create the subprogram spec
+
+         N := Make_Subprogram_Specification
+           (Defining_Identifier => Make_Defining_Identifier
+              (SN (S_Unchecked_Get_V)),
+            Parameter_Profile   => Profile,
+            Return_Type         => RE (RE_Address));
+
+         return N;
+      end Unchecked_Get_V_Spec;
+
       ----------------------------------
       -- Lengths_Constant_Declaration --
       ----------------------------------
@@ -712,6 +742,10 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
 
          N := Set_Aggregate_Count_Spec (E);
          Bind_FE_To_BE (Identifier (E), N, B_Set_Aggregate_Count);
+         Append_Node_To_List (N, Visible_Part (Current_Package));
+
+         N := Unchecked_Get_V_Spec (E);
+         Bind_FE_To_BE (Identifier (E), N, B_Unchecked_Get_V);
          Append_Node_To_List (N, Visible_Part (Current_Package));
 
          N := Clone_Spec (E);
@@ -1164,6 +1198,20 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
       procedure Visit_Union_Type (E : Node_Id);
       procedure Visit_Exception_Declaration (E : Node_Id);
 
+      function Make_Indexed_Component
+        (Typ           : Node_Id;
+         Prefix        : Node_Id;
+         Indices_Array : Node_Id;
+         Last_Index    : Node_Id) return Node_Id;
+      --  Build an indexed component for a prefix of type
+      --  Typ, an N-dimension array, of the form:
+      --  PREFIX (INDICES (1), ..., INDICES (N-1), LAST_INDEX)
+
+      function Make_Unchecked_Conversion_Instantiation
+        (Name : Name_Id; Source, Target : Node_Id) return Node_Id;
+      --  Generate an instanciation of Ada.Unchecked_Conversion as Nam for the
+      --  Source and Target Ada types.
+
       function Raise_Excp_From_Any_Spec
         (Raise_Node : Node_Id)
         return Node_Id;
@@ -1221,6 +1269,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
       function Set_Aggregate_Count_Body (E : Node_Id) return Node_Id;
       function Get_Aggregate_Element_Body (E : Node_Id) return Node_Id;
       function Set_Aggregate_Element_Body (E : Node_Id) return Node_Id;
+      function Unchecked_Get_V_Body (E : Node_Id) return Node_Id;
       --  Bodies for the routines that manipulate the aggregate
       --  container.
 
@@ -1231,6 +1280,55 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
       function Get_Aggr_Count (E : Node_Id) return Node_Id;
       --  Factorize some code between Get_Aggregate_Count_Body and
       --  Set_Aggregate_Count_Body.
+
+      ----------------------------
+      -- Make_Indexed_Component --
+      ----------------------------
+
+      function Make_Indexed_Component
+        (Typ           : Node_Id;
+         Prefix        : Node_Id;
+         Indices_Array : Node_Id;
+         Last_Index    : Node_Id) return Node_Id
+      is
+         Dimen : constant Integer :=
+                   FEU.Length (FEN.Array_Sizes (Typ));
+         Indices : constant List_Id := New_List (K_List_Id);
+      begin
+         for J in 1 .. Dimen - 1 loop
+            Append_Node_To_List (
+              Make_Indexed_Component (
+                Prefix      =>
+                  Copy_Node (Indices_Array),
+                Expressions =>
+                  Make_List_Id (
+                    Make_Literal (
+                      New_Integer_Value (Unsigned_Long_Long (J), 1, 10)))),
+              Indices);
+         end loop;
+         Append_Node_To_List (Last_Index, Indices);
+         return Make_Indexed_Component (
+           Prefix => Prefix, Expressions => Indices);
+      end Make_Indexed_Component;
+
+      ---------------------------------------------
+      -- Make_Unchecked_Conversion_Instantiation --
+      ---------------------------------------------
+
+      function Make_Unchecked_Conversion_Instantiation
+        (Name : Name_Id; Source, Target : Node_Id) return Node_Id
+      is
+         N : Node_Id;
+      begin
+         N := Make_Instantiated_Subprogram
+           (RU (RU_Ada_Unchecked_Conversion), Make_List_Id (Source, Target));
+
+         return Make_Subprogram_Specification
+           (Defining_Identifier     => Make_Defining_Identifier (Name),
+            Parameter_Profile       => No_List,
+            Return_Type             => RE (RE_Address),
+            Instantiated_Subprogram => N);
+      end Make_Unchecked_Conversion_Instantiation;
 
       ---------------
       -- Wrap_Body --
@@ -1661,7 +1759,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
          N          : Node_Id;
          Returns    : constant Node_Id := Get_Aggr_Count (E);
       begin
-         --  The ACC formal parampeter is used only in case of a
+         --  The ACC formal parameter is used only in case of a
          --  multidimensional array.
 
          if FEN.Kind (E) /= K_Complex_Declarator
@@ -1698,7 +1796,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
          N := Make_Used_Type (RE (RE_Unsigned_Long_1));
          Append_Node_To_List (N, Dcl_Part);
 
-         --  The ACC formal parampeter is used only in case of a
+         --  The ACC formal parameter is used only in case of a
          --  multidimensional array.
 
          if FEN.Kind (E) /= K_Complex_Declarator
@@ -1829,15 +1927,13 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                         Else_Sts  : constant List_Id :=
                           New_List (K_Statement_List);
                         Dimension : constant Unsigned_Long_Long :=
-                          Unsigned_Long_Long
-                          (FEU.Length (FEN.Array_Sizes (E)));
+                                      Unsigned_Long_Long
+                                        (FEU.Length (FEN.Array_Sizes (E)));
                         Condition : Node_Id;
                         Dcl_Part  : constant List_Id :=
                           New_List (K_Declaration_List);
                         Sts_Part  : constant List_Id :=
                           New_List (K_Statement_List);
-                        Count     : Unsigned_Long_Long;
-                        Elements  : constant List_Id := New_List (K_List_Id);
                      begin
                         --  Build the IF statement condition
 
@@ -1897,36 +1993,19 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
 
                         --  ELSE statement
 
-                        --  We loop through the dimensions to get the
-                        --  element.
-
-                        Count := 1;
-
-                        while Count < Dimension loop
-                           N := Make_Selected_Component
-                             (PN (P_ACC), CN (C_Indices));
-                           N := Make_Subprogram_Call
-                             (N,
-                              Make_List_Id
-                              (Make_Literal
-                               (New_Integer_Value (Count, 1, 10))));
-                           Append_Node_To_List (N, Elements);
-
-                           Count := Count + 1;
-                        end loop;
-
-                        --  Add the last selector to the list
-
-                        N := Make_Type_Conversion
-                          (RE (RE_Integer), Make_Identifier (PN (P_Index)));
-                        Append_Node_To_List (N, Elements);
-
                         --  Selecting the array element
 
-                        N := Make_Subprogram_Call
-                          (Make_Selected_Component
-                           (PN (P_ACC), CN (C_V)),
-                           Elements);
+                        N := Make_Indexed_Component (
+                               Typ           => E,
+                               Prefix        =>
+                                 Make_Selected_Component
+                                   (PN (P_ACC), CN (C_V)),
+                               Indices_Array =>
+                                 Make_Selected_Component
+                                   (PN (P_ACC), CN (C_Indices)),
+                               Last_Index =>
+                                 Make_Type_Conversion (RE (RE_Integer),
+                                   Make_Identifier (PN (P_Index))));
 
                         --  Get the original type of the array element
 
@@ -2504,6 +2583,123 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
          return N;
       end Set_Aggregate_Element_Body;
 
+      --------------------------
+      -- Unchecked_Get_V_Body --
+      --------------------------
+
+      function Unchecked_Get_V_Body (E : Node_Id) return Node_Id is
+         Spec       : constant Node_Id := Unchecked_Get_V_Node
+           (BE_Node (Identifier (E)));
+         Dcl_Part   : constant List_Id := New_List (K_Declaration_List);
+         Statements : constant List_Id := New_List (K_Statement_List);
+         N          : Node_Id;
+      begin
+         if FEN.Kind (E) = K_Complex_Declarator
+              and then
+            FEU.Is_Multidimensional_Array (E)
+         then
+            --  I : array (1 .. Ndim - 1) of Integer;
+
+            N := Make_Object_Declaration
+                   (Defining_Identifier =>
+                      Make_Defining_Identifier (VN (V_Index)),
+                    Object_Definition   =>
+                      Make_Identifier (Map_Indices_Name (E)));
+            Append_Node_To_List (N, Dcl_Part);
+
+            --  I (1 .. ACC.Dimen - 1) := ACC.Indices (1 .. ACC.Dimen);
+
+            N := Make_Assignment_Statement
+                   (Variable_Identifier =>
+                      Make_Slice
+                        (Prefix         =>
+                           Make_Identifier (VN (V_Index)),
+                         Discrete_Range =>
+                           Make_Range
+                             (Low_Bound  => Make_Literal (Int1_Val),
+                              High_Bound  =>
+                                Make_Expression (
+                                  Make_Selected_Component
+                                    (PN (P_ACC), CN (C_Dimen)),
+                                  Op_Minus,
+                                  Make_Literal (Int1_Val)))),
+                    Expression          =>
+                      Make_Slice
+                        (Prefix     =>
+                           Make_Selected_Component
+                             (PN (P_ACC), CN (C_Indices)),
+                         Discrete_Range => Make_Range
+                           (Low_Bound  => Make_Literal (Int1_Val),
+                            High_Bound =>
+                              Make_Expression (
+                                Make_Selected_Component
+                                  (PN (P_ACC), CN (C_Dimen)),
+                                Op_Minus,
+                                Make_Literal (Int1_Val)))));
+            Append_Node_To_List (N, Statements);
+
+            --  I (ACC.Dimen .. I'Last) := (others => 0);
+
+            N := Make_Assignment_Statement
+                   (Variable_Identifier =>
+                      Make_Slice
+                        (Prefix     =>
+                           Make_Identifier (VN (V_Index)),
+                         Discrete_Range =>
+                           Make_Range (
+                             Low_Bound  =>
+                               Make_Selected_Component (
+                                 PN (P_ACC), CN (C_Dimen)),
+                             High_Bound => Make_Attribute_Reference (
+                                       Make_Identifier (
+                                         VN (V_Index)), A_Last))),
+                    Expression          =>
+                      Make_Array_Aggregate (Make_List_Id
+                        (Make_Element_Association
+                          (No_Node,
+                           Make_Literal (Int0_Val)))));
+            Append_Node_To_List (N, Statements);
+
+            --  return ACC.V (I (1), I (2), ..., 0)'Address;
+
+            N := Make_Return_Statement (
+                   Make_Attribute_Reference (
+                     Prefix =>
+                       Make_Indexed_Component (
+                         Typ           => E,
+                         Prefix        =>
+                           Make_Selected_Component
+                             (PN (P_ACC), CN (C_V)),
+                         Indices_Array =>
+                           Make_Identifier (VN (V_Index)),
+                         Last_Index =>
+                           Make_Literal (Int0_Val)),
+                     Attribute => A_Address));
+            Append_Node_To_List (N, Statements);
+
+         else
+            --    function To_Address is
+            --       new Unchecked_Conversion (Ptr_<typ>, System.Address);
+
+            N := Make_Unchecked_Conversion_Instantiation
+                 (Name   => SN (S_To_Address),
+                  Source => Make_Identifier (Map_Pointer_Type_Name (E)),
+                  Target => RE (RE_Address));
+            Append_Node_To_List (N, Dcl_Part);
+
+            --  return To_Address (ACC.V);
+
+            N := Make_Subprogram_Call (Make_Identifier (SN (S_To_Address)),
+                   Make_List_Id
+                     (Make_Selected_Component (PN (P_ACC), CN (C_V))));
+            N := Make_Return_Statement (N);
+            Append_Node_To_List (N, Statements);
+         end if;
+
+         N := Make_Subprogram_Body (Spec, Dcl_Part, Statements);
+         return N;
+      end Unchecked_Get_V_Body;
+
       ----------------------------------
       -- Aggregate_Container_Routines --
       ----------------------------------
@@ -2530,6 +2726,9 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
          Append_Node_To_List (N, Statements (Current_Package));
 
          N := Set_Aggregate_Count_Body (E);
+         Append_Node_To_List (N, Statements (Current_Package));
+
+         N := Unchecked_Get_V_Body (E);
          Append_Node_To_List (N, Statements (Current_Package));
 
          N := Clone_Body (E);

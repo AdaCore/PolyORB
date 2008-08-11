@@ -36,6 +36,8 @@
 with Ada.Strings.Superbounded;
 with Ada.Strings.Wide_Superbounded;
 
+with System;
+
 with PolyORB.Smart_Pointers;
 with PolyORB.Types;
 
@@ -93,6 +95,11 @@ package PolyORB.Any is
    function No_Wrap (X : access T) return Content'Class;
    --  Dummy Wrap function for types that do not implement proper wrapping
    --  (should never be called).
+
+   function Unchecked_Get_V (X : access Content) return System.Address;
+   pragma Inline (Unchecked_Get_V);
+   --  Unchecked access to the wrapped value. Default implementation returns
+   --  Null_Address; derived types are allowed not to redefine it.
 
    ---------------
    -- TypeCodes --
@@ -1040,6 +1047,9 @@ private
       --  Note: this assumes that C has the proper typecode
 
       function Wrap (X : access T) return Content'Class;
+
+      function Unchecked_Get_V (X : access T_Content) return System.Address;
+      pragma Inline (Unchecked_Get_V);
 
       function Unchecked_Get_V (X : access T_Content) return T_Ptr;
       pragma Inline (Unchecked_Get_V);

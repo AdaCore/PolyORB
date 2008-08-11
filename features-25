@@ -1,5 +1,5 @@
 ========================================================
-PolyORB 2.5 NEW FEATURES LIST Current as of Jul 10, 2008
+PolyORB 2.5 NEW FEATURES LIST Current as of Aug 11, 2008
 ========================================================
 
 Copyright (c) 2008, AdaCore
@@ -40,6 +40,15 @@ NF-25-H521-008 Debug_Policy is now enabled by default (2008-05-21)
   of the run-time configuration. Two new configure command line switches
   are provided (--enable-assertion-policy and --enable-debug-policy) which
   allow the user to override these two policies.
+
+NF-25-H424-036 Fast path CDR marshalling (2008-08-11)
+
+  The CDR module now takes advantage of the fact that some common aggregate
+  types (arrays and sequences of characters, octets and integers) have a
+  memory representation that is identical to the CDR representation to
+  transmit and decode them efficiently. This new feature is enabled by
+  default but can be turned off by setting enable_fast_path to FALSE in
+  the [cdr] section of the PolyORB configuration.
 
 NF-25-G726-017 IAC is now the default IDL compiler (2008-05-08)
 

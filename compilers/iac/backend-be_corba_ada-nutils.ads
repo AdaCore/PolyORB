@@ -381,6 +381,7 @@ package Backend.BE_CORBA_Ada.Nutils is
       S_Set_Aggregate_Count,
       S_Set_Aggregate_Element,
       S_To_Abstract_Ref,
+      S_To_Address,
       S_To_Any,
       S_To_Bounded_String,
       S_To_Bounded_Wide_String,
@@ -390,6 +391,7 @@ package Backend.BE_CORBA_Ada.Nutils is
       S_To_Ref,
       S_To_String,
       S_To_Wide_String,
+      S_Unchecked_Get_V,
       S_Unchecked_To_Abstract_Ref,
       S_Unchecked_To_Local_Ref,
       S_Unchecked_To_Ref,
@@ -423,6 +425,7 @@ package Backend.BE_CORBA_Ada.Nutils is
      (A_Access,
       A_Class,
       A_First,
+      A_Last,
       A_Pos,
       A_Val,
       A_Identity,
@@ -521,9 +524,14 @@ package Backend.BE_CORBA_Ada.Nutils is
    --  Return the top of the Ada Package stack
 
    function Copy_Node (N : Node_Id) return Node_Id;
-   --  Return a copy of node N if N is a K_Designator,
-   --  K_Defining_Identifier or a K_Attribute_Reference. Else raise
-   --  Program_Error.
+   --  Return a recursive copy of node N and its children.
+   --  Implemented for:
+   --    K_Identifier
+   --    K_Defining_Identifier
+   --    K_Attribute_Reference.
+   --    K_Selected_Component
+   --    K_Literal
+   --  Program_Error is raised for all other kinds.
 
    function Get_Declaration_Node (N : Node_Id) return Node_Id;
    --  If N is of kind K_Defininy_Identifier, return the value of its
@@ -641,6 +649,10 @@ package Backend.BE_CORBA_Ada.Nutils is
    --  to the fields of the Node (see the file
    --  backend-be_corba_ada-nodes.idl for more detail on the Ada tree
    --  structure).
+
+   --  ??? The "usually" above is frightening, these factory fuctions should
+   --  be generated automatically, and their signatures should correspond
+   --  EXACTLY to the tree structure!
 
    function Make_Access_Type_Definition
      (Subtype_Indication : Node_Id;
@@ -933,6 +945,14 @@ package Backend.BE_CORBA_Ada.Nutils is
      (Subtype_Mark : Node_Id;
       Expression   : Node_Id)
      return Node_Id;
+
+   function Make_Slice
+     (Prefix         : Node_Id;
+      Discrete_Range : Node_Id) return Node_Id;
+
+   function Make_Range
+     (Low_Bound  : Node_Id;
+      High_Bound : Node_Id) return Node_Id;
 
    function Make_Used_Package (The_Used_Package : Node_Id) return Node_Id;
 

@@ -192,6 +192,15 @@ package body PolyORB.Any is
          return X.V;
       end Unchecked_Get_V;
 
+      ---------------------
+      -- Unchecked_Get_V --
+      ---------------------
+
+      function Unchecked_Get_V (X : access T_Content) return System.Address is
+      begin
+         return X.V.all'Address;
+      end Unchecked_Get_V;
+
       ----------
       -- Wrap --
       ----------
@@ -1329,8 +1338,7 @@ package body PolyORB.Any is
 
          return To_Standard_String
            (Elementary_Any_String.Unchecked_Get_V
-            (Elementary_Any_String.T_Content
-             (C.The_Value.all)'Access).all);
+            (Elementary_Any_String.T_Content (C.The_Value.all)'Access).all);
 
       else
 
@@ -2296,6 +2304,19 @@ package body PolyORB.Any is
    begin
       return To_Any (To_PolyORB_String (X));
    end To_Any;
+
+   ---------------------
+   -- Unchecked_Get_V --
+   ---------------------
+
+   function Unchecked_Get_V (X : access Content) return System.Address is
+      pragma Unreferenced (X);
+   begin
+      --  By default, content wrappers do not provide direct access to the
+      --  underlying data.
+
+      return System.Null_Address;
+   end Unchecked_Get_V;
 
    ---------------------
    -- Unwind_Typedefs --

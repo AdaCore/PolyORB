@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -108,9 +108,15 @@ package PolyORB.Utils.Buffers is
    function Align_Unmarshall_Copy
      (Buffer    : access Buffer_Type;
       Size      : Stream_Element_Count;
-      Alignment : Alignment_Type := 1)
-     return Stream_Element_Array;
-   --  Align Buffer on Alignment, then unmarshall a copy
-   --  of Size octets from Buffer's data, as is.
+      Alignment : Alignment_Type := 1) return Stream_Element_Array;
+   --  Align Buffer on Alignment, then unmarshall a copy of Size contiguous
+   --  octets from Buffer's data, as is.
+
+   procedure Align_Unmarshall_Reassemble_Copy
+     (Buffer    : access Buffer_Type;
+      Alignment : Alignment_Type := 1;
+      Data      : out Stream_Element_Array);
+   --  Same as Align_Marshall_Copy but taking Size from OUT parameter Data.
+   --  This variant does not require data to be contiguous in the buffer.
 
 end PolyORB.Utils.Buffers;

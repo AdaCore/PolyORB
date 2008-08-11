@@ -67,6 +67,7 @@ package Backend.BE_CORBA_Ada.IDL_To_Ada is
       B_Set_Aggregate_Count,
       B_Get_Aggregate_Element,
       B_Set_Aggregate_Element,
+      B_Unchecked_Get_V,
       B_Wrap,
       B_Element_Wrap,
       B_Args_Out,

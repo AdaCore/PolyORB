@@ -280,6 +280,9 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
          when B_Set_Aggregate_Element =>
             Set_Set_Aggregate_Element_Node (N, B);
 
+         when B_Unchecked_Get_V =>
+            Set_Unchecked_Get_V_Node (N, B);
+
          when B_Wrap =>
             Set_Wrap_Node (N, B);
 

@@ -40,6 +40,7 @@ package Backend.BE_CORBA_Ada.Runtime is
       RU_Ada,
       RU_Ada_Exceptions,
       RU_Ada_Streams,
+      RU_Ada_Unchecked_Conversion,
       RU_Ada_Unchecked_Deallocation,
       RU_CORBA,
       RU_CORBA_AbstractBase,
@@ -198,6 +199,7 @@ package Backend.BE_CORBA_Ada.Runtime is
       RE_Get_Element,               --  Get_Element
       RE_Exception_Occurrence,      --  Ada.Exceptions.Exception_Occurrence
       RE_Stream_Element_Count,      --  Ada.Streams.Stream_Element_Count
+      RE_Address,                   --  System.Address
       RE_ARG_IN_0,                  --  CORBA.ARG_IN
       RE_ARG_OUT_0,                 --  CORBA.ARG_OUT
       RE_ARG_INOUT_0,               --  CORBA.ARG_INOUT
@@ -911,6 +913,7 @@ package Backend.BE_CORBA_Ada.Runtime is
          RE_Get_Element               => RU_Null,
          RE_Exception_Occurrence      => RU_Ada_Exceptions,
          RE_Stream_Element_Count      => RU_Ada_Streams,
+         RE_Address                   => RU_System,
          RE_ARG_IN_0                  => RU_CORBA,
          RE_ARG_OUT_0                 => RU_CORBA,
          RE_ARG_INOUT_0               => RU_CORBA,

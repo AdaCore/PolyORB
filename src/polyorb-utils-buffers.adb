@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -163,6 +163,40 @@ package body PolyORB.Utils.Buffers is
    begin
       return Stream_Element_Array (FSU.Align_Unmarshall (Buffer).all);
    end Align_Unmarshall_Copy;
+
+   --------------------------------------
+   -- Align_Unmarshall_Reassemble_Copy --
+   --------------------------------------
+
+   procedure Align_Unmarshall_Reassemble_Copy
+     (Buffer    : access Buffer_Type;
+      Alignment : Alignment_Type := 1;
+      Data      : out Stream_Element_Array)
+   is
+      Index : Stream_Element_Offset := Data'First;
+      Size  : Stream_Element_Count;
+
+      Data_Address : Opaque_Pointer;
+   begin
+      Align_Position (Buffer, Alignment);
+      while Index /= Data'Last + 1 loop
+         Size := Data'Last - Index + 1;
+         Partial_Extract_Data (Buffer, Data_Address, Size);
+         pragma Assert (Size > 0);
+         --  Size may be less than what we requested, in case we are at
+         --  a chunk boundary, but at least *some* data must always be
+         --  returned.
+
+         declare
+            Extracted_Data : Stream_Element_Array (1 .. Size);
+            for Extracted_Data'Address use Data_Address;
+            pragma Import (Ada, Extracted_Data);
+         begin
+            Data (Index .. Index + Size - 1) := Extracted_Data;
+         end;
+         Index := Index + Size;
+      end loop;
+   end Align_Unmarshall_Reassemble_Copy;
 
    ---------------------------
    -- Fixed_Size_Unmarshall --

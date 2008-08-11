@@ -87,11 +87,13 @@ package body Backend.BE_CORBA_Ada.Generator is
    procedure Generate_Pragma (N : Node_Id);
    procedure Generate_Qualified_Expression (N : Node_Id);
    procedure Generate_Raise_Statement (N : Node_Id);
+   procedure Generate_Range (N : Node_Id);
    procedure Generate_Record_Aggregate (N : Node_Id);
    procedure Generate_Record_Definition (N : Node_Id);
    procedure Generate_Record_Type_Definition (N : Node_Id);
    procedure Generate_Return_Statement (N : Node_Id);
    procedure Generate_Selected_Component (N : Node_Id);
+   procedure Generate_Slice (N : Node_Id);
    procedure Generate_Subprogram_Call (N : Node_Id);
    procedure Generate_Subprogram_Body (N : Node_Id);
    procedure Generate_Subprogram_Specification (N : Node_Id);
@@ -299,6 +301,9 @@ package body Backend.BE_CORBA_Ada.Generator is
          when K_Raise_Statement =>
             Generate_Raise_Statement (N);
 
+         when K_Range =>
+            Generate_Range (N);
+
          when K_Record_Aggregate =>
             Generate_Record_Aggregate (N);
 
@@ -313,6 +318,9 @@ package body Backend.BE_CORBA_Ada.Generator is
 
          when K_Selected_Component =>
             Generate_Selected_Component (N);
+
+         when K_Slice =>
+            Generate_Slice (N);
 
          when K_Subprogram_Call =>
             Generate_Subprogram_Call (N);
@@ -342,7 +350,8 @@ package body Backend.BE_CORBA_Ada.Generator is
             Write_Name (Image (Base_Type (N)));
 
          when others =>
-            null;
+            raise Program_Error with
+              "no code generation defined for " & Kind (N)'Img;
       end case;
    end Generate;
 
@@ -1869,6 +1878,17 @@ package body Backend.BE_CORBA_Ada.Generator is
       end if;
    end Generate_Raise_Statement;
 
+   --------------------
+   -- Generate_Range --
+   --------------------
+
+   procedure Generate_Range (N : Node_Id) is
+   begin
+      Generate (Low_Bound (N));
+      Write_Str (" .. ");
+      Generate (High_Bound (N));
+   end Generate_Range;
+
    -------------------------------
    -- Generate_Record_Aggregate --
    -------------------------------
@@ -1997,6 +2017,19 @@ package body Backend.BE_CORBA_Ada.Generator is
       Generate (Selector_Name (N));
    end Generate_Selected_Component;
 
+   --------------------
+   -- Generate_Slice --
+   --------------------
+
+   procedure Generate_Slice (N : Node_Id) is
+   begin
+      Generate (Prefix (N));
+      Write_Space;
+      Write (Tok_Left_Paren);
+      Generate (Discrete_Range (N));
+      Write (Tok_Right_Paren);
+   end Generate_Slice;
+
    ------------------------------
    -- Generate_Subprogram_Call --
    ------------------------------
@@ -2124,7 +2157,11 @@ package body Backend.BE_CORBA_Ada.Generator is
          Generate_Parameter_List (P);
       end if;
 
-      if Present (T) then
+      --  Note that for an instance of a generic function, we set the return
+      --  type in order to generate the proper FUNCTION keyword, but we never
+      --  actually output the type.
+
+      if Present (T) and then No (I) then
          if not Is_Empty (P) then
             Write_Eol;
             Increment_Indentation;

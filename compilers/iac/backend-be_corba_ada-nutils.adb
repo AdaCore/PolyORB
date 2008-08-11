@@ -1869,6 +1869,38 @@ package body Backend.BE_CORBA_Ada.Nutils is
       return N;
    end Make_Raise_Statement;
 
+   ----------------
+   -- Make_Slice --
+   ----------------
+
+   function Make_Slice
+     (Prefix         : Node_Id;
+      Discrete_Range : Node_Id) return Node_Id
+   is
+      N : Node_Id;
+   begin
+      N := New_Node (K_Slice);
+      Set_Prefix         (N, Prefix);
+      Set_Discrete_Range (N, Discrete_Range);
+      return N;
+   end Make_Slice;
+
+   ----------------
+   -- Make_Range --
+   ----------------
+
+   function Make_Range
+     (Low_Bound  : Node_Id;
+      High_Bound : Node_Id) return Node_Id
+   is
+      N : Node_Id;
+   begin
+      N := New_Node (K_Range);
+      Set_Low_Bound  (N, Low_Bound);
+      Set_High_Bound (N, High_Bound);
+      return N;
+   end Make_Range;
+
    ---------------------------
    -- Make_Range_Constraint --
    ---------------------------

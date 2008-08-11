@@ -255,7 +255,7 @@ module Backend::BE_CORBA_Ada::Nodes {
     // (Generally a designator) 
 
     Node_Id    Instantiated_Subprogram;
-    // Indicates whether the subprogram is an instantiation of a generioc 
+    // Indicates whether the subprogram is an instantiation of a generic 
     // subprogram
   };
 
@@ -435,6 +435,7 @@ module Backend::BE_CORBA_Ada::Nodes {
   };
 
   /* FIRST .. LAST */
+  //  ??? Should be rewritten in terms of a Range_Expression
 
   interface Range_Constraint : Node_Id {
     Node_Id    First;
@@ -673,6 +674,25 @@ module Backend::BE_CORBA_Ada::Nodes {
     List_Id    Expressions;
   };
 
+  // SLICE ::= PREFIX (DISCRETE_RANGE)
+
+  interface Slice : Node_Id {
+    Node_Id    Prefix;
+    Node_Id    Discrete_Range;
+  };
+
+  // RANGE ::=
+  //   RANGE_ATTRIBUTE_REFERENCE
+  //   | SIMPLE_EXPRESSION .. SIMPLE_EXPRESSION
+
+  // Note: the case of a range given as a range attribute reference
+  // appears directly in the tree as an attribute reference.
+
+  interface Range : Node_Id {
+    Node_Id Low_Bound;
+    Node_Id High_Bound;
+  };
+
   interface Exception_Declaration : Definition {
     // Defining_Identifier inherited from Definition
 
@@ -720,6 +740,7 @@ module Backend::BE_CORBA_Ada::Nodes {
     Node_Id    Set_Aggregate_Count_Node;
     Node_Id    Get_Aggregate_Element_Node;
     Node_Id    Set_Aggregate_Element_Node;
+    Node_Id    Unchecked_Get_V_Node;
   };
 
   /* Example: A + B */

@@ -31,20 +31,29 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Streams;
+
 with System.Address_Image;
 
 with PolyORB.Any.ObjRef;
+with PolyORB.Initialization;
 with PolyORB.Log;
+with PolyORB.Parameters;
 with PolyORB.Representations.CDR.Common;
+with PolyORB.Utils.Buffers;
 with PolyORB.Utils.Chained_Lists;
+with PolyORB.Utils.Strings;
 
 package body PolyORB.Representations.CDR is
+
+   use Ada.Streams;
 
    use PolyORB.Any;
    use PolyORB.Any.TypeCode;
    use PolyORB.Buffers;
    use PolyORB.Errors;
    use PolyORB.Log;
+   use PolyORB.Parameters;
    use PolyORB.Representations.CDR.Common;
    use PolyORB.Types;
 
@@ -63,6 +72,29 @@ package body PolyORB.Representations.CDR is
    package Factory_Lists is new Utils.Chained_Lists (Registry_Item);
 
    Factory_Registry : Factory_Lists.List;
+
+   Enable_Fast_Path : Boolean;
+   --  If True, some aggregates are allowed to be marshalled in one lump of
+   --  data (instead of element per element), if they have a suitable memory
+   --  representation.
+
+   function Fast_Path_Element_Size
+     (El_TCK : TCKind) return Types.Unsigned_Long;
+   --  For a type that is a suitable element type for fast path marshalling
+   --  of a sequence or array, return the type size. Otherwise return 0.
+
+   procedure Fast_Path_Get_Info
+     (ACC                 : access Aggregate_Content'Class;
+      TC                  : TypeCode.Object_Ptr;
+      Buffer              : access Buffer_Type;
+      Aggregate_Data      : out System.Address;
+      Aggregate_Size      : out Stream_Element_Count;
+      Aggregate_Alignment : out Alignment_Type);
+   --  Obtain the data address, data length and CDR alignment to be used
+   --  for fast path (un)marshalling of ACC, an aggregate of type TC, from/to
+   --  Buffer.
+   --  Note that Aggregate_Size and Aggregate_Alignment are set only when
+   --  Aggregate_Data is not null.
 
    ------------------
    -- TypeCode Ids --
@@ -221,6 +253,102 @@ package body PolyORB.Representations.CDR is
       end if;
    end End_TC;
 
+   ----------------------------
+   -- Fast_Path_Element_Size --
+   ----------------------------
+
+   function Fast_Path_Element_Size
+     (El_TCK : TCKind) return Types.Unsigned_Long is
+   begin
+      case El_TCK is
+         when Tk_Char | Tk_Octet =>
+            return 1;
+
+         when
+           Tk_Short  |
+           Tk_Ushort =>
+            return 2;
+
+         when
+           Tk_Long   |
+           Tk_Ulong  =>
+            return 4;
+
+         when others =>
+            return 0;
+      end case;
+   end Fast_Path_Element_Size;
+
+   ------------------------
+   -- Fast_Path_Get_Info --
+   ------------------------
+
+   procedure Fast_Path_Get_Info
+     (ACC                 : access Aggregate_Content'Class;
+      TC                  : TypeCode.Object_Ptr;
+      Buffer              : access Buffer_Type;
+      Aggregate_Data      : out System.Address;
+      Aggregate_Size      : out Stream_Element_Count;
+      Aggregate_Alignment : out Alignment_Type)
+   is
+      TCK : constant TCKind := TypeCode.Kind (TC);
+   begin
+      Aggregate_Data := System.Null_Address;
+
+      if not Enable_Fast_Path then
+         pragma Warnings (Off);
+         --  OUT parameters Aggregate_Size and Aggregate_Element not set as
+         --  they are meaningless when Aggregate_Data is null.
+         return;
+         pragma Warnings (On);
+      end if;
+
+      if TCK = Tk_Array or else TCK = Tk_Sequence then
+         declare
+            El_TC    : constant TypeCode.Object_Ptr :=
+                         Unwind_Typedefs (TypeCode.Content_Type (TC));
+
+            El_Size  : constant Types.Unsigned_Long :=
+                         Fast_Path_Element_Size (TypeCode.Kind (El_TC));
+
+            El_Count : Types.Unsigned_Long;
+         begin
+            if El_Size = 0 then
+               --  Case of element type that does not allow fast path
+
+               return;
+
+            elsif El_Size > 1 and then Endianness (Buffer) /= Host_Order then
+               --  Case of multi-byte elements, where the expected buffer
+               --  endianness is not the host endianness: need to perform
+               --  per-element byte swapping.
+
+               return;
+            end if;
+
+            if TCK = Tk_Array then
+               El_Count := TypeCode.Length (TC);
+            else
+               --  Aggregate elements count for a sequence has one additional
+               --  element corresponding to the sequence length, which is not
+               --  part of the fast path data.
+
+               El_Count := Get_Aggregate_Count (ACC.all) - 1;
+            end if;
+
+            Aggregate_Data      := Unchecked_Get_V (ACC);
+            Aggregate_Alignment := Alignment_Type (El_Size);
+            Aggregate_Size      := Stream_Element_Count (El_Count * El_Size);
+
+            pragma Debug (C, O ("Fast_Path_Get_Info:"
+              & Aggregate_Size'Img & " bytes ("
+              & El_Count'Img & " elements) at "
+              & System.Address_Image (Aggregate_Data)
+              & ", align on" & Aggregate_Alignment'Img));
+         end;
+      end if;
+   end Fast_Path_Get_Info;
+
    -------------
    -- Find_TC --
    -------------
@@ -230,9 +358,10 @@ package body PolyORB.Representations.CDR is
       Offset         : Types.Long) return TypeCode.Object_Ptr
    is
       use TC_Maps;
-      T : TC_Maps.Instance renames Representation.TC_Map;
-      Lo : Types.Long := First (T);
-      Hi : Types.Long := Last (T);
+
+      T   : TC_Maps.Instance renames Representation.TC_Map;
+      Lo  : Types.Long := First (T);
+      Hi  : Types.Long := Last (T);
       Cur : Types.Long;
    begin
       pragma Debug (C, O ("Find_TC: Offset =" & Offset'Img));
@@ -267,6 +396,18 @@ package body PolyORB.Representations.CDR is
         & System.Address_Image (E.TC_Ref.all'Address)
         & " encl =" & E.Enclosing_Complex'Img;
    end Image;
+
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize;
+
+   procedure Initialize is
+   begin
+      Enable_Fast_Path :=
+        Get_Conf ("cdr", "enable_fast_path", Default => True);
+   end Initialize;
 
    --------------
    -- Marshall --
@@ -885,6 +1026,8 @@ package body PolyORB.Representations.CDR is
                ACC : Aggregate_Content'Class renames
                        Aggregate_Content'Class (Get_Value (CData).all);
             begin
+               --  Set Nb and El_TC
+
                case TCK is
                   when Tk_Struct | Tk_Except =>
                      Nb := TypeCode.Member_Count (Data_Type);
@@ -915,10 +1058,58 @@ package body PolyORB.Representations.CDR is
 
                --  Avoid a check failure in the computation of the index loop
                --  below, in the case of a struct or exception without members.
+               --  Nothing to marshall if Nb = 0.
 
                if Nb = 0 then
                   return;
                end if;
+
+               --  Check whether to use fast path marshalling
+
+               declare
+                  use type System.Address;
+
+                  Aggregate_Data      : System.Address;
+                  Aggregate_Size      : Stream_Element_Count;
+                  Aggregate_Alignment : Alignment_Type;
+               begin
+                  Fast_Path_Get_Info
+                    (ACC                 => ACC'Access,
+                     TC                  => Data_Type,
+                     Buffer              => Buffer,
+                     Aggregate_Data      => Aggregate_Data,
+                     Aggregate_Size      => Aggregate_Size,
+                     Aggregate_Alignment => Aggregate_Alignment);
+
+                  if Aggregate_Data /= System.Null_Address then
+
+                     --  Here we can do fast path marshalling, and we have the
+                     --  underlying data address.
+
+                     --  Special case for sequences: first marshall element
+                     --  count. Note that there is an extra element in the
+                     --  aggregate, which is the count itself, and is not part
+                     --  of the fast path data.
+
+                     if TCK = Tk_Sequence then
+                        Marshall (Buffer, Nb - 1);
+                     end if;
+
+                     --  Now insert reference to data
+
+                     Pad_Align (Buffer, Aggregate_Alignment);
+                     Insert_Raw_Data
+                       (Buffer,
+                        Size => Aggregate_Size,
+                        Data => Aggregate_Data);
+                     return;
+                  end if;
+
+                  --  Fall through to per-element marshalling
+
+               end;
+
+               --  Here if marshalling aggregate element per element
 
                for J in 0 .. Nb - 1 loop
 
@@ -2086,14 +2277,56 @@ package body PolyORB.Representations.CDR is
                end if;
 
                declare
+                  use type System.Address;
+
                   ACC : Aggregate_Content'Class renames
                           Aggregate_Content'Class (Get_Value (CData).all);
 
                   Val_TC : TypeCode.Object_Ptr;
                   --  Value typecode, computed from label TC in case of a union
 
+                  Aggregate_Data      : System.Address;
+                  Aggregate_Size      : Stream_Element_Count;
+                  Aggregate_Alignment : Alignment_Type;
+                  --  Information used for fast path unmarshalling
+
                begin
                   Set_Aggregate_Count (ACC, Nb);
+
+                  --  Now that we have an aggregate of the correct size (i.e.
+                  --  in particular we have allocated space to store the
+                  --  unmarshalled data), check whether to use fast path
+                  --  unmarshalling.
+
+                  Fast_Path_Get_Info
+                    (ACC                 => ACC'Access,
+                     TC                  => TC,
+                     Buffer              => Buffer,
+                     Aggregate_Data      => Aggregate_Data,
+                     Aggregate_Size      => Aggregate_Size,
+                     Aggregate_Alignment => Aggregate_Alignment);
+
+                  if Aggregate_Data /= System.Null_Address then
+
+                     --  Here we can do fast path unmarshalling, and we have
+                     --  the underlying data address. Note that in the case of
+                     --  fast path unmarshalling, data may be fragmented in the
+                     --  buffer, so do reassembly now.
+
+                     declare
+                        Data : Stream_Element_Array (1 .. Aggregate_Size);
+                        for Data'Address use Aggregate_Data;
+                        pragma Import (Ada, Data);
+                     begin
+                        Utils.Buffers.Align_Unmarshall_Reassemble_Copy
+                          (Buffer,
+                           Aggregate_Alignment,
+                           Data);
+                     end;
+                     return;
+                  end if;
+
+                  --  Fall through to per-element unmarshalling
 
                   if TCK = Tk_Sequence then
                      declare
@@ -2406,4 +2639,18 @@ package body PolyORB.Representations.CDR is
       pragma Debug (C, O ("Unmarshall_To_Any: end"));
    end Unmarshall_To_Any;
 
+   use PolyORB.Initialization;
+   use PolyORB.Initialization.String_Lists;
+   use PolyORB.Utils.Strings;
+
+begin
+   Register_Module
+     (Module_Info'
+      (Name      => +"representations.cdr",
+       Conflicts => Empty,
+       Depends   => Empty,
+       Provides  => Empty,
+       Implicit  => False,
+       Init      => Initialize'Access,
+       Shutdown  => null));
 end PolyORB.Representations.CDR;

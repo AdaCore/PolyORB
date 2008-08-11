@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2003-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -32,6 +32,8 @@
 ------------------------------------------------------------------------------
 
 --  Any conversion subprograms for sequences (both bounded and unbounded)
+
+with System;
 
 with PolyORB.Any;
 with PolyORB.Types;
@@ -103,6 +105,10 @@ private
    function Clone
      (ACC  : Sequence_Content;
       Into : PolyORB.Any.Content_Ptr := null) return PolyORB.Any.Content_Ptr;
+
+   function Unchecked_Get_V
+     (ACC : access Sequence_Content) return System.Address;
+   --  Return the address of the first stored element
 
    procedure Finalize_Value
      (ACC : in out Sequence_Content);
