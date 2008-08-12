@@ -84,8 +84,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
       --  other than the last dimension
 
       function TypeCode_Dimension_Declarations
-        (Declarator : Node_Id)
-        return List_Id;
+        (Declarator : Node_Id) return List_Id;
       --  Multidimensional arrays: when they are converted to the Any
       --  type, the multidimensional arrays are seen as nested
       --  arrays. So, for each dimension from the first until the
@@ -333,8 +332,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
       -------------------------------------
 
       function TypeCode_Dimension_Declarations
-        (Declarator : Node_Id)
-        return List_Id
+        (Declarator : Node_Id) return List_Id
       is
          pragma Assert (FEN.Kind (Declarator) = K_Complex_Declarator);
 
@@ -342,14 +340,14 @@ package body Backend.BE_CORBA_Ada.Helpers is
          L   : List_Id;
          N   : Node_Id;
       begin
+         pragma Assert (Dim > 1);
+
          L := New_List (K_List_Id);
 
-         if Dim > 1 then
-            for I in 1 .. Dim - 1 loop
-               N := TypeCode_Dimension_Spec (Declarator, I);
-               Append_To (L, N);
-            end loop;
-         end if;
+         for I in 1 .. Dim - 1 loop
+            N := TypeCode_Dimension_Spec (Declarator, I);
+            Append_To (L, N);
+         end loop;
 
          return L;
       end TypeCode_Dimension_Declarations;
@@ -587,7 +585,6 @@ package body Backend.BE_CORBA_Ada.Helpers is
          D       : Node_Id;
          N       : Node_Id;
          T       : Node_Id;
-         TC_Dims : List_Id; --  For array types
       begin
          Set_Helper_Spec;
          L := Declarators (E);
@@ -634,14 +631,15 @@ package body Backend.BE_CORBA_Ada.Helpers is
             Append_To (Visible_Part (Current_Package), N);
             Bind_FE_To_BE (Identifier (D), N, B_TC);
 
-            --  Array type need extra TypeCode variable to be declared
-            --  for each dimension, useful for the initialization of
-            --  the TypeCode corresponding to the Array type.
+            --  Multi-dimensional array types need extra TypeCode variables
+            --  for each dimension, which are used for the initialization of
+            --  the outermost array typecode.
 
-            if FEN.Kind (D) = K_Complex_Declarator then
-               TC_Dims := TypeCode_Dimension_Declarations (D);
+            if FEN.Kind (D) = K_Complex_Declarator
+               and then FEU.Length (FEN.Array_Sizes (D)) > 1
+            then
                Append_To (Visible_Part (Current_Package),
-                 First_Node (TC_Dims));
+                 First_Node (TypeCode_Dimension_Declarations (D)));
             end if;
 
             --  If the new type is defined basing on an interface type
