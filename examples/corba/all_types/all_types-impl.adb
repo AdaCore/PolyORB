@@ -382,10 +382,6 @@ package body all_types.Impl is
       use IDL_SEQUENCE_short;
    begin
       Ada.Text_IO.Put_Line ("echoUsequence: len =" & Length (arg)'Img);
-      for J in 1 .. Length (arg) loop
-         Ada.Text_IO.Put_Line ("Item" & J'Img & ": " &
-                               Get_Element (arg, J)'Img);
-      end loop;
       return arg;
    end echoUsequence;
 
