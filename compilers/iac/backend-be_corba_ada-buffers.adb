@@ -72,7 +72,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
          Parameter : Node_Id;
          S         : Node_Id;
       begin
-         Profile  := New_List (K_Parameter_Profile);
+         Profile  := New_List;
 
          --  'Role' parameter
 
@@ -326,21 +326,21 @@ package body Backend.BE_CORBA_Ada.Buffers is
          pragma Assert (FEN.Kind (E) = K_Operation_Declaration);
 
          Subp_Spec         : Node_Id;
-         Subp_Statements   : constant List_Id := New_List (K_List_Id);
-         Subp_Declarations : constant List_Id := New_List (K_List_Id);
+         Subp_Statements   : constant List_Id := New_List;
+         Subp_Declarations : constant List_Id := New_List;
 
          P                 : constant List_Id := Parameters (E);
          T                 : constant Node_Id := Type_Spec (E);
 
          Client_Case       : constant List_Id := New_List
            (RE (RE_True));
-         Client_Statements : constant List_Id := New_List (K_List_Id);
+         Client_Statements : constant List_Id := New_List;
 
          Server_Case       : constant List_Id := New_List
            (RE (RE_False));
-         Server_Statements : constant List_Id := New_List (K_List_Id);
+         Server_Statements : constant List_Id := New_List;
 
-         Case_Alternatives : constant List_Id := New_List (K_List_Id);
+         Case_Alternatives : constant List_Id := New_List;
 
          Alignment_Const   : Boolean := True;
 
@@ -976,8 +976,8 @@ package body Backend.BE_CORBA_Ada.Buffers is
          Subp_Nod : Node_Id)
         return Node_Id
       is
-         Block_Dcl        : constant List_Id := New_List (K_List_Id);
-         Block_St         : constant List_Id := New_List (K_List_Id);
+         Block_Dcl        : constant List_Id := New_List;
+         Block_St         : constant List_Id := New_List;
          N                : Node_Id;
          Type_Spec_Node   : Node_Id;
          Direct_Type_Node : Node_Id;
@@ -1385,7 +1385,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
                   Index_Node       : Node_Id;
                   Range_Constraint : Node_Id;
                   Padding_Value    : Value_Id;
-                  For_Statements   : constant List_Id := New_List (K_List_Id);
+                  For_Statements   : constant List_Id := New_List;
                begin
                   --  padding for sequence length
 
@@ -1564,7 +1564,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
                   Loop_Statements      : List_Id := No_List;
                   Enclosing_Statements : List_Id;
                   Index_List           : constant List_Id :=
-                    New_List (K_List_Id);
+                    New_List;
                   Index_Node           : Node_Id := No_Node;
                   Index_Name           : constant Name_Id :=
                     Get_Index_Name;
@@ -1637,7 +1637,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
                           (Add_Suffix_To_Name (Var_Suffix, Name_Find));
                         Append_To (Index_List, Index_Node);
                         Enclosing_Statements := Loop_Statements;
-                        Loop_Statements := New_List (K_List_Id);
+                        Loop_Statements := New_List;
                         N := Make_For_Statement
                           (Index_Node, Dim, Loop_Statements);
 
@@ -1747,7 +1747,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
                          (Switch_Type)));
                   end if;
 
-                  Switch_Alternatives := New_List (K_Variant_List);
+                  Switch_Alternatives := New_List;
                   Switch_Case := First_Entity
                     (Switch_Type_Body
                      (Type_Spec_Node));
@@ -1760,7 +1760,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
                         Choices,
                         Default_Met);
 
-                     Switch_Statements := New_List (K_List_Id);
+                     Switch_Statements := New_List;
 
                      --  Getting the field name
 

@@ -93,8 +93,8 @@ package body Backend.BE_CORBA_Ada.Aligned is
          Spec       : constant Node_Id := Stub_Node
            (BE_Node (Identifier (E)));
          Param      : constant List_Id := Parameters (E);
-         Discr      : constant List_Id := New_List (K_Component_List);
-         Components : constant List_Id := New_List (K_Component_List);
+         Discr      : constant List_Id := New_List;
+         Components : constant List_Id := New_List;
          L          : List_Id := No_List;
          Args_Type  : Node_Id := No_Node;
          Component  : Node_Id;
@@ -125,7 +125,7 @@ package body Backend.BE_CORBA_Ada.Aligned is
                   Par_Type := Make_Type_Designator (Par_Type);
 
                   if Is_Unbounded_Type (Type_Spec (Par)) then
-                     L := New_List (K_Component_List);
+                     L := New_List;
                      Get_Discriminants (Par, L);
                   end if;
 
@@ -180,8 +180,8 @@ package body Backend.BE_CORBA_Ada.Aligned is
            (BE_Node (Identifier (E)));
          T          : constant Node_Id := Type_Spec (E);
          Param      : constant List_Id := Parameters (E);
-         Discr      : constant List_Id := New_List (K_Component_List);
-         Components : constant List_Id := New_List (K_Component_List);
+         Discr      : constant List_Id := New_List;
+         Components : constant List_Id := New_List;
          L          : List_Id := No_List;
          Args_Type  : Node_Id := No_Node;
          Component  : Node_Id;
@@ -211,7 +211,7 @@ package body Backend.BE_CORBA_Ada.Aligned is
                   Par_Type := Make_Type_Designator (Par_Type);
 
                   if Is_Unbounded_Type (Type_Spec (Par)) then
-                     L := New_List (K_Component_List);
+                     L := New_List;
                      Get_Discriminants (Par_Type, L);
                   end if;
 
@@ -251,7 +251,7 @@ package body Backend.BE_CORBA_Ada.Aligned is
             Par_Type := Make_Type_Designator (Par_Type);
 
             if Is_Unbounded_Type (T) then
-               L := New_List (K_Component_List);
+               L := New_List;
                Get_Discriminants (T, L, True, False);
             end if;
 
@@ -469,8 +469,8 @@ package body Backend.BE_CORBA_Ada.Aligned is
                   M    : Node_Id;
                   K    : Node_Id;
                   Rang : Node_Id;
-                  L    : constant List_Id := New_List (K_Component_List);
-                  Disc : constant List_Id := New_List (K_Component_List);
+                  L    : constant List_Id := New_List;
+                  Disc : constant List_Id := New_List;
                begin
                   --  Declaration of array of element type
 
@@ -577,9 +577,9 @@ package body Backend.BE_CORBA_Ada.Aligned is
       --------------------------
 
       procedure Visit_Structure_Type (E : Node_Id) is
-         Components : constant List_Id := New_List (K_Component_List);
-         Discr      : constant List_Id := New_List (K_Component_List);
-         L          :          List_Id := New_List (K_Component_List);
+         Components : constant List_Id := New_List;
+         Discr      : constant List_Id := New_List;
+         L          :          List_Id := New_List;
          N          : Node_Id;
          M          : Node_Id;
          C          : Node_Id;
@@ -603,7 +603,7 @@ package body Backend.BE_CORBA_Ada.Aligned is
                M := Make_Variable_Type (M, Type_Spec (Member), L);
                C := First_Node (L);
                Append_To (Discr, C);
-               L := New_List (K_Component_List);
+               L := New_List;
             end if;
 
             N := Make_Component_Declaration
@@ -662,16 +662,16 @@ package body Backend.BE_CORBA_Ada.Aligned is
             S := No_Node;
          end if;
 
-         L := New_List (K_Component_List);
-         Discr := New_List (K_Component_List);
-         Components := New_List (K_Component_List);
+         L := New_List;
+         Discr := New_List;
+         Components := New_List;
 
-         Variants := New_List (K_Variant_List);
+         Variants := New_List;
          Switch_Case := First_Entity (Switch_Type_Body (E));
 
          while Present (Switch_Case) loop
             Variant := New_Node (K_Variant);
-            Choices := New_List (K_Discrete_Choice_List);
+            Choices := New_List;
             Set_Discrete_Choices (Variant, Choices);
 
             --  Make the switchs
@@ -705,7 +705,7 @@ package body Backend.BE_CORBA_Ada.Aligned is
                M := Make_Variable_Type
                  (M, Type_Spec (Element (Switch_Case)), L);
                Append_To (Discr, First_Node (L));
-               L := New_List (K_Component_List);
+               L := New_List;
             end if;
 
             Set_Component (Variant, Make_Component_Declaration (N, M));
@@ -848,7 +848,7 @@ package body Backend.BE_CORBA_Ada.Aligned is
                   --  Make Union_Type (Switch, Discriminant1, ...,
                   --  DiscriminantsN);
 
-                  L := New_List (K_List_Id);
+                  L := New_List;
                   K := First_Node (Desc);
 
                   while Present (K) loop

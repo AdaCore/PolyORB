@@ -731,13 +731,10 @@ package body Frontend.Nutils is
    -- New_List --
    --------------
 
-   function New_List
-     (Kind : Node_Kind;
-      Loc  : Location)
-     return List_Id
+   function New_List (Loc  : Location) return List_Id
    is
    begin
-      return List_Id (New_Node (Kind, Loc));
+      return List_Id (New_Node (K_List_Id, Loc));
    end New_List;
 
    --------------

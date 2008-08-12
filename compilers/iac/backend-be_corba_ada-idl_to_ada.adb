@@ -678,7 +678,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
       Parameter : Node_Id;
       N         : Node_Id;
    begin
-      Profile  := New_List (K_Parameter_Profile);
+      Profile  := New_List;
       Parameter := Make_Parameter_Specification
         (Make_Defining_Identifier (PN (P_From)),
          RE (RE_Exception_Occurrence));
@@ -711,7 +711,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
       F : Node_Id;
    begin
       P := New_Node (K_IDL_Unit, Identifier (Entity));
-      L := New_List (K_Packages);
+      L := New_List;
       Set_Packages (P, L);
       I := Map_Fully_Qualified_Identifier (Entity);
 
@@ -936,7 +936,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
       Member_Type           : Node_Id;
       Component_Declaration : Node_Id;
    begin
-      Components := New_List (K_Component_List);
+      Components := New_List;
       Member := First_Entity (Members);
 
       while Present (Member) loop
@@ -1046,7 +1046,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
       V : Value_Type;
 
    begin
-      L := New_List (K_Range_Constraints);
+      L := New_List;
       S := FEN.First_Entity (Array_Sizes);
 
       while Present (S) loop
@@ -1587,12 +1587,12 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
       Identifier  : Node_Id;
 
    begin
-      Variants := New_List (K_Variant_List);
+      Variants := New_List;
       Alternative := First_Entity (Alternatives);
 
       while Present (Alternative) loop
          Variant := New_Node (K_Variant);
-         Choices := New_List (K_Discrete_Choice_List);
+         Choices := New_List;
          Set_Discrete_Choices (Variant, Choices);
          Label   := First_Entity (Labels (Alternative));
          Element := FEN.Element (Alternative);
@@ -1632,7 +1632,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
       Label  : Node_Id;
       Choice : Node_Id;
    begin
-      Choices := New_List (K_Discrete_Choice_List);
+      Choices := New_List;
 
       --  Expansion guarantees that the "default:" case is isolated in
       --  a standalone alternative.
@@ -2437,7 +2437,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
 
       --  From_Any
 
-      Profile  := New_List (K_Parameter_Profile);
+      Profile  := New_List;
       Parameter := Make_Parameter_Specification
         (Make_Defining_Identifier (PN (P_Item)),
          RE (RE_Any));
@@ -2450,7 +2450,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
 
       --  To_Any
 
-      Profile  := New_List (K_Parameter_Profile);
+      Profile  := New_List;
       Parameter := Make_Parameter_Specification
         (Make_Defining_Identifier (PN (P_Item)),
          New_Type);

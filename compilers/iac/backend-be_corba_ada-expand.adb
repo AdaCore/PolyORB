@@ -398,7 +398,7 @@ package body Backend.BE_CORBA_Ada.Expand is
 
       Set_Type_Spec (New_Type_Def, Type_Spec);
       Set_Declarators (New_Type_Def,
-                       FEU.New_List (K_Declarators, FEN.Loc (Entity)));
+                       FEU.New_List (FEN.Loc (Entity)));
       FEU.Append_To (Declarators (New_Type_Def), Declarator);
       Set_Declaration (Declarator, New_Type_Def);
 
@@ -442,7 +442,7 @@ package body Backend.BE_CORBA_Ada.Expand is
            | K_Exception_Declaration =>
             Set_Declarators
               (Member,
-               FEU.New_List (K_Declarators, FEN.Loc (Member)));
+               FEU.New_List (FEN.Loc (Member)));
             FEU.Append_To (Declarators (Member), New_Simple_Declarator);
 
          when K_Union_Type =>
@@ -770,7 +770,7 @@ package body Backend.BE_CORBA_Ada.Expand is
          Declarator := FEU.New_Node (K_Simple_Declarator, FEN.Loc (Entity));
          FEU.Bind_Identifier_To_Entity (New_Identifier, Declarator);
 
-         List := FEU.New_List (K_Declarators, FEN.Loc (Entity));
+         List := FEU.New_List (FEN.Loc (Entity));
          FEU.Append_To (List, Declarator);
 
          Node := FEU.New_Node (K_Type_Declaration, FEN.Loc (Entity));
@@ -946,7 +946,7 @@ package body Backend.BE_CORBA_Ada.Expand is
               (Accessor,
                Parser.Resolve_Base_Type ((1 => Lexer.T_Void), FEN.Loc (D)));
 
-            Parameters := FEU.New_List (K_Parameter_List, FEN.Loc (D));
+            Parameters := FEU.New_List (FEN.Loc (D));
             Set_Parameters (Accessor, Parameters);
 
             --   Adding the 'To' parameter
@@ -999,7 +999,7 @@ package body Backend.BE_CORBA_Ada.Expand is
 
          Set_Type_Spec (Accessor, Type_Spec (Entity));
 
-         Parameters := FEU.New_List (K_Parameter_List, FEN.Loc (D));
+         Parameters := FEU.New_List (FEN.Loc (D));
          Set_Parameters (Accessor, Parameters);
 
          --  Exceptions
@@ -1094,7 +1094,7 @@ package body Backend.BE_CORBA_Ada.Expand is
 
                   Set_Declarators
                     (New_Member,
-                     FEU.New_List (K_Declarators, FEN.Loc (Declarator)));
+                     FEU.New_List (FEN.Loc (Declarator)));
                   New_Declarator := FEU.New_Node
                     (K_Complex_Declarator, FEN.Loc (Declarator));
                   Set_Identifier (New_Declarator, Identifier (Declarator));
@@ -1229,7 +1229,7 @@ package body Backend.BE_CORBA_Ada.Expand is
          L := FEN.Loc (Entity);
          L.Scan := Text_Ptr'Last;
 
-         New_CORBA_Contents := FEU.New_List (K_List_Id, No_Location);
+         New_CORBA_Contents := FEU.New_List (No_Location);
 
          --  Creating the CORBA.Repository_Root module
 
@@ -1247,11 +1247,7 @@ package body Backend.BE_CORBA_Ada.Expand is
                Scope_Entity => Entity);
             FEU.Bind_Identifier_To_Entity (Identifier, CORBA_IR_Root_Node);
 
-            Set_Definitions
-              (CORBA_IR_Root_Node,
-               FEU.New_List
-               (K_Definition_List,
-                No_Location));
+            Set_Definitions (CORBA_IR_Root_Node, FEU.New_List (No_Location));
 
             FEU.Append_To (Definitions (Entity), CORBA_IR_Root_Node);
          end;
@@ -1272,11 +1268,7 @@ package body Backend.BE_CORBA_Ada.Expand is
                Scope_Entity => Entity);
             FEU.Bind_Identifier_To_Entity (Identifier, CORBA_Sequences_Node);
 
-            Set_Definitions
-              (CORBA_Sequences_Node,
-               FEU.New_List
-               (K_Definition_List,
-                No_Location));
+            Set_Definitions (CORBA_Sequences_Node, FEU.New_List (No_Location));
 
             FEU.Append_To (Definitions (Entity), CORBA_Sequences_Node);
          end;
@@ -1413,8 +1405,7 @@ package body Backend.BE_CORBA_Ada.Expand is
                   --  Set the declarator of the member
 
                   Set_Declarators
-                    (New_Member,
-                     FEU.New_List (K_Declarators, FEN.Loc (Declarator)));
+                    (New_Member, FEU.New_List (FEN.Loc (Declarator)));
                   New_Declarator := FEU.New_Node
                     (K_Complex_Declarator, FEN.Loc (Declarator));
                   Set_Identifier (New_Declarator, Identifier (Declarator));
@@ -1590,8 +1581,7 @@ package body Backend.BE_CORBA_Ada.Expand is
                if Value (Label) = No_Value then
                   FEU.Remove_Node_From_List (Label, Labels (Alternative));
                   Set_Next_Entity (Label, No_Node);
-                  Case_Labels := FEU.New_List
-                    (K_Case_Label_List, Loc (Alternative));
+                  Case_Labels := FEU.New_List (Loc (Alternative));
                   FEU.Append_To (Case_Labels, Label);
                   Set_Labels (Alternative, Case_Labels);
 

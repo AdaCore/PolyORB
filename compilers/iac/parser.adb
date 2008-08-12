@@ -921,7 +921,7 @@ package body Parser is
       Node := New_Node (K_Complex_Declarator, Loc (Identifier));
       Bind_Identifier_To_Entity (Identifier, Node);
 
-      Array_Sizes := New_List (K_Array_Size_List, Token_Location);
+      Array_Sizes := New_List (Token_Location);
       Set_Array_Sizes (Node, Array_Sizes);
 
       loop
@@ -956,7 +956,7 @@ package body Parser is
       List : List_Id;
       Node : Node_Id;
    begin
-      List := New_List (K_Declarators, Token_Location);
+      List := New_List (Token_Location);
       loop
          Node := P_Declarator;
          if No (Node) then
@@ -1133,7 +1133,7 @@ package body Parser is
          return No_Node;
       end if;
 
-      Enumerators := New_List (K_Enumerator_List, Token_Location);
+      Enumerators := New_List (Token_Location);
       Set_Enumerators (Node, Enumerators);
 
       loop
@@ -1199,7 +1199,7 @@ package body Parser is
          return No_Node;
       end if;
 
-      Members := New_List (K_Member_List, Token_Location);
+      Members := New_List (Token_Location);
       Set_Members      (Node, Members);
 
       loop
@@ -1249,7 +1249,7 @@ package body Parser is
          return No_List;
       end if;
 
-      Exception_List := New_List (K_Exception_List, Token_Location);
+      Exception_List := New_List (Token_Location);
       loop
          Save_Lexer (State);
          Scoped_Name := P_Scoped_Name;
@@ -1538,7 +1538,7 @@ package body Parser is
          return No_Node;
       end if;
 
-      Parameters := New_List (K_Parameter_List, Token_Location);
+      Parameters := New_List (Token_Location);
       Set_Parameters   (Node, Parameters);
 
       loop
@@ -1671,7 +1671,7 @@ package body Parser is
       --  Always create an interface inheritance specifier even if it
       --  is left empty.
 
-      Interface_Spec := New_List (K_Interface_Name_List, Token_Location);
+      Interface_Spec := New_List (Token_Location);
       Set_Interface_Spec (Node, Interface_Spec);
 
       --  Parse interface inheritance specifier
@@ -1699,7 +1699,7 @@ package body Parser is
          return No_Node;
       end if;
 
-      Interface_Body := New_List (K_Interface_Body, Token_Location);
+      Interface_Body := New_List (Token_Location);
       Set_Interface_Body (Node, Interface_Body);
 
       loop
@@ -1814,7 +1814,7 @@ package body Parser is
          return No_Node;
       end if;
 
-      Definitions := New_List (K_Definition_List, Token_Location);
+      Definitions := New_List (Token_Location);
       Set_Definitions  (Node, Definitions);
 
       loop
@@ -1900,7 +1900,7 @@ package body Parser is
             return No_List;
          end if;
 
-         Context_List := New_List (K_Context_List, Token_Location);
+         Context_List := New_List (Token_Location);
          loop
             --  Parse string literal. Save lexer state to skip
             --  literals on error.
@@ -1988,7 +1988,7 @@ package body Parser is
          return No_Node;
       end if;
 
-      Parameters := New_List (K_Parameter_List, Token_Location);
+      Parameters := New_List (Token_Location);
       Set_Parameters (Node, Parameters);
 
       if Next_Token = T_Right_Paren then
@@ -2502,9 +2502,9 @@ package body Parser is
            Make_Identifier (Token_Location, IDL_Spec_Name, No_Node, No_Node);
          Specification := New_Node (K_Specification, Token_Location);
          Bind_Identifier_To_Entity (Identifier, Specification);
-         Definitions   := New_List (K_Definition_List, Token_Location);
+         Definitions   := New_List (Token_Location);
          Set_Definitions (Specification, Definitions);
-         Imports := New_List (K_Imports_List, Token_Location);
+         Imports := New_List (Token_Location);
          Set_Imports (Specification, Imports);
       end if;
 
@@ -2640,7 +2640,7 @@ package body Parser is
       end if;
       Bind_Identifier_To_Entity (Identifier, Node);
 
-      Members := New_List (K_Member_List, Token_Location);
+      Members := New_List (Token_Location);
       Set_Members      (Node, Members);
 
       Scan_Token; --  past '{'
@@ -2989,7 +2989,7 @@ package body Parser is
          return No_Node;
       end if;
 
-      Switch_Type_Body := New_List (K_Switch_Type_Body, Token_Location);
+      Switch_Type_Body := New_List (Token_Location);
       Set_Switch_Type_Body (Node, Switch_Type_Body);
 
       Switch_Alternative_Declaration :
@@ -3003,7 +3003,7 @@ package body Parser is
          end if;
 
          Switch_Alt_Decl := New_Node (K_Switch_Alternative, Token_Location);
-         Case_Labels := New_List (K_Case_Label_List, Token_Location);
+         Case_Labels := New_List (Token_Location);
          Set_Labels (Switch_Alt_Decl, Case_Labels);
 
          --  (74) <switch_body> ::= <case> +
@@ -3184,7 +3184,7 @@ package body Parser is
          return No_Node;
       end if;
 
-      Value_Body := New_List (K_Value_Body, Token_Location);
+      Value_Body := New_List (Token_Location);
       Set_Value_Body   (Node, Value_Body);
 
       if Next_Token = T_Right_Brace then
@@ -3288,7 +3288,7 @@ package body Parser is
          return No_Node;
       end if;
 
-      Value_Body := New_List (K_Value_Body, Token_Location);
+      Value_Body := New_List (Token_Location);
       Set_Value_Body   (Node, Value_Body);
 
       loop
@@ -3375,7 +3375,7 @@ package body Parser is
             Set_Is_Truncatable (Value_Spec, True);
          end if;
 
-         Value_Names := New_List (K_Value_Name_List, Token_Location);
+         Value_Names := New_List (Token_Location);
          Set_Value_Names (Value_Spec, Value_Names);
 
          loop
@@ -3393,7 +3393,7 @@ package body Parser is
 
       if Next_Token = T_Supports then
          Scan_Token;  --  past "supports"
-         Interface_Names := New_List (K_Interface_Name_List, Token_Location);
+         Interface_Names := New_List (Token_Location);
          Set_Interface_Names (Value_Spec, Interface_Names);
 
          loop

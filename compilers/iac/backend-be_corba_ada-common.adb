@@ -1019,7 +1019,7 @@ package body Backend.BE_CORBA_Ada.Common is
                       (C)));
                end if;
 
-               Switch_Alternatives := New_List (K_Variant_List);
+               Switch_Alternatives := New_List;
                Switch_Case := First_Entity (Switch_Type_Body (Rewinded_Type));
 
                while Present (Switch_Case) loop
@@ -1029,7 +1029,7 @@ package body Backend.BE_CORBA_Ada.Common is
                      Choices,
                      Default_Met);
 
-                  L := New_List (K_List_Id);
+                  L := New_List;
 
                   C := Make_Selected_Component
                     (Var,

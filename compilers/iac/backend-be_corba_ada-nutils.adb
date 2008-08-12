@@ -1550,16 +1550,25 @@ package body Backend.BE_CORBA_Ada.Nutils is
    --------------
 
    function New_List
-     (N1 : Node_Id;
+     (N1 : Node_Id := No_Node;
       N2 : Node_Id := No_Node;
       N3 : Node_Id := No_Node;
       N4 : Node_Id := No_Node;
       N5 : Node_Id := No_Node) return List_Id
    is
+      N : Node_Id;
       L : List_Id;
    begin
-      L := New_List (K_List_Id);
-      Append_To (L, N1);
+      Entries.Increment_Last;
+      N := Entries.Last;
+      Entries.Table (N) := Default_Node;
+      Set_Kind (N, K_List_Id);
+
+      L := List_Id (N);
+
+      if Present (N1) then
+         Append_To (L, N1);
+      end if;
 
       if Present (N2) then
          Append_To (L, N2);
@@ -1717,7 +1726,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
       --  Building the specification part of the package
 
       Pkg := New_Node (K_Package_Specification);
-      Set_Withed_Packages (Pkg, New_List (K_Withed_Packages));
+      Set_Withed_Packages (Pkg, New_List);
 
       --  Disabling style checks. We put the pragma before the header
       --  comment because some lines in the header may be very long.
@@ -1730,16 +1739,16 @@ package body Backend.BE_CORBA_Ada.Nutils is
 
       Make_Comment_Header (Withed_Packages (Pkg), Identifier);
 
-      Set_Visible_Part (Pkg, New_List (K_Declaration_List));
-      Set_Subunits (Pkg, New_List (K_Declaration_List));
-      Set_Private_Part (Pkg, New_List (K_Declaration_List));
+      Set_Visible_Part (Pkg, New_List);
+      Set_Subunits (Pkg, New_List);
+      Set_Private_Part (Pkg, New_List);
       Set_Package_Declaration (Pkg, Unit);
       Set_Package_Specification (Unit, Pkg);
 
       --  Building the implementation part of the package
 
       Pkg := New_Node (K_Package_Implementation);
-      Set_Withed_Packages (Pkg, New_List (K_Withed_Packages));
+      Set_Withed_Packages (Pkg, New_List);
 
       --  Disabling style checks. We put the pragma before the header
       --  comment because some lines in the header may be very long.
@@ -1752,7 +1761,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
 
       Make_Comment_Header (Withed_Packages (Pkg), Identifier);
 
-      Set_Statements (Pkg, New_List (K_Statement_List));
+      Set_Statements (Pkg, New_List);
       Set_Package_Declaration (Pkg, Unit);
       Set_Package_Implementation (Unit, Pkg);
 
@@ -2277,31 +2286,6 @@ package body Backend.BE_CORBA_Ada.Nutils is
    end Next_N_Node;
 
    --------------
-   -- New_List --
-   --------------
-
-   function New_List
-     (Kind : Node_Kind;
-      From : Node_Id := No_Node)
-     return List_Id is
-      N : Node_Id;
-
-   begin
-      Entries.Increment_Last;
-      N := Entries.Last;
-      Entries.Table (N) := Default_Node;
-      Set_Kind (N, Kind);
-
-      if Present (From) then
-         Set_Loc  (N, Loc (From));
-      else
-         Set_Loc  (N, No_Location);
-      end if;
-
-      return List_Id (N);
-   end New_List;
-
-   --------------
    -- New_Node --
    --------------
 
@@ -2441,7 +2425,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
       Set_FE_Node (N, E);
 
       if Is_Empty (Forwarded_Entities) then
-         Forwarded_Entities := New_List (K_List_Id);
+         Forwarded_Entities := New_List;
       end if;
 
       Append_To (Forwarded_Entities, N);
@@ -2456,7 +2440,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
       N      : Node_Id;
    begin
       if Is_Empty (Forwarded_Entities) then
-         Forwarded_Entities := New_List (K_List_Id);
+         Forwarded_Entities := New_List;
       end if;
 
       N := First_Node (Forwarded_Entities);
@@ -2734,7 +2718,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
    procedure Initialize_GList (P : Node_Id; L : GLists) is
       pragma Assert (Kind (P) = K_Package_Declaration);
 
-      The_List     : constant List_Id := New_List (K_List_Id);
+      The_List     : constant List_Id := New_List;
       Binding_Name : constant Name_Id := Internal_Name (P, L);
    begin
       if Get_Name_Table_Info (Binding_Name) = 0 then
@@ -2755,7 +2739,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
       The_List := List_Id (Get_Name_Table_Info (Binding_Name));
 
       if The_List = No_List then
-         The_List := New_List (K_List_Id);
+         The_List := New_List;
          Set_Name_Table_Info (Binding_Name, Nat (The_List));
       end if;
 

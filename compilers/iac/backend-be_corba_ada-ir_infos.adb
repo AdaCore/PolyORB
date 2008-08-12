@@ -371,8 +371,8 @@ package body Backend.BE_CORBA_Ada.IR_Infos is
       is
          Spec         : constant Node_Id := Ir_Function_Node
            (BE_Node (Identifier (E)));
-         Declarations : constant List_Id := New_List (K_Declaration_List);
-         Statements   : constant List_Id := New_List (K_Statement_List);
+         Declarations : constant List_Id := New_List;
+         Statements   : constant List_Id := New_List;
          N            : Node_Id;
 
          procedure Interface_Body;
@@ -423,9 +423,9 @@ package body Backend.BE_CORBA_Ada.IR_Infos is
          --------------------
 
          procedure Interface_Body is
-            Inner_Dcl : constant List_Id := New_List (K_Declaration_List);
-            Inner_St  : constant List_Id := New_List (K_Statement_List);
-            Profile   : constant List_Id := New_List (K_List_Id);
+            Inner_Dcl : constant List_Id := New_List;
+            Inner_St  : constant List_Id := New_List;
+            Profile   : constant List_Id := New_List;
             N         : Node_Id;
             P         : Node_Id;
          begin
@@ -513,7 +513,7 @@ package body Backend.BE_CORBA_Ada.IR_Infos is
          procedure Declarator_Body is
             D                 : constant Node_Id := Declaration (E);
             Create_Parameters : constant List_Id := Standard_Create_Parameters;
-            Profile           : constant List_Id := New_List (K_List_Id);
+            Profile           : constant List_Id := New_List;
             N                 : Node_Id;
          begin
             Parent_Container_Lookup;
@@ -550,7 +550,7 @@ package body Backend.BE_CORBA_Ada.IR_Infos is
          procedure Attribute_Body is
             A                 : constant Node_Id := Declaration (E);
             Create_Parameters : constant List_Id := Standard_Create_Parameters;
-            Profile           : constant List_Id := New_List (K_List_Id);
+            Profile           : constant List_Id := New_List;
             N                 : Node_Id;
          begin
             Parent_Container_Lookup;
@@ -593,10 +593,10 @@ package body Backend.BE_CORBA_Ada.IR_Infos is
          --------------------------------
 
          procedure Operation_Declaration_Body is
-            Inner_Dcl : constant List_Id := New_List (K_Declaration_List);
-            Inner_St  : constant List_Id := New_List (K_Statement_List);
+            Inner_Dcl : constant List_Id := New_List;
+            Inner_St  : constant List_Id := New_List;
             Create_Parameters : constant List_Id := Standard_Create_Parameters;
-            Profile   : constant List_Id := New_List (K_List_Id);
+            Profile   : constant List_Id := New_List;
             Aggr      : List_Id;
             N         : Node_Id;
             P         : Node_Id;
@@ -614,7 +614,7 @@ package body Backend.BE_CORBA_Ada.IR_Infos is
                P := First_Entity (Parameters (E));
 
                while Present (P) loop
-                  Aggr := New_List (K_List_Id);
+                  Aggr := New_List;
 
                   N := Make_Element_Association
                     (Make_Identifier (CN (C_Name)),
@@ -763,7 +763,7 @@ package body Backend.BE_CORBA_Ada.IR_Infos is
          -----------------
 
          procedure Module_Body is
-            Profile : constant List_Id := New_List (K_List_Id);
+            Profile : constant List_Id := New_List;
             N       : Node_Id;
          begin
             Parent_Container_Lookup;
@@ -809,9 +809,9 @@ package body Backend.BE_CORBA_Ada.IR_Infos is
          ---------------------------
 
          procedure Enumeration_Type_Body is
-            Inner_Dcl  : constant List_Id := New_List (K_Declaration_List);
-            Inner_St   : constant List_Id := New_List (K_Statement_List);
-            Profile    : constant List_Id := New_List (K_List_Id);
+            Inner_Dcl  : constant List_Id := New_List;
+            Inner_St   : constant List_Id := New_List;
+            Profile    : constant List_Id := New_List;
             N          : Node_Id;
             Enumerator : Node_Id;
          begin
@@ -894,10 +894,10 @@ package body Backend.BE_CORBA_Ada.IR_Infos is
          ------------------------------
 
          procedure Structure_Exception_Body is
-            Inner_Dcl  : constant List_Id := New_List (K_Declaration_List);
-            Inner_St   : constant List_Id := New_List (K_Statement_List);
+            Inner_Dcl  : constant List_Id := New_List;
+            Inner_St   : constant List_Id := New_List;
             Create_Parameters : constant List_Id := Standard_Create_Parameters;
-            Profile    : constant List_Id := New_List (K_List_Id);
+            Profile    : constant List_Id := New_List;
             Aggr       : List_Id;
             N          : Node_Id;
             Member     : Node_Id;
@@ -918,7 +918,7 @@ package body Backend.BE_CORBA_Ada.IR_Infos is
                Declarator := First_Entity (Declarators (Member));
 
                while Present (Declarator) loop
-                  Aggr := New_List (K_List_Id);
+                  Aggr := New_List;
 
                   N := Make_Element_Association
                     (Make_Identifier (CN (C_Name)),
@@ -1000,10 +1000,10 @@ package body Backend.BE_CORBA_Ada.IR_Infos is
          ---------------------
 
          procedure Union_Type_Body is
-            Inner_Dcl      : constant List_Id := New_List (K_Declaration_List);
-            Inner_St       : constant List_Id := New_List (K_Statement_List);
+            Inner_Dcl      : constant List_Id := New_List;
+            Inner_St       : constant List_Id := New_List;
             Create_Parameters : constant List_Id := Standard_Create_Parameters;
-            Profile        : constant List_Id := New_List (K_List_Id);
+            Profile        : constant List_Id := New_List;
             Orig_Type      : constant Node_Id :=
               FEU.Get_Original_Type_Specifier (Switch_Type_Spec (E));
             Switch_Type    : Node_Id;
@@ -1042,7 +1042,7 @@ package body Backend.BE_CORBA_Ada.IR_Infos is
                Label := First_Entity (Labels (Alternative));
 
                while Present (Label) loop
-                  Aggr := New_List (K_List_Id);
+                  Aggr := New_List;
 
                   N := Make_Element_Association
                     (Make_Identifier (CN (C_Name)),
@@ -1242,7 +1242,7 @@ package body Backend.BE_CORBA_Ada.IR_Infos is
          --------------------------------
 
          function Standard_Create_Parameters return List_Id is
-            Result : constant List_Id := New_List (K_List_Id);
+            Result : constant List_Id := New_List;
          begin
             N := Make_Subprogram_Call
               (RE (RE_To_CORBA_String),
@@ -1330,7 +1330,7 @@ package body Backend.BE_CORBA_Ada.IR_Infos is
 
             function Rec_Array_IR (Dim : Node_Id) return Node_Id is
                N       : Node_Id;
-               Profile : constant List_Id := New_List (K_List_Id);
+               Profile : constant List_Id := New_List;
                V       : Value_Type;
             begin
                N := Make_Subprogram_Call (RE (RE_Get_IR_Root), No_List);
@@ -1376,7 +1376,7 @@ package body Backend.BE_CORBA_Ada.IR_Infos is
 
          function Fixed_IR (Type_Spec : Node_Id) return Node_Id is
             N       : Node_Id;
-            Profile : constant List_Id := New_List (K_List_Id);
+            Profile : constant List_Id := New_List;
          begin
             N := Make_Subprogram_Call (RE (RE_Get_IR_Root), No_List);
             Append_To (Profile, N);
@@ -1407,7 +1407,7 @@ package body Backend.BE_CORBA_Ada.IR_Infos is
 
          function Sequence_IR (Type_Spec : Node_Id) return Node_Id is
             N        : Node_Id;
-            Profile  : constant List_Id := New_List (K_List_Id);
+            Profile  : constant List_Id := New_List;
             Bounded  : constant Boolean := Present (Max_Size (Type_Spec));
             Elt_Type : constant Node_Id := FEN.Type_Spec (Type_Spec);
             V        : Value_Id;
@@ -1503,8 +1503,7 @@ package body Backend.BE_CORBA_Ada.IR_Infos is
             Register_IR_Info_St : constant List_Id := Get_GList
               (Package_Declaration (Current_Package),
                GL_Register_IR_Info);
-            Dcl                 : constant List_Id := New_List
-              (K_Declaration_List);
+            Dcl                 : constant List_Id := New_List;
          begin
             N := Make_Object_Declaration
               (Defining_Identifier => Make_Defining_Identifier (PN (P_Dummy)),

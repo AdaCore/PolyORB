@@ -163,7 +163,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
       function From_Any_Container_Spec (E : Node_Id) return Node_Id is
          pragma Assert (FEN.Kind (E) = K_Enumeration_Type);
 
-         Profile   : constant List_Id := New_List (K_Parameter_Profile);
+         Profile   : constant List_Id := New_List;
          Parameter : Node_Id;
          N         : Node_Id;
       begin
@@ -185,7 +185,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
       ---------------
 
       function Wrap_Spec (E : Node_Id) return Node_Id is
-         Profile : constant List_Id := New_List (K_Parameter_Profile);
+         Profile : constant List_Id := New_List;
          Returns : constant Node_Id := Make_Attribute_Reference
            (RE (RE_Content), A_Class);
          N       : Node_Id;
@@ -239,7 +239,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
       function Element_Wrap_Spec (E : Node_Id) return Node_Id is
          pragma Assert (FEN.Kind (E) = K_Sequence_Type);
 
-         Profile : constant List_Id := New_List (K_Parameter_Profile);
+         Profile : constant List_Id := New_List;
          Returns : constant Node_Id := Make_Attribute_Reference
            (RE (RE_Content), A_Class);
          T       : constant Node_Id := Type_Spec (E);
@@ -287,7 +287,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
 
       function Content_Declaration (E : Node_Id) return Node_Id is
          N          : Node_Id;
-         Components : constant List_Id := New_List (K_Component_List);
+         Components : constant List_Id := New_List;
       begin
          --  If E is a complex declarator for a multidimensional array,
          --  declare indices type holding Dim - 1 stored indices.
@@ -394,7 +394,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
       ----------------
 
       function Clone_Spec (E : Node_Id) return Node_Id is
-         Profile : constant List_Id := New_List (K_Parameter_Profile);
+         Profile : constant List_Id := New_List;
          Returns : constant Node_Id := RE (RE_Content_Ptr);
          N       : Node_Id;
       begin
@@ -428,7 +428,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
       -------------------------
 
       function Finalize_Value_Spec (E : Node_Id) return Node_Id is
-         Profile : constant List_Id := New_List (K_Parameter_Profile);
+         Profile : constant List_Id := New_List;
          Returns : constant Node_Id := No_Node;
          N       : Node_Id;
       begin
@@ -456,7 +456,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
       ------------------------------
 
       function Get_Aggregate_Count_Spec (E : Node_Id) return Node_Id is
-         Profile : constant List_Id := New_List (K_Parameter_Profile);
+         Profile : constant List_Id := New_List;
          Returns : constant Node_Id := RE (RE_Unsigned_Long_1);
          N       : Node_Id;
       begin
@@ -484,7 +484,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
       ------------------------------
 
       function Set_Aggregate_Count_Spec (E : Node_Id) return Node_Id is
-         Profile : constant List_Id := New_List (K_Parameter_Profile);
+         Profile : constant List_Id := New_List;
          Returns : constant Node_Id := No_Node;
          N       : Node_Id;
       begin
@@ -518,7 +518,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
       --------------------------------
 
       function Get_Aggregate_Element_Spec (E : Node_Id) return Node_Id is
-         Profile : constant List_Id := New_List (K_Parameter_Profile);
+         Profile : constant List_Id := New_List;
          Returns : constant Node_Id := Make_Attribute_Reference
            (RE (RE_Content), A_Class);
          N       : Node_Id;
@@ -569,7 +569,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
       --------------------------------
 
       function Set_Aggregate_Element_Spec (E : Node_Id) return Node_Id is
-         Profile : constant List_Id := New_List (K_Parameter_Profile);
+         Profile : constant List_Id := New_List;
          Returns : constant Node_Id := No_Node;
          N       : Node_Id;
       begin
@@ -616,7 +616,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
       --------------------------
 
       function Unchecked_Get_V_Spec (E : Node_Id) return Node_Id is
-         Profile : constant List_Id := New_List (K_Parameter_Profile);
+         Profile : constant List_Id := New_List;
          N       : Node_Id;
       begin
          --  Build the parameters list
@@ -649,7 +649,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
       function Lengths_Constant_Declaration (E : Node_Id) return Node_Id is
          pragma Assert (FEN.Kind (E) = K_Complex_Declarator);
 
-         Elements : constant List_Id := New_List (K_Element_List);
+         Elements : constant List_Id := New_List;
          Dims     : Unsigned_Long_Long := 1;
          N        : Node_Id;
          S        : Node_Id;
@@ -997,7 +997,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                   Elt_From_Any : Node_Id;
                   Elt_To_Any   : Node_Id;
                   Elt_Wrap     : Node_Id;
-                  Profile      : constant List_Id := New_List (K_List_Id);
+                  Profile      : constant List_Id := New_List;
                begin
                   --  Do not generate anything if the sequence element
                   --  type has a local interface component.
@@ -1291,7 +1291,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
       is
          Dimen : constant Integer :=
                    FEU.Length (FEN.Array_Sizes (Typ));
-         Indices : constant List_Id := New_List (K_List_Id);
+         Indices : constant List_Id := New_List;
       begin
          for J in 1 .. Dimen - 1 loop
             Append_To (Indices,
@@ -1372,8 +1372,8 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
               | K_Union_Type
               | K_Structure_Type =>
                declare
-                  Statements : constant List_Id := New_List (K_Statement_List);
-                  Aggr_List  : constant List_Id := New_List (K_Element_List);
+                  Statements : constant List_Id := New_List;
+                  Aggr_List  : constant List_Id := New_List;
                begin
                   Spec := Wrap_Node (BE_Node (Identifier (E)));
 
@@ -1453,7 +1453,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
             when K_Simple_Declarator =>
                declare
                   O          : constant Node_Id := Type_Spec (Declaration (E));
-                  Statements : constant List_Id := New_List (K_Statement_List);
+                  Statements : constant List_Id := New_List;
                begin
                   Spec := Wrap_Node (BE_Node (Identifier (E)));
 
@@ -1513,7 +1513,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
          pragma Assert (FEN.Kind (E) = K_Sequence_Type);
 
          Spec       : constant Node_Id := Element_Wrap_Node (BE_Node (E));
-         Statements : constant List_Id := New_List (K_Statement_List);
+         Statements : constant List_Id := New_List;
          O          : constant Node_Id :=
            FEU.Get_Original_Type_Declarator (Type_Spec (E));
          --  The original type of the sequence type spec
@@ -1552,8 +1552,8 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
       function Clone_Body (E : Node_Id) return Node_Id is
          Spec       : constant Node_Id := Clone_Node
            (BE_Node (Identifier (E)));
-         Dcl_Part   : constant List_Id := New_List (K_Declaration_List);
-         Statements : constant List_Id := New_List (K_Statement_List);
+         Dcl_Part   : constant List_Id := New_List;
+         Statements : constant List_Id := New_List;
          N          : Node_Id;
          Expr       : Node_Id;
          Converted  : Node_Id;
@@ -1573,8 +1573,8 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
          --  IF statement
 
          declare
-            Then_Statements : constant List_Id := New_List (K_Statement_List);
-            Else_Statements : constant List_Id := New_List (K_Statement_List);
+            Then_Statements : constant List_Id := New_List;
+            Else_Statements : constant List_Id := New_List;
             Condition       : Node_Id;
          begin
             --  Inner IF statement
@@ -1716,8 +1716,8 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
       function Finalize_Value_Body (E : Node_Id) return Node_Id is
          Spec       : constant Node_Id := Finalize_Value_Node
            (BE_Node (Identifier (E)));
-         Dcl_Part   : constant List_Id := New_List (K_Declaration_List);
-         Statements : constant List_Id := New_List (K_Statement_List);
+         Dcl_Part   : constant List_Id := New_List;
+         Statements : constant List_Id := New_List;
          N          : Node_Id;
       begin
          --  The deallocation procedure declaration
@@ -1751,8 +1751,8 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
       function Get_Aggregate_Count_Body (E : Node_Id) return Node_Id is
          Spec       : constant Node_Id := Get_Aggregate_Count_Node
            (BE_Node (Identifier (E)));
-         Dcl_Part   : constant List_Id := New_List (K_Declaration_List);
-         Statements : constant List_Id := New_List (K_Statement_List);
+         Dcl_Part   : constant List_Id := New_List;
+         Statements : constant List_Id := New_List;
          N          : Node_Id;
          Returns    : constant Node_Id := Get_Aggr_Count (E);
       begin
@@ -1784,8 +1784,8 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
       function Set_Aggregate_Count_Body (E : Node_Id) return Node_Id is
          Spec       : constant Node_Id := Set_Aggregate_Count_Node
            (BE_Node (Identifier (E)));
-         Dcl_Part   : constant List_Id := New_List (K_Declaration_List);
-         Statements : constant List_Id := New_List (K_Statement_List);
+         Dcl_Part   : constant List_Id := New_List;
+         Statements : constant List_Id := New_List;
          Aggr_Count : constant Node_Id := Get_Aggr_Count (E);
          N          : Node_Id;
          C          : Node_Id;
@@ -1824,9 +1824,9 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
       function Get_Aggregate_Element_Body (E : Node_Id) return Node_Id is
          Spec         : constant Node_Id := Get_Aggregate_Element_Node
            (BE_Node (Identifier (E)));
-         Dcl_Part     : constant List_Id := New_List (K_Declaration_List);
-         Statements   : constant List_Id := New_List (K_Statement_List);
-         Unref_Params : constant List_Id := New_List (K_List_Id);
+         Dcl_Part     : constant List_Id := New_List;
+         Statements   : constant List_Id := New_List;
+         Unref_Params : constant List_Id := New_List;
          N            : Node_Id;
 
       begin
@@ -1918,17 +1918,17 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                   if FEU.Is_Multidimensional_Array (E) then
                      declare
                         If_Sts    : constant List_Id :=
-                          New_List (K_Statement_List);
+                          New_List;
                         Else_Sts  : constant List_Id :=
-                          New_List (K_Statement_List);
+                          New_List;
                         Dimension : constant Unsigned_Long_Long :=
                                       Unsigned_Long_Long
                                         (FEU.Length (FEN.Array_Sizes (E)));
                         Condition : Node_Id;
                         Dcl_Part  : constant List_Id :=
-                          New_List (K_Declaration_List);
+                          New_List;
                         Sts_Part  : constant List_Id :=
-                          New_List (K_Statement_List);
+                          New_List;
                      begin
                         --  Build the IF statement condition
 
@@ -2073,9 +2073,9 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
             when K_Union_Type =>
                declare
                   If_Sts              : constant List_Id :=
-                    New_List (K_Statement_List);
+                    New_List;
                   Else_Sts            : constant List_Id :=
-                    New_List (K_Statement_List);
+                    New_List;
                   Condition           : Node_Id;
                   Switch_Item         : Node_Id;
                   Component_Node      : Node_Id;
@@ -2180,7 +2180,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                          (Orig_Type)));
                   end if;
 
-                  Switch_Alternatives := New_List (K_Variant_List);
+                  Switch_Alternatives := New_List;
                   Switch_Case := First_Entity (Switch_Type_Body (E));
 
                   while Present (Switch_Case) loop
@@ -2287,7 +2287,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                   --  For each element, we build a case alternative
                   --  that calls the wrap function of the element.
 
-                  Switch_Alternatives := New_List (K_Variant_List);
+                  Switch_Alternatives := New_List;
 
                   Member := First_Entity (Members (E));
 
@@ -2397,9 +2397,9 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
       function Set_Aggregate_Element_Body (E : Node_Id) return Node_Id is
          Spec         : constant Node_Id := Set_Aggregate_Element_Node
            (BE_Node (Identifier (E)));
-         Dcl_Part     : constant List_Id := New_List (K_Declaration_List);
-         Statements   : constant List_Id := New_List (K_Statement_List);
-         Unref_Params : constant List_Id := New_List (K_List_Id);
+         Dcl_Part     : constant List_Id := New_List;
+         Statements   : constant List_Id := New_List;
+         Unref_Params : constant List_Id := New_List;
          N            : Node_Id;
       begin
          --  Add a use clause for PolyORB.Types.Unsigned_Long
@@ -2574,8 +2574,8 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
       function Unchecked_Get_V_Body (E : Node_Id) return Node_Id is
          Spec       : constant Node_Id := Unchecked_Get_V_Node
            (BE_Node (Identifier (E)));
-         Dcl_Part   : constant List_Id := New_List (K_Declaration_List);
-         Statements : constant List_Id := New_List (K_Statement_List);
+         Dcl_Part   : constant List_Id := New_List;
+         Statements : constant List_Id := New_List;
          N          : Node_Id;
       begin
          if FEN.Kind (E) = K_Complex_Declarator
@@ -2840,9 +2840,9 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
       function Initialize_Body (E : Node_Id) return Node_Id is
          N                : Node_Id;
          Spec             : Node_Id;
-         Declarative_Part : constant List_Id := New_List (K_Declaration_List);
-         Statements       : constant List_Id := New_List (K_Statement_List);
-         Then_Statements  : constant List_Id := New_List (K_Statement_List);
+         Declarative_Part : constant List_Id := New_List;
+         Statements       : constant List_Id := New_List;
+         Then_Statements  : constant List_Id := New_List;
          Condition        : Node_Id;
       begin
          if FEN.Kind (E) = K_Fixed_Point_Type
@@ -3158,7 +3158,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                       (BE_Node
                        (Identifier
                         (E)))));
-                  Sizes_Reverse    : constant List_Id := New_List (K_List_Id);
+                  Sizes_Reverse    : constant List_Id := New_List;
                   Constraint       : Node_Id;
                   Dimension        : constant Natural := Length (Sizes);
                   From_N           : Node_Id          := No_Node;
@@ -3419,7 +3419,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                     FEU.Get_Original_Type_Specifier
                     (Switch_Type_Spec (E));
                   Statement_List     : constant List_Id :=
-                    New_List (K_List_Id);
+                    New_List;
                   Default_Index       : Value_Id :=
                     New_Integer_Value (0, 1, 10); -- (0)
                   --  Index of the default case of the union. It is
@@ -3471,7 +3471,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                   Switch_Case := First_Entity (Switch_Type_Body (E));
                   Default_Present := False;
                   while Present (Switch_Case) loop
-                     Choices := New_List (K_List_Id);
+                     Choices := New_List;
                      Label   := First_Entity (Labels (Switch_Case));
                      while Present (Label) loop
 
@@ -3810,8 +3810,8 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
 
          Spec : constant Node_Id :=
            From_Any_Container_Node (BE_Node (Identifier (E)));
-         D    : constant List_Id := New_List (K_List_Id);
-         S    : constant List_Id := New_List (K_List_Id);
+         D    : constant List_Id := New_List;
+         S    : constant List_Id := New_List;
          N    : Node_Id;
       begin
          N := Make_Subprogram_Call
@@ -3857,7 +3857,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
          Parameter : Node_Id;
          N         : Node_Id;
       begin
-         Profile  := New_List (K_Parameter_Profile);
+         Profile  := New_List;
          Parameter := Make_Parameter_Specification
            (Make_Defining_Identifier (PN (P_Item)),
             RE (RE_Any_1));
@@ -3886,9 +3886,9 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
          Spec            : constant Node_Id :=
            Raise_Excp_From_Any_Spec (Raise_Node);
          Declarations    : constant List_Id :=
-           New_List (K_List_Id);
+           New_List;
          Statements      : constant List_Id :=
-           New_List (K_List_Id);
+           New_List;
          N               : Node_Id;
          From_Any_Helper : Node_Id;
          Excp_Members    : Node_Id;

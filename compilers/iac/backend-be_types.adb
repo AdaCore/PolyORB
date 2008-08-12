@@ -180,7 +180,7 @@ package body Backend.BE_Types is
    --------------
 
    procedure Generate (E : Node_Id) is
-      List_Of_Types : List_Id := New_List (K_List_Id, No_Location);
+      List_Of_Types : List_Id := New_List (No_Location);
       Descriptor    : File_Descriptor;
       Output_File   : constant String
          := Get_Name_String (IDL_Spec_Name) & ".typ";

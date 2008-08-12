@@ -118,8 +118,7 @@ package Frontend.Nutils is
    --  element).
 
    function New_Node (Kind : Node_Kind; Loc : Location) return Node_Id;
-   function New_List (Kind : Node_Kind; Loc : Location) return List_Id;
-
+   function New_List (Loc : Location) return List_Id;
    function New_Copy (N : Node_Id)   return Node_Id;
 
    procedure Bind_Identifier_To_Entity  (N : Node_Id; E : Node_Id);

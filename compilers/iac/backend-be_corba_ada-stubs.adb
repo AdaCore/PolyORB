@@ -304,7 +304,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
       begin
          Set_Main_Spec;
 
-         Enum_Literals := New_List (K_Enumeration_Literals);
+         Enum_Literals := New_List;
          Enumerator := First_Entity (Enumerators (E));
 
          while Present (Enumerator) loop
@@ -642,7 +642,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
          end Map_Parameter_Type_Designator;
 
       begin
-         Profile := New_List (K_Parameter_Profile);
+         Profile := New_List;
 
          --  Create a dispatching parameter
 
@@ -1071,8 +1071,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
                 (Orig_Type)));
          end if;
 
-         L := New_List (K_Component_List);
-         --  Why not K_List_Id???
+         L := New_List;
          Append_To (L,
            Make_Variant_Part
              (Make_Defining_Identifier (CN (C_Switch)),
@@ -1143,7 +1142,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
       procedure Visit_Exception_Declaration (E : Node_Id) is
          Spec : Node_Id := No_Node;
          D    : constant List_Id := No_List;
-         S    : constant List_Id := New_List (K_List_Id);
+         S    : constant List_Id := New_List;
          N    : Node_Id;
          Parameters : List_Id;
       begin
@@ -1156,7 +1155,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
               (FEN.Identifier
                (E)))));
 
-         Parameters := New_List (K_List_Id);
+         Parameters := New_List;
          Append_To (Parameters, Make_Defining_Identifier (PN (P_From)));
          Append_To (Parameters, Make_Defining_Identifier (PN (P_To)));
 
@@ -1281,7 +1280,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
       function Stub_Statements (E : Node_Id) return List_Id is
          pragma Assert (FEN.Kind (E) = K_Operation_Declaration);
 
-         Statements      : constant List_Id := New_List (BEN.K_Statement_List);
+         Statements      : constant List_Id := New_List;
          N               : Node_Id;
          M               : Node_Id;
          C               : Node_Id;
@@ -1339,7 +1338,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
             declare
                Implem_Node  : Node_Id;
                Impl_Profile : constant List_Id :=
-                 New_List (K_Declaration_List);
+                 New_List;
                Param        : Node_Id;
             begin
                N := Make_Subprogram_Call
@@ -1477,7 +1476,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
             else
                --  Preparing the parameter list of the Add_Item call
 
-               Profile := New_List (K_Parameter_Profile);
+               Profile := New_List;
 
                --  1st param
 
@@ -1573,7 +1572,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
             --  Create the inlined subprogram that set the Result name
             --  value.
 
-            Profile := New_List (K_List_Id);
+            Profile := New_List;
 
             --  Build the record aggregate
 
@@ -1660,7 +1659,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
          --  Build the parameter associations
 
          NVList_Name := VN (V_Argument_List);
-         Profile := New_List (K_List_Id);
+         Profile := New_List;
 
          --  1st parameter association
 
@@ -1754,7 +1753,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
          if Use_SII then
             --  Get the GIOP session
 
-            Profile := New_List (K_List_Id);
+            Profile := New_List;
 
             M := Make_Subprogram_Call
               (RE (RE_Ref_2),
@@ -1803,7 +1802,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
             if Use_Compiler_Alignment then
                declare
                   Par  : Node_Id;
-                  Disc : constant List_Id := New_List (K_List_Id);
+                  Disc : constant List_Id := New_List;
                   J    : Unsigned_Long_Long;
                begin
                   Par := First_Entity (Parameters (E));
@@ -1839,7 +1838,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
                --  CDR buffer that holds the CDR representation of the
                --  requests parameters.
 
-               Profile := New_List (K_List_Id);
+               Profile := New_List;
                Append_To (Profile, Make_Identifier (VN (V_Binding_Profile)));
                Append_To (Profile, Make_Identifier (VN (V_Component)));
                Append_To (Profile, Make_Identifier (VN (V_Error)));
@@ -1848,7 +1847,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
 
                C := Get_Marshaller_Node (E);
 
-               Profile := New_List (K_List_Id);
+               Profile := New_List;
                Append_To (Profile, RE (RE_True));
 
                --  The arguments list, we use the method_name_Arg_Type
@@ -1940,7 +1939,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
 
             C := Get_Unmarshaller_Node (E);
 
-            Profile := New_List (K_List_Id);
+            Profile := New_List;
             Append_To (Profile, RE (RE_True));
 
             N := Make_Identifier (PN (P_Arg_List));
@@ -2097,7 +2096,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
       function Stub_Declarations (E : Node_Id) return List_Id is
          pragma Assert (FEN.Kind (E) = K_Operation_Declaration);
 
-         L                : constant List_Id := New_List (K_Declaration_List);
+         L                : constant List_Id := New_List;
          P                : Node_Id;
          N                : Node_Id;
          V                : Value_Id;
@@ -2437,7 +2436,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
 
             if Use_Compiler_Alignment then
                declare
-                  Disc : constant List_Id := New_List (K_List_Id);
+                  Disc : constant List_Id := New_List;
                begin
                   C := Expand_Designator
                     (Args_In_Node
@@ -2504,7 +2503,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
       Spec : Node_Id := No_Node)
      return Node_Id is
       N                : Node_Id;
-      S                : constant List_Id := New_List (K_List_Id);
+      S                : constant List_Id := New_List;
       M                : Node_Id;
       Repository_Id    : Node_Id;
       Rep_Value        : Value_Id;
@@ -2651,7 +2650,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
       Param := Make_Parameter_Specification
         (Make_Defining_Identifier (PN (P_Logical_Type_Id)),
          RE (RE_String_2));
-      Profile := New_List (K_Parameter_Profile);
+      Profile := New_List;
       Append_To (Profile, Param);
       N := Make_Subprogram_Specification
         (Make_Defining_Identifier (SN (S_Is_A)),
@@ -2667,7 +2666,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
    function Visible_Is_A_Body (E : Node_Id) return Node_Id is
       N : Node_Id;
       M : Node_Id;
-      S : constant List_Id := New_List (K_List_Id);
+      S : constant List_Id := New_List;
    begin
       M := Make_Subprogram_Call
         (RE (RE_Ref_2),
@@ -2701,7 +2700,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
       Profile : List_Id;
       Param   : Node_Id;
    begin
-      Profile := New_List (K_Parameter_Profile);
+      Profile := New_List;
       Param := Make_Parameter_Specification
         (Make_Defining_Identifier (PN (P_Self)),
          Map_Ref_Type (E));

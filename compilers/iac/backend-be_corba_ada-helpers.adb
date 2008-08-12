@@ -107,7 +107,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
       -------------------
 
       function From_Any_Spec (E : Node_Id) return Node_Id is
-         Profile   : constant List_Id := New_List (K_Parameter_Profile);
+         Profile   : constant List_Id := New_List;
          Parameter : Node_Id;
          N         : Node_Id;
       begin
@@ -129,7 +129,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
       -------------------
 
       function U_To_Ref_Spec (E : Node_Id) return Node_Id is
-         Profile   : constant List_Id := New_List (K_Parameter_Profile);
+         Profile   : constant List_Id := New_List;
          Parameter : Node_Id;
          N         : Node_Id;
       begin
@@ -153,7 +153,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
       -----------------
 
       function To_Any_Spec (E : Node_Id) return Node_Id is
-         Profile   : constant List_Id := New_List (K_Parameter_Profile);
+         Profile   : constant List_Id := New_List;
          Parameter : Node_Id;
          N         : Node_Id;
       begin
@@ -174,7 +174,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
       -----------------
 
       function To_Ref_Spec (E : Node_Id) return Node_Id is
-         Profile   : constant List_Id := New_List (K_Parameter_Profile);
+         Profile   : constant List_Id := New_List;
          Parameter : Node_Id;
          N         : Node_Id;
       begin
@@ -203,7 +203,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
          Raise_Node   : Node_Id)
         return Node_Id
       is
-         Profile   : constant List_Id := New_List (K_Parameter_Profile);
+         Profile   : constant List_Id := New_List;
          Parameter : Node_Id;
          N         : Node_Id;
       begin
@@ -342,7 +342,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
       begin
          pragma Assert (Dim > 1);
 
-         L := New_List (K_List_Id);
+         L := New_List;
 
          for I in 1 .. Dim - 1 loop
             N := TypeCode_Dimension_Spec (Declarator, I);
@@ -866,7 +866,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
          R := Make_Range_Constraint
            (Make_Literal (First), Make_Literal (Last));
 
-         L := New_List (K_Range_Constraints);
+         L := New_List;
          Append_To (L, R);
 
          N := Make_Object_Declaration
@@ -900,8 +900,8 @@ package body Backend.BE_CORBA_Ada.Helpers is
          N    : Node_Id;
          M    : Node_Id;
          Spec : Node_Id;
-         D    : constant List_Id := New_List (K_List_Id);
-         S    : constant List_Id := New_List (K_List_Id);
+         D    : constant List_Id := New_List;
+         S    : constant List_Id := New_List;
 
          function Complex_Declarator_Body (E : Node_Id) return Node_Id;
          function Enumeration_Type_Body (E : Node_Id) return Node_Id;
@@ -926,7 +926,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
             Dim                  : Node_Id;
             Loop_Statements      : List_Id := No_List;
             Enclosing_Statements : List_Id;
-            Index_List           : constant List_Id := New_List (K_List_Id);
+            Index_List           : constant List_Id := New_List;
             Helper               : Node_Id;
             TC                   : Node_Id;
             Index_Node           : Node_Id := No_Node;
@@ -955,7 +955,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
                  (Add_Suffix_To_Name (Var_Suffix, Name_Find));
                Append_To (Index_List, Index_Node);
                Enclosing_Statements := Loop_Statements;
-               Loop_Statements := New_List (K_List_Id);
+               Loop_Statements := New_List;
                N := Make_For_Statement
                  (Index_Node, Dim, Loop_Statements);
 
@@ -1120,7 +1120,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
          function Structure_Type_Body (E : Node_Id) return Node_Id is
             Result_Struct_Aggregate  : Node_Id;
             L                        : constant List_Id
-              := New_List (K_List_Id);
+              := New_List;
             Result_Name              : Name_Id;
             Member                   : Node_Id;
             Declarator               : Node_Id;
@@ -1306,11 +1306,11 @@ package body Backend.BE_CORBA_Ada.Helpers is
 
             --  Statements
 
-            Switch_Alternatives := New_List (K_List_Id);
+            Switch_Alternatives := New_List;
             Switch_Case := First_Entity (Switch_Type_Body (E));
 
             while Present (Switch_Case) loop
-               Switch_Statements := New_List (K_Statement_List);
+               Switch_Statements := New_List;
 
                Map_Choice_List
                  (Labels (Switch_Case),
@@ -1503,7 +1503,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
                --  parallel to the declaration, we built a list for
                --  the returned aggregate value.
 
-               Return_List := New_List (K_List_Id);
+               Return_List := New_List;
 
                Member := First_Entity (Members);
 
@@ -1652,8 +1652,8 @@ package body Backend.BE_CORBA_Ada.Helpers is
          Dep              : Node_Id;
          V                : Value_Id;
          Aggregates       : List_Id;
-         Declarative_Part : constant List_Id := New_List (K_List_Id);
-         Statements       : constant List_Id := New_List (K_List_Id);
+         Declarative_Part : constant List_Id := New_List;
+         Statements       : constant List_Id := New_List;
          Dependency_List  : constant List_Id := Get_GList
            (Package_Declaration (Current_Package), GL_Dependencies);
       begin
@@ -1670,7 +1670,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
 
          --  The package name
 
-         Aggregates := New_List (K_List_Id);
+         Aggregates := New_List;
          N := Defining_Identifier (Package_Declaration (Current_Package));
          V := New_String_Value (Fully_Qualified_Name (N), False);
          N := Make_Expression (Make_Literal (V), Op_Plus);
@@ -1768,8 +1768,8 @@ package body Backend.BE_CORBA_Ada.Helpers is
 
       function To_Any_Body (E : Node_Id) return Node_Id is
          Spec        : Node_Id;
-         D           : constant List_Id := New_List (K_List_Id);
-         S           : constant List_Id := New_List (K_List_Id);
+         D           : constant List_Id := New_List;
+         S           : constant List_Id := New_List;
          N           : Node_Id;
          M           : Node_Id;
          Helper_Name : Name_Id;
@@ -1808,7 +1808,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
             N := Declare_Any_Array (PN (P_Result), 0, Dimension - 1);
             Append_To (D, N);
 
-            L := New_List (K_List_Id);
+            L := New_List;
             TC := TC_Node (BE_Node (Identifier (E)));
             Dim := First_Node (Sizes);
 
@@ -1819,7 +1819,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
                  (Add_Suffix_To_Name (Var_Suffix, Name_Find));
                Append_To (L, M);
                Enclosing_Statements := Loop_Statements;
-               Loop_Statements := New_List (K_List_Id);
+               Loop_Statements := New_List;
                N := Make_For_Statement (M, Dim, Loop_Statements);
 
                if I > 0 then
@@ -2158,11 +2158,11 @@ package body Backend.BE_CORBA_Ada.Helpers is
                 N));
             Append_To (S, N);
 
-            Switch_Alternatives := New_List (K_List_Id);
+            Switch_Alternatives := New_List;
             Switch_Case := First_Entity (Switch_Type_Body (E));
 
             while Present (Switch_Case) loop
-               Switch_Statements := New_List (K_Statement_List);
+               Switch_Statements := New_List;
 
                Map_Choice_List
                  (Labels (Switch_Case),
@@ -2384,7 +2384,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
 
          --  Declarative Part
 
-         Declarations := New_List (K_List_Id);
+         Declarations := New_List;
          Param := Make_Object_Declaration
            (Defining_Identifier => Make_Defining_Identifier (PN (P_Result)),
             Object_Definition =>
@@ -2410,8 +2410,8 @@ package body Backend.BE_CORBA_Ada.Helpers is
                S_Set_Node);
          end if;
 
-         Statements := New_List (K_List_Id);
-         L := New_List (K_List_Id);
+         Statements := New_List;
+         L := New_List;
 
          Append_To (L, Make_Defining_Identifier (PN (P_Result)));
 
@@ -2498,7 +2498,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
             end;
          end if;
 
-         Statements := New_List (K_List_Id);
+         Statements := New_List;
          N := Make_Expression
            (Left_Expr => Make_Subprogram_Call
             (RE (RE_Is_Nil),
@@ -2534,7 +2534,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
 
       function Raise_Excp_Body (E : Node_Id) return Node_Id is
          Spec       : Node_Id;
-         Statements : constant List_Id := New_List (K_List_Id);
+         Statements : constant List_Id := New_List;
          N          : Node_Id;
       begin
          --  The spec was declared at the forth position in the helper

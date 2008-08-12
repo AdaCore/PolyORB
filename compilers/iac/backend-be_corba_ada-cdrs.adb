@@ -86,7 +86,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
          Args_Type  : Node_Id := No_Node;
          Par_Type   : Node_Id;
       begin
-         Components := New_List (K_Component_List);
+         Components := New_List;
 
          --  For each parameter in the subprogram profile, a member
          --  with the same name and the same type is generated in the
@@ -161,7 +161,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
          Parameter : Node_Id;
          S         : Node_Id;
       begin
-         Profile  := New_List (K_Parameter_Profile);
+         Profile  := New_List;
 
          --  'Role' parameter
 
@@ -242,7 +242,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
          Parameter : Node_Id;
          S         : Node_Id;
       begin
-         Profile  := New_List (K_Parameter_Profile);
+         Profile  := New_List;
 
          --  'Role' parameter
 
@@ -516,21 +516,21 @@ package body Backend.BE_CORBA_Ada.CDRs is
          pragma Assert (FEN.Kind (E) = K_Operation_Declaration);
 
          Subp_Spec         : Node_Id;
-         Subp_Statements   : constant List_Id := New_List (K_List_Id);
-         Subp_Declarations : constant List_Id := New_List (K_List_Id);
+         Subp_Statements   : constant List_Id := New_List;
+         Subp_Declarations : constant List_Id := New_List;
 
          P                 : constant List_Id := Parameters (E);
          T                 : constant Node_Id := Type_Spec (E);
 
          Client_Case       : constant List_Id := New_List
            (RE (RE_True));
-         Client_Statements : constant List_Id := New_List (K_List_Id);
+         Client_Statements : constant List_Id := New_List;
 
          Server_Case       : constant List_Id := New_List
            (RE (RE_False));
-         Server_Statements : constant List_Id := New_List (K_List_Id);
+         Server_Statements : constant List_Id := New_List;
 
-         Case_Alternatives : constant List_Id := New_List (K_List_Id);
+         Case_Alternatives : constant List_Id := New_List;
 
          Alignment_Const   : Boolean := True;
 
@@ -872,21 +872,21 @@ package body Backend.BE_CORBA_Ada.CDRs is
          pragma Assert (FEN.Kind (E) = K_Operation_Declaration);
 
          Subp_Spec         : Node_Id;
-         Subp_Statements   : constant List_Id := New_List (K_List_Id);
-         Subp_Declarations : constant List_Id := New_List (K_List_Id);
+         Subp_Statements   : constant List_Id := New_List;
+         Subp_Declarations : constant List_Id := New_List;
 
          P                 : constant List_Id := Parameters (E);
          T                 : constant Node_Id := Type_Spec (E);
 
          Client_Case       : constant List_Id := New_List
            (RE (RE_True));
-         Client_Statements : constant List_Id := New_List (K_List_Id);
+         Client_Statements : constant List_Id := New_List;
 
          Server_Case       : constant List_Id := New_List
            (RE (RE_False));
-         Server_Statements : constant List_Id := New_List (K_List_Id);
+         Server_Statements : constant List_Id := New_List;
 
-         Case_Alternatives : constant List_Id := New_List (K_List_Id);
+         Case_Alternatives : constant List_Id := New_List;
 
          Alignment_Const   : Boolean := True;
 
@@ -1237,9 +1237,9 @@ package body Backend.BE_CORBA_Ada.CDRs is
          declare
             Result     : Node_Id;
             M          : Node_Id;
-            S          : constant List_Id := New_List (K_List_Id);
-            Excep_St   : List_Id := New_List (K_List_Id);
-            Profile    : constant List_Id := New_List (K_Parameter_Profile);
+            S          : constant List_Id := New_List;
+            Excep_St   : List_Id := New_List;
+            Profile    : constant List_Id := New_List;
          begin
             --  Body of the exception handler
 
@@ -1486,8 +1486,8 @@ package body Backend.BE_CORBA_Ada.CDRs is
          Buff     : Name_Id)
         return Node_Id
       is
-         Block_Dcl        : constant List_Id := New_List (K_List_Id);
-         Block_St         : constant List_Id := New_List (K_List_Id);
+         Block_Dcl        : constant List_Id := New_List;
+         Block_St         : constant List_Id := New_List;
          N                : Node_Id;
          Type_Spec_Node   : Node_Id;
          Direct_Type_Node : Node_Id;
@@ -1569,7 +1569,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
               | K_Wide_String
               | K_Wide_String_Type =>
                declare
-                  Profile : constant List_Id := New_List (K_List_Id);
+                  Profile : constant List_Id := New_List;
                begin
                   N := Make_Identifier (PN (P_Representation));
                   Append_To (Profile, N);
@@ -1605,7 +1605,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
 
                if Get_Predefined_CORBA_Entity (Type_Spec_Node) = RE_Object then
                   declare
-                     Profile : constant List_Id := New_List (K_List_Id);
+                     Profile : constant List_Id := New_List;
                   begin
                      N := Make_Identifier (Buff);
                      Append_To (Profile, N);
@@ -1657,7 +1657,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
                   Range_Constraint : Node_Id;
                   Index_Name       : constant Name_Id := Get_Index_Name;
                   Seq_Length       : constant Name_Id := Get_Length_Name;
-                  For_Statements   : constant List_Id := New_List (K_List_Id);
+                  For_Statements   : constant List_Id := New_List;
                begin
                   --  Getting the instantiated package node
 
@@ -1753,7 +1753,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
                   Loop_Statements      : List_Id := No_List;
                   Enclosing_Statements : List_Id;
                   Index_List           : constant List_Id :=
-                    New_List (K_List_Id);
+                    New_List;
                   Index_Node           : Node_Id := No_Node;
                   Index_Name           : constant Name_Id :=
                     Get_Index_Name;
@@ -1770,7 +1770,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
                        (Add_Suffix_To_Name (Var_Suffix, Name_Find));
                      Append_To (Index_List, Index_Node);
                      Enclosing_Statements := Loop_Statements;
-                     Loop_Statements := New_List (K_List_Id);
+                     Loop_Statements := New_List;
                      N := Make_For_Statement
                        (Index_Node, Dim, Loop_Statements);
 
@@ -1876,7 +1876,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
                          (Switch_Type)));
                   end if;
 
-                  Switch_Alternatives := New_List (K_Variant_List);
+                  Switch_Alternatives := New_List;
                   Switch_Case := First_Entity
                     (Switch_Type_Body
                      (Type_Spec_Node));
@@ -1888,7 +1888,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
                         Choices,
                         Default_Met);
 
-                     Switch_Statements := New_List (K_List_Id);
+                     Switch_Statements := New_List;
 
                      --  Getting the field name
 
@@ -1939,7 +1939,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
 
             when K_Any =>
                declare
-                  Profile : constant List_Id := New_List (K_List_Id);
+                  Profile : constant List_Id := New_List;
                begin
                   N := Make_Identifier (Buff);
                   Append_To (Profile, N);
@@ -1984,8 +1984,8 @@ package body Backend.BE_CORBA_Ada.CDRs is
          Buff     : Name_Id)
         return Node_Id
       is
-         Block_Dcl        : constant List_Id := New_List (K_List_Id);
-         Block_St         : constant List_Id := New_List (K_List_Id);
+         Block_Dcl        : constant List_Id := New_List;
+         Block_St         : constant List_Id := New_List;
          N                : Node_Id;
          Type_Spec_Node   : Node_Id;
          Direct_Type_Node : Node_Id;
@@ -2067,7 +2067,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
               | K_Wide_String
               | K_Wide_String_Type =>
                declare
-                  Profile : constant List_Id := New_List (K_List_Id);
+                  Profile : constant List_Id := New_List;
                begin
                   N := Make_Identifier (PN (P_Representation));
                   Append_To (Profile, N);
@@ -2101,7 +2101,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
 
                if Get_Predefined_CORBA_Entity (Type_Spec_Node) = RE_Object then
                   declare
-                     Profile : constant List_Id := New_List (K_List_Id);
+                     Profile : constant List_Id := New_List;
                   begin
                      N := Make_Identifier (Buff);
                      Append_To (Profile, N);
@@ -2151,7 +2151,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
                   Index_Name       : constant Name_Id := Get_Index_Name;
                   Seq_Element_Name : constant Name_Id := Get_Element_Name;
                   Seq_Length       : constant Name_Id := Get_Length_Name;
-                  For_Statements   : constant List_Id := New_List (K_List_Id);
+                  For_Statements   : constant List_Id := New_List;
                begin
                   --  Getting the instantiated package node
 
@@ -2251,7 +2251,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
                   Loop_Statements      : List_Id := No_List;
                   Enclosing_Statements : List_Id;
                   Index_List           : constant List_Id :=
-                    New_List (K_List_Id);
+                    New_List;
                   Index_Node           : Node_Id := No_Node;
                   Array_Element        : constant Name_Id :=
                     Get_Element_Name;
@@ -2270,7 +2270,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
                        (Add_Suffix_To_Name (Var_Suffix, Name_Find));
                      Append_To (Index_List, Index_Node);
                      Enclosing_Statements := Loop_Statements;
-                     Loop_Statements := New_List (K_List_Id);
+                     Loop_Statements := New_List;
                      N := Make_For_Statement
                        (Index_Node, Dim, Loop_Statements);
 
@@ -2417,8 +2417,8 @@ package body Backend.BE_CORBA_Ada.CDRs is
                   --  expression.
 
                   declare
-                     Inner_Dcl : constant List_Id := New_List (K_List_Id);
-                     Inner_St  : constant List_Id := New_List (K_List_Id);
+                     Inner_Dcl : constant List_Id := New_List;
+                     Inner_St  : constant List_Id := New_List;
                      Intermed_Name : constant Name_Id := Get_Union_Name;
                   begin
                      --  Intermediary variable with the correct type
@@ -2476,7 +2476,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
                          (Switch_Type)));
                   end if;
 
-                  Switch_Alternatives := New_List (K_Variant_List);
+                  Switch_Alternatives := New_List;
                   Switch_Case := First_Entity
                     (Switch_Type_Body
                      (Type_Spec_Node));
@@ -2487,7 +2487,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
                         Choices,
                         Default_Met);
 
-                     Switch_Statements := New_List (K_List_Id);
+                     Switch_Statements := New_List;
 
                      Declarator := FEN.Declarator
                        (Element
@@ -2557,7 +2557,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
 
             when K_Any =>
                declare
-                  Profile : constant List_Id := New_List (K_List_Id);
+                  Profile : constant List_Id := New_List;
                begin
                   N := Make_Identifier (Buff);
                   Append_To (Profile, N);

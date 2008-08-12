@@ -566,12 +566,6 @@ package Backend.BE_CORBA_Ada.Nutils is
    --  set the FE_Node of the newly created node to 'From'. 'From' is
    --  consequently assumed to designate an IDL Node_Id
 
-   function New_List
-     (Kind : Node_Kind;
-      From : Node_Id := No_Node) return List_Id;
-   --  The same as New_Node, but creates a List
-   --  Why is there a node kind associated with lists???
-
    function Image (T : Token_Type) return String;
    --  Return the lower case image of token T (used to build the
    --  Token_Image table
@@ -812,7 +806,7 @@ package Backend.BE_CORBA_Ada.Nutils is
      return Node_Id;
 
    function New_List
-     (N1 : Node_Id;
+     (N1 : Node_Id := No_Node;
       N2 : Node_Id := No_Node;
       N3 : Node_Id := No_Node;
       N4 : Node_Id := No_Node;

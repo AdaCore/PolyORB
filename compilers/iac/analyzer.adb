@@ -1476,7 +1476,7 @@ package body Analyzer is
       then
          Prefixes := Type_Prefixes (Scope);
          if Is_Empty (Prefixes) then
-            Prefixes := New_List (K_List_Id, Loc (Scope));
+            Prefixes := New_List (Loc (Scope));
             Set_Type_Prefixes (Scope, Prefixes);
          end if;
          Append_To (Prefixes, Prefix);

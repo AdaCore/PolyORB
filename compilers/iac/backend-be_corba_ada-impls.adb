@@ -227,7 +227,7 @@ package body Backend.BE_CORBA_Ada.Impls is
       begin
          Stub := Stub_Node (BE_Node (Identifier (E)));
          Set_Impl_Spec;
-         Profile := New_List (K_Parameter_Profile);
+         Profile := New_List;
 
          --  Create a dispatching parameter
 
@@ -398,8 +398,8 @@ package body Backend.BE_CORBA_Ada.Impls is
          Stub       : Node_Id;
          Subp_Spec  : Node_Id;
          Returns    : Node_Id := No_Node;
-         D          : constant List_Id := New_List (K_List_Id);
-         S          : constant List_Id := New_List (K_List_Id);
+         D          : constant List_Id := New_List;
+         S          : constant List_Id := New_List;
          N          : Node_Id;
       begin
          Stub := Stub_Node (BE_Node (Identifier (E)));
@@ -467,7 +467,7 @@ package body Backend.BE_CORBA_Ada.Impls is
       Profile : List_Id;
       Param   : Node_Id;
    begin
-      Profile := New_List (K_Parameter_Profile);
+      Profile := New_List;
 
       Param := Make_Parameter_Specification
         (Make_Defining_Identifier (PN (P_Self)),
