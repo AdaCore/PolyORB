@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -36,7 +36,6 @@ with Ada.Streams;
 with PolyORB.Initialization;
 with PolyORB.Parameters;
 with PolyORB.Representations.CDR.Common;
-with PolyORB.Utils.Buffers;
 with PolyORB.Utils.Chained_Lists;
 with PolyORB.Utils.Strings;
 
@@ -46,7 +45,6 @@ package body PolyORB.GIOP_P.Code_Sets.Converters is
    use PolyORB.Buffers;
    use PolyORB.Errors;
    use PolyORB.Representations.CDR.Common;
-   use PolyORB.Utils.Buffers;
    use PolyORB.Types;
 
    --  Character data converters registry data types
@@ -294,14 +292,8 @@ package body PolyORB.GIOP_P.Code_Sets.Converters is
       Alignment : Alignment_Type)
    is
    begin
-      Align_Marshall_Big_Endian_Copy
-        (Buffer,
-         Stream_Element_Array'
-         (Stream_Element (Data / 256**3),
-          Stream_Element ((Data / 256**2) mod 256),
-          Stream_Element ((Data / 256) mod 256),
-          Stream_Element (Data mod 256)),
-         Alignment);
+      pragma Assert (Alignment = 4);
+      Marshall (Buffer, Data);
    end Marshall;
 
    procedure Marshall
@@ -310,11 +302,8 @@ package body PolyORB.GIOP_P.Code_Sets.Converters is
       Alignment : Alignment_Type)
    is
    begin
-      Align_Marshall_Big_Endian_Copy
-        (Buffer,
-         Stream_Element_Array'
-          (Stream_Element (Data / 256), Stream_Element (Data mod 256)),
-         Alignment);
+      pragma Assert (Alignment = 2);
+      Marshall (Buffer, Data);
    end Marshall;
 
    procedure Marshall
@@ -644,44 +633,20 @@ package body PolyORB.GIOP_P.Code_Sets.Converters is
 
    function Unmarshall
      (Buffer    : access Buffer_Type;
-      Alignment : Alignment_Type)
-      return Unsigned_Long
+      Alignment : Alignment_Type) return Unsigned_Long
    is
-      package FSU is
-        new Fixed_Size_Unmarshall (Size => 4, Alignment => Alignment);
-
-      Z : constant FSU.AZ := FSU.Align_Unmarshall (Buffer);
-
    begin
-      if Endianness (Buffer) = Big_Endian then
-         return Types.Unsigned_Long (Z (0)) * 256**3
-              + Types.Unsigned_Long (Z (1)) * 256**2
-              + Types.Unsigned_Long (Z (2)) * 256
-              + Types.Unsigned_Long (Z (3));
-      else
-         return Types.Unsigned_Long (Z (3)) * 256**3
-              + Types.Unsigned_Long (Z (2)) * 256**2
-              + Types.Unsigned_Long (Z (1)) * 256
-              + Types.Unsigned_Long (Z (0));
-      end if;
+      pragma Assert (Alignment = 4);
+      return Unmarshall (Buffer);
    end Unmarshall;
 
    function Unmarshall
      (Buffer    : access Buffer_Type;
-      Alignment : Alignment_Type)
-      return Unsigned_Short
+      Alignment : Alignment_Type) return Unsigned_Short
    is
-      package FSU is
-                new Fixed_Size_Unmarshall (Size => 2, Alignment => Alignment);
-      Z : constant FSU.AZ := FSU.Align_Unmarshall (Buffer);
    begin
-      if Endianness (Buffer) = Big_Endian then
-         return Unsigned_Short (Z (0)) * 256
-              + Unsigned_Short (Z (1));
-      else
-         return Unsigned_Short (Z (1)) * 256
-              + Unsigned_Short (Z (0));
-      end if;
+      pragma Assert (Alignment = 2);
+      return Unmarshall (Buffer);
    end Unmarshall;
 
    procedure Unmarshall

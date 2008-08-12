@@ -31,12 +31,13 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Unchecked_Conversion;
+with GNAT.Byte_Swapping;
 
 with PolyORB.Fixed_Point;
 with PolyORB.Log;
 with PolyORB.References.IOR;
 with PolyORB.Utils.Buffers;
+pragma Elaborate_All (PolyORB.Utils.Buffers);
 
 package body PolyORB.Representations.CDR.Common is
 
@@ -51,66 +52,6 @@ package body PolyORB.Representations.CDR.Common is
       renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
-
-   --------------------------------
-   -- Types conversion functions --
-   --------------------------------
-
-   function To_Long_Long is
-      new Ada.Unchecked_Conversion
-        (PolyORB.Types.Unsigned_Long_Long, PolyORB.Types.Long_Long);
-
-   function To_Unsigned_Long_Long is
-      new Ada.Unchecked_Conversion
-        (PolyORB.Types.Long_Long, PolyORB.Types.Unsigned_Long_Long);
-
-   function To_Long is
-      new Ada.Unchecked_Conversion
-        (PolyORB.Types.Unsigned_Long, PolyORB.Types.Long);
-
-   function To_Unsigned_Long is
-      new Ada.Unchecked_Conversion
-     (PolyORB.Types.Long, PolyORB.Types.Unsigned_Long);
-
-   function To_Short is
-      new Ada.Unchecked_Conversion
-        (PolyORB.Types.Unsigned_Short, PolyORB.Types.Short);
-
-   function To_Unsigned_Short is
-      new Ada.Unchecked_Conversion
-        (PolyORB.Types.Short, PolyORB.Types.Unsigned_Short);
-
-   subtype Double_Buf is Stream_Element_Array (1 .. 8);
-   --  FIXME LONG DOUBLE
-   subtype Long_Double_Buf is Stream_Element_Array (1 .. 12);
-   pragma Warnings (Off);
-   pragma Unreferenced (Long_Double_Buf);
-   pragma Warnings (On);
-
-   function To_Unsigned_Long is
-      new Ada.Unchecked_Conversion
-        (PolyORB.Types.Float, PolyORB.Types.Unsigned_Long);
-
-   function To_Float is
-      new Ada.Unchecked_Conversion
-        (PolyORB.Types.Unsigned_Long, PolyORB.Types.Float);
-
-   function To_Double_Buf is
-      new Ada.Unchecked_Conversion
-        (PolyORB.Types.Double, Double_Buf);
-
-   function To_Double is
-      new Ada.Unchecked_Conversion
-        (Double_Buf, PolyORB.Types.Double);
-
-   --   function To_Long_Double_Buf is
-   --      new Ada.Unchecked_Conversion
-   --       (PolyORB.Types.Long_Double, Long_Double_Buf);
-   --   function To_Long_Double is
-   --      new Ada.Unchecked_Conversion
-   --       (Long_Double_Buf, PolyORB.Types.Long_Double);
-
-   --  Internal utility functions
 
    -----------------
    -- Encapsulate --
@@ -129,9 +70,7 @@ package body PolyORB.Representations.CDR.Common is
    begin
       Set_Initial_Position (Buffer, 0);
       Marshall
-        (Buffer,
-         PolyORB.Types.Boolean
-         (Endianness (Buffer) = Little_Endian));
+        (Buffer, PolyORB.Types.Boolean (Endianness (Buffer) = Little_Endian));
       --  An encapsulation starts with a Boolean value
       --  which is True if the remainder of the buffer is
       --  Little_Endian, and False otherwise.
@@ -253,124 +192,79 @@ package body PolyORB.Representations.CDR.Common is
       pragma Debug (C, O ("Marshall (Octet) : end"));
    end Marshall;
 
-   --  Marshalling of an Unsigned Short
+   --  Transfer of elementary integer types
+
+   function Swapped is
+     new GNAT.Byte_Swapping.Swapped2 (PolyORB.Types.Unsigned_Short);
+   package CDR_Unsigned_Short is
+     new Align_Transfer_Elementary (T => PolyORB.Types.Unsigned_Short);
+
+   function Swapped is
+     new GNAT.Byte_Swapping.Swapped2 (PolyORB.Types.Short);
+   package CDR_Short is
+     new Align_Transfer_Elementary (T => PolyORB.Types.Short);
+
+   function Swapped is
+     new GNAT.Byte_Swapping.Swapped4 (PolyORB.Types.Unsigned_Long);
+   package CDR_Unsigned_Long is
+     new Align_Transfer_Elementary (T => PolyORB.Types.Unsigned_Long);
+
+   function Swapped is
+     new GNAT.Byte_Swapping.Swapped4 (PolyORB.Types.Long);
+   package CDR_Long is
+     new Align_Transfer_Elementary (T => PolyORB.Types.Long);
+
+   function Swapped is
+     new GNAT.Byte_Swapping.Swapped4 (PolyORB.Types.Float);
+   package CDR_Float is
+     new Align_Transfer_Elementary (T => PolyORB.Types.Float);
+
+   function Swapped is
+     new GNAT.Byte_Swapping.Swapped8 (PolyORB.Types.Unsigned_Long_Long);
+   package CDR_Unsigned_Long_Long is
+     new Align_Transfer_Elementary (T => PolyORB.Types.Unsigned_Long_Long);
+
+   function Swapped is
+     new GNAT.Byte_Swapping.Swapped8 (PolyORB.Types.Long_Long);
+   package CDR_Long_Long is
+     new Align_Transfer_Elementary (T => PolyORB.Types.Long_Long);
+
+   function Swapped is
+     new GNAT.Byte_Swapping.Swapped8 (PolyORB.Types.Double);
+   package CDR_Double is
+     new Align_Transfer_Elementary (T => PolyORB.Types.Double);
 
    procedure Marshall
-     (Buffer : access Buffer_Type;
-      Data   : PolyORB.Types.Unsigned_Short)
-   is
-   begin
-      pragma Debug (C, O ("Marshall (UShort) : enter"));
-      Align_Marshall_Big_Endian_Copy
-        (Buffer,
-         Stream_Element_Array'(Stream_Element (Data / 256),
-          Stream_Element (Data mod 256)),
-         2);
-      pragma Debug (C, O ("Marshall (UShort) : end"));
-   end Marshall;
-
-   --  Marshalling of an Unsigned Long
+     (Buffer : access Buffer_Type; Data : PolyORB.Types.Unsigned_Short)
+      renames CDR_Unsigned_Short.Marshall;
 
    procedure Marshall
-     (Buffer : access Buffer_Type;
-      Data   : PolyORB.Types.Unsigned_Long)
-   is
-   begin
-      pragma Debug (C, O ("Marshall (ULong) : enter"));
-      Align_Marshall_Big_Endian_Copy
-        (Buffer,
-          Stream_Element_Array'(Stream_Element (Data / 256**3),
-          Stream_Element ((Data / 256**2) mod 256),
-          Stream_Element ((Data / 256) mod 256),
-          Stream_Element (Data mod 256)),
-         4);
-      pragma Debug (C, O ("Marshall (ULong) : end"));
-   end Marshall;
-
-   --  Marshalling of an Unsigned Long Long
+     (Buffer : access Buffer_Type; Data : PolyORB.Types.Short)
+      renames CDR_Short.Marshall;
 
    procedure Marshall
-     (Buffer : access Buffer_Type;
-      Data   : PolyORB.Types.Unsigned_Long_Long)
-   is
-   begin
-      pragma Debug (C, O ("Marshall (ULongLong) : enter"));
-      Align_Marshall_Big_Endian_Copy
-        (Buffer,
-         Stream_Element_Array'(Stream_Element (Data / 256**7),
-          Stream_Element ((Data / 256**6) mod 256),
-          Stream_Element ((Data / 256**5) mod 256),
-          Stream_Element ((Data / 256**4) mod 256),
-          Stream_Element ((Data / 256**3) mod 256),
-          Stream_Element ((Data / 256**2) mod 256),
-          Stream_Element ((Data / 256) mod 256),
-          Stream_Element (Data mod 256)),
-         8);
-      pragma Debug (C, O ("Marshall (ULongLong) : end"));
-   end Marshall;
-
-   --  Marshalling of a Long Long
+     (Buffer : access Buffer_Type; Data : PolyORB.Types.Unsigned_Long)
+      renames CDR_Unsigned_Long.Marshall;
 
    procedure Marshall
-     (Buffer : access Buffer_Type;
-      Data   : PolyORB.Types.Long_Long)
-   is
-   begin
-      pragma Debug (C, O ("Marshall (LongLong) : enter"));
-      Marshall (Buffer, To_Unsigned_Long_Long (Data));
-      pragma Debug (C, O ("Marshall (LongLong) : end"));
-   end Marshall;
-
-   --  Marshalling of a Long
+     (Buffer : access Buffer_Type; Data : PolyORB.Types.Long)
+      renames CDR_Long.Marshall;
 
    procedure Marshall
-     (Buffer : access Buffer_Type;
-      Data   : PolyORB.Types.Long)
-   is
-   begin
-      pragma Debug (C, O ("Marshall (Long) : enter"));
-      Marshall (Buffer, To_Unsigned_Long (Data));
-      pragma Debug (C, O ("Marshall (Long) : end"));
-   end Marshall;
-
-   --  Marshalling of a Short
+     (Buffer : access Buffer_Type; Data : PolyORB.Types.Float)
+      renames CDR_Float.Marshall;
 
    procedure Marshall
-     (Buffer : access Buffer_Type;
-      Data   : PolyORB.Types.Short)
-   is
-   begin
-      pragma Debug (C, O ("Marshall (Short) : enter"));
-      Marshall (Buffer, To_Unsigned_Short (Data));
-      pragma Debug (C, O ("Marshall (Short) : end"));
-   end Marshall;
-
-   --  Marshalling of a Float
+     (Buffer : access Buffer_Type; Data : PolyORB.Types.Unsigned_Long_Long)
+      renames CDR_Unsigned_Long_Long.Marshall;
 
    procedure Marshall
-     (Buffer : access Buffer_Type;
-      Data   : PolyORB.Types.Float)
-   is
-   begin
-      pragma Debug (C, O ("Marshall (Float) : enter"));
-      Marshall (Buffer, To_Unsigned_Long (Data));
-      pragma Debug (C, O ("Marshall (Float) : end"));
-   end Marshall;
-
-   --  Marshalling of a Double
+     (Buffer : access Buffer_Type; Data : PolyORB.Types.Long_Long)
+      renames CDR_Long_Long.Marshall;
 
    procedure Marshall
-     (Buffer : access Buffer_Type;
-      Data   : PolyORB.Types.Double)
-   is
-      Buf : constant Double_Buf := To_Double_Buf (Data);
-
-   begin
-      pragma Debug (C, O ("Marshall (Double): enter, Data = "
-                       & PolyORB.Types.Double'Image (Data)));
-      Align_Marshall_Host_Endian_Copy (Buffer, Buf, 8);
-      pragma Debug (C, O ("Marshall (Double): end"));
-   end Marshall;
+     (Buffer : access Buffer_Type; Data : PolyORB.Types.Double)
+      renames CDR_Double.Marshall;
 
    --  Marshalling of a Long Double
 
@@ -697,124 +591,46 @@ package body PolyORB.Representations.CDR.Common is
    end Unmarshall_Latin_1_Char;
 
    function Unmarshall
-     (Buffer : access Buffer_Type)
-     return PolyORB.Types.Octet
+     (Buffer : access Buffer_Type) return PolyORB.Types.Octet
    is
-      Result : constant Stream_Element_Array
-        := Align_Unmarshall_Copy (Buffer, 1, 1);
-
+      Result : Stream_Element_Array (1 .. 1);
    begin
+      Align_Unmarshall_Copy (Buffer, 1, Result);
       pragma Debug (C, O ("Unmarshall (Octet) : enter & end"));
-      return PolyORB.Types.Octet (Result (Result'First));
+      return PolyORB.Types.Octet (Result (1));
    end Unmarshall;
 
    function Unmarshall
      (Buffer : access Buffer_Type) return PolyORB.Types.Unsigned_Short
-   is
-      package FSU is new Fixed_Size_Unmarshall (Size => 2, Alignment => 2);
-      Z : constant FSU.AZ := FSU.Align_Unmarshall (Buffer);
-   begin
-      if Endianness (Buffer) = Big_Endian then
-         return Types.Unsigned_Short (Z (0)) * 256
-              + Types.Unsigned_Short (Z (1));
-      else
-         return Types.Unsigned_Short (Z (1)) * 256
-              + Types.Unsigned_Short (Z (0));
-      end if;
-   end Unmarshall;
+     renames CDR_Unsigned_Short.Unmarshall;
 
    function Unmarshall
      (Buffer : access Buffer_Type) return PolyORB.Types.Unsigned_Long
-   is
-      package FSU is new Fixed_Size_Unmarshall (Size => 4, Alignment => 4);
-      Z : constant FSU.AZ := FSU.Align_Unmarshall (Buffer);
-   begin
-      if Endianness (Buffer) = Big_Endian then
-         return Types.Unsigned_Long (Z (0)) * 256**3
-              + Types.Unsigned_Long (Z (1)) * 256**2
-              + Types.Unsigned_Long (Z (2)) * 256
-              + Types.Unsigned_Long (Z (3));
-      else
-         return Types.Unsigned_Long (Z (3)) * 256**3
-              + Types.Unsigned_Long (Z (2)) * 256**2
-              + Types.Unsigned_Long (Z (1)) * 256
-              + Types.Unsigned_Long (Z (0));
-      end if;
-   end Unmarshall;
+     renames CDR_Unsigned_Long.Unmarshall;
 
    function Unmarshall
      (Buffer : access Buffer_Type) return PolyORB.Types.Unsigned_Long_Long
-   is
-      package FSU is new Fixed_Size_Unmarshall (Size => 8, Alignment => 8);
-      Z : constant FSU.AZ := FSU.Align_Unmarshall (Buffer);
-   begin
-      if Endianness (Buffer) = Big_Endian then
-         return Types.Unsigned_Long_Long (Z (0)) * 256**7
-              + Types.Unsigned_Long_Long (Z (1)) * 256**6
-              + Types.Unsigned_Long_Long (Z (2)) * 256**5
-              + Types.Unsigned_Long_Long (Z (3)) * 256**4
-              + Types.Unsigned_Long_Long (Z (4)) * 256**3
-              + Types.Unsigned_Long_Long (Z (5)) * 256**2
-              + Types.Unsigned_Long_Long (Z (6)) * 256
-              + Types.Unsigned_Long_Long (Z (7));
-      else
-         return Types.Unsigned_Long_Long (Z (7)) * 256**7
-              + Types.Unsigned_Long_Long (Z (6)) * 256**6
-              + Types.Unsigned_Long_Long (Z (5)) * 256**5
-              + Types.Unsigned_Long_Long (Z (4)) * 256**4
-              + Types.Unsigned_Long_Long (Z (3)) * 256**3
-              + Types.Unsigned_Long_Long (Z (2)) * 256**2
-              + Types.Unsigned_Long_Long (Z (1)) * 256
-              + Types.Unsigned_Long_Long (Z (0));
-      end if;
-   end Unmarshall;
+     renames CDR_Unsigned_Long_Long.Unmarshall;
+
+   function Unmarshall
+     (Buffer : access Buffer_Type) return PolyORB.Types.Short
+     renames CDR_Short.Unmarshall;
+
+   function Unmarshall
+     (Buffer : access Buffer_Type) return PolyORB.Types.Long
+     renames CDR_Long.Unmarshall;
+
+   function Unmarshall
+     (Buffer : access Buffer_Type) return PolyORB.Types.Float
+     renames CDR_Float.Unmarshall;
 
    function Unmarshall
      (Buffer : access Buffer_Type) return PolyORB.Types.Long_Long
-   is
-   begin
-      pragma Debug (C, O ("Unmarshall (LongLong) : enter & end"));
-      return To_Long_Long (Unmarshall (Buffer));
-   end Unmarshall;
+     renames CDR_Long_Long.Unmarshall;
 
    function Unmarshall
-     (Buffer : access Buffer_Type)
-     return PolyORB.Types.Long
-   is
-   begin
-      pragma Debug (C, O ("Unmarshall (Long) : enter & end"));
-      return To_Long (Unmarshall (Buffer));
-   end Unmarshall;
-
-   function Unmarshall
-     (Buffer : access Buffer_Type)
-     return PolyORB.Types.Short
-   is
-   begin
-      pragma Debug (C, O ("Unmarshall (Short) : enter & end"));
-      return To_Short (Unmarshall (Buffer));
-   end Unmarshall;
-
-   function Unmarshall
-     (Buffer : access Buffer_Type)
-     return PolyORB.Types.Float
-   is
-   begin
-      pragma Debug (C, O ("Unmarshall (Float) : enter & end"));
-      return To_Float (Unmarshall (Buffer));
-   end Unmarshall;
-
-   function Unmarshall
-     (Buffer : access Buffer_Type)
-     return PolyORB.Types.Double
-   is
-      Octets : constant Stream_Element_Array
-        := Align_Unmarshall_Host_Endian_Copy (Buffer, 8, 8);
-
-   begin
-      pragma Debug (C, O ("Unmarshall (Double): enter & end"));
-      return To_Double (Double_Buf (Octets));
-   end Unmarshall;
+     (Buffer : access Buffer_Type) return PolyORB.Types.Double
+     renames CDR_Double.Unmarshall;
 
    function Unmarshall
      (Buffer : access Buffer_Type)

@@ -37,90 +37,67 @@ with PolyORB.Opaque; use PolyORB.Opaque;
 
 package body PolyORB.Utils.Buffers is
 
-   ---------
-   -- Rev --
-   ---------
+   -------------------------------
+   -- Align_Transfer_Elementary --
+   -------------------------------
 
-   function Rev (Octets : Stream_Element_Array) return Stream_Element_Array;
-   pragma Inline (Rev);
-   --  Reverse the order of an array of octets
+   package body Align_Transfer_Elementary is
 
-   function Rev (Octets : Stream_Element_Array) return Stream_Element_Array
-   is
-      Result : Stream_Element_Array (Octets'Range);
-   begin
-      for J in Octets'Range loop
-         Result (Octets'Last - J + Octets'First) := Octets (J);
-      end loop;
+      --------------
+      -- Marshall --
+      --------------
 
-      return Result;
-   end Rev;
+      procedure Marshall
+        (Buffer : access Buffer_Type;
+         Item   : T)
+      is
+         Data_Address : Opaque_Pointer;
+      begin
+         Pad_Align (Buffer, T'Size / 8);
 
-   ------------------------------------
-   -- Align_Marshall_Big_Endian_Copy --
-   ------------------------------------
+         Allocate_And_Insert_Cooked_Data
+           (Buffer,
+            T'Size / 8,
+            Data_Address);
 
-   procedure Align_Marshall_Big_Endian_Copy
-     (Buffer    : access Buffer_Type;
-      Octets    :        Stream_Element_Array;
-      Alignment :        Alignment_Type := 1) is
-   begin
-      if Endianness (Buffer) = Big_Endian then
-         Align_Marshall_Copy (Buffer, Octets, Alignment);
-      else
-         Align_Marshall_Copy (Buffer, Rev (Octets), Alignment);
-      end if;
-   end Align_Marshall_Big_Endian_Copy;
+         declare
+            Z_Addr : constant System.Address := Data_Address;
+            Z : T;
+            for Z'Address use Z_Addr;
+            pragma Import (Ada, Z);
+         begin
+            if Endianness (Buffer) = Host_Order then
+               Z := Item;
+            else
+               Z := Swapped (Item);
+            end if;
+         end;
+      end Marshall;
 
-   --------------------------------------
-   -- Align_Unmarshall_Big_Endian_Copy --
-   --------------------------------------
+      ----------------
+      -- Unmarshall --
+      ----------------
 
-   function Align_Unmarshall_Big_Endian_Copy
-     (Buffer    : access Buffer_Type;
-      Size      : Stream_Element_Count;
-      Alignment : Alignment_Type := 1) return Stream_Element_Array
-   is
-   begin
-      if Endianness (Buffer) = Big_Endian then
-         return Align_Unmarshall_Copy (Buffer, Size, Alignment);
-      else
-         return Rev (Align_Unmarshall_Copy (Buffer, Size, Alignment));
-      end if;
-   end Align_Unmarshall_Big_Endian_Copy;
+      function Unmarshall (Buffer : access Buffer_Type) return T is
+         Data_Address : Opaque_Pointer;
+      begin
+         Align_Position (Buffer, T'Size / 8);
+         Extract_Data (Buffer, Data_Address, T'Size / 8);
 
-   -------------------------------------
-   -- Align_Marshall_Host_Endian_Copy --
-   -------------------------------------
-
-   procedure Align_Marshall_Host_Endian_Copy
-     (Buffer    : access Buffer_Type;
-      Octets    : Stream_Element_Array;
-      Alignment : Alignment_Type := 1) is
-   begin
-      if Endianness (Buffer) = Host_Order then
-         Align_Marshall_Copy (Buffer, Octets, Alignment);
-      else
-         Align_Marshall_Copy (Buffer, Rev (Octets), Alignment);
-      end if;
-   end Align_Marshall_Host_Endian_Copy;
-
-   --------------------------------------
-   -- Align_Unmarshall_Host_Endian_Copy --
-   --------------------------------------
-
-   function Align_Unmarshall_Host_Endian_Copy
-     (Buffer    : access Buffer_Type;
-      Size      : Stream_Element_Count;
-      Alignment : Alignment_Type := 1) return Stream_Element_Array
-   is
-   begin
-      if Endianness (Buffer) = Host_Order then
-         return Align_Unmarshall_Copy (Buffer, Size, Alignment);
-      else
-         return Rev (Align_Unmarshall_Copy (Buffer, Size, Alignment));
-      end if;
-   end Align_Unmarshall_Host_Endian_Copy;
+         declare
+            Z_Addr : constant System.Address := Data_Address;
+            Z : T;
+            for Z'Address use Z_Addr;
+            pragma Import (Ada, Z);
+         begin
+            if Endianness (Buffer) = Host_Order then
+               return Z;
+            else
+               return Swapped (Z);
+            end if;
+         end;
+      end Unmarshall;
+   end Align_Transfer_Elementary;
 
    -------------------------
    -- Align_Marshall_Copy --
@@ -153,22 +130,7 @@ package body PolyORB.Utils.Buffers is
    -- Align_Unmarshall_Copy --
    ---------------------------
 
-   function Align_Unmarshall_Copy
-     (Buffer    : access Buffer_Type;
-      Size      : Stream_Element_Count;
-      Alignment : Alignment_Type := 1) return Stream_Element_Array
-   is
-      package FSU is new Fixed_Size_Unmarshall
-        (Size => Size, Alignment => Alignment);
-   begin
-      return Stream_Element_Array (FSU.Align_Unmarshall (Buffer).all);
-   end Align_Unmarshall_Copy;
-
-   --------------------------------------
-   -- Align_Unmarshall_Reassemble_Copy --
-   --------------------------------------
-
-   procedure Align_Unmarshall_Reassemble_Copy
+   procedure Align_Unmarshall_Copy
      (Buffer    : access Buffer_Type;
       Alignment : Alignment_Type := 1;
       Data      : out Stream_Element_Array)
@@ -196,22 +158,6 @@ package body PolyORB.Utils.Buffers is
          end;
          Index := Index + Size;
       end loop;
-   end Align_Unmarshall_Reassemble_Copy;
-
-   ---------------------------
-   -- Fixed_Size_Unmarshall --
-   ---------------------------
-
-   package body Fixed_Size_Unmarshall is
-
-      function Align_Unmarshall (Buffer : access Buffer_Type) return AZ is
-         Data_Address : Opaque_Pointer;
-      begin
-         Align_Position (Buffer, Alignment);
-         Extract_Data (Buffer, Data_Address, Size);
-         return Address_To_Access_Conversion.To_Pointer (Data_Address);
-      end Align_Unmarshall;
-
-   end Fixed_Size_Unmarshall;
+   end Align_Unmarshall_Copy;
 
 end PolyORB.Utils.Buffers;

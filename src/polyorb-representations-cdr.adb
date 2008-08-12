@@ -2318,7 +2318,7 @@ package body PolyORB.Representations.CDR is
                         for Data'Address use Aggregate_Data;
                         pragma Import (Ada, Data);
                      begin
-                        Utils.Buffers.Align_Unmarshall_Reassemble_Copy
+                        Utils.Buffers.Align_Unmarshall_Copy
                           (Buffer,
                            Aggregate_Alignment,
                            Data);
