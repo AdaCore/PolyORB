@@ -932,7 +932,7 @@ package body Parser is
             return No_Node;
          end if;
 
-         Append_Node_To_List (Array_Size, Array_Sizes);
+         Append_To (Array_Sizes, Array_Size);
 
          Scan_Token (T_Right_Bracket);
          if Token = T_Error then
@@ -963,7 +963,7 @@ package body Parser is
             return List;
          end if;
 
-         Append_Node_To_List (Node, List);
+         Append_To (List, Node);
          exit when Next_Token /= T_Comma;
          Scan_Token; --  past ','
       end loop;
@@ -1151,7 +1151,7 @@ package body Parser is
          Enumerator := New_Node (K_Enumerator, Loc (Identifier));
          Bind_Identifier_To_Entity (Identifier, Enumerator);
 
-         Append_Node_To_List (Enumerator, Enumerators);
+         Append_To (Enumerators, Enumerator);
          Position := Position + 1;
          Set_Value
            (Enumerator,
@@ -1218,7 +1218,7 @@ package body Parser is
             exit;
          end if;
 
-         Append_Node_To_List (Member, Members);
+         Append_To (Members, Member);
       end loop;
 
       return Node;
@@ -1259,7 +1259,7 @@ package body Parser is
             exit;
          end if;
 
-         Append_Node_To_List (Scoped_Name, Exception_List);
+         Append_To (Exception_List, Scoped_Name);
 
          Save_Lexer (State);
          Scan_Token ((T_Comma, T_Right_Paren));
@@ -1554,7 +1554,7 @@ package body Parser is
                exit;
             end if;
 
-            Append_Node_To_List (Parameter, Parameters);
+            Append_To (Parameters, Parameter);
          end if;
 
          Save_Lexer (State);
@@ -1685,7 +1685,7 @@ package body Parser is
                return No_Node;
             end if;
 
-            Append_Node_To_List (Interface_Name, Interface_Spec);
+            Append_To (Interface_Spec, Interface_Name);
 
             exit when Next_Token /= T_Comma;
             Scan_Token; --  past ','
@@ -1719,7 +1719,7 @@ package body Parser is
             exit;
          end if;
 
-         Append_Node_To_List (Export, Interface_Body);
+         Append_To (Interface_Body, Export);
       end loop;
 
       return Node;
@@ -1820,7 +1820,7 @@ package body Parser is
       loop
          Definition := P_Definition;
          if Present (Definition) then
-            Append_Node_To_List (Definition, Definitions);
+            Append_To (Definitions, Definition);
          end if;
 
          case Next_Token is
@@ -1919,7 +1919,7 @@ package body Parser is
                New_String_Value (Value => String_Literal_Value,
                                  Wide  => Is_Wide_Literal_Value));
 
-            Append_Node_To_List (String_Literal, Context_List);
+            Append_To (Context_List, String_Literal);
 
             Save_Lexer (State);
             Scan_Token ((T_Right_Paren, T_Comma));
@@ -2004,7 +2004,7 @@ package body Parser is
                exit;
             end if;
 
-            Append_Node_To_List (Parameter, Parameters);
+            Append_To (Parameters, Parameter);
 
             Save_Lexer (State);
             Scan_Token ((T_Right_Paren, T_Comma));
@@ -2514,7 +2514,7 @@ package body Parser is
          Import := P_Import;
          if Present (Import) then
             Set_Imported (Import, Imported);
-            Append_Node_To_List (Import, Imports);
+            Append_To (Imports, Import);
          end if;
          Next := Next_Token;
       end loop;
@@ -2523,7 +2523,7 @@ package body Parser is
          Definition := P_Definition;
          if Present (Definition) then
             Set_Imported (Definition, Imported);
-            Append_Node_To_List (Definition, Definitions);
+            Append_To (Definitions, Definition);
          end if;
          exit when Next_Token = T_EOF;
       end loop;
@@ -2654,7 +2654,7 @@ package body Parser is
             exit;
          end if;
 
-         Append_Node_To_List (Member, Members);
+         Append_To (Members, Member);
 
          if Next_Token = T_Right_Brace then
             Scan_Token;
@@ -3034,7 +3034,7 @@ package body Parser is
             end if;
 
             Set_Expression (Case_Label, Expression);
-            Append_Node_To_List (Case_Label, Case_Labels);
+            Append_To (Case_Labels, Case_Label);
 
             --  (76) <case_label> ::= "case" <const_exp> ":"
             --                      | "default" ":"
@@ -3077,7 +3077,7 @@ package body Parser is
          Set_Element     (Switch_Alt_Decl, Element);
          Set_Declaration (Switch_Alt_Decl, Node);
 
-         Append_Node_To_List (Switch_Alt_Decl, Switch_Type_Body);
+         Append_To (Switch_Type_Body, Switch_Alt_Decl);
 
          Save_Lexer (State);
          Scan_Token (T_Semi_Colon);
@@ -3200,7 +3200,7 @@ package body Parser is
                exit;
             end if;
 
-            Append_Node_To_List (Export, Value_Body);
+            Append_To (Value_Body, Export);
 
             if Next_Token = T_Right_Brace then
                Scan_Token;
@@ -3314,7 +3314,7 @@ package body Parser is
             exit;
          end if;
 
-         Append_Node_To_List (Value_Element, Value_Body);
+         Append_To (Value_Body, Value_Element);
       end loop;
 
       return Node;
@@ -3384,7 +3384,7 @@ package body Parser is
                return No_Node;
             end if;
 
-            Append_Node_To_List (Scoped_Name, Value_Names);
+            Append_To (Value_Names, Scoped_Name);
 
             exit when Next_Token /= T_Comma;
             Scan_Token; --  past ','
@@ -3402,7 +3402,7 @@ package body Parser is
                return No_Node;
             end if;
 
-            Append_Node_To_List (Interface_Name, Interface_Names);
+            Append_To (Interface_Names, Interface_Name);
 
             exit when Next_Token /= T_Comma;
             Scan_Token;  --  past ','

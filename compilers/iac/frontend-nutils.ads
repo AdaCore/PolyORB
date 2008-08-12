@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -45,8 +45,8 @@ package Frontend.Nutils is
    function First_Homonym (N : Node_Id) return Node_Id;
    procedure Set_First_Homonym (N : Node_Id; V : Node_Id);
 
-   procedure Append_Node_To_List (E : Node_Id; L : List_Id);
-   --  Append node N to list L.
+   procedure Append_To (L : List_Id; E : Node_Id);
+   --  Append node E to list L.
 
    procedure Insert_After_Node (E : Node_Id; N : Node_Id);
    --  Insert node E after node N

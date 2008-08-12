@@ -136,7 +136,7 @@ package body Backend.BE_CORBA_Ada.Aligned is
 
                   if not Is_Empty (L) then
                      N := First_Node (L);
-                     Append_Node_To_List (N, Discr);
+                     Append_To (Discr, N);
                      L := No_List;
                   end if;
 
@@ -144,7 +144,7 @@ package body Backend.BE_CORBA_Ada.Aligned is
                     (Defining_Identifier => Make_Defining_Identifier
                      (IDL_Name (Identifier (Declarator (Par)))),
                      Subtype_Indication  => Par_Type);
-                  Append_Node_To_List (Component, Components);
+                  Append_To (Components, Component);
                end if;
 
                Par := Next_Entity (Par);
@@ -220,7 +220,7 @@ package body Backend.BE_CORBA_Ada.Aligned is
 
                   if not Is_Empty (L) then
                      N := First_Node (L);
-                     Append_Node_To_List (N, Discr);
+                     Append_To (Discr, N);
                      L := No_List;
                   end if;
 
@@ -228,7 +228,7 @@ package body Backend.BE_CORBA_Ada.Aligned is
                     (Defining_Identifier => Make_Defining_Identifier
                      (IDL_Name (Identifier (Declarator (Par)))),
                      Subtype_Indication  => Par_Type);
-                  Append_Node_To_List (Component, Components);
+                  Append_To (Components, Component);
                end if;
                Par := Next_Entity (Par);
             end loop;
@@ -259,7 +259,7 @@ package body Backend.BE_CORBA_Ada.Aligned is
 
             if not Is_Empty (L) then
                N := First_Node (L);
-               Append_Node_To_List (N, Discr);
+               Append_To (Discr, N);
                L := No_List;
             end if;
 
@@ -267,7 +267,7 @@ package body Backend.BE_CORBA_Ada.Aligned is
               (Defining_Identifier => Make_Defining_Identifier
                (PN (P_Returns)),
                Subtype_Indication  => Par_Type);
-            Append_Node_To_List (Component, Components);
+            Append_To (Components, Component);
          end if;
 
          --  The record name
@@ -392,8 +392,7 @@ package body Backend.BE_CORBA_Ada.Aligned is
                   Type_Definition     => Make_Decimal_Type_Definition
                   (Type_Spec_Node));
 
-               Append_Node_To_List (Fixed_Type_Node,
-                                    Visible_Part (Current_Package));
+               Append_To (Visible_Part (Current_Package), Fixed_Type_Node);
             end;
 
          elsif FEN.Kind (Type_Spec_Node) = K_String_Type or else
@@ -434,11 +433,10 @@ package body Backend.BE_CORBA_Ada.Aligned is
                Str_Package_Inst := Make_Package_Instantiation
                  (Defining_Identifier => Pkg_Node,
                   Generic_Package     => String_Pkg,
-                  Parameter_List      => Make_List_Id
+                  Parameter_List      => New_List
                   (Make_Literal (FEN.Value (Max_Size (Type_Spec_Node)))));
 
-               Append_Node_To_List (Str_Package_Inst,
-                                    Visible_Part (Current_Package));
+               Append_To (Visible_Part (Current_Package), Str_Package_Inst);
 
                T := Make_Selected_Component (Pkg_Node, T);
             end;
@@ -486,7 +484,7 @@ package body Backend.BE_CORBA_Ada.Aligned is
 
                   K := Make_Defining_Identifier (Name_Find);
                   M := Make_Full_Type_Declaration (K, M);
-                  Append_Node_To_List (M, Visible_Part (Current_Package));
+                  Append_To (Visible_Part (Current_Package), M);
 
                   --  Declration of the sequence type
 
@@ -509,7 +507,7 @@ package body Backend.BE_CORBA_Ada.Aligned is
 
                   M := Make_Component_Declaration
                     (Make_Defining_Identifier (PN (P_Content)), K);
-                  Append_Node_To_List (M, L);
+                  Append_To (L, M);
 
                   --  Discriminant
 
@@ -521,7 +519,7 @@ package body Backend.BE_CORBA_Ada.Aligned is
 
                      M := Make_Component_Declaration
                        (M, RE (RE_Unsigned_Long_10));
-                     Append_Node_To_List (M, Disc);
+                     Append_To (Disc, M);
                   end if;
 
                   --  Type declaration
@@ -541,7 +539,7 @@ package body Backend.BE_CORBA_Ada.Aligned is
                   Is_Subtype => Is_Subtype);
             end if;
 
-            Append_Node_To_List (N, Visible_Part (Current_Package));
+            Append_To (Visible_Part (Current_Package), N);
 
             D := Next_Entity (D);
          end loop;
@@ -604,14 +602,14 @@ package body Backend.BE_CORBA_Ada.Aligned is
                Get_Discriminants (Member, L, False, True);
                M := Make_Variable_Type (M, Type_Spec (Member), L);
                C := First_Node (L);
-               Append_Node_To_List (C, Discr);
+               Append_To (Discr, C);
                L := New_List (K_Component_List);
             end if;
 
             N := Make_Component_Declaration
               (Defining_Identifier => N,
                Subtype_Indication  => M);
-            Append_Node_To_List (N, Components);
+            Append_To (Components, N);
 
             Member := Next_Entity (Member);
          end loop;
@@ -624,7 +622,7 @@ package body Backend.BE_CORBA_Ada.Aligned is
            (Defining_Identifier   => N,
             Type_Definition       => Make_Record_Definition (Components),
             Discriminant_Spec     => Discr);
-         Append_Node_To_List (N, Visible_Part (Current_Package));
+         Append_To (Visible_Part (Current_Package), N);
       end Visit_Structure_Type;
 
       ----------------------
@@ -691,7 +689,7 @@ package body Backend.BE_CORBA_Ada.Aligned is
                   Choice := Cast_Variable_To_PolyORB_Aligned_Type (Choice, S);
                end if;
 
-               Append_Node_To_List (Choice, Choices);
+               Append_To (Choices, Choice);
                Label := Next_Entity (Label);
             end loop;
 
@@ -706,38 +704,35 @@ package body Backend.BE_CORBA_Ada.Aligned is
                Get_Discriminants (Element (Switch_Case), L);
                M := Make_Variable_Type
                  (M, Type_Spec (Element (Switch_Case)), L);
-               Append_Node_To_List (First_Node (L), Discr);
+               Append_To (Discr, First_Node (L));
                L := New_List (K_Component_List);
             end if;
 
             Set_Component (Variant, Make_Component_Declaration (N, M));
 
-            Append_Node_To_List (Variant, Variants);
+            Append_To (Variants, Variant);
             Switch_Case := Next_Entity (Switch_Case);
          end loop;
 
-         Append_Node_To_List
-           (Make_Component_Declaration
-            (Make_Defining_Identifier (CN (C_Switch)), T,
-             Make_Attribute_Reference (T, A_First)),
-            Discr);
+         Append_To (Discr,
+           Make_Component_Declaration
+             (Make_Defining_Identifier (CN (C_Switch)), T,
+              Make_Attribute_Reference (T, A_First)));
 
-         Append_Node_To_List
-           (Make_Variant_Part
-            (Make_Defining_Identifier (CN (C_Switch)),
-             Variants),
-            Components);
+         Append_To (Components,
+           Make_Variant_Part
+             (Make_Defining_Identifier (CN (C_Switch)),
+              Variants));
 
          --  Type declaration
 
-         N := Make_Defining_Identifier (FEN.IDL_Name (FEN.Identifier (E)));
          N := Make_Full_Type_Declaration
-           (N,
+           (Make_Defining_Identifier (FEN.IDL_Name (FEN.Identifier (E))),
             Make_Record_Type_Definition
             (Make_Record_Definition (Components)),
             Discr);
 
-         Append_Node_To_List (N, Visible_Part (Current_Package));
+         Append_To (Visible_Part (Current_Package), N);
       end Visit_Union_Type;
 
       ------------------
@@ -771,21 +766,21 @@ package body Backend.BE_CORBA_Ada.Aligned is
          Set_Str_To_Name_Buffer ("Operation : ");
          Get_Name_String_And_Append (IDL_Name (Identifier (E)));
          N := Make_Ada_Comment (Name_Find);
-         Append_Node_To_List (N, Visible_Part (Current_Package));
+         Append_To (Visible_Part (Current_Package), N);
 
          --  Generating the 'Operation_Name'_Args_Type_In/Out
          --  declarations.
 
          N := Args_Type_Record_In (E);
-         Append_Node_To_List (N, Visible_Part (Current_Package));
+         Append_To (Visible_Part (Current_Package), N);
          Bind_FE_To_BE (Identifier (E), N, B_Args_In);
 
          N := Args_Type_Record_Out (E);
-         Append_Node_To_List (N, Visible_Part (Current_Package));
+         Append_To (Visible_Part (Current_Package), N);
          Bind_FE_To_BE (Identifier (E), N, B_Args_Out);
 
          N := Args_Type_Access_Out (E);
-         Append_Node_To_List (N, Visible_Part (Current_Package));
+         Append_To (Visible_Part (Current_Package), N);
          Bind_FE_To_BE (Identifier (E), N, B_Access_Args_Out);
       end Visit_Operation_Declaration;
 
@@ -832,14 +827,14 @@ package body Backend.BE_CORBA_Ada.Aligned is
               | K_Wide_String =>
                M := Make_Subprogram_Call
                  (N,
-                  Make_List_Id (Defining_Identifier (First_Node (Desc))));
+                  New_List (Defining_Identifier (First_Node (Desc))));
                return M;
 
             when K_Sequence_Type =>
                if not Present (Max_Size (Rewinded_Type)) then
                   M := Make_Subprogram_Call
                     (N,
-                     Make_List_Id (Defining_Identifier (First_Node (Desc))));
+                     New_List (Defining_Identifier (First_Node (Desc))));
                   return M;
                else
                   return N;
@@ -859,7 +854,7 @@ package body Backend.BE_CORBA_Ada.Aligned is
                   while Present (K) loop
                      M := Make_Identifier
                        (Fully_Qualified_Name (Defining_Identifier (K)));
-                     Append_Node_To_List (M, L);
+                     Append_To (L, M);
                      K := Next_Node (K);
                   end loop;
 
@@ -970,7 +965,7 @@ package body Backend.BE_CORBA_Ada.Aligned is
                   M := Make_Component_Declaration
                     (Make_Defining_Identifier (CN (C_Switch)), M,
                      Make_Attribute_Reference (M, A_First));
-                  Append_Node_To_List (M, L);
+                  Append_To (L, M);
                end;
 
             when K_Structure_Type =>
@@ -1007,7 +1002,7 @@ package body Backend.BE_CORBA_Ada.Aligned is
                  (M, RE (RE_Natural),
                   Make_Attribute_Reference (RE (RE_Natural), A_First));
 
-               Append_Node_To_List (M, L);
+               Append_To (L, M);
 
             when K_Sequence_Type =>
 
@@ -1027,8 +1022,8 @@ package body Backend.BE_CORBA_Ada.Aligned is
                Add_Str_To_Name_Buffer ("_Size");
                M := Make_Defining_Identifier (Name_Find);
 
-               Append_Node_To_List
-                 (Make_Component_Declaration (M, RE (RE_Unsigned_Long_10)), L);
+               Append_To (L,
+                 Make_Component_Declaration (M, RE (RE_Unsigned_Long_10)));
 
             when others =>
                null;

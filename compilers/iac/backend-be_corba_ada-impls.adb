@@ -137,8 +137,7 @@ package body Backend.BE_CORBA_Ada.Impls is
             (Subtype_Indication    => P,
              Is_Private_Extention  => True));
          Bind_FE_To_BE (Identifier (E), N, B_Impl);
-         Append_Node_To_List
-           (N, Visible_Part (Current_Package));
+         Append_To (Visible_Part (Current_Package), N);
 
          --  The Object_Ptr type
 
@@ -148,8 +147,7 @@ package body Backend.BE_CORBA_Ada.Impls is
             Make_Access_Type_Definition
             (Make_Attribute_Reference (D, A_Class),
              Is_All => True));
-         Append_Node_To_List
-           (N, Visible_Part (Current_Package));
+         Append_To (Visible_Part (Current_Package), N);
 
          --  The record type definition
 
@@ -163,9 +161,8 @@ package body Backend.BE_CORBA_Ada.Impls is
             (Subtype_Indication    => P,
              Record_Extension_Part =>
                Make_Record_Definition
-             (Make_List_Id (N, New_Node (K_Null_Statement)))));
-         Append_Node_To_List
-           (N, Private_Part (Current_Package));
+             (New_List (N, New_Node (K_Null_Statement)))));
+         Append_To (Private_Part (Current_Package), N);
          N := First_Entity (Interface_Body (E));
          while Present (N) loop
             Visit (N);
@@ -185,7 +182,7 @@ package body Backend.BE_CORBA_Ada.Impls is
 
          if Is_Local_Interface (E) then
             N := Is_A_Spec;
-            Append_Node_To_List (N, Visible_Part (Current_Package));
+            Append_To (Visible_Part (Current_Package), N);
          end if;
 
          Pop_Entity;
@@ -239,7 +236,7 @@ package body Backend.BE_CORBA_Ada.Impls is
             Make_Access_Type_Definition
               (Make_Defining_Identifier (TN (T_Object)),
                Is_Not_Null => True));
-         Append_Node_To_List (Impl_Param, Profile);
+         Append_To (Profile, Impl_Param);
 
          Stub_Param := Next_Node (First_Node (Parameter_Profile (Stub)));
 
@@ -250,7 +247,7 @@ package body Backend.BE_CORBA_Ada.Impls is
               (Copy_Node (Defining_Identifier (Stub_Param)),
                Type_Designator,
                BEN.Parameter_Mode (Stub_Param));
-            Append_Node_To_List (Impl_Param, Profile);
+            Append_To (Profile, Impl_Param);
             Stub_Param := Next_Node (Stub_Param);
          end loop;
 
@@ -261,7 +258,7 @@ package body Backend.BE_CORBA_Ada.Impls is
          Set_Impl_Spec;
          Subp_Spec := Make_Subprogram_Specification
            (Copy_Node (Defining_Identifier (Stub)), Profile, Returns);
-         Append_Node_To_List (Subp_Spec, Visible_Part (Current_Package));
+         Append_To (Visible_Part (Current_Package), Subp_Spec);
 
          if Binding then
             Bind_FE_To_BE (Identifier (E), Subp_Spec, B_Impl);
@@ -367,7 +364,7 @@ package body Backend.BE_CORBA_Ada.Impls is
 
          if Is_Local_Interface (E) then
             N := Stubs.Local_Is_A_Body (E, Is_A_Spec);
-            Append_Node_To_List (N, Statements (Current_Package));
+            Append_To (Statements (Current_Package), N);
          end if;
 
          Pop_Entity;
@@ -416,30 +413,30 @@ package body Backend.BE_CORBA_Ada.Impls is
             end if;
 
             N := Make_Pragma
-              (Pragma_Warnings, Make_List_Id (RE (RE_Off)));
-            Append_Node_To_List (N, D);
+              (Pragma_Warnings, New_List (RE (RE_Off)));
+            Append_To (D, N);
 
             N := Make_Object_Declaration
               (Defining_Identifier => Make_Defining_Identifier (VN (V_Result)),
                Object_Definition   => Returns);
-            Append_Node_To_List (N, D);
+            Append_To (D, N);
 
             N := Make_Subprogram_Call
               (Make_Defining_Identifier (GN (Pragma_Warnings)),
-               Make_List_Id
+               New_List
                (RE (RE_On)));
             N := Make_Pragma
-              (Pragma_Warnings, Make_List_Id (RE (RE_On)));
-            Append_Node_To_List (N, D);
+              (Pragma_Warnings, New_List (RE (RE_On)));
+            Append_To (D, N);
 
             N := Make_Return_Statement
               (Make_Defining_Identifier (VN (V_Result)));
-            Append_Node_To_List (N, S);
+            Append_To (S, N);
          end if;
 
          Set_Impl_Body;
          N := Make_Subprogram_Body (Subp_Spec, D, S);
-         Append_Node_To_List (N, Statements (Current_Package));
+         Append_To (Statements (Current_Package), N);
       end Visit_Operation_Declaration;
 
       -------------------------
@@ -477,12 +474,12 @@ package body Backend.BE_CORBA_Ada.Impls is
          Make_Access_Type_Definition
            (Make_Defining_Identifier (TN (T_Object)),
             Is_Not_Null => True));
-      Append_Node_To_List (Param, Profile);
+      Append_To (Profile, Param);
 
       Param := Make_Parameter_Specification
         (Make_Defining_Identifier (PN (P_Logical_Type_Id)),
          RE (RE_String_2));
-      Append_Node_To_List (Param, Profile);
+      Append_To (Profile, Param);
 
       N := Make_Subprogram_Specification
         (Make_Defining_Identifier (SN (S_Is_A)),

@@ -1479,7 +1479,7 @@ package body Analyzer is
             Prefixes := New_List (K_List_Id, Loc (Scope));
             Set_Type_Prefixes (Scope, Prefixes);
          end if;
-         Append_Node_To_List (Prefix, Prefixes);
+         Append_To (Prefixes, Prefix);
       end if;
    end Assign_Type_Prefix;
 

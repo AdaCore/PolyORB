@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -37,13 +37,13 @@ with Utils;  use Utils;
 
 package body Frontend.Nutils is
 
-   -------------------------
-   -- Append_Node_To_List --
-   -------------------------
+   ---------------
+   -- Append_To --
+   ---------------
 
-   procedure Append_Node_To_List (E : Node_Id; L : List_Id) is
-      Last : Node_Id;
-      Many : Int := Size (L);
+   procedure Append_To (L : List_Id; E : Node_Id) is
+      Last  : Node_Id;
+      Count : Int := Size (L);
 
    begin
       Last := Last_Entity (L);
@@ -52,14 +52,19 @@ package body Frontend.Nutils is
       else
          Set_Next_Entity (Last, E);
       end if;
+
+      Count := Count + 1;
+
       Last := E;
-      while Present (Last) loop
-         Set_Last_Entity (L, Last);
-         Many := Many + 1;
-         Last := Next_Entity (Last);
+
+      while Present (Next_Entity (Last)) loop
+         Count := Count + 1;
+         Last  := Next_Entity (Last);
       end loop;
-      Set_Size (L, Many);
-   end Append_Node_To_List;
+
+      Set_Last_Entity (L, Last);
+      Set_Size (L, Count);
+   end Append_To;
 
    -------------------------------
    -- Bind_Declarator_To_Entity --

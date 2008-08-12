@@ -399,7 +399,7 @@ package body Backend.BE_CORBA_Ada.Expand is
       Set_Type_Spec (New_Type_Def, Type_Spec);
       Set_Declarators (New_Type_Def,
                        FEU.New_List (K_Declarators, FEN.Loc (Entity)));
-      FEU.Append_Node_To_List (Declarator, Declarators (New_Type_Def));
+      FEU.Append_To (Declarators (New_Type_Def), Declarator);
       Set_Declaration (Declarator, New_Type_Def);
 
       --  Insert the new type declaration
@@ -443,8 +443,7 @@ package body Backend.BE_CORBA_Ada.Expand is
             Set_Declarators
               (Member,
                FEU.New_List (K_Declarators, FEN.Loc (Member)));
-            FEU.Append_Node_To_List (New_Simple_Declarator,
-                                     Declarators (Member));
+            FEU.Append_To (Declarators (Member), New_Simple_Declarator);
 
          when K_Union_Type =>
             Set_Declarator (Member, New_Simple_Declarator);
@@ -772,7 +771,7 @@ package body Backend.BE_CORBA_Ada.Expand is
          FEU.Bind_Identifier_To_Entity (New_Identifier, Declarator);
 
          List := FEU.New_List (K_Declarators, FEN.Loc (Entity));
-         FEU.Append_Node_To_List (Declarator, List);
+         FEU.Append_To (List, Declarator);
 
          Node := FEU.New_Node (K_Type_Declaration, FEN.Loc (Entity));
          Set_Type_Spec (Node, Type_Spec (Entity));
@@ -969,7 +968,7 @@ package body Backend.BE_CORBA_Ada.Expand is
             Set_Declarator     (Param_Declaration, Node);
             FEU.Bind_Declarator_To_Entity (Node, Param_Declaration);
 
-            FEU.Append_Node_To_List (Param_Declaration, Parameters);
+            FEU.Append_To (Parameters, Param_Declaration);
 
             --  Exceptions
 
@@ -1101,8 +1100,7 @@ package body Backend.BE_CORBA_Ada.Expand is
                   Set_Identifier (New_Declarator, Identifier (Declarator));
                   Set_Declaration (New_Declarator, New_Member);
                   Set_Array_Sizes (New_Declarator, Array_Sizes (Declarator));
-                  FEU.Append_Node_To_List (New_Declarator,
-                                           Declarators (New_Member));
+                  FEU.Append_To (Declarators (New_Member), New_Declarator);
 
                   --  Set the type spec of the new member as eqaul to
                   --  the type spec of the current member.
@@ -1182,11 +1180,11 @@ package body Backend.BE_CORBA_Ada.Expand is
          Has_Named_Subnodes : Boolean :=  False;
 
       begin
-         --  We must be very careful, because Append_Node_To_List
+         --  We must be very careful, because Append_To
          --  does not add only the node but all the Next_Entities (for
          --  details, see the calls to this procedure).
 
-         FEU.Append_Node_To_List (Child, Definitions);
+         FEU.Append_To (Definitions, Child);
 
          if FEN.Kind (Child) = K_Type_Declaration then
             Has_Named_Subnodes := True;
@@ -1255,7 +1253,7 @@ package body Backend.BE_CORBA_Ada.Expand is
                (K_Definition_List,
                 No_Location));
 
-            FEU.Append_Node_To_List (CORBA_IR_Root_Node, Definitions (Entity));
+            FEU.Append_To (Definitions (Entity), CORBA_IR_Root_Node);
          end;
 
          --  Creating the CORBA.IDL_Sequences module
@@ -1280,9 +1278,7 @@ package body Backend.BE_CORBA_Ada.Expand is
                (K_Definition_List,
                 No_Location));
 
-            FEU.Append_Node_To_List
-              (CORBA_Sequences_Node,
-               Definitions (Entity));
+            FEU.Append_To (Definitions (Entity), CORBA_Sequences_Node);
          end;
 
          --  Relocating the CORBA Module entities
@@ -1302,7 +1298,7 @@ package body Backend.BE_CORBA_Ada.Expand is
             elsif Is_CORBA_Sequence (Definition) then
                Relocate (CORBA_Sequences_Node, Definition);
             else
-               FEU.Append_Node_To_List (Definition, New_CORBA_Contents);
+               FEU.Append_To (New_CORBA_Contents, Definition);
             end if;
          end loop;
 
@@ -1424,8 +1420,7 @@ package body Backend.BE_CORBA_Ada.Expand is
                   Set_Identifier (New_Declarator, Identifier (Declarator));
                   Set_Declaration (New_Declarator, New_Member);
                   Set_Array_Sizes (New_Declarator, Array_Sizes (Declarator));
-                  FEU.Append_Node_To_List (New_Declarator,
-                                           Declarators (New_Member));
+                  FEU.Append_To (Declarators (New_Member), New_Declarator);
 
                   --  Set the type spec of the new member as eqaul to
                   --  the type spec of the current member.
@@ -1597,7 +1592,7 @@ package body Backend.BE_CORBA_Ada.Expand is
                   Set_Next_Entity (Label, No_Node);
                   Case_Labels := FEU.New_List
                     (K_Case_Label_List, Loc (Alternative));
-                  FEU.Append_Node_To_List (Label, Case_Labels);
+                  FEU.Append_To (Case_Labels, Label);
                   Set_Labels (Alternative, Case_Labels);
 
                   exit External_Loop;

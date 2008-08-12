@@ -81,7 +81,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
             (PN (P_Role)),
             Subtype_Mark        => RE (RE_Boolean_0),
             Parameter_Mode      => Mode_In);
-         Append_Node_To_List (Parameter, Profile);
+         Append_To (Profile, Parameter);
 
          --  'Args' parameter
 
@@ -91,7 +91,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
             Subtype_Mark        => Make_Access_Type_Definition
             (Expand_Designator (Type_Def_Node (BE_Node (Identifier (E))))),
             Parameter_Mode      => Mode_In);
-         Append_Node_To_List (Parameter, Profile);
+         Append_To (Profile, Parameter);
 
          --  'Buffer' parameter
 
@@ -100,7 +100,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
             (PN (P_Buffer)),
             Subtype_Mark        => RE (RE_Buffer_Access),
             Parameter_Mode      => Mode_In);
-         Append_Node_To_List (Parameter, Profile);
+         Append_To (Profile, Parameter);
 
          --  'First_Arg_Alignment' parameter
 
@@ -109,7 +109,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
             (PN (P_First_Arg_Alignment)),
             Subtype_Mark        => RE (RE_Alignment_Type),
             Parameter_Mode      => Mode_In);
-         Append_Node_To_List (Parameter, Profile);
+         Append_To (Profile, Parameter);
 
          --  Subprogram Specification
 
@@ -168,7 +168,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
             Set_Str_To_Name_Buffer ("Attribute : ");
             Get_Name_String_And_Append (IDL_Name (Identifier (D)));
             N := Make_Ada_Comment (Name_Find);
-            Append_Node_To_List (N, Visible_Part (Current_Package));
+            Append_To (Visible_Part (Current_Package), N);
 
             D := Next_Entity (D);
          end loop;
@@ -233,12 +233,12 @@ package body Backend.BE_CORBA_Ada.Buffers is
          Set_Str_To_Name_Buffer ("Operation : ");
          Get_Name_String_And_Append (IDL_Name (Identifier (E)));
          N := Make_Ada_Comment (Name_Find);
-         Append_Node_To_List (N, Visible_Part (Current_Package));
+         Append_To (Visible_Part (Current_Package), N);
 
          --  Generating the 'Operation_Name'_Buffer_Size spec
 
          N := Buffer_Size_Spec (E);
-         Append_Node_To_List (N, Visible_Part (Current_Package));
+         Append_To (Visible_Part (Current_Package), N);
 
          Bind_FE_To_BE (Identifier (E), N, B_Buffer_Size);
 
@@ -255,7 +255,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
             Constant_Present    => False,
             Expression          => Make_Literal (Int0_Val));
 
-         Append_Node_To_List (N, Visible_Part (Current_Package));
+         Append_To (Visible_Part (Current_Package), N);
 
          Attribute_Name := Add_Suffix_To_Name
            ("_Server_Size", IDL_Name (Identifier (E)));
@@ -268,7 +268,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
             Constant_Present    => False,
             Expression          => Make_Literal (Int0_Val));
 
-         Append_Node_To_List (N, Visible_Part (Current_Package));
+         Append_To (Visible_Part (Current_Package), N);
       end Visit_Operation_Declaration;
 
       -------------------------
@@ -332,11 +332,11 @@ package body Backend.BE_CORBA_Ada.Buffers is
          P                 : constant List_Id := Parameters (E);
          T                 : constant Node_Id := Type_Spec (E);
 
-         Client_Case       : constant List_Id := Make_List_Id
+         Client_Case       : constant List_Id := New_List
            (RE (RE_True));
          Client_Statements : constant List_Id := New_List (K_List_Id);
 
-         Server_Case       : constant List_Id := Make_List_Id
+         Server_Case       : constant List_Id := New_List
            (RE (RE_False));
          Server_Statements : constant List_Id := New_List (K_List_Id);
 
@@ -402,7 +402,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
 
             N := Make_Subprogram_Call
               (RE (RE_Preallocate_Buffer),
-               Make_List_Id
+               New_List
                (Make_Identifier (PN (P_Buffer)),
                 Cl_Buffer_Size));
 
@@ -410,14 +410,14 @@ package body Backend.BE_CORBA_Ada.Buffers is
 
             L := Make_Elsif_Statement
               (Condition       => Bool_Exp2,
-               Then_Statements => Make_List_Id (M));
+               Then_Statements => New_List (M));
 
             L := Make_If_Statement
               (Condition        => Bool_Exp1,
-               Then_Statements  => Make_List_Id (N, M),
-               Elsif_Statements => Make_List_Id (L));
+               Then_Statements  => New_List (N, M),
+               Elsif_Statements => New_List (L));
 
-            Append_Node_To_List (L, Client_Statements);
+            Append_To (Client_Statements, L);
          end if;
 
          --  We do not recompute buffer size if there is no need
@@ -447,7 +447,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
 
             N := Make_Subprogram_Call
               (RE (RE_Preallocate_Buffer),
-               Make_List_Id
+               New_List
                (Make_Identifier (PN (P_Buffer)),
                 Sr_Buffer_Size));
 
@@ -455,14 +455,14 @@ package body Backend.BE_CORBA_Ada.Buffers is
 
             L := Make_Elsif_Statement
               (Condition       => Bool_Exp2,
-               Then_Statements => Make_List_Id (M));
+               Then_Statements => New_List (M));
 
             L := Make_If_Statement
               (Condition        => Bool_Exp1,
-               Then_Statements  => Make_List_Id (N, M),
-               Elsif_Statements  => Make_List_Id (L));
+               Then_Statements  => New_List (N, M),
+               Elsif_Statements  => New_List (L));
 
-            Append_Node_To_List (L, Server_Statements);
+            Append_To (Server_Statements, L);
          end if;
 
          --  If the subprogram is a function, we handle the result
@@ -481,17 +481,17 @@ package body Backend.BE_CORBA_Ada.Buffers is
                (FEN.Kind
                 (Rewinded_Type)));
             N := Make_Ada_Comment (Name_Find);
-            Append_Node_To_List (N, Server_Statements);
+            Append_To (Server_Statements, N);
 
             --  Body alignment
 
             N := Make_Subprogram_Call
               (RE (RE_Pad_Compute),
-               Make_List_Id
+               New_List
                (Make_Identifier (VN (V_CDR_Position)),
                 Make_Identifier (VN (V_Buffer_Size)),
                 Make_Identifier (PN (P_Data_Alignment))));
-            Append_Node_To_List (N, Server_Statements);
+            Append_To (Server_Statements, N);
 
             --  Initialize body alignment to "1"
 
@@ -499,7 +499,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
                N := Make_Assignment_Statement
                  (Make_Defining_Identifier (PN (P_Data_Alignment)),
                   Make_Literal (Int1_Val));
-               Append_Node_To_List (N, Server_Statements);
+               Append_To (Server_Statements, N);
                Alignment_Const := False;
             end if;
 
@@ -509,7 +509,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
               (Copy_Node (Args_Id),
                Make_Defining_Identifier (PN (P_Returns)));
             N := Compute_Size (N, T, Subp_Declarations, E);
-            Append_Node_To_List (N, Server_Statements);
+            Append_To (Server_Statements, N);
 
             --  If return type is unbounded we must recompute the
             --  server buffer size each time.
@@ -528,23 +528,23 @@ package body Backend.BE_CORBA_Ada.Buffers is
             if  Contains_Out_Parameters (E) then
                N := Make_Subprogram_Call
                  (RE (RE_Pad_Compute),
-                  Make_List_Id
+                  New_List
                   (Make_Identifier (VN (V_CDR_Position)),
                    Make_Identifier (VN (V_Buffer_Size)),
                    Make_Identifier (PN (P_Data_Alignment))));
 
-               Append_Node_To_List (N, Server_Statements);
+               Append_To (Server_Statements, N);
             end if;
 
             if  Contains_In_Parameters (E) then
                N := Make_Subprogram_Call
                  (RE (RE_Pad_Compute),
-                  Make_List_Id
+                  New_List
                   (Make_Identifier (VN (V_CDR_Position)),
                    Make_Identifier (VN (V_Buffer_Size)),
                    Make_Identifier (PN (P_Data_Alignment))));
 
-               Append_Node_To_List (N, Client_Statements);
+               Append_To (Client_Statements, N);
             end if;
 
             --  Parameters
@@ -581,12 +581,12 @@ package body Backend.BE_CORBA_Ada.Buffers is
 
                if  Is_In (Parameter_Mode) then
                   N := Make_Ada_Comment (Name_Find);
-                  Append_Node_To_List (N, Client_Statements);
+                  Append_To (Client_Statements, N);
                end if;
 
                if  Is_Out (Parameter_Mode) then
                   N := Make_Ada_Comment (Name_Find);
-                  Append_Node_To_List (N, Server_Statements);
+                  Append_To (Server_Statements, N);
                end if;
 
                --  Compute parameter size
@@ -601,7 +601,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
                      Type_Spec (Parameter),
                      Subp_Declarations,
                      E);
-                  Append_Node_To_List (N, Client_Statements);
+                  Append_To (Client_Statements, N);
 
                   --  If parameter type is unbounded we must recompute
                   --  the client buffer size each time.
@@ -622,7 +622,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
                      Type_Spec (Parameter),
                      Subp_Declarations,
                      E);
-                  Append_Node_To_List (N, Server_Statements);
+                  Append_To (Server_Statements, N);
 
                   --  If parameter type is unbounded we must recompute
                   --  the server buffer size each time.
@@ -644,21 +644,21 @@ package body Backend.BE_CORBA_Ada.Buffers is
                N := Make_Assignment_Statement
                  (Cl_Buffer_Size,
                   Make_Identifier (VN (V_Buffer_Size)));
-               Append_Node_To_List (N, Client_Statements);
+               Append_To (Client_Statements, N);
             else
                N := Make_Assignment_Statement
                  (Cl_Buffer_Size,
                   Make_Literal (Int0_Val));
-               Append_Node_To_List (N, Client_Statements);
+               Append_To (Client_Statements, N);
             end if;
 
             N := Make_Subprogram_Call
               (RE (RE_Preallocate_Buffer),
-               Make_List_Id
+               New_List
                (Make_Identifier (PN (P_Buffer)),
                 Make_Identifier (VN (V_Buffer_Size))));
 
-            Append_Node_To_List (N, Client_Statements);
+            Append_To (Client_Statements, N);
          end if;
 
          if not BEU.Is_Empty (Server_Statements) then
@@ -666,21 +666,21 @@ package body Backend.BE_CORBA_Ada.Buffers is
                N := Make_Assignment_Statement
                  (Sr_Buffer_Size,
                   Make_Identifier (VN (V_Buffer_Size)));
-               Append_Node_To_List (N, Server_Statements);
+               Append_To (Server_Statements, N);
             else
                N := Make_Assignment_Statement
                  (Sr_Buffer_Size,
                   Make_Literal (Int0_Val));
-               Append_Node_To_List (N, Server_Statements);
+               Append_To (Server_Statements, N);
             end if;
 
             N := Make_Subprogram_Call
               (RE (RE_Preallocate_Buffer),
-               Make_List_Id
+               New_List
                (Make_Identifier (PN (P_Buffer)),
                 Make_Identifier (VN (V_Buffer_Size))));
 
-            Append_Node_To_List (N, Server_Statements);
+            Append_To (Server_Statements, N);
          end if;
 
          --  The declarative part of the subprogram:
@@ -698,8 +698,8 @@ package body Backend.BE_CORBA_Ada.Buffers is
                for Index in Unref_Entities'Range loop
                   N := Make_Pragma
                     (Pragma_Unreferenced,
-                     Make_List_Id (Make_Identifier (Unref_Entities (Index))));
-                  Append_Node_To_List (N, Subp_Declarations);
+                     New_List (Make_Identifier (Unref_Entities (Index))));
+                  Append_To (Subp_Declarations, N);
                end loop;
             end;
          else
@@ -710,8 +710,8 @@ package body Backend.BE_CORBA_Ada.Buffers is
 
             N := Make_Pragma
               (Pragma_Warnings,
-               Make_List_Id (RE (RE_Off), Make_Identifier (PN (P_Args))));
-            Append_Node_To_List (N, Subp_Declarations);
+               New_List (RE (RE_Off), Make_Identifier (PN (P_Args))));
+            Append_To (Subp_Declarations, N);
 
             --  Common declarations
 
@@ -726,7 +726,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
                Constant_Present    => Alignment_Const,
                Expression          => Make_Identifier
                (PN (P_First_Arg_Alignment)));
-            Append_Node_To_List (N, Subp_Declarations);
+            Append_To (Subp_Declarations, N);
 
             --  Use type instruction for arithmetic operation on
             --  Buffer_Size and CDR_Position.
@@ -736,14 +736,14 @@ package body Backend.BE_CORBA_Ada.Buffers is
                (Fully_Qualified_Name
                 (RE (RE_Unsigned_Long_1))));
 
-            Append_Node_To_List (N, Subp_Declarations);
+            Append_To (Subp_Declarations, N);
 
             N := Make_Used_Type
               (Make_Identifier
                (Fully_Qualified_Name
                 (RE (RE_Stream_Element_Count))));
 
-            Append_Node_To_List (N, Subp_Declarations);
+            Append_To (Subp_Declarations, N);
 
             --  Buffer_Size declaration and initialization
 
@@ -757,13 +757,13 @@ package body Backend.BE_CORBA_Ada.Buffers is
                  Make_Expression
                (Make_Subprogram_Call
                 (RE (RE_CDR_Position),
-                 Make_List_Id (Make_Identifier (PN (P_Buffer)))),
+                 New_List (Make_Identifier (PN (P_Buffer)))),
                 Op_Minus,
                 Make_Subprogram_Call
                 (RE (RE_Length),
-                 Make_List_Id (Make_Identifier (PN (P_Buffer))))));
+                 New_List (Make_Identifier (PN (P_Buffer))))));
 
-            Append_Node_To_List (N, Subp_Declarations);
+            Append_To (Subp_Declarations, N);
 
             --  CDR_Position declaration and initialization
 
@@ -775,9 +775,9 @@ package body Backend.BE_CORBA_Ada.Buffers is
                Expression          =>
                  Make_Subprogram_Call
                (RE (RE_CDR_Position),
-                Make_List_Id (Make_Identifier (PN (P_Buffer)))));
+                New_List (Make_Identifier (PN (P_Buffer)))));
 
-            Append_Node_To_List (N, Subp_Declarations);
+            Append_To (Subp_Declarations, N);
          end if;
 
          --  If the subprogram is a procedure without arguments, we
@@ -787,29 +787,29 @@ package body Backend.BE_CORBA_Ada.Buffers is
          if BEU.Is_Empty (Client_Statements)
            and then BEU.Is_Empty (Server_Statements)
          then
-            Append_Node_To_List (Make_Null_Statement, Subp_Statements);
+            Append_To (Subp_Statements, Make_Null_Statement);
          else
             --  Building the case statement
 
             if BEU.Is_Empty (Client_Statements) then
-               Append_Node_To_List (Make_Null_Statement, Client_Statements);
+               Append_To (Client_Statements, Make_Null_Statement);
             end if;
 
             N := Make_Case_Statement_Alternative
               (Client_Case, Client_Statements);
-            Append_Node_To_List (N, Case_Alternatives);
+            Append_To (Case_Alternatives, N);
 
             if BEU.Is_Empty (Server_Statements) then
-               Append_Node_To_List (Make_Null_Statement, Server_Statements);
+               Append_To (Server_Statements, Make_Null_Statement);
             end if;
 
             N := Make_Case_Statement_Alternative
               (Server_Case, Server_Statements);
-            Append_Node_To_List (N, Case_Alternatives);
+            Append_To (Case_Alternatives, N);
 
             N := Make_Case_Statement
               (Make_Identifier (PN (P_Role)), Case_Alternatives);
-            Append_Node_To_List (N, Subp_Statements);
+            Append_To (Subp_Statements, N);
          end if;
 
          --  Building the subprogram implementation
@@ -879,7 +879,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
             Set_Str_To_Name_Buffer ("Attribute : ");
             Get_Name_String_And_Append (IDL_Name (Identifier (D)));
             N := Make_Ada_Comment (Name_Find);
-            Append_Node_To_List (N, Statements (Current_Package));
+            Append_To (Statements (Current_Package), N);
 
             D := Next_Entity (D);
          end loop;
@@ -941,12 +941,12 @@ package body Backend.BE_CORBA_Ada.Buffers is
          Set_Str_To_Name_Buffer ("Operation : ");
          Get_Name_String_And_Append (IDL_Name (Identifier (E)));
          N := Make_Ada_Comment (Name_Find);
-         Append_Node_To_List (N, Statements (Current_Package));
+         Append_To (Statements (Current_Package), N);
 
          --  Generating the 'Operation_Name'_Buffer_Size Body
 
          N := Buffer_Size_Body (E);
-         Append_Node_To_List (N, Statements (Current_Package));
+         Append_To (Statements (Current_Package), N);
       end Visit_Operation_Declaration;
 
       -------------------------
@@ -1005,12 +1005,12 @@ package body Backend.BE_CORBA_Ada.Buffers is
 
                   N := Make_Subprogram_Call
                     (RE (RE_Pad_Compute),
-                     Make_List_Id
+                     New_List
                      (Make_Identifier (VN (V_CDR_Position)),
                       Make_Identifier (VN (V_Buffer_Size)),
                       Make_Literal (New_Integer_Value (4, 1, 10))));
 
-                  Append_Node_To_List (N, Block_St);
+                  Append_To (Block_St, N);
 
                   N := Make_Assignment_Statement
                     (Make_Defining_Identifier (VN (V_Buffer_Size)),
@@ -1019,7 +1019,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
                       Op_Plus,
                       Make_Defining_Identifier (VN (V_Buffer_Size))));
 
-                  Append_Node_To_List (N, Block_St);
+                  Append_To (Block_St, N);
 
                   N := Make_Assignment_Statement
                     (Make_Defining_Identifier (VN (V_CDR_Position)),
@@ -1028,7 +1028,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
                       Op_Plus,
                       Make_Defining_Identifier (VN (V_CDR_Position))));
 
-                  Append_Node_To_List (N, Block_St);
+                  Append_To (Block_St, N);
                end;
             when K_Wide_Char =>
                declare
@@ -1046,7 +1046,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
                       Op_Plus,
                       Make_Literal (New_Integer_Value (4, 1, 10))));
 
-                  Append_Node_To_List (N, Block_St);
+                  Append_To (Block_St, N);
 
                   N := Make_Assignment_Statement
                     (Make_Defining_Identifier (VN (V_CDR_Position)),
@@ -1055,13 +1055,13 @@ package body Backend.BE_CORBA_Ada.Buffers is
                       Op_Plus,
                       Make_Literal (New_Integer_Value (4, 1, 10))));
 
-                  Append_Node_To_List (N, Block_St);
+                  Append_To (Block_St, N);
 
                   --  Wchar size
 
                   M := Make_Subprogram_Call
                     (RE (RE_Type_Size),
-                     Make_List_Id
+                     New_List
                      (Cast_Variable_To_PolyORB_Type
                        (Var_Node, Direct_Type_Node)));
 
@@ -1070,22 +1070,22 @@ package body Backend.BE_CORBA_Ada.Buffers is
                      Make_Expression
                      (Make_Subprogram_Call
                       (RE (RE_Stream_Element_Count),
-                       Make_List_Id (M)),
+                       New_List (M)),
                       Op_Plus,
                       Make_Defining_Identifier (VN (V_Buffer_Size))));
 
-                  Append_Node_To_List (N, Block_St);
+                  Append_To (Block_St, N);
 
                   N := Make_Assignment_Statement
                     (Make_Defining_Identifier (VN (V_CDR_Position)),
                      Make_Expression
                      (Make_Subprogram_Call
                       (RE (RE_Stream_Element_Count),
-                       Make_List_Id (M)),
+                       New_List (M)),
                       Op_Plus,
                       Make_Defining_Identifier (VN (V_CDR_Position))));
 
-                  Append_Node_To_List (N, Block_St);
+                  Append_To (Block_St, N);
 
                   if not Args_Declared then
                      Declare_Args (Subp_Dec, Subp_Nod);
@@ -1116,12 +1116,12 @@ package body Backend.BE_CORBA_Ada.Buffers is
 
                   N := Make_Subprogram_Call
                     (RE (RE_Pad_Compute),
-                     Make_List_Id
+                     New_List
                      (Make_Identifier (VN (V_CDR_Position)),
                       Make_Identifier (VN (V_Buffer_Size)),
                       Make_Literal (Padding_Value)));
 
-                  Append_Node_To_List (N, Block_St);
+                  Append_To (Block_St, N);
 
                   --  Update Buffer_Size and CDR_Position
 
@@ -1132,7 +1132,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
                       Op_Plus,
                       Make_Defining_Identifier (VN (V_Buffer_Size))));
 
-                  Append_Node_To_List (N, Block_St);
+                  Append_To (Block_St, N);
 
                   N := Make_Assignment_Statement
                     (Make_Defining_Identifier (VN (V_CDR_Position)),
@@ -1141,7 +1141,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
                       Op_Plus,
                       Make_Defining_Identifier (VN (V_CDR_Position))));
 
-                  Append_Node_To_List (N, Block_St);
+                  Append_To (Block_St, N);
                end;
 
             when K_String_Type
@@ -1157,12 +1157,12 @@ package body Backend.BE_CORBA_Ada.Buffers is
 
                   N := Make_Subprogram_Call
                     (RE (RE_Pad_Compute),
-                     Make_List_Id
+                     New_List
                      (Make_Identifier (VN (V_CDR_Position)),
                       Make_Identifier (VN (V_Buffer_Size)),
                       Make_Literal (New_Integer_Value (4, 1, 10))));
 
-                  Append_Node_To_List (N, Block_St);
+                  Append_To (Block_St, N);
 
                   --  Update Buffer_Size and CDR_Position
 
@@ -1173,7 +1173,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
                       Op_Plus,
                       Make_Identifier (VN (V_Buffer_Size))));
 
-                  Append_Node_To_List (N, Block_St);
+                  Append_To (Block_St, N);
 
                   N := Make_Assignment_Statement
                     (Make_Defining_Identifier (VN (V_CDR_Position)),
@@ -1182,7 +1182,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
                       Op_Plus,
                       Make_Identifier (VN (V_CDR_Position))));
 
-                  Append_Node_To_List (N, Block_St);
+                  Append_To (Block_St, N);
 
                   --  Add the string length to Buffer_Size and
                   --  CDR_Position.
@@ -1194,7 +1194,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
                       Op_Plus,
                       Make_Defining_Identifier (VN (V_Buffer_Size))));
 
-                  Append_Node_To_List (N, Block_St);
+                  Append_To (Block_St, N);
 
                   N := Make_Assignment_Statement
                     (Make_Defining_Identifier (VN (V_CDR_Position)),
@@ -1203,7 +1203,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
                       Op_Plus,
                       Make_Defining_Identifier (VN (V_CDR_Position))));
 
-                  Append_Node_To_List (N, Block_St);
+                  Append_To (Block_St, N);
                end;
 
             when K_Fixed_Point_Type =>
@@ -1221,9 +1221,9 @@ package body Backend.BE_CORBA_Ada.Buffers is
                   N := Make_Package_Instantiation
                     (Make_Defining_Identifier (VN (V_FXS)),
                      RU (RU_PolyORB_Buffers_Optimization_Fixed_Point),
-                     Make_List_Id
+                     New_List
                      (N));
-                  Append_Node_To_List (N, Block_Dcl);
+                  Append_To (Block_Dcl, N);
 
                   N := Make_Selected_Component
                     (VN (V_FXS),
@@ -1231,10 +1231,10 @@ package body Backend.BE_CORBA_Ada.Buffers is
 
                   M := Make_Subprogram_Call
                     (RE (RE_Stream_Element_Count),
-                     (Make_List_Id
+                     (New_List
                       (Make_Subprogram_Call
                        (N,
-                        Make_List_Id
+                        New_List
                         (Cast_Variable_To_PolyORB_Type
                          (Var_Node, Direct_Type_Node))))));
 
@@ -1246,7 +1246,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
                      (M,
                       Op_Plus,
                       Make_Defining_Identifier (VN (V_Buffer_Size))));
-                  Append_Node_To_List (N, Block_St);
+                  Append_To (Block_St, N);
 
                   N := Make_Assignment_Statement
                     (Make_Defining_Identifier (VN (V_CDR_Position)),
@@ -1254,7 +1254,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
                      (M,
                       Op_Plus,
                       Make_Defining_Identifier (VN (V_CDR_Position))));
-                  Append_Node_To_List (N, Block_St);
+                  Append_To (Block_St, N);
 
                   --  Indicate the use of method_name_args variable
 
@@ -1275,12 +1275,12 @@ package body Backend.BE_CORBA_Ada.Buffers is
 
                   N := Make_Subprogram_Call
                     (RE (RE_Pad_Compute),
-                     Make_List_Id
+                     New_List
                      (Make_Identifier (VN (V_CDR_Position)),
                       Make_Identifier (VN (V_Buffer_Size)),
                       Make_Literal (New_Integer_Value (8, 1, 10))));
 
-                  Append_Node_To_List (N, Block_St);
+                  Append_To (Block_St, N);
 
                   --  Update Buffer_Size and CDR_Position
 
@@ -1291,7 +1291,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
                       Op_Plus,
                       Make_Defining_Identifier (VN (V_Buffer_Size))));
 
-                  Append_Node_To_List (N, Block_St);
+                  Append_To (Block_St, N);
 
                   N := Make_Assignment_Statement
                     (Make_Defining_Identifier (VN (V_CDR_Position)),
@@ -1300,7 +1300,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
                       Op_Plus,
                       Make_Defining_Identifier (VN (V_CDR_Position))));
 
-                  Append_Node_To_List (N, Block_St);
+                  Append_To (Block_St, N);
                end;
 
             when K_String
@@ -1312,12 +1312,12 @@ package body Backend.BE_CORBA_Ada.Buffers is
 
                   N := Make_Subprogram_Call
                     (RE (RE_Pad_Compute),
-                     Make_List_Id
+                     New_List
                      (Make_Identifier (VN (V_CDR_Position)),
                       Make_Identifier (VN (V_Buffer_Size)),
                       Make_Literal (New_Integer_Value (4, 1, 10))));
 
-                  Append_Node_To_List (N, Block_St);
+                  Append_To (Block_St, N);
 
                   --  Update Buffer_Size and CDR_Position for the
                   --  marshalling of string length.
@@ -1329,7 +1329,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
                       Op_Plus,
                       Make_Literal (New_Integer_Value (4, 1, 10))));
 
-                  Append_Node_To_List (N, Block_St);
+                  Append_To (Block_St, N);
 
                   N := Make_Assignment_Statement
                     (Make_Defining_Identifier (VN (V_CDR_Position)),
@@ -1338,13 +1338,13 @@ package body Backend.BE_CORBA_Ada.Buffers is
                       Op_Plus,
                       Make_Literal (New_Integer_Value (4, 1, 10))));
 
-                  Append_Node_To_List (N, Block_St);
+                  Append_To (Block_St, N);
 
                   --  Call of Type_Size subprogram
 
                   M := Make_Subprogram_Call
                     (RE (RE_Type_Size),
-                     Make_List_Id
+                     New_List
                      (Cast_Variable_To_PolyORB_Type
                        (Var_Node, Direct_Type_Node)));
 
@@ -1353,22 +1353,22 @@ package body Backend.BE_CORBA_Ada.Buffers is
                      Make_Expression
                      (Make_Subprogram_Call
                       (RE (RE_Stream_Element_Count),
-                       Make_List_Id (M)),
+                       New_List (M)),
                       Op_Plus,
                       Make_Defining_Identifier (VN (V_Buffer_Size))));
 
-                  Append_Node_To_List (N, Block_St);
+                  Append_To (Block_St, N);
 
                   N := Make_Assignment_Statement
                     (Make_Defining_Identifier (VN (V_CDR_Position)),
                      Make_Expression
                      (Make_Subprogram_Call
                       (RE (RE_Stream_Element_Count),
-                       Make_List_Id (M)),
+                       New_List (M)),
                       Op_Plus,
                       Make_Defining_Identifier (VN (V_CDR_Position))));
 
-                  Append_Node_To_List (N, Block_St);
+                  Append_To (Block_St, N);
 
                   --  Indicate the use of method_name_args variable
 
@@ -1391,12 +1391,12 @@ package body Backend.BE_CORBA_Ada.Buffers is
 
                   N := Make_Subprogram_Call
                     (RE (RE_Pad_Compute),
-                     Make_List_Id
+                     New_List
                      (Make_Identifier (VN (V_CDR_Position)),
                       Make_Identifier (VN (V_Buffer_Size)),
                       Make_Literal (New_Integer_Value (4, 1, 10))));
 
-                  Append_Node_To_List (N, Block_St);
+                  Append_To (Block_St, N);
 
                   --  updating Buffer_Size and CDR_Position
 
@@ -1406,7 +1406,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
                      (Make_Identifier (VN (V_Buffer_Size)),
                       Op_Plus,
                       Make_Literal (New_Integer_Value (4, 1, 10))));
-                  Append_Node_To_List (N, Block_St);
+                  Append_To (Block_St, N);
 
                   N := Make_Assignment_Statement
                     (Make_Defining_Identifier (VN (V_CDR_Position)),
@@ -1414,7 +1414,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
                      (Make_Identifier (VN (V_CDR_Position)),
                       Op_Plus,
                       Make_Literal (New_Integer_Value (4, 1, 10))));
-                  Append_Node_To_List (N, Block_St);
+                  Append_To (Block_St, N);
 
                   --  Getting the instantiated package node
 
@@ -1428,7 +1428,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
                      (VN (V_Seq_Len)),
                      Object_Definition   => RE (RE_Unsigned_Long_1));
 
-                  Append_Node_To_List (N, Block_Dcl);
+                  Append_To (Block_Dcl, N);
 
                   N := Make_Selected_Component
                     (Seq_Package_Node,
@@ -1436,18 +1436,18 @@ package body Backend.BE_CORBA_Ada.Buffers is
 
                   N := Make_Subprogram_Call
                     (N,
-                     Make_List_Id
+                     New_List
                      (Cast_Variable_To_PolyORB_Type
                        (Var_Node, Direct_Type_Node)));
 
                   N := Make_Subprogram_Call
                     (RE (RE_Unsigned_Long_1),
-                     Make_List_Id (N));
+                     New_List (N));
 
                   N := Make_Assignment_Statement
                     (Make_Defining_Identifier (VN (V_Seq_Len)), N);
 
-                  Append_Node_To_List (N, Block_St);
+                  Append_To (Block_St, N);
 
                   N := Make_Selected_Component
                     (Seq_Package_Node,
@@ -1472,12 +1472,12 @@ package body Backend.BE_CORBA_Ada.Buffers is
 
                      Seq_Element := Make_Subprogram_Call
                        (N,
-                        Make_List_Id
+                        New_List
                         (Cast_Variable_To_PolyORB_Type
                          (Var_Node, Direct_Type_Node),
                          Make_Subprogram_Call
                          (RE (RE_Positive),
-                          Make_List_Id (Index_Node))));
+                          New_List (Index_Node))));
 
                      N := Compute_Size
                        (Var_Node => Seq_Element,
@@ -1485,7 +1485,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
                         Subp_Dec => Subp_Dec,
                         Subp_Nod => Subp_Nod);
 
-                     Append_Node_To_List (N, For_Statements);
+                     Append_To (For_Statements, N);
 
                      --  Building the loop
 
@@ -1493,7 +1493,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
                        (Index_Node,
                         Range_Constraint,
                         For_Statements);
-                     Append_Node_To_List (N, Block_St);
+                     Append_To (Block_St, N);
 
                   else
                      --  Sequence element type is simple so we can
@@ -1506,12 +1506,12 @@ package body Backend.BE_CORBA_Ada.Buffers is
 
                         N := Make_Subprogram_Call
                           (RE (RE_Pad_Compute),
-                           Make_List_Id
+                           New_List
                            (Make_Identifier (VN (V_CDR_Position)),
                             Make_Identifier (VN (V_Buffer_Size)),
                             Make_Literal (Padding_Value)));
 
-                        Append_Node_To_List (N, Block_St);
+                        Append_To (Block_St, N);
 
                         --  Multiply 'Len' by sequence element size
 
@@ -1528,20 +1528,20 @@ package body Backend.BE_CORBA_Ada.Buffers is
                            Make_Expression
                            (Make_Subprogram_Call
                             (RE (RE_Stream_Element_Count),
-                             Make_List_Id (M)),
+                             New_List (M)),
                             Op_Plus,
                             Make_Defining_Identifier (VN (V_Buffer_Size))));
-                        Append_Node_To_List (N, Block_St);
+                        Append_To (Block_St, N);
 
                         N := Make_Assignment_Statement
                           (Make_Defining_Identifier (VN (V_CDR_Position)),
                            Make_Expression
                            (Make_Subprogram_Call
                             (RE (RE_Stream_Element_Count),
-                             Make_List_Id (M)),
+                             New_List (M)),
                             Op_Plus,
                             Make_Defining_Identifier (VN (V_CDR_Position))));
-                        Append_Node_To_List (N, Block_St);
+                        Append_To (Block_St, N);
                      end;
                   end if;
 
@@ -1601,11 +1601,11 @@ package body Backend.BE_CORBA_Ada.Buffers is
 
                      N := Make_Subprogram_Call
                        (RE (RE_Pad_Compute),
-                        Make_List_Id
+                        New_List
                         (Make_Identifier (VN (V_CDR_Position)),
                          Make_Identifier (VN (V_Buffer_Size)),
                          Make_Literal (Padding_Value)));
-                     Append_Node_To_List (N, Block_St);
+                     Append_To (Block_St, N);
 
                      --  Update Buffer_Size and CDR_Position
 
@@ -1615,7 +1615,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
                         (Make_Literal (Padding_Value),
                          Op_Plus,
                          M));
-                     Append_Node_To_List (N, Block_St);
+                     Append_To (Block_St, N);
 
                      N := Make_Assignment_Statement
                        (Make_Defining_Identifier (VN (V_CDR_Position)),
@@ -1623,7 +1623,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
                         (Make_Literal (Padding_Value),
                          Op_Plus,
                          M));
-                     Append_Node_To_List (N, Block_St);
+                     Append_To (Block_St, N);
                   else
                      --  Element type is complex, Building the nested
                      --  loops
@@ -1635,16 +1635,16 @@ package body Backend.BE_CORBA_Ada.Buffers is
                         Add_Nat_To_Name_Buffer (I);
                         Index_Node := Make_Defining_Identifier
                           (Add_Suffix_To_Name (Var_Suffix, Name_Find));
-                        Append_Node_To_List (Index_Node, Index_List);
+                        Append_To (Index_List, Index_Node);
                         Enclosing_Statements := Loop_Statements;
                         Loop_Statements := New_List (K_List_Id);
                         N := Make_For_Statement
                           (Index_Node, Dim, Loop_Statements);
 
                         if I > 0 then
-                           Append_Node_To_List (N, Enclosing_Statements);
+                           Append_To (Enclosing_Statements, N);
                         else
-                           Append_Node_To_List (N, Block_St);
+                           Append_To (Block_St, N);
                         end if;
 
                         I := I + 1;
@@ -1663,7 +1663,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
                         Var_Type => Type_Spec (Declaration (Type_Spec_Node)),
                         Subp_Dec => Subp_Dec,
                         Subp_Nod => Subp_Nod);
-                     Append_Node_To_List (N, Loop_Statements);
+                     Append_To (Loop_Statements, N);
                   end if;
                end;
 
@@ -1697,7 +1697,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
                            Var_Type => Declarator,
                            Subp_Dec => Subp_Dec,
                            Subp_Nod => Subp_Nod);
-                        Append_Node_To_List (N, Block_St);
+                        Append_To (Block_St, N);
 
                         Declarator := Next_Entity (Declarator);
                      end loop;
@@ -1710,7 +1710,6 @@ package body Backend.BE_CORBA_Ada.Buffers is
                declare
                   Switch_Node         : Node_Id;
                   Switch_Alternatives : List_Id;
-                  Switch_Alternative  : Node_Id;
                   Switch_Case         : Node_Id;
                   Default_Met         : Boolean := False;
                   Choices             : List_Id;
@@ -1733,7 +1732,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
                      Subp_Dec => Subp_Dec,
                      Subp_Nod => Subp_Nod);
 
-                  Append_Node_To_List (N, Block_St);
+                  Append_To (Block_St, N);
 
                   --  2/ Depending on the switch value, marshall the
                   --  corresponding flag.
@@ -1786,12 +1785,11 @@ package body Backend.BE_CORBA_Ada.Buffers is
                         Subp_Dec => Subp_Dec,
                         Subp_Nod => Subp_Nod);
 
-                     Append_Node_To_List (N, Switch_Statements);
+                     Append_To (Switch_Statements, N);
 
-                     Switch_Alternative :=  Make_Case_Statement_Alternative
-                       (Choices, Switch_Statements);
-                     Append_Node_To_List
-                       (Switch_Alternative, Switch_Alternatives);
+                     Append_To (Switch_Alternatives,
+                       Make_Case_Statement_Alternative
+                         (Choices, Switch_Statements));
 
                      Switch_Case := Next_Entity (Switch_Case);
                   end loop;
@@ -1800,15 +1798,12 @@ package body Backend.BE_CORBA_Ada.Buffers is
                   --  happy.
 
                   if not Default_Met then
-                     Append_Node_To_List
-                       (Make_Case_Statement_Alternative (No_List, No_List),
-                        Switch_Alternatives);
+                     Append_To (Switch_Alternatives,
+                       Make_Case_Statement_Alternative (No_List, No_List));
                   end if;
 
-                  N := Make_Case_Statement
-                    (Switch_Node,
-                     Switch_Alternatives);
-                  Append_Node_To_List (N, Block_St);
+                  Append_To (Block_St,
+                    Make_Case_Statement (Switch_Node, Switch_Alternatives));
 
                   if not Args_Declared then
                      Declare_Args (Subp_Dec, Subp_Nod);
@@ -1817,7 +1812,7 @@ package body Backend.BE_CORBA_Ada.Buffers is
                end;
 
             when others =>
-               Append_Node_To_List (Make_Null_Statement, Block_St);
+               Append_To (Block_St, Make_Null_Statement);
          end case;
 
          N := Make_Block_Statement
@@ -1916,8 +1911,8 @@ package body Backend.BE_CORBA_Ada.Buffers is
            (Defining_Identifier => Args_Id,
             Object_Definition   => N,
             Expression          => Make_Subprogram_Call
-            (N, Make_List_Id (M)));
-         Append_Node_To_List (N, Subp_Dec);
+            (N, New_List (M)));
+         Append_To (Subp_Dec, N);
       end Declare_Args;
    end Package_Body;
 end Backend.BE_CORBA_Ada.Buffers;

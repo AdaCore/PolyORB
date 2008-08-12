@@ -363,14 +363,14 @@ package body Backend.BE_CORBA_Ada.Nutils is
       Set_Defining_Identifier (W, P);
       Set_Elaborated (W, Force_Elaboration);
 
-      Append_Node_To_List (W, Withed_Packages (Current_Package));
+      Append_To (Withed_Packages (Current_Package), W);
    end Add_With_Package;
 
-   -------------------------
-   -- Append_Node_To_List --
-   -------------------------
+   ---------------
+   -- Append_To --
+   ---------------
 
-   procedure Append_Node_To_List (E : Node_Id; L : List_Id) is
+   procedure Append_To (L : List_Id; E : Node_Id) is
       Last : Node_Id;
 
    begin
@@ -384,11 +384,12 @@ package body Backend.BE_CORBA_Ada.Nutils is
 
       Last := E;
 
-      while Present (Last) loop
-         Set_Last_Node (L, Last);
+      while Present (Next_Node (Last)) loop
          Last := Next_Node (Last);
       end loop;
-   end Append_Node_To_List;
+
+      Set_Last_Node (L, Last);
+   end Append_To;
 
    -------------
    -- Convert --
@@ -1544,41 +1545,40 @@ package body Backend.BE_CORBA_Ada.Nutils is
       return N;
    end Make_Instantiated_Subprogram;
 
-   ------------------
-   -- Make_List_Id --
-   ------------------
+   --------------
+   -- New_List --
+   --------------
 
-   function Make_List_Id
+   function New_List
      (N1 : Node_Id;
       N2 : Node_Id := No_Node;
       N3 : Node_Id := No_Node;
       N4 : Node_Id := No_Node;
-      N5 : Node_Id := No_Node)
-     return List_Id
+      N5 : Node_Id := No_Node) return List_Id
    is
       L : List_Id;
    begin
       L := New_List (K_List_Id);
-      Append_Node_To_List (N1, L);
+      Append_To (L, N1);
 
       if Present (N2) then
-         Append_Node_To_List (N2, L);
+         Append_To (L, N2);
       end if;
 
       if Present (N3) then
-         Append_Node_To_List (N3, L);
+         Append_To (L, N3);
       end if;
 
       if Present (N4) then
-         Append_Node_To_List (N4, L);
+         Append_To (L, N4);
       end if;
 
       if Present (N5) then
-         Append_Node_To_List (N5, L);
+         Append_To (L, N5);
       end if;
 
       return L;
-   end Make_List_Id;
+   end New_List;
 
    ------------------
    -- Make_Literal --
@@ -1723,8 +1723,8 @@ package body Backend.BE_CORBA_Ada.Nutils is
       --  comment because some lines in the header may be very long.
 
       N := Make_Pragma
-        (Pragma_Style_Checks, Make_List_Id (Make_Literal (Style_State)));
-      Append_Node_To_List (N, Withed_Packages (Pkg));
+        (Pragma_Style_Checks, New_List (Make_Literal (Style_State)));
+      Append_To (Withed_Packages (Pkg), N);
 
       --  Adding a comment header
 
@@ -1745,8 +1745,8 @@ package body Backend.BE_CORBA_Ada.Nutils is
       --  comment because some lines in the header may be very long.
 
       N := Make_Pragma
-        (Pragma_Style_Checks, Make_List_Id (Make_Literal (Style_State)));
-      Append_Node_To_List (N, Withed_Packages (Pkg));
+        (Pragma_Style_Checks, New_List (Make_Literal (Style_State)));
+      Append_To (Withed_Packages (Pkg), N);
 
       --  Adding a comment header
 
@@ -2201,65 +2201,65 @@ package body Backend.BE_CORBA_Ada.Nutils is
       --  Append the comment header lines to the package header
 
       N := Make_Ada_Comment (Name_Find, False);
-      Append_Node_To_List (N, Package_Header);
+      Append_To (Package_Header, N);
 
       Set_Str_To_Name_Buffer
         ("This file has been generated automatically from");
       N := Make_Ada_Comment (Name_Find);
-      Append_Node_To_List (N, Package_Header);
+      Append_To (Package_Header, N);
 
       Get_Name_String (Main_Source);
       N := Make_Ada_Comment (Name_Find);
-      Append_Node_To_List (N, Package_Header);
+      Append_To (Package_Header, N);
 
       Set_Str_To_Name_Buffer
         ("by IAC (IDL to Ada Compiler) " & Platform.Version & ".");
       N := Make_Ada_Comment (Name_Find);
-      Append_Node_To_List (N, Package_Header);
+      Append_To (Package_Header, N);
 
       if not Editable then
 
          N := Make_Ada_Comment (Separator, False);
-         Append_Node_To_List (N, Package_Header);
+         Append_To (Package_Header, N);
 
          Set_Str_To_Name_Buffer
            ("Do NOT hand-modify this file, as your");
          N := Make_Ada_Comment (Name_Find);
-         Append_Node_To_List (N, Package_Header);
+         Append_To (Package_Header, N);
 
          Set_Str_To_Name_Buffer
            ("changes will be lost when you re-run the");
          N := Make_Ada_Comment (Name_Find);
-         Append_Node_To_List (N, Package_Header);
+         Append_To (Package_Header, N);
 
          Set_Str_To_Name_Buffer
            ("IDL to Ada compiler.");
          N := Make_Ada_Comment (Name_Find);
-         Append_Node_To_List (N, Package_Header);
+         Append_To (Package_Header, N);
       end if;
 
       if Internal then
          N := Make_Ada_Comment (Separator, False);
-         Append_Node_To_List (N, Package_Header);
+         Append_To (Package_Header, N);
 
          Set_Str_To_Name_Buffer
            ("This package is not part of the standard IDL-to-Ada");
          N := Make_Ada_Comment (Name_Find);
-         Append_Node_To_List (N, Package_Header);
+         Append_To (Package_Header, N);
 
          Set_Str_To_Name_Buffer
            ("mapping. It provides supporting routines used");
          N := Make_Ada_Comment (Name_Find);
-         Append_Node_To_List (N, Package_Header);
+         Append_To (Package_Header, N);
 
          Set_Str_To_Name_Buffer
            ("internally by PolyORB.");
          N := Make_Ada_Comment (Name_Find);
-         Append_Node_To_List (N, Package_Header);
+         Append_To (Package_Header, N);
       end if;
 
       N := Make_Ada_Comment (Separator, False);
-      Append_Node_To_List (N, Package_Header);
+      Append_To (Package_Header, N);
    end Make_Comment_Header;
 
    -----------------
@@ -2444,7 +2444,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
          Forwarded_Entities := New_List (K_List_Id);
       end if;
 
-      Append_Node_To_List (N, Forwarded_Entities);
+      Append_To (Forwarded_Entities, N);
    end Set_Forwarded;
 
    ------------------

@@ -503,8 +503,8 @@ package Backend.BE_CORBA_Ada.Nutils is
    --  Append a 'with' clause to the Withed_Package list of the
    --  current package. E is a Designator of the Withed package
 
-   procedure Append_Node_To_List (E : Node_Id; L : List_Id);
-   --  Append node N to the end of list L
+   procedure Append_To (L : List_Id; E : Node_Id);
+   --  Append node E to the end of list L
 
    function Convert (K : Frontend.Nodes.Node_Kind) return RE_Id;
    --  If K is an IDL base type, returns the corresponding CORBA type
@@ -561,18 +561,16 @@ package Backend.BE_CORBA_Ada.Nutils is
 
    function New_Node
      (Kind : Node_Kind;
-      From : Node_Id   := No_Node)
-     return Node_Id;
-   --  Create a new Ada Node_Id of Kind 'Kind'. If the 'From' node is
-   --  given, set the FE_Node of the newly created node to
-   --  'From'. 'From' is consequently assumed to designate an IDL
-   --  Node_Id
+      From : Node_Id := No_Node) return Node_Id;
+   --  Create a new Ada Node_Id of Kind 'Kind'. If the 'From' node is given,
+   --  set the FE_Node of the newly created node to 'From'. 'From' is
+   --  consequently assumed to designate an IDL Node_Id
 
    function New_List
      (Kind : Node_Kind;
-      From : Node_Id   := No_Node)
-     return List_Id;
+      From : Node_Id := No_Node) return List_Id;
    --  The same as New_Node, but creates a List
+   --  Why is there a node kind associated with lists???
 
    function Image (T : Token_Type) return String;
    --  Return the lower case image of token T (used to build the
@@ -813,13 +811,12 @@ package Backend.BE_CORBA_Ada.Nutils is
       Parameter_List      : List_Id)
      return Node_Id;
 
-   function Make_List_Id
+   function New_List
      (N1 : Node_Id;
       N2 : Node_Id := No_Node;
       N3 : Node_Id := No_Node;
       N4 : Node_Id := No_Node;
-      N5 : Node_Id := No_Node)
-     return List_Id;
+      N5 : Node_Id := No_Node) return List_Id;
    --  Create a list which contains all the given nodes
 
    function Make_Literal

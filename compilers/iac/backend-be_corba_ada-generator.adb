@@ -762,7 +762,7 @@ package body Backend.BE_CORBA_Ada.Generator is
       if Is_Empty (Statements (N)) then
          Write_Indentation;
          P := Make_Pragma
-           (Pragma_Warnings, Make_List_Id (RE (RE_Off)));
+           (Pragma_Warnings, New_List (RE (RE_Off)));
          Generate (P);
          Generate_Statement_Delimiter (P);
       end if;
@@ -816,7 +816,7 @@ package body Backend.BE_CORBA_Ada.Generator is
       if Is_Empty (Statements (N)) then
          Write_Indentation;
          P := Make_Pragma
-           (Pragma_Warnings, Make_List_Id (RE (RE_On)));
+           (Pragma_Warnings, New_List (RE (RE_On)));
          Generate (P);
          Generate_Statement_Delimiter (P);
       end if;
@@ -2309,7 +2309,7 @@ package body Backend.BE_CORBA_Ada.Generator is
       if No (O) then
          Write_Indentation;
          P := Make_Pragma
-           (Pragma_Warnings, Make_List_Id (RE (RE_Off)));
+           (Pragma_Warnings, New_List (RE (RE_Off)));
          Generate (P);
          Generate_Statement_Delimiter (P);
       end if;
@@ -2337,7 +2337,7 @@ package body Backend.BE_CORBA_Ada.Generator is
       if No (O) then
          Write_Indentation;
          P := Make_Pragma
-           (Pragma_Warnings, Make_List_Id (RE (RE_On)));
+           (Pragma_Warnings, New_List (RE (RE_On)));
          Generate (P);
          Generate_Statement_Delimiter (P);
       end if;

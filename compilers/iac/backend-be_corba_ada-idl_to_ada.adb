@@ -682,12 +682,12 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
       Parameter := Make_Parameter_Specification
         (Make_Defining_Identifier (PN (P_From)),
          RE (RE_Exception_Occurrence));
-      Append_Node_To_List (Parameter, Profile);
+      Append_To (Profile, Parameter);
       Parameter := Make_Parameter_Specification
         (Make_Defining_Identifier (PN (P_To)),
          Member_Type,
          Mode_Out);
-      Append_Node_To_List (Parameter, Profile);
+      Append_To (Profile, Parameter);
 
       N := Make_Subprogram_Specification
         (Make_Defining_Identifier (SN (S_Get_Members)),
@@ -730,7 +730,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
       --  disable it.
 
       if not Disable_Client_Code_Gen then
-         Append_Node_To_List (M, L);
+         Append_To (L, M);
       end if;
 
       --  Helper package
@@ -745,7 +745,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
       Set_Helper_Package (P, D);
 
       if not Disable_Client_Code_Gen then
-         Append_Node_To_List (D, L);
+         Append_To (L, D);
       end if;
 
       --  Internals package
@@ -762,13 +762,11 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
 
       Set_Is_Subunit_Package (Package_Specification (Z), True);
 
-      Append_Node_To_List
-        (Package_Specification (Z),
-         Subunits (Package_Specification (D)));
+      Append_To (Subunits (Package_Specification (D)),
+        Package_Specification (Z));
 
-      Append_Node_To_List
-        (Package_Implementation (Z),
-         Statements (Package_Implementation (D)));
+      Append_To (Statements (Package_Implementation (D)),
+        Package_Implementation (Z));
 
       --  As a subunit of Helper, Interals shares its list of withed
       --  packages with Helper.
@@ -792,7 +790,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
          Set_IDL_Unit (F, P);
          Set_Parent (F, M);
          Set_Ir_Info_Package (P, F);
-         Append_Node_To_List (F, L);
+         Append_To (L, F);
       end if;
 
       if Kind (Entity) = K_Interface_Declaration then
@@ -816,7 +814,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
                Set_IDL_Unit (D, P);
                Set_Parent (D, M);
                Set_Skeleton_Package (P, D);
-               Append_Node_To_List (D, L);
+               Append_To (L, D);
 
                --  CDR package
 
@@ -830,7 +828,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
                Set_CDR_Package (P, D);
 
                if not Disable_Client_Code_Gen then
-                  Append_Node_To_List (D, L);
+                  Append_To (L, D);
                end if;
 
                --  Aligned package
@@ -845,7 +843,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
                Set_Aligned_Package (P, D);
 
                if not Disable_Client_Code_Gen then
-                  Append_Node_To_List (D, L);
+                  Append_To (L, D);
                end if;
 
                --  Buffers package
@@ -860,7 +858,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
                Set_Buffers_Package (P, D);
 
                if not Disable_Client_Code_Gen then
-                  Append_Node_To_List (D, L);
+                  Append_To (L, D);
                end if;
             end if;
 
@@ -876,7 +874,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
             Set_Implementation_Package (P, D);
 
             if Impl_Packages_Gen then
-               Append_Node_To_List (D, L);
+               Append_To (L, D);
             end if;
          end if;
       end if;
@@ -952,8 +950,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
             Bind_FE_To_BE (Identifier (Declarator),
                            Component_Declaration,
                            B_Stub);
-            Append_Node_To_List
-              (Component_Declaration, Components);
+            Append_To (Components, Component_Declaration);
             Declarator := Next_Entity (Declarator);
          end loop;
 
@@ -1074,7 +1071,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
          R := Make_Range_Constraint
            (Make_Literal (Int0_Val),
             Make_Literal (New_Value (V)));
-         Append_Node_To_List (R, L);
+         Append_To (L, R);
          S := FEN.Next_Entity (S);
       end loop;
 
@@ -1604,7 +1601,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
             Choice := Make_Literal
               (Value  => FEN.Value (Label),
                Parent => Literal_Parent);
-            Append_Node_To_List (Choice, Choices);
+            Append_To (Choices, Choice);
             Label := Next_Entity (Label);
          end loop;
 
@@ -1615,7 +1612,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
               (Map_Defining_Identifier (Identifier),
                Map_Declarator_Type_Designator
                (Type_Spec (Element), FEN.Declarator (Element))));
-         Append_Node_To_List (Variant, Variants);
+         Append_To (Variants, Variant);
          Alternative := Next_Entity (Alternative);
       end loop;
 
@@ -1649,7 +1646,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
             Choice := Make_Literal
               (Value  => FEN.Value (Label),
                Parent => Literal_Parent);
-            Append_Node_To_List (Choice, Choices);
+            Append_To (Choices, Choice);
             Label := Next_Entity (Label);
          end loop;
       end if;
@@ -2393,7 +2390,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
       Add_Str_To_Name_Buffer (Message);
       Get_Name_String_And_Append (Second_Name);
       Comment := Make_Ada_Comment (Name_Find);
-      Append_Node_To_List (Comment, Visible_Part (Current_Package));
+      Append_To (Visible_Part (Current_Package), Comment);
    end Explaining_Comment;
 
    ------------------------
@@ -2444,7 +2441,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
       Parameter := Make_Parameter_Specification
         (Make_Defining_Identifier (PN (P_Item)),
          RE (RE_Any));
-      Append_Node_To_List (Parameter, Profile);
+      Append_To (Profile, Parameter);
 
       From_Any := Make_Subprogram_Specification
         (Make_Defining_Identifier (SN (S_From_Any)),
@@ -2457,7 +2454,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
       Parameter := Make_Parameter_Specification
         (Make_Defining_Identifier (PN (P_Item)),
          New_Type);
-      Append_Node_To_List (Parameter, Profile);
+      Append_To (Profile, Parameter);
       To_Any := Make_Subprogram_Specification
         (Make_Defining_Identifier (SN (S_To_Any)),
          Profile, RE (RE_Any));
@@ -2858,9 +2855,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
                                Is_Subtype => True),
                               Is_Subtype => True);
                            Set_Declaration_Node (New_Type, T);
-                           Append_Node_To_List
-                             (T,
-                              Visible_Part (Current_Package));
+                           Append_To (Visible_Part (Current_Package), T);
                         end if;
 
                         if Helper then
@@ -2871,12 +2866,10 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
                                 (D))),
                               From_Any,
                               To_Any);
-                           Append_Node_To_List
-                             (From_Any,
-                              Visible_Part (Current_Package));
-                           Append_Node_To_List
-                             (To_Any,
-                              Visible_Part (Current_Package));
+                           Append_To
+                             (Visible_Part (Current_Package), From_Any);
+                           Append_To
+                             (Visible_Part (Current_Package), To_Any);
                         end if;
                      end if;
 
@@ -2930,9 +2923,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
                             Is_Subtype => True),
                            Is_Subtype => True);
                         Set_Declaration_Node (New_Type, T);
-                        Append_Node_To_List
-                          (T,
-                           Visible_Part (Current_Package));
+                        Append_To (Visible_Part (Current_Package), T);
                      end if;
 
                      if Helper then
@@ -2943,12 +2934,8 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
                              (Entity))),
                            From_Any,
                            To_Any);
-                        Append_Node_To_List
-                          (From_Any,
-                           Visible_Part (Current_Package));
-                        Append_Node_To_List
-                          (To_Any,
-                           Visible_Part (Current_Package));
+                        Append_To (Visible_Part (Current_Package), From_Any);
+                        Append_To (Visible_Part (Current_Package), To_Any);
                      end if;
                   end;
                end if;
@@ -2993,9 +2980,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
                              Map_Expanded_Name (Type_Spec (Entity)),
                            Renamed_Object      =>
                              Original_Constant);
-                        Append_Node_To_List
-                          (C,
-                           Visible_Part (Current_Package));
+                        Append_To (Visible_Part (Current_Package), C);
                      end if;
                   end;
                end if;
@@ -3041,9 +3026,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
                              New_Exception,
                            Renamed_Exception   =>
                              Original_Exception);
-                        Append_Node_To_List
-                          (C,
-                           Visible_Part (Current_Package));
+                        Append_To (Visible_Part (Current_Package), C);
 
                         --  Generate the "_Members" subtype
 
@@ -3068,16 +3051,13 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
                             Is_Subtype => True),
                            Is_Subtype => True);
                         Set_Declaration_Node (New_Type, T);
-                        Append_Node_To_List
-                          (T,
-                           Visible_Part (Current_Package));
+                        Append_To (Visible_Part (Current_Package), T);
 
                         --  Generate the Get_Members procedure spec
 
                         N := Map_Get_Members_Spec (Expand_Designator (T));
 
-                        Append_Node_To_List
-                          (N, Visible_Part (Current_Package));
+                        Append_To (Visible_Part (Current_Package), N);
                      end if;
 
                      if Helper then
@@ -3090,12 +3070,8 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
                                (Entity))))),
                            From_Any,
                            To_Any);
-                        Append_Node_To_List
-                          (From_Any,
-                           Visible_Part (Current_Package));
-                        Append_Node_To_List
-                          (To_Any,
-                           Visible_Part (Current_Package));
+                        Append_To (Visible_Part (Current_Package), From_Any);
+                        Append_To (Visible_Part (Current_Package), To_Any);
                      end if;
                   end;
                end if;
@@ -3165,12 +3141,8 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
                                (BE_Node
                                 (Identifier
                                  (D)))));
-                           Append_Node_To_List
-                             (From_Any,
-                              Statements (Current_Package));
-                           Append_Node_To_List
-                             (To_Any,
-                              Statements (Current_Package));
+                           Append_To (Statements (Current_Package), From_Any);
+                           Append_To (Statements (Current_Package), To_Any);
                         end if;
                         D := Next_Entity (D);
                      end loop;
@@ -3207,12 +3179,8 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
                             (BE_Node
                              (Identifier
                               (Entity)))));
-                        Append_Node_To_List
-                          (From_Any,
-                           Statements (Current_Package));
-                        Append_Node_To_List
-                          (To_Any,
-                           Statements (Current_Package));
+                        Append_To (Statements (Current_Package), From_Any);
+                        Append_To (Statements (Current_Package), To_Any);
                      end if;
                   end;
                end if;
@@ -3255,8 +3223,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
                                 (Identifier
                                  (Entity))))))));
                         Set_Renamed_Entity (N, Original_Get_Members);
-                        Append_Node_To_List
-                          (N, Statements (Current_Package));
+                        Append_To (Statements (Current_Package), N);
                      end if;
 
                      if Helper then
@@ -3283,12 +3250,8 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
                             (BE_Node
                              (Identifier
                               (Entity)))));
-                        Append_Node_To_List
-                          (From_Any,
-                           Statements (Current_Package));
-                        Append_Node_To_List
-                          (To_Any,
-                           Statements (Current_Package));
+                        Append_To (Statements (Current_Package), From_Any);
+                        Append_To (Statements (Current_Package), To_Any);
                      end if;
                   end;
                end if;
@@ -3965,7 +3928,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
       begin
          N := Make_Subprogram_Call
            (RE (RE_Get_Primitive),
-            Make_List_Id
+            New_List
             (Make_Subprogram_Call (RE (RE_Get_IR_Root), No_List),
              RE (R)));
 
@@ -4257,7 +4220,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
       if Append then
          V := New_String_Value (Dep_Name, False);
          N := Make_Literal (V);
-         Append_Node_To_List (N, Dependency_List);
+         Append_To (Dependency_List, N);
       end if;
    end Add_Dependency;
 
