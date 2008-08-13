@@ -84,8 +84,8 @@ package body PolyORB.References.IOR is
 
    procedure Marshall_Profile
      (Buffer  : access Buffer_Type;
-      P       :        Binding_Data.Profile_Access;
-      Success :    out Boolean)
+      P       : Binding_Data.Profile_Access;
+      Success : out Boolean)
    is
       use PolyORB.Types;
 
@@ -383,9 +383,8 @@ package body PolyORB.References.IOR is
       Marshall_Profile_Body   : Marshall_Profile_Body_Type;
       Unmarshall_Profile_Body : Unmarshall_Profile_Body_Type)
    is
-      Elt : constant Profile_Record
-        := (Profile, Marshall_Profile_Body,
-            Unmarshall_Profile_Body);
+      Elt : constant Profile_Record :=
+              (Profile, Marshall_Profile_Body, Unmarshall_Profile_Body);
    begin
       Append (Callbacks, Elt);
    end Register;

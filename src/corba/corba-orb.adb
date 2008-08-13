@@ -562,8 +562,7 @@ package body CORBA.ORB is
    ----------------------
 
    function Object_To_String
-     (Obj : CORBA.Object.Ref'Class)
-     return CORBA.String
+     (Obj : CORBA.Object.Ref'Class) return CORBA.String
    is
       use PolyORB.References.IOR;
    begin
@@ -578,8 +577,7 @@ package body CORBA.ORB is
 
       return To_CORBA_String
         (Object_To_String
-         (CORBA.Object.Internals.To_PolyORB_Ref
-          (CORBA.Object.Ref (Obj))));
+         (CORBA.Object.Internals.To_PolyORB_Ref (CORBA.Object.Ref (Obj))));
    end Object_To_String;
 
    ----------------------
