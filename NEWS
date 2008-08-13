@@ -64,6 +64,17 @@ literals.
 IDL constants of a bounded string type were not handled correctly by the
 IDL to Ada compilers. Both have been fixed. (H707-023)
 
+If the tasking policy is Thread_Pool, the ORB could borrow user tasks to handle
+Request_Jobs, which could cause long waiting times, or even deadlock in some
+cases. (G510-007)
+
+IAC would generate garbled error messages when referring to declarations in
+#include files, such as "X" conflicts with declaration at included.idl:12:03.
+(H723-022).
+
+IAC and IDLAC required array sizes to be literals or constants. Arbitrary
+integer expressions are now allowed. (H723-024).
+
 * PolyORB 2.4
 =============
 
