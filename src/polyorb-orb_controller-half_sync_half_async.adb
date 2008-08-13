@@ -195,9 +195,7 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
 
             --  Awake all idle tasks
 
-            for J in 1 .. O.Counters (Idle) loop
-               Awake_One_Idle_Task (O.Idle_Tasks);
-            end loop;
+            Awake_All_Idle_Tasks (O.Idle_Tasks);
 
             --  Unblock blocked tasks
 
@@ -248,7 +246,7 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
 
                   O.Number_Of_Pending_Jobs := O.Number_Of_Pending_Jobs + 1;
                   PJ.Queue_Job (O.Job_Queue, E.Request_Job);
-                  Try_Allocate_One_Task (O);
+                  Try_Allocate_One_Task (O, Allow_Transient => True);
                end if;
             end;
 
@@ -472,7 +470,8 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
    ------------
 
    function Create
-     (OCF : access ORB_Controller_Half_Sync_Half_Async_Factory)
+     (OCF : access ORB_Controller_Half_Sync_Half_Async_Factory;
+      Borrow_Transient_Tasks : Boolean)
      return ORB_Controller_Access
    is
       pragma Unreferenced (OCF);
@@ -482,7 +481,8 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
 
    begin
       PRS.Create (RS);
-      OC := new ORB_Controller_Half_Sync_Half_Async (RS);
+      OC := new ORB_Controller_Half_Sync_Half_Async
+        (RS, Borrow_Transient_Tasks);
 
       for J in OC.Monitoring_Tasks'Range loop
          Create (OC.Monitoring_Tasks (J).CV);

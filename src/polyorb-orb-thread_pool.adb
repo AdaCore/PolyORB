@@ -92,7 +92,7 @@ package body PolyORB.ORB.Thread_Pool is
                        & " is initialized"));
       Enter (Mutex);
 
-      --  Per construction, at most The_Pool'Size tasks can enter this
+      --  Per construction, at most The_Pool'Length tasks can enter this
       --  function, the following piece of code cannot fail.
 
       for J in The_Pool'Range loop
@@ -261,8 +261,23 @@ package body PolyORB.ORB.Thread_Pool is
                        & " is leaving Idle state"));
    end Idle;
 
+   ----------------------------
+   -- Borrow_Transient_Tasks --
+   ----------------------------
+
+   function Borrow_Transient_Tasks (P : Thread_Pool_Policy) return Boolean is
+      pragma Warnings (Off);
+      pragma Unreferenced (P);
+      pragma Warnings (On);
+   begin
+      --  We don't want to borrow transient tasks in thread-pool policy, except
+      --  that if there is only one thread in the pool, we need to borrow in
+      --  order to avoid deadlock.
+      return Maximum_Threads <= 1;
+   end Borrow_Transient_Tasks;
+
    --------------------------------------
-   -- Initialize_Tasking_Policy_Thread --
+   -- Initialize_Tasking_Policy_Access --
    --------------------------------------
 
    procedure Initialize_Tasking_Policy_Access;
@@ -271,17 +286,6 @@ package body PolyORB.ORB.Thread_Pool is
    begin
       Setup.The_Tasking_Policy := new Thread_Pool_Policy;
       Create (Mutex);
-   end Initialize_Tasking_Policy_Access;
-
-   ------------------------
-   -- Initialize_Threads --
-   ------------------------
-
-   procedure Initialize_Threads;
-
-   procedure Initialize_Threads is
-   begin
-      pragma Debug (C, O ("Initialize_threads : enter"));
 
       Minimum_Spare_Threads := Get_Conf
         ("tasking",
@@ -304,12 +308,18 @@ package body PolyORB.ORB.Thread_Pool is
          raise Constraint_Error;
       end if;
 
-      The_Pool := new Thread_Array (1 .. Maximum_Threads);
+      The_Pool := new Thread_Array'(1 .. Maximum_Threads => Null_Thread_Id);
+   end Initialize_Tasking_Policy_Access;
 
-      for J in The_Pool'Range loop
-         The_Pool (J) := Null_Thread_Id;
-      end loop;
+   ------------------------
+   -- Initialize_Threads --
+   ------------------------
 
+   procedure Initialize_Threads;
+
+   procedure Initialize_Threads is
+   begin
+      pragma Debug (C, O ("Initialize_threads : enter"));
       pragma Debug (C, O ("Creating"
                        & Natural'Image (Minimum_Spare_Threads)
                        & " spare threads"));
@@ -352,7 +362,7 @@ begin
    --  variable Setup.The_Tasking_Policy must be initialized before
    --  ORB creation and on the other hand, the variable Setup.The_ORB
    --  must be initialized in order to run threads from the
-   --  thread_pool. This breaks the circular dependecy at
-   --  initialisation
+   --  thread_pool. This breaks the circular dependency at
+   --  initialisation.
 
 end PolyORB.ORB.Thread_Pool;

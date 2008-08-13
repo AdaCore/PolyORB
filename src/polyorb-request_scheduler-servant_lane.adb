@@ -81,8 +81,7 @@ package body PolyORB.Request_Scheduler.Servant_Lane is
    begin
       pragma Debug (C, O ("Try_Queue_Request_Job: enter"));
 
-      --  First test wether the target is a local servant
-      --  managed by a RT-POA.
+      --  First test whether the target is a local servant managed by a RT-POA.
 
       References.Binding.Bind
         (Target,

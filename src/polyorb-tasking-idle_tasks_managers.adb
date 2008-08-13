@@ -46,11 +46,15 @@ package body PolyORB.Tasking.Idle_Tasks_Managers is
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
 
+   procedure Awake_One_Idle_Task
+     (ITM : access Idle_Tasks_Manager; Kind : Task_Kind);
+   --  Awake one idle task of the specified Kind; there must be at least one.
+
    function Allocate_CV
      (ITM : access Idle_Tasks_Manager)
      return PTCV.Condition_Access;
    pragma Inline (Allocate_CV);
-   --  Return one CV
+   --  Return one condition variable
 
    -----------------
    -- Allocate_CV --
@@ -84,23 +88,59 @@ package body PolyORB.Tasking.Idle_Tasks_Managers is
    -- Awake_One_Idle_Task --
    -------------------------
 
-   procedure Awake_One_Idle_Task (ITM : access Idle_Tasks_Manager) is
-      use type Task_Lists.List;
+   procedure Awake_One_Idle_Task
+     (ITM : access Idle_Tasks_Manager; Kind : Task_Kind)
+   is
+      pragma Debug (C, O ("Awake one idle task"));
+      pragma Assert (not Task_Lists.Is_Empty (ITM.Idle_Task_Lists (Kind)));
 
-      Task_To_Awake : Task_Info_Access;
-
+      Task_To_Awake : constant Task_Info_Access :=
+        Task_Lists.Value (Task_Lists.First (ITM.Idle_Task_Lists (Kind))).all;
    begin
-      if ITM.Idle_Task_List /= Task_Lists.Empty then
-         pragma Debug (C, O ("Awake one idle task"));
+      --  Signal one idle task, and put its CV in Free_CV list
 
-         --  Signal one idle task, and puts its CV in Free_CV list
-
-         Task_Lists.Extract_First (ITM.Idle_Task_List, Task_To_Awake);
-         List_Attach (Task_To_Awake.all, Task_Lists.Last (ITM.Idle_Task_List));
-         Signal (Condition (Task_To_Awake.all));
-         CV_Lists.Append (ITM.Free_CV, Condition (Task_To_Awake.all));
-      end if;
+      List_Detach (Task_To_Awake.all, ITM.Idle_Task_Lists (Kind));
+      Signal (Condition (Task_To_Awake.all));
+      CV_Lists.Append (ITM.Free_CV, Condition (Task_To_Awake.all));
    end Awake_One_Idle_Task;
+
+   -----------------------------
+   -- Try_Awake_One_Idle_Task --
+   -----------------------------
+
+   procedure Try_Awake_One_Idle_Task
+     (ITM : access Idle_Tasks_Manager; Allow_Transient : Boolean)
+   is
+   begin
+      --  The choice between Kinds is arbitrary, unless Allow_Transient is
+      --  False. It's simplest to pick the first Permanent one, unless there is
+      --  none, in which case we try Transient.
+
+      if not Task_Lists.Is_Empty (ITM.Idle_Task_Lists (Permanent)) then
+         Awake_One_Idle_Task (ITM, Permanent);
+
+      elsif Allow_Transient
+        and then not Task_Lists.Is_Empty (ITM.Idle_Task_Lists (Transient))
+      then
+
+         Awake_One_Idle_Task (ITM, Transient);
+      end if;
+   end Try_Awake_One_Idle_Task;
+
+   --------------------------
+   -- Awake_All_Idle_Tasks --
+   --------------------------
+
+   procedure Awake_All_Idle_Tasks (ITM : access Idle_Tasks_Manager) is
+   begin
+      --  Awaken tasks, looping until both Kind lists are empty
+
+      for Kind in Task_Kind loop
+         while not Task_Lists.Is_Empty (ITM.Idle_Task_Lists (Kind)) loop
+            Awake_One_Idle_Task (ITM, Kind);
+         end loop;
+      end loop;
+   end Awake_All_Idle_Tasks;
 
    ----------------------
    -- Remove_Idle_Task --
@@ -111,7 +151,7 @@ package body PolyORB.Tasking.Idle_Tasks_Managers is
       TI  :        PTI.Task_Info_Access)
    is
    begin
-      List_Detach (TI.all, ITM.Idle_Task_List);
+      List_Detach (TI.all, ITM.Idle_Task_Lists (TI.Kind));
    end Remove_Idle_Task;
 
    ----------------------
@@ -126,8 +166,7 @@ package body PolyORB.Tasking.Idle_Tasks_Managers is
       Result : constant PTCV.Condition_Access := Allocate_CV (ITM);
 
    begin
-      Task_Lists.Prepend (ITM.Idle_Task_List, TI);
-      List_Attach (TI.all, Task_Lists.First (ITM.Idle_Task_List));
+      List_Attach (TI, ITM.Idle_Task_Lists (TI.Kind));
 
       return Result;
    end Insert_Idle_Task;

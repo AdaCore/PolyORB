@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -50,8 +50,8 @@ package PolyORB.ORB_Controller is
    --  state of the ORB (running tasks, job processing, etc). It grants access
    --  to ORB internals and affects action to all registered tasks.
 
-   --  It is the ORB Control Policy responsability to ensure that all tasks may
-   --  work concurrently and access safely the ORB internals.
+   --  It is the responsibility of the ORB Control Policy to ensure that all
+   --  tasks work concurrently and access the ORB internals safely.
 
    --  An ORB Controller is an instance of an ORB Control Policy, attached to
    --  an ORB instance. It is a passive object, triggered by the occurence of
@@ -119,6 +119,9 @@ package PolyORB.ORB_Controller is
             Add_In_Monitor : PAE.Asynch_Ev_Monitor_Access;
             --  Non null iff we add a source to a new monitor
 
+         when Event_Sources_Deleted | Job_Completed | ORB_Shutdown =>
+            null;
+
          when Queue_Event_Job =>
             Event_Job : PJ.Job_Access;
             By_Task   : PT.Thread_Id;
@@ -136,7 +139,7 @@ package PolyORB.ORB_Controller is
          when Task_Registered =>
             Registered_Task : PTI.Task_Info_Access;
 
-         when others =>
+         when Task_Unregistered =>
             null;
       end case;
    end record;
@@ -152,8 +155,13 @@ package PolyORB.ORB_Controller is
    -- ORB_Controller --
    --------------------
 
-   type ORB_Controller (RS : PRS.Request_Scheduler_Access) is
-     abstract tagged limited private;
+   type ORB_Controller
+     (RS : PRS.Request_Scheduler_Access; Borrow_Transient_Tasks : Boolean)
+      is abstract tagged limited private;
+   --  Borrow_Transient_Tasks is True iff the tasking policy allows borrowing
+   --  of Transient tasks for handling Request_Jobs. True for Thread_Pool;
+   --  False for other tasking policies. Transient tasks may be borrowed for
+   --  other kinds of Jobs no matter what the tasking policy.
 
    type ORB_Controller_Access is access all ORB_Controller'Class;
 
@@ -171,13 +179,13 @@ package PolyORB.ORB_Controller is
    procedure Register_Task
      (O  : access ORB_Controller;
       TI : PTI.Task_Info_Access);
-   --  Register TI to scheduler S. TI may now be used by the ORB Controller to
-   --  process ORB actions.
+   --  Register TI to the ORB Controller. TI may now be used by the ORB
+   --  Controller to process ORB actions.
 
    procedure Unregister_Task
      (O  : access ORB_Controller;
       TI :        PTI.Task_Info_Access);
-   --  Unregister TI from Scheduler
+   --  Unregister TI from the ORB Controller
 
    procedure Notify_Event
      (O : access ORB_Controller;
@@ -190,7 +198,8 @@ package PolyORB.ORB_Controller is
      (O  : access ORB_Controller;
       TI :        PTI.Task_Info_Access)
       is abstract;
-   --  Return the next action to be executed.
+   --  TI is the current task. Set its state to indicate the next action to be
+   --  executed.
 
    procedure Disable_Polling
      (O : access ORB_Controller;
@@ -208,14 +217,14 @@ package PolyORB.ORB_Controller is
       M : PAE.Asynch_Ev_Monitor_Access) is abstract;
    --  Enable polling on AES monitored by M. If Disable_Polling has been called
    --  N times, Enable_Polling must be called N times to actually enable
-   --  polling. It is the user responsability to ensure that Enable_Polling
+   --  polling. It is the user's responsability to ensure that Enable_Polling
    --  actually enables polling in bounded time.
 
    function Is_A_Job_Pending (O : access ORB_Controller) return Boolean;
    --  Return true iff a job is pending
 
    function Get_Pending_Job (O : access ORB_Controller) return PJ.Job_Access;
-   --  Return a pending job, null if there is not pending job
+   --  Return a pending job, null if there is none
 
    function Is_Locally_Terminated
      (O                      : access ORB_Controller;
@@ -252,17 +261,20 @@ package PolyORB.ORB_Controller is
      access all ORB_Controller_Factory'Class;
 
    function Create
-     (OCF : access ORB_Controller_Factory)
+     (OCF : access ORB_Controller_Factory; Borrow_Transient_Tasks : Boolean)
      return ORB_Controller_Access
       is abstract;
-   --  Use factory to create a new ORB_Controller
+   --  Use factory to create a new ORB_Controller. Borrow_Transient_Tasks is
+   --  used to initialize the discriminant.
 
    procedure Register_ORB_Controller_Factory
      (OCF : ORB_Controller_Factory_Access);
    --  Register an ORB_Controller factory
 
-   procedure Create (O : out ORB_Controller_Access);
-   --  Initialize an ORB_Controller
+   procedure Create
+     (O : out ORB_Controller_Access; Borrow_Transient_Tasks : Boolean);
+   --  Initialize an ORB_Controller by dispatching to Create function of the
+   --  currently registered factory.
 
 private
 
@@ -291,11 +303,11 @@ private
      return Boolean;
    --  Return true iff the status of O respects the invariant defined below
 
-   procedure Try_Allocate_One_Task (O : access ORB_Controller);
+   procedure Try_Allocate_One_Task
+     (O : access ORB_Controller; Allow_Transient : Boolean);
    --  Awake one idle task, if any. Else do nothing
 
    function Need_Polling_Task (O : access ORB_Controller) return Natural;
-   pragma Inline (Need_Polling_Task);
    --  Return the index of the AEM_Info of a monitor waiting for polling task,
    --  else return 0.
 
@@ -303,7 +315,7 @@ private
      (O : access ORB_Controller;
       M : PAE.Asynch_Ev_Monitor_Access) return Natural;
    pragma Inline (Index);
-   --  Return the index of M held in O.AEM_Infos
+   --  Return the index of M held in O.AEM_Infos, 0 if not found
 
    type AEM_Info is record
       Monitor : PAE.Asynch_Ev_Monitor_Access;
@@ -334,7 +346,8 @@ private
 
    Maximum_Number_Of_Monitors : constant := 2;
 
-   type ORB_Controller (RS : PRS.Request_Scheduler_Access)
+   type ORB_Controller
+     (RS : PRS.Request_Scheduler_Access; Borrow_Transient_Tasks : Boolean)
       is abstract tagged limited record
 
          ORB_Lock : PTM.Mutex_Access;
@@ -355,7 +368,7 @@ private
          Counters : Counters_Array := Counters_Array'(others => 0);
 
          Registered_Tasks : Natural := 0;
-         --  Number of task registered by the ORB Controller
+         --  Number of tasks registered by the ORB Controller
          --  An invariant to be tested is: Registered_Tasks = # (Counter)
 
          Transient_Tasks : Natural := 0;
@@ -385,8 +398,8 @@ private
 
    Job_Completed_E : constant Event := Event'(Kind => Job_Completed);
 
-   Task_Unregistered_E : constant Event := Event'(Kind => Task_Unregistered);
-
    ORB_Shutdown_E : constant Event := Event'(Kind => ORB_Shutdown);
+
+   Task_Unregistered_E : constant Event := Event'(Kind => Task_Unregistered);
 
 end PolyORB.ORB_Controller;

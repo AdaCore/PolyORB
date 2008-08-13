@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -100,7 +100,7 @@ package PolyORB.Task_Info is
    --  this procedure resets Selector or Condition it was blocked on.
 
    procedure Set_State_Unscheduled (TI : in out Task_Info);
-   --  The task referred by TI is now unaffected.
+   --  The task referred by TI is now in Unscheduled state.
 
    procedure Set_State_Terminated (TI : in out Task_Info);
    --  The task referred by TI has terminated its job.
@@ -158,10 +158,10 @@ package PolyORB.Task_Info is
    --  Return job associated to TI
 
    procedure List_Attach
-     (TI       : in out Task_Info;
-      Position : Task_Lists.Iterator);
-   --  Record that TI is on a list at the given Position. Clears the
-   --  attachment information if Position is the end of a list.
+     (TI   : Task_Info_Access;
+      List : in out Task_Lists.List);
+   --  Attach TI to the List. It must not already be on a list. Order of
+   --  attachment and detachment is arbitrary.
 
    procedure List_Detach
      (TI   : in out Task_Info;
@@ -185,7 +185,10 @@ private
       --  True iff must abort polling
 
       Exit_Condition : PolyORB.Types.Boolean_Ptr := null;
-      --  Exit condition; meaningful only when Kind = Transient
+      --  Null for Permanent tasks, in which case the exit condition is
+      --  considered to be False. For Transient tasks, points to an
+      --  initially-False Boolean, which is set True when the task should exit
+      --  the ORB.
 
       Job : Jobs.Job_Access;
       --  Job to run, meaningful only when State is Running

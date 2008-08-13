@@ -133,11 +133,13 @@ package body PolyORB.ORB_Controller is
    -- Create --
    ------------
 
-   procedure Create (O : out ORB_Controller_Access) is
+   procedure Create
+     (O : out ORB_Controller_Access; Borrow_Transient_Tasks : Boolean)
+   is
    begin
       pragma Assert (My_Factory /= null);
 
-      O := Create (My_Factory);
+      O := Create (My_Factory, Borrow_Transient_Tasks);
    end Create;
 
    -------------------------------------
@@ -182,9 +184,9 @@ package body PolyORB.ORB_Controller is
    begin
       return O.Registered_Tasks =
         O.Counters (Unscheduled)
-        +  O.Counters (Idle)
         +  O.Counters (Running)
         +  O.Counters (Blocked)
+        +  O.Counters (Idle)
         +  O.Counters (Terminated);
    end ORB_Controller_Counters_Valid;
 
@@ -266,7 +268,9 @@ package body PolyORB.ORB_Controller is
    -- Try_Allocate_One_Task --
    ---------------------------
 
-   procedure Try_Allocate_One_Task (O : access ORB_Controller) is
+   procedure Try_Allocate_One_Task
+     (O : access ORB_Controller; Allow_Transient : Boolean)
+   is
    begin
       pragma Debug (C1, O1 ("Try_Allocate_One_Task: enter"));
 
@@ -280,7 +284,12 @@ package body PolyORB.ORB_Controller is
 
       elsif O.Counters (Idle) > 0 then
 
-         Awake_One_Idle_Task (O.Idle_Tasks);
+         Try_Awake_One_Idle_Task (O.Idle_Tasks, Allow_Transient);
+         --  Note that there might not be any idle tasks at this point, because
+         --  the count can be too high, because it is incremented when an idle
+         --  task awakens and send the Idle_Awake event, whereas a task is
+         --  removed from the list of idle tasks earlier, when we decide to
+         --  awaken one.
 
       else
          pragma Debug (C1, O1 ("No idle tasks"));
@@ -298,39 +307,38 @@ package body PolyORB.ORB_Controller is
    function Need_Polling_Task (O : access ORB_Controller) return Natural is
       use type PAE.Asynch_Ev_Monitor_Access;
 
+      function Needs_Polling (Index : Natural) return Boolean;
+
+      function Needs_Polling (Index : Natural) return Boolean is
+      begin
+         return True
+           and then O.AEM_Infos (Index).Monitor /= null
+           and then PAE.Has_Sources (O.AEM_Infos (Index).Monitor.all)
+           and then O.AEM_Infos (Index).Polling_Abort_Counter = 0
+           and then O.AEM_Infos (Index).TI = null;
+      end Needs_Polling;
+
    begin
       --  To promote fairness among AEM, we retain the value of the
       --  last monitored AEM, and test it iff no other AEM need
       --  polling.
 
-      --  Check wether any AEM but the last monitored needs a polling task
+      --  Check whether any AEM but the last monitored needs a polling task
 
       for J in O.AEM_Infos'Range loop
-         if True
-           and then J /= O.Last_Monitored_AEM
-           and then O.AEM_Infos (J).Monitor /= null
-           and then PAE.Has_Sources (O.AEM_Infos (J).Monitor.all)
-           and then O.AEM_Infos (J).Polling_Abort_Counter = 0
-           and then O.AEM_Infos (J).TI = null
-         then
+         if J /= O.Last_Monitored_AEM and then Needs_Polling (J) then
             O.Last_Monitored_AEM := J;
             return J;
          end if;
       end loop;
 
-      --  Check wether the last monitored AEM needs a polling task
+      --  Check whether the last monitored AEM needs a polling task
 
-      if True
-        and then O.AEM_Infos (O.Last_Monitored_AEM).Monitor /= null
-        and then PAE.Has_Sources
-        (O.AEM_Infos (O.Last_Monitored_AEM).Monitor.all)
-        and then O.AEM_Infos (O.Last_Monitored_AEM).Polling_Abort_Counter = 0
-        and then O.AEM_Infos (O.Last_Monitored_AEM).TI = null
-      then
+      if Needs_Polling (O.Last_Monitored_AEM) then
          return O.Last_Monitored_AEM;
       end if;
 
-      --  No AEM need polling
+      --  No AEM needs polling
 
       return 0;
    end Need_Polling_Task;

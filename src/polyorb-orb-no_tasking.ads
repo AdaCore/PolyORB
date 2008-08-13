@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -75,6 +75,8 @@ package PolyORB.ORB.No_Tasking is
      (P         : access No_Tasking;
       This_Task : in out PolyORB.Task_Info.Task_Info;
       ORB       :        ORB_Access);
+
+   function Borrow_Transient_Tasks (P : No_Tasking) return Boolean;
 
 private
 

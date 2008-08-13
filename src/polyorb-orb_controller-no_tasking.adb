@@ -278,7 +278,8 @@ package body PolyORB.ORB_Controller.No_Tasking is
    ------------
 
    function Create
-     (OCF : access ORB_Controller_No_Tasking_Factory)
+     (OCF : access ORB_Controller_No_Tasking_Factory;
+      Borrow_Transient_Tasks : Boolean)
      return ORB_Controller_Access
    is
       pragma Unreferenced (OCF);
@@ -288,7 +289,7 @@ package body PolyORB.ORB_Controller.No_Tasking is
 
    begin
       PRS.Create (RS);
-      OC := new ORB_Controller_No_Tasking (RS);
+      OC := new ORB_Controller_No_Tasking (RS, Borrow_Transient_Tasks);
 
       Initialize (ORB_Controller (OC.all));
 

@@ -159,6 +159,12 @@ package PolyORB.ORB is
    --  idling, and re-assert it before Idle returns.
    --  This_Task holds information on this waiting task.
 
+   function Borrow_Transient_Tasks (P : Tasking_Policy_Type) return Boolean
+      is abstract;
+   --  True if the ORB may borrow Transient tasks to handle Request_Jobs. True
+   --  for Thread_Pool; False for other tasking policies. Transient tasks may
+   --  be borrowed for other kinds of Jobs no matter what the tasking policy.
+
    ------------------------------
    -- Server object operations --
    ------------------------------
@@ -178,7 +184,7 @@ package PolyORB.ORB is
      (ORB : access ORB_Type;
       Msg : PolyORB.Components.Message'Class);
    --  Assign the handling of a Request (i.e. an upcall to an application
-   --  objec) to the appropriate task.
+   --  object) to the appropriate task.
 
    function Find_Reusable_Binding_Object
      (ORB : access ORB_Type;

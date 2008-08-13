@@ -92,7 +92,7 @@ package PortableServer is
      abstract new DynamicImplementation with private;
    --  21.41.1
    --  Conforming implementations must provide a controlled (tagged)
-   --  Servant_Base type and default implementations of the primitve
+   --  Servant_Base type and default implementations of the primitive
    --  operations on Servant_Base that meet the required semantics.
 
    procedure Invoke
@@ -136,7 +136,7 @@ package PortableServer is
 
    --  Implementation Notes: these functions are not defined in the
    --  CORBA specification, but defined in various C++ ORB
-   --  implementation. They are provided as a facility.
+   --  implementations. They are provided as a facility.
 
    type ObjectId_Access is access ObjectId;
 

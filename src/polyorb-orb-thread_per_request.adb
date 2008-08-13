@@ -177,6 +177,19 @@ package body PolyORB.ORB.Thread_Per_Request is
                        & " is leaving Idle state"));
    end Idle;
 
+   ----------------------------
+   -- Borrow_Transient_Tasks --
+   ----------------------------
+
+   function Borrow_Transient_Tasks
+     (P : Thread_Per_Request_Policy) return Boolean is
+      pragma Warnings (Off);
+      pragma Unreferenced (P);
+      pragma Warnings (On);
+   begin
+      return True;
+   end Borrow_Transient_Tasks;
+
    ----------------
    -- Initialize --
    ----------------

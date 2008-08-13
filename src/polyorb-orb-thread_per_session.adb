@@ -123,7 +123,7 @@ package body PolyORB.ORB.Thread_Per_Session is
          end loop;
       end;
 
-      --  Create and queue a End_Thread_Job
+      --  Create and queue an End_Thread_Job
 
       declare
          ET : constant End_Thread_Job_Access := new End_Thread_Job;
@@ -269,6 +269,19 @@ package body PolyORB.ORB.Thread_Per_Session is
                        & Image (PTI.Id (This_Task))
                        & " is leaving Idle state"));
    end Idle;
+
+   ----------------------------
+   -- Borrow_Transient_Tasks --
+   ----------------------------
+
+   function Borrow_Transient_Tasks
+     (P : Thread_Per_Session_Policy) return Boolean is
+      pragma Warnings (Off);
+      pragma Unreferenced (P);
+      pragma Warnings (On);
+   begin
+      return True;
+   end Borrow_Transient_Tasks;
 
    ----------------
    -- Initialize --

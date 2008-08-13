@@ -91,7 +91,7 @@ package body PolyORB.ORB_Controller.Workers is
 
          --  Allocate one task to poll on AES
 
-         Try_Allocate_One_Task (O);
+         Try_Allocate_One_Task (O, Allow_Transient => True);
       end if;
    end Enable_Polling;
 
@@ -164,7 +164,7 @@ package body PolyORB.ORB_Controller.Workers is
                   --  No task is currently polling, allocate one
 
                   O.AEM_Infos (AEM_Index).Polling_Scheduled := True;
-                  Try_Allocate_One_Task (O);
+                  Try_Allocate_One_Task (O, Allow_Transient => True);
                end if;
             end;
 
@@ -190,9 +190,7 @@ package body PolyORB.ORB_Controller.Workers is
 
             --  Awake all idle tasks
 
-            for J in 1 .. O.Counters (Idle) loop
-               Awake_One_Idle_Task (O.Idle_Tasks);
-            end loop;
+            Awake_All_Idle_Tasks (O.Idle_Tasks);
 
             --  Unblock blocked tasks
 
@@ -212,7 +210,7 @@ package body PolyORB.ORB_Controller.Workers is
 
             O.Number_Of_Pending_Jobs := O.Number_Of_Pending_Jobs + 1;
             PJ.Queue_Job (O.Job_Queue, E.Event_Job);
-            Try_Allocate_One_Task (O);
+            Try_Allocate_One_Task (O, Allow_Transient => True);
 
          when Queue_Request_Job =>
             declare
@@ -234,7 +232,12 @@ package body PolyORB.ORB_Controller.Workers is
 
                   O.Number_Of_Pending_Jobs := O.Number_Of_Pending_Jobs + 1;
                   PJ.Queue_Job (O.Job_Queue, E.Request_Job);
-                  Try_Allocate_One_Task (O);
+                  Try_Allocate_One_Task
+                    (O, Allow_Transient => O.Borrow_Transient_Tasks);
+                  --  We don't want the ORB to borrow a transient task unless
+                  --  the tasking policy says OK, because the task could run
+                  --  arbitrary user code, which might take a long time, or
+                  --  even deadlock.
                end if;
             end;
 
@@ -316,7 +319,7 @@ package body PolyORB.ORB_Controller.Workers is
             if Need_Polling_Task (O) > 0
               and then O.Counters (Unscheduled) = 0
             then
-               Try_Allocate_One_Task (O);
+               Try_Allocate_One_Task (O, Allow_Transient => True);
             end if;
 
             Note_Task_Unregistered (O);
@@ -355,7 +358,9 @@ package body PolyORB.ORB_Controller.Workers is
          pragma Debug (C1, O1 ("Task is now terminated"));
          pragma Debug (C2, O2 (Status (O)));
 
-      elsif O.Number_Of_Pending_Jobs > 0 then
+      elsif O.Number_Of_Pending_Jobs > 0
+        and then (O.Borrow_Transient_Tasks or else TI.Kind = Permanent)
+      then
 
          O.Counters (Unscheduled) := O.Counters (Unscheduled) - 1;
          O.Counters (Running) := O.Counters (Running) + 1;
@@ -416,7 +421,8 @@ package body PolyORB.ORB_Controller.Workers is
    ------------
 
    function Create
-     (OCF : access ORB_Controller_Workers_Factory)
+     (OCF : access ORB_Controller_Workers_Factory;
+      Borrow_Transient_Tasks : Boolean)
      return ORB_Controller_Access
    is
       pragma Unreferenced (OCF);
@@ -426,7 +432,7 @@ package body PolyORB.ORB_Controller.Workers is
 
    begin
       PRS.Create (RS);
-      OC := new ORB_Controller_Workers (RS);
+      OC := new ORB_Controller_Workers (RS, Borrow_Transient_Tasks);
 
       Initialize (ORB_Controller (OC.all));
 

@@ -121,7 +121,7 @@ package body PolyORB.ORB_Controller.Leader_Followers is
 
          --  Allocate one task to poll on AES
 
-         Try_Allocate_One_Task (O);
+         Try_Allocate_One_Task (O, Allow_Transient => True);
       end if;
    end Enable_Polling;
 
@@ -193,7 +193,7 @@ package body PolyORB.ORB_Controller.Leader_Followers is
                   --  No task is currently polling, allocate one
 
                   O.AEM_Infos (AEM_Index).Polling_Scheduled := True;
-                  Try_Allocate_One_Task (O);
+                  Try_Allocate_One_Task (O, Allow_Transient => True);
                end if;
             end;
 
@@ -219,9 +219,7 @@ package body PolyORB.ORB_Controller.Leader_Followers is
 
             --  Awake all idle tasks
 
-            for J in 1 .. O.Counters (Idle) loop
-               Awake_One_Idle_Task (O.Idle_Tasks);
-            end loop;
+            Awake_All_Idle_Tasks (O.Idle_Tasks);
 
             --  Unblock blocked tasks
 
@@ -255,7 +253,7 @@ package body PolyORB.ORB_Controller.Leader_Followers is
                   --  Queue event to main job queue
 
                   PJ.Queue_Job (O.Job_Queue, E.Event_Job);
-                  Try_Allocate_One_Task (O);
+                  Try_Allocate_One_Task (O, Allow_Transient => True);
                end if;
             end;
 
@@ -298,7 +296,7 @@ package body PolyORB.ORB_Controller.Leader_Followers is
                         O.Number_Of_Pending_Jobs
                           := O.Number_Of_Pending_Jobs + 1;
                         PJ.Queue_Job (O.Job_Queue, E.Request_Job);
-                        Try_Allocate_One_Task (O);
+                        Try_Allocate_One_Task (O, Allow_Transient => True);
                      end if;
                   end;
                end if;
@@ -495,7 +493,8 @@ package body PolyORB.ORB_Controller.Leader_Followers is
    ------------
 
    function Create
-     (OCF : access ORB_Controller_Leader_Followers_Factory)
+     (OCF : access ORB_Controller_Leader_Followers_Factory;
+      Borrow_Transient_Tasks : Boolean)
      return ORB_Controller_Access
    is
       pragma Unreferenced (OCF);
@@ -505,7 +504,7 @@ package body PolyORB.ORB_Controller.Leader_Followers is
 
    begin
       PRS.Create (RS);
-      OC := new ORB_Controller_Leader_Followers (RS);
+      OC := new ORB_Controller_Leader_Followers (RS, Borrow_Transient_Tasks);
 
       Initialize (ORB_Controller (OC.all));
 

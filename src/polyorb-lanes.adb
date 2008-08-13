@@ -77,7 +77,7 @@ package body PolyORB.Lanes is
             end;
          end loop;
 
-         --  Test wether the task shall exit
+         --  Test whether the task should exit
 
          exit when R.L.Clean_Up_In_Progress or else R.Dynamically_Allocated;
 
