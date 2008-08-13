@@ -56,7 +56,6 @@ package body PolyORB.Protocols.GIOP is
    use PolyORB.Representations.CDR.Common;
    use PolyORB.Representations.CDR.GIOP_Utils;
    use PolyORB.Tasking.Mutexes;
-   use PolyORB.Types;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.protocols.giop");
    procedure O (Message : String; Level : Log_Level := Debug)

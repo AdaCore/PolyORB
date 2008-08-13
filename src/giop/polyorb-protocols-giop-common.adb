@@ -157,7 +157,6 @@ package body PolyORB.Protocols.GIOP.Common is
       use PolyORB.Components;
       use PolyORB.Errors;
       use PolyORB.Errors.Helper;
-      use PolyORB.Types;
       use type PolyORB.Any.TypeCode.Local_Ref;
 
       Buffer_Out      : Buffer_Access := new Buffer_Type;
@@ -442,7 +441,6 @@ package body PolyORB.Protocols.GIOP.Common is
       Error              : in out Errors.Error_Container)
    is
       use PolyORB.Components;
-      use PolyORB.Types;
 
       Buffer        : Buffer_Access := new Buffer_Type;
       Header_Buffer : Buffer_Access := new Buffer_Type;
@@ -665,7 +663,6 @@ package body PolyORB.Protocols.GIOP.Common is
       Error : in out Errors.Error_Container)
    is
       use PolyORB.Annotations;
-      use PolyORB.Types;
 
       Current_Req   : Pending_Request;
       Current_Note  : Request_Note;
@@ -819,8 +816,6 @@ package body PolyORB.Protocols.GIOP.Common is
          when User_Exception =>
             Align_Position (Sess.Buffer_In, Sess.Implem.Data_Alignment);
             declare
-               use PolyORB.Types;
-
                RepositoryId : constant PolyORB.Types.RepositoryId
                  := Unmarshall (Sess.Buffer_In);
                Except_Index : constant PolyORB.Types.Unsigned_Long
@@ -1007,7 +1002,6 @@ package body PolyORB.Protocols.GIOP.Common is
       Status : Errors.Completion_Status)
    is
       use PolyORB.Errors;
-      use type Types.Unsigned_Long;
    begin
       if Error.Kind = Marshal_E
         and then System_Exception_Members'Class (Error.Member.all).Minor = 5
@@ -1027,7 +1021,6 @@ package body PolyORB.Protocols.GIOP.Common is
       Status : Errors.Completion_Status)
    is
       use PolyORB.Errors;
-      use type Types.Unsigned_Long;
    begin
       if Error.Kind = Marshal_E
         and then System_Exception_Members'Class (Error.Member.all).Minor = 5

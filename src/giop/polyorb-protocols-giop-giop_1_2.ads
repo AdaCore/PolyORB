@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -40,16 +40,14 @@ package PolyORB.Protocols.GIOP.GIOP_1_2 is
 
 private
 
-   use PolyORB.Types;
-
    type GIOP_Implem_1_2 is new GIOP_Implem with record
       Max_GIOP_Message_Size : Types.Unsigned_Long;
       Max_Body              : Types.Unsigned_Long;
    end record;
 
-   --  Maximal size for unfragmented messages
+   --  Maximal size for unfragmented messages: by default, no fragmentation
 
-   Default_Max_GIOP_Message_Size_1_2 : constant Integer := 1000;
+   Default_Max_GIOP_Message_Size_1_2 : constant Integer := Integer'Last;
 
    --  Fragment reassembly state state
 

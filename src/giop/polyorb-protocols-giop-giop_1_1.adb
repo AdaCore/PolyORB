@@ -120,10 +120,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
    -- Initialize_Implem --
    -----------------------
 
-   procedure Initialize_Implem
-     (Implem : access GIOP_Implem_1_1)
-   is
-      use PolyORB.Types;
+   procedure Initialize_Implem (Implem : access GIOP_Implem_1_1) is
    begin
       Implem.Data_Alignment        := Data_Alignment_1_1;
       Implem.Permitted_Sync_Scopes := Permitted_Sync_Scopes;
@@ -184,7 +181,6 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
    is
       pragma Unreferenced (Implem);
       use PolyORB.ORB;
-      use PolyORB.Types;
 
       Sess : GIOP_Session renames GIOP_Session (S.all);
       MCtx : GIOP_Message_Context_1_1
@@ -274,7 +270,6 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
       use PolyORB.ORB;
       use PolyORB.ORB.Iface;
       use PolyORB.References;
-      use PolyORB.Types;
 
       ORB              : ORB_Access;
       Object_Key       : Objects.Object_Id_Access;
@@ -485,7 +480,6 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
 
       use PolyORB.ORB;
       use PolyORB.Binding_Data;
-      use PolyORB.Types;
 
       Sess          : GIOP_Session renames GIOP_Session (S.all);
       MCtx          : aliased GIOP_Message_Context_1_1;
@@ -537,7 +531,6 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
 
       use PolyORB.Errors;
       use PolyORB.Requests.Unsigned_Long_Flags;
-      use PolyORB.Types;
 
       Sess          : GIOP_Session renames GIOP_Session (S.all);
       MCtx          : aliased GIOP_Message_Context_1_1;
@@ -655,7 +648,6 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
       use PolyORB.Any.NVList.Internals;
       use PolyORB.Any.NVList.Internals.NV_Lists;
       use PolyORB.Errors;
-      use PolyORB.Types;
 
       It           : Iterator := First (List_Of (Args).all);
       First        : Boolean  := True;
@@ -701,7 +693,6 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
       Buffer  : access Buffers.Buffer_Type)
    is
       use Octet_Flags;
-      use PolyORB.Types;
 
       pragma Warnings (Off);
       pragma Unreferenced (Implem);
@@ -779,10 +770,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
       Principal        :    out Types.String;
       Service_Contexts :    out QoS_GIOP_Service_Contexts_Parameter_Access)
    is
-      use PolyORB.Types;
-
       Sink : Types.Octet;
-
    begin
       --  Service context
 

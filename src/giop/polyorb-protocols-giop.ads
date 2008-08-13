@@ -187,10 +187,11 @@ package PolyORB.Protocols.GIOP is
 
 private
 
+   use PolyORB.Types;
+
    type GIOP_Protocol is abstract new Protocol with null record;
 
-   package Octet_Flags is
-      new PolyORB.Utils.Simple_Flags (Types.Octet, Types.Shift_Left);
+   package Octet_Flags is new PolyORB.Utils.Simple_Flags (Types.Octet);
 
    type Pending_Request is record
       Req            : Requests.Request_Access;
