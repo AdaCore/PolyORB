@@ -31,7 +31,7 @@ AC_SUBST(LIBVERSIONINFO)
 
 define(DEBUG_OPTIONS, [dnl
   if test ${CFLAGS-unset} = "unset"; then CFLAGS="-g -O0"; fi
-  DEFAULT_ADAFLAGS="-XBuild=DEBUG"
+  BASE_ADAFLAGS="-XBuild=DEBUG"
   BARGS=-E
   ASSERTION_POLICY_DEFAULT=Check
   DEBUG_POLICY_DEFAULT=Check
@@ -40,7 +40,7 @@ define(DEBUG_OPTIONS, [dnl
 
 define(NODEBUG_OPTIONS, [dnl
   if test ${CFLAGS-unset} = "unset"; then CFLAGS="-g -O2"; fi
-  DEFAULT_ADAFLAGS="-XBuild=PRODUCTION"
+  BASE_ADAFLAGS="-XBuild=PRODUCTION"
   BARGS=
   DEBUG_ONLY="--  "
   debug=false])
@@ -140,7 +140,7 @@ AC_SUBST(TOOL_EXE_SUFFIX)
 # source repository. The packaging procedure changes the default to "n".
 # so that builds from packaged sources do not stop on warnings.
 
-DEFAULT_ADAFLAGS="${DEFAULT_ADAFLAGS} -XWarnings_Mode=${WARNINGS_MODE}"
+BASE_ADAFLAGS="${BASE_ADAFLAGS} -XWarnings_Mode=${WARNINGS_MODE}"
 
 # ADAFLAGS will be set later, once AC_PROG_CC has set the definitive CFLAGS
 
@@ -157,7 +157,9 @@ AM_CONDITIONAL(DEBUG, test x$debug = xtrue)
 
 AC_PROG_CC
 if test "${ADAFLAGS-unset}" = unset; then
-  ADAFLAGS="${CFLAGS} ${DEFAULT_ADAFLAGS}"
+  ADAFLAGS="${CFLAGS} ${BASE_ADAFLAGS}"
+else
+  ADAFLAGS="${ADAFLAGS} ${BASE_ADAFLAGS}"
 fi
 
 AC_PROG_INSTALL
