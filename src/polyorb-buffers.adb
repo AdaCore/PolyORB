@@ -302,15 +302,14 @@ package body PolyORB.Buffers is
 
    procedure Pad_Align
      (Buffer    : access Buffer_Type;
-      Alignment :        Alignment_Type)
+      Alignment : Alignment_Type)
    is
-      Padding : constant Stream_Element_Count
-         := (Alignment - Buffer.CDR_Position) mod Alignment;
+      Padding : constant Stream_Element_Count :=
+                  (Alignment - Buffer.CDR_Position) mod Alignment;
       Padding_Space : Opaque_Pointer;
    begin
       if Padding = 0 then
-         --  Buffer is already aligned.
-
+         --  Buffer is already aligned
          return;
       end if;
 
@@ -322,8 +321,7 @@ package body PolyORB.Buffers is
       pragma Debug (C, O ("Padding by"
                        & Stream_Element_Count'Image (Padding)));
 
-      --  Try to extend Buffer.Content's last Iovec
-      --  to provide proper alignment.
+      --  Try to extend Buffer.Content's last Iovec to provide proper alignment
 
       Grow_Shrink (Buffer.Contents'Access, Padding, Padding_Space);
 
@@ -333,19 +331,24 @@ package body PolyORB.Buffers is
          --  insert a non-growable iovec corresponding to static null data.
 
          declare
-            Padding_Iovec : constant Iovec
-              := (Iov_Base => Null_Data_Address,
-                  Iov_Len  => Storage_Offset (Padding));
+            Padding_Iovec : constant Iovec :=
+                              (Iov_Base => Null_Data_Address,
+                               Iov_Len  => Storage_Offset (Padding));
          begin
-            Append
-              (Iovec_Pool => Buffer.Contents,
-               An_Iovec   => Padding_Iovec);
+            Append (Iovec_Pool => Buffer.Contents, An_Iovec => Padding_Iovec);
+         end;
+
+      else
+         --  Ensure padding space is zeroed out for deterministic behaviour.
+
+         declare
+            Z : Stream_Element_Array (1 .. Padding);
+            for Z'Address use Padding_Space;
+            pragma Import (Ada, Z);
+         begin
+            Z := (others => 0);
          end;
       end if;
-
-      --  Note that Grow_Shrink allocated padding space by growing an existing
-      --  chunk. For debugging purposes, pragma Initialize_Scalars should be
-      --  activated so that this space is initialized with known values.
 
       Buffer.Length := Buffer.Length + Padding;
       Align_Position (Buffer, Alignment);
@@ -1137,8 +1140,7 @@ package body PolyORB.Buffers is
         (Iovec_Pool : Iovec_Pool_Type;
          Into       : Opaque_Pointer)
       is
-         Vecs_Address : constant System.Address
-           := Iovecs_Address (Iovec_Pool);
+         Vecs_Address : constant System.Address := Iovecs_Address (Iovec_Pool);
          Vecs : Iovec_Array (1 .. Iovec_Pool.Last);
          for Vecs'Address use Vecs_Address;
          pragma Import (Ada, Vecs);
