@@ -521,13 +521,11 @@ package body PolyORB.POA_Types is
 
    function U_Oid_To_Oid (U_Oid : Unmarshalled_Oid) return Object_Id is
    begin
-      return Object_Id'
-        (Object_Id
-           (Put_String (U_Oid.Creator, With_Length => False)
-            & Stream_Element (Character'Pos (POA_Path_Separator))
-            & Put_String     (U_Oid.Id)
-            & Put_Boolean    (U_Oid.System_Generated)
-            & Put_Time_Stamp (U_Oid.Persistency_Flag)));
+      return Put_String  (U_Oid.Creator, With_Length => False)
+        & Character'Pos  (POA_Path_Separator)
+        & Put_String     (U_Oid.Id)
+        & Put_Boolean    (U_Oid.System_Generated)
+        & Put_Time_Stamp (U_Oid.Persistency_Flag);
    end U_Oid_To_Oid;
 
 end PolyORB.POA_Types;
