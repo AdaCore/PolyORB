@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -46,9 +46,7 @@ package PolyORB.Opaque.Chunk_Pools is
 
    pragma Preelaborate;
 
-   type Chunk (Size : Ada.Streams.Stream_Element_Count) is
-     tagged limited private;
-
+   type Chunk (Size : Ada.Streams.Stream_Element_Count) is limited private;
    type Chunk_Access is access all Chunk;
 
    Default_Chunk_Size : constant Ada.Streams.Stream_Element_Count := 512;
@@ -61,8 +59,8 @@ package PolyORB.Opaque.Chunk_Pools is
 
    procedure Allocate
      (Pool    : access Pool_Type;
-      A_Chunk :    out Chunk_Access;
-      Size    :        Ada.Streams.Stream_Element_Count := Default_Chunk_Size);
+      A_Chunk : out Chunk_Access;
+      Size    : Ada.Streams.Stream_Element_Count := Default_Chunk_Size);
    --  Create a chunk in Pool and return an access to it.
    --  On the first call where Size is no more than Default_Chunk_Size,
    --  the Prealloc chunk is returned. On all other calls, a chunk of
@@ -70,8 +68,7 @@ package PolyORB.Opaque.Chunk_Pools is
    --  dynamically allocated.
 
    function Chunk_Storage
-     (A_Chunk : Chunk_Access)
-     return Opaque.Opaque_Pointer;
+     (A_Chunk : Chunk_Access) return Opaque.Opaque_Pointer;
    --  Return a pointer to a chunk's storage space.
 
    procedure Release
