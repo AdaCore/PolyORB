@@ -19,15 +19,18 @@ AC_SUBST(POLYORB_VERSION)
 AC_CANONICAL_SYSTEM
 AM_INIT_AUTOMAKE
 
+# Disable Automake rules to rebuild Makefile.in and configure.
+# We handle this manually using support/reconfig.
+
+AM_MAINTAINER_MODE
+
 LIBVERSIONINFO=1:4:0
 AC_SUBST(LIBVERSIONINFO)
 
-#
-# Check for maintainer (debug) mode.
+# Check for developer (debug) mode.
 # This must come before AC_PROG_CC so we can set the default CFLAGS ourselves.
 # Note that these default CFLAGS are used for both the native and the cross
 # compilers.
-#
 
 define(DEBUG_OPTIONS, [dnl
   if test ${CFLAGS-unset} = "unset"; then CFLAGS="-g -O0"; fi
