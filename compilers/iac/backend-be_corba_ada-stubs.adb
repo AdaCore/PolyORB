@@ -178,7 +178,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
       begin
          Set_Main_Spec;
 
-         case Value (FEN.Value (E)).K is
+         case FEU.Expr_Value (E).K is
             when K_Short .. K_Unsigned_Long_Long
               | K_Octet
               | K_Fixed_Point_Type
@@ -191,7 +191,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
                declare
                   Minus : Node_Id;
                begin
-                  if Negative (FEN.Value (E)) then
+                  if Negative (Value_Id'(FEU.Expr_Value (E))) then
                      Minus := Make_Selected_Component
                        (Get_Parent_Unit_Name (Constant_Type),
                         Make_Defining_Identifier (SN (S_Minus)));
@@ -199,14 +199,14 @@ package body Backend.BE_CORBA_Ada.Stubs is
                      Expression := Make_Subprogram_Call
                        (Minus,
                         New_List
-                          (Make_Literal (New_Value (-Value (FEN.Value (E))))));
+                          (Make_Literal (New_Value (-FEU.Expr_Value (E)))));
 
                   else
-                     Expression := Make_Literal (FEN.Value (E));
+                     Expression := Make_Literal (FEU.Expr_Value (E));
                   end if;
                end;
             when others =>
-               Expression := Make_Literal (FEN.Value (E));
+               Expression := Make_Literal (FEU.Expr_Value (E));
          end case;
 
          --  If the constant type is of a string type, it needs to be
@@ -874,7 +874,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
                      Parameter_List      => New_List
                      (Type_Node,
                       Make_Literal
-                      (FEN.Value
+                      (FEU.Expr_Value
                        (Max_Size
                         (Type_Spec_Node)))));
                else
@@ -946,7 +946,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
                  (Defining_Identifier => Pkg_Node,
                   Generic_Package     => CORBA_String_Pkg,
                   Parameter_List      => New_List
-                  (Make_Literal (FEN.Value (Max_Size (Type_Spec_Node)))));
+                  (Make_Literal (FEU.Expr_Value (Max_Size (Type_Spec_Node)))));
                Append_To (Visible_Part (Current_Package), Str_Package_Inst);
 
                --  Link the frontend node to the package instantiation

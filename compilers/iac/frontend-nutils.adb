@@ -851,4 +851,30 @@ package body Frontend.Nutils is
       Set_Operator (E, Operator_Id (B));
    end Set_Operator;
 
+   ----------------
+   -- Expr_Value --
+   ----------------
+
+   function Expr_Value (N : Node_Id) return Value_Id is
+   begin
+      --  If N refers to a previously declared constant (concretely, it's a
+      --  scoped name), then use the value of that constant.
+
+      if Kind (N) = K_Scoped_Name then
+         return Value (Reference (N));
+
+      --  Otherwise, it's some other constant expression; use the
+      --  expression's value.
+
+      else
+         return Value (N);
+      end if;
+
+   end Expr_Value;
+
+   function Expr_Value (N : Node_Id) return Values.Value_Type is
+   begin
+      return Values.Value (Expr_Value (N));
+   end Expr_Value;
+
 end Frontend.Nutils;

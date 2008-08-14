@@ -34,6 +34,7 @@
 with Lexer;     use Lexer;
 with Locations; use Locations;
 with Types;     use Types;
+with Values;
 
 with Frontend.Nodes; use Frontend.Nodes;
 
@@ -157,5 +158,18 @@ package Frontend.Nutils is
       Expression : Node_Id)
      return Node_Id;
    --  Return constant declaration
+
+   function Expr_Value (N : Node_Id) return Value_Id;
+   --  Returns the value of an expression, constant, or label node. This is
+   --  just Frontend.Nodes.Value, except in the case of a K_Scoped_Name, in
+   --  which case we have to get the Reference first. Possible alternative
+   --  design: attach the Value attribute to scoped name nodes as well, and
+   --  copy it over from the constant during analysis. We choose not to do that
+   --  because scoped names can refer to other things as well -- things that
+   --  have no "value".
+
+   function Expr_Value (N : Node_Id) return Values.Value_Type;
+   --  Same as previous Expr_Value, except fetches the Values.Value of the
+   --  Valid_Id.
 
 end Frontend.Nutils;

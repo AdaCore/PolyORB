@@ -1866,7 +1866,8 @@ package body Backend.BE_CORBA_Ada.Buffers is
                   String_Size : Unsigned_Long_Long;
                begin
                   String_Size := Unsigned_Long_Long'Value
-                    (Values.Image (FEN.Value (Max_Size (Type_Spec_Node))));
+                    (Values.Image
+                     (FEU.Expr_Value (Max_Size (Type_Spec_Node))));
                   return New_Integer_Value (String_Size, 1, 10);
                end;
 

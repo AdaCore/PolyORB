@@ -660,16 +660,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
 
          S := First_Entity (Array_Sizes (E));
          loop
-            --  The range constraints may be :
-            --  * Literal values
-            --  * Previously declared constants (concretely, scoped
-            --  names)
-
-            if FEN.Kind (S) = K_Scoped_Name then
-               V := Value (FEN.Value (Reference (S)));
-            else
-               V := Value (FEN.Value (S));
-            end if;
+            V := FEU.Expr_Value (S);
 
             N := Make_Element_Association
               (Index      => Make_Literal (New_Integer_Value (Dims, 1, 10)),
@@ -3035,7 +3026,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
 
                      if Present (Max_Size (E)) then
                         Max_Size_Literal := Make_Literal
-                          (FEN.Value (Max_Size (E)));
+                          (FEU.Expr_Value (Max_Size (E)));
 
                      else
                         Max_Size_Literal := Make_Literal
@@ -3064,7 +3055,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                      Expr := Make_Subprogram_Call
                        (Build_Spg,
                         New_List
-                          (Make_Literal (FEN.Value (Max_Size (E)))));
+                          (Make_Literal (FEU.Expr_Value (Max_Size (E)))));
                   end;
 
                when others =>
@@ -3476,7 +3467,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                      while Present (Label) loop
 
                         Choice := Make_Literal
-                          (Value  => FEN.Value (Label),
+                          (Value  => FEU.Expr_Value (Label),
                            Parent => Literal_Parent);
 
                         --  If this is not a case statement, then we

@@ -573,8 +573,7 @@ package body Backend.BE_CORBA_Ada.Expand is
                   Add_Str_To_Name_Buffer ("Sequence_");
 
                   if Present (Max_Size (Entity_Type_Spec)) then
-                     Max_S := Values.Value
-                       (FEN.Value (Max_Size (Entity_Type_Spec)));
+                     Max_S := FEU.Expr_Value (Max_Size (Entity_Type_Spec));
                      Add_Dnat_To_Name_Buffer (Dnat (Max_S.IVal));
                      Add_Char_To_Name_Buffer ('_');
                   end if;
@@ -644,10 +643,7 @@ package body Backend.BE_CORBA_Ada.Expand is
                   end if;
 
                   Add_Str_To_Name_Buffer ("String_");
-                  Max_S := Values.Value
-                    (FEN.Value
-                     (Max_Size
-                      (Entity_Type_Spec)));
+                  Max_S := FEU.Expr_Value (Max_Size (Entity_Type_Spec));
                   Add_Dnat_To_Name_Buffer (Dnat (Max_S.IVal));
                   Anon_Type_Name := Name_Find;
                end if;

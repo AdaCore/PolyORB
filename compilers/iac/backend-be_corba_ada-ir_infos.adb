@@ -1060,7 +1060,7 @@ package body Backend.BE_CORBA_Ada.IR_Infos is
                          False)))));
                   Append_To (Aggr, N);
 
-                  if FEN.Value (Label) = No_Value then
+                  if FEU.Expr_Value (Label) = No_Value then
                      N := Make_Subprogram_Call
                        (RE (RE_To_Any_0),
                         New_List
@@ -1074,7 +1074,7 @@ package body Backend.BE_CORBA_Ada.IR_Infos is
                         (Make_Qualified_Expression
                          (Switch_Type,
                           Make_Literal
-                          (FEN.Value (Label), Literal_Parent))));
+                          (FEU.Expr_Value (Label), Literal_Parent))));
                   end if;
 
                   N := Make_Parameter_Association
@@ -1336,11 +1336,7 @@ package body Backend.BE_CORBA_Ada.IR_Infos is
                N := Make_Subprogram_Call (RE (RE_Get_IR_Root), No_List);
                Append_To (Profile, N);
 
-               if FEN.Kind (Dim) = K_Scoped_Name then
-                  V := Value (FEN.Value (Reference (Dim)));
-               else
-                  V := Value (FEN.Value (Dim));
-               end if;
+               V := FEU.Expr_Value (Dim);
 
                N := Make_Parameter_Association
                  (Make_Identifier (PN (P_Length)),
@@ -1416,7 +1412,7 @@ package body Backend.BE_CORBA_Ada.IR_Infos is
             Append_To (Profile, N);
 
             if Bounded then
-               V := FEN.Value (Max_Size (Type_Spec));
+               V := FEU.Expr_Value (Max_Size (Type_Spec));
             else
                V := Int0_Val;
             end if;

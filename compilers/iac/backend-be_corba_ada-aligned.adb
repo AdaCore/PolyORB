@@ -434,7 +434,7 @@ package body Backend.BE_CORBA_Ada.Aligned is
                  (Defining_Identifier => Pkg_Node,
                   Generic_Package     => String_Pkg,
                   Parameter_List      => New_List
-                  (Make_Literal (FEN.Value (Max_Size (Type_Spec_Node)))));
+                  (Make_Literal (FEU.Expr_Value (Max_Size (Type_Spec_Node)))));
 
                Append_To (Visible_Part (Current_Package), Str_Package_Inst);
 
@@ -489,7 +489,8 @@ package body Backend.BE_CORBA_Ada.Aligned is
                   --  Declration of the sequence type
 
                   if Present (Max_Size (Type_Spec_Node)) then
-                     K := Make_Literal (FEN.Value (Max_Size (Type_Spec_Node)));
+                     K := Make_Literal
+                       (FEU.Expr_Value (Max_Size (Type_Spec_Node)));
                   else
                      M := Map_Defining_Identifier (D);
                      Set_Str_To_Name_Buffer
@@ -683,7 +684,7 @@ package body Backend.BE_CORBA_Ada.Aligned is
 
             while Present (Label) loop
                Choice := Make_Literal
-                 (Value  => FEN.Value (Label),
+                 (Value  => FEU.Expr_Value (Label),
                   Parent => Literal_Parent);
                if S /= No_Node then
                   Choice := Cast_Variable_To_PolyORB_Aligned_Type (Choice, S);

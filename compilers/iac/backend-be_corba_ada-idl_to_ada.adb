@@ -1050,23 +1050,8 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
       S := FEN.First_Entity (Array_Sizes);
 
       while Present (S) loop
-
-         --  If the array size is a previously declared constant (concretely, a
-         --  scoped name), then use the value of that constant.
-
-         if FEN.Kind (S) = K_Scoped_Name then
-            V := Value (FEN.Value (Reference (S)));
-
-         --  Otherwise, it's some other constant expression; use the
-         --  expression's value.
-
-         else
-            V := Value (FEN.Value (S));
-         end if;
-
-         --  Subtract 1 for zero-based arrays
-
-         V.IVal := V.IVal - 1;
+         V := FEU.Expr_Value (S);
+         V.IVal := V.IVal - 1;  --  Subtract 1 for zero-based arrays
 
          R := Make_Range_Constraint
            (Make_Literal (Int0_Val),
@@ -1444,8 +1429,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
       --  If the sequence is bounded, append the maximal length
 
       if Bounded then
-         Add_Dnat_To_Name_Buffer
-           (Dnat (Value (FEN.Value (Max_Size (S))).IVal));
+         Add_Dnat_To_Name_Buffer (Dnat (FEU.Expr_Value (Max_Size (S)).IVal));
          Add_Char_To_Name_Buffer ('_');
       end if;
 
@@ -1538,8 +1522,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
       end if;
 
       Add_Str_To_Name_Buffer ("String_");
-      Add_Dnat_To_Name_Buffer
-        (Dnat (Value (FEN.Value (Max_Size (S))).IVal));
+      Add_Dnat_To_Name_Buffer (Dnat (FEU.Expr_Value (Max_Size (S)).IVal));
 
       --  Now the string type name is almost built...
 
@@ -1599,7 +1582,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
 
          while Present (Label) loop
             Choice := Make_Literal
-              (Value  => FEN.Value (Label),
+              (Value  => FEU.Expr_Value (Label),
                Parent => Literal_Parent);
             Append_To (Choices, Choice);
             Label := Next_Entity (Label);
@@ -1639,12 +1622,12 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
 
       Label   := First_Entity (Labels);
 
-      if FEN.Value (Label) = No_Value then
+      if FEU.Expr_Value (Label) = No_Value then
          Default_Met := True;
       else
          while Present (Label) loop
             Choice := Make_Literal
-              (Value  => FEN.Value (Label),
+              (Value  => FEU.Expr_Value (Label),
                Parent => Literal_Parent);
             Append_To (Choices, Choice);
             Label := Next_Entity (Label);
