@@ -73,7 +73,7 @@
 @svnset $Date$ 
 @title PolyORB User's Guide
 @subtitle Version @value{POLYORB_VERSION}
-@subtitle @value{Date}
+@subtitle @value{SVNDate}
 @author Robert Duff, J@'er@^ome Hugues, Laurent Pautet,
 @author Thomas Quinot, Samuel Tardieu
 
