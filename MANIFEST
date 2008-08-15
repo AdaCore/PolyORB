@@ -2017,7 +2017,6 @@ support/libtool-tag.m4
 support/libtool.m4
 support/linker.in
 support/ltmain.sh
-support/mdate-sh
 support/missing
 support/mkdep
 support/mkinstalldirs
