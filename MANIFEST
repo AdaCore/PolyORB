@@ -486,6 +486,8 @@ docs/polyorb_dg.texi
 docs/polyorb_ug.bib
 docs/polyorb_ug.texi
 docs/polyorb_ug_ref.tex
+docs/polyorb_version.texi.in
+docs/svn.texi
 examples/Makefile.am
 examples/Makefile.common
 examples/Makefile.in

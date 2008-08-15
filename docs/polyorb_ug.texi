@@ -57,7 +57,8 @@
 
 @c $Id: //droopi/main/docs/polyorb_ug.texi#25 $
 
-@include version.texi
+@include polyorb_version.texi
+@include svn.texi
 
 @setfilename polyorb_ug.info
 @settitle PolyORB User's Guide
@@ -69,9 +70,10 @@
 
 @titlepage
 
+@svnset $Date: xxx$ 
 @title PolyORB User's Guide
-@subtitle Version @value{EDITION}
-@subtitle Date: @value{UPDATED}
+@subtitle Version @value{POLYORB_VERSION}
+@subtitle @value{SVNDate}
 @author Robert Duff, J@'er@^ome Hugues, Laurent Pautet,
 @author Thomas Quinot, Samuel Tardieu
 

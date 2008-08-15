@@ -820,6 +820,7 @@ AC_OUTPUT(FILTER_OUTPUT_FILES(OUTPUT_FILTER,[
 	compilers/idlac/Makefile
 	compilers/idlac/testsuite/Makefile
 	docs/Makefile
+	docs/polyorb_version.texi
 	projects/config.gpr
 	projects/polyorb.gpr
 	projects/src_setup.gpr

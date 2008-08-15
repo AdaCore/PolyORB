@@ -1,0 +1,10 @@
+@tex
+
+% Process an SVN keyword
+\gdef\svn$#1:#2${\set SVN#1 {#2}
+\catcode`\$\active}
+
+% Front-end to the above, first setting '$' catcode to \math
+\gdef\svnset{\catcode`\$3\relax\expandafter\svn}
+
+@end tex
