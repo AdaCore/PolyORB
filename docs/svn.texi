@@ -2,7 +2,7 @@
 
 % Process an SVN Date: keyword
 \gdef\svn$Date: #1 #2${\set SVNDate {#1}
-\catcode`\$\active}
+\catcode`\$\active\relax}
 
 % Front-end to the above, first setting '$' catcode to \math
 \gdef\svndate{\catcode`\$3\relax\expandafter\svn}

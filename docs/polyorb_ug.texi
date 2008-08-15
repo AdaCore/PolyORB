@@ -57,11 +57,14 @@
 
 @c $Id$
 
-@include polyorb_version.texi
 @include svn.texi
 
 @setfilename polyorb_ug.info
 @settitle PolyORB User's Guide
+
+@set COPYRIGHT Copyright @copyright{} 2003-2008, Free Software Foundation
+@set AUTHORS1 Robert Duff, J@'er@^ome Hugues, Laurent Pautet,
+@set AUTHORS2 Thomas Quinot, Samuel Tardieu
 
 @setchapternewpage odd
 @syncodeindex fn cp
@@ -70,17 +73,18 @@
 
 @titlepage
 
-@svndate $Date$ 
 @title PolyORB User's Guide
+@include polyorb_version.texi
 @subtitle Version @value{POLYORB_VERSION}
+@svndate $Date$ 
 @subtitle @value{SVNDate}
-@author Robert Duff, J@'er@^ome Hugues, Laurent Pautet,
-@author Thomas Quinot, Samuel Tardieu
+@author @value{AUTHORS1}
+@author @value{AUTHORS2}
 
 @page
 @vskip 0pt plus 1filll
 
-Copyright @copyright{} 2003-2008, Free Software Foundation
+@value{COPYRIGHT}
 
 @noindent
 Permission is granted to copy, distribute and/or modify this document
@@ -105,9 +109,15 @@ entitled ``GNU Free Documentation License''.
 
 PolyORB User's Guide
 
-J@'er@^ome Hugues, Laurent Pautet, Thomas Quinot, Samuel Tardieu
+@include polyorb_version.texi
+Version @value{POLYORB_VERSION}
 
-Copyright @copyright{} 2003-2008, Free Software Foundation
+$Date$
+
+@value{AUTHORS1}
+@value{AUTHORS2}
+
+@value{COPYRIGHT}
 
 @noindent
 Permission is granted to copy, distribute and/or modify this document
