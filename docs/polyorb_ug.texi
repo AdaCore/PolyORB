@@ -70,10 +70,10 @@
 
 @titlepage
 
-@svnset $LastChangedDate: xxx$ 
+@svnset $Date$ 
 @title PolyORB User's Guide
 @subtitle Version @value{POLYORB_VERSION}
-@subtitle @value{SVNLastChangedDate}
+@subtitle @value{Date}
 @author Robert Duff, J@'er@^ome Hugues, Laurent Pautet,
 @author Thomas Quinot, Samuel Tardieu
 
