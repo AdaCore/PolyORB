@@ -70,7 +70,7 @@
 
 @titlepage
 
-@svnset $Date$ 
+@svndate $Date$ 
 @title PolyORB User's Guide
 @subtitle Version @value{POLYORB_VERSION}
 @subtitle @value{SVNDate}
