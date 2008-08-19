@@ -55,8 +55,7 @@ with PolyORB.Tasking.Threads;
 with PolyORB.Transport.Handlers;
 with PolyORB.Utils.Strings;
 
---  The following units are with'd only so that they register initialization
---  modules.
+--  Units ncluded in closure for module registration purposes only
 
 pragma Warnings (Off, PolyORB.Any.Initialization);
 pragma Warnings (Off, PolyORB.Parameters.Initialization);
@@ -103,7 +102,6 @@ package body PolyORB.ORB is
       TNJ.ORB       := TRJ.ORB;
       TNJ.Requestor := TRJ.Requestor;
       TNJ.Request   := TRJ.Request;
-
       return NJ;
    end Duplicate_Request_Job;
 
@@ -113,7 +111,7 @@ package body PolyORB.ORB is
 
    procedure Insert_Source
      (ORB : access ORB_Type;
-      AES :        PolyORB.Asynch_Ev.Asynch_Ev_Source_Access);
+      AES : PolyORB.Asynch_Ev.Asynch_Ev_Source_Access);
    --  Insert AES in the set of asynchronous event sources monitored by ORB.
    --  The caller must not hold the ORB lock.
 
@@ -1287,8 +1285,8 @@ package body PolyORB.ORB is
 
       elsif Msg in Iface.Monitor_Endpoint then
          declare
-            TE : constant Transport_Endpoint_Access
-              := Iface.Monitor_Endpoint (Msg).TE;
+            TE : constant Transport_Endpoint_Access :=
+                            Iface.Monitor_Endpoint (Msg).TE;
             Note : TE_Note;
 
          begin
@@ -1306,10 +1304,9 @@ package body PolyORB.ORB is
 
       elsif Msg in Iface.Monitor_Access_Point then
          declare
-            TAP : constant Transport_Access_Point_Access
-              := Iface.Monitor_Access_Point (Msg).TAP;
+            TAP : constant Transport_Access_Point_Access :=
+                    Iface.Monitor_Access_Point (Msg).TAP;
             Note : TAP_Note;
-
          begin
             Get_Note (Notepad_Of (TAP).all, Note);
 
@@ -1320,7 +1317,6 @@ package body PolyORB.ORB is
       elsif Msg in Iface.Unregister_Endpoint then
          declare
             Note : TE_Note;
-
          begin
             Get_Note
               (Notepad_Of
@@ -1371,7 +1367,6 @@ package body PolyORB.ORB is
       end loop All_Binding_Objects;
 
       Leave_ORB_Critical_Section (ORB.ORB_Controller);
-
       return Result;
    end Get_Binding_Objects;
 
@@ -1380,8 +1375,7 @@ package body PolyORB.ORB is
    ----------------
 
    function Notepad_Of
-     (ORB : access ORB_Type)
-     return Annotations.Notepad_Access
+     (ORB : access ORB_Type) return Annotations.Notepad_Access
    is
    begin
       return ORB.Notepad'Access;
@@ -1393,8 +1387,7 @@ package body PolyORB.ORB is
 
    procedure Initialize;
 
-   procedure Initialize
-   is
+   procedure Initialize is
       The_Controller : POC.ORB_Controller_Access;
    begin
       Create
@@ -1411,7 +1404,8 @@ package body PolyORB.ORB is
 
    procedure Queue_Request_To_Handler
      (ORB : access ORB_Type;
-      Msg : Message'Class) is
+      Msg : Message'Class)
+   is
    begin
       pragma Assert (Msg in Iface.Queue_Request);
       Emit_No_Reply (Component_Access (ORB), Msg);
@@ -1438,15 +1432,17 @@ begin
       (Name      => +"orb",
        Conflicts => Empty,
        Depends   => +"orb.tasking_policy"
-       & "binding_data.soap?"
-       & "binding_data.srp?"
-       & "binding_data.iiop?"
-       & "orb_controller"
-       & "protocols.srp?"
-       & "protocols.giop?"
-       & "protocols.soap?"
-       & "smart_pointers"
-       & "tasking.threads",
+                   & "binding_data.soap?"
+                   & "binding_data.srp?"
+                   & "binding_data.iiop?"
+                   & "orb_controller"
+                   --  ??? should not have hard-coded dependencies
+                   --  on specific protocols!
+                   & "protocols.srp?"
+                   & "protocols.giop?"
+                   & "protocols.soap?"
+                   & "smart_pointers"
+                   & "tasking.threads",
        Provides => Empty,
        Implicit => False,
        Init     => Initialize'Access,
