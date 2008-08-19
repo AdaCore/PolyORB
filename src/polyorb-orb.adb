@@ -55,7 +55,7 @@ with PolyORB.Tasking.Threads;
 with PolyORB.Transport.Handlers;
 with PolyORB.Utils.Strings;
 
---  Units ncluded in closure for module registration purposes only
+--  Units included in closure for module registration purposes only
 
 pragma Warnings (Off, PolyORB.Any.Initialization);
 pragma Warnings (Off, PolyORB.Parameters.Initialization);
