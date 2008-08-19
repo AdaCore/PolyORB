@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -72,14 +72,12 @@ package PolyORB.Transport is
      (TAP : access Transport_Access_Point)
      return Asynch_Ev.Asynch_Ev_Source_Access
       is abstract;
-   --  Create a view of TAP as an asynchronous event source. The AES_Note
-   --  on the newly-created event source must be associated to TAP's
-   --  event handler.
+   --  Create a view of TAP as an asynchronous event source. The Handler
+   --  of the newly-created event source is TAP.Handler.
 
    function Handle_Message
      (TAP : access Transport_Access_Point;
-      Msg :        Components.Message'Class)
-     return Components.Message'Class;
+      Msg : Components.Message'Class) return Components.Message'Class;
 
    -----------------------------------------------------------------
    -- A transport service endpoint:                               --
@@ -99,13 +97,12 @@ package PolyORB.Transport is
    --  An opened transport endpoint.
 
    function Notepad_Of
-     (TE : Transport_Endpoint_Access)
-     return Annotations.Notepad_Access;
+     (TE : Transport_Endpoint_Access) return Annotations.Notepad_Access;
    pragma Inline (Notepad_Of);
 
    function Handle_Message
      (TE  : access Transport_Endpoint;
-      Msg :        Components.Message'Class) return Components.Message'Class;
+      Msg : Components.Message'Class) return Components.Message'Class;
 
    function Upper
      (TE : Transport_Endpoint_Access)
@@ -125,9 +122,8 @@ package PolyORB.Transport is
      (TE : access Transport_Endpoint)
      return Asynch_Ev.Asynch_Ev_Source_Access
       is abstract;
-   --  Create a view of TE as an asynchronous event source. The AES_Note
-   --  on the newly-created event source must be associated to TE's
-   --  event handler.
+   --  Create a view of TE as an asynchronous event source. The Handler
+   --  of the newly-created event source is TE.Handler.
 
    procedure Read
      (TE     : in out Transport_Endpoint;

@@ -343,19 +343,13 @@ package body PolyORB.ORB is
 
          --  Queue events, if any
 
-         declare
-            Note : AES_Note;
-
-         begin
-            for J in Events'Range loop
-               Get_Note (Notepad_Of (Events (J)).all, Note);
-               Notify_Event
-                 (ORB.ORB_Controller,
-                  Event'(Kind      => Queue_Event_Job,
-                         Event_Job => Job_Access (Note.Handler),
-                         By_Task   => Id (This_Task)));
-            end loop;
-         end;
+         for J in Events'Range loop
+            Notify_Event
+              (ORB.ORB_Controller,
+               Event'(Kind      => Queue_Event_Job,
+                      Event_Job => Job_Access (Handler (Events (J).all)),
+                      By_Task   => Id (This_Task)));
+         end loop;
 
          --  Notify ORB controller of completion
 
@@ -584,24 +578,21 @@ package body PolyORB.ORB is
    is
       New_AES : constant Asynch_Ev_Source_Access :=
                   Create_Event_Source (TAP);
-      A_Note  : AES_Note;
-
    begin
       pragma Debug (C, O ("Register_Access_Point: enter"));
 
       --  Set link from AES to TAP, Chain and PF
 
-      Get_Note (Notepad_Of (New_AES).all, A_Note);
       declare
-         Handler : constant AES_Event_Handler_Access := A_Note.Handler;
-         TAP_Handler : TAP_AES_Event_Handler
-           renames TAP_AES_Event_Handler (Handler.all);
+         H     : constant access AES_Event_Handler'Class :=
+                   Handler (New_AES.all);
+         TAP_H : TAP_AES_Event_Handler renames TAP_AES_Event_Handler (H.all);
       begin
-         Handler.AES := New_AES;
-         TAP_Handler.ORB := ORB_Access (ORB);
-         TAP_Handler.TAP := TAP;
-         TAP_Handler.Filter_Factory_Chain := Chain;
-         TAP_Handler.Profile_Factory := PF;
+         H.AES                      := New_AES;
+         TAP_H.ORB                  := ORB_Access (ORB);
+         TAP_H.TAP                  := TAP;
+         TAP_H.Filter_Factory_Chain := Chain;
+         TAP_H.Profile_Factory      := PF;
       end;
 
       --  Set link from TAP to PF, and from TAP to AES
@@ -674,7 +665,6 @@ package body PolyORB.ORB is
                      Create_Event_Source (TE);
       --  New_AES is null for output-only endpoints
 
-      A_Note  : AES_Note;
       ORB_Acc : constant ORB_Access := ORB_Access (ORB);
    begin
       pragma Debug
@@ -719,29 +709,24 @@ package body PolyORB.ORB is
 
          --  This is not a write only Endpoint
 
-         Get_Note (Notepad_Of (New_AES).all, A_Note);
-
          declare
-            Handler : constant AES_Event_Handler_Access
-              := A_Note.Handler;
-            TE_Handler : TE_AES_Event_Handler
-              renames TE_AES_Event_Handler (Handler.all);
-
+            H    : constant access AES_Event_Handler'Class :=
+                     Handler (New_AES.all);
+            TE_H : TE_AES_Event_Handler renames TE_AES_Event_Handler (H.all);
          begin
 
             --  Register link from AES to TE
 
-            Handler.AES := New_AES;
-            TE_Handler.ORB := ORB_Access (ORB);
-            TE_Handler.TE := TE;
+            H.AES    := New_AES;
+            TE_H.ORB := ORB_Access (ORB);
+            TE_H.TE  := TE;
          end;
       end if;
 
       --  Register link from TE to AES
 
       Set_Note
-        (Notepad_Of (TE).all,
-         TE_Note'(Annotations.Note with AES => New_AES));
+        (Notepad_Of (TE).all, TE_Note'(Annotations.Note with AES => New_AES));
 
       --  Assign execution resources to the newly-created connection
 

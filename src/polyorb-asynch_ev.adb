@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -46,16 +46,27 @@ package body PolyORB.Asynch_Ev is
       return AES.Monitor;
    end AEM_Of;
 
-   ----------------
-   -- Notepad_Of --
-   ----------------
+   -------------
+   -- Handler --
+   -------------
 
-   function Notepad_Of
-     (AES : Asynch_Ev_Source_Access)
-     return Annotations.Notepad_Access is
+   function Handler
+     (AES : Asynch_Ev_Source'Class) return access AES_Event_Handler'Class is
    begin
-      return AES.Notes'Access;
-   end Notepad_Of;
+      return AES.Handler;
+   end Handler;
+
+   -----------------
+   -- Set_Handler --
+   -----------------
+
+   procedure Set_Handler
+     (AES : in out Asynch_Ev_Source'Class;
+      H   : access AES_Event_Handler'Class)
+   is
+   begin
+      AES.Handler := H;
+   end Set_Handler;
 
    -----------------------
    -- Unregister_Source --
@@ -76,11 +87,9 @@ package body PolyORB.Asynch_Ev is
    procedure Destroy
      (AES : in out Asynch_Ev_Source_Access)
    is
-      procedure Free is
-         new Ada.Unchecked_Deallocation
+      procedure Free is new Ada.Unchecked_Deallocation
         (Asynch_Ev_Source'Class, Asynch_Ev_Source_Access);
    begin
-      Annotations.Destroy (AES.Notes);
       Free (AES);
    end Destroy;
 

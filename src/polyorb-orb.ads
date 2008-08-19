@@ -185,6 +185,8 @@ package PolyORB.ORB is
       Msg : PolyORB.Components.Message'Class);
    --  Assign the handling of a Request (i.e. an upcall to an application
    --  object) to the appropriate task.
+   --  ??? This is also used on the client side in Invoke_Request to submit
+   --  a request to the ORB.
 
    function Find_Reusable_Binding_Object
      (ORB : access ORB_Type;
