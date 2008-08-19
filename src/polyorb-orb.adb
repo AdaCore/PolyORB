@@ -1082,11 +1082,9 @@ package body PolyORB.ORB is
          --  of a servant handling multiple oids.)
 
          declare
-            Result : constant Components.Message'Class
-              := Emit (Surrogate,
-                       Servants.Iface.Execute_Request'
-                       (Req => J.Request,
-                        Pro => Pro));
+            Result : constant Components.Message'Class :=
+                       Emit (Surrogate, Servants.Iface.Execute_Request'
+                                          (Req => J.Request, Pro => Pro));
          begin
             --  Unsetup_Environment ();
             --  Unbind (J.Req.Target, J.ORB, Servant);
@@ -1128,7 +1126,7 @@ package body PolyORB.ORB is
      (ORB : access ORB_Type;
       Oid : access Objects.Object_Id;
       Typ : String;
-      Ref :    out References.Ref)
+      Ref : out References.Ref)
    is
    begin
       pragma Debug (C, O ("Create_Reference: enter"));
@@ -1147,20 +1145,18 @@ package body PolyORB.ORB is
       begin
          while not Last (It) loop
             declare
-               PF : constant Profile_Factory_Access
-                 := Profile_Factory_Of (Value (It).all);
+               PF : constant Profile_Factory_Access :=
+                      Profile_Factory_Of (Value (It).all);
 
             begin
                if PF /= null then
 
                   --  Null profile factories may occur for access points that
-                  --  have an ad hoc protocol stack, but no binding data
-                  --  information.
+                  --  have an ad hoc protocol stack, but no binding data info.
 
                   declare
-                     P : constant Profile_Access
-                       := Create_Profile (PF, Oid.all);
-
+                     P : constant Profile_Access :=
+                           Create_Profile (PF, Oid.all);
                   begin
                      if P /= null then
                         Last_Profile := Last_Profile + 1;
@@ -1177,8 +1173,7 @@ package body PolyORB.ORB is
          Last_Profile := Last_Profile + 1;
          Profiles (Last_Profile) := new Local_Profile_Type;
          Create_Local_Profile
-           (Oid.all,
-            Local_Profile_Type (Profiles (Last_Profile).all));
+           (Oid.all, Local_Profile_Type (Profiles (Last_Profile).all));
 
          Leave_ORB_Critical_Section (ORB.ORB_Controller);
 
@@ -1194,10 +1189,9 @@ package body PolyORB.ORB is
 
    function Handle_Message
      (ORB : access ORB_Type;
-      Msg :        PolyORB.Components.Message'Class)
-     return PolyORB.Components.Message'Class
+      Msg : Components.Message'Class) return Components.Message'Class
    is
-      use PolyORB.Servants.Iface;
+      use Servants.Iface;
 
       Nothing : Components.Null_Message;
 
@@ -1225,9 +1219,7 @@ package body PolyORB.ORB is
 
                Request_Job (J.all).Requestor := Component_Access (ORB);
             else
-
                Request_Job (J.all).Requestor := QR.Requestor;
-
             end if;
 
             Req.Requesting_Component := Request_Job (J.all).Requestor;
@@ -1246,9 +1238,7 @@ package body PolyORB.ORB is
          declare
             use PolyORB.Task_Info;
 
-            Req : Requests.Request
-              renames Executed_Request (Msg).Req.all;
-
+            Req : Requests.Request renames Executed_Request (Msg).Req.all;
          begin
 
             --  The processing of Executed_Request must be done in the ORB
@@ -1288,15 +1278,13 @@ package body PolyORB.ORB is
             TE : constant Transport_Endpoint_Access :=
                             Iface.Monitor_Endpoint (Msg).TE;
             Note : TE_Note;
-
          begin
             Get_Note (Notepad_Of (TE).all, Note);
-            --  Notes.AES is null for write only Endpoint
+
+            --  Notes.AES is null for write only Endpoints; we only monitor
+            --  read only and read/write Endpoints.
 
             if Note.AES /= null then
-
-               --  Monitor only read/write or read only Endpoint
-
                pragma Debug (C, O ("Inserting source: Monitor_Endpoint"));
                Insert_Source (ORB, Note.AES);
             end if;
@@ -1319,8 +1307,7 @@ package body PolyORB.ORB is
             Note : TE_Note;
          begin
             Get_Note
-              (Notepad_Of
-               (Iface.Unregister_Endpoint (Msg).TE).all, Note);
+              (Notepad_Of (Iface.Unregister_Endpoint (Msg).TE).all, Note);
 
             if Note.AES /= null then
                Delete_Source (ORB, Note.AES);
