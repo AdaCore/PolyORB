@@ -296,7 +296,7 @@ package body PolyORB.ORB.Thread_Per_Session is
    -- Run --
    ---------
 
-   procedure Run (J : access End_Thread_Job) is
+   procedure Run (J : not null access End_Thread_Job) is
       pragma Unreferenced (J);
    begin
       null;

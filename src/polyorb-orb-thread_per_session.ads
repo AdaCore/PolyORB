@@ -83,7 +83,7 @@ package PolyORB.ORB.Thread_Per_Session is
    function Borrow_Transient_Tasks
      (P : Thread_Per_Session_Policy) return Boolean;
 
-   procedure Run (J : access End_Thread_Job);
+   procedure Run (J : not null access End_Thread_Job);
 
 private
 

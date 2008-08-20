@@ -320,7 +320,7 @@ private
    -- Job type for method execution requests --
    --------------------------------------------
 
-   procedure Run (J : access Request_Job);
+   procedure Run (J : not null access Request_Job);
    --  Override the abstract Run primitive for Job:
    --  dispatch through ORB's tasking policy.
 

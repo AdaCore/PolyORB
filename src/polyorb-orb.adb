@@ -932,9 +932,8 @@ package body PolyORB.ORB is
    -- Run --
    ---------
 
-   procedure Run (J : access Request_Job) is
+   procedure Run (J : not null access Request_Job) is
       AJ : Job_Access := Job_Access (J);
-
    begin
       Handle_Request_Execution
         (P => J.ORB.Tasking_Policy, ORB => J.ORB, RJ => J);

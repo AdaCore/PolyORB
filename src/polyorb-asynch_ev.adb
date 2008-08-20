@@ -33,6 +33,8 @@
 
 --  Abstract data type for an asynchrous event source.
 
+pragma Ada_2005;
+
 with Ada.Unchecked_Deallocation;
 
 package body PolyORB.Asynch_Ev is
@@ -97,9 +99,7 @@ package body PolyORB.Asynch_Ev is
    -- Run --
    ---------
 
-   procedure Run
-     (AEH : access AES_Event_Handler)
-   is
+   procedure Run (AEH : not null access AES_Event_Handler) is
       use PolyORB.Jobs;
    begin
 
