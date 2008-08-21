@@ -273,7 +273,7 @@ package body PolyORB.ORB.Thread_Pool is
       --  We don't want to borrow transient tasks in thread-pool policy, except
       --  that if there is only one thread in the pool, we need to borrow in
       --  order to avoid deadlock.
-      return False;
+      return Maximum_Threads <= 1;
    end Borrow_Transient_Tasks;
 
    --------------------------------------
