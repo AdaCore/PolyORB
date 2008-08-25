@@ -43,6 +43,8 @@ package body PolyORB.Utils.Buffers is
 
    package body Align_Transfer_Elementary is
 
+      subtype SEA is Stream_Element_Array (1 .. T'Size / 8);
+
       --------------
       -- Marshall --
       --------------
@@ -51,7 +53,9 @@ package body PolyORB.Utils.Buffers is
         (Buffer : access Buffer_Type;
          Item   : T)
       is
+         Item_Address : System.Address := Item'Address;
          Data_Address : Opaque_Pointer;
+         Item_Swapped : aliased T;
       begin
          Pad_Align (Buffer, T'Size / 8);
 
@@ -60,17 +64,29 @@ package body PolyORB.Utils.Buffers is
             T'Size / 8,
             Data_Address);
 
+         --  Note: we can't just have a T object at Data_Address and assign
+         --  it with Item / Swapped (Item) because Data_Address may not be
+         --  suitably aligned. So instead overlay a constrained stream element
+         --  array, and assign that.
+
          declare
             Z_Addr : constant System.Address := Data_Address;
-            Z : T;
+            Z : SEA;
             for Z'Address use Z_Addr;
             pragma Import (Ada, Z);
          begin
-            if Endianness (Buffer) = Host_Order then
-               Z := Item;
-            else
-               Z := Swapped (Item);
+            if Endianness (Buffer) /= Host_Order then
+               Item_Swapped := Swapped (Item);
+               Item_Address := Item_Swapped'Address;
             end if;
+
+            declare
+               Item_Storage : SEA;
+               pragma Import (Ada, Item_Storage);
+               for Item_Storage'Address use Item_Address;
+            begin
+               Z := Item_Storage;
+            end;
          end;
       end Marshall;
 
@@ -84,16 +100,26 @@ package body PolyORB.Utils.Buffers is
          Align_Position (Buffer, T'Size / 8);
          Extract_Data (Buffer, Data_Address, T'Size / 8);
 
+         --  Note: Need to go through a stream element array to account for
+         --  possibly misaligned extracted data (see comments in Marshall).
+
          declare
             Z_Addr : constant System.Address := Data_Address;
-            Z : T;
+            Z : SEA;
             for Z'Address use Z_Addr;
             pragma Import (Ada, Z);
+
+            Item : aliased T;
+            Item_Storage : SEA;
+            pragma Import (Ada, Item_Storage);
+            for Item_Storage'Address use Item'Address;
          begin
+            Item_Storage := Z;
+
             if Endianness (Buffer) = Host_Order then
-               return Z;
+               return Item;
             else
-               return Swapped (Z);
+               return Swapped (Item);
             end if;
          end;
       end Unmarshall;
