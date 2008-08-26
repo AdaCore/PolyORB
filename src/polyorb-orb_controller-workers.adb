@@ -358,6 +358,12 @@ package body PolyORB.ORB_Controller.Workers is
          pragma Debug (C1, O1 ("Task is now terminated"));
          pragma Debug (C2, O2 (Status (O)));
 
+      --  ??? The test below is fundamentally flawed. Only in the case of
+      --  Request jobs that correspond to upcalls do we want to avoid
+      --  scheduling a transient task. Event jobs, on the contrary, should
+      --  be allowed to be processed by transient task (which is essential
+      --  when only one task remains and is waiting for an answer).
+
       elsif O.Number_Of_Pending_Jobs > 0
         and then (O.Borrow_Transient_Tasks or else TI.Kind = Permanent)
       then
