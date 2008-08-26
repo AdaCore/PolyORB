@@ -445,7 +445,7 @@ package body System.Partition_Interface is
             end if;
          end loop;
 
-         if Version /=  Type_Id (Last_Colon + 1 .. Type_Id'Last) then
+         if Version /= Type_Id (Last_Colon + 1 .. Type_Id'Last) then
             PolyORB.Initialization.Shutdown_World
               (Wait_For_Completion => False);
             raise Program_Error
@@ -1432,12 +1432,10 @@ package body System.Partition_Interface is
 
       Info : RCI_Info;
 
-      function Get_RCI_Package_Ref
-        return Object_Ref is
+      function Get_RCI_Package_Ref return Object_Ref is
       begin
          if PolyORB.References.Is_Nil (Info.Base_Ref) then
             Info := Retrieve_RCI_Info (RCI_Name);
-
             Check (RCI_Name, Version, True);
          end if;
 
