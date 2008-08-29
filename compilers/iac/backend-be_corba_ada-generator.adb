@@ -391,7 +391,7 @@ package body Backend.BE_CORBA_Ada.Generator is
    procedure Generate_Ada_Comment (N : Node_Id) is
       --  This procedure does the following :
 
-      --  * It generates an ada comment basing on the name of node N
+      --  * It generates an Ada comment basing on the name of node N
 
       --  * If the name it too long, and depending on the location of
       --    the comment in the source code, the procedure splits the
@@ -400,9 +400,7 @@ package body Backend.BE_CORBA_Ada.Generator is
       --  The comment is assumed to be a sequence of characters,
       --  beginning and ending with a NON-SPACE character.
 
-      --  A word is :
-
-      --  a space character, or else a sequence of non space
+      --  A word is a space character, or else a sequence of non space
       --  characters located between two spaces.
 
       Max_Line_Length : constant Natural := 78;
@@ -2435,7 +2433,7 @@ package body Backend.BE_CORBA_Ada.Generator is
 
       Write_Str ("-- ");
       Write_Name (M);
-      Write_Str (" -- ");
+      Write_Str (" --");
       Write_Eol;
       Write_Indentation;
 
