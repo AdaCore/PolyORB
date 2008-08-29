@@ -139,7 +139,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
    -- Add_With_Package --
    ----------------------
 
-   procedure Add_With_Package (E : Node_Id) is
+   procedure Add_With_Package (E : Node_Id; Unreferenced : Boolean := False) is
 
       function Get_String_Name (The_String : String) return Name_Id;
       --  Return the Name_Id associated to The_String
@@ -362,6 +362,9 @@ package body Backend.BE_CORBA_Ada.Nutils is
       W := New_Node (K_Withed_Package);
       Set_Defining_Identifier (W, P);
       Set_Elaborated (W, Force_Elaboration);
+      if Unreferenced then
+         Set_Unreferenced (W, V => True);
+      end if;
 
       Append_To (Withed_Packages (Current_Package), W);
    end Add_With_Package;

@@ -499,9 +499,11 @@ package Backend.BE_CORBA_Ada.Nutils is
    --  suffix does not exist, the returned name id is equal to the
    --  given name id.
 
-   procedure Add_With_Package (E : Node_Id);
+   procedure Add_With_Package
+     (E : Node_Id; Unreferenced : Boolean := False);
    --  Append a 'with' clause to the Withed_Package list of the
-   --  current package. E is a Designator of the Withed package
+   --  current package. E is a Designator of the Withed package.
+   --  If Unreferenced is True, generate a pragma Unreferenced.
 
    procedure Append_To (L : List_Id; E : Node_Id);
    --  Append node E to the end of list L

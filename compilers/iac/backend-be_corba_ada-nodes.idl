@@ -87,13 +87,16 @@ module Backend::BE_CORBA_Ada::Nodes {
 
   interface Withed_Package : Definition {
     // The Defining_Identifier field inherited from Definition is the
-    // package to be withed 
+    // package to be with'ed.
   
     boolean    Used;
-    // If True, then the package is also used
+    // If True, generate a USE clause for this unit
 
     boolean    Elaborated;
-    // If true, then a pragma elaborate_all is also added for the package
+    // If true, generate a pragma Elaborate_All for this unit
+
+    boolean    Unreferenced;
+    // If true, generate a pragma Unreferenced for this unit
   };
 
   interface Used_Package : Used_Type {

@@ -340,9 +340,8 @@ package body Backend.BE_CORBA_Ada.Impls is
 
          if not FEN.Is_Local_Interface (E) then
             Add_With_Package
-              (Expand_Designator
-               (Skeleton_Package
-                (Current_Entity)));
+              (Expand_Designator (Skeleton_Package (Current_Entity)),
+               Unreferenced => True);
          end if;
 
          N := First_Entity (Interface_Body (E));

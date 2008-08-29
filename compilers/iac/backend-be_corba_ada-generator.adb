@@ -2352,6 +2352,27 @@ package body Backend.BE_CORBA_Ada.Generator is
    -----------------------------
 
    procedure Generate_Withed_Package (N : Node_Id) is
+      procedure Add_Pragma (Pragma_Name : String);
+      --  Add a pragma with the given name applying to the WITH'd unit
+
+      ----------------
+      -- Add_Pragma --
+      ----------------
+
+      procedure Add_Pragma (Pragma_Name : String) is
+      begin
+         Write (Tok_Semicolon);
+         Write_Eol;
+         Write_Indentation;
+         Write (Tok_Pragma);
+         Write_Space;
+         Write_Str (Pragma_Name);
+         Write_Space;
+         Write (Tok_Left_Paren);
+         Generate (Defining_Identifier (N));
+         Write (Tok_Right_Paren);
+      end Add_Pragma;
+
    begin
       Write (Tok_With);
       Write_Space;
@@ -2367,16 +2388,11 @@ package body Backend.BE_CORBA_Ada.Generator is
       end if;
 
       if Elaborated (N) then
-         Write (Tok_Semicolon);
-         Write_Eol;
-         Write_Indentation;
-         Write (Tok_Pragma);
-         Write_Space;
-         Write_Str ("Elaborate_All");
-         Write_Space;
-         Write (Tok_Left_Paren);
-         Generate (Defining_Identifier (N));
-         Write (Tok_Right_Paren);
+         Add_Pragma ("Elaborate_All");
+      end if;
+
+      if Unreferenced (N) then
+         Add_Pragma ("Unreferenced");
       end if;
    end Generate_Withed_Package;
 
