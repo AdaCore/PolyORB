@@ -348,7 +348,7 @@ module Backend::BE_CORBA_Ada::Nodes {
   /* Example : type T is new R with private; */
 
   interface Derived_Type_Definition : Node_Id {
-    boolean    Is_Private_Extention;
+    boolean    Is_Private_Extension;
     // If True, then "with private" generated
 
     boolean    Is_Abstract_Type;

@@ -734,7 +734,7 @@ package Backend.BE_CORBA_Ada.Nutils is
      (Subtype_Indication    : Node_Id;
       Record_Extension_Part : Node_Id := No_Node;
       Is_Abstract_Type      : Boolean := False;
-      Is_Private_Extention  : Boolean := False;
+      Is_Private_Extension  : Boolean := False;
       Is_Subtype            : Boolean := False)
      return Node_Id;
    --  Usually used with Make_Full_Type_Declaration

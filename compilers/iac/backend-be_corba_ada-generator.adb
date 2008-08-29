@@ -907,7 +907,7 @@ package body Backend.BE_CORBA_Ada.Generator is
       end if;
       Generate (Subtype_Indication (N));
 
-      if Is_Private_Extention (N) then
+      if Is_Private_Extension (N) then
          Write_Space;
          Write (Tok_With);
          Write_Space;

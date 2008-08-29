@@ -1328,7 +1328,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
      (Subtype_Indication    : Node_Id;
       Record_Extension_Part : Node_Id := No_Node;
       Is_Abstract_Type      : Boolean := False;
-      Is_Private_Extention  : Boolean := False;
+      Is_Private_Extension  : Boolean := False;
       Is_Subtype            : Boolean := False)
      return Node_Id
    is
@@ -1336,7 +1336,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
    begin
       N := New_Node (K_Derived_Type_Definition);
       Set_Is_Abstract_Type (N, Is_Abstract_Type);
-      Set_Is_Private_Extention (N, Is_Private_Extention);
+      Set_Is_Private_Extension (N, Is_Private_Extension);
       Set_Subtype_Indication (N, Subtype_Indication);
       Set_Record_Extension_Part (N, Record_Extension_Part);
       Set_Is_Subtype (N, Is_Subtype);

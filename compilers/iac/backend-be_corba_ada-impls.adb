@@ -135,7 +135,7 @@ package body Backend.BE_CORBA_Ada.Impls is
            (I,
             Make_Derived_Type_Definition
             (Subtype_Indication    => P,
-             Is_Private_Extention  => True));
+             Is_Private_Extension  => True));
          Bind_FE_To_BE (Identifier (E), N, B_Impl);
          Append_To (Visible_Part (Current_Package), N);
 
