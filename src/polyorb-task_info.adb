@@ -31,11 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Information about running ORB tasks.
-
---  This package is used to store and retrieve information
---  concerning the status of tasks that execute ORB functions.
-
 package body PolyORB.Task_Info is
 
    -----------
@@ -200,15 +195,13 @@ package body PolyORB.Task_Info is
 
    procedure Set_Exit_Condition
      (TI             : in out Task_Info;
-      Exit_Condition :        PolyORB.Types.Boolean_Ptr)
+      Exit_Condition : Types.Boolean_Ptr)
    is
-      use type PolyORB.Types.Boolean_Ptr;
+      use type Types.Boolean_Ptr;
 
    begin
-      pragma Assert ((TI.Kind = Transient and then Exit_Condition /= null)
-                     or else (TI.Kind = Permanent
-                              and then Exit_Condition = null));
-
+      pragma Assert
+        (TI.Kind = Task_Kind_For_Exit_Condition (Exit_Condition = null));
       TI.Exit_Condition := Exit_Condition;
    end Set_Exit_Condition;
 

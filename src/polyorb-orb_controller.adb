@@ -178,16 +178,15 @@ package body PolyORB.ORB_Controller is
    -----------------------------------
 
    function ORB_Controller_Counters_Valid
-     (O : access ORB_Controller)
-     return Boolean
+     (O : access ORB_Controller) return Boolean
    is
    begin
       return O.Registered_Tasks =
         O.Counters (Unscheduled)
-        +  O.Counters (Running)
-        +  O.Counters (Blocked)
-        +  O.Counters (Idle)
-        +  O.Counters (Terminated);
+          + O.Counters (Running)
+          + O.Counters (Blocked)
+          + O.Counters (Idle)
+          + O.Counters (Terminated);
    end ORB_Controller_Counters_Valid;
 
    -------------------
@@ -196,7 +195,7 @@ package body PolyORB.ORB_Controller is
 
    procedure Register_Task
      (O  : access ORB_Controller;
-      TI :        PTI.Task_Info_Access)
+      TI : PTI.Task_Info_Access)
    is
    begin
       pragma Debug (C1, O1 ("Register_Task: enter"));
@@ -239,9 +238,7 @@ package body PolyORB.ORB_Controller is
    -- Get_Idle_Tasks_Count --
    --------------------------
 
-   function Get_Idle_Tasks_Count
-     (O : ORB_Controller_Access)
-     return Natural is
+   function Get_Idle_Tasks_Count (O : ORB_Controller_Access) return Natural is
    begin
       return O.Counters (Idle);
    end Get_Idle_Tasks_Count;

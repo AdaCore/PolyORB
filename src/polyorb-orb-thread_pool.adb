@@ -216,18 +216,18 @@ package body PolyORB.ORB.Thread_Pool is
    procedure Idle
      (P         : access Thread_Pool_Policy;
       This_Task : in out PolyORB.Task_Info.Task_Info;
-      ORB       :        ORB_Access)
+      ORB       : ORB_Access)
    is
-      pragma Warnings (Off);
       pragma Unreferenced (P);
       pragma Unreferenced (ORB);
-      pragma Warnings (On);
 
       package PTI  renames PolyORB.Task_Info;
       package PTCV renames PolyORB.Tasking.Condition_Variables;
 
    begin
       Enter (Mutex);
+
+      --  Dubious test: should compare count of idle permanent tasks???
 
       if Threads_Count > Maximum_Spare_Threads then
          declare
@@ -240,6 +240,11 @@ package body PolyORB.ORB.Thread_Pool is
 
                   The_Pool (J) := Null_Thread_Id;
                   Threads_Count := Threads_Count - 1;
+
+                  --  Dubious: permanent tasks must always have a null exit
+                  --  condition, transient tasks must not exit the main loop
+                  --  if their initial exit condition has not been met???
+
                   Set_Exit_Condition (This_Task, Exit_Condition_True);
                   Leave (Mutex);
                   return;
@@ -251,14 +256,12 @@ package body PolyORB.ORB.Thread_Pool is
       Leave (Mutex);
 
       pragma Debug (C, O ("Thread "
-                       & Image (PTI.Id (This_Task))
-                       & " is going idle."));
+                       & Image (PTI.Id (This_Task)) & " going idle"));
 
       PTCV.Wait (PTI.Condition (This_Task), PTI.Mutex (This_Task));
 
-      pragma Debug (C, O ("Thread "
-                       & Image (PTI.Id (This_Task))
-                       & " is leaving Idle state"));
+      pragma Debug
+        (C, O ("Thread " & Image (PTI.Id (This_Task)) & " leaving idle"));
    end Idle;
 
    ----------------------------
@@ -266,9 +269,7 @@ package body PolyORB.ORB.Thread_Pool is
    ----------------------------
 
    function Borrow_Transient_Tasks (P : Thread_Pool_Policy) return Boolean is
-      pragma Warnings (Off);
       pragma Unreferenced (P);
-      pragma Warnings (On);
    begin
       --  We don't want to borrow transient tasks in thread-pool policy, except
       --  that if there is only one thread in the pool, we need to borrow in
@@ -287,20 +288,14 @@ package body PolyORB.ORB.Thread_Pool is
       Setup.The_Tasking_Policy := new Thread_Pool_Policy;
       Create (Mutex);
 
-      Minimum_Spare_Threads := Get_Conf
-        ("tasking",
-         "min_spare_threads",
-         Default_Threads);
+      Minimum_Spare_Threads :=
+        Get_Conf ("tasking", "min_spare_threads", Default_Threads);
 
-      Maximum_Spare_Threads := Get_Conf
-        ("tasking",
-         "max_spare_threads",
-         Default_Threads);
+      Maximum_Spare_Threads :=
+        Get_Conf ("tasking", "max_spare_threads", Default_Threads);
 
-      Maximum_Threads := Get_Conf
-        ("tasking",
-         "max_threads",
-         Default_Threads);
+      Maximum_Threads :=
+        Get_Conf ("tasking", "max_threads", Default_Threads);
 
       if not (Maximum_Threads >= Maximum_Spare_Threads
               and then Maximum_Spare_Threads >= Minimum_Spare_Threads)

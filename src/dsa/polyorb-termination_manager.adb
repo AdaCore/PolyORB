@@ -316,15 +316,20 @@ package body PolyORB.Termination_Manager is
       --  at the first try, so we wait a tiny bit and check again if
       --  at first we don't get a positive result.
 
+      pragma Debug (C, O ("Is_Locally_Terminated: enter"));
       for J in 1 .. 3 loop
          Enter_ORB_Critical_Section (The_ORB.ORB_Controller);
-         Result := Is_Locally_Terminated (The_ORB.ORB_Controller,
-                                       Expected_Running_Tasks);
+         pragma Debug (C, O ("Is_Locally_Terminated: in critical section, "
+                             & "iteration" & J'Img));
+         Result := Is_Locally_Terminated
+                     (The_ORB.ORB_Controller, Expected_Running_Tasks);
          Leave_ORB_Critical_Section (The_ORB.ORB_Controller);
          exit when Result;
          Relative_Delay (The_TM.Time_Between_Waves);
       end loop;
 
+      pragma Debug (C, O ("Is_Locally_Terminated: leave, Result = "
+        & Result'Img));
       return Result;
    end Is_Locally_Terminated;
 

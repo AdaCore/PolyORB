@@ -31,10 +31,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Information about running ORB tasks
-
---  This package is used to store and retrieve information
---  concerning the status of tasks that execute ORB functions.
+--  This package provides a facility for associating information with each
+--  task executing the ORB main loop.
 
 with PolyORB.Asynch_Ev;
 with PolyORB.Jobs;
@@ -54,21 +52,19 @@ package PolyORB.Task_Info is
 
    type Task_Kind is (Permanent, Transient);
    --  A Permanent task executes ORB.Run indefinitely.
-   --  A Transient task executes ORB.Run until a given exit condition
-   --  is met. Transient tasks are lent to neutral core middleware by
-   --  user activities.
+   --  A Transient task executes ORB.Run until a given exit condition is met.
+   --  Transient tasks are lent to neutral core middleware by user code.
 
    Task_Kind_For_Exit_Condition : constant array (Boolean)
      of Task_Kind := (True => Permanent, False => Transient);
-   --  The task kind according to whether Exit_Condition
-   --  is null (True) or not.
+   --  The task kind according to whether Exit_Condition is null (True) or not
 
    type Task_State is (Unscheduled, Running, Blocked, Idle, Terminated);
    --  An Unscheduled task is waiting for rescheduling.
    --  A Running task is executing an ORB activity.
    --  A Blocked task is waiting for an external asynchronous event.
-   --  An Idle task is waiting on a condition variable expecting
-   --  another task to request ORB action.
+   --  An Idle task is waiting on a condition variable expecting another task
+   --  to request ORB action.
    --  A Terminated task has been notified its exit condition is true.
 
    type Task_Info (Kind : Task_Kind) is limited private;
@@ -92,8 +88,7 @@ package PolyORB.Task_Info is
      (TI        : in out Task_Info;
       Condition :        PTCV.Condition_Access;
       Mutex     :        PTM.Mutex_Access);
-   --  The task referred by TI will go Idle;
-   --  signalling condition variable Condition will awake it.
+   --  The task referred by TI will go Idle until Condition is signalled
 
    procedure Set_State_Running (TI : in out Task_Info; Job : Jobs.Job_Access);
    --  The task referred by TI is now in Running state, and will execute Job;
@@ -109,8 +104,7 @@ package PolyORB.Task_Info is
    --  Return the state of the task referred by TI
 
    function Selector
-     (TI : Task_Info)
-     return Asynch_Ev.Asynch_Ev_Monitor_Access;
+     (TI : Task_Info) return Asynch_Ev.Asynch_Ev_Monitor_Access;
    --  Return Selector the task referred by TI is blocked on
 
    function Timeout (TI : Task_Info) return Duration;
@@ -123,8 +117,8 @@ package PolyORB.Task_Info is
    --  Return Mutex used by the Task referred by TI when blocking.
 
    procedure Set_Id (TI : in out Task_Info);
-   --  Task_Info will hold Id of the current task, as provided by
-   --  PolyORB tasking runtime.
+   --  Task_Info will hold Id of the current task, as provided by the PolyORB
+   --  tasking subsystem.
 
    procedure Set_Polling (TI : in out Task_Info; May_Poll : Boolean);
    --  Set if TI may poll on event sources, i.e. be in blocked state
@@ -141,15 +135,11 @@ package PolyORB.Task_Info is
    --  Return the value of TI's exit condition
 
    procedure Request_Abort_Polling (TI : in out Task_Info);
-   --  Request TI to abort polling. Meaningful only if TI is in
-   --  blocked state.
+   --  Request TI to abort polling. Meaningful only if TI is in blocked state
 
    function Abort_Polling (TI : Task_Info) return Boolean;
    --  Return true if TI must abort polling and leave blocked state.
    --  Meaningful only if TI is in blocked state.
-
-   function Image (TI : Task_Info) return String;
-   --  For debug purposes
 
    function Id (TI : Task_Info) return PolyORB.Tasking.Threads.Thread_Id;
    --  Return thread id associated to TI
@@ -168,10 +158,12 @@ package PolyORB.Task_Info is
       List : in out Task_Lists.List);
    --  Remove TI from the list it was attached to (if any).
 
+   function Image (TI : Task_Info) return String;
+   --  For debug purposes
+
 private
 
    type Task_Info (Kind : Task_Kind) is limited record
-
       Id : PolyORB.Tasking.Threads.Thread_Id;
       --  Task referred by Task_Info record
 
@@ -186,9 +178,8 @@ private
 
       Exit_Condition : PolyORB.Types.Boolean_Ptr := null;
       --  Null for Permanent tasks, in which case the exit condition is
-      --  considered to be False. For Transient tasks, points to an
-      --  initially-False Boolean, which is set True when the task should exit
-      --  the ORB.
+      --  considered to be False. For Transient tasks, points to an initially
+      --  False Boolean, which is set True when the task should exit ORB.Run.
 
       Job : Jobs.Job_Access;
       --  Job to run, meaningful only when State is Running
@@ -201,16 +192,16 @@ private
       --  Timeout before stopping polling when Blocked
 
       Condition : Tasking.Condition_Variables.Condition_Access;
-      --  Condition Variable on which Task referred by Id is
-      --  blocked; meaningful only when State is Idle.
+      --  Condition Variable on which Task referred by Id is blocked;
+      --  meaningful only when State is Idle.
 
       Mutex : Tasking.Mutexes.Mutex_Access;
       --  Mutex used by the Task referred by TI when blocking;
       --  meaningful only when State is Idle.
 
       Position : Task_Lists.Iterator;
-      --  Iterator designating the position of this task on a
-      --  list (allowing removal of the task from the list).
+      --  Iterator designating the position of this task on a list (allowing
+      --  removal of the task from the list).
    end record;
 
    pragma Inline (Set_State_Blocked);
