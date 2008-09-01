@@ -488,7 +488,7 @@ package body PolyORB.ORB is
 
    begin
       Enter_ORB_Critical_Section (ORB.ORB_Controller);
-      Result := Is_A_Job_Pending (ORB.ORB_Controller);
+      Result := Has_Pending_Job (ORB.ORB_Controller);
       Leave_ORB_Critical_Section (ORB.ORB_Controller);
 
       return Result;
@@ -504,7 +504,7 @@ package body PolyORB.ORB is
    begin
       Enter_ORB_Critical_Section (ORB.ORB_Controller);
 
-      if Is_A_Job_Pending (ORB.ORB_Controller) then
+      if Has_Pending_Job (ORB.ORB_Controller) then
          Job := Get_Pending_Job (ORB.ORB_Controller);
          Leave_ORB_Critical_Section (ORB.ORB_Controller);
          Run (Job);

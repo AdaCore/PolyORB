@@ -80,7 +80,7 @@ package body PolyORB.ORB_Controller.Leader_Followers is
      (O : access ORB_Controller_Leader_Followers;
       M : PAE.Asynch_Ev_Monitor_Access)
    is
-      AEM_Index : constant Natural := Index (O, M);
+      AEM_Index : constant Natural := Index (O.all, M);
 
    begin
       --  Force all tasks currently waiting on this monitor to abort
@@ -112,7 +112,7 @@ package body PolyORB.ORB_Controller.Leader_Followers is
      (O : access ORB_Controller_Leader_Followers;
       M : PAE.Asynch_Ev_Monitor_Access)
    is
-      AEM_Index : constant Natural := Index (O, M);
+      AEM_Index : constant Natural := Index (O.all, M);
 
    begin
       pragma Debug (C1, O1 ("Enable_Polling"));
@@ -141,7 +141,7 @@ package body PolyORB.ORB_Controller.Leader_Followers is
 
          when End_Of_Check_Sources =>
             declare
-               AEM_Index : constant Natural := Index (O, E.On_Monitor);
+               AEM_Index : constant Natural := Index (O.all, E.On_Monitor);
             begin
                --  A task completed polling on a monitor
 
@@ -150,9 +150,9 @@ package body PolyORB.ORB_Controller.Leader_Followers is
                                  & Ada.Tags.External_Tag
                                  (O.AEM_Infos (AEM_Index).Monitor.all'Tag)));
 
-               O.Counters (Blocked) := O.Counters (Blocked) - 1;
-               O.Counters (Unscheduled) := O.Counters (Unscheduled) + 1;
-               pragma Assert (ORB_Controller_Counters_Valid (O));
+               Task_State_Transition (O.all,
+                 Old_State => Blocked,
+                 New_State => Unscheduled);
 
                --  Reset TI
 
@@ -169,7 +169,7 @@ package body PolyORB.ORB_Controller.Leader_Followers is
 
          when Event_Sources_Added =>
             declare
-               AEM_Index : Natural := Index (O, E.Add_In_Monitor);
+               AEM_Index : Natural := Index (O.all, E.Add_In_Monitor);
             begin
                if AEM_Index = 0 then
                   --  This monitor was not yet registered, register it
@@ -207,9 +207,9 @@ package body PolyORB.ORB_Controller.Leader_Followers is
 
             --  A task has completed the execution of a job
 
-            O.Counters (Running) := O.Counters (Running) - 1;
-            O.Counters (Unscheduled) := O.Counters (Unscheduled) + 1;
-            pragma Assert (ORB_Controller_Counters_Valid (O));
+            Task_State_Transition (O.all,
+              Old_State => Running,
+              New_State => Unscheduled);
 
          when ORB_Shutdown =>
 
@@ -354,30 +354,24 @@ package body PolyORB.ORB_Controller.Leader_Followers is
 
          when Idle_Awake =>
 
-            O.Counters (Idle) := O.Counters (Idle) - 1;
-            O.Counters (Unscheduled) := O.Counters (Unscheduled) + 1;
-            pragma Assert (ORB_Controller_Counters_Valid (O));
+            Task_State_Transition (O.all,
+              Old_State => Idle,
+              New_State => Unscheduled);
 
             --  A task has left Idle state
 
             Remove_Idle_Task (O.Idle_Tasks, E.Awakened_Task);
 
          when Task_Registered =>
-
-            O.Registered_Tasks := O.Registered_Tasks + 1;
-            O.Counters (Unscheduled) := O.Counters (Unscheduled) + 1;
-            pragma Assert (ORB_Controller_Counters_Valid (O));
+            Task_Creation (O.all);
 
          when Task_Unregistered =>
-
-            O.Counters (Terminated) := O.Counters (Terminated) - 1;
-            O.Registered_Tasks := O.Registered_Tasks - 1;
-            pragma Assert (ORB_Controller_Counters_Valid (O));
-
+            Task_Removal (O.all);
             Note_Task_Unregistered (O);
+
       end case;
 
-      pragma Debug (C2, O2 (Status (O)));
+      pragma Debug (C2, O2 (Status (O.all)));
    end Notify_Event;
 
    -------------------
@@ -386,7 +380,7 @@ package body PolyORB.ORB_Controller.Leader_Followers is
 
    procedure Schedule_Task
      (O  : access ORB_Controller_Leader_Followers;
-      TI :        PTI.Task_Info_Access)
+      TI : PTI.Task_Info_Access)
    is
       Note : LF_Task_Note;
 
@@ -406,26 +400,25 @@ package body PolyORB.ORB_Controller.Leader_Followers is
                  and then TI.Kind = Permanent)
       then
 
-         O.Counters (Unscheduled) := O.Counters (Unscheduled) - 1;
-         O.Counters (Terminated) := O.Counters (Terminated) + 1;
-         pragma Assert (ORB_Controller_Counters_Valid (O));
+         Task_State_Transition (O.all,
+           Old_State => Unscheduled,
+           New_State => Terminated);
 
          Set_State_Terminated (TI.all);
 
          pragma Debug (C1, O1 ("Task is now terminated"));
-         pragma Debug (C2, O2 (Status (O)));
+         pragma Debug (C2, O2 (Status (O.all)));
 
       elsif Note.Job /= null then
 
          --  Process locally queued job
 
-         O.Counters (Unscheduled) := O.Counters (Unscheduled) - 1;
-         O.Counters (Running) := O.Counters (Running) + 1;
-         pragma Assert (ORB_Controller_Counters_Valid (O));
+         Task_State_Transition (O.all,
+           Old_State => Unscheduled,
+           New_State => Running);
 
          declare
             Job : constant Job_Access := Note.Job;
-
          begin
             Set_Note
               (Get_Current_Thread_Notepad.all,
@@ -439,9 +432,9 @@ package body PolyORB.ORB_Controller.Leader_Followers is
 
          --  Process job
 
-         O.Counters (Unscheduled) := O.Counters (Unscheduled) - 1;
-         O.Counters (Running) := O.Counters (Running) + 1;
-         pragma Assert (ORB_Controller_Counters_Valid (O));
+         Task_State_Transition (O.all,
+           Old_State => Unscheduled,
+           New_State => Running);
 
          Set_State_Running (TI.all, PJ.Fetch_Job (O.Job_Queue));
 
@@ -450,9 +443,9 @@ package body PolyORB.ORB_Controller.Leader_Followers is
             AEM_Index : constant Natural := Need_Polling_Task (O);
          begin
             if AEM_Index > 0 then
-               O.Counters (Unscheduled) := O.Counters (Unscheduled) - 1;
-               O.Counters (Blocked) := O.Counters (Blocked) + 1;
-               pragma Assert (ORB_Controller_Counters_Valid (O));
+               Task_State_Transition (O.all,
+                 Old_State => Unscheduled,
+                 New_State => Blocked);
 
                O.AEM_Infos (AEM_Index).Polling_Scheduled := False;
                O.AEM_Infos (AEM_Index).TI := TI;
@@ -467,15 +460,15 @@ package body PolyORB.ORB_Controller.Leader_Followers is
                                  & " " & Ada.Tags.External_Tag
                                  (O.AEM_Infos (AEM_Index).Monitor.all'Tag)));
 
-               pragma Debug (C2, O2 (Status (O)));
+               pragma Debug (C2, O2 (Status (O.all)));
             end if;
          end;
       end if;
 
       if PTI.State (TI.all) = Unscheduled then
-         O.Counters (Unscheduled) := O.Counters (Unscheduled) - 1;
-         O.Counters (Idle) := O.Counters (Idle) + 1;
-         pragma Assert (ORB_Controller_Counters_Valid (O));
+         Task_State_Transition (O.all,
+           Old_State => Unscheduled,
+           New_State => Idle);
 
          Set_State_Idle
            (TI.all,
@@ -483,7 +476,7 @@ package body PolyORB.ORB_Controller.Leader_Followers is
             O.ORB_Lock);
 
          pragma Debug (C1, O1 ("Task is now idle"));
-         pragma Debug (C2, O2 (Status (O)));
+         pragma Debug (C2, O2 (Status (O.all)));
 
       end if;
    end Schedule_Task;

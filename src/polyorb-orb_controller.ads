@@ -220,7 +220,7 @@ package PolyORB.ORB_Controller is
    --  polling. It is the user's responsability to ensure that Enable_Polling
    --  actually enables polling in bounded time.
 
-   function Is_A_Job_Pending (O : access ORB_Controller) return Boolean;
+   function Has_Pending_Job (O : access ORB_Controller) return Boolean;
    --  Return true iff a job is pending
 
    function Get_Pending_Job (O : access ORB_Controller) return PJ.Job_Access;
@@ -295,12 +295,25 @@ private
    type Counters_Array is array (PTI.Task_State) of Natural;
    --  Count the number of tasks in each Task_State
 
-   function Status (O : access ORB_Controller) return String;
+   procedure Task_Creation (O : in out ORB_Controller);
+   --  Record the creation of a task in O's counters. The task is counted as
+   --  Unscheduled.
+
+   procedure Task_Removal (O : in out ORB_Controller);
+   --  Record the removal of a task in O's counters. The task must be in
+   --  Terminated state.
+
+   procedure Task_State_Transition
+     (O         : in out ORB_Controller;
+      Old_State : PTI.Task_State;
+      New_State : PTI.Task_State);
+   --  Record the transition of a task from Old_State to New_State by
+   --  updating the appropriate counters in O.
+
+   function Status (O : ORB_Controller) return String;
    --  Output status of task running Broker, for debugging purpose
 
-   function ORB_Controller_Counters_Valid
-     (O : access ORB_Controller)
-     return Boolean;
+   function ORB_Controller_Counters_Valid (O : ORB_Controller) return Boolean;
    --  Return true iff the status of O respects the invariant defined below
 
    procedure Try_Allocate_One_Task
@@ -309,10 +322,11 @@ private
 
    function Need_Polling_Task (O : access ORB_Controller) return Natural;
    --  Return the index of the AEM_Info of a monitor waiting for polling task,
-   --  else return 0.
+   --  else return 0. Note that the index of the last polled AEM is recorded
+   --  in O to ensure fairness.
 
    function Index
-     (O : access ORB_Controller;
+     (O : ORB_Controller;
       M : PAE.Asynch_Ev_Monitor_Access) return Natural;
    pragma Inline (Index);
    --  Return the index of M held in O.AEM_Infos, 0 if not found
