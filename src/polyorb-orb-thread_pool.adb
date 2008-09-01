@@ -66,7 +66,7 @@ package body PolyORB.ORB.Thread_Pool is
 
    Minimum_Spare_Threads : Natural;
    Maximum_Spare_Threads : Natural;
-   Maximum_Threads : Natural;
+   Maximum_Threads       : Natural;
 
    type Thread_Array is array (Natural range <>) of Thread_Id;
    type Thread_Array_Access is access Thread_Array;
@@ -181,7 +181,7 @@ package body PolyORB.ORB.Thread_Pool is
 
    procedure Handle_Request_Execution
      (P   : access Thread_Pool_Policy;
-      ORB :        ORB_Access;
+      ORB : ORB_Access;
       RJ  : access Request_Job'Class)
    is
       pragma Warnings (Off);
@@ -233,6 +233,9 @@ package body PolyORB.ORB.Thread_Pool is
          declare
             This_Task_Id : constant Thread_Id := Current_Task;
          begin
+            --  Inefficient: scan of whole task pool. The task pool slot ID
+            --  should be recorded in task info???
+
             for J in The_Pool'Range loop
                if The_Pool (J) = This_Task_Id then
                   pragma Debug (C, O ("Terminating Task "
@@ -276,6 +279,33 @@ package body PolyORB.ORB.Thread_Pool is
       --  order to avoid deadlock.
       return Maximum_Threads <= 1;
    end Borrow_Transient_Tasks;
+
+   -------------------------
+   -- Get_Maximum_Threads --
+   -------------------------
+
+   function Get_Maximum_Threads return Natural is
+   begin
+      return Maximum_Threads;
+   end Get_Maximum_Threads;
+
+   -------------------------------
+   -- Get_Maximum_Spare_Threads --
+   -------------------------------
+
+   function Get_Maximum_Spare_Threads return Natural is
+   begin
+      return Maximum_Spare_Threads;
+   end Get_Maximum_Spare_Threads;
+
+   -------------------------------
+   -- Get_Minimum_Spare_Threads --
+   -------------------------------
+
+   function Get_Minimum_Spare_Threads return Natural is
+   begin
+      return Minimum_Spare_Threads;
+   end Get_Minimum_Spare_Threads;
 
    --------------------------------------
    -- Initialize_Tasking_Policy_Access --

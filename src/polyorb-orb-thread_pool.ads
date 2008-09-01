@@ -73,6 +73,11 @@ package PolyORB.ORB.Thread_Pool is
 
    function Borrow_Transient_Tasks (P : Thread_Pool_Policy) return Boolean;
 
+   function Get_Minimum_Spare_Threads return Natural;
+   function Get_Maximum_Spare_Threads return Natural;
+   function Get_Maximum_Threads       return Natural;
+   --  Return operational parameters of the thread pool
+
 private
 
    type Thread_Pool_Policy is new Tasking_Policy_Type with null record;

@@ -101,7 +101,7 @@ package body PolyORB.ORB_Controller.Workers is
 
    procedure Notify_Event
      (O : access ORB_Controller_Workers;
-      E :        Event)
+      E : Event)
    is
       use type PRS.Request_Scheduler_Access;
 
@@ -427,9 +427,8 @@ package body PolyORB.ORB_Controller.Workers is
    ------------
 
    function Create
-     (OCF : access ORB_Controller_Workers_Factory;
-      Borrow_Transient_Tasks : Boolean)
-     return ORB_Controller_Access
+     (OCF                    : access ORB_Controller_Workers_Factory;
+      Borrow_Transient_Tasks : Boolean) return ORB_Controller_Access
    is
       pragma Unreferenced (OCF);
 
