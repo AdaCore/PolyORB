@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -166,7 +166,7 @@ procedure Test_Driver is
 
             when 'o' =>
                if Full_Switch = "output" then
-                  if Parameter = "text" then
+                  if Parameter = "stdout" then
                      Output := new Text_Output;
 
                   elsif Parameter = "file" then
@@ -208,25 +208,25 @@ procedure Test_Driver is
    -----------
 
    procedure Usage is
-      Filename : constant String := GNAT.Source_Info.File;
-      Executable_Name : constant String
-        := Filename (Filename'First .. Filename'Last - 4);
+      Filename        : constant String := GNAT.Source_Info.File;
+      Executable_Name : constant String :=
+                          Filename (Filename'First .. Filename'Last - 4);
 
    begin
       New_Line;
       Put_Line (Standard_Error, "Usage: " & Executable_Name
-                & " -scenario scenario_file [-position integer]"
+                & " -scenario scenario_file [-position N]"
                 & "|-full directory"
                 & " -output file|text -config dir,");
       Put_Line (Standard_Error,
                 "  -scenario scenario_file : plays scenario_file,");
       Put_Line (Standard_Error,
-                "  -position integer : plays only test #position");
+                "  -position N             : plays only test #N");
       Put_Line (Standard_Error,
                 "  -full     directory     : plays all scenarios" &
                 " in directory.");
       Put_Line (Standard_Error,
-                "  -output   file|text     : output to stdout or files");
+                "  -output   file|stdout   : output to files|standard output");
       Put_Line (Standard_Error,
                 "  -config   dir           : directory for scenario files ");
 
