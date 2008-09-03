@@ -1627,10 +1627,12 @@ package body System.Partition_Interface is
       --  the application: terminate PCS and propagate.
 
       when E : others =>
-         pragma Debug (C, O ("exception raised during RCI registration: "
-                          & Ada.Exceptions.Exception_Information (E)));
+         O ("Cannot register information for RCI "
+             & Name & " with name server.", Error);
+         pragma Debug (C, O ("exception raised: "
+                             & Ada.Exceptions.Exception_Information (E)));
          PolyORB.Initialization.Shutdown_World (Wait_For_Completion => False);
-         raise;
+         raise System.RPC.Communication_Error;
    end Register_Pkg_Receiving_Stub;
 
    ----------------------------------
@@ -1661,27 +1663,35 @@ package body System.Partition_Interface is
       Obj  : PolyORB.References.Ref)
    is
       use Ada.Exceptions;
-      Id : constant PolyORB.Services.Naming.Name := To_Name (Name, Kind);
+      Id      : constant PolyORB.Services.Naming.Name := To_Name (Name, Kind);
+      Context : PSNNC.Ref;
       Reg_Obj : PolyORB.References.Ref;
    begin
       pragma Debug (C, O ("About to register " & Name & " on nameserver"));
 
+      --  May raise an exception which we do not want to handle in the
+      --  following block (failure to establish the naming context is a fatal
+      --  error and must be propagated to the caller).
+
+      Context := Naming_Context;
+
       begin
-         Reg_Obj := PSNNC.Client.Resolve (Naming_Context, Id);
+         Reg_Obj := PSNNC.Client.Resolve (Context, Id);
       exception
          when others =>
 
-            --  The resolution failed, we assume the name is available
+            --  Resolution attempt return an authoritative "name not found"
+            --  error: register unit now.
 
             PSNNC.Client.Bind
               (Self => Naming_Context,
                N    => Id,
                Obj  => Obj);
-
             return;
       end;
 
-      --  The name is in use, check if it resolves to a valid reference
+      --  Name is present in name server, check validity of the reference it
+      --  resolves to.
 
       if Is_Reference_Valid (Reg_Obj) then
          --  Reference is valid: RCI unit is already declared by another
