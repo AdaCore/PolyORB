@@ -1632,7 +1632,7 @@ package body System.Partition_Interface is
          pragma Debug (C, O ("exception raised: "
                              & Ada.Exceptions.Exception_Information (E)));
          PolyORB.Initialization.Shutdown_World (Wait_For_Completion => False);
-         raise System.RPC.Communication_Error;
+         raise;
    end Register_Pkg_Receiving_Stub;
 
    ----------------------------------
@@ -1698,7 +1698,7 @@ package body System.Partition_Interface is
          --  partition.
 
          PolyORB.Initialization.Shutdown_World (Wait_For_Completion => False);
-         raise Program_Error with "unit " & Name & " is already declared";
+         raise Program_Error with Name & " (" & Kind & ") is already declared";
 
       else
          --  The reference is not valid anymore: we assume the original server
