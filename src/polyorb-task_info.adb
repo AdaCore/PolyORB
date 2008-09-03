@@ -33,6 +33,65 @@
 
 package body PolyORB.Task_Info is
 
+   procedure Increment (C : in out Natural);
+   procedure Decrement (C : in out Natural);
+   --  Increment / decrement C
+
+   procedure Task_State_Change
+     (Summary   : in out Task_Summary;
+      TI        : in out Task_Info;
+      New_State : Task_State);
+   --  Set TI's state to New_State and record transition in Summary
+
+   ---------------
+   -- Decrement --
+   ---------------
+
+   procedure Decrement (C : in out Natural) is
+   begin
+      C := C - 1;
+   end Decrement;
+
+   ---------------
+   -- Increment --
+   ---------------
+
+   procedure Increment (C : in out Natural) is
+   begin
+      C := C + 1;
+   end Increment;
+
+   ---------------
+   -- Get_Count --
+   ---------------
+
+   function Get_Count
+      (Summary : Task_Summary;
+       Kind    : Any_Task_Kind  := Any;
+       State   : Any_Task_State := Any) return Natural
+   is
+      Count : Natural := 0;
+   begin
+      if Kind = Any then
+         if State = Any then
+            Count := Summary.Total;
+         else
+            for K in Task_Kind'Range loop
+               Count := Count + Summary.Counters (K, State);
+            end loop;
+         end if;
+
+      elsif State = Any then
+         for S in Task_State'Range loop
+            Count := Count + Summary.Counters (Kind, S);
+         end loop;
+
+      else
+         Count := Summary.Counters (Kind, State);
+      end if;
+      return Count;
+   end Get_Count;
+
    -----------
    -- Image --
    -----------
@@ -110,12 +169,13 @@ package body PolyORB.Task_Info is
    -----------------------
 
    procedure Set_State_Blocked
-     (TI       : in out Task_Info;
+     (Summary  : in out Task_Summary;
+      TI       : in out Task_Info;
       Selector :        Asynch_Ev.Asynch_Ev_Monitor_Access;
       Timeout  :        Duration)
    is
    begin
-      TI.State    := Blocked;
+      Task_State_Change (Summary, TI, New_State => Blocked);
       TI.Selector := Selector;
       TI.Timeout  := Timeout;
    end Set_State_Blocked;
@@ -125,12 +185,13 @@ package body PolyORB.Task_Info is
    --------------------
 
    procedure Set_State_Idle
-     (TI        : in out Task_Info;
-      Condition :        PTCV.Condition_Access;
-      Mutex     :        PTM.Mutex_Access)
+     (Summary   : in out Task_Summary;
+      TI        : in out Task_Info;
+      Condition : PTCV.Condition_Access;
+      Mutex     : PTM.Mutex_Access)
    is
    begin
-      TI.State     := Idle;
+      Task_State_Change (Summary, TI, New_State => Idle);
       TI.Condition := Condition;
       TI.Mutex     := Mutex;
    end Set_State_Idle;
@@ -140,11 +201,12 @@ package body PolyORB.Task_Info is
    -----------------------
 
    procedure Set_State_Running
-     (TI  : in out Task_Info;
-      Job :        Jobs.Job_Access)
+     (Summary : in out Task_Summary;
+      TI      : in out Task_Info;
+      Job     : Jobs.Job_Access)
    is
    begin
-      TI.State     := Running;
+      Task_State_Change (Summary, TI, New_State => Running);
       TI.Job       := Job;
       TI.Selector  := null;
       TI.Condition := null;
@@ -227,11 +289,15 @@ package body PolyORB.Task_Info is
    -- Set_State_Unscheduled --
    ---------------------------
 
-   procedure Set_State_Unscheduled (TI : in out Task_Info) is
+   procedure Set_State_Unscheduled
+     (Summary : in out Task_Summary;
+      TI      : in out Task_Info)
+   is
    begin
-      pragma Assert (TI.State /= Unscheduled);
+      --  Note: TI may already be in Unscheduled state, because this is the
+      --  initial state of a newly-created task.
 
-      TI.State     := Unscheduled;
+      Task_State_Change (Summary, TI, New_State => Unscheduled);
       TI.Job       := null;
       TI.Selector  := null;
       TI.Condition := null;
@@ -242,9 +308,11 @@ package body PolyORB.Task_Info is
    -- Set_State_Terminated --
    --------------------------
 
-   procedure Set_State_Terminated (TI : in out Task_Info) is
+   procedure Set_State_Terminated
+     (Summary : in out Task_Summary;
+      TI      : in out Task_Info) is
    begin
-      TI.State := Terminated;
+      Task_State_Change (Summary, TI, Terminated);
    end Set_State_Terminated;
 
    ---------------------------
@@ -286,5 +354,59 @@ package body PolyORB.Task_Info is
    begin
       return TI.Job;
    end Job;
+
+   ------------------
+   -- Task_Created --
+   ------------------
+
+   procedure Task_Created (Summary : in out Task_Summary; TI : Task_Info) is
+   begin
+      pragma Assert (TI.State = Unscheduled);
+      Increment (Summary.Counters (TI.Kind, TI.State));
+      Increment (Summary.Total);
+   end Task_Created;
+
+   ------------------
+   -- Task_Removed --
+   ------------------
+
+   procedure Task_Removed (Summary : in out Task_Summary; TI : Task_Info) is
+   begin
+      pragma Assert (TI.State = Terminated);
+      Decrement (Summary.Counters (TI.Kind, TI.State));
+      Decrement (Summary.Total);
+   end Task_Removed;
+
+   -----------------------
+   -- Task_State_Change --
+   -----------------------
+
+   procedure Task_State_Change
+     (Summary   : in out Task_Summary;
+      TI        : in out Task_Info;
+      New_State : Task_State)
+   is
+   begin
+      Decrement (Summary.Counters (TI.Kind, TI.State));
+      TI.State := New_State;
+      Increment (Summary.Counters (TI.Kind, TI.State));
+      pragma Assert (Task_Summary_Valid (Summary));
+   end Task_State_Change;
+
+   ------------------------
+   -- Task_Summary_Valid --
+   ------------------------
+
+   function Task_Summary_Valid (Summary : Task_Summary) return Boolean
+   is
+      Count : Natural := 0;
+   begin
+      for K in Task_Kind'Range loop
+         for S in Task_State'Range loop
+            Count := Count + Summary.Counters (K, S);
+         end loop;
+      end loop;
+      return Summary.Total = Count;
+   end Task_Summary_Valid;
 
 end PolyORB.Task_Info;

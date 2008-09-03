@@ -289,7 +289,7 @@ package body PolyORB.ORB is
       pragma Debug (C, O ("TPF " & Image (This_Task) & ": "
                        & "leaving Perform_Work"));
 
-      Notify_Event (ORB.ORB_Controller, Job_Completed_E);
+      Notify_Event (ORB.ORB_Controller, Event'(Kind => Job_Completed));
    end Perform_Work;
 
    -----------------------
@@ -440,8 +440,6 @@ package body PolyORB.ORB is
 
          end case;
 
-         Set_State_Unscheduled (This_Task);
-
          --  Condition at end of loop: inside the ORB critical section
 
       end loop Main_Loop;
@@ -473,7 +471,11 @@ package body PolyORB.ORB is
             Exit_Condition.Task_Info.all := null;
          end if;
 
-         Set_State_Terminated (This_Task);
+         Abnormal_Terminate_Task
+           (ORB.ORB_Controller, This_Task'Unchecked_Access);
+
+         --  ??? Invariant violated: Unregister_Task requires ORB critical
+         --  section
          Unregister_Task (ORB.ORB_Controller, This_Task'Unchecked_Access);
 
          raise;
@@ -534,7 +536,7 @@ package body PolyORB.ORB is
 
       Enter_ORB_Critical_Section (ORB.ORB_Controller);
 
-      Notify_Event (ORB.ORB_Controller, ORB_Shutdown_E);
+      Notify_Event (ORB.ORB_Controller, Event'(Kind => ORB_Shutdown));
 
       --  Wait for completion of pending requests, if required
 
@@ -908,7 +910,8 @@ package body PolyORB.ORB is
       Unregister_Source (Monitor.all, AES, Success);
 
       if Success then
-         Notify_Event (ORB.ORB_Controller, Event_Sources_Deleted_E);
+         Notify_Event
+           (ORB.ORB_Controller, Event'(Kind => Event_Sources_Deleted));
       end if;
 
       --  Modification completed, enable polling

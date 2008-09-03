@@ -191,7 +191,7 @@ package body PolyORB.ORB.Thread_Pool is
    begin
       Enter (Mutex);
 
-      if Get_Idle_Tasks_Count (ORB.ORB_Controller) = 0
+      if Get_Idle_Tasks_Count (ORB.ORB_Controller.all) = 0
         and then Threads_Count < Maximum_Threads
       then
          Threads_Count := Threads_Count + 1;

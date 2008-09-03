@@ -50,7 +50,8 @@ package PolyORB.Task_Info is
    package PTCV renames PolyORB.Tasking.Condition_Variables;
    package PTM  renames PolyORB.Tasking.Mutexes;
 
-   type Task_Kind is (Permanent, Transient);
+   type Any_Task_Kind is (Any, Permanent, Transient);
+   subtype Task_Kind is Any_Task_Kind range Permanent .. Transient;
    --  A Permanent task executes ORB.Run indefinitely.
    --  A Transient task executes ORB.Run until a given exit condition is met.
    --  Transient tasks are lent to neutral core middleware by user code.
@@ -59,7 +60,9 @@ package PolyORB.Task_Info is
      of Task_Kind := (True => Permanent, False => Transient);
    --  The task kind according to whether Exit_Condition is null (True) or not
 
-   type Task_State is (Unscheduled, Running, Blocked, Idle, Terminated);
+   type Any_Task_State is
+     (Any, Unscheduled, Running, Blocked, Idle, Terminated);
+   subtype Task_State is Any_Task_State range Unscheduled .. Terminated;
    --  An Unscheduled task is waiting for rescheduling.
    --  A Running task is executing an ORB activity.
    --  A Blocked task is waiting for an external asynchronous event.
@@ -74,34 +77,62 @@ package PolyORB.Task_Info is
    package Task_Lists is new PolyORB.Utils.Chained_Lists
      (Task_Info_Access, Doubly_Chained => True);
 
+   type Task_Summary is limited private;
+   --  Summary information: counter of registered tasks and of how many tasks
+   --  of each kind are in each state.
+
+   function Get_Count
+     (Summary : Task_Summary;
+      Kind    : Any_Task_Kind  := Any;
+      State   : Any_Task_State := Any) return Natural;
+   --  Return the count of tasks with the given kind and state. If Kind or
+   --  State is Any, return sum for all Kinds, respectively for all States.
+
+   function Task_Summary_Valid (Summary : Task_Summary) return Boolean;
+   --  Check the total count against the sum of the partial counts (for
+   --  assertions purpose).
+
+   procedure Task_Created (Summary : in out Task_Summary; TI : Task_Info);
+   procedure Task_Removed (Summary : in out Task_Summary; TI : Task_Info);
+   --  Record creation / task removal of the given task
+
    ------------------------------------
    -- Task_Info components accessors --
    ------------------------------------
 
+   function State (TI : Task_Info) return Task_State;
+   --  Return the state of the task referred by TI
+
    procedure Set_State_Blocked
-     (TI       : in out Task_Info;
-      Selector :        Asynch_Ev.Asynch_Ev_Monitor_Access;
-      Timeout  :        Duration);
+     (Summary  : in out Task_Summary;
+      TI       : in out Task_Info;
+      Selector : Asynch_Ev.Asynch_Ev_Monitor_Access;
+      Timeout  : Duration);
    --  The task referred by TI will be blocked on Selector for Timeout seconds
 
    procedure Set_State_Idle
-     (TI        : in out Task_Info;
-      Condition :        PTCV.Condition_Access;
-      Mutex     :        PTM.Mutex_Access);
+     (Summary   : in out Task_Summary;
+      TI        : in out Task_Info;
+      Condition : PTCV.Condition_Access;
+      Mutex     : PTM.Mutex_Access);
    --  The task referred by TI will go Idle until Condition is signalled
 
-   procedure Set_State_Running (TI : in out Task_Info; Job : Jobs.Job_Access);
+   procedure Set_State_Running
+     (Summary : in out Task_Summary;
+      TI      : in out Task_Info;
+      Job     : Jobs.Job_Access);
    --  The task referred by TI is now in Running state, and will execute Job;
    --  this procedure resets Selector or Condition it was blocked on.
 
-   procedure Set_State_Unscheduled (TI : in out Task_Info);
+   procedure Set_State_Unscheduled
+     (Summary : in out Task_Summary;
+      TI      : in out Task_Info);
    --  The task referred by TI is now in Unscheduled state.
 
-   procedure Set_State_Terminated (TI : in out Task_Info);
+   procedure Set_State_Terminated
+     (Summary : in out Task_Summary;
+      TI      : in out Task_Info);
    --  The task referred by TI has terminated its job.
-
-   function State (TI : Task_Info) return Task_State;
-   --  Return the state of the task referred by TI
 
    function Selector
      (TI : Task_Info) return Asynch_Ev.Asynch_Ev_Monitor_Access;
@@ -168,7 +199,9 @@ private
       --  Task referred by Task_Info record
 
       State : Task_State := Unscheduled;
-      --  Current Task status
+      --  Current Task status, not permitted to be changed except by internal
+      --  procedure Task_State_Change, which in turn is called by each of the
+      --  Set_State_xxx external procedures.
 
       May_Poll : Boolean := False;
       --  True iff task may poll on event sources
@@ -204,11 +237,23 @@ private
       --  removal of the task from the list).
    end record;
 
+   type Task_Counters is array (Task_Kind, Task_State) of Natural;
+   type Task_Summary is limited record
+      Total    : Natural := 0;
+      --  Cache of total task count
+
+      Counters : Task_Counters := (others => (others => 0));
+      --  Count of tasks of each kind and state
+   end record;
+
+   pragma Inline (Get_Count);
+
    pragma Inline (Set_State_Blocked);
    pragma Inline (Set_State_Idle);
    pragma Inline (Set_State_Running);
    pragma Inline (Set_State_Unscheduled);
    pragma Inline (Set_State_Terminated);
+
    pragma Inline (State);
    pragma Inline (Selector);
    pragma Inline (Timeout);

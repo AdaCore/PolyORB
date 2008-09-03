@@ -99,10 +99,6 @@ package body PolyORB.ORB_Controller.No_Tasking is
                                  & Ada.Tags.External_Tag
                                  (O.AEM_Infos (AEM_Index).Monitor.all'Tag)));
 
-               Task_State_Transition (O.all,
-                 Old_State => Blocked,
-                 New_State => Unscheduled);
-
                --  Reset TI
 
                O.AEM_Infos (AEM_Index).TI := null;
@@ -139,9 +135,7 @@ package body PolyORB.ORB_Controller.No_Tasking is
 
             --  A task has completed the execution of a job
 
-            Task_State_Transition (O.all,
-              Old_State => Running,
-              New_State => Unscheduled);
+            null;
 
          when ORB_Shutdown =>
 
@@ -181,16 +175,12 @@ package body PolyORB.ORB_Controller.No_Tasking is
             raise Program_Error;
 
          when Task_Registered =>
-
-            Task_Creation (O.all);
-
             pragma Assert (May_Poll (E.Registered_Task.all));
+            null;
             --  Under this implementation, there is only one task registered
             --  with the ORB. This task must be able to poll an AEM.
 
          when Task_Unregistered =>
-
-            Task_Removal (O.all);
             Note_Task_Unregistered (O);
       end case;
 
@@ -208,7 +198,7 @@ package body PolyORB.ORB_Controller.No_Tasking is
    begin
       pragma Debug (C1, O1 ("Schedule_Task: enter"));
 
-      pragma Assert (PTI.State (TI.all) = Unscheduled);
+      Set_State_Unscheduled (O.Summary, TI.all);
 
       --  Recompute TI status
 
@@ -217,25 +207,15 @@ package body PolyORB.ORB_Controller.No_Tasking is
                  and then O.Number_Of_Pending_Jobs = 0
                  and then TI.Kind = Permanent)
       then
-
-         Task_State_Transition (O.all,
-           Old_State => Unscheduled,
-           New_State => Terminated);
-
-         Set_State_Terminated (TI.all);
+         Set_State_Terminated (O.Summary, TI.all);
 
          pragma Debug (C1, O1 ("Task is now terminated"));
          pragma Debug (C2, O2 (Status (O.all)));
 
       elsif O.Number_Of_Pending_Jobs > 0 then
-
-         Task_State_Transition (O.all,
-           Old_State => Unscheduled,
-           New_State => Running);
-
          O.Number_Of_Pending_Jobs := O.Number_Of_Pending_Jobs - 1;
 
-         Set_State_Running (TI.all, PJ.Fetch_Job (O.Job_Queue));
+         Set_State_Running (O.Summary, TI.all, PJ.Fetch_Job (O.Job_Queue));
 
          pragma Debug (C1, O1 ("Task is now running a job"));
          pragma Debug (C2, O2 (Status (O.all)));
@@ -246,15 +226,12 @@ package body PolyORB.ORB_Controller.No_Tasking is
          begin
             pragma Assert (AEM_Index /= 0);
 
-            Task_State_Transition (O.all,
-              Old_State => Unscheduled,
-              New_State => Blocked);
-
             O.AEM_Infos (AEM_Index).Polling_Scheduled := False;
             O.AEM_Infos (AEM_Index).TI := TI;
 
             Set_State_Blocked
-              (TI.all,
+              (O.Summary,
+               TI.all,
                O.AEM_Infos (AEM_Index).Monitor,
                O.AEM_Infos (AEM_Index).Polling_Timeout);
 

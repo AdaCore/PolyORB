@@ -130,10 +130,6 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
                                  & Ada.Tags.External_Tag
                                  (O.AEM_Infos (AEM_Index).Monitor.all'Tag)));
 
-               Task_State_Transition (O.all,
-                 Old_State => Blocked,
-                 New_State => Unscheduled);
-
                if O.AEM_Infos (AEM_Index).Polling_Abort_Counter > 0 then
 
                   --  This task has been aborted by one or more tasks,
@@ -183,9 +179,7 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
 
             --  A task has completed the execution of a job
 
-            Task_State_Transition (O.all,
-              Old_State => Running,
-              New_State => Unscheduled);
+            null;
 
          when ORB_Shutdown =>
 
@@ -298,17 +292,11 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
 
          when Idle_Awake =>
 
-            Task_State_Transition (O.all,
-              Old_State => Idle,
-              New_State => Unscheduled);
-
             --  A task has left Idle state
 
             Remove_Idle_Task (O.Idle_Tasks, E.Awakened_Task);
 
          when Task_Registered =>
-
-            Task_Creation (O.all);
 
             --  The O.AEM_Infos'Length first registered tasks will poll
             --  the corresponding event monitors.
@@ -321,9 +309,6 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
             end loop;
 
          when Task_Unregistered =>
-
-            Task_Removal (O.all);
-
             Note_Task_Unregistered (O);
       end case;
 
@@ -336,14 +321,14 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
 
    procedure Schedule_Task
      (O  : access ORB_Controller_Half_Sync_Half_Async;
-      TI :        PTI.Task_Info_Access)
+      TI : PTI.Task_Info_Access)
    is
       AEM_Index : Natural := 0;
    begin
       pragma Debug (C1, O1 ("Schedule_Task "
                     & PTI.Image (TI.all) & ": enter"));
 
-      pragma Assert (PTI.State (TI.all) = Unscheduled);
+      Set_State_Unscheduled (O.Summary, TI.all);
 
       --  Recompute TI status
 
@@ -352,11 +337,7 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
                  and then O.Number_Of_Pending_Jobs = 0
                  and then TI.Kind = Permanent)
       then
-         Task_State_Transition (O.all,
-           Old_State => Unscheduled,
-           New_State => Terminated);
-
-         Set_State_Terminated (TI.all);
+         Set_State_Terminated (O.Summary, TI.all);
 
          pragma Debug (C1, O1 ("Task is now terminated"));
          pragma Debug (C2, O2 (Status (O.all)));
@@ -377,12 +358,9 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
             if not PJ.Is_Empty (O.Monitoring_Tasks (AEM_Index).Job_Queue) then
                --  Process event on the monitor
 
-               Task_State_Transition (O.all,
-                 Old_State => Unscheduled,
-                 New_State => Running);
-
                Set_State_Running
-                 (TI.all,
+                 (O.Summary,
+                  TI.all,
                   PJ.Fetch_Job (O.Monitoring_Tasks (AEM_Index).Job_Queue));
 
             elsif O.AEM_Infos (AEM_Index).Polling_Abort_Counter = 0
@@ -391,14 +369,11 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
             then
                --  Monitor
 
-               Task_State_Transition (O.all,
-                 Old_State => Unscheduled,
-                 New_State => Blocked);
-
                O.AEM_Infos (AEM_Index).Polling_Scheduled := False;
 
                Set_State_Blocked
-                 (TI.all,
+                 (O.Summary,
+                  TI.all,
                   O.AEM_Infos (AEM_Index).Monitor,
                   O.AEM_Infos (AEM_Index).Polling_Timeout);
 
@@ -408,18 +383,15 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
             else
                --  Go idle
 
-               Task_State_Transition (O.all,
-                 Old_State => Unscheduled,
-                 New_State => Idle);
-
                O.Monitoring_Tasks (AEM_Index).Idle := True;
 
                pragma Debug (C1, O1 ("Task is now idle"));
                pragma Debug (C2, O2 (Status (O.all)));
 
                Set_State_Idle
-                 (TI.all, O.Monitoring_Tasks (AEM_Index).CV, O.ORB_Lock);
-
+                 (O.Summary,
+                  TI.all,
+                  O.Monitoring_Tasks (AEM_Index).CV, O.ORB_Lock);
             end if;
 
          else
@@ -427,24 +399,18 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
 
             if O.Number_Of_Pending_Jobs > 0 then
 
-               Task_State_Transition (O.all,
-                 Old_State => Unscheduled,
-                 New_State => Running);
-
                O.Number_Of_Pending_Jobs := O.Number_Of_Pending_Jobs - 1;
 
-               Set_State_Running (TI.all, PJ.Fetch_Job (O.Job_Queue));
+               Set_State_Running
+                 (O.Summary, TI.all, PJ.Fetch_Job (O.Job_Queue));
 
                pragma Debug (C1, O1 ("Task is now running a job"));
                pragma Debug (C2, O2 (Status (O.all)));
 
             else
-               Task_State_Transition (O.all,
-                 Old_State => Unscheduled,
-                 New_State => Idle);
-
                Set_State_Idle
-                 (TI.all,
+                 (O.Summary,
+                  TI.all,
                   Insert_Idle_Task (O.Idle_Tasks, TI),
                   O.ORB_Lock);
 

@@ -102,10 +102,10 @@ package PolyORB.ORB_Controller is
       --  A task has left Idle state
 
       Task_Registered,
-      --  A task has entered the ORB pool
+      --  A task has joined the ORB pool and has been added to the summary
 
       Task_Unregistered
-      --  A task has left the ORB pool
+      --  A task has left the ORB pool and has been removed from the summary
       );
 
    --  Event type
@@ -144,13 +144,6 @@ package PolyORB.ORB_Controller is
       end case;
    end record;
 
-   --  Some events have no attached data, we declare constant shortcuts to
-   --  manipulate them.
-
-   Event_Sources_Deleted_E : constant Event (Event_Sources_Deleted);
-   Job_Completed_E         : constant Event (Job_Completed);
-   ORB_Shutdown_E          : constant Event (ORB_Shutdown);
-
    --------------------
    -- ORB_Controller --
    --------------------
@@ -182,22 +175,24 @@ package PolyORB.ORB_Controller is
    --  Register TI to the ORB Controller. TI may now be used by the ORB
    --  Controller to process ORB actions.
 
+   procedure Abnormal_Terminate_Task
+     (O  : access ORB_Controller; TI : PTI.Task_Info_Access);
+   --  Record that the given task is terminating abnormally. Its state is set
+   --  to Terminated.
+
    procedure Unregister_Task
-     (O  : access ORB_Controller;
-      TI :        PTI.Task_Info_Access);
-   --  Unregister TI from the ORB Controller
+     (O  : access ORB_Controller; TI : PTI.Task_Info_Access);
+   --  Unregister terminated task TI from the ORB Controller
 
    procedure Notify_Event
      (O : access ORB_Controller;
-      E :        Event)
-      is abstract;
+      E : Event) is abstract;
    --  Notify ORB Controller O of the occurence of event E.
    --  This procedure may change the status of idle or blocked tasks.
 
    procedure Schedule_Task
      (O  : access ORB_Controller;
-      TI :        PTI.Task_Info_Access)
-      is abstract;
+      TI : PTI.Task_Info_Access) is abstract;
    --  TI is the current task. Set its state to indicate the next action to be
    --  executed.
 
@@ -240,11 +235,13 @@ package PolyORB.ORB_Controller is
    pragma Inline (Get_Monitors);
    --  Return monitors handled by the ORB
 
-   function Get_Idle_Tasks_Count
-     (O : ORB_Controller_Access)
-     return Natural;
+   function Get_Idle_Tasks_Count (O : ORB_Controller) return Natural;
    pragma Inline (Get_Idle_Tasks_Count);
    --  Return the number of idle tasks
+
+   function Get_Unscheduled_Tasks_Count (O : ORB_Controller) return Natural;
+   pragma Inline (Get_Unscheduled_Tasks_Count);
+   --  Return the number of unscheduled tasks
 
    procedure Wait_For_Completion (O : access ORB_Controller);
    --  When ORB shutdown has been requested, block until all pending jobs are
@@ -292,29 +289,8 @@ private
      renames L2.Output;
    function C2 (Level : Log_Level := Debug) return Boolean renames L2.Enabled;
 
-   type Counters_Array is array (PTI.Task_State) of Natural;
-   --  Count the number of tasks in each Task_State
-
-   procedure Task_Creation (O : in out ORB_Controller);
-   --  Record the creation of a task in O's counters. The task is counted as
-   --  Unscheduled.
-
-   procedure Task_Removal (O : in out ORB_Controller);
-   --  Record the removal of a task in O's counters. The task must be in
-   --  Terminated state.
-
-   procedure Task_State_Transition
-     (O         : in out ORB_Controller;
-      Old_State : PTI.Task_State;
-      New_State : PTI.Task_State);
-   --  Record the transition of a task from Old_State to New_State by
-   --  updating the appropriate counters in O.
-
    function Status (O : ORB_Controller) return String;
    --  Output status of task running Broker, for debugging purpose
-
-   function ORB_Controller_Counters_Valid (O : ORB_Controller) return Boolean;
-   --  Return true iff the status of O respects the invariant defined below
 
    procedure Try_Allocate_One_Task
      (O : access ORB_Controller; Allow_Transient : Boolean);
@@ -379,14 +355,8 @@ private
          -- Global controller state --
          -----------------------------
 
-         Counters : Counters_Array := Counters_Array'(others => 0);
-
-         Registered_Tasks : Natural := 0;
-         --  Number of tasks registered by the ORB Controller
-         --  An invariant to be tested is: Registered_Tasks = # (Counter)
-
-         Transient_Tasks : Natural := 0;
-         --  Number of transient tasks borrowed by the ORB Controller
+         Summary : PTI.Task_Summary;
+         --  Task counters
 
          Number_Of_Pending_Jobs : Natural := 0;
          --  Number of pending jobs
@@ -406,14 +376,5 @@ private
    procedure Note_Task_Unregistered (O : access ORB_Controller'Class);
    --  Called by concrete ORB controllers after processing a task
    --  unregistration notification.
-
-   Event_Sources_Deleted_E : constant Event
-     := Event'(Kind => Event_Sources_Deleted);
-
-   Job_Completed_E : constant Event := Event'(Kind => Job_Completed);
-
-   ORB_Shutdown_E : constant Event := Event'(Kind => ORB_Shutdown);
-
-   Task_Unregistered_E : constant Event := Event'(Kind => Task_Unregistered);
 
 end PolyORB.ORB_Controller;

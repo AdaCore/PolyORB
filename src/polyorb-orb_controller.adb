@@ -40,6 +40,17 @@ package body PolyORB.ORB_Controller is
 
    My_Factory : ORB_Controller_Factory_Access;
 
+   -----------------------------
+   -- Abnormal_Terminate_Task --
+   -----------------------------
+
+   procedure Abnormal_Terminate_Task
+     (O  : access ORB_Controller; TI : PTI.Task_Info_Access)
+   is
+   begin
+      Set_State_Terminated (O.Summary, TI.all);
+   end Abnormal_Terminate_Task;
+
    ------------
    -- Create --
    ------------
@@ -66,9 +77,9 @@ package body PolyORB.ORB_Controller is
    -- Get_Idle_Tasks_Count --
    --------------------------
 
-   function Get_Idle_Tasks_Count (O : ORB_Controller_Access) return Natural is
+   function Get_Idle_Tasks_Count (O : ORB_Controller) return Natural is
    begin
-      return O.Counters (Idle);
+      return Get_Count (O.Summary, State => Idle);
    end Get_Idle_Tasks_Count;
 
    ------------------
@@ -103,6 +114,16 @@ package body PolyORB.ORB_Controller is
 
       return PJ.Fetch_Job (O.Job_Queue);
    end Get_Pending_Job;
+
+   ---------------------------------
+   -- Get_Unscheduled_Tasks_Count --
+   ---------------------------------
+
+   function Get_Unscheduled_Tasks_Count (O : ORB_Controller) return Natural
+   is
+   begin
+      return Get_Count (O.Summary, State => Unscheduled);
+   end Get_Unscheduled_Tasks_Count;
 
    ---------------------
    -- Has_Pending_Job --
@@ -187,9 +208,10 @@ package body PolyORB.ORB_Controller is
    begin
       pragma Debug (C2, O2 ("Is_Locally_Terminated: " & Status (O.all)));
 
-      if O.Transient_Tasks > 0
-        or else O.Counters (Running) > Expected_Running_Tasks
-        or else O.Counters (Unscheduled) > 0
+      if Get_Count (O.Summary, Kind => Transient) > 0
+        or else Get_Count (O.Summary, State => Running)
+                  > Expected_Running_Tasks
+        or else Get_Count (O.Summary, State => Unscheduled) > 0
         or else Has_Pending_Job (O)
       then
          return False;
@@ -197,8 +219,8 @@ package body PolyORB.ORB_Controller is
 
       return (Awake_Count
                - Independent_Count
-               - O.Counters (Idle)
-               - O.Counters (Blocked)
+               - Get_Count (O.Summary, State => Idle)
+               - Get_Count (O.Summary, State => Blocked)
                = Expected_Running_Tasks);
    end Is_Locally_Terminated;
 
@@ -265,28 +287,13 @@ package body PolyORB.ORB_Controller is
    procedure Note_Task_Unregistered (O : access ORB_Controller'Class) is
       use PTCV;
    begin
-      if O.Registered_Tasks = 0
+      if Get_Count (O.Summary) = 0
         and then O.Shutdown
         and then O.Shutdown_CV /= null
       then
          Broadcast (O.Shutdown_CV);
       end if;
    end Note_Task_Unregistered;
-
-   -----------------------------------
-   -- ORB_Controller_Counters_Valid --
-   -----------------------------------
-
-   function ORB_Controller_Counters_Valid (O : ORB_Controller) return Boolean
-   is
-   begin
-      return O.Registered_Tasks =
-            O.Counters (Unscheduled)
-          + O.Counters (Running)
-          + O.Counters (Blocked)
-          + O.Counters (Idle)
-          + O.Counters (Terminated);
-   end ORB_Controller_Counters_Valid;
 
    -------------------------------------
    -- Register_ORB_Controller_Factory --
@@ -312,12 +319,9 @@ package body PolyORB.ORB_Controller is
       pragma Debug (C1, O1 ("Register_Task: enter"));
       pragma Assert (State (TI.all) = Unscheduled);
 
+      Task_Created (O.Summary, TI.all);
       Notify_Event (ORB_Controller'Class (O.all)'Access,
         Event'(Kind => Task_Registered, Registered_Task => TI));
-
-      if TI.Kind = Transient then
-         O.Transient_Tasks := O.Transient_Tasks + 1;
-      end if;
 
       pragma Debug (C2, O2 (Status (O.all)));
       pragma Debug (C1, O1 ("Register_Task: leave"));
@@ -330,55 +334,16 @@ package body PolyORB.ORB_Controller is
    function Status (O : ORB_Controller) return String is
       use PolyORB.Tasking.Threads;
    begin
-      return "Tot:" & Natural'Image (O.Registered_Tasks)
-        & " U:" & Natural'Image (O.Counters (Unscheduled))
-        & " R:" & Natural'Image (O.Counters (Running))
-        & " B:" & Natural'Image (O.Counters (Blocked))
-        & " I:" & Natural'Image (O.Counters (Idle))
+      return "Tot:" & Natural'Image (Get_Count (O.Summary))
+        & " U:" & Natural'Image (Get_Count (O.Summary, State => Unscheduled))
+        & " R:" & Natural'Image (Get_Count (O.Summary, State => Running))
+        & " B:" & Natural'Image (Get_Count (O.Summary, State => Blocked))
+        & " I:" & Natural'Image (Get_Count (O.Summary, State => Idle))
         & "| PJ:" & Natural'Image (O.Number_Of_Pending_Jobs)
-        & "| Tra:" & Natural'Image (O.Transient_Tasks)
+        & "| Tra:" & Natural'Image (Get_Count (O.Summary, Kind => Transient))
         & " Awk:" & Natural'Image (Awake_Count)
         & " Ind:" & Natural'Image (Independent_Count);
    end Status;
-
-   -------------------
-   -- Task_Creation --
-   -------------------
-
-   procedure Task_Creation (O : in out ORB_Controller) is
-   begin
-      O.Registered_Tasks       := O.Registered_Tasks       + 1;
-      O.Counters (Unscheduled) := O.Counters (Unscheduled) + 1;
-      pragma Assert (ORB_Controller_Counters_Valid (O));
-   end Task_Creation;
-
-   ------------------
-   -- Task_Removal --
-   ------------------
-
-   procedure Task_Removal (O : in out ORB_Controller) is
-   begin
-      pragma Assert (O.Counters (Terminated) > 0);
-      O.Counters (Terminated) := O.Counters (Terminated) - 1;
-      O.Registered_Tasks      := O.Registered_Tasks      - 1;
-      pragma Assert (ORB_Controller_Counters_Valid (O));
-   end Task_Removal;
-
-   ---------------------------
-   -- Task_State_Transition --
-   ---------------------------
-
-   procedure Task_State_Transition
-     (O         : in out ORB_Controller;
-      Old_State : PTI.Task_State;
-      New_State : PTI.Task_State)
-   is
-   begin
-      pragma Assert (O.Counters (Old_State) > 0);
-      O.Counters (Old_State) := O.Counters (Old_State) - 1;
-      O.Counters (New_State) := O.Counters (New_State) + 1;
-      pragma Assert (ORB_Controller_Counters_Valid (O));
-   end Task_State_Transition;
 
    ---------------------
    -- Unregister_Task --
@@ -391,13 +356,10 @@ package body PolyORB.ORB_Controller is
    begin
       pragma Debug (C1, O1 ("Unregister_Task: enter"));
       pragma Assert (State (TI.all) = Terminated);
-
-      Notify_Event (ORB_Controller'Class (O.all)'Access, Task_Unregistered_E);
-
-      if TI.Kind = Transient then
-         O.Transient_Tasks := O.Transient_Tasks - 1;
-      end if;
-
+      Task_Removed (O.Summary, TI.all);
+      Notify_Event
+        (ORB_Controller'Class (O.all)'Access,
+         Event'(Kind => Task_Unregistered));
       pragma Debug (C2, O2 (Status (O.all)));
       pragma Debug (C1, O1 ("Unregister_Task: leave"));
    end Unregister_Task;
@@ -412,7 +374,7 @@ package body PolyORB.ORB_Controller is
    begin
       pragma Debug (C1, O1 ("Try_Allocate_One_Task: enter"));
 
-      if O.Counters (Unscheduled) > 0 then
+      if Get_Count (O.Summary, State => Unscheduled) > 0 then
 
          --  Some tasks are not scheduled. We assume one of them will
          --  be allocated to handle current event.
@@ -420,7 +382,7 @@ package body PolyORB.ORB_Controller is
          pragma Debug (C1, O1 ("Unassigned task will handle event"));
          null;
 
-      elsif O.Counters (Idle) > 0 then
+      elsif Get_Count (O.Summary, State => Idle) > 0 then
 
          Try_Awake_One_Idle_Task (O.Idle_Tasks, Allow_Transient);
          --  Note that there might not be any idle tasks at this point, because
@@ -450,7 +412,7 @@ package body PolyORB.ORB_Controller is
          Create (O.Shutdown_CV);
       end if;
 
-      while O.Registered_Tasks > 0 loop
+      while Get_Count (O.Summary) > 0 loop
          Wait (O.Shutdown_CV, O.ORB_Lock);
       end loop;
    end Wait_For_Completion;

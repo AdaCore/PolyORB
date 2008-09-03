@@ -150,10 +150,6 @@ package body PolyORB.ORB_Controller.Leader_Followers is
                                  & Ada.Tags.External_Tag
                                  (O.AEM_Infos (AEM_Index).Monitor.all'Tag)));
 
-               Task_State_Transition (O.all,
-                 Old_State => Blocked,
-                 New_State => Unscheduled);
-
                --  Reset TI
 
                O.AEM_Infos (AEM_Index).TI := null;
@@ -204,12 +200,8 @@ package body PolyORB.ORB_Controller.Leader_Followers is
             null;
 
          when Job_Completed =>
-
             --  A task has completed the execution of a job
-
-            Task_State_Transition (O.all,
-              Old_State => Running,
-              New_State => Unscheduled);
+            null;
 
          when ORB_Shutdown =>
 
@@ -353,20 +345,13 @@ package body PolyORB.ORB_Controller.Leader_Followers is
             end case;
 
          when Idle_Awake =>
-
-            Task_State_Transition (O.all,
-              Old_State => Idle,
-              New_State => Unscheduled);
-
             --  A task has left Idle state
-
             Remove_Idle_Task (O.Idle_Tasks, E.Awakened_Task);
 
          when Task_Registered =>
-            Task_Creation (O.all);
+            null;
 
          when Task_Unregistered =>
-            Task_Removal (O.all);
             Note_Task_Unregistered (O);
 
       end case;
@@ -388,7 +373,7 @@ package body PolyORB.ORB_Controller.Leader_Followers is
       pragma Debug (C1, O1 ("Schedule_Task "
         & PTI.Image (TI.all) & ": enter"));
 
-      pragma Assert (PTI.State (TI.all) = Unscheduled);
+      Set_State_Unscheduled (O.Summary, TI.all);
 
       Get_Note (Get_Current_Thread_Notepad.all, Note);
 
@@ -399,12 +384,7 @@ package body PolyORB.ORB_Controller.Leader_Followers is
                  and then O.Number_Of_Pending_Jobs = 0
                  and then TI.Kind = Permanent)
       then
-
-         Task_State_Transition (O.all,
-           Old_State => Unscheduled,
-           New_State => Terminated);
-
-         Set_State_Terminated (TI.all);
+         Set_State_Terminated (O.Summary, TI.all);
 
          pragma Debug (C1, O1 ("Task is now terminated"));
          pragma Debug (C2, O2 (Status (O.all)));
@@ -412,10 +392,6 @@ package body PolyORB.ORB_Controller.Leader_Followers is
       elsif Note.Job /= null then
 
          --  Process locally queued job
-
-         Task_State_Transition (O.all,
-           Old_State => Unscheduled,
-           New_State => Running);
 
          declare
             Job : constant Job_Access := Note.Job;
@@ -425,33 +401,26 @@ package body PolyORB.ORB_Controller.Leader_Followers is
                LF_Task_Note'(Annotations.Note
                              with TI => Note.TI, Job => null));
 
-            Set_State_Running (TI.all, Job);
+            Set_State_Running (O.Summary, TI.all, Job);
          end;
 
       elsif not PJ.Is_Empty (O.Job_Queue) then
 
          --  Process job
 
-         Task_State_Transition (O.all,
-           Old_State => Unscheduled,
-           New_State => Running);
-
-         Set_State_Running (TI.all, PJ.Fetch_Job (O.Job_Queue));
+         Set_State_Running (O.Summary, TI.all, PJ.Fetch_Job (O.Job_Queue));
 
       elsif May_Poll (TI.all) then
          declare
             AEM_Index : constant Natural := Need_Polling_Task (O);
          begin
             if AEM_Index > 0 then
-               Task_State_Transition (O.all,
-                 Old_State => Unscheduled,
-                 New_State => Blocked);
-
                O.AEM_Infos (AEM_Index).Polling_Scheduled := False;
                O.AEM_Infos (AEM_Index).TI := TI;
 
                Set_State_Blocked
-                 (TI.all,
+                 (O.Summary,
+                  TI.all,
                   O.AEM_Infos (AEM_Index).Monitor,
                   O.AEM_Infos (AEM_Index).Polling_Timeout);
 
@@ -466,18 +435,14 @@ package body PolyORB.ORB_Controller.Leader_Followers is
       end if;
 
       if PTI.State (TI.all) = Unscheduled then
-         Task_State_Transition (O.all,
-           Old_State => Unscheduled,
-           New_State => Idle);
-
          Set_State_Idle
-           (TI.all,
+           (O.Summary,
+            TI.all,
             Insert_Idle_Task (O.Idle_Tasks, TI),
             O.ORB_Lock);
 
          pragma Debug (C1, O1 ("Task is now idle"));
          pragma Debug (C2, O2 (Status (O.all)));
-
       end if;
    end Schedule_Task;
 
