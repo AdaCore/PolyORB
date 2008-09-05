@@ -517,26 +517,28 @@ package body PolyORB.Representations.CDR is
 
             Nb := Any.TypeCode.Member_Count (Data);
             pragma Debug (C, O ("Marshall (TypeCode): " &
-                             "marshalling the members. Nb = "
-                             & PolyORB.Types.Unsigned_Long'Image (Nb)));
+                             "marshalling" & Nb'Img & " members"));
             Marshall (Complex_Buffer, Nb);
             if Nb /= 0 then
                for J in 0 .. Nb - 1 loop
-                  pragma Debug (C, O ("Marshall (TypeCode): about "
-                                   & "to marshall a new  member"));
+                  pragma Debug (C, O ("Marshall (TypeCode): marshalling"
+                                   & " member #" & J'Img & ": "
+                                   & To_Standard_String
+                                       (TypeCode.Member_Name (Data, J))));
                   Marshall (Complex_Buffer,
                             TypeCode.Member_Name (Data, J));
+
                   pragma Debug
                     (C, O ("Marshall (TypeCode): marshalling "
-                        & "the type ("
+                        & "member type: "
                         & TCKind'Image
                         (TypeCode.Kind
-                         (TypeCode.Member_Type (Data, J)))
-                        & ")"));
+                         (TypeCode.Member_Type (Data, J)))));
                   Marshall (Complex_Buffer,
                             R,
                             TypeCode.Member_Type (Data, J),
                             Error);
+
                   exit when Found (Error);
 
                   pragma Debug (C, O ("Marshall (TypeCode): "
@@ -1521,7 +1523,7 @@ package body PolyORB.Representations.CDR is
                Start_TC
                  (R, Object_Of (Data), Offset, Complex => True);
 
-               Nb   := Unmarshall (Complex_Buffer'Access);
+               Nb := Unmarshall (Complex_Buffer'Access);
                if Nb /= 0 then
                   for J in 0 .. Nb - 1 loop
                      Member_Name :=
@@ -1651,12 +1653,12 @@ package body PolyORB.Representations.CDR is
             end;
 
          when TC_String_Id =>
-            Data := TypeCode.TC_String;
             declare
-               Length : PolyORB.Types.Unsigned_Long;
+               Length : constant PolyORB.Types.Unsigned_Long :=
+                          Unmarshall (Buffer);
             begin
-               Length := Unmarshall (Buffer);
-               Any.TypeCode.Add_Parameter (Data, To_Any (Length));
+               Data := Build_Complex_TC
+                         (Tk_String, (1 .. 1 => To_Any (Length)));
             end;
 
          when TC_Sequence_Id =>
@@ -1797,12 +1799,12 @@ package body PolyORB.Representations.CDR is
             Data := TypeCode.TC_Wchar;
 
          when TC_Wide_String_Id =>
-            Data := TypeCode.TC_Wide_String;
             declare
-               Length : PolyORB.Types.Unsigned_Long;
+               Length : constant PolyORB.Types.Unsigned_Long :=
+                          Unmarshall (Buffer);
             begin
-               Length := Unmarshall (Buffer);
-               TypeCode.Add_Parameter (Data, To_Any (Length));
+               Data := Build_Complex_TC
+                         (Tk_Wstring, (1 .. 1 => To_Any (Length)));
             end;
 
          when TC_Fixed_Id =>

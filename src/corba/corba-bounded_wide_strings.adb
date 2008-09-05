@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -40,39 +40,53 @@ package body CORBA.Bounded_Wide_Strings is
 
    use CBWS;
 
+   function To_Bounded_Wide_String is new Ada.Unchecked_Conversion
+     (Ada.Strings.Wide_Superbounded.Super_String, Bounded_Wide_String);
+
+   function To_Super_String is new Ada.Unchecked_Conversion
+     (Bounded_Wide_String, Ada.Strings.Wide_Superbounded.Super_String);
+
    ----------------------------
    -- TC_Bounded_Wide_String --
    ----------------------------
 
-   TC_Cache : TypeCode.Object;
+   TC_Cache : PolyORB.Any.TypeCode.Local_Ref;
 
-   function TC_Bounded_Wide_String return CORBA.TypeCode.Object is
+   function TC_Bounded_Wide_String return PolyORB.Any.TypeCode.Local_Ref;
+   --  Internal representation as a PolyORB TypeCode
+
+   function TC_Bounded_Wide_String return PolyORB.Any.TypeCode.Local_Ref is
+      use PolyORB.Any.TypeCode;
    begin
-      if TypeCode.Internals.Is_Nil (TC_Cache) then
-         TC_Cache := TypeCode.Internals.To_CORBA_Object
-                     (PolyORB.Any.TypeCode.Build_Wstring_TC
-                      (PolyORB.Types.Unsigned_Long (Max_Length)));
+      if Is_Nil (TC_Cache) then
+         TC_Cache := Build_Wstring_TC
+                       (PolyORB.Types.Unsigned_Long (Max_Length));
+         Disable_Reference_Counting (Object_Of (TC_Cache).all);
       end if;
       return TC_Cache;
    end TC_Bounded_Wide_String;
 
-   --  Since the bounded wide string type does not exist in the neutral core
-   --  of PolyORB, we handle this type internally as an unbounded wide string
-   --  So, the TypeCode is changed to unbounded wide string at the beginning
-   --  of the From_Any function and to bounded wide string at the end of the
-   --  To_Any function in order to assure interoperability with other ORBs.
+   ----------------------------
+   -- TC_Bounded_Wide_String --
+   ----------------------------
+
+   function TC_Bounded_Wide_String return CORBA.TypeCode.Object is
+   begin
+      return CORBA.TypeCode.Internals.To_CORBA_Object (TC_Bounded_Wide_String);
+   end TC_Bounded_Wide_String;
 
    --------------
    -- From_Any --
    --------------
 
    function From_Any (From : CORBA.Any) return Bounded_Wide_String is
-      From_Cache : Any := From;
-      CORBA_WStr : CORBA.Wide_String;
+      Super : constant Ada.Strings.Wide_Superbounded.Super_String :=
+                From_Any (From);
    begin
-      Internals.Set_Type (From_Cache, TC_Wide_String);
-      CORBA_WStr := From_Any (From_Cache);
-      return To_Bounded_Wide_String (To_Standard_Wide_String (CORBA_WStr));
+      if Super.Max_Length /= Max_Length then
+         raise Constraint_Error;
+      end if;
+      return To_Bounded_Wide_String (Super);
    end From_Any;
 
    ------------
@@ -80,13 +94,8 @@ package body CORBA.Bounded_Wide_Strings is
    ------------
 
    function To_Any (To : Bounded_Wide_String) return CORBA.Any is
-      CORBA_WStr : constant CORBA.Wide_String := To_CORBA_Wide_String
-        (To_Wide_String (To));
-      Result     : Any;
    begin
-      Result := To_Any (CORBA_WStr);
-      Internals.Set_Type (Result, TC_Bounded_Wide_String);
-      return Result;
+      return To_Any (To_Super_String (To), TC_Bounded_Wide_String'Access);
    end To_Any;
 
    ------------
@@ -1031,8 +1040,6 @@ package body CORBA.Bounded_Wide_Strings is
    function Wrap
      (X : access Bounded_Wide_String) return PolyORB.Any.Content'Class
    is
-      function To_Super_String is new Ada.Unchecked_Conversion
-        (Bounded_Wide_String, Ada.Strings.Wide_Superbounded.Super_String);
    begin
       return PolyORB.Any.Wrap (To_Super_String (X.all)'Unrestricted_Access);
    end Wrap;

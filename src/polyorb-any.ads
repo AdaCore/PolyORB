@@ -33,6 +33,8 @@
 
 --  Definition of the universal container/wrapper type 'Any'
 
+pragma Ada_2005;
+
 with Ada.Strings.Superbounded;
 with Ada.Strings.Wide_Superbounded;
 
@@ -744,6 +746,15 @@ package PolyORB.Any is
    function To_Any (X : Types.String)             return Any;
    function To_Any (X : Types.Wide_String)        return Any;
 
+   --  For bounded strings, need to provide the specific TC
+
+   function To_Any
+     (X  : Ada.Strings.Superbounded.Super_String;
+      TC : access function return TypeCode.Local_Ref) return Any;
+   function To_Any
+     (X  : Ada.Strings.Wide_Superbounded.Super_String;
+      TC : access function return TypeCode.Local_Ref) return Any;
+
    function Wrap (X : access Types.Short)              return Content'Class;
    function Wrap (X : access Types.Long)               return Content'Class;
    function Wrap (X : access Types.Long_Long)          return Content'Class;
@@ -805,6 +816,10 @@ package PolyORB.Any is
    function From_Any (A : Any) return TypeCode.Local_Ref;
    function From_Any (A : Any) return Types.String;
    function From_Any (A : Any) return Types.Wide_String;
+   function From_Any
+     (A : Any) return Ada.Strings.Superbounded.Super_String;
+   function From_Any
+     (A : Any) return Ada.Strings.Wide_Superbounded.Super_String;
 
    function From_Any (A : Any) return String;
    function From_Any (A : Any) return Wide_String;

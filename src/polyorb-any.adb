@@ -1323,6 +1323,12 @@ package body PolyORB.Any is
                       renames Elementary_Any_Any.From_Any;
    function From_Any (A : Any) return TypeCode.Local_Ref
                       renames Elementary_Any_TypeCode.From_Any;
+   function From_Any
+     (A : Any) return Ada.Strings.Superbounded.Super_String
+     renames Elementary_Any_Bounded_String.From_Any;
+   function From_Any
+     (A : Any) return Ada.Strings.Wide_Superbounded.Super_String
+     renames Elementary_Any_Bounded_Wide_String.From_Any;
 
    ------------------------
    -- From_Any (strings) --
@@ -2301,6 +2307,30 @@ package body PolyORB.Any is
                     renames To_Any_Instances.To_Any;
    function To_Any (X : TypeCode.Local_Ref) return Any
                     renames To_Any_Instances.To_Any;
+
+   function To_Any
+     (X  : Ada.Strings.Superbounded.Super_String;
+      TC : access function return TypeCode.Local_Ref) return Any
+   is
+      function To_Any is
+        new To_Any_G
+          (Ada.Strings.Superbounded.Super_String, TC.all,
+           Elementary_Any_Bounded_String.Set_Any_Value);
+   begin
+      return To_Any (X);
+   end To_Any;
+
+   function To_Any
+     (X  : Ada.Strings.Wide_Superbounded.Super_String;
+      TC : access function return TypeCode.Local_Ref) return Any
+   is
+      function To_Any is
+        new To_Any_G
+          (Ada.Strings.Wide_Superbounded.Super_String, TC.all,
+           Elementary_Any_Bounded_Wide_String.Set_Any_Value);
+   begin
+      return To_Any (X);
+   end To_Any;
 
    function To_Any (X : Standard.String) return Any is
    begin
