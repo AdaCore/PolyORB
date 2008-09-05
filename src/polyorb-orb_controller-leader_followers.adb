@@ -285,8 +285,6 @@ package body PolyORB.ORB_Controller.Leader_Followers is
                                          with TI => Note.TI,
                                          Job => E.Request_Job));
                      else
-                        O.Number_Of_Pending_Jobs
-                          := O.Number_Of_Pending_Jobs + 1;
                         PJ.Queue_Job (O.Job_Queue, E.Request_Job);
                         Try_Allocate_One_Task (O, Allow_Transient => True);
                      end if;
@@ -373,6 +371,11 @@ package body PolyORB.ORB_Controller.Leader_Followers is
       pragma Debug (C1, O1 ("Schedule_Task "
         & PTI.Image (TI.all) & ": enter"));
 
+      if State (TI.all) = Terminated then
+         pragma Debug (C1, O1 ("Schedule_Task: task is terminated"));
+         return;
+      end if;
+
       Set_State_Unscheduled (O.Summary, TI.all);
 
       Get_Note (Get_Current_Thread_Notepad.all, Note);
@@ -381,7 +384,7 @@ package body PolyORB.ORB_Controller.Leader_Followers is
 
       if Exit_Condition (TI.all)
         or else (O.Shutdown
-                 and then O.Number_Of_Pending_Jobs = 0
+                 and then not Has_Pending_Job (O)
                  and then TI.Kind = Permanent)
       then
          Set_State_Terminated (O.Summary, TI.all);

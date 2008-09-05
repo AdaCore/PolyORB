@@ -70,26 +70,8 @@ package body PolyORB.Task_Info is
        Kind    : Any_Task_Kind  := Any;
        State   : Any_Task_State := Any) return Natural
    is
-      Count : Natural := 0;
    begin
-      if Kind = Any then
-         if State = Any then
-            Count := Summary.Total;
-         else
-            for K in Task_Kind'Range loop
-               Count := Count + Summary.Counters (K, State);
-            end loop;
-         end if;
-
-      elsif State = Any then
-         for S in Task_State'Range loop
-            Count := Count + Summary.Counters (Kind, S);
-         end loop;
-
-      else
-         Count := Summary.Counters (Kind, State);
-      end if;
-      return Count;
+      return Summary.Counters (Kind, State);
    end Get_Count;
 
    -----------
@@ -363,7 +345,9 @@ package body PolyORB.Task_Info is
    begin
       pragma Assert (TI.State = Unscheduled);
       Increment (Summary.Counters (TI.Kind, TI.State));
-      Increment (Summary.Total);
+      Increment (Summary.Counters (TI.Kind, Any));
+      Increment (Summary.Counters (Any,     TI.State));
+      Increment (Summary.Counters (Any,     Any));
    end Task_Created;
 
    ------------------
@@ -374,7 +358,9 @@ package body PolyORB.Task_Info is
    begin
       pragma Assert (TI.State = Terminated);
       Decrement (Summary.Counters (TI.Kind, TI.State));
-      Decrement (Summary.Total);
+      Decrement (Summary.Counters (TI.Kind, Any));
+      Decrement (Summary.Counters (Any,     TI.State));
+      Decrement (Summary.Counters (Any,     Any));
    end Task_Removed;
 
    -----------------------
@@ -388,8 +374,10 @@ package body PolyORB.Task_Info is
    is
    begin
       Decrement (Summary.Counters (TI.Kind, TI.State));
+      Decrement (Summary.Counters (Any,     TI.State));
       TI.State := New_State;
       Increment (Summary.Counters (TI.Kind, TI.State));
+      Increment (Summary.Counters (Any,     TI.State));
       pragma Assert (Task_Summary_Valid (Summary));
    end Task_State_Change;
 
@@ -399,14 +387,39 @@ package body PolyORB.Task_Info is
 
    function Task_Summary_Valid (Summary : Task_Summary) return Boolean
    is
-      Count : Natural := 0;
+      Count       : Natural;
+      Total_Count : Natural;
    begin
+      --  Check per-kind summary
+
       for K in Task_Kind'Range loop
+         Count := 0;
          for S in Task_State'Range loop
-            Count := Count + Summary.Counters (K, S);
+            Count := Count  + Summary.Counters (K, S);
          end loop;
+         if Summary.Counters (K, Any) /= Count then
+            return False;
+         end if;
       end loop;
-      return Summary.Total = Count;
+
+      --  Check per-state summary and compute total count
+
+      Total_Count := 0;
+
+      for S in Task_State'Range loop
+         Count := 0;
+         for K in Task_Kind'Range loop
+            Count := Count  + Summary.Counters (K, S);
+            Total_Count := Total_Count  + Summary.Counters (K, S);
+         end loop;
+         if Summary.Counters (Any, S) /= Count then
+            return False;
+         end if;
+      end loop;
+
+      --  Check total count
+
+      return Summary.Counters (Any, Any) = Total_Count;
    end Task_Summary_Valid;
 
 end PolyORB.Task_Info;

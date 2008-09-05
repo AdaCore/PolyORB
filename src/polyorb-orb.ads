@@ -70,16 +70,14 @@ package PolyORB.ORB is
    -- Abstract tasking policy type --
    ----------------------------------
 
-   --  A tasking policy defines a set of associations between the
-   --  reception of certain messages or the detection of events on the
-   --  ORB_Type component defined above and the resources used to
-   --  process them. Each association is embodied in a specific
-   --  subprogram. This subprogram may do all kinds of actions to
-   --  handle the message: job, task creation or schedule it for
+   --  A tasking policy defines a set of associations between the reception of
+   --  certain messages or the detection of events on the ORB_Type component
+   --  defined above and the resources used to process them. Each association
+   --  is embodied in a specific subprogram. This subprogram may do all kinds
+   --  of actions to handle the message: job, task creation or schedule it for
    --  execution by a general-purpose ORB task.
 
    type Tasking_Policy_Type is abstract tagged limited private;
-
    type Tasking_Policy_Access is access all Tasking_Policy_Type'Class;
 
    ---------------------
@@ -113,36 +111,29 @@ package PolyORB.ORB is
       TE  : PT.Transport_Endpoint_Access;
    end record;
 
-   --  Abstract primitives of Tasking_Policy_Type (need to
-   --  be visible, RM 3.9.3(10)).
-
    procedure Handle_New_Server_Connection
      (P   : access Tasking_Policy_Type;
       ORB :        ORB_Access;
-      AC  :        Active_Connection)
-      is abstract;
+      AC  :        Active_Connection) is abstract;
    --  Create the necessary processing resources for newly-created
    --  communication endpoint AS on server side.
 
    procedure Handle_Close_Connection
      (P   : access Tasking_Policy_Type;
-      TE  :        PT.Transport_Endpoint_Access)
-      is abstract;
+      TE  : PT.Transport_Endpoint_Access) is abstract;
    --  Do necessary processing when a connection is closed
 
    procedure Handle_New_Client_Connection
      (P   : access Tasking_Policy_Type;
-      ORB :        ORB_Access;
-      AC  :        Active_Connection)
-      is abstract;
+      ORB : ORB_Access;
+      AC  : Active_Connection) is abstract;
    --  Create the necessary processing resources for newly-created
    --  communication endpoint AS on client side.
 
    procedure Handle_Request_Execution
      (P   : access Tasking_Policy_Type;
-      ORB :        ORB_Access;
-      RJ  : access Request_Job'Class)
-      is abstract;
+      ORB : ORB_Access;
+      RJ  : access Request_Job'Class) is abstract;
    --  Create the necessary processing resources for the execution
    --  of request execution job RJ, and start this execution.
    --  RJ is freed after it is called.
@@ -150,14 +141,12 @@ package PolyORB.ORB is
    procedure Idle
      (P         : access Tasking_Policy_Type;
       This_Task : in out PolyORB.Task_Info.Task_Info;
-      ORB       :        ORB_Access)
-      is abstract;
-   --  Called by a task that has nothing to do in order to
-   --  wait until there may be anything to do.
-   --  The calling task must hold ORB_Lock before calling Idle;
-   --  the tasking policy shall release it while the task is
-   --  idling, and re-assert it before Idle returns.
-   --  This_Task holds information on this waiting task.
+      ORB       : ORB_Access) is abstract;
+   --  Called by a task that has nothing to do
+   --  The calling task must be in the ORB critical section at the call point;
+   --  the tasking policy shall release it while the task is idling, and
+   --  re-assert it before Idle returns. This_Task holds information on the
+   --  idling task.
 
    function Borrow_Transient_Tasks (P : Tasking_Policy_Type) return Boolean
       is abstract;
@@ -169,8 +158,7 @@ package PolyORB.ORB is
    -- Server object operations --
    ------------------------------
 
-   type Task_Info_Access_Access is
-     access all PolyORB.Task_Info.Task_Info_Access;
+   type Task_Info_Access_Access is access all Task_Info.Task_Info_Access;
 
    type Exit_Condition_T is record
       Condition : PolyORB.Types.Boolean_Ptr;
@@ -178,7 +166,7 @@ package PolyORB.ORB is
    end record;
 
    procedure Create (ORB : in out ORB_Type);
-   --  Initialize a newly-allocated ORB object.
+   --  Initialize a newly-allocated ORB object
 
    procedure Queue_Request_To_Handler
      (ORB : access ORB_Type;
@@ -201,15 +189,13 @@ package PolyORB.ORB is
       Exit_Condition : Exit_Condition_T := (null, null);
       May_Poll       : Boolean);
    --  Execute the ORB until:
-   --    - Exit_Condition.Condition.all becomes true
+   --    - Exit_Condition.Condition.all becomes True
    --      (if Exit_Condition.Condition /= null), or
    --    - Shutdown is called on this ORB.
 
-   --  This procedure is executed by ORB tasks (with
-   --  Exit_Condition.Condition = null) and is entered by user
-   --  tasks that need to wait for a certain condition to occur
-   --  (such tasks must execute the ORB when the threading policy
-   --  is 'no threads').
+   --  This procedure is executed by permanent ORB tasks (those with
+   --  Exit_Condition.Condition = null), and is also entered by user tasks that
+   --  need to wait for a certain condition to occur.
 
    --  If Exit_Condition.Task_Info is not null, it is set on
    --  entry into Run to an access value that designates
@@ -228,7 +214,7 @@ package PolyORB.ORB is
 
    procedure Shutdown
      (ORB                 : access ORB_Type;
-      Wait_For_Completion :        Boolean := True);
+      Wait_For_Completion : Boolean := True);
    --  Shutdown ORB. If Wait_For_Completion is True, do
    --  not return before the shutdown is completed.
 

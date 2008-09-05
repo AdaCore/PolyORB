@@ -201,7 +201,6 @@ package body PolyORB.ORB_Controller.Workers is
 
             pragma Debug (C1, O1 ("Queue Event_Job to default queue"));
 
-            O.Number_Of_Pending_Jobs := O.Number_Of_Pending_Jobs + 1;
             PJ.Queue_Job (O.Job_Queue, E.Event_Job);
             Try_Allocate_One_Task (O, Allow_Transient => True);
 
@@ -223,7 +222,6 @@ package body PolyORB.ORB_Controller.Workers is
 
                   pragma Debug (C1, O1 ("Queue Request_Job to default queue"));
 
-                  O.Number_Of_Pending_Jobs := O.Number_Of_Pending_Jobs + 1;
                   PJ.Queue_Job (O.Job_Queue, E.Request_Job);
                   Try_Allocate_One_Task
                     (O, Allow_Transient => O.Borrow_Transient_Tasks);
@@ -295,14 +293,10 @@ package body PolyORB.ORB_Controller.Workers is
             null;
 
          when Task_Unregistered =>
-            --  This test is junk, Get_Unscheduled_Tasks_Count (O.all) = 0
-            --  always holds when not in Schedule_Task, so in effect this
-            --  always tries to allocate one task, which may be overkill???
-
-            if Need_Polling_Task (O) > 0
-              and then Get_Unscheduled_Tasks_Count (O.all) = 0
-            then
+            if Need_Polling_Task (O) > 0 then
                Try_Allocate_One_Task (O, Allow_Transient => True);
+               --  ??? Is this necessary? Won't this awake a task only to get
+               --  it back to idle immediately?
             end if;
 
             Note_Task_Unregistered (O);
@@ -322,13 +316,18 @@ package body PolyORB.ORB_Controller.Workers is
    begin
       pragma Debug (C1, O1 ("Schedule_Task: enter " & Image (TI.all)));
 
+      if State (TI.all) = Terminated then
+         pragma Debug (C1, O1 ("Schedule_Task: task is terminated"));
+         return;
+      end if;
+
       Set_State_Unscheduled (O.Summary, TI.all);
 
       --  Recompute TI status
 
       if Exit_Condition (TI.all)
         or else (O.Shutdown
-                 and then O.Number_Of_Pending_Jobs = 0
+                 and then not Has_Pending_Job (O)
                  and then TI.Kind = Permanent)
       then
          Set_State_Terminated (O.Summary, TI.all);
@@ -342,11 +341,9 @@ package body PolyORB.ORB_Controller.Workers is
       --  be allowed to be processed by transient task (which is essential
       --  when only one task remains and is waiting for an answer).
 
-      elsif O.Number_Of_Pending_Jobs > 0
+      elsif Has_Pending_Job (O)
         and then (O.Borrow_Transient_Tasks or else TI.Kind = Permanent)
       then
-         O.Number_Of_Pending_Jobs := O.Number_Of_Pending_Jobs - 1;
-
          Set_State_Running (O.Summary, TI.all, PJ.Fetch_Job (O.Job_Queue));
 
          pragma Debug (C1, O1 ("Task is now running a job"));

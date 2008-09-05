@@ -159,7 +159,7 @@ package PolyORB.Task_Info is
 
    procedure Set_Exit_Condition
      (TI             : in out Task_Info;
-      Exit_Condition :        PolyORB.Types.Boolean_Ptr);
+      Exit_Condition : Types.Boolean_Ptr);
    --  Attach Exit_Condition to TI
 
    function Exit_Condition (TI : Task_Info) return Boolean;
@@ -237,11 +237,9 @@ private
       --  removal of the task from the list).
    end record;
 
-   type Task_Counters is array (Task_Kind, Task_State) of Natural;
-   type Task_Summary is limited record
-      Total    : Natural := 0;
-      --  Cache of total task count
+   type Task_Counters is array (Any_Task_Kind, Any_Task_State) of Natural;
 
+   type Task_Summary is limited record
       Counters : Task_Counters := (others => (others => 0));
       --  Count of tasks of each kind and state
    end record;

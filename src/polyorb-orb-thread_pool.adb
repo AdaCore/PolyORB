@@ -41,7 +41,6 @@ with PolyORB.Parameters;
 with PolyORB.Setup;
 with PolyORB.Task_Info;
 with PolyORB.Tasking.Condition_Variables;
-with PolyORB.Tasking.Mutexes;
 with PolyORB.Tasking.Threads;
 with PolyORB.Utils.Strings;
 
@@ -52,7 +51,6 @@ package body PolyORB.ORB.Thread_Pool is
    use PolyORB.ORB_Controller;
    use PolyORB.Parameters;
    use PolyORB.Task_Info;
-   use PolyORB.Tasking.Mutexes;
    use PolyORB.Tasking.Threads;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.orb.thread_pool");
@@ -61,56 +59,50 @@ package body PolyORB.ORB.Thread_Pool is
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
 
-   Default_Threads : constant := 4;
-   --  Default number of threads in thread pool
+   ----------------------------
+   -- Operational parameters --
+   ----------------------------
+
+   Start_Threads         : Natural;
+   --  Threads craeted initially
 
    Minimum_Spare_Threads : Natural;
+   --  Minimal number of idle threads to maintain continuously
+
    Maximum_Spare_Threads : Natural;
+   --  Maximum number of idel threads
+
    Maximum_Threads       : Natural;
+   --  Maximum number of threads
 
-   type Thread_Array is array (Natural range <>) of Thread_Id;
-   type Thread_Array_Access is access Thread_Array;
+   Default_Start_Threads         : constant := 4;
+   Default_Minimum_Spare_Threads : constant := 2;
+   Default_Maximum_Spare_Threads : constant := 4;
+   Default_Maximum_Threads       : constant := 10;
 
-   The_Pool : Thread_Array_Access;
-   Threads_Count : Natural := 0;
-   Mutex : Mutex_Access;
+   procedure Thread_Pool_Main_Loop;
+   --  Main loop for threads in the pool
 
-   Exit_Condition_True : constant PolyORB.Types.Boolean_Ptr
-     := new Boolean'(True);
+   procedure Check_Spares (ORB : ORB_Access);
+   --  Check the current count of spare (idle) tasks, and create a new one
+   --  if necessary. This must be called within the ORB critical section.
 
-   procedure Main_Thread_Pool;
-   --  Main loop for threads in the pool.
+   ---------------------------
+   -- Thread_Pool_Main_Loop --
+   ---------------------------
 
-   ----------------------
-   -- Main_Thread_Pool --
-   ----------------------
-
-   procedure Main_Thread_Pool is
+   procedure Thread_Pool_Main_Loop is
    begin
-      pragma Debug (C, O ("Thread "
-                       & Image (Current_Task)
-                       & " is initialized"));
-      Enter (Mutex);
-
-      --  Per construction, at most The_Pool'Length tasks can enter this
-      --  function, the following piece of code cannot fail.
-
-      for J in The_Pool'Range loop
-         if The_Pool (J) = Null_Thread_Id then
-            The_Pool (J) := Current_Task;
-            exit;
-         end if;
-      end loop;
-
-      Leave (Mutex);
+      pragma Debug (C, O ("Thread_Pool_Main_Loop: enter "
+                       & Image (Current_Task)));
 
       PolyORB.ORB.Run (Setup.The_ORB,
                        Exit_Condition => (null, null),
-                       May_Poll => True);
-      pragma Debug (C, O ("Thread "
-                       & Image (Current_Task)
-                       & " is released"));
-   end Main_Thread_Pool;
+                       May_Poll       => True);
+
+      pragma Debug (C, O ("Thread_Pool_Main_Loop: leave "
+                       & Image (Current_Task)));
+   end Thread_Pool_Main_Loop;
 
    -----------------------------
    -- Handle_Close_Connection --
@@ -175,6 +167,38 @@ package body PolyORB.ORB.Thread_Pool is
       --  Same comment as Handle_New_Server_Connection.
    end Handle_New_Client_Connection;
 
+   ------------------
+   -- Check_Spares --
+   ------------------
+
+   procedure Check_Spares (ORB : ORB_Access) is
+      OC : ORB_Controller.ORB_Controller'Class renames ORB.ORB_Controller.all;
+      Current_Spares : Natural;
+      Max_New_Spares : Natural;
+      New_Spares     : Natural;
+   begin
+      Current_Spares := Get_Tasks_Count (OC, Kind => Permanent, State => Idle);
+      New_Spares := 0;
+
+      if Current_Spares < Minimum_Spare_Threads
+        and then not Shutting_Down (OC)
+      then
+         Max_New_Spares := Natural'Min
+           (Maximum_Threads - Get_Tasks_Count (OC, Kind => Permanent),
+            Maximum_Spare_Threads - Current_Spares);
+         New_Spares := Natural'Min
+           (Minimum_Spare_Threads - Current_Spares, Max_New_Spares);
+      end if;
+      pragma Debug (C, O ("Check_Spares: Cur =" & Current_Spares'Img
+                          & " Max_New =" & Max_New_Spares'Img
+                          & " New =" & New_Spares'Img));
+
+      for J in 1 .. New_Spares loop
+         pragma Debug (C, O ("Creating new spare task"));
+         Create_Task (Thread_Pool_Main_Loop'Access);
+      end loop;
+   end Check_Spares;
+
    ------------------------------
    -- Handle_Request_Execution --
    ------------------------------
@@ -186,26 +210,12 @@ package body PolyORB.ORB.Thread_Pool is
    is
       pragma Warnings (Off);
       pragma Unreferenced (P);
+      pragma Unreferenced (ORB);
       pragma Warnings (On);
 
    begin
-      Enter (Mutex);
-
-      if Get_Idle_Tasks_Count (ORB.ORB_Controller.all) = 0
-        and then Threads_Count < Maximum_Threads
-      then
-         Threads_Count := Threads_Count + 1;
-         Leave (Mutex);
-         pragma Debug (C, O ("Creating new task"));
-         Create_Task (Main_Thread_Pool'Access);
-      else
-         Leave (Mutex);
-      end if;
-
-      pragma Debug (C, O ("Thread "
-                       & Image (Current_Task)
-                       & " handles request execution"));
-
+      pragma Debug (C, O ("Thread " & Image (Current_Task)
+                          & " handles request execution"));
       Run_Request (RJ);
    end Handle_Request_Execution;
 
@@ -219,49 +229,32 @@ package body PolyORB.ORB.Thread_Pool is
       ORB       : ORB_Access)
    is
       pragma Unreferenced (P);
-      pragma Unreferenced (ORB);
 
       package PTI  renames PolyORB.Task_Info;
       package PTCV renames PolyORB.Tasking.Condition_Variables;
 
    begin
-      Enter (Mutex);
+      --  We are currently in the ORB critical section
 
-      --  Dubious test: should compare count of idle permanent tasks???
-
-      if Threads_Count > Maximum_Spare_Threads then
-         declare
-            This_Task_Id : constant Thread_Id := Current_Task;
-         begin
-            --  Inefficient: scan of whole task pool. The task pool slot ID
-            --  should be recorded in task info???
-
-            for J in The_Pool'Range loop
-               if The_Pool (J) = This_Task_Id then
-                  pragma Debug (C, O ("Terminating Task "
-                                   & Image (PTI.Id (This_Task))));
-
-                  The_Pool (J) := Null_Thread_Id;
-                  Threads_Count := Threads_Count - 1;
-
-                  --  Dubious: permanent tasks must always have a null exit
-                  --  condition, transient tasks must not exit the main loop
-                  --  if their initial exit condition has not been met???
-
-                  Set_Exit_Condition (This_Task, Exit_Condition_True);
-                  Leave (Mutex);
-                  return;
-               end if;
-            end loop;
-         end;
+      if This_Task.Kind = Permanent then
+         if Get_Tasks_Count
+              (ORB.ORB_Controller.all, Kind => Permanent, State => Idle)
+              > Maximum_Spare_Threads
+         then
+            Terminate_Task (ORB.ORB_Controller, This_Task);
+            return;
+         end if;
       end if;
-
-      Leave (Mutex);
 
       pragma Debug (C, O ("Thread "
                        & Image (PTI.Id (This_Task)) & " going idle"));
 
       PTCV.Wait (PTI.Condition (This_Task), PTI.Mutex (This_Task));
+
+      --  This task is about to leave idle state: check whether new spares
+      --  need to be created.
+
+      Check_Spares (ORB);
 
       pragma Debug
         (C, O ("Thread " & Image (PTI.Id (This_Task)) & " leaving idle"));
@@ -316,47 +309,70 @@ package body PolyORB.ORB.Thread_Pool is
    procedure Initialize_Tasking_Policy_Access is
    begin
       Setup.The_Tasking_Policy := new Thread_Pool_Policy;
-      Create (Mutex);
 
-      Minimum_Spare_Threads :=
-        Get_Conf ("tasking", "min_spare_threads", Default_Threads);
+      --  Set Maximum_Threads, Start_Threads, Maximum_Spare_Threads and
+      --  Minimum_Spare_Threads from configuration and defaults.
 
-      Maximum_Spare_Threads :=
-        Get_Conf ("tasking", "max_spare_threads", Default_Threads);
+      --  Note that the order in which these values are computed is
+      --  significant, because computed values are used to provide
+      --  consistent defaults: if not all four variables are specified by
+      --  the user, and the values specified explicitly are consistent, then
+      --  we want to set the remaining variables to consistent values.
+
+      --  For example, the default value of Start_Threads is 4, but if the
+      --  user sets Maximum_Threads to 2 and leaves Start_Threads unspecified,
+      --  we want to change the default Start_Threads value to 2, rather than
+      --  to report an inconsistency.
 
       Maximum_Threads :=
-        Get_Conf ("tasking", "max_threads", Default_Threads);
+        Get_Conf ("tasking", "max_threads", Default_Maximum_Threads);
+
+      Start_Threads :=
+        Get_Conf ("tasking", "start_threads",
+                   Natural'Min (Maximum_Threads, Default_Start_Threads));
+
+      Maximum_Spare_Threads :=
+        Get_Conf ("tasking", "max_spare_threads",
+                  Natural'Min (Maximum_Threads,
+                               Default_Maximum_Spare_Threads));
+
+      Minimum_Spare_Threads :=
+        Get_Conf ("tasking", "min_spare_threads",
+                  Natural'Min (Maximum_Spare_Threads,
+                               Default_Minimum_Spare_Threads));
+
+      --  Check consistency of configured values
 
       if not (Maximum_Threads >= Maximum_Spare_Threads
+              and then Maximum_Threads >= Start_Threads
               and then Maximum_Spare_Threads >= Minimum_Spare_Threads)
       then
          raise Constraint_Error;
       end if;
 
-      The_Pool := new Thread_Array'(1 .. Maximum_Threads => Null_Thread_Id);
+      if Start_Threads < Minimum_Spare_Threads then
+         Start_Threads := Minimum_Spare_Threads;
+      end if;
    end Initialize_Tasking_Policy_Access;
 
-   ------------------------
-   -- Initialize_Threads --
-   ------------------------
+   procedure Create_Threads;
+   --  Initial creation of threads for the pool
 
-   procedure Initialize_Threads;
+   --------------------
+   -- Create_Threads --
+   --------------------
 
-   procedure Initialize_Threads is
+   procedure Create_Threads is
    begin
-      pragma Debug (C, O ("Initialize_threads : enter"));
-      pragma Debug (C, O ("Creating"
-                       & Natural'Image (Minimum_Spare_Threads)
-                       & " spare threads"));
+      pragma Debug (C, O ("Create_Threads: enter"));
+      pragma Debug (C, O ("Creating" & Start_Threads'Img & " threads"));
 
-      Threads_Count := Minimum_Spare_Threads;
-
-      for J in 1 .. Minimum_Spare_Threads loop
-         Create_Task (Main_Thread_Pool'Access);
+      for J in 1 .. Start_Threads loop
+         Create_Task (Thread_Pool_Main_Loop'Access);
       end loop;
 
-      pragma Debug (C, O ("Initialize_threads : leave"));
-   end Initialize_Threads;
+      pragma Debug (C, O ("Create_Threads: leave"));
+   end Create_Threads;
 
    use PolyORB.Initialization;
    use PolyORB.Initialization.String_Lists;
@@ -377,10 +393,10 @@ begin
      (Module_Info'
       (Name      => +"orb.threads_init",
        Conflicts => +"no_tasking",
-       Depends   => +"orb",
+       Depends   => +"orb" & "orb_controller",
        Provides  => +"orb.tasking_policy_init",
        Implicit  => False,
-       Init      => Initialize_Threads'Access,
+       Init      => Create_Threads'Access,
        Shutdown  => null));
 
    --  Two Register_Module are needed because, on one hand, the

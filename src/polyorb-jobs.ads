@@ -61,43 +61,28 @@ package PolyORB.Jobs is
    -- Job_Queue --
    ---------------
 
-   type Job_Selector is access
-     function (J : access Job'Class) return Boolean;
-   --  A predicate on jobs, used by clients of Job_Queue
-   --  to select a job that matches some criterion.
-
-   Any_Job : constant Job_Selector;
-   --  A job selector that is always true.
-
    type Job_Queue is limited private;
-
    type Job_Queue_Access is access all Job_Queue;
-   --  A queue of pending jobs.
+   --  A queue of pending jobs
 
    function Create_Queue return Job_Queue_Access;
-   --  Create a new job queue.
+   --  Create a new job queue
 
-   procedure Queue_Job
-     (Q : access Job_Queue;
-      J :        Job_Access);
-   --  Enter a pending Job into Q.
+   procedure Queue_Job (Q : access Job_Queue; J : Job_Access);
+   --  Enter a pending Job into Q
 
    function Is_Empty (Q : access Job_Queue) return Boolean;
-   --  True if, and only if, Q contains no pending Job.
+   --  True if, and only if, Q contains no pending Job
 
-   function Fetch_Job
-     (Q        : access Job_Queue;
-      Selector :        Job_Selector := Any_Job)
-      return Job_Access;
-   --  Returns a pending Job that matches Selector (i.e.
-   --  such that Selector.all (Job) is true), and remove
-   --  it from Q. Null is returned if no matching job exists.
-
-   --  The caller must ensure that all primitive operations
-   --  of Job_Queue are called only from within a critical
-   --  section.
+   function Fetch_Job (Q : access Job_Queue) return Job_Access;
+   --  Returns a pending Job from Q, and remove it from Q.
+   --  Null is returned if Q is empty.
 
    function Length (Q : access Job_Queue) return Natural;
+   --  Return the number of pending jobs on Q
+
+   --  The caller must ensure that all primitive operations of a given
+   --  Job_Queue objects are called under mutual exclusion.
 
 private
 
@@ -116,7 +101,5 @@ private
    type Job_Queue is limited record
      Contents : Job_Queue_Internal;
    end record;
-
-   Any_Job : constant Job_Selector := null;
 
 end PolyORB.Jobs;

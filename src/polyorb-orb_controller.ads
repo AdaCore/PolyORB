@@ -170,15 +170,14 @@ package PolyORB.ORB_Controller is
    --  section.
 
    procedure Register_Task
-     (O  : access ORB_Controller;
-      TI : PTI.Task_Info_Access);
+     (O  : access ORB_Controller; TI : PTI.Task_Info_Access);
    --  Register TI to the ORB Controller. TI may now be used by the ORB
    --  Controller to process ORB actions.
 
-   procedure Abnormal_Terminate_Task
-     (O  : access ORB_Controller; TI : PTI.Task_Info_Access);
-   --  Record that the given task is terminating abnormally. Its state is set
-   --  to Terminated.
+   procedure Terminate_Task
+     (O  : access ORB_Controller; TI : in out PTI.Task_Info);
+   --  Record that the given task is terminating. Its state is set to
+   --  Terminated.
 
    procedure Unregister_Task
      (O  : access ORB_Controller; TI : PTI.Task_Info_Access);
@@ -194,7 +193,8 @@ package PolyORB.ORB_Controller is
      (O  : access ORB_Controller;
       TI : PTI.Task_Info_Access) is abstract;
    --  TI is the current task. Set its state to indicate the next action to be
-   --  executed.
+   --  executed. This operation has no effect and returns immediately if the
+   --  current state of the task is Terminated.
 
    procedure Disable_Polling
      (O : access ORB_Controller;
@@ -221,6 +221,10 @@ package PolyORB.ORB_Controller is
    function Get_Pending_Job (O : access ORB_Controller) return PJ.Job_Access;
    --  Return a pending job, null if there is none
 
+   function Shutting_Down (O : ORB_Controller) return Boolean;
+   pragma Inline (Shutting_Down);
+   --  Return True if ORB shutdown is in progress
+
    function Is_Locally_Terminated
      (O                      : access ORB_Controller;
       Expected_Running_Tasks : Natural := 1) return Boolean;
@@ -235,13 +239,12 @@ package PolyORB.ORB_Controller is
    pragma Inline (Get_Monitors);
    --  Return monitors handled by the ORB
 
-   function Get_Idle_Tasks_Count (O : ORB_Controller) return Natural;
-   pragma Inline (Get_Idle_Tasks_Count);
-   --  Return the number of idle tasks
-
-   function Get_Unscheduled_Tasks_Count (O : ORB_Controller) return Natural;
-   pragma Inline (Get_Unscheduled_Tasks_Count);
-   --  Return the number of unscheduled tasks
+   function Get_Tasks_Count
+     (OC    : ORB_Controller;
+      Kind  : PTI.Any_Task_Kind  := PTI.Any;
+      State : PTI.Any_Task_State := PTI.Any) return Natural;
+   pragma Inline (Get_Tasks_Count);
+   --  Return the count of tasks for the given kind and state
 
    procedure Wait_For_Completion (O : access ORB_Controller);
    --  When ORB shutdown has been requested, block until all pending jobs are
@@ -357,9 +360,6 @@ private
 
          Summary : PTI.Task_Summary;
          --  Task counters
-
-         Number_Of_Pending_Jobs : Natural := 0;
-         --  Number of pending jobs
 
          Shutdown : Boolean := False;
          --  True iff ORB is to be shutdown

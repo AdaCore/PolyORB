@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -48,44 +48,14 @@ package body PolyORB.Jobs is
    -- Fetch_Job --
    ---------------
 
-   function Fetch_Job
-     (Q        : access Job_Queue;
-      Selector :        Job_Selector := Any_Job)
-      return Job_Access
-   is
+   function Fetch_Job (Q : access Job_Queue) return Job_Access is
       use Job_Queues;
-
       Result : Job_Access;
    begin
-      if Is_Empty (Q) then
-         return null;
-      end if;
-
-      --  If no selector is provided, extract the first element
-
-      if Selector = null then
+      if not Is_Empty (Q) then
          Extract_First (Q.Contents, Result);
-         return Result;
       end if;
-
-      --  else return the first selected element
-
-      declare
-         It     : Iterator := First (Q.Contents);
-
-      begin
-         while not Last (It) loop
-            if Selector (Job_Access (Value (It).all)) then
-               Result := Job_Access (Value (It).all);
-               Remove (Q.Contents, It);
-               return Result;
-            end if;
-
-            Next (It);
-         end loop;
-
-         return null;
-      end;
+      return Result;
    end Fetch_Job;
 
    ----------
@@ -118,7 +88,7 @@ package body PolyORB.Jobs is
 
    procedure Queue_Job
      (Q : access Job_Queue;
-      J :        Job_Access) is
+      J : Job_Access) is
    begin
       Job_Queues.Append (Q.Contents, J);
    end Queue_Job;

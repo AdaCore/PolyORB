@@ -368,8 +368,8 @@ package body PolyORB.ORB is
 
    procedure Run
      (ORB            : access ORB_Type;
-      Exit_Condition :        Exit_Condition_T := (null, null);
-      May_Poll       :        Boolean)
+      Exit_Condition : Exit_Condition_T := (null, null);
+      May_Poll       : Boolean)
    is
       use PolyORB.Task_Info;
 
@@ -453,7 +453,6 @@ package body PolyORB.ORB is
       Unregister_Task (ORB.ORB_Controller, This_Task'Unchecked_Access);
 
       pragma Debug (C, O ("Run: leave."));
-
       Leave_ORB_Critical_Section (ORB.ORB_Controller);
 
    exception
@@ -471,12 +470,13 @@ package body PolyORB.ORB is
             Exit_Condition.Task_Info.all := null;
          end if;
 
-         Abnormal_Terminate_Task
-           (ORB.ORB_Controller, This_Task'Unchecked_Access);
+         --  Reassert critical section to remove current task from ORB
+         --  controller.
 
-         --  ??? Invariant violated: Unregister_Task requires ORB critical
-         --  section
+         Enter_ORB_Critical_Section (ORB.ORB_Controller);
+         Terminate_Task (ORB.ORB_Controller, This_Task);
          Unregister_Task (ORB.ORB_Controller, This_Task'Unchecked_Access);
+         Leave_ORB_Critical_Section (ORB.ORB_Controller);
 
          raise;
    end Run;
@@ -505,14 +505,11 @@ package body PolyORB.ORB is
 
    begin
       Enter_ORB_Critical_Section (ORB.ORB_Controller);
+      Job := Get_Pending_Job (ORB.ORB_Controller);
+      Leave_ORB_Critical_Section (ORB.ORB_Controller);
 
-      if Has_Pending_Job (ORB.ORB_Controller) then
-         Job := Get_Pending_Job (ORB.ORB_Controller);
-         Leave_ORB_Critical_Section (ORB.ORB_Controller);
+      if Job /= null then
          Run (Job);
-
-      else
-         Leave_ORB_Critical_Section (ORB.ORB_Controller);
       end if;
    end Perform_Work;
 

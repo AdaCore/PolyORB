@@ -40,16 +40,16 @@ package body PolyORB.ORB_Controller is
 
    My_Factory : ORB_Controller_Factory_Access;
 
-   -----------------------------
-   -- Abnormal_Terminate_Task --
-   -----------------------------
+   --------------------
+   -- Terminate_Task --
+   --------------------
 
-   procedure Abnormal_Terminate_Task
-     (O  : access ORB_Controller; TI : PTI.Task_Info_Access)
+   procedure Terminate_Task
+     (O  : access ORB_Controller; TI : in out PTI.Task_Info)
    is
    begin
-      Set_State_Terminated (O.Summary, TI.all);
-   end Abnormal_Terminate_Task;
+      Set_State_Terminated (O.Summary, TI);
+   end Terminate_Task;
 
    ------------
    -- Create --
@@ -70,17 +70,9 @@ package body PolyORB.ORB_Controller is
 
    procedure Enter_ORB_Critical_Section (O : access ORB_Controller) is
    begin
+      pragma Debug (C1, O1 ("Enter_ORB_Critical_Section"));
       PTM.Enter (O.ORB_Lock);
    end Enter_ORB_Critical_Section;
-
-   --------------------------
-   -- Get_Idle_Tasks_Count --
-   --------------------------
-
-   function Get_Idle_Tasks_Count (O : ORB_Controller) return Natural is
-   begin
-      return Get_Count (O.Summary, State => Idle);
-   end Get_Idle_Tasks_Count;
 
    ------------------
    -- Get_Monitors --
@@ -109,21 +101,24 @@ package body PolyORB.ORB_Controller is
 
    function Get_Pending_Job (O : access ORB_Controller) return PJ.Job_Access is
    begin
-      pragma Assert (Has_Pending_Job (O));
-      O.Number_Of_Pending_Jobs := O.Number_Of_Pending_Jobs - 1;
-
+      if not Has_Pending_Job (O) then
+         return null;
+      end if;
       return PJ.Fetch_Job (O.Job_Queue);
    end Get_Pending_Job;
 
-   ---------------------------------
-   -- Get_Unscheduled_Tasks_Count --
-   ---------------------------------
+   ---------------------
+   -- Get_Tasks_Count --
+   ---------------------
 
-   function Get_Unscheduled_Tasks_Count (O : ORB_Controller) return Natural
+   function Get_Tasks_Count
+     (OC    : ORB_Controller;
+      Kind  : PTI.Any_Task_Kind  := PTI.Any;
+      State : PTI.Any_Task_State := PTI.Any) return Natural
    is
    begin
-      return Get_Count (O.Summary, State => Unscheduled);
-   end Get_Unscheduled_Tasks_Count;
+      return Get_Count (OC.Summary, Kind, State);
+   end Get_Tasks_Count;
 
    ---------------------
    -- Has_Pending_Job --
@@ -230,6 +225,7 @@ package body PolyORB.ORB_Controller is
 
    procedure Leave_ORB_Critical_Section (O : access ORB_Controller) is
    begin
+      pragma Debug (C1, O1 ("Leave_ORB_Critical_Section"));
       PTM.Leave (O.ORB_Lock);
    end Leave_ORB_Critical_Section;
 
@@ -333,17 +329,55 @@ package body PolyORB.ORB_Controller is
 
    function Status (O : ORB_Controller) return String is
       use PolyORB.Tasking.Threads;
+
+      function Counters_For_State (S : Any_Task_State) return String;
+      --  Return the task counters for state S
+
+      function Counters_For_State (S : Any_Task_State) return String is
+         State_Name : constant String := S'Img;
+
+         function Counter_For_Kind (K : Task_Kind) return String;
+         --  Return the task counter for kind K and state S
+
+         ----------------------
+         -- Counter_For_Kind --
+         ----------------------
+
+         function Counter_For_Kind (K : Task_Kind) return String is
+            Kind_Name : constant String := K'Img;
+            Count     : constant String :=
+                          Natural'Image (Get_Count (O.Summary, K, S));
+         begin
+            pragma Assert (Count (1) = ' ');
+            return Count (2 .. Count'Last) & Kind_Name (1);
+         end Counter_For_Kind;
+
+      begin
+         return State_Name (1) & ": "
+           & Counter_For_Kind (Permanent) & "/" & Counter_For_Kind (Transient);
+      end Counters_For_State;
+
    begin
-      return "Tot:" & Natural'Image (Get_Count (O.Summary))
-        & " U:" & Natural'Image (Get_Count (O.Summary, State => Unscheduled))
-        & " R:" & Natural'Image (Get_Count (O.Summary, State => Running))
-        & " B:" & Natural'Image (Get_Count (O.Summary, State => Blocked))
-        & " I:" & Natural'Image (Get_Count (O.Summary, State => Idle))
-        & "| PJ:" & Natural'Image (O.Number_Of_Pending_Jobs)
-        & "| Tra:" & Natural'Image (Get_Count (O.Summary, Kind => Transient))
+      return Counters_For_State (Any)
+        & " " & Counters_For_State (Unscheduled)
+        & " " & Counters_For_State (Running)
+        & " " & Counters_For_State (Blocked)
+        & " " & Counters_For_State (Idle)
+        & " " & Counters_For_State (Terminated)
+        & " | PJ:" & Natural'Image (PJ.Length (O.Job_Queue))
+        & " | Tra:" & Natural'Image (Get_Count (O.Summary, Kind => Transient))
         & " Awk:" & Natural'Image (Awake_Count)
         & " Ind:" & Natural'Image (Independent_Count);
    end Status;
+
+   -------------------
+   -- Shutting_Down --
+   -------------------
+
+   function Shutting_Down (O : ORB_Controller) return Boolean is
+   begin
+      return O.Shutdown;
+   end Shutting_Down;
 
    ---------------------
    -- Unregister_Task --
@@ -351,7 +385,7 @@ package body PolyORB.ORB_Controller is
 
    procedure Unregister_Task
      (O  : access ORB_Controller;
-      TI :        PTI.Task_Info_Access)
+      TI : PTI.Task_Info_Access)
    is
    begin
       pragma Debug (C1, O1 ("Unregister_Task: enter"));

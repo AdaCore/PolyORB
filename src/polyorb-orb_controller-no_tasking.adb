@@ -147,7 +147,6 @@ package body PolyORB.ORB_Controller.No_Tasking is
 
             --  Queue event to main job queue
 
-            O.Number_Of_Pending_Jobs := O.Number_Of_Pending_Jobs + 1;
             PJ.Queue_Job (O.Job_Queue, E.Event_Job);
 
          when Queue_Request_Job =>
@@ -157,7 +156,6 @@ package body PolyORB.ORB_Controller.No_Tasking is
 
             --  Queue event to main job queue
 
-            O.Number_Of_Pending_Jobs := O.Number_Of_Pending_Jobs + 1;
             PJ.Queue_Job (O.Job_Queue, E.Request_Job);
 
          when Request_Result_Ready =>
@@ -193,10 +191,15 @@ package body PolyORB.ORB_Controller.No_Tasking is
 
    procedure Schedule_Task
      (O  : access ORB_Controller_No_Tasking;
-      TI :        PTI.Task_Info_Access)
+      TI : PTI.Task_Info_Access)
    is
    begin
       pragma Debug (C1, O1 ("Schedule_Task: enter"));
+
+      if State (TI.all) = Terminated then
+         pragma Debug (C1, O1 ("Schedule_Task: task is terminated"));
+         return;
+      end if;
 
       Set_State_Unscheduled (O.Summary, TI.all);
 
@@ -204,7 +207,7 @@ package body PolyORB.ORB_Controller.No_Tasking is
 
       if Exit_Condition (TI.all)
         or else (O.Shutdown
-                 and then O.Number_Of_Pending_Jobs = 0
+                 and then not Has_Pending_Job (O)
                  and then TI.Kind = Permanent)
       then
          Set_State_Terminated (O.Summary, TI.all);
@@ -212,9 +215,7 @@ package body PolyORB.ORB_Controller.No_Tasking is
          pragma Debug (C1, O1 ("Task is now terminated"));
          pragma Debug (C2, O2 (Status (O.all)));
 
-      elsif O.Number_Of_Pending_Jobs > 0 then
-         O.Number_Of_Pending_Jobs := O.Number_Of_Pending_Jobs - 1;
-
+      elsif Has_Pending_Job (O) then
          Set_State_Running (O.Summary, TI.all, PJ.Fetch_Job (O.Job_Queue));
 
          pragma Debug (C1, O1 ("Task is now running a job"));

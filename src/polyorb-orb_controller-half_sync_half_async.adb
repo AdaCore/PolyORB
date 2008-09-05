@@ -57,9 +57,8 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
    begin
       --  Force all tasks currently waiting on event sources to abort
 
-      if O.AEM_Infos (AEM_Index).TI /= null
-        and then State (O.AEM_Infos (AEM_Index).TI.all) = Blocked
-      then
+      if O.AEM_Infos (AEM_Index).TI /= null then
+         pragma Assert (State (O.AEM_Infos (AEM_Index).TI.all) = Blocked);
          --  XXX Can we suppress the first test?
 
          pragma Debug (C1, O1 ("Disable_Polling: Aborting polling task"));
@@ -239,8 +238,6 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
                   --  Default: Queue request to main job queue
 
                   pragma Debug (C1, O1 ("Queue Request_Job to default queue"));
-
-                  O.Number_Of_Pending_Jobs := O.Number_Of_Pending_Jobs + 1;
                   PJ.Queue_Job (O.Job_Queue, E.Request_Job);
                   Try_Allocate_One_Task (O, Allow_Transient => True);
                end if;
@@ -328,13 +325,18 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
       pragma Debug (C1, O1 ("Schedule_Task "
                     & PTI.Image (TI.all) & ": enter"));
 
+      if State (TI.all) = Terminated then
+         pragma Debug (C1, O1 ("Schedule_Task: task is terminated"));
+         return;
+      end if;
+
       Set_State_Unscheduled (O.Summary, TI.all);
 
       --  Recompute TI status
 
       if Exit_Condition (TI.all)
         or else (O.Shutdown
-                 and then O.Number_Of_Pending_Jobs = 0
+                 and then not Has_Pending_Job (O)
                  and then TI.Kind = Permanent)
       then
          Set_State_Terminated (O.Summary, TI.all);
@@ -397,9 +399,7 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
          else
             --  Task is a processing task
 
-            if O.Number_Of_Pending_Jobs > 0 then
-
-               O.Number_Of_Pending_Jobs := O.Number_Of_Pending_Jobs - 1;
+            if Has_Pending_Job (O) then
 
                Set_State_Running
                  (O.Summary, TI.all, PJ.Fetch_Job (O.Job_Queue));
