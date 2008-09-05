@@ -160,7 +160,7 @@ package body PolyORB.Any is
       procedure Kind_Check (C : Any_Container'Class) is
       begin
          if TypeCode.Kind (Unwind_Typedefs (Get_Type_Obj (C))) /= Kind then
-            raise Program_Error;
+            raise Constraint_Error;
          end if;
       end Kind_Check;
 
@@ -1484,8 +1484,13 @@ package body PolyORB.Any is
       TC    : TypeCode.Local_Ref;
       Index : Unsigned_Long) return Any
    is
+      --  Enforce tag check on Value's container to defend against improper
+      --  access for an Any that is not an aggregate.
+
+      pragma Unsuppress (Tag_Check);
       CA_Ptr : constant Aggregate_Content_Ptr :=
                  Aggregate_Content_Ptr (Get_Container (Value).The_Value);
+
       A : Any;
       M : aliased Mechanism := By_Value;
       CC : constant Content'Class :=
