@@ -131,7 +131,8 @@ package body XE_Back.PolyORB is
    PS : array (PS_Id) of Unit_Name_Type;
 
    type PE_Id is
-     (PE_Max_Spare_Threads,
+     (PE_Start_Threads,
+      PE_Max_Spare_Threads,
       PE_Max_Threads,
       PE_Min_Spare_Threads,
       PE_Rsh_Command,
@@ -146,6 +147,7 @@ package body XE_Back.PolyORB is
       PE_Rsh_Options           => PS_DSA,
       PE_Termination_Initiator => PS_DSA,
       PE_Termination_Policy    => PS_DSA,
+      PE_Start_Threads         => PS_Tasking,
       PE_Max_Spare_Threads     => PS_Tasking,
       PE_Max_Threads           => PS_Tasking,
       PE_Min_Spare_Threads     => PS_Tasking);
@@ -540,9 +542,17 @@ package body XE_Back.PolyORB is
 
       if Current.Task_Pool /= No_Task_Pool then
          Set_Nat_To_Name_Buffer (Current.Task_Pool (1));
-         Set_Conf (PE_Min_Spare_Threads, Name_Find);
+         declare
+            N : constant Name_Id := Name_Find;
+            --  Min_Spare_Threads, also used for Start_Threads
+         begin
+            Set_Conf (PE_Start_Threads, N);
+            Set_Conf (PE_Min_Spare_Threads, N);
+         end;
+
          Set_Nat_To_Name_Buffer (Current.Task_Pool (2));
          Set_Conf (PE_Max_Spare_Threads, Name_Find);
+
          Set_Nat_To_Name_Buffer (Current.Task_Pool (3));
          Set_Conf (PE_Max_Threads, Name_Find);
       end if;
@@ -868,17 +878,6 @@ package body XE_Back.PolyORB is
             "May_Poll => True");
       end if;
 
-      Write_Line  ("exception");
-
-      Write_Indentation;
-      Write_Line ("when others =>");
-      Increment_Indentation;
-      Write_Call
-         (RU (RE_Unit_Table (RE_Shutdown_World)) and RE (RE_Shutdown_World));
-      Write_Indentation;
-      Write_Line ("raise;");
-
-      Decrement_Indentation;
       Decrement_Indentation;
 
       Write_Str  ("end ");

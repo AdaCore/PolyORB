@@ -446,8 +446,6 @@ package body System.Partition_Interface is
          end loop;
 
          if Version /= Type_Id (Last_Colon + 1 .. Type_Id'Last) then
-            PolyORB.Initialization.Shutdown_World
-              (Wait_For_Completion => False);
             raise Program_Error
               with "Versions differ for unit """ & Name & """";
          end if;
