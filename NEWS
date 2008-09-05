@@ -41,6 +41,9 @@ See the features-25 file.
 Bug fixes
 ---------
 
+Several issues have been fixed in the circuitry handling TypeCodes and Anys
+for bounded string types. (H904-029)
+
 IAC did not generate all code in user-specified output directory when
 using hash optimizations, this is now corrected. (H730-014)
 
