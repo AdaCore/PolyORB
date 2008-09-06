@@ -351,6 +351,12 @@ private
 
          AEM_Infos : AEM_Infos_Array (1 .. Maximum_Number_Of_Monitors);
          Last_Monitored_AEM : Natural := Maximum_Number_Of_Monitors;
+         --  ??? Needs proper documentation of usage of this component.
+         --  Half_Sync_Half_Async uses it to point to the designated
+         --  monitoring task for each monitor; other ORB controllers
+         --  use it for the currently blocked task (and in the latter only
+         --  there is an invariant that the TI component of each slot
+         --  points to the existing valid task info for a Blocked task.)
 
          Idle_Tasks : Idle_Tasks_Manager_Access;
 

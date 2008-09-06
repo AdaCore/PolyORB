@@ -57,9 +57,15 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
    begin
       --  Force all tasks currently waiting on event sources to abort
 
-      if O.AEM_Infos (AEM_Index).TI /= null then
-         pragma Assert (State (O.AEM_Infos (AEM_Index).TI.all) = Blocked);
-         --  XXX Can we suppress the first test?
+      if O.AEM_Infos (AEM_Index).TI /= null
+        and then State (O.AEM_Infos (AEM_Index).TI.all) = Blocked
+      then
+         --  First condition is a guard for the case where no monitoring
+         --  task has been registered yet for this AEM (can this actually
+         --  happen???)
+         --  Second condition handles the fact that the designated monitoring
+         --  task may be either Blocked or Running (processing detected
+         --  events).
 
          pragma Debug (C1, O1 ("Disable_Polling: Aborting polling task"));
          PTI.Request_Abort_Polling (O.AEM_Infos (AEM_Index).TI.all);
@@ -306,6 +312,11 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
             end loop;
 
          when Task_Unregistered =>
+            --  ??? There is an unchecked assumption that the designated
+            --  monitoring task for each AEM is never unregistered (otherwise
+            --  the TI pointer in the corresponding AEM_Infos slot becomes
+            --  dangling).
+
             Note_Task_Unregistered (O);
       end case;
 
