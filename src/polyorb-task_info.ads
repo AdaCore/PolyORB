@@ -151,11 +151,17 @@ package PolyORB.Task_Info is
    --  Task_Info will hold Id of the current task, as provided by the PolyORB
    --  tasking subsystem.
 
-   procedure Set_Polling (TI : in out Task_Info; May_Poll : Boolean);
-   --  Set if TI may poll on event sources, i.e. be in blocked state
+   procedure Set_May_Poll
+     (TI       : in out Task_Info;
+      May_Poll : Boolean);
+   procedure Set_May_Exit
+     (TI       : in out Task_Info;
+      May_Exit : Boolean);
+   --  Set the corresponding flags on TI
 
    function May_Poll (TI : Task_Info) return Boolean;
-   --  Returns true iff TI may poll, i.e. be in blocked state
+   function May_Exit (TI : Task_Info) return Boolean;
+   --  Return the corresponding flags for TI
 
    procedure Set_Exit_Condition
      (TI             : in out Task_Info;
@@ -205,6 +211,9 @@ private
 
       May_Poll : Boolean := False;
       --  True iff task may poll on event sources
+
+      May_Exit : Boolean := False;
+      --  True iff ORB contoller is allowed to decide to terminate this task
 
       Abort_Polling : Boolean := False;
       --  True iff must abort polling
@@ -258,8 +267,10 @@ private
    pragma Inline (Condition);
    pragma Inline (Mutex);
    pragma Inline (Set_Id);
-   pragma Inline (Set_Polling);
+   pragma Inline (Set_May_Exit);
+   pragma Inline (Set_May_Poll);
    pragma Inline (May_Poll);
+   pragma Inline (May_Exit);
    pragma Inline (Set_Exit_Condition);
    pragma Inline (Exit_Condition);
    pragma Inline (Request_Abort_Polling);

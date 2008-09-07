@@ -187,7 +187,8 @@ package PolyORB.ORB is
    procedure Run
      (ORB            : access ORB_Type;
       Exit_Condition : Exit_Condition_T := (null, null);
-      May_Poll       : Boolean);
+      May_Poll       : Boolean;
+      May_Exit       : Boolean);
    --  Execute the ORB until:
    --    - Exit_Condition.Condition.all becomes True
    --      (if Exit_Condition.Condition /= null), or
@@ -204,6 +205,13 @@ package PolyORB.ORB is
 
    --  If May_Poll, then this task may suspend itself to wait
    --  for external events.
+
+   --  For a permanent task, if May_Exit is False then the task
+   --  remains in this procedure until ORB shutdown, else it may
+   --  return earlier (in which case it is expected to complete).
+
+   --  For a transient task, May_Exit has no effect and is expected
+   --  to always be set True.
 
    function Work_Pending (ORB : access ORB_Type) return Boolean;
    --  Return True if, and only if, some ORB processing is

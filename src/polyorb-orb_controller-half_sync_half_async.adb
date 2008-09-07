@@ -308,6 +308,11 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
                if O.AEM_Infos (J).TI = null then
                   pragma Debug (C1, O1 ("Registered monitoring task"));
                   O.AEM_Infos (J).TI := E.Registered_Task;
+                  pragma Assert (E.Registered_Task.Kind = Permanent);
+
+                  --  Prevent task from terminating when going idle
+
+                  Set_May_Exit (E.Registered_Task.all, May_Exit => False);
                end if;
             end loop;
 
@@ -366,7 +371,7 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
          if AEM_Index > 0 then
             --  Task is the monitoring task
 
-            pragma Debug (C1, O1 ("Scheduling monitor task"));
+            pragma Debug (C1, O1 ("Scheduling monitoring task"));
 
             if not PJ.Is_Empty (O.Monitoring_Tasks (AEM_Index).Job_Queue) then
                --  Process event on the monitor

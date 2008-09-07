@@ -369,7 +369,8 @@ package body PolyORB.ORB is
    procedure Run
      (ORB            : access ORB_Type;
       Exit_Condition : Exit_Condition_T := (null, null);
-      May_Poll       : Boolean)
+      May_Poll       : Boolean;
+      May_Exit       : Boolean)
    is
       use PolyORB.Task_Info;
 
@@ -377,13 +378,17 @@ package body PolyORB.ORB is
         (Task_Kind_For_Exit_Condition (Exit_Condition.Condition = null));
 
    begin
+      pragma Assert (This_Task.Kind = Permanent or else May_Exit);
+      --  May_Exit is expected to always be True for transient tasks
+
       Enter_ORB_Critical_Section (ORB.ORB_Controller);
 
       --  Set up task information for This_Task
 
       Set_Id (This_Task);
       Set_Exit_Condition (This_Task, Exit_Condition.Condition);
-      Set_Polling (This_Task, May_Poll);
+      Set_May_Poll       (This_Task, May_Poll);
+      Set_May_Exit       (This_Task, May_Exit);
 
       if Exit_Condition.Task_Info /= null then
          --  This pointer must be reset to null before exiting Run so as to

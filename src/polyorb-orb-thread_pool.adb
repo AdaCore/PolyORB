@@ -96,9 +96,10 @@ package body PolyORB.ORB.Thread_Pool is
       pragma Debug (C, O ("Thread_Pool_Main_Loop: enter "
                        & Image (Current_Task)));
 
-      PolyORB.ORB.Run (Setup.The_ORB,
-                       Exit_Condition => (null, null),
-                       May_Poll       => True);
+      PolyORB.ORB.Run
+        (Setup.The_ORB,
+         May_Poll => True,
+         May_Exit => True);
 
       pragma Debug (C, O ("Thread_Pool_Main_Loop: leave "
                        & Image (Current_Task)));
@@ -236,14 +237,22 @@ package body PolyORB.ORB.Thread_Pool is
    begin
       --  We are currently in the ORB critical section
 
-      if This_Task.Kind = Permanent then
-         if Get_Tasks_Count
-              (ORB.ORB_Controller.all, Kind => Permanent, State => Idle)
+      --  Terminate permanent task if there are too many idle tasks.
+      --  Note that in the presence of user permanent tasks (for which
+      --  May_Exit is False) we may not always be able to maintain
+      --  the invariant, since we can't decide to remove these tasks
+      --  from the pool.
+
+      if This_Task.Kind = Permanent
+           and then
+         May_Exit (This_Task)
+           and then
+         Get_Tasks_Count
+           (ORB.ORB_Controller.all, Kind => Permanent, State => Idle)
               > Maximum_Spare_Threads
-         then
-            Terminate_Task (ORB.ORB_Controller, This_Task);
-            return;
-         end if;
+      then
+         Terminate_Task (ORB.ORB_Controller, This_Task);
+         return;
       end if;
 
       pragma Debug (C, O ("Thread "

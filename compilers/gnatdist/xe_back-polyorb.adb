@@ -363,7 +363,8 @@ package body XE_Back.PolyORB is
          Write_Call
            (RU (RE_Unit_Table (RE_Run)) and RE (RE_Run),
             RU (RE_Unit_Table (RE_The_ORB)) and RE (RE_The_ORB),
-            "May_Poll => True");
+            S1 => "May_Poll => True",
+            S2 => "May_Exit => False");
 
          Decrement_Indentation;
          Write_Indentation;
@@ -875,7 +876,8 @@ package body XE_Back.PolyORB is
          Write_Call
            (RU (RE_Unit_Table (RE_Run)) and RE (RE_Run),
             RU (RE_Unit_Table (RE_The_ORB)) and RE (RE_The_ORB),
-            "May_Poll => True");
+            S1 => "May_Poll => True",
+            S2 => "May_Exit => False");
       end if;
 
       Decrement_Indentation;

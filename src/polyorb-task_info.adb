@@ -113,6 +113,15 @@ package body PolyORB.Task_Info is
    end List_Detach;
 
    --------------
+   -- May_Exit --
+   --------------
+
+   function May_Exit (TI : Task_Info) return Boolean is
+   begin
+      return TI.May_Exit;
+   end May_Exit;
+
+   --------------
    -- May_Poll --
    --------------
 
@@ -258,14 +267,29 @@ package body PolyORB.Task_Info is
       TI.Id := Tasking.Threads.Current_Task;
    end Set_Id;
 
-   -----------------
-   -- Set_Polling --
-   -----------------
+   ------------------
+   -- Set_May_Exit --
+   ------------------
 
-   procedure Set_Polling (TI : in out Task_Info; May_Poll : Boolean) is
+   procedure Set_May_Exit
+     (TI       : in out Task_Info;
+      May_Exit : Boolean)
+   is
+   begin
+      TI.May_Exit := May_Exit;
+   end Set_May_Exit;
+
+   ------------------
+   -- Set_May_Poll --
+   ------------------
+
+   procedure Set_May_Poll
+     (TI       : in out Task_Info;
+      May_Poll : Boolean)
+   is
    begin
       TI.May_Poll := May_Poll;
-   end Set_Polling;
+   end Set_May_Poll;
 
    ---------------------------
    -- Set_State_Unscheduled --
