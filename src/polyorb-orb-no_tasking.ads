@@ -76,8 +76,6 @@ package PolyORB.ORB.No_Tasking is
       This_Task : in out PolyORB.Task_Info.Task_Info;
       ORB       :        ORB_Access);
 
-   function Borrow_Transient_Tasks (P : No_Tasking) return Boolean;
-
 private
 
    type No_Tasking is new Tasking_Policy_Type with null record;

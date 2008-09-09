@@ -63,9 +63,7 @@ package PolyORB.ORB_Controller.No_Tasking is
      new ORB_Controller_Factory with private;
 
    function Create
-     (OCF : access ORB_Controller_No_Tasking_Factory;
-      Borrow_Transient_Tasks : Boolean)
-     return ORB_Controller_Access;
+     (OCF : ORB_Controller_No_Tasking_Factory) return ORB_Controller_Access;
 
 private
 

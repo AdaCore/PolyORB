@@ -54,8 +54,8 @@ package body PolyORB.ORB_Controller.No_Tasking is
 
    begin
       --  Under this implementation, there is at most one task in the
-      --  partition. Thus, there cannot be one task polling while
-      --  another requests polling to be disabled.
+      --  partition. Thus, there cannot be one task polling while another
+      --  requests polling to be disabled.
 
       null;
    end Disable_Polling;
@@ -72,8 +72,8 @@ package body PolyORB.ORB_Controller.No_Tasking is
 
    begin
       --  Under this implementation, there is at most one task in the
-      --  partition. Thus, there cannot be one task polling while
-      --  another requests polling to be disabled.
+      --  partition. Thus, there cannot be one task polling while another
+      --  requests polling to be disabled.
 
       null;
    end Enable_Polling;
@@ -160,15 +160,15 @@ package body PolyORB.ORB_Controller.No_Tasking is
 
          when Request_Result_Ready =>
 
-            --  Nothing to do. The task will be notified the next time
-            --  it asks for scheduling.
+            --  Nothing to do. The task will be notified the next time it asks
+            --  for scheduling.
 
             null;
 
          when Idle_Awake =>
 
-            --  No task should go idle. Receiving this event denotes
-            --  an internal error.
+            --  No task should go idle. Receiving this event denotes an
+            --  internal error.
 
             raise Program_Error;
 
@@ -251,20 +251,15 @@ package body PolyORB.ORB_Controller.No_Tasking is
    ------------
 
    function Create
-     (OCF : access ORB_Controller_No_Tasking_Factory;
-      Borrow_Transient_Tasks : Boolean) return ORB_Controller_Access
+     (OCF : ORB_Controller_No_Tasking_Factory) return ORB_Controller_Access
    is
       pragma Unreferenced (OCF);
-
       OC : ORB_Controller_No_Tasking_Access;
       RS : PRS.Request_Scheduler_Access;
-
    begin
       PRS.Create (RS);
-      OC := new ORB_Controller_No_Tasking (RS, Borrow_Transient_Tasks);
-
+      OC := new ORB_Controller_No_Tasking (RS);
       Initialize (ORB_Controller (OC.all));
-
       return ORB_Controller_Access (OC);
    end Create;
 

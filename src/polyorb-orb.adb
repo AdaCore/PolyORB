@@ -1366,10 +1366,7 @@ package body PolyORB.ORB is
    procedure Initialize is
       The_Controller : POC.ORB_Controller_Access;
    begin
-      Create
-        (The_Controller,
-         Borrow_Transient_Tasks (Setup.The_Tasking_Policy.all));
-
+      Create (The_Controller);
       Setup.The_ORB := new ORB_Type (Setup.The_Tasking_Policy, The_Controller);
       Create (Setup.The_ORB.all);
    end Initialize;

@@ -31,6 +31,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with Ada.Unchecked_Deallocation;
 
 package body PolyORB.Jobs is
@@ -48,14 +50,26 @@ package body PolyORB.Jobs is
    -- Fetch_Job --
    ---------------
 
-   function Fetch_Job (Q : access Job_Queue) return Job_Access is
+   function Fetch_Job
+     (Q        : access Job_Queue;
+      Selector : access function (J : Job'Class) return Boolean := null)
+      return Job_Access
+   is
       use Job_Queues;
+
       Result : Job_Access;
+      It     : Iterator := First (Q.Contents);
    begin
-      if not Is_Empty (Q) then
-         Extract_First (Q.Contents, Result);
-      end if;
-      return Result;
+      while not Last (It) loop
+         if Selector = null or else Selector (Value (It).all.all) then
+            Result := Job_Access (Value (It).all);
+            Remove (Q.Contents, It);
+            return Result;
+         end if;
+         Next (It);
+      end loop;
+
+      return null;
    end Fetch_Job;
 
    ----------
@@ -63,10 +77,9 @@ package body PolyORB.Jobs is
    ----------
 
    procedure Free (X : in out Job_Access) is
-      procedure Do_Free is new Ada.Unchecked_Deallocation
-        (Job'Class, Job_Access);
+      procedure Free is new Ada.Unchecked_Deallocation (Job'Class, Job_Access);
    begin
-      Do_Free (X);
+      Free (X);
    end Free;
 
    --------------

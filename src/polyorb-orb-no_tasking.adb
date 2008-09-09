@@ -160,18 +160,6 @@ package body PolyORB.ORB.No_Tasking is
       --  block the whole system forever.
    end Idle;
 
-   ----------------------------
-   -- Borrow_Transient_Tasks --
-   ----------------------------
-
-   function Borrow_Transient_Tasks (P : No_Tasking) return Boolean is
-      pragma Warnings (Off);
-      pragma Unreferenced (P);
-      pragma Warnings (On);
-   begin
-      return True;
-   end Borrow_Transient_Tasks;
-
    ----------------
    -- Initialize --
    ----------------

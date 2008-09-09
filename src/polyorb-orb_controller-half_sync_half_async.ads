@@ -66,8 +66,7 @@ package PolyORB.ORB_Controller.Half_Sync_Half_Async is
      new ORB_Controller_Factory with private;
 
    function Create
-     (OCF : access ORB_Controller_Half_Sync_Half_Async_Factory;
-      Borrow_Transient_Tasks : Boolean)
+     (OCF : ORB_Controller_Half_Sync_Half_Async_Factory)
      return ORB_Controller_Access;
 
 private

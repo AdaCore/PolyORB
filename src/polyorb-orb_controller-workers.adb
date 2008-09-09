@@ -224,64 +224,20 @@ package body PolyORB.ORB_Controller.Workers is
 
                   PJ.Queue_Job (O.Job_Queue, E.Request_Job);
                   Try_Allocate_One_Task
-                    (O, Allow_Transient => O.Borrow_Transient_Tasks);
-                  --  We don't want the ORB to borrow a transient task unless
-                  --  the tasking policy says OK, because the task could run
-                  --  arbitrary user code, which might take a long time, or
-                  --  even deadlock.
+                    (O, Allow_Transient => not Is_Upcall (E.Request_Job.all));
+                  --  We don't want the ORB to borrow a transient task to
+                  --  make an upcall to application code, because this could
+                  --  take a long time or even deadlock.
                end if;
             end;
 
          when Request_Result_Ready =>
 
-            --  A Request has been completed and a response is
-            --  available. We must forward it to requesting task. We
-            --  ensure this task will stop its current action and ask
-            --  for rescheduling.
+            --  A Request has been completed and a response is available. We
+            --  must forward it to requesting task. We ensure this task will
+            --  stop its current action and ask for rescheduling.
 
-            case State (E.Requesting_Task.all) is
-               when Running =>
-
-                  --  We cannot abort a running task. We let it
-                  --  complete its job and ask for rescheduling.
-
-                  null;
-
-               when Blocked =>
-
-                  --  We abort this task. It will then leave Blocked
-                  --  state and ask for rescheduling.
-
-                  declare
-                     Sel : Asynch_Ev_Monitor_Access
-                       renames Selector (E.Requesting_Task.all);
-
-                  begin
-                     pragma Debug (C1, O1 ("About to abort block"));
-
-                     pragma Assert (Sel /= null);
-                     Abort_Check_Sources (Sel.all);
-
-                     pragma Debug (C1, O1 ("Aborted."));
-                  end;
-
-               when Idle =>
-
-                  --  We awake this task. It will then leave Idle
-                  --  state and ask for rescheduling.
-
-                  pragma Debug (C1, O1 ("Signal requesting task"));
-
-                  Signal (Condition (E.Requesting_Task.all));
-
-               when Terminated
-                 | Unscheduled =>
-
-                  --  Nothing to do
-                  --  XXX hummm, does it make sense to have these states ?
-
-                  null;
-            end case;
+            Reschedule_Task (E.Requesting_Task.all);
 
          when Idle_Awake =>
 
@@ -313,6 +269,19 @@ package body PolyORB.ORB_Controller.Workers is
      (O  : access ORB_Controller_Workers;
       TI : PTI.Task_Info_Access)
    is
+      function Is_Schedulable (J : PJ.Job'Class) return Boolean;
+      --  True if J is schedulable for this task (i.e. not an upcall job
+      --  if the task is transient).
+
+      --------------------
+      -- Is_Schedulable --
+      --------------------
+
+      function Is_Schedulable (J : PJ.Job'Class) return Boolean is
+      begin
+         return TI.Kind = Permanent or else not Is_Upcall (J);
+      end Is_Schedulable;
+
    begin
       pragma Debug (C1, O1 ("Schedule_Task: enter " & Image (TI.all)));
 
@@ -334,22 +303,24 @@ package body PolyORB.ORB_Controller.Workers is
 
          pragma Debug (C1, O1 ("Task is now terminated"));
          pragma Debug (C2, O2 (Status (O.all)));
+         return;
+      end if;
 
-      --  ??? The test below is fundamentally flawed. Only in the case of
-      --  Request jobs that correspond to upcalls do we want to avoid
-      --  scheduling a transient task. Event jobs, on the contrary, should
-      --  be allowed to be processed by transient task (which is essential
-      --  when only one task remains and is waiting for an answer).
+      declare
+         use type PJ.Job_Access;
+         Job : constant PJ.Job_Access :=
+                 PJ.Fetch_Job (O.Job_Queue, Is_Schedulable'Access);
+      begin
+         if Job /= null then
+            Set_State_Running (O.Summary, TI.all, Job);
 
-      elsif Has_Pending_Job (O)
-        and then (O.Borrow_Transient_Tasks or else TI.Kind = Permanent)
-      then
-         Set_State_Running (O.Summary, TI.all, PJ.Fetch_Job (O.Job_Queue));
+            pragma Debug (C1, O1 ("Task is now running a job"));
+            pragma Debug (C2, O2 (Status (O.all)));
+            return;
+         end if;
+      end;
 
-         pragma Debug (C1, O1 ("Task is now running a job"));
-         pragma Debug (C2, O2 (Status (O.all)));
-
-      elsif May_Poll (TI.all) then
+      if May_Poll (TI.all) then
          declare
             AEM_Index : constant Natural := Need_Polling_Task (O);
          begin
@@ -369,20 +340,19 @@ package body PolyORB.ORB_Controller.Workers is
                                  (O.AEM_Infos (AEM_Index).Monitor.all'Tag)));
 
                pragma Debug (C2, O2 (Status (O.all)));
+               return;
             end if;
          end;
       end if;
 
-      if PTI.State (TI.all) = Unscheduled then
-         Set_State_Idle
-           (O.Summary,
-            TI.all,
-            Insert_Idle_Task (O.Idle_Tasks, TI),
-            O.ORB_Lock);
+      Set_State_Idle
+        (O.Summary,
+         TI.all,
+         Insert_Idle_Task (O.Idle_Tasks, TI),
+         O.ORB_Lock);
 
-         pragma Debug (C1, O1 ("Task is now idle"));
-         pragma Debug (C2, O2 (Status (O.all)));
-      end if;
+      pragma Debug (C1, O1 ("Task is now idle"));
+      pragma Debug (C2, O2 (Status (O.all)));
    end Schedule_Task;
 
    ------------
@@ -390,20 +360,15 @@ package body PolyORB.ORB_Controller.Workers is
    ------------
 
    function Create
-     (OCF                    : access ORB_Controller_Workers_Factory;
-      Borrow_Transient_Tasks : Boolean) return ORB_Controller_Access
+     (OCF : ORB_Controller_Workers_Factory) return ORB_Controller_Access
    is
       pragma Unreferenced (OCF);
-
       OC : ORB_Controller_Workers_Access;
       RS : PRS.Request_Scheduler_Access;
-
    begin
       PRS.Create (RS);
-      OC := new ORB_Controller_Workers (RS, Borrow_Transient_Tasks);
-
+      OC := new ORB_Controller_Workers (RS);
       Initialize (ORB_Controller (OC.all));
-
       return ORB_Controller_Access (OC);
    end Create;
 

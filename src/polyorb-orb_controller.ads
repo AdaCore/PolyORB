@@ -148,13 +148,8 @@ package PolyORB.ORB_Controller is
    -- ORB_Controller --
    --------------------
 
-   type ORB_Controller
-     (RS : PRS.Request_Scheduler_Access; Borrow_Transient_Tasks : Boolean)
-      is abstract tagged limited private;
-   --  Borrow_Transient_Tasks is True iff the tasking policy allows borrowing
-   --  of Transient tasks for handling Request_Jobs. True for Thread_Pool;
-   --  False for other tasking policies. Transient tasks may be borrowed for
-   --  other kinds of Jobs no matter what the tasking policy.
+   type ORB_Controller (RS : PRS.Request_Scheduler_Access) is
+     abstract tagged limited private;
 
    type ORB_Controller_Access is access all ORB_Controller'Class;
 
@@ -260,19 +255,15 @@ package PolyORB.ORB_Controller is
    type ORB_Controller_Factory_Access is
      access all ORB_Controller_Factory'Class;
 
-   function Create
-     (OCF : access ORB_Controller_Factory; Borrow_Transient_Tasks : Boolean)
-     return ORB_Controller_Access
+   function Create (OCF : ORB_Controller_Factory) return ORB_Controller_Access
       is abstract;
-   --  Use factory to create a new ORB_Controller. Borrow_Transient_Tasks is
-   --  used to initialize the discriminant.
+   --  Use factory to create a new ORB_Controller
 
    procedure Register_ORB_Controller_Factory
      (OCF : ORB_Controller_Factory_Access);
    --  Register an ORB_Controller factory
 
-   procedure Create
-     (O : out ORB_Controller_Access; Borrow_Transient_Tasks : Boolean);
+   procedure Create (O : out ORB_Controller_Access);
    --  Initialize an ORB_Controller by dispatching to Create function of the
    --  currently registered factory.
 
@@ -339,42 +330,39 @@ private
 
    Maximum_Number_Of_Monitors : constant := 2;
 
-   type ORB_Controller
-     (RS : PRS.Request_Scheduler_Access; Borrow_Transient_Tasks : Boolean)
-      is abstract tagged limited record
+   type ORB_Controller (RS : PRS.Request_Scheduler_Access) is
+   abstract tagged limited record
+      ORB_Lock : PTM.Mutex_Access;
+      --  Mutex used to enforce ORB critical section
 
-         ORB_Lock : PTM.Mutex_Access;
-         --  Mutex used to enforce ORB critical section
+      Job_Queue : PJ.Job_Queue_Access;
+      --  The queue of jobs to be processed by ORB tasks
 
-         Job_Queue : PJ.Job_Queue_Access;
-         --  The queue of jobs to be processed by ORB tasks
+      AEM_Infos : AEM_Infos_Array (1 .. Maximum_Number_Of_Monitors);
+      Last_Monitored_AEM : Natural := Maximum_Number_Of_Monitors;
+      --  ??? Needs proper documentation of usage of this component.
+      --  Half_Sync_Half_Async uses it to point to the designated monitoring
+      --  task for each monitor; other ORB controllers use it for the currently
+      --  blocked task (and in the latter only there is an invariant that the
+      --  TI component of each slot points to the existing valid task info for
+      --  a Blocked task.)
 
-         AEM_Infos : AEM_Infos_Array (1 .. Maximum_Number_Of_Monitors);
-         Last_Monitored_AEM : Natural := Maximum_Number_Of_Monitors;
-         --  ??? Needs proper documentation of usage of this component.
-         --  Half_Sync_Half_Async uses it to point to the designated
-         --  monitoring task for each monitor; other ORB controllers
-         --  use it for the currently blocked task (and in the latter only
-         --  there is an invariant that the TI component of each slot
-         --  points to the existing valid task info for a Blocked task.)
+      Idle_Tasks : Idle_Tasks_Manager_Access;
 
-         Idle_Tasks : Idle_Tasks_Manager_Access;
+      -----------------------------
+      -- Global controller state --
+      -----------------------------
 
-         -----------------------------
-         -- Global controller state --
-         -----------------------------
+      Summary : PTI.Task_Summary;
+      --  Task counters
 
-         Summary : PTI.Task_Summary;
-         --  Task counters
+      Shutdown : Boolean := False;
+      --  True iff ORB is to be shutdown
 
-         Shutdown : Boolean := False;
-         --  True iff ORB is to be shutdown
-
-         Shutdown_CV : PTCV.Condition_Access;
-         --  CV used by callers of Shutdown to wait for completion of all
-         --  pending requests.
-
-      end record;
+      Shutdown_CV : PTCV.Condition_Access;
+      --  CV used by callers of Shutdown to wait for completion of all pending
+      --  requests.
+   end record;
 
    procedure Initialize (OC : in out ORB_Controller);
    --  Initialize OC elements
@@ -382,5 +370,14 @@ private
    procedure Note_Task_Unregistered (O : access ORB_Controller'Class);
    --  Called by concrete ORB controllers after processing a task
    --  unregistration notification.
+
+   function Is_Upcall (J : PJ.Job'Class) return Boolean;
+   --  Return True if J involves an upcall to application code (in which case
+   --  it must not be handled by a transient task).
+
+   procedure Reschedule_Task (TI : PTI.Task_Info);
+   --  Cause the given task to be rescheduled (i.e. awakened if it is idle,
+   --  unblocked if it is blocked). Used when a condition occurs that the task
+   --  needs to be informed of.
 
 end PolyORB.ORB_Controller;

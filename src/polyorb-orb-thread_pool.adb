@@ -269,19 +269,6 @@ package body PolyORB.ORB.Thread_Pool is
         (C, O ("Thread " & Image (PTI.Id (This_Task)) & " leaving idle"));
    end Idle;
 
-   ----------------------------
-   -- Borrow_Transient_Tasks --
-   ----------------------------
-
-   function Borrow_Transient_Tasks (P : Thread_Pool_Policy) return Boolean is
-      pragma Unreferenced (P);
-   begin
-      --  We don't want to borrow transient tasks in thread-pool policy, except
-      --  that if there is only one thread in the pool, we need to borrow in
-      --  order to avoid deadlock.
-      return Maximum_Threads <= 1;
-   end Borrow_Transient_Tasks;
-
    -------------------------
    -- Get_Maximum_Threads --
    -------------------------

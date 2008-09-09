@@ -33,6 +33,8 @@
 
 --  Job management for ORB activities.
 
+pragma Ada_2005;
+
 with PolyORB.Utils.Chained_Lists;
 
 package PolyORB.Jobs is
@@ -44,18 +46,15 @@ package PolyORB.Jobs is
    ---------
 
    type Job is abstract tagged limited private;
+   --  A Job is any elementary activity that may be assigned to an ORB task to
+   --  be entirely processed within one ORB loop iteration.
 
    type Job_Access is access all Job'Class;
-   --  A Job is any elementary activity that may
-   --  be assigned to an ORB task to be entirely
-   --  processed within one ORB loop iteration.
+   procedure Free (X : in out Job_Access);
 
    procedure Run (J : not null access Job) is abstract;
-   --  Execute the given Job. A task processes a Job
-   --  by invoking its Run primitive.
-
-   procedure Free (X : in out Job_Access);
-   --  Deallocate X.all.
+   --  Execute the given Job. A task processes a Job by invoking its Run
+   --  primitive.
 
    ---------------
    -- Job_Queue --
@@ -68,21 +67,26 @@ package PolyORB.Jobs is
    function Create_Queue return Job_Queue_Access;
    --  Create a new job queue
 
-   procedure Queue_Job (Q : access Job_Queue; J : Job_Access);
-   --  Enter a pending Job into Q
+   procedure Queue_Job
+     (Q : access Job_Queue;
+      J : Job_Access);
+   --  Enter a pending Job into Q.
 
    function Is_Empty (Q : access Job_Queue) return Boolean;
    --  True if, and only if, Q contains no pending Job
 
-   function Fetch_Job (Q : access Job_Queue) return Job_Access;
-   --  Returns a pending Job from Q, and remove it from Q.
-   --  Null is returned if Q is empty.
+   function Fetch_Job
+     (Q        : access Job_Queue;
+      Selector : access function (J : Job'Class) return Boolean := null)
+      return Job_Access;
+   --  Returns a pending Job that matches Selector (i.e. such that
+   --  Selector.all (Job) is true), and remove it from Q. Null is returned if
+   --  no matching job exists. All jobs match a null Selector.
+
+   --  The caller must ensure that all primitive operations of Job_Queue are
+   --  called only from within a critical section.
 
    function Length (Q : access Job_Queue) return Natural;
-   --  Return the number of pending jobs on Q
-
-   --  The caller must ensure that all primitive operations of a given
-   --  Job_Queue objects are called under mutual exclusion.
 
 private
 

@@ -60,11 +60,11 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
       if O.AEM_Infos (AEM_Index).TI /= null
         and then State (O.AEM_Infos (AEM_Index).TI.all) = Blocked
       then
-         --  First condition is a guard for the case where no monitoring
-         --  task has been registered yet for this AEM (can this actually
-         --  happen???)
+         --  First condition is a guard for the case where no monitoring task
+         --  has been registered yet for this AEM (can this actually happen???)
+
          --  Second condition handles the fact that the designated monitoring
-         --  task may be either Blocked or Running (processing detected
+         --  task may not be Blocked (can be Running while processing detected
          --  events).
 
          pragma Debug (C1, O1 ("Disable_Polling: Aborting polling task"));
@@ -136,9 +136,8 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
                                  (O.AEM_Infos (AEM_Index).Monitor.all'Tag)));
 
                if O.AEM_Infos (AEM_Index).Polling_Abort_Counter > 0 then
-
-                  --  This task has been aborted by one or more tasks,
-                  --  we broadcast them.
+                  --  This task has been aborted by one or more tasks, we
+                  --  broadcast them.
 
                   Broadcast (O.AEM_Infos (AEM_Index).Polling_Completed);
                end if;
@@ -150,6 +149,7 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
             begin
                if AEM_Index = 0 then
                   --  This monitor was not yet registered, register it
+
                   pragma Debug (C1, O1 ("Adding new monitor"));
 
                   for J in O.AEM_Infos'Range loop
@@ -223,9 +223,9 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
                end if;
             end loop;
 
-            --  Failure to queue event job denotes an abnormal situation,
-            --  since by construction an associated monitoring task should
-            --  have been established, associated with the binding object.
+            --  Failure to queue event job denotes an abnormal situation, since
+            --  by construction an associated monitoring task should have been
+            --  established, associated with the binding object.
 
             raise Program_Error;
 
@@ -244,8 +244,13 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
                   --  Default: Queue request to main job queue
 
                   pragma Debug (C1, O1 ("Queue Request_Job to default queue"));
+
                   PJ.Queue_Job (O.Job_Queue, E.Request_Job);
-                  Try_Allocate_One_Task (O, Allow_Transient => True);
+                  Try_Allocate_One_Task
+                    (O, Allow_Transient => not Is_Upcall (E.Request_Job.all));
+                  --  We don't want the ORB to borrow a transient task to
+                  --  make an upcall to application code, because this could
+                  --  take a long time or even deadlock.
                end if;
             end;
 
@@ -255,43 +260,7 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
             --  must forward it to requesting task. Ensure the requesting task
             --  is rescheduled now.
 
-            case State (E.Requesting_Task.all) is
-               when Running =>
-
-                  --  We cannot abort a running task. We let it complete its
-                  --  current job and ask for rescheduling.
-
-                  null;
-
-               when Blocked =>
-
-                  --  Abort polling. The task will leave Blocked state and be
-                  --  rescheduled.
-
-                  declare
-                     Sel : Asynch_Ev_Monitor_Access
-                             renames Selector (E.Requesting_Task.all);
-
-                  begin
-                     pragma Debug (C1, O1 ("About to abort block"));
-
-                     pragma Assert (Sel /= null);
-                     Abort_Check_Sources (Sel.all);
-                     pragma Debug (C1, O1 ("Aborted."));
-                  end;
-
-               when Idle =>
-
-                  --  Awake task. It will leave Idle state and be rescheduled
-
-                  pragma Debug (C1, O1 ("Signal requesting task"));
-                  Signal (Condition (E.Requesting_Task.all));
-
-               when Terminated | Unscheduled =>
-
-                  --  Nothing to do
-                  null;
-            end case;
+            Reschedule_Task (E.Requesting_Task.all);
 
          when Idle_Awake =>
 
@@ -416,6 +385,8 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
             --  Task is a processing task
 
             if Has_Pending_Job (O) then
+               --  Case of the pending job being an upcall when the current
+               --  task is transient???
 
                Set_State_Running
                  (O.Summary, TI.all, PJ.Fetch_Job (O.Job_Queue));
@@ -443,18 +414,16 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
    ------------
 
    function Create
-     (OCF : access ORB_Controller_Half_Sync_Half_Async_Factory;
-      Borrow_Transient_Tasks : Boolean) return ORB_Controller_Access
+     (OCF : ORB_Controller_Half_Sync_Half_Async_Factory)
+      return ORB_Controller_Access
    is
       pragma Unreferenced (OCF);
-
       OC : ORB_Controller_Half_Sync_Half_Async_Access;
       RS : PRS.Request_Scheduler_Access;
 
    begin
       PRS.Create (RS);
-      OC := new ORB_Controller_Half_Sync_Half_Async
-        (RS, Borrow_Transient_Tasks);
+      OC := new ORB_Controller_Half_Sync_Half_Async (RS);
 
       for J in OC.Monitoring_Tasks'Range loop
          Create (OC.Monitoring_Tasks (J).CV);

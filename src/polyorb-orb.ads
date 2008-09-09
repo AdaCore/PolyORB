@@ -148,12 +148,6 @@ package PolyORB.ORB is
    --  re-assert it before Idle returns. This_Task holds information on the
    --  idling task.
 
-   function Borrow_Transient_Tasks (P : Tasking_Policy_Type) return Boolean
-      is abstract;
-   --  True if the ORB may borrow Transient tasks to handle Request_Jobs. True
-   --  for Thread_Pool; False for other tasking policies. Transient tasks may
-   --  be borrowed for other kinds of Jobs no matter what the tasking policy.
-
    ------------------------------
    -- Server object operations --
    ------------------------------

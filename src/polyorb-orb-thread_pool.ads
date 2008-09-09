@@ -71,8 +71,6 @@ package PolyORB.ORB.Thread_Pool is
       This_Task : in out PolyORB.Task_Info.Task_Info;
       ORB       :        ORB_Access);
 
-   function Borrow_Transient_Tasks (P : Thread_Pool_Policy) return Boolean;
-
    function Get_Minimum_Spare_Threads return Natural;
    function Get_Maximum_Spare_Threads return Natural;
    function Get_Maximum_Threads       return Natural;

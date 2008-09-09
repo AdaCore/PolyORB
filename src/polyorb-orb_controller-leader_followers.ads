@@ -71,8 +71,7 @@ package PolyORB.ORB_Controller.Leader_Followers is
      new ORB_Controller_Factory with private;
 
    function Create
-     (OCF : access ORB_Controller_Leader_Followers_Factory;
-      Borrow_Transient_Tasks : Boolean)
+     (OCF : ORB_Controller_Leader_Followers_Factory)
      return ORB_Controller_Access;
 
 private

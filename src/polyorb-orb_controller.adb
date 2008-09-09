@@ -32,7 +32,9 @@
 ------------------------------------------------------------------------------
 
 with PolyORB.Constants;
+with PolyORB.ORB;
 with PolyORB.Parameters;
+with PolyORB.Protocols;
 
 package body PolyORB.ORB_Controller is
 
@@ -55,13 +57,9 @@ package body PolyORB.ORB_Controller is
    -- Create --
    ------------
 
-   procedure Create
-     (O : out ORB_Controller_Access; Borrow_Transient_Tasks : Boolean)
-   is
+   procedure Create (O : out ORB_Controller_Access) is
    begin
-      pragma Assert (My_Factory /= null);
-
-      O := Create (My_Factory, Borrow_Transient_Tasks);
+      O := Create (My_Factory.all);
    end Create;
 
    --------------------------------
@@ -219,6 +217,26 @@ package body PolyORB.ORB_Controller is
                = Expected_Running_Tasks);
    end Is_Locally_Terminated;
 
+   ---------------
+   -- Is_Upcall --
+   ---------------
+
+   function Is_Upcall (J : PJ.Job'Class) return Boolean is
+      use PolyORB.Protocols;
+      use PolyORB.ORB;
+   begin
+      --  An upcall is required for any request job originated by a binding
+      --  object. Note that if we used Request_Jobs only on server side, we
+      --  could simplify this to just test for J in Request_Job
+      --  (but currently we misuse Queue_Request_To_Handler on the client
+      --  side, which in turn creates a Request_Job)???
+
+      return J in Request_Job
+        and then
+          Request_Job (J).Request.Requesting_Component.all
+            in Protocols.Session'Class;
+   end Is_Upcall;
+
    --------------------------------
    -- Leave_ORB_Critical_Section --
    --------------------------------
@@ -323,6 +341,47 @@ package body PolyORB.ORB_Controller is
       pragma Debug (C1, O1 ("Register_Task: leave"));
    end Register_Task;
 
+   ---------------------
+   -- Reschedule_Task --
+   ---------------------
+
+   procedure Reschedule_Task (TI : PTI.Task_Info) is
+      use type PAE.Asynch_Ev_Monitor_Access;
+   begin
+      case State (TI) is
+         when Running =>
+            --  Let the task complete its current job
+
+            null;
+
+         when Blocked =>
+
+            --  Abort wait on AEM
+
+            declare
+               Sel : PAE.Asynch_Ev_Monitor_Access renames Selector (TI);
+            begin
+               pragma Debug (C1, O1 ("About to abort block"));
+
+               pragma Assert (Sel /= null);
+               PAE.Abort_Check_Sources (Sel.all);
+
+               pragma Debug (C1, O1 ("Aborted."));
+            end;
+
+         when Idle =>
+            --  Awake task
+
+            pragma Debug (C1, O1 ("Signal idle task"));
+            PTCV.Signal (Condition (TI));
+
+         when Terminated | Unscheduled =>
+            --  Really should not happen
+
+            raise Program_Error;
+      end case;
+   end Reschedule_Task;
+
    ------------
    -- Status --
    ------------
@@ -410,8 +469,9 @@ package body PolyORB.ORB_Controller is
 
       if Get_Count (O.Summary, State => Unscheduled) > 0 then
 
-         --  Some tasks are not scheduled. We assume one of them will
-         --  be allocated to handle current event.
+         --  Some tasks are not scheduled. We assume one of them will be
+         --  allocated to handle current event.
+         --  ??? Can this really happen?
 
          pragma Debug (C1, O1 ("Unassigned task will handle event"));
          null;

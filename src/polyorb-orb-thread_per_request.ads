@@ -42,8 +42,9 @@ package PolyORB.ORB.Thread_Per_Request is
    -----------------------------------------------------------
    -- Implementation of a thread-per-request tasking policy --
    -----------------------------------------------------------
+
    --  In this policy, a task is created for each request and the request
-   --  is executed by this task
+   --  is executed by this task.
 
    type Thread_Per_Request_Policy is new Tasking_Policy_Type with private;
 
@@ -70,9 +71,6 @@ package PolyORB.ORB.Thread_Per_Request is
      (P         : access Thread_Per_Request_Policy;
       This_Task : in out PolyORB.Task_Info.Task_Info;
       ORB       :        ORB_Access);
-
-   function Borrow_Transient_Tasks
-     (P : Thread_Per_Request_Policy) return Boolean;
 
 private
 

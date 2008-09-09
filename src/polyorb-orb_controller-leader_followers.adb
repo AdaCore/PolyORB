@@ -49,6 +49,8 @@ package body PolyORB.ORB_Controller.Leader_Followers is
    use PolyORB.Tasking.Threads;
    use PolyORB.Tasking.Threads.Annotations;
 
+   --  Declaration of LF_Task_Note needs documentation???
+
    type LF_Task_Note is new PolyORB.Annotations.Note with record
       TI  : Thread_Id;
       Job : Job_Access;
@@ -266,16 +268,16 @@ package body PolyORB.ORB_Controller.Leader_Followers is
 
                   declare
                      Note : LF_Task_Note;
-
+                     --  Need documentation???
                   begin
                      Get_Note
                        (Get_Current_Thread_Notepad.all,
                         Note);
 
-                     if Note.TI = Current_Task
-                       and then Note.Job = null
-                     then
+                     if Note.TI = Current_Task and then Note.Job = null then
                         --  Queue event directly into task attribute
+                        --  What if TI is a transient task and the request
+                        --  is an upcall???
 
                         pragma Debug (C1, O1 ("Queue request in task area"));
 
@@ -286,7 +288,12 @@ package body PolyORB.ORB_Controller.Leader_Followers is
                                          Job => E.Request_Job));
                      else
                         PJ.Queue_Job (O.Job_Queue, E.Request_Job);
-                        Try_Allocate_One_Task (O, Allow_Transient => True);
+                        Try_Allocate_One_Task
+                          (O, Allow_Transient =>
+                                not Is_Upcall (E.Request_Job.all));
+                        --  We don't want the ORB to borrow a transient task to
+                        --  make an upcall to application code, because this
+                        --  could take a long time or even deadlock.
                      end if;
                   end;
                end if;
@@ -294,53 +301,11 @@ package body PolyORB.ORB_Controller.Leader_Followers is
 
          when Request_Result_Ready =>
 
-            --  A Request has been completed and a response is
-            --  available. We must forward it to requesting task. We
-            --  ensure this task will stop its current action and ask
-            --  for rescheduling.
+            --  A Request has been completed and a response is available. We
+            --  must forward it to requesting task. We ensure this task will
+            --  stop its current action and ask for rescheduling.
 
-            case State (E.Requesting_Task.all) is
-               when Running =>
-
-                  --  We cannot abort a running task. We let it
-                  --  complete its job and ask for rescheduling.
-
-                  null;
-
-               when Blocked =>
-
-                  --  We abort this task. It will then leave Blocked
-                  --  state and ask for rescheduling.
-
-                  declare
-                     Sel : Asynch_Ev_Monitor_Access
-                       renames Selector (E.Requesting_Task.all);
-
-                  begin
-                     pragma Debug (C1, O1 ("About to abort block"));
-
-                     pragma Assert (Sel /= null);
-                     Abort_Check_Sources (Sel.all);
-
-                     pragma Debug (C1, O1 ("Aborted."));
-                  end;
-
-               when Idle =>
-
-                  --  We awake this task. It will then leave Idle
-                  --  state and ask for rescheduling.
-
-                  pragma Debug (C1, O1 ("Signal requesting task"));
-
-                  Signal (Condition (E.Requesting_Task.all));
-
-               when Terminated
-                 | Unscheduled =>
-
-                  --  Nothing to do
-
-                  null;
-            end case;
+            Reschedule_Task (E.Requesting_Task.all);
 
          when Idle_Awake =>
             --  A task has left Idle state
@@ -366,6 +331,20 @@ package body PolyORB.ORB_Controller.Leader_Followers is
       TI : PTI.Task_Info_Access)
    is
       Note : LF_Task_Note;
+      --  Needs documentation???
+
+      function Is_Schedulable (J : PJ.Job'Class) return Boolean;
+      --  True if J is schedulable for this task (i.e. not an upcall job
+      --  if the task is transient).
+
+      --------------------
+      -- Is_Schedulable --
+      --------------------
+
+      function Is_Schedulable (J : PJ.Job'Class) return Boolean is
+      begin
+         return TI.Kind = Permanent or else not Is_Upcall (J);
+      end Is_Schedulable;
 
    begin
       pragma Debug (C1, O1 ("Schedule_Task "
@@ -391,29 +370,29 @@ package body PolyORB.ORB_Controller.Leader_Followers is
 
          pragma Debug (C1, O1 ("Task is now terminated"));
          pragma Debug (C2, O2 (Status (O.all)));
+         return;
+      end if;
 
-      elsif Note.Job /= null then
-
-         --  Process locally queued job
-
-         declare
-            Job : constant Job_Access := Note.Job;
-         begin
+      declare
+         Job : Job_Access;
+      begin
+         if Note.Job /= null then
+            Job := Note.Job;
             Set_Note
               (Get_Current_Thread_Notepad.all,
                LF_Task_Note'(Annotations.Note
-                             with TI => Note.TI, Job => null));
+                 with TI => Note.TI, Job => null));
+         else
+            Job := PJ.Fetch_Job (O.Job_Queue, Is_Schedulable'Access);
+         end if;
 
+         if Job /= null then
             Set_State_Running (O.Summary, TI.all, Job);
-         end;
+            return;
+         end if;
+      end;
 
-      elsif not PJ.Is_Empty (O.Job_Queue) then
-
-         --  Process job
-
-         Set_State_Running (O.Summary, TI.all, PJ.Fetch_Job (O.Job_Queue));
-
-      elsif May_Poll (TI.all) then
+      if May_Poll (TI.all) then
          declare
             AEM_Index : constant Natural := Need_Polling_Task (O);
          begin
@@ -433,20 +412,19 @@ package body PolyORB.ORB_Controller.Leader_Followers is
                                  (O.AEM_Infos (AEM_Index).Monitor.all'Tag)));
 
                pragma Debug (C2, O2 (Status (O.all)));
+               return;
             end if;
          end;
       end if;
 
-      if PTI.State (TI.all) = Unscheduled then
-         Set_State_Idle
-           (O.Summary,
-            TI.all,
-            Insert_Idle_Task (O.Idle_Tasks, TI),
-            O.ORB_Lock);
+      Set_State_Idle
+        (O.Summary,
+         TI.all,
+         Insert_Idle_Task (O.Idle_Tasks, TI),
+         O.ORB_Lock);
 
-         pragma Debug (C1, O1 ("Task is now idle"));
-         pragma Debug (C2, O2 (Status (O.all)));
-      end if;
+      pragma Debug (C1, O1 ("Task is now idle"));
+      pragma Debug (C2, O2 (Status (O.all)));
    end Schedule_Task;
 
    ------------
@@ -454,21 +432,16 @@ package body PolyORB.ORB_Controller.Leader_Followers is
    ------------
 
    function Create
-     (OCF : access ORB_Controller_Leader_Followers_Factory;
-      Borrow_Transient_Tasks : Boolean)
-     return ORB_Controller_Access
+     (OCF : ORB_Controller_Leader_Followers_Factory)
+      return ORB_Controller_Access
    is
       pragma Unreferenced (OCF);
-
       OC : ORB_Controller_Leader_Followers_Access;
       RS : PRS.Request_Scheduler_Access;
-
    begin
       PRS.Create (RS);
-      OC := new ORB_Controller_Leader_Followers (RS, Borrow_Transient_Tasks);
-
+      OC := new ORB_Controller_Leader_Followers (RS);
       Initialize (ORB_Controller (OC.all));
-
       return ORB_Controller_Access (OC);
    end Create;
 
