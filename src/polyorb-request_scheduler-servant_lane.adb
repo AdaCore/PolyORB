@@ -63,9 +63,8 @@ package body PolyORB.Request_Scheduler.Servant_Lane is
 
    function Try_Queue_Request_Job
      (Self   : access Request_Scheduler_Servant_Lane;
-      Job    :        PolyORB.Jobs.Job_Access;
-      Target :        PolyORB.References.Ref)
-     return Boolean
+      Job    : PolyORB.Jobs.Job_Access;
+      Target : PolyORB.References.Ref) return Boolean
    is
       pragma Unreferenced (Self);
 
@@ -99,9 +98,9 @@ package body PolyORB.Request_Scheduler.Servant_Lane is
             use PolyORB.RT_POA_Policies.Priority_Model_Policy;
             use PolyORB.RT_POA_Policies.Thread_Pool_Policy;
 
-            To_Lane : constant Lane_Root_Access
-              := Get_Servant_Lane
-              (PolyORB.Servants.Servant_Access (Surrogate));
+            To_Lane : constant Lane_Root_Access :=
+                        Get_Servant_Lane
+                          (PolyORB.Servants.Servant_Access (Surrogate));
 
          begin
             if To_Lane /= null then
