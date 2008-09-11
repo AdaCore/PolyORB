@@ -228,8 +228,7 @@ package body PolyORB.Protocols is
 
       elsif S in Executed_Request then
          declare
-            Req : Request_Access
-              := Executed_Request (S).Req;
+            Req : Request_Access := Executed_Request (S).Req;
          begin
 
             if Req.Deferred_Arguments_Session /= null then
