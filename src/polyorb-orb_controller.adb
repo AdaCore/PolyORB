@@ -456,7 +456,7 @@ package body PolyORB.ORB_Controller is
    procedure Try_Allocate_One_Task
      (O : access ORB_Controller; Allow_Transient : Boolean)
    is
-      Requested_Kind : Task_Kind;
+      Requested_Kind : Any_Task_Kind;
    begin
       pragma Debug (C1, O1 ("Try_Allocate_One_Task: enter"));
 
