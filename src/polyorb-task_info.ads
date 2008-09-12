@@ -73,6 +73,9 @@ package PolyORB.Task_Info is
    type Task_Info (Kind : Task_Kind) is limited private;
    --  Task Info holds information on tasks that run ORB.Run
 
+   function Kind_Match (TI : Task_Info; Kind : Any_Task_Kind) return Boolean;
+   --  True if Kind matches TI's Kind (Any matches any kind)
+
    type Task_Info_Access is access all Task_Info;
    package Task_Lists is new PolyORB.Utils.Chained_Lists
      (Task_Info_Access, Doubly_Chained => True);
@@ -151,15 +154,11 @@ package PolyORB.Task_Info is
    --  Task_Info will hold Id of the current task, as provided by the PolyORB
    --  tasking subsystem.
 
-   procedure Set_May_Poll
-     (TI       : in out Task_Info;
-      May_Poll : Boolean);
    procedure Set_May_Exit
      (TI       : in out Task_Info;
       May_Exit : Boolean);
    --  Set the corresponding flags on TI
 
-   function May_Poll (TI : Task_Info) return Boolean;
    function May_Exit (TI : Task_Info) return Boolean;
    --  Return the corresponding flags for TI
 
@@ -208,9 +207,6 @@ private
       --  Current Task status, not permitted to be changed except by internal
       --  procedure Task_State_Change, which in turn is called by each of the
       --  Set_State_xxx external procedures.
-
-      May_Poll : Boolean := False;
-      --  True iff task may poll on event sources
 
       May_Exit : Boolean := False;
       --  True iff ORB contoller is allowed to decide to terminate this task
@@ -268,8 +264,6 @@ private
    pragma Inline (Mutex);
    pragma Inline (Set_Id);
    pragma Inline (Set_May_Exit);
-   pragma Inline (Set_May_Poll);
-   pragma Inline (May_Poll);
    pragma Inline (May_Exit);
    pragma Inline (Set_Exit_Condition);
    pragma Inline (Exit_Condition);

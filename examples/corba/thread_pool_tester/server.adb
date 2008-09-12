@@ -63,7 +63,6 @@ with Shell;
 with Transient_Tasks;
 
 procedure Server is
-   Svc_Object : aliased Svc.Impl.Object;
    Svc_Ref    : Svc.Ref;
 
    Count : Integer;
@@ -84,7 +83,7 @@ procedure Server is
         (PolyORB.Setup.The_ORB,
          Exit_Condition => (Transient_Infos (Id).Condition'Unchecked_Access,
                             Transient_Infos (Id).Info_Access'Unchecked_Access),
-         May_Poll       => True);
+         May_Exit       => True);
       Put_Line ("Server transient" & Id'Img & ": leave");
    end Transient_Processing;
 
@@ -176,7 +175,7 @@ begin
    Put_Line ("Server:" & Natural'Image (Condition_Variables'Length)
              & " transient tasks created");
 
-   Initiate_Servant (Svc_Object'Unchecked_Access, Svc_Ref);
+   Initiate_Servant (new Svc.Impl.Object, Svc_Ref);
    Put_Line ("Server: servant initialized");
 
    declare

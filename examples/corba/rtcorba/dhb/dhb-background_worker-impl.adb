@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---        Copyright (C) 2006-2008, Free Software Foundation, Inc.           --
+--         Copyright (C) 2006-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -133,8 +133,7 @@ package body DHB.Background_Worker.Impl is
             Name             => "",
             Default_Priority => Integer (Ada_Priority),
             Storage_Size     => 0,
-            R                => New_Background_Worker,
-            C                => new Runnable_Controller);
+            R                => New_Background_Worker);
          pragma Unreferenced (T);
       begin
          null;

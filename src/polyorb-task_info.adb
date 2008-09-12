@@ -83,6 +83,15 @@ package body PolyORB.Task_Info is
       return Tasking.Threads.Image (TI.Id);
    end Image;
 
+   ----------------
+   -- Kind_Match --
+   ----------------
+
+   function Kind_Match (TI : Task_Info; Kind : Any_Task_Kind) return Boolean is
+   begin
+      return Kind = Any or else Kind = TI.Kind;
+   end Kind_Match;
+
    -----------------
    -- List_Attach --
    -----------------
@@ -120,15 +129,6 @@ package body PolyORB.Task_Info is
    begin
       return TI.May_Exit;
    end May_Exit;
-
-   --------------
-   -- May_Poll --
-   --------------
-
-   function May_Poll (TI : Task_Info) return Boolean is
-   begin
-      return TI.May_Poll;
-   end May_Poll;
 
    --------------
    -- Selector --
@@ -278,18 +278,6 @@ package body PolyORB.Task_Info is
    begin
       TI.May_Exit := May_Exit;
    end Set_May_Exit;
-
-   ------------------
-   -- Set_May_Poll --
-   ------------------
-
-   procedure Set_May_Poll
-     (TI       : in out Task_Info;
-      May_Poll : Boolean)
-   is
-   begin
-      TI.May_Poll := May_Poll;
-   end Set_May_Poll;
 
    ---------------------------
    -- Set_State_Unscheduled --

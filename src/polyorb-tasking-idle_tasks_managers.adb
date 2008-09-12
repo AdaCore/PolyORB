@@ -48,7 +48,7 @@ package body PolyORB.Tasking.Idle_Tasks_Managers is
 
    procedure Awake_One_Idle_Task
      (ITM : access Idle_Tasks_Manager; Kind : Task_Kind);
-   --  Awake one idle task of the specified Kind; there must be at least one.
+   --  Awake one idle task of the specified Kind; there must be at least one
 
    function Allocate_CV
      (ITM : access Idle_Tasks_Manager)
@@ -104,12 +104,13 @@ package body PolyORB.Tasking.Idle_Tasks_Managers is
       CV_Lists.Append (ITM.Free_CV, Condition (Task_To_Awake.all));
    end Awake_One_Idle_Task;
 
-   -----------------------------
-   -- Try_Awake_One_Idle_Task --
-   -----------------------------
+   -------------------------
+   -- Awake_One_Idle_Task --
+   -------------------------
 
-   procedure Try_Awake_One_Idle_Task
-     (ITM : access Idle_Tasks_Manager; Allow_Transient : Boolean)
+   function Awake_One_Idle_Task
+     (ITM             : access Idle_Tasks_Manager;
+      Allow_Transient : Boolean) return Boolean
    is
    begin
       --  The choice between Kinds is arbitrary, unless Allow_Transient is
@@ -118,14 +119,19 @@ package body PolyORB.Tasking.Idle_Tasks_Managers is
 
       if not Task_Lists.Is_Empty (ITM.Idle_Task_Lists (Permanent)) then
          Awake_One_Idle_Task (ITM, Permanent);
+         return True;
 
       elsif Allow_Transient
         and then not Task_Lists.Is_Empty (ITM.Idle_Task_Lists (Transient))
       then
-
          Awake_One_Idle_Task (ITM, Transient);
+         return True;
+
+      else
+         --  Failed to find an appropriate idle task
+         return False;
       end if;
-   end Try_Awake_One_Idle_Task;
+   end Awake_One_Idle_Task;
 
    --------------------------
    -- Awake_All_Idle_Tasks --

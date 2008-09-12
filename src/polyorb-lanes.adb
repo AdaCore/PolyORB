@@ -172,8 +172,7 @@ package body PolyORB.Lanes is
                   Name             => "",
                   Default_Priority => ORB_Priority,
                   Storage_Size     => Stack_Size,
-                  R                => Runnable_Access (New_Runnable),
-                  C                => new Runnable_Controller);
+                  R                => Runnable_Access (New_Runnable));
                pragma Unreferenced (T);
             begin
                null;
@@ -259,8 +258,7 @@ package body PolyORB.Lanes is
                      Name             => "",
                      Default_Priority => L.ORB_Priority,
                      Storage_Size     => L.Stack_Size,
-                     R                => Runnable_Access (New_Runnable),
-                     C                => new Runnable_Controller);
+                     R                => Runnable_Access (New_Runnable));
                   pragma Unreferenced (T);
                begin
                   null;

@@ -288,7 +288,9 @@ private
 
    procedure Try_Allocate_One_Task
      (O : access ORB_Controller; Allow_Transient : Boolean);
-   --  Awake one idle task, if any. Else do nothing
+   --  A job has been queued on the general ORB controller job queue:
+   --  awake one idle task to process it. If no idle task is available, and no
+   --  permanent running task is about to reschedule, unblock a polling task.
 
    function Need_Polling_Task (O : access ORB_Controller) return Natural;
    --  Return the index of the AEM_Info of a monitor waiting for polling task,
@@ -372,8 +374,10 @@ private
    --  unregistration notification.
 
    function Is_Upcall (J : PJ.Job'Class) return Boolean;
-   --  Return True if J involves an upcall to application code (in which case
-   --  it must not be handled by a transient task).
+   --  Return True if job J that is queued on the ORB controller job queue
+   --  involves an upcall to application code (in which case it must not be
+   --  handled by a transient task). Note that this predicate is defined only
+   --  for queued jobs.
 
    procedure Reschedule_Task (TI : PTI.Task_Info);
    --  Cause the given task to be rescheduled (i.e. awakened if it is idle,

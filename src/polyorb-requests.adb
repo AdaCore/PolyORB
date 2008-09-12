@@ -177,7 +177,6 @@ package body PolyORB.Requests is
          Exit_Condition_T'
            (Condition => Self.Completed'Access,
             Task_Info => Self.Requesting_Task'Access),
-         May_Poll => True,
          May_Exit => True);
    end Invoke;
 

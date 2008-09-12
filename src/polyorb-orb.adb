@@ -42,7 +42,6 @@ with PolyORB.Binding_Object_QoS;
 with PolyORB.Errors;
 with PolyORB.Filters.Iface;
 with PolyORB.Initialization;
-
 with PolyORB.Log;
 with PolyORB.ORB.Iface;
 with PolyORB.Parameters.Initialization;
@@ -85,25 +84,6 @@ package body PolyORB.ORB is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
-
-   ---------------------------
-   -- Duplicate_Request_Job --
-   ---------------------------
-
-   function Duplicate_Request_Job
-     (RJ : access Jobs.Job'Class)
-     return Jobs.Job_Access
-   is
-      TRJ : Request_Job renames Request_Job (RJ.all);
-      NJ  : constant Job_Access := new Request_Job;
-      TNJ : Request_Job renames Request_Job (NJ.all);
-
-   begin
-      TNJ.ORB       := TRJ.ORB;
-      TNJ.Requestor := TRJ.Requestor;
-      TNJ.Request   := TRJ.Request;
-      return NJ;
-   end Duplicate_Request_Job;
 
    ----------------------------------------------
    -- Management of asynchronous event sources --
@@ -256,7 +236,7 @@ package body PolyORB.ORB is
 
    procedure Perform_Work
      (ORB       : access ORB_Type;
-      This_Task : in out Task_Info.Task_Info);
+      This_Task : in out PTI.Task_Info);
    pragma Inline (Perform_Work);
    --  Perform one item of work from Q.
    --  Precondition:  Must be called from within ORB critical section.
@@ -369,7 +349,6 @@ package body PolyORB.ORB is
    procedure Run
      (ORB            : access ORB_Type;
       Exit_Condition : Exit_Condition_T := (null, null);
-      May_Poll       : Boolean;
       May_Exit       : Boolean)
    is
       use PolyORB.Task_Info;
@@ -387,7 +366,6 @@ package body PolyORB.ORB is
 
       Set_Id (This_Task);
       Set_Exit_Condition (This_Task, Exit_Condition.Condition);
-      Set_May_Poll       (This_Task, May_Poll);
       Set_May_Exit       (This_Task, May_Exit);
 
       if Exit_Condition.Task_Info /= null then
@@ -787,7 +765,7 @@ package body PolyORB.ORB is
 
    procedure Set_Object_Adapter
      (ORB : access ORB_Type;
-      OA  :        Obj_Adapters.Obj_Adapter_Access)
+      OA  : Obj_Adapters.Obj_Adapter_Access)
    is
       use type Obj_Adapters.Obj_Adapter_Access;
 
@@ -819,7 +797,7 @@ package body PolyORB.ORB is
 
    procedure Insert_Source
      (ORB : access ORB_Type;
-      AES :        Asynch_Ev_Source_Access)
+      AES : Asynch_Ev_Source_Access)
    is
    begin
       Enter_ORB_Critical_Section (ORB.ORB_Controller);
@@ -940,10 +918,8 @@ package body PolyORB.ORB is
    procedure Run (J : not null access Request_Job) is
       AJ : Job_Access := Job_Access (J);
    begin
-      Handle_Request_Execution
-        (P => J.ORB.Tasking_Policy, ORB => J.ORB, RJ => J);
+      Run_Request (J.ORB, J.Request);
       Free (AJ);
-
    exception
       when E : others =>
          pragma Debug (C, O ("Run: Got exception "
@@ -957,29 +933,29 @@ package body PolyORB.ORB is
    -- Run_Request --
    -----------------
 
-   procedure Run_Request (J : access Request_Job) is
+   procedure Run_Request (ORB : access ORB_Type; Req : Request_Access) is
    begin
       pragma Debug (C, O ("Run Request_Job: enter"));
-      pragma Assert (J.Request /= null);
+      pragma Assert (Req /= null);
 
       declare
          use type Task_Info.Task_Info_Access;
          Surrogate : Components.Component_Access;
-         Pro : PolyORB.Binding_Data.Profile_Access;
+         Pro       : PolyORB.Binding_Data.Profile_Access;
 
       begin
          pragma Debug (C, O ("Task " & Image (Current_Task)
                           & " executing: "
-                          & Requests.Image (J.Request.all)));
+                          & Requests.Image (Req.all)));
 
-         if J.Request.Requesting_Task /= null then
+         if Req.Requesting_Task /= null then
             pragma Debug
               (C, O ("... requested by "
-                  & Task_Info.Image (J.Request.Requesting_Task.all)));
+                  & PTI.Image (Req.Requesting_Task.all)));
             null;
          end if;
 
-         if J.Request.Completed then
+         if Req.Completed then
 
             --  The request can be already marked as completed in the case
             --  where an error has been detected during immediate argument
@@ -988,12 +964,11 @@ package body PolyORB.ORB is
 
             pragma Debug (C, O ("Request completed due to early error"));
 
-            Emit_No_Reply (J.Requestor,
-                           Servants.Iface.Executed_Request'
-                           (Req => J.Request));
+            Emit_No_Reply (Req.Requesting_Component,
+                           Servants.Iface.Executed_Request'(Req => Req));
             return;
 
-         elsif Is_Set (Sync_None, J.Request.Req_Flags) then
+         elsif Is_Set (Sync_None, Req.Req_Flags) then
 
             --  At this point, the request has been queued, the Sync_None
             --  synchronisation policy has been completed.
@@ -1001,11 +976,10 @@ package body PolyORB.ORB is
 
             pragma Debug (C, O ("Sync_None completed"));
 
-            Emit_No_Reply (J.Requestor,
-                           Servants.Iface.Executed_Request'
-                           (Req => J.Request));
+            Emit_No_Reply (Req.Requesting_Component,
+                           Servants.Iface.Executed_Request'(Req => Req));
 
-            J.Request.Completed := True;
+            Req.Completed := True;
          end if;
 
          --  Bind target reference to a servant if this is a local reference,
@@ -1018,9 +992,9 @@ package body PolyORB.ORB is
 
          begin
             References.Binding.Bind
-              (J.Request.Target,
-               J.ORB,
-               Request_QoS.Get_Request_QoS (J.Request),
+              (Req.Target,
+               ORB_Access (ORB),
+               Request_QoS.Get_Request_QoS (Req),
                Surrogate,
                Pro,
                False,
@@ -1036,12 +1010,12 @@ package body PolyORB.ORB is
                --  implies a problem within the object adapter. We bounce the
                --  exception to the user for further processing.
 
-               Set_Exception (J.Request, Error);
+               Set_Exception (Req, Error);
                Catch (Error);
 
-               Emit_No_Reply (J.Requestor,
+               Emit_No_Reply (Req.Requesting_Component,
                               Servants.Iface.Executed_Request'
-                              (Req => J.Request));
+                              (Req => Req));
                return;
             end if;
          end;
@@ -1050,8 +1024,8 @@ package body PolyORB.ORB is
          --  created, a servant manager has been reached. We are about to send
          --  the request to the target.
 
-         if Is_Set (Sync_With_Server, J.Request.Req_Flags)
-           and then Is_Profile_Local (J.ORB, Pro)
+         if Is_Set (Sync_With_Server, Req.Req_Flags)
+           and then Is_Profile_Local (ORB, Pro)
          then
             --  We are on the server side, and use Sync_With_Server
             --  synchronization: we can send an Executed_Request
@@ -1060,9 +1034,9 @@ package body PolyORB.ORB is
             pragma Debug (C, O ("With_Server completed, sending"
                              & " Acknowledge_Request message"));
 
-            Emit_No_Reply (J.Requestor,
+            Emit_No_Reply (Req.Requesting_Component,
                            Servants.Iface.Acknowledge_Request'
-                           (Req => J.Request));
+                           (Req => Req));
          end if;
 
          --  Setup_Environment (Oid);
@@ -1073,27 +1047,27 @@ package body PolyORB.ORB is
          declare
             Result : constant Components.Message'Class :=
                        Emit (Surrogate, Servants.Iface.Execute_Request'
-                                          (Req => J.Request, Pro => Pro));
+                                          (Req => Req, Pro => Pro));
          begin
             --  Unsetup_Environment ();
             --  Unbind (J.Req.Target, J.ORB, Servant);
             --  XXX Unbind must Release_Servant.
 
-            --  XXX Actually cannot unbind here: if the binding
-            --    object is destroyed that early, we won't
-            --    have the opportunity to receive a reply...
+            --  XXX Actually cannot unbind here: if the binding object is
+            --    destroyed that early, we won't have the opportunity to
+            --    receive a reply...
             pragma Debug (C, O ("Run_Request: got "
               & Ada.Tags.External_Tag (Result'Tag)));
 
             if Result not in Null_Message then
                begin
-                  Emit_No_Reply (J.Requestor, Result);
+                  Emit_No_Reply (Req.Requesting_Component, Result);
                   --  XXX issue: if we are on the server side, and the
                   --  transport layer has detected a disconnection while we
                   --  were processing the request, the Requestor (Session)
                   --  object here could have become invalid. For now we hack
-                  --  around this issue in an ugly fashion by catching
-                  --  all exceptions.
+                  --  around this issue in an ugly fashion by catching all
+                  --  exceptions.
                exception
                   when E : others =>
                      O ("Got exception sending Executed_Request:" & ASCII.LF
@@ -1193,33 +1167,31 @@ package body PolyORB.ORB is
          declare
             QR  : Iface.Queue_Request renames Iface.Queue_Request (Msg);
             Req : Requests.Request_Access renames QR.Request;
-            J   : constant Job_Access := new Request_Job;
          begin
             pragma Debug (C, O ("Queue_Request: enter"));
-
-            Request_Job (J.all).ORB := ORB_Access (ORB);
-            Request_Job (J.all).Request := Req;
 
             if QR.Requestor = null then
 
                --  If the request was queued directly by a client, then the
-               --  ORB is responsible for setting its state to completed on
-               --  reply from the object.
+               --  ORB is responsible for setting its state to Completed upon
+               --  reception of a reply.
 
-               Request_Job (J.all).Requestor := Component_Access (ORB);
+               Req.Requesting_Component := Component_Access (ORB);
+               Run_Request (ORB, Req);
             else
-               Request_Job (J.all).Requestor := QR.Requestor;
+               Req.Requesting_Component := QR.Requestor;
+               declare
+                  J : constant Job_Access :=
+                        new Request_Job'(Job with
+                                         ORB       => ORB_Access (ORB),
+                                         Request   => Req);
+               begin
+                  Handle_Request_Execution
+                    (ORB.Tasking_Policy,
+                     ORB_Access (ORB),
+                     Request_Job (J.all)'Access);
+               end;
             end if;
-
-            Req.Requesting_Component := Request_Job (J.all).Requestor;
-
-            Enter_ORB_Critical_Section (ORB.ORB_Controller);
-            Notify_Event (ORB.ORB_Controller,
-                          Event'(Kind        => Queue_Request_Job,
-                                 Request_Job => J,
-                                 Target      => Req.Target));
-            Leave_ORB_Critical_Section (ORB.ORB_Controller);
-
             pragma Debug (C, O ("Queue_Request: leave"));
          end;
 

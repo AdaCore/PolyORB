@@ -96,10 +96,7 @@ package body PolyORB.ORB.Thread_Pool is
       pragma Debug (C, O ("Thread_Pool_Main_Loop: enter "
                        & Image (Current_Task)));
 
-      PolyORB.ORB.Run
-        (Setup.The_ORB,
-         May_Poll => True,
-         May_Exit => True);
+      PolyORB.ORB.Run (Setup.The_ORB, May_Exit => True);
 
       pragma Debug (C, O ("Thread_Pool_Main_Loop: leave "
                        & Image (Current_Task)));
@@ -209,15 +206,16 @@ package body PolyORB.ORB.Thread_Pool is
       ORB : ORB_Access;
       RJ  : access Request_Job'Class)
    is
-      pragma Warnings (Off);
       pragma Unreferenced (P);
-      pragma Unreferenced (ORB);
-      pragma Warnings (On);
-
    begin
-      pragma Debug (C, O ("Thread " & Image (Current_Task)
-                          & " handles request execution"));
-      Run_Request (RJ);
+      --  Queue Request_Job to general ORB controller job queue
+
+      Enter_ORB_Critical_Section (ORB.ORB_Controller);
+      Notify_Event (ORB.ORB_Controller,
+                    Event'(Kind        => Queue_Request_Job,
+                           Request_Job => Job_Access (RJ),
+                           Target      => RJ.Request.Target));
+      Leave_ORB_Critical_Section (ORB.ORB_Controller);
    end Handle_Request_Execution;
 
    ----------

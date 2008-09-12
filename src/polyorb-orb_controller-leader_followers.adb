@@ -392,30 +392,28 @@ package body PolyORB.ORB_Controller.Leader_Followers is
          end if;
       end;
 
-      if May_Poll (TI.all) then
-         declare
-            AEM_Index : constant Natural := Need_Polling_Task (O);
-         begin
-            if AEM_Index > 0 then
-               O.AEM_Infos (AEM_Index).Polling_Scheduled := False;
-               O.AEM_Infos (AEM_Index).TI := TI;
+      declare
+         AEM_Index : constant Natural := Need_Polling_Task (O);
+      begin
+         if AEM_Index > 0 then
+            O.AEM_Infos (AEM_Index).Polling_Scheduled := False;
+            O.AEM_Infos (AEM_Index).TI := TI;
 
-               Set_State_Blocked
-                 (O.Summary,
-                  TI.all,
-                  O.AEM_Infos (AEM_Index).Monitor,
-                  O.AEM_Infos (AEM_Index).Polling_Timeout);
+            Set_State_Blocked
+              (O.Summary,
+               TI.all,
+               O.AEM_Infos (AEM_Index).Monitor,
+               O.AEM_Infos (AEM_Index).Polling_Timeout);
 
-               pragma Debug (C1, O1 ("Task is now blocked on monitor"
-                                 & Natural'Image (AEM_Index)
-                                 & " " & Ada.Tags.External_Tag
-                                 (O.AEM_Infos (AEM_Index).Monitor.all'Tag)));
+            pragma Debug (C1, O1 ("Task is now blocked on monitor"
+                              & Natural'Image (AEM_Index)
+                              & " " & Ada.Tags.External_Tag
+                              (O.AEM_Infos (AEM_Index).Monitor.all'Tag)));
 
-               pragma Debug (C2, O2 (Status (O.all)));
-               return;
-            end if;
-         end;
-      end if;
+            pragma Debug (C2, O2 (Status (O.all)));
+            return;
+         end if;
+      end;
 
       Set_State_Idle
         (O.Summary,

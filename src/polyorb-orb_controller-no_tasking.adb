@@ -173,10 +173,9 @@ package body PolyORB.ORB_Controller.No_Tasking is
             raise Program_Error;
 
          when Task_Registered =>
-            pragma Assert (May_Poll (E.Registered_Task.all));
             null;
             --  Under this implementation, there is only one task registered
-            --  with the ORB. This task must be able to poll an AEM.
+            --  with the ORB.
 
          when Task_Unregistered =>
             Note_Task_Unregistered (O);

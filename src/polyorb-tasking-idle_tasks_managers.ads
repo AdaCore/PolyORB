@@ -44,11 +44,13 @@ package PolyORB.Tasking.Idle_Tasks_Managers is
 
    type Idle_Tasks_Manager_Access is access all Idle_Tasks_Manager;
 
-   procedure Try_Awake_One_Idle_Task
-     (ITM : access Idle_Tasks_Manager; Allow_Transient : Boolean);
+   function Awake_One_Idle_Task
+     (ITM             : access Idle_Tasks_Manager;
+      Allow_Transient : Boolean) return Boolean;
    --  Awake one idle task, if any, else do nothing. If Allow_Transient is
    --  True, we can awaken any Kind of task; otherwise, we must awaken a
-   --  Permanent task (or do nothing).
+   --  Permanent task (or do nothing). Returns True when an idle task has been
+   --  awakened.
 
    procedure Awake_All_Idle_Tasks (ITM : access Idle_Tasks_Manager);
    --  Awake all idle tasks

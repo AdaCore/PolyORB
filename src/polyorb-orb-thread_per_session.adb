@@ -65,11 +65,9 @@ package body PolyORB.ORB.Thread_Per_Session is
      renames L.Enabled;
 
    type Session_Runnable is new Runnable with record
-      A_S   : Session_Access := null;
+      ORB : ORB_Access;
+      A_S : Session_Access;
    end record;
-
-   type Session_Runnable_Controller is
-     new Runnable_Controller with null record;
 
    procedure Run (R : access Session_Runnable);
 
@@ -166,11 +164,10 @@ package body PolyORB.ORB.Thread_Per_Session is
       ORB :        ORB_Access;
       AC  :        Active_Connection)
    is
-      pragma Unreferenced (P, ORB);
+      pragma Unreferenced (P);
 
-      S    : Filters.Filter_Access := null;
+      S    : Filters.Filter_Access;
       Temp : Filters.Filter_Access := Filters.Filter_Access (Upper (AC.TE));
-      R    : constant Runnable_Access := new Session_Runnable;
 
       T    : Thread_Access;
       pragma Unreferenced (T);
@@ -185,21 +182,13 @@ package body PolyORB.ORB.Thread_Per_Session is
          S := Temp;
          Temp := Filters.Filter_Access (Upper (Temp));
       end loop;
+      pragma Assert (S /= null);
 
-      pragma Debug (C, O ("Found Session access"));
+      --  Start session task
 
-      if S = null then
-         pragma Debug (C, O ("Session access not defined yet"));
-         null;
-         --  XXX What does this mean? Is it an error?
-      end if;
-
-      Session_Runnable (R.all).A_S := Session_Access (S);
-
-      T := Run_In_Task
-        (Get_Thread_Factory,
-         R => R,
-         C => new Session_Runnable_Controller);
+      T := Run_In_Task (Get_Thread_Factory,
+        R => new Session_Runnable'(ORB => ORB,
+                                   A_S => Session_Access (S)));
 
       Components.Emit_No_Reply (Component_Access (AC.TE),
          Connect_Indication'(null record));
@@ -211,33 +200,21 @@ package body PolyORB.ORB.Thread_Per_Session is
 
    procedure Handle_Request_Execution
      (P   : access Thread_Per_Session_Policy;
-      ORB :        ORB_Access;
+      ORB : ORB_Access;
       RJ  : access Request_Job'Class)
    is
       pragma Unreferenced (P);
+      pragma Unreferenced (ORB);
+
+      S   : constant Session_Access :=
+              Session_Access (RJ.Request.Requesting_Component);
+      N   : constant Notepad_Access := Get_Task_Info (S);
+      STI : Session_Thread_Info;
    begin
-      pragma Debug (C, O ("Handle_Request_Execution : Queue Job"));
-      if RJ.Requestor = Component_Access (ORB) then
-         --  Per PolyORB.ORB.Handle_Message, the request has been
-         --  queued by a client, meaning we are on the client-side. So
-         --  use client thread to send the request.
-         Run_Request (RJ);
+      --  Pass on request to session task
 
-      else
-         declare
-            S   : constant Session_Access := Session_Access (RJ.Requestor);
-            N   : constant Notepad_Access := Get_Task_Info (S);
-            STI : Session_Thread_Info;
-         begin
-            --  A thread has been created and is associated to handle
-            --  request execution, use it.
-
-            Get_Note (N.all, STI);
-            Add_Request
-              (STI,
-               Request_Info'(Job => PolyORB.ORB.Duplicate_Request_Job (RJ)));
-         end;
-      end if;
+      Get_Note (N.all, STI);
+      Add_Request (STI, Request_Info'(Job => Job_Access (RJ)));
    end Handle_Request_Execution;
 
    ----------
@@ -328,7 +305,7 @@ package body PolyORB.ORB.Thread_Per_Session is
                           & " is executing Job"));
 
          if Q.Job.all in Request_Job'Class then
-            Run_Request (Request_Job (Q.Job.all)'Access);
+            Run_Request (R.ORB, Request_Job (Q.Job.all).Request);
             Jobs.Free (Q.Job);
          elsif Q.Job.all in End_Thread_Job'Class then
             pragma Debug (C, O ("Received an End_Thread_Message"));

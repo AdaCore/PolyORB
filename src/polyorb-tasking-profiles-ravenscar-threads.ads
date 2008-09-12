@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -92,8 +92,7 @@ package PolyORB.Tasking.Profiles.Ravenscar.Threads is
       Name             : String := "";
       Default_Priority : System.Any_Priority := System.Default_Priority;
       Storage_Size     : Natural := 0;
-      R                : Runnable_Access;
-      RC               : Runnable_Controller_Access) return Thread_Access;
+      R                : Runnable_Access) return Thread_Access;
 
    function Run_In_Task
      (TF               : access Ravenscar_Thread_Factory_Type;

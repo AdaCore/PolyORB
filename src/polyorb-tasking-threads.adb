@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,21 +31,12 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Unchecked_Deallocation;
-
 package body PolyORB.Tasking.Threads is
 
    My_Thread_Factory : Thread_Factory_Access;
    --  Thread_Factory of the chosen profile.
 
    Initialised       : Boolean := False;
-
-   ----------
-   -- Free --
-   ----------
-
-   procedure Free is new Ada.Unchecked_Deallocation
-     (Runnable'Class, Runnable_Access);
 
    -----------------
    -- Awake_Count --
@@ -83,21 +74,6 @@ package body PolyORB.Tasking.Threads is
    begin
       return Get_Current_Thread_Id (My_Thread_Factory);
    end Current_Task;
-
-   -------------------
-   -- Free_Runnable --
-   -------------------
-
-   procedure Free_Runnable
-     (C : in out Runnable_Controller;
-      R : in out Runnable_Access)
-   is
-      pragma Warnings (Off);
-      pragma Unreferenced (C);
-      pragma Warnings (On);
-   begin
-      Free (R);
-   end Free_Runnable;
 
    ------------------------
    -- Get_Thread_Factory --

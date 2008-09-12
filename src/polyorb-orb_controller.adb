@@ -34,7 +34,6 @@
 with PolyORB.Constants;
 with PolyORB.ORB;
 with PolyORB.Parameters;
-with PolyORB.Protocols;
 
 package body PolyORB.ORB_Controller is
 
@@ -222,19 +221,12 @@ package body PolyORB.ORB_Controller is
    ---------------
 
    function Is_Upcall (J : PJ.Job'Class) return Boolean is
-      use PolyORB.Protocols;
-      use PolyORB.ORB;
    begin
-      --  An upcall is required for any request job originated by a binding
-      --  object. Note that if we used Request_Jobs only on server side, we
-      --  could simplify this to just test for J in Request_Job
-      --  (but currently we misuse Queue_Request_To_Handler on the client
-      --  side, which in turn creates a Request_Job)???
+      --  Request_Jobs are queued on the general ORB controller job queue only
+      --  on the server side, so we know that if we have a Request_Job here,
+      --  it must be an upcall.
 
-      return J in Request_Job
-        and then
-          Request_Job (J).Request.Requesting_Component.all
-            in Protocols.Session'Class;
+      return J in ORB.Request_Job;
    end Is_Upcall;
 
    --------------------------------
@@ -464,31 +456,70 @@ package body PolyORB.ORB_Controller is
    procedure Try_Allocate_One_Task
      (O : access ORB_Controller; Allow_Transient : Boolean)
    is
+      Requested_Kind : Task_Kind;
    begin
       pragma Debug (C1, O1 ("Try_Allocate_One_Task: enter"));
 
-      if Get_Count (O.Summary, State => Unscheduled) > 0 then
+      if Allow_Transient then
+         Requested_Kind := Any;
+      else
+         Requested_Kind := Permanent;
+      end if;
+
+      if Get_Count
+           (O.Summary, Kind => Requested_Kind, State => Unscheduled) > 0
+      then
 
          --  Some tasks are not scheduled. We assume one of them will be
          --  allocated to handle current event.
          --  ??? Can this really happen?
+         --  ??? If so, case of Allow_Transient = False and the only
+         --      unscheduled tasks are transient?
 
          pragma Debug (C1, O1 ("Unassigned task will handle event"));
          null;
 
-      elsif Get_Count (O.Summary, State => Idle) > 0 then
-
-         Try_Awake_One_Idle_Task (O.Idle_Tasks, Allow_Transient);
-         --  Note that there might not be any idle tasks at this point, because
-         --  the count can be too high, because it is incremented when an idle
-         --  task awakens and send the Idle_Awake event, whereas a task is
-         --  removed from the list of idle tasks earlier, when we decide to
-         --  awaken one.
-
-      else
-         pragma Debug (C1, O1 ("No idle tasks"));
+      elsif
+        Get_Count (O.Summary, Kind => Requested_Kind, State => Idle) > 0
+          and then
+        Awake_One_Idle_Task (O.Idle_Tasks, Allow_Transient)
+      then
+         --  An idle task was awakened
+         --  If we awaken a transient task here, do we guarantee that it
+         --  won't unexpectedly terminate when it reschedules (we should
+         --  really post some token to the awakened task so that it know it
+         --  needs to stay within the ORB for a bit)???
          null;
 
+      elsif Get_Count (O.Summary, Kind => Permanent, State => Running) > 0 then
+         --  A permanent task is running: it will pick up the queued job next
+         --  time it reschedules.
+
+         null;
+
+      elsif
+        Get_Count (O.Summary, Kind => Requested_Kind, State => Blocked) > 0
+      then
+         --  Find appropriate task and force it to reschedule
+         --  If we unblock a transient task here, do we guarantee that it
+         --  won't unexpectedly terminate when it reschedules (we should
+         --  really post some token to the awakened task so that it know it
+         --  needs to stay within the ORB for a bit)???
+
+         for J in O.AEM_Infos'Range loop
+            if O.AEM_Infos (J).TI /= null
+                 and then Kind_Match (O.AEM_Infos (J).TI.all, Requested_Kind)
+            then
+               Reschedule_Task (O.AEM_Infos (J).TI.all);
+               exit;
+            end if;
+         end loop;
+
+      else
+         pragma Debug
+           (C1, O1 ("Try_Allocate_One_Task: no task available, deadlock?"));
+
+         null;
       end if;
 
       pragma Debug (C1, O1 ("Try_Allocate_One_Task: end"));

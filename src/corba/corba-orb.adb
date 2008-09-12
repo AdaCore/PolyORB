@@ -545,7 +545,7 @@ package body CORBA.ORB is
 
    procedure Run is
    begin
-      PolyORB.ORB.Run (The_ORB, May_Poll => True, May_Exit => False);
+      PolyORB.ORB.Run (The_ORB, May_Exit => False);
    end Run;
 
    --------------

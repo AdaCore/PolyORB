@@ -104,10 +104,7 @@ package body PolyORB.Minimal_Servant.Tools is
 
    procedure Run_Server is
    begin
-      PolyORB.ORB.Run
-        (PolyORB.Setup.The_ORB,
-         May_Poll => True,
-         May_Exit => False);
+      PolyORB.ORB.Run (PolyORB.Setup.The_ORB, May_Exit => False);
    end Run_Server;
 
 end PolyORB.Minimal_Servant.Tools;
