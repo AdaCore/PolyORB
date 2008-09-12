@@ -314,7 +314,7 @@ package body all_functions.Impl is
       pragma Warnings (On);
    begin
       Oneway_Value := 1;
-      delay 5.0;
+      delay 1.0;
       Oneway_Value := 2;
    end oneway_void_proc;
 
@@ -328,7 +328,7 @@ package body all_functions.Impl is
       pragma Warnings (On);
    begin
       Oneway_Value := a;
-      delay 5.0;
+      delay 1.0;
       Oneway_Value := b;
    end oneway_in_proc;
 

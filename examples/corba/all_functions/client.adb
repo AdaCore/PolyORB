@@ -244,10 +244,10 @@ begin
 
    begin
       oneway_void_proc (MyObj);
-      delay 1.0;
+      delay 0.5;
       Ok := oneway_checker (MyObj) = 1;
       if Ok then
-         delay 5.0;
+         delay 1.0;
          Ok := oneway_checker (MyObj) = 2;
       end if;
    exception when others =>
@@ -257,10 +257,10 @@ begin
 
    begin
       oneway_in_proc (MyObj, 10, 20);
-      delay 1.0;
+      delay 0.5;
       Ok := oneway_checker (MyObj) = 10;
       if Ok then
-         delay 5.0;
+         delay 1.0;
          Ok := oneway_checker (MyObj) = 20;
       end if;
    exception when others =>
