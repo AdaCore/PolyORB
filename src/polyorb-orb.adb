@@ -470,7 +470,6 @@ package body PolyORB.ORB is
 
    function Work_Pending (ORB : access ORB_Type) return Boolean is
       Result : Boolean;
-
    begin
       Enter_ORB_Critical_Section (ORB.ORB_Controller);
       Result := Has_Pending_Job (ORB.ORB_Controller);
@@ -485,7 +484,6 @@ package body PolyORB.ORB is
 
    procedure Perform_Work (ORB : access ORB_Type) is
       Job : Job_Access;
-
    begin
       Enter_ORB_Critical_Section (ORB.ORB_Controller);
       Job := Get_Pending_Job (ORB.ORB_Controller);
@@ -502,7 +500,7 @@ package body PolyORB.ORB is
 
    procedure Shutdown
      (ORB                 : access ORB_Type;
-      Wait_For_Completion :        Boolean := True)
+      Wait_For_Completion : Boolean := True)
    is
    begin
 
@@ -554,12 +552,11 @@ package body PolyORB.ORB is
 
    procedure Register_Access_Point
      (ORB   : access ORB_Type;
-      TAP   :        PT.Transport_Access_Point_Access;
-      Chain :        PF.Factories_Access;
-      PF    :        PBD.Profile_Factory_Access)
+      TAP   : PT.Transport_Access_Point_Access;
+      Chain : PF.Factories_Access;
+      PF    : PBD.Profile_Factory_Access)
    is
-      New_AES : constant Asynch_Ev_Source_Access :=
-                  Create_Event_Source (TAP);
+      New_AES : constant Asynch_Ev_Source_Access := Create_Event_Source (TAP);
    begin
       pragma Debug (C, O ("Register_Access_Point: enter"));
 
@@ -638,8 +635,8 @@ package body PolyORB.ORB is
 
    procedure Register_Binding_Object
      (ORB  : access ORB_Type;
-      BO   :        Smart_Pointers.Ref;
-      Role :        Endpoint_Role)
+      BO   : Smart_Pointers.Ref;
+      Role : Endpoint_Role)
    is
       TE         : constant Transport.Transport_Endpoint_Access :=
                      Binding_Objects.Get_Endpoint (BO);
@@ -655,9 +652,9 @@ package body PolyORB.ORB is
       declare
          BO_Acc : constant Binding_Object_Access :=
                     Binding_Object_Access (Smart_Pointers.Entity_Of (BO));
-         It : BO_Lists.Iterator;
-      begin
+         It     : BO_Lists.Iterator;
 
+      begin
          Enter_ORB_Critical_Section (ORB.ORB_Controller);
 
          --  Register BO in the Binding_Objects list of ORB
