@@ -285,9 +285,7 @@ package body System.Partition_Interface is
 
    procedure Any_To_BS (Item : Any; Stream : out Buffer_Stream_Type) is
       use Octet_Sequences;
-
-      Seq : constant Sequence
-              := Octet_Sequences_Helper.From_Any (Item);
+      Seq : constant Sequence := Octet_Sequences_Helper.From_Any (Item);
    begin
       Stream.Arr := new Stream_Element_Array'
         (1 .. Stream_Element_Offset (Length (Seq)) => 0);
@@ -317,9 +315,9 @@ package body System.Partition_Interface is
    procedure BS_To_Any (Stream : Buffer_Stream_Type; Item : out Any) is
       use Octet_Sequences;
 
-      S : PolyORB.Opaque.Zone_Access
-        := new Stream_Element_Array'(
-             PolyORB.Buffers.To_Stream_Element_Array (Stream.Buf));
+      S : PolyORB.Opaque.Zone_Access :=
+            new Stream_Element_Array'(PolyORB.Buffers.To_Stream_Element_Array
+                                        (Stream.Buf));
 
       subtype OSEA_T is Element_Array (1 .. S'Length);
       OSEA_Addr : constant System.Address := S (S'First)'Address;
@@ -336,10 +334,10 @@ package body System.Partition_Interface is
    ---------------------------
 
    procedure Build_Local_Reference
-     (Addr     :        System.Address;
-      Typ      :        String;
+     (Addr     : System.Address;
+      Typ      : String;
       Receiver : access Servant;
-      Ref      :    out PolyORB.References.Ref)
+      Ref      : out PolyORB.References.Ref)
    is
       use PolyORB.Errors;
       use type PolyORB.Obj_Adapters.Obj_Adapter_Access;
@@ -357,7 +355,6 @@ package body System.Partition_Interface is
 
          declare
             Key : aliased PolyORB.Objects.Object_Id := To_Local_Oid (Addr);
-
             U_Oid : PolyORB.POA_Types.Unmarshalled_Oid;
             Oid : PolyORB.POA_Types.Object_Id_Access;
 
@@ -460,7 +457,6 @@ package body System.Partition_Interface is
      (Left, Right : RACW_Stub_Type_Access) return Boolean
    is
       use System.RPC;
-
       Left_Object, Right_Object : PolyORB.References.Ref;
    begin
       Set (Left_Object, Left.Target);
@@ -480,8 +476,8 @@ package body System.Partition_Interface is
       use PolyORB.Errors;
       use PolyORB.Types;
 
-      Name : constant String := PolyORB.Exceptions.Occurrence_To_Name (E);
-      TC : constant PATC.Local_Ref := PATC.TC_Except;
+      Name   : constant String := PolyORB.Exceptions.Occurrence_To_Name (E);
+      TC     : constant PATC.Local_Ref := PATC.TC_Except;
       Result : PolyORB.Any.Any;
    begin
       --  Name
@@ -497,10 +493,9 @@ package body System.Partition_Interface is
 
       --  Valuation: Exception_Message
 
-      PATC.Add_Parameter
-        (TC, To_Any (TC_String));
-      PATC.Add_Parameter
-        (TC, To_Any (To_PolyORB_String ("exception_message")));
+      PATC.Add_Parameter (TC, To_Any (TC_String));
+      PATC.Add_Parameter (TC,
+        To_Any (To_PolyORB_String ("exception_message")));
 
       Result := Get_Empty_Any_Aggregate (TC);
       Add_Aggregate_Element
