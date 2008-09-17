@@ -1763,8 +1763,6 @@ src/polyorb-tasking-threads-annotations.adb
 src/polyorb-tasking-threads-annotations.ads
 src/polyorb-tasking-threads.adb
 src/polyorb-tasking-threads.ads
-src/polyorb-tasking-watchers.adb
-src/polyorb-tasking-watchers.ads
 src/polyorb-tasking.ads
 src/polyorb-transport-connected-sockets.adb
 src/polyorb-transport-connected-sockets.ads
