@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---              P O L Y O R B . R E P R E S E N T A T I O N S               --
+--             P O L Y O R B . D S A _ P . S T O R A G E S . D F S          --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2008, Free Software Foundation, Inc.               --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,43 +31,79 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Data representation methods.
+pragma Ada_2005;
 
---  A Representation is a method for transforming an arbitrary piece
---  of data (in the form of an 'Any' object) into a sequence of
---  Stream_Elements, and back.
+with Ada.Streams;
+with Ada.Streams.Stream_IO;
 
+with GNAT.OS_Lib;
+
+with System.Global_Locks;
+
+with PolyORB.Tasking.Mutexes;
 with PolyORB.Any;
-with PolyORB.Buffers;
-with PolyORB.Errors;
 
-package PolyORB.Representations is
+package PolyORB.DSA_P.Storages.DFS is
 
-   type Representation is abstract tagged limited private;
+   use PolyORB.Tasking.Mutexes;
 
-   type Representation_Access is access all Representation'Class;
+   package SIO renames Ada.Streams.Stream_IO;
 
-   procedure Marshall_From_Any
-     (R      : access Representation;
-      Buffer : access Buffers.Buffer_Type;
-      Data   : Any.Any_Container'Class;
-      Error  : in out Errors.Error_Container) is abstract;
-   --  Store a representation of Data into Buffer according to representation
-   --  convention R.
+   package SGL renames System.Global_Locks;
 
-   procedure Unmarshall_To_Any
-     (R      : access Representation;
-      Buffer : access Buffers.Buffer_Type;
-      Data   : in out Any.Any_Container'Class;
-      Error  : in out Errors.Error_Container) is abstract;
-   --  Set the value of Data from the representation stored in Buffer according
-   --  to representation convetion R.
+   package OS renames GNAT.OS_Lib;
 
-   procedure Release (R : in out Representation);
-   --  Deallocate resources associated with the given representation engine
+   ----------------------
+   -- DFS_Manager_Type --
+   ----------------------
+
+   --  Manage coherence of a shared passive variable.
+
+   type DFS_Manager_Type is new Shared_Data_Manager_Type with private;
+   type DFS_Manager_Access is access all DFS_Manager_Type'Class;
+
+   --  DFS_Manager_Type type primitives
+
+   overriding
+   procedure Read
+     (Self : access DFS_Manager_Type;
+      Var  : SDT.Any_Container_Ptr);
+
+   overriding
+   procedure Write
+     (Self : access DFS_Manager_Type;
+      Var  : SDT.Any_Container_Ptr);
+
+   overriding
+   procedure Lock   (Self : access DFS_Manager_Type);
+
+   overriding
+   procedure Unlock (Self : access DFS_Manager_Type);
+
+   overriding
+   function Create
+     (Manager_Factory : access DFS_Manager_Type;
+      Full_Name       : String) return Shared_Data_Manager_RACW;
+
+   procedure Register_Passive_Package
+     (Pkg_Name : String;
+      Is_Owner : Boolean;
+      Location : String);
+   --  Register a DFS manager factory for package Pkg_name
 
 private
 
-   type Representation is abstract tagged limited null record;
+   type DFS_Manager_Type is new Shared_Data_Manager_Type with record
+      Data  : PolyORB.Any.Any;
+      Name  : OS.String_Access;
+      File  : SIO.File_Type;
+      Lock  : SGL.Lock_Type;
+      Mutex : Mutex_Access;
+      Count : Natural;
+      Dir   : OS.String_Access;
+      Prev  : DFS_Manager_Access;
+      Next  : DFS_Manager_Access;
+      Self  : DFS_Manager_Access;
+   end record;
 
-end PolyORB.Representations;
+end PolyORB.DSA_P.Storages.DFS;

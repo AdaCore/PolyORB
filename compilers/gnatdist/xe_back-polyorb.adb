@@ -779,7 +779,8 @@ package body XE_Back.PolyORB is
             Quote (Name (Units.Table
               (Required_Storages.Table (Required_Storage).Unit).Uname)),
             Boolean'Image
-              (Required_Storages.Table (Required_Storage).Is_Owner));
+              (Required_Storages.Table (Required_Storage).Is_Owner),
+            Quote (Locations.Table (Location).Minor));
 
          Required_Storage := Required_Storages.Table
            (Required_Storage).Next_Storage;
@@ -1086,6 +1087,13 @@ package body XE_Back.PolyORB is
          Allow_Local_Term => False,
          Need_Tasking     => True);
       --  Registrer "dsm" storage support
+
+      Register_Storage
+        (Storage_Name     => "dfs",
+         Allow_Passive    => True,
+         Allow_Local_Term => True,
+         Need_Tasking     => False);
+      --  Registrer "dfs" storage support
 
    end Register_Storages;
 

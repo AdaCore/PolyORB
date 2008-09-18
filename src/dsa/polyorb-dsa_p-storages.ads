@@ -54,7 +54,7 @@ package PolyORB.DSA_P.Storages is
 
    procedure Read
      (Self : access Shared_Data_Manager_Type;
-      Var  : in out SDT.Any_Container_Ptr) is abstract;
+      Var  : SDT.Any_Container_Ptr) is abstract;
    --  Shared passive variable access routine. Each reference to the
    --  shared variable, V, is preceded by a call to the corresponding
    --  Read procedure, which either leaves the initial value unchanged
@@ -63,7 +63,7 @@ package PolyORB.DSA_P.Storages is
 
    procedure Write
      (Self : access Shared_Data_Manager_Type;
-      Var  : in out SDT.Any_Container_Ptr) is abstract;
+      Var  : SDT.Any_Container_Ptr) is abstract;
    --  Shared passive variable assignement routine. Each assignment to
    --  the shared variable, V, is followed by a call to the corresponding
    --  Write procedure, which writes the new value to the shared storage.

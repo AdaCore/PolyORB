@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2008 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -34,12 +34,14 @@
 --  Initialization of a complete PolyORB partition.
 
 with PolyORB.ORB;
+with PolyORB.Representations;
 
 package PolyORB.Setup is
 
    --  No elaboration control (no proper body).
 
-   The_Tasking_Policy : PolyORB.ORB.Tasking_Policy_Access;
-   The_ORB : PolyORB.ORB.ORB_Access;
+   The_Tasking_Policy     : PolyORB.ORB.Tasking_Policy_Access;
+   The_ORB                : PolyORB.ORB.ORB_Access;
+   Default_Representation : PolyORB.Representations.Representation_Access;
 
 end PolyORB.Setup;

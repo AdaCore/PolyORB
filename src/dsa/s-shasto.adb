@@ -93,20 +93,19 @@ package body System.Shared_Storage is
       ----------
 
       procedure Read is
-         pragma Warnings (Off);
          SDM      : Shared_Data_Manager_RACW;
-         Var_Any  : Any;
-         Any_Cont : SDT.Any_Container_Ptr;
+         Data     : constant Any := Typ'To_Any (V);
+         Data_Ptr : constant SDT.Any_Container_Ptr :=
+           AC_To_DAC (Get_Container (Data));
 
       begin
          Lookup_Variable (Full_Name, SDM);
-         Read (SDM, Any_Cont);
-         Set_Container (Var_Any, DAC_To_AC (Any_Cont));
-         if not Is_Empty (Var_Any) then
+         Read (SDM, Data_Ptr);
+         if not Is_Empty (Data) then
 
-            --  V := Typ'From_Any (Var_Any)
+            --  V := Typ'From_Any (A)
 
-            Typ'Write (S, Typ'From_Any (Var_Any));
+            Typ'Write (S, Typ'From_Any (Data));
             Typ'Read  (S, V);
          end if;
       end Read;
@@ -117,14 +116,13 @@ package body System.Shared_Storage is
 
       procedure Write is
          SDM      : Shared_Data_Manager_RACW;
-         Any_Cont : SDT.Any_Container_Ptr;
-         Var_Any  : Any;
+         Data     : constant Any := Typ'To_Any (V);
+         Data_Ptr : constant SDT.Any_Container_Ptr :=
+           AC_To_DAC (Get_Container (Data));
 
       begin
          Lookup_Variable (Full_Name, SDM);
-         Var_Any  := Typ'To_Any (V);
-         Any_Cont := AC_To_DAC (Get_Container (Var_Any));
-         Write (SDM, Any_Cont);
+         Write (SDM, Data_Ptr);
       end Write;
 
    end Shared_Var_Procs;

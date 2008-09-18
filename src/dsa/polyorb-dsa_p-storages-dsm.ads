@@ -52,9 +52,9 @@ package PolyORB.DSA_P.Storages.DSM is
 
    pragma Remote_Types;
 
-   ---------------------
-   -- DSM_Manager_Abs --
-   ---------------------
+   ----------------------
+   -- DSM_Manager_Type --
+   ----------------------
 
    --  Manage coherence of a shared passive variable. RACW provides
    --  remote primitives for execution of the Li & Hudak algorithm.
@@ -74,7 +74,7 @@ package PolyORB.DSA_P.Storages.DSM is
       Table_Increment      => 10);
    subtype Copy_Set_Type is Copy_Set_Tables.Instance;
 
-   --  DSM_Manager_Abs type primitives
+   --  DSM_Manager_Type type primitives
 
    --  Remotely called primitives
 
@@ -130,7 +130,8 @@ package PolyORB.DSA_P.Storages.DSM is
 
    procedure Register_Passive_Package
      (Pkg_Name : String;
-      Is_Owner : Boolean);
+      Is_Owner : Boolean;
+      Location : String);
    --  Register a DSM manager factory for package Pkg_name
 
 private

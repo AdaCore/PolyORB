@@ -151,12 +151,12 @@ package body PolyORB.DSA_P.Storages.DSM is
    overriding
    procedure Read
      (Self : access DSM_Manager;
-      Var  : in out SDT.Any_Container_Ptr);
+      Var  : SDT.Any_Container_Ptr);
 
    overriding
    procedure Write
      (Self : access DSM_Manager;
-      Var  : in out SDT.Any_Container_Ptr);
+      Var  : SDT.Any_Container_Ptr);
 
    overriding
    procedure Lock   (Self : access DSM_Manager);
@@ -221,7 +221,7 @@ package body PolyORB.DSA_P.Storages.DSM is
       Owner_Addr : System.Address;
 
    begin
-      pragma Debug (C, O ("create DSM manager"));
+      pragma Debug (C, O ("create DSM manager for variable " & Full_Name));
 
       Manager := new DSM_Manager;
 
@@ -385,7 +385,7 @@ package body PolyORB.DSA_P.Storages.DSM is
 
    procedure Read
      (Self : access DSM_Manager;
-      Var  : in out SDT.Any_Container_Ptr) is
+      Var  : SDT.Any_Container_Ptr) is
    begin
       Enter (Self.Synchs.Critical_Section);
 
@@ -407,9 +407,10 @@ package body PolyORB.DSA_P.Storages.DSM is
          Self.Status := Read;
       end if;
 
-      --  Assign out data value to container value
+      --  Set value of container designated by given pointer
 
-      Var := AC_To_DAC (Get_Container (Self.Data));
+      Set_Value
+        (DAC_To_AC (Var).all, Get_Value (Get_Container (Self.Data).all));
 
       Leave (Self.Synchs.Critical_Section);
    end Read;
@@ -495,9 +496,12 @@ package body PolyORB.DSA_P.Storages.DSM is
 
    procedure Register_Passive_Package
      (Pkg_Name : String;
-      Is_Owner : Boolean)
+      Is_Owner : Boolean;
+      Location : String)
    is
+      pragma Unreferenced (Location);
       Factory : constant DSM_Manager_Access := new DSM_Manager;
+
    begin
       pragma Debug (C, O ("Register DSM factory for package "
         & Pkg_Name));
@@ -534,7 +538,7 @@ package body PolyORB.DSA_P.Storages.DSM is
 
    procedure Write
      (Self : access DSM_Manager;
-      Var  : in out SDT.Any_Container_Ptr)
+      Var  : SDT.Any_Container_Ptr)
    is
       use Copy_Set_Tables;
 
@@ -582,7 +586,7 @@ package body PolyORB.DSA_P.Storages.DSM is
 
       Initialize (Self.Copies);
 
-      --  Assign out data value to container value
+      --  Set local container pointer to given container pointer
 
       Set_Container (Self.Data, DAC_To_AC (Var));
 
