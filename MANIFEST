@@ -1198,6 +1198,8 @@ src/dsa/polyorb-dsa_p-remote_launch.adb
 src/dsa/polyorb-dsa_p-remote_launch.ads
 src/dsa/polyorb-dsa_p-storages-config.adb
 src/dsa/polyorb-dsa_p-storages-config.ads
+src/dsa/polyorb-dsa_p-storages-dfs.adb
+src/dsa/polyorb-dsa_p-storages-dfs.ads
 src/dsa/polyorb-dsa_p-storages-dsm.adb
 src/dsa/polyorb-dsa_p-storages-dsm.ads
 src/dsa/polyorb-dsa_p-storages.adb
