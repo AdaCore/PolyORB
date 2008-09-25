@@ -1020,7 +1020,7 @@ package Backend.BE_CORBA_Ada.Nutils is
    --  'U' after the underscore.
 
    --   * When an IDL identifier clashes with an Ada reserved word or,
-   --     if Is_Opeartion_Name is True, with the name of a primitive operation
+   --     if Is_Operation_Name is True, with the name of a primitive operation
    --     of Ada.Finalization.Controlled, insert the string "IDL_" before the
    --     identifier.
 
