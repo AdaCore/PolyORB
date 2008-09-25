@@ -2137,6 +2137,11 @@ lacks the following feature:
 @end enumerate
 @end itemize
 
+@command{iac} implements additional name clash resolution rules.
+When the name of an IDL operation clashes with a primitive operation
+of Ada.Finalization.Controlled (of which CORBA.Object.Ref is a derived
+type), it is prefixed with "IDL_" in generated sources.
+
 @c -------------------------------------------------------------------
 @node Resolving names in a CORBA application
 @section Resolving names in a CORBA application
