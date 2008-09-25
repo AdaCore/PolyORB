@@ -651,9 +651,8 @@ package body Backend.BE_CORBA_Ada.Stubs is
             Map_Ref_Type (Container));
          Append_To (Profile, Ada_Param);
 
-         --  Create an Ada subprogram parameter for each IDL
-         --  subprogram parameter. Check whether there is one inout or
-         --  out parameter.
+         --  Create an Ada subprogram parameter for each IDL subprogram
+         --  parameter. Check whether there is one inout or out parameter.
 
          IDL_Param := First_Entity (Parameters (E));
 
@@ -674,12 +673,12 @@ package body Backend.BE_CORBA_Ada.Stubs is
             IDL_Param := Next_Entity (IDL_Param);
          end loop;
 
-         --  If the operation has a non empty context specification we
-         --  add a new parameter 'In_Context'.
+         --  If the operation has a non-empty context specification, add an
+         --  extra parameter 'In_Context'.
 
-         --  XXX : The contexts are not completely implemented in
-         --  PolyORB. Once they are implemented a routine which tests
-         --  the consistency of the context must be generated.
+         --  XXX : The contexts are not completely implemented in PolyORB. Once
+         --  they are implemented a routine which tests the consistency of the
+         --  context must be generated.
 
          declare
             L : constant List_Id := Contexts (E);
@@ -694,18 +693,17 @@ package body Backend.BE_CORBA_Ada.Stubs is
             end if;
          end;
 
-         --  If the IDL subprogram is a function, then check whether
-         --  it has out or inout parameters. In this case, map the IDL
-         --  function as an Ada procedure and not an Ada function.
+         --  For a non-void IDL operation, check for parameters of mode out or
+         --  inout parameters, in which case it must be mapped to an Ada
+         --  procedure, instead of an Ada function.
 
          if FEN.Kind (Type_Spec (E)) /= K_Void then
             if Mode = Mode_In then
                Returns := Map_Parameter_Type_Designator (E);
                Set_FE_Node (Returns, Type_Spec (E));
 
-               --  If the IDL function is mapped as an Ada procedure,
-               --  add a new out parameter Returns to pass the
-               --  returned value.
+               --  If the IDL function is mapped to an Ada procedure, add a new
+               --  out parameter Returns to hold the returned value.
             else
                Type_Designator := Map_Parameter_Type_Designator (E);
                Set_FE_Node (Type_Designator, Type_Spec (E));
