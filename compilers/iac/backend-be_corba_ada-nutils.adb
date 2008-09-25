@@ -61,7 +61,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
    Forwarded_Entities : List_Id := No_List;
    --  This list contains the forwarded entities
 
-   Ada_KW_Prefix : constant String := "%ada_kw%";
+   Ada_Keyword_Prefix : constant String := "%ada_kw%";
    --  Prefix used to "mark" ada keywords
 
    No_Depth : constant Int := -1;
@@ -74,8 +74,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
 
    function Internal_Name (P : Node_Id; L : GLists) return Name_Id;
    pragma Inline (Internal_Name);
-   --  Return an unique internal name useful for the binding between P
-   --  and L.
+   --  Return an unique internal name useful for the binding between P and L
 
    ------------------------
    -- Add_Prefix_To_Name --
@@ -83,8 +82,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
 
    function Add_Prefix_To_Name
      (Prefix : String;
-      Name   : Name_Id)
-     return Name_Id
+      Name   : Name_Id) return Name_Id
    is
    begin
       Set_Str_To_Name_Buffer (Prefix);
@@ -98,8 +96,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
 
    function Add_Suffix_To_Name
      (Suffix : String;
-      Name   : Name_Id)
-     return Name_Id
+      Name   : Name_Id) return Name_Id
    is
    begin
       Get_Name_String (Name);
@@ -113,8 +110,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
 
    function Remove_Suffix_From_Name
      (Suffix : String;
-      Name   : Name_Id)
-     return Name_Id
+      Name   : Name_Id) return Name_Id
    is
       Length   : Natural;
       Temp_Str : String (1 .. Suffix'Length);
@@ -429,8 +425,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
 
    function Copy_Expanded_Name
      (N      : Node_Id;
-      Withed : Boolean := True)
-     return Node_Id
+      Withed : Boolean := True) return Node_Id
    is
       D : Node_Id;
       P : Node_Id := Get_Parent_Unit_Name (N);
@@ -866,8 +861,8 @@ package body Backend.BE_CORBA_Ada.Nutils is
 
       --  Keywords.
 
-      for I in Keyword_Type loop
-         New_Token (I);
+      for J in Keyword_Type loop
+         New_Token (J);
       end loop;
 
       --  Graphic Characters
@@ -902,8 +897,8 @@ package body Backend.BE_CORBA_Ada.Nutils is
 
       --  Keyword Operators
 
-      for O in Op_And .. Op_Or_Else loop
-         New_Operator (O);
+      for Op in Op_And .. Op_Or_Else loop
+         New_Operator (Op);
       end loop;
 
       --  Other operators
@@ -2337,7 +2332,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
          --  string ("%ada_kw%<keyword>" to avoid clashing with other
          --  marked names.
 
-         Set_Str_To_Name_Buffer (Ada_KW_Prefix);
+         Set_Str_To_Name_Buffer (Ada_Keyword_Prefix);
          Get_Name_String_And_Append (Token_Image (T));
          Set_Name_Table_Byte (Name_Find, Byte (Token_Type'Pos (T) + 1));
       end if;
@@ -2633,19 +2628,25 @@ package body Backend.BE_CORBA_Ada.Nutils is
    -- To_Ada_Name --
    -----------------
 
-   function To_Ada_Name (N : Name_Id) return Name_Id is
-      First    : Natural := 1;
-      Name     : Name_Id;
-      Low_Name : Name_Id;
-      V        : Byte;
+   function To_Ada_Name
+     (N                 : Name_Id;
+      Is_Operation_Name : Boolean := False) return Name_Id
+   is
+      First      : Natural := 1;
+      Name       : Name_Id;
+      Low_Name   : Name_Id;
+      Mixed_Name : Name_Id;
+      Is_Keyword : Boolean;
    begin
       Get_Name_String (N);
 
-      while First <= Name_Len
-        and then Name_Buffer (First) = '_'
-      loop
+      --  Remove leading underscores
+
+      while First <= Name_Len and then Name_Buffer (First) = '_' loop
          First := First + 1;
       end loop;
+
+      --  Escape doubled underscores
 
       for I in First .. Name_Len loop
          if Name_Buffer (I) = '_'
@@ -2656,21 +2657,42 @@ package body Backend.BE_CORBA_Ada.Nutils is
          end if;
       end loop;
 
+      --  Escape trailing underscores
+
       if Name_Buffer (Name_Len) = '_' then
          Add_Char_To_Name_Buffer ('U');
       end if;
 
+      --  Get name in original case
+
       Name := Name_Find;
+
+      --  Get name in lowercase
+
       Low_Name := To_Lower (Name);
 
-      --  If the identifier collides with an Ada reserved word insert
-      --  "IDL_" string before the identifier.
+      --  Get name in GNAT mixed case, for comparison with SN entries
 
-      Set_Str_To_Name_Buffer (Ada_KW_Prefix);
+      GNAT.Case_Util.To_Mixed (Name_Buffer (1 .. Name_Len));
+      Mixed_Name := Name_Find;
+
+      --  If the identifier collides with an Ada reserved word or (for object
+      --  operations) with a primitive operation of Ada.Finalization.
+      --  Controlled, insert "IDL_" string before the identifier.
+
+      Set_Str_To_Name_Buffer (Ada_Keyword_Prefix);
       Get_Name_String_And_Append (Low_Name);
-      V := Get_Name_Table_Byte (Name_Find);
+      Is_Keyword := Get_Name_Table_Byte (Name_Find) > 0;
 
-      if V > 0  then
+      if Is_Keyword
+           or else
+          (Is_Operation_Name and then
+               (Mixed_Name = SN (S_Initialize)
+                  or else
+                Mixed_Name = SN (S_Adjust)
+                  or else
+                Mixed_Name = SN (S_Finalize)))
+      then
          Set_Str_To_Name_Buffer ("IDL_");
          Get_Name_String_And_Append (Name);
          Name := Name_Find;

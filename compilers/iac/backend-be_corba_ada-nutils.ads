@@ -358,11 +358,13 @@ package Backend.BE_CORBA_Ada.Nutils is
    --  Array of variable identifiers
 
    type Subprogram_Id is
-     (S_Append,
+     (S_Adjust,
+      S_Append,
       S_Clone,
       S_Deferred_Initialization,
       S_Entity_Of,
       S_Get_Members,
+      S_Finalize,
       S_Finalize_Value,
       S_Free,
       S_From_Any,
@@ -1001,7 +1003,9 @@ package Backend.BE_CORBA_Ada.Nutils is
    procedure Set_Skeleton_Body (N : Node_Id := Current_Entity);
    procedure Set_Skeleton_Spec (N : Node_Id := Current_Entity);
 
-   function To_Ada_Name (N : Name_Id) return Name_Id;
+   function To_Ada_Name
+     (N                 : Name_Id;
+      Is_Operation_Name : Boolean := False) return Name_Id;
    --  Converts IDL name to Ada names. The IDL name is converted
    --  according to the Ada mapping specifications. The following
    --  modifications may be applied to the IDL name to produce the Ada
@@ -1015,8 +1019,10 @@ package Backend.BE_CORBA_Ada.Nutils is
    --   * Where '_' is at the end of an identifier, add the character
    --  'U' after the underscore.
 
-   --   * When an IDL identifier clashes with an Ada reserved word,
-   --  insert the string "IDL_" before the identifier.
+   --   * When an IDL identifier clashes with an Ada reserved word or,
+   --     if Is_Opeartion_Name is True, with the name of a primitive operation
+   --     of Ada.Finalization.Controlled, insert the string "IDL_" before the
+   --     identifier.
 
    function To_Spec_Name (N : Name_Id) return Name_Id;
    --  Builds an internal name id used when handling runtime entities
