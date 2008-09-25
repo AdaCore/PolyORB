@@ -49,9 +49,11 @@ module Frontend::Nodes {
   };
 
   interface Identifier : Linkable_Node_Id {
-    Name_Id    Name;
     Name_Id    IDL_Name;
-    //  What is the difference between Name and IDL_Name???
+    //  Name in original source form
+
+    Name_Id    Name;
+    //  Name converted to lowercase
 
     Node_Id    Homonym;
     Node_Id    Corresponding_Entity;
