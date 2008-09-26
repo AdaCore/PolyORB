@@ -1814,8 +1814,6 @@ src/polyorb-utils-strings.adb
 src/polyorb-utils-strings.ads
 src/polyorb-utils-tcp_access_points.adb
 src/polyorb-utils-tcp_access_points.ads
-src/polyorb-utils-text_buffers.adb
-src/polyorb-utils-text_buffers.ads
 src/polyorb-utils-udp_access_points.adb
 src/polyorb-utils-udp_access_points.ads
 src/polyorb-utils.adb
@@ -1963,6 +1961,8 @@ src/soap/polyorb-soap_p-response.ads
 src/soap/polyorb-soap_p-types.adb
 src/soap/polyorb-soap_p-types.ads
 src/soap/polyorb-soap_p.ads
+src/soap/polyorb-utils-text_buffers.adb
+src/soap/polyorb-utils-text_buffers.ads
 src/srp/Makefile.am
 src/srp/Makefile.in
 src/srp/polyorb-binding_data-srp.adb
