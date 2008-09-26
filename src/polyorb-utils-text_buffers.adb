@@ -45,7 +45,7 @@ package body PolyORB.Utils.Text_Buffers is
 
    procedure Marshall_Char
      (B : access Buffer_Type;
-      C :        Character) is
+      C : Character) is
    begin
       Align_Marshall_Copy
         (B, Stream_Element_Array'(1 => Stream_Element (Character'Pos (C))));
@@ -69,11 +69,14 @@ package body PolyORB.Utils.Text_Buffers is
 
    procedure Marshall_String
      (B : access Buffer_Type;
-      S :        String) is
+      S : String)
+   is
+      subtype SEA is Stream_Element_Array (1 .. S'Length);
+      A : SEA;
+      for A'Address use S'Address;
+      pragma Import (Ada, A);
    begin
-      for J in S'Range loop
-         Marshall_Char (B, S (J));
-      end loop;
+      Align_Marshall_Copy (B, A);
    end Marshall_String;
 
    -----------------------
@@ -82,11 +85,14 @@ package body PolyORB.Utils.Text_Buffers is
 
    procedure Unmarshall_String
      (B : access Buffer_Type;
-      S :    out String) is
+      S : out String)
+   is
+      subtype SEA is Stream_Element_Array (1 .. S'Length);
+      A : SEA;
+      for A'Address use S'Address;
+      pragma Import (Ada, A);
    begin
-      for J in S'Range loop
-         S (J) := Unmarshall_Char (B);
-      end loop;
+      Align_Unmarshall_Copy (B, 1, A);
    end Unmarshall_String;
 
 end PolyORB.Utils.Text_Buffers;
