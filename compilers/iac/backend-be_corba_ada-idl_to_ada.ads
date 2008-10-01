@@ -187,7 +187,7 @@ package Backend.BE_CORBA_Ada.IDL_To_Ada is
 
    function Map_Variant_List
      (Alternatives   : List_Id;
-      Literal_Parent : Node_Id := No_Node)
+      Literal_Parent : Node_Id)
      return List_Id;
    --  Map a variant record part from an IDL union alternative list
 

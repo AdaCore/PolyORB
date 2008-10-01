@@ -1073,8 +1073,9 @@ package body Backend.BE_CORBA_Ada.IR_Infos is
                         New_List
                         (Make_Qualified_Expression
                          (Switch_Type,
-                          Make_Literal
-                          (FEU.Expr_Value (Label), Literal_Parent))));
+                          Make_Literal_With_Parent
+                          (FEU.Expr_Value (Label),
+                           Parent => Literal_Parent))));
                   end if;
 
                   N := Make_Parameter_Association

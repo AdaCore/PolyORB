@@ -817,12 +817,15 @@ package Backend.BE_CORBA_Ada.Nutils is
       N5 : Node_Id := No_Node) return List_Id;
    --  Create a list which contains all the given nodes
 
-   function Make_Literal
+   function Make_Literal (Value  : Value_Id) return Node_Id;
+
+   function Make_Literal_With_Parent
      (Value  : Value_Id;
       Parent : Node_Id := No_Node)
      return Node_Id;
-   --  If parent is present, creates a selected component whose prefix
-   --  is the parent and whose selector name is the literal.
+   --  Same as Make_Literal, except that if parent is present and Value is not
+   --  No_Value, creates a selected component whose prefix is the parent and
+   --  whose selector name is the literal.
 
    function Make_Null_Statement return Node_Id;
 

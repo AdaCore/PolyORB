@@ -442,7 +442,7 @@ module Frontend::Nodes {
 
   interface Case_Label : Node_Id {
     Node_Id     Declaration;
-    Node_Id     Expression;
+    Node_Id     Expression; // No_Node for "default"
     Value_Id    Value;
   };
 

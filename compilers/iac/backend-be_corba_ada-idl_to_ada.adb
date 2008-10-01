@@ -1560,7 +1560,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
 
    function Map_Variant_List
      (Alternatives   : List_Id;
-      Literal_Parent : Node_Id := No_Node)
+      Literal_Parent : Node_Id)
      return List_Id
    is
 
@@ -1585,7 +1585,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
          Element := FEN.Element (Alternative);
 
          while Present (Label) loop
-            Choice := Make_Literal
+            Choice := Make_Literal_With_Parent
               (Value  => FEU.Expr_Value (Label),
                Parent => Literal_Parent);
             Append_To (Choices, Choice);
@@ -1630,7 +1630,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
          Default_Met := True;
       else
          while Present (Label) loop
-            Choice := Make_Literal
+            Choice := Make_Literal_With_Parent
               (Value  => FEU.Expr_Value (Label),
                Parent => Literal_Parent);
             Append_To (Choices, Choice);

@@ -683,7 +683,7 @@ package body Backend.BE_CORBA_Ada.Aligned is
             Label := First_Entity (Labels (Switch_Case));
 
             while Present (Label) loop
-               Choice := Make_Literal
+               Choice := Make_Literal_With_Parent
                  (Value  => FEU.Expr_Value (Label),
                   Parent => Literal_Parent);
                if S /= No_Node then

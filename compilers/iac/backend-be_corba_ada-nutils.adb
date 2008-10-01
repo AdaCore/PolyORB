@@ -1591,23 +1591,36 @@ package body Backend.BE_CORBA_Ada.Nutils is
    -- Make_Literal --
    ------------------
 
-   function Make_Literal
+   function Make_Literal (Value  : Value_Id) return Node_Id is
+      pragma Assert (Value /= No_Value);
+
+      N : constant Node_Id := New_Node (K_Literal);
+
+   begin
+      Set_Value (N, Value);
+      return N;
+   end Make_Literal;
+
+   ------------------------------
+   -- Make_Literal_With_Parent --
+   ------------------------------
+
+   function Make_Literal_With_Parent
      (Value  : Value_Id;
       Parent : Node_Id  := No_Node)
      return Node_Id
    is
-      N : Node_Id;
+      N : Node_Id := New_Node (K_Literal);
 
    begin
-      N := New_Node (K_Literal);
       Set_Value (N, Value);
 
-      if Present (Parent) then
+      if Present (Parent) and then Value /= No_Value then
          N := Make_Selected_Component (Parent, N);
       end if;
 
       return N;
-   end Make_Literal;
+   end Make_Literal_With_Parent;
 
    -------------------------
    -- Make_Null_Statement --
