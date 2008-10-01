@@ -41,6 +41,8 @@ See the features-25 file.
 Bug fixes
 ---------
 
+IAC was generating incorrect Ada code for "default:" in a union. (H930-022)
+
 Several issues have been fixed in the circuitry handling TypeCodes and Anys
 for bounded string types. (H904-029)
 
