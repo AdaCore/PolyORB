@@ -172,8 +172,8 @@ package body PolyORB.ORB.Thread_Pool is
    procedure Check_Spares (ORB : ORB_Access) is
       OC : ORB_Controller.ORB_Controller'Class renames ORB.ORB_Controller.all;
       Current_Spares : Natural;
-      Max_New_Spares : Natural;
-      New_Spares     : Natural;
+      Max_New_Spares : Integer;
+      New_Spares     : Integer;
    begin
       Current_Spares := Get_Tasks_Count (OC, Kind => Permanent, State => Idle);
       New_Spares := 0;
@@ -181,10 +181,10 @@ package body PolyORB.ORB.Thread_Pool is
       if Current_Spares < Minimum_Spare_Threads
         and then not Shutting_Down (OC)
       then
-         Max_New_Spares := Natural'Min
+         Max_New_Spares := Integer'Min
            (Maximum_Threads - Get_Tasks_Count (OC, Kind => Permanent),
             Maximum_Spare_Threads - Current_Spares);
-         New_Spares := Natural'Min
+         New_Spares := Integer'Min
            (Minimum_Spare_Threads - Current_Spares, Max_New_Spares);
       end if;
       pragma Debug (C, O ("Check_Spares: Cur =" & Current_Spares'Img
