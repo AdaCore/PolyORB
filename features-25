@@ -1,5 +1,5 @@
 ========================================================
-PolyORB 2.5 NEW FEATURES LIST Current as of Aug 11, 2008
+PolyORB 2.5 NEW FEATURES LIST Current as of Oct 15, 2008
 ========================================================
 
 Copyright (c) 2008, AdaCore
@@ -14,7 +14,7 @@ subsequent releases.
 
 NF-25-H924-023 Operation names conflict resolution rules (2008-09-24)
 
-  Additional name conflict resolution rules are now implemented for opeartion
+  Additional name conflict resolution rules are now implemented for operation
   names that conflict with the primitive operations of Ada.Finalization.
   Controlled (of which CORBA.Object.Ref is a derived type) are now implemented
   in the PolyORB OMG IDL compiler, IAC.
