@@ -39,7 +39,7 @@ project src_soap is
 
    for Source_Files use ();
    for Library_Name use "polyorb-soap";
-   for Library_Dir use "../..";
+   for Library_Dir use "../../polyorb/static";
    for Library_Kind use "static";
    for Externally_Built use "true";
 

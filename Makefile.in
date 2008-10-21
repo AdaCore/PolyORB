@@ -804,6 +804,7 @@ install: all
 	${RM} -fr "${prefix}/lib/gnat/polyorb"
 	${INSTALL} -d ${prefix}/lib/gnat/polyorb
 	${INSTALL} -d ${prefix}/lib/polyorb
+	${INSTALL} -d ${prefix}/lib/polyorb/static
 	${RM} -fr "${prefix}/include/polyorb"
 	${INSTALL} -d ${prefix}/include/polyorb
 	for comp in ${COMPILER_EXES}; do \
@@ -822,7 +823,7 @@ install: all
 	${INSTALL} ${top_builddir}/tools/po_names/po_names${TOOL_EXE_SUFFIX} ${prefix}/bin
 	${INSTALL} ${top_builddir}/tools/po_dumpir/po_dumpir${TOOL_EXE_SUFFIX} ${prefix}/bin
 	${INSTALL} ${top_builddir}/polyorb-config ${prefix}/bin
-	ls ${top_builddir}/lib/*.a | ${XARGS_I} ${INSTALL} -m 444 {} ${prefix}/lib
+	ls ${top_builddir}/lib/*.a | ${XARGS_I} ${INSTALL} -m 444 {} ${prefix}/lib/polyorb/static
 	ls ${top_srcdir}/projects-distrib/*.gpr | ${XARGS_I} ${INSTALL} -m 444 {} ${prefix}/lib/gnat
 	ls ${top_builddir}/projects-distrib/*.gpr | ${XARGS_I} ${INSTALL} -m 444 {} ${prefix}/lib/gnat
 	ls ${top_srcdir}/projects-distrib/polyorb/*.gpr | ${XARGS_I} ${INSTALL} -m 444 {} ${prefix}/lib/gnat/polyorb

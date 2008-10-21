@@ -37,7 +37,7 @@ project src_corba_iop is
 
    for Source_Files use ();
    for Library_Name use "polyorb-corba-iop";
-   for Library_Dir use "../..";
+   for Library_Dir use "../../polyorb/static";
    for Library_Kind use "static";
    for Externally_Built use "true";
 

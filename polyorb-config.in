@@ -187,7 +187,7 @@ exec_prefix="@exec_prefix@"
 includedir="@includedir@"
 libdir="@libdir@"
 polyorb_dir="${includedir}/polyorb"
-polyorb_lib="@LDFLAGS@ -L${libdir}"
+polyorb_lib="@LDFLAGS@ -L${libdir}/polyorb/static"
 corba_idl_dir="-I${includedir}/polyorb"
 
 for P in $appli; do
