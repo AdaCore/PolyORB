@@ -181,6 +181,13 @@ package body PolyORB.ORB.Thread_Pool is
       if Current_Spares < Minimum_Spare_Threads
         and then not Shutting_Down (OC)
       then
+         --  Note that Max_New_Spares is declared as an Integer, not a Natural,
+         --  because Get_Tasks_Count (OC, Kind => Permanent) may exceed
+         --  Maximum_Threads, for example if the pool when initialized already
+         --  has reached Maximum_Threads, and the user provides an extra
+         --  permanent task with an explicit call to the ORB main loop. If
+         --  Max_New_Spares happens to be negative, no new spares are created.
+
          Max_New_Spares := Integer'Min
            (Maximum_Threads - Get_Tasks_Count (OC, Kind => Permanent),
             Maximum_Spare_Threads - Current_Spares);
