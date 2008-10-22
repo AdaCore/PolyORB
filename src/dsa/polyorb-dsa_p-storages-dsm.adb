@@ -174,13 +174,11 @@ package body PolyORB.DSA_P.Storages.DSM is
    --------------------------
 
    function DSM_Manager_To_Address is
-     new Ada.Unchecked_Conversion
-       (DSM_Manager_Access, System.Address);
+     new Ada.Unchecked_Conversion (DSM_Manager_Access, System.Address);
    --  Convert DSM_Manager_Access to system address
 
    function Address_To_DSM_Manager is
-     new Ada.Unchecked_Conversion
-       (System.Address, DSM_Manager_Access);
+     new Ada.Unchecked_Conversion (System.Address, DSM_Manager_Access);
    --  Convert system address to DSM_Manager_Access
 
    -------------
@@ -251,14 +249,14 @@ package body PolyORB.DSA_P.Storages.DSM is
          --  Retrieve initial owner of the variable
 
          System.Partition_Interface.Retrieve_RACW_From_Name_Server
-           (Name    => Extract_Pkg_Name (Full_Name),
-            Kind    => "SP",
+           (Name     => Extract_Pkg_Name (Full_Name),
+            Kind     => "SP",
             Stub_Tag => DSM_Manager_RACW'Stub_Type'Tag,
-            Addr    => Owner_Addr);
+            Addr     => Owner_Addr);
 
          Manager.Status     := None;
-         Manager.Prob_Owner := Get_Initial_Owner
-           (Address_To_DSM_Manager (Owner_Addr), Full_Name);
+         Manager.Prob_Owner :=
+           Get_Initial_Owner (Address_To_DSM_Manager (Owner_Addr), Full_Name);
       end if;
 
       return Shared_Data_Manager_RACW (Manager);
@@ -270,12 +268,10 @@ package body PolyORB.DSA_P.Storages.DSM is
 
    function Get_Initial_Owner
      (Self      : access DSM_Manager;
-      Var_Name  : String)
-      return DSM_Manager_RACW
+      Var_Name  : String) return DSM_Manager_RACW
    is
       pragma Unreferenced (Self);
       Owner : Shared_Data_Manager_RACW;
-
    begin
       pragma Debug (C, O ("Initial owner request for " & Var_Name));
       Lookup_Variable (Var_Name, Owner);
@@ -491,7 +487,7 @@ package body PolyORB.DSA_P.Storages.DSM is
    end Read_Request;
 
    ------------------------------
-   -- Register_passive_Package --
+   -- Register_Passive_Package --
    ------------------------------
 
    procedure Register_Passive_Package
@@ -503,8 +499,7 @@ package body PolyORB.DSA_P.Storages.DSM is
       Factory : constant DSM_Manager_Access := new DSM_Manager;
 
    begin
-      pragma Debug (C, O ("Register DSM factory for package "
-        & Pkg_Name));
+      pragma Debug (C, O ("Register DSM factory for package " & Pkg_Name));
 
       --  If local partition is the initial owner of the shared passive unit,
       --  register it in the name server.
