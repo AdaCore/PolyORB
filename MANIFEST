@@ -679,6 +679,7 @@ features-22
 features-23
 features-24
 features-25
+features-26
 idls/CORBA_IDL/CORBA_Current.idl
 idls/CORBA_IDL/CORBA_CustomMarshal.idl
 idls/CORBA_IDL/CORBA_DomainManager.idl
