@@ -27,8 +27,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-* PolyORB 2.5
-=============
+* PolyORB 2.5 (branched on 2008-11-03)
+======================================
 
 This release contains the PolyORB generic middleware, and its CORBA
 and DSA instantiations. In addition to the 2.4 release, it includes:
@@ -80,8 +80,8 @@ IAC would generate garbled error messages when referring to declarations in
 IAC and IDLAC required array sizes to be literals or constants. Arbitrary
 integer expressions are now allowed. (H723-024).
 
-* PolyORB 2.4
-=============
+* PolyORB 2.4 (branched on 2008-05-06)
+======================================
 
 This release contains the PolyORB generic middleware, and its CORBA
 and DSA instantiations. In addition to the 2.3 release, it includes:
