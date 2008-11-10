@@ -59,8 +59,8 @@ package body XE_Sem is
    --  default channel attribute.
 
    procedure Apply_Default_Partition_Attributes (Partition : Partition_Id);
-   --  When a partition attribute has not been assigned, apply the
-   --  default partition attribute.
+   --  When a partition attribute has not been assigned, apply the default
+   --  value for the attribute.
 
    procedure Assign_Unit_Tasking (ALI : ALI_Id);
    --  Assign PCS tasking for a RCI unit.
@@ -292,9 +292,14 @@ package body XE_Sem is
       end if;
 
       for J in Partitions.First + 1 .. Partitions.Last loop
-         if Partitions.Table (J).To_Build then
-            Apply_Default_Partition_Attributes (J);
-         end if;
+
+         --  Apply default values for unspecified attributes. Note that this
+         --  must be done even for partitions that are not built, since their
+         --  attributes might be referenced by other partitions, e.g. when
+         --  generating an Ada starter procedure (which needs the partition's
+         --  executable file name).
+
+         Apply_Default_Partition_Attributes (J);
       end loop;
 
       for J in Channels.First + 1 .. Channels.Last loop
