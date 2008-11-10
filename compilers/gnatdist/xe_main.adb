@@ -154,9 +154,9 @@ begin
       end loop;
    end if;
 
-   --  Check consistency once we know which partitions to build. Some
-   --  parts of configuration may be missing because we partially
-   --  build the distributed system.
+   --  Check consistency once we know which partitions to build. Some parts of
+   --  configuration may be missing because we partially build the distributed
+   --  system.
 
    XE_Back.Initialize (Backend);
    Analyze;
