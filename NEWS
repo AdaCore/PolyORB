@@ -41,6 +41,9 @@ See the features-25 file.
 Bug fixes
 ---------
 
+po_gnatdist crashed when building only the main partition in an application
+with an Ada starter. (HB10-009)
+
 IAC was generating incorrect Ada code for "default:" in a union. (H930-022)
 
 Several issues have been fixed in the circuitry handling TypeCodes and Anys
