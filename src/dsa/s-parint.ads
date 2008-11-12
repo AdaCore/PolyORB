@@ -632,10 +632,15 @@ package System.Partition_Interface is
       Val  : Any)
      renames PolyORB.Requests.Set_Result;
 
+   procedure Request_Destroy
+     (Self : in out PolyORB.Requests.Request_Access)
+     renames PolyORB.Requests.Destroy_Request;
+
    Asynchronous_P_To_Sync_Scope : constant array (Boolean)
-     of PolyORB.Requests.Flags
-     := (False => PolyORB.Requests.Sync_With_Target,
-         True  => PolyORB.Requests.Sync_With_Transport);
+     of PolyORB.Requests.Flags :=
+       (False => PolyORB.Requests.Sync_With_Target,
+        True  => PolyORB.Requests.Sync_With_Transport);
+
    --  Request_Flags to use for a request according to whether or not the call
    --  is asynchronous.
 
