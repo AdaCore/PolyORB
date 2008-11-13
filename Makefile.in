@@ -447,8 +447,9 @@ do-gnatmake: ${POLYORB_LIBS} ${SERVICE_LIBS} ${EXE_PROJECT_FILES} #??? ${APPLI_E
 # but we want this to work with older versions of gnatmake that do not
 # support -p (this option was introduced in GNAT 6.0).
 # WAG: 5.04
-ALI_FLAGS := ${patsubst %.gpr,ali/%/mkdir.flag,${PROJECT_FILES}}
-MKDIR_FLAGS := ${ALI_FLAGS} lib/mkdir.flag
+ALI_MKDIR_FLAGS = ${patsubst %.gpr,ali/%/mkdir.flag,${PROJECT_FILES}}
+C_MKDIR_FLAGS   = ${patsubst %,%mkdir.flag,${dir ${C_OBJECTS}}}
+MKDIR_FLAGS     = ${ALI_MKDIR_FLAGS} ${C_MKDIR_FLAGS} lib/mkdir.flag
 
 ${MKDIR_FLAGS}: %/mkdir.flag:
 	mkdir -p $*
@@ -879,6 +880,7 @@ clean:
 	${RM} -f lib/lib*.a
 	${RM} -f ${all_example_exes}
 	(cd compilers && ${RM} -f ${COMPILER_EXES})
+	${RM} -f ${MKDIR_FLAGS}
 	${RM} -f ${IAC_NODES_STAMPS}
 	${RM} -f ${IAC_NODES_SOURCES}
 	${RM} -f src/soap/polyorb-http_methods.adb src/soap/polyorb-http_headers.adb
@@ -2330,6 +2332,7 @@ debug-makefile:
 	@echo MAKEFLAGS = ${MAKEFLAGS}
 	@echo GNATMAKE_FLAGS = ${GNATMAKE_FLAGS}
 	@echo MAKECMDGOALS = ${MAKECMDGOALS}
+	@echo MKDIR_FLAGS = ${MKDIR_FLAGS}
 	@echo polyorb_idl_stamps = ${polyorb_idl_stamps}
 	@echo all_idl_stamps = ${all_idl_stamps}
 	@echo POLYORB_LIBS = ${POLYORB_LIBS}
