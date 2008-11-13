@@ -38,7 +38,10 @@ project src_corba_security_gssup is
    Dir := "src/corba/security/gssup";
    Obj_Dir := Common.Build_Dir & Dir;
    for Object_Dir use Obj_Dir;
-   for Source_Dirs use (Obj_Dir, Common.Source_Dir & Dir);
+
+   for Source_Dirs use (Obj_Dir);
+   --  for Source_Dirs use (Obj_Dir, Common.Source_Dir & Dir);
+   --  Only generated sources, no sources from repository
 
    for Library_Name use "polyorb-corba-security-gssup";
    for Library_Dir use Common.Build_Dir & "lib";
