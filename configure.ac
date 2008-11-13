@@ -309,7 +309,7 @@ AS_HELP_STRING([--with-corba-services=x], [Enumerate services]),
   newwithval=`echo ${withval} | tr "[A-Z]" "[a-z]"`
   for S in ${newwithval}
   do
-     if test -f ${srcdir}/cos/${S}/Makefile.am
+     if test -d ${srcdir}/cos/${S}
      then
         SERVICE_LIST="${SERVICE_LIST}${S} "
      else
@@ -810,15 +810,10 @@ AC_CONFIG_HEADERS([src/config.h])
 AC_OUTPUT(FILTER_OUTPUT_FILES(OUTPUT_FILTER,[
 	Makefile
 	Makefile.common.project
-	compilers/Makefile
 	compilers/common_files/platform.ads
 	compilers/config.adc
 	compilers/gnatdist/xe_defs-defaults.ads
-	compilers/gnatprfh/Makefile
 	compilers/gnatprfh/gnatprfh.adb
-	compilers/iac/Makefile
-	compilers/idlac/Makefile
-	compilers/idlac/testsuite/Makefile
 	docs/Makefile
 	docs/polyorb_version.texi
 	projects/config.gpr
@@ -826,150 +821,23 @@ AC_OUTPUT(FILTER_OUTPUT_FILES(OUTPUT_FILTER,[
 	projects/src_setup.gpr
 	projects-distrib/polyorb.gpr
 	projects-distrib/polyorb/src_setup.gpr
-	src/Makefile
 	src/config.adc
-	src/corba/Makefile
-	src/corba/dynamicany/Makefile
-	src/corba/iop/Makefile
-	src/corba/messaging/Makefile
-	src/corba/portableinterceptor/Makefile
-	src/corba/rtcorba/Makefile
-	src/corba/security/Makefile
-	src/corba/security/gssup/Makefile
-	src/dsa/Makefile
-	src/giop/Makefile
-	src/giop/iiop/Makefile
-	src/giop/iiop/security/Makefile
-	src/giop/iiop/security/tls/Makefile
-	src/giop/iiop/ssliop/Makefile
-	src/giop/diop/Makefile
-	src/giop/miop/Makefile
-	src/moma/Makefile
-	src/web_common/Makefile
-	src/aws/Makefile
-	src/security/Makefile
-	src/security/gssup/Makefile
-	src/security/tls/Makefile
-	src/security/x509/Makefile
-	src/setup/Makefile
 	src/setup/polyorb-setup-base.adb
 	src/setup/polyorb-setup-client.adb
 	src/setup/polyorb-setup-server.adb
-	src/setup/security/Makefile
-	src/soap/Makefile
-	src/srp/Makefile
-	src/ssl/Makefile
 	src/polyorb-platform.ads
 	src/polyorb-platform-ssl_linker_options.ads
 	src/ravenscar.adc
 	src/ravenscar_compatible.adc
-	idls/Makefile
-	idls/CORBA_IDL/Makefile
-	idls/CORBA_PIDL/Makefile
-	idls/Interop/Makefile
-	idls/Misc/Makefile
-	idls/RTCORBA/Makefile
-	idls/cos/Makefile
-	idls/cos/event/Makefile
-	idls/cos/naming/Makefile
-	idls/cos/notification/Makefile
-	idls/cos/time/Makefile
 	contrib/idlac_wrapper/idlac_wrapper
-	cos/Makefile
-	cos/event/Makefile
-	cos/naming/Makefile
-	cos/notification/Makefile
-	cos/time/Makefile
-	cos/ir/Makefile
-	examples/Makefile
-	examples/corba/Makefile
-	examples/corba/all_types/Makefile
-	examples/corba/all_functions/Makefile
-	examples/corba/echo/Makefile
-	examples/corba/random/Makefile
-	examples/corba/rtcorba/Makefile
-	examples/corba/rtcorba/client_propagated/Makefile
-	examples/corba/rtcorba/dhb/Makefile
-	examples/corba/rtcorba/server_declared/Makefile
-	examples/corba/rtcorba/rtcosscheduling/Makefile
-	examples/corba/send/Makefile
-	examples/corba/secure_echo/Makefile
 	examples/corba/secure_echo/gssup.conf
 	examples/corba/secure_echo/gssup_example
 	examples/corba/secure_echo/tls.conf
 	examples/corba/secure_echo/tls_example
 	examples/corba/secure_echo/tls_gssup.conf
 	examples/corba/secure_echo/tls_gssup_example
-	examples/dsa/Makefile
-	examples/bbs/Makefile
-	examples/moma/Makefile
-	examples/aws/Makefile
-	examples/polyorb/Makefile
-	testsuite/Makefile
-	testsuite/corba/Makefile
-	testsuite/corba/all_exceptions/Makefile
-	testsuite/corba/benchs/Makefile
-	testsuite/corba/benchs/test000/Makefile
-	testsuite/corba/code_sets/Makefile
-	testsuite/corba/code_sets/test000/Makefile
-	testsuite/corba/cos/Makefile
-	testsuite/corba/cos/event/Makefile
-	testsuite/corba/cos/ir/Makefile
-	testsuite/corba/cos/naming/Makefile
-	testsuite/corba/cos/notification/Makefile
-	testsuite/corba/cos/time/Makefile
-	testsuite/corba/domainmanager/Makefile
-	testsuite/corba/domainmanager/test000/Makefile
-	testsuite/corba/harness/Makefile
-	testsuite/corba/local/Makefile
-	testsuite/corba/location_forwarding/Makefile
-	testsuite/corba/location_forwarding/test000/Makefile
-	testsuite/corba/location_forwarding/test001/Makefile
-	testsuite/corba/orb_init/Makefile
-	testsuite/corba/object/Makefile
-	testsuite/corba/object/test000/Makefile
-	testsuite/corba/portableinterceptor/Makefile
-	testsuite/corba/portableinterceptor/test000/Makefile
-	testsuite/corba/portableinterceptor/test001/Makefile
-	testsuite/corba/portableinterceptor/test002/Makefile
-	testsuite/corba/portableinterceptor/test003/Makefile
-	testsuite/corba/portableinterceptor/test004/Makefile
-	testsuite/corba/portableserver/Makefile
-	testsuite/corba/rtcorba/Makefile
-	testsuite/corba/rtcorba/rtcurrent/Makefile
-	testsuite/corba/rtcorba/rtorb/Makefile
-	testsuite/corba/rtcorba/rtpoa/Makefile
-	testsuite/corba/shutdown/Makefile
-	testsuite/core/Makefile
-	testsuite/core/any/Makefile
-	testsuite/core/chained_lists/Makefile
-	testsuite/core/dynamic_dict/Makefile
-	testsuite/core/fixed_point/Makefile
-	testsuite/core/initialization/Makefile
-	testsuite/core/naming/Makefile
-	testsuite/core/obj_adapters/Makefile
-	testsuite/core/poa/Makefile
-	testsuite/core/random/Makefile
-	testsuite/core/sync_policies/Makefile
-	testsuite/core/tasking/Makefile
-	testsuite/core/uri_encoding/Makefile
-	testsuite/acats/Makefile
-	testsuite/acats/CXE1001/Makefile
-	testsuite/acats/CXE2001/Makefile
-	testsuite/acats/CXE4001/Makefile
-	testsuite/acats/CXE4002/Makefile
-	testsuite/acats/CXE4005/Makefile
-	testsuite/acats/CXE4006/Makefile
-	testsuite/utils/Makefile
-	tools/Makefile
-	tools/po_catref/Makefile
 	tools/po_catref/po_catref_setup.adb
-	tools/po_cos_naming/Makefile
-	tools/po_createref/Makefile
 	tools/po_createref/po_createref_setup.adb
-	tools/po_dumpir/Makefile
-	tools/po_ir/Makefile
-	tools/po_names/Makefile
 	support/adacompiler
 	support/linker
 	polyorb-config

@@ -82,7 +82,7 @@ EXTRA_GNATMAKE_FLAGS    = @EXTRA_GNATMAKE_FLAGS@
 # EXTRA_GNATMAKE_FLAGS are user-provided, empty by default (typically
 # used to specify a non-default --RTS switch).
 
-BASE_GNATMAKE_FLAGS	  := ${ADAFLAGS} ${PARALLEL_GNATMAKE_FLAGS} ${EXTRA_GNATMAKE_FLAGS}
+BASE_GNATMAKE_FLAGS	  :=--create-missing-dirs ${ADAFLAGS} ${PARALLEL_GNATMAKE_FLAGS} ${EXTRA_GNATMAKE_FLAGS}
 # Gnatmake flags for units built from project files
 
 COMP_TOOLS_GNATMAKE_FLAGS := @STYLE_SWITCH@ -gnatwa@WARNINGS_MODE@ -gnat05 -gnatec=${top_builddir}/compilers/config.adc ${BASE_GNATMAKE_FLAGS}
@@ -219,7 +219,8 @@ build-iac \
 build-po_gnatdist \
 \
 : build-%:
-	cd compilers/${compiler_dir} && \
+	mkdir -p compilers/${compiler_dir} && \
+	  cd compilers/${compiler_dir} && \
 	  ${GNATMAKE} -m \
 	   $* \
 	   ${COMP_TOOLS_GNATMAKE_FLAGS} \
@@ -291,6 +292,7 @@ src/soap/polyorb-http_methods.adb: ${GEN_HTTP_BODY} compilers/gnatprfh/gnatprfh
 # Note that the second gen_http_body command below overwrites perfect_hash.adb
 # with different content.
 src/soap/polyorb-http_methods.adb src/soap/polyorb-http_headers.adb: ${GEN_HTTP_BODY} compilers/gnatprfh/gnatprfh ${top_srcdir}/src/soap/polyorb-http_methods.ads ${top_srcdir}/src/soap/polyorb-http_headers.ads
+	mkdir -p src/soap
 	cd src/soap && ${GEN_HTTP_BODY} ${GNATPRFH} ${top_srcdir}/src/soap Method
 	cd src/soap && ${GEN_HTTP_BODY} ${GNATPRFH} ${top_srcdir}/src/soap Header
 
@@ -301,7 +303,7 @@ src/soap/polyorb-http_methods.adb src/soap/polyorb-http_headers.adb: ${GEN_HTTP_
 GEN_CODESET = src/giop/gen_codeset
 
 build-gen_codeset:
-	cd src/giop && \
+	mkdir -p src/giop && cd src/giop && \
 	  ${GNATMAKE} gen_codeset -I${top_srcdir}/src/giop ${COMP_TOOLS_GNATMAKE_FLAGS}
 
 src/giop/polyorb-giop_p-code_sets-data.ads-stamp: ${top_srcdir}/src/giop/cs_registry1.2h ${GEN_CODESET}
@@ -374,6 +376,7 @@ polyorb-idl-stamps: build-@IDLAC@ ${polyorb_idl_stamps} cos/ir/orb.idl-stamp
 #???What is the following all about?  Why does it "chmod" and "rm"?
 cos/ir/orb.idl-stamp: ${top_srcdir}/idls/CORBA_IDL/orb.idl ${top_srcdir}/idls/CORBA_IDL/CORBA_InterfaceRepository.idl ${top_srcdir}/idls/CORBA_IDL/CORBA_TypeCode.idl ${IDLAC_bin} ${IDLAC_WRAPPER}
 	@chmod a+x ${IDLAC_WRAPPER}
+	mkdir -p ${dir $@}
 	cd ${dir $@} && ${idlac} $<
 	${RM} cos/ir/corba-repository_root.ads
 	touch $@
