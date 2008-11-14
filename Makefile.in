@@ -439,41 +439,6 @@ do-gnatmake: ${POLYORB_LIBS} ${SERVICE_LIBS} ${EXE_PROJECT_FILES} #??? ${APPLI_E
 #???lib/polyorb.ali is missing the first time around.
 # Because we can't share library directories!
 
-# The mkdir.flag targets are used to create the necessary directories. There is
-# one ALI directory for each project file (for example, ali/src_corba is the
-# ALI directory for projects/src_corba.gpr). There is also a single library
-# directory (lib) shared by all project files.
-# Note: This would be unnecessary if we used the -p switch of gnatmake,
-# but we want this to work with older versions of gnatmake that do not
-# support -p (this option was introduced in GNAT 6.0).
-# WAG: 5.04
-ALI_MKDIR_FLAGS = ${patsubst %.gpr,ali/%/mkdir.flag,${PROJECT_FILES}}
-C_MKDIR_FLAGS   = ${patsubst %,%mkdir.flag,${dir ${C_OBJECTS}}}
-MKDIR_FLAGS     = ${ALI_MKDIR_FLAGS} ${C_MKDIR_FLAGS} lib/mkdir.flag
-
-${MKDIR_FLAGS}: %/mkdir.flag:
-	mkdir -p $*
-	touch $@
-
-# Note that each foo.gpr target depends on ALL .../mkdir.flag targets,
-# because gnatmake needs to look at the ALI directories for imported
-# projects.
-
-PRJ_GNATMAKE_FLAGS :=
-# This variable is used to pass additional per-project command line switches
-# to gnatmake.
-
-.PHONY: ${PROJECT_FILES}
-${PROJECT_FILES}: %.gpr: \
-    ${MKDIR_FLAGS} \
-    perfect-hash \
-    polyorb-idl-stamps \
-    build-gen_codeset \
-    src/giop/polyorb-giop_p-code_sets-data.ads-stamp \
-    tools/po_catref/polyorb-giop_p-code_sets-description_data.ads-stamp
-	ADA_PROJECT_PATH="${top_builddir}/projects${PATH_SEP}${top_srcdir}/projects${PATH_SEP}$$ADA_PROJECT_PATH" \
-	  ${GNATMAKE_FOR_TARGET} -P $@ ${BASE_GNATMAKE_FLAGS} ${PRJ_GNATMAKE_FLAGS} ${GNATMAKE_FLAGS_FOR_TARGET}
-
 .PHONY: libpolyorb-corba-cos-event-impl.a
 libpolyorb-corba-cos-event-impl.a: cos_event.gpr
 .PHONY: libpolyorb-corba-cos-ir-impl.a
@@ -580,6 +545,43 @@ endif
 C_OBJECTS=${C_FILES:.c=.o}
 ${C_OBJECTS}: %.o: ${top_srcdir}/%.c
 	${CC_FOR_TARGET} -c -o $@ -I${top_builddir}/src ${CPPFLAGS} ${CFLAGS} ${CFLAGS_FOR_TARGET} $<
+
+### No additions to C_FILES / C_OBJECTS beyond this point
+
+# The mkdir.flag targets are used to create the necessary directories. There is
+# one ALI directory for each project file (for example, ali/src_corba is the
+# ALI directory for projects/src_corba.gpr). There is also a single library
+# directory (lib) shared by all project files.
+# Note: This would be unnecessary if we used the -p switch of gnatmake,
+# but we want this to work with older versions of gnatmake that do not
+# support -p (this option was introduced in GNAT 6.0).
+# WAG: 5.04
+ALI_MKDIR_FLAGS = ${patsubst %.gpr,ali/%/mkdir.flag,${PROJECT_FILES}}
+C_MKDIR_FLAGS   = ${patsubst %,%mkdir.flag,${dir ${C_OBJECTS}}}
+MKDIR_FLAGS     = ${ALI_MKDIR_FLAGS} ${C_MKDIR_FLAGS} lib/mkdir.flag
+
+${MKDIR_FLAGS}: %/mkdir.flag:
+	mkdir -p $*
+	touch $@
+
+# Note that each foo.gpr target depends on ALL .../mkdir.flag targets,
+# because gnatmake needs to look at the ALI directories for imported
+# projects.
+
+PRJ_GNATMAKE_FLAGS :=
+# This variable is used to pass additional per-project command line switches
+# to gnatmake.
+
+.PHONY: ${PROJECT_FILES}
+${PROJECT_FILES}: %.gpr: \
+    ${MKDIR_FLAGS} \
+    perfect-hash \
+    polyorb-idl-stamps \
+    build-gen_codeset \
+    src/giop/polyorb-giop_p-code_sets-data.ads-stamp \
+    tools/po_catref/polyorb-giop_p-code_sets-description_data.ads-stamp
+	ADA_PROJECT_PATH="${top_builddir}/projects${PATH_SEP}${top_srcdir}/projects${PATH_SEP}$$ADA_PROJECT_PATH" \
+	  ${GNATMAKE_FOR_TARGET} -P $@ ${BASE_GNATMAKE_FLAGS} ${PRJ_GNATMAKE_FLAGS} ${GNATMAKE_FLAGS_FOR_TARGET}
 
 ##########################
 # examples and testsuite #
