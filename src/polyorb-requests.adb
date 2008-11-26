@@ -77,15 +77,15 @@ package body PolyORB.Requests is
       Ignore_Src_Mode :        Boolean        := True;
       Can_Extend      :        Boolean        := False);
 
-   --  True arguments of direction Direction (or INOUT) from received
-   --  protocol arguments list P_Args (either from a request, on
-   --  server side, or for a reply, on client side) into A_Args.  If
-   --  Can_Extend is set to True and Src_Args contains extra arguments
-   --  that are not required by Dst_Args, then they are appended.
+   --  True arguments of direction Direction (or INOUT) from received protocol
+   --  arguments list P_Args (either from a request, on server side, or for a
+   --  reply, on client side) into A_Args. If Can_Extend is set to True and
+   --  Src_Args contains extra arguments that are not required by Dst_Args,
+   --  then they are appended.
    --
-   --  Each variant of the Pump_Up_Arguments procedure corresponds to
-   --  a reconciliation method, according to the identification
-   --  capabilities of the personalities.
+   --  Each variant of the Pump_Up_Arguments procedure corresponds to a
+   --  reconciliation method, according to the identification capabilities of
+   --  the personalities.
 
    --------------------
    -- Create_Request --
@@ -208,34 +208,30 @@ package body PolyORB.Requests is
 
       pragma Assert (Direction = ARG_IN or else Direction = ARG_OUT);
 
-      --  When Direction is ARG_IN, we are a server and we
-      --  are pumping arguments from an incoming request message
-      --  into the request that will be processed by the
-      --  actual application object. In this case, we know
-      --  that arguments in Dst_Args have their correct canonical
-      --  modes and names. We assume that Src_Args only contain
-      --  arguments whose actual mode (as specifid in Dst_Args) is
-      --  ARG_IN or ARG_INOUT, possibly without names. If without
-      --  names, we assume that they are in the order of Dst_Args.
+      --  When Direction is ARG_IN, we are a server and we are pumping
+      --  arguments from an incoming request message into the request that will
+      --  be processed by the actual application object. In this case, we know
+      --  that arguments in Dst_Args have their correct canonical modes and
+      --  names. We assume that Src_Args only contain arguments whose actual
+      --  mode (as specifid in Dst_Args) is ARG_IN or ARG_INOUT, possibly
+      --  without names. If without names, we assume that they are in the order
+      --  of Dst_Args.
 
-      --  When direction is ARG_OUT, we are a client and
-      --  we are pumping up INOUT and OUT arguments from an
-      --  incoming reply message into the request that will be
-      --  handed back to the client appplication object.
-      --  (no return value must be present in Src_Args, only
-      --  actual arguments). We assue that Src_Args only contain
-      --  arguments whose actual mode is ARG_INOUT or ARG_OUT,
-      --  possibly without names, and if without names in the
-      --  order of Dst_Args.
+      --  When direction is ARG_OUT, we are a client and we are pumping up
+      --  INOUT and OUT arguments from an incoming reply message into the
+      --  request that will be handed back to the client appplication object.
+      --  (no return value must be present in Src_Args, only actual arguments).
+      --  We assume that Src_Args only contain arguments whose actual mode is
+      --  ARG_INOUT or ARG_OUT, possibly without names, and if without names in
+      --  the order of Dst_Args.
 
-      --  Note that we cannot rely on the mode indications in
-      --  Src_Args because some protocols (eg SOAP) do not
-      --  set it correcly (more specifically SOAP does not support
-      --  deferred unmarshalling, and insist on unmarshalling Self.Args
-      --  before Arguments is called. Consequence: 'OUT' mode arguments
-      --  might be missing in Self.Args, and 'INOUT' arguments might
-      --  be marked as 'IN'. Also, there is no guarantee that the order
-      --  of arguments is the same in Args and Self.Args.)
+      --  Note that we cannot rely on the mode indications in Src_Args because
+      --  some protocols (eg SOAP) do not set it correcly (more specifically
+      --  SOAP does not support deferred unmarshalling, and insist on
+      --  unmarshalling Self.Args before Arguments is called. Consequence:
+      --  'OUT' mode arguments might be missing in Self.Args, and 'INOUT'
+      --  arguments might be marked as 'IN'. Also, there is no guarantee that
+      --  the order of arguments is the same in Args and Self.Args.)
 
       while not Last (Dst_It) loop
 
@@ -247,12 +243,11 @@ package body PolyORB.Requests is
               or else Dst_Arg.Arg_Modes = Direction
             then
 
-               --  This arguments needs to be pumped up from the
-               --  Src_Args list. If Ignore_Arg_Mode is True,
-               --  we assume that Src contains only arguments
-               --  that actually need to be copied, else we check
-               --  the arg modes of Src args and copy only those
-               --  that need to, according to Direction.
+               --  This arguments needs to be pumped up from the Src_Args list.
+               --  If Ignore_Arg_Mode is True, we assume that Src contains only
+               --  arguments that actually need to be copied, else we check the
+               --  arg modes of Src args and copy only those that need to,
+               --  according to Direction.
 
                loop
                   declare
@@ -301,7 +296,8 @@ package body PolyORB.Requests is
       if Can_Extend then
          pragma Debug (C, O ("Appending remaining arguments"));
          --  If Dst_Args is an extensible NV_List, then we append the
-         --  remaining Src_Args
+         --  remaining Src_Args.
+
          while not Last (Src_It) loop
             if Ignore_Src_Mode
               or else Value (Src_It).Arg_Modes = ARG_INOUT
@@ -357,12 +353,11 @@ package body PolyORB.Requests is
               or else Value (Dst_It).Arg_Modes = Direction
             then
 
-               --  This arguments needs to be pumped up from the
-               --  Src_Args list. If Ignore_Arg_Mode is True,
-               --  we assume that Src contains only arguments
-               --  that actually need to be copied, else we check
-               --  the arg modes of Src args and copy only those
-               --  that need to, according to Direction.
+               --  This arguments needs to be pumped up from the Src_Args list.
+               --  If Ignore_Arg_Mode is True, we assume that Src contains only
+               --  arguments that actually need to be copied, else we check the
+               --  arg modes of Src args and copy only those that need to,
+               --  according to Direction.
 
                Src_It := First (List_Of (Src_Args).all);
                Src_Idx := Copied_Src_Args'First;
@@ -414,8 +409,8 @@ package body PolyORB.Requests is
       end loop;
 
       if Can_Extend then
-         --  If Dst_Args is an extensible NV_List, then we append the
-         --  remaining Src_Args
+         --  If Dst_Args is an extensible NV_List, then we append the remaining
+         --  Src_Args.
 
          Src_It := First (List_Of (Src_Args).all);
          Src_Idx := Copied_Src_Args'First;
@@ -456,15 +451,13 @@ package body PolyORB.Requests is
       use PolyORB.Any.NVList.Internals.NV_Lists;
 
       function Name_Exists
-        (Name : Types.Identifier; From : Iterator)
-         return Boolean;
-      --  True iff the list on which From iterates contains
-      --  a namedvalue whose name is Name between the position
-      --  denoted by From and the end of the list.
+        (Name : Types.Identifier; From : Iterator) return Boolean;
+      --  True if, and only if, the list on which From iterates contains a
+      --  namedvalue whose name is Name between the position denoted by From
+      --  and the end of the list.
 
       function Name_Exists
-        (Name : Types.Identifier; From : Iterator)
-         return Boolean
+        (Name : Types.Identifier; From : Iterator) return Boolean
       is
          It : Iterator := From;
       begin
@@ -487,8 +480,8 @@ package body PolyORB.Requests is
       Src_It : Iterator;
       Copy_Argument : Boolean;
       Identification_By_Name, Identification_By_Position : Boolean := True;
-      --  By default, we assume that arguments are identified by both
-      --  name and position (this is the ideal case).
+      --  By default, we assume that arguments are identified by both name and
+      --  position (this is the ideal case).
 
    begin
       if Same_Entity (Src_Args, Dst_Args) then
@@ -507,12 +500,11 @@ package body PolyORB.Requests is
               or else Value (Dst_It).Arg_Modes = Direction
             then
 
-               --  This arguments needs to be pumped up from the
-               --  Src_Args list. If Ignore_Arg_Mode is True,
-               --  we assume that Src contains only arguments
-               --  that actually need to be copied, else we check
-               --  the arg modes of Src args and copy only those
-               --  that need to, according to Direction.
+               --  This arguments needs to be pumped up from the Src_Args list.
+               --  If Ignore_Arg_Mode is True, we assume that Src contains only
+               --  arguments that actually need to be copied, else we check the
+               --  arg modes of Src args and copy only those that need to,
+               --  according to Direction.
 
                Src_It := First (List_Of (Src_Args).all);
                Src_Idx := Copied_Src_Args'First;
@@ -520,8 +512,8 @@ package body PolyORB.Requests is
                                 & To_String (Value (Dst_It).Name)));
                loop
                   Copy_Argument := False;
-                  --  By default, we will not copy the argument: it is
-                  --  up to the algorithm to decide it.
+                  --  By default, we will not copy the argument: it is up to
+                  --  the algorithm to decide it.
 
                   if (Ignore_Src_Mode
                       or else Value (Src_It).Arg_Modes = ARG_INOUT
@@ -551,10 +543,9 @@ package body PolyORB.Requests is
                               then
                                  Copy_Argument := True;
                                  --  The name does not match. It is not a
-                                 --  problem if we are identifying
-                                 --  arguments by their positions and not
-                                 --  by their names, since we then do not
-                                 --  consider the names.
+                                 --  problem if we are identifying arguments by
+                                 --  their positions and not by their names,
+                                 --  since we then do not consider the names.
 
                               elsif Identification_By_Name
                                 and then Name_Exists
@@ -562,25 +553,23 @@ package body PolyORB.Requests is
                               then
                                  Identification_By_Position := False;
                                  Copy_Argument := False;
-                                 --  If the name does not match, but
-                                 --  exists, and we are performing
-                                 --  identification by name (and possibly
-                                 --  identification by position), then we
-                                 --  assume that the argument will match
-                                 --  by name later and then we are not
-                                 --  performing identification by
-                                 --  position any more. Thus
-                                 --  identification by name has the
-                                 --  priority.
+                                 --  If the name does not match, but exists,
+                                 --  and we are performing identification by
+                                 --  name (and possibly identification by
+                                 --  position), then we assume that the
+                                 --  argument will match by name later and then
+                                 --  we are not performing identification by
+                                 --  position any more. Thus identification by
+                                 --  name has the priority.
 
                               else
                                  Identification_By_Name := False;
                                  pragma Debug (C, O ("no more ident by name"));
-                                 --  If we were identifying the arguments
-                                 --  by their names and the name does not
-                                 --  match and does not exist in the hash
-                                 --  table, then we cannot perform such
-                                 --  identification any more.
+                                 --  If we were identifying the arguments by
+                                 --  their names and the name does not match
+                                 --  and does not exist in the hash table, then
+                                 --  we cannot perform such identification any
+                                 --  more.
 
                                  if Identification_By_Position then
                                     Copy_Argument := True;
@@ -606,19 +595,18 @@ package body PolyORB.Requests is
                            Identification_By_Position := False;
                            pragma Debug (C, O ("no more ident by pos"));
                            --  If we were identifying arguments by their
-                           --  positions, the types should have matched
-                           --  (first unused src_arg with first unused
-                           --  dst_arg). This is not the case, so we are
-                           --  not identifying arguments by their
-                           --  positions.
+                           --  positions, the types should have matched (first
+                           --  unused src_arg with first unused dst_arg). This
+                           --  is not the case, so we are not identifying
+                           --  arguments by their positions.
 
                            if Identification_By_Name then
                               if not Name_Exists
                                 (Value (Dst_It).Name, From => Src_It)
                               then
-                                 --  If the name does not exist, this
-                                 --  means that we will never be able to
-                                 --  make this argument match.
+                                 --  If the name does not exist, this means
+                                 --  that we will never be able to make this
+                                 --  argument match.
                                  declare
                                     Member : constant System_Exception_Members
                                       := (Minor => 1,
@@ -630,13 +618,12 @@ package body PolyORB.Requests is
                                  end;
                               end if;
 
-                              --  Else, the type of src_arg does not
-                              --  match with dst_arg, but its name exists
-                              --  in the hash table; so we can hope that
-                              --  the argument which has the proper name
-                              --  also has the proper type: so we do
-                              --  nothing but continuing the search among
-                              --  src_args.
+                              --  Else, the type of Src_Arg does not match
+                              --  Dst_Arg, but its name exists in the hash
+                              --  table, so we can hope that the argument which
+                              --  has the proper name also has the proper type:
+                              --  we do nothing but continuing the search
+                              --  among Src_Args.
                            else
                               declare
                                  Member : constant System_Exception_Members
@@ -646,9 +633,9 @@ package body PolyORB.Requests is
                                  pragma Debug
                                    (C, O ("by position impossible"));
                                  return;
-                                 --  We must identify the arguments either
-                                 --  by their name or their position. If
-                                 --  not, this is an error.
+                                 --  We must identify the arguments either by
+                                 --  their name or their position. If neither
+                                 --  is possible, this is an error.
                               end;
                            end if;
                         end if;
@@ -688,8 +675,8 @@ package body PolyORB.Requests is
       end loop;
 
       if Can_Extend then
-         --  If dst_args is an extensible NV_List, then we append the
-         --  remaining Src_Args
+         --  If dst_args is an extensible NV_List, then we append the remaining
+         --  Src_Args.
 
          Src_It := First (List_Of (Src_Args).all);
          Src_Idx := Copied_Src_Args'First;
@@ -915,13 +902,11 @@ package body PolyORB.Requests is
             Ignore_Src_Mode => False,
             Error           => Error);
       end if;
-      --  Copy back inout and out arguments from Out_Args
-      --  to Args, so the requestor finds them where
-      --  it expects.
+      --  Copy back inout and out arguments from Out_Args to Args, so the
+      --  requestor finds them where it expects.
 
-      --  XXX If a method has IN and OUT args and R.Args
-      --  contains only the IN arguments (and no empty
-      --  Any's for the OUT ones) what happens?
+      --  XXX If a method has IN and OUT args and R.Args contains only the IN
+      --  arguments (and no empty Any's for the OUT ones) what happens?
    end Set_Out_Args;
 
 end PolyORB.Requests;
