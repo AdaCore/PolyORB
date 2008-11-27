@@ -179,11 +179,16 @@ package body PortableServer is
             --  True and the R.Exception_Info Any is non-empty. We set out
             --  arguments only if no exception was raised.
 
+            --  Note: At this point the stack frame of the skel has been
+            --  exited, and the shadow any's in the arg list that correspond
+            --  to IN mode arguments now have dangling content pointer. In
+            --  particular this means that any call to Image (R.Out_Args) is
+            --  likely to fail on such arguments.
+
             if R.Arguments_Called
                  and then
                PolyORB.Any.Is_Empty (R.Exception_Info)
             then
-
                pragma Debug
                  (C, O ("Execute_Servant: executed, setting out args"));
                Set_Out_Args (R, Error);
