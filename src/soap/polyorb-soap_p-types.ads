@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2000-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2000-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -41,7 +41,7 @@ package PolyORB.SOAP_P.Types is
    Data_Error : exception;
    --  Raised when a variable has not the expected type.
 
-   function Image (NV : NamedValue) return String;
+   function Value_Image (NV : NamedValue) return String;
    --  Returns O value image.
 
    function XML_Image (NV : NamedValue) return String;
