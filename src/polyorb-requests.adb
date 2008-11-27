@@ -58,24 +58,24 @@ package body PolyORB.Requests is
       Src_Args        :        Any.NVList.Ref;
       Direction       :        Any.Flags;
       Error           : in out Error_Container;
-      Ignore_Src_Mode :        Boolean        := True;
-      Can_Extend      :        Boolean        := False);
+      Ignore_Src_Mode :        Boolean;
+      Can_Extend      :        Boolean := False);
 
    procedure Pump_Up_Arguments_By_Position
      (Dst_Args        : in out Any.NVList.Ref;
       Src_Args        :        Any.NVList.Ref;
       Direction       :        Any.Flags;
       Error           : in out Error_Container;
-      Ignore_Src_Mode :        Boolean        := True;
-      Can_Extend      :        Boolean        := False);
+      Ignore_Src_Mode :        Boolean;
+      Can_Extend      :        Boolean := False);
 
    procedure Pump_Up_Arguments_By_Name
      (Dst_Args        : in out Any.NVList.Ref;
       Src_Args        :        Any.NVList.Ref;
       Direction       :        Any.Flags;
       Error           : in out Error_Container;
-      Ignore_Src_Mode :        Boolean        := True;
-      Can_Extend      :        Boolean        := False);
+      Ignore_Src_Mode :        Boolean;
+      Can_Extend      :        Boolean := False);
 
    --  True arguments of direction Direction (or INOUT) from received protocol
    --  arguments list P_Args (either from a request, on server side, or for a
@@ -189,7 +189,7 @@ package body PolyORB.Requests is
       Src_Args        :        Any.NVList.Ref;
       Direction       :        Any.Flags;
       Error           : in out Error_Container;
-      Ignore_Src_Mode :        Boolean        := True;
+      Ignore_Src_Mode :        Boolean;
       Can_Extend      :        Boolean        := False)
    is
       use PolyORB.Any;
@@ -237,7 +237,6 @@ package body PolyORB.Requests is
 
          declare
             Dst_Arg : constant Element_Access := Value (Dst_It);
-
          begin
             if Dst_Arg.Arg_Modes = ARG_INOUT
               or else Dst_Arg.Arg_Modes = Direction
@@ -275,14 +274,12 @@ package body PolyORB.Requests is
                      else
                         Next (Src_It);
                         if Last (Src_It) then
-                           declare
-                              Member : constant System_Exception_Members
-                                := (Minor => 1, Completed => Completed_No);
-                           begin
-                              Throw (Error, Bad_Param_E, Member);
-                              pragma Debug (C, O ("arg not found"));
-                              return;
-                           end;
+                           pragma Debug (C, O ("argument not found"));
+                           Throw
+                             (Error, Bad_Param_E,
+                              System_Exception_Members'
+                                (Minor => 1, Completed => Completed_No));
+                           return;
                         end if;
                      end if;
                   end;
@@ -319,8 +316,8 @@ package body PolyORB.Requests is
       Src_Args        :        Any.NVList.Ref;
       Direction       :        Any.Flags;
       Error           : in out Error_Container;
-      Ignore_Src_Mode :        Boolean        := True;
-      Can_Extend      :        Boolean        := False)
+      Ignore_Src_Mode :        Boolean;
+      Can_Extend      :        Boolean := False)
    is
       use PolyORB.Components;
 
@@ -394,14 +391,12 @@ package body PolyORB.Requests is
                end loop;
 
                if not Src_Arg_Found then
-                  declare
-                     Member : constant System_Exception_Members
-                       := (Minor => 1, Completed => Completed_No);
-                  begin
-                     Throw (Error, Bad_Param_E, Member);
-                     pragma Debug (C, O ("arg not found"));
-                     return;
-                  end;
+                  pragma Debug (C, O ("argument not found"));
+                  Throw
+                    (Error, Bad_Param_E,
+                     System_Exception_Members'
+                       (Minor => 1, Completed => Completed_No));
+                  return;
                end if;
             end if;
          end;
@@ -440,8 +435,8 @@ package body PolyORB.Requests is
       Src_Args        :        Any.NVList.Ref;
       Direction       :        Any.Flags;
       Error           : in out Error_Container;
-      Ignore_Src_Mode :        Boolean        := True;
-      Can_Extend      :        Boolean        := False)
+      Ignore_Src_Mode :        Boolean;
+      Can_Extend      :        Boolean := False)
    is
       use PolyORB.Components;
 
@@ -453,7 +448,7 @@ package body PolyORB.Requests is
       function Name_Exists
         (Name : Types.Identifier; From : Iterator) return Boolean;
       --  True if, and only if, the list on which From iterates contains a
-      --  namedvalue whose name is Name between the position denoted by From
+      --  NamedValue whose name is Name between the position denoted by From
       --  and the end of the list.
 
       function Name_Exists
@@ -574,26 +569,24 @@ package body PolyORB.Requests is
                                  if Identification_By_Position then
                                     Copy_Argument := True;
                                  else
-                                    declare
-                                       Member : constant
-                                         System_Exception_Members
-                                         := (Minor => 1,
-                                             Completed => Completed_No);
-                                    begin
-                                       Throw (Error, Bad_TypeCode_E, Member);
-                                       pragma Debug (C, O ("dead end"));
-                                       return;
+                                    --  We must identify the arguments by name
+                                    --  or by position. Bail out if neither is
+                                    --  possible.
 
-                                    --  We must identify the arguments either
-                                    --  by their name or their position. If
-                                    --  not, this is an error.
-                                    end;
+                                    pragma Debug (C, O ("dead end"));
+                                    Throw
+                                      (Error, Bad_TypeCode_E,
+                                       System_Exception_Members'
+                                         (Minor => 1,
+                                          Completed => Completed_No));
+                                    return;
                                  end if;
                               end if;
                            end if;
                         else
                            Identification_By_Position := False;
                            pragma Debug (C, O ("no more ident by pos"));
+
                            --  If we were identifying arguments by their
                            --  positions, the types should have matched (first
                            --  unused src_arg with first unused dst_arg). This
@@ -607,15 +600,13 @@ package body PolyORB.Requests is
                                  --  If the name does not exist, this means
                                  --  that we will never be able to make this
                                  --  argument match.
-                                 declare
-                                    Member : constant System_Exception_Members
-                                      := (Minor => 1,
-                                          Completed => Completed_No);
-                                 begin
-                                    Throw (Error, Bad_Param_E, Member);
-                                    pragma Debug (C, O ("name not found"));
-                                    return;
-                                 end;
+
+                                 pragma Debug (C, O ("name not found"));
+                                 Throw
+                                   (Error, Bad_Param_E,
+                                    System_Exception_Members'
+                                      (Minor => 1, Completed => Completed_No));
+                                 return;
                               end if;
 
                               --  Else, the type of Src_Arg does not match
@@ -624,19 +615,17 @@ package body PolyORB.Requests is
                               --  has the proper name also has the proper type:
                               --  we do nothing but continuing the search
                               --  among Src_Args.
+
                            else
-                              declare
-                                 Member : constant System_Exception_Members
-                                   := (Minor => 1, Completed => Completed_No);
-                              begin
-                                 Throw (Error, Bad_TypeCode_E, Member);
-                                 pragma Debug
-                                   (C, O ("by position impossible"));
-                                 return;
-                                 --  We must identify the arguments either by
-                                 --  their name or their position. If neither
-                                 --  is possible, this is an error.
-                              end;
+                              --  We must identify the arguments by name or by
+                              --  position. Bail out if neither is possible.
+
+                              Throw
+                                (Error, Bad_TypeCode_E,
+                                 System_Exception_Members'
+                                   (Minor => 1, Completed => Completed_No));
+                              pragma Debug (C, O ("by position impossible"));
+                              return;
                            end if;
                         end if;
                      end;
@@ -649,6 +638,7 @@ package body PolyORB.Requests is
                                      Value (Src_It).Argument);
                      Copied_Src_Args (Src_Idx) := True;
                      exit;
+
                   else
                      Src_Idx := Src_Idx + 1;
                      Next (Src_It);
@@ -660,14 +650,12 @@ package body PolyORB.Requests is
                end loop;
 
                if not Src_Arg_Found then
-                  declare
-                     Member : constant System_Exception_Members
-                       := (Minor => 1, Completed => Completed_No);
-                  begin
-                     Throw (Error, Bad_Param_E, Member);
-                     pragma Debug (C, O ("arg not found"));
-                     return;
-                  end;
+                  pragma Debug (C, O ("arg not found"));
+                  Throw
+                    (Error, Bad_Param_E,
+                       System_Exception_Members'
+                         (Minor => 1, Completed => Completed_No));
+                  return;
                end if;
             end if;
          end;
@@ -675,7 +663,7 @@ package body PolyORB.Requests is
       end loop;
 
       if Can_Extend then
-         --  If dst_args is an extensible NV_List, then we append the remaining
+         --  If Dst_Args is an extensible NV_List, then we append the remaining
          --  Src_Args.
 
          Src_It := First (List_Of (Src_Args).all);
@@ -715,27 +703,23 @@ package body PolyORB.Requests is
    ---------------
 
    procedure Arguments
-     (Self           :        Request_Access;
+     (Self           : Request_Access;
       Args           : in out Any.NVList.Ref;
       Error          : in out Error_Container;
-      Identification :        Arguments_Identification := Ident_By_Position;
-      Can_Extend     :        Boolean := False)
+      Identification : Arguments_Identification := Ident_By_Position;
+      Can_Extend     : Boolean := False)
    is
       use Any.NVList;
       use Components;
-
    begin
       if Self.Arguments_Called
         or else not PolyORB.Any.Is_Empty (Self.Exception_Info)
       then
-         declare
-            Member : constant System_Exception_Members
-              := (Minor => 7, Completed => Completed_No);
-         begin
-            pragma Debug (C, O ("Arguments called twice"));
-            Throw (Error, Bad_Inv_Order_E, Member);
-            return;
-         end;
+         pragma Debug (C, O ("Arguments called twice"));
+         Throw
+           (Error, Bad_Inv_Order_E,
+            System_Exception_Members'(Minor => 7, Completed => Completed_No));
+         return;
       end if;
       Self.Arguments_Called := True;
 
@@ -768,33 +752,48 @@ package body PolyORB.Requests is
          pragma Debug (C, O ("in Arguments: " & Image (Self.Args)));
 
          declare
-            Identification_Method : constant Arguments_Identification
-              := Identification and Self.Args_Ident;
-
+            Identification_Method : constant Arguments_Identification :=
+                                      Identification and Self.Args_Ident;
+            Ignore_Src_Mode : constant Boolean :=
+                                Self.Requesting_Component.all
+                                  in Protocols.Session'Class;
          begin
             if Identification_Method = Ident_By_Position
               or else Identification_Method = Ident_Both
             then
+               --  If reconciling arguments by position, and the call comes
+               --  from a network connection, assume that only IN arguments are
+               --  present, and that the direction indications may be wrong in
+               --  Self.Args (because the protocol does not distinguish between
+               --  IN and IN OUT arguments). However for a local call, we may
+               --  assume that direction indicators are correct, and we must
+               --  ensure that we omit all OUT arguments.
+
                Pump_Up_Arguments_By_Position
-                 (Dst_Args   => Args,
-                  Src_Args   => Self.Args,
-                  Direction  => Any.ARG_IN,
-                  Error      => Error,
-                  Can_Extend => Can_Extend);
+                 (Dst_Args        => Args,
+                  Src_Args        => Self.Args,
+                  Direction       => Any.ARG_IN,
+                  Error           => Error,
+                  Ignore_Src_Mode => Ignore_Src_Mode,
+                  Can_Extend      => Can_Extend);
+
             elsif Identification_Method = Ident_By_Name then
                Pump_Up_Arguments_By_Name
-                 (Dst_Args   => Args,
-                  Src_Args   => Self.Args,
-                  Direction  => Any.ARG_IN,
-                  Error      => Error,
-                  Can_Extend => Can_Extend);
+                 (Dst_Args        => Args,
+                  Src_Args        => Self.Args,
+                  Direction       => Any.ARG_IN,
+                  Error           => Error,
+                  Ignore_Src_Mode => Ignore_Src_Mode,
+                  Can_Extend      => Can_Extend);
+
             else
                Pump_Up_Arguments_Unspecified
-                 (Dst_Args   => Args,
-                  Src_Args   => Self.Args,
-                  Direction  => Any.ARG_IN,
-                  Error      => Error,
-                  Can_Extend => Can_Extend);
+                 (Dst_Args        => Args,
+                  Src_Args        => Self.Args,
+                  Direction       => Any.ARG_IN,
+                  Error           => Error,
+                  Ignore_Src_Mode => Ignore_Src_Mode,
+                  Can_Extend      => Can_Extend);
             end if;
          end;
       end if;
@@ -831,14 +830,11 @@ package body PolyORB.Requests is
         or else Self.Set_Result_Called
         or else not PolyORB.Any.Is_Empty (Self.Exception_Info)
       then
-         declare
-            Member : constant System_Exception_Members :=
-                       (Minor => 8, Completed => Completed_No);
-         begin
-            pragma Debug (C, O ("Invalid Set_Result call"));
-            Throw (Error, Bad_Inv_Order_E, Member);
-            return;
-         end;
+         pragma Debug (C, O ("Invalid Set_Result call"));
+         Throw
+           (Error, Bad_Inv_Order_E,
+            System_Exception_Members'(Minor => 8, Completed => Completed_No));
+         return;
       end if;
 
       Self.Set_Result_Called := True;
@@ -875,8 +871,8 @@ package body PolyORB.Requests is
       Error          : in out Error_Container;
       Identification : Arguments_Identification := Ident_By_Position)
    is
-      Identification_Method : constant Arguments_Identification
-        := Identification and Self.Args_Ident;
+      Identification_Method : constant Arguments_Identification :=
+                                Identification and Self.Args_Ident;
    begin
       if Identification_Method = Ident_By_Position
         or else Identification_Method = Ident_Both
