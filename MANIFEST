@@ -468,6 +468,7 @@ examples/aws/Makefile.local
 examples/aws/local.gpr
 examples/corba/README
 examples/corba/all_functions/Makefile.local
+examples/corba/all_functions/README
 examples/corba/all_functions/all_functions-impl.adb
 examples/corba/all_functions/all_functions-impl.ads
 examples/corba/all_functions/all_functions.idl
@@ -475,6 +476,7 @@ examples/corba/all_functions/client.adb
 examples/corba/all_functions/dynclient.adb
 examples/corba/all_functions/local.gpr
 examples/corba/all_functions/server.adb
+examples/corba/all_functions/run_tests.adb
 examples/corba/all_types/Makefile.local
 examples/corba/all_types/README
 examples/corba/all_types/all_types-impl.adb

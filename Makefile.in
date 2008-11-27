@@ -877,8 +877,7 @@ force::
 clean:
 	${RM} -f ${all_idl_stamps} ./cos/ir/orb.idl-stamp # ???and more
 	${RM} -f ${idlac_output_files}
-	find . -name '*.ali' | xargs ${RM} -f
-	find . -name '*.o'   | xargs ${RM} -f
+	find . -name '*.ali' -o -name '*.o' | xargs ${RM} -f
 	${RM} -f lib/lib*.a
 	${RM} -f ${all_example_exes}
 	(cd compilers && ${RM} -f ${COMPILER_EXES})
