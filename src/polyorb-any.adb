@@ -1622,19 +1622,15 @@ package body PolyORB.Any is
    -----------
 
    function Image (NV : NamedValue) return Standard.String is
+      function Flag_Name (F : Flags) return Standard.String;
+      pragma Inline (Flag_Name);
+      --  Return string representation for F, which denotes an argument mode
 
       ---------------
       -- Flag_Name --
       ---------------
 
-      function Flag_Name
-        (F : Flags)
-        return Standard.String;
-      pragma Inline (Flag_Name);
-
-      function Flag_Name
-        (F : Flags)
-        return Standard.String is
+      function Flag_Name (F : Flags) return Standard.String is
       begin
          case F is
             when ARG_IN =>
@@ -1652,8 +1648,7 @@ package body PolyORB.Any is
 
    begin
       return Flag_Name (NV.Arg_Modes) & " "
-        & To_Standard_String (NV.Name)
-        & " = " & Image (NV.Argument);
+        & To_Standard_String (NV.Name) & " = " & Image (NV.Argument);
    end Image;
 
    ----------------------
