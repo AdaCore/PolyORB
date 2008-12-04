@@ -55,6 +55,12 @@ See the features-25 file.
 Bug fixes
 ---------
 
+Calling a method that has IN or INOUT arguments following an OUT argument
+locally on a partition (i.e. without involving any actual network
+communication) would cause an incorrect matching of formal and actual
+parameters, causing incorrect values to be passed to the servant, or
+a crash if parameters were of incompatible types. (HB25-017)
+
 po_gnatdist crashed when building only the main partition in an application
 with an Ada starter. (HB10-009)
 
