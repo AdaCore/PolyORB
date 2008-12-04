@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2000-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2000-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -208,7 +208,7 @@ package body PolyORB.SOAP_P.Message.Response.Error is
                  (Message_Body,
                   "   "
                   & SOAP.Utils.Tag (P_Name, Start => True)
-                  & Types.Image (P_K)
+                  & Types.Value_Image (P_K)
                   & SOAP.Utils.Tag (P_Name, Start => False)
                   & NL);
             end;
