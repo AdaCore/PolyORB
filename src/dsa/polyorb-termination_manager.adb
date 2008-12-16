@@ -220,24 +220,22 @@ package body PolyORB.Termination_Manager is
    is
       Result : Request_Status;
    begin
-
       Enter (Critical_Section);
+      pragma Debug (C, O ("Check_Stamp: stamp =" & S'Img
+                            & ", Current =" & The_TM.Current_Stamp'Img));
 
       if S < The_TM.Current_Stamp then
-
          --  If stamp is older than current stamp, this is an outdated message
 
          Result := Outdated;
 
       elsif S = The_TM.Current_Stamp then
-
          --  If stamp is equal to the current stamp then the request is not
          --  from a Father node.
 
          Result := Not_From_Father;
 
       elsif S > The_TM.Current_Stamp then
-
          --  If stamp is more recent than current stamp, this is a new wave,
          --  update the current stamp.
 
@@ -246,9 +244,8 @@ package body PolyORB.Termination_Manager is
       end if;
 
       Leave (Critical_Section);
-
+      pragma Debug (C, O ("Check_Stamp: -> " & Result'Img));
       return Result;
-
    end Check_Stamp;
 
    ---------------
@@ -271,7 +268,7 @@ package body PolyORB.Termination_Manager is
 
    procedure In_Initiator_Loop is
    begin
-
+      --  ??? This should be tested only once, not at each term loop iteration
       if The_TM.Termination_Policy = Local_Termination then
          pragma Debug (C, O ("A partition cannot be the initiator"
                          &" and have a local termination policy."));
@@ -486,9 +483,12 @@ package body PolyORB.Termination_Manager is
 
       case Check_Stamp (Stamp) is
          when Valid  =>
+            pragma Debug
+              (C, O ("Terminate_Now: received wave with valid time stamp"));
             null;
-            pragma Debug (C, O ("New wave (Terminate_Now) received"));
          when others =>
+            pragma Debug
+              (C, O ("Terminate_Now: received wave with junk time stamp"));
             return True;
       end case;
 

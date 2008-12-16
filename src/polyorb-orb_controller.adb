@@ -197,6 +197,7 @@ package body PolyORB.ORB_Controller is
       Expected_Running_Tasks : Natural := 1) return Boolean
    is
       use PolyORB.Tasking.Threads;
+      Result : Boolean;
    begin
       pragma Debug (C2, O2 ("Is_Locally_Terminated: " & Status (O.all)));
 
@@ -206,14 +207,16 @@ package body PolyORB.ORB_Controller is
         or else Get_Count (O.Summary, State => Unscheduled) > 0
         or else Has_Pending_Job (O)
       then
-         return False;
+         Result := False;
+      else
+         Result := (Awake_Count
+                     - Independent_Count
+                     - Get_Count (O.Summary, State => Idle)
+                     - Get_Count (O.Summary, State => Blocked)
+                     = Expected_Running_Tasks);
       end if;
-
-      return (Awake_Count
-               - Independent_Count
-               - Get_Count (O.Summary, State => Idle)
-               - Get_Count (O.Summary, State => Blocked)
-               = Expected_Running_Tasks);
+      pragma Debug (C2, O2 ("-> " & Result'Img));
+      return Result;
    end Is_Locally_Terminated;
 
    ---------------
