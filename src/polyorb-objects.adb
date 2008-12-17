@@ -63,6 +63,7 @@ package body PolyORB.Objects is
       A : Object_Id (Stream_Element_Offset (S'First)
                   .. Stream_Element_Offset (S'Last));
       for A'Address use S'Address;
+      pragma Import (Ada, A);
    begin
       return A;
    end String_To_Oid;
@@ -74,6 +75,7 @@ package body PolyORB.Objects is
    function Image (Oid : Object_Id) return String is
       Oid_S  : String (1 .. Oid'Length);
       for Oid_S'Address use Oid'Address;
+      pragma Import (Ada, Oid_S);
 
       Result : String (1 .. Oid'Length) := Oid_S;
    begin
