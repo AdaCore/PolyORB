@@ -152,6 +152,7 @@ package body PolyORB.Termination_Manager.Bootstrap is
 
          NK := DSA_Node;
          Ref := Note.TM_Ref;
+
       else
          pragma Debug (C, O ("Extracting TM ref from Client BO"));
 
@@ -183,7 +184,7 @@ package body PolyORB.Termination_Manager.Bootstrap is
 
       end if;
 
-      pragma Debug (C, O ("Extracted Ref is:" & Image (Ref)));
+      pragma Debug (C, O ("-> TM: " & Image (Ref)));
    end Extract_TM_Reference_From_BO;
 
    ---------------
