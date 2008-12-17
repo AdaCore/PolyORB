@@ -76,11 +76,11 @@ package body PolyORB.Termination_Manager.Bootstrap is
    -- Stub Types managing --
    -------------------------
 
-   type RACW_Tick_Stub_Type_Access is
+   type Term_Manager_Stub_Access is
      access all Term_Manager_Access'Stub_Type;
 
    --  We have to consider three views of the same type:
-   --    * RACW_Tick_Stub_Type_Access: the type returned by RACW'Stub_Type
+   --    * Term_Manager_Stub_Access: the type returned by RACW'Stub_Type
    --    * RACW_Stub_Type_Access: a general stub type used by S-PolInt
    --    * Term_Manager_Access : the type we use in the termination manager
    --  We define some Unchecked_Conversions between them:
@@ -90,14 +90,14 @@ package body PolyORB.Termination_Manager.Bootstrap is
    --  To disable "possible aliasing problem" warnings which do not apply in
    --  this case.
 
-   function RACW_Tick_To_RACW_Access is
+   function To_RACW_Stub_Access is
      new Ada.Unchecked_Conversion
-       (Source => RACW_Tick_Stub_Type_Access,
+       (Source => Term_Manager_Stub_Access,
         Target => RACW_Stub_Type_Access);
 
-   function RACW_Access_To_TM_Access is
+   function To_TM_Access is
      new Ada.Unchecked_Conversion
-       (Source => RACW_Stub_Type_Access,
+       (Source => System.Address,
         Target => Term_Manager_Access);
 
    pragma Warnings (On);
@@ -359,32 +359,16 @@ package body PolyORB.Termination_Manager.Bootstrap is
    -- Ref_To_Term_Manager_Access --
    --------------------------------
 
-   function Ref_To_Term_Manager_Access (R : References.Ref)
-     return Term_Manager_Access
+   function Ref_To_Term_Manager_Access
+     (R : References.Ref) return Term_Manager_Access
    is
-      The_Stub : constant RACW_Tick_Stub_Type_Access
-        := new Term_Manager_Access'Stub_Type;
-      --  A Stub of Term Manager type
-
-      The_Same_Stub : RACW_Stub_Type_Access;
    begin
-
-      --  We convert it to the general S-Pol_Int stub type so we can access the
-      --  target Field.
-
-      The_Same_Stub := RACW_Tick_To_RACW_Access (The_Stub);
-
-      --  We manually increment R reference counter since we don't want the
-      --  reference finalized while we got an RACW using it.
-
-      Smart_Pointers.Inc_Usage
-        (References.Entity_Of (R));
-
-      --  Finally, we assign the reference to the Stub target field
-
-      The_Same_Stub.Target := References.Entity_Of (R);
-
-      return RACW_Access_To_TM_Access (The_Same_Stub);
+      return To_TM_Access
+               (System.Partition_Interface.Get_RACW
+                  (Ref          => R,
+                   Stub_Tag     => Term_Manager_Access'Stub_Type'Tag,
+                   Is_RAS       => False,
+                   Asynchronous => False));
    end Ref_To_Term_Manager_Access;
 
    -----------------------

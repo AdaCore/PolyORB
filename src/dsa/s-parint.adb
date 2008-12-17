@@ -1275,7 +1275,7 @@ package body System.Partition_Interface is
          --  We leak memory here each time we receive a new unique value of a
          --  remote access to classwide or remote access to subprogram type.
 
-         Answer.Target   := Handler.Target;
+         Answer.Target       := Handler.Target;
          Answer.Asynchronous := Handler.Asynchronous;
 
          Objects_HTable.Set (Answer, Answer);
