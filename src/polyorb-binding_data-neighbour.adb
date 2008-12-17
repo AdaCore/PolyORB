@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---           Copyright (C) 2006, Free Software Foundation, Inc.             --
+--         Copyright (C) 2006-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -134,8 +134,14 @@ package body PolyORB.Binding_Data.Neighbour is
    -----------
 
    function Image (Prof : Neighbour_Profile_Type) return String is
+      use Binding_Objects;
+      BO_Acc : constant Binding_Object_Access :=
+                 Binding_Object_Access
+                   (Smart_Pointers.Entity_Of (Prof.Target_Binding_Object));
    begin
-      return "Neighbour Profile - Object_Id: "
+      return "Neighbour (from "
+        & Image (Get_Profile (BO_Acc).all)
+        & ") - Object_Id: "
         & PolyORB.Objects.Image (Prof.Object_Id.all);
    end Image;
 
