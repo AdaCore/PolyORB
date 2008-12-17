@@ -222,7 +222,7 @@ package PolyORB.ORB_Controller is
 
    function Is_Locally_Terminated
      (O                      : access ORB_Controller;
-      Expected_Running_Tasks : Natural := 1) return Boolean;
+      Expected_Running_Tasks : Natural) return Boolean;
    --  Return true if the local node is locally terminated.
    --  Expected_Running_Tasks is the number of expected non terminated tasks
    --  when local termination is computed.

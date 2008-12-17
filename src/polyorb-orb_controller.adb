@@ -194,12 +194,14 @@ package body PolyORB.ORB_Controller is
 
    function Is_Locally_Terminated
      (O                      : access ORB_Controller;
-      Expected_Running_Tasks : Natural := 1) return Boolean
+      Expected_Running_Tasks : Natural) return Boolean
    is
       use PolyORB.Tasking.Threads;
       Result : Boolean;
    begin
-      pragma Debug (C2, O2 ("Is_Locally_Terminated: " & Status (O.all)));
+      pragma Debug
+        (C1, O1 ("Is_Locally_Terminated (exp" & Expected_Running_Tasks'Img
+                   & "R): " & Status (O.all)));
 
       if Get_Count (O.Summary, Kind => Transient) > 0
         or else Get_Count (O.Summary, State => Running)
@@ -215,7 +217,7 @@ package body PolyORB.ORB_Controller is
                      - Get_Count (O.Summary, State => Blocked)
                      = Expected_Running_Tasks);
       end if;
-      pragma Debug (C2, O2 ("-> " & Result'Img));
+      pragma Debug (C1, O1 ("-> " & Result'Img));
       return Result;
    end Is_Locally_Terminated;
 
@@ -444,10 +446,11 @@ package body PolyORB.ORB_Controller is
    begin
       pragma Debug (C1, O1 ("Unregister_Task: enter"));
       pragma Assert (State (TI.all) = Terminated);
+
       Task_Removed (O.Summary, TI.all);
-      Notify_Event
-        (ORB_Controller'Class (O.all)'Access,
-         Event'(Kind => Task_Unregistered));
+      Notify_Event (ORB_Controller'Class (O.all)'Access,
+        Event'(Kind => Task_Unregistered));
+
       pragma Debug (C2, O2 (Status (O.all)));
       pragma Debug (C1, O1 ("Unregister_Task: leave"));
    end Unregister_Task;
