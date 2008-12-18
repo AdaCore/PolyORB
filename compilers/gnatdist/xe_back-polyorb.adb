@@ -714,11 +714,6 @@ package body XE_Back.PolyORB is
       Write_Indentation (+1);
       Write_Line ("Shutdown  => null));");
       Decrement_Indentation;
-
-      --  Reset the configuration table so that next partition elaboration
-      --  is configurated properly.
-
-      Reset_Conf;
    end Generate_Parameters_Source;
 
    ----------------------------------
@@ -1106,32 +1101,35 @@ package body XE_Back.PolyORB is
       Current : Partition_Type;
       Is_Initiator_Set : Boolean := False;
    begin
-
       Prepare_Directories;
-
       Generate_All_Stubs_And_Skels;
 
       --  For each partition, generate the elaboration, main, executable
       --  and stamp files.
 
       for J in Partitions.First + 1 .. Partitions.Last loop
+         Current := Partitions.Table (J);
+
+         --  Reset the configuration table to forget all options set for
+         --  previous partitions.
+
+         Reset_Conf;
+
+         --  Set termination initiator option on first partition with non local
+         --  termination. Note that this must be done outside of the To_Build
+         --  test. Otherwise, when building two partitions in separate
+         --  gnatdist runs, both may end up being set up as initiators.
+
+         if not Is_Initiator_Set
+           and then Current.Tasking /= No_Tasking
+           and then Current.Termination /= Local_Termination
+         then
+            Set_Str_To_Name_Buffer ("true");
+            Set_Conf (PE_Termination_Initiator, Name_Find);
+            Is_Initiator_Set := True;
+         end if;
+
          if Partitions.Table (J).To_Build then
-            Current := Partitions.Table (J);
-
-            if not Is_Initiator_Set
-              and then Current.Tasking /= No_Tasking
-              and then Current.Termination /= Local_Termination
-            then
-               Set_Str_To_Name_Buffer ("true");
-               Set_Conf (PE_Termination_Initiator, Name_Find);
-               Is_Initiator_Set := True;
-
-               --  Because configuration is reset after generating each
-               --  elaboration file, this conf parameter will only affect
-               --  current partition.
-
-            end if;
-
             if Current.To_Build and then Current.Passive /= BTrue then
                if Rebuild_Partition (J) then
                   if not Quiet_Mode then
