@@ -55,6 +55,11 @@ See the features-25 file.
 Bug fixes
 ---------
 
+When building a single partition with non-local termination, po_gantdist
+would systematically mark the partition as termination initiator, possibly
+causing a deadlock when terminating the application. (Building all partitions
+at the same time, which is the default, worked fine.) (HA30-008)
+
 Calling a method that has IN or INOUT arguments following an OUT argument
 locally on a partition (i.e. without involving any actual network
 communication) would cause an incorrect matching of formal and actual
