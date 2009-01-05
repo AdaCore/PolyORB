@@ -163,13 +163,12 @@ package body Test_Suite.Scenarios is
             Test_Success := False;
          end if;
 
-         Separator (Output);
-
          if Verbose then
             PolyORB.Utils.Report.Output
               ("Scenario " & Scenario_Name, Test_Success);
          end if;
 
+         Separator (Output);
          Close_Scenario_Output_Context (Output, Result_Total);
 
          Total_Failed_Tests := Total_Failed_Tests + Failed_Tests;
@@ -244,7 +243,7 @@ package body Test_Suite.Scenarios is
       Log (Output, "Running all scenario from: " & Directory_Name);
       Separator (Output);
 
-      Count_Scenario (Directory_Name, "");
+      Count_Scenario (Directory_Name, "(.*)-(.*)\.conf");
 
       if Verbose then
          Put_Line ("Running all" & Integer'Image (Scenarios)
