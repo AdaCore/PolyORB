@@ -723,6 +723,9 @@ build-test_driver:
 	ADA_PROJECT_PATH="${top_builddir}/projects${PATH_SEP}${top_srcdir}/projects${PATH_SEP}$$ADA_PROJECT_PATH" \
 	  ${GNATMAKE_FOR_TARGET} -P testsuite_utils.gpr ${BASE_GNATMAKE_FLAGS} ${PRJ_GNATMAKE_FLAGS} ${GNATMAKE_FLAGS_FOR_TARGET}
 
+run_tests:
+	cd testsuite&&./utils/test_driver -full scenarios -output file -config . -verbose
+
 ################################################################
 
 # Rules for running idlac on .idl files
