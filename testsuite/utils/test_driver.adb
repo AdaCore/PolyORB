@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -81,6 +81,7 @@ procedure Test_Driver is
    Item           : String_Access;
    Configuration_Base_Dir : String_Access;
    Position : Integer := -1;
+   Verbose : Boolean := False;
 
    ---------
    -- Run --
@@ -100,14 +101,16 @@ procedure Test_Driver is
               (Item.all, Position,
                Configuration_Base_Dir.all,
                Test_Suite_Output'Class (Output.all),
-               Result);
+               Result,
+               Verbose);
 
          when Run_All_Scenarios =>
             Test_Suite.Scenarios.Run_All_Scenarios
               (Item.all,
                Configuration_Base_Dir.all,
                Test_Suite_Output'Class (Output.all),
-               Result);
+               Result,
+               Verbose);
       end case;
 
       Log (Test_Suite_Output'Class (Output.all), "Test driver exited.");
@@ -148,7 +151,7 @@ procedure Test_Driver is
    procedure Scan_Command_Line is
    begin
       loop
-         case Getopt ("scenario: full: output: config: position:") is
+         case Getopt ("scenario: full: output: config: position: verbose") is
             when ASCII.NUL =>
                exit;
 
@@ -190,6 +193,11 @@ procedure Test_Driver is
                   Position := Integer'Value (Parameter);
                end if;
 
+            when 'v' =>
+               if Full_Switch = "verbose" then
+                  Verbose := True;
+               end if;
+
             when others =>
                raise Program_Error;
          end case;
@@ -215,9 +223,10 @@ procedure Test_Driver is
    begin
       New_Line;
       Put_Line (Standard_Error, "Usage: " & Executable_Name
-                & " -scenario scenario_file [-position N]"
-                & "|-full directory"
-                & " -output file|text -config dir,");
+                  & " -scenario scenario_file [-position N]"
+                  & "|-full directory"
+                  & " -output file|stdout -config dir,"
+                  & " -verbose");
       Put_Line (Standard_Error,
                 "  -scenario scenario_file : plays scenario_file,");
       Put_Line (Standard_Error,
@@ -229,6 +238,8 @@ procedure Test_Driver is
                 "  -output   file|stdout   : output to files|standard output");
       Put_Line (Standard_Error,
                 "  -config   dir           : directory for scenario files ");
+      Put_Line (Standard_Error,
+                "  -verbose                : print information on the run ");
 
       New_Line;
    end Usage;

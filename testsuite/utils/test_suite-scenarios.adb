@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -32,13 +32,17 @@
 ------------------------------------------------------------------------------
 
 with Ada.Exceptions;
+with Ada.Text_IO;
 
 with GNAT.Directory_Operations.Iteration;
 with PolyORB.Parameters.File;
+with PolyORB.Utils.Report;
 
 with Test_Suite.Test_Case.Parser;
 
 package body Test_Suite.Scenarios is
+
+   use Ada.Text_IO;
 
    Total_Failed_Tests : Natural := 0;
    Total_Tests : Natural := 0;
@@ -48,11 +52,12 @@ package body Test_Suite.Scenarios is
    ------------------
 
    procedure Run_Scenario
-     (Scenario_File : String;
-      Position      : Integer := -1;
+     (Scenario_File     : String;
+      Position          : Integer := -1;
       Configuration_Dir : String;
-      Output        : Test_Suite_Output'Class;
-      Test_Success  : out Boolean)
+      Output            : Test_Suite_Output'Class;
+      Test_Success      : out Boolean;
+      Verbose           : Boolean)
    is
       use PolyORB.Parameters;
       use PolyORB.Parameters.File;
@@ -85,6 +90,10 @@ package body Test_Suite.Scenarios is
 
          Log (Output, "Scenario " & Scenario_Name);
          Log (Output, "Description: " & Scenario_Id);
+
+         if Verbose then
+            Put_Line ("Starting scenario " & Scenario_Name);
+         end if;
 
          if Position = -1 then
             loop
@@ -144,6 +153,7 @@ package body Test_Suite.Scenarios is
                  & Natural'Image (Expected_Failed_Tests)
                  & " expected failed tests");
             Test_Success := True;
+
          else
             Log (Output, "FAILED:"
                  & Natural'Image (Count - Failed_Tests)
@@ -154,6 +164,11 @@ package body Test_Suite.Scenarios is
          end if;
 
          Separator (Output);
+
+         if Verbose then
+            PolyORB.Utils.Report.Output
+              ("Scenario " & Scenario_Name, Test_Success);
+         end if;
 
          Close_Scenario_Output_Context (Output, Result_Total);
 
@@ -173,12 +188,29 @@ package body Test_Suite.Scenarios is
    -----------------------
 
    procedure Run_All_Scenarios
-     (Directory_Name : String;
+     (Directory_Name    : String;
       Configuration_Dir : String;
-      Output         : Test_Suite_Output'Class;
-      Test_Success : out Boolean)
+      Output            : Test_Suite_Output'Class;
+      Test_Success      : out Boolean;
+      Verbose           : Boolean)
    is
       Scenarios : Natural := 0;
+
+      procedure Count_Scenario_Wrapper
+        (Scenario_File : String;
+         Index         : Positive;
+         Quit          : in out Boolean);
+
+      procedure Count_Scenario_Wrapper
+        (Scenario_File : String;
+         Index         : Positive;
+         Quit          : in out Boolean)
+      is
+         pragma Unreferenced (Scenario_File, Index);
+      begin
+         Scenarios := Scenarios + 1;
+         Quit := False;
+      end Count_Scenario_Wrapper;
 
       procedure Run_Scenario_Wrapper
         (Scenario_File : String;
@@ -194,14 +226,17 @@ package body Test_Suite.Scenarios is
          Test_Output : Boolean;
       begin
          Run_Scenario
-           (Scenario_File, -1, Configuration_Dir, Output, Test_Output);
+           (Scenario_File, -1, Configuration_Dir, Output, Test_Output,
+            Verbose);
          Test_Success := Test_Success and Test_Output;
-         Scenarios := Scenarios + 1;
          Quit := False;
       end Run_Scenario_Wrapper;
 
       procedure Run_Scenario_With_Pattern is new
         GNAT.Directory_Operations.Iteration.Find (Run_Scenario_Wrapper);
+
+      procedure Count_Scenario is new
+        GNAT.Directory_Operations.Iteration.Find (Count_Scenario_Wrapper);
 
    begin
       Test_Success := True;
@@ -209,11 +244,25 @@ package body Test_Suite.Scenarios is
       Log (Output, "Running all scenario from: " & Directory_Name);
       Separator (Output);
 
+      Count_Scenario (Directory_Name, "");
+
+      if Verbose then
+         Put_Line ("Running all" & Integer'Image (Scenarios)
+                     &  " scenario files from: " & Directory_Name);
+      end if;
+
       Run_Scenario_With_Pattern (Directory_Name, "(.*)-(.*)\.conf");
       Log (Output, Natural'Image (Scenarios) & " scenarios executed,");
       Log (Output, Natural'Image (Total_Tests - Total_Failed_Tests)
-           & " out of" & Natural'Image (Total_Tests)
-           & " tests passed");
+             & " out of" & Natural'Image (Total_Tests)
+             & " tests passed");
+
+      if Verbose then
+         Put_Line (Natural'Image (Scenarios) & " scenarios executed,");
+         Put_Line (Natural'Image (Total_Tests - Total_Failed_Tests)
+                     & " out of" & Natural'Image (Total_Tests)
+                     & " tests passed");
+      end if;
    end Run_All_Scenarios;
 
 end Test_Suite.Scenarios;
