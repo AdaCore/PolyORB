@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -141,7 +141,7 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
             if Terminated_Task /= null then
                O ("Reaper: giving up on non-terminating task "
                  & Ada.Task_Identification.Image (Terminated_Task'Identity),
-                  Error);
+                  Notice);
             end if;
          or
             terminate;
