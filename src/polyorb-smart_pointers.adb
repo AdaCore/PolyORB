@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -82,9 +82,7 @@ package body PolyORB.Smart_Pointers is
    -- Dec_Usage --
    ---------------
 
-   procedure Dec_Usage
-     (Obj : in out Entity_Ptr)
-   is
+   procedure Dec_Usage (Obj : in out Entity_Ptr) is
       procedure Free is new Ada.Unchecked_Deallocation
         (Unsafe_Entity'Class, Entity_Ptr);
 
@@ -227,17 +225,28 @@ package body PolyORB.Smart_Pointers is
          end if;
       end Return_Ref_External_Tag;
 
+      Obj : Entity_Ptr := The_Ref.A_Ref;
+
    begin
       pragma Debug (C, O (Return_Ref_External_Tag));
 
-      if The_Ref.A_Ref /= null then
-         Dec_Usage (The_Ref.A_Ref);
+      --  Invalidate A_Ref early because such access may subsequently become
+      --  erroneous, see below.
+
+      The_Ref.A_Ref := null;
+
+      if Obj /= null then
+         Dec_Usage (Obj);
+
+         --  From this point on, we may not assume that The_Ref is still valid,
+         --  because in the case of auto-referential structures, it may be
+         --  a member of Obj.all, which may have been destroyed
+
       else
          pragma Debug (C, O ("Finalize: null ref"));
          null;
       end if;
 
-      The_Ref.A_Ref := null;
       pragma Debug (C, O ("Finalize: leave"));
    end Finalize;
 
