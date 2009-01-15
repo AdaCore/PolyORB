@@ -724,7 +724,7 @@ build-test_driver:
 	  ${GNATMAKE_FOR_TARGET} -P testsuite_utils.gpr ${BASE_GNATMAKE_FLAGS} ${PRJ_GNATMAKE_FLAGS} ${GNATMAKE_FLAGS_FOR_TARGET}
 
 run_tests:
-	cd testsuite && ./utils/test_driver -full scenarios -output file -config . -verbose
+	cd testsuite && ./utils/test_driver -full ${top_srcdir}/testsuite/scenarios -output file -config ${top_srcdir}/testsuite -verbose
 
 ################################################################
 
@@ -905,7 +905,7 @@ clean:
 	${RM} -f tools/po_names/po_names
 
 distclean: clean
-	${SHELL} support/cleanup-conf-files
+	${SHELL} ${top_srcdir}/support/cleanup-conf-files
 	${RM} -f config.*
 
 .SUFFIXES: .c .o
