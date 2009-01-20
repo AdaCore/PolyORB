@@ -5396,6 +5396,19 @@ just set @code{POLYORB_DSA_NAME_SERVICE} environment variable to the
 first value output for @code{POLYORB_DSA_NAME_SERVICE} before
 launching each DSA partition.
 
+Here is a small trace output that demonstrates the setup
+
+@smallexample
+
+polyorb/examples/dsa/echo% ../../../tools/po_cos_naming/po_cos_naming&
+polyorb/examples/dsa/echo% POLYORB_CORBA_NAME_SERVICE=''....''
+
+polyorb/examples/dsa/echo% export POLYORB_DSA_NAME_SERVICE=''...''
+polyorb/examples/dsa/echo% ./client 
+The client has started!
+Thus spake my server upon me:Hi!
+@end smallexample
+
 @c -------------------------------------------------------------------
 @node MOMA
 @chapter MOMA
