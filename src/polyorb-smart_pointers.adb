@@ -240,7 +240,8 @@ package body PolyORB.Smart_Pointers is
 
          --  From this point on, we may not assume that The_Ref is still valid,
          --  because in the case of auto-referential structures, it may be
-         --  a member of Obj.all, which may have been destroyed
+         --  a member of Obj.all, which has been destroyed above if its ref
+         --  counter dropped to 0.
 
       else
          pragma Debug (C, O ("Finalize: null ref"));
