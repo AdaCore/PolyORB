@@ -33,7 +33,6 @@
 
 --  Wrapper to launch PolyORB's testsuite
 
-with Ada.Exceptions;
 with Ada.Text_IO;
 
 with GNAT.Command_Line;
@@ -122,26 +121,9 @@ procedure Test_Driver is
 
       Close (Test_Suite_Output'Class (Output.all));
 
-      if Result then
-         GNAT.OS_Lib.OS_Exit (0);
-      else
+      if not Result then
          GNAT.OS_Lib.OS_Exit (1);
       end if;
-
-   exception
-      when E : others =>
-         Error (Test_Suite_Output'Class (Output.all),
-                "==> Internal Error <==");
-         Error (Test_Suite_Output'Class (Output.all),
-                " Got exception: "
-                & Ada.Exceptions.Exception_Name (E)
-                & ", "
-                & Ada.Exceptions.Exception_Message (E));
-         Error (Test_Suite_Output'Class (Output.all),
-                " with information: "
-                & Ada.Exceptions.Exception_Information (E));
-         Close (Test_Suite_Output'Class (Output.all));
-         GNAT.OS_Lib.OS_Exit (1);
    end Run;
 
    -----------------------
@@ -205,9 +187,11 @@ procedure Test_Driver is
 
    exception
       when Invalid_Switch =>
+         Scan_Succesful := False;
          Put_Line (Standard_Error, "Invalid Switch " & Full_Switch);
 
       when Invalid_Parameter =>
+         Scan_Succesful := False;
          Put_Line (Standard_Error, "No parameter for " & Full_Switch);
    end Scan_Command_Line;
 
@@ -255,14 +239,6 @@ begin
       Run;
    else
       Usage;
+      GNAT.OS_Lib.OS_Exit (1);
    end if;
-
-exception
-   when E : others =>
-      Put_Line (Standard_Error, "==> Internal Error <==");
-      Put_Line (Standard_Error, " Got exception: "
-                & Ada.Exceptions.Exception_Name (E)
-                & ", "
-                & Ada.Exceptions.Exception_Message (E));
-
 end Test_Driver;

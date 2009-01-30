@@ -180,6 +180,7 @@ package body Test_Suite.Scenarios is
          Log (Output, "Error in scenario file: " & Scenario_File);
          Log (Output, Ada.Exceptions.Exception_Information (E));
          Separator (Output);
+         raise;
    end Run_Scenario;
 
    -----------------------
