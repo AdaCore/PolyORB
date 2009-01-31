@@ -24,6 +24,11 @@ default: all
 #
 # testsuite -- builds the examples and testsuite
 #
+# run_tests -- runs the testsuite (presumes polyorb and test_driver are already
+# built)
+#
+# all-and-test -- builds everything needed, then runs the testsuite
+#
 # src_corba.gpr -- target to build src/corba (and similarly for all the *.gpr
 # files in the projects subdirectory). That is, there is a ".PHONY" target with
 # the same name as each project file, sans directory name.
@@ -723,8 +728,17 @@ build-test_driver:
 	ADA_PROJECT_PATH="${top_builddir}/projects${PATH_SEP}${top_srcdir}/projects${PATH_SEP}$$ADA_PROJECT_PATH" \
 	  ${GNATMAKE_FOR_TARGET} -P testsuite_utils.gpr ${BASE_GNATMAKE_FLAGS} ${PRJ_GNATMAKE_FLAGS} ${GNATMAKE_FLAGS_FOR_TARGET}
 
+.PHONY: run_tests
 run_tests:
 	cd testsuite && ./utils/test_driver -full ${top_srcdir}/testsuite/scenarios -output file -config ${top_srcdir}/testsuite -verbose
+
+# 'all' depends on either build-iac or build-idlac; we might as well build
+# both, here. We run_tests via recursive make, rather than having all-and-test
+# depend on run_tests, so it works for parallel make (run_tests should not
+# run concurrently with the other stuff).
+.PHONY: all-and-test
+all-and-test: all build-iac build-idlac examples testsuite
+	${MAKE} run_tests
 
 ################################################################
 

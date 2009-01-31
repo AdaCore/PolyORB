@@ -812,6 +812,7 @@ projects/src_srp.gpr
 projects/src_ssl.gpr
 projects/src_web_common.gpr
 projects/test_common.gpr
+projects/testsuite_utils.gpr
 projects/tools_po_catref.gpr
 projects/tools_po_cos_naming.gpr
 projects/tools_po_createref.gpr
