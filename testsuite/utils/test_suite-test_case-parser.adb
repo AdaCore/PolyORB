@@ -53,7 +53,7 @@ package body Test_Suite.Test_Case.Parser is
       Output   : Test_Suite_Output'Class)
      return Test'Class
    is
-      Default_Timeout : constant Integer := 10_000;
+      Default_Timeout : constant Integer := 100_000;
 
       Test_Id : constant String := Natural'Image (Number);
 
