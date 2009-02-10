@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2003-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,8 +31,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  A pseudo-random generator based on Makoto Matsumoto and Takuji
---  Nishimura `Mersenne Twister' random number generator MT19937.
+--  A pseudo-random generator based on Makoto Matsumoto and Takuji Nishimura
+--  `Mersenne Twister' random number generator MT19937.
 
 --  Note: we cannot depend on Ada.Numerics.Discrete_Random because of
 --  its wrong categorization. PolyORB components require a preelaborable
