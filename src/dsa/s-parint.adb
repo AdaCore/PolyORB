@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -784,9 +784,12 @@ package body System.Partition_Interface is
       return Wide_Character (PolyORB.Types.Wchar'(From_Any (Item)));
    end FA_WC;
 
-   function FA_String (Item : PolyORB.Any.Any) return String is
+   function FA_String
+     (Item : PolyORB.Any.Any) return Ada.Strings.Unbounded.Unbounded_String
+   is
    begin
-      return PolyORB.Types.To_String (From_Any (Item));
+      return Ada.Strings.Unbounded.Unbounded_String
+        (PolyORB.Types.String'(From_Any (Item)));
    end FA_String;
 
    ---------------------------
@@ -2035,7 +2038,7 @@ package body System.Partition_Interface is
       PATC.Add_Parameter
         (Default_Servant.Obj_TypeCode, To_Any (PName));
       PATC.Add_Parameter
-        (Default_Servant.Obj_TypeCode, TA_String ("DSA:" & Name & ":1.0"));
+        (Default_Servant.Obj_TypeCode, TA_Std_String ("DSA:" & Name & ":1.0"));
 
       if RACW_POA_Config = null then
          return;
@@ -2202,10 +2205,16 @@ package body System.Partition_Interface is
       return To_Any (PolyORB.Types.Wchar (Item));
    end TA_WC;
 
-   function TA_String (S : String) return PolyORB.Any.Any is
+   function TA_String
+     (S : Ada.Strings.Unbounded.Unbounded_String) return PolyORB.Any.Any is
+   begin
+      return PolyORB.Any.To_Any (PolyORB.Types.String (S));
+   end TA_String;
+
+   function TA_Std_String (S : String) return PolyORB.Any.Any is
    begin
       return PolyORB.Any.To_Any (PolyORB.Types.To_PolyORB_String (S));
-   end TA_String;
+   end TA_Std_String;
 
    -------------
    -- To_Name --

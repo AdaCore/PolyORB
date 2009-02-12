@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2004-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -41,6 +41,7 @@ pragma Warnings (On);
 
 with Ada.Exceptions;
 with Ada.Streams;
+with Ada.Strings.Unbounded;
 with Ada.Tags;
 
 with PolyORB.Any;
@@ -73,7 +74,7 @@ package System.Partition_Interface is
    DSA_Implementation : constant DSA_Implementation_Name := PolyORB_DSA;
    --  Identification of this DSA implementation variant
 
-   PCS_Version : constant := 2;
+   PCS_Version : constant := 3;
    --  Version of the PCS API (for Exp_Dist consistency check).
    --  This version number is matched against Gnatvsn.PCS_Version_Number to
    --  ensure that the versions of Exp_Dist and the PCS are consistent.
@@ -417,15 +418,10 @@ package System.Partition_Interface is
    function FA_SSU (Item : Any) return Short_Short_Unsigned;
    function FA_WC (Item : Any) return Wide_Character;
 
-   function FA_String (Item : Any) return String;
-
-   function FA_ObjRef
-     (Item : Any)
-      return PolyORB.References.Ref
+   function FA_String
+     (Item : Any) return Ada.Strings.Unbounded.Unbounded_String;
+   function FA_ObjRef (Item : Any) return PolyORB.References.Ref
      renames PolyORB.Any.ObjRef.From_Any;
-
---     function TA_AD (X) return Any;
---     function TA_AS (X) return Any;
 
    function TA_A (Item : DSAT.Any_Container_Ptr) return Any;
    function TA_B (Item : Boolean) return Any;
@@ -445,13 +441,11 @@ package System.Partition_Interface is
    function TA_SSI (Item : Short_Short_Integer) return Any;
    function TA_SSU (Item : Short_Short_Unsigned) return Any;
    function TA_WC (Item : Wide_Character) return Any;
-
-   function TA_String (S : String) return Any;
-
-   function TA_ObjRef (R : PolyORB.References.Ref)
-     return Any
+   function TA_String (S : Ada.Strings.Unbounded.Unbounded_String) return Any;
+   function TA_ObjRef (R : PolyORB.References.Ref) return Any
      renames PolyORB.Any.ObjRef.To_Any;
 
+   function TA_Std_String (S : String) return Any;
    function TA_TC (TC : PolyORB.Any.TypeCode.Local_Ref) return Any
      renames PolyORB.Any.To_Any;
 
