@@ -14,8 +14,8 @@ subsequent releases.
 
 NF-26-H731-016 Improved handling of unbounded string arguments (2009-02-12)
 
-  When using the Ada DSA applicative personality, remote calls involving
-  arguments of type Ada.Strings.Unbounded.Unbounded_String now use the
-  native PolyORB string type, providing better performance. Note that the
-  PCS API has been updated, and this requries a corresponding compiler
-  update.
+   When using the Ada DSA applicative personality, remote calls involving
+   arguments of type Ada.Strings.Unbounded.Unbounded_String now use the
+   native PolyORB string type, providing better performance. Note that the
+   PCS API has been updated, and this requries a corresponding compiler
+   update.
