@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1995-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -818,6 +818,13 @@ package body XE_Back is
          Add_Str_To_Name_Buffer (" ");
          V := Env_Vars.Table (V).Next_Env_Var;
       end loop;
+
+      --  Remove trailing space, if the string is not empty
+
+      if Name_Len > 0 then
+         Name_Len := Name_Len - 1;
+      end if;
+
       return Name_Buffer (1 .. Name_Len);
    end Get_Env_Vars;
 
