@@ -528,8 +528,8 @@ package body XE_Back is
             Write_Name (Get_Rsh_Options);
             Write_Char (' ');
             Write_Char (Ext_Quote);
-
             Write_Str (Get_Env_Vars (P, Names_Only => False));
+            Write_Char (' ');
          end if;
 
          --  Executable file name must be quoted because it may contain
@@ -550,7 +550,7 @@ package body XE_Back is
          if P /= Main_Partition then
             Write_Str  (" ");
             Write_Name (Get_Detach_Flag (Backend));
-            Write_Str  (" & ");
+            Write_Str  (" &");
             Write_Char (Ext_Quote);
             Write_Str  (" < /dev/null > /dev/null 2>&1");
          end if;
