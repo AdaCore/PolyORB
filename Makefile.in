@@ -444,6 +444,8 @@ do-gnatmake: ${POLYORB_LIBS} ${SERVICE_LIBS} ${EXE_PROJECT_FILES} #??? ${APPLI_E
 #???lib/polyorb.ali is missing the first time around.
 # Because we can't share library directories!
 
+.PHONY: libpolyorb-aws.a
+libpolyorb-aws.a: src_aws.gpr
 .PHONY: libpolyorb-corba-cos-event-impl.a
 libpolyorb-corba-cos-event-impl.a: cos_event.gpr
 .PHONY: libpolyorb-corba-cos-ir-impl.a

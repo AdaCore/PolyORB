@@ -31,7 +31,7 @@ web_common_lib=$(top_builddir)/src/web_common/libpolyorb-web_common.la
 # PolyORB's libraries -- NEW (should replace above)???
 #
 
-#???Not used: aws_lib=-I$(top_builddir)/src/aws/libpolyorb-aws.a
+aws_lib=libpolyorb-aws.a
 
 corba_lib=libpolyorb-corba.a \
 	  libpolyorb-corba-rtcorba.a
