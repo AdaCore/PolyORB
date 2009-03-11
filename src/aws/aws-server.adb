@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2000-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2000-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -125,7 +125,7 @@ package body AWS.Server is
    procedure Run is
    begin
       pragma Debug (C, O ("AWS.Server.Run"));
-      PolyORB.ORB.Run (PolyORB.Setup.The_ORB, May_Poll => True);
+      PolyORB.ORB.Run (PolyORB.Setup.The_ORB, May_Exit => False);
    end Run;
 
    --------------

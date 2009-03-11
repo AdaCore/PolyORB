@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2000-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2000-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -907,7 +907,7 @@ package body SOAP.Types is
          declare
             use Ada.Streams;
 
-            Sq_Type : PolyORB.Any.TypeCode.Local_Ref
+            Sq_Type : constant PolyORB.Any.TypeCode.Local_Ref
               := PolyORB.Any.TypeCode.TC_Sequence;
             Byte_Stream : constant Ada.Streams.Stream_Element_Array
               := AWS.Translator.Base64_Decode (V (SOAP_Base64 (Obj)));
@@ -1117,7 +1117,7 @@ package body SOAP.Types is
                        := PolyORB.Any.From_Any
                        (PolyORB.Any.Get_Aggregate_Element
                         (Item, PolyORB.Any.TypeCode.TC_Octet,
-                         Unsigned_Long (Index)));
+                         Index));
                   begin
                      Byte_Stream (Stream_Element_Offset (Index))
                        := Stream_Element (Element);

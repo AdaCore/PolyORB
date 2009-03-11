@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2000-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2000-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -115,7 +115,7 @@ package body AWS.Response is
 
    function Authentication (D : Data) return Authentication_Mode is
       use AWS.Headers;
-      Auth_Values : VString_Array
+      Auth_Values : constant VString_Array
         := Get_Values (D.Header, Messages.WWW_Authenticate_Token);
    begin
       if Auth_Values'Length = 1 then
@@ -132,7 +132,7 @@ package body AWS.Response is
 
    function Authentication_Stale (D : Data) return Boolean is
       use AWS.Headers;
-      Auth_Values : VString_Array
+      Auth_Values : constant VString_Array
         := Get_Values (D.Header, Messages.WWW_Authenticate_Token);
    begin
       for J in Auth_Values'Range loop
