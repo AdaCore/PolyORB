@@ -16,14 +16,6 @@ import expect # this is in gnatpython only
 import os
 import re
 
-# The POLYORB_BUILD_DIR environment variable was set (by testsuite.py) to point
-# to the build area, which may or may not be the same as the polyorb source
-# area. Test executables are found within the build area.
-PWD = os.getcwd ()
-SRC_DIR = os.path.normpath (os.path.join (PWD, os.pardir, os.pardir))
-BUILD_DIR = os.path.normpath (os.environ ['POLYORB_BUILD_DIR'])
-BASE_DIR = os.path.normpath (os.path.join (PWD.replace (SRC_DIR, BUILD_DIR), os.pardir))
-
 def client_server(client_cmd, server_cmd):
     """Run a client server testcase
 
@@ -89,9 +81,12 @@ def parse_cmd_line():
     main = Main(require_docstring=False)
     main.add_option('--timeout', dest='timeout', type=int,
                     default=None)
+    main.add_option('--build-dir', dest="build_dir")
     main.parse_args()
     return main.options
 
 # Parse command lines options
-options = parse_cmd_line()
+options  = parse_cmd_line()
 
+# All executable tests path are relative to PolyORB testsuite dir
+BASE_DIR = os.path.join(options.build_dir, 'testsuite')

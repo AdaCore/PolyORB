@@ -58,7 +58,8 @@ def main():
         report.add(test.filename, 'DEAD')
 
     # Then run all non dead tests
-    MainLoop(non_dead_list, run_testcase,
+    MainLoop(non_dead_list,
+             gen_run_testcase (os.path.realpath(m.options.build_dir)),
              gen_collect_result(report, m.options.diffs), 
              m.options.jobs)
     report.write()
@@ -143,20 +144,34 @@ class TestCase(object):
         else:
             return self.opt.is_dead
 
-def run_testcase(test, job_info):
-    """Run a single test
+def gen_run_testcase(build_dir):
+    """Returns the run_testcase function"""
 
-    If limit is not set, run rlimit with DEFAULT_TIMEOUT
-    """
-    logging.debug("Running " + test.testdir)
-    timeout = test.getopt('limit')
-    if timeout is None:
-        timeout = DEFAULT_TIMEOUT
+    # Set build_dir variable to the root of the build area, so test_utils.py
+    # can find it. This should be the directory in which PolyORB's ./configure
+    # was run. If the --build-dir option was specified, use that; otherwise,
+    # default to the source area (i.e. polyorb directory, two levels up from
+    # here).
+    polyorb_sources_dir = os.path.join(os.pardir, os.pardir)
+    if build_dir is None:
+        build_dir = os.path.join(os.getcwd(), polyorb_sources_dir)
 
-    return Run([sys.executable,
-                os.path.join(test.filename),
-                '--timeout', str(timeout)],
-               bg=True, output=PIPE, error=STDOUT)
+    def run_testcase(test, job_info):
+        """Run a single test
+
+        If limit is not set, run rlimit with DEFAULT_TIMEOUT
+        """
+        logging.debug("Running " + test.testdir)
+        timeout = test.getopt('limit')
+        if timeout is None:
+            timeout = DEFAULT_TIMEOUT
+
+        return Run([sys.executable,
+                    os.path.join(test.filename),
+                    '--timeout', str(timeout),
+                    '--build-dir', os.path.realpath(build_dir)],
+                   bg=True, output=PIPE, error=STDOUT)
+    return run_testcase
 
 def gen_collect_result(report, show_diffs=False):
     """Returns the collect_result function"""
@@ -197,18 +212,6 @@ def __parse_options():
         logging.info("Running only test '%s'" % m.options.run_test)
     else:
         m.options.run_test = ""
-    
-    # Set POLYORB_BUILD_DIR environment variable to the root of the build area,
-    # so test_utils.py can find it. This should be the directory in which
-    # PolyORB's ./configure was run. If the --build-dir option was specified,
-    # use that; otherwise, default to the source area (i.e. polyorb directory,
-    # two levels up from here).
-    if m.options.build_dir:
-        BUILD_DIR = m.options.build_dir
-    else:
-        BUILD_DIR = os.path.join(os.path.pardir, os.path.pardir);
-    BUILD_DIR = os.path.abspath (os.path.expanduser(BUILD_DIR))
-    os.environ ['POLYORB_BUILD_DIR'] = BUILD_DIR
 
     target = Arch()
     return (m, target)
