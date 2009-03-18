@@ -156,7 +156,7 @@ def gen_run_testcase(build_dir):
     if build_dir is None:
         build_dir = os.path.join(os.getcwd(), polyorb_sources_dir)
 
-    def run_testcase(test, job_info):
+    def run_testcase(test, _job_info):
         """Run a single test
 
         If limit is not set, run rlimit with DEFAULT_TIMEOUT
@@ -179,7 +179,7 @@ def gen_collect_result(report, show_diffs=False):
     status_dict = {True: {True: 'UOK', False: 'OK'},
                    False: {True: 'XFAIL', False: 'FAILED'}}
 
-    def collect_result(test, process, job_info):
+    def collect_result(test, process, _job_info):
         """Collect a test result"""
         xfail = test.getopt('xfail', None) is not None
         success = process.status == 0
