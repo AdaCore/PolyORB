@@ -187,6 +187,8 @@ def __parse_options():
                  default=False, help='show diffs on stdout')
     m.add_option('-j', '--jobs', dest='jobs', type='int',
                  metavar='N', default=1, help='Allow N jobs at once')
+    m.add_option('-b', '--build-dir', dest='build_dir',
+                  help='separate PolyORB build directory')
     m.parse_args()
 
     if m.args:
@@ -195,6 +197,18 @@ def __parse_options():
         logging.info("Running only test '%s'" % m.options.run_test)
     else:
         m.options.run_test = ""
+    
+    # Set POLYORB_BUILD_DIR environment variable to the root of the build area,
+    # so test_utils.py can find it. This should be the directory in which
+    # PolyORB's ./configure was run. If the --build-dir option was specified,
+    # use that; otherwise, default to the source area (i.e. polyorb directory,
+    # two levels up from here).
+    if m.options.build_dir:
+        BUILD_DIR = m.options.build_dir
+    else:
+        BUILD_DIR = os.path.join(os.path.pardir, os.path.pardir);
+    BUILD_DIR = os.path.abspath (os.path.expanduser(BUILD_DIR))
+    os.environ ['POLYORB_BUILD_DIR'] = BUILD_DIR
 
     target = Arch()
     return (m, target)
