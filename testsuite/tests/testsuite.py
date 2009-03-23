@@ -12,7 +12,6 @@ To run a single example:
 See ./testsuite.py -h for more help.
 """
 
-from gnatpython.arch import Arch
 from gnatpython.env import Env
 from gnatpython.ex import Run, PIPE, STDOUT
 from gnatpython.main import Main
@@ -31,21 +30,21 @@ DEFAULT_TIMEOUT = 60
 def main():
     """Run the testsuite and generate reports"""
     # Parse the command lines options
-    m, target = __parse_options()
-
-    # Generate the discs list for test.opt parsing
-    # Always add 'ALL'
-    common_discs = ['ALL', target.platform]
-
-    # Compute the test list
-    non_dead_list, dead_list = generate_testcase_list(
-        filter_list('./*/*/*/test.py',
-                    m.options.run_test),
-        common_discs)
+    options = __parse_options()
 
     # Add current directory in PYTHONPATH (to find test_utils.py)
     env = Env()
     env.add_search_path('PYTHONPATH', os.getcwd())
+
+    # Generate the discs list for test.opt parsing
+    # Always add 'ALL'
+    common_discs = ['ALL', env.target.platform]
+
+    # Compute the test list
+    non_dead_list, dead_list = generate_testcase_list(
+        filter_list('./*/*/*/test.py',
+                    options.run_test),
+        common_discs)
 
     # Main loop :
     #   - run all the tests
@@ -59,13 +58,13 @@ def main():
 
     # Then run all non dead tests
     MainLoop(non_dead_list,
-             gen_run_testcase(m.options.build_dir),
-             gen_collect_result(report, m.options.diffs), 
-             m.options.jobs)
+             gen_run_testcase(options.build_dir),
+             gen_collect_result(report, options.diffs),
+             options.jobs)
     report.write()
 
     # Human readable report (rep file)
-    rep = GenerateRep('res_polyorb')
+    rep = GenerateRep('res_polyorb', targetname=env.target.platform)
     report_file = open('rep_polyorb', 'w')
     report_file.write(rep.get_subject())
     report_file.write(rep.get_report()) 
@@ -215,8 +214,7 @@ def __parse_options():
     else:
         m.options.run_test = ""
 
-    target = Arch()
-    return (m, target)
+    return m.options
 
 if __name__ == "__main__":
     main()
