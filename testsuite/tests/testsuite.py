@@ -59,7 +59,7 @@ def main():
 
     # Then run all non dead tests
     MainLoop(non_dead_list,
-             gen_run_testcase (os.path.realpath(m.options.build_dir)),
+             gen_run_testcase(m.options.build_dir),
              gen_collect_result(report, m.options.diffs), 
              m.options.jobs)
     report.write()
@@ -155,6 +155,8 @@ def gen_run_testcase(build_dir):
     polyorb_sources_dir = os.path.join(os.pardir, os.pardir)
     if build_dir is None:
         build_dir = os.path.join(os.getcwd(), polyorb_sources_dir)
+    else:
+        build_dir = os.path.realpath(build_dir)
 
     def run_testcase(test, _job_info):
         """Run a single test
