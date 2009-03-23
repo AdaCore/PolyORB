@@ -147,7 +147,7 @@ public class benchsServer {
       e.printStackTrace (System.out);
     }
 
-    System.out.println ("behcnServer Exiting...");
+    System.out.println ("benchServer Exiting...");
   }
 
 }
