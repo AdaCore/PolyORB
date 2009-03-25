@@ -13,7 +13,8 @@ See ./testsuite.py -h for more help.
 """
 
 from gnatpython.env import Env
-from gnatpython.ex import Run, PIPE, STDOUT
+from gnatpython.ex import Run
+from gnatpython.fileutils import mkdir
 from gnatpython.main import Main
 from gnatpython.mainloop import MainLoop
 from gnatpython.optfileparser import OptFileParse
@@ -55,6 +56,8 @@ def main():
     # First report all dead tests
     for test in dead_list:
         report.add(test.filename, 'DEAD')
+
+    mkdir('output')
 
     # Then run all non dead tests
     MainLoop(non_dead_list,
@@ -168,10 +171,11 @@ def gen_run_testcase(build_dir):
             timeout = DEFAULT_TIMEOUT
 
         return Run([sys.executable,
-                    os.path.join(test.filename),
+                    test.filename,
                     '--timeout', str(timeout),
+                    '--out-file', os.path.join('output', test.filename),
                     '--build-dir', os.path.realpath(build_dir)],
-                   bg=True, output=PIPE, error=STDOUT)
+                   bg=True, output=None, error=None)
     return run_testcase
 
 def gen_collect_result(report, show_diffs=False):
@@ -188,9 +192,14 @@ def gen_collect_result(report, show_diffs=False):
         status = status_dict[success][xfail]
         logging.info("%-60s %s" % (test.filename, status))
         if not success:
-            report.add(test.filename, status, diff=process.out)
+            diff = ""
+            if os.path.exists(os.path.join('output', test.filename)):
+                f = open(os.path.join('output', test.filename))
+                diff = f.read()
+                f.close()
+            report.add(test.filename, status, diff=diff)
             if show_diffs:
-                logging.info(process.out)
+                logging.info(diff)
         else:
             report.add(test.filename, status)
 

@@ -9,7 +9,8 @@ You should never call this module directly. To run a single testcase, use
  ./testsuite.py NAME_OF_TESTCASE
 """
 
-from gnatpython.ex import Run, PIPE, STDOUT
+from gnatpython.ex import Run, STDOUT
+from gnatpython.fileutils import mkdir
 from gnatpython.main import Main
 
 import expect # this is in gnatpython only
@@ -42,18 +43,14 @@ def client_server(client_cmd, server_cmd):
     IOR_str = expect.expect_out (server_pid, 2)
 
     # Run the client with the IOR argument
-    p = Run([client, IOR_str], output=PIPE, error=STDOUT,
-            timeout=options.timeout)
+    mkdir(os.path.dirname(options.out_file))
+    Run([client, IOR_str], output=options.out_file, error=STDOUT,
+        timeout=options.timeout)
 
     # Kill the server process
     expect.close(server_pid)
 
-    if re.search(r"END TESTS.*PASSED", p.out):
-        print p.out
-        return True
-    else:
-        print p.out
-        return False
+    return _check_output()
 
 def local(cmd):
     """Run a local test
@@ -62,16 +59,25 @@ def local(cmd):
     Check for "END TESTS................   PASSED"
     if found return True
     """
+    mkdir(os.path.dirname(options.out_file))
     command = os.path.join(BASE_DIR, cmd)
-    p = Run([command], output=PIPE, error=STDOUT,
-            timeout=options.timeout)
+    Run([command], output=options.out_file, error=STDOUT,
+        timeout=options.timeout)
+    return _check_output()
 
-    if re.search(r"END TESTS.*PASSED", p.out):
-        print p.out
-        return True
-    else:
-        print p.out
-        return False
+
+def _check_output():
+    """Check that END TESTS....... PASSED is contained in the output"""
+    if os.path.exists(options.out_file):
+        test_outfile = open(options.out_file)
+        test_out = test_outfile.read()
+        test_outfile.close()
+
+        if re.search(r"END TESTS.*PASSED", test_out):
+            return True
+        else:
+            print test_out
+            return False
 
 def parse_cmd_line():
     """Parse command line
@@ -82,6 +88,7 @@ def parse_cmd_line():
     main.add_option('--timeout', dest='timeout', type=int,
                     default=None)
     main.add_option('--build-dir', dest="build_dir")
+    main.add_option('--out-file', dest="out_file")
     main.parse_args()
     return main.options
 
