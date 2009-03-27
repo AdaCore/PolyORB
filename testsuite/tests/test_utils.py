@@ -17,7 +17,9 @@ import expect # this is in gnatpython only
 import os
 import re
 
-def client_server(client_cmd, server_cmd):
+POLYORB_CONF = "POLYORB_CONF"
+
+def client_server(client_cmd, client_conf, server_cmd, server_conf):
     """Run a client server testcase
 
     Run server_cmd and extract the IOR string.
@@ -27,6 +29,14 @@ def client_server(client_cmd, server_cmd):
     """
     client = os.path.join(BASE_DIR, client_cmd)
     server = os.path.join(BASE_DIR, server_cmd)
+
+    if server_conf:
+        server_polyorb_conf = os.path.join(BASE_DIR, server_conf)
+        assert(os.path.exists(server_polyorb_conf))
+    else:
+        server_polyorb_conf = ""
+
+    os.environ[POLYORB_CONF] = server_polyorb_conf
 
     # Run the server command and retrieve the IOR string
     server_pid = expect.non_blocking_spawn(server, [])
@@ -44,21 +54,39 @@ def client_server(client_cmd, server_cmd):
 
     # Run the client with the IOR argument
     mkdir(os.path.dirname(options.out_file))
+
+    if client_conf:
+        client_polyorb_conf = os.path.join(BASE_DIR, client_conf)
+        assert(os.path.exists(client_polyorb_conf))
+    else:
+        client_polyorb_conf = ''
+
+    if client_polyorb_conf != server_polyorb_conf:
+        client_env = os.environ.copy()
+        client_env[POLYORB_CONF] = client_polyorb_conf
+    else:
+        client_env = None
+
     Run([client, IOR_str], output=options.out_file, error=STDOUT,
-        timeout=options.timeout)
+        timeout=options.timeout, env=client_env)
 
     # Kill the server process
     expect.close(server_pid)
 
     return _check_output()
 
-def local(cmd):
+def local(cmd, config_file):
     """Run a local test
 
     Execute the give command.
     Check for "END TESTS................   PASSED"
     if found return True
     """
+    if config_file:
+        config_file = os.path.join(BASE_DIR, config_file)
+        assert(os.path.exists(config_file))
+    os.environ[POLYORB_CONF] = config_file
+
     mkdir(os.path.dirname(options.out_file))
     command = os.path.join(BASE_DIR, cmd)
     Run([command], output=options.out_file, error=STDOUT,

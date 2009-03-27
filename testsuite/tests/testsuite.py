@@ -175,7 +175,8 @@ def gen_run_testcase(build_dir):
                     '--timeout', str(timeout),
                     '--out-file', os.path.join('output', test.filename),
                     '--build-dir', os.path.realpath(build_dir)],
-                   bg=True, output=None, error=None)
+                   bg=True, output=None,
+                   error=None, timeout=int(timeout) + DEFAULT_TIMEOUT)
     return run_testcase
 
 def gen_collect_result(report, show_diffs=False):

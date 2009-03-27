@@ -2,6 +2,6 @@
 from test_utils import *
 import sys
 
-if not local(r'corba/shutdown/test001_client'):
+if not local(r'corba/shutdown/test001_client', r''):
     sys.exit(1)
 

@@ -10,8 +10,8 @@ CLIENT_SERVER_TEMPLATE = """
 from test_utils import *
 import sys
 
-if not client_server(r'%(client_cmd)s',
-                     r'%(server_cmd)s'):
+if not client_server(r'%(client_cmd)s', r'%(client_conf)s',
+                     r'%(server_cmd)s', r'%(server_conf)s'):
     sys.exit(1)
 
 """
@@ -20,7 +20,7 @@ LOCAL_TEMPLATE = """
 from test_utils import *
 import sys
 
-if not local(r'%(command)s'):
+if not local(r'%(command)s', r'%(conf)s'):
     sys.exit(1)
 
 """
@@ -73,11 +73,17 @@ def parse_scenario(filename):
         if test_type == 'client_server':
             mkdir(test_name)
             f = open(os.path.join(test_name, 'test.py'), 'w')
-            f.write(CLIENT_SERVER_TEMPLATE % 
+            f.write(CLIENT_SERVER_TEMPLATE %
                     {'client_cmd' :
                      test_dict[test_name][CLIENT_SECTION]['command'],
+                     'client_conf' :
+                     test_dict[test_name][CLIENT_SECTION].get('config_file',
+                                                              ''),
                      'server_cmd' :
                      test_dict[test_name][SERVER_SECTION]['command'],
+                     'server_conf' :
+                     test_dict[test_name][SERVER_SECTION].get('config_file',
+                                                              ''),
                     })
             f.close()
 
@@ -89,9 +95,11 @@ def parse_scenario(filename):
         elif test_type == 'local':
             mkdir(test_name)
             f = open(os.path.join(test_name, 'test.py'), 'w')
-            f.write(LOCAL_TEMPLATE % 
+            f.write(LOCAL_TEMPLATE %
                     {'command' :
-                     test_dict[test_name][TEST_SECTION]['command']
+                     test_dict[test_name][TEST_SECTION]['command'],
+                     'conf' :
+                     test_dict[test_name][TEST_SECTION].get('config_file', '')
                     })
             f.close()
 
