@@ -230,6 +230,13 @@ def __parse_options():
     else:
         m.options.run_test = ""
 
+    # Expand ~ and ~user contructions for user PATH
+    if m.options.build_dir is not None:
+        m.options.build_dir = os.path.expanduser(m.options.build_dir)
+    if m.options.testsuite_src_dir is not None:
+        m.options.testsuite_src_dir = os.path.expanduser \
+            (m.options.testsuite_src_dir)
+
     return m.options
 
 if __name__ == "__main__":
