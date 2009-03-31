@@ -61,7 +61,7 @@ def main():
 
     # Then run all non dead tests
     MainLoop(non_dead_list,
-             gen_run_testcase(options.build_dir),
+             gen_run_testcase(options.build_dir, options.testsuite_src_dir),
              gen_collect_result(report, options.diffs),
              options.jobs)
     report.write()
@@ -146,7 +146,7 @@ class TestCase(object):
         else:
             return self.opt.is_dead
 
-def gen_run_testcase(build_dir):
+def gen_run_testcase(build_dir, testsuite_src_dir):
     """Returns the run_testcase function"""
 
     # Set build_dir variable to the root of the build area, so test_utils.py
@@ -154,11 +154,14 @@ def gen_run_testcase(build_dir):
     # was run. If the --build-dir option was specified, use that; otherwise,
     # default to the source area (i.e. polyorb directory, two levels up from
     # here).
-    polyorb_sources_dir = os.path.join(os.pardir, os.pardir)
+
+    # Set testsuite_src_dir variable to the root of the testsuite area. Default
+    # to one level up from here.
     if build_dir is None:
-        build_dir = os.path.join(os.getcwd(), polyorb_sources_dir)
-    else:
-        build_dir = os.path.realpath(build_dir)
+        build_dir = os.path.join(os.getcwd(), os.pardir, os.pardir)
+
+    if testsuite_src_dir is None:
+        testsuite_src_dir = os.path.join(os.getcwd(), os.pardir)
 
     def run_testcase(test, _job_info):
         """Run a single test
@@ -174,6 +177,7 @@ def gen_run_testcase(build_dir):
                     test.filename,
                     '--timeout', str(timeout),
                     '--out-file', os.path.join('output', test.filename),
+                    '--testsuite-src-dir', os.path.realpath(testsuite_src_dir),
                     '--build-dir', os.path.realpath(build_dir)],
                    bg=True, output=None,
                    error=None, timeout=int(timeout) + DEFAULT_TIMEOUT)
@@ -214,7 +218,9 @@ def __parse_options():
     m.add_option('-j', '--jobs', dest='jobs', type='int',
                  metavar='N', default=1, help='Allow N jobs at once')
     m.add_option('-b', '--build-dir', dest='build_dir',
-                  help='separate PolyORB build directory')
+                 help='separate PolyORB build directory')
+    m.add_option('--testsuite-src-dir', dest='testsuite_src_dir',
+                 help='path to polyorb testsuite sources')
     m.parse_args()
 
     if m.args:

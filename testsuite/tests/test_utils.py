@@ -31,7 +31,8 @@ def client_server(client_cmd, client_conf, server_cmd, server_conf):
     server = os.path.join(BASE_DIR, server_cmd)
 
     if server_conf:
-        server_polyorb_conf = os.path.join(BASE_DIR, server_conf)
+        server_polyorb_conf = os.path.join(options.testsuite_src_dir,
+                                           server_conf)
         assert(os.path.exists(server_polyorb_conf))
     else:
         server_polyorb_conf = ""
@@ -56,7 +57,8 @@ def client_server(client_cmd, client_conf, server_cmd, server_conf):
     mkdir(os.path.dirname(options.out_file))
 
     if client_conf:
-        client_polyorb_conf = os.path.join(BASE_DIR, client_conf)
+        client_polyorb_conf = os.path.join(options.testsuite_src_dir,
+                                           client_conf)
         assert(os.path.exists(client_polyorb_conf))
     else:
         client_polyorb_conf = ''
@@ -83,7 +85,7 @@ def local(cmd, config_file):
     if found return True
     """
     if config_file:
-        config_file = os.path.join(BASE_DIR, config_file)
+        config_file = os.path.join(options.testsuite_src_dir, config_file)
         assert(os.path.exists(config_file))
     os.environ[POLYORB_CONF] = config_file
 
@@ -116,6 +118,7 @@ def parse_cmd_line():
     main.add_option('--timeout', dest='timeout', type=int,
                     default=None)
     main.add_option('--build-dir', dest="build_dir")
+    main.add_option('--testsuite-src-dir', dest='testsuite_src_dir')
     main.add_option('--out-file', dest="out_file")
     main.parse_args()
     return main.options
