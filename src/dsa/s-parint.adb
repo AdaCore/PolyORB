@@ -1372,8 +1372,7 @@ package body System.Partition_Interface is
    begin
       if PSNNC.Is_Nil (Naming_Context_Cache) then
          PolyORB.References.String_To_Object
-           (PolyORB.Parameters.Get_Conf ("dsa", "name_service"),
-            R);
+           (PolyORB.Parameters.Get_Conf ("dsa", "name_service"), R);
          PSNNC.Set (Naming_Context_Cache, Entity_Of (R));
       end if;
 
@@ -1676,7 +1675,7 @@ package body System.Partition_Interface is
       exception
          when others =>
 
-            --  Resolution attempt return an authoritative "name not found"
+            --  Resolution attempt returned an authoritative "name not found"
             --  error: register unit now.
 
             PSNNC.Client.Bind
