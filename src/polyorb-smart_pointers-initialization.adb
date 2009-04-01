@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -46,24 +46,24 @@ package body PolyORB.Smart_Pointers.Initialization is
    -- Debugging hooks implementation --
    ------------------------------------
 
-   function Entity_External_Tag
-     (X : Unsafe_Entity'Class)
-      return String;
-   function Ref_External_Tag
-     (X : Ref'Class)
-      return String;
+   function Entity_External_Tag (X : Unsafe_Entity'Class) return String;
+   function Ref_External_Tag (X : Reference'Class) return String;
    --  Return the external representation of X'Tag.
 
-   function Entity_External_Tag
-     (X : Unsafe_Entity'Class)
-      return String is
+   -------------------------
+   -- Entity_External_Tag --
+   -------------------------
+
+   function Entity_External_Tag (X : Unsafe_Entity'Class) return String is
    begin
       return Ada.Tags.External_Tag (X'Tag);
    end Entity_External_Tag;
 
-   function Ref_External_Tag
-     (X : Ref'Class)
-      return String is
+   ----------------------
+   -- Ref_External_Tag --
+   ----------------------
+
+   function Ref_External_Tag (X : Reference'Class) return String is
    begin
       return Ada.Tags.External_Tag (X'Tag);
    end Ref_External_Tag;
