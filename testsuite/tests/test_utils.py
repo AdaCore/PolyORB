@@ -10,10 +10,10 @@ You should never call this module directly. To run a single testcase, use
 """
 
 from gnatpython.ex import Run, STDOUT
+from gnatpython.expect import ExpectProcess
 from gnatpython.fileutils import mkdir
 from gnatpython.main import Main
 
-import expect # this is in gnatpython only
 import os
 import re
 
@@ -40,18 +40,15 @@ def client_server(client_cmd, client_conf, server_cmd, server_conf):
     os.environ[POLYORB_CONF] = server_polyorb_conf
 
     # Run the server command and retrieve the IOR string
-    server_pid = expect.non_blocking_spawn(server, [])
-    if not server_pid:
-        print "Error when running " + server
-        return False
+    server_handle = ExpectProcess([server])
 
-    result = expect.expect (server_pid, [r"IOR:([a-z0-9]+)['|\n]"], 2.0)
+    result = server_handle.expect([r"IOR:([a-z0-9]+)['|\n]"], 2.0)
     if result != 0:
         print "Expect error"
-        expect.close(server_pid)
+        server_handle.close()
         return False
 
-    IOR_str = expect.expect_out (server_pid, 2)
+    IOR_str = server_handle.out()[1]
 
     # Run the client with the IOR argument
     mkdir(os.path.dirname(options.out_file))
@@ -73,7 +70,7 @@ def client_server(client_cmd, client_conf, server_cmd, server_conf):
         timeout=options.timeout, env=client_env)
 
     # Kill the server process
-    expect.close(server_pid)
+    server_handle.close()
 
     return _check_output()
 
