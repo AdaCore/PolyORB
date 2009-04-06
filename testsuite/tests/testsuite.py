@@ -194,6 +194,11 @@ def gen_collect_result(report, show_diffs=False):
         xfail = test.getopt('xfail', None) is not None
         success = process.status == 0
 
+        # Avoid \ in filename for the final report
+        # Strip leading ./
+        test.filename = test.filename.replace('\\', '/')
+        test.filename = test.filename.replace('./', '')
+
         status = status_dict[success][xfail]
         logging.info("%-60s %s" % (test.filename, status))
         if not success:
