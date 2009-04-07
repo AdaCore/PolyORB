@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -41,6 +41,7 @@
 --  Note: Buffers should only be read/written sequentially.
 
 with Ada.Streams;
+with Ada.Unchecked_Conversion;
 
 with System.Storage_Elements;
 
@@ -55,7 +56,20 @@ package PolyORB.Buffers is
    -------------------------
 
    type Endianness_Type is (Little_Endian, Big_Endian);
-   subtype Alignment_Type is Ada.Streams.Stream_Element_Offset range 1 .. 8;
+   --  Endianness of a buffer
+
+   type Alignment_Type is (Align_1, Align_2, Align_4, Align_8);
+   for Alignment_Type use
+     (Align_1 => 1,
+      Align_2 => 2,
+      Align_4 => 4,
+      Align_8 => 8);
+   for Alignment_Type'Size use Short_Short_Integer'Size;
+   --  Alignment of a piece of data within a buffer
+   --  It is assumed that <n> = 2 ** Align_<n>'Pos = representation(Align_<n>)
+
+   function Alignment_Of is
+     new Ada.Unchecked_Conversion (Short_Short_Integer, Alignment_Type);
 
    Host_Order : constant Endianness_Type;
    --  The byte order of this host.
@@ -180,7 +194,7 @@ package PolyORB.Buffers is
 
    procedure Align_Position
      (Buffer    : access Buffer_Type;
-      Alignment :        Alignment_Type);
+      Alignment : Alignment_Type);
    --  Aligns Buffer on specified Alignment before retrieving aligned data
 
    --  After execution of either of the two above operations, the current CDR

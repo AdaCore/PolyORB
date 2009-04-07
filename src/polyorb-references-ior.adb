@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -216,7 +216,7 @@ package body PolyORB.References.IOR is
             PolyORB.Types.RepositoryId'
               (To_PolyORB_String (Type_Id_Of (Value))));
 
-         Pad_Align (Buffer, 4);
+         Pad_Align (Buffer, Align_4);
 
          declare
             Profs     : constant Profile_Array := Profiles_Of (Value);

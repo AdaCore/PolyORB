@@ -58,7 +58,7 @@ package body PolyORB.Utils.Buffers is
          Item_Swapped : aliased T;
       begin
          if With_Alignment then
-            Pad_Align (Buffer, T'Size / 8);
+            Pad_Align (Buffer, Alignment_Of (T'Size / 8));
          end if;
 
          Allocate_And_Insert_Cooked_Data
@@ -100,7 +100,7 @@ package body PolyORB.Utils.Buffers is
          Data_Address : Opaque_Pointer;
       begin
          if With_Alignment then
-            Align_Position (Buffer, T'Size / 8);
+            Align_Position (Buffer, Alignment_Of (T'Size / 8));
          end if;
          Extract_Data (Buffer, Data_Address, T'Size / 8);
 
@@ -136,7 +136,7 @@ package body PolyORB.Utils.Buffers is
    procedure Align_Marshall_Copy
      (Buffer    : access Buffer_Type;
       Octets    : Stream_Element_Array;
-      Alignment : Alignment_Type := 1)
+      Alignment : Alignment_Type := Align_1)
    is
       Data_Address : Opaque_Pointer;
    begin
@@ -162,7 +162,7 @@ package body PolyORB.Utils.Buffers is
 
    procedure Align_Unmarshall_Copy
      (Buffer    : access Buffer_Type;
-      Alignment : Alignment_Type := 1;
+      Alignment : Alignment_Type := Align_1;
       Data      : out Stream_Element_Array)
    is
       Index : Stream_Element_Offset := Data'First;

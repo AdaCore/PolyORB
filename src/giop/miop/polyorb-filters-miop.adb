@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -94,7 +94,7 @@ package body PolyORB.Filters.MIOP is
       Marshall (Buffer, Types.Identifier (Header.Unique_Id));
 
       --  Final padding
-      Pad_Align (Buffer, 8);
+      Pad_Align (Buffer, Align_8);
    end Marshall_MIOP_Header;
 
    ----------------------------

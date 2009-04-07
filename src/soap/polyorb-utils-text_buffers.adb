@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -59,7 +59,7 @@ package body PolyORB.Utils.Text_Buffers is
    is
       A : Stream_Element_Array (1 .. 1);
    begin
-      Align_Unmarshall_Copy (B, 1, A);
+      Align_Unmarshall_Copy (B, Align_1, A);
       return Character'Val (A (1));
    end Unmarshall_Char;
 
@@ -92,7 +92,7 @@ package body PolyORB.Utils.Text_Buffers is
       for A'Address use S'Address;
       pragma Import (Ada, A);
    begin
-      Align_Unmarshall_Copy (B, 1, A);
+      Align_Unmarshall_Copy (B, Align_1, A);
    end Unmarshall_String;
 
 end PolyORB.Utils.Text_Buffers;

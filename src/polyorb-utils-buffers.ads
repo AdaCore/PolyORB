@@ -74,12 +74,12 @@ package PolyORB.Utils.Buffers is
    procedure Align_Marshall_Copy
      (Buffer    : access Buffer_Type;
       Octets    : Stream_Element_Array;
-      Alignment : Alignment_Type := 1);
+      Alignment : Alignment_Type := Align_1);
    --  Align Buffer on Alignment, then marshall a copy of Octets into it, as is
 
    procedure Align_Unmarshall_Copy
      (Buffer    : access Buffer_Type;
-      Alignment : Alignment_Type := 1;
+      Alignment : Alignment_Type := Align_1;
       Data      : out Stream_Element_Array);
    --  Align Buffer on Alignment, then fill Data by extracting Data'Length
    --  bytes at the current position. The data need not be contiguous in the

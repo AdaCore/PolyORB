@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -167,8 +167,7 @@ package body PolyORB.Protocols.GIOP.Common is
       N               : Request_Note;
       Request_Id      : Types.Unsigned_Long renames N.Id;
       CORBA_Occurence : PolyORB.Any.Any;
-      Data_Alignment  : Stream_Element_Offset :=
-        Sess.Implem.Data_Alignment;
+      Data_Alignment  : Alignment_Type := Sess.Implem.Data_Alignment;
 
       Static_Buffer : constant QoS_GIOP_Static_Buffer_Parameter_Access :=
         QoS_GIOP_Static_Buffer_Parameter_Access
@@ -268,10 +267,11 @@ package body PolyORB.Protocols.GIOP.Common is
             if Static_Buffer = null then
                pragma Debug (C, O ("Using Any to send reply data"));
 
-               if TypeCode.Kind (Get_Type (Request.Result.Argument)) /=
-                 Tk_Void then
+               if TypeCode.Kind (Get_Type (Request.Result.Argument))
+                    /= Tk_Void
+               then
                   Pad_Align (Buffer_Out, Data_Alignment);
-                  Data_Alignment := 1;
+                  Data_Alignment := Align_1;
                end if;
 
                Marshall_From_Any
@@ -707,8 +707,8 @@ package body PolyORB.Protocols.GIOP.Common is
       Success      : Boolean;
 
       ORB          : constant ORB_Access := ORB_Access (Sess.Server);
-      Arguments_Alignment : Buffers.Alignment_Type
-        := Sess.Implem.Data_Alignment;
+      Arguments_Alignment : Buffers.Alignment_Type :=
+                              Sess.Implem.Data_Alignment;
       Error        : Errors.Error_Container;
 
       Static_Buffer : QoS_GIOP_Static_Buffer_Parameter_Access;
@@ -747,7 +747,7 @@ package body PolyORB.Protocols.GIOP.Common is
                  /= Tk_Void
                then
                   Align_Position (Sess.Buffer_In, Arguments_Alignment);
-                  Arguments_Alignment := 1;
+                  Arguments_Alignment := Align_1;
                end if;
 
                Unmarshall_To_Any

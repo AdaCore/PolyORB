@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -337,7 +337,8 @@ package body PolyORB.Representations.CDR is
             end if;
 
             Aggregate_Data      := Unchecked_Get_V (ACC);
-            Aggregate_Alignment := Alignment_Type (El_Size);
+            Aggregate_Alignment :=
+              Alignment_Of (Short_Short_Integer (El_Size));
             Aggregate_Size      := Stream_Element_Count (El_Count * El_Size);
 
             pragma Debug (C, O ("Fast_Path_Get_Info:"
