@@ -194,6 +194,12 @@ package body PolyORB.Representations.CDR.Common is
 
    --  Transfer of elementary integer types
 
+   function Swapped (X : Types.Octet) return Types.Octet;
+   pragma Inline (Swapped);
+   --  Identity function!
+   package CDR_Octet is
+     new Align_Transfer_Elementary (T => PolyORB.Types.Octet);
+
    function Swapped is
      new GNAT.Byte_Swapping.Swapped2 (PolyORB.Types.Unsigned_Short);
    package CDR_Unsigned_Short is
@@ -571,8 +577,7 @@ package body PolyORB.Representations.CDR.Common is
    ------------------------------------
 
    function Unmarshall
-     (Buffer : access Buffer_Type)
-     return PolyORB.Types.Boolean
+     (Buffer : access Buffer_Type) return PolyORB.Types.Boolean
    is
    begin
       pragma Debug (C, O ("Unmarshall (Boolean) : enter & end"));
@@ -581,8 +586,7 @@ package body PolyORB.Representations.CDR.Common is
    end Unmarshall;
 
    function Unmarshall_Latin_1_Char
-     (Buffer : access Buffer_Type)
-     return PolyORB.Types.Char
+     (Buffer : access Buffer_Type) return PolyORB.Types.Char
    is
    begin
       pragma Debug (C, O ("Unmarshall (Char) : enter & end"));
@@ -592,13 +596,7 @@ package body PolyORB.Representations.CDR.Common is
 
    function Unmarshall
      (Buffer : access Buffer_Type) return PolyORB.Types.Octet
-   is
-      Result : Stream_Element_Array (1 .. 1);
-   begin
-      Align_Unmarshall_Copy (Buffer, Align_1, Result);
-      pragma Debug (C, O ("Unmarshall (Octet) : enter & end"));
-      return PolyORB.Types.Octet (Result (1));
-   end Unmarshall;
+     renames CDR_Octet.Unmarshall;
 
    function Unmarshall
      (Buffer : access Buffer_Type) return PolyORB.Types.Unsigned_Short
@@ -888,5 +886,10 @@ package body PolyORB.Representations.CDR.Common is
       end Octets_To_Fixed;
 
    end Fixed_Point;
+
+   function Swapped (X : Types.Octet) return Types.Octet is
+   begin
+      return X;
+   end Swapped;
 
 end PolyORB.Representations.CDR.Common;
