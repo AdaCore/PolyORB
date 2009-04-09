@@ -119,7 +119,7 @@ package body PolyORB.Opaque.Chunk_Pools is
       while not Last (It) loop
          declare
             use type System.Address;
-            This : Chunk_Access := Value (It).all'Unchecked_Access;
+            This : Chunk_Access := Value (It);
          begin
             Remove (Pool.Dynamic_Chunks, It);
             Free (This);
