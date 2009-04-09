@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -40,7 +40,7 @@ with PolyORB.Tasking.Condition_Variables;
 with PolyORB.Tasking.Mutexes;
 with PolyORB.Tasking.Threads;
 with PolyORB.Types;
-with PolyORB.Utils.Chained_Lists;
+with PolyORB.Utils.Ilists;
 
 package PolyORB.Task_Info is
 
@@ -71,14 +71,11 @@ package PolyORB.Task_Info is
    --  A Terminated task has been notified its exit condition is true.
 
    type Task_Info (Kind : Task_Kind) is limited private;
+   type Task_Info_Access is access all Task_Info;
    --  Task Info holds information on tasks that run ORB.Run
 
    function Kind_Match (TI : Task_Info; Kind : Any_Task_Kind) return Boolean;
    --  True if Kind matches TI's Kind (Any matches any kind)
-
-   type Task_Info_Access is access all Task_Info;
-   package Task_Lists is new PolyORB.Utils.Chained_Lists
-     (Task_Info_Access, Doubly_Chained => True);
 
    type Task_Summary is limited private;
    --  Summary information: counter of registered tasks and of how many tasks
@@ -183,21 +180,33 @@ package PolyORB.Task_Info is
    function Job (TI : Task_Info) return Jobs.Job_Access;
    --  Return job associated to TI
 
+   type Task_List is private;
+   --  A list of tasks
+
+   function Is_Empty (List : Task_List) return Boolean;
+   --  True when List has no elements
+
+   function List_First (List : Task_List) return access Task_Info;
+   --  Return the first element of List
+
    procedure List_Attach
-     (TI   : Task_Info_Access;
-      List : in out Task_Lists.List);
+     (TI   : access Task_Info;
+      List : in out Task_List);
    --  Attach TI to the List. It must not already be on a list. Order of
    --  attachment and detachment is arbitrary.
 
    procedure List_Detach
-     (TI   : in out Task_Info;
-      List : in out Task_Lists.List);
-   --  Remove TI from the list it was attached to (if any).
+     (TI   : access Task_Info;
+      List : in out Task_List);
+   --  Remove TI from the list it was attached to (if any)
 
    function Image (TI : Task_Info) return String;
    --  For debug purposes
 
 private
+
+   type Links_Type is
+     array (Utils.Ilists.Link_Type) of aliased Task_Info_Access;
 
    type Task_Info (Kind : Task_Kind) is limited record
       Id : PolyORB.Tasking.Threads.Thread_Id;
@@ -237,10 +246,26 @@ private
       --  Mutex used by the Task referred by TI when blocking;
       --  meaningful only when State is Idle.
 
-      Position : Task_Lists.Iterator;
-      --  Iterator designating the position of this task on a list (allowing
-      --  removal of the task from the list).
+      Links : Links_Type;
+      --  Pointers allowing the task to be attached to a (single) task list
+
+      On_List : Boolean := False;
+      --  True when task is attached to a task list
    end record;
+
+   function Link
+     (S     : access Task_Info;
+      Which : Utils.Ilists.Link_Type) return access Task_Info_Access;
+   pragma Inline (Link);
+   --  Accessor for Links
+
+   package Task_Lists is
+     new Utils.Ilists.Lists
+       (T             => Task_Info,
+        T_Acc         => Task_Info_Access,
+        Doubly_Linked => True);
+
+   type Task_List is new Task_Lists.List;
 
    type Task_Counters is array (Any_Task_Kind, Any_Task_State) of Natural;
 

@@ -1324,6 +1324,7 @@ src/polyorb-binding_data_qos.adb
 src/polyorb-binding_data_qos.ads
 src/polyorb-binding_object_qos.adb
 src/polyorb-binding_object_qos.ads
+src/polyorb-binding_objects-lists.ads
 src/polyorb-binding_objects.adb
 src/polyorb-binding_objects.ads
 src/polyorb-buffers.adb
@@ -1686,6 +1687,8 @@ src/polyorb-utils-hfunctions.ads
 src/polyorb-utils-htables-perfect.adb
 src/polyorb-utils-htables-perfect.ads
 src/polyorb-utils-htables.ads
+src/polyorb-utils-ilists.adb
+src/polyorb-utils-ilists.ads
 src/polyorb-utils-random.adb
 src/polyorb-utils-random.ads
 src/polyorb-utils-report.adb

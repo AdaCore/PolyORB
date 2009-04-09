@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -135,7 +135,7 @@ private
       PM_Hold_Servant : Hold_Servant_Access := null;
       --  Reference to the holding servant
 
-      Held_Requests : Requests_Queue := Requests_Queues.Empty;
+      Held_Requests : Requests_Queue;
       --  List of requests held by the POAManager
    end record;
 

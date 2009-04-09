@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -51,8 +51,7 @@ package body PolyORB.Tasking.Idle_Tasks_Managers is
    --  Awake one idle task of the specified Kind; there must be at least one
 
    function Allocate_CV
-     (ITM : access Idle_Tasks_Manager)
-     return PTCV.Condition_Access;
+     (ITM : access Idle_Tasks_Manager) return PTCV.Condition_Access;
    pragma Inline (Allocate_CV);
    --  Return one condition variable
 
@@ -61,16 +60,13 @@ package body PolyORB.Tasking.Idle_Tasks_Managers is
    -----------------
 
    function Allocate_CV
-     (ITM : access Idle_Tasks_Manager)
-     return Condition_Access
+     (ITM : access Idle_Tasks_Manager) return Condition_Access
    is
       use type CV_Lists.List;
-
       Result : Condition_Access;
 
    begin
-      if ITM.Free_CV /= CV_Lists.Empty then
-
+      if not CV_Lists.Is_Empty (ITM.Free_CV) then
          --  Use an existing CV, from Free_CV list
 
          CV_Lists.Extract_First (ITM.Free_CV, Result);
@@ -92,14 +88,14 @@ package body PolyORB.Tasking.Idle_Tasks_Managers is
      (ITM : access Idle_Tasks_Manager; Kind : Task_Kind)
    is
       pragma Debug (C, O ("Awake one idle task"));
-      pragma Assert (not Task_Lists.Is_Empty (ITM.Idle_Task_Lists (Kind)));
+      pragma Assert (not Is_Empty (ITM.Idle_Task_Lists (Kind)));
 
-      Task_To_Awake : constant Task_Info_Access :=
-        Task_Lists.Value (Task_Lists.First (ITM.Idle_Task_Lists (Kind))).all;
+      Task_To_Awake : constant access PTI.Task_Info :=
+                        List_First (ITM.Idle_Task_Lists (Kind));
    begin
       --  Signal one idle task, and put its CV in Free_CV list
 
-      List_Detach (Task_To_Awake.all, ITM.Idle_Task_Lists (Kind));
+      List_Detach (Task_To_Awake, ITM.Idle_Task_Lists (Kind));
       Signal (Condition (Task_To_Awake.all));
       CV_Lists.Append (ITM.Free_CV, Condition (Task_To_Awake.all));
    end Awake_One_Idle_Task;
@@ -117,12 +113,12 @@ package body PolyORB.Tasking.Idle_Tasks_Managers is
       --  False. It's simplest to pick the first Permanent one, unless there is
       --  none, in which case we try Transient.
 
-      if not Task_Lists.Is_Empty (ITM.Idle_Task_Lists (Permanent)) then
+      if not Is_Empty (ITM.Idle_Task_Lists (Permanent)) then
          Awake_One_Idle_Task (ITM, Permanent);
          return True;
 
       elsif Allow_Transient
-        and then not Task_Lists.Is_Empty (ITM.Idle_Task_Lists (Transient))
+        and then not Is_Empty (ITM.Idle_Task_Lists (Transient))
       then
          Awake_One_Idle_Task (ITM, Transient);
          return True;
@@ -142,7 +138,7 @@ package body PolyORB.Tasking.Idle_Tasks_Managers is
       --  Awaken tasks, looping until both Kind lists are empty
 
       for Kind in Task_Kind loop
-         while not Task_Lists.Is_Empty (ITM.Idle_Task_Lists (Kind)) loop
+         while not Is_Empty (ITM.Idle_Task_Lists (Kind)) loop
             Awake_One_Idle_Task (ITM, Kind);
          end loop;
       end loop;
@@ -157,7 +153,7 @@ package body PolyORB.Tasking.Idle_Tasks_Managers is
       TI  :        PTI.Task_Info_Access)
    is
    begin
-      List_Detach (TI.all, ITM.Idle_Task_Lists (TI.Kind));
+      List_Detach (TI, ITM.Idle_Task_Lists (TI.Kind));
    end Remove_Idle_Task;
 
    ----------------------

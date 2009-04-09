@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -68,9 +68,8 @@ package body PolyORB.Opaque.Chunk_Pools is
       else
          New_Chunk := new Chunk (Size => Allocation_Size);
          New_Chunk.Metadata := Null_Metadata;
+         Append (Pool.Dynamic_Chunks, New_Chunk);
       end if;
-
-      Append (Pool.Chunks, New_Chunk);
 
       A_Chunk := New_Chunk;
    end Allocate;
@@ -85,29 +84,19 @@ package body PolyORB.Opaque.Chunk_Pools is
       return A_Chunk.Data (A_Chunk.Data'First)'Address;
    end Chunk_Storage;
 
-   -------------
-   -- Release --
-   -------------
+   ----------
+   -- Link --
+   ----------
 
-   procedure Release (Pool : access Pool_Type) is
-      procedure Free is new Ada.Unchecked_Deallocation (Chunk, Chunk_Access);
-      It : Chunk_Lists.Iterator := First (Pool.Chunks);
+   function Link
+     (C     : access Chunk;
+      Which : Utils.Ilists.Link_Type) return access Chunk_Access
+   is
+      use Utils.Ilists;
    begin
-      while not Last (It) loop
-         declare
-            use type System.Address;
-            This : Chunk_Access renames Value (It).all;
-         begin
-            if This.all'Address /= Pool.Prealloc'Address then
-               Free (This);
-            end if;
-         end;
-         Next (It);
-      end loop;
-
-      Deallocate (Pool.Chunks);
-      Pool.Prealloc_Used := False;
-   end Release;
+      pragma Assert (Which = Next);
+      return C.Next'Unchecked_Access;
+   end Link;
 
    --------------
    -- Metadata --
@@ -118,5 +107,25 @@ package body PolyORB.Opaque.Chunk_Pools is
    begin
       return A_Chunk.Metadata'Access;
    end Metadata;
+
+   -------------
+   -- Release --
+   -------------
+
+   procedure Release (Pool : access Pool_Type) is
+      procedure Free is new Ada.Unchecked_Deallocation (Chunk, Chunk_Access);
+      It : Chunk_Lists.Iterator := First (Pool.Dynamic_Chunks);
+   begin
+      while not Last (It) loop
+         declare
+            use type System.Address;
+            This : Chunk_Access := Value (It).all'Unchecked_Access;
+         begin
+            Remove (Pool.Dynamic_Chunks, It);
+            Free (This);
+         end;
+      end loop;
+      Pool.Prealloc_Used := False;
+   end Release;
 
 end PolyORB.Opaque.Chunk_Pools;

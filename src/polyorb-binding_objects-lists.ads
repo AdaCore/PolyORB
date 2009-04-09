@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---  P O L Y O R B . T A S K I N G . I D L E _ T A S K S _ M A N A G E R S   --
+--        P O L Y O R B . B I N D I N G _ O B J E C T S . L I S T S         --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
@@ -31,61 +31,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PolyORB.Task_Info;
-with PolyORB.Tasking.Condition_Variables;
-with PolyORB.Utils.Chained_Lists;
-
-package PolyORB.Tasking.Idle_Tasks_Managers is
-
-   package PTI renames PolyORB.Task_Info;
-   package PTCV renames PolyORB.Tasking.Condition_Variables;
-
-   type Idle_Tasks_Manager is limited private;
-
-   type Idle_Tasks_Manager_Access is access all Idle_Tasks_Manager;
-
-   function Awake_One_Idle_Task
-     (ITM             : access Idle_Tasks_Manager;
-      Allow_Transient : Boolean) return Boolean;
-   --  Awake one idle task, if any, else do nothing. If Allow_Transient is
-   --  True, we can awaken any Kind of task; otherwise, we must awaken a
-   --  Permanent task (or do nothing). Returns True when an idle task has been
-   --  awakened.
-
-   procedure Awake_All_Idle_Tasks (ITM : access Idle_Tasks_Manager);
-   --  Awake all idle tasks
-
-   procedure Remove_Idle_Task
-     (ITM : access Idle_Tasks_Manager;
-      TI  :        PTI.Task_Info_Access);
-   --  Remove TI from the pool of tasks managed by ITM
-
-   function Insert_Idle_Task
-     (ITM  : access Idle_Tasks_Manager;
-      TI  :        PTI.Task_Info_Access)
-     return PTCV.Condition_Access;
-   --  Add TI to the pool of tasks managed by ITM. The returned CV
-   --  will be used by a task to put itself in an idle (waiting) state.
-
-private
-
-   pragma Inline (Remove_Idle_Task);
-   pragma Inline (Insert_Idle_Task);
-
-   package CV_Lists is
-     new PolyORB.Utils.Chained_Lists (PTCV.Condition_Access, PTCV."=");
-
-   type Task_List_Array is array (PTI.Task_Kind) of PTI.Task_List;
-
-   type Idle_Tasks_Manager is limited record
-      Idle_Task_Lists : Task_List_Array;
-      --  Lists of idle tasks, segregated by Kind
-
-      Free_CV : CV_Lists.List;
-      --  Free_CV is the list of pre-allocated CV. When scheduling a task
-      --  to idle state, the ORB controller first looks for an availble
-      --  CV in this list; or else allocates one new CV. When a task
-      --  leaves idle state, the ORB controller puts its CV in Free_CV.
-   end record;
-
-end PolyORB.Tasking.Idle_Tasks_Managers;
+package PolyORB.Binding_Objects.Lists is
+  new PolyORB.Utils.Ilists.Lists
+     (T             => Binding_Object'Class,
+      T_Acc         => Binding_Object_Access,
+      Doubly_Linked => True);

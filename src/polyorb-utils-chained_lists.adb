@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -37,24 +37,37 @@ with Ada.Unchecked_Deallocation;
 
 package body PolyORB.Utils.Chained_Lists is
 
-   --  Local declarations
-
-   procedure Remove
-     (L        : in out List;
-      Item     : Node_Access;
-      Previous : Node_Access);
-   --  Remove Item from L, where Previous is the previous item
-
    procedure Free is new Ada.Unchecked_Deallocation (Node, Node_Access);
+
+   ---------
+   -- "+" --
+   ---------
+
+   function "+" (I : T) return List is
+   begin
+      return Result : List do
+         Append (Result, Node_Access'(new Node'(Value => I, others => <>)));
+      end return;
+   end "+";
+
+   ---------
+   -- "&" --
+   ---------
+
+   function "&" (L : List; I : T) return List is
+   begin
+      return LL : List := L do
+         Append (LL, I);
+      end return;
+   end "&";
 
    ------------
    -- Append --
    ------------
 
    procedure Append (L : in out List; I : T) is
-      L_Last : Iterator := Last (L);
    begin
-      Insert (L, I, Before => L_Last);
+      Append (L, Node_Access'(new Node'(Value => I, others => <>)));
    end Append;
 
    ----------------
@@ -62,16 +75,11 @@ package body PolyORB.Utils.Chained_Lists is
    ----------------
 
    procedure Deallocate (L : in out List) is
-      Current, Next : Node_Access;
+      It : Iterator := First (L);
    begin
-      Current := L.First;
-      while Current /= null loop
-         Next := Current.Chain (Next_Node);
-         Free (Current);
-         Current := Next;
+      while not Last (It) loop
+         Remove (L, It);
       end loop;
-      L.First := null;
-      L.Last  := null;
    end Deallocate;
 
    ---------------
@@ -79,38 +87,17 @@ package body PolyORB.Utils.Chained_Lists is
    ---------------
 
    function Duplicate (L : List) return List is
-      D : List        := Empty;
+      D : List;
       --  New list
 
-      N : Node_Access := L.First;
+      It : Iterator := First (L);
       --  Iterator on original list
-
-      P : Node_Access;
-      --  Iterator on new list
-
    begin
-      if N = null then
-         return D;
-      end if;
-      P := new Node;
-      P.Value := N.Value;
-      P.Chain (Next_Node)  := null;
-      if Doubly_Chained then
-         P.Chain (Prev_Node)  := null;
-      end if;
-      D.First := P;
-      loop
-         N := N.Chain (Next_Node);
-         exit when N = null;
-         P.Chain (Next_Node) := new Node;
-         P.Chain (Next_Node).Value := N.Value;
-         P.Chain (Next_Node).Chain (Next_Node) := null;
-         if Doubly_Chained then
-            P.Chain (Next_Node).Chain (Prev_Node) := P;
-         end if;
-         P := P.Chain (Next_Node);
+      while not Last (It) loop
+         Append (D, Node_Access'(new Node'(Value  => Value (It).Value,
+                                           others => <>)));
+         Next (It);
       end loop;
-      D.Last := P;
       return D;
    end Duplicate;
 
@@ -119,30 +106,41 @@ package body PolyORB.Utils.Chained_Lists is
    -------------
 
    function Element (L : List; Index : Natural) return Element_Access is
-      N : Node_Access := L.First;
-      C : Natural := 0;
+      It : Iterator := First (L);
+      C  : Natural  := 0;
    begin
-      while N /= null loop
+      while not Last (It) loop
          if C = Index then
-            return N.Value'Access;
+            return Value (It).Value'Access;
          end if;
          C := C + 1;
-         N := N.Chain (Next_Node);
+         Next (It);
       end loop;
       raise Constraint_Error;
    end Element;
+
+   -----------
+   -- Empty --
+   -----------
+
+   function Empty return List is
+      Empty_List : List;
+   begin
+      return Empty_List;
+   end Empty;
 
    -------------------
    -- Extract_First --
    -------------------
 
    procedure Extract_First (L : in out List; Result : out T) is
+      It : Iterator := First (L);
    begin
-      if Is_Empty (L) then
+      if Last (It) then
          raise Constraint_Error;
       end if;
-      Result := L.First.Value;
-      Remove (L, Item => L.First, Previous => null);
+      Result := Value (It).Value;
+      Remove (L, It);
    end Extract_First;
 
    -----------
@@ -151,70 +149,8 @@ package body PolyORB.Utils.Chained_Lists is
 
    function First (L : List) return Iterator is
    begin
-      return Iterator'(Current => L.First);
+      return Iterator (First (Node_Lists.List (L)));
    end First;
-
-   ------------
-   -- Insert --
-   ------------
-
-   procedure Insert (L : in out List; I : T; Before : in out Iterator) is
-      N : Node_Access;
-   begin
-      pragma Assert ((L.First = null) = (L.Last = null));
-      N := new Node;
-      N.Value := I;
-      N.Chain (Next_Node) := Before.Current;
-      if Doubly_Chained then
-         N.Chain (Prev_Node) := null;
-      end if;
-
-      if Before.Current = L.First then
-
-         --  Insert at first position
-
-         L.First := N;
-
-      elsif Before.Current = null then
-
-         --  Insert at end of a non-empty list
-
-         L.Last.Chain (Next_Node) := N;
-
-      elsif Doubly_Chained then
-
-         --  Insert in the middle of a doubly-chained list
-
-         Before.Current.Chain (Prev_Node).Chain (Next_Node) := N;
-
-      else
-
-         --  Inserts in the middle of a list are only possible for
-         --  doubly-chained lists.
-
-         raise Program_Error;
-      end if;
-
-      if Before.Current = null then
-
-         --  Inserting at tail of list: update Last and N's Prev pointer
-
-         if Doubly_Chained then
-            N.Chain (Prev_Node) := L.Last;
-         end if;
-         L.Last := N;
-
-      elsif Doubly_Chained then
-
-         --  Inserting at head (of non-empty list) or in the middle of
-         --  the list: update this and the next nodes' Prev pointer.
-
-         N.Chain (Prev_Node) := Before.Current.Chain (Prev_Node);
-         Before.Current.Chain (Prev_Node) := N;
-      end if;
-
-      pragma Assert ((L.First = null) = (L.Last = null));
-   end Insert;
 
    --------------
    -- Is_Empty --
@@ -222,7 +158,7 @@ package body PolyORB.Utils.Chained_Lists is
 
    function Is_Empty (L : List) return Boolean is
    begin
-      return L.First = null;
+      return Node_Lists.Is_Empty (Node_Lists.List (L));
    end Is_Empty;
 
    ----------
@@ -230,9 +166,8 @@ package body PolyORB.Utils.Chained_Lists is
    ----------
 
    function Last (L : List) return Iterator is
-      pragma Unreferenced (L);
    begin
-      return Iterator'(Current => null);
+      return Iterator (Node_Lists.Last (Node_Lists.List (L)));
    end Last;
 
    ----------
@@ -241,7 +176,7 @@ package body PolyORB.Utils.Chained_Lists is
 
    function Last (I : Iterator) return Boolean is
    begin
-      return I.Current = null;
+      return Node_Lists.Last (Node_Lists.Iterator (I));
    end Last;
 
    ------------
@@ -249,15 +184,21 @@ package body PolyORB.Utils.Chained_Lists is
    ------------
 
    function Length (L : List) return Natural is
-      N : Node_Access := L.First;
-      C : Natural := 0;
    begin
-      while N /= null loop
-         C := C + 1;
-         N := N.Chain (Next_Node);
-      end loop;
-      return C;
+      return Node_Lists.Length (Node_Lists.List (L));
    end Length;
+
+   ----------
+   -- Link --
+   ----------
+
+   function Link
+     (N     : access Node;
+      Which : Ilists.Link_Type) return access Node_Access
+   is
+   begin
+      return N.Links (Which)'Unchecked_Access;
+   end Link;
 
    ----------
    -- Next --
@@ -265,7 +206,7 @@ package body PolyORB.Utils.Chained_Lists is
 
    procedure Next (I : in out Iterator) is
    begin
-      I.Current := I.Current.Chain (Next_Node);
+      Node_Lists.Next (Node_Lists.Iterator (I));
    end Next;
 
    -------------
@@ -273,9 +214,8 @@ package body PolyORB.Utils.Chained_Lists is
    -------------
 
    procedure Prepend (L : in out List; I : T) is
-      L_First : Iterator := First (L);
    begin
-      Insert (L, I, Before => L_First);
+      Prepend (L, Node_Access'(new Node'(Value => I, others => <>)));
    end Prepend;
 
    --------------
@@ -283,20 +223,25 @@ package body PolyORB.Utils.Chained_Lists is
    --------------
 
    procedure Remove_G (L : in out List; All_Occurrences : Boolean := True) is
-      Item : Node_Access := L.First;
-      Prev : Node_Access := null;
-      Next : Node_Access;
+      Item, Prev_Item : Node_Access;
+      Iter : Iterator;
    begin
+      Iter := First (L);
+      Prev_Item := null;
+
       All_Items :
-      while Item /= null loop
-         Next := Item.Chain (Next_Node);
+      while not Last (Iter) loop
+         Item := Value (Iter);
          if Predicate (Item.Value) then
-            Remove (L, Item, Prev);
+            Next (Iter);
+            Remove_Element (L, Item, Prev_Item);
+            Free (Item);
             exit All_Items when not All_Occurrences;
+
          else
-            Prev := Item;
+            Prev_Item := Value (Iter);
+            Next (Iter);
          end if;
-         Item := Next;
       end loop All_Items;
    end Remove_G;
 
@@ -304,7 +249,19 @@ package body PolyORB.Utils.Chained_Lists is
    -- Remove --
    ------------
 
-   procedure Remove (L : in out List; I : T; All_Occurrences : Boolean := True)
+   procedure Remove (L : in out List; I : in out Iterator) is
+      N : Node_Access := Value (I);
+   begin
+      Node_Lists.Remove (Node_Lists.List (L), Node_Lists.Iterator (I));
+      Free (N);
+   end Remove;
+
+   ------------------------
+   -- Remove_Occurrences --
+   ------------------------
+
+   procedure Remove_Occurrences
+     (L : in out List; I : T; All_Occurrences : Boolean := True)
    is
       function Equality (X : T) return Boolean;
       --  True iff X = I
@@ -318,51 +275,7 @@ package body PolyORB.Utils.Chained_Lists is
 
    begin
       Remove (L, All_Occurrences);
-   end Remove;
-
-   ------------
-   -- Remove --
-   ------------
-
-   procedure Remove
-     (L        : in out List;
-      Item     : Node_Access;
-      Previous : Node_Access)
-   is
-      Current : Node_Access := Item;
-   begin
-      if Previous = null then
-         L.First := Current.Chain (Next_Node);
-      else
-         Previous.Chain (Next_Node) := Current.Chain (Next_Node);
-      end if;
-
-      if L.Last = Current then
-         L.Last := Previous;
-      end if;
-
-      if Doubly_Chained then
-         if Current.Chain (Next_Node) /= null then
-            Current.Chain (Next_Node).Chain (Prev_Node) := Previous;
-         end if;
-      end if;
-      Free (Current);
-   end Remove;
-
-   ------------
-   -- Remove --
-   ------------
-
-   procedure Remove (L : in out List; I : in out Iterator) is
-      Next : constant Node_Access := I.Current.Chain (Next_Node);
-   begin
-      if Doubly_Chained then
-         Remove (L, I.Current, I.Current.Chain (Prev_Node));
-         I.Current := Next;
-      else
-         raise Program_Error;
-      end if;
-   end Remove;
+   end Remove_Occurrences;
 
    -----------
    -- Value --
@@ -370,33 +283,7 @@ package body PolyORB.Utils.Chained_Lists is
 
    function Value (I : Iterator) return Element_Access is
    begin
-      return I.Current.Value'Access;
+      return Value (I).Value'Unchecked_Access;
    end Value;
-
-   ---------
-   -- "+" --
-   ---------
-
-   function "+" (I : T) return List is
-      N : constant Node_Access := new Node;
-   begin
-      N.Value := I;
-      N.Chain (Next_Node) := null;
-      if Doubly_Chained then
-         N.Chain (Prev_Node) := null;
-      end if;
-      return List'(First => N, Last => N);
-   end "+";
-
-   ---------
-   -- "&" --
-   ---------
-
-   function "&" (L : List; I : T) return List is
-      LL : List := L;
-   begin
-      Append (LL, I);
-      return LL;
-   end "&";
 
 end PolyORB.Utils.Chained_Lists;
