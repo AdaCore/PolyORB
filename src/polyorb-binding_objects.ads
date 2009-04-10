@@ -34,6 +34,8 @@
 --  Binding objects: protocol stacks seen globally as a reference-counted
 --  entity.
 
+pragma Ada_2005;
+
 with PolyORB.Annotations;
 with PolyORB.Binding_Data;
 with PolyORB.Components;

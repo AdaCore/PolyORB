@@ -34,6 +34,8 @@
 --  This package provides a facility for associating information with each
 --  task executing the ORB main loop.
 
+pragma Ada_2005;
+
 with PolyORB.Asynch_Ev;
 with PolyORB.Jobs;
 with PolyORB.Tasking.Condition_Variables;

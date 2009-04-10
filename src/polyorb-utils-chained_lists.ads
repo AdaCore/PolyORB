@@ -33,6 +33,8 @@
 
 --  Generic chained list of nonlimited values with dynamic allocation
 
+pragma Ada_2005;
+
 with PolyORB.Utils.Ilists;
 
 generic
