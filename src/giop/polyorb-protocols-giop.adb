@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -231,7 +231,7 @@ package body PolyORB.Protocols.GIOP is
 
          when Expect_Body =>
             pragma Debug (C, O ("Received GIOP message body"));
-            pragma Debug (Show (Sess.Buffer_In));
+            pragma Debug (C, Show (Sess.Buffer_In));
             Process_Message (Sess.Implem, Sess);
 
          when others =>

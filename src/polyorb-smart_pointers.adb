@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -98,7 +98,7 @@ package body PolyORB.Smart_Pointers is
       pragma Assert (Counter_Lock /= null);
       Entity_Lock (Obj.all);
 
-      pragma Debug (Trace_Event (Dec_Usage, Obj));
+      pragma Debug (C, Trace_Event (Dec_Usage, Obj));
       Obj.Counter := Obj.Counter - 1;
 
       if Obj.Counter = 0 then
@@ -384,7 +384,7 @@ package body PolyORB.Smart_Pointers is
    procedure Unchecked_Inc_Usage (Obj : Entity_Ptr) is
    begin
       pragma Assert (Obj.Counter /= -1);
-      pragma Debug (Trace_Event (Inc_Usage, Obj));
+      pragma Debug (C, Trace_Event (Inc_Usage, Obj));
       Obj.Counter := Obj.Counter + 1;
    end Unchecked_Inc_Usage;
 

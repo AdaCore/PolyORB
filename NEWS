@@ -94,6 +94,9 @@ IAC would generate garbled error messages when referring to declarations in
 IAC and IDLAC required array sizes to be literals or constants. Arbitrary
 integer expressions are now allowed. (H723-024).
 
+Previously missing guards around some debugging code have been added,
+resulting in significant performance improvements. (I320-027)
+
 * PolyORB 2.4 (branched on 2008-05-06)
 ======================================
 
