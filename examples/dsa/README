@@ -1,0 +1,17 @@
+This directory contains the following examples for the Ada Distributed
+Systems Annex:
+
+- echo
+  Simple client/server ping
+
+- demo
+  Demo of passing complex data types between client and server
+
+- connections
+  Multiple servers and multiple clients, each server has a single
+  receiving task and blocks waiting for clients; clients use asynchronous
+  send operations
+
+- mailboxes
+  Same as "connections" but implemented in Ada 2005 using an RACW with
+  designating an interface implemented by the server task.
