@@ -218,14 +218,9 @@ package System.Partition_Interface is
    --  Subp_Info is the address of an array of a statically subtype
    --  of RCI_Subp_Info_Array with a range of 0 .. Subp_Info_Len - 1.
 
-   procedure Register_Unit_On_Name_Server (Name : String;
-                                           Kind : String;
-                                           Obj  : PolyORB.References.Ref);
-   --  Register one receiving stub on the name server
-
-   function Retrieve_Receiving_Stub (Name : String;
-                                     Kind : Receiving_Stub_Kind)
-     return Servant_Access;
+   function Retrieve_Receiving_Stub
+     (Name : String;
+      Kind : Receiving_Stub_Kind) return Servant_Access;
    --  Return the servant for distributed objects with given Name and Kind, or
    --  null if non-existant.
 

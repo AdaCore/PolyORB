@@ -6,12 +6,12 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2003-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
--- provisions that follow apply solely to the contents neither explicitly   --
--- nor implicitly specified by the CORBA Specification defined by the OMG.  --
+-- provisions that follow apply solely to the contents neither explicitely  --
+-- nor implicitely specified by the CORBA Specification defined by the OMG. --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -46,9 +46,11 @@ with RTCORBA.ThreadpoolPolicy;
 
 with PolyORB.Std;
 
-with PolyORB.Smart_Pointers;
+with PolyORB.Smart_Pointers.Controlled_Entities;
 
 package RTCORBA.RTORB is
+
+   package PSPCE renames PolyORB.Smart_Pointers.Controlled_Entities;
 
    type Local_Ref is new CORBA.Object.Ref with private;
 
@@ -155,7 +157,6 @@ package RTCORBA.RTORB is
 private
 
    type Local_Ref is new CORBA.Object.Ref with null record;
-
-   type RTORB_Object is new PolyORB.Smart_Pointers.Entity with null record;
+   type RTORB_Object is new PSPCE.Entity with null record;
 
 end RTCORBA.RTORB;

@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                  POLYORB.SMART_POINTERS.INITIALIZATION                   --
+--               POLYORB.SMART_POINTERS.CONTROLLED_ENTITIES                 --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,69 +31,34 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Initialization code for PolyORB.Smart_Pointers
+package body PolyORB.Smart_Pointers.Controlled_Entities is
 
-with Ada.Tags;
+   --------------
+   -- Finalize --
+   --------------
 
-with PolyORB.Initialization;
-
-with PolyORB.Utils.Strings;
-
-package body PolyORB.Smart_Pointers.Initialization is
-
-   ------------------------------------
-   -- Debugging hooks implementation --
-   ------------------------------------
-
-   function Entity_External_Tag (X : Unsafe_Entity'Class) return String;
-   function Ref_External_Tag (X : Ref'Class) return String;
-   --  Return the external representation of X'Tag.
-
-   -------------------------
-   -- Entity_External_Tag --
-   -------------------------
-
-   function Entity_External_Tag (X : Unsafe_Entity'Class) return String is
+   procedure Finalize (X : in out Entity_Controller) is
    begin
-      return Ada.Tags.External_Tag (X'Tag);
-   end Entity_External_Tag;
-
-   ----------------------
-   -- Ref_External_Tag --
-   ----------------------
-
-   function Ref_External_Tag (X : Ref'Class) return String is
-   begin
-      return Ada.Tags.External_Tag (X'Tag);
-   end Ref_External_Tag;
+      Finalize (X.E.all);
+   end Finalize;
 
    ----------------
    -- Initialize --
    ----------------
 
-   procedure Initialize;
-   --  Initialize Smart_Pointers module
-
-   procedure Initialize is
+   procedure Initialize (X : in out Entity_Controller) is
    begin
-      Smart_Pointers.Initialize
-        (The_Entity_External_Tag => Entity_External_Tag'Access,
-         The_Ref_External_Tag    => Ref_External_Tag'Access,
-         The_Default_Trace       => Get_Trace ("default"));
+      Initialize (X.E.all);
    end Initialize;
 
-   use PolyORB.Initialization;
-   use PolyORB.Initialization.String_Lists;
-   use PolyORB.Utils.Strings;
+   -------------------
+   -- Is_Controlled --
+   -------------------
 
-begin
-   Register_Module
-     (Module_Info'
-      (Name      => +"smart_pointers",
-       Conflicts => Empty,
-       Depends   => +"tasking.mutexes" & "parameters",
-       Provides  => Empty,
-       Implicit  => False,
-       Init      => Initialize'Access,
-       Shutdown  => null));
-end PolyORB.Smart_Pointers.Initialization;
+   function Is_Controlled (X : Entity) return Boolean is
+      pragma Unreferenced (X);
+   begin
+      return True;
+   end Is_Controlled;
+
+end PolyORB.Smart_Pointers.Controlled_Entities;

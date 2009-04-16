@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -134,15 +134,10 @@ package body PortableInterceptor.RequestInfo.Impl is
                      PolyORB.Errors.Helper.From_Any
                        (Self.Request.Exception_Info);
          Ref     : PolyORB.References.Ref;
-         Result  : CORBA.Object.Ref;
       begin
          PolyORB.References.Set
-           (Ref,
-            PolyORB.Smart_Pointers.Entity_Of (Members.Forward_Reference));
-
-         CORBA.Object.Internals.Convert_To_CORBA_Ref (Ref, Result);
-
-         return Result;
+           (Ref, PolyORB.Smart_Pointers.Entity_Of (Members.Forward_Reference));
+         return CORBA.Object.Internals.To_CORBA_Ref (Ref);
       end;
    end Get_Forward_Reference;
 

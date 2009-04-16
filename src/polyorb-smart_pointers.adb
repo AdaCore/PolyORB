@@ -35,6 +35,7 @@ with Ada.Unchecked_Deallocation;
 
 with PolyORB.Log;
 with PolyORB.Parameters;
+with PolyORB.Tasking.Mutexes;
 
 package body PolyORB.Smart_Pointers is
 
@@ -47,6 +48,9 @@ package body PolyORB.Smart_Pointers is
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
 
+   Counter_Lock : Mutex_Access;
+   --  Global lock used to protect concurrent accesses to reference counters
+
    procedure Unchecked_Inc_Usage (Obj : Entity_Ptr);
    --  Internal procedure to increment Obj's usage counter. This must be
    --  called with the proper lock held.
@@ -58,6 +62,13 @@ package body PolyORB.Smart_Pointers is
      (Event_Kind : Event_Kind_Type;
       Obj        : Entity_Ptr);
    --  Produce debugging trace for the indicated event on Obj, if applicable
+
+   Entity_External_Tag : Entity_External_Tag_Hook := null;
+   Ref_External_Tag    : Ref_External_Tag_Hook := null;
+   --  Debugging hooks, set at initialization
+
+   Default_Trace : Boolean := True;
+   --  needs comment???
 
    ------------
    -- Adjust --
@@ -108,7 +119,7 @@ package body PolyORB.Smart_Pointers is
          --  Releasing Obj lock at this stage is sufficient to ensure
          --  that only one task finalizes Obj.all and frees Obj.
 
-         if Obj.all not in Entity'Class then
+         if not Is_Controlled (Obj.all) then
             --  This entity is not controlled: finalize it ourselves
 
             Finalize (Obj.all);
@@ -199,15 +210,6 @@ package body PolyORB.Smart_Pointers is
    -- Finalize --
    --------------
 
-   procedure Finalize (X : in out Entity_Controller) is
-   begin
-      Finalize (X.E.all);
-   end Finalize;
-
-   --------------
-   -- Finalize --
-   --------------
-
    procedure Finalize (The_Ref : in out Ref) is
 
       function Return_Ref_External_Tag return String;
@@ -285,27 +287,26 @@ package body PolyORB.Smart_Pointers is
    ----------------
 
    procedure Initialize
-     (X : in out Entity_Controller) is
-   begin
-      pragma Debug (C, O ("Initializing Entity"));
-      Initialize (X.E.all);
-   end Initialize;
-
-   ----------------
-   -- Initialize --
-   ----------------
-
-   procedure Initialize
-     (X : in out Entity)
+     (The_Entity_External_Tag : Entity_External_Tag_Hook;
+      The_Ref_External_Tag    : Ref_External_Tag_Hook;
+      The_Default_Trace       : Boolean)
    is
-      pragma Warnings (Off);
-      pragma Unreferenced (X);
-      pragma Warnings (On);
-
    begin
-      pragma Assert (Counter_Lock /= null);
-      null;
+      Create (Counter_Lock);
+      Entity_External_Tag := The_Entity_External_Tag;
+      Ref_External_Tag    := The_Ref_External_Tag;
+      Default_Trace       := The_Default_Trace;
    end Initialize;
+
+   -------------------
+   -- Is_Controlled --
+   -------------------
+
+   function Is_Controlled (X : Unsafe_Entity) return Boolean is
+      pragma Unreferenced (X);
+   begin
+      return False;
+   end Is_Controlled;
 
    ------------
    -- Is_Nil --

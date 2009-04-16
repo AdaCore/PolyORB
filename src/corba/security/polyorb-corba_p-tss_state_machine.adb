@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -59,7 +59,6 @@ with PolyORB.Security.Credentials;
 with PolyORB.Security.Security_Manager;
 with PolyORB.Security.Transport_Mechanisms;
 with PolyORB.Security.Types;
-with PolyORB.Smart_Pointers;
 with PolyORB.Tasking.Threads.Annotations;
 with PolyORB.Types;
 with PolyORB.Utils.Strings;
@@ -83,7 +82,7 @@ package body PolyORB.CORBA_P.TSS_State_Machine is
       Error : in out PolyORB.Errors.Error_Container);
 
    procedure Server_Invoke
-     (Self    : access PolyORB.Smart_Pointers.Entity'Class;
+     (Self    : access PSPCE.Entity'Class;
       Request :        PolyORB.Requests.Request_Access;
       Profile :        PolyORB.Binding_Data.Profile_Access);
 
@@ -301,7 +300,7 @@ package body PolyORB.CORBA_P.TSS_State_Machine is
    -------------------
 
    procedure Server_Invoke
-     (Self    : access PolyORB.Smart_Pointers.Entity'Class;
+     (Self    : access PSPCE.Entity'Class;
       Request :        PolyORB.Requests.Request_Access;
       Profile :        PolyORB.Binding_Data.Profile_Access)
    is

@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                  POLYORB.SMART_POINTERS.INITIALIZATION                   --
+--               POLYORB.SMART_POINTERS.CONTROLLED_ENTITIES                 --
 --                                                                          --
---                                 B o d y                                  --
+--                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2004-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,69 +31,35 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Initialization code for PolyORB.Smart_Pointers
+package PolyORB.Smart_Pointers.Controlled_Entities is
 
-with Ada.Tags;
+   pragma Preelaborate;
 
-with PolyORB.Initialization;
+   ---------------------------------
+   -- Controlled task-safe entity --
+   ---------------------------------
 
-with PolyORB.Utils.Strings;
+   type Entity is abstract new Non_Controlled_Entity with private;
+   procedure Initialize (X : in out Entity) is null;
+   function Is_Controlled (X : Entity) return Boolean;
 
-package body PolyORB.Smart_Pointers.Initialization is
+private
 
-   ------------------------------------
-   -- Debugging hooks implementation --
-   ------------------------------------
+   ---------------------------------
+   -- Task-safe controlled entity --
+   ---------------------------------
 
-   function Entity_External_Tag (X : Unsafe_Entity'Class) return String;
-   function Ref_External_Tag (X : Ref'Class) return String;
-   --  Return the external representation of X'Tag.
+   type Entity_Controller (E : access Entity'Class)
+      is new Ada.Finalization.Limited_Controlled with null record;
 
-   -------------------------
-   -- Entity_External_Tag --
-   -------------------------
+   procedure Initialize (X : in out Entity_Controller);
+   procedure Finalize   (X : in out Entity_Controller);
 
-   function Entity_External_Tag (X : Unsafe_Entity'Class) return String is
-   begin
-      return Ada.Tags.External_Tag (X'Tag);
-   end Entity_External_Tag;
+   type Entity is abstract new Non_Controlled_Entity with record
+      Controller : Entity_Controller (Entity'Access);
+      --  Controller component used to trigger a call to the Entity's
+      --  Finalize primitive operation when it is Finalized (note that
+      --  Entity itself is not a controlled type).
+   end record;
 
-   ----------------------
-   -- Ref_External_Tag --
-   ----------------------
-
-   function Ref_External_Tag (X : Ref'Class) return String is
-   begin
-      return Ada.Tags.External_Tag (X'Tag);
-   end Ref_External_Tag;
-
-   ----------------
-   -- Initialize --
-   ----------------
-
-   procedure Initialize;
-   --  Initialize Smart_Pointers module
-
-   procedure Initialize is
-   begin
-      Smart_Pointers.Initialize
-        (The_Entity_External_Tag => Entity_External_Tag'Access,
-         The_Ref_External_Tag    => Ref_External_Tag'Access,
-         The_Default_Trace       => Get_Trace ("default"));
-   end Initialize;
-
-   use PolyORB.Initialization;
-   use PolyORB.Initialization.String_Lists;
-   use PolyORB.Utils.Strings;
-
-begin
-   Register_Module
-     (Module_Info'
-      (Name      => +"smart_pointers",
-       Conflicts => Empty,
-       Depends   => +"tasking.mutexes" & "parameters",
-       Provides  => Empty,
-       Implicit  => False,
-       Init      => Initialize'Access,
-       Shutdown  => null));
-end PolyORB.Smart_Pointers.Initialization;
+end PolyORB.Smart_Pointers.Controlled_Entities;

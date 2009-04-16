@@ -128,6 +128,16 @@ package body System.Partition_Interface is
    procedure Initialize;
    --  Procedure called during global PolyORB initialization
 
+   function Nameserver_Lookup (Name, Kind : String) return Ref;
+   --  Look up the specified (Name, Kind) pair from the DSA naming context
+
+   procedure Nameserver_Register
+     (Name : String;
+      Kind : String;
+      Obj  : PolyORB.References.Ref);
+   --  Register object with the specified (Name, Kind) pair into the
+   --  DSA naming context.
+
    function Is_Reference_Valid (R : PolyORB.References.Ref) return Boolean;
    --  Binds a reference to determine whether it is valid
 
@@ -1363,6 +1373,120 @@ package body System.Partition_Interface is
       return Result;
    end Make_Ref;
 
+   -----------------------
+   -- Nameserver_Lookup --
+   -----------------------
+
+   function Nameserver_Lookup (Name, Kind : String) return Ref is
+      use PolyORB.Parameters;
+      use PolyORB.Errors;
+      use PolyORB.References.Binding;
+
+      LName : constant String := To_Lower (Name);
+
+      Result : Ref;
+
+      Time_Between_Requests : constant Duration :=
+        Get_Conf
+          (Section => "dsa",
+           Key     => "delay_between_failed_requests",
+           Default => 1.0);
+
+      Max_Requests : constant Natural :=
+        Get_Conf
+          (Section => "dsa",
+           Key     => "max_failed_requests",
+           Default => 10);
+
+      Retry_Count : Natural := 0;
+   begin
+      --  Unit not known yet: we therefore know that it is remote, and we
+      --  need to look it up with the naming service.
+
+      loop
+         begin
+            Result := PSNNC.Client.Resolve
+                        (Naming_Context, To_Name (LName, Kind));
+
+            exit when Is_Reference_Valid (Result);
+            --  Resolve succeeded: exit loop
+
+         exception
+               --  Catch all exceptions: we will retry resolution, and bail
+               --  out after Max_Requests iterations.
+
+            when others =>
+               null;
+         end;
+
+         if Retry_Count = Max_Requests then
+            raise System.RPC.Communication_Error with
+              "lookup of " & Kind & " " & Name & " failed";
+         end if;
+         Retry_Count := Retry_Count + 1;
+         PolyORB.Tasking.Threads.Relative_Delay (Time_Between_Requests);
+      end loop;
+      return Result;
+   end Nameserver_Lookup;
+
+   -------------------------
+   -- Nameserver_Register --
+   -------------------------
+
+   procedure Nameserver_Register
+     (Name : String;
+      Kind : String;
+      Obj  : PolyORB.References.Ref)
+   is
+      use Ada.Exceptions;
+      Id      : constant PolyORB.Services.Naming.Name := To_Name (Name, Kind);
+      Context : PSNNC.Ref;
+      Reg_Obj : PolyORB.References.Ref;
+   begin
+      pragma Debug (C, O ("About to register " & Name & " on nameserver"));
+
+      --  May raise an exception which we do not want to handle in the
+      --  following block (failure to establish the naming context is a fatal
+      --  error and must be propagated to the caller).
+
+      Context := Naming_Context;
+
+      begin
+         Reg_Obj := PSNNC.Client.Resolve (Context, Id);
+      exception
+         when others =>
+
+            --  Resolution attempt returned an authoritative "name not found"
+            --  error: register unit now.
+
+            PSNNC.Client.Bind
+              (Self => Naming_Context,
+               N    => Id,
+               Obj  => Obj);
+            return;
+      end;
+
+      --  Name is present in name server, check validity of the reference it
+      --  resolves to.
+
+      if Is_Reference_Valid (Reg_Obj) then
+         --  Reference is valid: RCI unit is already declared by another
+         --  partition.
+
+         PolyORB.Initialization.Shutdown_World (Wait_For_Completion => False);
+         raise Program_Error with Name & " (" & Kind & ") is already declared";
+
+      else
+         --  The reference is not valid anymore: we assume the original server
+         --  has died, and rebind the name.
+
+         PSNNC.Client.Rebind
+           (Self => Naming_Context,
+            N    => To_Name (Name, Kind),
+            Obj  => Obj);
+      end if;
+   end Nameserver_Register;
+
    --------------------
    -- Naming_Context --
    --------------------
@@ -1371,11 +1495,22 @@ package body System.Partition_Interface is
       R : PolyORB.References.Ref;
    begin
       if PSNNC.Is_Nil (Naming_Context_Cache) then
-         PolyORB.References.String_To_Object
-           (PolyORB.Parameters.Get_Conf ("dsa", "name_service"), R);
-         PSNNC.Set (Naming_Context_Cache, Entity_Of (R));
+         declare
+            Nameserver_Location : constant String :=
+                                    PolyORB.Parameters.Get_Conf
+                                      ("dsa", "name_service");
+         begin
+            PolyORB.References.String_To_Object (Nameserver_Location, R);
+            if Is_Nil (R) then
+               raise Constraint_Error;
+            end if;
+            PSNNC.Set (Naming_Context_Cache, Entity_Of (R));
+         exception
+            when others =>
+               raise System.RPC.Communication_Error
+                 with "unable to locate name server " & Nameserver_Location;
+         end;
       end if;
-
       return Naming_Context_Cache;
    end Naming_Context;
 
@@ -1435,7 +1570,8 @@ package body System.Partition_Interface is
          end if;
 
          if PolyORB.References.Is_Nil (Info.Base_Ref) then
-            raise System.RPC.Communication_Error;
+            raise System.RPC.Communication_Error
+              with "unable to locate RCI " & RCI_Name;
 
             --  XXX add an informative exception message.
             --  NOTE: Here, we are in calling stubs, so it is OK to raise an
@@ -1610,7 +1746,7 @@ package body System.Partition_Interface is
                Known_Partition_ID  => False,
                RCI_Partition_ID    => RPC.Partition_ID'First));
 
-         Register_Unit_On_Name_Server
+         Nameserver_Register
            (Name => To_Lower (Stub.Name.all),
             Kind => "RCI",
             Obj  => Ref);
@@ -1647,64 +1783,6 @@ package body System.Partition_Interface is
       The_TM_Shutdown := Shutdown;
       pragma Debug (C, O ("Registered the termination manager"));
    end Register_Termination_Manager;
-
-   ----------------------------------
-   -- Register_Unit_On_Name_Server --
-   ----------------------------------
-
-   procedure Register_Unit_On_Name_Server
-     (Name : String;
-      Kind : String;
-      Obj  : PolyORB.References.Ref)
-   is
-      use Ada.Exceptions;
-      Id      : constant PolyORB.Services.Naming.Name := To_Name (Name, Kind);
-      Context : PSNNC.Ref;
-      Reg_Obj : PolyORB.References.Ref;
-   begin
-      pragma Debug (C, O ("About to register " & Name & " on nameserver"));
-
-      --  May raise an exception which we do not want to handle in the
-      --  following block (failure to establish the naming context is a fatal
-      --  error and must be propagated to the caller).
-
-      Context := Naming_Context;
-
-      begin
-         Reg_Obj := PSNNC.Client.Resolve (Context, Id);
-      exception
-         when others =>
-
-            --  Resolution attempt returned an authoritative "name not found"
-            --  error: register unit now.
-
-            PSNNC.Client.Bind
-              (Self => Naming_Context,
-               N    => Id,
-               Obj  => Obj);
-            return;
-      end;
-
-      --  Name is present in name server, check validity of the reference it
-      --  resolves to.
-
-      if Is_Reference_Valid (Reg_Obj) then
-         --  Reference is valid: RCI unit is already declared by another
-         --  partition.
-
-         PolyORB.Initialization.Shutdown_World (Wait_For_Completion => False);
-         raise Program_Error with Name & " (" & Kind & ") is already declared";
-
-      else
-         --  The reference is not valid anymore: we assume the original server
-         --  has died, and rebind the name.
-
-         PSNNC.Client.Rebind
-           (Self => Naming_Context,
-            N    => To_Name (Name, Kind),
-            Obj  => Obj);
-      end if;
-   end Register_Unit_On_Name_Server;
 
    --------------------
    -- Release_Buffer --
@@ -1802,7 +1880,7 @@ package body System.Partition_Interface is
 
       PolyORB.Objects.Free (Oid);
 
-      Register_Unit_On_Name_Server
+      Nameserver_Register
         (Name => To_Lower (Name),
          Kind => Kind,
          Obj  => Ref);
@@ -1887,35 +1965,7 @@ package body System.Partition_Interface is
       --  retry the query up to Max_Requests times.
 
       if Is_Nil (Info.Base_Ref) then
-
-         --  Unit not known yet: we therefore know that it is remote, and we
-         --  need to look it up with the naming service.
-
-         loop
-            begin
-               Base_Ref := PSNNC.Client.Resolve
-                 (Naming_Context, To_Name (LName, "RCI"));
-
-               exit when Is_Reference_Valid (Base_Ref);
-               --  Resolve succeeded: exit loop
-
-            exception
-               --  Catch all exceptions: we will retry resolution, and bail
-               --  out after Max_Requests iterations.
-
-               when others =>
-                  null;
-            end;
-
-            if Retry_Count = Max_Requests then
-               O ("Cannot retrieve information for RCI "
-                  & Name & " from name server.", Error);
-               raise System.RPC.Communication_Error;
-            end if;
-            Retry_Count := Retry_Count + 1;
-            PolyORB.Tasking.Threads.Relative_Delay (Time_Between_Requests);
-         end loop;
-
+         Base_Ref := Nameserver_Lookup (LName, "RCI");
          Info := RCI_Info'
            (Base_Ref            => Base_Ref,
             Is_Local            => False,
@@ -1960,40 +2010,13 @@ package body System.Partition_Interface is
 
    begin
       pragma Debug (C, O ("Retrieve RACW From Name Server: enter"));
-
-      loop
-         begin
-            Reg_Obj := PSNNC.Client.Resolve
-              (Naming_Context, To_Name (Name, Kind));
-
-            exit when Is_Reference_Valid (Reg_Obj);
-            --  Resolve succeeded: exit loop
-
-         exception
-               --  Catch all exceptions: we will retry resolution, and bail
-               --  out after Max_Requests iterations.
-
-            when others =>
-               null;
-         end;
-
-         if Retry_Count = Max_Requests then
-            O ("Cannot retrieve information for"
-               & "RACW " & Name & ":" & Kind & " from name server.", Error);
-            raise System.RPC.Communication_Error;
-         end if;
-         Retry_Count := Retry_Count + 1;
-         PolyORB.Tasking.Threads.Relative_Delay (Time_Between_Requests);
-      end loop;
-
+      Reg_Obj := Nameserver_Lookup (Name, Kind);
       Addr := Get_RACW
         (Ref          => Reg_Obj,
          Stub_Tag     => Stub_Tag,
          Is_RAS       => False,
          Asynchronous => True);
-
       pragma Debug (C, O ("Retrieve RACW From Name Server: leave"));
-
    end Retrieve_RACW_From_Name_Server;
 
    --------------------
