@@ -45,15 +45,14 @@ package CORBA.Impl is
 
    pragma Elaborate_Body;
 
-   type Object is abstract
-     new PolyORB.Smart_Pointers.Controlled_Entities.Entity
-     with private;
+   package PSPCE renames PolyORB.Smart_Pointers.Controlled_Entities;
+
+   type Object is abstract new PSPCE.Entity with private;
+
    subtype Object_Ptr is PolyORB.Smart_Pointers.Entity_Ptr;
    --  Object_Ptr is the return type of CORBA.AbstractBase.Object_Of.
-   --  It may either designate an actual local object
-   --  (a CORBA.Impl.Object'Class), or a surrogate thereof
-   --  (a PolyORB.Smart_Pointers.Entity'Class not derived from
-   --  CORBA.Impl.Object).
+   --  It may either designate an actual local object (CORBA.Impl.Object'Class)
+   --  or a surrogate thereof.
 
    function Execute_Servant
      (Self : not null access Object;
@@ -76,8 +75,6 @@ package CORBA.Impl is
    end Internals;
 
 private
-
-   package PSPCE renames PolyORB.Smart_Pointers.Controlled_Entities;
 
    type Implementation (As_Object : access Object'Class)
    is new PolyORB.Servants.Servant with null record;
