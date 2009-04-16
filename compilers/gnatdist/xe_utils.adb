@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1995-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -872,10 +872,13 @@ package body XE_Utils is
          return;
       end if;
 
-      if Program_Args = Binder or else Program_Args = Linker then
-         Add_Make_Switch (Argv);
-         return;
-      end if;
+      case Program_Args is
+         when Compiler | Binder | Linker =>
+            Add_Make_Switch (Argv);
+            return;
+         when others =>
+            null;
+      end case;
 
       if Project_File_Name_Expected then
          Project_File_Name          := new String'(Normalize_Pathname (Argv));
