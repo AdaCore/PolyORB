@@ -31,8 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with XE_Names;            use XE_Names;
-
+with XE_Names;         use XE_Names;
 with XE_Flags;         use XE_Flags;
 with XE_IO;            use XE_IO;
 with XE_Utils;         use XE_Utils;

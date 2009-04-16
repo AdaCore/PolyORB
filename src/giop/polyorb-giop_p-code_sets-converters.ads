@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -33,17 +33,23 @@
 
 --  Code sets converters
 
---  Each code set converter process conversion between native code set
---  and transmission code set and marshalling/unmarshalling of data.
---  For each pair of native/transmission code sets we define it's own
---  converter.
+--  Each code set converter process conversion between native code set and
+--  transmission code set and marshalling/unmarshalling of data. A converter is
+--  defined for each pair of native/transmission code sets.
+
+with GNAT.Byte_Swapping;
 
 with PolyORB.Buffers;
+with PolyORB.Utils.Buffers;
+pragma Elaborate_All (PolyORB.Utils.Buffers);
 
 package PolyORB.GIOP_P.Code_Sets.Converters is
 
-   type Converter is abstract tagged private;
+   ----------------------------------------
+   -- Narrow character converter (CCS-C) --
+   ----------------------------------------
 
+   type Converter is abstract tagged limited private;
    type Converter_Access is access all Converter'Class;
 
    procedure Marshall
@@ -74,8 +80,11 @@ package PolyORB.GIOP_P.Code_Sets.Converters is
       Error  : in out Errors.Error_Container)
       is abstract;
 
-   type Wide_Converter is abstract tagged private;
+   --------------------------------------
+   -- Wide character converter (CCS-W) --
+   --------------------------------------
 
+   type Wide_Converter is abstract tagged limited private;
    type Wide_Converter_Access is access all Wide_Converter'Class;
 
    procedure Set_GIOP_1_2_Mode (C : in out Wide_Converter);
@@ -111,37 +120,31 @@ package PolyORB.GIOP_P.Code_Sets.Converters is
 
    function Get_Converter
      (Native_Code_Set : Code_Set_Id;
-      Target_Code_Set : Code_Set_Id)
-      return Converter_Access;
-   --  Return converter for processing conversion between
-   --  corresponding code sets for char data.
+      Target_Code_Set : Code_Set_Id) return Converter_Access;
+   --  Return converter for processing conversion between corresponding code
+   --  sets for char data.
 
    function Get_Converter
      (Native_Code_Set : Code_Set_Id;
-      Target_Code_Set : Code_Set_Id)
-      return Wide_Converter_Access;
-   --  Return converter for processing conversion between
-   --  corresponding code sets for wchar data.
+      Target_Code_Set : Code_Set_Id) return Wide_Converter_Access;
+   --  Return converter for processing conversion between corresponding code
+   --  sets for wchar data.
 
    function Supported_Char_Conversion_Code_Sets
-     (Code_Set : Code_Set_Id)
-      return Code_Set_Id_List;
-   --  Return list of Code_Set_Id supported as conversion code set for
-   --  defined native code set of char data.
+     (Code_Set : Code_Set_Id) return Code_Set_Id_List;
+   --  Return list of Code_Set_Id supported as conversion code set for defined
+   --  native code set of char data (CCS-C).
 
    function Supported_Wchar_Conversion_Code_Sets
      (Code_Set : Code_Set_Id)
       return Code_Set_Id_List;
-   --  Return list of Code_Set_Id supported as conversion code set for
-   --  defined native code set of wchar data.
+   --  Return list of Code_Set_Id supported as conversion code set for defined
+   --  native code set of wchar data (CCS-W).
 
 private
 
-   type Converter_Factory is
-     access function return Converter_Access;
-
-   type Wide_Converter_Factory is
-     access function return Wide_Converter_Access;
+   type Converter_Factory is access function return Converter_Access;
+   type Wide_Converter_Factory is access function return Wide_Converter_Access;
 
    procedure Register_Native_Code_Set
      (Code_Set : Code_Set_Id;
@@ -167,37 +170,31 @@ private
       Factory    : Wide_Converter_Factory);
    --  Register additional conversion code set
 
-   type Converter is abstract tagged null record;
+   type Converter is abstract tagged limited null record;
 
-   type Wide_Converter is abstract tagged record
+   type Wide_Converter is abstract tagged limited record
       GIOP_1_2_Mode : Boolean := False;
    end record;
 
-   --  Shared marshalling subprogram (for use in another converters)
+   ----------------------------------------------------
+   -- Supporting routines for unaligned unsigned I/O --
+   ----------------------------------------------------
 
-   procedure Marshall
-     (Buffer    : access Buffers.Buffer_Type;
-      Data      : Types.Unsigned_Short;
-      Alignment : Buffers.Alignment_Type);
-   --  Marshall Unsigned_Short as big endian value with specified Alignment
+   use PolyORB.Utils.Buffers;
 
-   function Unmarshall
-     (Buffer    : access Buffers.Buffer_Type;
-      Alignment : Buffers.Alignment_Type)
-      return Types.Unsigned_Short;
-   --  Unmarshall Unsigned_Short as big endian value with specified Alignment
+   function Swapped is
+     new GNAT.Byte_Swapping.Swapped2 (PolyORB.Types.Unsigned_Short);
 
-   procedure Marshall
-     (Buffer    : access Buffers.Buffer_Type;
-      Data      : Types.Unsigned_Long;
-      Alignment : Buffers.Alignment_Type);
-   --  Marshall Unsigned_Long as big endian value with specified Alignment
+   package Unaligned_Unsigned_Short is
+     new Align_Transfer_Elementary
+       (T => PolyORB.Types.Unsigned_Short, With_Alignment => False);
 
-   function Unmarshall
-     (Buffer    : access Buffers.Buffer_Type;
-      Alignment : Buffers.Alignment_Type)
-      return Types.Unsigned_Long;
-   --  Unmarshall Unsigned_Long as big endian value with specified Alignment
+   function Swapped is
+     new GNAT.Byte_Swapping.Swapped4 (PolyORB.Types.Unsigned_Long);
+
+   package Unaligned_Unsigned_Long is
+     new Align_Transfer_Elementary
+       (T => PolyORB.Types.Unsigned_Long, With_Alignment => False);
 
    --  Ada95 data converters
 

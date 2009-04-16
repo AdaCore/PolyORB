@@ -10,8 +10,8 @@
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
--- provisions that follow apply solely to the contents neither explicitely  --
--- nor implicitely specified by the CORBA Specification defined by the OMG. --
+-- provisions that follow apply solely to the contents neither explicitly   --
+-- nor implicitly specified by the CORBA Specification defined by the OMG.  --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -92,7 +92,7 @@ package PortableServer is
      abstract new DynamicImplementation with private;
    --  21.41.1
    --  Conforming implementations must provide a controlled (tagged)
-   --  Servant_Base type and default implementations of the primitve
+   --  Servant_Base type and default implementations of the primitive
    --  operations on Servant_Base that meet the required semantics.
 
    procedure Invoke
@@ -136,7 +136,7 @@ package PortableServer is
 
    --  Implementation Notes: these functions are not defined in the
    --  CORBA specification, but defined in various C++ ORB
-   --  implementation. They are provided as a facility.
+   --  implementations. They are provided as a facility.
 
    type ObjectId_Access is access ObjectId;
 

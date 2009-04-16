@@ -1,3 +1,0 @@
-interface Harness {
-  unsigned long echoULong(in unsigned long arg) ;
-};

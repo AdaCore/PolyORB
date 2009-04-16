@@ -119,13 +119,10 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
    -- Initialize_Implem --
    -----------------------
 
-   procedure Initialize_Implem
-     (Implem : access GIOP_Implem_1_0)
-   is
-      use PolyORB.Types;
+   procedure Initialize_Implem (Implem : access GIOP_Implem_1_0) is
    begin
-      Implem.Data_Alignment := Data_Alignment_1_0;
-      Implem. Permitted_Sync_Scopes := Permitted_Sync_Scopes;
+      Implem.Data_Alignment        := Data_Alignment_1_0;
+      Implem.Permitted_Sync_Scopes := Permitted_Sync_Scopes;
    end Initialize_Implem;
 
    ------------------------
@@ -186,7 +183,6 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
       pragma Warnings (On);
 
       use PolyORB.ORB;
-      use PolyORB.Types;
 
       Sess : GIOP_Session renames GIOP_Session (S.all);
       MCtx : GIOP_Message_Context_1_0
@@ -272,7 +268,6 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
       use PolyORB.Binding_Data;
       use PolyORB.Binding_Data.Local;
       use PolyORB.Obj_Adapters;
-      use PolyORB.Types;
       use PolyORB.Any.NVList;
       use PolyORB.References;
       use PolyORB.Annotations;
@@ -492,7 +487,6 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
       use PolyORB.Binding_Data;
       use PolyORB.Errors;
       use PolyORB.ORB;
-      use PolyORB.Types;
 
       Sess          : GIOP_Session renames GIOP_Session (S.all);
       MCtx          : aliased GIOP_Message_Context_1_0;
@@ -543,7 +537,6 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
 
       use PolyORB.Errors;
       use PolyORB.Requests.Unsigned_Long_Flags;
-      use PolyORB.Types;
 
       Sess          : GIOP_Session renames GIOP_Session (S.all);
       MCtx          : aliased GIOP_Message_Context_1_0;
@@ -646,7 +639,6 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
       Buffer : access Buffers.Buffer_Type)
    is
       use Octet_Flags;
-      use PolyORB.Types;
 
       pragma Warnings (Off);
       pragma Unreferenced (Implem);
@@ -714,8 +706,6 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
       Principal        :    out Types.String;
       Service_Contexts :    out QoS_GIOP_Service_Contexts_Parameter_Access)
    is
-      use PolyORB.Types;
-
    begin
 
       --  Service context

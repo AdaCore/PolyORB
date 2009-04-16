@@ -43,6 +43,7 @@ with XE_Names;         use XE_Names;
 with XE_Types;         use XE_Types;
 with XE_Units;         use XE_Units;
 with XE_Utils;         use XE_Utils;
+with XE_Storages;      use XE_Storages;
 
 package body XE_Sem is
 
@@ -58,8 +59,8 @@ package body XE_Sem is
    --  default channel attribute.
 
    procedure Apply_Default_Partition_Attributes (Partition : Partition_Id);
-   --  When a partition attribute has not been assigned, apply the
-   --  default partition attribute.
+   --  When a partition attribute has not been assigned, apply the default
+   --  value for the attribute.
 
    procedure Assign_Unit_Tasking (ALI : ALI_Id);
    --  Assign PCS tasking for a RCI unit.
@@ -128,6 +129,20 @@ package body XE_Sem is
    --  the version consistency between stubs and skels. In the same
    --  time, compute the most recent file time stamp to see whether we
    --  need to update the partition executable file.
+
+   procedure Analyze_Required_Storage_Supports
+     (Partition : Partition_Id;
+      Success   : in out Boolean);
+   --  For the given partition, build the required storages table by
+   --  analyzing shared passive packages configured on this partition
+   --  and stub packages configured on other partitions.
+   --  Also ensure that storage location specific constraints aren't
+   --  violated (see nested procedure Detect_Storage_Constraint_Violation).
+
+   procedure Assign_ORB_Tasking_Policy (Partition : Partition_Id);
+   --  Assign ORB tasking policy to default if hasn't been assigned by
+   --  user. Write warning messages if selected policy is incompatible
+   --  with partition tasking or Task_Pool attribute.
 
    -------------
    -- Analyze --
@@ -277,9 +292,14 @@ package body XE_Sem is
       end if;
 
       for J in Partitions.First + 1 .. Partitions.Last loop
-         if Partitions.Table (J).To_Build then
-            Apply_Default_Partition_Attributes (J);
-         end if;
+
+         --  Apply default values for unspecified attributes. Note that this
+         --  must be done even for partitions that are not built, since their
+         --  attributes might be referenced by other partitions, e.g. when
+         --  generating an Ada starter procedure (which needs the partition's
+         --  executable file name).
+
+         Apply_Default_Partition_Attributes (J);
       end loop;
 
       for J in Channels.First + 1 .. Channels.Last loop
@@ -295,13 +315,6 @@ package body XE_Sem is
       end if;
 
       --  This step checks whether we need tasking on a partition.
-      --
-      --  Notation:
-      --     '?' : unknown
-      --     'P' : tasking is required because of PCS code
-      --     'U' : tasking is required because of user code
-      --     'N' : tasking is not required for this unit
-      --
       --  Check whether a unit comes with tasking. Possibly because of
       --  its dependencies. Note that we do not look any further a
       --  dependency designating a RCI unit since it may not be
@@ -324,21 +337,163 @@ package body XE_Sem is
             Update_Partition_Tasking (A, P);
          end if;
       end loop;
-      Partitions.Table (Main_Partition).Tasking := 'P';
+      Partitions.Table (Main_Partition).Tasking := PCS_Tasking;
 
       if Debug_Mode then
-         Message ("configure partition termination");
          Message ("find partition stub-only units");
          Message ("update partition most recent stamp");
       end if;
 
       for J in Partitions.First + 1 .. Partitions.Last loop
          if Partitions.Table (J).To_Build then
-            Assign_Partition_Termination (J);
             Find_Stubs_And_Stamps_From_Closure (J);
          end if;
       end loop;
+
+      if Debug_Mode then
+         Message ("find needed storage supports");
+      end if;
+
+      --  As the analysis of needed storage supports should
+      --  update partition tasking, it must be performed
+      --  before the termination analysis.
+
+      for J in Partitions.First + 1 .. Partitions.Last loop
+         if Partitions.Table (J).To_Build then
+            Analyze_Required_Storage_Supports (J, OK);
+         end if;
+      end loop;
+
+      if not OK then
+         raise Partitioning_Error;
+      end if;
+
+      if Debug_Mode then
+         Message ("configure partition termination");
+      end if;
+
+      for J in Partitions.First + 1 .. Partitions.Last loop
+         if Partitions.Table (J).To_Build then
+            Assign_Partition_Termination (J);
+            Assign_ORB_Tasking_Policy (J);
+         end if;
+      end loop;
+
    end Analyze;
+
+   ---------------------------------------
+   -- Analyze_Required_Storage_Supports --
+   ---------------------------------------
+
+   procedure Analyze_Required_Storage_Supports
+     (Partition : Partition_Id;
+      Success   : in out Boolean)
+   is
+      procedure Detect_Storage_Constraint_Violation (SLID : Location_Id);
+
+      Current : Partition_Type renames Partitions.Table (Partition);
+
+      -----------------------------------------
+      -- Detect_Storage_Constraint_Violation --
+      -----------------------------------------
+
+      procedure Detect_Storage_Constraint_Violation (SLID : Location_Id)
+      is
+         Location           : Location_Type renames Locations.Table (SLID);
+         Storage_Properties : constant Storage_Support_Type :=
+                                Storage_Supports.Get (Location.Major);
+
+      begin
+         --  Some storage supports cannot be used on passive partitions
+
+         if Current.Passive = BTrue
+           and then not Storage_Properties.Allow_Passive
+         then
+            Message ("passive partition", Quote (Current.Name),
+                     "cannot use", Quote (Location.Major), "storage support");
+            Success := False;
+            return;
+         end if;
+
+         --  Some storage supports cannot be used on partition wich
+         --  localy terminate
+
+         if Current.Termination = Local_Termination
+           and then not Storage_Properties.Allow_Local_Term
+         then
+            Message ("partition", Quote (Current.Name),
+                     "cannot locally terminate while using",
+                     Quote (Location.Major), "storage support");
+            Success := False;
+            return;
+         end if;
+
+         --  Some storage supports need a PCS tasking profile
+
+         if Storage_Properties.Need_Tasking
+           and then Current.Tasking /= PCS_Tasking
+         then
+            Current.Tasking := PCS_Tasking;
+            Message ("PCS tasking forced for", Quote (Current.Name),
+                     "to use", Quote (Location.Major), "storage support");
+         end if;
+      end Detect_Storage_Constraint_Violation;
+
+      Uname     : Name_Id;
+      Unit      : Unit_Id;
+      Conf_Unit : Conf_Unit_Id;
+      Part      : Partition_Id;
+      Location  : Location_Id;
+
+   begin
+      --  Lookup storage supports needed for shared passive stub
+      --  packages configured on other partitions.
+
+      for S in Current.First_Stub .. Current.Last_Stub loop
+         Uname := Stubs.Table (S);
+         Unit  := ALIs.Table (Get_ALI_Id (Uname)).Last_Unit;
+
+         if Units.Table (Unit).Shared_Passive then
+            Part     := Get_Partition_Id (Uname);
+            Location := Partitions.Table (Part).Storage_Loc;
+
+            if Location = No_Location_Id then
+               Location := Default_Data_Location;
+            end if;
+            Detect_Storage_Constraint_Violation (Location);
+            Add_Required_Storage
+              (Current.First_Required_Storage,
+               Current.Last_Required_Storage,
+               Location,
+               Unit,
+               Owner => False);
+         end if;
+      end loop;
+
+      --  Lookup storage supports needed for shared passive packages
+      --  configured on this partition.
+
+      Conf_Unit := Current.First_Unit;
+      while Conf_Unit /= No_Conf_Unit_Id loop
+         Unit := Conf_Units.Table (Conf_Unit).My_Unit;
+         if Units.Table (Unit).Shared_Passive then
+            Location := Current.Storage_Loc;
+
+            if Location = No_Location_Id then
+               Location := Default_Data_Location;
+            end if;
+            Detect_Storage_Constraint_Violation (Location);
+            Add_Required_Storage
+              (Current.First_Required_Storage,
+               Current.Last_Required_Storage,
+               Location,
+               Unit,
+               Owner => True);
+         end if;
+
+         Conf_Unit := Conf_Units.Table (Conf_Unit).Next_Unit;
+      end loop;
+   end Analyze_Required_Storage_Supports;
 
    --------------------------------------
    -- Apply_Default_Channel_Attributes --
@@ -396,7 +551,7 @@ package body XE_Sem is
          Current.Light_PCS := Default.Light_PCS;
       end if;
       if Current.Light_PCS = BFalse then
-         Current.Tasking := 'P';
+         Current.Tasking := PCS_Tasking;
       end if;
 
       if Current.Passive = BMaybe then
@@ -431,6 +586,11 @@ package body XE_Sem is
          Current.Storage_Loc := Default.Storage_Loc;
       end if;
 
+      if Current.First_Required_Storage = No_Required_Storage_Id then
+         Current.First_Required_Storage := Default.First_Required_Storage;
+         Current.Last_Required_Storage  := Default.Last_Required_Storage;
+      end if;
+
       if Current.Task_Pool = No_Task_Pool then
          Current.Task_Pool := Default.Task_Pool;
       end if;
@@ -438,7 +598,56 @@ package body XE_Sem is
       if Current.Termination = No_Termination then
          Current.Termination := Default.Termination;
       end if;
+
+      if Current.ORB_Tasking_Policy = No_ORB_Tasking_Policy then
+         Current.ORB_Tasking_Policy := Default.ORB_Tasking_Policy;
+      end if;
    end Apply_Default_Partition_Attributes;
+
+   -------------------------------
+   -- Assign_ORB_Tasking_Policy --
+   -------------------------------
+
+   procedure Assign_ORB_Tasking_Policy (Partition : Partition_Id) is
+      Current : Partition_Type renames Partitions.Table (Partition);
+
+   begin
+      if Current.Tasking = PCS_Tasking then
+
+         --  If ORB tasking policy isn't assigned yet, use default
+
+         if Current.ORB_Tasking_Policy = No_ORB_Tasking_Policy then
+            Current.ORB_Tasking_Policy := Default_ORB_Tasking_Policy;
+         end if;
+
+         if Debug_Mode then
+            Message ("partition", Current.Name, "has ORB tasking policy ",
+                     ORB_Tasking_Policy_Img (Current.ORB_Tasking_Policy));
+         end if;
+      else
+
+         --  Write a warning message if ORB tasking policy is assigned
+         --  when partition has no ORB tasking.
+
+         if Current.ORB_Tasking_Policy /= No_ORB_Tasking_Policy then
+            Message ("Attribute ORB_Tasking_Policy has no effect when" &
+                     "partition has no ORB tasking");
+         end if;
+      end if;
+
+      --  Write a warning message if Task_Pool attribute is set
+      --  when another than Thread_Pool ORB tasking poliy is
+      --  selected.
+
+      if Current.ORB_Tasking_Policy /= Thread_Pool
+        and then Current.Task_Pool /= No_Task_Pool
+      then
+         Message ("Attribute Task_Pool has no effect when ",
+                  ORB_Tasking_Policy_Img (Current.ORB_Tasking_Policy),
+                  "ORB tasking policy is set");
+      end if;
+
+   end Assign_ORB_Tasking_Policy;
 
    ----------------------------------
    -- Assign_Partition_Termination --
@@ -449,11 +658,12 @@ package body XE_Sem is
 
    begin
       if Debug_Mode then
-         Message ("partition", Current.Name, "has tasking " & Current.Tasking);
+         Message ("partition", Current.Name, "has tasking ",
+                  Tasking_Img (Current.Tasking));
       end if;
 
       if Current.Termination = No_Termination
-        and then Current.Tasking /= 'P'
+        and then Current.Tasking /= PCS_Tasking
       then
          Current.Termination := Local_Termination;
 
@@ -468,7 +678,7 @@ package body XE_Sem is
    -------------------------
 
    procedure Assign_Unit_Tasking (ALI : ALI_Id) is
-      T : Character := Get_Tasking (ALI);
+      T : Tasking_Type := Get_Tasking (ALI);
 
    begin
       for J in ALIs.Table (ALI).First_Unit .. ALIs.Table (ALI).Last_Unit loop
@@ -479,19 +689,19 @@ package body XE_Sem is
          if Units.Table (J).RCI
            or else Units.Table (J).Has_RACW
          then
-            T := 'P';
+            T := PCS_Tasking;
             exit;
          end if;
       end loop;
 
-      if T = '?' then
-         T := 'N';
+      if T = Unknown_Tasking then
+         T := No_Tasking;
       end if;
       Set_Tasking (ALI, T);
 
       if Debug_Mode then
          Message ("unit", ALIs.Table (ALI).Uname,
-                  "has tasking " & Get_Tasking (ALI));
+                  "has tasking ", Tasking_Img (Get_Tasking (ALI)));
       end if;
    end Assign_Unit_Tasking;
 
@@ -775,13 +985,14 @@ package body XE_Sem is
       while CU /= No_Conf_Unit_Id loop
          A := Conf_Units.Table (CU).My_ALI;
 
+         F := Dir (Monolithic_Obj_Dir, ALIs.Table (A).Afile);
          if Debug_Mode then
-            Message ("update stamp from", ALIs.Table (A).Afile);
+            Message ("update stamp from", F);
          end if;
 
          --  Update most recent stamp of this partition
 
-         Update_Most_Recent_Stamp (Partition, ALIs.Table (A).Afile);
+         Update_Most_Recent_Stamp (Partition, F);
 
          for J in
            ALIs.Table (A).First_Unit .. ALIs.Table (A).Last_Unit
@@ -809,11 +1020,17 @@ package body XE_Sem is
          --  Some units may not have ALI files like generic units
 
          if A = No_ALI_Id then
+            if Debug_Mode then
+               Write_Str ("no ALI info found for ");
+               Write_Name (F);
+               Write_Eol;
+            end if;
             goto Next_With;
          end if;
 
          U := ALIs.Table (A).Last_Unit;
 
+         F := Dir (Monolithic_Obj_Dir, F);
          if Debug_Mode then
             Message ("check stamp", F);
          end if;
@@ -822,8 +1039,8 @@ package body XE_Sem is
 
          Update_Most_Recent_Stamp (Partition, F);
 
-         --  This unit has already been assigned to this
-         --  partition. No need to explore any further.
+         --  This unit has already been assigned to this partition: no need to
+         --  explore any further.
 
          if Get_Partition_Id (ALIs.Table (A).Uname) = Partition then
             null;
@@ -885,12 +1102,12 @@ package body XE_Sem is
       F : File_Name_Type;
       N : Unit_Name_Type;
       U : Unit_Id;
-      T : Character renames Partitions.Table (Partition).Tasking;
+      T : Tasking_Type renames Partitions.Table (Partition).Tasking;
 
    begin
       if Debug_Mode then
          Message ("update partition", Partitions.Table (Partition).Name,
-                  "tasking " & T);
+                  "tasking ", Tasking_Img (T));
       end if;
 
       Files.Append (ALIs.Table (ALI).Afile);
@@ -905,14 +1122,14 @@ package body XE_Sem is
 
          --  Update partition tasking to unit tasking
 
-         if T = 'P' then
+         if T = PCS_Tasking then
             null;
 
-         elsif T = 'U' then
-            if ALIs.Table (A).Tasking = 'P' then
+         elsif T = User_Tasking then
+            if ALIs.Table (A).Tasking = PCS_Tasking then
                if Debug_Mode then
-                  Message ("update tasking from " &
-                           T & " to " & ALIs.Table (A).Tasking);
+                  Message ("update tasking from ", Tasking_Img (T),
+                           " to ", Tasking_Img (ALIs.Table (A).Tasking));
                end if;
 
                T := ALIs.Table (A).Tasking;
@@ -921,8 +1138,8 @@ package body XE_Sem is
          else
             if T /= ALIs.Table (A).Tasking then
                if Debug_Mode then
-                  Message ("update tasking from " &
-                           T & " to " & ALIs.Table (A).Tasking);
+                  Message ("update tasking from ", Tasking_Img (T),
+                           " to ", Tasking_Img (ALIs.Table (A).Tasking));
                end if;
 
                T := ALIs.Table (A).Tasking;

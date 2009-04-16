@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -116,7 +116,7 @@ package body PolyORB.Asynch_Ev.Sockets.SSL is
       end if;
 
       Set (AEM.Monitored_Set, SSL_Event_Source (AES.all).Socket);
-      Source_Lists.Append (AEM.Sources, AES);
+      Source_Lists.Append (AEM.Sources, Socket_Event_Source (AES.all)'Access);
       pragma Debug (C, O ("Register_Source: Sources'Length:="
                        & Integer'Image (Source_Lists.Length (AEM.Sources))));
       AES.Monitor := Asynch_Ev_Monitor_Access (AEM);
@@ -150,17 +150,17 @@ package body PolyORB.Asynch_Ev.Sockets.SSL is
 
       begin
          while not Source_Lists.Last (Iter) loop
-            if SSL_Event_Source (Value (Iter).all.all).SSL_Socket
+            if SSL_Event_Source (Value (Iter).all).SSL_Socket
                  /= No_SSL_Socket
               and then Pending_Length
-                (SSL_Event_Source (Value (Iter).all.all).SSL_Socket) /= 0
+                (SSL_Event_Source (Value (Iter).all).SSL_Socket) /= 0
             then
                Last := Last + 1;
-               Result (Last) := Value (Iter).all;
+               Result (Last) := Value (Iter).all'Access;
 
                Clear
                  (AEM.Monitored_Set,
-                  SSL_Event_Source (Value (Iter).all.all).Socket);
+                  SSL_Event_Source (Value (Iter).all).Socket);
                Remove (AEM.Sources, Iter);
 
             else

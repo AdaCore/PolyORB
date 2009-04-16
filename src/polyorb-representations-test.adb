@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -61,23 +61,18 @@ package body PolyORB.Representations.Test is
       raise Program_Error;
    end Unmarshall_To_Any;
 
-   procedure Marshall_Char
-     (B : access Buffer_Type;
-      C : Character) is
+   procedure Marshall_Char (B : access Buffer_Type; C : Character) is
    begin
       Align_Marshall_Copy
-        (B, Stream_Element_Array'
-         (1 => Stream_Element (Character'Pos (C))));
+        (B, Stream_Element_Array'(1 => Stream_Element (Character'Pos (C))));
    end Marshall_Char;
 
-   function Unmarshall_Char
-     (B : access Buffer_Type)
-     return Character
+   function Unmarshall_Char (B : access Buffer_Type) return Character
    is
-      A : constant Stream_Element_Array
-        := Align_Unmarshall_Copy (B, 1);
+      A : Stream_Element_Array (1 .. 1);
    begin
-      return Character'Val (A (A'First));
+      Align_Unmarshall_Copy (B, Align_1, A);
+      return Character'Val (A (1));
    end Unmarshall_Char;
 
    procedure Marshall_String

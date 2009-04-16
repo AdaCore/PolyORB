@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2006-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2006-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -72,9 +72,6 @@ pragma Elaborate_All (PolyORB.Services.Naming.Helper);
 with PolyORB.Services.Naming.NamingContext.Client;
 pragma Elaborate_All (PolyORB.Services.Naming.NamingContext.Client);
 
-with PolyORB.Setup.Base;
-pragma Elaborate_All (PolyORB.Setup.Base);
-
 with PolyORB.Setup.OA.Basic_POA;
 pragma Elaborate_All (PolyORB.Setup.OA.Basic_POA);
 
@@ -86,6 +83,10 @@ package PolyORB.Partition_Elaboration is
 
    procedure Full_Launch;
    --  Launch the slave partitions when using Ada Starter
+
+   procedure Run_Additional_Tasks;
+   --  Run needed additional tasks according to selected
+   --  ORB tasking policy.
 
    --  The body of this package provides further partition-specific
    --  dependencies that are guaranteed to be elaborated before PCS

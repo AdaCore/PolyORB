@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2004-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -62,9 +62,11 @@ package Errors is
 
    procedure Initialize;
 
+   Error_Name : array (1 .. 2) of Name_Id;
    Error_Loc  : array (1 .. 2) of Location;
    Error_Int  : array (1 .. 2) of Int;
-   Error_Name : array (1 .. 2) of Name_Id;
+
+   --  Count of errors and warnings displayed so far
 
    N_Errors   : Int := 0;
    N_Warnings : Int := 0;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -48,9 +48,6 @@ package body Test001_Common is
       P  : Parameterless_Procedure;
    end record;
    procedure Run (R : access Generic_Runnable);
-
-   type Do_Nothing_Controller is new Runnable_Controller with null record;
-   --  Simple controller that does nothing
 
    procedure Test_Task;
    --  Body of the task
@@ -110,13 +107,9 @@ package body Test001_Common is
             Generic_Runnable (R.all).P := Test_Task'Access;
 
             declare
-               pragma Warnings (Off);
-               T : constant Thread_Access := Run_In_Task
-                 (TF => My_Thread_Factory,
-                  R  => R,
-                  C  => new Do_Nothing_Controller);
+               T : constant Thread_Access :=
+                     Run_In_Task (TF => My_Thread_Factory, R  => R);
                pragma Unreferenced (T);
-               pragma Warnings (On);
             begin
                null;
             end;
@@ -139,12 +132,12 @@ package body Test001_Common is
       Generic_Runnable (R.all).P := Test_Task2'Access;
 
       declare
-         T : constant Thread_Access := Run_In_Task
-           (TF => My_Thread_Factory,
-            Name => "",
-            Default_Priority  => 10,
-            R  => R,
-            C  => new Do_Nothing_Controller);
+         T : constant Thread_Access :=
+               Run_In_Task
+                 (TF               => My_Thread_Factory,
+                  Name             => "",
+                  Default_Priority => 10,
+                  R                => R);
 
       begin
          Output ("Wait a while", True);

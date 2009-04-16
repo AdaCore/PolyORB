@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -42,6 +42,7 @@ with GNAT.Table;
 
 with Idlac_Errors;
 with Platform;
+with Utils;
 
 package body Idl_Fe.Files is
 
@@ -70,7 +71,7 @@ package body Idl_Fe.Files is
    is
    begin
       if Is_Directory (Path) then
-         if Path (Path'Last) = Dir_Separator then
+         if Utils.Is_Dir_Separator (Path (Path'Last)) then
             Search_Path.Append (new String'(Path));
          else
             Search_Path.Append (new String'(Path & Dir_Separator));
@@ -93,7 +94,7 @@ package body Idl_Fe.Files is
       Separator : Natural;
 
    begin
-      --  If file can't have IDL file extension then add it.
+      --  If file doesn't have IDL file extension then add it.
 
       if File_Extension (File_Name) /= IDL_File_Suffix then
          return Locate_IDL_File (File_Name & IDL_File_Suffix);
@@ -103,7 +104,7 @@ package body Idl_Fe.Files is
       --  and return File_Name as result.
 
       Separator := Index
-        (File_Name, To_Set (Directory_Separator & "/"), Inside, Backward);
+        (File_Name, To_Set (Dir_Separator & "/"), Inside, Backward);
 
       if Separator /= 0 then
          --  Directory prefix present: check file existence
@@ -117,14 +118,9 @@ package body Idl_Fe.Files is
 
       --  Check in the current working directory
 
-      declare
-         Full_Path : constant String := '.' & Dir_Separator & File_Name;
-
-      begin
-         if Is_Regular_File (Full_Path) then
-            return Full_Path;
-         end if;
-      end;
+      if Is_Regular_File (File_Name) then
+         return File_Name;
+      end if;
 
       for J in Search_Path.First .. Search_Path.Last loop
          declare
@@ -229,7 +225,7 @@ package body Idl_Fe.Files is
       --  Pass user options to the preprocessor.
 
       Goto_Section ("cppargs");
-      while Getopt ("*") /= ASCII.Nul loop
+      while Getopt ("*") /= ASCII.NUL loop
          Add_Argument (Full_Switch);
       end loop;
 

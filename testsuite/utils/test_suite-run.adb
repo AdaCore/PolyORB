@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -106,8 +106,11 @@ package body Test_Suite.Run is
 
       --  Test the executable actually exists
 
-      if not Is_Regular_File (Command & Executable_Suffix) then
-         Log (Output, Command & " does not exist !");
+      if not Is_Regular_File (Normalize_Pathname
+                                (Initial_Dir & Command & Executable_Suffix))
+      then
+         Log (Output, Normalize_Pathname (Initial_Dir
+                & Command & Executable_Suffix) & " does not exist !");
          Log (Output, "Aborting test");
 
          return False;

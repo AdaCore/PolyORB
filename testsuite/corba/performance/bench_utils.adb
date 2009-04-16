@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---           Copyright (C) 2007, Free Software Foundation, Inc.             --
+--         Copyright (C) 2007-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -123,6 +123,7 @@ package body Bench_Utils is
                          & Ada.Exceptions.Exception_Information (E));
                Output (Test_Name, False);
                Close (Fd);
+               return;
          end;
 
          D2 := Clock;

@@ -85,19 +85,18 @@ module Backend::BE_CORBA_Ada::Nodes {
     Node_Id    The_Used_Entity;
   };
 
-  /* The two lists below are used for clarity when building Node lists */
-  interface Declaration_List : List_Id {};
-  interface Statement_List : List_Id {};
-
   interface Withed_Package : Definition {
     // The Defining_Identifier field inherited from Definition is the
-    // package to be withed 
+    // package to be with'ed.
   
     boolean    Used;
-    // If True, then the package is also used
+    // If True, generate a USE clause for this unit
 
     boolean    Elaborated;
-    // If true, then a pragma elaborate_all is also added for the package
+    // If true, generate a pragma Elaborate_All for this unit
+
+    boolean    Unreferenced;
+    // If true, generate a pragma Unreferenced for this unit
   };
 
   interface Used_Package : Used_Type {
@@ -108,11 +107,6 @@ module Backend::BE_CORBA_Ada::Nodes {
   /*****************/
   /* Package nodes */
   /*****************/
-
-  /* For clarity */
-
-  interface Withed_Packages : List_Id {};
-  interface Packages : List_Id {};
 
   /* An IDL unit is the set of Ada packages generated for an IDL interface, 
      module or specification */
@@ -233,8 +227,6 @@ module Backend::BE_CORBA_Ada::Nodes {
     //  Default value of a parameter (An expression, a literal...)
   };
 
-  interface Parameter_Profile : List_Id {};
-
   interface Instantiated_Subprogram : Definition {
     List_Id   Parameter_List;
     // Instantiation parameters
@@ -255,7 +247,7 @@ module Backend::BE_CORBA_Ada::Nodes {
     // (Generally a designator) 
 
     Node_Id    Instantiated_Subprogram;
-    // Indicates whether the subprogram is an instantiation of a generioc 
+    // Indicates whether the subprogram is an instantiation of a generic 
     // subprogram
   };
 
@@ -323,8 +315,6 @@ module Backend::BE_CORBA_Ada::Nodes {
     // Precise whether the type is a new type or a subtype
   };
 
-  interface Enumeration_Literals : List_Id {};
-
   /* Example : type T is (E1, E2, E3); */
 
   interface Enumeration_Type_Definition : Node_Id {
@@ -361,7 +351,7 @@ module Backend::BE_CORBA_Ada::Nodes {
   /* Example : type T is new R with private; */
 
   interface Derived_Type_Definition : Node_Id {
-    boolean    Is_Private_Extention;
+    boolean    Is_Private_Extension;
     // If True, then "with private" generated
 
     boolean    Is_Abstract_Type;
@@ -408,14 +398,10 @@ module Backend::BE_CORBA_Ada::Nodes {
     // Whether the component is aliased or not
   };
 
-  interface Component_List : List_Id {};
-
   interface Record_Definition : Node_Id {
     List_Id    Component_List;
     // If No_List then "null record" generated
   };
-
-  interface Range_Constraints : List_Id {};
 
   /* Example: type T is array (1 .. 10, 2 .. 30) of Float; */
 
@@ -435,13 +421,12 @@ module Backend::BE_CORBA_Ada::Nodes {
   };
 
   /* FIRST .. LAST */
+  //  ??? Should be rewritten in terms of a Range_Expression
 
   interface Range_Constraint : Node_Id {
     Node_Id    First;
     Node_Id    Last;
   };
-
-  interface Variant_List : List_Id {};
 
   /* The case of a variant record. The record component list contain only 
      one element of kind Variant_Part */
@@ -453,8 +438,6 @@ module Backend::BE_CORBA_Ada::Nodes {
     Node_Id    Discriminant;
     // The discriminant of the Type
   };
-
-  interface Discrete_Choice_List : List_Id {};
 
   interface Variant : Node_Id {
     List_Id    Discrete_Choices;
@@ -657,8 +640,6 @@ module Backend::BE_CORBA_Ada::Nodes {
     Node_Id    Expression;
   };
 
-  interface Element_List : List_Id {};
-
   interface Array_Aggregate : Node_Id {
     List_Id     Elements;
     //  A list of literal or element associations
@@ -671,6 +652,25 @@ module Backend::BE_CORBA_Ada::Nodes {
   interface Indexed_Component : Node_Id {
     Node_Id    Prefix;
     List_Id    Expressions;
+  };
+
+  // SLICE ::= PREFIX (DISCRETE_RANGE)
+
+  interface Slice : Node_Id {
+    Node_Id    Prefix;
+    Node_Id    Discrete_Range;
+  };
+
+  // RANGE ::=
+  //   RANGE_ATTRIBUTE_REFERENCE
+  //   | SIMPLE_EXPRESSION .. SIMPLE_EXPRESSION
+
+  // Note: the case of a range given as a range attribute reference
+  // appears directly in the tree as an attribute reference.
+
+  interface Range : Node_Id {
+    Node_Id Low_Bound;
+    Node_Id High_Bound;
   };
 
   interface Exception_Declaration : Definition {
@@ -720,6 +720,7 @@ module Backend::BE_CORBA_Ada::Nodes {
     Node_Id    Set_Aggregate_Count_Node;
     Node_Id    Get_Aggregate_Element_Node;
     Node_Id    Set_Aggregate_Element_Node;
+    Node_Id    Unchecked_Get_V_Node;
   };
 
   /* Example: A + B */

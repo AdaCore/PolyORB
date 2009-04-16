@@ -434,7 +434,7 @@ package body PolyORB.Protocols.SRP is
 
          declare
             Value : aliased Stream_Element_Array :=
-              To_SEA (Current_Arg.all.Value.all & ASCII.nul);
+              To_SEA (Current_Arg.all.Value.all & ASCII.NUL);
          begin
             Initialize_Buffer (Buffer     => Temp_Buffer'Access,
                                Size       => Value'Length,

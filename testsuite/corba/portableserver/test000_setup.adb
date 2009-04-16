@@ -802,7 +802,7 @@ package body Test000_Setup is
    begin
 
       --
-      --  Servant_To_Refence implicitely activates servant.
+      --  Servant_To_Refence implicitly activates servant.
       --
 
       pragma Debug (O ("  ==> Implicit Activation sub test <=="));
@@ -866,7 +866,7 @@ package body Test000_Setup is
       end;
 
       --
-      --  Explicitely Activate servant with No Id.
+      --  Explicitly Activate servant with No Id.
       --
 
       pragma Debug (O ("  ==> Explicit Activation System Id sub test <=="));
@@ -895,7 +895,7 @@ package body Test000_Setup is
             Temp := Invoke_On_Servant (Obj_Ref);
 
             if not Temp then
-               pragma Debug (O ("FATAL: Invooke_On_Servant failed"));
+               pragma Debug (O ("FATAL: Invoke_On_Servant failed"));
                Result.Fatal := True;
             end if;
 
@@ -927,7 +927,7 @@ package body Test000_Setup is
                      Temp := Invoke_On_Servant (Obj_Ref2);
 
                      if not Temp then
-                        pragma Debug (O ("FATAL: Invooke_On_Servant failed"));
+                        pragma Debug (O ("FATAL: Invoke_On_Servant failed"));
                         Result.Fatal := True;
                      end if;
                   end;
@@ -1033,7 +1033,7 @@ package body Test000_Setup is
       end;
 
       --
-      --  Explicitely Activate servant with User Id.
+      --  Explicitly Activate servant with User Id.
       --
 
       pragma Debug (O ("  ==> Explicit Activation User Id sub test <=="));
@@ -1085,7 +1085,7 @@ package body Test000_Setup is
          Temp := Invoke_On_Servant (Obj_Ref);
 
          if not Temp then
-            pragma Debug (O ("FATAL: Invooke_On_Servant failed"));
+            pragma Debug (O ("FATAL: Invoke_On_Servant failed"));
             Result.Fatal := True;
          end if;
 
@@ -1245,7 +1245,7 @@ package body Test000_Setup is
                Temp := Invoke_On_Servant (Obj_Ref2);
 
                if not Temp then
-                  pragma Debug (O ("FATAL: Invooke_On_Servant failed"));
+                  pragma Debug (O ("FATAL: Invoke_On_Servant failed"));
                   Result.Fatal := True;
                end if;
             end;

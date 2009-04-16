@@ -221,15 +221,15 @@ package body PolyORB.Utils.Configuration_File is
                   begin
                      if Current_Section = null then
                         O ("Assignment out of any section on line" &
-                           Integer'Image (Current_Line) &
-                           ": " & Line (Line'First .. Last));
+                           Current_Line'Img & ": "
+                           & Line (Line'First .. Last), Error);
                         raise Constraint_Error;
                      end if;
 
-                     if Eq not in Line'First + 1 .. Last - 1 then
+                     if Eq not in Line'First + 1 .. Last then
                         O ("Syntax error on line" &
-                           Integer'Image (Current_Line) &
-                           ": " & Line (Line'First .. Last));
+                           Current_Line'Img & ": "
+                           & Line (Line'First .. Last), Error);
                         raise Constraint_Error;
                      end if;
 
@@ -239,7 +239,7 @@ package body PolyORB.Utils.Configuration_File is
                                 (Section => Current_Section.all,
                                  Key     => Line (Line'First .. Eq - 1));
                         V : String_Ptr      :=
-                           Configuration_Table.Lookup (Table, K, null);
+                              Configuration_Table.Lookup (Table, K, null);
                      begin
                         if V /= null then
                            Free (V);

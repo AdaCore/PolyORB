@@ -45,6 +45,15 @@ package body PolyORB.Partition_Elaboration is
       null;
    end Full_Launch;
 
+   --------------------------
+   -- Run_Additional_Tasks --
+   --------------------------
+
+   procedure Run_Additional_Tasks is
+   begin
+      null;
+   end Run_Additional_Tasks;
+
 begin
    raise Program_Error with "dummy version of polyorb-partition_elaboration";
 end PolyORB.Partition_Elaboration;

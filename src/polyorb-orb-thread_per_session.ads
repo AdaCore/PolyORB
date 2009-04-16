@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -51,8 +51,8 @@ package PolyORB.ORB.Thread_Per_Session is
    type Thread_Per_Session_Policy is new Tasking_Policy_Type with private;
 
    type End_Thread_Job is new Jobs.Job with null record;
-   --  This particular job will be used to indicates to a thread
-   --  associated with a session that it has to exit its main loop.
+   --  This particular job is used to indicate to a thread associated with a
+   --  session that it has to exit its main loop.
 
    type End_Thread_Job_Access is access all End_Thread_Job;
 
@@ -80,7 +80,7 @@ package PolyORB.ORB.Thread_Per_Session is
       This_Task : in out PolyORB.Task_Info.Task_Info;
       ORB       :        ORB_Access);
 
-   procedure Run (J : access End_Thread_Job);
+   procedure Run (J : not null access End_Thread_Job);
 
 private
 

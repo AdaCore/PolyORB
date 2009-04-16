@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -33,9 +33,12 @@
 
 --  Definition of the universal container/wrapper type 'Any'
 
-with Ada.Unchecked_Deallocation;
+pragma Ada_2005;
+
 with Ada.Strings.Superbounded;
 with Ada.Strings.Wide_Superbounded;
+
+with System;
 
 with PolyORB.Smart_Pointers;
 with PolyORB.Types;
@@ -51,9 +54,6 @@ package PolyORB.Any is
    type Any is private;
 
    procedure Initialize (Self : in out Any);
-
-   type Any_Ptr is access all Any;
-   --  The end of this part is after the typecode part;
 
    function Image (A : Any) return Standard.String;
    --  For debugging purposes.
@@ -97,6 +97,12 @@ package PolyORB.Any is
    function No_Wrap (X : access T) return Content'Class;
    --  Dummy Wrap function for types that do not implement proper wrapping
    --  (should never be called).
+
+   function Unchecked_Get_V
+     (X : not null access Content) return System.Address;
+   pragma Inline (Unchecked_Get_V);
+   --  Unchecked access to the wrapped value. Default implementation returns
+   --  Null_Address; derived types are allowed not to redefine it.
 
    ---------------
    -- TypeCodes --
@@ -575,6 +581,9 @@ package PolyORB.Any is
    function Get_Container (A : Any) return Any_Container_Ptr;
    --  Get the container designated by A
 
+   procedure Set_Container (A : in out Any; ACP : Any_Container_Ptr);
+   --  Set the container designated by A to ACP
+
    function Get_Value (C : Any_Container'Class) return Content_Ptr;
    --  Retrieve a pointer to C's contents wrapper. This pointer shall not be
    --  permanently saved.
@@ -737,6 +746,15 @@ package PolyORB.Any is
    function To_Any (X : Types.String)             return Any;
    function To_Any (X : Types.Wide_String)        return Any;
 
+   --  For bounded strings, need to provide the specific TC
+
+   function To_Any
+     (X  : Ada.Strings.Superbounded.Super_String;
+      TC : access function return TypeCode.Local_Ref) return Any;
+   function To_Any
+     (X  : Ada.Strings.Wide_Superbounded.Super_String;
+      TC : access function return TypeCode.Local_Ref) return Any;
+
    function Wrap (X : access Types.Short)              return Content'Class;
    function Wrap (X : access Types.Long)               return Content'Class;
    function Wrap (X : access Types.Long_Long)          return Content'Class;
@@ -798,6 +816,10 @@ package PolyORB.Any is
    function From_Any (A : Any) return TypeCode.Local_Ref;
    function From_Any (A : Any) return Types.String;
    function From_Any (A : Any) return Types.Wide_String;
+   function From_Any
+     (A : Any) return Ada.Strings.Superbounded.Super_String;
+   function From_Any
+     (A : Any) return Ada.Strings.Wide_Superbounded.Super_String;
 
    function From_Any (A : Any) return String;
    function From_Any (A : Any) return Wide_String;
@@ -986,9 +1008,6 @@ private
 
    --  Some methods to deal with the Any fields.
 
-   --  Deallocation of Any pointers.
-   procedure Deallocate is new Ada.Unchecked_Deallocation (Any, Any_Ptr);
-
    -----------------------
    -- Aggregate_Content --
    -----------------------
@@ -1045,9 +1064,13 @@ private
 
       function Wrap (X : access T) return Content'Class;
 
-      function Unchecked_Get_V (X : access T_Content) return T_Ptr;
+      function Unchecked_Get_V
+        (X : not null access T_Content) return System.Address;
       pragma Inline (Unchecked_Get_V);
-      --  Unchecked access to the wrapper value
+
+      function Unchecked_Get_V (X : not null access T_Content) return T_Ptr;
+      pragma Inline (Unchecked_Get_V);
+      --  Unchecked access to the wrapped value
 
       function Get_Aggregate_Element
         (Value : Any_Container'Class;

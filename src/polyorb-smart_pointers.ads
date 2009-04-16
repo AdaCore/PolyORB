@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -33,8 +33,6 @@
 
 with Ada.Finalization;
 
-with PolyORB.Tasking.Mutexes;
-
 package PolyORB.Smart_Pointers is
 
    pragma Preelaborate;
@@ -43,17 +41,10 @@ package PolyORB.Smart_Pointers is
    -- Task-unsafe entity --
    ------------------------
 
-   type Unsafe_Entity is abstract tagged limited record
-      Counter : Integer := 0;
-      --  Reference counter.
-      --  If set to -1, no reference counting is performed for this entity:
-      --  Inc_Usage and Dec_Usage are both no-ops in that case.
+   type Unsafe_Entity is abstract tagged limited private;
 
-      --  ???
-      --  It is strictly forbidden to access this component from outside
-      --  this unit, however we can't make it private due to G412-018.
-
-   end record;
+   function Is_Controlled (X : Unsafe_Entity) return Boolean;
+   --  False expect for derived type from Smart_Pointers.Controlled_Entities
 
    procedure Finalize (X : in out Unsafe_Entity);
    --  Unsafe_Entity is the base type of all objects that can be referenced.
@@ -88,7 +79,7 @@ package PolyORB.Smart_Pointers is
    -- Task-safe entity --
    ----------------------
 
-   type Non_Controlled_Entity is abstract new Unsafe_Entity with null record;
+   type Non_Controlled_Entity is abstract new Unsafe_Entity with private;
    --  Same as Unsafe_Entity, but accesses to the reference counter are
    --  made task safe through calls to the Entity_Lock and Entity_Unlock
    --  operations.
@@ -96,17 +87,6 @@ package PolyORB.Smart_Pointers is
    procedure Entity_Lock (X : in out Non_Controlled_Entity);
    procedure Entity_Unlock (X : in out Non_Controlled_Entity);
    --  Mutex operations
-
-   ---------------------------------
-   -- Controlled task-safe entity --
-   ---------------------------------
-
-   type Entity is abstract new Non_Controlled_Entity with private;
-
-   procedure Initialize (X : in out Entity);
-   --  An entity that is a controlled object. Contrary to
-   --  Non_Controlled_Entity, the Finalize operation is called whenever the
-   --  entity is finalized.
 
    ---------
    -- Ref --
@@ -163,27 +143,14 @@ package PolyORB.Smart_Pointers is
 
 private
 
-   ----------------------
-   -- Task-safe entity --
-   ----------------------
-
-   Counter_Lock : Tasking.Mutexes.Mutex_Access;
-   --  Global mutex used to guarantee consistency of concurrent accesses to
-   --  entity reference counters. To be created by a child unit during
-   --  PolyORB initialization.
-
-   type Entity_Controller (E : access Entity'Class)
-      is new Ada.Finalization.Limited_Controlled with null record;
-
-   procedure Initialize (X : in out Entity_Controller);
-   procedure Finalize   (X : in out Entity_Controller);
-
-   type Entity is abstract new Non_Controlled_Entity with record
-      Controller : Entity_Controller (Entity'Access);
-      --  Controller component used to trigger a call to the Entity's
-      --  Finalize primitive operation when it is Finalized (note that
-      --  Entity itself is not a controlled type).
+   type Unsafe_Entity is abstract tagged limited record
+      Counter : Integer := 0;
+      --  Reference counter.
+      --  If set to -1, no reference counting is performed for this entity:
+      --  Inc_Usage and Dec_Usage are both no-ops in that case.
    end record;
+
+   type Non_Controlled_Entity is abstract new Unsafe_Entity with null record;
 
    type Ref is new Ada.Finalization.Controlled with record
       A_Ref : Entity_Ptr := null;
@@ -208,9 +175,12 @@ private
      function (X : Ref'Class) return String;
    --  A function returning External_Tag (Entity_Of (X)'Tag)
 
-   Entity_External_Tag : Entity_External_Tag_Hook := null;
-   Ref_External_Tag    : Ref_External_Tag_Hook := null;
-   --  Hooks to be set up by a child unit during PolyORB initialization
+   procedure Initialize
+     (The_Entity_External_Tag : Entity_External_Tag_Hook;
+      The_Ref_External_Tag    : Ref_External_Tag_Hook;
+      The_Default_Trace       : Boolean);
+   --  Initialize internal structures and set debugging hooks (to be called by
+   --  child elaboration package)
 
    --  Determination of whether to trace smart pointers event for a specific
    --  entity type: in [smart_pointers] section, whether type T is traced
@@ -219,8 +189,6 @@ private
 
    Trace_Section : constant String := "smart_pointers";
    Trace_Suffix  : constant String := ".trace";
-
-   Default_Trace : Boolean := True;
 
    function Get_Trace (Entity_Type : String) return Boolean;
    --  Return indication of whether to trace events for the given entity type

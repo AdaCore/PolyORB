@@ -67,6 +67,7 @@ package Backend.BE_CORBA_Ada.IDL_To_Ada is
       B_Set_Aggregate_Count,
       B_Get_Aggregate_Element,
       B_Set_Aggregate_Element,
+      B_Unchecked_Get_V,
       B_Wrap,
       B_Element_Wrap,
       B_Args_Out,
@@ -186,7 +187,7 @@ package Backend.BE_CORBA_Ada.IDL_To_Ada is
 
    function Map_Variant_List
      (Alternatives   : List_Id;
-      Literal_Parent : Node_Id := No_Node)
+      Literal_Parent : Node_Id)
      return List_Id;
    --  Map a variant record part from an IDL union alternative list
 
@@ -307,6 +308,17 @@ package Backend.BE_CORBA_Ada.IDL_To_Ada is
    --  Predefined Entity. If the Withed flag is set, add a with clause
    --  to the current package if necessary.
 
+   function Map_Predefined_CORBA_Type
+     (E      : Node_Id;
+      Wrap   : Boolean := False;
+      Withed : Boolean := True)
+     return Node_Id;
+   --  Use Get_Predefined_CORBA_Entity to return a designator for the
+   --  CORBA type associated to the runtime entity E. No_Node is
+   --  returned if 'E' is not a CORBA Predefined Entity. If the Withed
+   --  flag is set, add a with clause to the current package if
+   --  necessary.
+
    function Map_Predefined_CORBA_Initialize (E : Node_Id) return Node_Id;
    --  Return a designator to the Initialize function corresponding to
    --  the CORBA Predefined Entity 'E' and No_Node if 'E' is not a
@@ -343,6 +355,35 @@ package Backend.BE_CORBA_Ada.IDL_To_Ada is
    --  CORBA Predefined Entity 'E' and No_Node if 'E' is not a CORBA
    --  Predefined Entity. If the Withed flag is set, add a with clause
    --  to the current package if necessary.
+
+   function Map_Predefined_CORBA_To_Ref
+     (E      : Node_Id;
+      Withed : Boolean := True)
+     return Node_Id;
+   --  Return a designator to the To_Ref function corresponding to the
+   --  CORBA Predefined Interface 'E' and No_Node if 'E' is not a CORBA
+   --  Predefined Entity. If the Withed flag is set, add a with clause
+   --  to the current package if necessary.
+
+   function Map_Predefined_CORBA_Marshaller
+     (E      : Node_Id;
+      Withed : Boolean := True)
+     return Node_Id;
+   --  Return a designator to the SII marshaller procedure
+   --  corresponding to the CORBA Predefined IDL operation 'E' and
+   --  No_Node if 'E' is not a CORBA Predefined Entity. If the Withed
+   --  flag is set, add a with clause to the current package if
+   --  necessary.
+
+   function Map_Predefined_CORBA_Unmarshaller
+     (E      : Node_Id;
+      Withed : Boolean := True)
+     return Node_Id;
+   --  Return a designator to the SII unmarshaller procedure
+   --  corresponding to the CORBA Predefined IDL operation 'E' and
+   --  No_Node if 'E' is not a CORBA Predefined Entity. If the Withed
+   --  flag is set, add a with clause to the current package if
+   --  necessary.
 
    function Map_Predefined_CORBA_Wrap
      (E      : Node_Id;
@@ -488,6 +529,30 @@ package Backend.BE_CORBA_Ada.IDL_To_Ada is
    --  node T. It handles base types and user defined types. If the
    --  Withed flag is False then the appropriate 'with' clause is not
    --  added.
+
+   function Get_To_Ref_Node
+     (T      : Node_Id;
+      Withed : Boolean := True)
+     return Node_Id;
+   --  Return the To_Ref function designator corresponding to the IDL
+   --  interface T. If the Withed flag is False then the appropriate
+   --  'with' clause is not added.
+
+   function Get_Marshaller_Node
+     (O      : Node_Id;
+      Withed : Boolean := True)
+     return Node_Id;
+   --  Return the ..._Marshaller procedure designator corresponding to
+   --  the IDL operation O. If the Withed flag is False then the
+   --  appropriate 'with' clause is not added.
+
+   function Get_Unmarshaller_Node
+     (O      : Node_Id;
+      Withed : Boolean := True)
+     return Node_Id;
+   --  Return the ..._Unmarshaller procedure designator corresponding to
+   --  the IDL operation O. If the Withed flag is False then the
+   --  appropriate 'with' clause is not added.
 
    function Get_Initialize_Node
      (T               : Node_Id;

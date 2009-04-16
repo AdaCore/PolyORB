@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -345,16 +345,10 @@ package body PortableInterceptor.ClientRequestInfo.Impl is
    --------------------------
 
    function Get_Effective_Target
-     (Self : access Object)
-      return CORBA.Object.Ref
+     (Self : access Object) return CORBA.Object.Ref
    is
-      Result : CORBA.Object.Ref;
-
    begin
-      CORBA.Object.Internals.Convert_To_CORBA_Ref
-        (Self.Request.Target, Result);
-
-      return Result;
+      return CORBA.Object.Internals.To_CORBA_Ref (Self.Request.Target);
    end Get_Effective_Target;
 
    --------------------

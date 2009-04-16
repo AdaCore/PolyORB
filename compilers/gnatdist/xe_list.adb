@@ -35,6 +35,7 @@ with GNAT.Directory_Operations; use GNAT.Directory_Operations;
 with GNAT.OS_Lib;               use GNAT.OS_Lib;
 with GNAT.Table;
 
+with XE;
 with XE_Front;    use XE_Front;
 with XE_Flags;    use XE_Flags;
 with XE_IO;       use XE_IO;
@@ -534,12 +535,11 @@ package body XE_List is
    ----------------
 
    procedure Initialize is
-      File : File_Descriptor;
    begin
       --  Create main body for monolithic application as a temporary file
 
-      Register_Temp_File (File, Monolithic_Src_Name);
-      Set_Output (File);
+      Register_Temp_File (Monolithic_Src_File, Monolithic_Src_Name);
+      Set_Output (Monolithic_Src_File);
       Write_Line ("pragma Warnings (Off);");
 
       --  Record the associated object and ALI files as temporary files to
@@ -650,7 +650,7 @@ package body XE_List is
                if Name_Len > 8
                  and then Name_Buffer (1 .. 8) = "s-taskin"
                then
-                  ALIs.Table (My_ALI).Tasking := 'U';
+                  ALIs.Table (My_ALI).Tasking := XE.User_Tasking;
                end if;
 
             when T_Afile =>
@@ -878,14 +878,20 @@ package body XE_List is
          Write_Str  ("end ");
          Write_Name (Monolithic_App_Unit_Name);
          Write_Line (";");
+         Close (Monolithic_Src_File);
          Set_Standard_Output;
 
          --  Build the monolithic application with a fake main subprogram
-         --  Partition. Load the info from its ALI file.
+         --  Partition. Note that we must pass the bare file name (without
+         --  directory information) to gnat make, Monolithic_Src_Base_Name,
+         --  not Monolithic_Src_Name.
 
-         Sfile := Monolithic_Src_Name;
+         Sfile := Monolithic_Src_Base_Name;
          Afile := To_Afile (Sfile);
          Build (Sfile, Make_Flags, Fatal => False);
+
+         --  Load the info from its ALI file
+
          List ((1 => Afile), List_Flags, Output);
          Load_ALIs (Output);
          ALI := Get_ALI_Id (Afile);

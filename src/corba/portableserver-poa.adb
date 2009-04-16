@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -377,19 +377,16 @@ package body PortableServer.POA is
          Oid : aliased PolyORB.POA_Types.Object_Id :=
            PolyORB.POA_Types.U_Oid_To_Oid (U_Oid);
 
-         P_Result : PolyORB.References.Ref;
-         C_Result : CORBA.Object.Ref;
+         Result : PolyORB.References.Ref;
       begin
          PolyORB.ORB.Create_Reference
            (PolyORB.Setup.The_ORB,
             Oid'Access,
             CORBA.To_Standard_String (Intf),
-            P_Result);
+            Result);
          --  Obtain object reference.
 
-         CORBA.Object.Internals.Convert_To_CORBA_Ref
-           (P_Result, C_Result);
-         return C_Result;
+         return CORBA.Object.Internals.To_CORBA_Ref (Result);
       end;
    end Create_Reference;
 
@@ -424,20 +421,16 @@ package body PortableServer.POA is
          A_Oid : aliased PolyORB.POA_Types.Object_Id :=
            PolyORB.POA_Types.U_Oid_To_Oid (U_Oid);
 
-         P_Result : PolyORB.References.Ref;
-         C_Result : CORBA.Object.Ref;
+         Result : PolyORB.References.Ref;
       begin
          PolyORB.ORB.Create_Reference
            (PolyORB.Setup.The_ORB,
             A_Oid'Access,
             CORBA.To_Standard_String (Intf),
-            P_Result);
+            Result);
          --  Obtain object reference.
 
-         CORBA.Object.Internals.Convert_To_CORBA_Ref
-           (P_Result, C_Result);
-
-         return C_Result;
+         return CORBA.Object.Internals.To_CORBA_Ref (Result);
       end;
    end Create_Reference_With_Id;
 
@@ -1481,8 +1474,7 @@ package body PortableServer.POA is
 
       TID : constant Standard.String :=
               PortableServer.Internals.Get_Type_Id (P_Servant);
-      P_Result : PolyORB.References.Ref;
-      C_Result : CORBA.Object.Ref;
+      Result : PolyORB.References.Ref;
 
       Error : PolyORB.Errors.Error_Container;
    begin
@@ -1498,7 +1490,7 @@ package body PortableServer.POA is
       end if;
 
       PolyORB.ORB.Create_Reference
-        (PolyORB.Setup.The_ORB, Oid, TID, P_Result);
+        (PolyORB.Setup.The_ORB, Oid, TID, Result);
       --  Obtain object reference.
 
       PolyORB.POA_Types.Free (Oid);
@@ -1508,10 +1500,7 @@ package body PortableServer.POA is
 
       Associate_To_Domain_Managers (P_Servant);
 
-      CORBA.Object.Internals.Convert_To_CORBA_Ref
-        (P_Result, C_Result);
-
-      return C_Result;
+      return CORBA.Object.Internals.To_CORBA_Ref (Result);
    end Servant_To_Reference;
 
    -----------------

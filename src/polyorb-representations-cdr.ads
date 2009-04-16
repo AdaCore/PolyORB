@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -146,6 +146,20 @@ package PolyORB.Representations.CDR is
    function Unmarshall
      (Buffer         : access Buffers.Buffer_Type;
       Representation : access CDR_Representation'Class) return PolyORB.Any.Any;
+
+   --  'TypeCode' type
+
+   procedure Marshall
+     (Buffer : access Buffers.Buffer_Type;
+      R      : access CDR_Representation'Class;
+      Data   :        Any.TypeCode.Object_Ptr;
+      Error  : in out Errors.Error_Container);
+
+   procedure Unmarshall
+     (Buffer : access Buffers.Buffer_Type;
+      R      : access CDR_Representation'Class;
+      Data   :    out Any.TypeCode.Local_Ref;
+      Error  : in out Errors.Error_Container);
 
 private
 

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -34,7 +34,6 @@
 --  Utility subprograms for data representation methods and buffer access.
 
 with Ada.Streams;
-with System.Address_To_Access_Conversions;
 with PolyORB.Buffers;
 
 package PolyORB.Utils.Buffers is
@@ -44,73 +43,46 @@ package PolyORB.Utils.Buffers is
    use PolyORB.Buffers;
    use Ada.Streams;
 
-   procedure Align_Marshall_Big_Endian_Copy
-     (Buffer    : access Buffer_Type;
-      Octets    : Stream_Element_Array;
-      Alignment : Alignment_Type := 1);
-   --  Align Buffer on Alignment, then marshall a copy of
-   --  Octets into it.
-   --  The data in Octets shall be presented in big-endian
-   --  byte order.
+   ----------------------------------------------------
+   --  Marshalling/unmarshalling of elementary types --
+   ----------------------------------------------------
 
-   function Align_Unmarshall_Big_Endian_Copy
-     (Buffer    : access Buffer_Type;
-      Size      : Stream_Element_Count;
-      Alignment : Alignment_Type := 1)
-     return Stream_Element_Array;
-   pragma Unreferenced (Align_Unmarshall_Big_Endian_Copy);
-   --  Align Buffer on Alignment, then unmarshall a copy of
-   --  Size octets from it.
-   --  The data is returned in big-endian byte order.
+   --  This generic package provides marshalling and unmarshalling operations
+   --  that transfer the memory representation of T to/from the buffer,
+   --  with optional alignment (equal to the data size), and performing byte
+   --  swapping if the buffer endianness differs from the host order.
 
    generic
-      Size     : Stream_Element_Count;
-      Alignment : Alignment_Type := 1;
-   package Fixed_Size_Unmarshall is
-      type Z is new Stream_Element_Array (0 .. Size - 1);
-      package Address_To_Access_Conversion is
-         new System.Address_To_Access_Conversions (Z);
-      subtype AZ is Address_To_Access_Conversion.Object_Pointer;
+      type T is private;
+      with function Swapped (Item : T) return T is <>;
 
-      function Align_Unmarshall (Buffer : access Buffer_Type) return AZ;
-      pragma Inline (Align_Unmarshall);
-      --  Align Buffer on Alignment, then unmarshall Size octets from it,
-      --  and return an access to the unmarshalled data. Note that the
-      --  returned access value must not be dereferenced once Buffer's contents
-      --  have been released.
-   end Fixed_Size_Unmarshall;
-   --
-   procedure Align_Marshall_Host_Endian_Copy
-     (Buffer    : access Buffer_Type;
-      Octets    : Stream_Element_Array;
-      Alignment : Alignment_Type := 1);
-   --  Align Buffer on Alignment, then marshall a copy of
-   --  Octets into it.
-   --  The data in Octets shall be presented in the
-   --  host's byte order.
+      With_Alignment : Boolean := True;
+      --  If With_Alignment is False, then don't align the buffer prior to
+      --  transfers in the routines below.
 
-   function Align_Unmarshall_Host_Endian_Copy
-     (Buffer    : access Buffer_Type;
-      Size      : Stream_Element_Count;
-      Alignment : Alignment_Type := 1)
-     return Stream_Element_Array;
-   --  Align Buffer on Alignment, then unmarshall a copy of
-   --  Size octets from it.
-   --  The data is returned in the host's byte order.
+   package Align_Transfer_Elementary is
+      procedure Marshall (Buffer : access Buffer_Type; Item : T);
+      --  Align buffer on T'Size, then marshall a copy of Item, swapping its
+      --  bytes using the provided procedure if Buffer's endianness is not
+      --  Host_Order.
+
+      function Unmarshall (Buffer : access Buffer_Type) return T;
+      --  Align buffer on T'Size, then unmarshall a T value, swapping its bytes
+      --  using the provided swapper if Buffer's endianness is not Host_Order.
+   end Align_Transfer_Elementary;
 
    procedure Align_Marshall_Copy
      (Buffer    : access Buffer_Type;
       Octets    : Stream_Element_Array;
-      Alignment : Alignment_Type := 1);
-   --  Align Buffer on Alignment, then marshall a copy
-   --  of Octets into Buffer, as is.
+      Alignment : Alignment_Type := Align_1);
+   --  Align Buffer on Alignment, then marshall a copy of Octets into it, as is
 
-   function Align_Unmarshall_Copy
+   procedure Align_Unmarshall_Copy
      (Buffer    : access Buffer_Type;
-      Size      : Stream_Element_Count;
-      Alignment : Alignment_Type := 1)
-     return Stream_Element_Array;
-   --  Align Buffer on Alignment, then unmarshall a copy
-   --  of Size octets from Buffer's data, as is.
+      Alignment : Alignment_Type := Align_1;
+      Data      : out Stream_Element_Array);
+   --  Align Buffer on Alignment, then fill Data by extracting Data'Length
+   --  bytes at the current position. The data need not be contiguous in the
+   --  in (it may span multiple chunks).
 
 end PolyORB.Utils.Buffers;

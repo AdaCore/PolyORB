@@ -24,6 +24,11 @@ default: all
 #
 # testsuite -- builds the examples and testsuite
 #
+# run_tests -- runs the testsuite (presumes polyorb and test_driver are already
+# built)
+#
+# all-and-test -- builds everything needed, then runs the testsuite
+#
 # src_corba.gpr -- target to build src/corba (and similarly for all the *.gpr
 # files in the projects subdirectory). That is, there is a ".PHONY" target with
 # the same name as each project file, sans directory name.
@@ -82,15 +87,16 @@ EXTRA_GNATMAKE_FLAGS    = @EXTRA_GNATMAKE_FLAGS@
 # EXTRA_GNATMAKE_FLAGS are user-provided, empty by default (typically
 # used to specify a non-default --RTS switch).
 
-GNATMAKE_FLAGS          := @STYLE_SWITCH@ -gnatwa@WARNINGS_MODE@ ${ADAFLAGS} ${PARALLEL_GNATMAKE_FLAGS} ${EXTRA_GNATMAKE_FLAGS}
+BASE_GNATMAKE_FLAGS	  :=--create-missing-dirs ${ADAFLAGS} ${PARALLEL_GNATMAKE_FLAGS} ${EXTRA_GNATMAKE_FLAGS}
+# Gnatmake flags for units built from project files
+
+COMP_TOOLS_GNATMAKE_FLAGS := @STYLE_SWITCH@ -gnatwa@WARNINGS_MODE@ -gnat05 -gnatec=${top_builddir}/compilers/config.adc ${BASE_GNATMAKE_FLAGS}
+# Gnatmake flags for compilation tools mains, built without project files
 
 # Extra flags for target
 CFLAGS_FOR_TARGET         := @CFLAGS_FOR_TARGET@
 ADAFLAGS_FOR_TARGET       := @ADAFLAGS_FOR_TARGET@
 GNATMAKE_FLAGS_FOR_TARGET := -cargs ${ADAFLAGS_FOR_TARGET}
-
-XMLADA_INCS	:= @XMLADA_INCS@
-XMLADA_LIBS	:= @XMLADA_LIBS@
 
 HAVE_SSL	:= @HAVE_SSL@
 
@@ -218,11 +224,11 @@ build-iac \
 build-po_gnatdist \
 \
 : build-%:
-	cd compilers/${compiler_dir} && \
+	mkdir -p compilers/${compiler_dir} && \
+	  cd compilers/${compiler_dir} && \
 	  ${GNATMAKE} -m \
 	   $* \
-	   -gnat05 \
-	   ${GNATMAKE_FLAGS} \
+	   ${COMP_TOOLS_GNATMAKE_FLAGS} \
 	   -I${top_srcdir}/compilers/${compiler_dir} \
 	   ${PRJ_GNATMAKE_FLAGS}
 
@@ -291,6 +297,7 @@ src/soap/polyorb-http_methods.adb: ${GEN_HTTP_BODY} compilers/gnatprfh/gnatprfh
 # Note that the second gen_http_body command below overwrites perfect_hash.adb
 # with different content.
 src/soap/polyorb-http_methods.adb src/soap/polyorb-http_headers.adb: ${GEN_HTTP_BODY} compilers/gnatprfh/gnatprfh ${top_srcdir}/src/soap/polyorb-http_methods.ads ${top_srcdir}/src/soap/polyorb-http_headers.ads
+	mkdir -p src/soap
 	cd src/soap && ${GEN_HTTP_BODY} ${GNATPRFH} ${top_srcdir}/src/soap Method
 	cd src/soap && ${GEN_HTTP_BODY} ${GNATPRFH} ${top_srcdir}/src/soap Header
 
@@ -301,8 +308,8 @@ src/soap/polyorb-http_methods.adb src/soap/polyorb-http_headers.adb: ${GEN_HTTP_
 GEN_CODESET = src/giop/gen_codeset
 
 build-gen_codeset:
-	cd src/giop && \
-	  ${GNATMAKE} gen_codeset -I${top_srcdir}/src/giop ${GNATMAKE_FLAGS}
+	mkdir -p src/giop && cd src/giop && \
+	  ${GNATMAKE} gen_codeset -I${top_srcdir}/src/giop ${COMP_TOOLS_GNATMAKE_FLAGS}
 
 src/giop/polyorb-giop_p-code_sets-data.ads-stamp: ${top_srcdir}/src/giop/cs_registry1.2h ${GEN_CODESET}
 	cd src/giop && ./gen_codeset -c "PolyORB.GIOP_P.Code_Sets.Data" \
@@ -374,6 +381,7 @@ polyorb-idl-stamps: build-@IDLAC@ ${polyorb_idl_stamps} cos/ir/orb.idl-stamp
 #???What is the following all about?  Why does it "chmod" and "rm"?
 cos/ir/orb.idl-stamp: ${top_srcdir}/idls/CORBA_IDL/orb.idl ${top_srcdir}/idls/CORBA_IDL/CORBA_InterfaceRepository.idl ${top_srcdir}/idls/CORBA_IDL/CORBA_TypeCode.idl ${IDLAC_bin} ${IDLAC_WRAPPER}
 	@chmod a+x ${IDLAC_WRAPPER}
+	mkdir -p ${dir $@}
 	cd ${dir $@} && ${idlac} $<
 	${RM} cos/ir/corba-repository_root.ads
 	touch $@
@@ -423,7 +431,7 @@ ALL_PROJECT_FILES := ${sort \
 IGNORED_PROJECT_FILES := build_all.gpr common.gpr config.gpr
 PROJECT_FILES := ${filter-out ${IGNORED_PROJECT_FILES},${ALL_PROJECT_FILES}}
 
-# The ones that start with "tools_" are for building executables;
+# The ones that start with "tools_" are for building (target) executables;
 # the rest are for building libraries.
 LIBRARY_PROJECT_FILES := ${filter-out tools_%,${PROJECT_FILES}}
 EXE_PROJECT_FILES := ${filter tools_%,${PROJECT_FILES}}
@@ -436,40 +444,8 @@ do-gnatmake: ${POLYORB_LIBS} ${SERVICE_LIBS} ${EXE_PROJECT_FILES} #??? ${APPLI_E
 #???lib/polyorb.ali is missing the first time around.
 # Because we can't share library directories!
 
-# The mkdir.flag targets are used to create the necessary directories. There is
-# one ALI directory for each project file (for example, ali/src_corba is the
-# ALI directory for projects/src_corba.gpr). There is also a single library
-# directory (lib) shared by all project files.
-# Note: This would be unnecessary if we used the -p switch of gnatmake,
-# but we want this to work with older versions of gnatmake that do not
-# support -p (this option was introduced in GNAT 6.0).
-# WAG: 5.04
-ALI_FLAGS := ${patsubst %.gpr,ali/%/mkdir.flag,${PROJECT_FILES}}
-MKDIR_FLAGS := ${ALI_FLAGS} lib/mkdir.flag
-
-${MKDIR_FLAGS}: %/mkdir.flag:
-	mkdir -p $*
-	touch $@
-
-# Note that each foo.gpr target depends on ALL .../mkdir.flag targets,
-# because gnatmake needs to look at the ALI directories for imported
-# projects.
-
-PRJ_GNATMAKE_FLAGS :=
-# This variable is used to pass additional per-project command line switches
-# to gnatmake.
-
-.PHONY: ${PROJECT_FILES}
-${PROJECT_FILES}: %.gpr: \
-    ${MKDIR_FLAGS} \
-    perfect-hash \
-    polyorb-idl-stamps \
-    build-gen_codeset \
-    src/giop/polyorb-giop_p-code_sets-data.ads-stamp \
-    tools/po_catref/polyorb-giop_p-code_sets-description_data.ads-stamp
-	ADA_PROJECT_PATH="${top_builddir}/projects${PATH_SEP}${top_srcdir}/projects${PATH_SEP}$$ADA_PROJECT_PATH" \
-	  ${GNATMAKE_FOR_TARGET} -P $@ ${GNATMAKE_FLAGS} ${PRJ_GNATMAKE_FLAGS} ${GNATMAKE_FLAGS_FOR_TARGET}
-
+.PHONY: libpolyorb-aws.a
+libpolyorb-aws.a: src_aws.gpr
 .PHONY: libpolyorb-corba-cos-event-impl.a
 libpolyorb-corba-cos-event-impl.a: cos_event.gpr
 .PHONY: libpolyorb-corba-cos-ir-impl.a
@@ -577,6 +553,43 @@ C_OBJECTS=${C_FILES:.c=.o}
 ${C_OBJECTS}: %.o: ${top_srcdir}/%.c
 	${CC_FOR_TARGET} -c -o $@ -I${top_builddir}/src ${CPPFLAGS} ${CFLAGS} ${CFLAGS_FOR_TARGET} $<
 
+### No additions to C_FILES / C_OBJECTS beyond this point
+
+# The mkdir.flag targets are used to create the necessary directories. There is
+# one ALI directory for each project file (for example, ali/src_corba is the
+# ALI directory for projects/src_corba.gpr). There is also a single library
+# directory (lib) shared by all project files.
+# Note: This would be unnecessary if we used the -p switch of gnatmake,
+# but we want this to work with older versions of gnatmake that do not
+# support -p (this option was introduced in GNAT 6.0).
+# WAG: 5.04
+ALI_MKDIR_FLAGS = ${patsubst %.gpr,ali/%/mkdir.flag,${PROJECT_FILES}}
+C_MKDIR_FLAGS   = ${patsubst %,%mkdir.flag,${dir ${C_OBJECTS}}}
+MKDIR_FLAGS     = ${ALI_MKDIR_FLAGS} ${C_MKDIR_FLAGS} lib/mkdir.flag
+
+${MKDIR_FLAGS}: %/mkdir.flag:
+	mkdir -p $*
+	touch $@
+
+# Note that each foo.gpr target depends on ALL .../mkdir.flag targets,
+# because gnatmake needs to look at the ALI directories for imported
+# projects.
+
+PRJ_GNATMAKE_FLAGS :=
+# This variable is used to pass additional per-project command line switches
+# to gnatmake.
+
+.PHONY: ${PROJECT_FILES}
+${PROJECT_FILES}: %.gpr: \
+    ${MKDIR_FLAGS} \
+    perfect-hash \
+    polyorb-idl-stamps \
+    build-gen_codeset \
+    src/giop/polyorb-giop_p-code_sets-data.ads-stamp \
+    tools/po_catref/polyorb-giop_p-code_sets-description_data.ads-stamp
+	ADA_PROJECT_PATH="${top_builddir}/projects${PATH_SEP}${top_srcdir}/projects${PATH_SEP}$$ADA_PROJECT_PATH" \
+	  ${GNATMAKE_FOR_TARGET} -P $@ ${BASE_GNATMAKE_FLAGS} ${PRJ_GNATMAKE_FLAGS} ${GNATMAKE_FLAGS_FOR_TARGET}
+
 ##########################
 # examples and testsuite #
 ##########################
@@ -644,7 +657,7 @@ test_targets := ${sort ${test_targets}}
 .PHONY: ${test_targets}
 ${test_targets}: %/build-test:
 	ADA_PROJECT_PATH="${top_builddir}/projects${PATH_SEP}${top_srcdir}/projects${PATH_SEP}$$ADA_PROJECT_PATH" \
-	  ${GNATMAKE_FOR_TARGET} "-XTest_Dir=$*" -P ${top_srcdir}/$*/local.gpr ${GNATMAKE_FLAGS} ${GNATMAKE_FLAGS_FOR_TARGET}
+	  ${GNATMAKE_FOR_TARGET} "-XTest_Dir=$*" -P ${top_srcdir}/$*/local.gpr ${BASE_GNATMAKE_FLAGS} ${GNATMAKE_FLAGS_FOR_TARGET}
 
 # Set active_tests to a subset of test_targets -- remove the ones that are for
 # application personalities that were not configured. Note: examples/polyorb
@@ -702,7 +715,7 @@ print_active_tests:
 	@echo "Tests to build: ${patsubst %/build-test,%,${active_tests}}"
 
 .PHONY: testsuite
-testsuite: print_active_tests ${active_tests}
+testsuite: print_active_tests ${active_tests} build-test_driver
 
 # Create the 'examples' target as a subset of 'testsuite' -- just the ones
 # under the 'examples' subdirectory:
@@ -711,6 +724,23 @@ active_examples := ${filter examples/%,${active_tests}}
 
 .PHONY: examples
 examples: ${active_examples}
+
+.PHONY: build-test_driver
+build-test_driver: 
+	ADA_PROJECT_PATH="${top_builddir}/projects${PATH_SEP}${top_srcdir}/projects${PATH_SEP}$$ADA_PROJECT_PATH" \
+	  ${GNATMAKE_FOR_TARGET} -P testsuite_utils.gpr ${BASE_GNATMAKE_FLAGS} ${PRJ_GNATMAKE_FLAGS} ${GNATMAKE_FLAGS_FOR_TARGET}
+
+.PHONY: run_tests
+run_tests:
+	cd testsuite && ./utils/test_driver -full ${top_srcdir}/testsuite/scenarios -output file -config ${top_srcdir}/testsuite -verbose
+
+# 'all' depends on either build-iac or build-idlac; we might as well build
+# both, here. We run_tests via recursive make, rather than having all-and-test
+# depend on run_tests, so it works for parallel make (run_tests should not
+# run concurrently with the other stuff).
+.PHONY: all-and-test
+all-and-test: all build-iac build-idlac examples testsuite
+	${MAKE} run_tests
 
 ################################################################
 
@@ -799,13 +829,14 @@ install: all
 	${RM} -fr "${prefix}/lib/gnat/polyorb"
 	${INSTALL} -d ${prefix}/lib/gnat/polyorb
 	${INSTALL} -d ${prefix}/lib/polyorb
+	${INSTALL} -d ${prefix}/lib/polyorb/static
 	${RM} -fr "${prefix}/include/polyorb"
 	${INSTALL} -d ${prefix}/include/polyorb
 	for comp in ${COMPILER_EXES}; do \
 	  ${INSTALL} ${top_builddir}/compilers/$${comp}${COMPILER_EXE_SUFFIX} ${prefix}/bin; \
 	  : Special case, symlink iac as idlac for backwards compatibility; \
 	  if [ `basename $${comp}` = iac ]; then \
-	    cd ${prefix}/bin && ${RM} -f idlac && ${LN_S} iac idlac; \
+	    cd ${prefix}/bin && ${RM} -f idlac${TOOL_EXE_SUFFIX} && ${LN_S} iac${TOOL_EXE_SUFFIX} idlac${TOOL_EXE_SUFFIX}; \
           fi; \
 	done
 	${INSTALL} ${top_builddir}/tools/po_cos_naming/po_cos_naming${TOOL_EXE_SUFFIX} ${prefix}/bin
@@ -817,7 +848,7 @@ install: all
 	${INSTALL} ${top_builddir}/tools/po_names/po_names${TOOL_EXE_SUFFIX} ${prefix}/bin
 	${INSTALL} ${top_builddir}/tools/po_dumpir/po_dumpir${TOOL_EXE_SUFFIX} ${prefix}/bin
 	${INSTALL} ${top_builddir}/polyorb-config ${prefix}/bin
-	ls ${top_builddir}/lib/*.a | ${XARGS_I} ${INSTALL} -m 444 {} ${prefix}/lib
+	ls ${top_builddir}/lib/*.a | ${XARGS_I} ${INSTALL} -m 444 {} ${prefix}/lib/polyorb/static
 	ls ${top_srcdir}/projects-distrib/*.gpr | ${XARGS_I} ${INSTALL} -m 444 {} ${prefix}/lib/gnat
 	ls ${top_builddir}/projects-distrib/*.gpr | ${XARGS_I} ${INSTALL} -m 444 {} ${prefix}/lib/gnat
 	ls ${top_srcdir}/projects-distrib/polyorb/*.gpr | ${XARGS_I} ${INSTALL} -m 444 {} ${prefix}/lib/gnat/polyorb
@@ -835,6 +866,7 @@ install: all
 	  ${top_builddir}/ali \
 	  -name '*.ali' \
 	  -a ! -name 'polyorb-dsa_p-partitions.ali' \
+	  -a ! -name 'polyorb-dsa_p-storages-config.ali' \
 	  -a ! -name 'polyorb-partition_elaboration.ali') | \
 	${XARGS_I} ${INSTALL} -m 444 {} ${prefix}/lib/polyorb
 	# Install documentation only if it has been built:
@@ -864,11 +896,11 @@ force::
 clean:
 	${RM} -f ${all_idl_stamps} ./cos/ir/orb.idl-stamp # ???and more
 	${RM} -f ${idlac_output_files}
-	find . -name '*.ali' | xargs ${RM} -f
-	find . -name '*.o'   | xargs ${RM} -f
+	find . -name '*.ali' -o -name '*.o' | xargs ${RM} -f
 	${RM} -f lib/lib*.a
 	${RM} -f ${all_example_exes}
 	(cd compilers && ${RM} -f ${COMPILER_EXES})
+	${RM} -f ${MKDIR_FLAGS}
 	${RM} -f ${IAC_NODES_STAMPS}
 	${RM} -f ${IAC_NODES_SOURCES}
 	${RM} -f src/soap/polyorb-http_methods.adb src/soap/polyorb-http_headers.adb
@@ -889,7 +921,7 @@ clean:
 	${RM} -f tools/po_names/po_names
 
 distclean: clean
-	${SHELL} support/cleanup-conf-files
+	${SHELL} ${top_srcdir}/support/cleanup-conf-files
 	${RM} -f config.*
 
 .SUFFIXES: .c .o
@@ -2320,9 +2352,9 @@ debug-makefile:
 	@echo MAKEFLAGS = ${MAKEFLAGS}
 	@echo GNATMAKE_FLAGS = ${GNATMAKE_FLAGS}
 	@echo MAKECMDGOALS = ${MAKECMDGOALS}
+	@echo MKDIR_FLAGS = ${MKDIR_FLAGS}
 	@echo polyorb_idl_stamps = ${polyorb_idl_stamps}
 	@echo all_idl_stamps = ${all_idl_stamps}
-	@echo XMLADA_INCS = ${XMLADA_INCS}
 	@echo POLYORB_LIBS = ${POLYORB_LIBS}
 	@echo SERVICE_LIBS = ${SERVICE_LIBS}
 	@echo ALL_PROJECT_FILES = ${ALL_PROJECT_FILES}

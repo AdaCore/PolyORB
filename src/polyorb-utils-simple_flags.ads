@@ -34,13 +34,9 @@
 --  Utility to provide support for simple binary flags
 
 generic
-
    type Flags_Type is mod <>;
-
    with function Shift_Left
-     (Value : Flags_Type;
-      N     : Natural) return Flags_Type;
-
+     (Value : Flags_Type; N : Natural) return Flags_Type is <>;
 package PolyORB.Utils.Simple_Flags is
 
    pragma Pure;

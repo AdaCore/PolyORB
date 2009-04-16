@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2000-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2000-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -86,7 +86,8 @@ package body SOAP.Client is
       PolyORB_Request : PolyORB.Requests.Request_Access;
       PolyORB_Response : PolyORB.Any.NamedValue;
 
-      SOAP_Params : SOAP.Parameters.List := SOAP.Message.Parameters (P);
+      SOAP_Params : constant SOAP.Parameters.List
+        := SOAP.Message.Parameters (P);
       Reference : constant String :=
         Protocol (Host_URL (Connection.all))
         & "://"
@@ -102,7 +103,7 @@ package body SOAP.Client is
 
       for Index in 1 .. SOAP.Parameters.Argument_Count (SOAP_Params) loop
          Add_Item (Args, SOAP.Types.To_NamedValue
-                   (Parameters.Argument (SOAP_Params, Positive (Index))));
+                   (Parameters.Argument (SOAP_Params, Index)));
       end loop;
 
       Create_Request (Target => PolyORB.References.URI.String_To_Object

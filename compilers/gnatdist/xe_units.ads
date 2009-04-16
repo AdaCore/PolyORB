@@ -36,6 +36,7 @@
 --  Ada units, configured units, partitions, channels, locations, ...
 
 with GNAT.Table;
+
 with XE;       use XE;
 with XE_Types; use XE_Types;
 
@@ -145,6 +146,13 @@ package XE_Units is
    No_Env_Var_Id    : constant Env_Var_Id := Env_Var_Id'First;
    First_Env_Var_Id : constant Env_Var_Id := No_Env_Var_Id + 1;
 
+   type Required_Storage_Id is range 7_600_000 .. 7_699_999;
+
+   No_Required_Storage_Id    : constant Required_Storage_Id :=
+                                 Required_Storage_Id'First;
+   First_Required_Storage_Id : constant Required_Storage_Id :=
+                                 No_Required_Storage_Id + 1;
+
    --------------------
    -- ALI File Table --
    --------------------
@@ -157,10 +165,10 @@ package XE_Units is
    type ALIs_Record is record
 
       Ofile : File_Name_Type;
-      --  Name of object file (because GNATLS does not return the ali file)
+      --  Name of object file
 
       Afile : File_Name_Type;
-      --  Name of ALI file (based on object file)
+      --  Name of ALI file
 
       Sfile : File_Name_Type;
       --  Name of source file that generates this ALI file (which is equal
@@ -185,14 +193,16 @@ package XE_Units is
       Main_Program : Main_Program_Type;
       --  Indicator of whether first unit can be used as main program.
 
-      Tasking : Character;
+      Tasking : Tasking_Type;
       --  Indicator of whether the unit (or the collocated units it
-      --  depends on) drags tasking. 'P' indicates that tasking is
-      --  required by the PCS (for concurrent remote calls), 'U' that
-      --  tasking is required in user code, '?' that the use of
-      --  tasking is still unknown and 'N' that the tasking is not
-      --  used. Note that 'P' is a stronger property than 'U' as this
-      --  has also an impact on the termination policy.
+      --  depends on) drags tasking.
+      --  Notation:
+      --     Unknown_Tasking : tasking has not been established
+      --     PCS_Tasking     : tasking is required because of PCS code
+      --     User_Tasking    : tasking is required because of user code
+      --     No_Tasking      : tasking is not required for this unit
+      --  Note that PCS_Tasking is a stronger property than User_Tasking
+      --  as this has also an impact on the termination policy.
 
    end record;
 
@@ -206,7 +216,7 @@ package XE_Units is
       First_Sdep   => First_Sdep_Id,
       Last_Sdep    => No_Sdep_Id,
       Main_Program => None,
-      Tasking      => '?');
+      Tasking      => Unknown_Tasking);
 
    package ALIs is new GNAT.Table (
      Table_Component_Type => ALIs_Record,
@@ -396,12 +406,17 @@ package XE_Units is
       Passive : Boolean_Type;
       --  Indicate whether this partition is passive
 
-      Tasking : Character;
-      --  Indicate why this partition requires tasking. '?' when the
-      --  use of tasking has not been established. 'N' when the
-      --  partition does not require tasking, 'U' when the partition
-      --  requires tasking because of user needs, 'P' when the
-      --  partition requires tasking because of PCS needs.
+      Tasking : Tasking_Type;
+      --  Indicate why this partition requires tasking.
+      --  Notation:
+      --     Unknown_Tasking : tasking has not been established
+      --     PCS_Tasking     : tasking is required because of PCS code
+      --     User_Tasking    : tasking is required because of user code
+      --     No_Tasking      : tasking is not required for this unit
+
+      ORB_Tasking_Policy : ORB_Tasking_Policy_Type;
+      --  ORB tasking policy to activate on this partition.
+      --  Has no effect in Garlic PCS.
 
       Task_Pool : Task_Pool_Type;
       --  Configuration of the task pool
@@ -435,6 +450,12 @@ package XE_Units is
       Storage_Loc : Location_Id;
       --  Id of storage location table entry for this partition
 
+      First_Required_Storage : Required_Storage_Id;
+      --  Id of first location needed by this partition for shared storage
+
+      Last_Required_Storage : Required_Storage_Id;
+      --  Id of last location needed by this partition for shared storage
+
       Filter : Filter_Name_Type;
       --  Name of filter to apply during filter registration
 
@@ -466,43 +487,46 @@ package XE_Units is
       Table_Increment      => 10);
 
    Null_Partition : constant Partition_Type :=
-     (Name               => No_Partition_Name,
-      First_Unit         => No_Conf_Unit_Id,
-      Last_Unit          => No_Conf_Unit_Id,
-      Main_Subprogram    => No_Unit_Name,
-      First_Stub         => First_Stub_Id,
-      Last_Stub          => No_Stub_Id,
-      First_Channel      => No_Channel_Id,
-      Last_Channel       => No_Channel_Id,
-      First_Env_Var      => No_Env_Var_Id,
-      Last_Env_Var       => No_Env_Var_Id,
-      Passive            => BMaybe,
-      Tasking            => '?',
-      Task_Pool          => No_Task_Pool,
-      Priority           => No_Priority,
-      Light_PCS          => BMaybe,
-      Termination        => No_Termination,
-      Reconnection       => No_Reconnection,
-      Command_Line       => No_Command_Line,
-      Host               => No_Host_Id,
-      First_Network_Loc  => No_Location_Id,
-      Last_Network_Loc   => No_Location_Id,
-      Storage_Loc        => No_Location_Id,
-      Filter             => No_Filter_Name,
-      Partition_Dir      => No_Directory_Name,
-      Executable_Dir     => No_Directory_Name,
-      Executable_File    => No_File_Name,
-      To_Build           => True,
-      Node               => Null_Node,
-      Most_Recent        => No_File_Name);
+     (Name                   => No_Partition_Name,
+      First_Unit             => No_Conf_Unit_Id,
+      Last_Unit              => No_Conf_Unit_Id,
+      Main_Subprogram        => No_Unit_Name,
+      First_Stub             => First_Stub_Id,
+      Last_Stub              => No_Stub_Id,
+      First_Channel          => No_Channel_Id,
+      Last_Channel           => No_Channel_Id,
+      First_Env_Var          => No_Env_Var_Id,
+      Last_Env_Var           => No_Env_Var_Id,
+      Passive                => BMaybe,
+      Tasking                => Unknown_Tasking,
+      ORB_Tasking_Policy     => No_ORB_Tasking_Policy,
+      Task_Pool              => No_Task_Pool,
+      Priority               => No_Priority,
+      Light_PCS              => BMaybe,
+      Termination            => No_Termination,
+      Reconnection           => No_Reconnection,
+      Command_Line           => No_Command_Line,
+      Host                   => No_Host_Id,
+      First_Network_Loc      => No_Location_Id,
+      Last_Network_Loc       => No_Location_Id,
+      Storage_Loc            => No_Location_Id,
+      First_Required_Storage => No_Required_Storage_Id,
+      Last_Required_Storage  => No_Required_Storage_Id,
+      Filter                 => No_Filter_Name,
+      Partition_Dir          => No_Directory_Name,
+      Executable_Dir         => No_Directory_Name,
+      Executable_File        => No_File_Name,
+      To_Build               => True,
+      Node                   => Null_Node,
+      Most_Recent            => No_File_Name);
 
    ---------------------------
    -- Configured Unit Table --
    ---------------------------
 
-   --  Configured units are different from units. Such units come from
-   --  the configuration language and mau not correspond to ada units
-   --  since the configuration file can be erroneous.
+   --  Configured units are different from units. Such units come from the
+   --  configuration language and mau not correspond to Ada units in case
+   --  of an illegal configuration file.
 
    type Conf_Unit_Type is record
 
@@ -633,6 +657,24 @@ package XE_Units is
      (Table_Component_Type => Env_Var_Type,
       Table_Index_Type     => Env_Var_Id,
       Table_Low_Bound      => First_Env_Var_Id,
+      Table_Initial        => 20,
+      Table_Increment      => 10);
+
+   ----------------------------
+   -- Required Storage Table --
+   ----------------------------
+
+   type Required_Storage_Type is record
+      Location     : Location_Id;
+      Is_Owner     : Boolean;
+      Unit         : Unit_Id;
+      Next_Storage : Required_Storage_Id;
+   end record;
+
+   package Required_Storages is new GNAT.Table
+     (Table_Component_Type => Required_Storage_Type,
+      Table_Index_Type     => Required_Storage_Id,
+      Table_Low_Bound      => First_Required_Storage_Id,
       Table_Initial        => 20,
       Table_Increment      => 10);
 

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -120,7 +120,8 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.UIPMC is
       Create (Socket_Out_Endpoint (TE.all), Sock, Mechanism.Address.all);
 
       Binding_Objects.Setup_Binding_Object
-        (TE,
+        (The_ORB,
+         TE,
          MIOP_Factories,
          BO_Ref,
          Profile_Access (Profile));

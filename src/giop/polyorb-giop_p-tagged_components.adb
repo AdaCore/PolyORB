@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -438,29 +438,13 @@ package body PolyORB.GIOP_P.Tagged_Components is
      (List : in out Tagged_Component_List;
       CL   :        Tagged_Component_List)
    is
+      It : Iterator := First (CL);
    begin
-      List := List & CL;
-   end Add;
-
-   -------------
-   -- Replace --
-   -------------
-
-   procedure Replace
-     (List : in out Tagged_Component_List;
-      C1   :        Tagged_Component_Access;
-      C2   :        Tagged_Component_Access)
-   is
-   begin
-      pragma Assert (C1.Tag = C2.Tag);
-
-      for J in 1 .. Length (List) loop
-         if Get_Component (List, Tag_Value (J)) = C1 then
-            Remove (List, C1, False);
-            Append (List, C2);
-         end if;
+      while not Last (It) loop
+         Append (List, Value (It).all);
+         Next (It);
       end loop;
-   end Replace;
+   end Add;
 
    ------------
    -- Remove --
@@ -468,10 +452,10 @@ package body PolyORB.GIOP_P.Tagged_Components is
 
    procedure Remove
      (List : in out Tagged_Component_List;
-      Comp :        Tagged_Component_Access)
+      Comp : Tagged_Component_Access)
    is
    begin
-      Remove (List, Comp, False);
+      Remove_Occurrences (List, Comp, All_Occurrences => False);
    end Remove;
 
    ---------------

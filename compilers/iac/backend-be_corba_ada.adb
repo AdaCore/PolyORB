@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -109,7 +109,7 @@ package body Backend.BE_CORBA_Ada is
       Write_Line
         (Hdr & "-d       Generate delegation package (defunct)");
       Write_Line
-        (Hdr & "-ir      Generate code for interface repository (defunct)");
+        (Hdr & "-ir      Generate code for interface repository");
       Write_Line
         (Hdr & "-noir    Do not generate code for interface repository "
          & "(default)");
@@ -214,11 +214,13 @@ package body Backend.BE_CORBA_Ada is
          IR_Infos.Package_Body.Visit (E);
       end if;
 
-      if Use_SII then
+      if Use_SII and then not Disable_Client_Code_Gen then
          CDRs.Package_Body.Visit (E);
       end if;
 
-      if Use_Optimized_Buffers_Allocation then
+      if Use_Optimized_Buffers_Allocation
+        and then not Disable_Client_Code_Gen
+      then
          Buffers.Package_Body.Visit (E);
       end if;
    end Visit;

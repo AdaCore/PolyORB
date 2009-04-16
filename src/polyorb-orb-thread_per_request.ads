@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -42,8 +42,9 @@ package PolyORB.ORB.Thread_Per_Request is
    -----------------------------------------------------------
    -- Implementation of a thread-per-request tasking policy --
    -----------------------------------------------------------
+
    --  In this policy, a task is created for each request and the request
-   --  is executed by this task
+   --  is executed by this task.
 
    type Thread_Per_Request_Policy is new Tasking_Policy_Type with private;
 

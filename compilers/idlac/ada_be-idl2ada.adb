@@ -63,7 +63,7 @@ with Ada_Be.Mappings;       use Ada_Be.Mappings;
 with Ada_Be.Mappings.CORBA; use Ada_Be.Mappings.CORBA;
 
 with Idlac_Errors;          use Idlac_Errors;
-with Utils;                 use Utils;
+with Idlac_Utils;           use Idlac_Utils;
 
 with Ada.Strings.Fixed;     use Ada.Strings.Fixed;
 
@@ -1835,7 +1835,8 @@ package body Ada_Be.Idl2Ada is
                               end if;
 
                               Put (CU, "0 .. ");
-                              Gen_Node_Stubs_Spec (CU, Bound_Node);
+                              Gen_Constant_Value
+                                (CU, Expr => Bound_Node, Typ => No_Node);
                               Put (CU, " - 1");
                            end loop;
                            PL (CU, ") of");
@@ -2980,12 +2981,22 @@ package body Ada_Be.Idl2Ada is
       return Ada_Name (Repository_Id_Identifier (Node));
    end Repository_Id_Name;
 
+   ------------------------
+   -- Gen_Constant_Value --
+   ------------------------
+
    procedure Gen_Constant_Value
      (CU   : in out Compilation_Unit;
       Expr : Node_Id;
       Typ  : Node_Id)
    is
       Value : constant Constant_Value_Ptr := Expr_Value (Expr);
+
+      To_CORBA_Prefix   : aliased String := "To_CORBA";
+      To_Bounded_Prefix : aliased String := "To_Bounded";
+      String_Cvt_Prefix : constant array (Boolean) of access String :=
+                            (False => To_CORBA_Prefix'Access,
+                             True  => To_Bounded_Prefix'Access);
    begin
       case Value.Kind is
          when
@@ -3003,9 +3014,11 @@ package body Ada_Be.Idl2Ada is
             begin
                --  If the value is negative, we use an expanded name for the
                --  "-" operator, because it might not be directly visible. For
-               --  example, CORBA."-" (1234).
+               --  example, CORBA."-" (1234). If Typ is not provided, assume
+               --  that the "-" operator is directly visible (case of the
+               --  index type of an IDL array, which is Standard.Integer).
 
-               if Int_Val < 0 then
+               if Present (Typ) and then Int_Val < 0 then
                   Put (CU, Library_Unit_Name (Mapping, Typ) & ".""-"" (");
                   Put (CU, Img (-Int_Val));
                   Put (CU, ")");
@@ -3035,15 +3048,12 @@ package body Ada_Be.Idl2Ada is
            C_Fixed         |
            C_General_Fixed =>
             declare
-               Value_Digits : constant String
-                 := Img (Value.Fixed_Value);
+               Value_Digits : constant String := Img (Value.Fixed_Value);
+               Zeroes : constant String (1 .. Integer (Value.Scale)
+                                                - Value_Digits'Length + 1) :=
+                          (others => '0');
 
-               Zeroes : constant String
-                 (1 .. Integer (Value.Scale) - Value_Digits'Length + 1)
-                 := (others => '0');
-
-               All_Digits : constant String
-                 := Zeroes & Value_Digits;
+               All_Digits : constant String := Zeroes & Value_Digits;
             begin
                if Value.Scale = 0 then
                   Put (CU, Value_Digits);
@@ -3060,16 +3070,27 @@ package body Ada_Be.Idl2Ada is
             end;
 
          when C_String =>
-            Add_With (CU, "CORBA", Elab_Control => Elaborate_All);
-            Put (CU, Library_Unit_Name (Mapping, Typ)
-                 & ".To_CORBA_String ("""
-                 & String_Value (Expr) & """)");
+            declare
+               Bounded : constant Boolean := Present (Bound (Root_Type (Typ)));
+            begin
+               Put (CU, Library_Unit_Name (Mapping, Typ)
+                    & "."
+                    & String_Cvt_Prefix (Bounded).all
+                    & "_String ("""
+                    & String_Value (Expr) & """)");
+            end;
 
          when C_WString =>
-            Put (CU, Library_Unit_Name (Mapping, Typ)
-                 & ".To_CORBA_Wide_String ("""
-                 & Ada.Characters.Conversions.To_String
-                 (WString_Value (Expr)) & """)");
+            declare
+               Bounded : constant Boolean := Present (Bound (Root_Type (Typ)));
+            begin
+               Put (CU, Library_Unit_Name (Mapping, Typ)
+                    & "."
+                    & String_Cvt_Prefix (Bounded).all
+                    & "_Wide_String ("""
+                    & Ada.Characters.Conversions.To_String
+                    (WString_Value (Expr)) & """)");
+            end;
 
          when C_Enum =>
             Put (CU, Ada_Full_Name (Enum_Value (Expr)));

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -32,7 +32,7 @@
 ------------------------------------------------------------------------------
 
 --  Base types for the various configuration axes (policies)
---  of the PolyORB Portable Object Adapter (libreally inspired from
+--  of the PolyORB Portable Object Adapter (liberally inspired from
 --  the POA specification in CORBA).
 
 with PolyORB.Errors;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -46,14 +46,12 @@ package Scopes is
    --  in which the entity has been imported. Imports occur for type
    --  names and inherited interfaces.
    --
-   --  To handle visibility, iac uses two dedicated node attributes :
-   --  Visible and Implicitely_Visible. The normal
-   --  visibility rules are handled by Visible when
-   --  Implicitely_Visible is used only in the context of inherited
-   --  interfaces. In the scope of an inherited interface, entities
-   --  like attributes and operations are inherited (scoped and
-   --  explicitly visible) when other entities are just made visible
-   --  (implicitly visible).
+   --  To handle visibility, iac uses two dedicated node attributes : Visible
+   --  and Implicitly_Visible. The normal visibility rules are handled by
+   --  Visible when Implicitly_Visible is used only in the context of
+   --  inherited interfaces. In the scope of an inherited interface, entities
+   --  like attributes and operations are inherited (scoped and explicitly
+   --  visible) when other entities are just made visible (implicitly visible).
 
    type Scope_Stack_Entry is record
       Node : Node_Id;

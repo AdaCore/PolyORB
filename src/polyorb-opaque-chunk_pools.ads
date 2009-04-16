@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,29 +26,27 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 --  Pools of memory chunks, with associated client metadata.
 
-with PolyORB.Utils.Chained_Lists;
+pragma Ada_2005;
+
+with PolyORB.Utils.Ilists;
 
 generic
-
    type Chunk_Metadata is private;
    --  The metadata associated with each storage chunk.
 
    Null_Metadata : Chunk_Metadata;
-
 package PolyORB.Opaque.Chunk_Pools is
 
    pragma Preelaborate;
 
-   type Chunk (Size : Ada.Streams.Stream_Element_Count) is
-     tagged limited private;
-
+   type Chunk (Size : Ada.Streams.Stream_Element_Count) is limited private;
    type Chunk_Access is access all Chunk;
 
    Default_Chunk_Size : constant Ada.Streams.Stream_Element_Count := 512;
@@ -61,8 +59,8 @@ package PolyORB.Opaque.Chunk_Pools is
 
    procedure Allocate
      (Pool    : access Pool_Type;
-      A_Chunk :    out Chunk_Access;
-      Size    :        Ada.Streams.Stream_Element_Count := Default_Chunk_Size);
+      A_Chunk : out Chunk_Access;
+      Size    : Ada.Streams.Stream_Element_Count := Default_Chunk_Size);
    --  Create a chunk in Pool and return an access to it.
    --  On the first call where Size is no more than Default_Chunk_Size,
    --  the Prealloc chunk is returned. On all other calls, a chunk of
@@ -70,18 +68,14 @@ package PolyORB.Opaque.Chunk_Pools is
    --  dynamically allocated.
 
    function Chunk_Storage
-     (A_Chunk : Chunk_Access)
-     return Opaque.Opaque_Pointer;
+     (A_Chunk : Chunk_Access) return Opaque.Opaque_Pointer;
    --  Return a pointer to a chunk's storage space.
 
-   procedure Release
-     (Pool : access Pool_Type);
+   procedure Release (Pool : access Pool_Type);
    --  Signals that Pool will not be used anymore.
    --  The associated storage is returned to the system.
 
-   function Metadata
-     (A_Chunk : Chunk_Access)
-     return Metadata_Access;
+   function Metadata (A_Chunk : Chunk_Access) return Metadata_Access;
    --  Returns an access to the metadata associated
    --  with A_Chunk by the client of the Chunk_Pool
    --  package.
@@ -93,26 +87,37 @@ private
    --  A chunk pool is managed as a linked list
    --  of chunks.
 
-   type Chunk (Size : Ada.Streams.Stream_Element_Count) is
-     tagged limited record
-        Metadata : aliased Chunk_Metadata;
-         --  Metadata associated by a client to this chunk.
+   type Chunk (Size : Ada.Streams.Stream_Element_Count) is limited record
+      Next     : aliased Chunk_Access;
+      --  Used to link Chunk on pool's dynamic chunks list
 
-        Data     : aliased Ada.Streams.Stream_Element_Array (1 .. Size);
-         --  The storage space of the chunk.
-     end record;
+      Metadata : aliased Chunk_Metadata;
+      --  Metadata associated by a client to this chunk.
 
-   package Chunk_Lists is new Utils.Chained_Lists (Chunk_Access);
+      Data     : aliased Ada.Streams.Stream_Element_Array (1 .. Size);
+      --  The storage space of the chunk.
+   end record;
+
+   function Link
+     (C     : access Chunk;
+      Which : Utils.Ilists.Link_Type) return access Chunk_Access;
+   pragma Inline (Link);
+   --  Accessor for Next
+
+   package Chunk_Lists is new Utils.Ilists.Lists
+     (T             => Chunk,
+      T_Acc         => Chunk_Access,
+      Doubly_Linked => False);
 
    type Pool_Type is limited record
       Prealloc : aliased Chunk (Default_Chunk_Size);
-      --  A pre-allocated chunk.
+      --  A pre-allocated chunk
 
       Prealloc_Used : Boolean := False;
-      --  The pre-allocated chunk has been used.
+      --  The pre-allocated chunk has been used
 
-      Chunks   : Chunk_Lists.List;
-      --  The list of all dynamically allocated chunks in this pool.
+      Dynamic_Chunks   : Chunk_Lists.List;
+      --  The list of all dynamically allocated chunks in this pool
    end record;
 
 end PolyORB.Opaque.Chunk_Pools;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -280,7 +280,6 @@ package body PolyORB.Servants.Group_Servants is
       end if;
 
       if Self.State = Wait_Other then
-         Free (Self.Args);
          Catch (Self.Error);
       end if;
 
@@ -418,7 +417,7 @@ package body PolyORB.Servants.Group_Servants is
 
    procedure Unregister
      (Self : access Group_Servant;
-      Ref  :        PolyORB.References.Ref)
+      Ref  : References.Ref)
    is
       use PolyORB.References;
 
@@ -429,7 +428,7 @@ package body PolyORB.Servants.Group_Servants is
 
       Enter (Self.Group_Lock);
 
-      TPL.Remove (Self.Target_List, Ref);
+      TPL.Remove_Occurrences (Self.Target_List, Ref);
       pragma Debug (C, O ("Group size:" & TPL.Length (Self.Target_List)'Img));
 
       Leave (Self.Group_Lock);

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -34,7 +34,10 @@
 --  This package provides one-dimensional, variable-size arrays support.
 --  See the package specification for more details.
 
+pragma Ada_2005;
+
 with Ada.Unchecked_Deallocation;
+with System;
 
 package body PolyORB.Utils.Dynamic_Tables is
 
@@ -53,6 +56,10 @@ package body PolyORB.Utils.Dynamic_Tables is
    --  Reallocate the existing table according to the current value stored
    --  in Max. Works correctly to do an initial allocation if the table
    --  is currently null.
+
+   type Table_Ptr is access all Table_Type;
+   --  The table is actually represented as a pointer to allow
+   --  reallocation.
 
    procedure Free_Table is
      new Ada.Unchecked_Deallocation (Table_Type, Table_Ptr);
@@ -76,7 +83,7 @@ package body PolyORB.Utils.Dynamic_Tables is
 
    procedure Deallocate (T : in out Instance) is
    begin
-      Free_Table (T.Table);
+      Free_Table (Table_Ptr (T.Table));
       T.P.Length := 0;
    end Deallocate;
 
@@ -178,12 +185,34 @@ package body PolyORB.Utils.Dynamic_Tables is
       return Result;
    end Duplicate;
 
+   ----------
+   -- Read --
+   ----------
+
+   procedure Read
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      X : out Instance)
+   is
+      Last_Index : Table_Index_Type;
+   begin
+      Initialize (X);
+      Table_Index_Type'Read (S, Last_Index);
+      Set_Last (X, Last_Index);
+
+      for J in First (X) .. Last (X) loop
+         Table_Component_Type'Read (S, X.Table (J));
+      end loop;
+   end Read;
+
    ----------------
    -- Reallocate --
    ----------------
 
    procedure Reallocate (T : in out Instance) is
-      Old_Table : Table_Ptr := T.Table;
+      use type System.Address;
+      Table_Address : System.Address;
+      for Table_Address'Address use T.Table'Address;
+      pragma Import (Ada, Table_Address);
 
    begin
       if T.P.Max < T.P.Last_Val then
@@ -201,16 +230,27 @@ package body PolyORB.Utils.Dynamic_Tables is
          end loop;
       end if;
 
-      if T.Table = null then
+      if Table_Address = System.Null_Address then
+
+         --  WAG:62
+         --  Here we need to test if Table is null. In equality below, "null"
+         --  is a valid literal for the anonymous access type of the record
+         --  component in Ada 2005, but when the instance of this generic
+         --  package is compiled in Ada 95 mode, this generates an
+         --  instantiation error.
+
          T.Table := new Table_Type (Table_Low_Bound ..
-                                    Table_Index_Type (T.P.Max));
+                                      Table_Index_Type (T.P.Max));
 
       elsif T.P.Max >= Table_First then
-         T.Table := new Table_Type (Table_Low_Bound ..
-                                    Table_Index_Type (T.P.Max));
-
-         T.Table (Old_Table'Range) := Old_Table (Old_Table'Range);
-         Free_Table (Old_Table);
+         declare
+            Old_Table : Table_Ptr := T.Table.all'Unchecked_Access;
+         begin
+            T.Table := new Table_Type (Table_Low_Bound ..
+                                         Table_Index_Type (T.P.Max));
+            T.Table (Old_Table'Range) := Old_Table (Old_Table'Range);
+            Free_Table (Old_Table);
+         end;
       end if;
    end Reallocate;
 
@@ -246,5 +286,19 @@ package body PolyORB.Utils.Dynamic_Tables is
    begin
       return Integer (Table_Low_Bound);
    end Table_First;
+
+   -----------
+   -- Write --
+   -----------
+
+   procedure Write
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      X : Instance) is
+   begin
+      Table_Index_Type'Write (S, Last (X));
+      for J in First (X) .. Last (X) loop
+         Table_Component_Type'Write (S, X.Table (J));
+      end loop;
+   end Write;
 
 end PolyORB.Utils.Dynamic_Tables;

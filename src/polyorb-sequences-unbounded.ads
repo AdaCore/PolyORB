@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -88,7 +88,14 @@ package PolyORB.Sequences.Unbounded is
    function Null_Sequence return Sequence;
 
    function Length (Source : Sequence) return Natural;
+   --  Return the length of Source
+
    procedure Set_Length (Source : in out Sequence; Length : Natural);
+   --  Set the length of Source to the indicated value, truncating it if the
+   --  current length is greater, and extending it with elements of unspecified
+   --  value if it is shorter.
+   --  Note that this subprogram is PolyORB-specific and not part of the
+   --  CORBA sequences API.
 
    --------------------------------------------------------
    -- Conversion, Concatenation, and Selection functions --

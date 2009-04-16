@@ -36,7 +36,8 @@
 
 with GNAT.OS_Lib; use GNAT.OS_Lib;
 pragma Elaborate_All (GNAT.OS_Lib);
-with XE_Types;    use XE_Types;
+
+with XE_Types; use XE_Types;
 
 package XE_Utils is
 
@@ -67,12 +68,16 @@ package XE_Utils is
 
    Monolithic_App_Unit_Name : File_Name_Type;
    Monolithic_Src_Base_Name : File_Name_Type;
+   Monolithic_Src_File      : File_Descriptor;
    --  Monolithic application main
 
    Monolithic_Src_Name : File_Name_Type;
    Monolithic_ALI_Name : File_Name_Type;
    Monolithic_Obj_Name : File_Name_Type;
    --  Monolithic application main
+
+   Monolithic_Obj_Dir       : File_Name_Type;
+   --  Object dir for the monolithic application
 
    PCS_Project       : Name_Id;
    PCS_Project_File  : File_Name_Type;
@@ -89,6 +94,9 @@ package XE_Utils is
 
    Part_Prj_File_Name : File_Name_Type;
    --  Partition project file
+
+   Overridden_PCS_Units : File_Name_Type;
+   --  Per-partition list of PCS units that are overridden by the partition
 
    No_Args : constant Argument_List (1 .. 0) := (others => null);
 
@@ -170,7 +178,7 @@ package XE_Utils is
    --  Call exit() with return code
 
    procedure Write_Missing_File (Fname : File_Name_Type);
-   --  Output an error message to indicate that Fname is missing
+   --  Output an informational message to indicate that Fname is missing
 
    -----------------------
    --  Command Handling --

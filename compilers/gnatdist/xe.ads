@@ -86,7 +86,7 @@ package XE is
    -- Attribute Type --
    --------------------
 
-   type Attribute_Type is new Int range 200 .. 216;
+   type Attribute_Type is new Int range 200 .. 217;
 
    Attribute_Unknown               : constant Attribute_Type := 200;
    Attribute_Host                  : constant Attribute_Type := 201;
@@ -105,6 +105,7 @@ package XE is
    Attribute_Priority              : constant Attribute_Type := 214;
    Attribute_Allow_Light_PCS       : constant Attribute_Type := 215;
    Attribute_Environment_Variables : constant Attribute_Type := 216;
+   Attribute_ORB_Tasking_Policy    : constant Attribute_Type := 217;
 
    -----------------
    -- Pragma Type --
@@ -198,6 +199,30 @@ package XE is
    Server_Declared     : constant Priority_Policy_Type := 801;
    Client_Propagated   : constant Priority_Policy_Type := 802;
    Priority_Policy_Img : array (Priority_Policy_Type) of Name_Id;
+
+   -----------------------------
+   -- ORB Tasking Policy Type --
+   -----------------------------
+
+   type ORB_Tasking_Policy_Type is new Int range 900 .. 903;
+
+   No_ORB_Tasking_Policy  : constant ORB_Tasking_Policy_Type := 900;
+   Thread_Pool            : constant ORB_Tasking_Policy_Type := 901;
+   Thread_Per_Session     : constant ORB_Tasking_Policy_Type := 902;
+   Thread_Per_Request     : constant ORB_Tasking_Policy_Type := 903;
+   ORB_Tasking_Policy_Img : array (ORB_Tasking_Policy_Type) of Name_Id;
+
+   ------------------
+   -- Tasking Type --
+   ------------------
+
+   type Tasking_Type is new Int range 1000 .. 1003;
+
+   Unknown_Tasking : constant Tasking_Type := 1000;
+   PCS_Tasking     : constant Tasking_Type := 1001;
+   User_Tasking    : constant Tasking_Type := 1002;
+   No_Tasking      : constant Tasking_Type := 1003;
+   Tasking_Img     : array (Tasking_Type) of Name_Id;
 
    -------------
    -- Node Id --
@@ -752,6 +777,12 @@ package XE is
    pragma Inline (Convert);
 
    function Convert (Item : Int) return Priority_Policy_Type;
+   pragma Inline (Convert);
+
+   function Convert (Item : ORB_Tasking_Policy_Type) return Int;
+   pragma Inline (Convert);
+
+   function Convert (Item : Int) return ORB_Tasking_Policy_Type;
    pragma Inline (Convert);
 
 end XE;

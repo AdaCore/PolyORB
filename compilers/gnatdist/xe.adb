@@ -478,6 +478,28 @@ package body XE is
       return Priority_Policy_Type (Item);
    end Convert;
 
+   -------------
+   -- Convert --
+   -------------
+
+   function Convert (Item : ORB_Tasking_Policy_Type) return Int is
+   begin
+      return Int (Item);
+   end Convert;
+
+   -------------
+   -- Convert --
+   -------------
+
+   function Convert (Item : Int) return ORB_Tasking_Policy_Type is
+   begin
+      pragma Assert
+        (Item in
+         Int (ORB_Tasking_Policy_Type'First) ..
+         Int (ORB_Tasking_Policy_Type'Last));
+      return ORB_Tasking_Policy_Type (Item);
+   end Convert;
+
    ----------------------
    -- Create_Component --
    ----------------------
@@ -970,25 +992,38 @@ package body XE is
    begin
       Priority_Policy_Img
         := (No_Priority_Policy => Id ("Undefined Priority Policy"),
-            Server_Declared         => Id ("Server_Declared"),
-            Client_Propagated       => Id ("Client_Propagated"));
+            Server_Declared    => Id ("Server_Declared"),
+            Client_Propagated  => Id ("Client_Propagated"));
 
       Termination_Img
-        := (No_Termination  => Id ("Undefined Termination"),
+        := (No_Termination       => Id ("Undefined Termination"),
             Local_Termination    => Id ("Local_Termination"),
             Global_Termination   => Id ("Global_Termination"),
             Deferred_Termination => Id ("Deferred_Termination"));
 
       Reconnection_Img
-        := (No_Reconnection  => Id ("Undefined Reconnection"),
+        := (No_Reconnection     => Id ("Undefined Reconnection"),
             Reject_On_Restart   => Id ("Reject_On_Restart"),
             Block_Until_Restart => Id ("Block_Until_Restart"),
             Fail_Until_Restart  => Id ("Fail_Until_Restart"));
 
       Boolean_Img
-        := (BMaybe  => Id ("Undefined Boolean"),
-            BFalse  => Id ("False"),
-            BTrue   => Id ("True"));
+        := (BMaybe => Id ("Undefined Boolean"),
+            BFalse => Id ("False"),
+            BTrue  => Id ("True"));
+
+      ORB_Tasking_Policy_Img
+        := (No_ORB_Tasking_Policy => Id ("Undefined ORB Tasking Policy"),
+            Thread_Pool           => Id ("Thread_Pool"),
+            Thread_Per_Session    => Id ("Thread_Per_Session"),
+            Thread_Per_Request    => Id ("Thread_Per_Request"));
+
+      Tasking_Img
+        := (Unknown_Tasking => Id ("Undefined Tasking"),
+            PCS_Tasking     => Id ("PCS_Tasking"),
+            User_Tasking    => Id ("User_Tasking"),
+            No_Tasking      => Id ("No_Tasking"));
+
    end Initialize;
 
    ------------------

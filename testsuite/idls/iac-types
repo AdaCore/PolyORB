@@ -1,0 +1,10 @@
+INCLUDES=
+FILENAME=
+for i in $*; do
+  case $i in
+  -I*) INCLUDES="$INCLUDES $i";;
+  -*) ;;
+  *) FILENAME="$i";;
+  esac;
+done
+iac $INCLUDES -types $FILENAME

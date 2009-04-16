@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -285,12 +285,11 @@ package body PolyORB.Obj_Adapters.Group_Object_Adapter is
       use type PolyORB.Servants.Servant_Access;
 
    begin
-      pragma Debug (C, O ("Find_Servant " & Oid_To_Hex_String (Id.all)));
+      pragma Debug (C, O ("Find_Servant " & Image (Id.all)));
 
       Enter (GOA.Lock);
 
-      Servant := Lookup (GOA.Registered_Groups,
-                         Oid_To_Hex_String (Id.all), null);
+      Servant := Lookup (GOA.Registered_Groups, Image (Id.all), null);
       if Servant = null then
          pragma Debug (C, O ("Servant not found"));
          Throw (Error,

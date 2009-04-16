@@ -37,6 +37,7 @@ with XE_Flags;    use XE_Flags;
 with XE_IO;       use XE_IO;
 with XE_Names;    use XE_Names;
 with XE_Utils;    use XE_Utils;
+with XE_Storages; use XE_Storages;
 
 package body XE_Front is
 
@@ -249,6 +250,41 @@ package body XE_Front is
       end if;
       Last := L;
    end Add_Location;
+
+   --------------------------
+   -- Add_Required_Storage --
+   --------------------------
+
+   procedure Add_Required_Storage
+     (First    : in out Required_Storage_Id;
+      Last     : in out Required_Storage_Id;
+      Location : Location_Id;
+      Unit     : Unit_Id;
+      Owner    : Boolean)
+   is
+      W : Required_Storage_Id;
+
+   begin
+      --  Add a new element in the required storage table
+
+      Required_Storages.Increment_Last;
+      W := Required_Storages.Last;
+      Required_Storages.Table (W).Location     := Location;
+      Required_Storages.Table (W).Unit         := Unit;
+      Required_Storages.Table (W).Is_Owner     := Owner;
+      Required_Storages.Table (W).Next_Storage := No_Required_Storage_Id;
+
+      --  Link this new required storage to the end of the partition required
+      --  storage list.
+
+      if First = No_Required_Storage_Id then
+         First := W;
+
+      else
+         Required_Storages.Table (Last).Next_Storage := W;
+      end if;
+      Last := W;
+   end Add_Required_Storage;
 
    -----------------------
    -- Build_New_Channel --
@@ -639,7 +675,7 @@ package body XE_Front is
    -- Get_Tasking --
    -----------------
 
-   function Get_Tasking (A : ALI_Id) return Character is
+   function Get_Tasking (A : ALI_Id) return Tasking_Type is
    begin
       return ALIs.Table (A).Tasking;
    end Get_Tasking;
@@ -873,7 +909,6 @@ package body XE_Front is
       end Write_Attr_Kind_Error;
 
    begin
-
       --  If this attribute applies to partition type itself, it may not
       --  have a value. No big deal, we use defaults.
 
@@ -1098,6 +1133,14 @@ package body XE_Front is
                Name := Get_Variable_Name (Get_Component_Value (Comp_Node));
                Next_Variable_Component (Comp_Node);
                Data := Get_Variable_Name (Get_Component_Value (Comp_Node));
+
+               --  Check validity of choosen storage support
+
+               if Storage_Supports.Get (Name) = Unknown_Storage_Support then
+                  Write_Attr_Kind_Error ("storage",
+                                         "an available storage support");
+               end if;
+
                declare
                   LID : Location_Id;
                begin
@@ -1192,6 +1235,22 @@ package body XE_Front is
                   Get_Variable_Name (Get_Component_Value (Comp_Node)));
                Next_Variable_Component (Comp_Node);
             end loop;
+
+         when Attribute_ORB_Tasking_Policy =>
+
+            if Get_Variable_Type (Attr_Item) /= Integer_Type_Node then
+               Write_Attr_Kind_Error ("ORB tasking policy",
+                                      "of ORB tasking policy type");
+            end if;
+
+            --  Check that it has not already been assigned.
+
+            if Current.ORB_Tasking_Policy = No_ORB_Tasking_Policy then
+               Current.ORB_Tasking_Policy :=
+                 ORB_Tasking_Policy_Type (Get_Scalar_Value (Attr_Item));
+            else
+               Write_Attr_Init_Error ("ORB_Tasking_Policy");
+            end if;
 
          when Attribute_CFilter | Attribute_Unknown =>
             raise Fatal_Error;
@@ -1358,7 +1417,7 @@ package body XE_Front is
    -- Set_Tasking --
    -----------------
 
-   procedure Set_Tasking (A : ALI_Id; T : Character) is
+   procedure Set_Tasking (A : ALI_Id; T : Tasking_Type) is
    begin
       ALIs.Table (A).Tasking := T;
    end Set_Tasking;
@@ -1566,6 +1625,24 @@ package body XE_Front is
          Write_Eol;
       end if;
 
+      if Current.ORB_Tasking_Policy /= No_ORB_Tasking_Policy then
+         Write_Field (1, "ORB tasking");
+         case Current.ORB_Tasking_Policy is
+            when Thread_Pool =>
+               Write_Str ("thread pool");
+
+            when Thread_Per_Session =>
+               Write_Str ("thread per session");
+
+            when Thread_Per_Request =>
+               Write_Str ("thread per request");
+
+            when No_ORB_Tasking_Policy =>
+               null;
+         end case;
+         Write_Eol;
+      end if;
+
       if Current.Task_Pool /= No_Task_Pool then
          Write_Field (1, "Task Pool");
          for J in Current.Task_Pool'Range loop
@@ -1648,14 +1725,20 @@ package body XE_Front is
          Write_Eol;
          U := Partitions.Table (P).First_Unit;
          while U /= No_Conf_Unit_Id loop
-            I := Conf_Units.Table (U).My_Unit;
             Write_Str ("             - ");
             Write_Name (Conf_Units.Table (U).Name);
             Write_Str (" (");
 
             --  Indicate unit categorization
 
-            if Units.Table (I).RCI then
+            I := Conf_Units.Table (U).My_Unit;
+
+            if I = No_Unit_Id then
+               --  Case where the unit has not been compiled succesfully
+
+               Write_Str ("unavailable");
+
+            elsif Units.Table (I).RCI then
                Write_Str ("rci");
 
             elsif Units.Table (I).Remote_Types then

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -32,10 +32,12 @@
 ------------------------------------------------------------------------------
 
 with Ada.Strings.Fixed; use Ada.Strings, Ada.Strings.Fixed;
+with Ada.Strings.Maps;
 with Ada.Text_IO;       use Ada.Text_IO;
-with GNAT.OS_Lib;
+with GNAT.Directory_Operations;
 with Idlac_Flags;       use Idlac_Flags;
-with Utils;             use Utils;
+with Idlac_Utils;       use Idlac_Utils;
+with Utils;
 
 package body Idlac_Errors is
 
@@ -56,7 +58,8 @@ package body Idlac_Errors is
    --  on the error location.
 
    function Full_Name (Loc : Location) return String;
-   --  Return the full file name (i.e., a usable one)
+   --  Return the full file name (i.e., a usable one), or "<standard input>" if
+   --  unknown.
 
    function Resolve_Tabs (S : String) return String;
    --  Return a string where tabs have been properly expanded
@@ -70,29 +73,7 @@ package body Idlac_Errors is
       Short : Boolean := False)
      return String is
 
-      function Path return String;
-      --  Return the file name, or "<standard input>" if unknown
-
-      ----------
-      -- Path --
-      ----------
-
-      function Path return String is
-      begin
-         if Loc.Filename = null then
-            return "<standard input>";
-         elsif Loc.Dirname = null then
-            return Loc.Filename.all;
-         elsif
-           Loc.Dirname (Loc.Dirname'Last) = GNAT.OS_Lib.Directory_Separator
-         then
-            return Loc.Dirname.all & Loc.Filename.all;
-         else
-            return Loc.Dirname.all & GNAT.OS_Lib.Directory_Separator
-              & Loc.Filename.all;
-         end if;
-      end Path;
-
+      Path   : constant String := Full_Name (Loc);
       Line   : constant String := Img (Loc.Line);
       Column : constant String := Img (Loc.Col);
 
@@ -100,10 +81,34 @@ package body Idlac_Errors is
       if Short then
          return Path & ':' & Line & ':' & Column;
       else
-         return
-           "line " & Line & ", column " & Column & " of file " & Path;
+         return "line " & Line & ", column " & Column & " of file " & Path;
       end if;
    end Location_To_String;
+
+   ----------------
+   --  Set_Path  --
+   ----------------
+
+   procedure Set_Path (Loc : in out Location; Filename : String) is
+      use Ada.Strings.Maps;
+
+      Separator : constant Natural
+        := Index (Filename,
+                  To_Set (GNAT.Directory_Operations.Dir_Separator & '/'),
+                  Inside,
+                  Backward);
+
+   begin
+      if Separator /= 0 then
+         Loc.Dirname :=
+          new String'(Filename (Filename'First .. Separator - 1));
+         Loc.Filename :=
+          new String'(Filename (Separator + 1 .. Filename'Last));
+      else
+         Loc.Dirname := null;
+         Loc.Filename := new String'(Filename);
+      end if;
+   end Set_Path;
 
    ----------------------
    --  Error handling  --
@@ -197,13 +202,13 @@ package body Idlac_Errors is
    begin
       if Loc.Filename = null then
          return "<standard input>";
-      end if;
-
-      if Loc.Dirname = null then
+      elsif Loc.Dirname = null then
          return Loc.Filename.all;
+      elsif Utils.Is_Dir_Separator (Loc.Dirname (Loc.Dirname'Last)) then
+         return Loc.Dirname.all & Loc.Filename.all;
       else
-         return Loc.Dirname.all & GNAT.OS_Lib.Directory_Separator &
-           Loc.Filename.all;
+         return Loc.Dirname.all & GNAT.Directory_Operations.Dir_Separator
+           & Loc.Filename.all;
       end if;
    end Full_Name;
 

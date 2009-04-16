@@ -77,7 +77,7 @@ package body PolyORB.Lanes is
             end;
          end loop;
 
-         --  Test wether the task shall exit
+         --  Test whether the task should exit
 
          exit when R.L.Clean_Up_In_Progress or else R.Dynamically_Allocated;
 
@@ -172,8 +172,7 @@ package body PolyORB.Lanes is
                   Name             => "",
                   Default_Priority => ORB_Priority,
                   Storage_Size     => Stack_Size,
-                  R                => Runnable_Access (New_Runnable),
-                  C                => new Runnable_Controller);
+                  R                => Runnable_Access (New_Runnable));
                pragma Unreferenced (T);
             begin
                null;
@@ -259,8 +258,7 @@ package body PolyORB.Lanes is
                      Name             => "",
                      Default_Priority => L.ORB_Priority,
                      Storage_Size     => L.Stack_Size,
-                     R                => Runnable_Access (New_Runnable),
-                     C                => new Runnable_Controller);
+                     R                => Runnable_Access (New_Runnable));
                   pragma Unreferenced (T);
                begin
                   null;

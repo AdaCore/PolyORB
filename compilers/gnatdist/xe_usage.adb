@@ -36,19 +36,10 @@ with XE_Defs.Defaults;
 with XE_Flags; use XE_Flags;
 
 procedure XE_Usage is
-   Version : constant String := "5.04w";
-   Length  : Positive := Version'First;
-
 begin
    if Verbose_Mode then
-      while Length < Version'Last and then Version (Length + 1) /= ' ' loop
-         Length := Length + 1;
-      end loop;
-      Write_Eol;
       Write_Str ("GNATDIST ");
-      Write_Str (Version (Version'First .. Length));
-      Write_Str (" / ");
-      Write_Str (Version (Version'First .. Length));
+      Write_Str (XE_Defs.Defaults.Version);
       Write_Eol;
       Write_Str ("Copyright 1996-2008, Free Software Foundation, Inc.");
       Write_Eol;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2004-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -41,6 +41,8 @@ pragma Warnings (On);
 
 with Ada.Exceptions;
 with Ada.Streams;
+with Ada.Strings.Unbounded;
+with Ada.Tags;
 
 with PolyORB.Any;
 with PolyORB.Any.ExceptionList;
@@ -60,6 +62,7 @@ with PolyORB.Utils.Chained_Lists;
 with PolyORB.Utils.Strings;
 with PolyORB.Initialization;
 
+with System.DSA_Types;
 with System.RPC;
 with System.Unsigned_Types;
 
@@ -71,10 +74,12 @@ package System.Partition_Interface is
    DSA_Implementation : constant DSA_Implementation_Name := PolyORB_DSA;
    --  Identification of this DSA implementation variant
 
-   PCS_Version : constant := 1;
+   PCS_Version : constant := 3;
    --  Version of the PCS API (for Exp_Dist consistency check).
    --  This version number is matched against Gnatvsn.PCS_Version_Number to
    --  ensure that the versions of Exp_Dist and the PCS are consistent.
+
+   package DSAT renames System.DSA_Types;
 
    type Subprogram_Id is new Natural;
    --  This type is used exclusively by stubs
@@ -115,7 +120,7 @@ package System.Partition_Interface is
    type RAS_Proxy_Type_Access is access RAS_Proxy_Type;
    --  This type is used by the expansion to implement distributed objects.
    --  Do not change its definition or its layout without updating
-   --  Exp_Dist.Build_Remote_Supbrogram_Proxy_Type.
+   --  Exp_Dist.Build_Remote_Subprogram_Proxy_Type.
 
    procedure Get_RAS_Info
      (Pkg_Name        :     String;
@@ -213,14 +218,9 @@ package System.Partition_Interface is
    --  Subp_Info is the address of an array of a statically subtype
    --  of RCI_Subp_Info_Array with a range of 0 .. Subp_Info_Len - 1.
 
-   procedure Register_Unit_On_Name_Server (Name : String;
-                                           Kind : String;
-                                           Obj  : PolyORB.References.Ref);
-   --  Register one receiving stub on the name server
-
-   function Retrieve_Receiving_Stub (Name : String;
-                                     Kind : Receiving_Stub_Kind)
-     return Servant_Access;
+   function Retrieve_Receiving_Stub
+     (Name : String;
+      Kind : Receiving_Stub_Kind) return Servant_Access;
    --  Return the servant for distributed objects with given Name and Kind, or
    --  null if non-existant.
 
@@ -293,14 +293,39 @@ package System.Partition_Interface is
    --  to the object's actual address, else Is_Local is set to False and Addr
    --  is set to Null_Address.
 
-   procedure Get_Reference
+   function Get_Reference
+     (RACW             : System.Address;
+      Type_Name        : String;
+      Stub_Tag         : Ada.Tags.Tag;
+      Is_RAS           : Boolean;
+      Receiver         : access Servant) return PolyORB.References.Ref;
+   --  Create a reference from an RACW value with designated type Type_Name.
+   --  Stub_Tag is the tag of the associated stub type. Is_RAS is True if the
+   --  RACW is implementing a remote access-to-subprogram type.
+   --  Receiver is the associated servant.
+
+   procedure Build_Local_Reference
      (Addr     :        System.Address;
       Typ      :        String;
       Receiver : access Servant;
       Ref      :    out PolyORB.References.Ref);
-   --  Create a reference that can be used to desginate the object whose
+   --  Create a reference that can be used to designate the local object whose
    --  address is Addr, whose type is the designated type of a RACW type
    --  associated with Servant.
+
+   function Get_RACW
+     (Ref              : PolyORB.References.Ref;
+      Stub_Tag         : Ada.Tags.Tag;
+      Is_RAS           : Boolean;
+      Asynchronous     : Boolean) return System.Address;
+   --  From an object reference, create a remote access-to-classwide value
+   --  designating the same object. Is_RAS indicates whether the RACW is
+   --  implementing a remote access-to-subprogram type.
+   --  The returned address is either the address of a local object, or the
+   --  address of a stub object having the given tag if the designated object
+   --  is remote. For a nil ref, a null address is returned. If All_Calls_
+   --  Remote is True, the address of a stub object is returned even if the
+   --  reference is local.
 
    ------------------------------
    -- Any and associated types --
@@ -365,6 +390,7 @@ package System.Partition_Interface is
 --       function FA_AD (Item : Any) return X;
 --       function FA_AS (Item : Any) return X;
 
+   function FA_A (Item : Any) return DSAT.Any_Container_Ptr;
    function FA_B (Item : Any) return Boolean;
    function FA_C (Item : Any) return Character;
    function FA_F (Item : Any) return Float;
@@ -387,19 +413,12 @@ package System.Partition_Interface is
    function FA_SSU (Item : Any) return Short_Short_Unsigned;
    function FA_WC (Item : Any) return Wide_Character;
 
-   function FA_String (Item : Any) return String;
-
-   function FA_ObjRef
-     (Item : Any)
-      return PolyORB.References.Ref
+   function FA_String
+     (Item : Any) return Ada.Strings.Unbounded.Unbounded_String;
+   function FA_ObjRef (Item : Any) return PolyORB.References.Ref
      renames PolyORB.Any.ObjRef.From_Any;
 
---     function TA_AD (X) return Any;
---     function TA_AS (X) return Any;
-
-   function TA_A (A : Any) return Any
-     renames PolyORB.Any.To_Any;
-
+   function TA_A (Item : DSAT.Any_Container_Ptr) return Any;
    function TA_B (Item : Boolean) return Any;
    function TA_C (Item : Character) return Any;
    function TA_F (Item : Float) return Any;
@@ -417,13 +436,11 @@ package System.Partition_Interface is
    function TA_SSI (Item : Short_Short_Integer) return Any;
    function TA_SSU (Item : Short_Short_Unsigned) return Any;
    function TA_WC (Item : Wide_Character) return Any;
-
-   function TA_String (S : String) return Any;
-
-   function TA_ObjRef (R : PolyORB.References.Ref)
-     return Any
+   function TA_String (S : Ada.Strings.Unbounded.Unbounded_String) return Any;
+   function TA_ObjRef (R : PolyORB.References.Ref) return Any
      renames PolyORB.Any.ObjRef.To_Any;
 
+   function TA_Std_String (S : String) return Any;
    function TA_TC (TC : PolyORB.Any.TypeCode.Local_Ref) return Any
      renames PolyORB.Any.To_Any;
 
@@ -435,6 +452,8 @@ package System.Partition_Interface is
    --  The typecodes below define the mapping of Ada elementary
    --  types onto PolyORB types.
 
+   function TC_A return PolyORB.Any.TypeCode.Local_Ref
+     renames PolyORB.Any.TC_Any;
    function TC_B return PolyORB.Any.TypeCode.Local_Ref
      renames PolyORB.Any.TC_Boolean;
    function TC_C return PolyORB.Any.TypeCode.Local_Ref
@@ -447,8 +466,6 @@ package System.Partition_Interface is
    --  (or the biggest PolyORB type for each Ada type should be selected, if
    --  cross-platform interoperability is desired.
 
-   function TC_Any return PolyORB.Any.TypeCode.Local_Ref
-     renames PolyORB.Any.TC_Any;
    function TC_I return PolyORB.Any.TypeCode.Local_Ref
      renames PolyORB.Any.TC_Long;
    function TC_LF return PolyORB.Any.TypeCode.Local_Ref
@@ -561,6 +578,8 @@ package System.Partition_Interface is
 
    procedure Any_To_BS (Item : Any; Stream : out Buffer_Stream_Type);
    procedure BS_To_Any (Stream : Buffer_Stream_Type; Item : out Any);
+   --  Conversion between an Any for an opaque sequence of octets and an Ada
+   --  Stream based on a PolyORB buffer.
 
    procedure Allocate_Buffer (Stream : in out Buffer_Stream_Type);
    procedure Release_Buffer (Stream : in out Buffer_Stream_Type);
@@ -577,38 +596,40 @@ package System.Partition_Interface is
       Operation :        String;
       Arg_List  :        PolyORB.Any.NVList.Ref;
       Result    : in out PolyORB.Any.NamedValue;
-      Exc_List  :        PolyORB.Any.ExceptionList.Ref
-        := PolyORB.Any.ExceptionList.Nil_Ref;
+      Exc_List  :        PolyORB.Any.ExceptionList.Ref :=
+                           PolyORB.Any.ExceptionList.Nil_Ref;
       Req       :    out PolyORB.Requests.Request_Access;
       Req_Flags :        PolyORB.Requests.Flags;
-      Deferred_Arguments_Session :
-        PolyORB.Components.Component_Access := null;
-      Identification : PolyORB.Requests.Arguments_Identification
-        := PolyORB.Requests.Ident_By_Position;
-      Dependent_Binding_Object : PolyORB.Smart_Pointers.Entity_Ptr
-        := null
+      Deferred_Arguments_Session : PolyORB.Components.Component_Access := null;
+      Identification :   PolyORB.Requests.Arguments_Identification :=
+                           PolyORB.Requests.Ident_By_Position;
+      Dependent_Binding_Object : PolyORB.Smart_Pointers.Entity_Ptr := null
      ) renames PolyORB.Requests.Create_Request;
 
    procedure Request_Invoke
      (R            : PolyORB.Requests.Request_Access;
-      Invoke_Flags : PolyORB.Requests.Flags          := 0);
+      Invoke_Flags : PolyORB.Requests.Flags := 0);
 
    procedure Request_Arguments
      (R     :        PolyORB.Requests.Request_Access;
       Args  : in out PolyORB.Any.NVList.Ref);
 
-   procedure Request_Set_Out
-     (R     : PolyORB.Requests.Request_Access);
+   procedure Request_Set_Out (R : PolyORB.Requests.Request_Access);
 
    procedure Set_Result
      (Self : PolyORB.Requests.Request_Access;
       Val  : Any)
      renames PolyORB.Requests.Set_Result;
 
+   procedure Request_Destroy
+     (Self : in out PolyORB.Requests.Request_Access)
+     renames PolyORB.Requests.Destroy_Request;
+
    Asynchronous_P_To_Sync_Scope : constant array (Boolean)
-     of PolyORB.Requests.Flags
-     := (False => PolyORB.Requests.Sync_With_Target,
-         True  => PolyORB.Requests.Sync_With_Transport);
+     of PolyORB.Requests.Flags :=
+       (False => PolyORB.Requests.Sync_With_Target,
+        True  => PolyORB.Requests.Sync_With_Transport);
+
    --  Request_Flags to use for a request according to whether or not the call
    --  is asynchronous.
 
@@ -623,6 +644,26 @@ package System.Partition_Interface is
       Address  : System.Address;
       Shutdown : PolyORB.Initialization.Finalizer);
    --  Register the termination manager of the local partition
+
+   procedure Register_Passive_Package
+     (Name    : Unit_Name;
+      Version : String := "");
+   --  This procedure is unused for PolyORB (it is used only for the GARLIC
+   --  implementation of Shared Passive.)
+
+   procedure Register_RACW_In_Name_Server
+     (Addr     : System.Address;
+      Type_Tag : Ada.Tags.Tag;
+      Name     : String;
+      Kind     : String);
+   --  Register a RACW in name server. Type_Tag is the name of pointed type.
+
+   procedure Retrieve_RACW_From_Name_Server
+     (Name     : String;
+      Kind     : String;
+      Stub_Tag : Ada.Tags.Tag;
+      Addr     : out System.Address);
+   --  Retreive a RACW from name server.
 
 private
 
@@ -648,7 +689,7 @@ private
 
    type Receiving_Stub is new Private_Info with record
       Kind                : Receiving_Stub_Kind;
-      --  Indicates whetger this info is relative to RACW type or a RCI
+      --  Indicates whether this info is relative to RACW type or a RCI
 
       Name                : PolyORB.Utils.Strings.String_Ptr;
       --  Fully qualified name of the RACW or RCI

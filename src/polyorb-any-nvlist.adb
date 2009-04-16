@@ -71,9 +71,7 @@ package body PolyORB.Any.NVList is
       Obj : constant Object_Ptr := Object_Ptr (Entity_Of (Self));
    begin
       pragma Debug (C, O ("Add_Item (2 params) : enter"));
-
       NV_Lists.Append (Obj.List, Item);
-
       pragma Debug (C, O ("Add_Item (2 params) : end"));
    end Add_Item;
 
@@ -87,29 +85,11 @@ package body PolyORB.Any.NVList is
       Internals.NV_Lists.Deallocate (X.List);
    end Finalize;
 
-   ----------
-   -- Free --
-   ----------
-
-   procedure Free
-     (Self : Ref)
-   is
-      pragma Warnings (Off);
-      pragma Unreferenced (Self);
-      pragma Warnings (On);
-
-   begin
-      pragma Debug (C, O ("Free"));
-      null;
-   end Free;
-
    ---------------
    -- Get_Count --
    ---------------
 
-   function Get_Count
-     (Self : Ref)
-     return Types.Long is
+   function Get_Count (Self : Ref) return Types.Long is
    begin
       if Is_Null (Self) then
          return 0;
@@ -131,15 +111,12 @@ package body PolyORB.Any.NVList is
    -- Image --
    -----------
 
-   function Image
-     (NVList : Ref)
-     return Standard.String
+   function Image (NVList : Ref) return Standard.String
    is
       use NV_Lists;
 
       Obj : constant Object_Ptr := Object_Ptr (Entity_Of (NVList));
       Result : PolyORB.Types.String := To_PolyORB_String ("");
-
    begin
       if Obj /= null then
          declare

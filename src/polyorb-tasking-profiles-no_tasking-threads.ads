@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -74,9 +74,7 @@ package PolyORB.Tasking.Profiles.No_Tasking.Threads is
       Name             : String := "";
       Default_Priority : System.Any_Priority := System.Default_Priority;
       Storage_Size     : Natural := 0;
-      R                : PTT.Runnable_Access;
-      C                : PTT.Runnable_Controller_Access)
-     return PTT.Thread_Access;
+      R                : PTT.Runnable_Access) return PTT.Thread_Access;
    --  This function has no sense in No_Tasking profile.
    --  It simply raises a Tasking_Error.
 
@@ -85,8 +83,7 @@ package PolyORB.Tasking.Profiles.No_Tasking.Threads is
       Name             : String := "";
       Default_Priority : System.Any_Priority := System.Default_Priority;
       Storage_Size     : Natural := 0;
-      P                : PTT.Parameterless_Procedure)
-     return PTT.Thread_Access;
+      P                : PTT.Parameterless_Procedure) return PTT.Thread_Access;
    --  This function has no sense in No_Tasking profile.
    --  It simply raises a Tasking_Error.
 

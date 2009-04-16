@@ -358,11 +358,13 @@ package Backend.BE_CORBA_Ada.Nutils is
    --  Array of variable identifiers
 
    type Subprogram_Id is
-     (S_Append,
+     (S_Adjust,
+      S_Append,
       S_Clone,
       S_Deferred_Initialization,
       S_Entity_Of,
       S_Get_Members,
+      S_Finalize,
       S_Finalize_Value,
       S_Free,
       S_From_Any,
@@ -381,6 +383,7 @@ package Backend.BE_CORBA_Ada.Nutils is
       S_Set_Aggregate_Count,
       S_Set_Aggregate_Element,
       S_To_Abstract_Ref,
+      S_To_Address,
       S_To_Any,
       S_To_Bounded_String,
       S_To_Bounded_Wide_String,
@@ -390,6 +393,7 @@ package Backend.BE_CORBA_Ada.Nutils is
       S_To_Ref,
       S_To_String,
       S_To_Wide_String,
+      S_Unchecked_Get_V,
       S_Unchecked_To_Abstract_Ref,
       S_Unchecked_To_Local_Ref,
       S_Unchecked_To_Ref,
@@ -402,8 +406,11 @@ package Backend.BE_CORBA_Ada.Nutils is
 
    type Component_Id is
      (C_Argument,
+      C_Completed,
+      C_Deferred_Arguments_Session,
       C_Dimen,
       C_Indices,
+      C_Minor,
       C_Mode,
       C_Name,
       C_IDL_Type,
@@ -420,6 +427,7 @@ package Backend.BE_CORBA_Ada.Nutils is
      (A_Access,
       A_Class,
       A_First,
+      A_Last,
       A_Pos,
       A_Val,
       A_Identity,
@@ -493,12 +501,14 @@ package Backend.BE_CORBA_Ada.Nutils is
    --  suffix does not exist, the returned name id is equal to the
    --  given name id.
 
-   procedure Add_With_Package (E : Node_Id);
+   procedure Add_With_Package
+     (E : Node_Id; Unreferenced : Boolean := False);
    --  Append a 'with' clause to the Withed_Package list of the
-   --  current package. E is a Designator of the Withed package
+   --  current package. E is a Designator of the Withed package.
+   --  If Unreferenced is True, generate a pragma Unreferenced.
 
-   procedure Append_Node_To_List (E : Node_Id; L : List_Id);
-   --  Append node N to the end of list L
+   procedure Append_To (L : List_Id; E : Node_Id);
+   --  Append node E to the end of list L
 
    function Convert (K : Frontend.Nodes.Node_Kind) return RE_Id;
    --  If K is an IDL base type, returns the corresponding CORBA type
@@ -518,9 +528,14 @@ package Backend.BE_CORBA_Ada.Nutils is
    --  Return the top of the Ada Package stack
 
    function Copy_Node (N : Node_Id) return Node_Id;
-   --  Return a copy of node N if N is a K_Designator,
-   --  K_Defining_Identifier or a K_Attribute_Reference. Else raise
-   --  Program_Error.
+   --  Return a recursive copy of node N and its children.
+   --  Implemented for:
+   --    K_Identifier
+   --    K_Defining_Identifier
+   --    K_Attribute_Reference.
+   --    K_Selected_Component
+   --    K_Literal
+   --  Program_Error is raised for all other kinds.
 
    function Get_Declaration_Node (N : Node_Id) return Node_Id;
    --  If N is of kind K_Defininy_Identifier, return the value of its
@@ -550,18 +565,10 @@ package Backend.BE_CORBA_Ada.Nutils is
 
    function New_Node
      (Kind : Node_Kind;
-      From : Node_Id   := No_Node)
-     return Node_Id;
-   --  Create a new Ada Node_Id of Kind 'Kind'. If the 'From' node is
-   --  given, set the FE_Node of the newly created node to
-   --  'From'. 'From' is consequently assumed to designate an IDL
-   --  Node_Id
-
-   function New_List
-     (Kind : Node_Kind;
-      From : Node_Id   := No_Node)
-     return List_Id;
-   --  The same as New_Node, but creates a List
+      From : Node_Id := No_Node) return Node_Id;
+   --  Create a new Ada Node_Id of Kind 'Kind'. If the 'From' node is given,
+   --  set the FE_Node of the newly created node to 'From'. 'From' is
+   --  consequently assumed to designate an IDL Node_Id
 
    function Image (T : Token_Type) return String;
    --  Return the lower case image of token T (used to build the
@@ -638,6 +645,10 @@ package Backend.BE_CORBA_Ada.Nutils is
    --  to the fields of the Node (see the file
    --  backend-be_corba_ada-nodes.idl for more detail on the Ada tree
    --  structure).
+
+   --  ??? The "usually" above is frightening, these factory fuctions should
+   --  be generated automatically, and their signatures should correspond
+   --  EXACTLY to the tree structure!
 
    function Make_Access_Type_Definition
      (Subtype_Indication : Node_Id;
@@ -727,7 +738,7 @@ package Backend.BE_CORBA_Ada.Nutils is
      (Subtype_Indication    : Node_Id;
       Record_Extension_Part : Node_Id := No_Node;
       Is_Abstract_Type      : Boolean := False;
-      Is_Private_Extention  : Boolean := False;
+      Is_Private_Extension  : Boolean := False;
       Is_Subtype            : Boolean := False)
      return Node_Id;
    --  Usually used with Make_Full_Type_Declaration
@@ -798,21 +809,23 @@ package Backend.BE_CORBA_Ada.Nutils is
       Parameter_List      : List_Id)
      return Node_Id;
 
-   function Make_List_Id
-     (N1 : Node_Id;
+   function New_List
+     (N1 : Node_Id := No_Node;
       N2 : Node_Id := No_Node;
       N3 : Node_Id := No_Node;
       N4 : Node_Id := No_Node;
-      N5 : Node_Id := No_Node)
-     return List_Id;
+      N5 : Node_Id := No_Node) return List_Id;
    --  Create a list which contains all the given nodes
 
-   function Make_Literal
+   function Make_Literal (Value  : Value_Id) return Node_Id;
+
+   function Make_Literal_With_Parent
      (Value  : Value_Id;
       Parent : Node_Id := No_Node)
      return Node_Id;
-   --  If parent is present, creates a selected component whose prefix
-   --  is the parent and whose selector name is the literal.
+   --  Same as Make_Literal, except that if parent is present and Value is not
+   --  No_Value, creates a selected component whose prefix is the parent and
+   --  whose selector name is the literal.
 
    function Make_Null_Statement return Node_Id;
 
@@ -931,6 +944,14 @@ package Backend.BE_CORBA_Ada.Nutils is
       Expression   : Node_Id)
      return Node_Id;
 
+   function Make_Slice
+     (Prefix         : Node_Id;
+      Discrete_Range : Node_Id) return Node_Id;
+
+   function Make_Range
+     (Low_Bound  : Node_Id;
+      High_Bound : Node_Id) return Node_Id;
+
    function Make_Used_Package (The_Used_Package : Node_Id) return Node_Id;
 
    function Make_Used_Type (The_Used_Type : Node_Id) return Node_Id;
@@ -985,7 +1006,9 @@ package Backend.BE_CORBA_Ada.Nutils is
    procedure Set_Skeleton_Body (N : Node_Id := Current_Entity);
    procedure Set_Skeleton_Spec (N : Node_Id := Current_Entity);
 
-   function To_Ada_Name (N : Name_Id) return Name_Id;
+   function To_Ada_Name
+     (N                 : Name_Id;
+      Is_Operation_Name : Boolean := False) return Name_Id;
    --  Converts IDL name to Ada names. The IDL name is converted
    --  according to the Ada mapping specifications. The following
    --  modifications may be applied to the IDL name to produce the Ada
@@ -999,8 +1022,10 @@ package Backend.BE_CORBA_Ada.Nutils is
    --   * Where '_' is at the end of an identifier, add the character
    --  'U' after the underscore.
 
-   --   * When an IDL identifier clashes with an Ada reserved word,
-   --  insert the string "IDL_" before the identifier.
+   --   * When an IDL identifier clashes with an Ada reserved word or,
+   --     if Is_Operation_Name is True, with the name of a primitive operation
+   --     of Ada.Finalization.Controlled, insert the string "IDL_" before the
+   --     identifier.
 
    function To_Spec_Name (N : Name_Id) return Name_Id;
    --  Builds an internal name id used when handling runtime entities

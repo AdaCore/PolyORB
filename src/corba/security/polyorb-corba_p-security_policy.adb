@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -66,17 +66,13 @@ package body PolyORB.CORBA_P.Security_Policy is
    is
       use PolyORB.Security.Types;
 
-      Target   : CORBA.Object.Ref;
-      Creds    : Credentials_List_Access                    := null;
+      Target   : constant CORBA.Object.Ref :=
+                   CORBA.Object.Internals.To_CORBA_Ref (Object);
+      Creds    : Credentials_List_Access := null;
       Requires : PolyORB.Security.Types.Association_Options := 0;
 
    begin
-      --  Convert PolyORB's reference into CORBA reference for retrieve
-      --  effective policies
-
-      CORBA.Object.Internals.Convert_To_CORBA_Ref (Object, Target);
-
-      --  Analize overrided policy
+      --  Analize overridden policy
 
       for J in Registry'Range loop
          if Registry (J).Registered then

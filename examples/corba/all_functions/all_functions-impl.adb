@@ -91,6 +91,16 @@ package body all_functions.Impl is
       null;
    end in_proc;
 
+   procedure out_in_proc
+     (Self : access Object;
+      a : out CORBA.Short;
+      b : CORBA.Long)
+   is
+      pragma Unreferenced (Self);
+   begin
+      a := CORBA.Short (b) + 1;
+   end out_in_proc;
+
    procedure out_proc
      (Self : access Object;
       a : out CORBA.Short;
@@ -159,11 +169,14 @@ package body all_functions.Impl is
       pragma Warnings (Off);
       pragma Unreferenced (Self);
       pragma Warnings (On);
+
+      Entry_B : constant CORBA.Short := B;
+      Entry_C : constant CORBA.Short := C;
    begin
-      a := 45;
-      b := 46;
-      c := 47;
-      d := 48;
+      a := 111;
+      b := Entry_C + 1;
+      c := Entry_B + 1;
+      d := 999;
    end out_inout_proc;
 
    procedure in_out_inout_proc
@@ -314,7 +327,7 @@ package body all_functions.Impl is
       pragma Warnings (On);
    begin
       Oneway_Value := 1;
-      delay 5.0;
+      delay 1.0;
       Oneway_Value := 2;
    end oneway_void_proc;
 
@@ -328,7 +341,7 @@ package body all_functions.Impl is
       pragma Warnings (On);
    begin
       Oneway_Value := a;
-      delay 5.0;
+      delay 1.0;
       Oneway_Value := b;
    end oneway_in_proc;
 

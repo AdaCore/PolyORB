@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -51,7 +51,7 @@ package body PolyORB.References.URI is
 
    type Profile_Record is record
       Tag                    : PolyORB.Binding_Data.Profile_Tag;
-      Proto_Ident            : Types.String;
+      Proto_Ident            : String_Ptr;
       Profile_To_String_Body : Profile_To_String_Body_Type;
       String_To_Profile_Body : String_To_Profile_Body_Type;
    end record;
@@ -171,6 +171,7 @@ package body PolyORB.References.URI is
      (Obj_Addr : String) return Binding_Data.Profile_Access
    is
       use PolyORB.Types;
+      use PolyORB.Utils;
 
       Iter : Iterator := First (Callbacks);
    begin
@@ -178,17 +179,12 @@ package body PolyORB.References.URI is
                        & Obj_Addr));
 
       while not Last (Iter) loop
-         declare
-            Ident : String renames To_String (Value (Iter).Proto_Ident);
-         begin
-            if Obj_Addr'Length > Ident'Length
-              and then Obj_Addr (Ident'Range) = Ident then
-               pragma Debug
-                 (C, O ("Try to unmarshall profile with profile factory tag "
-                     & Profile_Tag'Image (Value (Iter).Tag)));
-               return Value (Iter).String_To_Profile_Body (Obj_Addr);
-            end if;
-         end;
+         if Has_Prefix (Obj_Addr, Prefix => Value (Iter).Proto_Ident.all) then
+            pragma Debug
+              (C, O ("Try to unmarshall profile with profile factory tag "
+                  & Profile_Tag'Image (Value (Iter).Tag)));
+            return Value (Iter).String_To_Profile_Body (Obj_Addr);
+         end if;
 
          Next (Iter);
       end loop;
@@ -288,9 +284,11 @@ package body PolyORB.References.URI is
       Profile_To_String_Body : Profile_To_String_Body_Type;
       String_To_Profile_Body : String_To_Profile_Body_Type) is
    begin
+      pragma Debug (C, O ("Register URI cb: prefix=" & Proto_Ident
+                            & " tag=" & Tag'Img));
       Append (Callbacks,
               Profile_Record'(Tag,
-                              Types.To_PolyORB_String (Proto_Ident),
+                              new String'(Proto_Ident),
                               Profile_To_String_Body,
                               String_To_Profile_Body));
    end Register;
@@ -317,8 +315,7 @@ package body PolyORB.References.URI is
    begin
       while not Last (Iter) loop
          Register_String_To_Object
-           (PolyORB.Types.To_String (Value (Iter).Proto_Ident),
-            String_To_Object'Access);
+           (Value (Iter).Proto_Ident.all, String_To_Object'Access);
          Next (Iter);
       end loop;
    end Initialize;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -70,10 +70,10 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.TLS is
 
    procedure Initialize;
 
-   function Create
+   procedure Create
      (TC      : Tagged_Components.Tagged_Component_Access;
-      Profile : Binding_Data.Profile_Access)
-     return Transport_Mechanism_List;
+      Profile : Binding_Data.Profile_Access;
+      Mechs   : in out Transport_Mechanism_List);
    --  Create list of Transport Mechanism from list of Tagged Component
 
    function Create_QoS
@@ -141,7 +141,8 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.TLS is
             Create (TLS_Endpoint (TE.all), TLS_Sock);
 
             Binding_Objects.Setup_Binding_Object
-              (TE,
+              (The_ORB,
+               TE,
                IIOP_Factories,
                BO_Ref,
                Binding_Data.Profile_Access (Profile));
@@ -176,25 +177,20 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.TLS is
    -- Create --
    ------------
 
-   function Create
+   procedure Create
      (TC      : Tagged_Components.Tagged_Component_Access;
-      Profile : Binding_Data.Profile_Access)
-     return Transport_Mechanism_List
+      Profile : Binding_Data.Profile_Access;
+      Mechs   : in out Transport_Mechanism_List)
    is
       pragma Unreferenced (Profile);
-
-      Result    : Transport_Mechanism_List;
-      Mechanism : constant Transport_Mechanism_Access
-        := new TLS_Transport_Mechanism;
-
+      Mechanism : constant Transport_Mechanism_Access :=
+                    new TLS_Transport_Mechanism;
    begin
       --  XXX Setup Target_Supports and Target_Requires
       TLS_Transport_Mechanism (Mechanism.all).Addresses :=
         Duplicate (TC_TLS_Sec_Trans (TC.all).Addresses);
 
-      Append (Result, Mechanism);
-
-      return Result;
+      Append (Mechs, Mechanism);
    end Create;
 
 --   --------------------

@@ -52,6 +52,9 @@ package XE_Back is
    procedure Run_Backend (Self : access Backend) is abstract;
    --  Generate stubs, skels, PCS units and executables.
 
+   procedure Register_Storages (Self : access Backend) is abstract;
+   --  Register available storage supports
+
    function Find_Backend (PCS_Name : String) return Backend_Access;
    --  Return an instance of the backend appropriate for the specified PCS
 
@@ -97,8 +100,11 @@ private
    --  main partition subprogram. This can be a shell script or an Ada
    --  program.
 
-   function Get_Env_Vars (P : Partition_Id) return String;
+   function Get_Env_Vars
+     (P : Partition_Id; Names_Only : Boolean) return String;
    --  Return a series of environment variables assignment for partition P
+   --  (if Names_Only is False), or a space separated list of environment
+   --  variable names only (if Names_Only is True).
 
    procedure Generate_Application_Project_Files;
    --  Generate a project file for the appplication code, extending the one
@@ -150,10 +156,15 @@ private
    --  location of the gnatdist executable, or fall back to the default
    --  (configure-time) prefix. The validity of a candidate prefix is
    --  checked by testing whether file Check_For exists under that prefix.
+   --  The returned string always ends with a directory separator.
 
    procedure Apply_Casing_Rules (S : in out String);
    procedure Register_Casing_Rule (S : String);
    --  ??? documentation needed!
+
+   function Partition_Dir_Flag (P : Partition_Id) return String;
+   --  Return a gnatmake command line flag setting external variable
+   --  PARTITION_DIR for partition P.
 
    Build_Stamp_File    : File_Name_Type;
    Partition_Main_File : File_Name_Type;

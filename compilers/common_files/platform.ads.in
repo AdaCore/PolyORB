@@ -41,12 +41,14 @@ package Platform is
 
    pragma Pure;
 
-   Version : constant String := "@VERSION@";
+   Version : constant String := "@POLYORB_VERSION@";
 
    Prefix : constant String := "@prefix@";
 
    IDL_Preprocessor : constant String := "@IDLCPP@ @IDLCPPFLAGS@";
    IDL_Preprocessor_Suffix : constant String := "@IDLCPP_OUTPUT_SUFFIX@";
+
+   Windows_On_Host : constant Boolean := @WINDOWS_ON_HOST@;
 
    Validity_Check_Name : constant String :=
    @SUPPRESS_VALIDITY_USE_VALIDITY@"Validity_Check";

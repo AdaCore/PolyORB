@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
@@ -36,7 +36,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PolyORB.Objects;
 with PolyORB.References;
 
 with CORBA.AbstractBase;
@@ -50,13 +49,10 @@ package CORBA.Object is
 
    type Ref is new CORBA.AbstractBase.Ref with private;
 
-   function Get_Interface
-     (Self : Ref)
-     return CORBA.Object.Ref'Class;
+   function Get_Interface (Self : Ref) return CORBA.Object.Ref'Class;
 
    function Is_Nil  (Self : Ref) return CORBA.Boolean;
-   function Is_Null (Self : Ref) return CORBA.Boolean
-     renames Is_Nil;
+   function Is_Null (Self : Ref) return CORBA.Boolean renames Is_Nil;
 
    procedure Duplicate (Self : in out Ref);
 
@@ -64,8 +60,7 @@ package CORBA.Object is
 
    function Is_A
      (Self            : Ref;
-      Logical_Type_Id : Standard.String)
-     return CORBA.Boolean;
+      Logical_Type_Id : Standard.String) return CORBA.Boolean;
 
    function Non_Existent (Self : Ref) return CORBA.Boolean;
 
@@ -106,8 +101,7 @@ package CORBA.Object is
 
    function Hash
      (Self    : Ref;
-      Maximum : CORBA.Unsigned_Long)
-     return CORBA.Unsigned_Long;
+      Maximum : CORBA.Unsigned_Long) return CORBA.Unsigned_Long;
 
    --  Implementation Note: The following policy management related
    --  Object operations were moved into child package
@@ -145,27 +139,15 @@ package CORBA.Object is
    function TC_Object return CORBA.TypeCode.Object;
 
    function  Object_To_String
-     (Obj : CORBA.Object.Ref'Class)
-     return CORBA.String;
+     (Obj : CORBA.Object.Ref'Class) return CORBA.String;
 
    package Internals is
 
       --  Implementation Note: This package defines internal subprograms
       --  specific to PolyORB. You must not use them.
 
-      function To_PolyORB_Object
-        (R : Ref)
-        return PolyORB.Objects.Object_Id;
-      --  XXX What is this supposed to do?
-      --   It is not possible in general to associate a PolyORB Object_Id
-      --   with a CORBA.Object.Ref. This can be done only when R designates
-      --   an object located on this middleware instance.
-
       function To_PolyORB_Ref (R : Ref) return PolyORB.References.Ref;
       function To_CORBA_Ref (R : PolyORB.References.Ref) return Ref;
-      procedure Convert_To_CORBA_Ref
-        (Neutral_Ref : PolyORB.References.Ref;
-         CORBA_Ref   : in out CORBA.Object.Ref'Class);
       --  Conversion functions between CORBA and neutral references.
 
    end Internals;

@@ -1,0 +1,7 @@
+libtool.m4
+depcomp
+config.guess
+config.sub
+ltmain.sh
+mdate-sh
+texinfo.tex

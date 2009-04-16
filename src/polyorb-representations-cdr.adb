@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,20 +31,29 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Streams;
+
 with System.Address_Image;
 
 with PolyORB.Any.ObjRef;
+with PolyORB.Initialization;
 with PolyORB.Log;
+with PolyORB.Parameters;
 with PolyORB.Representations.CDR.Common;
+with PolyORB.Utils.Buffers;
 with PolyORB.Utils.Chained_Lists;
+with PolyORB.Utils.Strings;
 
 package body PolyORB.Representations.CDR is
+
+   use Ada.Streams;
 
    use PolyORB.Any;
    use PolyORB.Any.TypeCode;
    use PolyORB.Buffers;
    use PolyORB.Errors;
    use PolyORB.Log;
+   use PolyORB.Parameters;
    use PolyORB.Representations.CDR.Common;
    use PolyORB.Types;
 
@@ -63,6 +72,29 @@ package body PolyORB.Representations.CDR is
    package Factory_Lists is new Utils.Chained_Lists (Registry_Item);
 
    Factory_Registry : Factory_Lists.List;
+
+   Enable_Fast_Path : Boolean;
+   --  If True, some aggregates are allowed to be marshalled in one lump of
+   --  data (instead of element per element), if they have a suitable memory
+   --  representation.
+
+   function Fast_Path_Element_Size
+     (El_TCK : TCKind) return Types.Unsigned_Long;
+   --  For a type that is a suitable element type for fast path marshalling
+   --  of a sequence or array, return the type size. Otherwise return 0.
+
+   procedure Fast_Path_Get_Info
+     (ACC                 : access Aggregate_Content'Class;
+      TC                  : TypeCode.Object_Ptr;
+      Buffer              : access Buffer_Type;
+      Aggregate_Data      : out System.Address;
+      Aggregate_Size      : out Stream_Element_Count;
+      Aggregate_Alignment : out Alignment_Type);
+   --  Obtain the data address, data length and CDR alignment to be used
+   --  for fast path (un)marshalling of ACC, an aggregate of type TC, from/to
+   --  Buffer.
+   --  Note that Aggregate_Size and Aggregate_Alignment are set only when
+   --  Aggregate_Data is not null.
 
    ------------------
    -- TypeCode Ids --
@@ -113,20 +145,6 @@ package body PolyORB.Representations.CDR is
 
    TC_Indirect              : constant PolyORB.Types.Unsigned_Long :=
                                 16#ffffffff#;
-
-   procedure Marshall
-     (R      : access CDR_Representation'Class;
-      Buffer : access Buffer_Type;
-      Data   : TypeCode.Object_Ptr;
-      Error  : in out Errors.Error_Container);
-   --  Marshall a TypeCode object
-
-   procedure Unmarshall
-     (R      : access CDR_Representation'Class;
-      Buffer : access Buffer_Type;
-      Data   : out TypeCode.Local_Ref;
-      Error  : in out Errors.Error_Container);
-   --  Unmarshall a TypeCode object
 
    -----------------------------
    -- Typecode map management --
@@ -235,6 +253,103 @@ package body PolyORB.Representations.CDR is
       end if;
    end End_TC;
 
+   ----------------------------
+   -- Fast_Path_Element_Size --
+   ----------------------------
+
+   function Fast_Path_Element_Size
+     (El_TCK : TCKind) return Types.Unsigned_Long is
+   begin
+      case El_TCK is
+         when Tk_Char | Tk_Octet =>
+            return 1;
+
+         when
+           Tk_Short  |
+           Tk_Ushort =>
+            return 2;
+
+         when
+           Tk_Long   |
+           Tk_Ulong  =>
+            return 4;
+
+         when others =>
+            return 0;
+      end case;
+   end Fast_Path_Element_Size;
+
+   ------------------------
+   -- Fast_Path_Get_Info --
+   ------------------------
+
+   procedure Fast_Path_Get_Info
+     (ACC                 : access Aggregate_Content'Class;
+      TC                  : TypeCode.Object_Ptr;
+      Buffer              : access Buffer_Type;
+      Aggregate_Data      : out System.Address;
+      Aggregate_Size      : out Stream_Element_Count;
+      Aggregate_Alignment : out Alignment_Type)
+   is
+      TCK : constant TCKind := TypeCode.Kind (TC);
+   begin
+      Aggregate_Data := System.Null_Address;
+
+      if not Enable_Fast_Path then
+         pragma Warnings (Off);
+         --  OUT parameters Aggregate_Size and Aggregate_Element not set as
+         --  they are meaningless when Aggregate_Data is null.
+         return;
+         pragma Warnings (On);
+      end if;
+
+      if TCK = Tk_Array or else TCK = Tk_Sequence then
+         declare
+            El_TC    : constant TypeCode.Object_Ptr :=
+                         Unwind_Typedefs (TypeCode.Content_Type (TC));
+
+            El_Size  : constant Types.Unsigned_Long :=
+                         Fast_Path_Element_Size (TypeCode.Kind (El_TC));
+
+            El_Count : Types.Unsigned_Long;
+         begin
+            if El_Size = 0 then
+               --  Case of element type that does not allow fast path
+
+               return;
+
+            elsif El_Size > 1 and then Endianness (Buffer) /= Host_Order then
+               --  Case of multi-byte elements, where the expected buffer
+               --  endianness is not the host endianness: need to perform
+               --  per-element byte swapping.
+
+               return;
+            end if;
+
+            if TCK = Tk_Array then
+               El_Count := TypeCode.Length (TC);
+            else
+               --  Aggregate elements count for a sequence has one additional
+               --  element corresponding to the sequence length, which is not
+               --  part of the fast path data.
+
+               El_Count := Get_Aggregate_Count (ACC.all) - 1;
+            end if;
+
+            Aggregate_Data      := Unchecked_Get_V (ACC);
+            Aggregate_Alignment :=
+              Alignment_Of (Short_Short_Integer (El_Size));
+            Aggregate_Size      := Stream_Element_Count (El_Count * El_Size);
+
+            pragma Debug (C, O ("Fast_Path_Get_Info:"
+              & Aggregate_Size'Img & " bytes ("
+              & El_Count'Img & " elements) at "
+              & System.Address_Image (Aggregate_Data)
+              & ", align on" & Aggregate_Alignment'Img));
+         end;
+      end if;
+   end Fast_Path_Get_Info;
+
    -------------
    -- Find_TC --
    -------------
@@ -244,9 +359,10 @@ package body PolyORB.Representations.CDR is
       Offset         : Types.Long) return TypeCode.Object_Ptr
    is
       use TC_Maps;
-      T : TC_Maps.Instance renames Representation.TC_Map;
-      Lo : Types.Long := First (T);
-      Hi : Types.Long := Last (T);
+
+      T   : TC_Maps.Instance renames Representation.TC_Map;
+      Lo  : Types.Long := First (T);
+      Hi  : Types.Long := Last (T);
       Cur : Types.Long;
    begin
       pragma Debug (C, O ("Find_TC: Offset =" & Offset'Img));
@@ -282,6 +398,18 @@ package body PolyORB.Representations.CDR is
         & " encl =" & E.Enclosing_Complex'Img;
    end Image;
 
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize;
+
+   procedure Initialize is
+   begin
+      Enable_Fast_Path :=
+        Get_Conf ("cdr", "enable_fast_path", Default => True);
+   end Initialize;
+
    --------------
    -- Marshall --
    --------------
@@ -296,7 +424,7 @@ package body PolyORB.Representations.CDR is
    begin
       pragma Debug (C, O ("Marshall (Any): enter"));
 
-      Marshall (Representation, Buffer, Get_Type_Obj (Data_C), E);
+      Marshall (Buffer, Representation, Get_Type_Obj (Data_C), E);
       pragma Assert (not Found (E));
       --  ??? should propagate error appropriately
 
@@ -313,8 +441,8 @@ package body PolyORB.Representations.CDR is
    --------------
 
    procedure Marshall
-     (R      : access CDR_Representation'Class;
-      Buffer : access Buffer_Type;
+     (Buffer : access Buffer_Type;
+      R      : access CDR_Representation'Class;
       Data   : TypeCode.Object_Ptr;
       Error  : in out Errors.Error_Container)
    is
@@ -390,26 +518,28 @@ package body PolyORB.Representations.CDR is
 
             Nb := Any.TypeCode.Member_Count (Data);
             pragma Debug (C, O ("Marshall (TypeCode): " &
-                             "marshalling the members. Nb = "
-                             & PolyORB.Types.Unsigned_Long'Image (Nb)));
+                             "marshalling" & Nb'Img & " members"));
             Marshall (Complex_Buffer, Nb);
             if Nb /= 0 then
                for J in 0 .. Nb - 1 loop
-                  pragma Debug (C, O ("Marshall (TypeCode): about "
-                                   & "to marshall a new  member"));
+                  pragma Debug (C, O ("Marshall (TypeCode): marshalling"
+                                   & " member #" & J'Img & ": "
+                                   & To_Standard_String
+                                       (TypeCode.Member_Name (Data, J))));
                   Marshall (Complex_Buffer,
                             TypeCode.Member_Name (Data, J));
+
                   pragma Debug
                     (C, O ("Marshall (TypeCode): marshalling "
-                        & "the type ("
+                        & "member type: "
                         & TCKind'Image
                         (TypeCode.Kind
-                         (TypeCode.Member_Type (Data, J)))
-                        & ")"));
-                  Marshall (R,
-                            Complex_Buffer,
+                         (TypeCode.Member_Type (Data, J)))));
+                  Marshall (Complex_Buffer,
+                            R,
                             TypeCode.Member_Type (Data, J),
                             Error);
+
                   exit when Found (Error);
 
                   pragma Debug (C, O ("Marshall (TypeCode): "
@@ -428,7 +558,7 @@ package body PolyORB.Representations.CDR is
             Marshall (Complex_Buffer, Any.TypeCode.Id (Data));
             Marshall (Complex_Buffer, Any.TypeCode.Name (Data));
             Marshall
-              (R, Complex_Buffer, TypeCode.Discriminator_Type (Data), Error);
+              (Complex_Buffer, R, TypeCode.Discriminator_Type (Data), Error);
 
             if Found (Error) then
                --  Do not proceed further in error case
@@ -458,8 +588,8 @@ package body PolyORB.Representations.CDR is
                      TypeCode.Member_Name (Data, J));
 
                   Marshall
-                    (R,
-                     Complex_Buffer,
+                    (Complex_Buffer,
+                     R,
                      TypeCode.Member_Type (Data, J),
                      Error);
                   exit when Found (Error);
@@ -496,8 +626,8 @@ package body PolyORB.Representations.CDR is
             Marshall (Buffer, TC_Sequence_Id);
             Complex_Buffer := new Buffer_Type;
             Start_Encapsulation (Complex_Buffer);
-            Marshall (R,
-                      Complex_Buffer,
+            Marshall (Complex_Buffer,
+                      R,
                       TypeCode.Content_Type (Data),
                       Error);
             Marshall (Complex_Buffer, TypeCode.Length (Data));
@@ -509,8 +639,8 @@ package body PolyORB.Representations.CDR is
             Marshall (Buffer, TC_Array_Id);
             Complex_Buffer := new Buffer_Type;
             Start_Encapsulation (Complex_Buffer);
-            Marshall (R,
-                      Complex_Buffer,
+            Marshall (Complex_Buffer,
+                      R,
                       TypeCode.Content_Type (Data),
                       Error);
             Marshall (Complex_Buffer,
@@ -524,8 +654,8 @@ package body PolyORB.Representations.CDR is
             Start_Encapsulation (Complex_Buffer);
             Marshall (Complex_Buffer, Any.TypeCode.Id (Data));
             Marshall (Complex_Buffer, Any.TypeCode.Name (Data));
-            Marshall (R,
-                      Complex_Buffer,
+            Marshall (Complex_Buffer,
+                      R,
                       TypeCode.Content_Type (Data),
                       Error);
             Marshall (Buffer, Encapsulate (Complex_Buffer));
@@ -544,8 +674,8 @@ package body PolyORB.Representations.CDR is
                for J in 0 .. Nb - 1 loop
                   Marshall (Complex_Buffer,
                             Any.TypeCode.Member_Name (Data, J));
-                  Marshall (R,
-                            Complex_Buffer,
+                  Marshall (Complex_Buffer,
+                            R,
                             Any.TypeCode.Member_Type (Data, J),
                             Error);
                   exit when Found (Error);
@@ -587,8 +717,8 @@ package body PolyORB.Representations.CDR is
               (Complex_Buffer,
                TypeCode.Type_Modifier (Data));
             Marshall
-              (R,
-               Complex_Buffer,
+              (Complex_Buffer,
+               R,
                TypeCode.Concrete_Base_Type (Data),
                Error);
 
@@ -606,8 +736,8 @@ package body PolyORB.Representations.CDR is
                     (Complex_Buffer,
                      TypeCode.Member_Name (Data, J));
                   Marshall
-                    (R,
-                     Complex_Buffer,
+                    (Complex_Buffer,
+                     R,
                      TypeCode.Member_Type (Data, J),
                      Error);
                   exit when Found (Error);
@@ -626,8 +756,8 @@ package body PolyORB.Representations.CDR is
             Start_Encapsulation (Complex_Buffer);
             Marshall (Complex_Buffer, Any.TypeCode.Id (Data));
             Marshall (Complex_Buffer, Any.TypeCode.Name (Data));
-            Marshall (R,
-                      Complex_Buffer,
+            Marshall (Complex_Buffer,
+                      R,
                       TypeCode.Content_Type (Data),
                       Error);
             if not Found (Error) then
@@ -690,8 +820,8 @@ package body PolyORB.Representations.CDR is
               (Complex_Buffer,
                TypeCode.Type_Modifier (Data));
             Marshall
-              (R,
-               Complex_Buffer,
+              (Complex_Buffer,
+               R,
                TypeCode.Concrete_Base_Type (Data),
                Error);
 
@@ -707,8 +837,8 @@ package body PolyORB.Representations.CDR is
                         TypeCode.Member_Name (Data, J));
 
                      Marshall
-                       (R,
-                        Complex_Buffer,
+                       (Complex_Buffer,
+                        R,
                         TypeCode.Member_Type (Data, J),
                         Error);
                      exit when Found (Error);
@@ -809,8 +939,8 @@ package body PolyORB.Representations.CDR is
 
          when Tk_TypeCode =>
             Marshall
-              (CDR_Representation'Class (R.all)'Access,
-               Buffer,
+              (Buffer,
+               CDR_Representation'Class (R.all)'Access,
                Object_Of (TypeCode.Local_Ref'(From_Any (CData))),
                Error);
 
@@ -899,6 +1029,8 @@ package body PolyORB.Representations.CDR is
                ACC : Aggregate_Content'Class renames
                        Aggregate_Content'Class (Get_Value (CData).all);
             begin
+               --  Set Nb and El_TC
+
                case TCK is
                   when Tk_Struct | Tk_Except =>
                      Nb := TypeCode.Member_Count (Data_Type);
@@ -929,10 +1061,58 @@ package body PolyORB.Representations.CDR is
 
                --  Avoid a check failure in the computation of the index loop
                --  below, in the case of a struct or exception without members.
+               --  Nothing to marshall if Nb = 0.
 
                if Nb = 0 then
                   return;
                end if;
+
+               --  Check whether to use fast path marshalling
+
+               declare
+                  use type System.Address;
+
+                  Aggregate_Data      : System.Address;
+                  Aggregate_Size      : Stream_Element_Count;
+                  Aggregate_Alignment : Alignment_Type;
+               begin
+                  Fast_Path_Get_Info
+                    (ACC                 => ACC'Access,
+                     TC                  => Data_Type,
+                     Buffer              => Buffer,
+                     Aggregate_Data      => Aggregate_Data,
+                     Aggregate_Size      => Aggregate_Size,
+                     Aggregate_Alignment => Aggregate_Alignment);
+
+                  if Aggregate_Data /= System.Null_Address then
+
+                     --  Here we can do fast path marshalling, and we have the
+                     --  underlying data address.
+
+                     --  Special case for sequences: first marshall element
+                     --  count. Note that there is an extra element in the
+                     --  aggregate, which is the count itself, and is not part
+                     --  of the fast path data.
+
+                     if TCK = Tk_Sequence then
+                        Marshall (Buffer, Nb - 1);
+                     end if;
+
+                     --  Now insert reference to data
+
+                     Pad_Align (Buffer, Aggregate_Alignment);
+                     Insert_Raw_Data
+                       (Buffer,
+                        Size => Aggregate_Size,
+                        Data => Aggregate_Data);
+                     return;
+                  end if;
+
+                  --  Fall through to per-element marshalling
+
+               end;
+
+               --  Here if marshalling aggregate element per element
 
                for J in 0 .. Nb - 1 loop
 
@@ -1214,7 +1394,7 @@ package body PolyORB.Representations.CDR is
    begin
       pragma Debug (C, O ("Unmarshall (Any): enter"));
 
-      Unmarshall (Representation, Buffer, TC, E);
+      Unmarshall (Buffer, Representation, TC, E);
       pragma Assert (not Found (E));
       --  ??? Propagate error?
 
@@ -1233,8 +1413,8 @@ package body PolyORB.Representations.CDR is
    ----------------
 
    procedure Unmarshall
-     (R      : access CDR_Representation'Class;
-      Buffer : access Buffer_Type;
+     (Buffer : access Buffer_Type;
+      R      : access CDR_Representation'Class;
       Data   : out TypeCode.Local_Ref;
       Error  : in out Errors.Error_Container)
    is
@@ -1344,7 +1524,7 @@ package body PolyORB.Representations.CDR is
                Start_TC
                  (R, Object_Of (Data), Offset, Complex => True);
 
-               Nb   := Unmarshall (Complex_Buffer'Access);
+               Nb := Unmarshall (Complex_Buffer'Access);
                if Nb /= 0 then
                   for J in 0 .. Nb - 1 loop
                      Member_Name :=
@@ -1352,7 +1532,7 @@ package body PolyORB.Representations.CDR is
                          (Types.Identifier'
                             (Unmarshall (Complex_Buffer'Access)));
 
-                     Unmarshall (R, Complex_Buffer'Access, Member_Type, Error);
+                     Unmarshall (Complex_Buffer'Access, R, Member_Type, Error);
                      exit when Found (Error);
                      Any.TypeCode.Add_Parameter (Data, To_Any (Member_Type));
                      Any.TypeCode.Add_Parameter (Data, To_Any (Member_Name));
@@ -1394,8 +1574,8 @@ package body PolyORB.Representations.CDR is
                Start_TC
                  (R, Object_Of (Data), Offset, Complex => True);
 
-               Unmarshall (R,
-                 Complex_Buffer'Access, Discriminator_Type, Error);
+               Unmarshall
+                 (Complex_Buffer'Access, R, Discriminator_Type, Error);
 
                if Found (Error) then
                   --  Do not proceed further in error case
@@ -1423,7 +1603,7 @@ package body PolyORB.Representations.CDR is
                        Types.String
                          (Types.Identifier'
                             (Unmarshall (Complex_Buffer'Access)));
-                     Unmarshall (R, Complex_Buffer'Access, Member_Type, Error);
+                     Unmarshall (Complex_Buffer'Access, R, Member_Type, Error);
                      exit when Found (Error);
 
                      TypeCode.Add_Parameter (Data, Member_Label);
@@ -1474,12 +1654,12 @@ package body PolyORB.Representations.CDR is
             end;
 
          when TC_String_Id =>
-            Data := TypeCode.TC_String;
             declare
-               Length : PolyORB.Types.Unsigned_Long;
+               Length : constant PolyORB.Types.Unsigned_Long :=
+                          Unmarshall (Buffer);
             begin
-               Length := Unmarshall (Buffer);
-               Any.TypeCode.Add_Parameter (Data, To_Any (Length));
+               Data := Build_Complex_TC
+                         (Tk_String, (1 .. 1 => To_Any (Length)));
             end;
 
          when TC_Sequence_Id =>
@@ -1496,7 +1676,7 @@ package body PolyORB.Representations.CDR is
                Start_TC
                  (R, Object_Of (Data), Offset, Complex => True);
 
-               Unmarshall (R, Complex_Buffer'Access, Content_Type, Error);
+               Unmarshall (Complex_Buffer'Access, R, Content_Type, Error);
 
                if not Found (Error) then
                   Length := Unmarshall (Complex_Buffer'Access);
@@ -1521,7 +1701,7 @@ package body PolyORB.Representations.CDR is
                Complex := True;
                Start_TC (R, Object_Of (Data), Offset, Complex => True);
 
-               Unmarshall (R, Complex_Buffer'Access, Content_Type, Error);
+               Unmarshall (Complex_Buffer'Access, R, Content_Type, Error);
 
                if not Found (Error) then
                   Length := Unmarshall (Complex_Buffer'Access);
@@ -1555,7 +1735,7 @@ package body PolyORB.Representations.CDR is
                Complex := True;
                Start_TC (R, Object_Of (Data), Offset, Complex => True);
 
-               Unmarshall (R, Complex_Buffer'Access, Content_Type, Error);
+               Unmarshall (Complex_Buffer'Access, R, Content_Type, Error);
                if not Found (Error) then
                   Any.TypeCode.Add_Parameter (Data, To_Any (Content_Type));
                end if;
@@ -1596,7 +1776,7 @@ package body PolyORB.Representations.CDR is
                        Types.String
                          (Types.Identifier'
                             (Unmarshall (Complex_Buffer'Access)));
-                     Unmarshall (R, Complex_Buffer'Access, Member_Type, Error);
+                     Unmarshall (Complex_Buffer'Access, R, Member_Type, Error);
                      exit when Found (Error);
 
                      TypeCode.Add_Parameter (Data, To_Any (Member_Type));
@@ -1620,12 +1800,12 @@ package body PolyORB.Representations.CDR is
             Data := TypeCode.TC_Wchar;
 
          when TC_Wide_String_Id =>
-            Data := TypeCode.TC_Wide_String;
             declare
-               Length : PolyORB.Types.Unsigned_Long;
+               Length : constant PolyORB.Types.Unsigned_Long :=
+                          Unmarshall (Buffer);
             begin
-               Length := Unmarshall (Buffer);
-               TypeCode.Add_Parameter (Data, To_Any (Length));
+               Data := Build_Complex_TC
+                         (Tk_Wstring, (1 .. 1 => To_Any (Length)));
             end;
 
          when TC_Fixed_Id =>
@@ -1667,8 +1847,8 @@ package body PolyORB.Representations.CDR is
                  (R, Object_Of (Data), Offset, Complex => True);
 
                Type_Modifier := Unmarshall (Complex_Buffer'Access);
-               Unmarshall (R,
-                 Complex_Buffer'Access, Concrete_Base_Type, Error);
+               Unmarshall
+                 (Complex_Buffer'Access, R, Concrete_Base_Type, Error);
 
                if Found (Error) then
                   --  Do not proceed further in error case
@@ -1688,7 +1868,7 @@ package body PolyORB.Representations.CDR is
                        Types.String
                          (Types.Identifier'
                             (Unmarshall (Complex_Buffer'Access)));
-                     Unmarshall (R, Complex_Buffer'Access, Member_Type, Error);
+                     Unmarshall (Complex_Buffer'Access, R, Member_Type, Error);
                      exit when Found (Error);
 
                      Visibility := Unmarshall (Complex_Buffer'Access);
@@ -1725,7 +1905,7 @@ package body PolyORB.Representations.CDR is
                Start_TC
                  (R, Object_Of (Data), Offset, Complex => True);
 
-               Unmarshall (R, Complex_Buffer'Access, Content_Type, Error);
+               Unmarshall (Complex_Buffer'Access, R, Content_Type, Error);
                if not Found (Error) then
                   TypeCode.Add_Parameter (Data, To_Any (Content_Type));
                end if;
@@ -1846,8 +2026,8 @@ package body PolyORB.Representations.CDR is
                  Types.String
                    (Types.Identifier'(Unmarshall (Complex_Buffer'Access)));
                Type_Modifier := Unmarshall (Complex_Buffer'Access);
-               Unmarshall (R,
-                 Complex_Buffer'Access, Concrete_Base_Type, Error);
+               Unmarshall
+                 (Complex_Buffer'Access, R, Concrete_Base_Type, Error);
 
                if Found (Error) then
                   --  Do not attempt to proceed further in error case
@@ -1870,7 +2050,7 @@ package body PolyORB.Representations.CDR is
                        Types.String
                          (Types.Identifier'
                             (Unmarshall (Complex_Buffer'Access)));
-                     Unmarshall (R, Complex_Buffer'Access, Member_Type, Error);
+                     Unmarshall (Complex_Buffer'Access, R, Member_Type, Error);
                      exit when Found (Error);
                      Visibility := Unmarshall (Complex_Buffer'Access);
                      TypeCode.Add_Parameter (Data, To_Any (Visibility));
@@ -2016,7 +2196,7 @@ package body PolyORB.Representations.CDR is
             declare
                TC : TypeCode.Local_Ref;
             begin
-               Unmarshall (R, Buffer, TC, Error);
+               Unmarshall (Buffer, R, TC, Error);
                if not Found (Error) then
                   Set_Any_Value (TC, CData);
                end if;
@@ -2100,14 +2280,56 @@ package body PolyORB.Representations.CDR is
                end if;
 
                declare
+                  use type System.Address;
+
                   ACC : Aggregate_Content'Class renames
                           Aggregate_Content'Class (Get_Value (CData).all);
 
                   Val_TC : TypeCode.Object_Ptr;
                   --  Value typecode, computed from label TC in case of a union
 
+                  Aggregate_Data      : System.Address;
+                  Aggregate_Size      : Stream_Element_Count;
+                  Aggregate_Alignment : Alignment_Type;
+                  --  Information used for fast path unmarshalling
+
                begin
                   Set_Aggregate_Count (ACC, Nb);
+
+                  --  Now that we have an aggregate of the correct size (i.e.
+                  --  in particular we have allocated space to store the
+                  --  unmarshalled data), check whether to use fast path
+                  --  unmarshalling.
+
+                  Fast_Path_Get_Info
+                    (ACC                 => ACC'Access,
+                     TC                  => TC,
+                     Buffer              => Buffer,
+                     Aggregate_Data      => Aggregate_Data,
+                     Aggregate_Size      => Aggregate_Size,
+                     Aggregate_Alignment => Aggregate_Alignment);
+
+                  if Aggregate_Data /= System.Null_Address then
+
+                     --  Here we can do fast path unmarshalling, and we have
+                     --  the underlying data address. Note that in the case of
+                     --  fast path unmarshalling, data may be fragmented in the
+                     --  buffer, so do reassembly now.
+
+                     declare
+                        Data : Stream_Element_Array (1 .. Aggregate_Size);
+                        for Data'Address use Aggregate_Data;
+                        pragma Import (Ada, Data);
+                     begin
+                        Utils.Buffers.Align_Unmarshall_Copy
+                          (Buffer,
+                           Aggregate_Alignment,
+                           Data);
+                     end;
+                     return;
+                  end if;
+
+                  --  Fall through to per-element unmarshalling
 
                   if TCK = Tk_Sequence then
                      declare
@@ -2420,4 +2642,18 @@ package body PolyORB.Representations.CDR is
       pragma Debug (C, O ("Unmarshall_To_Any: end"));
    end Unmarshall_To_Any;
 
+   use PolyORB.Initialization;
+   use PolyORB.Initialization.String_Lists;
+   use PolyORB.Utils.Strings;
+
+begin
+   Register_Module
+     (Module_Info'
+      (Name      => +"representations.cdr",
+       Conflicts => Empty,
+       Depends   => Empty,
+       Provides  => Empty,
+       Implicit  => False,
+       Init      => Initialize'Access,
+       Shutdown  => null));
 end PolyORB.Representations.CDR;

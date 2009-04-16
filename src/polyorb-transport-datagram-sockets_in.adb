@@ -89,18 +89,12 @@ package body PolyORB.Transport.Datagram.Sockets_In is
    -------------------------
 
    function Create_Event_Source
-     (TAP : access Socket_In_Access_Point)
-     return Asynch_Ev_Source_Access
+     (TAP : access Socket_In_Access_Point) return Asynch_Ev_Source_Access
    is
-      use PolyORB.Annotations;
-
-      Ev_Src : constant Asynch_Ev_Source_Access
-        := Create_Event_Source (TAP.Socket);
-
+      Ev_Src : constant Asynch_Ev_Source_Access :=
+                 Create_Event_Source (TAP.Socket);
    begin
-      Set_Note (Notepad_Of (Ev_Src).all,
-                AES_Note'(Annotations.Note with Handler =>
-                            TAP.Handler'Access));
+      Set_Handler (Ev_Src.all, TAP.Handler'Access);
       return Ev_Src;
    end Create_Event_Source;
 
@@ -133,18 +127,12 @@ package body PolyORB.Transport.Datagram.Sockets_In is
    -------------------------
 
    function Create_Event_Source
-     (TE : access Socket_In_Endpoint)
-     return Asynch_Ev_Source_Access
+     (TE : access Socket_In_Endpoint) return Asynch_Ev_Source_Access
    is
-      use PolyORB.Annotations;
-
-      Ev_Src : constant Asynch_Ev_Source_Access
-        := Create_Event_Source (TE.Socket);
-
+      Ev_Src : constant Asynch_Ev_Source_Access :=
+                 Create_Event_Source (TE.Socket);
    begin
-      Set_Note (Notepad_Of (Ev_Src).all,
-                AES_Note'(Annotations.Note with Handler =>
-                            TE.Handler'Access));
+      Set_Handler (Ev_Src.all, TE.Handler'Access);
       return Ev_Src;
    end Create_Event_Source;
 

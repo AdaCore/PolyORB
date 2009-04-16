@@ -432,6 +432,7 @@ package body PolyORB.Filters.HTTP is
             declare
                S : String (1 .. Integer (Data_Processed));
                for S'Address use Data;
+               pragma Import (Ada, S);
             begin
                Append (F.Entity, S);
             end;
@@ -521,6 +522,7 @@ package body PolyORB.Filters.HTTP is
          S : String (1 .. Integer (Line_Length) - 2);
          --  Ignore last 2 characters (CR/LF).
          for S'Address use Data;
+         pragma Import (Ada, S);
       begin
          pragma Debug (C, O ("HTTP line received: " & S));
 

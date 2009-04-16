@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -58,10 +58,10 @@ package body Backend.BE_CORBA_Ada.Nutils is
       Current_Entity  : Node_Id;
    end record;
 
-   Forwarded_Entities : List_Id;
+   Forwarded_Entities : List_Id := No_List;
    --  This list contains the forwarded entities
 
-   Ada_KW_Prefix : constant String := "%ada_kw%";
+   Ada_Keyword_Prefix : constant String := "%ada_kw%";
    --  Prefix used to "mark" ada keywords
 
    No_Depth : constant Int := -1;
@@ -74,8 +74,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
 
    function Internal_Name (P : Node_Id; L : GLists) return Name_Id;
    pragma Inline (Internal_Name);
-   --  Return an unique internal name useful for the binding between P
-   --  and L.
+   --  Return an unique internal name useful for the binding between P and L
 
    ------------------------
    -- Add_Prefix_To_Name --
@@ -83,8 +82,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
 
    function Add_Prefix_To_Name
      (Prefix : String;
-      Name   : Name_Id)
-     return Name_Id
+      Name   : Name_Id) return Name_Id
    is
    begin
       Set_Str_To_Name_Buffer (Prefix);
@@ -98,8 +96,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
 
    function Add_Suffix_To_Name
      (Suffix : String;
-      Name   : Name_Id)
-     return Name_Id
+      Name   : Name_Id) return Name_Id
    is
    begin
       Get_Name_String (Name);
@@ -113,8 +110,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
 
    function Remove_Suffix_From_Name
      (Suffix : String;
-      Name   : Name_Id)
-     return Name_Id
+      Name   : Name_Id) return Name_Id
    is
       Length   : Natural;
       Temp_Str : String (1 .. Suffix'Length);
@@ -139,7 +135,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
    -- Add_With_Package --
    ----------------------
 
-   procedure Add_With_Package (E : Node_Id) is
+   procedure Add_With_Package (E : Node_Id; Unreferenced : Boolean := False) is
 
       function Get_String_Name (The_String : String) return Name_Id;
       --  Return the Name_Id associated to The_String
@@ -362,15 +358,18 @@ package body Backend.BE_CORBA_Ada.Nutils is
       W := New_Node (K_Withed_Package);
       Set_Defining_Identifier (W, P);
       Set_Elaborated (W, Force_Elaboration);
+      if Unreferenced then
+         Set_Unreferenced (W, V => True);
+      end if;
 
-      Append_Node_To_List (W, Withed_Packages (Current_Package));
+      Append_To (Withed_Packages (Current_Package), W);
    end Add_With_Package;
 
-   -------------------------
-   -- Append_Node_To_List --
-   -------------------------
+   ---------------
+   -- Append_To --
+   ---------------
 
-   procedure Append_Node_To_List (E : Node_Id; L : List_Id) is
+   procedure Append_To (L : List_Id; E : Node_Id) is
       Last : Node_Id;
 
    begin
@@ -384,11 +383,12 @@ package body Backend.BE_CORBA_Ada.Nutils is
 
       Last := E;
 
-      while Present (Last) loop
-         Set_Last_Node (L, Last);
+      while Present (Next_Node (Last)) loop
          Last := Next_Node (Last);
       end loop;
-   end Append_Node_To_List;
+
+      Set_Last_Node (L, Last);
+   end Append_To;
 
    -------------
    -- Convert --
@@ -425,8 +425,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
 
    function Copy_Expanded_Name
      (N      : Node_Id;
-      Withed : Boolean := True)
-     return Node_Id
+      Withed : Boolean := True) return Node_Id
    is
       D : Node_Id;
       P : Node_Id := Get_Parent_Unit_Name (N);
@@ -862,8 +861,8 @@ package body Backend.BE_CORBA_Ada.Nutils is
 
       --  Keywords.
 
-      for I in Keyword_Type loop
-         New_Token (I);
+      for J in Keyword_Type loop
+         New_Token (J);
       end loop;
 
       --  Graphic Characters
@@ -898,8 +897,8 @@ package body Backend.BE_CORBA_Ada.Nutils is
 
       --  Keyword Operators
 
-      for O in Op_And .. Op_Or_Else loop
-         New_Operator (O);
+      for Op in Op_And .. Op_Or_Else loop
+         New_Operator (Op);
       end loop;
 
       --  Other operators
@@ -1327,7 +1326,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
      (Subtype_Indication    : Node_Id;
       Record_Extension_Part : Node_Id := No_Node;
       Is_Abstract_Type      : Boolean := False;
-      Is_Private_Extention  : Boolean := False;
+      Is_Private_Extension  : Boolean := False;
       Is_Subtype            : Boolean := False)
      return Node_Id
    is
@@ -1335,7 +1334,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
    begin
       N := New_Node (K_Derived_Type_Definition);
       Set_Is_Abstract_Type (N, Is_Abstract_Type);
-      Set_Is_Private_Extention (N, Is_Private_Extention);
+      Set_Is_Private_Extension (N, Is_Private_Extension);
       Set_Subtype_Indication (N, Subtype_Indication);
       Set_Record_Extension_Part (N, Record_Extension_Part);
       Set_Is_Subtype (N, Is_Subtype);
@@ -1544,63 +1543,84 @@ package body Backend.BE_CORBA_Ada.Nutils is
       return N;
    end Make_Instantiated_Subprogram;
 
-   ------------------
-   -- Make_List_Id --
-   ------------------
+   --------------
+   -- New_List --
+   --------------
 
-   function Make_List_Id
-     (N1 : Node_Id;
+   function New_List
+     (N1 : Node_Id := No_Node;
       N2 : Node_Id := No_Node;
       N3 : Node_Id := No_Node;
       N4 : Node_Id := No_Node;
-      N5 : Node_Id := No_Node)
-     return List_Id
+      N5 : Node_Id := No_Node) return List_Id
    is
+      N : Node_Id;
       L : List_Id;
    begin
-      L := New_List (K_List_Id);
-      Append_Node_To_List (N1, L);
+      Entries.Increment_Last;
+      N := Entries.Last;
+      Entries.Table (N) := Default_Node;
+      Set_Kind (N, K_List_Id);
+
+      L := List_Id (N);
+
+      if Present (N1) then
+         Append_To (L, N1);
+      end if;
 
       if Present (N2) then
-         Append_Node_To_List (N2, L);
+         Append_To (L, N2);
       end if;
 
       if Present (N3) then
-         Append_Node_To_List (N3, L);
+         Append_To (L, N3);
       end if;
 
       if Present (N4) then
-         Append_Node_To_List (N4, L);
+         Append_To (L, N4);
       end if;
 
       if Present (N5) then
-         Append_Node_To_List (N5, L);
+         Append_To (L, N5);
       end if;
 
       return L;
-   end Make_List_Id;
+   end New_List;
 
    ------------------
    -- Make_Literal --
    ------------------
 
-   function Make_Literal
+   function Make_Literal (Value  : Value_Id) return Node_Id is
+      pragma Assert (Value /= No_Value);
+
+      N : constant Node_Id := New_Node (K_Literal);
+
+   begin
+      Set_Value (N, Value);
+      return N;
+   end Make_Literal;
+
+   ------------------------------
+   -- Make_Literal_With_Parent --
+   ------------------------------
+
+   function Make_Literal_With_Parent
      (Value  : Value_Id;
       Parent : Node_Id  := No_Node)
      return Node_Id
    is
-      N : Node_Id;
+      N : Node_Id := New_Node (K_Literal);
 
    begin
-      N := New_Node (K_Literal);
       Set_Value (N, Value);
 
-      if Present (Parent) then
+      if Present (Parent) and then Value /= No_Value then
          N := Make_Selected_Component (Parent, N);
       end if;
 
       return N;
-   end Make_Literal;
+   end Make_Literal_With_Parent;
 
    -------------------------
    -- Make_Null_Statement --
@@ -1717,42 +1737,42 @@ package body Backend.BE_CORBA_Ada.Nutils is
       --  Building the specification part of the package
 
       Pkg := New_Node (K_Package_Specification);
-      Set_Withed_Packages (Pkg, New_List (K_Withed_Packages));
+      Set_Withed_Packages (Pkg, New_List);
 
       --  Disabling style checks. We put the pragma before the header
       --  comment because some lines in the header may be very long.
 
       N := Make_Pragma
-        (Pragma_Style_Checks, Make_List_Id (Make_Literal (Style_State)));
-      Append_Node_To_List (N, Withed_Packages (Pkg));
+        (Pragma_Style_Checks, New_List (Make_Literal (Style_State)));
+      Append_To (Withed_Packages (Pkg), N);
 
       --  Adding a comment header
 
       Make_Comment_Header (Withed_Packages (Pkg), Identifier);
 
-      Set_Visible_Part (Pkg, New_List (K_Declaration_List));
-      Set_Subunits (Pkg, New_List (K_Declaration_List));
-      Set_Private_Part (Pkg, New_List (K_Declaration_List));
+      Set_Visible_Part (Pkg, New_List);
+      Set_Subunits (Pkg, New_List);
+      Set_Private_Part (Pkg, New_List);
       Set_Package_Declaration (Pkg, Unit);
       Set_Package_Specification (Unit, Pkg);
 
       --  Building the implementation part of the package
 
       Pkg := New_Node (K_Package_Implementation);
-      Set_Withed_Packages (Pkg, New_List (K_Withed_Packages));
+      Set_Withed_Packages (Pkg, New_List);
 
       --  Disabling style checks. We put the pragma before the header
       --  comment because some lines in the header may be very long.
 
       N := Make_Pragma
-        (Pragma_Style_Checks, Make_List_Id (Make_Literal (Style_State)));
-      Append_Node_To_List (N, Withed_Packages (Pkg));
+        (Pragma_Style_Checks, New_List (Make_Literal (Style_State)));
+      Append_To (Withed_Packages (Pkg), N);
 
       --  Adding a comment header
 
       Make_Comment_Header (Withed_Packages (Pkg), Identifier);
 
-      Set_Statements (Pkg, New_List (K_Statement_List));
+      Set_Statements (Pkg, New_List);
       Set_Package_Declaration (Pkg, Unit);
       Set_Package_Implementation (Unit, Pkg);
 
@@ -1868,6 +1888,38 @@ package body Backend.BE_CORBA_Ada.Nutils is
       Set_Raised_Error (N, Raised_Error);
       return N;
    end Make_Raise_Statement;
+
+   ----------------
+   -- Make_Slice --
+   ----------------
+
+   function Make_Slice
+     (Prefix         : Node_Id;
+      Discrete_Range : Node_Id) return Node_Id
+   is
+      N : Node_Id;
+   begin
+      N := New_Node (K_Slice);
+      Set_Prefix         (N, Prefix);
+      Set_Discrete_Range (N, Discrete_Range);
+      return N;
+   end Make_Slice;
+
+   ----------------
+   -- Make_Range --
+   ----------------
+
+   function Make_Range
+     (Low_Bound  : Node_Id;
+      High_Bound : Node_Id) return Node_Id
+   is
+      N : Node_Id;
+   begin
+      N := New_Node (K_Range);
+      Set_Low_Bound  (N, Low_Bound);
+      Set_High_Bound (N, High_Bound);
+      return N;
+   end Make_Range;
 
    ---------------------------
    -- Make_Range_Constraint --
@@ -2169,65 +2221,65 @@ package body Backend.BE_CORBA_Ada.Nutils is
       --  Append the comment header lines to the package header
 
       N := Make_Ada_Comment (Name_Find, False);
-      Append_Node_To_List (N, Package_Header);
+      Append_To (Package_Header, N);
 
       Set_Str_To_Name_Buffer
         ("This file has been generated automatically from");
       N := Make_Ada_Comment (Name_Find);
-      Append_Node_To_List (N, Package_Header);
+      Append_To (Package_Header, N);
 
       Get_Name_String (Main_Source);
       N := Make_Ada_Comment (Name_Find);
-      Append_Node_To_List (N, Package_Header);
+      Append_To (Package_Header, N);
 
       Set_Str_To_Name_Buffer
         ("by IAC (IDL to Ada Compiler) " & Platform.Version & ".");
       N := Make_Ada_Comment (Name_Find);
-      Append_Node_To_List (N, Package_Header);
+      Append_To (Package_Header, N);
 
       if not Editable then
 
          N := Make_Ada_Comment (Separator, False);
-         Append_Node_To_List (N, Package_Header);
+         Append_To (Package_Header, N);
 
          Set_Str_To_Name_Buffer
            ("Do NOT hand-modify this file, as your");
          N := Make_Ada_Comment (Name_Find);
-         Append_Node_To_List (N, Package_Header);
+         Append_To (Package_Header, N);
 
          Set_Str_To_Name_Buffer
            ("changes will be lost when you re-run the");
          N := Make_Ada_Comment (Name_Find);
-         Append_Node_To_List (N, Package_Header);
+         Append_To (Package_Header, N);
 
          Set_Str_To_Name_Buffer
            ("IDL to Ada compiler.");
          N := Make_Ada_Comment (Name_Find);
-         Append_Node_To_List (N, Package_Header);
+         Append_To (Package_Header, N);
       end if;
 
       if Internal then
          N := Make_Ada_Comment (Separator, False);
-         Append_Node_To_List (N, Package_Header);
+         Append_To (Package_Header, N);
 
          Set_Str_To_Name_Buffer
            ("This package is not part of the standard IDL-to-Ada");
          N := Make_Ada_Comment (Name_Find);
-         Append_Node_To_List (N, Package_Header);
+         Append_To (Package_Header, N);
 
          Set_Str_To_Name_Buffer
            ("mapping. It provides supporting routines used");
          N := Make_Ada_Comment (Name_Find);
-         Append_Node_To_List (N, Package_Header);
+         Append_To (Package_Header, N);
 
          Set_Str_To_Name_Buffer
            ("internally by PolyORB.");
          N := Make_Ada_Comment (Name_Find);
-         Append_Node_To_List (N, Package_Header);
+         Append_To (Package_Header, N);
       end if;
 
       N := Make_Ada_Comment (Separator, False);
-      Append_Node_To_List (N, Package_Header);
+      Append_To (Package_Header, N);
    end Make_Comment_Header;
 
    -----------------
@@ -2243,31 +2295,6 @@ package body Backend.BE_CORBA_Ada.Nutils is
 
       return Result;
    end Next_N_Node;
-
-   --------------
-   -- New_List --
-   --------------
-
-   function New_List
-     (Kind : Node_Kind;
-      From : Node_Id := No_Node)
-     return List_Id is
-      N : Node_Id;
-
-   begin
-      Entries.Increment_Last;
-      N := Entries.Last;
-      Entries.Table (N) := Default_Node;
-      Set_Kind (N, Kind);
-
-      if Present (From) then
-         Set_Loc  (N, Loc (From));
-      else
-         Set_Loc  (N, No_Location);
-      end if;
-
-      return List_Id (N);
-   end New_List;
 
    --------------
    -- New_Node --
@@ -2318,7 +2345,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
          --  string ("%ada_kw%<keyword>" to avoid clashing with other
          --  marked names.
 
-         Set_Str_To_Name_Buffer (Ada_KW_Prefix);
+         Set_Str_To_Name_Buffer (Ada_Keyword_Prefix);
          Get_Name_String_And_Append (Token_Image (T));
          Set_Name_Table_Byte (Name_Find, Byte (Token_Type'Pos (T) + 1));
       end if;
@@ -2409,10 +2436,10 @@ package body Backend.BE_CORBA_Ada.Nutils is
       Set_FE_Node (N, E);
 
       if Is_Empty (Forwarded_Entities) then
-         Forwarded_Entities := New_List (K_List_Id);
+         Forwarded_Entities := New_List;
       end if;
 
-      Append_Node_To_List (N, Forwarded_Entities);
+      Append_To (Forwarded_Entities, N);
    end Set_Forwarded;
 
    ------------------
@@ -2424,7 +2451,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
       N      : Node_Id;
    begin
       if Is_Empty (Forwarded_Entities) then
-         Forwarded_Entities := New_List (K_List_Id);
+         Forwarded_Entities := New_List;
       end if;
 
       N := First_Node (Forwarded_Entities);
@@ -2614,19 +2641,25 @@ package body Backend.BE_CORBA_Ada.Nutils is
    -- To_Ada_Name --
    -----------------
 
-   function To_Ada_Name (N : Name_Id) return Name_Id is
-      First    : Natural := 1;
-      Name     : Name_Id;
-      Low_Name : Name_Id;
-      V        : Byte;
+   function To_Ada_Name
+     (N                 : Name_Id;
+      Is_Operation_Name : Boolean := False) return Name_Id
+   is
+      First      : Natural := 1;
+      Name       : Name_Id;
+      Low_Name   : Name_Id;
+      Mixed_Name : Name_Id;
+      Is_Keyword : Boolean;
    begin
       Get_Name_String (N);
 
-      while First <= Name_Len
-        and then Name_Buffer (First) = '_'
-      loop
+      --  Remove leading underscores
+
+      while First <= Name_Len and then Name_Buffer (First) = '_' loop
          First := First + 1;
       end loop;
+
+      --  Escape doubled underscores
 
       for I in First .. Name_Len loop
          if Name_Buffer (I) = '_'
@@ -2637,21 +2670,42 @@ package body Backend.BE_CORBA_Ada.Nutils is
          end if;
       end loop;
 
+      --  Escape trailing underscores
+
       if Name_Buffer (Name_Len) = '_' then
          Add_Char_To_Name_Buffer ('U');
       end if;
 
+      --  Get name in original case
+
       Name := Name_Find;
+
+      --  Get name in lowercase
+
       Low_Name := To_Lower (Name);
 
-      --  If the identifier collides with an Ada reserved word insert
-      --  "IDL_" string before the identifier.
+      --  Get name in GNAT mixed case, for comparison with SN entries
 
-      Set_Str_To_Name_Buffer (Ada_KW_Prefix);
+      GNAT.Case_Util.To_Mixed (Name_Buffer (1 .. Name_Len));
+      Mixed_Name := Name_Find;
+
+      --  If the identifier collides with an Ada reserved word or (for object
+      --  operations) with a primitive operation of Ada.Finalization.
+      --  Controlled, insert "IDL_" string before the identifier.
+
+      Set_Str_To_Name_Buffer (Ada_Keyword_Prefix);
       Get_Name_String_And_Append (Low_Name);
-      V := Get_Name_Table_Byte (Name_Find);
+      Is_Keyword := Get_Name_Table_Byte (Name_Find) > 0;
 
-      if V > 0  then
+      if Is_Keyword
+           or else
+          (Is_Operation_Name and then
+               (Mixed_Name = SN (S_Initialize)
+                  or else
+                Mixed_Name = SN (S_Adjust)
+                  or else
+                Mixed_Name = SN (S_Finalize)))
+      then
          Set_Str_To_Name_Buffer ("IDL_");
          Get_Name_String_And_Append (Name);
          Name := Name_Find;
@@ -2702,7 +2756,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
    procedure Initialize_GList (P : Node_Id; L : GLists) is
       pragma Assert (Kind (P) = K_Package_Declaration);
 
-      The_List     : constant List_Id := New_List (K_List_Id);
+      The_List     : constant List_Id := New_List;
       Binding_Name : constant Name_Id := Internal_Name (P, L);
    begin
       if Get_Name_Table_Info (Binding_Name) = 0 then
@@ -2723,7 +2777,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
       The_List := List_Id (Get_Name_Table_Info (Binding_Name));
 
       if The_List = No_List then
-         The_List := New_List (K_List_Id);
+         The_List := New_List;
          Set_Name_Table_Info (Binding_Name, Nat (The_List));
       end if;
 

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2006-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2006-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -42,6 +42,8 @@ with Ada.Text_IO; use Ada.Text_IO;
 with GNAT.Regpat; use GNAT.Regpat;
 
 procedure Update_Headers is
+
+   pragma Style_Checks ("mM100");  --  Allow long lines below
 
    subtype Line_Type is String (1 .. 256);
 
@@ -83,8 +85,8 @@ procedure Update_Headers is
    OMG_Header_Template : constant String :=
    "-- This specification is derived from the CORBA Specification, and adapted  --" & ASCII.LF &
    "-- for use with PolyORB. The copyright notice above, and the license        --" & ASCII.LF &
-   "-- provisions that follow apply solely to the contents neither explicitely  --" & ASCII.LF &
-   "-- nor implicitely specified by the CORBA Specification defined by the OMG. --" & ASCII.LF &
+   "-- provisions that follow apply solely to the contents neither explicitly   --" & ASCII.LF &
+   "-- nor implicitly specified by the CORBA Specification defined by the OMG.  --" & ASCII.LF &
    "--                                                                          --" & ASCII.LF;
 
    -------------------------
@@ -304,7 +306,7 @@ procedure Update_Headers is
 
    begin
       Open   (F, In_File, Filename);
-      Create (Outf, Out_File, Ofilename);
+      Create (Outf, Out_File, Ofilename, Form => "Text_Translation=No");
 
       begin
          --  Check for file kind suffix, but omit possible trailing ".in"

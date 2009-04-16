@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -56,7 +56,6 @@ package body PolyORB.Protocols.GIOP is
    use PolyORB.Representations.CDR.Common;
    use PolyORB.Representations.CDR.GIOP_Utils;
    use PolyORB.Tasking.Mutexes;
-   use PolyORB.Types;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.protocols.giop");
    procedure O (Message : String; Level : Log_Level := Debug)
@@ -232,7 +231,7 @@ package body PolyORB.Protocols.GIOP is
 
          when Expect_Body =>
             pragma Debug (C, O ("Received GIOP message body"));
-            pragma Debug (Show (Sess.Buffer_In));
+            pragma Debug (C, Show (Sess.Buffer_In));
             Process_Message (Sess.Implem, Sess);
 
          when others =>
@@ -1073,7 +1072,7 @@ package body PolyORB.Protocols.GIOP is
    ------------------------
 
    function Get_Representation
-     (Sess : GIOP_Session)
+     (Sess : access GIOP_Session)
      return PolyORB.Representations.CDR.CDR_Representation_Access
    is
    begin
@@ -1085,11 +1084,12 @@ package body PolyORB.Protocols.GIOP is
    ----------------
 
    function Get_Buffer
-     (Sess : GIOP_Session)
+     (Sess : access GIOP_Session)
      return Buffer_Access
    is
+      Buffer : constant Buffer_Access := Sess.Buffer_In;
    begin
-      return Sess.Buffer_In;
+      return Buffer;
    end Get_Buffer;
 
 end PolyORB.Protocols.GIOP;

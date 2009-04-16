@@ -40,7 +40,6 @@ with XE_Defs;          use XE_Defs;
 with XE_Flags;         use XE_Flags;
 with XE_IO;            use XE_IO;
 with XE_Names;         use XE_Names;
-with XE_Usage;
 
 package body XE_Utils is
 
@@ -63,8 +62,6 @@ package body XE_Utils is
    Project_File_Name_Expected : Boolean := False;
    --  Used to keep state between invocations of Scan_Dist_Arg. True when
    --  previous argument was "-P".
-
-   Usage_Needed : Boolean := False;
 
    function Dup (Fd : File_Descriptor) return File_Descriptor;
    pragma Import (C, Dup);
@@ -110,6 +107,10 @@ package body XE_Utils is
    --  Called when the program is interrupted by Ctrl-C to delete the
    --  temporary mapping files and configuration pragmas files.
 
+   procedure Check_User_Provided_S_RPC (Dir : String);
+   --  Check whether the given directory contains a user-provided version of
+   --  s-rpc.adb, and if so set the global flag User_Provided_S_RPC to True.
+
    ---------
    -- "&" --
    ---------
@@ -146,9 +147,9 @@ package body XE_Utils is
       return Name_Find;
    end "&";
 
-   -----------------------
+   ---------------------
    -- Add_List_Switch --
-   -----------------------
+   ---------------------
 
    procedure Add_List_Switch (Argv : String) is
    begin
@@ -170,18 +171,18 @@ package body XE_Utils is
       Main_Sources (Last_Main_Source) := Name_Find;
    end Add_Main_Source;
 
-   -----------------------
+   ---------------------
    -- Add_Make_Switch --
-   -----------------------
+   ---------------------
 
    procedure Add_Make_Switch (Argv : String_Access) is
    begin
       Make_Switches.Append (Argv);
    end Add_Make_Switch;
 
-   -----------------------
+   ---------------------
    -- Add_Make_Switch --
-   -----------------------
+   ---------------------
 
    procedure Add_Make_Switch (Argv : String) is
    begin
@@ -194,14 +195,8 @@ package body XE_Utils is
 
    procedure Add_Source_Directory (Argv : String) is
    begin
+      Check_User_Provided_S_RPC (Argv);
       Source_Directories.Append (new String'(Argv));
-
-      --  Special kludge: if the user provides his own version of s-rpc, the
-      --  PCS should not provide it.
-
-      if Is_Readable_File (Argv & Dir_Separator & "s-rpc.adb") then
-         XE_Flags.User_Provided_S_RPC := True;
-      end if;
    end Add_Source_Directory;
 
    -----------
@@ -342,6 +337,20 @@ package body XE_Utils is
          end if;
       end loop;
    end Capitalize;
+
+   -------------------------------
+   -- Check_User_Provided_S_RPC --
+   -------------------------------
+
+   procedure Check_User_Provided_S_RPC (Dir : String) is
+   begin
+      --  Special kludge: if the user provides his own version of s-rpc, the
+      --  PCS should not provide it.
+
+      if Is_Readable_File (Dir & Dir_Separator & "s-rpc.adb") then
+         XE_Flags.User_Provided_S_RPC := True;
+      end if;
+   end Check_User_Provided_S_RPC;
 
    -------------
    -- Compile --
@@ -562,6 +571,8 @@ package body XE_Utils is
       Monolithic_ALI_Name := To_Afile (Monolithic_Src_Name);
       Monolithic_Obj_Name := To_Ofile (Monolithic_Src_Name);
 
+      Monolithic_Obj_Dir  := Dir (Id (Root), Id ("obj"));
+
       PCS_Project        := Id ("pcs_project");
       Set_Corresponding_Project_File_Name (PCS_Project_File);
 
@@ -573,6 +584,8 @@ package body XE_Utils is
       Part_Main_Obj_Name := To_Ofile (Part_Main_Src_Name);
 
       Part_Prj_File_Name := Id ("partition.gpr");
+
+      Overridden_PCS_Units := Id ("pcs_excluded.lst");
 
       Name_Len := 2;
       Name_Buffer (1 .. 2) := "-A";
@@ -600,17 +613,15 @@ package body XE_Utils is
 
       XE_Defs.Initialize;
 
-      if Usage_Needed then
-         XE_Usage;
-         raise Usage_Error;
-      end if;
-
       Install_Int_Handler (Sigint_Intercepted'Access);
 
       Create_Dir (Stub_Dir_Name);
       Create_Dir (Part_Dir_Name);
+      Create_Dir (Monolithic_Obj_Dir);
 
       GNAT_Driver := Locate ("gnat");
+
+      Check_User_Provided_S_RPC (".");
    end Initialize;
 
    ----------
@@ -957,8 +968,16 @@ package body XE_Utils is
                   when 'f' =>
                      Add_Make_Switch ("-df");
 
+                  --  -dP: Force using project files to reference the PolyORB
+                  --       PCS even on non-Windows platforms.
+
+                  when 'P' =>
+                     Use_PolyORB_Project := True;
+
                   when others =>
-                     Usage_Needed := True;
+                  --  Other debugging flags are passed to the builder untouched
+
+                  Add_Make_Switch (Argv);
 
                end case;
             end if;
@@ -977,7 +996,7 @@ package body XE_Utils is
                   Add_Make_Switch ("-dn");
 
                when 'q' =>
-                  Quiet_Mode   := True;
+                  Quiet_Mode := True;
                   --  Switch is passed to gnatmake later on
 
                when 'v' =>

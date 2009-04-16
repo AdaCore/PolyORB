@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
@@ -39,19 +39,20 @@
 with PolyORB.Components;
 with PolyORB.Servants;
 with PolyORB.Smart_Pointers;
+with PolyORB.Smart_Pointers.Controlled_Entities;
 
 package CORBA.Impl is
 
    pragma Elaborate_Body;
 
-   type Object is abstract new PolyORB.Smart_Pointers.Entity
-     with private;
+   package PSPCE renames PolyORB.Smart_Pointers.Controlled_Entities;
+
+   type Object is abstract new PSPCE.Entity with private;
+
    subtype Object_Ptr is PolyORB.Smart_Pointers.Entity_Ptr;
    --  Object_Ptr is the return type of CORBA.AbstractBase.Object_Of.
-   --  It may either designate an actual local object
-   --  (a CORBA.Impl.Object'Class), or a surrogate thereof
-   --  (a PolyORB.Smart_Pointers.Entity'Class not derived from
-   --  CORBA.Impl.Object).
+   --  It may either designate an actual local object (CORBA.Impl.Object'Class)
+   --  or a surrogate thereof.
 
    function Execute_Servant
      (Self : not null access Object;
@@ -84,7 +85,7 @@ private
       Msg  : PolyORB.Components.Message'Class)
      return PolyORB.Components.Message'Class;
 
-   type Object is abstract new PolyORB.Smart_Pointers.Entity with record
+   type Object is abstract new PSPCE.Entity with record
       Neutral_View : aliased Implementation (Object'Access);
       --  The PolyORB (personality-neutral) view of this servant.
       --  See also PolyORB.Minimal_Servant.

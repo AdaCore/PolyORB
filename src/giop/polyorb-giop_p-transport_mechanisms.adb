@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -51,32 +51,26 @@ package body PolyORB.GIOP_P.Transport_Mechanisms is
    -- Create_Transport_Mechanisms --
    ---------------------------------
 
-   function Create_Transport_Mechanisms
+   procedure Create_Transport_Mechanisms
      (TC      : Tagged_Components.Tagged_Component_List;
-      Profile : Binding_Data.Profile_Access)
-     return Transport_Mechanism_List
+      Profile : Binding_Data.Profile_Access;
+      Mechs   : in out Transport_Mechanism_List)
    is
       use Registry_Item_Lists;
-
-      Result : Transport_Mechanism_List;
       Iter   : Registry_Item_Lists.Iterator := First (Registry);
-
    begin
       while not Last (Iter) loop
          declare
-            SC : constant Tagged_Component_Array
-              := Get_Components (TC, Value (Iter).Tag);
-
+            SC : constant Tagged_Component_Array :=
+                   Get_Components (TC, Value (Iter).Tag);
          begin
             for J in SC'Range loop
-               Result := Result & Value (Iter).Constructor (SC (J), Profile);
+               Value (Iter).Constructor (SC (J), Profile, Mechs);
             end loop;
          end;
 
          Next (Iter);
       end loop;
-
-      return Result;
    end Create_Transport_Mechanisms;
 
    ---------------

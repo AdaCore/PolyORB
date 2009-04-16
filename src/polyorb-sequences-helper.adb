@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -210,6 +210,20 @@ package body PolyORB.Sequences.Helper is
       end loop;
       return Result;
    end To_Any;
+
+   ----------------------
+   -- Unchecked_Get_V  --
+   ----------------------
+
+   function Unchecked_Get_V
+     (ACC : not null access Sequence_Content) return System.Address
+   is
+   begin
+      if ACC.V = null or else Length (ACC.V.all) = 0 then
+         return System.Null_Address;
+      end if;
+      return Unchecked_Element_Of (ACC.V, 1).all'Address;
+   end Unchecked_Get_V;
 
    ----------
    -- Wrap --

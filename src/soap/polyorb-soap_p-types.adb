@@ -292,7 +292,7 @@ package body PolyORB.SOAP_P.Types is
 --    -- Image --
 --    -----------
 
-   function Image (NV : NamedValue) return String is
+   function Value_Image (NV : NamedValue) return String is
       TC : constant TypeCode.Object_Ptr := Get_Unwound_Type (NV.Argument);
       Kind : constant TCKind := TypeCode.Kind (TC);
    begin
@@ -338,11 +338,9 @@ package body PolyORB.SOAP_P.Types is
 
          when others =>
             --  XXX ???
-            pragma Debug
-              (C, O ("Image: Unsupported TCKind:" & TCKind'Image (Kind)));
-            raise Data_Error;
+            return "Image: Unsupported TCKind:" & TCKind'Image (Kind);
       end case;
-   end Image;
+   end Value_Image;
 
 --    function Image (O : XSD_Time_Instant) return String is
 
@@ -577,7 +575,7 @@ package body PolyORB.SOAP_P.Types is
             pragma Debug (C, O ("Defaulting."));
             return "<" & To_Standard_String (NV.Name)
               & xsi_type (XML_Type (NV)) & '>'
-              & Image (NV)
+              & Value_Image (NV)
               & "</" & To_Standard_String (NV.Name) & '>';
       end case;
    end XML_Image;
@@ -656,7 +654,7 @@ package body PolyORB.SOAP_P.Types is
       return "<" & Tag_Name
         & " id="""
         & PolyORB.Types.Trimmed_Image (Unsigned_Long_Long (Pos)) & """>"
-        & Image (NV)
+        & Value_Image (NV)
         & "</" & Tag_Name & ">";
    end XML_Enum_Image;
 

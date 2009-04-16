@@ -35,6 +35,8 @@ with PolyORB.DSA_P.Partitions;
 pragma Elaborate_All (PolyORB.DSA_P.Partitions);
 with PolyORB.Initialization;
 with PolyORB.Log;
+with PolyORB.DSA_P.Storages.Config;
+pragma Elaborate_All (PolyORB.DSA_P.Storages.Config);
 with PolyORB.Termination_Manager.Bootstrap;
 pragma Elaborate_All (PolyORB.Termination_Manager.Bootstrap);
 
@@ -51,6 +53,7 @@ package body System.DSA_Services is
    use System.Partition_Interface;
 
 begin
+
    --  Check that PCS is initialized
 
    pragma Assert (PolyORB.Initialization.Is_Initialized);
@@ -58,6 +61,10 @@ begin
    --  Initialize the termination manager
 
    PolyORB.Termination_Manager.Bootstrap.Initialize_Termination_Manager;
+
+   --  Initialize shared storage supports
+
+   PolyORB.DSA_P.Storages.Config.Initialize_Storages;
 
    --  Allocate to this partition a local partition ID
 

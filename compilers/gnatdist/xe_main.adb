@@ -87,6 +87,8 @@ begin
    XE_Stdcnf.Initialize;
    XE_Front.Initialize;
 
+   XE_Back.Register_Storages (Backend);
+
    --  Look for the configuration file that is Next_Main_Source or
    --  Next_Main_Source + ".cfg" if the former does not exist.
 
@@ -112,11 +114,9 @@ begin
 
    --  Configuration name and configuration file name do not match
 
-   Get_Name_String (Configuration_File_Name);
+   Get_Name_String (Strip_Directory (Configuration_File_Name));
    Name_Len := Name_Len - Cfg_Suffix'Length;
-   if not Quiet_Mode
-     and then Configuration /= Name_Find
-   then
+   if Configuration /= Name_Find then
       Message ("configuration file name should be",
                Quote (Configuration & Cfg_Suffix_Id));
       raise Fatal_Error;
@@ -154,9 +154,9 @@ begin
       end loop;
    end if;
 
-   --  Check consistency once we know which partitions to build. Some
-   --  parts of configuration may be missing because we partially
-   --  build the distributed system.
+   --  Check consistency once we know which partitions to build. Some parts of
+   --  configuration may be missing because we partially build the distributed
+   --  system.
 
    XE_Back.Initialize (Backend);
    Analyze;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,17 +26,53 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Information about running ORB tasks.
-
---  This package is used to store and retrieve information
---  concerning the status of tasks that execute ORB functions.
-
 package body PolyORB.Task_Info is
+
+   procedure Increment (C : in out Natural);
+   procedure Decrement (C : in out Natural);
+   --  Increment / decrement C
+
+   procedure Task_State_Change
+     (Summary   : in out Task_Summary;
+      TI        : in out Task_Info;
+      New_State : Task_State);
+   --  Set TI's state to New_State and record transition in Summary
+
+   ---------------
+   -- Decrement --
+   ---------------
+
+   procedure Decrement (C : in out Natural) is
+   begin
+      C := C - 1;
+   end Decrement;
+
+   ---------------
+   -- Increment --
+   ---------------
+
+   procedure Increment (C : in out Natural) is
+   begin
+      C := C + 1;
+   end Increment;
+
+   ---------------
+   -- Get_Count --
+   ---------------
+
+   function Get_Count
+      (Summary : Task_Summary;
+       Kind    : Any_Task_Kind  := Any;
+       State   : Any_Task_State := Any) return Natural
+   is
+   begin
+      return Summary.Counters (Kind, State);
+   end Get_Count;
 
    -----------
    -- Image --
@@ -47,16 +83,27 @@ package body PolyORB.Task_Info is
       return Tasking.Threads.Image (TI.Id);
    end Image;
 
+   ----------------
+   -- Kind_Match --
+   ----------------
+
+   function Kind_Match (TI : Task_Info; Kind : Any_Task_Kind) return Boolean is
+   begin
+      return Kind = Any or else Kind = TI.Kind;
+   end Kind_Match;
+
    -----------------
    -- List_Attach --
    -----------------
 
    procedure List_Attach
-     (TI       : in out Task_Info;
-      Position : Task_Lists.Iterator)
+     (TI   : access Task_Info;
+      List : in out Task_List)
    is
+      pragma Assert (not TI.On_List);
    begin
-      TI.Position := Position;
+      Prepend (List, TI);
+      TI.On_List := True;
    end List_Attach;
 
    -----------------
@@ -64,24 +111,33 @@ package body PolyORB.Task_Info is
    -----------------
 
    procedure List_Detach
-     (TI   : in out Task_Info;
-      List : in out Task_Lists.List)
+     (TI   : access Task_Info;
+      List : in out Task_List)
    is
    begin
-      if not Task_Lists.Last (TI.Position) then
-         Task_Lists.Remove (List, TI.Position);
-         TI.Position := Task_Lists.Last (List);
+      if TI.On_List then
+         Remove_Element (List, TI);
+         TI.On_List := False;
       end if;
    end List_Detach;
 
+   ----------------
+   -- List_First --
+   ----------------
+
+   function List_First (List : Task_List) return access Task_Info is
+   begin
+      return Task_Lists.Value (First (List));
+   end List_First;
+
    --------------
-   -- May_Poll --
+   -- May_Exit --
    --------------
 
-   function May_Poll (TI : Task_Info) return Boolean is
+   function May_Exit (TI : Task_Info) return Boolean is
    begin
-      return TI.May_Poll;
-   end May_Poll;
+      return TI.May_Exit;
+   end May_Exit;
 
    --------------
    -- Selector --
@@ -113,12 +169,13 @@ package body PolyORB.Task_Info is
    -----------------------
 
    procedure Set_State_Blocked
-     (TI       : in out Task_Info;
+     (Summary  : in out Task_Summary;
+      TI       : in out Task_Info;
       Selector :        Asynch_Ev.Asynch_Ev_Monitor_Access;
       Timeout  :        Duration)
    is
    begin
-      TI.State    := Blocked;
+      Task_State_Change (Summary, TI, New_State => Blocked);
       TI.Selector := Selector;
       TI.Timeout  := Timeout;
    end Set_State_Blocked;
@@ -128,12 +185,13 @@ package body PolyORB.Task_Info is
    --------------------
 
    procedure Set_State_Idle
-     (TI        : in out Task_Info;
-      Condition :        PTCV.Condition_Access;
-      Mutex     :        PTM.Mutex_Access)
+     (Summary   : in out Task_Summary;
+      TI        : in out Task_Info;
+      Condition : PTCV.Condition_Access;
+      Mutex     : PTM.Mutex_Access)
    is
    begin
-      TI.State     := Idle;
+      Task_State_Change (Summary, TI, New_State => Idle);
       TI.Condition := Condition;
       TI.Mutex     := Mutex;
    end Set_State_Idle;
@@ -143,11 +201,12 @@ package body PolyORB.Task_Info is
    -----------------------
 
    procedure Set_State_Running
-     (TI  : in out Task_Info;
-      Job :        Jobs.Job_Access)
+     (Summary : in out Task_Summary;
+      TI      : in out Task_Info;
+      Job     : Jobs.Job_Access)
    is
    begin
-      TI.State     := Running;
+      Task_State_Change (Summary, TI, New_State => Running);
       TI.Job       := Job;
       TI.Selector  := null;
       TI.Condition := null;
@@ -183,6 +242,18 @@ package body PolyORB.Task_Info is
       return TI.Exit_Condition /= null and then TI.Exit_Condition.all;
    end Exit_Condition;
 
+   ----------
+   -- Link --
+   ----------
+
+   function Link
+     (S     : access Task_Info;
+      Which : Utils.Ilists.Link_Type) return access Task_Info_Access
+   is
+   begin
+      return S.Links (Which)'Unchecked_Access;
+   end Link;
+
    -----------
    -- Mutex --
    -----------
@@ -198,15 +269,13 @@ package body PolyORB.Task_Info is
 
    procedure Set_Exit_Condition
      (TI             : in out Task_Info;
-      Exit_Condition :        PolyORB.Types.Boolean_Ptr)
+      Exit_Condition : Types.Boolean_Ptr)
    is
-      use type PolyORB.Types.Boolean_Ptr;
+      use type Types.Boolean_Ptr;
 
    begin
-      pragma Assert ((TI.Kind = Transient and then Exit_Condition /= null)
-                     or else (TI.Kind = Permanent
-                              and then Exit_Condition = null));
-
+      pragma Assert
+        (TI.Kind = Task_Kind_For_Exit_Condition (Exit_Condition = null));
       TI.Exit_Condition := Exit_Condition;
    end Set_Exit_Condition;
 
@@ -219,24 +288,31 @@ package body PolyORB.Task_Info is
       TI.Id := Tasking.Threads.Current_Task;
    end Set_Id;
 
-   -----------------
-   -- Set_Polling --
-   -----------------
+   ------------------
+   -- Set_May_Exit --
+   ------------------
 
-   procedure Set_Polling (TI : in out Task_Info; May_Poll : Boolean) is
+   procedure Set_May_Exit
+     (TI       : in out Task_Info;
+      May_Exit : Boolean)
+   is
    begin
-      TI.May_Poll := May_Poll;
-   end Set_Polling;
+      TI.May_Exit := May_Exit;
+   end Set_May_Exit;
 
    ---------------------------
    -- Set_State_Unscheduled --
    ---------------------------
 
-   procedure Set_State_Unscheduled (TI : in out Task_Info) is
+   procedure Set_State_Unscheduled
+     (Summary : in out Task_Summary;
+      TI      : in out Task_Info)
+   is
    begin
-      pragma Assert (TI.State /= Unscheduled);
+      --  Note: TI may already be in Unscheduled state, because this is the
+      --  initial state of a newly-created task.
 
-      TI.State     := Unscheduled;
+      Task_State_Change (Summary, TI, New_State => Unscheduled);
       TI.Job       := null;
       TI.Selector  := null;
       TI.Condition := null;
@@ -247,9 +323,11 @@ package body PolyORB.Task_Info is
    -- Set_State_Terminated --
    --------------------------
 
-   procedure Set_State_Terminated (TI : in out Task_Info) is
+   procedure Set_State_Terminated
+     (Summary : in out Task_Summary;
+      TI      : in out Task_Info) is
    begin
-      TI.State := Terminated;
+      Task_State_Change (Summary, TI, Terminated);
    end Set_State_Terminated;
 
    ---------------------------
@@ -283,6 +361,15 @@ package body PolyORB.Task_Info is
       return TI.Id;
    end Id;
 
+   --------------
+   -- Is_Empty --
+   --------------
+
+   function Is_Empty (List : Task_List) return Boolean is
+   begin
+      return Task_Lists.Is_Empty (Task_Lists.List (List));
+   end Is_Empty;
+
    ---------
    -- Job --
    ---------
@@ -291,5 +378,90 @@ package body PolyORB.Task_Info is
    begin
       return TI.Job;
    end Job;
+
+   ------------------
+   -- Task_Created --
+   ------------------
+
+   procedure Task_Created (Summary : in out Task_Summary; TI : Task_Info) is
+   begin
+      pragma Assert (TI.State = Unscheduled);
+      Increment (Summary.Counters (TI.Kind, TI.State));
+      Increment (Summary.Counters (TI.Kind, Any));
+      Increment (Summary.Counters (Any,     TI.State));
+      Increment (Summary.Counters (Any,     Any));
+   end Task_Created;
+
+   ------------------
+   -- Task_Removed --
+   ------------------
+
+   procedure Task_Removed (Summary : in out Task_Summary; TI : Task_Info) is
+   begin
+      pragma Assert (TI.State = Terminated);
+      Decrement (Summary.Counters (TI.Kind, TI.State));
+      Decrement (Summary.Counters (TI.Kind, Any));
+      Decrement (Summary.Counters (Any,     TI.State));
+      Decrement (Summary.Counters (Any,     Any));
+   end Task_Removed;
+
+   -----------------------
+   -- Task_State_Change --
+   -----------------------
+
+   procedure Task_State_Change
+     (Summary   : in out Task_Summary;
+      TI        : in out Task_Info;
+      New_State : Task_State)
+   is
+   begin
+      Decrement (Summary.Counters (TI.Kind, TI.State));
+      Decrement (Summary.Counters (Any,     TI.State));
+      TI.State := New_State;
+      Increment (Summary.Counters (TI.Kind, TI.State));
+      Increment (Summary.Counters (Any,     TI.State));
+      pragma Assert (Task_Summary_Valid (Summary));
+   end Task_State_Change;
+
+   ------------------------
+   -- Task_Summary_Valid --
+   ------------------------
+
+   function Task_Summary_Valid (Summary : Task_Summary) return Boolean
+   is
+      Count       : Natural;
+      Total_Count : Natural;
+   begin
+      --  Check per-kind summary
+
+      for K in Task_Kind'Range loop
+         Count := 0;
+         for S in Task_State'Range loop
+            Count := Count  + Summary.Counters (K, S);
+         end loop;
+         if Summary.Counters (K, Any) /= Count then
+            return False;
+         end if;
+      end loop;
+
+      --  Check per-state summary and compute total count
+
+      Total_Count := 0;
+
+      for S in Task_State'Range loop
+         Count := 0;
+         for K in Task_Kind'Range loop
+            Count := Count  + Summary.Counters (K, S);
+            Total_Count := Total_Count  + Summary.Counters (K, S);
+         end loop;
+         if Summary.Counters (Any, S) /= Count then
+            return False;
+         end if;
+      end loop;
+
+      --  Check total count
+
+      return Summary.Counters (Any, Any) = Total_Count;
+   end Task_Summary_Valid;
 
 end PolyORB.Task_Info;

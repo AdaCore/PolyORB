@@ -112,9 +112,8 @@ package body PolyORB.Binding_Data.GIOP.IIOP is
      (P : access IIOP_Profile_Type)
    is
    begin
-      P.Mechanisms :=
-        P.Mechanisms
-        & Create_Transport_Mechanisms (P.Components, Profile_Access (P));
+      Create_Transport_Mechanisms
+        (P.Components, Profile_Access (P), P.Mechanisms);
    end Add_Additional_Transport_Mechanisms;
 
    ---------------------

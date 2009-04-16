@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 P r o j                                  --
 --                                                                          --
---           Copyright (C) 2007, Free Software Foundation, Inc.             --
+--         Copyright (C) 2007-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -49,6 +49,16 @@ project src_dsa is
 
       for Default_Switches ("Ada")
          use Src.Compiler'Default_Switches ("Ada");
+
+      Ada_RTL_Switches :=
+        Compiler'Default_Switches ("Ada") & ("-gnatw" & Common.Warnings_Mode);
+      --  Gnatmake compiles children of System with -gnatg (otherwise it is
+      --  illegal to recompile such children). -gnatg sets the warnings mode
+      --  to -gnatwe, so we need to reset it explicitly afterwards.
+
+      for Switches ("s-parint.adb") use Ada_RTL_Switches;
+      for Switches ("s-dsaser.adb") use Ada_RTL_Switches;
+      for Switches ("s-dsatyp.adb") use Ada_RTL_Switches;
 
    end Compiler;
 

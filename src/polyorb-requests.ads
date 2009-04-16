@@ -64,8 +64,7 @@ package PolyORB.Requests is
 
    type Flags is new Types.Unsigned_Long;
 
-   package Unsigned_Long_Flags is
-      new PolyORB.Utils.Simple_Flags (Flags, Shift_Left);
+   package Unsigned_Long_Flags is new PolyORB.Utils.Simple_Flags (Flags);
 
    ------------------------------------------
    -- Synchronisation of request execution --

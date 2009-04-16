@@ -35,7 +35,6 @@ with PolyORB.Components;
 with PolyORB.Filters;
 with PolyORB.Filters.Iface;
 with PolyORB.Initialization;
-
 with PolyORB.Jobs;
 with PolyORB.Log;
 with PolyORB.Setup;
@@ -64,11 +63,9 @@ package body PolyORB.ORB.Thread_Per_Request is
      renames L.Enabled;
 
    type Request_Runnable is new Runnable with record
+      ORB   : ORB_Access;
       A_Job : Jobs.Job_Access;
    end record;
-
-   type Request_Runnable_Controller is
-     new Runnable_Controller with null record;
 
    procedure Run (R : access Request_Runnable);
 
@@ -130,22 +127,19 @@ package body PolyORB.ORB.Thread_Per_Request is
       ORB :        ORB_Access;
       RJ  : access Request_Job'Class)
    is
-      pragma Unreferenced (P, ORB);
-
-      R : constant Runnable_Access := new Request_Runnable;
+      pragma Unreferenced (P);
 
       T : Thread_Access;
       pragma Unreferenced (T);
       --  T is assigned but never read
 
    begin
-      pragma Debug (C, O ("Handle_Request_Execution : Run Job"));
-      Request_Runnable (R.all).A_Job := PolyORB.ORB.Duplicate_Request_Job (RJ);
-
-      T := Run_In_Task
-        (Get_Thread_Factory,
-         R => R,
-         C => new Request_Runnable_Controller);
+      pragma Debug (C, O ("Handle_Request_Execution: enter"));
+      T := Run_In_Task (Get_Thread_Factory,
+                        R => new Request_Runnable'
+                          (ORB   => ORB,
+                           A_Job => Job_Access (RJ)));
+      pragma Debug (C, O ("Handle_Request_Execution: leave"));
    end Handle_Request_Execution;
 
    ----------
@@ -198,12 +192,11 @@ package body PolyORB.ORB.Thread_Per_Request is
       pragma Debug (C, O ("Thread " & Image (Current_Task)
                        & " is executing a job"));
 
-      Run_Request (Request_Job (R.A_Job.all)'Access);
+      Run_Request (R.ORB, Request_Job (R.A_Job.all).Request);
 
       --  Job Finalization
 
       Jobs.Free (R.A_Job);
-
       pragma Debug (C, O ("Thread " & Image (Current_Task)
                        & " has executed and destroyed a job"));
    end Run;
@@ -218,7 +211,7 @@ begin
       (Name      => +"orb.thread_per_request",
        Conflicts => +"no_tasking",
        Depends   => +"tasking.condition_variables",
-       Provides  => +"orb.tasking_policy",
+       Provides  => +"orb.tasking_policy!",
        Implicit  => False,
        Init      => Initialize'Access,
        Shutdown  => null));

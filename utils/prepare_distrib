@@ -5,9 +5,6 @@
 # This script performs all the necessary steps to transform a checked
 # out copy of PolyORB into a source tree suitable for packaging.
 #
-# The VERSION.INFO file will be used to substitute some variables in files
-# such as README, etc.
-#
 # The file MANIFEST contains the list of files to be included in this
 # archive, one file per line.
 #
@@ -52,43 +49,71 @@ dir=$1
 
 cd $dir
 
+rm -f MANIFEST.distrib
+
 if [ ! -z "$change" ]; then
   taginfo="CHANGE_${change}"
 
   if [ ! -f "${taginfo}" ]; then
-    LANG=C date "+Pacakged from repository rev. ${change} on %c" > ${taginfo}
+    LANG=C date "+Packaged from repository rev. ${change} on %c" > ${taginfo}
   fi
-  echo ${taginfo} >> MANIFEST
+  echo ${taginfo} >> MANIFEST.distrib
 fi
 
 ###################################################
-# Update VERSION in all files
+# Update version in all files
 ###################################################
 
-if [ -f utils/VERSION.INFO ]; then
-  echo "Calling version file, then deleting it"
+# sed_in_place FILE ARG...
+# Apply "sed ARG..." transformation to FILE
 
-  if [ -z "$additional_version" ]; then
-    echo "(with no additional version information)"
-    sh utils/VERSION.INFO
-  else
-    echo "(with additional version information: $additional_version)"
-    sh utils/VERSION.INFO "$additional_version"
-  fi
-  rm -f utils/VERSION.INFO
-else
-  echo "WARNING: unable to locate VERSION.INFO in directory utils"
+sed_in_place() {
+  oldfile=$1; shift
+  newfile=$oldfile.new.$$
+  sed "$@" < $oldfile > $newfile
+  mv -f $newfile $oldfile
+}
+
+#
+# Generate configure script
+#
+
+# Generate distrib.m4 to pass additional information related to packaged
+# sources to autoconf.
+
+(
+# Switch default warnings mode to "n" (default is "e" when building from
+# a checkout).
+
+echo "define(DEFAULT_WARNINGS_MODE, [n])"
+
+# Additional version information from the prepare_distrib command line
+# (may be empty).
+
+echo "define([ADDITIONAL_VERSION],[$additional_version])"
+
+# Subversion revision information (optional)
+
+if [ -n "$change" ]; then
+  echo "define([DISTRIB_SVNREVISION],[${change}])"
 fi
 
-###################################################
-# Generating *.in files
-###################################################
+# Use MANIFEST to filter output files
+
+echo "define([OUTPUT_FILTER],[MANIFEST])"
+) > support/distrib.m4
+
+echo support/distrib.m4 >> MANIFEST.distrib
 
 echo Generating auto-generated files
-if [ -f support/reconfig ]
-then
-  sh support/reconfig -w
-fi
+sh support/reconfig -w
+
+polyorb_version=`./configure --version | sed -n 's/^PolyORB configure //p'`
+echo "Setting version: ${polyorb_version}"
+
+for f in README VERSION; do
+  sed_in_place $f "s/@polyorb_version@/${polyorb_version}/g"
+done
 
 ###################################################
 # Build documentation (optional)
@@ -99,9 +124,12 @@ if $with_doc; then
   cd docs
   make
   cd ..
-  (cat MANIFEST ; sed 's#^#docs/#' < docs/MANIFEST) | sort | uniq > MANIFEST.new
-  mv -f MANIFEST.new MANIFEST
+  sed 's#^#docs/#' < docs/MANIFEST >> MANIFEST.distrib
 fi
+
+echo 'Updating MANIFEST'
+cat MANIFEST.distrib >> MANIFEST
+utils/sort_MANIFEST
 
 echo "Adapting modes"
 chmod -R og=u-w .

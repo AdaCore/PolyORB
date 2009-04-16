@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -143,9 +143,9 @@ package body PolyORB.Security.Transport_Mechanisms.TLS is
       return PolyORB.Security.Types.OID_Lists.List
    is
       pragma Unreferenced (Mechanism);
-
+      Empty_List : Security.Types.OID_Lists.List;
    begin
-      return PolyORB.Security.Types.OID_Lists.Empty;
+      return Empty_List;
    end Supported_Naming_Mechanisms;
 
    ---------------------

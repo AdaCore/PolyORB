@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -103,12 +103,6 @@ package body Backend.BE_CORBA_Ada.Debug is
    function Image (N : Byte) return String is
    begin
       return Image (Int (N));
-   end Image;
-
-   function Image (N : Int) return String is
-      S : constant String := Int'Image (N);
-   begin
-      return S (S'First + 1 .. S'Last);
    end Image;
 
    ---------------
