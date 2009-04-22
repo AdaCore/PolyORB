@@ -6,6 +6,7 @@ Makefile.common.project.in
 Makefile.in
 NEWS
 README
+README.DSA
 VERSION
 acinclude.m4
 aclocal.m4
