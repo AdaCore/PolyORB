@@ -31,6 +31,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 package PolyORB.Smart_Pointers.Controlled_Entities is
 
    pragma Preelaborate;
