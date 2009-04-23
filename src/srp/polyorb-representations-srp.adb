@@ -2178,8 +2178,7 @@ package body PolyORB.Representations.SRP is
       S : String (1 .. 1024);
       C : Character;
       Last : Integer := S'First - 1;
-      Max : constant Stream_Element_Count
-        := Length (B);
+      Max : constant Stream_Element_Count := Length (B.all);
    begin
       pragma Warnings (Off);
       pragma Unreferenced (R);

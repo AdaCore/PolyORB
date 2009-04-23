@@ -52,7 +52,6 @@ with PolyORB.Buffers;
 with PolyORB.Components;
 with PolyORB.Objects;
 with PolyORB.Obj_Adapters;
-with PolyORB.Opaque;
 with PolyORB.References;
 with PolyORB.Requests;
 with PolyORB.Servants;
@@ -348,9 +347,11 @@ package System.Partition_Interface is
 
    function Get_TC (A : Any) return PolyORB.Any.TypeCode.Local_Ref;
 
-   function Create_Any
-     (Tc : PolyORB.Any.TypeCode.Local_Ref) return Any
-     renames PolyORB.Any.Get_Empty_Any_Aggregate;
+   function Create_Any (TC : PolyORB.Any.TypeCode.Local_Ref) return Any;
+   --  Same as PolyORB.Any.Get_Empty_Any_Aggregate, except for the case where
+   --  Tc is a sequence<octet> typecode, in which case an Any using the
+   --  specific shadow content type for such sequences is returned instead of
+   --  a Default_Aggregate_Content (Any_To_BS relies on this property).
 
    function Content_Type
      (Self : PolyORB.Any.TypeCode.Local_Ref)
@@ -579,10 +580,12 @@ package System.Partition_Interface is
    procedure Any_To_BS (Item : Any; Stream : out Buffer_Stream_Type);
    procedure BS_To_Any (Stream : Buffer_Stream_Type; Item : out Any);
    --  Conversion between an Any for an opaque sequence of octets and an Ada
-   --  Stream based on a PolyORB buffer.
+   --  Stream based on a PolyORB buffer. For Any_To_BS, the lifetime of the
+   --  Stream object shall not exceed that of Item.
 
-   procedure Allocate_Buffer (Stream : in out Buffer_Stream_Type);
    procedure Release_Buffer (Stream : in out Buffer_Stream_Type);
+   --  Return storage allocated for Stream, needs to be called after any
+   --  data has been written to the buffer.
 
    --------------
    -- Requests --
@@ -717,10 +720,7 @@ private
    All_Receiving_Stubs : Receiving_Stub_Lists.List;
 
    type Buffer_Stream_Type is new Ada.Streams.Root_Stream_Type with record
-      Buf : PolyORB.Buffers.Buffer_Access;
-      Arr : PolyORB.Opaque.Zone_Access;
+      Buf : aliased PolyORB.Buffers.Buffer_Type;
    end record;
-
-   procedure Finalize (X : in out Buffer_Stream_Type);
 
 end System.Partition_Interface;

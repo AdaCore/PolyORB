@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -704,8 +704,8 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
       Frag_MCtx : aliased GIOP_Message_Context_1_2;
       --  Context for fragments
 
-      Message_Size : Types.Unsigned_Long
-        := Types.Unsigned_Long (Length (Buffer));
+      Message_Size : Types.Unsigned_Long :=
+                       Types.Unsigned_Long (Length (Buffer.all));
    begin
       if Message_Size > Implem.Max_GIOP_Message_Size then
 
@@ -1042,7 +1042,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
       MCtx.Fragmented := False;
       MCtx.Message_Type := Locate_Request;
       MCtx.Message_Size :=
-        Types.Unsigned_Long (Length (Buffer) - GIOP_Header_Size);
+        Types.Unsigned_Long (Length (Buffer.all) - GIOP_Header_Size);
       Marshall_Global_GIOP_Header (Sess'Access, MCtx'Access, Header_Buffer);
       Copy_Data (Header_Buffer.all, Header_Space);
       Release (Header_Buffer);
@@ -1230,7 +1230,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
       --  Arguments
 
       if Static_Buffer /= null
-        and then Length (Static_Buffer.Buffer) /= 0
+        and then Length (Static_Buffer.Buffer.all) /= 0
       then
          --  The arguments were marshalled and stored in the request
          --  QoS attribute. We insert the data contained in the
@@ -1241,12 +1241,11 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
          Pad_Align (Buffer, Sess.Implem.Data_Alignment);
 
          declare
-            Data : PolyORB.Opaque.Opaque_Pointer;
-            Data_Processed : Stream_Element_Count
-              := Length (Static_Buffer.Buffer);
-            Data_To_Process : Stream_Element_Count
-              := Length (Static_Buffer.Buffer);
-            Position : Ada.Streams.Stream_Element_Offset := 0;
+            Data            : PolyORB.Opaque.Opaque_Pointer;
+            Data_To_Process : Stream_Element_Count :=
+                                Length (Static_Buffer.Buffer.all);
+            Data_Processed  : Stream_Element_Count := Data_To_Process;
+            Position        : Ada.Streams.Stream_Element_Offset := 0;
          begin
             while Data_To_Process > 0 loop
                PolyORB.Buffers.Partial_Extract_Data
@@ -1285,7 +1284,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
       MCtx.Fragmented := False;
       MCtx.Message_Type := Request;
       MCtx.Message_Size :=
-        Types.Unsigned_Long (Length (Buffer) - GIOP_Header_Size);
+        Types.Unsigned_Long (Length (Buffer.all) - GIOP_Header_Size);
 
       Marshall_Global_GIOP_Header (Sess'Access, MCtx'Access, Header_Buffer);
       Copy_Data (Header_Buffer.all, Header_Space);

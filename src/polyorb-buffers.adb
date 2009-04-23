@@ -67,7 +67,7 @@ package body PolyORB.Buffers is
    -----------------------
 
    function To_Stream_Element_Array
-     (Buffer : access Buffer_Type) return Opaque.Zone_Access;
+     (Buffer : Buffer_Type) return Opaque.Zone_Access;
    --  Dump the contents of Buffer into a Stream_Element_Array, and return a
    --  pointer to it. The caller must take care of deallocating the pointer
    --  after use.
@@ -233,7 +233,7 @@ package body PolyORB.Buffers is
    -- Length --
    ------------
 
-   function Length (Buffer : access Buffer_Type) return Stream_Element_Count is
+   function Length (Buffer : Buffer_Type) return Stream_Element_Count is
    begin
       return Buffer.Length;
    end Length;
@@ -642,7 +642,7 @@ package body PolyORB.Buffers is
       end if;
 
       declare
-         Dumped : Zone_Access := To_Stream_Element_Array (Buffer);
+         Dumped : Zone_Access := To_Stream_Element_Array (Buffer.all);
       begin
          Show (Dumped);
          Free (Dumped);
@@ -654,7 +654,7 @@ package body PolyORB.Buffers is
    -----------------------------
 
    function To_Stream_Element_Array
-     (Buffer : access Buffer_Type) return Opaque.Zone_Access
+     (Buffer : Buffer_Type) return Opaque.Zone_Access
    is
       Result : Opaque.Zone_Access;
    begin
@@ -669,7 +669,7 @@ package body PolyORB.Buffers is
    -----------------------------
 
    function To_Stream_Element_Array
-     (Buffer : access Buffer_Type) return Stream_Element_Array
+     (Buffer : Buffer_Type) return Stream_Element_Array
    is
       Contents : Zone_Access := To_Stream_Element_Array (Buffer);
       Result   : constant Stream_Element_Array := Contents.all;

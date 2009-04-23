@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -116,7 +116,7 @@ package body PolyORB.Transport.Datagram.Sockets_Out is
       use PolyORB.Errors;
 
       Data : constant Stream_Element_Array :=
-        To_Stream_Element_Array (Buffer);
+               To_Stream_Element_Array (Buffer.all);
       --  ??? Possible stack overflow if Buffer contains too much data
 
       Last : Stream_Element_Offset;

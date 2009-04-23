@@ -84,7 +84,7 @@ package PolyORB.Buffers is
    ------------------------
 
    function Length
-     (Buffer : access Buffer_Type) return Ada.Streams.Stream_Element_Count;
+     (Buffer : Buffer_Type) return Ada.Streams.Stream_Element_Count;
    pragma Inline (Length);
    --  Return the length of Buffer
 
@@ -153,8 +153,7 @@ package PolyORB.Buffers is
    --  On return, A_Buffer is set to null.
 
    function To_Stream_Element_Array
-     (Buffer   : access Buffer_Type)
-     return Ada.Streams.Stream_Element_Array;
+     (Buffer : Buffer_Type) return Ada.Streams.Stream_Element_Array;
    --  Dump the contents of Buffer into a Stream_Element_Array.
    --  Beware of overflowing the stack when using this function.
 

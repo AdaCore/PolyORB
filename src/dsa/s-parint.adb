@@ -44,6 +44,7 @@ with PolyORB.Dynamic_Dict;
 with PolyORB.Errors;
 with PolyORB.Exceptions;
 with PolyORB.Log;
+with PolyORB.Opaque;
 with PolyORB.ORB;
 with PolyORB.Parameters;
 pragma Elaborate_All (PolyORB.Parameters);
@@ -248,17 +249,6 @@ package body System.Partition_Interface is
 
    --  End of local declarations
 
-   ---------------------
-   -- Allocate_Buffer --
-   ---------------------
-
-   procedure Allocate_Buffer (Stream : in out Buffer_Stream_Type) is
-      use type PolyORB.Buffers.Buffer_Access;
-   begin
-      pragma Assert (Stream.Buf = null);
-      Stream.Buf := new PolyORB.Buffers.Buffer_Type;
-   end Allocate_Buffer;
-
    -------------------------
    -- Any_Aggregate_Build --
    -------------------------
@@ -294,26 +284,21 @@ package body System.Partition_Interface is
    ---------------
 
    procedure Any_To_BS (Item : Any; Stream : out Buffer_Stream_Type) is
-      use Octet_Sequences;
-      Seq : constant Sequence := Octet_Sequences_Helper.From_Any (Item);
+      --  Obtain direct unchecked access to the underlying byte storage
+
+      ACC : Aggregate_Content'Class renames
+              Aggregate_Content'Class
+                (Get_Value (Get_Container (Item).all).all);
+
+      Data_Length  : constant Stream_Element_Count :=
+                       Stream_Element_Count
+                         (Get_Aggregate_Count (ACC));
+      Data_Address : constant System.Address := Unchecked_Get_V (ACC'Access);
    begin
-      Stream.Arr := new Stream_Element_Array'
-        (1 .. Stream_Element_Offset (Length (Seq)) => 0);
-
-      declare
-         subtype OSEA_T is Element_Array (1 .. Length (Seq));
-         OSEA_Addr : constant System.Address := Stream.Arr (1)'Address;
-         OSEA : OSEA_T;
-         for OSEA'Address use OSEA_Addr;
-         pragma Import (Ada, OSEA);
-      begin
-         OSEA := To_Element_Array (Seq);
-      end;
-
       PolyORB.Buffers.Initialize_Buffer
-        (Stream.Buf,
-         Stream.Arr'Length,
-         Stream.Arr (Stream.Arr'First)'Address,
+        (Stream.Buf'Access,
+         Data_Length,
+         Data_Address,
          PolyORB.Buffers.Endianness_Type'First, --  XXX Irrelevant
          0);
    end Any_To_BS;
@@ -475,6 +460,24 @@ package body System.Partition_Interface is
       return Left /= null and then Right /= null
         and then PolyORB.References.Is_Equivalent (Left_Object, Right_Object);
    end Compare_Content;
+
+   ----------------
+   -- Create_Any --
+   ----------------
+
+   function Create_Any (TC : PATC.Local_Ref) return Any is
+      use type PATC.Local_Ref;
+   begin
+      if Unwind_Typedefs (TC) = TC_Opaque then
+         declare
+            Empty_Seq : Octet_Sequences.Sequence;
+         begin
+            return Octet_Sequences_Helper.To_Any (Empty_Seq);
+         end;
+      else
+         return Get_Empty_Any_Aggregate (TC);
+      end if;
+   end Create_Any;
 
    --------------------------
    -- DSA_Exception_To_Any --
@@ -676,15 +679,6 @@ package body System.Partition_Interface is
    begin
       return PolyORB.Any.Get_Aggregate_Element (U, Value_Type, 1);
    end Extract_Union_Value;
-
-   --------------
-   -- Finalize --
-   --------------
-
-   procedure Finalize (X : in out Buffer_Stream_Type) is
-   begin
-      PolyORB.Opaque.Free (X.Arr);
-   end Finalize;
 
    --------------
    -- From_Any --
@@ -1539,10 +1533,11 @@ package body System.Partition_Interface is
 
       Transfer_Length : constant Stream_Element_Count :=
                           Stream_Element_Count'Min
-                            (Remaining (Stream.Buf), Item'Length);
+                            (Remaining (Stream.Buf'Access),
+                             Item'Length);
       Data : PolyORB.Opaque.Opaque_Pointer;
    begin
-      Extract_Data (Stream.Buf, Data, Transfer_Length);
+      Extract_Data (Stream.Buf'Access, Data, Transfer_Length);
       Last := Item'First + Transfer_Length - 1;
       declare
          Z_Addr : constant System.Address := Data;
@@ -1784,15 +1779,6 @@ package body System.Partition_Interface is
       pragma Debug (C, O ("Registered the termination manager"));
    end Register_Termination_Manager;
 
-   --------------------
-   -- Release_Buffer --
-   --------------------
-
-   procedure Release_Buffer (Stream : in out Buffer_Stream_Type) is
-   begin
-      PolyORB.Buffers.Release (Stream.Buf);
-   end Release_Buffer;
-
    -----------------------
    -- Request_Arguments --
    -----------------------
@@ -1887,6 +1873,15 @@ package body System.Partition_Interface is
 
       pragma Debug (C, O ("Register RACW In Name Server: leave"));
    end Register_RACW_In_Name_Server;
+
+   --------------------
+   -- Release_Buffer --
+   --------------------
+
+   procedure Release_Buffer (Stream : in out Buffer_Stream_Type) is
+   begin
+      PolyORB.Buffers.Release_Contents (Stream.Buf);
+   end Release_Buffer;
 
    ---------------------
    -- Request_Set_Out --
@@ -2263,7 +2258,8 @@ package body System.Partition_Interface is
 
       Data : PolyORB.Opaque.Opaque_Pointer;
    begin
-      Allocate_And_Insert_Cooked_Data (Stream.Buf, Item'Length, Data);
+      Allocate_And_Insert_Cooked_Data
+        (Stream.Buf'Access, Item'Length, Data);
       declare
          Z_Addr : constant System.Address := Data;
          Z : Stream_Element_Array (Item'Range);

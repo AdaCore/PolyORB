@@ -59,7 +59,7 @@ package body PolyORB.Representations.CDR.Common is
 
    function Encapsulate (Buffer : access Buffer_Type) return Encapsulation  is
    begin
-      return Encapsulation'(To_Stream_Element_Array (Buffer));
+      return Encapsulation'(To_Stream_Element_Array (Buffer.all));
    end Encapsulate;
 
    -------------------------

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -62,13 +62,6 @@ package body PolyORB.Any is
    --  Transfer the value of Src_C to Dst_C; Src_C is empty upon return.
    --  Foreign status is transferred from Src_C to Dst_C. The previous contents
    --  of Dst_C are deallocated if appropriate.
-
-   procedure Set_Value
-     (C : in out Any_Container'Class; CC : Content_Ptr; Foreign : Boolean);
-   --  Set the designated value of A to CC; set the Foreign indication as
-   --  to the given value. Note that no type conformance check is performed!
-   --  The previous value, and if applicable the associated storage, are
-   --  deallocated.
 
    type Aggregate_Content_Ptr is access all Aggregate_Content'Class;
 
@@ -1566,7 +1559,8 @@ package body PolyORB.Any is
       if Kind in Aggregate_TCKind then
          Set_Value
            (Get_Container (A).all,
-            Allocate_Default_Aggregate_Content (Kind), Foreign => False);
+            Allocate_Default_Aggregate_Content (Kind),
+            Foreign => False);
       end if;
 
       pragma Debug (C, O ("Get_Empty_Any_Aggregate: end"));
@@ -2169,17 +2163,10 @@ package body PolyORB.Any is
    -- Set_Value --
    ---------------
 
-   procedure Set_Value (C : in out Any_Container'Class; CC : Content_Ptr) is
-   begin
-      Set_Value (C, CC, Foreign => True);
-   end Set_Value;
-
-   ---------------
-   -- Set_Value --
-   ---------------
-
    procedure Set_Value
-     (C : in out Any_Container'Class; CC : Content_Ptr; Foreign : Boolean)
+     (C       : in out Any_Container'Class;
+      CC      : Content_Ptr;
+      Foreign : Boolean := True)
    is
    begin
       if C.The_Value /= null and then not C.Foreign then

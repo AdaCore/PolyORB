@@ -322,7 +322,7 @@ package body PolyORB.Protocols.GIOP.Common is
                   return;
                end if;
             else
-               if Length (Static_Buffer.Buffer) /= 0 then
+               if Length (Static_Buffer.Buffer.all) /= 0 then
                   pragma Debug (C, O ("Using buffer to send reply data"));
                   --  The arguments were marshalled and stored in the
                   --  request QoS attribute. We insert the data
@@ -331,12 +331,11 @@ package body PolyORB.Protocols.GIOP.Common is
                   Pad_Align (Buffer_Out, Data_Alignment);
 
                   declare
-                     Data : PolyORB.Opaque.Opaque_Pointer;
-                     Data_Processed : Stream_Element_Count
-                       := Length (Static_Buffer.Buffer);
-                     Data_To_Process : Stream_Element_Count
-                       := Length (Static_Buffer.Buffer);
-                     Position : Ada.Streams.Stream_Element_Offset := 0;
+                     Data            : PolyORB.Opaque.Opaque_Pointer;
+                     Data_To_Process : Stream_Element_Count :=
+                                         Length (Static_Buffer.Buffer.all);
+                     Data_Processed  : Stream_Element_Count := Data_To_Process;
+                     Position        : Ada.Streams.Stream_Element_Offset := 0;
                   begin
                      while Data_To_Process > 0 loop
                         PolyORB.Buffers.Partial_Extract_Data
@@ -412,7 +411,7 @@ package body PolyORB.Protocols.GIOP.Common is
       --  Marshall Header
 
       MCtx.Message_Size := Types.Unsigned_Long
-        (Length (Buffer_Out) - GIOP_Header_Size);
+        (Length (Buffer_Out.all) - GIOP_Header_Size);
 
       Marshall_Global_GIOP_Header (Sess, MCtx, Header_Buffer);
 
@@ -461,7 +460,7 @@ package body PolyORB.Protocols.GIOP.Common is
       end if;
 
       MCtx.Message_Size :=
-        Types.Unsigned_Long (Length (Buffer) - GIOP_Header_Size);
+        Types.Unsigned_Long (Length (Buffer.all) - GIOP_Header_Size);
 
       Marshall_Global_GIOP_Header (Sess, MCtx, Header_Buffer);
 

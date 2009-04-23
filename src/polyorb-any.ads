@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -596,10 +596,13 @@ package PolyORB.Any is
       TC : TypeCode.Local_Ref);
    --  Set the type of C to TC
 
-   procedure Set_Value (C : in out Any_Container'Class; CC : Content_Ptr);
-   --  Set the contents of C to CC. CC, and any associated storage, are
-   --  assumed to be externally managed and won't be deallocated by the Any
-   --  management subsystem.
+   procedure Set_Value
+     (C       : in out Any_Container'Class;
+      CC      : Content_Ptr;
+      Foreign : Boolean := True);
+   --  Set the contents of C to CC. If Foreign is True then CC, and any
+   --  associated storage, are assumed to be externally managed and won't be
+   --  deallocated by the Any management subsystem.
 
    procedure Finalize_Value (C : in out Any_Container'Class);
    --  Destroy the stored content wrapper for C, if non-null and non-foreign
