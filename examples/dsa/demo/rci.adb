@@ -183,4 +183,12 @@ package body RCI is
       raise Invisible;
    end Raise_Invisible;
 
+   procedure Add (X : Integer; To : in out RT.Limited_Data) is
+      To_Val : Integer;
+      for To_Val'Address use To'Address;
+      pragma Import (Ada, To_Val);
+   begin
+      To_Val := To_Val + X;
+   end Add;
+
 end RCI;

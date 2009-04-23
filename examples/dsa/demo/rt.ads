@@ -31,6 +31,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Streams; use Ada.Streams;
+
 package RT is
    pragma Remote_Types;
 
@@ -41,8 +43,23 @@ package RT is
    function Tekitoa (Self : Obj) return String is abstract;
    type RACW is access all Obj'Class;
 
-private
+   type Limited_Data is limited private;
+   procedure Read (S : access Root_Stream_Type'Class; V : out Limited_Data);
+   procedure Write (S : access Root_Stream_Type'Class; V : Limited_Data);
+   for Limited_Data'Read use Read;
+   for Limited_Data'Write use Write;
 
+   procedure Show (Name : String; X : Limited_Data);
+
+private
    type Obj is abstract tagged limited null record;
 
+   type Limited_Data is limited record
+      Value : Integer := 0;
+   end record;
+
+   for Limited_Data'Size use Integer'Size;
+   for Limited_Data use record
+      Value at 0 range 0 .. Integer'Size - 1;
+   end record;
 end RT;

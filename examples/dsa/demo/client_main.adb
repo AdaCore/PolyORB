@@ -144,6 +144,16 @@ begin
    end;
 
    declare
+      L : RT.Limited_Data;
+   begin
+      RT.Show ("L1", L);
+      RCI.Add (123000, To => L);
+      RT.Show ("L2", L);
+      RCI.Add (456, To => L);
+      RT.Show ("L3", L);
+   end;
+
+   declare
       C : constant Integer := RCI.Get_Cookie;
    begin
       Put_Line ("Cookie value:" & Integer'Image (C));

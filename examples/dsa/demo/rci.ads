@@ -83,6 +83,8 @@ package RCI is
 
    function echoC_4_5 (X : C_4_5) return C_4_5;
 
+   procedure Add (X : Integer; To : in out RT.Limited_Data);
+
    --  type Parameterless_RAS is access procedure;
 
    function Get_Cookie return Integer;
