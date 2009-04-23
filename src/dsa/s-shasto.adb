@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2006-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2006-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -96,7 +96,7 @@ package body System.Shared_Storage is
          SDM      : Shared_Data_Manager_RACW;
          Data     : constant Any := Typ'To_Any (V);
          Data_Ptr : constant SDT.Any_Container_Ptr :=
-           AC_To_DAC (Get_Container (Data));
+                      AC_To_DAC (Get_Container (Data));
 
       begin
          Lookup_Variable (Full_Name, SDM);
