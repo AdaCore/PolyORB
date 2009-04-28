@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1995-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -170,23 +170,31 @@ exception
    when Scanning_Error =>
       Message ("*** scanning failed");
       Exit_Program (E_Fatal);
+
    when Parsing_Error =>
       Message ("*** parsing failed");
       Exit_Program (E_Fatal);
+
    when Partitioning_Error =>
       Message ("*** partitioning failed");
       Exit_Program (E_Fatal);
+
    when Usage_Error =>
       Message ("*** wrong argument(s)");
       Exit_Program (E_Fatal);
+
    when Not_Yet_Implemented =>
       Message ("*** unimplemented feature");
       Exit_Program (E_Fatal);
+
    when Fatal_Error =>
       Message ("*** can't continue");
       Exit_Program (E_Fatal);
+
    when Compilation_Error =>
+      Message ("*** compilation error");
       Exit_Program (E_Fatal);
+
    when others =>
       Remove_All_Temp_Files;
       raise;
