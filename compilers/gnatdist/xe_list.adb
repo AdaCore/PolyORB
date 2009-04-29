@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1995-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -137,13 +137,13 @@ package body XE_List is
       --  Return Nth field. N has to be in the range of 0 and
       --  Number_Of_Fields. When N is zero, return the full line.
 
-      function  Number_Of_Fields return Natural;
+      function Number_Of_Fields return Natural;
       --  Return number of fields in the current line
 
-      function  End_Of_File return Boolean;
+      function End_Of_File return Boolean;
       --  Return True when there is nothing else to read
 
-      function  Token (N : Positive) return Token_Type;
+      function Token (N : Positive) return Token_Type;
       --  Return the token corresponding to field N. When there is no
       --  such corresponding token return No_Such_Token. Note that N
       --  cannot be zero.
@@ -902,7 +902,7 @@ package body XE_List is
          Remove_Temp_File (Part_Main_ALI_Name);
          Remove_Temp_File (Part_Main_Obj_Name);
 
-         --  The compilation of partition.adb failed. There is no way to
+         --  The compilation of monolithic_app.adb failed. There is no way to
          --  rescue this situation.
 
          if ALI = No_ALI_Id then
@@ -934,8 +934,8 @@ package body XE_List is
                Sfiles : File_Name_List (1 .. Last);
 
             begin
-               --  Load in Args the sources which corresponding ALI file
-               --  is not yet available.
+               --  Load in Args the sources whose corresponding ALI file is not
+               --  yet available.
 
                Last := 0;
                for J in Sources.First .. Sources.Last loop
@@ -981,18 +981,22 @@ package body XE_List is
 
                      ALI := Get_ALI_Id (Afile);
                      if ALI = No_ALI_Id then
-                        raise Compilation_Error;
+                        Get_Name_String (Sfile);
+                        raise Fatal_Error with "failed to load ALI for "
+                          & Name_Buffer (1 .. Name_Len);
                      end if;
 
-                     --  Check that the unit was really assigned to a
-                     --  partition we are not going to build.
+                     --  Check that the unit was really assigned to a partition
+                     --  we are not going to build.
 
                      Partition := Get_Partition_Id (ALIs.Table (ALI).Uname);
                      if not Units.Table (ALIs.Table (ALI).Last_Unit).RCI
                        or else Partition = No_Partition_Id
                        or else Partitions.Table (Partition).To_Build
                      then
-                        raise Compilation_Error;
+                        Get_Name_String (ALIs.Table (ALI).Uname);
+                        raise Fatal_Error with "invalid partition for "
+                          & Name_Buffer (1 .. Name_Len);
                      end if;
                   end if;
 

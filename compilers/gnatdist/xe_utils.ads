@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 1995-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -169,6 +169,11 @@ package XE_Utils is
    Compilation_Error   : exception;   --  Error during compilation
    Usage_Error         : exception;   --  Command line error
    Not_Yet_Implemented : exception;
+
+   --  Note: Compilation_Error may be raised only when a previous build command
+   --  has already emitted an error message. Gnatdist itself will silently
+   --  exist (with an error status) in that case, and won't produce any
+   --  further error message.
 
    type Exit_Code_Type is
      (E_Success,    -- No warnings or errors

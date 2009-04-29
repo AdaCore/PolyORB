@@ -31,6 +31,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Exceptions;  use Ada.Exceptions;
+
 with XE;              use XE;
 with XE_Back;         use XE_Back;
 with XE_Back.GARLIC;  use XE_Back.GARLIC;
@@ -187,12 +189,11 @@ exception
       Message ("*** unimplemented feature");
       Exit_Program (E_Fatal);
 
-   when Fatal_Error =>
-      Message ("*** can't continue");
+   when E : Fatal_Error =>
+      Message ("*** can't continue:" & Exception_Message (E));
       Exit_Program (E_Fatal);
 
    when Compilation_Error =>
-      Message ("*** compilation error");
       Exit_Program (E_Fatal);
 
    when others =>
