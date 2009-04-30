@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1995-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -920,17 +920,28 @@ package body XE_Back.PolyORB is
       Write_Line (" is");
       Write_Line ("   for Externally_Built use ""true"";");
       Write_Line ("   for Source_Dirs use (""" & DSA_Inc_Dir & """);");
-      Write_Line ("   for Locally_Removed_Files use");
 
-      --  Overridden
+      --  The files to be removed are the only source files for the extending
+      --  project (all other sources are made visible as inherited), so we
+      --  need to first list those files as sources, then as removed.
 
-      Write_Line ("     (""polyorb-partition_elaboration.adb"",");
-      Write_Line ("      ""polyorb-dsa_p-storages-config.adb"",");
+      for J in 1 .. 2 loop
+         if J = 1 then
+            Write_Line ("   for Source_Files use");
+         else
+            Write_Line ("   for Locally_Removed_Files use");
+         end if;
 
-      --  Rebuilt as stubs
+         --  Overridden
 
-      Write_Line ("      ""polyorb-dsa_p-partitions.ads"",");
-      Write_Line ("      ""polyorb-dsa_p-partitions.adb"");");
+         Write_Line ("     (""polyorb-partition_elaboration.adb"",");
+         Write_Line ("      ""polyorb-dsa_p-storages-config.adb"",");
+
+         --  Rebuilt as stubs
+
+         Write_Line ("      ""polyorb-dsa_p-partitions.ads"",");
+         Write_Line ("      ""polyorb-dsa_p-partitions.adb"");");
+      end loop;
 
       Write_Str  ("end ");
       Write_Name (Secondary_PCS_Project);
