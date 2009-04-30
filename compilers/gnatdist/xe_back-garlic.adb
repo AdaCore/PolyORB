@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1995-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -1370,8 +1370,7 @@ package body XE_Back.GARLIC is
       pragma Unreferenced (Self);
    begin
       if not Is_Directory (DSA_Inc_Dir) then
-         Message ("GARLIC library not found");
-         raise Fatal_Error;
+         raise Fatal_Error with "GARLIC library not found";
       end if;
 
       Scan_Dist_Arg ("-aI" & DSA_Inc_Dir);

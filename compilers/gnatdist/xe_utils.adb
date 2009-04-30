@@ -752,8 +752,7 @@ package body XE_Utils is
       begin
          Loc := GNAT.OS_Lib.Locate_Exec_On_Path (Exe);
          if Loc = null and then Show_Error then
-            Message (Exe, No_Name, "is not in your path");
-            raise Fatal_Error;
+            raise Fatal_Error with Exe & " is not in your path";
          end if;
       end;
       return Loc;

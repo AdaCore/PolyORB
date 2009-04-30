@@ -1226,9 +1226,8 @@ package body XE_Back.PolyORB is
             end;
          exception
             when others =>
-               Message
-                 ("PolyORB installation is invalid (polyorb-config failure)");
-               raise Fatal_Error;
+               raise Fatal_Error with "PolyORB installation is invalid "
+                                    & "(polyorb-config failure)";
          end;
       end if;
    end Set_PCS_Dist_Flags;

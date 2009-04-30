@@ -59,6 +59,8 @@ procedure XE_Main is
    --  If command line processing raises Usage_Error, we want to defer
    --  propagation until after calling Show_Dist_Args if in debug mode.
 
+   function NS (N : Name_Id) return String renames XE_Names.Get_Name_String;
+
 begin
    XE_Names.Initialize;
    begin
@@ -104,8 +106,8 @@ begin
       Configuration_File_Name := Name_Find;
 
       if not Is_Regular_File (Configuration_File_Name) then
-         Message ("file", Quote (Configuration_File_Name), "not found");
-         raise Fatal_Error;
+         raise Fatal_Error
+           with "file " & NS (Quote (Configuration_File_Name)) & " not found";
       end if;
    end if;
 
@@ -119,9 +121,9 @@ begin
    Get_Name_String (Strip_Directory (Configuration_File_Name));
    Name_Len := Name_Len - Cfg_Suffix'Length;
    if Configuration /= Name_Find then
-      Message ("configuration file name should be",
-               Quote (Configuration & Cfg_Suffix_Id));
-      raise Fatal_Error;
+      raise Fatal_Error
+        with "configuration file name should be "
+          & NS (Quote (Configuration & Cfg_Suffix_Id));
    end if;
 
    --  Look for a partition list on the command line. Only those partitions are
@@ -140,8 +142,8 @@ begin
       while More_Source_Files loop
          Partition := Get_Partition_Id (Next_Main_Source);
          if Partition = No_Partition_Id then
-            Message ("unknown partition", Quote (Next_Main_Source));
-            raise Fatal_Error;
+            raise Fatal_Error
+              with "unknown partition " & NS (Quote (Next_Main_Source));
          end if;
          Partitions.Table (Partition).To_Build := True;
       end loop;
@@ -190,7 +192,8 @@ exception
       Exit_Program (E_Fatal);
 
    when E : Fatal_Error =>
-      Message ("*** can't continue:" & Exception_Message (E));
+      Message (Ada.Exceptions.Exception_Message (E));
+      Message ("*** can't continue");
       Exit_Program (E_Fatal);
 
    when Compilation_Error =>
