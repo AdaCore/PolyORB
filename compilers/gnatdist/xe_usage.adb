@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1995-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -64,6 +64,8 @@ begin
    Write_Str ("  -a        Consider all files, even readonly ali files");
    Write_Eol;
    Write_Str ("  -f        Force recompilations");
+   Write_Eol;
+   Write_Str ("  -k        Keep going after compilation errors");
    Write_Eol;
    Write_Str ("  -q        Be quiet, do not display partitioning operations");
    Write_Eol;

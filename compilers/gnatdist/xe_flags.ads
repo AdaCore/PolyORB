@@ -45,6 +45,7 @@ package XE_Flags is
    Verbose_Mode         : Boolean := False;
    Debug_Mode           : Boolean := False;
    Check_Readonly_Files : Boolean := False;
+   Keep_Going           : Boolean := False;
 
    Keep_Tmp_Files       : Boolean := False;
    --  Do not remove temporary files

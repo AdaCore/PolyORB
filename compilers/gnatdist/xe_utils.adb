@@ -998,6 +998,10 @@ package body XE_Utils is
                   Add_List_Switch (Argv);
                   Add_Make_Switch (Argv);
 
+               when 'k' =>
+                  Keep_Going := True;
+                  Add_Make_Switch (Argv);
+
                when 't' =>
                   Keep_Tmp_Files := True;
                   Add_Make_Switch ("-dn");

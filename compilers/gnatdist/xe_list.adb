@@ -839,7 +839,6 @@ package body XE_List is
 
       Make_Args : constant Argument_List :=
         (Compile_Only_Flag,
-         Keep_Going_Flag,
          Project_File_Flag,
          Project_File_Name);
 
@@ -855,10 +854,10 @@ package body XE_List is
 
       if Project_File_Name /= null then
          List_Args_Length := 3;
-         Make_Args_Length := 4;
+         Make_Args_Length := 3;
       else
          List_Args_Length := 1;
-         Make_Args_Length := 2;
+         Make_Args_Length := 1;
       end if;
 
       declare
@@ -888,7 +887,7 @@ package body XE_List is
 
          Sfile := Monolithic_Src_Base_Name;
          Afile := To_Afile (Sfile);
-         Build (Sfile, Make_Flags, Fatal => False);
+         Build (Sfile, Make_Flags, Fatal => not Keep_Going);
 
          --  Load the info from its ALI file
 
