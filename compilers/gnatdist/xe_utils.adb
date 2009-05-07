@@ -960,10 +960,15 @@ package body XE_Utils is
             --  -d: debugging traces
 
             if Argv'Length = 2 then
-               Debug_Mode := True;
+               Add_Make_Switch (Argv);
 
             else
                case Argv (Argv'First + 2) is
+                  --  -dd: debug mode
+
+                  when 'd' =>
+                     Debug_Mode := True;
+
                   --  -df: output base names only in error messages (to ensure
                   --       constant output for testsuites).
 

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 1995-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -63,7 +63,7 @@ package XE_Flags is
    Bind_Only_Flag      : constant String_Access := new String'("-b");
    Compile_Only_Flag   : constant String_Access := new String'("-c");
    Object_Dir_Flag     : constant String_Access := new String'("-D");
-   Dependencies_Flag   : constant String_Access := new String'("-d");
+   Progress_Flag       : constant String_Access := new String'("-d");
    Keep_Going_Flag     : constant String_Access := new String'("-k");
    Link_Only_Flag      : constant String_Access := new String'("-l");
    Output_Flag         : constant String_Access := new String'("-o");
