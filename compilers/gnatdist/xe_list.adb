@@ -887,7 +887,8 @@ package body XE_List is
 
          Sfile := Monolithic_Src_Base_Name;
          Afile := To_Afile (Sfile);
-         Build (Sfile, Make_Flags, Fatal => not Keep_Going);
+         Build
+           (Sfile, Make_Flags, not Keep_Going, Display_Compilation_Progress);
 
          --  Load the info from its ALI file
 

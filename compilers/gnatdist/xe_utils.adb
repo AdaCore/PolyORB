@@ -206,10 +206,11 @@ package body XE_Utils is
    procedure Build
      (Library    : File_Name_Type;
       Arguments  : Argument_List;
-      Fatal      : Boolean := True)
+      Fatal      : Boolean := True;
+      Progress   : Boolean := False)
    is
       Length            : constant Positive :=
-                            Arguments'Length + 4
+                            Arguments'Length + 5
                             + Make_Switches.Last
                             - Make_Switches.First;
       Flags             : Argument_List (1 .. Length);
@@ -236,6 +237,13 @@ package body XE_Utils is
 
          N_Flags := N_Flags + 1;
          Flags (N_Flags) := Verbose_Flag;
+      end if;
+
+      if Progress then
+         --  Pass -d to gnatmake
+
+         N_Flags := N_Flags + 1;
+         Flags (N_Flags) := Progress_Flag;
       end if;
 
       --  Library file name (free'd at exit of Compile, must record position
@@ -960,7 +968,7 @@ package body XE_Utils is
             --  -d: debugging traces
 
             if Argv'Length = 2 then
-               Add_Make_Switch (Argv);
+               Display_Compilation_Progress := True;
 
             else
                case Argv (Argv'First + 2) is

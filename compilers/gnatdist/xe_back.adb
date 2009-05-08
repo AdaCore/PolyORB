@@ -204,7 +204,17 @@ package body XE_Back is
 
                Generate_Stub (J);
             end if;
+         end if;
 
+         if Display_Compilation_Progress then
+            Write_Str ("completed ");
+            Write_Int (Int (J));
+            Write_Str (" out of ");
+            Write_Int (Int (ALIs.Last));
+            Write_Str (" (");
+            Write_Int (Int ((J * 100) / (ALIs.Last - ALIs.First + 1)));
+            Write_Str ("%)...");
+            Write_Eol;
          end if;
       end loop;
    end Generate_All_Stubs_And_Skels;

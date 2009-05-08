@@ -1158,6 +1158,19 @@ package body XE_Back.PolyORB is
                Message ("no need to expand", Current.Name);
             end if;
          end if;
+
+         if Display_Compilation_Progress then
+            Write_Str ("completed ");
+            Write_Int (Int (J) - Int (Partition_Id'First) - 1);
+            Write_Str (" out of ");
+            Write_Int (Int (Partitions.Last) - Int (Partition_Id'First) - 1);
+            Write_Str (" (");
+            Write_Int
+              (((Int (J) - Int (Partition_Id'First) - 1) * 100)
+                  / Int (Partitions.Last - Partitions.First));
+            Write_Str ("%)...");
+            Write_Eol;
+         end if;
       end loop;
 
       Generate_Starter_File (Backend_Access (Self));

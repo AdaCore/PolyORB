@@ -60,6 +60,8 @@ package XE_Flags is
    --  exception on Windows where the MinGW environment does not support
    --  spawning arbitrary shell scripts).
 
+   Display_Compilation_Progress : Boolean := False;
+
    Readonly_Flag       : constant String_Access := new String'("-a");
    Bind_Only_Flag      : constant String_Access := new String'("-b");
    Compile_Only_Flag   : constant String_Access := new String'("-c");
