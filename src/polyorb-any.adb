@@ -815,10 +815,7 @@ package body PolyORB.Any is
    -- Add_Aggregate_Element --
    ---------------------------
 
-   procedure Add_Aggregate_Element
-     (Value   : in out Any;
-      Element : Any)
-   is
+   procedure Add_Aggregate_Element (Value : in out Any; Element : Any) is
       CA_Ptr : constant Aggregate_Content_Ptr :=
                  Aggregate_Content_Ptr (Get_Container (Value).The_Value);
    begin

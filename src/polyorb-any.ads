@@ -871,12 +871,8 @@ package PolyORB.Any is
    function Get_Aggregate_Count (Value : Any) return Types.Unsigned_Long;
    --  Return the number of elements in an any aggregate
 
-   procedure Add_Aggregate_Element
-     (Value   : in out Any;
-      Element : Any);
-   --  Adds an element to an any aggregate
-   --  This element is given as a typecode but only its value is
-   --  added to the aggregate
+   procedure Add_Aggregate_Element (Value : in out Any; Element : Any);
+   --  Adds an element to an aggregate Any
 
    function Get_Aggregate_Element
      (Value : Any;
