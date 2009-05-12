@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1995-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -89,13 +89,13 @@ package body XE_Sem is
    procedure Detect_Incorrect_Main_Subprogram
      (Partition : Partition_Id;
       Success   : in out Boolean);
-   --  Detect that the configured unit used as main subprogram is
-   --  really a main subprogram from the Ada point of view.
+   --  Check that the configured unit used as main subprogram is really a main
+   --  subprogram from the Ada point of view.
 
-   procedure Detect_Mal_Formed_Location
+   procedure Detect_Malformed_Location
      (Location : Location_Id;
       Success  : in out Boolean);
-   --  Detecte that the major location is not missing.
+   --  Check that the major location is not missing
 
    procedure Detect_Multiply_Assigned_Conf_Unit
      (Conf_Unit : Conf_Unit_Id;
@@ -192,32 +192,30 @@ package body XE_Sem is
       -- Use of Name Table Info --
       ----------------------------
 
-      --  All unit names and file names are entered into the Names
-      --  table. The Info and Byte fields of these entries are used as
-      --  follows:
+      --  All unit names and file names are entered into the Names table.
+      --  The Info and Byte fields of these entries are used as follows:
       --
       --    Unit name           Info field has Unit_Id
       --    Conf. unit name     Info field has ALI_Id
-      --                        Byte fiels has Partition_Id (*)
+      --                        Byte field has Partition_Id (*)
       --    ALI file name       Info field has ALI_Id
       --    Source file name    Info field has Unit_Id
       --
       --  (*) A (normal, RT) unit may be assigned to several partitions.
 
-      --  We want to detect whether these configured units are real
-      --  ada units. Set the configured unit name to No_ALI_Id. When
-      --  we load an ali file, its unit name is set to its ali id. If
-      --  a configured unit name has no ali id, it is not an Ada unit.
-      --  Assign byte field of configured unit name to No_Partition_Id
-      --  in order to detect units that are multiply assigned.
+      --  We want to detect whether these configured units are real Ada units.
+      --  Set the configured unit name to No_ALI_Id. When we load an ALI file,
+      --  its unit name is set to its ALI Id. If a configured unit name has no
+      --  ALI Id, it is not an Ada unit.
+      --  The byte field of configured unit names is used to detect multiple
+      --  assignment of a unit.
 
       for J in Conf_Units.First .. Conf_Units.Last loop
          Set_ALI_Id       (Conf_Units.Table (J).Name, No_ALI_Id);
          Set_Partition_Id (Conf_Units.Table (J).Name, No_Partition_Id);
       end loop;
 
-      --  Set name table info of conf. unit name (%s or %b removed) to
-      --  ALI id. Set use of tasking to unknown.
+      --  Set name table info of conf. unit name (%s or %b removed) to ALI Id.
 
       for J in ALIs.First .. ALIs.Last loop
          Set_ALI_Id (ALIs.Table (J).Uname, J);
@@ -284,7 +282,7 @@ package body XE_Sem is
       end if;
 
       for J in Locations.First .. Locations.Last loop
-         Detect_Mal_Formed_Location (J, OK);
+         Detect_Malformed_Location (J, OK);
       end loop;
 
       if not OK then
@@ -354,9 +352,8 @@ package body XE_Sem is
          Message ("find needed storage supports");
       end if;
 
-      --  As the analysis of needed storage supports should
-      --  update partition tasking, it must be performed
-      --  before the termination analysis.
+      --  As the analysis of needed storage supports should update partition
+      --  tasking, it must be performed before the termination analysis.
 
       for J in Partitions.First + 1 .. Partitions.Last loop
          if Partitions.Table (J).To_Build then
@@ -390,6 +387,7 @@ package body XE_Sem is
       Success   : in out Boolean)
    is
       procedure Detect_Storage_Constraint_Violation (SLID : Location_Id);
+      --  Needs comment???
 
       Current : Partition_Type renames Partitions.Table (Partition);
 
@@ -415,8 +413,8 @@ package body XE_Sem is
             return;
          end if;
 
-         --  Some storage supports cannot be used on partition wich
-         --  localy terminate
+         --  Some storage supports cannot be used on partition with local
+         --  termination.
 
          if Current.Termination = Local_Termination
            and then not Storage_Properties.Allow_Local_Term
@@ -445,8 +443,10 @@ package body XE_Sem is
       Part      : Partition_Id;
       Location  : Location_Id;
 
+   --  Start of processing for Analyze_Required_Storage_Supports
+
    begin
-      --  Lookup storage supports needed for shared passive stub
+      --  Look up storage supports needed for shared passive stub
       --  packages configured on other partitions.
 
       for S in Current.First_Stub .. Current.Last_Stub loop
@@ -470,8 +470,8 @@ package body XE_Sem is
          end if;
       end loop;
 
-      --  Lookup storage supports needed for shared passive packages
-      --  configured on this partition.
+      --  Look up storage support needed for shared passive packages configured
+      --  on this partition.
 
       Conf_Unit := Current.First_Unit;
       while Conf_Unit /= No_Conf_Unit_Id loop
@@ -768,7 +768,7 @@ package body XE_Sem is
       Success   : in out Boolean)
    is
       N : constant Unit_Name_Type :=
-        Partitions.Table (Partition).Main_Subprogram;
+            Partitions.Table (Partition).Main_Subprogram;
       A : ALI_Id;
 
    begin
@@ -777,21 +777,20 @@ package body XE_Sem is
       end if;
 
       A := Get_ALI_Id (N);
-      if A = No_ALI_Id
-        or else ALIs.Table (A).Main_Program = None
-      then
+      if A = No_ALI_Id or else ALIs.Table (A).Main_Program = None then
          Message ("", Quote (N), "is not a main program");
          Success := False;
       end if;
    end Detect_Incorrect_Main_Subprogram;
 
-   --------------------------------
-   -- Detect_Mal_Formed_Location --
-   --------------------------------
+   -------------------------------
+   -- Detect_Malformed_Location --
+   -------------------------------
 
-   procedure Detect_Mal_Formed_Location
+   procedure Detect_Malformed_Location
      (Location : Location_Id;
-      Success  : in out Boolean) is
+      Success  : in out Boolean)
+   is
    begin
       Get_Name_String (Locations.Table (Location).Major);
       if Name_Len = 0 then
@@ -802,7 +801,7 @@ package body XE_Sem is
          Message ("missing location name in", Quote (Name_Find));
          Success := False;
       end if;
-   end Detect_Mal_Formed_Location;
+   end Detect_Malformed_Location;
 
    ----------------------------------------
    -- Detect_Multiply_Assigned_Conf_Unit --
@@ -865,8 +864,8 @@ package body XE_Sem is
       A : constant ALI_Id         := Get_ALI_Id (N);
 
    begin
-      --  There is no ali file associated to this configured unit.
-      --  The configured unit is not an Ada unit.
+      --  If no ALI Id is associated with the unit name of the configured unit,
+      --  then it is not an Ada unit.
 
       if A = No_ALI_Id then
          Message ("configured unit", Quote (N), "is not an Ada unit");
