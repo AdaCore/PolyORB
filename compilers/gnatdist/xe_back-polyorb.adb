@@ -138,7 +138,8 @@ package body XE_Back.PolyORB is
       PE_Rsh_Command,
       PE_Rsh_Options,
       PE_Termination_Initiator,
-      PE_Termination_Policy);
+      PE_Termination_Policy,
+      PE_Partition_Name);
 
    PE : array (PE_Id) of Unit_Name_Type;
 
@@ -147,6 +148,7 @@ package body XE_Back.PolyORB is
       PE_Rsh_Options           => PS_DSA,
       PE_Termination_Initiator => PS_DSA,
       PE_Termination_Policy    => PS_DSA,
+      PE_Partition_Name        => PS_DSA,
       PE_Start_Threads         => PS_Tasking,
       PE_Max_Spare_Threads     => PS_Tasking,
       PE_Max_Threads           => PS_Tasking,
@@ -529,6 +531,9 @@ package body XE_Back.PolyORB is
    procedure Generate_Parameters_Source (P : Partition_Id) is
       Current      : Partition_Type renames Partitions.Table (P);
    begin
+      --  Set partition name
+
+      Set_Conf (PE_Partition_Name, Current.Name);
 
       --  Add the termination policy to the configuration table, if no
       --  termination policy is set, the default is Global_Termination.
@@ -1186,6 +1191,10 @@ package body XE_Back.PolyORB is
                 Key     => PE (Var),
                 Val     => Val);
    end Set_Conf;
+
+   --------------
+   -- Set_Conf --
+   --------------
 
    procedure Set_Conf (Section : Name_Id; Key : Name_Id; Val : Name_Id) is
    begin

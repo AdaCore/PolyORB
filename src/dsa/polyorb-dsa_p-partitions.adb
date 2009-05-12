@@ -64,14 +64,14 @@ package body PolyORB.DSA_P.Partitions is
    -- Allocate_Partition_ID --
    ---------------------------
 
-   function Allocate_Partition_ID (Name : String) return Integer
-   is
+   function Allocate_Partition_ID (Name : String) return Integer is
       Current_Partition_ID : Integer;
    begin
       Enter (Partitions_Mutex);
       Current_Partition_ID := Next_Partition_ID;
       Next_Partition_ID := Next_Partition_ID + 1;
       Leave (Partitions_Mutex);
+
       pragma Debug
         (C, O ("Assigned partition id"
               & Integer'Image (Current_Partition_ID)
@@ -92,7 +92,9 @@ package body PolyORB.DSA_P.Partitions is
       --  possible race condition.
 
       Set_Local_Partition_ID
-        (System.RPC.Partition_ID (Allocate_Partition_ID ("main partition")));
+        (System.RPC.Partition_ID
+         (Allocate_Partition_ID (Get_Local_Partition_Name
+                                 & " (main partition)")));
       return True;
    end Elaborate;
 

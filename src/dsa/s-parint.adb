@@ -147,10 +147,6 @@ package body System.Partition_Interface is
    --  Detach a procedure using setsid() and closing the standard
    --  input/standard output/standard error file descriptors.
 
-   function Local_PID_Allocated return Boolean;
-   pragma Inline (Local_PID_Allocated);
-   --  True once the local partition ID is known
-
    Local_PID_Barrier   : PTC.Condition_Access;
    --  Barrier used by task waiting for Local_PID_Allocated to become True
 
@@ -1020,6 +1016,16 @@ package body System.Partition_Interface is
 
       return RPC.Partition_ID (System.Standard_Library.Local_Partition_ID);
    end Get_Local_Partition_ID;
+
+   ------------------------------
+   -- Get_Local_Partition_Name --
+   ------------------------------
+
+   function Get_Local_Partition_Name return String is
+   begin
+      return PolyORB.Parameters.Get_Conf
+        (Section => "dsa", Key => "partition_name", Default => "NO NAME");
+   end Get_Local_Partition_Name;
 
    --------------------------------
    -- Get_Nested_Sequence_Length --

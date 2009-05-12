@@ -98,11 +98,18 @@ package System.Partition_Interface is
    function Get_Active_Partition_ID (Name : Unit_Name) return RPC.Partition_ID;
    --  Get the Partition_ID of the partition where unit Name resides
 
+   function Get_Local_Partition_Name return String;
+   --  Return the name of the current partition
+
    function Get_Local_Partition_ID return RPC.Partition_ID;
    --  Return the Partition_ID of the current partition
 
    procedure Set_Local_Partition_ID (PID : RPC.Partition_ID);
    --  Set the Partition_ID of the current partition
+
+   function Local_PID_Allocated return Boolean;
+   pragma Inline (Local_PID_Allocated);
+   --  True once the local partition ID is known
 
    ---------------------------------------
    -- Remote access-to-subprogram types --

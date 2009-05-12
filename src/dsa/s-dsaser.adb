@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2006-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2006-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -53,8 +53,7 @@ package body System.DSA_Services is
    use System.Partition_Interface;
 
 begin
-
-   --  Check that PCS is initialized
+   --  Check that the PCS is initialized
 
    pragma Assert (PolyORB.Initialization.Is_Initialized);
 
@@ -66,9 +65,13 @@ begin
 
    PolyORB.DSA_P.Storages.Config.Initialize_Storages;
 
-   --  Allocate to this partition a local partition ID
+   --  Allocate to this partition a local partition ID, unless one has
+   --  already been allocated (case of the PID server partition).
 
-   Set_Local_Partition_ID (RPC.Partition_ID (Allocate_Partition_ID ("")));
+   if not Local_PID_Allocated then
+      Set_Local_Partition_ID
+        (RPC.Partition_ID (Allocate_Partition_ID (Get_Local_Partition_Name)));
+   end if;
 
    pragma Debug (C, O ("DSA_Services Initialized"));
 end System.DSA_Services;
