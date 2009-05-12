@@ -170,7 +170,7 @@ begin
       Put_Line ("no exception.");
    exception
       when E : others =>
-         Put_Line ("raised " & Ada.Exceptions.Exception_Name (E));
+         Put_Line ("raised " & Ada.Exceptions.Exception_Information (E));
    end;
 
    begin
@@ -179,7 +179,7 @@ begin
       Put_Line ("no exception.");
    exception
       when E : others =>
-         Put_Line ("raised " & Ada.Exceptions.Exception_Name (E));
+         Put_Line ("raised " & Ada.Exceptions.Exception_Information (E));
    end;
 
    begin
@@ -188,6 +188,6 @@ begin
       Put_Line ("no exception.");
    exception
       when E : others =>
-         Put_Line ("raised " & Ada.Exceptions.Exception_Name (E));
+         Put_Line ("raised " & Ada.Exceptions.Exception_Information (E));
    end;
 end Client_Main;
