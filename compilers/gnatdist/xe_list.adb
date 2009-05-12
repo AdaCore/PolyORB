@@ -46,12 +46,17 @@ pragma Elaborate_All (XE_Utils);
 
 package body XE_List is
 
-   ------------------------
-   --  Source File Stack --
-   ------------------------
+   -----------------------
+   -- Source File Stack --
+   -----------------------
+
+   type Sources_Entry is record
+      Sfile : File_Name_Type;
+      Afile : File_Name_Type;
+   end record;
 
    package Sources is new GNAT.Table
-     (Table_Component_Type => File_Name_Type,
+     (Table_Component_Type => Sources_Entry,
       Table_Index_Type     => Natural,
       Table_Low_Bound      => 1,
       Table_Initial        => 20,
@@ -133,9 +138,11 @@ package body XE_List is
       procedure Get_Line;
       --  Read one line from current buffer and evaluate fields
 
-      function  Field (N : Natural) return String;
-      --  Return Nth field. N has to be in the range of 0 and
-      --  Number_Of_Fields. When N is zero, return the full line.
+      function Field (N : Integer) return String;
+      --  Return Nth field. N has to be in the range of 0 and Number_Of_Fields.
+      --  When N is zero, return the full line. When N < 0, the contents of
+      --  the line starting at the beginning of the |N|th field and until end
+      --  of line is returned.
 
       function Number_Of_Fields return Natural;
       --  Return number of fields in the current line
@@ -222,15 +229,23 @@ package body XE_List is
       -- Field --
       -----------
 
-      function  Field (N : Natural) return String is
+      function Field (N : Integer) return String is
+         Last : Natural;
       begin
          if N = 0 then
             return Chars (1 .. N_Chars);
          end if;
+
          if N > N_Fields then
             return "";
          end if;
-         return Chars (Fields (N).First .. Fields (N).Last);
+
+         if N < 0 then
+            Last := N_Chars;
+         else
+            Last := Fields (N).Last;
+         end if;
+         return Chars (Fields (abs N).First .. Last);
       end Field;
 
       --------------
@@ -561,10 +576,10 @@ package body XE_List is
       My_With     : With_Id        := No_With_Id;
       My_Sdep     : Sdep_Id        := No_Sdep_Id;
       Afile       : File_Name_Type;
-      Sfile       : File_Name_Type;
 
       function File_Name (N : Natural) return File_Name_Type;
-      --  Get the Nth field and return it as a file name type
+      --  Get the line contents starting with the Nth field and up to end of
+      --  line, and return it as a file name type.
 
       ---------------
       -- File_Name --
@@ -572,7 +587,10 @@ package body XE_List is
 
       function File_Name (N : Natural) return File_Name_Type is
       begin
-         return Id (Format_Pathname (Parser.Field (N), UNIX));
+         --  File names may contain whitespace, so consider not just the Nth
+         --  field but also everything up to end of line.
+
+         return Id (Format_Pathname (Parser.Field (-N), UNIX));
       end File_Name;
 
    begin
@@ -692,9 +710,9 @@ package body XE_List is
                   ALIs.Table (My_ALI).Sfile := File_Name (3);
 
                else
-                  Sfile := File_Name (3);
-                  Afile := To_Afile (Sfile);
-                  Set_ALI_Id (Afile, No_ALI_Id);
+                  --  Unexpected Sfile token
+
+                  raise Program_Error;
                end if;
 
             when T_Name =>
@@ -881,20 +899,19 @@ package body XE_List is
          Set_Standard_Output;
 
          --  Build the monolithic application with a fake main subprogram
-         --  Partition. Note that we must pass the bare file name (without
+         --  Monolithic_App. Note that we must pass the bare file name (without
          --  directory information) to gnat make, Monolithic_Src_Base_Name,
          --  not Monolithic_Src_Name.
 
          Sfile := Monolithic_Src_Base_Name;
-         Afile := To_Afile (Sfile);
          Build
            (Sfile, Make_Flags, not Keep_Going, Display_Compilation_Progress);
 
          --  Load the info from its ALI file
 
-         List ((1 => Afile), List_Flags, Output);
+         List ((1 => Monolithic_ALI_Name), List_Flags, Output);
          Load_ALIs (Output);
-         ALI := Get_ALI_Id (Afile);
+         ALI := Get_ALI_Id (Monolithic_ALI_Name);
 
          --  Do not delete the source file for the fake main subprogram,
          --  it is needed by List later on.
@@ -922,7 +939,10 @@ package body XE_List is
 
                if Present (Sfile) then
                   Set_Name_Table_Byte (Sfile, 1);
-                  Sources.Append (Sfile);
+                  Sources.Append
+                    (Sources_Entry'
+                     (Sfile => Sfile,
+                      Afile => Withs.Table (K).Afile));
                end if;
             end loop;
          end loop;
@@ -939,8 +959,8 @@ package body XE_List is
 
                Last := 0;
                for J in Sources.First .. Sources.Last loop
-                  Sfile := Sources.Table (J);
-                  Afile := To_Afile (Sfile);
+                  Sfile := Sources.Table (J).Sfile;
+                  Afile := Sources.Table (J).Afile;
 
                   --  We never tried to download this ALI file. Its info
                   --  is not a valid ALI id (not even No_ALI_Id).
@@ -1024,7 +1044,10 @@ package body XE_List is
                           and then Get_Name_Table_Byte (Sfile) = 0
                         then
                            Set_Name_Table_Byte (Sfile, 1);
-                           Sources.Append (Sfile);
+                           Sources.Append
+                             (Sources_Entry'
+                              (Sfile => Sfile,
+                               Afile => Withs.Table (K).Afile));
                         end if;
                      end loop;
                   end loop;
