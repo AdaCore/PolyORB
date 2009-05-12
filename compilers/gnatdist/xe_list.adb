@@ -867,6 +867,7 @@ package body XE_List is
       ALI        : ALI_Id;
       Partition  : Partition_Id;
       Output     : File_Name_Type;
+
    begin
       --  Only use the project flags if a project has been set
 
