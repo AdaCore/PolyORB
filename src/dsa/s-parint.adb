@@ -35,6 +35,7 @@ with Ada.Characters.Handling;
 with Ada.Unchecked_Conversion;
 
 with System.Address_To_Access_Conversions;
+with System.Standard_Library;
 
 with GNAT.HTable;
 
@@ -145,6 +146,13 @@ package body System.Partition_Interface is
    procedure Detach;
    --  Detach a procedure using setsid() and closing the standard
    --  input/standard output/standard error file descriptors.
+
+   function Local_PID_Allocated return Boolean;
+   pragma Inline (Local_PID_Allocated);
+   --  True once the local partition ID is known
+
+   Local_PID_Barrier   : PTC.Condition_Access;
+   --  Barrier used by task waiting for Local_PID_Allocated to become True
 
    ------------------------------------------------
    -- Termination manager of the local partition --
@@ -956,22 +964,39 @@ package body System.Partition_Interface is
       return PATC.To_Ref (PolyORB.Any.Get_Unwound_Type (A));
    end Get_TC;
 
-   Local_PID_Barrier   : PTC.Condition_Access;
-   Local_PID           : RPC.Partition_ID;
-   Local_PID_Allocated : Boolean := False;
+   -------------------------
+   -- Local_PID_Allocated --
+   -------------------------
+
+   function Local_PID_Allocated return Boolean is
+   begin
+      return System.Standard_Library.Local_Partition_ID /= 0;
+   end Local_PID_Allocated;
 
    ----------------------------
    -- Set_Local_Partition_ID --
    ----------------------------
 
    procedure Set_Local_Partition_ID (PID : RPC.Partition_ID) is
+      use type RPC.Partition_ID;
    begin
+      --  A PID of 0 denotes the unset (initial) state of
+      --  System.Standard_Library.Local_Partition_ID.
+
+      pragma Assert (PID /= 0);
+
       PTM.Enter (Critical_Section);
+
       if not Local_PID_Allocated then
-         Local_PID := PID;
-         Local_PID_Allocated := True;
+         System.Standard_Library.Local_Partition_ID := Natural (PID);
          PTC.Broadcast (Local_PID_Barrier);
+
+      else
+         --  Should attempts to set the local PID twice be diagnosed???
+
+         null;
       end if;
+
       PTM.Leave (Critical_Section);
    end Set_Local_Partition_ID;
 
@@ -993,7 +1018,7 @@ package body System.Partition_Interface is
       end if;
       PTM.Leave (Critical_Section);
 
-      return Local_PID;
+      return RPC.Partition_ID (System.Standard_Library.Local_Partition_ID);
    end Get_Local_Partition_ID;
 
    --------------------------------

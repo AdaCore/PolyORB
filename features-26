@@ -12,7 +12,13 @@ This date shows the implementation date of the feature. Any 2.6w wavefront
 subsequent to this date will contain the indicated feature, as will any
 subsequent releases.
 
-N6-26-I320-027 Performance of neutral and protocol layers (2009-04-14)
+NF-26-I511-037 Identify originating partition in exceptions (2009-05-12)
+
+   When using the Ada DSA applicative personality, partition id information
+   is now appended to exception messages to help identifying which partition
+   raised the exception, and how it was propagated across partitions.
+
+NF-26-I320-027 Performance of neutral and protocol layers (2009-04-14)
 
    The performance of the neutral and protocol layers has been improved
    significantly by guarding some costly and seldom useful debugging traces

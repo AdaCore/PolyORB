@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -49,7 +49,11 @@ package body PolyORB.DSA_P.Partitions is
      renames L.Enabled;
 
    Partitions_Mutex : Mutex_Access;
-   Next_Partition_ID : Integer := 0;
+
+   Next_Partition_ID : Integer := 1;
+   --  ID to be assigned to the next requesting partition. Note that we start
+   --  at 1 because the value 0 is reserved to denote the unset (initial) state
+   --  of System.Standard_Library.Local_Parition_ID.
 
    function Elaborate return Boolean;
    --  Initialize the Partitions_Mutex and set the local partition ID.
