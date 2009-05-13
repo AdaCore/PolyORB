@@ -535,10 +535,11 @@ package body XE_Back.GARLIC is
 
    procedure Generate_Executable_File (P : Partition_Id) is
       Current       : Partition_Type renames Partitions.Table (P);
+      Executable    : File_Name_Type renames Current.Executable_File;
       Partition_Dir : Directory_Name_Type renames Current.Partition_Dir;
       I_Part_Dir    : String_Access;
       Comp_Args     : String_List (1 .. 7);
-      Make_Args     : String_List (1 .. 9);
+      Make_Args     : String_List (1 .. 11);
       Sfile         : File_Name_Type;
       Prj_Fname     : File_Name_Type;
 
@@ -609,6 +610,9 @@ package body XE_Back.GARLIC is
       Make_Args (8) := new String'(Get_Name_String (Prj_Fname));
       Make_Args (9) := Comp_Args (7);
 
+      Make_Args (10) := Output_Flag;
+      Make_Args (11) := new String'(Get_Name_String (Executable));
+
       Build (Sfile, Make_Args, Fatal => True);
 
       Free (Comp_Args (6));
@@ -616,6 +620,7 @@ package body XE_Back.GARLIC is
 
       Free (Make_Args (2));
       Free (Make_Args (8));
+      Free (Make_Args (11));
    end Generate_Executable_File;
 
    ----------------------------------

@@ -422,24 +422,20 @@ package body XE_Back.PolyORB is
    ------------------------------
 
    procedure Generate_Executable_File (P : Partition_Id) is
-      Current    : Partition_Type renames Partitions.Table (P);
-      Executable : File_Name_Type;
-      Part_Dir   : Directory_Name_Type;
-      I_Part_Dir : String_Access;
-      Comp_Args  : String_List (1 .. 9);
-      Make_Args  : String_List (1 .. 8);
-      Sfile      : File_Name_Type;
-      Prj_Fname  : File_Name_Type;
-      Length     : Natural;
+      Current       : Partition_Type renames Partitions.Table (P);
+      Executable    : File_Name_Type renames Current.Executable_File;
+      Partition_Dir : Directory_Name_Type renames Current.Partition_Dir;
+      I_Part_Dir    : String_Access;
+      Comp_Args     : String_List (1 .. 9);
+      Make_Args     : String_List (1 .. 10);
+      Last          : Positive;
+      Sfile         : File_Name_Type;
+      Prj_Fname     : File_Name_Type;
+      Length        : Natural;
 
    begin
-      Executable := Current.Executable_File;
-      Part_Dir   := Current.Partition_Dir;
-
-      Name_Len := 2;
-      Name_Buffer (1) := '-';
-      Name_Buffer (2) := 'I';
-      Get_Name_String_And_Append (Part_Dir);
+      Set_Str_To_Name_Buffer ("-I");
+      Get_Name_String_And_Append (Partition_Dir);
       I_Part_Dir := new String'(Name_Buffer (1 .. Name_Len));
 
       --  Give the priority to partition and stub directory against
@@ -455,11 +451,11 @@ package body XE_Back.PolyORB is
 
       if Project_File_Name = null then
          Comp_Args (5) := Object_Dir_Flag;
-         Comp_Args (6) := new String'(Get_Name_String (Part_Dir));
+         Comp_Args (6) := new String'(Get_Name_String (Partition_Dir));
 
       else
          Comp_Args (5) := Project_File_Flag;
-         Prj_Fname     := Dir (Part_Dir, Part_Prj_File_Name);
+         Prj_Fname     := Dir (Partition_Dir, Part_Prj_File_Name);
          Comp_Args (6) := new String'(Get_Name_String (Prj_Fname));
       end if;
 
@@ -483,23 +479,22 @@ package body XE_Back.PolyORB is
 
       --  Compile elaboration file
 
-      Sfile := Dir (Part_Dir, Elaboration_File & ADB_Suffix_Id);
+      Sfile := Dir (Partition_Dir, Elaboration_File & ADB_Suffix_Id);
       Compile (Sfile, Comp_Args (1 .. Length));
 
       --  Compile storage support configuration file
 
-      Sfile := Dir (Part_Dir, Storage_Config_File & ADB_Suffix_Id);
+      Sfile := Dir (Partition_Dir, Storage_Config_File & ADB_Suffix_Id);
       Compile (Sfile, Comp_Args (1 .. Length));
 
       --  Compile main file
 
-      Sfile := Dir (Part_Dir, Partition_Main_File & ADB_Suffix_Id);
+      Sfile := Dir (Partition_Dir, Partition_Main_File & ADB_Suffix_Id);
       Compile (Sfile, Comp_Args (1 .. Length));
 
       Free (Comp_Args (6));
 
-      --  Now we just want to bind and link as the ALI files are now
-      --  consistent.
+      --  Now we just want to bind and link as the ALI files are now consistent
 
       Make_Args (1) := E_Current_Dir;
       Make_Args (2) := I_Part_Dir;
@@ -507,21 +502,26 @@ package body XE_Back.PolyORB is
       Make_Args (4) := I_Current_Dir;
       Make_Args (5) := Bind_Only_Flag;
       Make_Args (6) := Link_Only_Flag;
+      Make_Args (7) := Output_Flag;
+      Make_Args (8) := new String'(Get_Name_String (Executable));
 
       if Project_File_Name = null then
-         Make_Args (7) := Output_Flag;
-         Make_Args (8) := new String'(Get_Name_String (Executable));
+         Last := 8;
 
       else
-         Make_Args (7) := Project_File_Flag;
-         Prj_Fname := Dir (Part_Dir, Part_Prj_File_Name);
-         Make_Args (8) := new String'(Get_Name_String (Prj_Fname));
+         Make_Args (9) := Project_File_Flag;
+         Prj_Fname := Dir (Partition_Dir, Part_Prj_File_Name);
+         Make_Args (10) := new String'(Get_Name_String (Prj_Fname));
+         Last := 10;
       end if;
 
-      Build (Sfile, Make_Args, Fatal => True);
+      Build (Sfile, Make_Args (1 .. Last), Fatal => True);
 
       Free (Make_Args (2));
       Free (Make_Args (8));
+      if Make_Args (10) /= null then
+         Free (Make_Args (10));
+      end if;
    end Generate_Executable_File;
 
    --------------------------------
