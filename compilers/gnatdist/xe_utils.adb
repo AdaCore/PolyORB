@@ -77,8 +77,7 @@ package body XE_Utils is
 
    function Locate
      (Exec_Name  : String;
-      Show_Error : Boolean := True)
-     return String_Access;
+      Show_Error : Boolean := True) return String_Access;
    --  look for Exec_Name on the path. If Exec_Name is found then the full
    --  pathname for Exec_Name is returned. If Exec_Name is not found and
    --  Show_Error is set to False then null is returned. If Exec_Name is not
@@ -136,8 +135,8 @@ package body XE_Utils is
 
    function "&"
      (L : File_Name_Type;
-      R : String)
-      return File_Name_Type is
+      R : String) return File_Name_Type
+   is
    begin
       Name_Len := 0;
       if Present (L) then
