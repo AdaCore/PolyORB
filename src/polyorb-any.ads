@@ -35,8 +35,11 @@
 
 pragma Ada_2005;
 
+pragma Warnings (Off);
+--  The following are internal GNAT units:
 with Ada.Strings.Superbounded;
 with Ada.Strings.Wide_Superbounded;
+pragma Warnings (On);
 
 with System;
 
