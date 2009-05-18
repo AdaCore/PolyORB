@@ -503,7 +503,8 @@ package body XE_Back.PolyORB is
       Make_Args (5) := Bind_Only_Flag;
       Make_Args (6) := Link_Only_Flag;
       Make_Args (7) := Output_Flag;
-      Make_Args (8) := new String'(Get_Name_String (Executable));
+      Make_Args (8) :=
+        new String'(Get_Name_String (Strip_Directory (Executable)));
 
       if Project_File_Name = null then
          Last := 8;

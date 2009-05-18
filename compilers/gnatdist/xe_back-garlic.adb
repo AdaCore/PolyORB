@@ -611,7 +611,8 @@ package body XE_Back.GARLIC is
       Make_Args (9) := Comp_Args (7);
 
       Make_Args (10) := Output_Flag;
-      Make_Args (11) := new String'(Get_Name_String (Executable));
+      Make_Args (11) :=
+        new String'(Get_Name_String (Strip_Directory (Executable)));
 
       Build (Sfile, Make_Args, Fatal => True);
 
