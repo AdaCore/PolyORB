@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2008, Free Software Foundation, Inc.               --
+--         Copyright (C) 2009, Free Software Foundation, Inc.               --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -38,7 +38,10 @@ with Ada.Streams.Stream_IO;
 
 with GNAT.OS_Lib;
 
+pragma Warnings (Off);
+--  System.Global_Locks is an internal GNAT unit
 with System.Global_Locks;
+pragma Warnings (On);
 
 with PolyORB.Tasking.Mutexes;
 with PolyORB.Any;
