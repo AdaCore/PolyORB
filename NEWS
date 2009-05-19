@@ -41,6 +41,15 @@ See the features-26 file.
 Bug fixes
 ---------
 
+The Ada DSA starter would fail if the complete path of some slave partition
+contained white space. (144288)
+
+Building a DSA application in a directory whose complete path include
+white space was not correctly handled. (143929)
+
+When building a DSA application, a global configuration pragma filed
+provided through a user project wasn't taken into account. (143979)
+
 * PolyORB 2.5 (branched on 2008-11-03)
 ======================================
 
