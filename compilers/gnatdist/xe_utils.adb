@@ -70,6 +70,7 @@ package body XE_Utils is
    pragma Import (C, Dup2);
 
    GNAT_Driver : String_Access;
+   GPRBuild    : String_Access;
 
    List_Command    : constant String_Access := new String'("list");
    Build_Command   : constant String_Access := new String'("make");
@@ -219,11 +220,19 @@ package body XE_Utils is
       Has_Prj           : Boolean := False;
       Index             : Natural;
 
+      Builder : String_Access;
    begin
-      --  gnat make
+      if Use_GPRBuild then
+         Builder := GPRBuild;
 
-      N_Flags := N_Flags + 1;
-      Flags (N_Flags) := Build_Command;
+      else
+         Builder := GNAT_Driver;
+
+         --  gnat make
+
+         N_Flags := N_Flags + 1;
+         Flags (N_Flags) := Build_Command;
+      end if;
 
       if Quiet_Mode then
          --  Pass -q to gnatmake
@@ -285,7 +294,7 @@ package body XE_Utils is
 
       --  Call gnat make
 
-      Execute (GNAT_Driver, Flags (1 .. N_Flags), Success);
+      Execute (Builder, Flags (1 .. N_Flags), Success);
 
       --  Free library file name argument
 
@@ -627,6 +636,7 @@ package body XE_Utils is
       Create_Dir (Monolithic_Obj_Dir);
 
       GNAT_Driver := Locate ("gnat");
+      GPRBuild    := Locate ("gprbuild");
 
       Check_User_Provided_S_RPC (".");
    end Initialize;
@@ -986,6 +996,13 @@ package body XE_Utils is
                   --       PCS even on non-Windows platforms.
 
                   when 'P' =>
+                     Use_PolyORB_Project := True;
+
+                  --  -dB: Use gprbuild (implies -dP)
+                  --       (for experimentation, not expected to work yet???)
+
+                  when 'B' =>
+                     Use_GPRBuild := True;
                      Use_PolyORB_Project := True;
 
                   when others =>
