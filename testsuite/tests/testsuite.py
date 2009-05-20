@@ -69,7 +69,7 @@ def main():
     # Human readable report (rep file)
     rep = GenerateRep('res_polyorb', targetname=env.target.platform)
     report_file = open('rep_polyorb', 'w')
-    report_file.write(rep.get_subject())
+    report_file.write(rep.get_subject() + '\n\n')
     report_file.write(rep.get_report()) 
     report_file.close()
 
