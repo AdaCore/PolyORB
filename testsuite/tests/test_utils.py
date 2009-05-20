@@ -30,6 +30,10 @@ def client_server(client_cmd, client_conf, server_cmd, server_conf):
     client = os.path.join(BASE_DIR, client_cmd)
     server = os.path.join(BASE_DIR, server_cmd)
 
+    # Check that files exist
+    assert(os.path.exists(server))
+    assert(os.path.exists(client))
+
     if server_conf:
         server_polyorb_conf = os.path.join(options.testsuite_src_dir,
                                            server_conf)
