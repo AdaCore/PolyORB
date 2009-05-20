@@ -42,35 +42,40 @@ def client_server(client_cmd, client_conf, server_cmd, server_conf):
     # Run the server command and retrieve the IOR string
     server_handle = ExpectProcess([server])
 
-    result = server_handle.expect([r"IOR:([a-z0-9]+)['|\n]"], 2.0)
-    if result != 0:
-        print "Expect error"
+    try:
+        result = server_handle.expect([r"IOR:([a-z0-9]+)['|\n]"], 2.0)
+        if result != 0:
+            print "Expect error"
+            server_handle.close()
+            return False
+
+        IOR_str = server_handle.out()[1]
+
+        # Run the client with the IOR argument
+        mkdir(os.path.dirname(options.out_file))
+
+        if client_conf:
+            client_polyorb_conf = os.path.join(options.testsuite_src_dir,
+                                               client_conf)
+            assert(os.path.exists(client_polyorb_conf))
+        else:
+            client_polyorb_conf = ''
+
+        if client_polyorb_conf != server_polyorb_conf:
+            client_env = os.environ.copy()
+            client_env[POLYORB_CONF] = client_polyorb_conf
+        else:
+            client_env = None
+
+        Run([client, IOR_str], output=options.out_file, error=STDOUT,
+            timeout=options.timeout, env=client_env)
+
+        # Kill the server process
         server_handle.close()
-        return False
-
-    IOR_str = server_handle.out()[1]
-
-    # Run the client with the IOR argument
-    mkdir(os.path.dirname(options.out_file))
-
-    if client_conf:
-        client_polyorb_conf = os.path.join(options.testsuite_src_dir,
-                                           client_conf)
-        assert(os.path.exists(client_polyorb_conf))
-    else:
-        client_polyorb_conf = ''
-
-    if client_polyorb_conf != server_polyorb_conf:
-        client_env = os.environ.copy()
-        client_env[POLYORB_CONF] = client_polyorb_conf
-    else:
-        client_env = None
-
-    Run([client, IOR_str], output=options.out_file, error=STDOUT,
-        timeout=options.timeout, env=client_env)
-
-    # Kill the server process
-    server_handle.close()
+    except Exception, e:
+        # Be sure that the server handle is properly closed
+        print e
+        server_handle.close()
 
     return _check_output()
 
