@@ -13,7 +13,7 @@ See ./testsuite.py -h for more help.
 """
 
 from gnatpython.env import Env
-from gnatpython.ex import Run
+from gnatpython.ex import Run, STDOUT
 from gnatpython.fileutils import mkdir
 from gnatpython.main import Main
 from gnatpython.mainloop import MainLoop
@@ -173,14 +173,16 @@ def gen_run_testcase(build_dir, testsuite_src_dir):
         if timeout is None:
             timeout = DEFAULT_TIMEOUT
 
+        mkdir(os.path.dirname(os.path.join('output', test.filename)))
+
         return Run([sys.executable,
                     test.filename,
                     '--timeout', str(timeout),
                     '--out-file', os.path.join('output', test.filename),
                     '--testsuite-src-dir', os.path.realpath(testsuite_src_dir),
                     '--build-dir', os.path.realpath(build_dir)],
-                   bg=True, output=None,
-                   error=None, timeout=int(timeout) + DEFAULT_TIMEOUT)
+                   bg=True, output=os.path.join('output', test.filename + '.error'),
+                   error=STDOUT, timeout=int(timeout) + DEFAULT_TIMEOUT)
     return run_testcase
 
 def gen_collect_result(report, show_diffs=False):
@@ -203,10 +205,12 @@ def gen_collect_result(report, show_diffs=False):
         logging.info("%-60s %s" % (test.filename, status))
         if not success:
             diff = ""
-            if os.path.exists(os.path.join('output', test.filename)):
-                f = open(os.path.join('output', test.filename))
-                diff = f.read()
-                f.close()
+            for filename in (test.filename, test.filename + '.error'):
+                if os.path.exists(os.path.join('output', filename)):
+                    f = open(os.path.join('output', filename))
+                    diff = f.read()
+                    f.close()
+
             report.add(test.filename, status, diff=diff)
             if show_diffs:
                 logging.info(diff)
