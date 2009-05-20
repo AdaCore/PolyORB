@@ -19,6 +19,10 @@ import re
 
 POLYORB_CONF = "POLYORB_CONF"
 
+def assert_exists(filename):
+    """Assert that the given filename exists"""
+    assert os.path.exists(filename), "%s not found" % filename
+
 def client_server(client_cmd, client_conf, server_cmd, server_conf):
     """Run a client server testcase
 
@@ -31,13 +35,13 @@ def client_server(client_cmd, client_conf, server_cmd, server_conf):
     server = os.path.join(BASE_DIR, server_cmd)
 
     # Check that files exist
-    assert(os.path.exists(server))
-    assert(os.path.exists(client))
+    assert_exists(client)
+    assert_exists(server)
 
     if server_conf:
         server_polyorb_conf = os.path.join(options.testsuite_src_dir,
                                            server_conf)
-        assert(os.path.exists(server_polyorb_conf))
+        assert_exists(server_polyorb_conf)
     else:
         server_polyorb_conf = ""
 
@@ -61,7 +65,7 @@ def client_server(client_cmd, client_conf, server_cmd, server_conf):
         if client_conf:
             client_polyorb_conf = os.path.join(options.testsuite_src_dir,
                                                client_conf)
-            assert(os.path.exists(client_polyorb_conf))
+            assert_exists(client_polyorb_conf)
         else:
             client_polyorb_conf = ''
 
@@ -92,11 +96,12 @@ def local(cmd, config_file):
     """
     if config_file:
         config_file = os.path.join(options.testsuite_src_dir, config_file)
-        assert(os.path.exists(config_file))
+        assert_exists(config_file)
     os.environ[POLYORB_CONF] = config_file
 
     mkdir(os.path.dirname(options.out_file))
     command = os.path.join(BASE_DIR, cmd)
+    assert_exists(command)
     Run([command], output=options.out_file, error=STDOUT,
         timeout=options.timeout)
     return _check_output()
