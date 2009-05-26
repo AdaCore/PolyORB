@@ -636,7 +636,11 @@ package body XE_Utils is
       Create_Dir (Monolithic_Obj_Dir);
 
       GNAT_Driver := Locate ("gnat");
-      GPRBuild    := Locate ("gprbuild");
+
+      --  Note: we initialize variable GPRBuild in Scan_Dist_Arg rather than
+      --  unconditionally in Initialize so that the absence of gprbuild does
+      --  not cause initialization to fail in the normal case where -dB is not
+      --  used.
 
       Check_User_Provided_S_RPC (".");
    end Initialize;
@@ -1002,6 +1006,7 @@ package body XE_Utils is
                   --       (for experimentation, not expected to work yet???)
 
                   when 'B' =>
+                     GPRBuild := Locate ("gprbuild");
                      Use_GPRBuild := True;
                      Use_PolyORB_Project := True;
 
