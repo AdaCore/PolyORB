@@ -31,7 +31,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Exceptions;  use Ada.Exceptions;
+with Ada.Characters.Handling; use Ada.Characters.Handling;
+with Ada.Exceptions;          use Ada.Exceptions;
 
 with XE;              use XE;
 with XE_Back;         use XE_Back;
@@ -116,11 +117,14 @@ begin
    Parse;
    Frontend;
 
-   --  Configuration name and configuration file name do not match
+   --  Configuration name and configuration file name do not match (case
+   --  insensitively, to mimic the way project files work)
 
    Get_Name_String (Strip_Directory (Configuration_File_Name));
    Name_Len := Name_Len - Cfg_Suffix'Length;
-   if Configuration /= Name_Find then
+   if To_Lower (Get_Name_String (Configuration)) /=
+      To_Lower (Get_Name_String (Name_Find))
+   then
       raise Fatal_Error
         with "configuration file name should be "
           & NS (Quote (Configuration & Cfg_Suffix_Id));
