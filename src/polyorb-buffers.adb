@@ -296,9 +296,6 @@ package body PolyORB.Buffers is
                  (others => 0);
    --  Null data used for padding
 
-   Null_Data_Address : constant Opaque_Pointer :=
-                         Null_Data (Null_Data'First)'Address;
-
    procedure Pad_Align
      (Buffer    : access Buffer_Type;
       Alignment : Alignment_Type)
@@ -330,7 +327,7 @@ package body PolyORB.Buffers is
 
          declare
             Padding_Iovec : constant Iovec :=
-                              (Iov_Base => Null_Data_Address,
+                              (Iov_Base => Null_Data'Address,
                                Iov_Len  => Storage_Offset (Padding));
          begin
             Append (Iovec_Pool => Buffer.Contents, An_Iovec => Padding_Iovec);

@@ -46,6 +46,8 @@ package PolyORB.Utils.Chained_Lists is
    pragma Preelaborate;
 
    type List is private;
+   pragma Preelaborable_Initialization (List);
+
    type Iterator is private;
    type Element_Access is access all T;
 

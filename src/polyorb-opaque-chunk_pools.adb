@@ -67,7 +67,6 @@ package body PolyORB.Opaque.Chunk_Pools is
          Pool.Prealloc_Used := True;
       else
          New_Chunk := new Chunk (Size => Allocation_Size);
-         New_Chunk.Metadata := Null_Metadata;
          Append (Pool.Dynamic_Chunks, New_Chunk);
       end if;
 

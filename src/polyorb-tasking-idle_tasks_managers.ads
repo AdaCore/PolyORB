@@ -37,6 +37,8 @@ with PolyORB.Utils.Chained_Lists;
 
 package PolyORB.Tasking.Idle_Tasks_Managers is
 
+   pragma Preelaborate;
+
    package PTI renames PolyORB.Task_Info;
    package PTCV renames PolyORB.Tasking.Condition_Variables;
 

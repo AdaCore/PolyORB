@@ -39,9 +39,7 @@ with PolyORB.Utils.Ilists;
 
 generic
    type Chunk_Metadata is private;
-   --  The metadata associated with each storage chunk.
-
-   Null_Metadata : Chunk_Metadata;
+   --  The metadata associated with each storage chunk
 package PolyORB.Opaque.Chunk_Pools is
 
    pragma Preelaborate;

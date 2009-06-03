@@ -176,6 +176,7 @@ package PolyORB.Any is
       ----------
 
       type Local_Ref is private;
+      pragma Preelaborable_Initialization (Local_Ref);
 
       type Object (Kind : TCKind) is
         new Smart_Pointers.Non_Controlled_Entity

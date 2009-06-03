@@ -93,6 +93,7 @@ package PolyORB.Smart_Pointers is
    ---------
 
    type Ref is new Ada.Finalization.Controlled with private;
+   pragma Preelaborable_Initialization (Ref);
    --  The base type of all references. This type is often derived but never
    --  extended. It contains one field, which designates the referenced object.
 

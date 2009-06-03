@@ -46,7 +46,7 @@ with PolyORB.Utils.Ilists;
 
 package PolyORB.Task_Info is
 
-   pragma Elaborate_Body;
+   pragma Preelaborate;
 
    package PAE  renames PolyORB.Asynch_Ev;
    package PTCV renames PolyORB.Tasking.Condition_Variables;

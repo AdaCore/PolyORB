@@ -59,6 +59,7 @@ package PolyORB.Utils.Ilists is
 
    package Lists is
       type List is private;
+      pragma Preelaborable_Initialization (List);
       --  A list of objects of type T
 
       type Iterator is private;

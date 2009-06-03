@@ -49,13 +49,15 @@ with PolyORB.Opaque.Chunk_Pools;
 
 package PolyORB.Buffers is
 
-   pragma Elaborate_Body;
+   pragma Preelaborate;
 
    -------------------------
    -- General definitions --
    -------------------------
 
-   type Endianness_Type is (Little_Endian, Big_Endian);
+   type Endianness_Type is new System.Bit_Order;
+   function Little_Endian return Endianness_Type renames Low_Order_First;
+   function Big_Endian return Endianness_Type renames High_Order_First;
    --  Endianness of a buffer
 
    type Alignment_Type is (Align_1, Align_2, Align_4, Align_8);
@@ -327,13 +329,8 @@ private
    -- Determination of the host byte order --
    ------------------------------------------
 
-   Default_Bit_Order_To_Endianness :
-     constant array (System.Bit_Order) of Endianness_Type
-     := (System.High_Order_First => Big_Endian,
-         System.Low_Order_First  => Little_Endian);
-
    Host_Order : constant Endianness_Type :=
-     Default_Bit_Order_To_Endianness (System.Default_Bit_Order);
+                  Endianness_Type (System.Default_Bit_Order);
 
    --------------
    -- A Buffer --
@@ -359,13 +356,8 @@ private
       Length       : Ada.Streams.Stream_Element_Count;
    end record;
 
-   Null_Buffer_Chunk_Metadata : constant Buffer_Chunk_Metadata
-     := (Last_Used => 0);
-
    package Buffer_Chunk_Pools is
-      new Opaque.Chunk_Pools
-     (Chunk_Metadata => Buffer_Chunk_Metadata,
-      Null_Metadata  => Null_Buffer_Chunk_Metadata);
+     new Opaque.Chunk_Pools (Chunk_Metadata => Buffer_Chunk_Metadata);
 
    subtype Chunk_Metadata_Access is
      Buffer_Chunk_Pools.Metadata_Access;
