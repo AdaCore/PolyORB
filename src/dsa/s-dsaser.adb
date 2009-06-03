@@ -73,5 +73,10 @@ begin
         (RPC.Partition_ID (Allocate_Partition_ID (Get_Local_Partition_Name)));
    end if;
 
+   --  DSA services are now fully initialized, and incoming remote subprogram
+   --  calls can be processed: activate all pending RPC receivers.
+
+   System.Partition_Interface.Activate_RPC_Receivers;
+
    pragma Debug (C, O ("DSA_Services Initialized"));
 end System.DSA_Services;

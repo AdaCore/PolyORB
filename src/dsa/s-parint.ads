@@ -57,8 +57,6 @@ with PolyORB.Requests;
 with PolyORB.Servants;
 with PolyORB.Smart_Pointers;
 with PolyORB.Types;
-with PolyORB.Utils.Chained_Lists;
-with PolyORB.Utils.Strings;
 with PolyORB.Initialization;
 
 with System.DSA_Types;
@@ -185,8 +183,7 @@ package System.Partition_Interface is
    type Request_Handler_Access is access
      procedure (R : Request_Access);
 
-   type Private_Info is abstract tagged null record;
-   type Private_Info_Access is access all Private_Info'Class;
+   type Private_Info is private;
 
    type Servant is new PolyORB.Servants.Servant with record
       Handler        : Request_Handler_Access;
@@ -198,7 +195,7 @@ package System.Partition_Interface is
       Obj_TypeCode   : PolyORB.Any.TypeCode.Local_Ref;
       --  The TypeCode to be used for references to objects of this type
 
-      Impl_Info      : Private_Info_Access;
+      Impl_Info      : Private_Info;
    end record;
    type Servant_Access is access all Servant'Class;
 
@@ -224,11 +221,13 @@ package System.Partition_Interface is
    --  Subp_Info is the address of an array of a statically subtype
    --  of RCI_Subp_Info_Array with a range of 0 .. Subp_Info_Len - 1.
 
-   function Retrieve_Receiving_Stub
-     (Name : String;
-      Kind : Receiving_Stub_Kind) return Servant_Access;
+   function Find_Receiving_Stub
+     (Name : String; Kind : Receiving_Stub_Kind) return Servant_Access;
    --  Return the servant for distributed objects with given Name and Kind, or
    --  null if non-existant.
+
+   procedure Activate_RPC_Receivers;
+   --  Start processing incoming remote calls
 
    ---------------------------------
    -- Remote Access to Class Wide --
@@ -311,10 +310,10 @@ package System.Partition_Interface is
    --  Receiver is the associated servant.
 
    procedure Build_Local_Reference
-     (Addr     :        System.Address;
-      Typ      :        String;
+     (Addr     : System.Address;
+      Typ      : String;
       Receiver : access Servant;
-      Ref      :    out PolyORB.References.Ref);
+      Ref      : out PolyORB.References.Ref);
    --  Create a reference that can be used to designate the local object whose
    --  address is Addr, whose type is the designated type of a RACW type
    --  associated with Servant.
@@ -694,40 +693,16 @@ private
      return PolyORB.Components.Message'Class;
    pragma Inline (Execute_Servant);
 
-   --  During elaboration, each RCI package and each distributed object type
-   --  registers a Receiving_Stub entry.
-
-   type Receiving_Stub is new Private_Info with record
-      Kind                : Receiving_Stub_Kind;
-      --  Indicates whether this info is relative to RACW type or a RCI
-
-      Name                : PolyORB.Utils.Strings.String_Ptr;
-      --  Fully qualified name of the RACW or RCI
-
-      Version             : PolyORB.Utils.Strings.String_Ptr;
-      --  For RCIs only: library unit version
-
-      Receiver            : Servant_Access;
-      --  The RPC receiver (servant) object
-
-      Is_All_Calls_Remote : Boolean;
-      --  For RCIs only: true iff a pragma All_Calls_Remote applies to unit
-
-      Subp_Info           : System.Address;
-      Subp_Info_Len       : Integer;
-      --  For RCIs only: mapping of RCI subprogram names to addresses.
-      --  For the definition of these values, cf. the specification of
-      --  Register_Pkg_Receiving_Stubs.
-
-   end record;
-
-   package Receiving_Stub_Lists is new PolyORB.Utils.Chained_Lists
-     (Receiving_Stub);
-
-   All_Receiving_Stubs : Receiving_Stub_Lists.List;
-
    type Buffer_Stream_Type is new Ada.Streams.Root_Stream_Type with record
       Buf : aliased PolyORB.Buffers.Buffer_Type;
+   end record;
+
+   type Receiving_Stub;
+   --  Implementation info describing a receiving stub (see package body)
+
+   type Receiving_Stub_Access is access all Receiving_Stub;
+   type Private_Info is record
+      Stub : Receiving_Stub_Access;
    end record;
 
 end System.Partition_Interface;

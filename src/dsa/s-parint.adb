@@ -72,6 +72,7 @@ with PolyORB.Tasking.Condition_Variables;
 with PolyORB.Tasking.Mutexes;
 with PolyORB.Tasking.Threads;
 with PolyORB.Termination_Activity;
+with PolyORB.Utils.Ilists;
 with PolyORB.Utils.Strings.Lists;
 
 package body System.Partition_Interface is
@@ -251,7 +252,95 @@ package body System.Partition_Interface is
 
    Naming_Context_Cache : PSNNC.Ref;
 
-   --  End of local declarations
+   ------------------------------------------
+   -- List of all RPC receivers (servants) --
+   ------------------------------------------
+
+   type Receiving_Stub is record
+      Next                : aliased Receiving_Stub_Access;
+      --  For chaining on All_Receiving_Stubs list
+
+      Kind                : Receiving_Stub_Kind;
+      --  Indicates whether this info is relative to RACW type or a RCI
+
+      Name                : PolyORB.Utils.Strings.String_Ptr;
+      --  Fully qualified name of the RACW or RCI
+
+      Version             : PolyORB.Utils.Strings.String_Ptr;
+      --  For RCIs only: library unit version
+
+      Receiver            : Servant_Access;
+      --  The RPC receiver (servant) object
+
+      Is_All_Calls_Remote : Boolean;
+      --  For RCIs only: true iff a pragma All_Calls_Remote applies to unit
+
+      Subp_Info           : System.Address;
+      Subp_Info_Len       : Integer;
+      --  For RCIs only: mapping of RCI subprogram names to addresses.
+      --  For the definition of these values, cf. the specification of
+      --  Register_Pkg_Receiving_Stubs.
+
+   end record;
+
+   function Link
+     (S     : access Receiving_Stub;
+      Which : PolyORB.Utils.Ilists.Link_Type)
+      return access Receiving_Stub_Access;
+
+   package Receiving_Stub_Lists is new PolyORB.Utils.Ilists.Lists
+     (Receiving_Stub, Receiving_Stub_Access, Doubly_Linked => False);
+
+   All_Receiving_Stubs : Receiving_Stub_Lists.List;
+
+   RPC_Receivers_Activated : Boolean := False;
+   --  False until Activate_RPC_Receivers has been called, at which point
+   --  incoming RPCs can be serviced.
+
+   procedure Activate_RPC_Receiver (Default_Servant : Servant_Access);
+   --  Activate one RPC receiver (i.e. enable the processing of incoming remote
+   --  subprogram calls to that servant).
+
+   ---------------------------
+   -- Activate_RPC_Receiver --
+   ---------------------------
+
+   procedure Activate_RPC_Receiver (Default_Servant : Servant_Access) is
+      use PolyORB.Errors;
+      use PolyORB.POA;
+      use PolyORB.POA_Manager;
+
+      POA   : constant Obj_Adapter_Access :=
+                Obj_Adapter_Access (Default_Servant.Object_Adapter);
+      Error : Error_Container;
+   begin
+      pragma Debug (C, O ("Activate_RPC_Receiver: "
+                            & Default_Servant.Impl_Info.Stub.Name.all));
+
+      Activate (POAManager_Access (Entity_Of (POA.POA_Manager)), Error);
+      if Found (Error) then
+         PolyORB.DSA_P.Exceptions.Raise_From_Error (Error);
+      end if;
+   end Activate_RPC_Receiver;
+
+   ----------------------------
+   -- Activate_RPC_Receivers --
+   ----------------------------
+
+   procedure Activate_RPC_Receivers is
+      use Receiving_Stub_Lists;
+      It : Iterator;
+   begin
+      pragma Debug (C, O ("Activate_RPC_Receivers: enter"));
+      RPC_Receivers_Activated := True;
+
+      It := First (All_Receiving_Stubs);
+      while not Last (It) loop
+         Activate_RPC_Receiver (Receiving_Stub (Value (It).all).Receiver);
+         Next (It);
+      end loop;
+      pragma Debug (C, O ("Activate_RPC_Receivers: end"));
+   end Activate_RPC_Receivers;
 
    -------------------------
    -- Any_Aggregate_Build --
@@ -353,9 +442,9 @@ package body System.Partition_Interface is
          pragma Assert (Receiver.Object_Adapter /= null);
 
          declare
-            Key : aliased PolyORB.Objects.Object_Id := To_Local_Oid (Addr);
+            Key   : aliased PolyORB.Objects.Object_Id := To_Local_Oid (Addr);
             U_Oid : PolyORB.POA_Types.Unmarshalled_Oid;
-            Oid : PolyORB.POA_Types.Object_Id_Access;
+            Oid   : PolyORB.POA_Types.Object_Id_Access;
 
          begin
             PolyORB.POA.Activate_Object
@@ -538,7 +627,7 @@ package body System.Partition_Interface is
          declare
             EMsg : Execute_Request renames Execute_Request (Msg);
          begin
-            if Receiving_Stub (Self.Impl_Info.all).Kind = Pkg_Stub then
+            if Self.Impl_Info.Stub.Kind = Pkg_Stub then
 
                --  The base reference for an RCI unit implements operations
                --  that correspond to the visible subprograms of the unit
@@ -594,7 +683,7 @@ package body System.Partition_Interface is
                      --  Call implementation
 
                      Get_RAS_Info
-                       (Receiving_Stub (Self.Impl_Info.all).Name.all,
+                       (Self.Impl_Info.Stub.Name.all,
                         PolyORB.Services.Naming.To_Standard_String
                           (ISNC.Get_Element (ISNC.Sequence (n), 1).id),
                            Result);
@@ -960,6 +1049,21 @@ package body System.Partition_Interface is
       return PATC.To_Ref (PolyORB.Any.Get_Unwound_Type (A));
    end Get_TC;
 
+   ----------
+   -- Link --
+   ----------
+
+   function Link
+     (S     : access Receiving_Stub;
+      Which : PolyORB.Utils.Ilists.Link_Type)
+      return access Receiving_Stub_Access
+   is
+      use PolyORB.Utils.Ilists;
+   begin
+      pragma Assert (Which = Next);
+      return S.Next'Unchecked_Access;
+   end Link;
+
    -------------------------
    -- Local_PID_Allocated --
    -------------------------
@@ -1162,8 +1266,7 @@ package body System.Partition_Interface is
 
          declare
             use Receiving_Stub_Lists;
-            It : Receiving_Stub_Lists.Iterator :=
-              First (All_Receiving_Stubs);
+            It : Receiving_Stub_Lists.Iterator := First (All_Receiving_Stubs);
 
             Addr : System.Address := System.Null_Address;
             Receiver : Servant_Access := null;
@@ -1181,38 +1284,34 @@ package body System.Partition_Interface is
             All_Stubs :
             while not Last (It) loop
                declare
-                  Rec_Stub : Receiving_Stub renames Value (It).all;
-                  pragma Assert (Rec_Stub.Subp_Info /= Null_Address);
+                  RS : Receiving_Stub renames Value (It).all;
+                  pragma Assert (RS.Subp_Info /= Null_Address);
 
-                  subtype Subp_Array is RCI_Subp_Info_Array
-                    (0 .. Rec_Stub.Subp_Info_Len - 1);
+                  subtype Subp_Array is
+                    RCI_Subp_Info_Array (0 .. RS.Subp_Info_Len - 1);
 
                   package Subp_Info_Addr_Conv is
                      new System.Address_To_Access_Conversions (Subp_Array);
 
-                  Subp_Info : constant Subp_Info_Addr_Conv.Object_Pointer
-                    := Subp_Info_Addr_Conv.To_Pointer (Rec_Stub.Subp_Info);
+                  Subp_Info : constant Subp_Info_Addr_Conv.Object_Pointer :=
+                                Subp_Info_Addr_Conv.To_Pointer (RS.Subp_Info);
                begin
-                  if Rec_Stub.Kind = Pkg_Stub
-                    and then To_Lower (Rec_Stub.Name.all) = To_Lower (Pkg_Name)
+                  if RS.Kind = Pkg_Stub
+                    and then To_Lower (RS.Name.all) = To_Lower (Pkg_Name)
                   then
                      for J in Subp_Info'Range loop
                         declare
-                           Info : RCI_Subp_Info
-                             renames Subp_Info (J);
-
-                           subtype Str is
-                             String (1 .. Info.Name_Length);
+                           Info : RCI_Subp_Info renames Subp_Info (J);
+                           subtype Str is String (1 .. Info.Name_Length);
 
                            package Str_Addr_Conv is
-                              new System.Address_To_Access_Conversions
-                             (Str);
+                              new System.Address_To_Access_Conversions (Str);
                         begin
                            if Str_Addr_Conv.To_Pointer (Info.Name).all
                              = Subprogram_Name
                            then
                               Addr     := Info.Addr;
-                              Receiver := Rec_Stub.Receiver;
+                              Receiver := RS.Receiver;
                               exit All_Stubs;
                            end if;
                         end;
@@ -1226,6 +1325,7 @@ package body System.Partition_Interface is
 
             Build_Local_Reference (Addr, Pkg_Name, Receiver, Subp_Ref);
          end;
+
       else
          declare
             Ctx_Ref : PSNNC.Ref;
@@ -1625,18 +1725,17 @@ package body System.Partition_Interface is
 
       Prepend
         (All_Receiving_Stubs,
-         Receiving_Stub'
+         new Receiving_Stub'
            (Kind                => Obj_Stub,
-            Name                =>
-              +Name (Name'First .. Name'Last - 1),
+            Name                => +Name (Name'First .. Name'Last - 1),
             Receiver            => Receiver,
             Version             => null,
             Subp_Info           => Null_Address,
             Subp_Info_Len       => 0,
-            Is_All_Calls_Remote => False));
+            Is_All_Calls_Remote => False,
+            others              => <>));
 
-      Receiver.Impl_Info := Private_Info_Access
-        (Value (First (All_Receiving_Stubs)));
+      Receiver.Impl_Info.Stub := Value (First (All_Receiving_Stubs));
 
       declare
          Stub : Receiving_Stub renames Value (First (All_Receiving_Stubs)).all;
@@ -1647,29 +1746,32 @@ package body System.Partition_Interface is
 
    end Register_Obj_Receiving_Stub;
 
-   -----------------------------
-   -- Retrieve_Receiving_Stub --
-   -----------------------------
+   -------------------------
+   -- Find_Receiving_Stub --
+   -------------------------
 
-   function Retrieve_Receiving_Stub (Name : String;
-                                     Kind : Receiving_Stub_Kind)
-     return Servant_Access
+   function Find_Receiving_Stub
+     (Name : String; Kind : Receiving_Stub_Kind) return Servant_Access
    is
       use Receiving_Stub_Lists;
       It : Receiving_Stub_Lists.Iterator := First (All_Receiving_Stubs);
    begin
       All_Stubs :
       while not Last (It) loop
-         if Value (It).all.Kind = Kind
-           and then To_Lower (Value (It).all.Name.all) = To_Lower (Name)
-         then
-            return Value (It).all.Receiver;
-         end if;
+         declare
+            RS : Receiving_Stub renames Value (It).all;
+         begin
+            if RS.Kind = Kind
+              and then To_Lower (RS.Name.all) = To_Lower (Name)
+            then
+               return RS.Receiver;
+            end if;
+         end;
          Next (It);
       end loop All_Stubs;
 
       return null;
-   end Retrieve_Receiving_Stub;
+   end Find_Receiving_Stub;
 
    ------------------------------
    -- Register_Passive_Package --
@@ -1677,7 +1779,10 @@ package body System.Partition_Interface is
 
    procedure Register_Passive_Package
      (Name    : Unit_Name;
-      Version : String := "") is
+      Version : String := "")
+   is
+      pragma Unreferenced (Name);
+      pragma Unreferenced (Version);
    begin
       null;
    end Register_Passive_Package;
@@ -1700,20 +1805,22 @@ package body System.Partition_Interface is
       Receiver.Handler := Handler;
       Prepend
         (All_Receiving_Stubs,
-         Receiving_Stub'
+         new Receiving_Stub'
            (Kind                => Pkg_Stub,
             Name                => +Name,
             Receiver            => Receiver,
             Version             => +Version,
             Subp_Info           => Subp_Info,
             Subp_Info_Len       => Subp_Info_Len,
-            Is_All_Calls_Remote => Is_All_Calls_Remote));
+            Is_All_Calls_Remote => Is_All_Calls_Remote,
+            others              => <>));
 
-      Receiver.Impl_Info := Private_Info_Access
+      Receiver.Impl_Info.Stub := Receiving_Stub_Access
         (Value (First (All_Receiving_Stubs)));
 
       declare
-         Stub : Receiving_Stub renames Value (First (All_Receiving_Stubs)).all;
+         Stub : Receiving_Stub renames
+                  Value (First (All_Receiving_Stubs)).all;
 
          use PolyORB.Errors;
          use PolyORB.ORB;
@@ -1723,8 +1830,8 @@ package body System.Partition_Interface is
          use type PolyORB.POA.Obj_Adapter_Access;
 
          Error : Error_Container;
-         Key : aliased PolyORB.Objects.Object_Id
-           := To_Local_Oid (System.Null_Address);
+         Key : aliased PolyORB.Objects.Object_Id :=
+                 To_Local_Oid (System.Null_Address);
 
          U_Oid : PolyORB.POA_Types.Unmarshalled_Oid;
          Oid : PolyORB.POA_Types.Object_Id_Access;
@@ -1732,13 +1839,14 @@ package body System.Partition_Interface is
 
       begin
          pragma Debug (C, O ("Setting up RPC receiver: " & Stub.Name.all));
-         Setup_Object_RPC_Receiver (Stub.Name.all, Stub.Receiver);
 
          --  Establish a child POA for this stub. For RACWs, this POA will
          --  serve all objects of the same type. For RCIs, this POA will serve
          --  the base object corresponding to the RCI, as well as the
          --  sub-objects corresponding to each subprogram considered as an
          --  object (for RAS).
+
+         Setup_Object_RPC_Receiver (Stub.Name.all, Stub.Receiver);
 
          PolyORB.POA.Activate_Object
            (Self      => PolyORB.POA.Obj_Adapter_Access
@@ -1873,7 +1981,7 @@ package body System.Partition_Interface is
 
    begin
       pragma Debug (C, O ("Register RACW In Name Server: enter"));
-      Receiver := Retrieve_Receiving_Stub
+      Receiver := Find_Receiving_Stub
         (Ada.Tags.External_Tag (Type_Tag), Obj_Stub);
 
       PolyORB.POA.Activate_Object
@@ -2069,13 +2177,11 @@ package body System.Partition_Interface is
       use PolyORB.POA;
       use PolyORB.POA_Config;
       use PolyORB.POA_Config.RACWs;
-      use PolyORB.POA_Manager;
       use type PolyORB.Obj_Adapters.Obj_Adapter_Access;
 
-      POA : Obj_Adapter_Access;
-      PName : constant PolyORB.Types.String
-        := PolyORB.Types.String (To_PolyORB_String (Name));
-
+      POA   : Obj_Adapter_Access;
+      PName : constant PolyORB.Types.String :=
+                PolyORB.Types.String (To_PolyORB_String (Name));
       Error : Error_Container;
    begin
       --  NOTE: Actually this does more than set up an RPC receiver. A TypeCode
@@ -2093,8 +2199,9 @@ package body System.Partition_Interface is
       end if;
 
       Create_POA
-        (Self         => PolyORB.POA.Obj_Adapter_Access
-         (PolyORB.ORB.Object_Adapter (PolyORB.Setup.The_ORB)),
+        (Self         => Obj_Adapter_Access
+                           (PolyORB.ORB.Object_Adapter
+                              (PolyORB.Setup.The_ORB)),
          Adapter_Name => Name,
          A_POAManager => null,
          Policies     => Default_Policies (RACW_POA_Config.all),
@@ -2105,19 +2212,22 @@ package body System.Partition_Interface is
          PolyORB.DSA_P.Exceptions.Raise_From_Error (Error);
       end if;
 
-      POA.Default_Servant := PolyORB.Servants.Servant_Access
-        (Default_Servant);
+      POA.Default_Servant := PolyORB.Servants.Servant_Access (Default_Servant);
 
       Default_Servant.Object_Adapter :=
         PolyORB.Obj_Adapters.Obj_Adapter_Access (POA);
-      pragma Assert (Default_Servant.Object_Adapter /= null);
 
-      Activate (POAManager_Access (Entity_Of (POA.POA_Manager)), Error);
+      if RPC_Receivers_Activated then
+         Activate_RPC_Receiver (Default_Servant);
 
-      if Found (Error) then
-         PolyORB.DSA_P.Exceptions.Raise_From_Error (Error);
+      else
+         --  If PCS elaboration is not completed yet, activation is deferred
+         --  until Activate_RPC_Receivers is called.
+
+         pragma Debug (C, O ("Setup_Object_RPC_Receiver: "
+           & Name & " activation deferred"));
+         null;
       end if;
-
    end Setup_Object_RPC_Receiver;
 
    --------------

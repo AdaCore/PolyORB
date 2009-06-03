@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2006-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2006-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -44,7 +44,6 @@ with PolyORB.Tasking.Threads;
 with PolyORB.Tasking.Mutexes;
 with PolyORB.Termination_Activity;
 with PolyORB.Termination_Manager.Bootstrap;
-with System.Partition_Interface;
 with System.RPC;
 
 package body PolyORB.Termination_Manager is
@@ -58,7 +57,6 @@ package body PolyORB.Termination_Manager is
    use PolyORB.Tasking.Mutexes;
    use PolyORB.Termination_Activity;
    use PolyORB.Termination_Manager.Bootstrap;
-   use System.Partition_Interface;
 
    procedure Termination_Loop;
    --  Main loop of the task created by the termination manager
