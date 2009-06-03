@@ -685,7 +685,7 @@ package body XE_Utils is
          Get_Name_String (Sources (J));
          Flags (N_Flags) := new String'(Name_Buffer (1 .. Name_Len));
 
-         Predef := Predef or Is_Predefined_File (Sources (J));
+         Predef := Predef or else Is_Predefined_File (Sources (J));
       end loop;
 
       if Predef then

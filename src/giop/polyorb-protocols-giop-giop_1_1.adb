@@ -539,9 +539,10 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
       Header_Space  : Reservation;
       Resp_Exp      : constant Boolean :=
                         Is_Set (Sync_With_Target, R.Req.Req_Flags)
-                     or Is_Set (Sync_Call_Back,   R.Req.Req_Flags);
+                          or else
+                        Is_Set (Sync_Call_Back,   R.Req.Req_Flags);
       Oid           : constant Object_Id_Access :=
-        Binding_Data.Get_Object_Key (R.Target_Profile.all);
+                        Binding_Data.Get_Object_Key (R.Target_Profile.all);
    begin
       pragma Debug (C, O ("Sending request, Id :" & R.Request_Id'Img));
 

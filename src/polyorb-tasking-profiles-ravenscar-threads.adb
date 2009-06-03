@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -780,16 +780,13 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
    procedure Suspend (S : Synchro_Index_Type) is
    begin
       pragma Debug (C, O ("will suspend: " & Integer'Image (Integer (S))));
-
       Sync_Pool (S).Wait;
 
-      pragma Assert (not Sync_Pool (S).Get_Signaled and
+      pragma Assert (not Sync_Pool (S).Get_Signaled
+                       and then
                      not Sync_Pool (S).Get_Waiting);
-      --  XXX might fail because of a bug in GNAT 3.15a1 ...
-      --  The call to wait didn't work.
 
       pragma Debug (C, O ("end suspend: " & Integer'Image (Integer (S))));
-
       Synchro_Index_Manager.Release (Synchro_Index_Manager.Index_Type (S));
    end Suspend;
 
