@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -50,12 +50,11 @@ package body PolyORB.Transport.Handlers is
       use PolyORB.Components;
       use PolyORB.ORB;
 
-      Reply : constant Message'Class
-        := Emit
-        (Component_Access (H.TE),
-         Filters.Iface.Data_Indication'
-         (Data_Amount => 0));
-      --  The size of the data received is not known yet.
+      Reply : constant Message'Class :=
+                Emit
+                  (Component_Access (H.TE),
+                   Filters.Iface.Data_Indication'(Data_Amount => 0));
+      --  The size of the data received is not known yet
 
    begin
 
@@ -63,8 +62,7 @@ package body PolyORB.Transport.Handlers is
 
          --  Notify the tasking policy that an endpoint is being destroyed.
 
-         Handle_Close_Connection
-           (H.ORB.Tasking_Policy, H.TE);
+         Handle_Close_Connection (H.ORB.Tasking_Policy, H.TE);
 
          --  Close the endpoint.
 
