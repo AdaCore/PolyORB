@@ -50,6 +50,7 @@ with PolyORB.Any.NVList;
 with PolyORB.Any.ObjRef;
 with PolyORB.Buffers;
 with PolyORB.Components;
+with PolyORB.Initialization;
 with PolyORB.Objects;
 with PolyORB.Obj_Adapters;
 with PolyORB.References;
@@ -57,7 +58,7 @@ with PolyORB.Requests;
 with PolyORB.Servants;
 with PolyORB.Smart_Pointers;
 with PolyORB.Types;
-with PolyORB.Initialization;
+with PolyORB.Utils.Strings;
 
 with System.DSA_Types;
 with System.RPC;
@@ -195,7 +196,7 @@ package System.Partition_Interface is
       Obj_TypeCode   : PolyORB.Any.TypeCode.Local_Ref;
       --  The TypeCode to be used for references to objects of this type
 
-      Impl_Info      : Private_Info;
+      Impl_Info      : aliased Private_Info;
    end record;
    type Servant_Access is access all Servant'Class;
 
@@ -697,12 +698,33 @@ private
       Buf : aliased PolyORB.Buffers.Buffer_Type;
    end record;
 
-   type Receiving_Stub;
-   --  Implementation info describing a receiving stub (see package body)
+   type Private_Info_Access is access all Private_Info;
 
-   type Receiving_Stub_Access is access all Receiving_Stub;
    type Private_Info is record
-      Stub : Receiving_Stub_Access;
+      Next                : aliased Private_Info_Access;
+      --  For chaining on All_Receiving_Stubs list
+
+      Kind                : Receiving_Stub_Kind;
+      --  Indicates whether this info is relative to RACW type or a RCI
+
+      Name                : PolyORB.Utils.Strings.String_Ptr;
+      --  Fully qualified name of the RACW or RCI
+
+      Version             : PolyORB.Utils.Strings.String_Ptr;
+      --  For RCIs only: library unit version
+
+      Receiver            : Servant_Access;
+      --  The RPC receiver (servant) object
+
+      Is_All_Calls_Remote : Boolean;
+      --  For RCIs only: true iff a pragma All_Calls_Remote applies to unit
+
+      Subp_Info           : System.Address;
+      Subp_Info_Len       : Integer;
+      --  For RCIs only: mapping of RCI subprogram names to addresses.
+      --  For the definition of these values, cf. the specification of
+      --  Register_Pkg_Receiving_Stubs.
+
    end record;
 
 end System.Partition_Interface;
