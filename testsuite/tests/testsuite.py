@@ -28,6 +28,8 @@ import sys
 
 DEFAULT_TIMEOUT = 60
 
+logger = logging.getLogger('polyorb.testsuite')
+
 def main():
     """Run the testsuite and generate reports"""
     # Parse the command lines options
@@ -67,7 +69,12 @@ def main():
     report.write()
 
     # Human readable report (rep file)
-    rep = GenerateRep('res_polyorb', targetname=env.target.platform)
+    if options.old_res is not None and not os.path.exists(options.old_res):
+        logger.warning("Cannot find %s" % options.old_res)
+        options.old_res = None
+    rep = GenerateRep('res_polyorb',
+                      options.old_res,
+                      targetname=env.target.platform)
     report_file = open('rep_polyorb', 'w')
     report_file.write(rep.get_subject() + '\n\n')
     report_file.write(rep.get_report()) 
@@ -168,7 +175,7 @@ def gen_run_testcase(build_dir, testsuite_src_dir):
 
         If limit is not set, run rlimit with DEFAULT_TIMEOUT
         """
-        logging.debug("Running " + test.testdir)
+        logger.debug("Running " + test.testdir)
         timeout = test.getopt('limit')
         if timeout is None:
             timeout = DEFAULT_TIMEOUT
@@ -181,7 +188,8 @@ def gen_run_testcase(build_dir, testsuite_src_dir):
                     '--out-file', os.path.join('output', test.filename),
                     '--testsuite-src-dir', os.path.realpath(testsuite_src_dir),
                     '--build-dir', os.path.realpath(build_dir)],
-                   bg=True, output=os.path.join('output', test.filename + '.error'),
+                   bg=True, output=os.path.join('output',
+                                                test.filename + '.error'),
                    error=STDOUT, timeout=int(timeout) + DEFAULT_TIMEOUT)
     return run_testcase
 
@@ -202,7 +210,7 @@ def gen_collect_result(report, show_diffs=False):
         test.filename = test.filename.replace('./', '')
 
         status = status_dict[success][xfail]
-        logging.info("%-60s %s" % (test.filename, status))
+        logger.info("%-60s %s" % (test.filename, status))
         if not success:
             diff = ""
             for filename in (test.filename, test.filename + '.error'):
@@ -213,7 +221,7 @@ def gen_collect_result(report, show_diffs=False):
 
             report.add(test.filename, status, diff=diff)
             if show_diffs:
-                logging.info(diff)
+                logger.info(diff)
         else:
             report.add(test.filename, status)
 
@@ -228,6 +236,8 @@ def __parse_options():
                  metavar='N', default=1, help='Allow N jobs at once')
     m.add_option('-b', '--build-dir', dest='build_dir',
                  help='separate PolyORB build directory')
+    m.add_option("--old-res", dest="old_res", type="string",
+                 default=None, help="Old testsuite.res file")
     m.add_option('--testsuite-src-dir', dest='testsuite_src_dir',
                  help='path to polyorb testsuite sources')
     m.parse_args()
@@ -235,7 +245,7 @@ def __parse_options():
     if m.args:
         # Run only one test
         m.options.run_test = os.path.sep + m.args[0]
-        logging.info("Running only test '%s'" % m.options.run_test)
+        logger.info("Running only test '%s'" % m.options.run_test)
     else:
         m.options.run_test = ""
 
