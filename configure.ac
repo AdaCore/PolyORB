@@ -1,6 +1,6 @@
 # $Id$
 
-define(POLYORB_RELEASE, ifelse(OVERRIDE_RELEASE,,[2.6.0w],OVERRIDE_RELEASE))
+define(POLYORB_RELEASE, ifdef([OVERRIDE_RELEASE],OVERRIDE_RELEASE,[2.6.0w]))
 
 AC_PREREQ(2.57)
 AC_INIT(PolyORB, pkg_version(POLYORB_RELEASE), polyorb-bugs@lists.adacore.com)
@@ -11,6 +11,7 @@ AC_CONFIG_AUX_DIR(support)
 AM_SUBVERSION
 POLYORB_VERSION="$PACKAGE_VERSION (rev. $SVNREVISION)"
 AC_SUBST(POLYORB_VERSION)
+AC_MSG_NOTICE([Configuring PolyORB $POLYORB_VERSION])
 
 ##########################################
 # Initialization.

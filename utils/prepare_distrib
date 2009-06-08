@@ -90,10 +90,13 @@ sed_in_place() {
 echo "define(DEFAULT_WARNINGS_MODE, [n])"
 
 # Release name override and additional version information from command line
-# (may be empty).
 
-echo "define([OVERRIDE_RELEASE],[$override_release])"
-echo "define([ADDITIONAL_VERSION],[$additional_version])"
+if [ -n "$override_release" ]; then
+  echo "define([OVERRIDE_RELEASE],[$override_release])"
+fi
+if [ -n "$additional_version" ]; then
+  echo "define([ADDITIONAL_VERSION],[$additional_version])"
+fi
 
 # Subversion revision information (optional)
 

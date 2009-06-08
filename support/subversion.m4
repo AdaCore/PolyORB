@@ -18,6 +18,5 @@ AC_DEFUN([AM_SUBVERSION],[
     fi
     SVNREVISION=${last_changed_rev:-unknown}
   ])
-  AC_MSG_NOTICE([building rev. ${SVNREVISION}])
   AC_SUBST(SVNREVISION)
 ])
