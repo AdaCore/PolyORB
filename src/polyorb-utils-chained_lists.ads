@@ -46,7 +46,10 @@ package PolyORB.Utils.Chained_Lists is
    pragma Preelaborate;
 
    type List is private;
-   pragma Preelaborable_Initialization (List);
+   --  pragma Preelaborable_Initialization (List);
+   --  WAG:61
+   --  Compiler fails to note that a type derived from a private type with
+   --  preelaborable initialization also has.
 
    type Iterator is private;
    type Element_Access is access all T;
