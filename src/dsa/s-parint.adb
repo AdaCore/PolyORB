@@ -832,7 +832,7 @@ package body System.Partition_Interface is
 
    function FA_SU (Item : PolyORB.Any.Any) return Short_Unsigned is
    begin
-      return Short_Unsigned (PolyORB.Types.Short'(From_Any (Item)));
+      return Short_Unsigned (PolyORB.Types.Unsigned_Short'(From_Any (Item)));
    end FA_SU;
 
    function FA_SSI (Item : PolyORB.Any.Any) return Short_Short_Integer is
