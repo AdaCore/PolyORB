@@ -1,5 +1,17 @@
 #! /bin/sh
 
+# Make sure we do not export SHELLOPTS to child processes. Otherwise, they
+# would inherit the "set -e" below, and those scripts expect to continue on
+# "errors". We could do "export -n SHELLOPTS", but we don't want to run
+# configure with SHELLOPTS=igncr, as is often done in Cygwin, because some
+# versions of autoconf put a hard CR in configure, and igncr ignores that CR.
+# Better to give an error here.
+if (export | grep -i shellopts > /dev/null); then
+  echo error: SHELLOPTS environment variable must not be exported
+  echo SHELLOPTS = $SHELLOPTS
+  exit 1
+fi
+
 DISTRIBUTION_MODE=false
 
 # Find a version of awk that supports gsub
@@ -10,7 +22,7 @@ else
   NAWK=awk
 fi
 
-set -e
+set -e # Stop on errors.
 
 # The -w switch is used when creating the source distribution from the contents
 # of the repository. Its purpose is to adapt configure.ac for files that are
@@ -57,15 +69,19 @@ sed -e '/xlinker)/,/;;$/s/\$wl/-Xlinker /g' < support/ltmain.sh.orig > support/l
 rm -f support/ltmain.sh.orig
 
 echo "Running aclocal"
+aclocal --version
 aclocal -I support
 
 echo "Running autoheader"
+autoheader --version
 autoheader
 
 echo "Running autoconf"
+autoconf --version
 autoconf
 
 echo "Running automake"
+automake --version
 automake --add-missing --copy
 
 echo "Generating IDL tree accessors"
