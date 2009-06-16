@@ -46,6 +46,8 @@ pragma Elaborate_All (XE_Utils);
 
 package body XE_List is
 
+   Monolithic_Src_File : File_Descriptor;
+
    -----------------------
    -- Source File Stack --
    -----------------------

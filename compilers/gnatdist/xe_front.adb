@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1995-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -528,7 +528,9 @@ package body XE_Front is
             Build_New_Variable (Variable_Id (Node));
 
          elsif Is_Configuration (Node) then
+            pragma Assert (Configuration = No_Name);
             Configuration := Get_Node_Name (Node);
+            Set_Application_Names (Configuration);
 
          elsif Is_Type (Node) then
             Set_Type_Attribute (Type_Id (Node));

@@ -576,24 +576,8 @@ package body XE_Utils is
       I_Current_Dir  := new String'("-I.");
       E_Current_Dir  := new String'("-I-");
 
-      Monolithic_App_Unit_Name := Id ("Monolithic_App");
-
-      Get_Name_String (Monolithic_App_Unit_Name);
-      To_Lower (Name_Buffer (1 .. Name_Len));
-      Add_Str_To_Name_Buffer (ADB_Suffix);
-
-      Monolithic_Src_Base_Name := Name_Find;
-      Monolithic_Src_Name := Dir (Id (Root), Monolithic_Src_Base_Name);
-      Monolithic_ALI_Name := To_Afile (Monolithic_Src_Name);
-      Monolithic_Obj_Name := To_Ofile (Monolithic_Src_Name);
-
-      Monolithic_Obj_Dir  := Dir (Id (Root), Id ("obj"));
-
       PCS_Project        := Id ("pcs_project");
       Set_Corresponding_Project_File_Name (PCS_Project_File);
-
-      Dist_App_Project   := Id ("dist_app_project");
-      Set_Corresponding_Project_File_Name (Dist_App_Project_File);
 
       Part_Main_Src_Name := Id ("partition" & ADB_Suffix);
       Part_Main_ALI_Name := To_Afile (Part_Main_Src_Name);
@@ -633,7 +617,6 @@ package body XE_Utils is
 
       Create_Dir (Stub_Dir_Name);
       Create_Dir (Part_Dir_Name);
-      Create_Dir (Monolithic_Obj_Dir);
 
       GNAT_Driver := Locate ("gnat");
 
@@ -1157,6 +1140,36 @@ package body XE_Utils is
       To_Lower (Name_Buffer (1 .. Name_Len));
       return Name_Find;
    end To_Lower;
+
+   ---------------------------
+   -- Set_Application_Names --
+   ---------------------------
+
+   procedure Set_Application_Names (Configuration_Name : Name_Id) is
+   begin
+      Get_Name_String (Configuration_Name);
+      To_Lower (Name_Buffer (1 .. Name_Len));
+      Add_Str_To_Name_Buffer ("_monolithic_app");
+
+      Monolithic_App_Unit_Name := Name_Find;
+
+      Add_Str_To_Name_Buffer (ADB_Suffix);
+      Monolithic_Src_Base_Name := Name_Find;
+
+      Monolithic_Src_Name := Dir (Id (Root), Monolithic_Src_Base_Name);
+      Monolithic_ALI_Name := To_Afile (Monolithic_Src_Name);
+      Monolithic_Obj_Name := To_Ofile (Monolithic_Src_Name);
+      Monolithic_Obj_Dir  := Dir (Id (Root), Id ("obj"));
+
+      Create_Dir (Monolithic_Obj_Dir);
+
+      Get_Name_String (Configuration_Name);
+      To_Lower (Name_Buffer (1 .. Name_Len));
+      Add_Str_To_Name_Buffer ("_dist_app");
+      Dist_App_Project := Name_Find;
+
+      Set_Corresponding_Project_File_Name (Dist_App_Project_File);
+   end Set_Application_Names;
 
    ------------------------
    -- Write_Missing_File --

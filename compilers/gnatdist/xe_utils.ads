@@ -66,26 +66,25 @@ package XE_Utils is
    E_Current_Dir : String_Access;
    I_Current_Dir : String_Access;
 
+   --  Monolithic application main subprogram (set by Set_Application_Names)
+
    Monolithic_App_Unit_Name : File_Name_Type;
    Monolithic_Src_Base_Name : File_Name_Type;
-   Monolithic_Src_File      : File_Descriptor;
-   --  Monolithic application main
-
-   Monolithic_Src_Name : File_Name_Type;
-   Monolithic_ALI_Name : File_Name_Type;
-   Monolithic_Obj_Name : File_Name_Type;
-   --  Monolithic application main
+   Monolithic_Src_Name      : File_Name_Type;
+   Monolithic_ALI_Name      : File_Name_Type;
+   Monolithic_Obj_Name      : File_Name_Type;
 
    Monolithic_Obj_Dir       : File_Name_Type;
    --  Object dir for the monolithic application
 
-   PCS_Project       : Name_Id;
-   PCS_Project_File  : File_Name_Type;
-   --  Project file for the PCS
+   --  Project file for the complete application (set by Set_Application_Names)
 
    Dist_App_Project      : Name_Id;
    Dist_App_Project_File : File_Name_Type;
-   --  Project file for the complete distributed application
+
+   PCS_Project       : Name_Id;
+   PCS_Project_File  : File_Name_Type;
+   --  Project file for the PCS
 
    Part_Main_Src_Name : File_Name_Type;
    Part_Main_ALI_Name : File_Name_Type;
@@ -101,7 +100,7 @@ package XE_Utils is
    No_Args : constant Argument_List (1 .. 0) := (others => null);
 
    procedure Initialize;
-   --  Initialize global variables, global flags, ...
+   --  Perform global initialization of this unit
 
    ------------------------------
    -- String and Name Handling --
@@ -133,22 +132,22 @@ package XE_Utils is
 
    procedure Set_Corresponding_Project_File_Name (N : out File_Name_Type);
    --  Assuming the Name_Buffer contains a project name, set N to the name of
-   --  the corrsponding project file. (Assumes that the project name is already
-   --  all lowercase).
+   --  the corrsponding project file. Assumes that the project name is already
+   --  all lowercase.
 
    ------------------------------------
    -- Command Line Argument Handling --
    ------------------------------------
 
    procedure Scan_Dist_Arg (Argv : String; Implicit : Boolean := True);
-   --  Process one command line argument
+   --  Process one command line argument.
    --  Implicit is set True for additional flags generated internally by
    --  gnatdist.
 
    procedure Scan_Dist_Args (Args : String);
-   --  Split Args into a list of arguments according to usual shell
-   --  splitting semantics, and process each argument using Scan_Dist_Arg
-   --  (such arguments are always implicit).
+   --  Split Args into a list of arguments according to usual shell splitting
+   --  semantics, and process each argument using Scan_Dist_Arg as implicit
+   --  arguments.
 
    function More_Source_Files return Boolean;
    function Next_Main_Source return Name_Id;
@@ -156,6 +155,11 @@ package XE_Utils is
 
    procedure Show_Dist_Args;
    --  Output processed command line switches (for debugging purposes)
+
+   procedure Set_Application_Names (Configuration_Name : Name_Id);
+   --  Set the name of the monolithic application main subprogram and of the
+   --  distributed application project based on the configuration name.
+   --  Called once the configuration has been parsed.
 
    --------------------
    -- Error Handling --
@@ -180,7 +184,7 @@ package XE_Utils is
       E_Fatal);     -- Fatal (serious) error
 
    procedure Exit_Program (Code : Exit_Code_Type);
-   --  Call exit() with return code
+   --  Clean up temporary files and exit with appropriate return code
 
    procedure Write_Missing_File (Fname : File_Name_Type);
    --  Output an informational message to indicate that Fname is missing
