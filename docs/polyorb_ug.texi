@@ -940,6 +940,8 @@ AIX 5.2:
 PolyORB must be compiled with the -mminimal-toc compiler switch. This is
 taken care of automatically by the PolyORB configure script.
 
+The 'ulimit' command may be needed as for Tru64 (see above).
+
 @noindent
 HP-UX 11.00:
 
