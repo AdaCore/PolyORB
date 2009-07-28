@@ -695,10 +695,12 @@ GNAT and the @code{GNAT.Sockets} package are available.}
 @c -------------------------------------------------------------------
 
 @noindent
+GNU tar is required to unpack PolyORB source packages.
+
 Ada compiler:
 @itemize @bullet
 @item GNAT Pro 6.0 or later
-@item GNAT GPL 2007  or later
+@item GNAT GPL 2007 or later
 @item FSF GCC 4.3 or later
 @end itemize
 
