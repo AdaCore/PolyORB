@@ -63,7 +63,8 @@ def main():
 
     # Then run all non dead tests
     MainLoop(non_dead_list,
-             gen_run_testcase(options.build_dir, options.testsuite_src_dir),
+             gen_run_testcase(options.build_dir, options.testsuite_src_dir,
+                              options.coverage),
              gen_collect_result(report, options.diffs),
              options.jobs)
     report.write()
@@ -153,7 +154,7 @@ class TestCase(object):
         else:
             return self.opt.is_dead
 
-def gen_run_testcase(build_dir, testsuite_src_dir):
+def gen_run_testcase(build_dir, testsuite_src_dir, coverage):
     """Returns the run_testcase function"""
 
     # Set build_dir variable to the root of the build area, so test_utils.py
@@ -187,7 +188,8 @@ def gen_run_testcase(build_dir, testsuite_src_dir):
                     '--timeout', str(timeout),
                     '--out-file', os.path.join('output', test.filename),
                     '--testsuite-src-dir', os.path.realpath(testsuite_src_dir),
-                    '--build-dir', os.path.realpath(build_dir)],
+                    '--build-dir', os.path.realpath(build_dir),
+                    '--coverage=' + str(coverage)],
                    bg=True, output=os.path.join('output',
                                                 test.filename + '.error'),
                    error=STDOUT, timeout=int(timeout) + DEFAULT_TIMEOUT)
@@ -240,6 +242,8 @@ def __parse_options():
                  default=None, help="Old testsuite.res file")
     m.add_option('--testsuite-src-dir', dest='testsuite_src_dir',
                  help='path to polyorb testsuite sources')
+    m.add_option('--coverage', dest='coverage', action='store_true',
+                 default=False, help='generate coverage information')
     m.parse_args()
 
     if m.args:

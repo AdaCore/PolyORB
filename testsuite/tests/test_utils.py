@@ -48,7 +48,7 @@ def client_server(client_cmd, client_conf, server_cmd, server_conf):
     os.environ[POLYORB_CONF] = server_polyorb_conf
 
     # Run the server command and retrieve the IOR string
-    server_handle = ExpectProcess([server])
+    server_handle = ExpectProcess(make_run_cmd([server],options.coverage))
 
     try:
         result = server_handle.expect([r"IOR:([a-z0-9]+)['|\n]"], 2.0)
@@ -75,11 +75,15 @@ def client_server(client_cmd, client_conf, server_cmd, server_conf):
         else:
             client_env = None
 
-        Run([client, IOR_str], output=options.out_file, error=STDOUT,
+        Run(make_run_cmd([client, IOR_str],options.coverage),
+            output=options.out_file, error=STDOUT,
             timeout=options.timeout, env=client_env)
 
         # Kill the server process
         server_handle.close()
+        for elmt in [client, server]:
+            run_coverage_analysis(elmt)
+
     except Exception, e:
         # Be sure that the server handle is properly closed
         print e
@@ -102,8 +106,11 @@ def local(cmd, config_file):
     mkdir(os.path.dirname(options.out_file))
     command = os.path.join(BASE_DIR, cmd)
     assert_exists(command)
-    Run([command], output=options.out_file, error=STDOUT,
+    Run(make_run_cmd([command],options.coverage),
+        output=options.out_file, error=STDOUT,
         timeout=options.timeout)
+    if options.coverage=="True":
+        run_coverage_analysis(command)
     return _check_output()
 
 
@@ -131,8 +138,35 @@ def parse_cmd_line():
     main.add_option('--build-dir', dest="build_dir")
     main.add_option('--testsuite-src-dir', dest='testsuite_src_dir')
     main.add_option('--out-file', dest="out_file")
+    main.add_option('--coverage', dest="coverage", default=False)
     main.parse_args()
     return main.options
+
+def make_run_cmd(cmd, coverage="False"):
+    """Create a command line for Run in function of coverage
+
+    Returns command and arguments list
+    """
+    L = []
+    if coverage=="True":
+        L.extend(['xcov', '--run', '--target=i386-linux', '-o',
+                  cmd[0] + '.trace', cmd[0]])
+        if len(cmd)>1:
+            L.append('-eargs')
+            L.extend(cmd[1:])
+    else:
+        L.extend(cmd);
+    return L
+
+def run_coverage_analysis(command):
+    """Run xcov with appropriate arguments to retrieve coverage information
+
+    Returns an object of type run
+    """
+    return Run(['xcov', '--coverage=branch', '--annotate=report',
+                command + ".trace"],
+               output=options.out_file + '.trace', error=STDOUT,
+               timeout=options.timeout)
 
 # Parse command lines options
 options  = parse_cmd_line()
