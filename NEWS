@@ -41,6 +41,9 @@ See the features-26 file.
 Bug fixes
 ---------
 
+The iac compiler was failing to properly detect an error in case a name that
+should refer to a type referred to something else. (148035)
+
 DSA partitions used to start processing remote calls before the local
 partition ID was set, potentially causing exception messages to not be
 tagged with the partition ID (if raised before that point). (145085)
