@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -261,10 +261,34 @@ package body Frontend.Nutils is
    end Is_A_Scope;
 
    ---------------
-   -- Is_A_Type --
+   -- Is_Type --
    ---------------
 
-   function Is_A_Type (E : Node_Id) return Boolean is
+   function Is_Type (E : Node_Id) return Boolean is
+   begin
+      if Is_Noninterface_Type (E) then
+         return True;
+      end if;
+
+      case Kind (E) is
+         when K_Forward_Interface_Declaration
+           | K_Interface_Declaration =>
+            return True;
+
+         when K_Simple_Declarator
+           | K_Complex_Declarator =>
+            return Is_Type (Declaration (E));
+
+         when others =>
+            return False;
+      end case;
+   end Is_Type;
+
+   --------------------------
+   -- Is_Noninterface_Type --
+   --------------------------
+
+   function Is_Noninterface_Type (E : Node_Id) return Boolean is
    begin
       case Kind (E) is
          when K_Type_Declaration
@@ -299,7 +323,7 @@ package body Frontend.Nutils is
          when others =>
             return False;
       end case;
-   end Is_A_Type;
+   end Is_Noninterface_Type;
 
    -------------------------------
    -- Is_Attribute_Or_Operation --

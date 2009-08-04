@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -72,7 +72,8 @@ package Frontend.Nutils is
 
    function Is_A_Forward_Of (X, Y : Node_Id) return Boolean;
    function Is_A_Scope (E : Node_Id) return Boolean;
-   function Is_A_Type (E : Node_Id) return Boolean;
+   function Is_Type (E : Node_Id) return Boolean;
+   function Is_Noninterface_Type (E : Node_Id) return Boolean;
    function Is_Attribute_Or_Operation (E : Node_Id) return Boolean;
    function Is_Interface_Redefinable_Node (E : Node_Id) return Boolean;
    function Is_A_Non_Module (E : Node_Id) return Boolean;
