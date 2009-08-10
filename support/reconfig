@@ -68,20 +68,20 @@ mv support/ltmain.sh support/ltmain.sh.orig
 sed -e '/xlinker)/,/;;$/s/\$wl/-Xlinker /g' < support/ltmain.sh.orig > support/ltmain.sh
 rm -f support/ltmain.sh.orig
 
-echo "Running aclocal"
-aclocal --version
+show_step() {
+  echo "Running `$1 --version | head -1`"
+}
+
+show_step aclocal
 aclocal -I support
 
-echo "Running autoheader"
-autoheader --version
+show_step autoheader
 autoheader
 
-echo "Running autoconf"
-autoconf --version
+show_step autoconf
 autoconf
 
-echo "Running automake"
-automake --version
+show_step automake
 automake --add-missing --copy
 
 echo "Generating IDL tree accessors"
