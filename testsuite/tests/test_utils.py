@@ -9,6 +9,7 @@ You should never call this module directly. To run a single testcase, use
  ./testsuite.py NAME_OF_TESTCASE
 """
 
+from gnatpython.env import Env
 from gnatpython.ex import Run, STDOUT
 from gnatpython.expect import ExpectProcess
 from gnatpython.fileutils import mkdir
@@ -18,6 +19,8 @@ import os
 import re
 
 POLYORB_CONF = "POLYORB_CONF"
+
+EXE_EXT = Env().target.os.exeext
 
 def assert_exists(filename):
     """Assert that the given filename exists"""
@@ -31,8 +34,8 @@ def client_server(client_cmd, client_conf, server_cmd, server_conf):
     Check for "END TESTS................   PASSED"
     if found return True
     """
-    client = os.path.join(BASE_DIR, client_cmd)
-    server = os.path.join(BASE_DIR, server_cmd)
+    client = os.path.join(BASE_DIR, client_cmd + EXE_EXT)
+    server = os.path.join(BASE_DIR, server_cmd + EXE_EXT)
 
     # Check that files exist
     assert_exists(client)
@@ -104,7 +107,7 @@ def local(cmd, config_file):
     os.environ[POLYORB_CONF] = config_file
 
     mkdir(os.path.dirname(options.out_file))
-    command = os.path.join(BASE_DIR, cmd)
+    command = os.path.join(BASE_DIR, cmd + EXE_EXT)
     assert_exists(command)
     Run(make_run_cmd([command],options.coverage),
         output=options.out_file, error=STDOUT,
