@@ -1134,7 +1134,7 @@ package body Analyzer is
    -- Analyze_Type_Prefix_Declaration --
    -------------------------------------
 
-   procedure Analyze_Type_Prefix_Declaration (E : Node_Id)is
+   procedure Analyze_Type_Prefix_Declaration (E : Node_Id) is
       R : Node_Id;
       N : Node_Id;
    begin
