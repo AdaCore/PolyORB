@@ -104,6 +104,12 @@ IAC was generating incorrect Ada code for "default:" in a union. (H930-022)
 Several issues have been fixed in the circuitry handling TypeCodes and Anys
 for bounded string types. (H904-029)
 
+Constraint_Error could be raised when calculating the number of tasks in a
+thread pool; this has been corrected. (HA02-018)
+
+IAC was failing to correctly parse arrays and strings whose length was given by
+a named constant. (H813-030, H813-031)
+
 IAC did not generate all code in user-specified output directory when
 using hash optimizations, this is now corrected. (H730-014)
 
