@@ -1474,6 +1474,15 @@ package body PolyORB.Any is
       TC    : TypeCode.Local_Ref;
       Index : Unsigned_Long) return Any
    is
+   begin
+      return Get_Aggregate_Element (Value, TypeCode.Object_Of (TC), Index);
+   end Get_Aggregate_Element;
+
+   function Get_Aggregate_Element
+     (Value : Any;
+      TC    : TypeCode.Object_Ptr;
+      Index : Unsigned_Long) return Any
+   is
       --  Enforce tag check on Value's container to defend against improper
       --  access for an Any that is not an aggregate.
 
@@ -1484,8 +1493,7 @@ package body PolyORB.Any is
       A : Any;
       M : aliased Mechanism := By_Value;
       CC : constant Content'Class :=
-             Get_Aggregate_Element (CA_Ptr,
-               TypeCode.Object_Of (TC), Index, M'Access);
+             Get_Aggregate_Element (CA_Ptr, TC, Index, M'Access);
       New_CC : Content_Ptr;
       use PolyORB.Smart_Pointers;
    begin

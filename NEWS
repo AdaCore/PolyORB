@@ -41,6 +41,10 @@ See the features-26 file.
 Bug fixes
 ---------
 
+Constrained types derived from unconstrained array types were not correctly
+handled in the DSA applicative personality, causing runtime exceptions
+when such types were passed in remote calls. (150546)
+
 The iac compiler was failing to properly detect an error in case a name that
 should refer to a type referred to something else. (148035)
 
