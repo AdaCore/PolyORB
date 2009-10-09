@@ -882,8 +882,12 @@ package PolyORB.Any is
      (Value : Any;
       TC    : TypeCode.Local_Ref;
       Index : Types.Unsigned_Long) return Any;
-   --  Gets an element in an any aggregate
-   --  Return an any made of the typecode Tc and the value read in
+   function Get_Aggregate_Element
+     (Value : Any;
+      TC    : TypeCode.Object_Ptr;
+      Index : Types.Unsigned_Long) return Any;
+   --  Gets an element in an aggregate Any.
+   --  Return an any made of the typecode TC and the value read in
    --  the aggregate. The first element has index 0.
 
    function Get_Aggregate_Element

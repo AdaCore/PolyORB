@@ -93,7 +93,6 @@ package body System.Partition_Interface is
 
    --  A few handy aliases
 
-   package PATC  renames PolyORB.Any.TypeCode;
    package PSNNC renames PolyORB.Services.Naming.NamingContext;
    package PTC   renames PolyORB.Tasking.Condition_Variables;
    package PTM   renames PolyORB.Tasking.Mutexes;
@@ -337,12 +336,12 @@ package body System.Partition_Interface is
 
    function Any_Member_Type
      (A     : Any;
-      Index : System.Unsigned_Types.Long_Unsigned)
-     return PolyORB.Any.TypeCode.Local_Ref
+      Index : System.Unsigned_Types.Long_Unsigned) return PATC.Local_Ref
    is
    begin
-      return PATC.Member_Type
-        (PolyORB.Any.Get_Type (A), PolyORB.Types.Unsigned_Long (Index));
+      return PATC.To_Ref
+        (PATC.Member_Type
+          (Get_Unwound_Type (A), PolyORB.Types.Unsigned_Long (Index)));
    end Any_Member_Type;
 
    ---------------
@@ -868,12 +867,12 @@ package body System.Partition_Interface is
 
    function Get_Aggregate_Element
      (Value : Any;
-      Tc    : PATC.Local_Ref;
+      TC    : PATC.Local_Ref;
       Index : System.Unsigned_Types.Long_Unsigned)
       return Any is
    begin
       return PolyORB.Any.Get_Aggregate_Element
-        (Value, Tc, PolyORB.Types.Unsigned_Long (Index));
+        (Value, TC, PolyORB.Types.Unsigned_Long (Index));
    end Get_Aggregate_Element;
 
    -----------------------------
@@ -1017,7 +1016,7 @@ package body System.Partition_Interface is
    -- Get_TC --
    ------------
 
-   function Get_TC (A : Any) return PolyORB.Any.TypeCode.Local_Ref is
+   function Get_TC (A : Any) return PATC.Local_Ref is
    begin
       return PATC.To_Ref (PolyORB.Any.Get_Unwound_Type (A));
    end Get_TC;
@@ -1110,32 +1109,30 @@ package body System.Partition_Interface is
 
    function Get_Nested_Sequence_Length
      (Value : Any;
-      Depth : Positive)
-     return Unsigned
+      Depth : Positive) return Unsigned
    is
       use type PolyORB.Types.Unsigned_Long;
 
       Seq_Any : PolyORB.Any.Any;
-      Tc      : constant PATC.Local_Ref := Get_Type (Value);
+      TC      : constant PATC.Object_Ptr := Get_Unwound_Type (Value);
    begin
       pragma Debug (C, O ("Get_Nested_Sequence_Length: enter,"
                        & " Depth =" & Depth'Img & ","
-                       & " Tc = " & Image (Tc)));
+                       & " TC = " & Image (TC)));
 
-      if PATC.Kind (Tc) = Tk_Struct then
+      if PATC.Kind (TC) = Tk_Struct then
          declare
-            Index : constant PolyORB.Types.Unsigned_Long
-              := PATC.Member_Count (Tc) - 1;
+            Index : constant PolyORB.Types.Unsigned_Long :=
+                      PATC.Member_Count (TC) - 1;
          begin
-            pragma Debug
-              (C, O ("Index of last member is" & Index'Img));
+            pragma Debug (C, O ("Index of last member is" & Index'Img));
 
             Seq_Any := Get_Aggregate_Element (Value,
-              PATC.Member_Type (Tc, Index),
-              Index);
+                         PATC.Member_Type (TC, Index), Index);
          end;
       else
-         pragma Debug (C, O ("Tc is (assumed to be) a Tk_Sequence"));
+         pragma Debug (C, O ("TC is (assumed to be) a Tk_Sequence"));
+         pragma Assert (PATC.Kind (TC) = Tk_Sequence);
          Seq_Any := Value;
       end if;
 
@@ -2148,7 +2145,7 @@ package body System.Partition_Interface is
       --  corresponding to the RACW is also constructed (and this is vital also
       --  on the client side.)
 
-      Default_Servant.Obj_TypeCode := PolyORB.Any.TypeCode.TC_Object;
+      Default_Servant.Obj_TypeCode := PATC.TC_Object;
       PATC.Add_Parameter
         (Default_Servant.Obj_TypeCode, To_Any (PName));
       PATC.Add_Parameter
@@ -2197,8 +2194,8 @@ package body System.Partition_Interface is
    --  ??? This function should be replaced by a call to Build_Complex_TC
 
    function TC_Build
-     (Base       : PolyORB.Any.TypeCode.Local_Ref;
-      Parameters : Any_Array) return PolyORB.Any.TypeCode.Local_Ref
+     (Base       : PATC.Local_Ref;
+      Parameters : Any_Array) return PATC.Local_Ref
    is
    begin
       for J in Parameters'Range loop
