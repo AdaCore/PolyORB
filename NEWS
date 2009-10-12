@@ -89,16 +89,25 @@ a crash if parameters were of incompatible types. (HB25-017)
 po_gnatdist crashed when building only the main partition in an application
 with an Ada starter. (HB10-009)
 
+Constraint_Error could be raised when calculating the number of tasks in a
+thread pool; this has been corrected. (HA02-018)
+
 IAC was generating incorrect Ada code for "default:" in a union. (H930-022)
 
 Several issues have been fixed in the circuitry handling TypeCodes and Anys
 for bounded string types. (H904-029)
 
-Constraint_Error could be raised when calculating the number of tasks in a
-thread pool; this has been corrected. (HA02-018)
-
 IAC was failing to correctly parse arrays and strings whose length was given by
 a named constant. (H813-030, H813-031)
+
+The tasks management circuitry has undergone a major overhaul to make
+it more robust and remove some irregularities in the assignment of
+particular ORB jobs to application tasks. This extensive change fixes
+dead locks (G510-007, H813-026) and invariant violations (H813-027,
+H828-032) which could happen under some specific scheduling situations.
+
+CORBA.Object.Hash might under some circumstances return different values
+for the same object. This has been fixed. (H806-014)
 
 IAC did not generate all code in user-specified output directory when
 using hash optimizations, this is now corrected. (H730-014)
@@ -134,6 +143,9 @@ IAC would generate garbled error messages when referring to declarations in
 IAC and IDLAC required array sizes to be literals or constants. Arbitrary
 integer expressions are now allowed. (H723-024).
 
+Leading separator characters were not ignored by PolyORB.CORBA_P.Naming_Tools.
+Parse_Name as documented. (H513-025)
+
 * PolyORB 2.4 (branched on 2008-05-06)
 ======================================
 
@@ -148,11 +160,19 @@ See the features-24 file.
 Bug fixes
 ---------
 
+In PolyORB/DSA, references to RACW or RAS stream attributes in user code
+were not handled correctly. (H407-010)
+
 There was a bug in the function that determined wether a MIOP profile
 is local to a partition, this has been corrected. (H303-005)
 
 A PolyORB partition configured to use MIOP 1.0 did not default to GIOP
 1.2, this has been corrected. (H303-004)
+
+Two issues were fixed in the decoding of MIOP headers (H228-015).
+
+The GIOP implementation rejected messages where reserved bytes had
+non-zero value, causing interoperability issues with TAO (H124-010).
 
 A PolyORB partition configured to use GIOP version 1.0 only was unable
 to connect to a server providing an IIOP 1.2 profile. The GIOP stack
