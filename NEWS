@@ -41,25 +41,28 @@ See the features-26 file.
 Bug fixes
 ---------
 
+IAC would fail to find the output from the C++ preprocessor when running
+under some recent versions of Cygwin. (IA08-013)
+
 Constrained types derived from unconstrained array types were not correctly
 handled in the DSA applicative personality, causing runtime exceptions
-when such types were passed in remote calls. (150546)
+when such types were passed in remote calls. (IA06-020)
 
-The iac compiler was failing to properly detect an error in case a name that
-should refer to a type referred to something else. (148035)
+IAC was failing to properly detect an error in case a name that should refer
+to a type referred to something else. (I629-006)
 
 DSA partitions used to start processing remote calls before the local
 partition ID was set, potentially causing exception messages to not be
-tagged with the partition ID (if raised before that point). (145085)
+tagged with the partition ID (if raised before that point). (I529-013)
 
 The Ada DSA starter would fail if the complete path of some slave partition
-contained white space. (144288)
+contained white space. (I519-025)
 
-When building a DSA application, a global configuration pragma filed
-provided through a user project wasn't taken into account. (143979)
+When building a DSA application, a global configuration pragmas file
+provided through a user project wasn't taken into account. (I513-015)
 
 Building a DSA application in a directory whose complete path include
-white space was not correctly handled. (143929)
+white space was not correctly handled. (I508-017)
 
 * PolyORB 2.5 (branched on 2008-11-03)
 ======================================
