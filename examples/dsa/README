@@ -7,6 +7,10 @@ Systems Annex:
 - demo
   Demo of passing complex data types between client and server
 
+- bank
+  A client/server application with one server and multiple instances of the
+  client partition
+
 - connections
   Multiple servers and multiple clients, each server has a single
   receiving task and blocks waiting for clients; clients use asynchronous
