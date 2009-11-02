@@ -54,9 +54,9 @@ def client_server(client_cmd, client_conf, server_cmd, server_conf):
     server_handle = ExpectProcess(make_run_cmd([server],options.coverage))
 
     try:
-        result = server_handle.expect([r"IOR:([a-z0-9]+)['|\n]"], 2.0)
+        result = server_handle.expect([r"IOR:([a-z0-9]+)['|\n]"], 10)
         if result != 0:
-            print "Expect error"
+            print "Expect error cannot find IOR when running %s" % server
             server_handle.close()
             return False
 
