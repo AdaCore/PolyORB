@@ -55,6 +55,8 @@ See the features-26 file.
 Bug fixes
 ---------
 
+po_gnatdist would fail to build a slave partition alone. (IA29-009)
+
 IAC would fail to find the output from the C++ preprocessor when running
 under some recent versions of Cygwin. (IA08-013)
 
