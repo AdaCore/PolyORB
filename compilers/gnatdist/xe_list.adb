@@ -849,8 +849,7 @@ package body XE_List is
    -------------------------------
 
    procedure Load_All_Registered_Units is
-      Comp_Flags : constant Argument_List :=
-        (1 => Semantic_Only_Flag);
+      Comp_Flags : constant Argument_List := (1 => Semantic_Only_Flag);
 
       List_Args : constant Argument_List :=
         (GLADE_List_Flag,

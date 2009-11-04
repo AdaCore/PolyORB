@@ -176,8 +176,8 @@ package body XE_Back is
       for J in ALIs.First .. ALIs.Last loop
          Unit := ALIs.Table (J).Last_Unit;
 
-         --  Create stub files. Create skel files as well when we have
-         --  to build the partition on which this unit is mapped.
+         --  Create stub files. Create skel files as well when we have to build
+         --  the partition on which this unit is mapped.
 
          if not Units.Table (Unit).Is_Generic
            and then (Units.Table (Unit).RCI

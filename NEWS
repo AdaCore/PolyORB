@@ -27,20 +27,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-* PolyORB 2.7
-=============
-
-This release contains the PolyORB generic middleware, and its CORBA
-and DSA instantiations. In addition to the 2.5 release, it includes:
-
-New features
-------------
-
-See the features-27 file.
-
-Bug fixes
----------
-
 * PolyORB 2.6 (branched on 2009-10-07)
 ======================================
 
@@ -54,6 +40,8 @@ See the features-26 file.
 
 Bug fixes
 ---------
+
+po_gnatdist would fail to build a slave partition alone. (IA29-009)
 
 IAC would fail to find the output from the C++ preprocessor when running
 under some recent versions of Cygwin. (IA08-013)

@@ -994,9 +994,9 @@ package body XE_Utils is
                      Use_PolyORB_Project := True;
 
                   when others =>
-                  --  Other debugging flags are passed to the builder untouched
+                     --  Pass other debugging flags to the builder untouched
 
-                  Add_Make_Switch (Argv);
+                     Add_Make_Switch (Argv);
 
                end case;
             end if;

@@ -155,6 +155,8 @@ package body XE_Sem is
       P  : Partition_Id;
 
    begin
+      XE_List.Initialize;
+
       --  Add units configured on the partition type to each
       --  partition (for instance, main subprogram).
 
@@ -166,13 +168,19 @@ package body XE_Sem is
          CU := Conf_Units.Table (CU).Next_Unit;
       end loop;
 
-      --  PCS may require to configure one of its units on the main partition
+      --  PCS may require to configure one of its RCI units on the main
+      --  partition.
 
       if PCS_Conf_Unit /= No_Name then
          Add_Conf_Unit (PCS_Conf_Unit, Main_Partition);
+
+         --  Also register this unit explicitly because we want its stubs to
+         --  be built even if the main partition is not built and there are no
+         --  explicit calls to it in user code.
+
+         Register_Unit_To_Load (PCS_Conf_Unit);
       end if;
 
-      XE_List.Initialize;
       Main_Subprogram := Partitions.Table (Main_Partition).Main_Subprogram;
       if Partitions.Table (Main_Partition).To_Build then
          Register_Unit_To_Load (Main_Subprogram);
