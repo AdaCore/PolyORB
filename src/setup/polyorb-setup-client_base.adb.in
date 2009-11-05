@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                 P O L Y O R B . S E T U P . C L I E N T                  --
+--            P O L Y O R B . S E T U P . C L I E N T _ B A S E             --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Set up a simple ORB to act as a client
-
 pragma Style_Checks ("M2048");
 --  Configure substitutions may yield long lines
 --  @configure_input@
@@ -41,20 +39,8 @@ with PolyORB.Setup.Base;
 pragma Warnings (Off, PolyORB.Setup.Base);
 pragma Elaborate_All (PolyORB.Setup.Base);
 
-with PolyORB.Setup.Tasking.No_Tasking;
-pragma Warnings (Off, PolyORB.Setup.Tasking.No_Tasking);
-pragma Elaborate_All (PolyORB.Setup.Tasking.No_Tasking);
-
-with PolyORB.ORB.No_Tasking;
-pragma Warnings (Off, PolyORB.ORB.No_Tasking);
-pragma Elaborate_All (PolyORB.ORB.No_Tasking);
-
-with PolyORB.ORB_Controller.No_Tasking;
-pragma Warnings (Off, PolyORB.ORB_Controller.No_Tasking);
-pragma Elaborate_All (PolyORB.ORB_Controller.No_Tasking);
-
 --  Personalities setup
 @PROTO_CLIENT_WITHS@
 
-package body PolyORB.Setup.Client is
-end PolyORB.Setup.Client;
+package body PolyORB.Setup.Client_Base is
+end PolyORB.Setup.Client_Base;

@@ -622,8 +622,8 @@ host=$host_tmp
 
 #################################################
 # Build code fragments to be substituted in
-#       src/setup/polyorb-setup-client.adb
-#       src/setup/polyorb-setup-client.adb
+#       src/setup/polyorb-setup-client_base.adb
+#       src/setup/polyorb-setup-server.adb
 #       tools/po_catref/po_catref_setup.adb
 #       tools/po_createref/po_createref_setup.adb
 #################################################
@@ -824,7 +824,7 @@ AC_OUTPUT(FILTER_OUTPUT_FILES(OUTPUT_FILTER,[
 	projects-distrib/polyorb/src_setup.gpr
 	src/config.adc
 	src/setup/polyorb-setup-base.adb
-	src/setup/polyorb-setup-client.adb
+	src/setup/polyorb-setup-client_base.adb
 	src/setup/polyorb-setup-server.adb
 	src/polyorb-platform.ads
 	src/polyorb-platform-ssl_linker_options.ads

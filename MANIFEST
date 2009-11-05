@@ -1829,8 +1829,12 @@ src/security/x509/polyorb-x509.ads
 src/security/x509/polyorb_x509.c
 src/setup/polyorb-setup-base.adb.in
 src/setup/polyorb-setup-base.ads
-src/setup/polyorb-setup-client.adb.in
+src/setup/polyorb-setup-client.adb
 src/setup/polyorb-setup-client.ads
+src/setup/polyorb-setup-client_base.adb.in
+src/setup/polyorb-setup-client_base.ads
+src/setup/polyorb-setup-no_tasking_client.adb
+src/setup/polyorb-setup-no_tasking_client.ads
 src/setup/polyorb-setup-no_tasking_server.adb
 src/setup/polyorb-setup-no_tasking_server.ads
 src/setup/polyorb-setup-ravenscar_tp_server.adb
@@ -1841,6 +1845,8 @@ src/setup/polyorb-setup-thread_per_request_server.adb
 src/setup/polyorb-setup-thread_per_request_server.ads
 src/setup/polyorb-setup-thread_per_session_server.adb
 src/setup/polyorb-setup-thread_per_session_server.ads
+src/setup/polyorb-setup-thread_pool_client.adb
+src/setup/polyorb-setup-thread_pool_client.ads
 src/setup/polyorb-setup-thread_pool_server.adb
 src/setup/polyorb-setup-thread_pool_server.ads
 src/setup/security/polyorb-setup-secure_client.adb

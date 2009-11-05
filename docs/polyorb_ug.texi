@@ -1208,8 +1208,15 @@ one of them in your application node to activate the corresponding
 setup.
 
 @itemize @bullet
-@item @code{PolyORB.Setup.Client}: a client node, without tasking
+@item @code{PolyORB.Setup.No_Tasking_Client}: a client node, without any
+tasking support, configured to use all protocol personalities built with
+PolyORB. Note that this configuration should not be used with multiple
+application tasks.
+
+@item @code{PolyORB.Setup.Thread_Pool_Client}: a client node, with tasking
 enabled, configured to use all protocol personalities built with PolyORB.
+This configuration places no restriction on the use of tasking by
+application code. Middleware tasking policy is @code{Thread_Pool}.
 
 @item @code{PolyORB.Setup.Ravenscar_TP_Server}: a server node, with tasking
 enabled, configured to use all protocol personalities built with
