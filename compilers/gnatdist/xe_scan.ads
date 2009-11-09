@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 1995-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -50,7 +50,7 @@ package XE_Scan is
 
    Null_Location  : constant Location_Type := (0, 0, 0);
 
-   function  Get_Token_Location return Location_Type;
+   function Get_Token_Location return Location_Type;
 
    procedure Initialize;
    --  Load all kind of keywords
