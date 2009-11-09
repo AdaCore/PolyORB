@@ -12,6 +12,11 @@ This date shows the implementation date of the feature. Any 2.6w wavefront
 subsequent to this date will contain the indicated feature, as will any
 subsequent releases.
 
+NF-26-IB05-009 New pre-packaged setup for threaded clients (2009-11-09)
+
+   A new pre-packaged setup package PolyORB.Setup.Thread_Pool_Client is now
+   provided for client partitions that require tasking support.
+
 NF-26-I511-037 Identify originating partition in exceptions (2009-05-12)
 
    When using the Ada DSA applicative personality, partition id information
