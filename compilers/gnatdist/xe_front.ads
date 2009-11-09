@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 1995-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -61,13 +61,13 @@ package XE_Front is
    Default_ORB_Tasking_Policy  : ORB_Tasking_Policy_Type := Thread_Pool;
 
    Configuration : Unit_Name_Type := No_Unit_Name;
-   --  Name of the configuration.
+   --  Name of the configuration
 
    Main_Partition : Partition_Id := No_Partition_Id;
-   --  Partition where the main procedure has been assigned.
+   --  Partition where the main procedure has been assigned
 
    Main_Subprogram : Unit_Name_Type := No_Unit_Name;
-   --  Several variables related to the main procedure.
+   --  Several variables related to the main procedure
 
    procedure Frontend;
 
