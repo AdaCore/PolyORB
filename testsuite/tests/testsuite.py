@@ -78,7 +78,7 @@ def main():
                       targetname=env.target.platform)
     report_file = open('rep_polyorb', 'w')
     report_file.write(rep.get_subject() + '\n\n')
-    report_file.write(rep.get_report()) 
+    report_file.write(rep.get_report())
     report_file.close()
 
 def filter_list(pattern, run_test=""):
@@ -234,8 +234,6 @@ def __parse_options():
     m = Main()
     m.add_option('--diffs', dest='diffs', action='store_true',
                  default=False, help='show diffs on stdout')
-    m.add_option('-j', '--jobs', dest='jobs', type='int',
-                 metavar='N', default=1, help='Allow N jobs at once')
     m.add_option('-b', '--build-dir', dest='build_dir',
                  help='separate PolyORB build directory')
     m.add_option("--old-res", dest="old_res", type="string",
