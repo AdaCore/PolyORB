@@ -499,7 +499,8 @@ package body PolyORB.Termination_Manager is
       Status := Call_On_Neighbours (Do_Terminate_Now'Access, Stamp);
       pragma Assert (Status);
 
-      --  Terminate this partition but for Deferred Termination
+      --  Terminate this partition, except if it has the Deferred_Termination
+      --  policy.
 
       if TM.Termination_Policy /= Deferred_Termination then
          TM.Terminated := True;
