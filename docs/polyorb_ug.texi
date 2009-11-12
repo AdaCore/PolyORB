@@ -4836,8 +4836,8 @@ periodically by the main boot server.
 @smallexample
 
 TERMINATION_LITERAL ::= Global_Termination |
-                         Local_Termination  |
-                         Deferred_Termination
+                        Local_Termination  |
+                        Deferred_Termination
 
 REPRESENTATION_CLAUSE ::=
    @b{for} PARTITION_IDENTIFIER'Termination @b{use} TERMINATION_LITERAL;
@@ -4857,8 +4857,7 @@ termination policy is the default policy.
 termination. The only difference is that when a partition with a
 deferred termination policy receives a termination request, it just
 ignores it. This policy allows a partition to run forever without
-preventing a set of partitions from terminating. This policy is not yet
-implemented.
+preventing a set of partitions from terminating.
 
 @item When a partition is configured with the local termination policy,
 it terminates as soon as the classical Ada termination is detected by
