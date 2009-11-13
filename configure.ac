@@ -34,7 +34,7 @@ AC_SUBST(LIBVERSIONINFO)
 # compilers.
 
 define(DEBUG_OPTIONS, [dnl
-  if test ${CFLAGS-unset} = "unset"; then CFLAGS="-g -O0"; fi
+  if test "${CFLAGS-unset}" = "unset"; then CFLAGS="-g -O0"; fi
   BASE_ADAFLAGS="-XBuild=DEBUG"
   BARGS=-E
   ASSERTION_POLICY_DEFAULT=Check
@@ -43,7 +43,7 @@ define(DEBUG_OPTIONS, [dnl
   debug=true])
 
 define(NODEBUG_OPTIONS, [dnl
-  if test ${CFLAGS-unset} = "unset"; then CFLAGS="-g -O2"; fi
+  if test "${CFLAGS-unset}" = "unset"; then CFLAGS="-g -O2"; fi
   BASE_ADAFLAGS="-XBuild=PRODUCTION"
   BARGS=
   DEBUG_ONLY="--  "
