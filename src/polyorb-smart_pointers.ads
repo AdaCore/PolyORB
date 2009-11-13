@@ -99,6 +99,7 @@ package PolyORB.Smart_Pointers is
    --  to a valid Entity object (even in the latter case). This allows a
    --  reference to be reconstructed from a saved Entity_Ptr value, ensuring
    --  that the designated entity is not being finalized.
+   --  The_Ref is expected to be nil before the call.
 
    procedure Unref (The_Ref : in out Ref) renames Finalize;
    procedure Release (The_Ref : in out Ref) renames Finalize;

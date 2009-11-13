@@ -288,6 +288,7 @@ package body PolyORB.Smart_Pointers is
    is
       Counter : Interfaces.Integer_32;
    begin
+      pragma Assert (The_Ref.A_Ref = null);
       pragma Assert (The_Entity.Counter /= -1);
       pragma Debug (C, Trace_Event (Inc_Usage, The_Entity));
       Counter := Sync_Add_And_Fetch (The_Entity.Counter'Access, 1);
