@@ -268,7 +268,7 @@ AS_HELP_STRING([--with-appli-perso=x], [Enumerate application personalities]),
   newwithval=`echo ${withval} | tr "[A-Z]" "[a-z]"`
   for P in ${newwithval}
   do
-     if test -d ${srcdir}/src/${P}
+     if test -d "${srcdir}/src/${P}"
      then
         APPLI_LIST="${APPLI_LIST}${P} "
      else
@@ -311,7 +311,7 @@ AS_HELP_STRING([--with-corba-services=x], [Enumerate services]),
   newwithval=`echo ${withval} | tr "[A-Z]" "[a-z]"`
   for S in ${newwithval}
   do
-     if test -d ${srcdir}/cos/${S}
+     if test -d "${srcdir}/cos/${S}"
      then
         SERVICE_LIST="${SERVICE_LIST}${S} "
      else
