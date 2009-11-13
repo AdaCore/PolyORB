@@ -1636,6 +1636,8 @@ src/polyorb-smart_pointers-controlled_entities.adb
 src/polyorb-smart_pointers-controlled_entities.ads
 src/polyorb-smart_pointers-initialization.adb
 src/polyorb-smart_pointers-initialization.ads
+src/polyorb-smart_pointers-sync_counters__intrinsic.adb
+src/polyorb-smart_pointers-sync_counters__mutex.adb
 src/polyorb-smart_pointers.adb
 src/polyorb-smart_pointers.ads
 src/polyorb-sockets.ads

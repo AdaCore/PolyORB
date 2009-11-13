@@ -193,6 +193,7 @@ AM_HAS_PRAGMA_PROFILE_RAVENSCAR
 AM_HAS_PRAGMA_PROFILE_WARNINGS
 AM_HAS_PRAGMA_SUPPRESS_VALIDITY_CHECK
 AM_HAS_STYLESW_YG
+AM_HAS_INTRINSIC_SYNC_COUNTERS
 
 ##########################################
 # Check C environment features (for target)
@@ -807,6 +808,7 @@ AC_SUBST(GNATDIST_VERSION)
 ##########################################
 
 AC_CONFIG_HEADERS([src/config.h])
+AC_CONFIG_LINKS([src/polyorb-smart_pointers-sync_counters.adb:src/polyorb-smart_pointers-sync_counters__$SYNC_COUNTERS_IMPL.adb])
 
 AC_OUTPUT(FILTER_OUTPUT_FILES(OUTPUT_FILTER,[
 	Makefile
@@ -867,12 +869,11 @@ chmod a+x polyorb-config
 for a in adacompiler linker; do
   na=support/native-$a
   echo "==> symlinking $na"
-  ${RM} -f support/native-$a
   # The following 'ln -s' command needs to happen in the support subdirectory,
   # so that we can replace it with 'cp' on machines where 'ln -s' doesn't work
   # (such as Windows). That is, 'ln -s $a support/native-$a' would work, but
   # 'cp $a support/native-$a' does not; hence the "cd support...".
-  (cd support ; ${LN_S} $a native-$a)
+  (cd support ; ${RM} -f native-$a ; ${LN_S} $a native-$a)
 done
 ],
 [

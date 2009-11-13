@@ -32,6 +32,7 @@
 ------------------------------------------------------------------------------
 
 with Ada.Finalization;
+with Interfaces;
 
 package PolyORB.Smart_Pointers is
 
@@ -57,18 +58,6 @@ package PolyORB.Smart_Pointers is
 
    type Entity_Ptr is access all Unsafe_Entity'Class;
 
-   procedure Entity_Lock (X : in out Unsafe_Entity);
-   procedure Entity_Unlock (X : in out Unsafe_Entity);
-   --  Lock/unlock operations to be overridden by derived types if they need
-   --  to be made task-safe. These operations must guarantee mutual exclusion
-   --  on accesses to the reference counter. The default versions here do
-   --  nothing.
-
-   function Reference_Counter (Obj : Unsafe_Entity'Class) return Integer;
-   --  Return the value of Obj's reference counter.
-   --  This function is not task safe, and must not be used for anything but
-   --  debugging and the checking of assertions.
-
    procedure Disable_Reference_Counting (Obj : in out Unsafe_Entity'Class);
    --  Disable reference counting on Obj. No attempt will then be made to keep
    --  track of references, and no automatic deallocation will occur after the
@@ -80,13 +69,7 @@ package PolyORB.Smart_Pointers is
    ----------------------
 
    type Non_Controlled_Entity is abstract new Unsafe_Entity with private;
-   --  Same as Unsafe_Entity, but accesses to the reference counter are
-   --  made task safe through calls to the Entity_Lock and Entity_Unlock
-   --  operations.
-
-   procedure Entity_Lock (X : in out Non_Controlled_Entity);
-   procedure Entity_Unlock (X : in out Non_Controlled_Entity);
-   --  Mutex operations
+   --  Same as Unsafe_Entity
 
    ---------
    -- Ref --
@@ -145,7 +128,7 @@ package PolyORB.Smart_Pointers is
 private
 
    type Unsafe_Entity is abstract tagged limited record
-      Counter : Integer := 0;
+      Counter : aliased Interfaces.Integer_32 := 0;
       --  Reference counter.
       --  If set to -1, no reference counting is performed for this entity:
       --  Inc_Usage and Dec_Usage are both no-ops in that case.

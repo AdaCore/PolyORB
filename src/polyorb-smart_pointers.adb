@@ -35,25 +35,17 @@ with Ada.Unchecked_Deallocation;
 
 with PolyORB.Log;
 with PolyORB.Parameters;
-with PolyORB.Tasking.Mutexes;
 
 package body PolyORB.Smart_Pointers is
 
+   use Interfaces;
    use PolyORB.Log;
-   use PolyORB.Tasking.Mutexes;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.smart_pointers");
    procedure O (Message : String; Level : Log_Level := Debug)
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
-
-   Counter_Lock : Mutex_Access;
-   --  Global lock used to protect concurrent accesses to reference counters
-
-   procedure Unchecked_Inc_Usage (Obj : Entity_Ptr);
-   --  Internal procedure to increment Obj's usage counter. This must be
-   --  called with the proper lock held.
 
    type Event_Kind_Type is (Inc_Usage, Dec_Usage);
    --  Smart pointer events that can be traced
@@ -62,13 +54,30 @@ package body PolyORB.Smart_Pointers is
      (Event_Kind : Event_Kind_Type;
       Obj        : Entity_Ptr);
    --  Produce debugging trace for the indicated event on Obj, if applicable
+   --  (must be called just before updating Obj's reference counter).
 
    Entity_External_Tag : Entity_External_Tag_Hook := null;
-   Ref_External_Tag    : Ref_External_Tag_Hook := null;
+   Ref_External_Tag    : Ref_External_Tag_Hook    := null;
    --  Debugging hooks, set at initialization
 
    Default_Trace : Boolean := True;
-   --  needs comment???
+   --  Needs comment???
+
+   package Sync_Counters is
+      --  Support for atomic addition/subtraction
+
+      procedure Initialize;
+      function Sync_Add_And_Fetch
+        (Ptr   : access Interfaces.Integer_32;
+         Value : Interfaces.Integer_32) return Interfaces.Integer_32;
+
+      pragma Inline (Initialize);
+      pragma Inline (Sync_Add_And_Fetch);
+   end Sync_Counters;
+
+   package body Sync_Counters is separate;
+
+   use Sync_Counters;
 
    ------------
    -- Adjust --
@@ -97,6 +106,8 @@ package body PolyORB.Smart_Pointers is
       procedure Free is new Ada.Unchecked_Deallocation
         (Unsafe_Entity'Class, Entity_Ptr);
 
+      Counter : Interfaces.Integer_32;
+
    begin
       if Obj.Counter = -1 then
          --  Entity is not reference-counted
@@ -104,20 +115,14 @@ package body PolyORB.Smart_Pointers is
          return;
       end if;
 
-      pragma Assert (Counter_Lock /= null);
-      Entity_Lock (Obj.all);
-
       pragma Debug (C, Trace_Event (Dec_Usage, Obj));
-      Obj.Counter := Obj.Counter - 1;
+      Counter := Sync_Add_And_Fetch (Obj.Counter'Access, -1);
+      pragma Assert (Counter >= 0);
 
-      if Obj.Counter = 0 then
+      if Counter = 0 then
 
          pragma Debug (C, O ("Dec_Usage: deallocating "
                           & Entity_External_Tag (Obj.all)));
-
-         Entity_Unlock (Obj.all);
-         --  Releasing Obj lock at this stage is sufficient to ensure
-         --  that only one task finalizes Obj.all and frees Obj.
 
          if not Is_Controlled (Obj.all) then
             --  This entity is not controlled: finalize it ourselves
@@ -128,8 +133,6 @@ package body PolyORB.Smart_Pointers is
          Free (Obj);
 
          pragma Debug (C, O ("Dec_Usage: deallocation done"));
-      else
-         Entity_Unlock (Obj.all);
       end if;
    end Dec_Usage;
 
@@ -142,27 +145,6 @@ package body PolyORB.Smart_Pointers is
       Obj.Counter := -1;
    end Disable_Reference_Counting;
 
-   -----------------
-   -- Entity_Lock --
-   -----------------
-
-   procedure Entity_Lock (X : in out Unsafe_Entity) is
-      pragma Unreferenced (X);
-   begin
-      null;
-   end Entity_Lock;
-
-   -----------------
-   -- Entity_Lock --
-   -----------------
-
-   procedure Entity_Lock (X : in out Non_Controlled_Entity) is
-      pragma Unreferenced (X);
-
-   begin
-      Enter (Counter_Lock);
-   end Entity_Lock;
-
    ---------------
    -- Entity_Of --
    ---------------
@@ -171,28 +153,6 @@ package body PolyORB.Smart_Pointers is
    begin
       return The_Ref.A_Ref;
    end Entity_Of;
-
-   -------------------
-   -- Entity_Unlock --
-   -------------------
-
-   procedure Entity_Unlock (X : in out Unsafe_Entity) is
-      pragma Unreferenced (X);
-
-   begin
-      null;
-   end Entity_Unlock;
-
-   -------------------
-   -- Entity_Unlock --
-   -------------------
-
-   procedure Entity_Unlock (X : in out Non_Controlled_Entity) is
-      pragma Unreferenced (X);
-
-   begin
-      Leave (Counter_Lock);
-   end Entity_Unlock;
 
    --------------
    -- Finalize --
@@ -270,6 +230,8 @@ package body PolyORB.Smart_Pointers is
    ---------------
 
    procedure Inc_Usage (Obj : Entity_Ptr) is
+      Discard : Interfaces.Integer_32;
+      pragma Unreferenced (Discard);
    begin
       if Obj.Counter = -1 then
          --  Entity is not reference-counted
@@ -277,9 +239,8 @@ package body PolyORB.Smart_Pointers is
          return;
       end if;
 
-      Entity_Lock (Obj.all);
-      Unchecked_Inc_Usage (Obj);
-      Entity_Unlock (Obj.all);
+      pragma Debug (C, Trace_Event (Inc_Usage, Obj));
+      Discard := Sync_Add_And_Fetch (Obj.Counter'Access, 1);
    end Inc_Usage;
 
    ----------------
@@ -292,7 +253,7 @@ package body PolyORB.Smart_Pointers is
       The_Default_Trace       : Boolean)
    is
    begin
-      Create (Counter_Lock);
+      Sync_Counters.Initialize;
       Entity_External_Tag := The_Entity_External_Tag;
       Ref_External_Tag    := The_Ref_External_Tag;
       Default_Trace       := The_Default_Trace;
@@ -317,15 +278,6 @@ package body PolyORB.Smart_Pointers is
       return The_Ref.A_Ref = null;
    end Is_Nil;
 
-   -----------------------
-   -- Reference_Counter --
-   -----------------------
-
-   function Reference_Counter (Obj : Unsafe_Entity'Class) return Integer is
-   begin
-      return Obj.Counter;
-   end Reference_Counter;
-
    ------------------
    -- Reuse_Entity --
    ------------------
@@ -334,15 +286,21 @@ package body PolyORB.Smart_Pointers is
      (The_Ref    : in out Ref;
       The_Entity : Entity_Ptr)
    is
+      Counter : Interfaces.Integer_32;
    begin
-      Entity_Lock (The_Entity.all);
+      pragma Assert (The_Entity.Counter /= -1);
+      pragma Debug (C, Trace_Event (Inc_Usage, The_Entity));
+      Counter := Sync_Add_And_Fetch (The_Entity.Counter'Access, 1);
 
-      if The_Entity.Counter > 0 then
-         Unchecked_Inc_Usage (The_Entity);
+      if Counter = 1 then
+         --  Was 0, can't reuse entity, reset counter
+
+         pragma Debug (C, Trace_Event (Dec_Usage, The_Entity));
+         Counter := Sync_Add_And_Fetch (The_Entity.Counter'Access, -11);
+
+      else
          The_Ref.A_Ref := The_Entity;
       end if;
-
-      Entity_Unlock (The_Entity.all);
    end Reuse_Entity;
 
    -----------------
@@ -376,27 +334,16 @@ package body PolyORB.Smart_Pointers is
       Obj        : Entity_Ptr)
    is
       Entity_Kind : constant String := Entity_External_Tag (Obj.all);
-      Event_Values : constant array (Event_Kind_Type) of Integer :=
+      Event_Values : constant array (Event_Kind_Type) of Integer_32 :=
                        (Inc_Usage => +1, Dec_Usage => -1);
    begin
       if Get_Trace (Entity_Kind) then
          O (Event_Kind'Img & ": "
               & Entity_Kind
-              & Natural'Image (Obj.Counter)
+              & Integer_32'Image (Obj.Counter)
               & " ->"
-              & Natural'Image (Obj.Counter + Event_Values (Event_Kind)));
+              & Integer_32'Image (Obj.Counter + Event_Values (Event_Kind)));
       end if;
    end Trace_Event;
-
-   -------------------------
-   -- Unchecked_Inc_Usage --
-   -------------------------
-
-   procedure Unchecked_Inc_Usage (Obj : Entity_Ptr) is
-   begin
-      pragma Assert (Obj.Counter /= -1);
-      pragma Debug (C, Trace_Event (Inc_Usage, Obj));
-      Obj.Counter := Obj.Counter + 1;
-   end Unchecked_Inc_Usage;
 
 end PolyORB.Smart_Pointers;
