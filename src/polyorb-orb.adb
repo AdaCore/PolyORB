@@ -1273,8 +1273,14 @@ package body PolyORB.ORB is
          declare
             Ref : Smart_Pointers.Ref;
          begin
-            Smart_Pointers.Set (Ref, Entity_Ptr (Value (It)));
-            BO_Ref_Lists.Prepend (Result, Ref);
+            Smart_Pointers.Reuse_Entity (Ref, Entity_Ptr (Value (It)));
+
+            --  If binding object is being finalized, Reuse_Entity leaves Ref
+            --  unset.
+
+            if not Is_Nil (Ref) then
+               BO_Ref_Lists.Prepend (Result, Ref);
+            end if;
          end;
 
          Next (It);
