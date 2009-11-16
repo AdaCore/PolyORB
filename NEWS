@@ -55,7 +55,7 @@ See the features-26 file.
 Bug fixes
 ---------
 
-Two unrelated race conditions could cause crashes in the DSA termination
+Several unrelated race conditions could cause crashes in the DSA termination
 process in some timing-dependent scenarios. (IB13-026)
 
 po_gnatdist would fail to build a slave partition alone. (IA29-009)
