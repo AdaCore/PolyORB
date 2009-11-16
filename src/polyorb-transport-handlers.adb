@@ -62,31 +62,36 @@ package body PolyORB.Transport.Handlers is
 
          Handle_Close_Connection (H.ORB.Tasking_Policy, H.TE);
 
-         --  Close the endpoint
-
-         Emit_No_Reply
-           (Component_Access (H.TE),
-            Filters.Iface.Disconnect_Indication'(
-              Error => Filters.Iface.Filter_Error (Reply).Error));
-
-         --  For the case of a server-side transport endpoint, the binding
-         --  object may still be referenced by the TE: detach it now.
-
          declare
-            Dependent_Binding_Object : constant PolyORB.Smart_Pointers.Ref :=
-                                         H.TE.Dependent_Binding_Object;
-            pragma Unreferenced (Dependent_Binding_Object);
-         begin
-            --  Detach the TE from its dependent binding object. This must be
-            --  done while ensuring that the reference counter on the BO is
-            --  still non-zero, otherwise this could cause the TE to be
-            --  destroyed before it is completely detached.
+            use PolyORB.Smart_Pointers;
 
-            Smart_Pointers.Set (H.TE.Dependent_Binding_Object, null);
+            Dependent_Binding_Object : constant Ref :=
+                                         H.TE.Dependent_Binding_Object;
+         begin
+
+            --  Close the endpoint. Note: for the case of a client side
+            --  endpoint, this may clear the last reference to the BO
+            --  and destroy the endpoint, which is why we need to save
+            --  a possible Dependent_Binding_Object reference earlier on.
+
+            Emit_No_Reply
+              (Component_Access (H.TE),
+               Filters.Iface.Disconnect_Indication'(
+                 Error => Filters.Iface.Filter_Error (Reply).Error));
+
+            --  For the case of a server-side transport endpoint, the binding
+            --  object is still be referenced by the TE: detach it now. This
+            --  is done while ensuring that the reference counter on the BO is
+            --  still non-zero, otherwise this could cause the TE to be
+            --  destroyed before it is completely detached. This is why we
+            --  saved a reference to the Dependent_Binding_Object above.
+
+            if not Is_Nil (Dependent_Binding_Object) then
+               Smart_Pointers.Set (H.TE.Dependent_Binding_Object, null);
+            end if;
 
             --  The complete binding object will be finalised when this block
             --  is exited, provided it is not referenced anymore.
-
          end;
 
       else
