@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -254,8 +254,7 @@ package body PolyORB.References.Binding is
 
                   pragma Debug (C, O ("Recursed."));
 
-                  Share_Binding_Info
-                    (Dest => Ref (R), Source => Continuation);
+                  Share_Binding_Info (Dest => Ref (R), Source => Continuation);
                   pragma Debug (C, O ("Cached binding data."));
                end if;
                pragma Debug (C, O ("About to finalize Continuation"));

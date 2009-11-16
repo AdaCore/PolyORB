@@ -345,6 +345,8 @@ package body PolyORB.Protocols.GIOP is
          Release (Sess.Buffer_In);
       end if;
 
+      Sess.State := Not_Initialized;
+
       for J in First (Sess.Pending_Reqs) .. Last (Sess.Pending_Reqs) loop
          if Sess.Pending_Reqs.Table /= null
            and then Sess.Pending_Reqs.Table (J) /= null
@@ -352,14 +354,22 @@ package body PolyORB.Protocols.GIOP is
             P := Sess.Pending_Reqs.Table (J);
             Sess.Pending_Reqs.Table (J) := null;
             Set_Exception (P.Req, Error);
+
+            --  After the following call, Sess may become invalid (in the case
+            --  of a client side session, when flushing the last pending
+            --  request, and there is no other remaining reference to the
+            --  binding object).
+
             References.Binding.Unbind (P.Req.Target);
+
+            --  After the following call, P.Req is destroyed
+
             Emit_No_Reply (Component_Access (ORB),
                            Servants.Iface.Executed_Request'(Req => P.Req));
+
             Free (P);
          end if;
       end loop;
-
-      Sess.State := Not_Initialized;
    end Handle_Disconnect;
 
    --------------------
@@ -947,8 +957,8 @@ package body PolyORB.Protocols.GIOP is
 
    procedure Remove_Pending_Request
      (Sess    : access GIOP_Session;
-      Id      :        Types.Unsigned_Long;
-      Success :    out Boolean)
+      Id      : Types.Unsigned_Long;
+      Success : out Boolean)
    is
       use Pend_Req_Tables;
 

@@ -241,8 +241,7 @@ private
       --  Timeout before stopping polling when Blocked
 
       Condition : Tasking.Condition_Variables.Condition_Access;
-      --  Condition Variable on which Task referred by Id is blocked;
-      --  meaningful only when State is Idle.
+      --  CV on which Task referred by Id is waiting in Idle state
 
       Mutex : Tasking.Mutexes.Mutex_Access;
       --  Mutex used by the Task referred by TI when blocking;

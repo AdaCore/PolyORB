@@ -329,7 +329,7 @@ package body PolyORB.ORB is
          --  Notify ORB controller of completion
 
          Notify_Event (ORB.ORB_Controller,
-                       Event'(Kind => End_Of_Check_Sources,
+                       Event'(Kind       => End_Of_Check_Sources,
                               On_Monitor => Selector (This_Task)));
 
          --  Inside ORB critical section
@@ -1273,8 +1273,14 @@ package body PolyORB.ORB is
          declare
             Ref : Smart_Pointers.Ref;
          begin
-            Smart_Pointers.Set (Ref, Entity_Ptr (Value (It)));
-            BO_Ref_Lists.Prepend (Result, Ref);
+            Smart_Pointers.Reuse_Entity (Ref, Entity_Ptr (Value (It)));
+
+            --  If binding object is being finalized, Reuse_Entity leaves Ref
+            --  unset.
+
+            if not Is_Nil (Ref) then
+               BO_Ref_Lists.Prepend (Result, Ref);
+            end if;
          end;
 
          Next (It);

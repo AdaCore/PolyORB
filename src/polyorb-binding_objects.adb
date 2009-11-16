@@ -63,7 +63,7 @@ package body PolyORB.Binding_Objects is
 
       Error : Error_Container;
    begin
-      pragma Debug (C, O ("Finalizing binding object."));
+      pragma Debug (C, O ("Finalizing binding object"));
 
       --  First remove the reference to this BO from its ORB so that is does
       --  not get reused while being finalized.
@@ -94,7 +94,7 @@ package body PolyORB.Binding_Objects is
 
       Destroy (X.Notepad);
 
-      pragma Debug (C, O ("RIP."));
+      pragma Debug (C, O ("RIP"));
    end Finalize;
 
    -------------------
