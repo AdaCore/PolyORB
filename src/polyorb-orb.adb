@@ -329,7 +329,7 @@ package body PolyORB.ORB is
          --  Notify ORB controller of completion
 
          Notify_Event (ORB.ORB_Controller,
-                       Event'(Kind => End_Of_Check_Sources,
+                       Event'(Kind       => End_Of_Check_Sources,
                               On_Monitor => Selector (This_Task)));
 
          --  Inside ORB critical section
