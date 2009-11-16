@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -265,7 +265,7 @@ package body PolyORB.ORB.Thread_Pool is
 
       PTCV.Wait (PTI.Condition (This_Task), PTI.Mutex (This_Task));
 
-      --  This task is about to leave idle state: check whether new spares
+      --  This task is about to leave Idle state: check whether new spares
       --  need to be created.
 
       Check_Spares (ORB);

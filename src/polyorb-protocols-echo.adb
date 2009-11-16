@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -292,10 +292,9 @@ package body PolyORB.Protocols.Echo is
    begin
       pragma Debug (C, O ("Received disconnect."));
 
-      --  Cleanup protocol.
+      --  Cleanup protocol
 
       Buffers.Release (S.Buffer);
-
    end Handle_Disconnect;
 
    procedure Handle_Flush (S : access Echo_Session) is

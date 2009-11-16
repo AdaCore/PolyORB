@@ -44,9 +44,7 @@ package body PolyORB.Transport.Handlers is
    -- Handle_Event --
    ------------------
 
-   procedure Handle_Event
-     (H : access TE_AES_Event_Handler)
-   is
+   procedure Handle_Event (H : access TE_AES_Event_Handler) is
       use PolyORB.Components;
       use PolyORB.ORB;
 
@@ -64,19 +62,21 @@ package body PolyORB.Transport.Handlers is
 
          Handle_Close_Connection (H.ORB.Tasking_Policy, H.TE);
 
-         --  Close the endpoint.
+         --  Close the endpoint
 
          Emit_No_Reply
            (Component_Access (H.TE),
             Filters.Iface.Disconnect_Indication'(
               Error => Filters.Iface.Filter_Error (Reply).Error));
 
+         --  For the case of a server-side transport endpoint, the binding
+         --  object may still be referenced by the TE: detach it now.
+
          declare
             Dependent_Binding_Object : constant PolyORB.Smart_Pointers.Ref :=
                                          H.TE.Dependent_Binding_Object;
             pragma Unreferenced (Dependent_Binding_Object);
          begin
-
             --  Detach the TE from its dependent binding object. This must be
             --  done while ensuring that the reference counter on the BO is
             --  still non-zero, otherwise this could cause the TE to be
