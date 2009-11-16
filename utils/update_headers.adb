@@ -370,7 +370,10 @@ procedure Update_Headers is
                Append (Buf, ASCII.LF);
                Match (Unit_Name_Matcher, Line (1 .. Last), Unit_Name_Matches);
                if Unit_Name_Matches (0) /= No_Match then
-                  if Line (Unit_Name_Matches (1).First) = 's' then
+                  if Unit_Name_Matches (1).First in Line'Range
+                       and then
+                     Line (Unit_Name_Matches (1).First) = 's'
+                  then
                      --  Case of a separate body
 
                      UName := To_Unbounded_String
