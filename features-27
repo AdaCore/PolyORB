@@ -12,3 +12,9 @@ This date shows the implementation date of the feature. Any 2.6w wavefront
 subsequent to this date will contain the indicated feature, as will any
 subsequent releases.
 
+NF-27-IA16-043 Use atomic builtins for reference counting (2009-11-13)
+
+   Atomic increment and decrement operations are now used for reference
+   counting within the PolyORB runtime, instead of mutex-protected counters,
+   on platforms where such operations are supported by GCC. This affords
+   improved performances when using tasking on these platforms.
