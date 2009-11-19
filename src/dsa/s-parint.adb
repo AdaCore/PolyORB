@@ -2009,13 +2009,13 @@ package body System.Partition_Interface is
    begin
       Increment_Activity;
 
+      pragma Assert (not Is_Nil (The_TM_Ref));
       Add_Request_QoS
         (R,
          DSA_TM_Info,
          new QoS_DSA_TM_Info_Parameter'(
            Kind   => DSA_TM_Info,
-           TM_Ref => The_TM_Ref)
-        );
+           TM_Ref => The_TM_Ref));
 
       PolyORB.Requests.Invoke (R, Invoke_Flags);
    end Request_Invoke;
