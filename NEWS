@@ -55,6 +55,8 @@ See the features-26 file.
 Bug fixes
 ---------
 
+A resource leak was fixed in the idle tasks manager. (IB19-027)
+
 A race condition has been fixed in the Half_Sync_Half_Async ORB controller
 that could cause a segmentation fault during ORB shutdown in some rare
 cases. (IB19-024)
