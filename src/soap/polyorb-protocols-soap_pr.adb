@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -266,7 +266,13 @@ package body PolyORB.Protocols.SOAP_Pr is
          P := S.Pending_Rq;
          S.Pending_Rq := null;
          Set_Exception (P, Error);
+
+         --  After the following call, S may become invalid
+
          References.Binding.Unbind (P.Target);
+
+         --  After the following call, P is destroyed
+
          Components.Emit_No_Reply
            (Components.Component_Access (ORB),
             Servants.Iface.Executed_Request'(Req => P));
