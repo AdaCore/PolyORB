@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -78,8 +78,7 @@ package body PolyORB.Protocols is
 
    function Handle_Message
      (Sess : access Session;
-      S    :        Components.Message'Class)
-     return Components.Message'Class
+      S    : Components.Message'Class) return Components.Message'Class
    is
       use PolyORB.Errors;
 
