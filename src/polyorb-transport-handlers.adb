@@ -65,14 +65,17 @@ package body PolyORB.Transport.Handlers is
          declare
             use PolyORB.Smart_Pointers;
 
-            Dependent_Binding_Object : constant Ref :=
-                                         H.TE.Dependent_Binding_Object;
+            Dependent_Binding_Object : Ref;
          begin
+            --  Ensure that the binding object remains referenced while we
+            --  are dismantling it.
+
+            Reuse_Entity (Dependent_Binding_Object, H.TE.Binding_Object);
+            pragma Assert (not Is_Nil (Dependent_Binding_Object));
 
             --  Close the endpoint. Note: for the case of a client side
-            --  endpoint, this may clear the last reference to the BO
-            --  and destroy the endpoint, which is why we need to save
-            --  a possible Dependent_Binding_Object reference earlier on.
+            --  endpoint, this may clear the last reference to the BO, except
+            --  for the above Dependent_Binding_Object).
 
             Emit_No_Reply
               (Component_Access (H.TE),
@@ -80,13 +83,12 @@ package body PolyORB.Transport.Handlers is
                  Error => Filters.Iface.Filter_Error (Reply).Error));
 
             --  For the case of a server-side transport endpoint, the binding
-            --  object is still be referenced by the TE: detach it now. This
-            --  is done while ensuring that the reference counter on the BO is
-            --  still non-zero, otherwise this could cause the TE to be
-            --  destroyed before it is completely detached. This is why we
-            --  saved a reference to the Dependent_Binding_Object above.
+            --  object is still be referenced by the TE for keep-alive purposes
+            --  so we need to detach it now.
 
-            if not Is_Nil (Dependent_Binding_Object) then
+            if not Is_Nil (H.TE.Dependent_Binding_Object) then
+               pragma Assert (Entity_Of (H.TE.Dependent_Binding_Object)
+                                = H.TE.Binding_Object);
                Smart_Pointers.Set (H.TE.Dependent_Binding_Object, null);
             end if;
 

@@ -111,8 +111,7 @@ package body PolyORB.Transport.Datagram is
 
    function Handle_Message
      (TE  : access Datagram_Transport_Endpoint;
-      Msg : Components.Message'Class)
-     return Components.Message'Class
+      Msg : Components.Message'Class) return Components.Message'Class
    is
       use PolyORB.Buffers;
       use PolyORB.Components;
@@ -180,6 +179,8 @@ package body PolyORB.Transport.Datagram is
 
       elsif Msg in Set_Server then
          TE.Server := Set_Server (Msg).Server;
+         TE.Binding_Object :=
+           Smart_Pointers.Entity_Ptr (Set_Server (Msg).Binding_Object);
          return Emit (TE.Upper, Msg);
 
       elsif Msg in Disconnect_Indication then

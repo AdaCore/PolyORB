@@ -174,6 +174,8 @@ package body PolyORB.Transport.Connected is
 
       elsif Msg in Set_Server then
          TE.Server := Set_Server (Msg).Server;
+         TE.Binding_Object :=
+           Smart_Pointers.Entity_Ptr (Set_Server (Msg).Binding_Object);
          return Emit (TE.Upper, Msg);
 
       elsif Msg in Disconnect_Indication then

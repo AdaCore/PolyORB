@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -170,10 +170,15 @@ private
          Upper  : Components.Component_Access;
          --  Communication signal to upper layer.
 
+         Binding_Object : Smart_Pointers.Entity_Ptr;
+         --  Enclosing binding object entity (not reference counted, set for
+         --  both client side and server side TEs).
+
          Dependent_Binding_Object : Smart_Pointers.Ref;
-         --  For server-side transport endpoints, keep a reference
-         --  to the associated binding object as long as the
-         --  transport endpoint is alive.
+         --  For server-side transport endpoints, keep a reference to the
+         --  associated binding object as long as the transport endpoint is
+         --  is alive. Note: when Dependent_Binding_Object is set, its
+         --  entity is always equal to the above Binding_Object.
 
          Closed : Boolean := False;
          --  Set to True once Close has been called on this endpoint.
