@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -305,10 +305,11 @@ package body PolyORB.ORB_Controller.Leader_Followers is
             --  must forward it to requesting task. We ensure this task will
             --  stop its current action and ask for rescheduling.
 
-            Reschedule_Task (E.Requesting_Task.all);
+            Reschedule_Task (O, E.Requesting_Task);
 
          when Idle_Awake =>
             --  A task has left Idle state
+
             Remove_Idle_Task (O.Idle_Tasks, E.Awakened_Task);
 
          when Task_Registered =>

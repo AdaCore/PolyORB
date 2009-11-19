@@ -342,10 +342,13 @@ package body PolyORB.ORB_Controller is
    -- Reschedule_Task --
    ---------------------
 
-   procedure Reschedule_Task (TI : PTI.Task_Info) is
+   procedure Reschedule_Task
+     (O  : access ORB_Controller;
+      TI : PTI.Task_Info_Access)
+   is
       use type PAE.Asynch_Ev_Monitor_Access;
    begin
-      case State (TI) is
+      case State (TI.all) is
          when Running =>
             --  Let the task complete its current job
 
@@ -356,7 +359,7 @@ package body PolyORB.ORB_Controller is
             --  Abort wait on AEM
 
             declare
-               Sel : PAE.Asynch_Ev_Monitor_Access renames Selector (TI);
+               Sel : PAE.Asynch_Ev_Monitor_Access renames Selector (TI.all);
             begin
                pragma Debug (C1, O1 ("About to abort block"));
 
@@ -370,7 +373,7 @@ package body PolyORB.ORB_Controller is
             --  Awake task
 
             pragma Debug (C1, O1 ("Signal idle task"));
-            PTCV.Signal (Condition (TI));
+            Awake_Idle_Task (O.Idle_Tasks, TI);
 
          when Terminated | Unscheduled =>
             --  Really should not happen
@@ -516,7 +519,7 @@ package body PolyORB.ORB_Controller is
             if O.AEM_Infos (J).TI /= null
                  and then Kind_Match (O.AEM_Infos (J).TI.all, Requested_Kind)
             then
-               Reschedule_Task (O.AEM_Infos (J).TI.all);
+               Reschedule_Task (O, O.AEM_Infos (J).TI);
                exit;
             end if;
          end loop;

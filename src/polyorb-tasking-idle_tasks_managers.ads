@@ -46,6 +46,11 @@ package PolyORB.Tasking.Idle_Tasks_Managers is
 
    type Idle_Tasks_Manager_Access is access all Idle_Tasks_Manager;
 
+   procedure Awake_Idle_Task
+     (ITM : access Idle_Tasks_Manager;
+      TI  : PTI.Task_Info_Access);
+   --  Awake one specific idle task
+
    function Awake_One_Idle_Task
      (ITM             : access Idle_Tasks_Manager;
       Allow_Transient : Boolean) return Boolean;
@@ -59,13 +64,12 @@ package PolyORB.Tasking.Idle_Tasks_Managers is
 
    procedure Remove_Idle_Task
      (ITM : access Idle_Tasks_Manager;
-      TI  :        PTI.Task_Info_Access);
-   --  Remove TI from the pool of tasks managed by ITM
+      TI  : PTI.Task_Info_Access);
+   --  Called after task TI has exited Idle to return its CV to the free list
 
    function Insert_Idle_Task
-     (ITM  : access Idle_Tasks_Manager;
-      TI  :        PTI.Task_Info_Access)
-     return PTCV.Condition_Access;
+     (ITM : access Idle_Tasks_Manager;
+      TI  :  PTI.Task_Info_Access) return PTCV.Condition_Access;
    --  Add TI to the pool of tasks managed by ITM. The returned CV
    --  will be used by a task to put itself in an idle (waiting) state.
 

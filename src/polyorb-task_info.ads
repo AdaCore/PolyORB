@@ -202,6 +202,9 @@ package PolyORB.Task_Info is
       List : in out Task_List);
    --  Remove TI from the list it was attached to (if any)
 
+   function On_List (TI : Task_Info) return Boolean;
+   --  True if TI is attached on a list (for assertions)
+
    function Image (TI : Task_Info) return String;
    --  For debug purposes
 
