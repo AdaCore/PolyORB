@@ -59,13 +59,10 @@ package PolyORB.Annotations is
    --  Add note N to notepad NP. If a note with the same tag as N
    --  exists, it is replaced by N.
 
-   procedure Get_Note (NP : Notepad;
-                       N : out Note'Class);
-   --  Retrieve a note of N's type from NP.
+   procedure Get_Note (NP : Notepad; N : out Note'Class);
+   --  Retrieve a note of N's type from NP
 
-   procedure Get_Note (NP : Notepad;
-                       N : out Note'Class;
-                       Default : Note'Class);
+   procedure Get_Note (NP : Notepad; N : out Note'Class; Default : Note'Class);
    --  Retrieve a note of N's type from NP.
    --  Return Default if the note cannot be found.
 
