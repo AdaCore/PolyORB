@@ -2009,7 +2009,6 @@ package body System.Partition_Interface is
    begin
       Increment_Activity;
 
-      pragma Assert (not Is_Nil (The_TM_Ref));
       Add_Request_QoS
         (R,
          DSA_TM_Info,
