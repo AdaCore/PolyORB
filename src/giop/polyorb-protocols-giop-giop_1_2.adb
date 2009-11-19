@@ -1018,8 +1018,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
          raise Bidirectionnal_GIOP_Not_Implemented;
       end if;
 
-      Negotiate_Code_Set_And_Update_Session
-        (R.Target_Profile, S, Error);
+      Negotiate_Code_Set_And_Update_Session (R.Target_Profile, S, Error);
       if Found (Error) then
          return;
       end if;
@@ -1079,9 +1078,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
    begin
       pragma Debug (C, O ("Sending request, Id :" & R.Request_Id'Img));
 
-      Negotiate_Code_Set_And_Update_Session
-        (R.Target_Profile, S, Error);
-
+      Negotiate_Code_Set_And_Update_Session (R.Target_Profile, S, Error);
       if Found (Error) then
          return;
       end if;
