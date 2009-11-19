@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -449,7 +449,7 @@ package body PolyORB.ORB_Controller is
 
       Task_Removed (O.Summary, TI.all);
       Notify_Event (ORB_Controller'Class (O.all)'Access,
-        Event'(Kind => Task_Unregistered));
+        Event'(Kind => Task_Unregistered, Unregistered_Task => TI));
 
       pragma Debug (C2, O2 (Status (O.all)));
       pragma Debug (C1, O1 ("Unregister_Task: leave"));

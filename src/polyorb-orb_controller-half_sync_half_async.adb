@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -286,10 +286,14 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
             end loop;
 
          when Task_Unregistered =>
-            --  ??? There is an unchecked assumption that the designated
-            --  monitoring task for each AEM is never unregistered (otherwise
-            --  the TI pointer in the corresponding AEM_Infos slot becomes
-            --  dangling).
+            for J in O.AEM_Infos'Range loop
+               if O.AEM_Infos (J).TI = E.Unregistered_Task then
+                  --  Unregistering one of the designated monitoring tasks
+                  --  (happens during partition termination).
+
+                  O.AEM_Infos (J).TI := null;
+               end if;
+            end loop;
 
             Note_Task_Unregistered (O);
       end case;
