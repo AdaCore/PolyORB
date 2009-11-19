@@ -55,6 +55,10 @@ See the features-26 file.
 Bug fixes
 ---------
 
+A race condition has been fixed in the Half_Sync_Half_Async ORB controller
+that could cause a segmentation fault during ORB shutdown in some rare
+cases. (IB19-024)
+
 Several unrelated race conditions could cause crashes in the DSA termination
 process in some timing-dependent scenarios. (IB13-026)
 
