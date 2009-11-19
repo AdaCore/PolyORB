@@ -379,7 +379,9 @@ private
    --  handled by a transient task). Note that this predicate is defined only
    --  for queued jobs.
 
-   procedure Reschedule_Task (TI : PTI.Task_Info);
+   procedure Reschedule_Task
+     (O  : access ORB_Controller;
+      TI : PTI.Task_Info_Access);
    --  Cause the given task to be rescheduled (i.e. awakened if it is idle,
    --  unblocked if it is blocked). Used when a condition occurs that the task
    --  needs to be informed of.

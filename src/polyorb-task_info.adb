@@ -139,6 +139,15 @@ package body PolyORB.Task_Info is
       return TI.May_Exit;
    end May_Exit;
 
+   -------------
+   -- On_List --
+   -------------
+
+   function On_List (TI : Task_Info) return Boolean is
+   begin
+      return TI.On_List;
+   end On_List;
+
    --------------
    -- Selector --
    --------------

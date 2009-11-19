@@ -260,7 +260,7 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
             --  must forward it to requesting task. Ensure the requesting task
             --  is rescheduled now.
 
-            Reschedule_Task (E.Requesting_Task.all);
+            Reschedule_Task (O, E.Requesting_Task);
 
          when Idle_Awake =>
 

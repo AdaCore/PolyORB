@@ -80,24 +80,35 @@ package body PolyORB.Tasking.Idle_Tasks_Managers is
       return Result;
    end Allocate_CV;
 
+   ---------------------
+   -- Awake_Idle_Task --
+   ---------------------
+
+   procedure Awake_Idle_Task
+     (ITM : access Idle_Tasks_Manager;
+      TI  : Task_Info_Access)
+   is
+   begin
+      pragma Debug (C, O ("Awake_Idle_Task "
+                          & TI.Kind'Img & " " & Image (TI.all)
+                          & ": enter"));
+      List_Detach (TI, ITM.Idle_Task_Lists (TI.Kind));
+      Signal (Condition (TI.all));
+      pragma Debug (C, O ("Awake_Idle_Task: leave"));
+   end Awake_Idle_Task;
+
    -------------------------
    -- Awake_One_Idle_Task --
    -------------------------
 
    procedure Awake_One_Idle_Task
-     (ITM : access Idle_Tasks_Manager; Kind : Task_Kind)
+     (ITM  : access Idle_Tasks_Manager;
+      Kind : Task_Kind)
    is
-      pragma Debug (C, O ("Awake one idle task"));
-      pragma Assert (not Is_Empty (ITM.Idle_Task_Lists (Kind)));
-
-      Task_To_Awake : constant access PTI.Task_Info :=
-                        List_First (ITM.Idle_Task_Lists (Kind));
    begin
-      --  Signal one idle task, and put its CV in Free_CV list
-
-      List_Detach (Task_To_Awake, ITM.Idle_Task_Lists (Kind));
-      Signal (Condition (Task_To_Awake.all));
-      CV_Lists.Append (ITM.Free_CV, Condition (Task_To_Awake.all));
+      pragma Assert (not Is_Empty (ITM.Idle_Task_Lists (Kind)));
+      Awake_Idle_Task
+        (ITM, List_First (ITM.Idle_Task_Lists (Kind)).all'Access);
    end Awake_One_Idle_Task;
 
    -------------------------
@@ -135,6 +146,8 @@ package body PolyORB.Tasking.Idle_Tasks_Managers is
 
    procedure Awake_All_Idle_Tasks (ITM : access Idle_Tasks_Manager) is
    begin
+      pragma Debug (C, O ("Awake_All_Idle_Tasks: enter"));
+
       --  Awaken tasks, looping until both Kind lists are empty
 
       for Kind in Task_Kind loop
@@ -142,6 +155,8 @@ package body PolyORB.Tasking.Idle_Tasks_Managers is
             Awake_One_Idle_Task (ITM, Kind);
          end loop;
       end loop;
+
+      pragma Debug (C, O ("Awake_All_Idle_Tasks: leave"));
    end Awake_All_Idle_Tasks;
 
    ----------------------
@@ -150,10 +165,27 @@ package body PolyORB.Tasking.Idle_Tasks_Managers is
 
    procedure Remove_Idle_Task
      (ITM : access Idle_Tasks_Manager;
-      TI  :        PTI.Task_Info_Access)
+      TI  : PTI.Task_Info_Access)
    is
    begin
+      --  TI has been detached from the idle list if it is being awakened by
+      --  the ITM or by another task through Awake_Idle_Task, but may still
+      --  be attached if it is terminating now as a result of a spare tasks
+      --  policy limit. In the former case, the call to List_Detach below is
+      --  a no-op.
+
       List_Detach (TI, ITM.Idle_Task_Lists (TI.Kind));
+
+      --  This procedure is called back by the ORB once an idle task
+      --  has returned from Idle. The caller guarantees that it will
+      --  update its task state to some value other than Idle within
+      --  the same critical section, so we can now safely take over
+      --  the condition variable to reuse it (it won't be used by another
+      --  task trying to signal TI anymore).
+
+      --  Should limit the growth of the CV_List to some reasonable size???
+
+      CV_Lists.Append (ITM.Free_CV, Condition (TI.all));
    end Remove_Idle_Task;
 
    ----------------------
@@ -161,15 +193,12 @@ package body PolyORB.Tasking.Idle_Tasks_Managers is
    ----------------------
 
    function Insert_Idle_Task
-     (ITM  : access Idle_Tasks_Manager;
-      TI  :        PTI.Task_Info_Access)
-     return PTCV.Condition_Access
+     (ITM : access Idle_Tasks_Manager;
+      TI  :        PTI.Task_Info_Access) return PTCV.Condition_Access
    is
       Result : constant PTCV.Condition_Access := Allocate_CV (ITM);
-
    begin
       List_Attach (TI, ITM.Idle_Task_Lists (TI.Kind));
-
       return Result;
    end Insert_Idle_Task;
 
