@@ -44,6 +44,29 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
    use PolyORB.Tasking.Condition_Variables;
    use PolyORB.Tasking.Mutexes;
 
+   function AEM_Index_Of_Task
+     (O  : access ORB_Controller_Half_Sync_Half_Async;
+      TI : Task_Info_Access) return Natural;
+   --  For a monitoring task, return the index of its AEM. For any other task,
+   --  return 0.
+
+   -----------------------
+   -- AEM_Index_Of_Task --
+   -----------------------
+
+   function AEM_Index_Of_Task
+     (O  : access ORB_Controller_Half_Sync_Half_Async;
+      TI : Task_Info_Access) return Natural
+   is
+   begin
+      for J in O.AEM_Infos'Range loop
+         if O.AEM_Infos (J).TI = TI then
+            return J;
+         end if;
+      end loop;
+      return 0;
+   end AEM_Index_Of_Task;
+
    ---------------------
    -- Disable_Polling --
    ---------------------
@@ -99,7 +122,8 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
       pragma Debug (C1, O1 ("Enable_Polling: enter"));
 
       if O.AEM_Infos (AEM_Index).Polling_Abort_Counter = 0
-        and then O.Monitoring_Tasks (AEM_Index).Idle then
+        and then O.Monitoring_Tasks (AEM_Index).Idle
+      then
          --  Awake monitoring task
 
          O.Monitoring_Tasks (AEM_Index).Idle := False;
@@ -114,7 +138,7 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
 
    procedure Notify_Event
      (O : access ORB_Controller_Half_Sync_Half_Async;
-      E :        Event)
+      E : Event)
    is
       use type PRS.Request_Scheduler_Access;
       use type PolyORB.Tasking.Threads.Thread_Id;
@@ -264,9 +288,13 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
 
          when Idle_Awake =>
 
-            --  A task has left Idle state
+            --  A task has left Idle state. Note that the monitoring tasks are
+            --  managed internally by the ORB controller, not by the idle
+            --  tasks manager.
 
-            Remove_Idle_Task (O.Idle_Tasks, E.Awakened_Task);
+            if AEM_Index_Of_Task (O, E.Awakened_Task) = 0 then
+               Remove_Idle_Task (O.Idle_Tasks, E.Awakened_Task);
+            end if;
 
          when Task_Registered =>
 
@@ -286,14 +314,17 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
             end loop;
 
          when Task_Unregistered =>
-            for J in O.AEM_Infos'Range loop
-               if O.AEM_Infos (J).TI = E.Unregistered_Task then
+            declare
+               Index : constant Integer :=
+                         AEM_Index_Of_Task (O, E.Unregistered_Task);
+            begin
+               if Index in O.AEM_Infos'Range then
                   --  Unregistering one of the designated monitoring tasks
                   --  (happens during partition termination).
 
-                  O.AEM_Infos (J).TI := null;
+                  O.AEM_Infos (Index).TI := null;
                end if;
-            end loop;
+            end;
 
             Note_Task_Unregistered (O);
       end case;
@@ -309,7 +340,7 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
      (O  : access ORB_Controller_Half_Sync_Half_Async;
       TI : PTI.Task_Info_Access)
    is
-      AEM_Index : Natural := 0;
+      AEM_Index : Natural;
    begin
       pragma Debug (C1, O1 ("Schedule_Task "
                     & PTI.Image (TI.all) & ": enter"));
@@ -334,15 +365,10 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
          pragma Debug (C2, O2 (Status (O.all)));
 
       else
-         for J in O.AEM_Infos'Range loop
-            if TI = O.AEM_Infos (J).TI then
-               AEM_Index := J;
-               exit;
-            end if;
-         end loop;
+         AEM_Index := AEM_Index_Of_Task (O, TI);
 
          if AEM_Index > 0 then
-            --  Task is the monitoring task
+            --  Task is a monitoring task
 
             pragma Debug (C1, O1 ("Scheduling monitoring task"));
 
