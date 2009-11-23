@@ -980,8 +980,7 @@ package body PolyORB.ORB is
                Catch (Error);
 
                Emit_No_Reply (Req.Requesting_Component,
-                              Servants.Iface.Executed_Request'
-                              (Req => Req));
+                              Servants.Iface.Executed_Request'(Req => Req));
                return;
             end if;
          end;
