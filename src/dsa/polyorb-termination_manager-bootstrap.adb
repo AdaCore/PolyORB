@@ -135,16 +135,17 @@ package body PolyORB.Termination_Manager.Bootstrap is
          begin
             Get_Note (Notepad_Of (BO).all, Note);
          exception
-            when others =>
+            when Constraint_Error =>
                Leave_BO_Note_Lock;
                NK := Non_DSA_Node;
+               pragma Debug (C, O ("-> " & NK'Img));
                return;
          end;
-
          Leave_BO_Note_Lock;
 
          if References.Is_Nil (Note.TM_Ref) then
             NK := DSA_Node_Without_TM;
+            pragma Debug (C, O ("-> " & NK'Img));
             return;
          end if;
 
@@ -182,7 +183,7 @@ package body PolyORB.Termination_Manager.Bootstrap is
 
       end if;
 
-      pragma Debug (C, O ("-> TM: " & Image (Ref)));
+      pragma Debug (C, O ("-> " & NK'Img & " TM: " & Image (Ref)));
    end Extract_TM_Reference_From_BO;
 
    ---------------

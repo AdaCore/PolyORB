@@ -60,7 +60,8 @@ package PolyORB.Annotations is
    --  exists, it is replaced by N.
 
    procedure Get_Note (NP : Notepad; N : out Note'Class);
-   --  Retrieve a note of N's type from NP
+   --  Retrieve a note of N's type from NP. Constraint_Error is raised if no
+   --  such note exists.
 
    procedure Get_Note (NP : Notepad; N : out Note'Class; Default : Note'Class);
    --  Retrieve a note of N's type from NP.
