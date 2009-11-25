@@ -1161,11 +1161,11 @@ package body Analyzer is
       --  If it's a scoped name, make sure it denotes a type. Otherwise, it is
       --  syntactically a type, so nothing to check.
 
-      if Kind (E) = K_Scoped_Name then
-         if not Is_Type (Reference (E)) then
-            Error_Loc (1) := Loc (E);
-            DE ("type expected");
-         end if;
+      if Kind (E) = K_Scoped_Name
+        and then Present (Reference (E))  --  in case of previous error
+        and then not Is_Type (Reference (E)) then
+         Error_Loc (1) := Loc (E);
+         DE ("type expected");
       end if;
    end Analyze_Type_Spec;
 
