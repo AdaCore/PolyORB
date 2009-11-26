@@ -2246,6 +2246,8 @@ package body PolyORB.Representations.CDR is
 
                   when Tk_Union =>
                      Nb := 2;
+                     --  Note: reset to 1 if there is no element associated
+                     --  with the unmarshalled switch value.
 
                   when Tk_Sequence =>
                      declare
@@ -2365,6 +2367,7 @@ package body PolyORB.Representations.CDR is
                      return;
                   end if;
 
+                  Unmarshall_Elements :
                   for J in First_Index .. Nb - 1 loop
                      pragma Debug (C, O ("Unmarshall_To_Any: get element"));
 
@@ -2390,6 +2393,7 @@ package body PolyORB.Representations.CDR is
 
                         when others =>
                            --  Never happens
+
                            raise Program_Error;
                      end case;
 
@@ -2435,16 +2439,19 @@ package body PolyORB.Representations.CDR is
                            Finalize_Value (El_C);
                         end if;
 
-                        --  Handle the case of a union with no member
-                        --  associated with this label: nothing to do once
-                        --  the switch element has been set.
+                        --  Handle the case of a union with no member for
+                        --  this label: nothing to do once the switch element
+                        --  has been set.
 
-                        exit when TCK = Tk_Union
+                        if TCK = Tk_Union
                           and then J = 0
-                          and then Any.TypeCode.Kind (Val_TC) = Tk_Void;
-
+                          and then Any.TypeCode.Kind (Val_TC) = Tk_Void
+                        then
+                           Set_Aggregate_Count (ACC, 1);
+                           exit Unmarshall_Elements;
+                        end if;
                      end;
-                  end loop;
+                  end loop Unmarshall_Elements;
                end;
             exception
                when others =>
