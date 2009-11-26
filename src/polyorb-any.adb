@@ -1095,7 +1095,7 @@ package body PolyORB.Any is
                           Src_El_CC'Unchecked_Access, Foreign => True);
 
                         --  Case of an aggregate element that needs to be set
-                        --  explicitly
+                        --  explicitly.
 
                         if Dst_El_M = By_Value then
                            Set_Aggregate_Element (Dst_ACC, El_TC, J, Src_El_C);
@@ -2012,10 +2012,12 @@ package body PolyORB.Any is
       if ACC.Kind = Tk_Union
         and then Index = 0
         and then not Is_Empty (El_C)
+        and then ACC.V.Table (V_First + 1) /= null
         and then not Is_Empty (ACC.V.Table (V_First + 1).all)
         and then El_C /= From_C
       then
-         --  Changing the discriminant of a union: finalize previous member
+         --  Changing the discriminant of a union: finalize previous member,
+         --  if present.
 
          Finalize_Value (ACC.V.Table (V_First + 1).all);
       end if;
