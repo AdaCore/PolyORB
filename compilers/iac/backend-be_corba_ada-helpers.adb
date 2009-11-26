@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -1219,7 +1219,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
             Switch_Alternatives : List_Id;
             Switch_Alternative  : Node_Id;
             Switch_Statements   : List_Id;
-            Default_Met         : Boolean := False;
+            Has_Default         : Boolean := False;
             Choices             : List_Id;
             From_Any_Helper     : Node_Id;
             TC_Helper           : Node_Id;
@@ -1269,8 +1269,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
                Expression          => N);
             Append_To (D, N);
 
-            --  Converting the "Label_Value" to to the discriminant
-            --  type.
+            --  Converting the "Label_Value" to to the discriminant type
 
             N := Make_Subprogram_Call
               (From_Any_Helper,
@@ -1316,7 +1315,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
                  (Labels (Switch_Case),
                   Literal_Parent,
                   Choices,
-                  Default_Met);
+                  Has_Default);
 
                --  Getting the field full name
 
@@ -1331,9 +1330,8 @@ package body Backend.BE_CORBA_Ada.Helpers is
                Get_Name_String_And_Append (Alternative_Name);
                Alternative_Name := Name_Find;
 
-               --  Getting the From_Any function the TC_XXX constant
-               --  and the Ada type nodes corresponding to the element
-               --  type.
+               --  Getting the From_Any function the TC_XXX constant and the
+               --  Ada type nodes corresponding to the element type.
 
                TC_Helper := Get_TC_Node
                  (Type_Spec
@@ -1408,7 +1406,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
             --  Add an empty when others clause to keep the compiler
             --  happy.
 
-            if not Default_Met then
+            if not Has_Default then
                Append_To (Switch_Alternatives,
                  Make_Case_Statement_Alternative (No_List, No_List));
             end if;
@@ -2105,7 +2103,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
             Switch_Alternatives : List_Id;
             Switch_Alternative  : Node_Id;
             Switch_Statements   : List_Id;
-            Default_Met         : Boolean := False;
+            Has_Default         : Boolean := False;
             Choices             : List_Id;
             To_Any_Helper       : Node_Id;
             Literal_Parent      : Node_Id := No_Node;
@@ -2168,7 +2166,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
                  (Labels (Switch_Case),
                   Literal_Parent,
                   Choices,
-                  Default_Met);
+                  Has_Default);
 
                --  Getting the field full name
 
@@ -2214,7 +2212,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
             --  Add an empty when others clause to keep the compiler
             --  happy.
 
-            if not Default_Met then
+            if not Has_Default then
                Append_To (Switch_Alternatives,
                  Make_Case_Statement_Alternative (No_List, No_List));
             end if;
