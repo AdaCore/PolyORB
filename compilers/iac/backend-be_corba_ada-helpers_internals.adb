@@ -1756,7 +1756,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
 
             when K_Union_Type =>
                declare
-                  Literal_Parent      : Node_Id;
+                  Literal_Parent      : Node_Id := No_Node;
                   Switch_Alternatives : constant List_Id := New_List;
                   Switch_Case         : Node_Id;
                   Switch_Item         : Node_Id;
