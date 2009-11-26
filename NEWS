@@ -31,7 +31,7 @@
 =============
 
 This release contains the PolyORB generic middleware, and its CORBA
-and DSA instantiations. In addition to the 2.5 release, it includes:
+and DSA instantiations. In addition to the 2.6 release, it includes:
 
 New features
 ------------
@@ -40,6 +40,9 @@ See the features-27 file.
 
 Bug fixes
 ---------
+
+PROGRAM_ERROR was raised when performing a local call involving IDL union
+with a switch that do not have an associated member label. (IB25-010)
 
 * PolyORB 2.6 (branched on 2009-10-07)
 ======================================
