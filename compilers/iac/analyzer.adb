@@ -1162,8 +1162,9 @@ package body Analyzer is
       --  syntactically a type, so nothing to check.
 
       if Kind (E) = K_Scoped_Name
-        and then Present (Reference (E))  --  in case of previous error
-        and then not Is_Type (Reference (E)) then
+        and then Present (Reference (E))  --  Guard against previous error
+        and then not Is_Type (Reference (E))
+      then
          Error_Loc (1) := Loc (E);
          DE ("type expected");
       end if;
