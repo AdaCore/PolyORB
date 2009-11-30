@@ -320,15 +320,20 @@ begin
          --  From this point on, X_Color has an invalid representation
 
          begin
-            --  If no exception is raised, Success is set to False
+            Success := echoColor (Myall_types, X_Color) = X_Color;
 
-            Success := echoColor (Myall_types, X_Color) = X_Color
-                         and then False;
+            --  No exception raised: invalid value was copied verbatim and
+            --  was not checked, success.
+
          exception
             when CORBA.MARSHAL =>
                Success := True;
 
             when CORBA.UNKNOWN =>
+               --  For the local case, we MAY raise CONSTRAINT_ERROR on the
+               --  servant side, which is mapped back to CORBA.UNKNOWN on the
+               --  caller side.
+
                Success := Is_Local;
 
             when E : others =>
