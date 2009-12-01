@@ -34,6 +34,8 @@ def client_server(client_cmd, client_conf, server_cmd, server_conf):
     Check for "END TESTS................   PASSED"
     if found return True
     """
+    print "Running client %s (config=%s)\nserver %s (config=%s)" % (
+        client_cmd, client_conf, server_cmd, server_conf)
     client = os.path.join(BASE_DIR, client_cmd + EXE_EXT)
     server = os.path.join(BASE_DIR, server_cmd + EXE_EXT)
 
@@ -79,7 +81,7 @@ def client_server(client_cmd, client_conf, server_cmd, server_conf):
             client_env = None
 
         Run(make_run_cmd([client, IOR_str],options.coverage),
-            output=options.out_file, error=STDOUT,
+            output=options.out_file + 'server', error=STDOUT,
             timeout=options.timeout, env=client_env)
 
         # Kill the server process
@@ -92,15 +94,22 @@ def client_server(client_cmd, client_conf, server_cmd, server_conf):
         print e
         server_handle.close()
 
-    return _check_output()
+    return _check_output(options.out_file + 'server')
 
-def local(cmd, config_file):
+def local(cmd, config_file, args=None):
     """Run a local test
 
-    Execute the give command.
+    Execute the given command.
     Check for "END TESTS................   PASSED"
     if found return True
+
+    PARAMETERS:
+        cmd: the command to execute
+        config_file: to set POLYORB_CONF
+        args: list of additional parameters
     """
+    print "Running %s %s (config=%s)" % (cmd, " ".join(args), config_file)
+    args = args or []
     if config_file:
         config_file = os.path.join(options.testsuite_src_dir, config_file)
         assert_exists(config_file)
@@ -109,18 +118,18 @@ def local(cmd, config_file):
     mkdir(os.path.dirname(options.out_file))
     command = os.path.join(BASE_DIR, cmd + EXE_EXT)
     assert_exists(command)
-    Run(make_run_cmd([command],options.coverage),
-        output=options.out_file, error=STDOUT,
+    Run(make_run_cmd([command] + args, options.coverage),
+        output=options.out_file + 'local', error=STDOUT,
         timeout=options.timeout)
     if options.coverage=="True":
         run_coverage_analysis(command)
-    return _check_output()
+    return _check_output(options.out_file + 'local')
 
 
-def _check_output():
+def _check_output(output_file):
     """Check that END TESTS....... PASSED is contained in the output"""
-    if os.path.exists(options.out_file):
-        test_outfile = open(options.out_file)
+    if os.path.exists(output_file):
+        test_outfile = open(output_file)
         test_out = test_outfile.read()
         test_outfile.close()
 
