@@ -629,30 +629,32 @@ begin
       declare
          Member : my_exception_Members;
       begin
-         testException (Myall_types, 2485);
+         testException (Myall_types, 2485, To_CORBA_String ("pouet"));
       exception
          when E : my_exception =>
-            Output ("test user exception", True);
             Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Information (E));
             Get_Members (E, Member);
-            Ok := (Member.info = 2485);
+            Ok := Member.info = 2485
+                    and then To_Standard_String (Member.why) = "pouet";
+
          when E : others =>
-            Output ("test user exception", False);
             Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Information (E));
       end;
+      Output ("test user exception", Ok);
 
       Ok := False;
       begin
          testUnknownException (Myall_types, 2485);
       exception
          when E : CORBA.Unknown =>
-            Output ("test unknown exception", True);
+            Ok := True;
             Ada.Text_IO.Put_Line
               (Ada.Exceptions.Exception_Information (E));
 
          when others =>
-            Output ("test unknown exception", False);
+            null;
       end;
+      Output ("test unknown exception", Ok);
 
       Ok := False;
       begin

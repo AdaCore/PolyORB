@@ -1119,9 +1119,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
 
          function Structure_Type_Body (E : Node_Id) return Node_Id is
             Result_Struct_Aggregate  : Node_Id;
-            L                        : constant List_Id
-              := New_List;
-            Result_Name              : Name_Id;
+            L                        : constant List_Id := New_List;
             Member                   : Node_Id;
             Declarator               : Node_Id;
             Designator               : Node_Id;
@@ -1131,41 +1129,12 @@ package body Backend.BE_CORBA_Ada.Helpers is
          begin
             Spec := From_Any_Node (BE_Node (Identifier (E)));
 
-            N := Make_Object_Declaration
-              (Defining_Identifier =>
-                 Make_Defining_Identifier (VN (V_Index)),
-               Object_Definition =>
-                 RE (RE_Any));
-            Append_To (D, N);
-
             Member := First_Entity (Members (E));
 
             while Present (Member) loop
                Declarator := First_Entity (Declarators (Member));
 
                while Present (Declarator) loop
-                  Designator := Map_Expanded_Name (Declarator);
-                  Get_Name_String (VN (V_Result));
-                  Add_Char_To_Name_Buffer ('_');
-                  Get_Name_String_And_Append
-                    (Get_Name (Get_Base_Identifier (Designator)));
-                  Result_Name := Name_Find;
-                  N := Make_Component_Association
-                    (Designator,
-                     Make_Defining_Identifier (Result_Name));
-                  Append_To (L, N);
-
-                  N := Make_Object_Declaration
-                    (Defining_Identifier => Make_Defining_Identifier
-                     (Result_Name),
-                     Object_Definition => Copy_Expanded_Name
-                     (Subtype_Indication
-                      (Stub_Node
-                       (BE_Node
-                        (Identifier
-                         (Declarator))))));
-                  Append_To (D, N);
-
                   TC := Get_TC_Node (Type_Spec (Declaration (Declarator)));
 
                   Helper := Get_From_Any_Node
@@ -1178,20 +1147,12 @@ package body Backend.BE_CORBA_Ada.Helpers is
                      New_List
                      (Make_Defining_Identifier (PN (P_Item)),
                       TC,
-                      Make_Type_Conversion
-                      (RE (RE_Unsigned_Long),
-                       Make_Literal (New_Value (V)))));
-                  N := Make_Assignment_Statement
-                    (Make_Defining_Identifier (VN (V_Index)),
-                     N);
-                  Append_To (S, N);
-                  N := Make_Subprogram_Call
-                    (Helper,
-                     New_List (Make_Identifier (VN (V_Index))));
-                  N := Make_Assignment_Statement
-                    (Make_Defining_Identifier (Result_Name),
-                     N);
-                  Append_To (S, N);
+                      Make_Literal (New_Value (V))));
+                  N := Make_Subprogram_Call (Helper, New_List (N));
+
+                  Designator := Map_Expanded_Name (Declarator);
+                  N := Make_Component_Association (Designator, N);
+                  Append_To (L, N);
                   V.IVal := V.IVal + 1;
                   Declarator := Next_Entity (Declarator);
                end loop;
@@ -1432,14 +1393,12 @@ package body Backend.BE_CORBA_Ada.Helpers is
          function Exception_Declaration_Body (E : Node_Id) return Node_Id is
             Members         : List_Id;
             Member          : Node_Id;
-            Declarator      : Node_Id;
-            Member_Id       : Node_Id;
             Member_Type     : Node_Id;
+            Declarator      : Node_Id;
             Dcl_Name        : Name_Id;
             Index           : Unsigned_Long_Long;
             Param_List      : List_Id;
             Return_List     : List_Id;
-            TC_Node         : Node_Id;
             From_Any_Helper : Node_Id;
          begin
             --  Get the "From_Any" spec node from the helper spec
@@ -1490,103 +1449,35 @@ package body Backend.BE_CORBA_Ada.Helpers is
             else
                --  Declarations
 
-               N := Make_Object_Declaration
-                 (Defining_Identifier =>
-                    Make_Defining_Identifier (VN (V_Index)),
-                  Object_Definition   => RE (RE_Any));
-               Append_To (D, N);
-
-               --  For each member "member" we declare a variable
-               --  Result_"member" which has the member type. In
-               --  parallel to the declaration, we built a list for
-               --  the returned aggregate value.
-
                Return_List := New_List;
-
                Member := First_Entity (Members);
+               Index := 0;
 
                while Present (Member) loop
                   Declarator := First_Entity (Declarators (Member));
 
                   while Present (Declarator) loop
-                     --  Get the Result_"member" identifier node
-
                      Dcl_Name := To_Ada_Name
                        (IDL_Name (FEN.Identifier (Declarator)));
-                     Set_Str_To_Name_Buffer ("Result_");
-                     Get_Name_String_And_Append (Dcl_Name);
-                     Member_Id := Make_Defining_Identifier (Name_Find);
+
+                     Member_Type := Type_Spec (Member);
+                     Param_List := New_List (
+                       Make_Identifier (PN (P_Item)),
+                       Get_TC_Node (Member_Type),
+                       Make_Literal (New_Integer_Value (Index, 1, 10)));
+
+                     From_Any_Helper := Get_From_Any_Node (Member_Type);
+
+                     N := Make_Subprogram_Call
+                            (RE (RE_Get_Aggregate_Element), Param_List);
+
+                     N := Make_Subprogram_Call (From_Any_Helper, New_List (N));
 
                      --  Adding the element to the return list
 
                      Append_To (Return_List,
                        Make_Component_Association
-                         (Make_Identifier (Dcl_Name), Member_Id));
-
-                     --  Get the member type designator
-
-                     N := Stub_Node (BE_Node (Identifier (Declarator)));
-                     Member_Type := Subtype_Indication (N);
-
-                     N := Make_Object_Declaration
-                       (Defining_Identifier => Member_Id,
-                        Object_Definition   => Member_Type);
-                     Append_To (D, N);
-
-                     Declarator := Next_Entity (Declarator);
-                  end loop;
-
-                  Member := Next_Entity (Member);
-               end loop;
-
-               --  Statements
-
-               Index := 0;
-               Member := First_Entity (Members);
-
-               while Present (Member) loop
-                  Declarator := First_Entity (Declarators (Member));
-                  Member_Type := Type_Spec (Member);
-
-                  while Present (Declarator) loop
-                     --  Set the value of the "Index_U" variable
-
-                     Param_List := New_List (Make_Identifier (PN (P_Item)));
-
-                     TC_Node := Get_TC_Node (Member_Type);
-                     From_Any_Helper := Get_From_Any_Node (Member_Type);
-
-                     Append_To (Param_List, TC_Node);
-
-                     N := Make_Literal (New_Integer_Value (Index, 1, 10));
-
-                     N := Make_Type_Conversion (RE (RE_Unsigned_Long), N);
-                     Append_To (Param_List, N);
-
-                     N := Make_Subprogram_Call
-                            (RE (RE_Get_Aggregate_Element), Param_List);
-
-                     N := Make_Assignment_Statement
-                       (Make_Defining_Identifier (VN (V_Index)),
-                        N);
-                     Append_To (S, N);
-
-                     --  Set the value of Result_"member"
-
-                     Dcl_Name :=
-                       To_Ada_Name (IDL_Name (FEN.Identifier (Declarator)));
-                     Set_Str_To_Name_Buffer ("Result_");
-                     Get_Name_String_And_Append (Dcl_Name);
-                     Member_Id := Make_Defining_Identifier (Name_Find);
-
-                     N := Make_Subprogram_Call
-                       (From_Any_Helper,
-                        New_List
-                        (Make_Defining_Identifier (VN (V_Index))));
-                     N := Make_Assignment_Statement
-                       (Member_Id,
-                        N);
-                     Append_To (S, N);
+                         (Make_Identifier (Dcl_Name), N));
 
                      Declarator := Next_Entity (Declarator);
                      Index := Index + 1;
@@ -1596,7 +1487,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
                end loop;
 
                N := Make_Return_Statement
-                 (Make_Record_Aggregate (Return_List));
+                      (Make_Record_Aggregate (Return_List));
                Append_To (S, N);
             end if;
 
