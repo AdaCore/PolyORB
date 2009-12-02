@@ -108,8 +108,8 @@ def local(cmd, config_file, args=None):
         config_file: to set POLYORB_CONF
         args: list of additional parameters
     """
-    print "Running %s %s (config=%s)" % (cmd, " ".join(args), config_file)
     args = args or []
+    print "Running %s %s (config=%s)" % (cmd, " ".join(args), config_file)
     if config_file:
         config_file = os.path.join(options.testsuite_src_dir, config_file)
         assert_exists(config_file)
