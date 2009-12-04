@@ -4180,6 +4180,7 @@ environment variables.
 * Location Declaration::
 * Partition Attribute Main::
 * Pragma Starter::
+* Pragma Name_Server::
 * Pragma Boot_Location::
 * Partition Attribute Self_Location::
 * Partition Attribute Passive::
@@ -4432,7 +4433,7 @@ REPRESENTATION_CLAUSE ::=
 
 @end smallexample
 
-@node Pragma Starter, Pragma Boot_Location, Partition Attribute Main, The Configuration Language
+@node Pragma Starter, Pragma Name_Server, Partition Attribute Main, The Configuration Language
 @subsubsection Pragma Starter
 
 As a default, the main executable is a full Ada starter procedure. That
@@ -4494,11 +4495,33 @@ The Command parameter indicates the name of the remote shell command
 name and the Options parameter corresponds to the additional flags to
 pass to the remote shell command.
 
-@node Pragma Boot_Location, Partition Attribute Self_Location, Pragma Starter, The Configuration Language
+@node Pragma Name_Server, Pragma Boot_Location, Pragma Starter, The Configuration Language
+@subsubsection Pragma Name_Server
+
+@smallexample
+
+NAME_SERVER_LITERAL ::= Embedded   |
+                       Standalone
+
+PRAGMA ::=
+   @b{pragma} Name_Server ([Name_Server_Kind =>] NAME_SERVER_LITERAL);
+
+@end smallexample
+
+By default, partitions in a PolyORB/DSA application rely on an external,
+stand-alone name server launched by the user, and whose location is retrieved
+from runtime configuration.
+
+A pragma Name_Server with parameter Embedded can be used to request the
+PCS to instead set up a name server within the main partition. If the
+Ada starter is used, the location of the name server is passed automatically
+to slave partitions.
+
+@node Pragma Boot_Location, Partition Attribute Self_Location, Pragma Name_Server, The Configuration Language
 @subsubsection Pragma Boot_Location
 
 When a partition starts executing, one of the first steps consists in a
-connection to the boot server.  This pragma provides one or more
+connection to the boot server. This pragma provides one or more
 locations in order to get a connection with the boot server.
 
 @smallexample
