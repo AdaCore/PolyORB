@@ -74,6 +74,7 @@ package body XE_Back.PolyORB is
       RU_PolyORB_ORB,
       RU_PolyORB_ORB_No_Tasking,
       RU_PolyORB_DSA_P,
+      RU_PolyORB_DSA_P_Name_Server,
       RU_PolyORB_DSA_P_Remote_Launch,
       RU_PolyORB_DSA_P_Storages,
       RU_PolyORB_DSA_P_Storages_Config,
@@ -137,6 +138,9 @@ package body XE_Back.PolyORB is
       PE_Min_Spare_Threads,
       PE_Rsh_Command,
       PE_Rsh_Options,
+      PE_Boot_Location,
+      PE_Self_Location,
+      PE_Reconnection_Policy,
       PE_Termination_Initiator,
       PE_Termination_Policy,
       PE_Partition_Name);
@@ -146,6 +150,9 @@ package body XE_Back.PolyORB is
    PE_Section_Table : constant array (PE_Id) of PS_Id :=
      (PE_Rsh_Command           => PS_DSA,
       PE_Rsh_Options           => PS_DSA,
+      PE_Boot_Location         => PS_DSA,
+      PE_Self_Location         => PS_DSA,
+      PE_Reconnection_Policy   => PS_DSA,
       PE_Termination_Initiator => PS_DSA,
       PE_Termination_Policy    => PS_DSA,
       PE_Partition_Name        => PS_DSA,
@@ -281,8 +288,14 @@ package body XE_Back.PolyORB is
       --  Remote_Launch is only needed when using the Ada Starter,
       --  we avoid "withing" it otherwise since it drags sockets.
 
-      if P = Main_Partition and then Default_Starter = Ada_Import then
-         Write_With_Clause (RU (RU_PolyORB_DSA_P_Remote_Launch));
+      if P = Main_Partition then
+         if Default_Starter = Ada_Import then
+            Write_With_Clause (RU (RU_PolyORB_DSA_P_Remote_Launch));
+         end if;
+
+         if Default_Name_Server = Embedded then
+            Write_With_Clause (RU (RU_PolyORB_DSA_P_Name_Server));
+         end if;
       end if;
 
       Write_With_Clause (RU (RU_PolyORB_Setup_IIOP), False, True);
@@ -544,7 +557,28 @@ package body XE_Back.PolyORB is
                    Termination_Img (Current.Termination));
       end if;
 
-      --  Set the Tasking pool parameters
+      --  Set reconnection policy
+
+      if Current.Reconnection /= No_Reconnection then
+         Set_Conf (PE_Reconnection_Policy,
+                   Reconnection_Img (Current.Reconnection));
+      end if;
+
+      --  Set boot location
+
+      if Default_First_Boot_Location /= No_Location_Id then
+         Set_Conf (PE_Boot_Location,
+                   Location_List_Image (Default_First_Boot_Location));
+      end if;
+
+      --  Set self location
+
+      if Current.First_Network_Loc /= No_Location_Id then
+         Set_Conf (PE_Self_Location,
+                     Location_List_Image (Current.First_Network_Loc));
+      end if;
+
+      --  Set task pool parameters
 
       if Current.Task_Pool /= No_Task_Pool then
          Set_Nat_To_Name_Buffer (Current.Task_Pool (1));
@@ -569,8 +603,8 @@ package body XE_Back.PolyORB is
       Set_Conf (PE_Rsh_Options, Get_Rsh_Options);
 
       --  Set the DSA_Local_RCIs section parameters:
-      --  For each RCI instantiated on this partition add a
-      --  parameter <RCI NAME> set to true.
+      --  For each RCI assigned on this partition add a parameter <RCI NAME>
+      --  set to True.
 
       declare
          U       : Conf_Unit_Id;

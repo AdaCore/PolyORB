@@ -862,6 +862,28 @@ package body XE_Back is
       Partition_Main_Name := Id ("Partition");
    end Initialize;
 
+   -------------------------
+   -- Location_List_Image --
+   -------------------------
+
+   function Location_List_Image (Location : Location_Id) return Name_Id is
+      L : Location_Id := Location;
+
+   begin
+      Name_Len := 0;
+      loop
+         Get_Name_String_And_Append (Locations.Table (L).Major);
+         if Present (Locations.Table (L).Minor) then
+            Add_Str_To_Name_Buffer ("://");
+            Get_Name_String_And_Append (Locations.Table (L).Minor);
+         end if;
+         L := Locations.Table (L).Next_Location;
+         exit when L = No_Location_Id;
+         Add_Char_To_Name_Buffer (' ');
+      end loop;
+      return Quote (Name_Find);
+   end Location_List_Image;
+
    ------------------------
    -- Partition_Dir_Flag --
    ------------------------

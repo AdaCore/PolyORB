@@ -500,6 +500,28 @@ package body XE is
       return ORB_Tasking_Policy_Type (Item);
    end Convert;
 
+   -------------
+   -- Convert --
+   -------------
+
+   function Convert (Item : Name_Server_Type) return Int is
+   begin
+      return Int (Item);
+   end Convert;
+
+   -------------
+   -- Convert --
+   -------------
+
+   function Convert (Item : Int) return Name_Server_Type is
+   begin
+      pragma Assert
+        (Item in
+         Int (Name_Server_Type'First) ..
+         Int (Name_Server_Type'Last));
+      return Name_Server_Type (Item);
+   end Convert;
+
    ----------------------
    -- Create_Component --
    ----------------------
@@ -1024,6 +1046,10 @@ package body XE is
             User_Tasking    => Id ("User_Tasking"),
             No_Tasking      => Id ("No_Tasking"));
 
+      Name_Server_Img
+        := (No_Name_Server => Id ("Undefined name server kind"),
+            Embedded       => Id ("Embedded"),
+            Standalone     => Id ("Standalone"));
    end Initialize;
 
    ------------------

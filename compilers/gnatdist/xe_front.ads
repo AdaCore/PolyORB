@@ -54,6 +54,7 @@ package XE_Front is
    Default_Last_Boot_Location  : Location_Id             := No_Location_Id;
    Default_Data_Location       : Location_Id             := No_Location_Id;
    Default_Starter             : Import_Method_Type      := Ada_Import;
+   Default_Name_Server         : Name_Server_Type        := No_Name_Server;
    Default_Version_Check       : Boolean                 := True;
    Default_Rsh_Command         : Name_Id                 := No_Name;
    Default_Rsh_Options         : Name_Id                 := No_Name;

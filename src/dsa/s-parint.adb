@@ -1495,7 +1495,10 @@ package body System.Partition_Interface is
 
       Retry_Count : Natural := 0;
    begin
-      --  Unit not known yet: we therefore know that it is remote, and we
+      pragma Debug
+        (C, O ("Nameserver_Lookup (" & Name & "." & Kind & "): enter"));
+
+      --  Unit not known yet, we therefore know that it is remote, and we
       --  need to look it up with the naming service.
 
       loop
@@ -1510,7 +1513,9 @@ package body System.Partition_Interface is
                --  Catch all exceptions: we will retry resolution, and bail
                --  out after Max_Requests iterations.
 
-            when others =>
+            when E : others =>
+               pragma Debug (C, O ("retry" & Retry_Count'Img & " got "
+                 & Ada.Exceptions.Exception_Information (E)));
                null;
          end;
 
@@ -2410,6 +2415,7 @@ begin
        & "object_adapter"
        & "naming.Helper"
        & "naming.NamingContext.Helper"
+       & "dsa.name_server?"
        & "tasking.condition_variables"
        & "tasking.mutexes"
        & "access_points?"

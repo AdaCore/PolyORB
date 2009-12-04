@@ -1424,6 +1424,10 @@ package body XE_Front is
             Value := Get_Parameter_Value (Parameter);
             Default_Priority_Policy := Convert (Get_Scalar_Value (Value));
 
+         when Pragma_Name_Server =>
+            Value := Get_Parameter_Value (Parameter);
+            Default_Name_Server := Convert (Get_Scalar_Value (Value));
+
          when Pragma_Unknown =>
             raise Program_Error;
       end case;

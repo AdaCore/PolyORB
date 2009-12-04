@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1995-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -508,6 +508,43 @@ package body XE_Stdcnf is
         (Id ("convention"),
          Convention_Type_Node,
          Pragma_Starter_Node,
+         Null_Location);
+
+      --  type Name_Server is (Embedded, Standalone);
+
+      Declare_Type
+        (Type_Name    => Type_Prefix & "name_server",
+         Type_Kind    => Pre_Type_Name_Server,
+         Composite    => False,
+         Comp_Type    => Null_Type,
+         Array_Len    => 0,
+         Type_Sloc    => Null_Location,
+         Type_Node    => Name_Server_Type_Node);
+
+      for R in Name_Server_Img'Range loop
+         Declare_Variable
+           (To_Lower (Name_Server_Img (R)),
+            Name_Server_Type_Node,
+            Null_Location,
+            Variable_Node);
+         Set_Scalar_Value (Variable_Node, Convert (R));
+      end loop;
+
+      --  pragma name_server ... or
+      --  procedure pragma__name_server
+      --    (ns : type__name_server);
+
+      Declare_Subprogram
+        (Pragma_Prefix & "name_server",
+         Pragma_Name_Server,
+         True,
+         Null_Location,
+         Pragma_Name_Server_Node);
+
+      Declare_Subprogram_Parameter
+        (Id ("name_server_kind"),
+         Name_Server_Type_Node,
+         Pragma_Name_Server_Node,
          Null_Location);
 
       --  pragma priority ... or

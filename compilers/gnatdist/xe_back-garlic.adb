@@ -158,9 +158,6 @@ package body XE_Back.GARLIC is
    --  Add a protocol of name Name to the chained list which starts at
    --  First and ends at Last.
 
-   function Location_List_Image (Location : Location_Id) return Name_Id;
-   --  Explore linked list of locations to build its image
-
    procedure Generate_Elaboration_File (P : Partition_Id);
    --  Create the elaboration unit for the given partition. This unit
    --  overloads the default PCS settings.
@@ -1241,31 +1238,6 @@ package body XE_Back.GARLIC is
       Generate_PCS_Project_Files;
       Generate_Application_Project_Files;
    end Initialize;
-
-   -------------------------
-   -- Location_List_Image --
-   -------------------------
-
-   function Location_List_Image
-     (Location : Location_Id)
-     return Name_Id
-   is
-      L : Location_Id := Location;
-
-   begin
-      Name_Len := 0;
-      loop
-         Get_Name_String_And_Append (Locations.Table (L).Major);
-         if Present (Locations.Table (L).Minor) then
-            Add_Str_To_Name_Buffer ("://");
-            Get_Name_String_And_Append (Locations.Table (L).Minor);
-         end if;
-         L := Locations.Table (L).Next_Location;
-         exit when L = No_Location_Id;
-         Add_Char_To_Name_Buffer (' ');
-      end loop;
-      return Quote (Name_Find);
-   end Location_List_Image;
 
    ----------
    -- Name --

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 1995-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -139,6 +139,9 @@ private
    --  Insert a procedure call. The first non-null parameter is supposed to be
    --  the procedure name. The next parameters are parameters for this
    --  procedure call.
+
+   function Location_List_Image (Location : Location_Id) return Name_Id;
+   --  Explore linked list of locations to build its image
 
    procedure Write_Image (I : out Name_Id; H : Host_Id; P : Partition_Id);
    --  Write in I the text to get the partition hostname. This can be
