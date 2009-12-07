@@ -208,10 +208,14 @@ package body XE_Back.PolyORB is
    function Strip (S : String) return Unit_Name_Type;
    --  Return the prefix and a possible suffix from S
 
-   procedure Set_Conf (Var : PE_Id; Val : Name_Id);
+   procedure Set_Conf (Var : PE_Id; Val : Name_Id; Quote : Boolean := True);
    --  Add a new entry in the configuration table
 
-   procedure Set_Conf (Section : Name_Id; Key : Name_Id; Val : Name_Id);
+   procedure Set_Conf
+     (Section : Name_Id;
+      Key     : Name_Id;
+      Val     : Name_Id;
+      Quote   : Boolean);
    --  Add a new entry in the configuration table
 
    procedure Reset_Conf;
@@ -568,14 +572,16 @@ package body XE_Back.PolyORB is
 
       if Default_First_Boot_Location /= No_Location_Id then
          Set_Conf (PE_Boot_Location,
-                   Location_List_Image (Default_First_Boot_Location));
+                   Location_List_Image (Default_First_Boot_Location),
+                   Quote => False);
       end if;
 
       --  Set self location
 
       if Current.First_Network_Loc /= No_Location_Id then
          Set_Conf (PE_Self_Location,
-                     Location_List_Image (Current.First_Network_Loc));
+                     Location_List_Image (Current.First_Network_Loc),
+                   Quote => False);
       end if;
 
       --  Set task pool parameters
@@ -613,7 +619,7 @@ package body XE_Back.PolyORB is
       begin
          U := Current.First_Unit;
          while U /= No_Conf_Unit_Id loop
-            Set_Conf (Section, Conf_Units.Table (U).Name, T);
+            Set_Conf (Section, Conf_Units.Table (U).Name, T, Quote => True);
             U := Conf_Units.Table (U).Next_Unit;
          end loop;
       end;
@@ -716,9 +722,9 @@ package body XE_Back.PolyORB is
          Write_Name (Table (P).Var);
          Write_Line (""");");
          Write_Indentation;
-         Write_Str  ("Table (Last).Val := new String'(""");
+         Write_Str  ("Table (Last).Val := new String'(");
          Write_Name (Table (P).Val);
-         Write_Line (""");");
+         Write_Line (");");
       end loop;
 
       Write_Indentation;
@@ -1220,18 +1226,24 @@ package body XE_Back.PolyORB is
    -- Set_Conf --
    --------------
 
-   procedure Set_Conf (Var : PE_Id; Val : Name_Id) is
+   procedure Set_Conf (Var : PE_Id; Val : Name_Id; Quote : Boolean := True) is
    begin
       Set_Conf (Section => PS (PE_Section_Table (Var)),
                 Key     => PE (Var),
-                Val     => Val);
+                Val     => Val,
+                Quote   => Quote);
    end Set_Conf;
 
    --------------
    -- Set_Conf --
    --------------
 
-   procedure Set_Conf (Section : Name_Id; Key : Name_Id; Val : Name_Id) is
+   procedure Set_Conf
+     (Section : Name_Id;
+      Key     : Name_Id;
+      Val     : Name_Id;
+      Quote   : Boolean)
+   is
    begin
       Last := Last + 1;
       Name_Len := 0;
@@ -1241,7 +1253,12 @@ package body XE_Back.PolyORB is
       Get_Name_String_And_Append (Key);
       To_Lower (Name_Buffer (1 .. Name_Len));
       Table (Last).Var := Name_Find;
-      Table (Last).Val := Val;
+
+      if Quote then
+         Table (Last).Val := XE_Utils.Quote (Val);
+      else
+         Table (Last).Val := Val;
+      end if;
    end Set_Conf;
 
    ------------------------
