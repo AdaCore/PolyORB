@@ -72,30 +72,40 @@ with PolyORB.Tasking.Condition_Variables;
 with PolyORB.Tasking.Mutexes;
 with PolyORB.Tasking.Threads;
 with PolyORB.Termination_Activity;
+with PolyORB.Utils.Configuration_File;
 with PolyORB.Utils.Ilists;
 with PolyORB.Utils.Strings.Lists;
 
 package body System.Partition_Interface is
 
-   use Ada.Characters.Handling;
    use Ada.Streams;
 
    use PolyORB.Any;
-   use PolyORB.Log;
    use PolyORB.References;
-   use PolyORB.Utils.Strings;
+
+   package PL renames PolyORB.Log;
 
    package L is new PolyORB.Log.Facility_Log ("system.partition_interface");
-   procedure O (Message : String; Level : Log_Level := Debug)
+   procedure O (Message : String; Level : PL.Log_Level := PL.Debug)
      renames L.Output;
-   function C (Level : Log_Level := Debug) return Boolean
+   function C (Level : PL.Log_Level := PL.Debug) return Boolean
      renames L.Enabled;
 
    --  A few handy aliases
 
-   package PSNNC renames PolyORB.Services.Naming.NamingContext;
-   package PTC   renames PolyORB.Tasking.Condition_Variables;
-   package PTM   renames PolyORB.Tasking.Mutexes;
+   package PSNNC  renames PolyORB.Services.Naming.NamingContext;
+   package PTC    renames PolyORB.Tasking.Condition_Variables;
+   package PTM    renames PolyORB.Tasking.Mutexes;
+   package PUCFCT renames PolyORB.Utils.Configuration_File.Configuration_Table;
+
+   function To_Lower (S : String) return String
+     renames Ada.Characters.Handling.To_Lower;
+
+   function Make_Global_Key (Section, Key : String) return String
+     renames PolyORB.Parameters.Make_Global_Key;
+
+   function "+" (S : String) return PolyORB.Utils.Strings.String_Ptr
+     renames PolyORB.Utils.Strings."+";
 
    --  An opaque octet sequence
 
@@ -128,7 +138,8 @@ package body System.Partition_Interface is
    --  Protects shared data structures at the DSA personality level
 
    procedure Initialize;
-   --  Procedure called during global PolyORB initialization
+   procedure Initialize_Parameters;
+   --  Procedures called during global PolyORB initialization
 
    function Nameserver_Lookup (Name, Kind : String) return Ref;
    --  Look up the specified (Name, Kind) pair from the DSA naming context
@@ -207,11 +218,29 @@ package body System.Partition_Interface is
    type Hash_Index is range 0 .. 100;
    function Hash (K : RACW_Stub_Type_Access) return Hash_Index;
 
-   function Compare_Content (Left, Right : RACW_Stub_Type_Access)
-     return Boolean;
+   ---------------------------
+   -- DSA parameters source --
+   ---------------------------
 
-   package Objects_HTable is
-      new GNAT.HTable.Simple_HTable
+   Conf_Table : PUCFCT.Table_Instance;
+
+   type DSA_Source is
+     new PolyORB.Parameters.Parameters_Source with null record;
+
+   function Get_Conf
+     (Source       : access DSA_Source;
+      Section, Key : String) return String;
+
+   The_DSA_Source : aliased DSA_Source;
+
+   ------------------------
+   -- Internal functions --
+   ------------------------
+
+   function Compare_Content
+     (Left, Right : RACW_Stub_Type_Access) return Boolean;
+
+   package Objects_HTable is new GNAT.HTable.Simple_HTable
      (Header_Num => Hash_Index,
       Element    => RACW_Stub_Type_Access,
       No_Element => null,
@@ -222,8 +251,8 @@ package body System.Partition_Interface is
    --  When a RACW must be constructed to designate a local object, an object
    --  identifier is created using the address of the object.
 
-   subtype Local_Oid is PolyORB.Objects.Object_Id
-     (1 .. System.Address'Size / 8);
+   subtype Local_Oid is
+     PolyORB.Objects.Object_Id (1 .. System.Address'Size / 8);
 
    function To_Local_Oid is
      new Ada.Unchecked_Conversion (System.Address, Local_Oid);
@@ -459,17 +488,7 @@ package body System.Partition_Interface is
 
    function Caseless_String_Eq (S1, S2 : String) return Boolean is
    begin
-      if S1'Length /= S2'Length then
-         return False;
-      end if;
-
-      for I in S1'Range loop
-         if To_Lower (S1 (I)) /= To_Lower (S2 (I - S1'First + S2'First)) then
-            return False;
-         end if;
-      end loop;
-
-      return True;
+      return To_Lower (S1) = To_Lower (S2);
    end Caseless_String_Eq;
 
    -----------
@@ -736,11 +755,11 @@ package body System.Partition_Interface is
 
    function Extract_Union_Value (U : Any) return Any is
       U_Type : constant PATC.Local_Ref := Get_Type (U);
-      Label_Any : constant Any
-        := PolyORB.Any.Get_Aggregate_Element
-        (U, PATC.Discriminator_Type (U_Type), 0);
-      Value_Type : constant PATC.Local_Ref
-        := PATC.Member_Type_With_Label (U_Type, Label_Any);
+      Label_Any : constant Any :=
+                    PolyORB.Any.Get_Aggregate_Element
+                      (U, PATC.Discriminator_Type (U_Type), 0);
+      Value_Type : constant PATC.Local_Ref :=
+                     PATC.Member_Type_With_Label (U_Type, Label_Any);
    begin
       return PolyORB.Any.Get_Aggregate_Element (U, Value_Type, 1);
    end Extract_Union_Value;
@@ -938,6 +957,27 @@ package body System.Partition_Interface is
       return Info.RCI_Partition_ID;
    end Get_Active_Partition_ID;
 
+   --------------
+   -- Get_Conf --
+   --------------
+
+   function Get_Conf
+     (Source       : access DSA_Source;
+      Section, Key : String) return String
+   is
+      pragma Unreferenced (Source);
+      subtype String_Ptr is PolyORB.Utils.Strings.String_Ptr;
+      use type String_Ptr;
+      V : constant String_Ptr :=
+            PUCFCT.Lookup (Conf_Table, Make_Global_Key (Section, Key), null);
+   begin
+      if V /= null then
+         return V.all;
+      else
+         return "";
+      end if;
+   end Get_Conf;
+
    -----------------------
    -- Get_Local_Address --
    -----------------------
@@ -949,8 +989,8 @@ package body System.Partition_Interface is
    is
       use PolyORB.Errors;
 
-      Profiles : constant Profile_Array
-        := PolyORB.References.Profiles_Of (Ref);
+      Profiles : constant Profile_Array :=
+                   PolyORB.References.Profiles_Of (Ref);
 
       Error : Error_Container;
 
@@ -1139,8 +1179,9 @@ package body System.Partition_Interface is
       declare
          use type Unsigned;
 
-         Outer_Length : constant Unsigned
-           := FA_U (PolyORB.Any.Get_Aggregate_Element (Seq_Any, TC_U, 0));
+         Outer_Length : constant Unsigned :=
+                          FA_U (PolyORB.Any.Get_Aggregate_Element
+                                  (Seq_Any, TC_U, 0));
       begin
          if Depth = 1 or else Outer_Length = 0 then
             return Outer_Length;
@@ -1421,6 +1462,31 @@ package body System.Partition_Interface is
       PTM.Create (Critical_Section);
       PTC.Create (Local_PID_Barrier);
    end Initialize;
+
+   ---------------------------
+   -- Initialize_Parameters --
+   ---------------------------
+
+   procedure Initialize_Parameters is
+      procedure Set_Conf (Section, Key, Value : String);
+      --  Call back to set the given configuration parameter
+
+      --------------
+      -- Set_Conf --
+      --------------
+
+      procedure Set_Conf (Section, Key, Value : String) is
+      begin
+         PUCFCT.Insert (Conf_Table, Make_Global_Key (Section, Key), +Value);
+      end Set_Conf;
+
+   --  Start of processing for Initialize_Parameters
+
+   begin
+      PUCFCT.Initialize (Conf_Table);
+      PolyORB.Partition_Elaboration.Configure (Set_Conf'Access);
+      PolyORB.Parameters.Register_Source (The_DSA_Source'Access);
+   end Initialize_Parameters;
 
    ------------------------
    -- Is_Reference_Valid --
@@ -1855,7 +1921,7 @@ package body System.Partition_Interface is
 
       when E : others =>
          O ("Cannot register information for RCI "
-             & Name & " with name server.", Error);
+             & Name & " with name server.", PL.Error);
          pragma Debug (C, O ("exception raised: "
                              & Ada.Exceptions.Exception_Information (E)));
          PolyORB.Initialization.Shutdown_World (Wait_For_Completion => False);
@@ -2404,6 +2470,16 @@ package body System.Partition_Interface is
    use PolyORB.Utils.Strings.Lists;
 
 begin
+   Register_Module
+     (Module_Info'
+      (Name      => +"parameters.dsa",
+       Conflicts => Empty,
+       Depends   => Empty,
+       Provides  => +"parameters_sources",
+       Implicit  => True,
+       Init      => Initialize_Parameters'Access,
+       Shutdown  => null));
+
    Register_Module
      (Module_Info'
       (Name      => +"dsa",
