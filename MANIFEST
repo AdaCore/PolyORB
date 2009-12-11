@@ -1138,6 +1138,8 @@ src/csupport.c
 src/dsa/polyorb-dsa_p-conversions.ads
 src/dsa/polyorb-dsa_p-exceptions.adb
 src/dsa/polyorb-dsa_p-exceptions.ads
+src/dsa/polyorb-dsa_p-name_server.adb
+src/dsa/polyorb-dsa_p-name_server.ads
 src/dsa/polyorb-dsa_p-partitions.adb
 src/dsa/polyorb-dsa_p-partitions.ads
 src/dsa/polyorb-dsa_p-remote_launch.adb
