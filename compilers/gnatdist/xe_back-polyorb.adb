@@ -31,6 +31,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Characters.Handling;
+
 with GNAT.Directory_Operations; use GNAT.Directory_Operations;
 with GNAT.Expect;               use GNAT.Expect;
 with GNAT.OS_Lib;               use GNAT.OS_Lib;
@@ -126,8 +128,7 @@ package body XE_Back.PolyORB is
    -- Parameter types --
    ---------------------
 
-   type PS_Id is
-     (PS_Tasking, PS_DSA, PS_DSA_Local_RCIs);
+   type PS_Id is (PS_Tasking, PS_DSA, PS_DSA_Local_RCIs);
 
    PS : array (PS_Id) of Unit_Name_Type;
 
@@ -166,8 +167,9 @@ package body XE_Back.PolyORB is
    -----------------------------
 
    type Parameter_Entry is record
-      Var : Name_Id;
-      Val : Name_Id;
+      Section : Name_Id;
+      Key     : Name_Id;
+      Value   : Name_Id;
    end record;
 
    Table : array (0 .. 31) of Parameter_Entry;
@@ -205,8 +207,11 @@ package body XE_Back.PolyORB is
    procedure Generate_PCS_Project_Files;
    --  Generate project files to access the PCS
 
-   function Strip (S : String) return Unit_Name_Type;
-   --  Return the prefix and a possible suffix from S
+   function Strip
+     (S        : String;
+      To_Lower : Boolean := False) return Unit_Name_Type;
+   --  Return the prefix and a possible suffix from S. If To_Lower is set,
+   --  convert to lowercase, else apply general casing rules.
 
    procedure Set_Conf (Var : PE_Id; Val : Name_Id; Quote : Boolean := True);
    --  Add a new entry in the configuration table
@@ -284,6 +289,7 @@ package body XE_Back.PolyORB is
       Set_Output  (File);
 
       Write_Line  ("pragma Warnings (Off);");
+      Write_Line  ("pragma Ada_2005;");
 
       --  First drag platform the specific base setup
 
@@ -547,7 +553,7 @@ package body XE_Back.PolyORB is
    --------------------------------
 
    procedure Generate_Parameters_Source (P : Partition_Id) is
-      Current      : Partition_Type renames Partitions.Table (P);
+      Current : Partition_Type renames Partitions.Table (P);
    begin
       --  Set partition name
 
@@ -627,139 +633,44 @@ package body XE_Back.PolyORB is
       --  The configuration is done, start generating the code
 
       Write_Indentation;
-      Write_Line ("type Partition_Source is new Parameters_Source" &
-                    " with null record;");
-
-      Write_Indentation;
-      Write_Line ("function Get_Conf");
+      Write_Line ("procedure Configure");
       Increment_Indentation;
       Write_Indentation (-1);
-      Write_Line ("(Source       : access Partition_Source;");
-      Write_Indentation;
-      Write_Line ("Section, Key : String) return String;");
+      Write_Line
+        ("(Set_Conf : access procedure (Section, Key, Value : String))");
       Decrement_Indentation;
-
-      Write_Indentation;
-      Write_Line ("type Parameter_Entry is record");
-
-      Increment_Indentation;
-      Write_Indentation;
-      Write_Line ("Var : String_Ptr;");
-      Write_Indentation;
-      Write_Line ("Val : String_Ptr;");
-      Decrement_Indentation;
-
-      Write_Indentation;
-      Write_Line ("end record;");
-      Write_Indentation;
-      Write_Line ("Table : array (0 .. 31) of Parameter_Entry;");
-      Write_Indentation;
-      Write_Line ("Last  : Integer := -1;");
-      Write_Indentation;
-      Write_Line ("function Get_Conf");
-
-      Increment_Indentation;
-      Write_Indentation (-1);
-      Write_Line ("(Source       : access Partition_Source;");
-      Write_Indentation;
-      Write_Line ("Section, Key : String) return String");
-      Decrement_Indentation;
-
       Write_Indentation;
       Write_Line ("is");
 
-      Increment_Indentation;
-      Write_Indentation;
-      Write_Line ("S : constant String := Make_Global_Key (Section, Key);");
-      Decrement_Indentation;
-
       Write_Indentation;
       Write_Line ("begin");
 
       Increment_Indentation;
-      Write_Indentation;
-      Write_Line ("for I in 0 .. Last loop");
-
-      Increment_Indentation;
-      Write_Indentation;
-      Write_Line ("if Table (I).Var.all = S then");
-
-      Increment_Indentation;
-      Write_Indentation;
-      Write_Line ("return Table (I).Val.all;");
-      Decrement_Indentation;
-
-      Write_Indentation;
-      Write_Line ("end if;");
-      Decrement_Indentation;
-
-      Write_Indentation;
-      Write_Line ("end loop;");
-      Write_Indentation;
-      Write_Line ("return """";");
-      Decrement_Indentation;
-
-      Write_Indentation;
-      Write_Line ("end Get_Conf;");
-
-      Write_Indentation;
-      Write_Line ("The_Partition_Source : aliased Partition_Source;");
-
-      Write_Indentation;
-      Write_Line ("procedure Initialize is");
-      Write_Indentation;
-      Write_Line ("begin");
-
-      Increment_Indentation;
-      Write_Indentation;
-      Write_Line ("Last := -1;");
-
       for P in Table'First .. Last loop
          Write_Indentation;
-         Write_Line ("Last := Last + 1;");
+         Write_Line ("Set_Conf");
+         Increment_Indentation;
+
+         Write_Indentation (-1);
+         Write_Str ("(Section => """);
+         Write_Name (Table (P).Section);
+         Write_Line (""",");
+
          Write_Indentation;
-         Write_Str  ("Table (Last).Var := new String'(""");
-         Write_Name (Table (P).Var);
-         Write_Line (""");");
+         Write_Str ("Key     => """);
+         Write_Name (Table (P).Key);
+         Write_Line (""",");
+
          Write_Indentation;
-         Write_Str  ("Table (Last).Val := new String'(");
-         Write_Name (Table (P).Val);
+         Write_Str ("Value   => ");
+         Write_Name (Table (P).Value);
          Write_Line (");");
+         Decrement_Indentation;
       end loop;
 
-      Write_Indentation;
-      Write_Line ("Register_Source (The_Partition_Source'Access);");
       Decrement_Indentation;
-
       Write_Indentation;
-      Write_Line ("end Initialize;");
-      Decrement_Indentation;
-
-      Write_Indentation;
-      Write_Line ("begin");
-
-      Increment_Indentation;
-      Write_Indentation;
-      Write_Line ("Register_Module");
-
-      Increment_Indentation;
-      Write_Indentation (-1);
-      Write_Line ("(Module_Info'");
-      Write_Indentation;
-      Write_Line ("(Name      => +""parameters.partition"",");
-      Write_Indentation (+1);
-      Write_Line ("Conflicts => Empty,");
-      Write_Indentation (+1);
-      Write_Line ("Depends   => Empty,");
-      Write_Indentation (+1);
-      Write_Line ("Provides  => +""parameters_sources"",");
-      Write_Indentation (+1);
-      Write_Line ("Implicit  => True,");
-      Write_Indentation (+1);
-      Write_Line ("Init      => Initialize'Access,");
-      Write_Indentation (+1);
-      Write_Line ("Shutdown  => null));");
-      Decrement_Indentation;
+      Write_Line ("end Configure;");
    end Generate_Parameters_Source;
 
    ----------------------------------
@@ -1098,11 +1009,11 @@ package body XE_Back.PolyORB is
       end loop;
 
       for S in PS_Id loop
-         PS (S) := Strip (PS_Id'Image (S));
+         PS (S) := Strip (PS_Id'Image (S), To_Lower => True);
       end loop;
 
       for E in PE_Id loop
-         PE (E) := Strip (PE_Id'Image (E));
+         PE (E) := Strip (PE_Id'Image (E), To_Lower => True);
       end loop;
 
       --  Pass name server IOR from starter to all slave partitions
@@ -1244,21 +1155,16 @@ package body XE_Back.PolyORB is
       Val     : Name_Id;
       Quote   : Boolean)
    is
+      Value : Name_Id;
    begin
-      Last := Last + 1;
-      Name_Len := 0;
-      Add_Str_To_Name_Buffer ("[");
-      Get_Name_String_And_Append (Section);
-      Add_Str_To_Name_Buffer ("]");
-      Get_Name_String_And_Append (Key);
-      To_Lower (Name_Buffer (1 .. Name_Len));
-      Table (Last).Var := Name_Find;
-
       if Quote then
-         Table (Last).Val := XE_Utils.Quote (Val);
+         Value := XE_Utils.Quote (Val);
       else
-         Table (Last).Val := Val;
+         Value := Val;
       end if;
+
+      Last := Last + 1;
+      Table (Last) := (Section => Section, Key => Key, Value => Value);
    end Set_Conf;
 
    ------------------------
@@ -1310,11 +1216,22 @@ package body XE_Back.PolyORB is
    -- Strip --
    -----------
 
-   function Strip (S : String) return Unit_Name_Type is
+   function Strip
+     (S        : String;
+      To_Lower : Boolean := False) return Unit_Name_Type
+   is
    begin
       Set_Str_To_Name_Buffer (S);
       Set_Str_To_Name_Buffer (Name_Buffer (4 .. Name_Len));
-      Apply_Casing_Rules (Name_Buffer (1 .. Name_Len));
+
+      if To_Lower then
+         for J in 1 .. Name_Len loop
+            Name_Buffer (J) :=
+              Ada.Characters.Handling.To_Lower (Name_Buffer (J));
+         end loop;
+      else
+         Apply_Casing_Rules (Name_Buffer (1 .. Name_Len));
+      end if;
 
       while Name_Buffer (Name_Len) in '0' .. '9'
         or else Name_Buffer (Name_Len) = '_'
