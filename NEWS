@@ -41,6 +41,9 @@ See the features-27 file.
 Bug fixes
 ---------
 
+po_gnatdist does not create files anymore outside of the private dsa/
+subdirectory. (IC14-034)
+
 PROGRAM_ERROR was raised when performing a local call involving IDL union
 with a switch that do not have an associated member label. (IB25-010)
 

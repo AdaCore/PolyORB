@@ -917,7 +917,7 @@ package body XE_Back.PolyORB is
       Write_Str  ("project ");
       Write_Name (PCS_Project);
       Write_Line (" is");
-      Write_Line ("   for Object_Dir use "".."";");
+      Write_Line ("   for Object_Dir use ""obj"";");
       Write_Line ("   for Source_Dirs use (""" & DSA_Inc_Dir & """);");
       Write_Line ("   for Source_Files use");
       Write_Line ("     (""polyorb-dsa_p-partitions.ads"",");
