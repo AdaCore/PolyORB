@@ -349,23 +349,58 @@ package body System.Partition_Interface is
    ---------------
 
    procedure Any_To_BS (Item : Any; Stream : out Buffer_Stream_Type) is
-      --  Obtain direct unchecked access to the underlying byte storage
+      use type PolyORB.Types.Unsigned_Long;
 
+      AC  : Any_Container'Class renames Get_Container (Item).all;
       ACC : Aggregate_Content'Class renames
-              Aggregate_Content'Class
-                (Get_Value (Get_Container (Item).all).all);
+              Aggregate_Content'Class (Get_Value (AC).all);
 
+      El_Count : constant PolyORB.Types.Unsigned_Long :=
+                   Get_Aggregate_Count (ACC);
       Data_Length  : constant Stream_Element_Count :=
-                       Stream_Element_Count
-                         (Get_Aggregate_Count (ACC));
-      Data_Address : constant System.Address := Unchecked_Get_V (ACC'Access);
+                       Stream_Element_Count (El_Count - 1);
+      pragma Assert (El_Count - 1 = Get_Aggregate_Element (AC, 0));
+      --  Note: for a sequence aggregate, the first aggregate element is the
+      --  sequence length.
+
+      Data_Address : System.Address := Unchecked_Get_V (ACC'Access);
    begin
-      PolyORB.Buffers.Initialize_Buffer
-        (Stream.Buf'Access,
-         Data_Length,
-         Data_Address,
-         PolyORB.Buffers.Endianness_Type'First, --  XXX Irrelevant
-         0);
+      if Data_Address /= Null_Address then
+         PolyORB.Buffers.Initialize_Buffer
+           (Stream.Buf'Access,
+            Data_Length,
+            Data_Address,
+            PolyORB.Buffers.Endianness_Type'First, --  XXX Irrelevant
+            0);
+
+      else
+         --  Case of default aggregate contents: there is no materialized
+         --  array of octets. Note, this is quite inefficient, instead
+         --  PolyORB.Any.Get_Empty_Any_Aggregate should always make sure that
+         --  any sequence<octet> contents uses the specific shadow any rather
+         --  than the inefficient default aggregate contents. Or alternatively
+         --  the default aggregate contents could be optimized for the case
+         --  of components of an elementary type, and provide an actual
+         --  content array in that case, accessable through Unchecked_Get_V.
+
+         PolyORB.Buffers.Allocate_And_Insert_Cooked_Data
+           (Stream.Buf'Access,
+            Data_Length,
+            Data_Address);
+
+         declare
+            Data : array (1 .. Data_Length) of PolyORB.Types.Octet;
+            for Data'Address use Data_Address;
+            pragma Import (Ada, Data);
+         begin
+            for J in Data'Range loop
+               Data (J) := Get_Aggregate_Element
+                             (AC, PolyORB.Types.Unsigned_Long (J));
+            end loop;
+         end;
+
+         PolyORB.Buffers.Rewind (Stream.Buf'Access);
+      end if;
    end Any_To_BS;
 
    ---------------
