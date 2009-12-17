@@ -2095,28 +2095,10 @@ package body System.Partition_Interface is
    -----------------------
 
    function Retrieve_RCI_Info (Name : String) return RCI_Info is
-      use PolyORB.Parameters;
-      use PolyORB.Errors;
-      use PolyORB.References.Binding;
-
       LName : constant String := To_Lower (Name);
-
       Info : RCI_Info;
       Base_Ref : Ref;
 
-      Time_Between_Requests : constant Duration :=
-        Get_Conf
-          (Section => "dsa",
-           Key     => "delay_between_failed_requests",
-           Default => 1.0);
-
-      Max_Requests : constant Natural :=
-        Get_Conf
-          (Section => "dsa",
-           Key     => "max_failed_requests",
-           Default => 10);
-
-      Retry_Count : Natural := 0;
    begin
       pragma Debug (C, O ("Retrieve RCI info: enter, Name = " & Name));
       Info := Known_RCIs.Lookup (LName, Info);
@@ -2150,24 +2132,7 @@ package body System.Partition_Interface is
       Stub_Tag : Ada.Tags.Tag;
       Addr     : out System.Address)
    is
-      use PolyORB.Parameters;
-      use PolyORB.Errors;
-      use PolyORB.References.Binding;
-
       Reg_Obj     : PolyORB.References.Ref;
-      Retry_Count : Natural := 0;
-
-      Time_Between_Requests : constant Duration :=
-        Get_Conf
-          (Section => "dsa",
-           Key     => "delay_between_failed_requests",
-           Default => 1.0);
-
-      Max_Requests : constant Natural :=
-        Get_Conf
-          (Section => "dsa",
-           Key     => "max_failed_requests",
-           Default => 10);
 
    begin
       pragma Debug (C, O ("Retrieve RACW From Name Server: enter"));
