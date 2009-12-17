@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                      P O L Y O R B _ P O L Y O R B                       --
+--                              P O L Y O R B                               --
 --                                                                          --
 --                                 P r o j                                  --
 --                                                                          --
@@ -35,8 +35,8 @@ with "polyorb_common", "polyorb_src_setup";
 @NO_SSL@with "polyorb_src_setup_security";
 @WITH_SERVICE_PRJS@
 
-project PolyORB_PolyORB is
+project PolyORB is
 
    for Source_Files use ();
 
-end PolyORB_PolyORB;
+end PolyORB;
