@@ -608,24 +608,25 @@ ${PROJECT_FILES}: %.gpr: \
 # Note that ${current_dir} contains a trailing slash.
 
 # local.gpr should contain:
-# with "polyorb", "test_common";
+# with "polyorb", "polyorb_test_common";
 # 
-# project test is
+# project local is
 # 
 #    Dir := external ("Test_Dir");
-#    for Source_Dirs use (Test_Common.Root_Build_Dir & Dir, Test_Common.Root_Source_Dir & Dir);
-#    for Object_Dir use Test_Common.Root_Build_Dir & Dir;
+#    Obj_Dir := PolyORB_Test_Common.Build_Dir & Dir;
+#    for Object_Dir use Obj_Dir;
+#    for Source_Dirs use (Obj_Dir, PolyORB_Test_Common.Source_Dir & Dir);
 # 
 #    package Compiler is
 # 
 #       for Default_Switches ("Ada")
-#          use Test_Common.Compiler'Default_Switches ("Ada");
+#          use PolyORB_Test_Common.Compiler'Default_Switches ("Ada");
 # 
 #    end Compiler;
 # 
 #    for Main use (<...>);
 # 
-# end test;
+# end local;
 # The only variable part is the Mains.
 
 test_dirs := ${top_srcdir}/examples ${top_srcdir}/testsuite
