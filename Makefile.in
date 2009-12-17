@@ -512,7 +512,7 @@ libpolyorb-security-gssup.a: polyorb_src_security_gssup.gpr
 .PHONY: libpolyorb-security-tls.a
 libpolyorb-security-tls.a: polyorb_src_security_tls.gpr
 .PHONY: libpolyorb-security-x509.a
-libpolyorb-security-x509.a: src_security_x509.gpr
+libpolyorb-security-x509.a: polyorb_src_security_x509.gpr
 .PHONY: libpolyorb-setup.a
 libpolyorb-setup.a: polyorb_src_setup.gpr
 .PHONY: libpolyorb-setup-security.a
@@ -535,7 +535,7 @@ ifeq (${HAVE_SSL},yes)
 polyorb_src_giop_iiop.gpr: polyorb_src_giop_iiop_security.gpr polyorb_src_giop_iiop_security_tls.gpr
 polyorb_src_setup.gpr: polyorb_src_setup_security.gpr
 polyorb_src_corba.gpr: polyorb_src_corba_security.gpr polyorb_src_corba_security_gssup.gpr
-polyorb_src.gpr: polyorb_src_security.gpr polyorb_src_security_gssup.gpr src_security_x509.gpr polyorb_src_security_tls.gpr
+polyorb_src.gpr: polyorb_src_security.gpr polyorb_src_security_gssup.gpr polyorb_src_security_x509.gpr polyorb_src_security_tls.gpr
 
 # Additional dependencies upon C files
 C_FILES += 					\
