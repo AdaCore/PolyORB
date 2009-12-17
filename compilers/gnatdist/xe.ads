@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 1995-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -111,16 +111,17 @@ package XE is
    -- Pragma Type --
    -----------------
 
-   type Pragma_Type is new Int range 300 .. 307;
+   type Pragma_Type is new Int range 300 .. 308;
 
    Pragma_Unknown       : constant Pragma_Type := 300;
-   Pragma_Starter       : constant Pragma_Type := 301;
+   Pragma_Boot_Location : constant Pragma_Type := 301;
    Pragma_Import        : constant Pragma_Type := 302;
-   Pragma_Boot_Location : constant Pragma_Type := 303;
-   Pragma_Version       : constant Pragma_Type := 304;
+   Pragma_Name_Server   : constant Pragma_Type := 303;
+   Pragma_Priority      : constant Pragma_Type := 304;
    Pragma_Reg_Filter    : constant Pragma_Type := 305;
-   Pragma_Priority      : constant Pragma_Type := 306;
-   Pragma_Remote_Shell  : constant Pragma_Type := 307;
+   Pragma_Remote_Shell  : constant Pragma_Type := 306;
+   Pragma_Starter       : constant Pragma_Type := 307;
+   Pragma_Version       : constant Pragma_Type := 308;
 
    ------------------------
    -- Import Method Type --
@@ -136,22 +137,23 @@ package XE is
    -- Predefined Type --
    ---------------------
 
-   type Predefined_Type is new Int range 401 .. 414;
+   type Predefined_Type is new Int range 401 .. 415;
 
-   Pre_Type_Partition  : constant Predefined_Type := 401;
-   Pre_Type_Channel    : constant Predefined_Type := 402;
-   Pre_Type_Boolean    : constant Predefined_Type := 403;
-   Pre_Type_Integer    : constant Predefined_Type := 404;
-   Pre_Type_String     : constant Predefined_Type := 405;
-   Pre_Type_Strings    : constant Predefined_Type := 406;
-   Pre_Type_Entity     : constant Predefined_Type := 407;
-   Pre_Type_Convention : constant Predefined_Type := 408;
-   Pre_Type_Ada_Unit   : constant Predefined_Type := 409;
-   Pre_Type_Function   : constant Predefined_Type := 410;
-   Pre_Type_Procedure  : constant Predefined_Type := 411;
-   Pre_Type_Task_Pool  : constant Predefined_Type := 412;
-   Pre_Type_Location   : constant Predefined_Type := 413;
-   Pre_Type_Locations  : constant Predefined_Type := 414;
+   Pre_Type_Partition   : constant Predefined_Type := 401;
+   Pre_Type_Channel     : constant Predefined_Type := 402;
+   Pre_Type_Boolean     : constant Predefined_Type := 403;
+   Pre_Type_Integer     : constant Predefined_Type := 404;
+   Pre_Type_String      : constant Predefined_Type := 405;
+   Pre_Type_Strings     : constant Predefined_Type := 406;
+   Pre_Type_Entity      : constant Predefined_Type := 407;
+   Pre_Type_Convention  : constant Predefined_Type := 408;
+   Pre_Type_Ada_Unit    : constant Predefined_Type := 409;
+   Pre_Type_Function    : constant Predefined_Type := 410;
+   Pre_Type_Procedure   : constant Predefined_Type := 411;
+   Pre_Type_Task_Pool   : constant Predefined_Type := 412;
+   Pre_Type_Location    : constant Predefined_Type := 413;
+   Pre_Type_Locations   : constant Predefined_Type := 414;
+   Pre_Type_Name_Server : constant Predefined_Type := 415;
 
    ----------------------
    -- Termination Type --
@@ -212,6 +214,17 @@ package XE is
    Thread_Per_Request     : constant ORB_Tasking_Policy_Type := 903;
    ORB_Tasking_Policy_Img : array (ORB_Tasking_Policy_Type) of Name_Id;
 
+   -----------------------------
+   -- ORB Tasking Policy Type --
+   -----------------------------
+
+   type Name_Server_Type is new Int range 950 .. 952;
+
+   No_Name_Server  : constant Name_Server_Type := 950;
+   Embedded        : constant Name_Server_Type := 951;
+   Standalone      : constant Name_Server_Type := 952;
+   Name_Server_Img : array (Name_Server_Type) of Name_Id;
+
    ------------------
    -- Tasking Type --
    ------------------
@@ -270,6 +283,7 @@ package XE is
    Location_Type_Node        : Type_Id;
    Locations_Type_Node       : Type_Id;
    Priority_Policy_Type_Node : Type_Id;
+   Name_Server_Type_Node     : Type_Id;
 
    Pragma_Starter_Node       : Subprogram_Id;
    Pragma_Import_Node        : Subprogram_Id;
@@ -278,6 +292,7 @@ package XE is
    Pragma_Reg_Filter_Node    : Subprogram_Id;
    Pragma_Priority_Node      : Subprogram_Id;
    Pragma_Remote_Shell_Node  : Subprogram_Id;
+   Pragma_Name_Server_Node   : Subprogram_Id;
 
    Infinite : constant  Int := Int'Last;
    --  Size of an unconstrained array
@@ -783,6 +798,12 @@ package XE is
    pragma Inline (Convert);
 
    function Convert (Item : Int) return ORB_Tasking_Policy_Type;
+   pragma Inline (Convert);
+
+   function Convert (Item : Name_Server_Type) return Int;
+   pragma Inline (Convert);
+
+   function Convert (Item : Int) return Name_Server_Type;
    pragma Inline (Convert);
 
 end XE;

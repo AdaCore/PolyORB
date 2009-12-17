@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -40,11 +40,9 @@ with PolyORB.Utils.Strings;
 pragma Elaborate_All (PolyORB.Initialization);
 
 package body PolyORB.Parameters.Initialization is
-
    use PolyORB.Initialization;
    use PolyORB.Initialization.String_Lists;
    use PolyORB.Utils.Strings;
-
 begin
    Register_Module
      (Module_Info'

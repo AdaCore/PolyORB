@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -41,6 +41,7 @@
 --  Note: Buffers should only be read/written sequentially.
 
 with Ada.Streams;
+with Ada.Unchecked_Conversion;
 
 with System.Storage_Elements;
 
@@ -48,14 +49,29 @@ with PolyORB.Opaque.Chunk_Pools;
 
 package PolyORB.Buffers is
 
-   pragma Elaborate_Body;
+   pragma Preelaborate;
 
    -------------------------
    -- General definitions --
    -------------------------
 
-   type Endianness_Type is (Little_Endian, Big_Endian);
-   subtype Alignment_Type is Ada.Streams.Stream_Element_Offset range 1 .. 8;
+   type Endianness_Type is new System.Bit_Order;
+   function Little_Endian return Endianness_Type renames Low_Order_First;
+   function Big_Endian return Endianness_Type renames High_Order_First;
+   --  Endianness of a buffer
+
+   type Alignment_Type is (Align_1, Align_2, Align_4, Align_8);
+   for Alignment_Type use
+     (Align_1 => 1,
+      Align_2 => 2,
+      Align_4 => 4,
+      Align_8 => 8);
+   for Alignment_Type'Size use Short_Short_Integer'Size;
+   --  Alignment of a piece of data within a buffer
+   --  It is assumed that <n> = 2 ** Align_<n>'Pos = representation(Align_<n>)
+
+   function Alignment_Of is
+     new Ada.Unchecked_Conversion (Short_Short_Integer, Alignment_Type);
 
    Host_Order : constant Endianness_Type;
    --  The byte order of this host.
@@ -70,7 +86,7 @@ package PolyORB.Buffers is
    ------------------------
 
    function Length
-     (Buffer : access Buffer_Type) return Ada.Streams.Stream_Element_Count;
+     (Buffer : Buffer_Type) return Ada.Streams.Stream_Element_Count;
    pragma Inline (Length);
    --  Return the length of Buffer
 
@@ -139,8 +155,7 @@ package PolyORB.Buffers is
    --  On return, A_Buffer is set to null.
 
    function To_Stream_Element_Array
-     (Buffer   : access Buffer_Type)
-     return Ada.Streams.Stream_Element_Array;
+     (Buffer : Buffer_Type) return Ada.Streams.Stream_Element_Array;
    --  Dump the contents of Buffer into a Stream_Element_Array.
    --  Beware of overflowing the stack when using this function.
 
@@ -180,7 +195,7 @@ package PolyORB.Buffers is
 
    procedure Align_Position
      (Buffer    : access Buffer_Type;
-      Alignment :        Alignment_Type);
+      Alignment : Alignment_Type);
    --  Aligns Buffer on specified Alignment before retrieving aligned data
 
    --  After execution of either of the two above operations, the current CDR
@@ -314,13 +329,8 @@ private
    -- Determination of the host byte order --
    ------------------------------------------
 
-   Default_Bit_Order_To_Endianness :
-     constant array (System.Bit_Order) of Endianness_Type
-     := (System.High_Order_First => Big_Endian,
-         System.Low_Order_First  => Little_Endian);
-
    Host_Order : constant Endianness_Type :=
-     Default_Bit_Order_To_Endianness (System.Default_Bit_Order);
+                  Endianness_Type (System.Default_Bit_Order);
 
    --------------
    -- A Buffer --
@@ -346,13 +356,8 @@ private
       Length       : Ada.Streams.Stream_Element_Count;
    end record;
 
-   Null_Buffer_Chunk_Metadata : constant Buffer_Chunk_Metadata
-     := (Last_Used => 0);
-
    package Buffer_Chunk_Pools is
-      new Opaque.Chunk_Pools
-     (Chunk_Metadata => Buffer_Chunk_Metadata,
-      Null_Metadata  => Null_Buffer_Chunk_Metadata);
+     new Opaque.Chunk_Pools (Chunk_Metadata => Buffer_Chunk_Metadata);
 
    subtype Chunk_Metadata_Access is
      Buffer_Chunk_Pools.Metadata_Access;

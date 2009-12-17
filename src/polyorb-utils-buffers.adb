@@ -44,6 +44,7 @@ package body PolyORB.Utils.Buffers is
    package body Align_Transfer_Elementary is
 
       subtype SEA is Stream_Element_Array (1 .. T'Size / 8);
+      Alignment_Of_T : constant Alignment_Type := Alignment_Of (T'Size / 8);
 
       --------------
       -- Marshall --
@@ -57,14 +58,11 @@ package body PolyORB.Utils.Buffers is
          Data_Address : Opaque_Pointer;
          Item_Swapped : aliased T;
       begin
-         if With_Alignment then
-            Pad_Align (Buffer, T'Size / 8);
+         if Alignment_Of_T /= Align_1 and then With_Alignment then
+            Pad_Align (Buffer, Alignment_Of_T);
          end if;
 
-         Allocate_And_Insert_Cooked_Data
-           (Buffer,
-            T'Size / 8,
-            Data_Address);
+         Allocate_And_Insert_Cooked_Data (Buffer, T'Size / 8, Data_Address);
 
          --  Note: we can't just have a T object at Data_Address and assign
          --  it with Item / Swapped (Item) because Data_Address may not be
@@ -77,7 +75,7 @@ package body PolyORB.Utils.Buffers is
             for Z'Address use Z_Addr;
             pragma Import (Ada, Z);
          begin
-            if Endianness (Buffer) /= Host_Order then
+            if Item'Size > 8 and then Endianness (Buffer) /= Host_Order then
                Item_Swapped := Swapped (Item);
                Item_Address := Item_Swapped'Address;
             end if;
@@ -99,8 +97,8 @@ package body PolyORB.Utils.Buffers is
       function Unmarshall (Buffer : access Buffer_Type) return T is
          Data_Address : Opaque_Pointer;
       begin
-         if With_Alignment then
-            Align_Position (Buffer, T'Size / 8);
+         if Alignment_Of_T /= Align_1 and then With_Alignment then
+            Align_Position (Buffer, Alignment_Of_T);
          end if;
          Extract_Data (Buffer, Data_Address, T'Size / 8);
 
@@ -120,7 +118,7 @@ package body PolyORB.Utils.Buffers is
          begin
             Item_Storage := Z;
 
-            if Endianness (Buffer) = Host_Order then
+            if Item'Size > 8 and then Endianness (Buffer) = Host_Order then
                return Item;
             else
                return Swapped (Item);
@@ -136,7 +134,7 @@ package body PolyORB.Utils.Buffers is
    procedure Align_Marshall_Copy
      (Buffer    : access Buffer_Type;
       Octets    : Stream_Element_Array;
-      Alignment : Alignment_Type := 1)
+      Alignment : Alignment_Type := Align_1)
    is
       Data_Address : Opaque_Pointer;
    begin
@@ -162,7 +160,7 @@ package body PolyORB.Utils.Buffers is
 
    procedure Align_Unmarshall_Copy
      (Buffer    : access Buffer_Type;
-      Alignment : Alignment_Type := 1;
+      Alignment : Alignment_Type := Align_1;
       Data      : out Stream_Element_Array)
    is
       Index : Stream_Element_Offset := Data'First;

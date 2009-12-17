@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -60,13 +60,10 @@ package body RTCORBA.Current is
 
    function Create return CORBA.Object.Ref is
       Result : Local_Ref;
-
-      Current : constant PolyORB.Smart_Pointers.Entity_Ptr
-        := new Current_Object;
-
+      Current : constant PolyORB.Smart_Pointers.Entity_Ptr :=
+                  new Current_Object;
    begin
       Set (Result, Current);
-
       return CORBA.Object.Ref (Result);
    end Create;
 

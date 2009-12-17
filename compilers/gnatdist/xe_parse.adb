@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1995-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -40,10 +40,9 @@ package body XE_Parse is
 
    Indent : constant String := "   ";
 
-   --  Set Fatal_Error to False to allow overloading. In this case, if
-   --  a litteral does not match the expected type, no error message
-   --  is printed, an exception is raised and handled in order to try
-   --  another matching.
+   --  Set Fatal_Error to False to allow overloading. In this case, if a
+   --  a literal does not match the expected type, no error message is printed,
+   --  an exception is raised and handled in order to try another matching.
 
    Fatal_Error    : Boolean := True;
 

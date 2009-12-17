@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 1995-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -525,8 +525,8 @@ package XE_Units is
    ---------------------------
 
    --  Configured units are different from units. Such units come from the
-   --  configuration language and mau not correspond to Ada units in case
-   --  of an illegal configuration file.
+   --  configuration language and might not correspond to Ada units in case of
+   --  an illegal configuration file.
 
    type Conf_Unit_Type is record
 

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -91,6 +91,9 @@ package body Analyzer is
    --  E must be a Constant_Declaration or a Case_Label_Expr. Analyze and
    --  resolve the expression of E, and then convert it to type T. Set the
    --  Value field of E to the converted value.
+
+   procedure Analyze_Type_Spec (E : Node_Id);
+   --  Analyze E, and give an error if it's not a type spec
 
    --  These procedures factorize the analyzing type prefix and type ID code
 
@@ -351,7 +354,7 @@ package body Analyzer is
       Attr_Exception : Node_Id;
 
    begin
-      Analyze (Decl_Type);
+      Analyze_Type_Spec (Decl_Type);
       if not Is_A_Local_Type (Iface) then
          No_Interface_Attribute_Of_Local_Type (Decl_Type, Iface);
       end if;
@@ -418,7 +421,7 @@ package body Analyzer is
          return;
       end if;
 
-      Analyze (T);
+      Analyze_Type_Spec (T);
 
       --  Resolve base type of T. Types of constant declarations are
       --  limited to integer types, character types, string types,
@@ -458,7 +461,7 @@ package body Analyzer is
 
    procedure Analyze_Element (E : Node_Id) is
    begin
-      Analyze (Type_Spec (E));
+      Analyze_Type_Spec (Type_Spec (E));
       Analyze (Declarator (E));
    end Analyze_Element;
 
@@ -673,7 +676,7 @@ package body Analyzer is
       D : Node_Id := First_Entity (Declarators (E));
 
    begin
-      Analyze (Type_Spec (E));
+      Analyze_Type_Spec (Type_Spec (E));
       while Present (D) loop
          Analyze (D);
          D := Next_Entity (D);
@@ -816,7 +819,7 @@ package body Analyzer is
 
       if Kind (E) /= K_Initializer_Declaration then
          Return_Type_Id := Type_Spec (E);
-         Analyze (Return_Type_Id);
+         Analyze_Type_Spec (Return_Type_Id);
 
          Return_Type := Return_Type_Id;
          if Kind (Return_Type) = K_Scoped_Name then
@@ -911,7 +914,7 @@ package body Analyzer is
 
    procedure Analyze_Parameter_Declaration (E : Node_Id) is
    begin
-      Analyze (Type_Spec (E));
+      Analyze_Type_Spec (Type_Spec (E));
       Analyze (Declarator (E));
    end Analyze_Parameter_Declaration;
 
@@ -1013,7 +1016,7 @@ package body Analyzer is
                --  entity, then enter the name in the scope.
 
                if Depth (E) = 0
-                 and then Is_A_Type (C)
+                 and then Is_Noninterface_Type (C)
                  and then Is_A_Non_Module (Current_Scope)
                then
                   Enter_Name_In_Scope (N);
@@ -1037,7 +1040,7 @@ package body Analyzer is
       Unsigned_Long_Long_Node : constant Node_Id
         := Parser.Resolve_Base_Type ((T_Unsigned, T_Long, T_Long), Loc (E));
    begin
-      Analyze (Type_Spec (E));
+      Analyze_Type_Spec (Type_Spec (E));
       Analyze_And_Resolve_Expr (Max_Size (E), Unsigned_Long_Long_Node);
    end Analyze_Sequence_Type;
 
@@ -1100,7 +1103,7 @@ package body Analyzer is
    is
       D : Node_Id := First_Entity (Declarators (E));
    begin
-      Analyze (Type_Spec (E));
+      Analyze_Type_Spec (Type_Spec (E));
       while Present (D) loop
          Analyze (D);
          D := Next_Entity (D);
@@ -1131,7 +1134,7 @@ package body Analyzer is
    -- Analyze_Type_Prefix_Declaration --
    -------------------------------------
 
-   procedure Analyze_Type_Prefix_Declaration (E : Node_Id)is
+   procedure Analyze_Type_Prefix_Declaration (E : Node_Id) is
       R : Node_Id;
       N : Node_Id;
    begin
@@ -1147,6 +1150,26 @@ package body Analyzer is
       Assign_Type_Prefix (R, N);
    end Analyze_Type_Prefix_Declaration;
 
+   -----------------------
+   -- Analyze_Type_Spec --
+   -----------------------
+
+   procedure Analyze_Type_Spec (E : Node_Id) is
+   begin
+      Analyze (E);
+
+      --  If it's a scoped name, make sure it denotes a type. Otherwise, it is
+      --  syntactically a type, so nothing to check.
+
+      if Kind (E) = K_Scoped_Name
+        and then Present (Reference (E))  --  Guard against previous error
+        and then not Is_Type (Reference (E))
+      then
+         Error_Loc (1) := Loc (E);
+         DE ("type expected");
+      end if;
+   end Analyze_Type_Spec;
+
    ------------------------
    -- Analyze_Union_Type --
    ------------------------
@@ -1160,7 +1183,7 @@ package body Analyzer is
       Enter_Name_In_Scope (Identifier (E));
 
       Push_Scope (E);
-      Analyze (Switch_Type);
+      Analyze_Type_Spec (Switch_Type);
 
       --  Check that switch type is a discrete type
 
@@ -1266,7 +1289,7 @@ package body Analyzer is
    procedure Analyze_Value_Box_Declaration (E : Node_Id) is
    begin
       Enter_Name_In_Scope (Identifier (E));
-      Analyze (Type_Spec (E));
+      Analyze_Type_Spec (Type_Spec (E));
    end Analyze_Value_Box_Declaration;
 
    -------------------------------

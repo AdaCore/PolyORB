@@ -34,13 +34,13 @@
 --  Elaborate a complete server with the ``thread pool'' ORB tasking
 --  policy and a full tasking runtime.
 
-with PolyORB.ORB.Thread_Pool;
-pragma Elaborate_All (PolyORB.ORB.Thread_Pool);
-pragma Warnings (Off, PolyORB.ORB.Thread_Pool);
-
 with PolyORB.Setup.Server;
 pragma Elaborate_All (PolyORB.Setup.Server);
 pragma Warnings (Off, PolyORB.Setup.Server);
+
+with PolyORB.ORB.Thread_Pool;
+pragma Elaborate_All (PolyORB.ORB.Thread_Pool);
+pragma Warnings (Off, PolyORB.ORB.Thread_Pool);
 
 with PolyORB.Setup.Tasking.Full_Tasking;
 pragma Elaborate_All (PolyORB.Setup.Tasking.Full_Tasking);
@@ -51,5 +51,4 @@ pragma Warnings (Off, PolyORB.ORB_Controller.Workers);
 pragma Elaborate_All (PolyORB.ORB_Controller.Workers);
 
 package body PolyORB.Setup.Thread_Pool_Server is
-
 end PolyORB.Setup.Thread_Pool_Server;

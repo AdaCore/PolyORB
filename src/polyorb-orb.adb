@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -145,7 +145,7 @@ package body PolyORB.ORB is
       Pro : Binding_Data.Profile_Access;
       QoS : PolyORB.QoS.QoS_Parameters) return Smart_Pointers.Ref
    is
-      use BO_Lists;
+      use PBOL;
 
       It     : Iterator;
       Result : Smart_Pointers.Ref;
@@ -166,18 +166,13 @@ package body PolyORB.ORB is
       while not Last (It) loop
 
          declare
-            BO_Acc : Binding_Object_Access renames Value (It).all;
-            End_Iterator : BO_Lists.Iterator;
+            BO_Acc : Binding_Object_Access renames Value (It);
          begin
             if not Valid (BO_Acc) then
 
-               --  Mark binding object as not referenced anymore
+               --  Mark binding object as not referenced anymore and purge
 
-               Register_Reference_Information
-                 (BO_Acc, Component_Access (ORB), End_Iterator);
-
-               --  Now we can safely purge it from the list
-
+               Set_Referenced (BO_Acc, Referenced => False);
                Remove (ORB.Binding_Objects, It);
 
             elsif Get_Profile (BO_Acc) /= null then
@@ -334,7 +329,7 @@ package body PolyORB.ORB is
          --  Notify ORB controller of completion
 
          Notify_Event (ORB.ORB_Controller,
-                       Event'(Kind => End_Of_Check_Sources,
+                       Event'(Kind       => End_Of_Check_Sources,
                               On_Monitor => Selector (This_Task)));
 
          --  Inside ORB critical section
@@ -652,40 +647,24 @@ package body PolyORB.ORB is
       declare
          BO_Acc : constant Binding_Object_Access :=
                     Binding_Object_Access (Smart_Pointers.Entity_Of (BO));
-         It     : BO_Lists.Iterator;
-
       begin
          Enter_ORB_Critical_Section (ORB.ORB_Controller);
 
          --  Register BO in the Binding_Objects list of ORB
 
-         BO_Lists.Prepend (ORB.Binding_Objects, BO_Acc);
-
-         --  Save the position
-
-         It := BO_Lists.First (ORB.Binding_Objects);
-
-         --  Record in BO a reference to its position on the list so that it
-         --  can remove itself properly at finalization.
-
-         Register_Reference_Information
-                                 (BO => BO_Acc,
-                                  Referenced_In => Component_Access (ORB),
-                                  Referenced_At => It);
+         PBOL.Prepend (ORB.Binding_Objects, BO_Acc);
+         Set_Referenced (BO_Acc, Referenced => True);
 
          Leave_ORB_Critical_Section (ORB.ORB_Controller);
+
+         Emit_No_Reply
+           (Component_Access (TE),
+            Filters.Iface.Set_Server'
+              (Server         => Component_Access (ORB),
+               Binding_Object => BO_Acc));
       end;
 
-      Emit_No_Reply
-        (Component_Access (TE),
-         Filters.Iface.Set_Server'
-         (Server         => Component_Access (ORB),
-          Binding_Object =>
-            Binding_Objects.Binding_Object_Access
-          (Smart_Pointers.Entity_Of (BO))));
-
       if New_AES /= null then
-
          --  This is not a write only Endpoint
 
          declare
@@ -693,7 +672,6 @@ package body PolyORB.ORB is
                      Handler (New_AES.all);
             TE_H : TE_AES_Event_Handler renames TE_AES_Event_Handler (H.all);
          begin
-
             --  Register link from AES to TE
 
             H.AES    := New_AES;
@@ -731,25 +709,20 @@ package body PolyORB.ORB is
    -------------------------------
 
    procedure Unregister_Binding_Object
-     (ORB : Components.Component_Access;
+     (ORB : access ORB_Type;
       BO  : Binding_Object_Access)
    is
       ORB_Acc : constant ORB_Access := ORB_Access (ORB);
-      It      : BO_Lists.Iterator;
    begin
       pragma Debug (C, O ("Unregister_Binding_Object: enter"));
       Enter_ORB_Critical_Section (ORB_Acc.ORB_Controller);
 
-      --  Obtain position of BO in Binding_Objects within critical section,
-      --  as it might be changed by Find_Reusable_Binding_Object.
-
-      It := Get_Referenced_At (BO);
-
       --  If BO is still referenced, remove it now
 
-      if not BO_Lists.Last (It) then
+      if Referenced (BO) then
          pragma Debug (C, O ("removing binding object"));
-         BO_Lists.Remove (ORB_Acc.Binding_Objects, It);
+         Set_Referenced (BO, Referenced => False);
+         PBOL.Remove_Element (ORB_Acc.Binding_Objects, BO);
       end if;
 
       Leave_ORB_Critical_Section (ORB_Acc.ORB_Controller);
@@ -768,10 +741,8 @@ package body PolyORB.ORB is
 
    begin
       Enter_ORB_Critical_Section (ORB.ORB_Controller);
-
       pragma Assert (ORB.Obj_Adapter = null);
       ORB.Obj_Adapter := OA;
-
       Leave_ORB_Critical_Section (ORB.ORB_Controller);
    end Set_Object_Adapter;
 
@@ -815,9 +786,9 @@ package body PolyORB.ORB is
             --  Try to register the source to an existing monitor
 
             Disable_Polling (ORB.ORB_Controller, Monitors (J));
-
             Register_Source (Monitors (J), AES, Success);
             Enable_Polling (ORB.ORB_Controller, Monitors (J));
+
             if Success then
                Notify_Event (ORB.ORB_Controller,
                              Event'(Kind           => Event_Sources_Added,
@@ -921,7 +892,6 @@ package body PolyORB.ORB is
       when E : others =>
          pragma Debug (C, O ("Run: Got exception "
                           & Ada.Exceptions.Exception_Information (E)));
-
          Free (AJ);
          raise;
    end Run;
@@ -986,7 +956,6 @@ package body PolyORB.ORB is
             use PolyORB.Errors;
 
             Error : Error_Container;
-
          begin
             References.Binding.Bind
               (Req.Target,
@@ -1011,8 +980,7 @@ package body PolyORB.ORB is
                Catch (Error);
 
                Emit_No_Reply (Req.Requesting_Component,
-                              Servants.Iface.Executed_Request'
-                              (Req => Req));
+                              Servants.Iface.Executed_Request'(Req => Req));
                return;
             end if;
          end;
@@ -1289,10 +1257,10 @@ package body PolyORB.ORB is
    function Get_Binding_Objects (ORB : access ORB_Type)
      return BO_Ref_List
    is
-      use BO_Lists;
+      use PBOL;
       use Smart_Pointers;
 
-      It : BO_Lists.Iterator;
+      It : PBOL.Iterator;
       Result : BO_Ref_List;
    begin
       Enter_ORB_Critical_Section (ORB.ORB_Controller);
@@ -1304,8 +1272,14 @@ package body PolyORB.ORB is
          declare
             Ref : Smart_Pointers.Ref;
          begin
-            Smart_Pointers.Set (Ref, Entity_Ptr (Value (It).all));
-            BO_Ref_Lists.Prepend (Result, Ref);
+            Smart_Pointers.Reuse_Entity (Ref, Entity_Ptr (Value (It)));
+
+            --  If binding object is being finalized, Reuse_Entity leaves Ref
+            --  unset.
+
+            if not Is_Nil (Ref) then
+               BO_Ref_Lists.Prepend (Result, Ref);
+            end if;
          end;
 
          Next (It);

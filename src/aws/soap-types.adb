@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2000-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2000-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -907,7 +907,7 @@ package body SOAP.Types is
          declare
             use Ada.Streams;
 
-            Sq_Type : PolyORB.Any.TypeCode.Local_Ref
+            Sq_Type : constant PolyORB.Any.TypeCode.Local_Ref
               := PolyORB.Any.TypeCode.TC_Sequence;
             Byte_Stream : constant Ada.Streams.Stream_Element_Array
               := AWS.Translator.Base64_Decode (V (SOAP_Base64 (Obj)));
@@ -936,8 +936,8 @@ package body SOAP.Types is
       elsif Obj in SOAP_Array then
          declare
             use PolyORB.Any;
-            Ar_Type : PolyORB.Any.TypeCode.Local_Ref
-              := PolyORB.Any.TypeCode.TC_Array;
+            Ar_Type : constant PolyORB.Any.TypeCode.Local_Ref :=
+                        PolyORB.Any.TypeCode.TC_Array;
          begin
 
             pragma Debug (C, O ("To_Any: SOAP_Array: nb of elements= "
@@ -950,8 +950,8 @@ package body SOAP.Types is
             PolyORB.Any.TypeCode.Add_Parameter
               (Ar_Type,
                To_Any
-               (Get_Unwound_Type
-                (To_Any (-(SOAP_Array (Obj).O (SOAP_Array (Obj).O'First))))));
+               (TypeCode.To_Ref (Get_Unwound_Type
+                (To_Any (-(SOAP_Array (Obj).O (SOAP_Array (Obj).O'First)))))));
 
             --  We first build the typecode.
 
@@ -971,8 +971,8 @@ package body SOAP.Types is
          declare
             use PolyORB.Any;
 
-            St_Type : PolyORB.Any.TypeCode.Local_Ref
-              := PolyORB.Any.TypeCode.TC_Struct;
+            St_Type : constant PolyORB.Any.TypeCode.Local_Ref :=
+                        PolyORB.Any.TypeCode.TC_Struct;
          begin
             PolyORB.Any.TypeCode.Add_Parameter
               (St_Type,
@@ -984,12 +984,13 @@ package body SOAP.Types is
                                    ("repository_id")));
             for K in SOAP_Record (Obj).O'Range loop
                PolyORB.Any.TypeCode.Add_Parameter
-                 (St_Type, To_Any (Get_Unwound_Type
-                                   (To_Any (-(SOAP_Record (Obj).O (K))))));
+                 (St_Type, To_Any (TypeCode.To_Ref (Get_Unwound_Type
+                                   (To_Any (-(SOAP_Record (Obj).O (K)))))));
                --  thus we get the type
 
                declare
-                  The_Element : Object'Class := -(SOAP_Record (Obj).O (K));
+                  The_Element : constant Object'Class :=
+                                  -(SOAP_Record (Obj).O (K));
                begin
                   PolyORB.Any.TypeCode.Add_Parameter
                     (St_Type, PolyORB.Any.To_Any
@@ -1117,7 +1118,7 @@ package body SOAP.Types is
                        := PolyORB.Any.From_Any
                        (PolyORB.Any.Get_Aggregate_Element
                         (Item, PolyORB.Any.TypeCode.TC_Octet,
-                         Unsigned_Long (Index)));
+                         Index));
                   begin
                      Byte_Stream (Stream_Element_Offset (Index))
                        := Stream_Element (Element);
@@ -1174,7 +1175,7 @@ package body SOAP.Types is
          begin
             for Index in 1 .. Number_Of_Elements loop
                declare
-                  Element : PolyORB.Any.Any :=
+                  Element : constant PolyORB.Any.Any :=
                     (PolyORB.Any.Get_Aggregate_Element
                      (Item, PolyORB.Any.TypeCode.Member_Type
                       (PolyORB.Any.Get_Type (Item), Index - 1),

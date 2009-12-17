@@ -176,8 +176,8 @@ package body XE_Back is
       for J in ALIs.First .. ALIs.Last loop
          Unit := ALIs.Table (J).Last_Unit;
 
-         --  Create stub files. Create skel files as well when we have
-         --  to build the partition on which this unit is mapped.
+         --  Create stub files. Create skel files as well when we have to build
+         --  the partition on which this unit is mapped.
 
          if not Units.Table (Unit).Is_Generic
            and then (Units.Table (Unit).RCI
@@ -204,7 +204,17 @@ package body XE_Back is
 
                Generate_Stub (J);
             end if;
+         end if;
 
+         if Display_Compilation_Progress then
+            Write_Str ("completed ");
+            Write_Int (Int (J));
+            Write_Str (" out of ");
+            Write_Int (Int (ALIs.Last));
+            Write_Str (" (");
+            Write_Int (Int ((J * 100) / (ALIs.Last - ALIs.First + 1)));
+            Write_Str ("%)...");
+            Write_Eol;
          end if;
       end loop;
    end Generate_All_Stubs_And_Skels;
@@ -308,6 +318,12 @@ package body XE_Back is
       Create_File (Prj_File, Prj_Fname);
       Set_Output (Prj_File);
 
+      --  Note that the main subprogram for each partition is always called
+      --  partition.adb; the executable name is set using gnatmake command line
+      --  switch "-o". We do not set it through the project to ensure that
+      --  any settings inherited from the user's Builder package (in particular
+      --  global configuration pragmas) are preserved.
+
       Write_Str  ("project Partition extends all """);
       Write_Str  (Project_File_Name.all);
       Write_Line (""" is");
@@ -326,18 +342,12 @@ package body XE_Back is
             if Exec_Dir'Length = 0
               or else not Is_Absolute_Path (Exec_Dir)
             then
-               --  Reach up to main directory from
-               --  dsa/partitions/<cfg>/<partition>
+               --  Reach up to main dir from  dsa/partitions/<cfg>/<partition>
                Write_Str ("../../../../");
             end if;
             Write_Str (Exec_Dir);
          end;
          Write_Line (""";");
-         Write_Line ("   package Builder is");
-         Write_Str  ("      for Executable (""partition.adb"") use """);
-         Write_Name (Partitions.Table (P).Name);
-         Write_Line (""";");
-         Write_Line ("   end Builder;");
 
       else
          Write_Line ("   --  Pseudo-partition project for RCI calling stubs");
@@ -851,6 +861,28 @@ package body XE_Back is
       Partition_Main_File := Id ("partition");
       Partition_Main_Name := Id ("Partition");
    end Initialize;
+
+   -------------------------
+   -- Location_List_Image --
+   -------------------------
+
+   function Location_List_Image (Location : Location_Id) return Name_Id is
+      L : Location_Id := Location;
+
+   begin
+      Name_Len := 0;
+      loop
+         Get_Name_String_And_Append (Locations.Table (L).Major);
+         if Present (Locations.Table (L).Minor) then
+            Add_Str_To_Name_Buffer ("://");
+            Get_Name_String_And_Append (Locations.Table (L).Minor);
+         end if;
+         L := Locations.Table (L).Next_Location;
+         exit when L = No_Location_Id;
+         Add_Char_To_Name_Buffer (' ');
+      end loop;
+      return Quote (Name_Find);
+   end Location_List_Image;
 
    ------------------------
    -- Partition_Dir_Flag --

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -201,15 +201,24 @@ package body Frontend.Debug is
       if K = "Name_Id" then
          Write_Line (Quoted (V));
 
+      --  If the attribute name is BE_Node, we don't want to call Kind (the
+      --  front-end one) on it, because it's (conceptually) the wrong type!
+
       elsif K = "Node_Id"
         and then Present (C)
+        and then A /= "BE_Node"
       then
-         case Kind (C) is
-            when K_Float .. K_Value_Base =>
-               Write_Line ('(' & Image (Kind (Node_Id (N))) & ')');
-            when others =>
-               Write_Line (V);
-         end case;
+         if C > Frontend.Nodes.Entries.Last then
+            Write_Str ("*** invalid Node_Id: ");
+            Write_Line (V);
+         else
+            case Kind (C) is
+               when K_Float .. K_Value_Base =>
+                  Write_Line ('(' & Image (Kind (Node_Id (N))) & ')');
+               when others =>
+                  Write_Line (V);
+            end case;
+         end if;
 
       else
          Write_Line (V);

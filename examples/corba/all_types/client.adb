@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -41,12 +41,14 @@ with CORBA; use CORBA;
 with CORBA.Object;
 with CORBA.ORB;
 
+with all_types.Impl;
 with all_types.Helper; use all_types, all_types.Helper;
 with PolyORB.Utils.Report;
 
-with PolyORB.Setup.Client;
-pragma Warnings (Off, PolyORB.Setup.Client);
+with PolyORB.Setup.No_Tasking_Server;
+pragma Warnings (Off, PolyORB.Setup.No_Tasking_Server);
 
+with PolyORB.CORBA_P.Server_Tools; use PolyORB.CORBA_P.Server_Tools;
 with PolyORB.CORBA_P.Naming_Tools; use PolyORB.CORBA_P.Naming_Tools;
 
 procedure Client is
@@ -66,13 +68,15 @@ procedure Client is
    type Test_Type is (All_Tests, Long_Only, Sequence_Only, UnionSequence_Only);
    What : Test_Type := All_Tests;
 
+   Is_Local : Boolean := False;
+
 begin
    New_Test ("CORBA Types");
 
    CORBA.ORB.Initialize ("ORB");
    if Argument_Count < 1 then
       Ada.Text_IO.Put_Line
-        ("Usage: client <IOR_string_from_server|name|-i> "
+        ("Usage: client <IOR_string_from_server|name|-i|""local""> "
          & "[howmany [what [seq-length]]]");
       Ada.Text_IO.Put ("where <what> is one of:");
       for J in Test_Type'Range loop
@@ -106,6 +110,12 @@ begin
 
    if Argument (1) = "-i" then
       Myall_types := To_Ref (Locate ("all_types"));
+
+   elsif Argument (1) = "local" then
+      Initiate_Servant (new all_types.Impl.Object, Myall_types);
+      Activate_Server;
+      Is_Local := True;
+
    else
       Myall_types := To_Ref (Locate (Argument (1)));
    end if;
@@ -301,20 +311,36 @@ begin
          X_Octet : CORBA.Octet;
          for X_Octet'Address use X_Color'Address;
          pragma Import (Ada, X_Octet);
+
+         Success : Boolean := False;
       begin
          X_Color := Color'Last;
          X_Octet := X_Octet + 1;
 
          --  From this point on, X_Color has an invalid representation
 
-         Output ("test enum invalid rep",
-           echoColor (Myall_types, X_Color) = X_Color);
-      exception
-         when CORBA.MARSHAL =>
-            Output ("test enum invalid rep", True);
-         when E : others =>
-            Output ("test enum invalid rep", False);
-            Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Information (E));
+         begin
+            Success := echoColor (Myall_types, X_Color) = X_Color;
+
+            --  No exception raised: invalid value was copied verbatim and
+            --  was not checked, success.
+
+         exception
+            when CORBA.MARSHAL =>
+               Success := True;
+
+            when CORBA.UNKNOWN =>
+               --  For the local case, we MAY raise CONSTRAINT_ERROR on the
+               --  servant side, which is mapped back to CORBA.UNKNOWN on the
+               --  caller side.
+
+               Success := Is_Local;
+
+            when E : others =>
+               Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Information (E));
+               Success := False;
+         end;
+         Output ("test enum invalid rep", Success);
       end;
 
       declare
@@ -603,30 +629,32 @@ begin
       declare
          Member : my_exception_Members;
       begin
-         testException (Myall_types, 2485);
+         testException (Myall_types, 2485, To_CORBA_String ("pouet"));
       exception
          when E : my_exception =>
-            Output ("test user exception", True);
             Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Information (E));
             Get_Members (E, Member);
-            Ok := (Member.info = 2485);
+            Ok := Member.info = 2485
+                    and then To_Standard_String (Member.why) = "pouet";
+
          when E : others =>
-            Output ("test user exception", False);
             Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Information (E));
       end;
+      Output ("test user exception", Ok);
 
       Ok := False;
       begin
          testUnknownException (Myall_types, 2485);
       exception
          when E : CORBA.Unknown =>
-            Output ("test unknown exception", True);
+            Ok := True;
             Ada.Text_IO.Put_Line
               (Ada.Exceptions.Exception_Information (E));
 
          when others =>
-            Output ("test unknown exception", False);
+            null;
       end;
+      Output ("test unknown exception", Ok);
 
       Ok := False;
       begin

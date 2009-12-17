@@ -323,7 +323,7 @@ package body PolyORB.GIOP_P.Code_Sets.Converters is
       pragma Unreferenced (Error);
 
    begin
-      Pad_Align (Buffer, 4);
+      Pad_Align (Buffer, Align_4);
 
       declare
          Reserv : constant Reservation     := Reserve (Buffer, 4);

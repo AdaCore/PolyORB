@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -121,8 +121,8 @@ package body PolyORB.Filters.MIOP.MIOP_Out is
          declare
             D : Data_Out renames Data_Out (S);
             --  Length of GIOP packet
-            L : constant Types.Unsigned_Short
-              := Types.Unsigned_Short (Length (D.Out_Buf));
+            L : constant Types.Unsigned_Short :=
+                  Types.Unsigned_Short (Length (D.Out_Buf.all));
             H : MIOP_Header;
          begin
             pragma Debug (C, O ("Encapsulate GIOP data in a MIOP Packet,"

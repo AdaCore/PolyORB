@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -57,7 +57,7 @@ package body PolyORB.Transport is
 
    function Handle_Message
      (TAP : access Transport_Access_Point;
-      Msg :        Components.Message'Class) return Components.Message'Class
+      Msg : Components.Message'Class) return Components.Message'Class
    is
    begin
       raise Program_Error;
@@ -79,7 +79,7 @@ package body PolyORB.Transport is
 
    function Handle_Message
      (TE  : access Transport_Endpoint;
-      Msg :        Components.Message'Class) return Components.Message'Class
+      Msg : Components.Message'Class) return Components.Message'Class
    is
       use Filters.Iface;
    begin

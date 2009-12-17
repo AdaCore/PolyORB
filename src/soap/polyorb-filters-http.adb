@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -302,12 +302,12 @@ package body PolyORB.Filters.HTTP is
      (F : access HTTP_Filter;
       S : Filters.Iface.Data_Indication)
    is
-      Data_Received : Stream_Element_Count
-        := Stream_Element_Count (S.Data_Amount);
+      Data_Received : Stream_Element_Count :=
+                        Stream_Element_Count (S.Data_Amount);
 
       New_Data : PolyORB.Opaque.Opaque_Pointer;
-      New_Data_Position : Stream_Element_Offset
-        := Length (F.In_Buf) - Data_Received;
+      New_Data_Position : Stream_Element_Offset :=
+                            Length (F.In_Buf.all) - Data_Received;
    begin
 
       ---------------------------
@@ -384,7 +384,9 @@ package body PolyORB.Filters.HTTP is
                      --    (the end of this line).
 
                      New_Data_Position := CDR_Position (F.In_Buf);
-                     Data_Received := Length (F.In_Buf) - New_Data_Position;
+                     Data_Received :=
+                       Length (F.In_Buf.all) - New_Data_Position;
+
                      if Data_Received > 0 then
                         pragma Debug (C, O ("Restarting HTTP processing"));
                         pragma Debug
@@ -403,7 +405,7 @@ package body PolyORB.Filters.HTTP is
             end loop Scan_Line;
          end;
 
-         if CDR_Position (F.In_Buf) = Length (F.In_Buf) then
+         if CDR_Position (F.In_Buf) = Length (F.In_Buf.all) then
             --  All data currently in F.In_Buf has been processed,
             --  so release it (NB: in the HTTP filter, the initial
             --  position in the buffer is always 0.)

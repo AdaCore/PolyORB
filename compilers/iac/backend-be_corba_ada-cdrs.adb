@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -586,8 +586,10 @@ package body Backend.BE_CORBA_Ada.CDRs is
                    Make_Defining_Identifier (PN (P_Buffer)),
                    Make_Defining_Identifier (PN (P_Data_Alignment))));
 
-               if (Present (T) and FEN.Kind (T) /= K_Void)
-                 or else Contains_Out_Parameters (E) then
+               if (Present (T) and then FEN.Kind (T) /= K_Void)
+                    or else
+                  Contains_Out_Parameters (E)
+               then
                   Append_To (Server_Statements, M);
                end if;
 
@@ -1842,7 +1844,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
                   Switch_Node         : Node_Id;
                   Switch_Alternatives : List_Id;
                   Switch_Case         : Node_Id;
-                  Default_Met         : Boolean := False;
+                  Has_Default         : Boolean := False;
                   Choices             : List_Id;
                   Literal_Parent      : Node_Id := No_Node;
                   Switch_Statements   : List_Id;
@@ -1886,7 +1888,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
                        (Labels (Switch_Case),
                         Literal_Parent,
                         Choices,
-                        Default_Met);
+                        Has_Default);
 
                      Switch_Statements := New_List;
 
@@ -1925,7 +1927,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
                   --  Add an empty when others clause to keep the compiler
                   --  happy.
 
-                  if not Default_Met then
+                  if not Has_Default then
                      Append_To (Switch_Alternatives,
                         Make_Case_Statement_Alternative (No_List, No_List));
                   end if;
@@ -2377,7 +2379,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
                declare
                   Switch_Alternatives : List_Id;
                   Switch_Case         : Node_Id;
-                  Default_Met         : Boolean := False;
+                  Has_Default         : Boolean := False;
                   Choices             : List_Id;
                   Literal_Parent      : Node_Id := No_Node;
                   Switch_Statements   : List_Id;
@@ -2485,7 +2487,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
                        (Labels (Switch_Case),
                         Literal_Parent,
                         Choices,
-                        Default_Met);
+                        Has_Default);
 
                      Switch_Statements := New_List;
 
@@ -2541,7 +2543,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
                   --  Add an empty when others clause to keep the compiler
                   --  happy.
 
-                  if not Default_Met then
+                  if not Has_Default then
                      Append_To (Switch_Alternatives,
                        Make_Case_Statement_Alternative (No_List, No_List));
                   end if;

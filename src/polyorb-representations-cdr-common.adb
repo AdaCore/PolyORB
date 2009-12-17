@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -59,7 +59,7 @@ package body PolyORB.Representations.CDR.Common is
 
    function Encapsulate (Buffer : access Buffer_Type) return Encapsulation  is
    begin
-      return Encapsulation'(To_Stream_Element_Array (Buffer));
+      return Encapsulation'(To_Stream_Element_Array (Buffer.all));
    end Encapsulate;
 
    -------------------------
@@ -188,11 +188,17 @@ package body PolyORB.Representations.CDR.Common is
    begin
       pragma Debug (C, O ("Marshall (Octet) : enter"));
       Align_Marshall_Copy (Buffer, (1 => Stream_Element
-                           (PolyORB.Types.Octet'(Data))), 1);
+                           (PolyORB.Types.Octet'(Data))), Align_1);
       pragma Debug (C, O ("Marshall (Octet) : end"));
    end Marshall;
 
    --  Transfer of elementary integer types
+
+   function Swapped (X : Types.Octet) return Types.Octet;
+   pragma Inline (Swapped);
+   --  Identity function!
+   package CDR_Octet is
+     new Align_Transfer_Elementary (T => PolyORB.Types.Octet);
 
    function Swapped is
      new GNAT.Byte_Swapping.Swapped2 (PolyORB.Types.Unsigned_Short);
@@ -571,8 +577,7 @@ package body PolyORB.Representations.CDR.Common is
    ------------------------------------
 
    function Unmarshall
-     (Buffer : access Buffer_Type)
-     return PolyORB.Types.Boolean
+     (Buffer : access Buffer_Type) return PolyORB.Types.Boolean
    is
    begin
       pragma Debug (C, O ("Unmarshall (Boolean) : enter & end"));
@@ -581,8 +586,7 @@ package body PolyORB.Representations.CDR.Common is
    end Unmarshall;
 
    function Unmarshall_Latin_1_Char
-     (Buffer : access Buffer_Type)
-     return PolyORB.Types.Char
+     (Buffer : access Buffer_Type) return PolyORB.Types.Char
    is
    begin
       pragma Debug (C, O ("Unmarshall (Char) : enter & end"));
@@ -592,13 +596,7 @@ package body PolyORB.Representations.CDR.Common is
 
    function Unmarshall
      (Buffer : access Buffer_Type) return PolyORB.Types.Octet
-   is
-      Result : Stream_Element_Array (1 .. 1);
-   begin
-      Align_Unmarshall_Copy (Buffer, 1, Result);
-      pragma Debug (C, O ("Unmarshall (Octet) : enter & end"));
-      return PolyORB.Types.Octet (Result (1));
-   end Unmarshall;
+     renames CDR_Octet.Unmarshall;
 
    function Unmarshall
      (Buffer : access Buffer_Type) return PolyORB.Types.Unsigned_Short
@@ -821,7 +819,7 @@ package body PolyORB.Representations.CDR.Common is
          Data   : F)
       is
       begin
-         Align_Marshall_Copy (Buffer, Fixed_To_Octets (Data), 1);
+         Align_Marshall_Copy (Buffer, Fixed_To_Octets (Data), Align_1);
       end Marshall;
 
       ----------------
@@ -888,5 +886,10 @@ package body PolyORB.Representations.CDR.Common is
       end Octets_To_Fixed;
 
    end Fixed_Point;
+
+   function Swapped (X : Types.Octet) return Types.Octet is
+   begin
+      return X;
+   end Swapped;
 
 end PolyORB.Representations.CDR.Common;

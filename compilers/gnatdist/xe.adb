@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1995-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -53,8 +53,8 @@ package body XE is
    type Node_Type is
       record
          Kind    : Node_Kind;
-         Loc_X   : Int;
-         Loc_Y   : Int;
+         Loc_X   : Int := 0;
+         Loc_Y   : Int := 0;
          Name    : Name_Id;
          Node_1  : Node_Id;
          Node_2  : Node_Id;
@@ -498,6 +498,28 @@ package body XE is
          Int (ORB_Tasking_Policy_Type'First) ..
          Int (ORB_Tasking_Policy_Type'Last));
       return ORB_Tasking_Policy_Type (Item);
+   end Convert;
+
+   -------------
+   -- Convert --
+   -------------
+
+   function Convert (Item : Name_Server_Type) return Int is
+   begin
+      return Int (Item);
+   end Convert;
+
+   -------------
+   -- Convert --
+   -------------
+
+   function Convert (Item : Int) return Name_Server_Type is
+   begin
+      pragma Assert
+        (Item in
+         Int (Name_Server_Type'First) ..
+         Int (Name_Server_Type'Last));
+      return Name_Server_Type (Item);
    end Convert;
 
    ----------------------
@@ -1024,6 +1046,10 @@ package body XE is
             User_Tasking    => Id ("User_Tasking"),
             No_Tasking      => Id ("No_Tasking"));
 
+      Name_Server_Img
+        := (No_Name_Server => Id ("Undefined name server kind"),
+            Embedded       => Id ("Embedded"),
+            Standalone     => Id ("Standalone"));
    end Initialize;
 
    ------------------

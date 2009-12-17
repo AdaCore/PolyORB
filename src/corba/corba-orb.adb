@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -50,7 +50,6 @@ with PolyORB.Initialization;
 
 with PolyORB.Log;
 with PolyORB.ORB;
-with PolyORB.Objects;
 with PolyORB.Parameters;
 with PolyORB.References.IOR;
 with PolyORB.Setup;
@@ -627,32 +626,6 @@ package body CORBA.ORB is
          Initialize_World;
       end if;
    end Initialize;
-
-   ----------------------
-   -- Create_Reference --
-   ----------------------
-
-   function Create_Reference
-     (Object : CORBA.Object.Ref;
-      Typ    : Standard.String)
-     return PolyORB.References.Ref is
-   begin
-      if The_ORB = null then
-         Raise_Internal (CORBA.Default_Sys_Member);
-      end if;
-
-      declare
-         Result : PolyORB.References.Ref;
-
-         Oid : constant PolyORB.Objects.Object_Id_Access :=
-           new PolyORB.Objects.Object_Id'
-           (CORBA.Object.Internals.To_PolyORB_Object (Object));
-      begin
-         PolyORB.ORB.Create_Reference (The_ORB, Oid, Typ, Result);
-
-         return Result;
-      end;
-   end Create_Reference;
 
    -------------------
    -- Create_Policy --

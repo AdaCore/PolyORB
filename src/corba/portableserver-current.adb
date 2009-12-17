@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -217,12 +217,8 @@ package body PortableServer.Current is
 
    function Get_Reference (Self : Local_Ref) return CORBA.Object.Ref is
       pragma Unreferenced (Self);
-
       use type PolyORB.Requests.Request_Access;
-
       Note   : PortableServer_Current_Note;
-      Result : CORBA.Object.Ref;
-
    begin
       Get_Note (Get_Current_Thread_Notepad.all, Note,
                 Null_PortableServer_Current_Note);
@@ -231,10 +227,7 @@ package body PortableServer.Current is
          Raise_NoContext ((CORBA.IDL_Exception_Members with null record));
       end if;
 
-      CORBA.Object.Internals.Convert_To_CORBA_Ref
-        (Note.Request.Target, Result);
-
-      return Result;
+      return CORBA.Object.Internals.To_CORBA_Ref (Note.Request.Target);
    end Get_Reference;
 
    -----------------

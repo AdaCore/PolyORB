@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -428,7 +428,7 @@ package body PolyORB.TLS is
          Status := Thin.SSL_shutdown (Socket);
       end if;
 
-      if Status /= 0 and Status /= 1 then
+      if Status not in 0 .. 1 then
          Raise_TLS_Error;
       end if;
 

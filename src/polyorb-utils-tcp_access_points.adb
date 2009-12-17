@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -71,10 +71,7 @@ package body PolyORB.Utils.TCP_Access_Points is
 
       --  Allow reuse of local addresses
 
-      Set_Socket_Option
-        (API.Socket,
-         Socket_Level,
-         (Reuse_Address, True));
+      Set_Socket_Option (API.Socket, Socket_Level, (Reuse_Address, True));
 
       if API.SAP = null then
          API.SAP := new Socket_Access_Point;

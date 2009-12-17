@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -96,7 +96,7 @@ package body PolyORB.Filters.Slicers is
             F.Data_Expected := DEM.Max;
             F.Initial_Data_Expected := DEM.Max;
             F.In_Buf := DEM.In_Buf;
-            F.Buffer_Length := Length (F.In_Buf);
+            F.Buffer_Length := Length (F.In_Buf.all);
 
             return Emit
               (F.Lower,
@@ -121,12 +121,12 @@ package body PolyORB.Filters.Slicers is
             end if;
 
             pragma Assert
-              (Data_Received = Length (F.In_Buf) - F.Buffer_Length);
+              (Data_Received = Length (F.In_Buf.all) - F.Buffer_Length);
             --  Integrity check: Receive_Buffer must have increased
             --  Length (F.In_Buf) by exactly the amount of data received.
 
             F.Data_Expected := F.Data_Expected - Data_Received;
-            F.Buffer_Length := Length (F.In_Buf);
+            F.Buffer_Length := Length (F.In_Buf.all);
 
             if F.Data_Expected = 0 then
                declare

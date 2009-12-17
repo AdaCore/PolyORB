@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2003-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -58,6 +58,7 @@ generic
 
    with function Element_From_Any (Item : PolyORB.Any.Any) return Element;
    with function Element_To_Any   (Item : Element) return PolyORB.Any.Any;
+   pragma Unreferenced (Element_To_Any);
    with function Element_Wrap (X : access Element)
      return PolyORB.Any.Content'Class;
 

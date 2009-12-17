@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -51,13 +51,11 @@ package body PolyORB.Tasking.Threads is
    -- Create_Task --
    -----------------
 
-   procedure Create_Task
-     (Main : Parameterless_Procedure)
-   is
-      T : constant Thread_Access
-        := Run_In_Task
-             (TF => My_Thread_Factory,
-              P  => Main);
+   procedure Create_Task (Main : Parameterless_Procedure) is
+      T : constant Thread_Access :=
+            Run_In_Task
+              (TF => My_Thread_Factory,
+               P  => Main);
       pragma Warnings (Off);
       pragma Unreferenced (T);
       pragma Warnings (On);

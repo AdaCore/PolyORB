@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2004-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -37,12 +37,19 @@ with PolyORB.Utils.Chained_Lists;
 
 package PolyORB.Tasking.Idle_Tasks_Managers is
 
+   pragma Preelaborate;
+
    package PTI renames PolyORB.Task_Info;
    package PTCV renames PolyORB.Tasking.Condition_Variables;
 
    type Idle_Tasks_Manager is limited private;
 
    type Idle_Tasks_Manager_Access is access all Idle_Tasks_Manager;
+
+   procedure Awake_Idle_Task
+     (ITM : access Idle_Tasks_Manager;
+      TI  : PTI.Task_Info_Access);
+   --  Awake one specific idle task
 
    function Awake_One_Idle_Task
      (ITM             : access Idle_Tasks_Manager;
@@ -57,13 +64,12 @@ package PolyORB.Tasking.Idle_Tasks_Managers is
 
    procedure Remove_Idle_Task
      (ITM : access Idle_Tasks_Manager;
-      TI  :        PTI.Task_Info_Access);
-   --  Remove TI from the pool of tasks managed by ITM
+      TI  : PTI.Task_Info_Access);
+   --  Called after task TI has exited Idle to return its CV to the free list
 
    function Insert_Idle_Task
-     (ITM  : access Idle_Tasks_Manager;
-      TI  :        PTI.Task_Info_Access)
-     return PTCV.Condition_Access;
+     (ITM : access Idle_Tasks_Manager;
+      TI  :  PTI.Task_Info_Access) return PTCV.Condition_Access;
    --  Add TI to the pool of tasks managed by ITM. The returned CV
    --  will be used by a task to put itself in an idle (waiting) state.
 
@@ -72,12 +78,10 @@ private
    pragma Inline (Remove_Idle_Task);
    pragma Inline (Insert_Idle_Task);
 
-   package Task_Lists renames PTI.Task_Lists;
-
    package CV_Lists is
      new PolyORB.Utils.Chained_Lists (PTCV.Condition_Access, PTCV."=");
 
-   type Task_List_Array is array (PTI.Task_Kind) of Task_Lists.List;
+   type Task_List_Array is array (PTI.Task_Kind) of PTI.Task_List;
 
    type Idle_Tasks_Manager is limited record
       Idle_Task_Lists : Task_List_Array;

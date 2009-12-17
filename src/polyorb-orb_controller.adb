@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -342,10 +342,13 @@ package body PolyORB.ORB_Controller is
    -- Reschedule_Task --
    ---------------------
 
-   procedure Reschedule_Task (TI : PTI.Task_Info) is
+   procedure Reschedule_Task
+     (O  : access ORB_Controller;
+      TI : PTI.Task_Info_Access)
+   is
       use type PAE.Asynch_Ev_Monitor_Access;
    begin
-      case State (TI) is
+      case State (TI.all) is
          when Running =>
             --  Let the task complete its current job
 
@@ -356,7 +359,7 @@ package body PolyORB.ORB_Controller is
             --  Abort wait on AEM
 
             declare
-               Sel : PAE.Asynch_Ev_Monitor_Access renames Selector (TI);
+               Sel : PAE.Asynch_Ev_Monitor_Access renames Selector (TI.all);
             begin
                pragma Debug (C1, O1 ("About to abort block"));
 
@@ -370,7 +373,7 @@ package body PolyORB.ORB_Controller is
             --  Awake task
 
             pragma Debug (C1, O1 ("Signal idle task"));
-            PTCV.Signal (Condition (TI));
+            Awake_Idle_Task (O.Idle_Tasks, TI);
 
          when Terminated | Unscheduled =>
             --  Really should not happen
@@ -449,7 +452,7 @@ package body PolyORB.ORB_Controller is
 
       Task_Removed (O.Summary, TI.all);
       Notify_Event (ORB_Controller'Class (O.all)'Access,
-        Event'(Kind => Task_Unregistered));
+        Event'(Kind => Task_Unregistered, Unregistered_Task => TI));
 
       pragma Debug (C2, O2 (Status (O.all)));
       pragma Debug (C1, O1 ("Unregister_Task: leave"));
@@ -516,7 +519,7 @@ package body PolyORB.ORB_Controller is
             if O.AEM_Infos (J).TI /= null
                  and then Kind_Match (O.AEM_Infos (J).TI.all, Requested_Kind)
             then
-               Reschedule_Task (O.AEM_Infos (J).TI.all);
+               Reschedule_Task (O, O.AEM_Infos (J).TI);
                exit;
             end if;
          end loop;

@@ -13,7 +13,7 @@ default: all
 # first, although this make file mostly ignores the results of configure.
 
 # NOTE: You must set the ADA_PROJECT_PATH so that we can find xmlada.gpr.
-# See projects/src_soap.gpr.
+# See projects/polyorb_src_soap.gpr.
 
 # Interesting targets to use from the command line:
 #
@@ -29,14 +29,14 @@ default: all
 #
 # all-and-test -- builds everything needed, then runs the testsuite
 #
-# src_corba.gpr -- target to build src/corba (and similarly for all the *.gpr
-# files in the projects subdirectory). That is, there is a ".PHONY" target with
-# the same name as each project file, sans directory name.
+# polyorb_src_corba.gpr -- target to build src/corba (and similarly for all
+# the *.gpr files in the projects subdirectory). That is, there is a ".PHONY"
+# target with the same name as each project file, sans directory name.
 #
 # libpolyorb-corba.a -- ".PHONY" target to build the library
 # lib/libpolyorb-corba.a (and similarly for all the other libraries).
-# Each of these depends on the .gpr target (e.g. lib/libpolyorb-corba.a
-# depends on src_corba.gpr).
+# Each of these depends on the polyorb_.gpr target (e.g. lib/libpolyorb-corba.a
+# depends on polyorb_src_corba.gpr).
 #
 # examples/corba/all_functions/build-test -- target to build a particular
 # example (and similarly for other subdirectories under examples).
@@ -428,7 +428,7 @@ ALL_PROJECT_FILES := ${sort \
                        ${notdir ${wildcard ${top_builddir}/projects/*.gpr}}}
 
 # Remove the ones that shouldn't be built:
-IGNORED_PROJECT_FILES := build_all.gpr common.gpr config.gpr
+IGNORED_PROJECT_FILES := polyorb_build_all.gpr polyorb_common.gpr polyorb_config.gpr
 PROJECT_FILES := ${filter-out ${IGNORED_PROJECT_FILES},${ALL_PROJECT_FILES}}
 
 # The ones that start with "tools_" are for building (target) executables;
@@ -445,97 +445,97 @@ do-gnatmake: ${POLYORB_LIBS} ${SERVICE_LIBS} ${EXE_PROJECT_FILES} #??? ${APPLI_E
 # Because we can't share library directories!
 
 .PHONY: libpolyorb-aws.a
-libpolyorb-aws.a: src_aws.gpr
+libpolyorb-aws.a: polyorb_src_aws.gpr
 .PHONY: libpolyorb-corba-cos-event-impl.a
-libpolyorb-corba-cos-event-impl.a: cos_event.gpr
+libpolyorb-corba-cos-event-impl.a: polyorb_cos_event.gpr
 .PHONY: libpolyorb-corba-cos-ir-impl.a
-libpolyorb-corba-cos-ir-impl.a: cos_ir.gpr
+libpolyorb-corba-cos-ir-impl.a: polyorb_cos_ir.gpr
 .PHONY: libpolyorb-corba-cos-naming-impl.a
-libpolyorb-corba-cos-naming-impl.a: cos_naming.gpr
+libpolyorb-corba-cos-naming-impl.a: polyorb_cos_naming.gpr
 .PHONY: libpolyorb-corba-cos-notification-impl.a
-libpolyorb-corba-cos-notification-impl.a: cos_notification.gpr
+libpolyorb-corba-cos-notification-impl.a: polyorb_cos_notification.gpr
 .PHONY: libpolyorb-corba-cos-time-impl.a
-libpolyorb-corba-cos-time-impl.a: cos_time.gpr
+libpolyorb-corba-cos-time-impl.a: polyorb_cos_time.gpr
 .PHONY: libpolyorb-corba-cos-event.a
-libpolyorb-corba-cos-event.a: idls_cos_event.gpr
+libpolyorb-corba-cos-event.a: polyorb_idls_cos_event.gpr
 .PHONY: libpolyorb-corba-cos-naming.a
-libpolyorb-corba-cos-naming.a: idls_cos_naming.gpr
+libpolyorb-corba-cos-naming.a: polyorb_idls_cos_naming.gpr
 .PHONY: libpolyorb-corba-cos-notification.a
-libpolyorb-corba-cos-notification.a: idls_cos_notification.gpr
+libpolyorb-corba-cos-notification.a: polyorb_idls_cos_notification.gpr
 .PHONY: libpolyorb-corba-cos-time.a
-libpolyorb-corba-cos-time.a: idls_cos_time.gpr
+libpolyorb-corba-cos-time.a: polyorb_idls_cos_time.gpr
 .PHONY: libpolyorb.a
-libpolyorb.a: src.gpr
+libpolyorb.a: polyorb_src.gpr
 .PHONY: libpolyorb-corba.a
-libpolyorb-corba.a: src_corba.gpr
+libpolyorb-corba.a: polyorb_src_corba.gpr
 .PHONY: libpolyorb-corba-dynamicany.a
-libpolyorb-corba-dynamicany.a: src_corba_dynamicany.gpr
+libpolyorb-corba-dynamicany.a: polyorb_src_corba_dynamicany.gpr
 .PHONY: libpolyorb-corba-iop.a
-libpolyorb-corba-iop.a: src_corba_iop.gpr
+libpolyorb-corba-iop.a: polyorb_src_corba_iop.gpr
 .PHONY: libpolyorb-corba-messaging.a
-libpolyorb-corba-messaging.a: src_corba_messaging.gpr
+libpolyorb-corba-messaging.a: polyorb_src_corba_messaging.gpr
 .PHONY: libpolyorb-corba-portableinterceptor.a
-libpolyorb-corba-portableinterceptor.a: src_corba_portableinterceptor.gpr
+libpolyorb-corba-portableinterceptor.a: polyorb_src_corba_portableinterceptor.gpr
 .PHONY: libpolyorb-corba-rtcorba.a
-libpolyorb-corba-rtcorba.a: src_corba_rtcorba.gpr
+libpolyorb-corba-rtcorba.a: polyorb_src_corba_rtcorba.gpr
 .PHONY: libpolyorb-corba-security.a
-libpolyorb-corba-security.a: src_corba_security.gpr
+libpolyorb-corba-security.a: polyorb_src_corba_security.gpr
 .PHONY: libpolyorb-corba-security-gssup.a
-libpolyorb-corba-security-gssup.a: src_corba_security_gssup.gpr
+libpolyorb-corba-security-gssup.a: polyorb_src_corba_security_gssup.gpr
 
 .PHONY: libpolyorb-dsa.a
-libpolyorb-dsa.a: src_dsa.gpr
+libpolyorb-dsa.a: polyorb_src_dsa.gpr
 libpolyorb-dsa.a: PRJ_GNATMAKE_FLAGS := -a
 # Some components of the DSA application personality are child units of
 # System: use -a to allow them to be compiled.
 
 .PHONY: libpolyorb-giop.a
-libpolyorb-giop.a: src_giop.gpr
+libpolyorb-giop.a: polyorb_src_giop.gpr
 .PHONY: libpolyorb-giop-diop.a
-libpolyorb-giop-diop.a: src_giop_diop.gpr
+libpolyorb-giop-diop.a: polyorb_src_giop_diop.gpr
 .PHONY: libpolyorb-giop-iiop.a
-libpolyorb-giop-iiop.a: src_giop_iiop.gpr
+libpolyorb-giop-iiop.a: polyorb_src_giop_iiop.gpr
 .PHONY: libpolyorb-giop-iiop-security.a
-libpolyorb-giop-iiop-security.a: src_giop_iiop_security.gpr
+libpolyorb-giop-iiop-security.a: polyorb_src_giop_iiop_security.gpr
 .PHONY: libpolyorb-giop-iiop-security-tls.a
-libpolyorb-giop-iiop-security-tls.a: src_giop_iiop_security_tls.gpr
+libpolyorb-giop-iiop-security-tls.a: polyorb_src_giop_iiop_security_tls.gpr
 .PHONY: libpolyorb-giop-iiop-ssliop.a
-libpolyorb-giop-iiop-ssliop.a: src_giop_iiop_ssliop.gpr
+libpolyorb-giop-iiop-ssliop.a: polyorb_src_giop_iiop_ssliop.gpr
 .PHONY: libpolyorb-giop-miop.a
-libpolyorb-giop-miop.a: src_giop_miop.gpr
+libpolyorb-giop-miop.a: polyorb_src_giop_miop.gpr
 .PHONY: libpolyorb-moma.a
-libpolyorb-moma.a: src_moma.gpr
+libpolyorb-moma.a: polyorb_src_moma.gpr
 .PHONY: libpolyorb-security.a
-libpolyorb-security.a: src_security.gpr
+libpolyorb-security.a: polyorb_src_security.gpr
 .PHONY: libpolyorb-security-gssup.a
-libpolyorb-security-gssup.a: src_security_gssup.gpr
+libpolyorb-security-gssup.a: polyorb_src_security_gssup.gpr
 .PHONY: libpolyorb-security-tls.a
-libpolyorb-security-tls.a: src_security_tls.gpr
+libpolyorb-security-tls.a: polyorb_src_security_tls.gpr
 .PHONY: libpolyorb-security-x509.a
 libpolyorb-security-x509.a: src_security_x509.gpr
 .PHONY: libpolyorb-setup.a
-libpolyorb-setup.a: src_setup.gpr
+libpolyorb-setup.a: polyorb_src_setup.gpr
 .PHONY: libpolyorb-setup-security.a
-libpolyorb-setup-security.a: src_setup_security.gpr
+libpolyorb-setup-security.a: polyorb_src_setup_security.gpr
 .PHONY: libpolyorb-soap.a
-libpolyorb-soap.a: src_soap.gpr
+libpolyorb-soap.a: polyorb_src_soap.gpr
 .PHONY: libpolyorb-srp.a
-libpolyorb-srp.a: src_srp.gpr
+libpolyorb-srp.a: polyorb_src_srp.gpr
 .PHONY: libpolyorb-ssl.a
-libpolyorb-ssl.a: src_ssl.gpr
+libpolyorb-ssl.a: polyorb_src_ssl.gpr
 .PHONY: libpolyorb-web_common.a
-libpolyorb-web_common.a: src_web_common.gpr
+libpolyorb-web_common.a: polyorb_src_web_common.gpr
 
 # Additional dependencies:
 
-src.gpr:		src/csupport.o
-src_corba.gpr: src_corba_dynamicany.gpr src_corba_iop.gpr src_corba_messaging.gpr src_corba_portableinterceptor.gpr src_corba_rtcorba.gpr
+polyorb_src.gpr:		src/csupport.o
+polyorb_src_corba.gpr: polyorb_src_corba_dynamicany.gpr polyorb_src_corba_iop.gpr polyorb_src_corba_messaging.gpr polyorb_src_corba_portableinterceptor.gpr polyorb_src_corba_rtcorba.gpr
 
 ifeq (${HAVE_SSL},yes)
-src_giop_iiop.gpr: src_giop_iiop_security.gpr src_giop_iiop_security_tls.gpr
-src_setup.gpr: src_setup_security.gpr
-src_corba.gpr: src_corba_security.gpr src_corba_security_gssup.gpr
-src.gpr: src_security.gpr src_security_gssup.gpr src_security_x509.gpr src_security_tls.gpr
+polyorb_src_giop_iiop.gpr: polyorb_src_giop_iiop_security.gpr polyorb_src_giop_iiop_security_tls.gpr
+polyorb_src_setup.gpr: polyorb_src_setup_security.gpr
+polyorb_src_corba.gpr: polyorb_src_corba_security.gpr polyorb_src_corba_security_gssup.gpr
+polyorb_src.gpr: polyorb_src_security.gpr polyorb_src_security_gssup.gpr src_security_x509.gpr polyorb_src_security_tls.gpr
 
 # Additional dependencies upon C files
 C_FILES += 					\
@@ -543,9 +543,9 @@ C_FILES += 					\
 	src/security/polyorb_asn1.c		\
 	src/security/x509/polyorb_x509.c
 
-src_ssl.gpr:		src/ssl/polyorb_ssl.o
-src_security.gpr:	src/security/polyorb_asn1.o
-src_security_x509.gpr:	src/security/x509/polyorb_x509.o
+polyorb_src_ssl.gpr:		src/ssl/polyorb_ssl.o
+polyorb_src_security.gpr:	src/security/polyorb_asn1.o
+polyorb_src_security_x509.gpr:	src/security/x509/polyorb_x509.o
 endif
 
 # Rule for compilation of C source files
@@ -557,8 +557,8 @@ ${C_OBJECTS}: %.o: ${top_srcdir}/%.c
 
 # The mkdir.flag targets are used to create the necessary directories. There is
 # one ALI directory for each project file (for example, ali/src_corba is the
-# ALI directory for projects/src_corba.gpr). There is also a single library
-# directory (lib) shared by all project files.
+# ALI directory for projects/polyorb_src_corba.gpr). There is also a single
+# library directory (lib) shared by all project files.
 # Note: This would be unnecessary if we used the -p switch of gnatmake,
 # but we want this to work with older versions of gnatmake that do not
 # support -p (this option was introduced in GNAT 6.0).
@@ -571,7 +571,7 @@ ${MKDIR_FLAGS}: %/mkdir.flag:
 	mkdir -p $*
 	touch $@
 
-# Note that each foo.gpr target depends on ALL .../mkdir.flag targets,
+# Note that each polyorb_foo.gpr target depends on ALL .../mkdir.flag targets,
 # because gnatmake needs to look at the ALI directories for imported
 # projects.
 

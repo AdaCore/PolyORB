@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1995-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -157,9 +157,6 @@ package body XE_Back.GARLIC is
       Name  : Name_Id);
    --  Add a protocol of name Name to the chained list which starts at
    --  First and ends at Last.
-
-   function Location_List_Image (Location : Location_Id) return Name_Id;
-   --  Explore linked list of locations to build its image
 
    procedure Generate_Elaboration_File (P : Partition_Id);
    --  Create the elaboration unit for the given partition. This unit
@@ -535,10 +532,11 @@ package body XE_Back.GARLIC is
 
    procedure Generate_Executable_File (P : Partition_Id) is
       Current       : Partition_Type renames Partitions.Table (P);
+      Executable    : File_Name_Type renames Current.Executable_File;
       Partition_Dir : Directory_Name_Type renames Current.Partition_Dir;
       I_Part_Dir    : String_Access;
       Comp_Args     : String_List (1 .. 7);
-      Make_Args     : String_List (1 .. 9);
+      Make_Args     : String_List (1 .. 11);
       Sfile         : File_Name_Type;
       Prj_Fname     : File_Name_Type;
 
@@ -609,6 +607,10 @@ package body XE_Back.GARLIC is
       Make_Args (8) := new String'(Get_Name_String (Prj_Fname));
       Make_Args (9) := Comp_Args (7);
 
+      Make_Args (10) := Output_Flag;
+      Make_Args (11) :=
+        new String'(Get_Name_String (Strip_Directory (Executable)));
+
       Build (Sfile, Make_Args, Fatal => True);
 
       Free (Comp_Args (6));
@@ -616,6 +618,7 @@ package body XE_Back.GARLIC is
 
       Free (Make_Args (2));
       Free (Make_Args (8));
+      Free (Make_Args (11));
    end Generate_Executable_File;
 
    ----------------------------------
@@ -1236,31 +1239,6 @@ package body XE_Back.GARLIC is
       Generate_Application_Project_Files;
    end Initialize;
 
-   -------------------------
-   -- Location_List_Image --
-   -------------------------
-
-   function Location_List_Image
-     (Location : Location_Id)
-     return Name_Id
-   is
-      L : Location_Id := Location;
-
-   begin
-      Name_Len := 0;
-      loop
-         Get_Name_String_And_Append (Locations.Table (L).Major);
-         if Present (Locations.Table (L).Minor) then
-            Add_Str_To_Name_Buffer ("://");
-            Get_Name_String_And_Append (Locations.Table (L).Minor);
-         end if;
-         L := Locations.Table (L).Next_Location;
-         exit when L = No_Location_Id;
-         Add_Char_To_Name_Buffer (' ');
-      end loop;
-      return Quote (Name_Find);
-   end Location_List_Image;
-
    ----------
    -- Name --
    ----------
@@ -1370,8 +1348,7 @@ package body XE_Back.GARLIC is
       pragma Unreferenced (Self);
    begin
       if not Is_Directory (DSA_Inc_Dir) then
-         Message ("GARLIC library not found");
-         raise Fatal_Error;
+         raise Fatal_Error with "GARLIC library not found";
       end if;
 
       Scan_Dist_Arg ("-aI" & DSA_Inc_Dir);

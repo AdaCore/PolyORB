@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---             P O L Y O R B . D S A _ P . S T O R A G E S . D F S          --
+--           P O L Y O R B . D S A _ P . S T O R A G E S . D F S            --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2008, Free Software Foundation, Inc.               --
+--         Copyright (C) 2008-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -399,7 +399,7 @@ package body PolyORB.DSA_P.Storages.DFS is
 
       declare
          Stream : constant Stream_Element_Array :=
-           To_Stream_Element_Array (Buffer);
+                    To_Stream_Element_Array (Buffer.all);
       begin
          SIO.Write (Self.File, Stream);
       end;

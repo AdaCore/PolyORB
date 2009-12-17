@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -61,18 +61,15 @@ package body PolyORB.Binding_Objects is
       use PolyORB.Components;
       use PolyORB.Errors;
 
-      use BO_Lists;
-
       Error : Error_Container;
-
    begin
-      pragma Debug (C, O ("Finalizing binding object."));
+      pragma Debug (C, O ("Finalizing binding object"));
 
       --  First remove the reference to this BO from its ORB so that is does
       --  not get reused while being finalized.
 
-      PolyORB.ORB.Unregister_Binding_Object
-        (X.Referenced_In, X'Unchecked_Access);
+      ORB.Unregister_Binding_Object
+        (ORB.ORB_Access (X.ORB), X'Unchecked_Access);
 
       --  Notify protocol stack that it is about to be dismantled
 
@@ -97,7 +94,7 @@ package body PolyORB.Binding_Objects is
 
       Destroy (X.Notepad);
 
-      pragma Debug (C, O ("RIP."));
+      pragma Debug (C, O ("RIP"));
    end Finalize;
 
    -------------------
@@ -134,41 +131,49 @@ package body PolyORB.Binding_Objects is
       return BO.Profile;
    end Get_Profile;
 
-   -----------------------
-   -- Get_Referenced_At --
-   -----------------------
+   ----------
+   -- Link --
+   ----------
 
-   function Get_Referenced_At
-     (BO : Binding_Object_Access) return BO_Lists.Iterator
+   function Link
+     (X     : access Binding_Object'Class;
+      Which : Utils.Ilists.Link_Type) return access Binding_Object_Access
    is
    begin
-      return BO.Referenced_At;
-   end Get_Referenced_At;
+      return X.Links (Which)'Unchecked_Access;
+   end Link;
 
-   ------------------------------------
-   -- Register_Reference_Information --
-   ------------------------------------
+   ----------------
+   -- Referenced --
+   ----------------
 
-   procedure Register_Reference_Information
-     (BO            : Binding_Object_Access;
-      Referenced_In : Components.Component_Access;
-      Referenced_At : BO_Lists.Iterator)
+   function Referenced (BO : Binding_Object_Access) return Boolean is
+   begin
+      return BO.Referenced;
+   end Referenced;
+
+   --------------------
+   -- Set_Referenced --
+   --------------------
+
+   procedure Set_Referenced
+     (BO         : Binding_Object_Access;
+      Referenced : Boolean)
    is
    begin
-      pragma Debug (C, O ("BO : Registering reference Information."));
-      BO.Referenced_In := Referenced_In;
-      BO.Referenced_At := Referenced_At;
-   end Register_Reference_Information;
+      BO.Referenced := Referenced;
+   end Set_Referenced;
 
    --------------------------
    -- Setup_Binding_Object --
    --------------------------
 
    procedure Setup_Binding_Object
-     (TE      :        Transport.Transport_Endpoint_Access;
-      FFC     :        Filters.Factory_Array;
-      BO_Ref  :    out Smart_Pointers.Ref;
-      Pro     :        Binding_Data.Profile_Access)
+     (ORB     : Components.Component_Access;
+      TE      : Transport.Transport_Endpoint_Access;
+      FFC     : Filters.Factory_Array;
+      BO_Ref  : out Smart_Pointers.Ref;
+      Pro     : Binding_Data.Profile_Access)
    is
       BO : Binding_Object_Access;
       Bottom : Filters.Filter_Access;
@@ -179,6 +184,7 @@ package body PolyORB.Binding_Objects is
 
       Set_Profile (BO, Pro);
 
+      BO.ORB := ORB;
       BO.Transport_Endpoint := TE;
       Filters.Create_Filter_Chain
         (FFC,

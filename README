@@ -118,8 +118,10 @@ Note that unified diff files (-u option of GNU diff) are also welcomed.
 
 Unsupported users may directly send their patches and bug report via
 e-mail at the address
+   polyorb-bugs@lists.adacore.com
 
-	polyorb-bugs@lists.adacore.com
+or seek community support through the public mailing list:
+   polyorb-users@lists.adacore.com
 
 Please use the Problem Report Form in docs/PROBLEM-REPORT-FORM.
 Please include the complete output of "polyorb-config --version"
@@ -164,6 +166,7 @@ contributors:
 * Fabrice Kordon
 * Narinder Kumar
 * Laurent Kubler
+* Stéphane Lanarre
 * Lionel Litty
 * Vincent Niebel
 * Pascal Obry

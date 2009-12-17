@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2003-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -140,7 +140,7 @@ package PolyORB.ORB_Controller is
             Registered_Task : PTI.Task_Info_Access;
 
          when Task_Unregistered =>
-            null;
+            Unregistered_Task : PTI.Task_Info_Access;
       end case;
    end record;
 
@@ -379,7 +379,9 @@ private
    --  handled by a transient task). Note that this predicate is defined only
    --  for queued jobs.
 
-   procedure Reschedule_Task (TI : PTI.Task_Info);
+   procedure Reschedule_Task
+     (O  : access ORB_Controller;
+      TI : PTI.Task_Info_Access);
    --  Cause the given task to be rescheduled (i.e. awakened if it is idle,
    --  unblocked if it is blocked). Used when a condition occurs that the task
    --  needs to be informed of.

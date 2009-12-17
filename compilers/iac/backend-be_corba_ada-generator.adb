@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -755,12 +755,12 @@ package body Backend.BE_CORBA_Ada.Generator is
       M : Node_Id;
       P : Node_Id;
    begin
-      --  Make the compiler happy
+      --  For an OTHERS choice, generate a pragma Warnings (Off), because
+      --  all choices might be covered by the explicit alternatives.
 
-      if Is_Empty (Statements (N)) then
+      if Is_Empty (Discret_Choice_List (N)) then
          Write_Indentation;
-         P := Make_Pragma
-           (Pragma_Warnings, New_List (RE (RE_Off)));
+         P := Make_Pragma (Pragma_Warnings, New_List (RE (RE_Off)));
          Generate (P);
          Generate_Statement_Delimiter (P);
       end if;
@@ -773,6 +773,7 @@ package body Backend.BE_CORBA_Ada.Generator is
 
       if Is_Empty (Discret_Choice_List (N)) then
          Write (Tok_Others);
+
       else
          M := First_Node (Discret_Choice_List (N));
          loop
@@ -811,10 +812,9 @@ package body Backend.BE_CORBA_Ada.Generator is
 
       --  Re-enable warnings
 
-      if Is_Empty (Statements (N)) then
+      if Is_Empty (Discret_Choice_List (N)) then
          Write_Indentation;
-         P := Make_Pragma
-           (Pragma_Warnings, New_List (RE (RE_On)));
+         P := Make_Pragma (Pragma_Warnings, New_List (RE (RE_On)));
          Generate (P);
          Generate_Statement_Delimiter (P);
       end if;

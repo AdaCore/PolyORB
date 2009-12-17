@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -39,7 +39,10 @@
 --  required in the Ravenscar profile.
 
 with System;
+pragma Warnings (Off);
+--  System.Tasking is an internal GNAT unit
 with System.Tasking;
+pragma Warnings (On);
 
 with PolyORB.Initialization;
 

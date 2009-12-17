@@ -695,10 +695,12 @@ GNAT and the @code{GNAT.Sockets} package are available.}
 @c -------------------------------------------------------------------
 
 @noindent
+GNU tar is required to unpack PolyORB source packages.
+
 Ada compiler:
 @itemize @bullet
 @item GNAT Pro 6.0 or later
-@item GNAT GPL 2007  or later
+@item GNAT GPL 2007 or later
 @item FSF GCC 4.3 or later
 @end itemize
 
@@ -939,6 +941,8 @@ AIX 5.2:
 
 PolyORB must be compiled with the -mminimal-toc compiler switch. This is
 taken care of automatically by the PolyORB configure script.
+
+The 'ulimit' command may be needed as for Tru64 (see above).
 
 @noindent
 HP-UX 11.00:
@@ -1204,8 +1208,15 @@ one of them in your application node to activate the corresponding
 setup.
 
 @itemize @bullet
-@item @code{PolyORB.Setup.Client}: a client node, without tasking
+@item @code{PolyORB.Setup.No_Tasking_Client}: a client node, without any
+tasking support, configured to use all protocol personalities built with
+PolyORB. Note that this configuration should not be used with multiple
+application tasks.
+
+@item @code{PolyORB.Setup.Thread_Pool_Client}: a client node, with tasking
 enabled, configured to use all protocol personalities built with PolyORB.
+This configuration places no restriction on the use of tasking by
+application code. Middleware tasking policy is @code{Thread_Pool}.
 
 @item @code{PolyORB.Setup.Ravenscar_TP_Server}: a server node, with tasking
 enabled, configured to use all protocol personalities built with
@@ -4169,6 +4180,7 @@ environment variables.
 * Location Declaration::
 * Partition Attribute Main::
 * Pragma Starter::
+* Pragma Name_Server::
 * Pragma Boot_Location::
 * Partition Attribute Self_Location::
 * Partition Attribute Passive::
@@ -4183,9 +4195,6 @@ environment variables.
 * Partition Attribute Environment_Variables::
 * Partition Attribute Termination::
 * Partition Attribute Reconnection::
-* Channel Declaration::
-* Partition and Channel Attribute Filter::
-* Pragma Registration_Filter::
 * Pragma Version::
 * Partition Attribute Task_Pool::
 * Partition Attribute ORB_Tasking_Policy::
@@ -4209,9 +4218,6 @@ There are three new keywords:
 
 @item @i{Partition} that is a predefined type to declare partitions
 
-@item @i{Channel} that is a predefined type to declare channels between
-partitions.
-
 @end itemize
 
 @node Pragmas and Representation Clauses, Configuration Declaration, Language Keywords, The Configuration Language
@@ -4228,20 +4234,18 @@ PRAGMA ::=
 @end smallexample
 
 It is also possible to modify the default behavior of all the partitions
-(or channels) via an attribute definition clause applied to the
-predefined type @b{Partition} (or @b{Channel}).
+via an attribute definition clause applied to the predefined type
+@b{Partition}.
 
 @smallexample
 
 REPRESENTATION_CLAUSE ::=
    @b{for} Partition'ATTRIBUTE_NAME @b{use} ATTRIBUTE_ARGUMENTS;
- | @b{for} Channel'ATTRIBUTE_NAME @b{use} ATTRIBUTE_ARGUMENTS;
 
 @end smallexample
 
 It is also possible to modify the default behavior of a given partition
-(or channel) via an attribute definition clause applied to the partition
-(or channel) itself.
+via an attribute definition clause applied to the partition itself.
 
 @smallexample
 
@@ -4289,7 +4293,6 @@ DECLARATIVE_PART ::= @{DECLARATIVE_ITEM@}
 
 DECLARATIVE_ITEM ::=
    PARTITION_DECLARATION
- | CHANNEL_DECLARATION
  | REPRESENTATION_CLAUSE
  | SUBPROGRAM_DECLARATION
  | PRAGMA
@@ -4430,7 +4433,7 @@ REPRESENTATION_CLAUSE ::=
 
 @end smallexample
 
-@node Pragma Starter, Pragma Boot_Location, Partition Attribute Main, The Configuration Language
+@node Pragma Starter, Pragma Name_Server, Partition Attribute Main, The Configuration Language
 @subsubsection Pragma Starter
 
 As a default, the main executable is a full Ada starter procedure. That
@@ -4492,11 +4495,33 @@ The Command parameter indicates the name of the remote shell command
 name and the Options parameter corresponds to the additional flags to
 pass to the remote shell command.
 
-@node Pragma Boot_Location, Partition Attribute Self_Location, Pragma Starter, The Configuration Language
+@node Pragma Name_Server, Pragma Boot_Location, Pragma Starter, The Configuration Language
+@subsubsection Pragma Name_Server
+
+@smallexample
+
+NAME_SERVER_LITERAL ::= Embedded   |
+                       Standalone
+
+PRAGMA ::=
+   @b{pragma} Name_Server ([Name_Server_Kind =>] NAME_SERVER_LITERAL);
+
+@end smallexample
+
+By default, partitions in a PolyORB/DSA application rely on an external,
+stand-alone name server launched by the user, and whose location is retrieved
+from runtime configuration.
+
+A pragma Name_Server with parameter Embedded can be used to request the
+PCS to instead set up a name server within the main partition. If the
+Ada starter is used, the location of the name server is passed automatically
+to slave partitions.
+
+@node Pragma Boot_Location, Partition Attribute Self_Location, Pragma Name_Server, The Configuration Language
 @subsubsection Pragma Boot_Location
 
 When a partition starts executing, one of the first steps consists in a
-connection to the boot server.  This pragma provides one or more
+connection to the boot server. This pragma provides one or more
 locations in order to get a connection with the boot server.
 
 @smallexample
@@ -4834,8 +4859,8 @@ periodically by the main boot server.
 @smallexample
 
 TERMINATION_LITERAL ::= Global_Termination |
-                         Local_Termination  |
-                         Deferred_Termination
+                        Local_Termination  |
+                        Deferred_Termination
 
 REPRESENTATION_CLAUSE ::=
    @b{for} PARTITION_IDENTIFIER'Termination @b{use} TERMINATION_LITERAL;
@@ -4855,8 +4880,7 @@ termination policy is the default policy.
 termination. The only difference is that when a partition with a
 deferred termination policy receives a termination request, it just
 ignores it. This policy allows a partition to run forever without
-preventing a set of partitions from terminating. This policy is not yet
-implemented.
+preventing a set of partitions from terminating.
 
 @item When a partition is configured with the local termination policy,
 it terminates as soon as the classical Ada termination is detected by
@@ -4927,14 +4951,6 @@ remote procedure calls to this partition are resumed.
 
 
 @end itemize
-
-@c @node Channel Declaration, Partition and Channel Attribute Filter, Partition Attribute Reconnection, The Configuration Language
-@c @subsubsection Channel Declaration
-
-@c @node Partition and Channel Attribute Filter, Pragma Registration_Filter, Channel Declaration, The Configuration Language
-@c @subsubsection Partition and Channel Attribute Filter
-
-@c GARLIC specific
 
 @node Pragma Version, Partition Attribute Task_Pool, Partition Attribute Reconnection, The Configuration Language
 @subsubsection Pragma Version
@@ -5139,41 +5155,15 @@ version of the declaration of an RCI library unit than the one included in
 the partition to which the RCI library unit was assigned. When the
 pragma Version is set to False, no consistency check is performed.
 
-@item @b{Line 335}
-Declare two channels. Other channels between partitions remain
-unknown.
-
-@item @b{Line 37}
-Use transparent compression / decompression for the arguments and
-results of any remote calls on channel @i{Channel_1}, i.e. between
-@i{Partition_1} and @i{Partition_4}.
-
-@item @b{Line 38}
-Use filter @i{My_Own_Filter} on any declared channel ie @i{Channel_1}
-amd @i{Channel_2}. As @i{Channel_1} filter attribute is already
-assigned, this applies only to @i{Channel_2}. This filter must be
-implemented in a package @i{System.Garlic.Filters.My_Own_Filter}.
-
-@item @b{Line 39}
-For all data exchanged between partitions, use the filter @i{ZIP}. (I.e.
-for both arriving remote calls as well as for calls made by a
-partition.)
-
-@item @b{Line 41}
-@i{Some_Filter} will be used to exchange a filter's parameters between
-two partitions. @i{Some_Filter} itself must be an algorithm that doesn't
-need its own parameters to be filtered again. This filter must be
-implemented in a package @i{System.Garlic.Filters.Some_Filter}.
-
-@item @b{Line 43}
+@item @b{Line 34}
 The configuration body is optional. The user may have fully described
 his configuration in the declaration part.
 
-@item @b{Line 44}
+@item @b{Line 35}
 Partition 2 contains two RCI packages RCI_B2 and RCI_B4 and a normal
 package. A normal package is not categorized.
 
-@item @b{Line 45}
+@item @b{Line 36}
 Partition 3 contains one RCI package RCI_B3
 
 @end enumerate
@@ -5281,7 +5271,6 @@ Some of these features are not configurable by the user.
 * Executing Concurrent Remote Calls::
 * Priority Inheritance::
 * Remote Call Abortion::
-* User Filter Implementation::
 @end menu
 
 @node Application Startup, Heterogeneous System, PolyORB PCS Internals, PolyORB PCS Internals

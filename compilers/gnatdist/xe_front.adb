@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1995-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -61,6 +61,10 @@ package body XE_Front is
    procedure Build_New_Variable
      (Variable : Variable_Id);
    --  Dispatching procedure to create entities of different types.
+
+   function Comes_From_Source (N : Node_Id) return Boolean;
+   --  True when N's source location denotes a point in the user's config file
+   --  (False for internally generated nodes).
 
    procedure Set_Channel_Attribute
      (Attribute : Attribute_Id;
@@ -433,6 +437,17 @@ package body XE_Front is
       end case;
    end Build_New_Variable;
 
+   -----------------------
+   -- Comes_From_Source --
+   -----------------------
+
+   function Comes_From_Source (N : Node_Id) return Boolean is
+      X, Y : Int;
+   begin
+      Get_Node_SLOC (N, X, Y);
+      return X /= 0;
+   end Comes_From_Source;
+
    --------------------
    -- Create_Channel --
    --------------------
@@ -527,15 +542,16 @@ package body XE_Front is
          if Is_Variable (Node) then
             Build_New_Variable (Variable_Id (Node));
 
-         elsif Is_Configuration (Node) then
+         elsif Is_Configuration (Node) and then Comes_From_Source (Node) then
+            pragma Assert (Configuration = No_Name);
             Configuration := Get_Node_Name (Node);
+            Set_Application_Names (Configuration);
 
          elsif Is_Type (Node) then
             Set_Type_Attribute (Type_Id (Node));
 
          elsif Is_Statement (Node) then
-            Set_Pragma_Statement
-              (Get_Subprogram_Call (Statement_Id (Node)));
+            Set_Pragma_Statement (Get_Subprogram_Call (Statement_Id (Node)));
 
          end if;
          Next_Configuration_Declaration (Node);
@@ -1407,6 +1423,10 @@ package body XE_Front is
          when Pragma_Priority =>
             Value := Get_Parameter_Value (Parameter);
             Default_Priority_Policy := Convert (Get_Scalar_Value (Value));
+
+         when Pragma_Name_Server =>
+            Value := Get_Parameter_Value (Parameter);
+            Default_Name_Server := Convert (Get_Scalar_Value (Value));
 
          when Pragma_Unknown =>
             raise Program_Error;

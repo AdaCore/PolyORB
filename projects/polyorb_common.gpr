@@ -1,0 +1,90 @@
+------------------------------------------------------------------------------
+--                                                                          --
+--                           POLYORB COMPONENTS                             --
+--                                                                          --
+--                               C O M M O N                                --
+--                                                                          --
+--                                 P r o j                                  --
+--                                                                          --
+--         Copyright (C) 2007-2008, Free Software Foundation, Inc.          --
+--                                                                          --
+-- PolyORB is free software; you  can  redistribute  it and/or modify it    --
+-- under terms of the  GNU General Public License as published by the  Free --
+-- Software Foundation;  either version 2,  or (at your option)  any  later --
+-- version. PolyORB is distributed  in the hope that it will be  useful,    --
+-- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
+-- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
+-- License  for more details.  You should have received  a copy of the GNU  --
+-- General Public License distributed with PolyORB; see file COPYING. If    --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
+--                                                                          --
+-- As a special exception,  if other files  instantiate  generics from this --
+-- unit, or you link  this unit with other files  to produce an executable, --
+-- this  unit  does not  by itself cause  the resulting  executable  to  be --
+-- covered  by the  GNU  General  Public  License.  This exception does not --
+-- however invalidate  any other reasons why  the executable file  might be --
+-- covered by the  GNU Public License.                                      --
+--                                                                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
+--                                                                          --
+------------------------------------------------------------------------------
+
+with "polyorb_config";
+project PolyORB_Common is
+
+   --  This project is imported by all the polyorb project files.
+
+   type Build_Type is ("PRODUCTION", "DEBUG");
+   Build : Build_Type := external ("Build", "PRODUCTION");
+
+   Warnings_Mode := external ("Warnings_Mode", "e");
+   --  Possible values:
+   --    e: treat warnings as errors, default
+   --    n: normal warnings processing
+   --    s: suppress all warnings
+
+   for Source_Files use ();
+
+   Build_Dir := PolyORB_Config.Top_Build_Dir;
+   --  Used to set source, object, and ALI dirs of importing projects
+
+   Source_Dir := PolyORB_Config.Top_Source_Dir;
+   --  Used to set source dir of importing projects
+
+   Cfg_Pragmas_Switch := "-gnatec=" & Build_Dir & "src/config.adc";
+
+   package Compiler is
+
+      Base_Ada_Compiler_Switches :=
+        ("-gnat05",           --  Ada 2005 mode
+         "-gnati1",           --  Full ISO 8859-1 character set allowed in
+                              --  source code (for generated CORBA stubs)
+         "-gnatf",            --  Full compiler error messages
+         Cfg_Pragmas_Switch,  --  Configuration pragmas from configure
+         PolyORB_Config.Style_Switch, --  Enable style checks
+         "-gnatwal" & Warnings_Mode);
+                              --  Enable all warnings, also enable elaboration
+                              --  warnings, and treat all warnings as errors
+                              --  if Warnings_As_Errors is set to "e".
+
+      case Build is
+         when "PRODUCTION" =>
+            for Default_Switches ("Ada") use
+               Base_Ada_Compiler_Switches &
+                 ("-gnatp",  --  Suppress all checks
+                  "-gnatn"); --  Enable inlining
+
+         when "DEBUG" =>
+            for Default_Switches ("Ada") use
+               Base_Ada_Compiler_Switches &
+                 ("-gnato",         --  Overflow checks
+                  "-gnata",         --  Enable assertions
+                  "-fstack-check"); --  Stack overflow checking
+
+      end case;
+
+   end Compiler;
+
+end PolyORB_Common;

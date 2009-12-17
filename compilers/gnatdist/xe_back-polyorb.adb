@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1995-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -30,6 +30,8 @@
 --                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
+
+with Ada.Characters.Handling;
 
 with GNAT.Directory_Operations; use GNAT.Directory_Operations;
 with GNAT.Expect;               use GNAT.Expect;
@@ -74,6 +76,7 @@ package body XE_Back.PolyORB is
       RU_PolyORB_ORB,
       RU_PolyORB_ORB_No_Tasking,
       RU_PolyORB_DSA_P,
+      RU_PolyORB_DSA_P_Name_Server,
       RU_PolyORB_DSA_P_Remote_Launch,
       RU_PolyORB_DSA_P_Storages,
       RU_PolyORB_DSA_P_Storages_Config,
@@ -125,8 +128,7 @@ package body XE_Back.PolyORB is
    -- Parameter types --
    ---------------------
 
-   type PS_Id is
-     (PS_Tasking, PS_DSA, PS_DSA_Local_RCIs);
+   type PS_Id is (PS_Tasking, PS_DSA, PS_DSA_Local_RCIs);
 
    PS : array (PS_Id) of Unit_Name_Type;
 
@@ -137,16 +139,24 @@ package body XE_Back.PolyORB is
       PE_Min_Spare_Threads,
       PE_Rsh_Command,
       PE_Rsh_Options,
+      PE_Boot_Location,
+      PE_Self_Location,
+      PE_Reconnection_Policy,
       PE_Termination_Initiator,
-      PE_Termination_Policy);
+      PE_Termination_Policy,
+      PE_Partition_Name);
 
    PE : array (PE_Id) of Unit_Name_Type;
 
    PE_Section_Table : constant array (PE_Id) of PS_Id :=
      (PE_Rsh_Command           => PS_DSA,
       PE_Rsh_Options           => PS_DSA,
+      PE_Boot_Location         => PS_DSA,
+      PE_Self_Location         => PS_DSA,
+      PE_Reconnection_Policy   => PS_DSA,
       PE_Termination_Initiator => PS_DSA,
       PE_Termination_Policy    => PS_DSA,
+      PE_Partition_Name        => PS_DSA,
       PE_Start_Threads         => PS_Tasking,
       PE_Max_Spare_Threads     => PS_Tasking,
       PE_Max_Threads           => PS_Tasking,
@@ -157,8 +167,9 @@ package body XE_Back.PolyORB is
    -----------------------------
 
    type Parameter_Entry is record
-      Var : Name_Id;
-      Val : Name_Id;
+      Section : Name_Id;
+      Key     : Name_Id;
+      Value   : Name_Id;
    end record;
 
    Table : array (0 .. 31) of Parameter_Entry;
@@ -196,13 +207,20 @@ package body XE_Back.PolyORB is
    procedure Generate_PCS_Project_Files;
    --  Generate project files to access the PCS
 
-   function Strip (S : String) return Unit_Name_Type;
-   --  Return the prefix and a possible suffix from S
+   function Strip
+     (S        : String;
+      To_Lower : Boolean := False) return Unit_Name_Type;
+   --  Return the prefix and a possible suffix from S. If To_Lower is set,
+   --  convert to lowercase, else apply general casing rules.
 
-   procedure Set_Conf (Var : PE_Id; Val : Name_Id);
+   procedure Set_Conf (Var : PE_Id; Val : Name_Id; Quote : Boolean := True);
    --  Add a new entry in the configuration table
 
-   procedure Set_Conf (Section : Name_Id; Key : Name_Id; Val : Name_Id);
+   procedure Set_Conf
+     (Section : Name_Id;
+      Key     : Name_Id;
+      Val     : Name_Id;
+      Quote   : Boolean);
    --  Add a new entry in the configuration table
 
    procedure Reset_Conf;
@@ -271,6 +289,7 @@ package body XE_Back.PolyORB is
       Set_Output  (File);
 
       Write_Line  ("pragma Warnings (Off);");
+      Write_Line  ("pragma Ada_2005;");
 
       --  First drag platform the specific base setup
 
@@ -279,8 +298,14 @@ package body XE_Back.PolyORB is
       --  Remote_Launch is only needed when using the Ada Starter,
       --  we avoid "withing" it otherwise since it drags sockets.
 
-      if P = Main_Partition and then Default_Starter = Ada_Import then
-         Write_With_Clause (RU (RU_PolyORB_DSA_P_Remote_Launch));
+      if P = Main_Partition then
+         if Default_Starter = Ada_Import then
+            Write_With_Clause (RU (RU_PolyORB_DSA_P_Remote_Launch));
+         end if;
+
+         if Default_Name_Server = Embedded then
+            Write_With_Clause (RU (RU_PolyORB_DSA_P_Name_Server));
+         end if;
       end if;
 
       Write_With_Clause (RU (RU_PolyORB_Setup_IIOP), False, True);
@@ -420,24 +445,20 @@ package body XE_Back.PolyORB is
    ------------------------------
 
    procedure Generate_Executable_File (P : Partition_Id) is
-      Current    : Partition_Type renames Partitions.Table (P);
-      Executable : File_Name_Type;
-      Part_Dir   : Directory_Name_Type;
-      I_Part_Dir : String_Access;
-      Comp_Args  : String_List (1 .. 9);
-      Make_Args  : String_List (1 .. 8);
-      Sfile      : File_Name_Type;
-      Prj_Fname  : File_Name_Type;
-      Length     : Natural;
+      Current       : Partition_Type renames Partitions.Table (P);
+      Executable    : File_Name_Type renames Current.Executable_File;
+      Partition_Dir : Directory_Name_Type renames Current.Partition_Dir;
+      I_Part_Dir    : String_Access;
+      Comp_Args     : String_List (1 .. 9);
+      Make_Args     : String_List (1 .. 10);
+      Last          : Positive;
+      Sfile         : File_Name_Type;
+      Prj_Fname     : File_Name_Type;
+      Length        : Natural;
 
    begin
-      Executable := Current.Executable_File;
-      Part_Dir   := Current.Partition_Dir;
-
-      Name_Len := 2;
-      Name_Buffer (1) := '-';
-      Name_Buffer (2) := 'I';
-      Get_Name_String_And_Append (Part_Dir);
+      Set_Str_To_Name_Buffer ("-I");
+      Get_Name_String_And_Append (Partition_Dir);
       I_Part_Dir := new String'(Name_Buffer (1 .. Name_Len));
 
       --  Give the priority to partition and stub directory against
@@ -453,11 +474,11 @@ package body XE_Back.PolyORB is
 
       if Project_File_Name = null then
          Comp_Args (5) := Object_Dir_Flag;
-         Comp_Args (6) := new String'(Get_Name_String (Part_Dir));
+         Comp_Args (6) := new String'(Get_Name_String (Partition_Dir));
 
       else
          Comp_Args (5) := Project_File_Flag;
-         Prj_Fname     := Dir (Part_Dir, Part_Prj_File_Name);
+         Prj_Fname     := Dir (Partition_Dir, Part_Prj_File_Name);
          Comp_Args (6) := new String'(Get_Name_String (Prj_Fname));
       end if;
 
@@ -481,23 +502,22 @@ package body XE_Back.PolyORB is
 
       --  Compile elaboration file
 
-      Sfile := Dir (Part_Dir, Elaboration_File & ADB_Suffix_Id);
+      Sfile := Dir (Partition_Dir, Elaboration_File & ADB_Suffix_Id);
       Compile (Sfile, Comp_Args (1 .. Length));
 
       --  Compile storage support configuration file
 
-      Sfile := Dir (Part_Dir, Storage_Config_File & ADB_Suffix_Id);
+      Sfile := Dir (Partition_Dir, Storage_Config_File & ADB_Suffix_Id);
       Compile (Sfile, Comp_Args (1 .. Length));
 
       --  Compile main file
 
-      Sfile := Dir (Part_Dir, Partition_Main_File & ADB_Suffix_Id);
+      Sfile := Dir (Partition_Dir, Partition_Main_File & ADB_Suffix_Id);
       Compile (Sfile, Comp_Args (1 .. Length));
 
       Free (Comp_Args (6));
 
-      --  Now we just want to bind and link as the ALI files are now
-      --  consistent.
+      --  Now we just want to bind and link as the ALI files are now consistent
 
       Make_Args (1) := E_Current_Dir;
       Make_Args (2) := I_Part_Dir;
@@ -505,21 +525,27 @@ package body XE_Back.PolyORB is
       Make_Args (4) := I_Current_Dir;
       Make_Args (5) := Bind_Only_Flag;
       Make_Args (6) := Link_Only_Flag;
+      Make_Args (7) := Output_Flag;
+      Make_Args (8) :=
+        new String'(Get_Name_String (Strip_Directory (Executable)));
 
       if Project_File_Name = null then
-         Make_Args (7) := Output_Flag;
-         Make_Args (8) := new String'(Get_Name_String (Executable));
+         Last := 8;
 
       else
-         Make_Args (7) := Project_File_Flag;
-         Prj_Fname := Dir (Part_Dir, Part_Prj_File_Name);
-         Make_Args (8) := new String'(Get_Name_String (Prj_Fname));
+         Make_Args (9) := Project_File_Flag;
+         Prj_Fname := Dir (Partition_Dir, Part_Prj_File_Name);
+         Make_Args (10) := new String'(Get_Name_String (Prj_Fname));
+         Last := 10;
       end if;
 
-      Build (Sfile, Make_Args, Fatal => True);
+      Build (Sfile, Make_Args (1 .. Last), Fatal => True);
 
       Free (Make_Args (2));
       Free (Make_Args (8));
+      if Make_Args (10) /= null then
+         Free (Make_Args (10));
+      end if;
    end Generate_Executable_File;
 
    --------------------------------
@@ -527,8 +553,11 @@ package body XE_Back.PolyORB is
    --------------------------------
 
    procedure Generate_Parameters_Source (P : Partition_Id) is
-      Current      : Partition_Type renames Partitions.Table (P);
+      Current : Partition_Type renames Partitions.Table (P);
    begin
+      --  Set partition name
+
+      Set_Conf (PE_Partition_Name, Current.Name);
 
       --  Add the termination policy to the configuration table, if no
       --  termination policy is set, the default is Global_Termination.
@@ -538,7 +567,30 @@ package body XE_Back.PolyORB is
                    Termination_Img (Current.Termination));
       end if;
 
-      --  Set the Tasking pool parameters
+      --  Set reconnection policy
+
+      if Current.Reconnection /= No_Reconnection then
+         Set_Conf (PE_Reconnection_Policy,
+                   Reconnection_Img (Current.Reconnection));
+      end if;
+
+      --  Set boot location
+
+      if Default_First_Boot_Location /= No_Location_Id then
+         Set_Conf (PE_Boot_Location,
+                   Location_List_Image (Default_First_Boot_Location),
+                   Quote => False);
+      end if;
+
+      --  Set self location
+
+      if Current.First_Network_Loc /= No_Location_Id then
+         Set_Conf (PE_Self_Location,
+                     Location_List_Image (Current.First_Network_Loc),
+                   Quote => False);
+      end if;
+
+      --  Set task pool parameters
 
       if Current.Task_Pool /= No_Task_Pool then
          Set_Nat_To_Name_Buffer (Current.Task_Pool (1));
@@ -563,8 +615,8 @@ package body XE_Back.PolyORB is
       Set_Conf (PE_Rsh_Options, Get_Rsh_Options);
 
       --  Set the DSA_Local_RCIs section parameters:
-      --  For each RCI instantiated on this partition add a
-      --  parameter <RCI NAME> set to true.
+      --  For each RCI assigned on this partition add a parameter <RCI NAME>
+      --  set to True.
 
       declare
          U       : Conf_Unit_Id;
@@ -573,7 +625,7 @@ package body XE_Back.PolyORB is
       begin
          U := Current.First_Unit;
          while U /= No_Conf_Unit_Id loop
-            Set_Conf (Section, Conf_Units.Table (U).Name, T);
+            Set_Conf (Section, Conf_Units.Table (U).Name, T, Quote => True);
             U := Conf_Units.Table (U).Next_Unit;
          end loop;
       end;
@@ -581,139 +633,44 @@ package body XE_Back.PolyORB is
       --  The configuration is done, start generating the code
 
       Write_Indentation;
-      Write_Line ("type Partition_Source is new Parameters_Source" &
-                    " with null record;");
-
-      Write_Indentation;
-      Write_Line ("function Get_Conf");
+      Write_Line ("procedure Configure");
       Increment_Indentation;
       Write_Indentation (-1);
-      Write_Line ("(Source       : access Partition_Source;");
-      Write_Indentation;
-      Write_Line ("Section, Key : String) return String;");
+      Write_Line
+        ("(Set_Conf : access procedure (Section, Key, Value : String))");
       Decrement_Indentation;
-
-      Write_Indentation;
-      Write_Line ("type Parameter_Entry is record");
-
-      Increment_Indentation;
-      Write_Indentation;
-      Write_Line ("Var : String_Ptr;");
-      Write_Indentation;
-      Write_Line ("Val : String_Ptr;");
-      Decrement_Indentation;
-
-      Write_Indentation;
-      Write_Line ("end record;");
-      Write_Indentation;
-      Write_Line ("Table : array (0 .. 31) of Parameter_Entry;");
-      Write_Indentation;
-      Write_Line ("Last  : Integer := -1;");
-      Write_Indentation;
-      Write_Line ("function Get_Conf");
-
-      Increment_Indentation;
-      Write_Indentation (-1);
-      Write_Line ("(Source       : access Partition_Source;");
-      Write_Indentation;
-      Write_Line ("Section, Key : String) return String");
-      Decrement_Indentation;
-
       Write_Indentation;
       Write_Line ("is");
 
-      Increment_Indentation;
-      Write_Indentation;
-      Write_Line ("S : constant String := Make_Global_Key (Section, Key);");
-      Decrement_Indentation;
-
       Write_Indentation;
       Write_Line ("begin");
 
       Increment_Indentation;
-      Write_Indentation;
-      Write_Line ("for I in 0 .. Last loop");
-
-      Increment_Indentation;
-      Write_Indentation;
-      Write_Line ("if Table (I).Var.all = S then");
-
-      Increment_Indentation;
-      Write_Indentation;
-      Write_Line ("return Table (I).Val.all;");
-      Decrement_Indentation;
-
-      Write_Indentation;
-      Write_Line ("end if;");
-      Decrement_Indentation;
-
-      Write_Indentation;
-      Write_Line ("end loop;");
-      Write_Indentation;
-      Write_Line ("return """";");
-      Decrement_Indentation;
-
-      Write_Indentation;
-      Write_Line ("end Get_Conf;");
-
-      Write_Indentation;
-      Write_Line ("The_Partition_Source : aliased Partition_Source;");
-
-      Write_Indentation;
-      Write_Line ("procedure Initialize is");
-      Write_Indentation;
-      Write_Line ("begin");
-
-      Increment_Indentation;
-      Write_Indentation;
-      Write_Line ("Last := -1;");
-
       for P in Table'First .. Last loop
          Write_Indentation;
-         Write_Line ("Last := Last + 1;");
+         Write_Line ("Set_Conf");
+         Increment_Indentation;
+
+         Write_Indentation (-1);
+         Write_Str ("(Section => """);
+         Write_Name (Table (P).Section);
+         Write_Line (""",");
+
          Write_Indentation;
-         Write_Str  ("Table (Last).Var := new String'(""");
-         Write_Name (Table (P).Var);
-         Write_Line (""");");
+         Write_Str ("Key     => """);
+         Write_Name (Table (P).Key);
+         Write_Line (""",");
+
          Write_Indentation;
-         Write_Str  ("Table (Last).Val := new String'(""");
-         Write_Name (Table (P).Val);
-         Write_Line (""");");
+         Write_Str ("Value   => ");
+         Write_Name (Table (P).Value);
+         Write_Line (");");
+         Decrement_Indentation;
       end loop;
 
-      Write_Indentation;
-      Write_Line ("Register_Source (The_Partition_Source'Access);");
       Decrement_Indentation;
-
       Write_Indentation;
-      Write_Line ("end Initialize;");
-      Decrement_Indentation;
-
-      Write_Indentation;
-      Write_Line ("begin");
-
-      Increment_Indentation;
-      Write_Indentation;
-      Write_Line ("Register_Module");
-
-      Increment_Indentation;
-      Write_Indentation (-1);
-      Write_Line ("(Module_Info'");
-      Write_Indentation;
-      Write_Line ("(Name      => +""parameters.partition"",");
-      Write_Indentation (+1);
-      Write_Line ("Conflicts => Empty,");
-      Write_Indentation (+1);
-      Write_Line ("Depends   => Empty,");
-      Write_Indentation (+1);
-      Write_Line ("Provides  => +""parameters_sources"",");
-      Write_Indentation (+1);
-      Write_Line ("Implicit  => True,");
-      Write_Indentation (+1);
-      Write_Line ("Init      => Initialize'Access,");
-      Write_Indentation (+1);
-      Write_Line ("Shutdown  => null));");
-      Decrement_Indentation;
+      Write_Line ("end Configure;");
    end Generate_Parameters_Source;
 
    ----------------------------------
@@ -920,17 +877,28 @@ package body XE_Back.PolyORB is
       Write_Line (" is");
       Write_Line ("   for Externally_Built use ""true"";");
       Write_Line ("   for Source_Dirs use (""" & DSA_Inc_Dir & """);");
-      Write_Line ("   for Locally_Removed_Files use");
 
-      --  Overridden
+      --  The files to be removed are the only source files for the extending
+      --  project (all other sources are made visible as inherited), so we
+      --  need to first list those files as sources, then as removed.
 
-      Write_Line ("     (""polyorb-partition_elaboration.adb"",");
-      Write_Line ("      ""polyorb-dsa_p-storages-config.adb"",");
+      for J in 1 .. 2 loop
+         if J = 1 then
+            Write_Line ("   for Source_Files use");
+         else
+            Write_Line ("   for Locally_Removed_Files use");
+         end if;
 
-      --  Rebuilt as stubs
+         --  Overridden
 
-      Write_Line ("      ""polyorb-dsa_p-partitions.ads"",");
-      Write_Line ("      ""polyorb-dsa_p-partitions.adb"");");
+         Write_Line ("     (""polyorb-partition_elaboration.adb"",");
+         Write_Line ("      ""polyorb-dsa_p-storages-config.adb"",");
+
+         --  Rebuilt as stubs
+
+         Write_Line ("      ""polyorb-dsa_p-partitions.ads"",");
+         Write_Line ("      ""polyorb-dsa_p-partitions.adb"");");
+      end loop;
 
       Write_Str  ("end ");
       Write_Name (Secondary_PCS_Project);
@@ -949,7 +917,7 @@ package body XE_Back.PolyORB is
       Write_Str  ("project ");
       Write_Name (PCS_Project);
       Write_Line (" is");
-      Write_Line ("   for Object_Dir use "".."";");
+      Write_Line ("   for Object_Dir use ""obj"";");
       Write_Line ("   for Source_Dirs use (""" & DSA_Inc_Dir & """);");
       Write_Line ("   for Source_Files use");
       Write_Line ("     (""polyorb-dsa_p-partitions.ads"",");
@@ -1041,11 +1009,11 @@ package body XE_Back.PolyORB is
       end loop;
 
       for S in PS_Id loop
-         PS (S) := Strip (PS_Id'Image (S));
+         PS (S) := Strip (PS_Id'Image (S), To_Lower => True);
       end loop;
 
       for E in PE_Id loop
-         PE (E) := Strip (PE_Id'Image (E));
+         PE (E) := Strip (PE_Id'Image (E), To_Lower => True);
       end loop;
 
       --  Pass name server IOR from starter to all slave partitions
@@ -1147,6 +1115,19 @@ package body XE_Back.PolyORB is
                Message ("no need to expand", Current.Name);
             end if;
          end if;
+
+         if Display_Compilation_Progress then
+            Write_Str ("completed ");
+            Write_Int (Int (J) - Int (Partition_Id'First) - 1);
+            Write_Str (" out of ");
+            Write_Int (Int (Partitions.Last) - Int (Partition_Id'First) - 1);
+            Write_Str (" (");
+            Write_Int
+              (((Int (J) - Int (Partition_Id'First) - 1) * 100)
+                  / Int (Partitions.Last - Partitions.First));
+            Write_Str ("%)...");
+            Write_Eol;
+         end if;
       end loop;
 
       Generate_Starter_File (Backend_Access (Self));
@@ -1156,24 +1137,34 @@ package body XE_Back.PolyORB is
    -- Set_Conf --
    --------------
 
-   procedure Set_Conf (Var : PE_Id; Val : Name_Id) is
+   procedure Set_Conf (Var : PE_Id; Val : Name_Id; Quote : Boolean := True) is
    begin
       Set_Conf (Section => PS (PE_Section_Table (Var)),
                 Key     => PE (Var),
-                Val     => Val);
+                Val     => Val,
+                Quote   => Quote);
    end Set_Conf;
 
-   procedure Set_Conf (Section : Name_Id; Key : Name_Id; Val : Name_Id) is
+   --------------
+   -- Set_Conf --
+   --------------
+
+   procedure Set_Conf
+     (Section : Name_Id;
+      Key     : Name_Id;
+      Val     : Name_Id;
+      Quote   : Boolean)
+   is
+      Value : Name_Id;
    begin
+      if Quote then
+         Value := XE_Utils.Quote (Val);
+      else
+         Value := Val;
+      end if;
+
       Last := Last + 1;
-      Name_Len := 0;
-      Add_Str_To_Name_Buffer ("[");
-      Get_Name_String_And_Append (Section);
-      Add_Str_To_Name_Buffer ("]");
-      Get_Name_String_And_Append (Key);
-      To_Lower (Name_Buffer (1 .. Name_Len));
-      Table (Last).Var := Name_Find;
-      Table (Last).Val := Val;
+      Table (Last) := (Section => Section, Key => Key, Value => Value);
    end Set_Conf;
 
    ------------------------
@@ -1215,9 +1206,8 @@ package body XE_Back.PolyORB is
             end;
          exception
             when others =>
-               Message
-                 ("PolyORB installation is invalid (polyorb-config failure)");
-               raise Fatal_Error;
+               raise Fatal_Error with "PolyORB installation is invalid "
+                                    & "(polyorb-config failure)";
          end;
       end if;
    end Set_PCS_Dist_Flags;
@@ -1226,11 +1216,22 @@ package body XE_Back.PolyORB is
    -- Strip --
    -----------
 
-   function Strip (S : String) return Unit_Name_Type is
+   function Strip
+     (S        : String;
+      To_Lower : Boolean := False) return Unit_Name_Type
+   is
    begin
       Set_Str_To_Name_Buffer (S);
       Set_Str_To_Name_Buffer (Name_Buffer (4 .. Name_Len));
-      Apply_Casing_Rules (Name_Buffer (1 .. Name_Len));
+
+      if To_Lower then
+         for J in 1 .. Name_Len loop
+            Name_Buffer (J) :=
+              Ada.Characters.Handling.To_Lower (Name_Buffer (J));
+         end loop;
+      else
+         Apply_Casing_Rules (Name_Buffer (1 .. Name_Len));
+      end if;
 
       while Name_Buffer (Name_Len) in '0' .. '9'
         or else Name_Buffer (Name_Len) = '_'

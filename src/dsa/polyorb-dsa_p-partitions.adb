@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -49,7 +49,11 @@ package body PolyORB.DSA_P.Partitions is
      renames L.Enabled;
 
    Partitions_Mutex : Mutex_Access;
-   Next_Partition_ID : Integer := 0;
+
+   Next_Partition_ID : Integer := 1;
+   --  ID to be assigned to the next requesting partition. Note that we start
+   --  at 1 because the value 0 is reserved to denote the unset (initial) state
+   --  of System.Standard_Library.Local_Parition_ID.
 
    function Elaborate return Boolean;
    --  Initialize the Partitions_Mutex and set the local partition ID.
@@ -60,14 +64,14 @@ package body PolyORB.DSA_P.Partitions is
    -- Allocate_Partition_ID --
    ---------------------------
 
-   function Allocate_Partition_ID (Name : String) return Integer
-   is
+   function Allocate_Partition_ID (Name : String) return Integer is
       Current_Partition_ID : Integer;
    begin
       Enter (Partitions_Mutex);
       Current_Partition_ID := Next_Partition_ID;
       Next_Partition_ID := Next_Partition_ID + 1;
       Leave (Partitions_Mutex);
+
       pragma Debug
         (C, O ("Assigned partition id"
               & Integer'Image (Current_Partition_ID)
@@ -88,7 +92,9 @@ package body PolyORB.DSA_P.Partitions is
       --  possible race condition.
 
       Set_Local_Partition_ID
-        (System.RPC.Partition_ID (Allocate_Partition_ID ("main partition")));
+        (System.RPC.Partition_ID
+         (Allocate_Partition_ID (Get_Local_Partition_Name
+                                 & " (main partition)")));
       return True;
    end Elaborate;
 

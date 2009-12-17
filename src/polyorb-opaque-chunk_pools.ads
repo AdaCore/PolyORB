@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -33,15 +33,13 @@
 
 --  Pools of memory chunks, with associated client metadata.
 
-with PolyORB.Utils.Chained_Lists;
+pragma Ada_2005;
+
+with PolyORB.Utils.Ilists;
 
 generic
-
    type Chunk_Metadata is private;
-   --  The metadata associated with each storage chunk.
-
-   Null_Metadata : Chunk_Metadata;
-
+   --  The metadata associated with each storage chunk
 package PolyORB.Opaque.Chunk_Pools is
 
    pragma Preelaborate;
@@ -71,14 +69,11 @@ package PolyORB.Opaque.Chunk_Pools is
      (A_Chunk : Chunk_Access) return Opaque.Opaque_Pointer;
    --  Return a pointer to a chunk's storage space.
 
-   procedure Release
-     (Pool : access Pool_Type);
+   procedure Release (Pool : access Pool_Type);
    --  Signals that Pool will not be used anymore.
    --  The associated storage is returned to the system.
 
-   function Metadata
-     (A_Chunk : Chunk_Access)
-     return Metadata_Access;
+   function Metadata (A_Chunk : Chunk_Access) return Metadata_Access;
    --  Returns an access to the metadata associated
    --  with A_Chunk by the client of the Chunk_Pool
    --  package.
@@ -90,26 +85,37 @@ private
    --  A chunk pool is managed as a linked list
    --  of chunks.
 
-   type Chunk (Size : Ada.Streams.Stream_Element_Count) is
-     tagged limited record
-        Metadata : aliased Chunk_Metadata;
-         --  Metadata associated by a client to this chunk.
+   type Chunk (Size : Ada.Streams.Stream_Element_Count) is limited record
+      Next     : aliased Chunk_Access;
+      --  Used to link Chunk on pool's dynamic chunks list
 
-        Data     : aliased Ada.Streams.Stream_Element_Array (1 .. Size);
-         --  The storage space of the chunk.
-     end record;
+      Metadata : aliased Chunk_Metadata;
+      --  Metadata associated by a client to this chunk.
 
-   package Chunk_Lists is new Utils.Chained_Lists (Chunk_Access);
+      Data     : aliased Ada.Streams.Stream_Element_Array (1 .. Size);
+      --  The storage space of the chunk.
+   end record;
+
+   function Link
+     (C     : access Chunk;
+      Which : Utils.Ilists.Link_Type) return access Chunk_Access;
+   pragma Inline (Link);
+   --  Accessor for Next
+
+   package Chunk_Lists is new Utils.Ilists.Lists
+     (T             => Chunk,
+      T_Acc         => Chunk_Access,
+      Doubly_Linked => False);
 
    type Pool_Type is limited record
       Prealloc : aliased Chunk (Default_Chunk_Size);
-      --  A pre-allocated chunk.
+      --  A pre-allocated chunk
 
       Prealloc_Used : Boolean := False;
-      --  The pre-allocated chunk has been used.
+      --  The pre-allocated chunk has been used
 
-      Chunks   : Chunk_Lists.List;
-      --  The list of all dynamically allocated chunks in this pool.
+      Dynamic_Chunks   : Chunk_Lists.List;
+      --  The list of all dynamically allocated chunks in this pool
    end record;
 
 end PolyORB.Opaque.Chunk_Pools;

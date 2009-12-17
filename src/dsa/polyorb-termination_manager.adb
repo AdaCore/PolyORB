@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2006-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2006-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -44,7 +44,6 @@ with PolyORB.Tasking.Threads;
 with PolyORB.Tasking.Mutexes;
 with PolyORB.Termination_Activity;
 with PolyORB.Termination_Manager.Bootstrap;
-with System.Partition_Interface;
 with System.RPC;
 
 package body PolyORB.Termination_Manager is
@@ -58,26 +57,24 @@ package body PolyORB.Termination_Manager is
    use PolyORB.Tasking.Mutexes;
    use PolyORB.Termination_Activity;
    use PolyORB.Termination_Manager.Bootstrap;
-   use System.Partition_Interface;
 
    procedure Termination_Loop;
    --  Main loop of the task created by the termination manager
 
    procedure In_Initiator_Loop;
-   --  This procedure is executed in the termination loop for
-   --  the initiator(s) node.
+   --  Procedure executed in the termination loop for the initiator node
 
    procedure In_Slave_Loop;
-   --  This procedure is executed in the termination loop for
-   --  nodes which are not the initiator.
+   --  Procedure executed in the termination loop for non-initiator nodes
 
    type Action is access
      function (TM : Term_Manager_Access; Stamp : Stamp_Type) return Boolean;
    --  Comment needed???
 
    function Call_On_Neighbours
-     (A     : Action;
-      Stamp : Stamp_Type) return Boolean;
+     (A      : Action;
+      A_Name : String;
+      Stamp  : Stamp_Type) return Boolean;
    --  Call action A on all the neighbours of the local partition, and return
    --  the global AND of every neighbour return value to A.
 
@@ -151,25 +148,28 @@ package body PolyORB.Termination_Manager is
    ------------------------
 
    function Call_On_Neighbours
-     (A : Action; Stamp : Stamp_Type) return Boolean
+     (A      : Action;
+      A_Name : String;
+      Stamp  : Stamp_Type) return Boolean
    is
       use BO_Ref_Lists;
       use References;
       use Smart_Pointers;
 
-      L      : constant BO_Ref_List := Get_Binding_Objects (Setup.The_ORB);
-      It     : Iterator;
-      R      : References.Ref;
-      NK     : Node_Kind;
-      RACW   : Term_Manager_Access;
-      Status : Boolean := True;
+      L        : constant BO_Ref_List := Get_Binding_Objects (Setup.The_ORB);
+      It       : Iterator;
+      R        : References.Ref;
+      NK       : Node_Kind;
+      RACW     : Term_Manager_Access;
+      Status   : Boolean := True;
+      N_Status : Boolean;
    begin
+      pragma Debug (C,
+        O ("Call_On_Neighbours (" & A_Name & "," & Stamp'Img & "): enter"));
       It := First (L);
 
       All_Binding_Objects :
       while not Last (It) loop
-         pragma Debug (C, O ("Calling Action on neighbour..."));
-
          declare
             use Ada.Exceptions;
          begin
@@ -181,7 +181,14 @@ package body PolyORB.Termination_Manager is
             case NK is
                when DSA_Node | Unknown =>
                   RACW := Ref_To_Term_Manager_Access (R);
-                  Status := A (RACW, Stamp) and then Status;
+
+                  pragma Debug
+                    (C, O ("Calling "
+                           & A_Name & " (" & Stamp'Img & ")"
+                           & " on neighbour..."));
+                  N_Status := A (RACW, Stamp);
+                  pragma Debug (C, O ("-> " & N_Status'Img));
+                  Status := Status and N_Status;
 
                when DSA_Node_Without_TM =>
                   Status := False;
@@ -207,6 +214,9 @@ package body PolyORB.Termination_Manager is
 
          Next (It);
       end loop All_Binding_Objects;
+      pragma Debug (C,
+        O ("Call_On_Neighbours (" & A_Name & ", " & Stamp'Img & "): leave -> "
+           & Status'Img));
       return Status;
    end Call_On_Neighbours;
 
@@ -257,6 +267,9 @@ package body PolyORB.Termination_Manager is
       Enter (Critical_Section);
       Result := The_TM.Current_Stamp;
       Leave (Critical_Section);
+      if Result = Stamp_Type'Last then
+         raise Program_Error with "termination timestamp wrapped!";
+      end if;
       return Result;
    end Get_Stamp;
 
@@ -305,10 +318,10 @@ package body PolyORB.Termination_Manager is
       Result : Boolean;
    begin
       --  Theoretically we should just test Is_Locally_Terminated once.
-      --  However in some cases the I/O task that received the message
-      --  for a wave might still be running (about to be rescheduled)
-      --  at the first try, so we wait a tiny bit and check again if
-      --  at first we don't get a positive result.
+      --  However in some cases the I/O task that received the message for a
+      --  wave might still be running (about to be rescheduled) at the first
+      --  try, so we wait a tiny bit and check again if at first we don't get
+      --  a positive result.
 
       pragma Debug (C, O ("Is_Locally_Terminated: enter"));
       for J in 1 .. 3 loop
@@ -389,13 +402,15 @@ package body PolyORB.Termination_Manager is
       end if;
 
       --  If node is locally terminated and has not sent any messages the
-      --  answer depends on its childs.
+      --  answer depends on its children.
 
       --  We propagate the wave even if locally we are refusing termination.
-      --  This is to reset the activity counter in all the childs partitions.
+      --  This is to reset the activity counter in all child partitions.
+      --  Is this desirable if we are the initiator???
 
       Neighbours_Decision :=
-        Call_On_Neighbours (Do_Is_Terminated'Access, Stamp);
+        Call_On_Neighbours
+          (Do_Is_Terminated'Access, "Do_Is_Terminated", Stamp);
 
       pragma Debug (C, O ("Is_Terminated: Local " & Local_Decision'Img
                             & " / Neighbours " & Neighbours_Decision'Img));
@@ -445,11 +460,9 @@ package body PolyORB.Termination_Manager is
    -- Termination_Loop --
    ----------------------
 
-   procedure Termination_Loop
-   is
+   procedure Termination_Loop is
       use Ada.Exceptions;
    begin
-
       Relative_Delay (The_TM.Time_Before_Start);
       loop
          if The_TM.Is_Initiator then
@@ -463,7 +476,6 @@ package body PolyORB.Termination_Manager is
       end loop;
 
       PolyORB.Initialization.Shutdown_World (Wait_For_Completion => True);
-
    exception
       when E : others =>
          pragma Debug (C, O ("Termination_Loop: got "
@@ -498,10 +510,12 @@ package body PolyORB.Termination_Manager is
 
       pragma Debug (C, O ("Terminating children"));
 
-      Status := Call_On_Neighbours (Do_Terminate_Now'Access, Stamp);
+      Status := Call_On_Neighbours
+                  (Do_Terminate_Now'Access, "Do_Terminate_Now", Stamp);
       pragma Assert (Status);
 
-      --  Terminate this partition but for Deferred Termination
+      --  Terminate this partition, except if it has the Deferred_Termination
+      --  policy.
 
       if TM.Termination_Policy /= Deferred_Termination then
          TM.Terminated := True;

@@ -12,9 +12,9 @@ To run a single example:
 See ./testsuite.py -h for more help.
 """
 
-from gnatpython.arch import Arch
 from gnatpython.env import Env
-from gnatpython.ex import Run, PIPE, STDOUT
+from gnatpython.ex import Run, STDOUT
+from gnatpython.fileutils import mkdir
 from gnatpython.main import Main
 from gnatpython.mainloop import MainLoop
 from gnatpython.optfileparser import OptFileParse
@@ -28,24 +28,26 @@ import sys
 
 DEFAULT_TIMEOUT = 60
 
+logger = logging.getLogger('polyorb.testsuite')
+
 def main():
     """Run the testsuite and generate reports"""
     # Parse the command lines options
-    m, target = __parse_options()
-
-    # Generate the discs list for test.opt parsing
-    # Always add 'ALL'
-    common_discs = ['ALL', target.platform]
-
-    # Compute the test list
-    non_dead_list, dead_list = generate_testcase_list(
-        filter_list('./*/*/*/test.py',
-                    m.options.run_test),
-        common_discs)
+    options = __parse_options()
 
     # Add current directory in PYTHONPATH (to find test_utils.py)
     env = Env()
     env.add_search_path('PYTHONPATH', os.getcwd())
+
+    # Generate the discs list for test.opt parsing
+    # Always add 'ALL'
+    common_discs = ['ALL', env.target.platform]
+
+    # Compute the test list
+    non_dead_list, dead_list = generate_testcase_list(
+        filter_list('./*/*/*/test.py',
+                    options.run_test),
+        common_discs)
 
     # Main loop :
     #   - run all the tests
@@ -57,17 +59,26 @@ def main():
     for test in dead_list:
         report.add(test.filename, 'DEAD')
 
+    mkdir('output')
+
     # Then run all non dead tests
-    MainLoop(non_dead_list, run_testcase,
-             gen_collect_result(report, m.options.diffs), 
-             m.options.jobs)
+    MainLoop(non_dead_list,
+             gen_run_testcase(options.build_dir, options.testsuite_src_dir,
+                              options.coverage),
+             gen_collect_result(report, options.diffs),
+             options.jobs)
     report.write()
 
     # Human readable report (rep file)
-    rep = GenerateRep('res_polyorb')
+    if options.old_res is not None and not os.path.exists(options.old_res):
+        logger.warning("Cannot find %s" % options.old_res)
+        options.old_res = None
+    rep = GenerateRep('res_polyorb',
+                      options.old_res,
+                      targetname=env.target.platform)
     report_file = open('rep_polyorb', 'w')
-    report_file.write(rep.get_subject())
-    report_file.write(rep.get_report()) 
+    report_file.write(rep.get_subject() + '\n\n')
+    report_file.write(rep.get_report())
     report_file.close()
 
 def filter_list(pattern, run_test=""):
@@ -143,20 +154,46 @@ class TestCase(object):
         else:
             return self.opt.is_dead
 
-def run_testcase(test, job_info):
-    """Run a single test
+def gen_run_testcase(build_dir, testsuite_src_dir, coverage):
+    """Returns the run_testcase function"""
 
-    If limit is not set, run rlimit with DEFAULT_TIMEOUT
-    """
-    logging.debug("Running " + test.testdir)
-    timeout = test.getopt('limit')
-    if timeout is None:
-        timeout = DEFAULT_TIMEOUT
+    # Set build_dir variable to the root of the build area, so test_utils.py
+    # can find it. This should be the directory in which PolyORB's ./configure
+    # was run. If the --build-dir option was specified, use that; otherwise,
+    # default to the source area (i.e. polyorb directory, two levels up from
+    # here).
 
-    return Run([sys.executable,
-                os.path.join(test.filename),
-                '--timeout', str(timeout)],
-               bg=True, output=PIPE, error=STDOUT)
+    # Set testsuite_src_dir variable to the root of the testsuite area. Default
+    # to one level up from here.
+    if build_dir is None:
+        build_dir = os.path.join(os.getcwd(), os.pardir, os.pardir)
+
+    if testsuite_src_dir is None:
+        testsuite_src_dir = os.path.join(os.getcwd(), os.pardir)
+
+    def run_testcase(test, _job_info):
+        """Run a single test
+
+        If limit is not set, run rlimit with DEFAULT_TIMEOUT
+        """
+        logger.debug("Running " + test.testdir)
+        timeout = test.getopt('limit')
+        if timeout is None:
+            timeout = DEFAULT_TIMEOUT
+
+        mkdir(os.path.dirname(os.path.join('output', test.filename)))
+
+        return Run([sys.executable,
+                    test.filename,
+                    '--timeout', str(timeout),
+                    '--out-file', os.path.join('output', test.filename),
+                    '--testsuite-src-dir', os.path.realpath(testsuite_src_dir),
+                    '--build-dir', os.path.realpath(build_dir),
+                    '--coverage=' + str(coverage)],
+                   bg=True, output=os.path.join('output',
+                                                test.filename + '.error'),
+                   error=STDOUT, timeout=int(timeout) + DEFAULT_TIMEOUT)
+    return run_testcase
 
 def gen_collect_result(report, show_diffs=False):
     """Returns the collect_result function"""
@@ -164,17 +201,29 @@ def gen_collect_result(report, show_diffs=False):
     status_dict = {True: {True: 'UOK', False: 'OK'},
                    False: {True: 'XFAIL', False: 'FAILED'}}
 
-    def collect_result(test, process, job_info):
+    def collect_result(test, process, _job_info):
         """Collect a test result"""
         xfail = test.getopt('xfail', None) is not None
         success = process.status == 0
 
+        # Avoid \ in filename for the final report
+        # Strip leading ./
+        test.filename = test.filename.replace('\\', '/')
+        test.filename = test.filename.replace('./', '')
+
         status = status_dict[success][xfail]
-        logging.info("%-60s %s" % (test.filename, status))
+        logger.info("%-60s %s" % (test.filename, status))
         if not success:
-            report.add(test.filename, status, diff=process.out)
+            diff = ""
+            for filename in (test.filename, test.filename + '.error'):
+                if os.path.exists(os.path.join('output', filename)):
+                    f = open(os.path.join('output', filename))
+                    diff = f.read()
+                    f.close()
+
+            report.add(test.filename, status, diff=diff)
             if show_diffs:
-                logging.info(process.out)
+                logger.info(diff)
         else:
             report.add(test.filename, status)
 
@@ -187,17 +236,31 @@ def __parse_options():
                  default=False, help='show diffs on stdout')
     m.add_option('-j', '--jobs', dest='jobs', type='int',
                  metavar='N', default=1, help='Allow N jobs at once')
+    m.add_option('-b', '--build-dir', dest='build_dir',
+                 help='separate PolyORB build directory')
+    m.add_option("--old-res", dest="old_res", type="string",
+                 default=None, help="Old testsuite.res file")
+    m.add_option('--testsuite-src-dir', dest='testsuite_src_dir',
+                 help='path to polyorb testsuite sources')
+    m.add_option('--coverage', dest='coverage', action='store_true',
+                 default=False, help='generate coverage information')
     m.parse_args()
 
     if m.args:
         # Run only one test
         m.options.run_test = os.path.sep + m.args[0]
-        logging.info("Running only test '%s'" % m.options.run_test)
+        logger.info("Running only test '%s'" % m.options.run_test)
     else:
         m.options.run_test = ""
 
-    target = Arch()
-    return (m, target)
+    # Expand ~ and ~user contructions for user PATH
+    if m.options.build_dir is not None:
+        m.options.build_dir = os.path.expanduser(m.options.build_dir)
+    if m.options.testsuite_src_dir is not None:
+        m.options.testsuite_src_dir = os.path.expanduser \
+            (m.options.testsuite_src_dir)
+
+    return m.options
 
 if __name__ == "__main__":
     main()

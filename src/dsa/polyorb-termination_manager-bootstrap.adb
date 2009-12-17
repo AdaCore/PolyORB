@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2006-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2006-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -35,7 +35,6 @@ with Ada.Unchecked_Conversion;
 with PolyORB.Annotations;
 with PolyORB.Binding_Data.Neighbour;
 with PolyORB.Binding_Data;
-with PolyORB.Components;
 with PolyORB.DSA_P.Exceptions;
 with PolyORB.Errors;
 with PolyORB.Log;
@@ -46,7 +45,6 @@ with PolyORB.POA_Config;
 with PolyORB.POA_Config.RACWs;
 with PolyORB.POA_Manager;
 with PolyORB.QoS.Term_Manager_Info;
-with PolyORB.References.Binding;
 with PolyORB.Setup;
 with PolyORB.Smart_Pointers;
 with PolyORB.Tasking.Threads;
@@ -137,16 +135,17 @@ package body PolyORB.Termination_Manager.Bootstrap is
          begin
             Get_Note (Notepad_Of (BO).all, Note);
          exception
-            when others =>
+            when Constraint_Error =>
                Leave_BO_Note_Lock;
                NK := Non_DSA_Node;
+               pragma Debug (C, O ("-> " & NK'Img));
                return;
          end;
-
          Leave_BO_Note_Lock;
 
          if References.Is_Nil (Note.TM_Ref) then
             NK := DSA_Node_Without_TM;
+            pragma Debug (C, O ("-> " & NK'Img));
             return;
          end if;
 
@@ -184,7 +183,7 @@ package body PolyORB.Termination_Manager.Bootstrap is
 
       end if;
 
-      pragma Debug (C, O ("-> TM: " & Image (Ref)));
+      pragma Debug (C, O ("-> " & NK'Img & " TM: " & Image (Ref)));
    end Extract_TM_Reference_From_BO;
 
    ---------------
@@ -207,12 +206,9 @@ package body PolyORB.Termination_Manager.Bootstrap is
       use PolyORB.Errors;
       use PolyORB.Objects;
       use PolyORB.Parameters;
-      use PolyORB.References.Binding;
 
       TM           : constant Term_Manager_Ptr := new Term_Manager;
-      S            : Components.Component_Access;
-      Pro          : Binding_Data.Profile_Access;
-      Error        : Error_Container;
+      S            : System.Partition_Interface.Servant_Access;
 
       --  Retrieve the termination configuration parameters
 
@@ -281,18 +277,12 @@ package body PolyORB.Termination_Manager.Bootstrap is
 
       --  We need the servant of TM so we can initiate a well known service
       --  pointing to it. We bind the reference and get the servant of TM.
+      --  Note, we can't bind The_TM_Ref to obtain the servant because the
+      --  corresponding POA has not been activated yet, and so we would get
+      --  the Hold_Servant instead.
 
-      Bind (R          => The_TM_Ref,
-            Local_ORB  => The_ORB,
-            Servant    => S,
-            QoS        => (others => null),
-            Pro        => Pro,
-            Local_Only => True,
-            Error      => Error);
-
-      if Found (Error) then
-         PolyORB.DSA_P.Exceptions.Raise_From_Error (Error);
-      end if;
+      S := Find_Receiving_Stub (RACW_Type_Name, Obj_Stub);
+      pragma Assert (S /= null);
 
       --  Start the Well Known Service
 
@@ -394,9 +384,9 @@ package body PolyORB.Termination_Manager.Bootstrap is
       Result       : References.Ref;
    begin
 
-      --  We retrieve the receiver stub of Term_Manager racw for this partition
+      --  We retrieve the receiver stub of Term_Manager RACW for this partition
 
-      Receiver := Retrieve_Receiving_Stub (RACW_Type_Name, Obj_Stub);
+      Receiver := Find_Receiving_Stub (RACW_Type_Name, Obj_Stub);
       pragma Assert (Receiver /= null);
 
       --  Then use it to get a reference to TM

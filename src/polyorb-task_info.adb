@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -97,13 +97,13 @@ package body PolyORB.Task_Info is
    -----------------
 
    procedure List_Attach
-     (TI   : Task_Info_Access;
-      List : in out Task_Lists.List)
+     (TI   : access Task_Info;
+      List : in out Task_List)
    is
-      pragma Assert (Task_Lists.Last (TI.Position));
+      pragma Assert (not TI.On_List);
    begin
-      Task_Lists.Prepend (List, TI);
-      TI.Position := Task_Lists.First (List);
+      Prepend (List, TI);
+      TI.On_List := True;
    end List_Attach;
 
    -----------------
@@ -111,15 +111,24 @@ package body PolyORB.Task_Info is
    -----------------
 
    procedure List_Detach
-     (TI   : in out Task_Info;
-      List : in out Task_Lists.List)
+     (TI   : access Task_Info;
+      List : in out Task_List)
    is
    begin
-      if not Task_Lists.Last (TI.Position) then
-         Task_Lists.Remove (List, TI.Position);
-         TI.Position := Task_Lists.Last (List);
+      if TI.On_List then
+         Remove_Element (List, TI);
+         TI.On_List := False;
       end if;
    end List_Detach;
+
+   ----------------
+   -- List_First --
+   ----------------
+
+   function List_First (List : Task_List) return access Task_Info is
+   begin
+      return Task_Lists.Value (First (List));
+   end List_First;
 
    --------------
    -- May_Exit --
@@ -129,6 +138,15 @@ package body PolyORB.Task_Info is
    begin
       return TI.May_Exit;
    end May_Exit;
+
+   -------------
+   -- On_List --
+   -------------
+
+   function On_List (TI : Task_Info) return Boolean is
+   begin
+      return TI.On_List;
+   end On_List;
 
    --------------
    -- Selector --
@@ -232,6 +250,18 @@ package body PolyORB.Task_Info is
    begin
       return TI.Exit_Condition /= null and then TI.Exit_Condition.all;
    end Exit_Condition;
+
+   ----------
+   -- Link --
+   ----------
+
+   function Link
+     (S     : access Task_Info;
+      Which : Utils.Ilists.Link_Type) return access Task_Info_Access
+   is
+   begin
+      return S.Links (Which)'Unchecked_Access;
+   end Link;
 
    -----------
    -- Mutex --
@@ -339,6 +369,15 @@ package body PolyORB.Task_Info is
    begin
       return TI.Id;
    end Id;
+
+   --------------
+   -- Is_Empty --
+   --------------
+
+   function Is_Empty (List : Task_List) return Boolean is
+   begin
+      return Task_Lists.Is_Empty (Task_Lists.List (List));
+   end Is_Empty;
 
    ---------
    -- Job --

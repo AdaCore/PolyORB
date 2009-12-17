@@ -403,3 +403,34 @@ undefine([_argname])
 undefine([_varname])
 undefine([_defname])
 ])
+
+dnl Usage: AM_HAS_ATOMIC_INCDEC32
+dnl Determine whether platform/GNAT supports atomic increment/decrement
+dnl operations
+
+AC_DEFUN([AM_HAS_INTRINSIC_SYNC_COUNTERS],
+[AC_REQUIRE([AM_CROSS_PROG_GNATMAKE])
+AC_MSG_CHECKING([whether platform supports atomic increment/decrement])
+AM_TRY_ADA($GNATMAKE_FOR_TARGET,[check.adb],
+[
+with Interfaces; use Interfaces;
+procedure Check is
+   function Sync_Add_And_Fetch
+     (Ptr   : access Interfaces.Integer_32;
+      Value : Interfaces.Integer_32) return Interfaces.Integer_32;
+   pragma Import (Intrinsic, Sync_Add_And_Fetch, "__sync_add_and_fetch_4");
+   X : aliased Interfaces.Integer_32;
+   Y : Interfaces.Integer_32 := 0;
+   pragma Volatile (Y);
+   --  On some platforms (e.g. i386), GCC has limited support for
+   --  __sync_add_and_fetch_4 for the case where the result is not used.
+   --  Here we want to test for general availability, so make Y volatile to
+   --  prevent the store operation from being discarded.
+begin
+   Y := Sync_Add_And_Fetch (X'Access, 1);
+end Check;
+], [], [AC_MSG_RESULT(yes)
+SYNC_COUNTERS_IMPL="intrinsic"],
+[AC_MSG_RESULT(no)
+SYNC_COUNTERS_IMPL="mutex"])
+AC_SUBST(SYNC_COUNTERS_IMPL)])

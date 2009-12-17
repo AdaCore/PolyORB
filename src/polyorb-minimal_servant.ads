@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -46,13 +46,14 @@
 with PolyORB.Components;
 with PolyORB.Servants;
 with PolyORB.Smart_Pointers;
+with PolyORB.Smart_Pointers.Controlled_Entities;
 with PolyORB.Requests;
 
 package PolyORB.Minimal_Servant is
 
    pragma Elaborate_Body;
 
-   type Servant is abstract new PolyORB.Smart_Pointers.Entity
+   type Servant is abstract new Smart_Pointers.Controlled_Entities.Entity
      with private;
 
    type Servant_Acc is access all Servant;
@@ -78,7 +79,8 @@ private
      (Self : not null access Implementation;
       Msg  : Components.Message'Class) return Components.Message'Class;
 
-   type Servant is abstract new PolyORB.Smart_Pointers.Entity with record
+   type Servant is abstract new Smart_Pointers.Controlled_Entities.Entity
+   with record
       Neutral_View : aliased Implementation (Servant'Access);
       --  The PolyORB (personality-neutral) view of this servant.
       --  This instance of the multiple views idiom allows the

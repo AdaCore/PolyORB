@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -306,11 +306,12 @@ package body all_types.Impl is
 
    procedure testException
      (Self : access Object;
-      arg : CORBA.Long)
+      info : CORBA.Long;
+      why  : CORBA.String)
    is
    begin
       all_types.Helper.Raise_my_exception
-        (my_exception_Members'(Info => arg));
+        (my_exception_Members'(Info => info, why => why));
    end testException;
 
    procedure testUnknownException

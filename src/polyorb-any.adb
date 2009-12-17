@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -62,13 +62,6 @@ package body PolyORB.Any is
    --  Transfer the value of Src_C to Dst_C; Src_C is empty upon return.
    --  Foreign status is transferred from Src_C to Dst_C. The previous contents
    --  of Dst_C are deallocated if appropriate.
-
-   procedure Set_Value
-     (C : in out Any_Container'Class; CC : Content_Ptr; Foreign : Boolean);
-   --  Set the designated value of A to CC; set the Foreign indication as
-   --  to the given value. Note that no type conformance check is performed!
-   --  The previous value, and if applicable the associated storage, are
-   --  deallocated.
 
    type Aggregate_Content_Ptr is access all Aggregate_Content'Class;
 
@@ -822,10 +815,7 @@ package body PolyORB.Any is
    -- Add_Aggregate_Element --
    ---------------------------
 
-   procedure Add_Aggregate_Element
-     (Value   : in out Any;
-      Element : Any)
-   is
+   procedure Add_Aggregate_Element (Value : in out Any; Element : Any) is
       CA_Ptr : constant Aggregate_Content_Ptr :=
                  Aggregate_Content_Ptr (Get_Container (Value).The_Value);
    begin
@@ -1105,7 +1095,7 @@ package body PolyORB.Any is
                           Src_El_CC'Unchecked_Access, Foreign => True);
 
                         --  Case of an aggregate element that needs to be set
-                        --  explicitly
+                        --  explicitly.
 
                         if Dst_El_M = By_Value then
                            Set_Aggregate_Element (Dst_ACC, El_TC, J, Src_El_C);
@@ -1484,6 +1474,15 @@ package body PolyORB.Any is
       TC    : TypeCode.Local_Ref;
       Index : Unsigned_Long) return Any
    is
+   begin
+      return Get_Aggregate_Element (Value, TypeCode.Object_Of (TC), Index);
+   end Get_Aggregate_Element;
+
+   function Get_Aggregate_Element
+     (Value : Any;
+      TC    : TypeCode.Object_Ptr;
+      Index : Unsigned_Long) return Any
+   is
       --  Enforce tag check on Value's container to defend against improper
       --  access for an Any that is not an aggregate.
 
@@ -1494,8 +1493,7 @@ package body PolyORB.Any is
       A : Any;
       M : aliased Mechanism := By_Value;
       CC : constant Content'Class :=
-             Get_Aggregate_Element (CA_Ptr,
-               TypeCode.Object_Of (TC), Index, M'Access);
+             Get_Aggregate_Element (CA_Ptr, TC, Index, M'Access);
       New_CC : Content_Ptr;
       use PolyORB.Smart_Pointers;
    begin
@@ -1566,7 +1564,8 @@ package body PolyORB.Any is
       if Kind in Aggregate_TCKind then
          Set_Value
            (Get_Container (A).all,
-            Allocate_Default_Aggregate_Content (Kind), Foreign => False);
+            Allocate_Default_Aggregate_Content (Kind),
+            Foreign => False);
       end if;
 
       pragma Debug (C, O ("Get_Empty_Any_Aggregate: end"));
@@ -2013,10 +2012,12 @@ package body PolyORB.Any is
       if ACC.Kind = Tk_Union
         and then Index = 0
         and then not Is_Empty (El_C)
+        and then ACC.V.Table (V_First + 1) /= null
         and then not Is_Empty (ACC.V.Table (V_First + 1).all)
         and then El_C /= From_C
       then
-         --  Changing the discriminant of a union: finalize previous member
+         --  Changing the discriminant of a union: finalize previous member,
+         --  if present.
 
          Finalize_Value (ACC.V.Table (V_First + 1).all);
       end if;
@@ -2169,17 +2170,10 @@ package body PolyORB.Any is
    -- Set_Value --
    ---------------
 
-   procedure Set_Value (C : in out Any_Container'Class; CC : Content_Ptr) is
-   begin
-      Set_Value (C, CC, Foreign => True);
-   end Set_Value;
-
-   ---------------
-   -- Set_Value --
-   ---------------
-
    procedure Set_Value
-     (C : in out Any_Container'Class; CC : Content_Ptr; Foreign : Boolean)
+     (C       : in out Any_Container'Class;
+      CC      : Content_Ptr;
+      Foreign : Boolean := True)
    is
    begin
       if C.The_Value /= null and then not C.Foreign then

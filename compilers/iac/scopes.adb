@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -391,7 +391,7 @@ package body Scopes is
 
       declare
          Export : constant Boolean :=
-           Is_A_Type (S) and then Is_A_Non_Module (Current_Scope);
+           Is_Noninterface_Type (S) and then Is_A_Non_Module (Current_Scope);
       begin
          C := Scoped_Identifiers (S);
          while Present (C) loop

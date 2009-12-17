@@ -1,21 +1,21 @@
-README for the PolyORB Ada 95 Distributed Systems Annex example
----------------------------------------------------------------
+This directory contains the following examples for the Ada Distributed
+Systems Annex:
 
-$Id$
+- echo
+  Simple client/server ping
 
-To run this demo, you need to:
+- demo
+  Demo of passing complex data types between client and server
 
-1. Run a CORBA COS Naming server, for example PolyORB's  'po_cos_naming'
-   located in the cos/naming directory.
+- bank
+  A client/server application with one server and multiple instances of the
+  client partition
 
-2. Set the POLYORB_DSA_NAME_SERVICE environment variable to the IOR or URL of
-   the naming context of the COS Naming server in which DSA packages shall
-   be registered.
+- connections
+  Multiple servers and multiple clients, each server has a single
+  receiving task and blocks waiting for clients; clients use asynchronous
+  send operations
 
-3. If you want to use the termination manager, you must set either the client, or the
-   server as the termination initiator. 
-    o Copy the binary 'server' OR the binary 'client' to a separate location.
-    o Copy the file src/polyorb.conf to this location.
-    o Set to true the parameter [dsa]termination_initiator 
-
-4. Then, run 'server' and 'client' programs.
+- mailboxes
+  Same as "connections" but implemented in Ada 2005 using an RACW with
+  designating an interface implemented by the server task.

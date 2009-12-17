@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 1995-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -45,6 +45,7 @@ package XE_Flags is
    Verbose_Mode         : Boolean := False;
    Debug_Mode           : Boolean := False;
    Check_Readonly_Files : Boolean := False;
+   Keep_Going           : Boolean := False;
 
    Keep_Tmp_Files       : Boolean := False;
    --  Do not remove temporary files
@@ -59,11 +60,16 @@ package XE_Flags is
    --  exception on Windows where the MinGW environment does not support
    --  spawning arbitrary shell scripts).
 
+   Use_GPRBuild         : Boolean := False;
+   --  Use GPRBuild instead of gnatmake
+
+   Display_Compilation_Progress : Boolean := False;
+
    Readonly_Flag       : constant String_Access := new String'("-a");
    Bind_Only_Flag      : constant String_Access := new String'("-b");
    Compile_Only_Flag   : constant String_Access := new String'("-c");
    Object_Dir_Flag     : constant String_Access := new String'("-D");
-   Dependencies_Flag   : constant String_Access := new String'("-d");
+   Progress_Flag       : constant String_Access := new String'("-d");
    Keep_Going_Flag     : constant String_Access := new String'("-k");
    Link_Only_Flag      : constant String_Access := new String'("-l");
    Output_Flag         : constant String_Access := new String'("-o");

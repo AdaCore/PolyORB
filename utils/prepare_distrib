@@ -17,8 +17,9 @@ with_doc=false
 ###################################################
 
 usage() {
-   echo "Usage: $0 [-c CHANGE] [-V version] [-D] dir"
+   echo "Usage: $0 [-c CHANGE] [-R release] [-V version] [-D] dir"
    echo "  -c  optional CM change identifier"
+   echo "  -R  override release identifier"
    echo "  -V  optional additional version identifier"
    echo "  -D  build documentation"
    exit 1
@@ -30,10 +31,11 @@ set -e
 # Parse commande line
 ###################################################
 
-while getopts c:V:D opt; do
+while getopts c:R:V:D opt; do
   case "$opt" in
     c) change="$OPTARG" ;;
     D) with_doc=true ;;
+    R) override_release="$OPTARG" ;;
     V) additional_version="$OPTARG" ;;
     *) usage ;;
   esac
@@ -87,10 +89,14 @@ sed_in_place() {
 
 echo "define(DEFAULT_WARNINGS_MODE, [n])"
 
-# Additional version information from the prepare_distrib command line
-# (may be empty).
+# Release name override and additional version information from command line
 
-echo "define([ADDITIONAL_VERSION],[$additional_version])"
+if [ -n "$override_release" ]; then
+  echo "define([OVERRIDE_RELEASE],[$override_release])"
+fi
+if [ -n "$additional_version" ]; then
+  echo "define([ADDITIONAL_VERSION],[$additional_version])"
+fi
 
 # Subversion revision information (optional)
 

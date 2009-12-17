@@ -1,6 +1,6 @@
 # $Id$
 
-define(POLYORB_RELEASE, [2.6.0w])
+define(POLYORB_RELEASE, ifdef([OVERRIDE_RELEASE],OVERRIDE_RELEASE,[2.7.0w]))
 
 AC_PREREQ(2.57)
 AC_INIT(PolyORB, pkg_version(POLYORB_RELEASE), polyorb-bugs@lists.adacore.com)
@@ -11,6 +11,7 @@ AC_CONFIG_AUX_DIR(support)
 AM_SUBVERSION
 POLYORB_VERSION="$PACKAGE_VERSION (rev. $SVNREVISION)"
 AC_SUBST(POLYORB_VERSION)
+AC_MSG_NOTICE([Configuring PolyORB $POLYORB_VERSION])
 
 ##########################################
 # Initialization.
@@ -33,7 +34,7 @@ AC_SUBST(LIBVERSIONINFO)
 # compilers.
 
 define(DEBUG_OPTIONS, [dnl
-  if test ${CFLAGS-unset} = "unset"; then CFLAGS="-g -O0"; fi
+  if test "${CFLAGS-unset}" = "unset"; then CFLAGS="-g -O0"; fi
   BASE_ADAFLAGS="-XBuild=DEBUG"
   BARGS=-E
   ASSERTION_POLICY_DEFAULT=Check
@@ -42,7 +43,7 @@ define(DEBUG_OPTIONS, [dnl
   debug=true])
 
 define(NODEBUG_OPTIONS, [dnl
-  if test ${CFLAGS-unset} = "unset"; then CFLAGS="-g -O2"; fi
+  if test "${CFLAGS-unset}" = "unset"; then CFLAGS="-g -O2"; fi
   BASE_ADAFLAGS="-XBuild=PRODUCTION"
   BARGS=
   DEBUG_ONLY="--  "
@@ -192,6 +193,7 @@ AM_HAS_PRAGMA_PROFILE_RAVENSCAR
 AM_HAS_PRAGMA_PROFILE_WARNINGS
 AM_HAS_PRAGMA_SUPPRESS_VALIDITY_CHECK
 AM_HAS_STYLESW_YG
+AM_HAS_INTRINSIC_SYNC_COUNTERS
 
 ##########################################
 # Check C environment features (for target)
@@ -266,7 +268,7 @@ AS_HELP_STRING([--with-appli-perso=x], [Enumerate application personalities]),
   newwithval=`echo ${withval} | tr "[A-Z]" "[a-z]"`
   for P in ${newwithval}
   do
-     if test -d ${srcdir}/src/${P}
+     if test -d "${srcdir}/src/${P}"
      then
         APPLI_LIST="${APPLI_LIST}${P} "
      else
@@ -309,7 +311,7 @@ AS_HELP_STRING([--with-corba-services=x], [Enumerate services]),
   newwithval=`echo ${withval} | tr "[A-Z]" "[a-z]"`
   for S in ${newwithval}
   do
-     if test -d ${srcdir}/cos/${S}
+     if test -d "${srcdir}/cos/${S}"
      then
         SERVICE_LIST="${SERVICE_LIST}${S} "
      else
@@ -350,7 +352,7 @@ get_perso_prjs() {
   perso_name=$1
   result=
   sep=""
-  for gpr in ${srcdir}/projects/src_${perso_name}*.gpr; do
+  for gpr in ${srcdir}/projects/polyorb_src_${perso_name}*.gpr; do
     result="${result}${sep}\"`basename $gpr .gpr`\""
     sep=","
   done
@@ -429,7 +431,7 @@ do
    SERVICE_EXES="${SERVICE_EXES} "'$'"(${P}_exe)"
    if test "$P" != ir
    then
-      SERVICE_PRJS="${SERVICE_PRJS}${sep}\"idls_cos_${P}\""
+      SERVICE_PRJS="${SERVICE_PRJS}${sep}\"polyorb_idls_cos_${P}\""
       sep=","
    fi
 done
@@ -621,8 +623,8 @@ host=$host_tmp
 
 #################################################
 # Build code fragments to be substituted in
-#       src/setup/polyorb-setup-client.adb
-#       src/setup/polyorb-setup-client.adb
+#       src/setup/polyorb-setup-client_base.adb
+#       src/setup/polyorb-setup-server.adb
 #       tools/po_catref/po_catref_setup.adb
 #       tools/po_createref/po_createref_setup.adb
 #################################################
@@ -806,6 +808,7 @@ AC_SUBST(GNATDIST_VERSION)
 ##########################################
 
 AC_CONFIG_HEADERS([src/config.h])
+AC_CONFIG_LINKS([src/polyorb-smart_pointers-sync_counters.adb:src/polyorb-smart_pointers-sync_counters__$SYNC_COUNTERS_IMPL.adb])
 
 AC_OUTPUT(FILTER_OUTPUT_FILES(OUTPUT_FILTER,[
 	Makefile
@@ -816,14 +819,14 @@ AC_OUTPUT(FILTER_OUTPUT_FILES(OUTPUT_FILTER,[
 	compilers/gnatprfh/gnatprfh.adb
 	docs/Makefile
 	docs/polyorb_version.texi
-	projects/config.gpr
 	projects/polyorb.gpr
-	projects/src_setup.gpr
+	projects/polyorb_config.gpr
+	projects/polyorb_src_setup.gpr
 	projects-distrib/polyorb.gpr
-	projects-distrib/polyorb/src_setup.gpr
+	projects-distrib/polyorb/polyorb_src_setup.gpr
 	src/config.adc
 	src/setup/polyorb-setup-base.adb
-	src/setup/polyorb-setup-client.adb
+	src/setup/polyorb-setup-client_base.adb
 	src/setup/polyorb-setup-server.adb
 	src/polyorb-platform.ads
 	src/polyorb-platform-ssl_linker_options.ads
@@ -866,12 +869,11 @@ chmod a+x polyorb-config
 for a in adacompiler linker; do
   na=support/native-$a
   echo "==> symlinking $na"
-  ${RM} -f support/native-$a
   # The following 'ln -s' command needs to happen in the support subdirectory,
   # so that we can replace it with 'cp' on machines where 'ln -s' doesn't work
   # (such as Windows). That is, 'ln -s $a support/native-$a' would work, but
   # 'cp $a support/native-$a' does not; hence the "cd support...".
-  (cd support ; ${LN_S} $a native-$a)
+  (cd support ; ${RM} -f native-$a ; ${LN_S} $a native-$a)
 done
 ],
 [

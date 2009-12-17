@@ -31,12 +31,12 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with "common", "src_setup";
-@NO_SSL@with "src_setup_security";
+with "polyorb_common", "polyorb_src_setup";
+@NO_SSL@with "polyorb_src_setup_security";
 @WITH_SERVICE_PRJS@
 
-project PolyORB is
+project PolyORB_PolyORB is
 
    for Source_Files use ();
 
-end PolyORB;
+end PolyORB_PolyORB;

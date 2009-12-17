@@ -50,17 +50,15 @@ with PolyORB.Any.NVList;
 with PolyORB.Any.ObjRef;
 with PolyORB.Buffers;
 with PolyORB.Components;
+with PolyORB.Initialization;
 with PolyORB.Objects;
 with PolyORB.Obj_Adapters;
-with PolyORB.Opaque;
 with PolyORB.References;
 with PolyORB.Requests;
 with PolyORB.Servants;
 with PolyORB.Smart_Pointers;
 with PolyORB.Types;
-with PolyORB.Utils.Chained_Lists;
 with PolyORB.Utils.Strings;
-with PolyORB.Initialization;
 
 with System.DSA_Types;
 with System.RPC;
@@ -99,11 +97,18 @@ package System.Partition_Interface is
    function Get_Active_Partition_ID (Name : Unit_Name) return RPC.Partition_ID;
    --  Get the Partition_ID of the partition where unit Name resides
 
+   function Get_Local_Partition_Name return String;
+   --  Return the name of the current partition
+
    function Get_Local_Partition_ID return RPC.Partition_ID;
    --  Return the Partition_ID of the current partition
 
    procedure Set_Local_Partition_ID (PID : RPC.Partition_ID);
    --  Set the Partition_ID of the current partition
+
+   function Local_PID_Allocated return Boolean;
+   pragma Inline (Local_PID_Allocated);
+   --  True once the local partition ID is known
 
    ---------------------------------------
    -- Remote access-to-subprogram types --
@@ -152,8 +157,7 @@ package System.Partition_Interface is
       RCI_Name : String;
       Version  : String;
    package RCI_Locator is
-      function Get_RCI_Package_Ref
-        return Object_Ref;
+      function Get_RCI_Package_Ref return Object_Ref;
    end RCI_Locator;
    --  Calling stubs need a cache of the object reference associated with each
    --  RCI unit.
@@ -179,8 +183,7 @@ package System.Partition_Interface is
    type Request_Handler_Access is access
      procedure (R : Request_Access);
 
-   type Private_Info is abstract tagged null record;
-   type Private_Info_Access is access all Private_Info'Class;
+   type Private_Info is private;
 
    type Servant is new PolyORB.Servants.Servant with record
       Handler        : Request_Handler_Access;
@@ -192,7 +195,7 @@ package System.Partition_Interface is
       Obj_TypeCode   : PolyORB.Any.TypeCode.Local_Ref;
       --  The TypeCode to be used for references to objects of this type
 
-      Impl_Info      : Private_Info_Access;
+      Impl_Info      : aliased Private_Info;
    end record;
    type Servant_Access is access all Servant'Class;
 
@@ -218,16 +221,13 @@ package System.Partition_Interface is
    --  Subp_Info is the address of an array of a statically subtype
    --  of RCI_Subp_Info_Array with a range of 0 .. Subp_Info_Len - 1.
 
-   procedure Register_Unit_On_Name_Server (Name : String;
-                                           Kind : String;
-                                           Obj  : PolyORB.References.Ref);
-   --  Register one receiving stub on the name server
-
-   function Retrieve_Receiving_Stub (Name : String;
-                                     Kind : Receiving_Stub_Kind)
-     return Servant_Access;
+   function Find_Receiving_Stub
+     (Name : String; Kind : Receiving_Stub_Kind) return Servant_Access;
    --  Return the servant for distributed objects with given Name and Kind, or
    --  null if non-existant.
+
+   procedure Activate_RPC_Receivers;
+   --  Start processing incoming remote calls
 
    ---------------------------------
    -- Remote Access to Class Wide --
@@ -267,11 +267,11 @@ package System.Partition_Interface is
      (The_Ref    : in out PolyORB.References.Ref;
       The_Entity :        PolyORB.Smart_Pointers.Entity_Ptr)
      renames PolyORB.References.Set;
-   function Make_Ref (The_Entity : PolyORB.Smart_Pointers.Entity_Ptr)
-     return PolyORB.References.Ref;
+   function Make_Ref
+     (The_Entity : PolyORB.Smart_Pointers.Entity_Ptr)
+      return PolyORB.References.Ref;
    function Entity_Of
-     (R : PolyORB.References.Ref)
-      return PolyORB.Smart_Pointers.Entity_Ptr
+     (R : PolyORB.References.Ref) return PolyORB.Smart_Pointers.Entity_Ptr
      renames PolyORB.References.Entity_Of;
    --  Conversion from Entity_Ptr to Ref and reverse
 
@@ -310,10 +310,10 @@ package System.Partition_Interface is
    --  Receiver is the associated servant.
 
    procedure Build_Local_Reference
-     (Addr     :        System.Address;
-      Typ      :        String;
+     (Addr     : System.Address;
+      Typ      : String;
       Receiver : access Servant;
-      Ref      :    out PolyORB.References.Ref);
+      Ref      : out PolyORB.References.Ref);
    --  Create a reference that can be used to designate the local object whose
    --  address is Addr, whose type is the designated type of a RACW type
    --  associated with Servant.
@@ -336,9 +336,11 @@ package System.Partition_Interface is
    -- Any and associated types --
    ------------------------------
 
+   package PATC renames PolyORB.Any.TypeCode;
+
    subtype Identifier is PolyORB.Types.Identifier;
-   Result_Name : constant Identifier
-     := PolyORB.Types.To_PolyORB_String ("Result");
+   Result_Name : constant Identifier :=
+                   PolyORB.Types.To_PolyORB_String ("Result");
 
    subtype Any is PolyORB.Any.Any;
    Mode_In    : PolyORB.Any.Flags renames PolyORB.Any.ARG_IN;
@@ -348,24 +350,24 @@ package System.Partition_Interface is
    subtype TypeCode is PolyORB.Any.TypeCode.Local_Ref;
    procedure Set_TC
      (A : in out Any;
-      T : PolyORB.Any.TypeCode.Local_Ref)
+      T : PATC.Local_Ref)
       renames PolyORB.Any.Set_Type;
 
-   function Get_TC (A : Any) return PolyORB.Any.TypeCode.Local_Ref;
+   function Get_TC (A : Any) return PATC.Local_Ref;
 
-   function Create_Any
-     (Tc : PolyORB.Any.TypeCode.Local_Ref) return Any
-     renames PolyORB.Any.Get_Empty_Any_Aggregate;
+   function Create_Any (TC : PATC.Local_Ref) return Any;
+   --  Same as PolyORB.Any.Get_Empty_Any_Aggregate, except for the case where
+   --  TC is a sequence<octet> typecode, in which case an Any using the
+   --  specific shadow content type for such sequences is returned instead of
+   --  a Default_Aggregate_Content (Any_To_BS relies on this property).
 
    function Content_Type
-     (Self : PolyORB.Any.TypeCode.Local_Ref)
-      return PolyORB.Any.TypeCode.Local_Ref
-     renames PolyORB.Any.TypeCode.Content_Type;
+     (Self : PATC.Local_Ref) return PATC.Local_Ref
+     renames PATC.Content_Type;
 
    function Any_Member_Type
      (A     : Any;
-      Index : System.Unsigned_Types.Long_Unsigned)
-      return PolyORB.Any.TypeCode.Local_Ref;
+      Index : System.Unsigned_Types.Long_Unsigned) return PATC.Local_Ref;
    --  Return type of the Index'th component in Tk_Struct or Tk_Union Any A
 
    subtype NVList_Ref is PolyORB.Any.NVList.Ref;
@@ -446,24 +448,24 @@ package System.Partition_Interface is
      renames PolyORB.Any.ObjRef.To_Any;
 
    function TA_Std_String (S : String) return Any;
-   function TA_TC (TC : PolyORB.Any.TypeCode.Local_Ref) return Any
+   function TA_TC (TC : PATC.Local_Ref) return Any
      renames PolyORB.Any.To_Any;
 
-   --       function TC_AD return PolyORB.Any.TypeCode.Local_Ref
+   --       function TC_AD return PATC.Local_Ref
    --       renames PolyORB.Any.TC_X;
-   --       function TC_AS return PolyORB.Any.TypeCode.Local_Ref
+   --       function TC_AS return PATC.Local_Ref
    --       renames PolyORB.Any.TC_X;
 
    --  The typecodes below define the mapping of Ada elementary
    --  types onto PolyORB types.
 
-   function TC_A return PolyORB.Any.TypeCode.Local_Ref
+   function TC_A return PATC.Local_Ref
      renames PolyORB.Any.TC_Any;
-   function TC_B return PolyORB.Any.TypeCode.Local_Ref
+   function TC_B return PATC.Local_Ref
      renames PolyORB.Any.TC_Boolean;
-   function TC_C return PolyORB.Any.TypeCode.Local_Ref
+   function TC_C return PATC.Local_Ref
      renames PolyORB.Any.TC_Char;
-   function TC_F return PolyORB.Any.TypeCode.Local_Ref
+   function TC_F return PATC.Local_Ref
      renames PolyORB.Any.TC_Float;
 
    --  Warning! Ada numeric types have platform dependant sizes, PolyORB types
@@ -471,74 +473,73 @@ package System.Partition_Interface is
    --  (or the biggest PolyORB type for each Ada type should be selected, if
    --  cross-platform interoperability is desired.
 
-   function TC_I return PolyORB.Any.TypeCode.Local_Ref
+   function TC_I return PATC.Local_Ref
      renames PolyORB.Any.TC_Long;
-   function TC_LF return PolyORB.Any.TypeCode.Local_Ref
+   function TC_LF return PATC.Local_Ref
      renames PolyORB.Any.TC_Double;
-   function TC_LI return PolyORB.Any.TypeCode.Local_Ref
+   function TC_LI return PATC.Local_Ref
      renames PolyORB.Any.TC_Long;
-   function TC_LLF return PolyORB.Any.TypeCode.Local_Ref
+   function TC_LLF return PATC.Local_Ref
      renames PolyORB.Any.TC_Long_Double;
-   function TC_LLI return PolyORB.Any.TypeCode.Local_Ref
+   function TC_LLI return PATC.Local_Ref
      renames PolyORB.Any.TC_Long_Long;
-   function TC_LLU return PolyORB.Any.TypeCode.Local_Ref
+   function TC_LLU return PATC.Local_Ref
      renames PolyORB.Any.TC_Unsigned_Long_Long;
-   function TC_LU return PolyORB.Any.TypeCode.Local_Ref
+   function TC_LU return PATC.Local_Ref
      renames PolyORB.Any.TC_Unsigned_Long;
-   function TC_SF return PolyORB.Any.TypeCode.Local_Ref
+   function TC_SF return PATC.Local_Ref
      renames PolyORB.Any.TC_Float;
 
-   function TC_SI return PolyORB.Any.TypeCode.Local_Ref
+   function TC_SI return PATC.Local_Ref
      renames PolyORB.Any.TC_Short;
-   function TC_SSI return PolyORB.Any.TypeCode.Local_Ref
+   function TC_SSI return PATC.Local_Ref
      renames PolyORB.Any.TC_Short;
-   function TC_SSU return PolyORB.Any.TypeCode.Local_Ref
+   function TC_SSU return PATC.Local_Ref
      renames PolyORB.Any.TC_Octet;
-   function TC_SU return PolyORB.Any.TypeCode.Local_Ref
+   function TC_SU return PATC.Local_Ref
      renames PolyORB.Any.TC_Unsigned_Short;
-   function TC_U return PolyORB.Any.TypeCode.Local_Ref
+   function TC_U return PATC.Local_Ref
      renames PolyORB.Any.TC_Unsigned_Long;
-   function TC_WC return PolyORB.Any.TypeCode.Local_Ref
+   function TC_WC return PATC.Local_Ref
      renames PolyORB.Any.TC_Wchar;
 
-   function TC_String return PolyORB.Any.TypeCode.Local_Ref
-     renames PolyORB.Any.TypeCode.TC_String;
-   function TC_Void return PolyORB.Any.TypeCode.Local_Ref
-     renames PolyORB.Any.TypeCode.TC_Void;
-   function TC_Opaque return PolyORB.Any.TypeCode.Local_Ref;
+   function TC_String return PATC.Local_Ref
+     renames PATC.TC_String;
+   function TC_Void return PATC.Local_Ref
+     renames PATC.TC_Void;
+   function TC_Opaque return PATC.Local_Ref;
 
-   function TC_Alias return PolyORB.Any.TypeCode.Local_Ref
-     renames PolyORB.Any.TypeCode.TC_Alias;
+   function TC_Alias return PATC.Local_Ref
+     renames PATC.TC_Alias;
    --  Empty Tk_Alias typecode
-   function TC_Array return PolyORB.Any.TypeCode.Local_Ref
-     renames PolyORB.Any.TypeCode.TC_Array;
+   function TC_Array return PATC.Local_Ref
+     renames PATC.TC_Array;
    --  Empty Tk_Array typecode
-   function TC_Sequence return PolyORB.Any.TypeCode.Local_Ref
-     renames PolyORB.Any.TypeCode.TC_Sequence;
+   function TC_Sequence return PATC.Local_Ref
+     renames PATC.TC_Sequence;
    --  Empty Tk_Sequence typecode
-   function TC_Struct return PolyORB.Any.TypeCode.Local_Ref
-     renames PolyORB.Any.TypeCode.TC_Struct;
+   function TC_Struct return PATC.Local_Ref
+     renames PATC.TC_Struct;
    --  Empty Tk_Struct typecode
-   function TC_Object return PolyORB.Any.TypeCode.Local_Ref
-     renames PolyORB.Any.TypeCode.TC_Object;
+   function TC_Object return PATC.Local_Ref
+     renames PATC.TC_Object;
    --  Empty Tk_ObjRef typecode
-   function TC_Union return PolyORB.Any.TypeCode.Local_Ref
-     renames PolyORB.Any.TypeCode.TC_Union;
+   function TC_Union return PATC.Local_Ref
+     renames PATC.TC_Union;
    --  Empty Tk_Union typecode
 
-   subtype Any_Array is PolyORB.Any.TypeCode.Any_Array;
+   subtype Any_Array is PATC.Any_Array;
 
    function TC_Build
-     (Base       : PolyORB.Any.TypeCode.Local_Ref;
-      Parameters : Any_Array) return PolyORB.Any.TypeCode.Local_Ref;
+     (Base       : PATC.Local_Ref;
+      Parameters : Any_Array) return PATC.Local_Ref;
 
    procedure Move_Any_Value (Dest, Src : Any)
      renames PolyORB.Any.Move_Any_Value;
 
    function Any_Aggregate_Build
-     (TypeCode : PolyORB.Any.TypeCode.Local_Ref;
-      Contents : Any_Array)
-      return Any;
+     (TypeCode : PATC.Local_Ref;
+      Contents : Any_Array) return Any;
 
    procedure Add_Aggregate_Element
      (Value   : in out Any;
@@ -547,17 +548,15 @@ package System.Partition_Interface is
 
    function Get_Aggregate_Element
      (Value : Any;
-      Tc    : PolyORB.Any.TypeCode.Local_Ref;
-      Index : System.Unsigned_Types.Long_Unsigned)
-      return Any;
+      TC    : PATC.Local_Ref;
+      Index : System.Unsigned_Types.Long_Unsigned) return Any;
 
-   function Get_Any_Type (A : Any) return PolyORB.Any.TypeCode.Local_Ref
+   function Get_Any_Type (A : Any) return PATC.Local_Ref
      renames PolyORB.Any.Get_Type;
 
    function Get_Nested_Sequence_Length
      (Value : Any;
-      Depth : Positive)
-     return Unsigned;
+      Depth : Positive) return Unsigned;
    --  Return the length of the sequence at nesting level Depth within Value,
    --  a Tk_Struct any representing an unconstrained array.
 
@@ -584,10 +583,12 @@ package System.Partition_Interface is
    procedure Any_To_BS (Item : Any; Stream : out Buffer_Stream_Type);
    procedure BS_To_Any (Stream : Buffer_Stream_Type; Item : out Any);
    --  Conversion between an Any for an opaque sequence of octets and an Ada
-   --  Stream based on a PolyORB buffer.
+   --  Stream based on a PolyORB buffer. For Any_To_BS, the lifetime of the
+   --  Stream object shall not exceed that of Item.
 
-   procedure Allocate_Buffer (Stream : in out Buffer_Stream_Type);
    procedure Release_Buffer (Stream : in out Buffer_Stream_Type);
+   --  Return storage allocated for Stream, needs to be called after any
+   --  data has been written to the buffer.
 
    --------------
    -- Requests --
@@ -689,10 +690,16 @@ private
      return PolyORB.Components.Message'Class;
    pragma Inline (Execute_Servant);
 
-   --  During elaboration, each RCI package and each distributed object type
-   --  registers a Receiving_Stub entry.
+   type Buffer_Stream_Type is new Ada.Streams.Root_Stream_Type with record
+      Buf : aliased PolyORB.Buffers.Buffer_Type;
+   end record;
 
-   type Receiving_Stub is new Private_Info with record
+   type Private_Info_Access is access all Private_Info;
+
+   type Private_Info is record
+      Next                : aliased Private_Info_Access;
+      --  For chaining on All_Receiving_Stubs list
+
       Kind                : Receiving_Stub_Kind;
       --  Indicates whether this info is relative to RACW type or a RCI
 
@@ -715,17 +722,5 @@ private
       --  Register_Pkg_Receiving_Stubs.
 
    end record;
-
-   package Receiving_Stub_Lists is new PolyORB.Utils.Chained_Lists
-     (Receiving_Stub);
-
-   All_Receiving_Stubs : Receiving_Stub_Lists.List;
-
-   type Buffer_Stream_Type is new Ada.Streams.Root_Stream_Type with record
-      Buf : PolyORB.Buffers.Buffer_Access;
-      Arr : PolyORB.Opaque.Zone_Access;
-   end record;
-
-   procedure Finalize (X : in out Buffer_Stream_Type);
 
 end System.Partition_Interface;

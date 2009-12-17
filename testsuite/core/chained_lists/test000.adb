@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2008, Free Software Foundation, Inc.            --
+--         Copyright (C) 2008-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -62,7 +62,8 @@ procedure Test000 is
    end To_Array;
 
    L1, L2, L3, L4 : List;
-   It : Iterator;
+   Int : Integer;
+   It  : Iterator;
 begin
    Output ("empty", To_Array (L1)'Length = 0);
    Append (L1, 123);
@@ -73,9 +74,11 @@ begin
    Prepend (L1, 666);
    Output ("double L1", To_Array (L1) = (1 => 666, 2 => 123));
    Append (L2, 789);
-   Output ("double L1", To_Array (L2) = (1 => 456, 2 => 789));
+   Output ("double L2", To_Array (L2) = (1 => 456, 2 => 789));
 
    L3 := L1 & 999 & 456 & 789;
+   --  L3 is now a copy of L1
+
    Output ("concat", To_Array (L3) = (666, 123, 999, 456, 789));
 
    It := First (L3);
@@ -85,17 +88,21 @@ begin
 
    Output ("scan", Value (It).all = 999);
    Remove (L3, It);
+   --  Note, L1 now has dangling pointers
+
    Output ("remove", To_Array (L3) = (666, 123, 456, 789));
    Output ("remove iterator", Value (It).all = 456);
-
-   Insert (L3, 444, Before => It);
-   Output ("insert", To_Array (L3) = (666, 123, 444, 456, 789));
 
    L4 := Duplicate (L3);
    Element (L4, 1).all := 321;
    Append (L4, 555);
-   Output ("duplicate", To_Array (L3) = (666, 123, 444, 456, 789)
-               and then To_Array (L4) = (666, 321, 444, 456, 789, 555));
+   Output ("duplicate", To_Array (L3) = (666, 123, 456, 789)
+               and then To_Array (L4) = (666, 321, 456, 789, 555));
+
+   Extract_First (L4, Int);
+   Output ("extract first",
+     Int = 666 and then To_Array (L4) = (321, 456, 789, 555));
+
    declare
       function Range_400_499 (X : Integer) return Boolean;
       function Range_400_499 (X : Integer) return Boolean is
@@ -108,5 +115,11 @@ begin
       Output ("remove multiple", To_Array (L3) = (666, 123, 789));
    end;
 
+   --  Deallocate (L1);
+   --  Copied into L3, and then elements removed from L3
+
+   Deallocate (L2);
+   Deallocate (L3);
+   Deallocate (L4);
    End_Report;
 end Test000;

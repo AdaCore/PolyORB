@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---             P O L Y O R B . D S A _ P . S T O R A G E S . D S M          --
+--           P O L Y O R B . D S A _ P . S T O R A G E S . D S M            --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2008, Free Software Foundation, Inc.               --
+--         Copyright (C) 2008-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -296,7 +296,7 @@ package body PolyORB.DSA_P.Storages.DSM is
       --  and if variable version isn't obsolete.
 
       Enter (Self.Synchs.Critical_Section);
-      if Self.Status = Read and Version >= Self.Version then
+      if Self.Status = Read and then Version >= Self.Version then
          pragma Debug (C, O ("Invalidation request received"));
 
          --  Send invalidation request to nodes in the copy set

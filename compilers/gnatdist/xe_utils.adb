@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1995-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -70,6 +70,7 @@ package body XE_Utils is
    pragma Import (C, Dup2);
 
    GNAT_Driver : String_Access;
+   GPRBuild    : String_Access;
 
    List_Command    : constant String_Access := new String'("list");
    Build_Command   : constant String_Access := new String'("make");
@@ -77,8 +78,7 @@ package body XE_Utils is
 
    function Locate
      (Exec_Name  : String;
-      Show_Error : Boolean := True)
-     return String_Access;
+      Show_Error : Boolean := True) return String_Access;
    --  look for Exec_Name on the path. If Exec_Name is found then the full
    --  pathname for Exec_Name is returned. If Exec_Name is not found and
    --  Show_Error is set to False then null is returned. If Exec_Name is not
@@ -136,8 +136,8 @@ package body XE_Utils is
 
    function "&"
      (L : File_Name_Type;
-      R : String)
-      return File_Name_Type is
+      R : String) return File_Name_Type
+   is
    begin
       Name_Len := 0;
       if Present (L) then
@@ -206,10 +206,11 @@ package body XE_Utils is
    procedure Build
      (Library    : File_Name_Type;
       Arguments  : Argument_List;
-      Fatal      : Boolean := True)
+      Fatal      : Boolean := True;
+      Progress   : Boolean := False)
    is
       Length            : constant Positive :=
-                            Arguments'Length + 4
+                            Arguments'Length + 5
                             + Make_Switches.Last
                             - Make_Switches.First;
       Flags             : Argument_List (1 .. Length);
@@ -219,11 +220,19 @@ package body XE_Utils is
       Has_Prj           : Boolean := False;
       Index             : Natural;
 
+      Builder : String_Access;
    begin
-      --  gnat make
+      if Use_GPRBuild then
+         Builder := GPRBuild;
 
-      N_Flags := N_Flags + 1;
-      Flags (N_Flags) := Build_Command;
+      else
+         Builder := GNAT_Driver;
+
+         --  gnat make
+
+         N_Flags := N_Flags + 1;
+         Flags (N_Flags) := Build_Command;
+      end if;
 
       if Quiet_Mode then
          --  Pass -q to gnatmake
@@ -236,6 +245,13 @@ package body XE_Utils is
 
          N_Flags := N_Flags + 1;
          Flags (N_Flags) := Verbose_Flag;
+      end if;
+
+      if Progress then
+         --  Pass -d to gnatmake
+
+         N_Flags := N_Flags + 1;
+         Flags (N_Flags) := Progress_Flag;
       end if;
 
       --  Library file name (free'd at exit of Compile, must record position
@@ -278,7 +294,7 @@ package body XE_Utils is
 
       --  Call gnat make
 
-      Execute (GNAT_Driver, Flags (1 .. N_Flags), Success);
+      Execute (Builder, Flags (1 .. N_Flags), Success);
 
       --  Free library file name argument
 
@@ -560,24 +576,8 @@ package body XE_Utils is
       I_Current_Dir  := new String'("-I.");
       E_Current_Dir  := new String'("-I-");
 
-      Monolithic_App_Unit_Name := Id ("Monolithic_App");
-
-      Get_Name_String (Monolithic_App_Unit_Name);
-      To_Lower (Name_Buffer (1 .. Name_Len));
-      Add_Str_To_Name_Buffer (ADB_Suffix);
-
-      Monolithic_Src_Base_Name := Name_Find;
-      Monolithic_Src_Name := Dir (Id (Root), Monolithic_Src_Base_Name);
-      Monolithic_ALI_Name := To_Afile (Monolithic_Src_Name);
-      Monolithic_Obj_Name := To_Ofile (Monolithic_Src_Name);
-
-      Monolithic_Obj_Dir  := Dir (Id (Root), Id ("obj"));
-
       PCS_Project        := Id ("pcs_project");
       Set_Corresponding_Project_File_Name (PCS_Project_File);
-
-      Dist_App_Project   := Id ("dist_app_project");
-      Set_Corresponding_Project_File_Name (Dist_App_Project_File);
 
       Part_Main_Src_Name := Id ("partition" & ADB_Suffix);
       Part_Main_ALI_Name := To_Afile (Part_Main_Src_Name);
@@ -617,9 +617,13 @@ package body XE_Utils is
 
       Create_Dir (Stub_Dir_Name);
       Create_Dir (Part_Dir_Name);
-      Create_Dir (Monolithic_Obj_Dir);
 
       GNAT_Driver := Locate ("gnat");
+
+      --  Note: we initialize variable GPRBuild in Scan_Dist_Arg rather than
+      --  unconditionally in Initialize so that the absence of gprbuild does
+      --  not cause initialization to fail in the normal case where -dB is not
+      --  used.
 
       Check_User_Provided_S_RPC (".");
    end Initialize;
@@ -664,7 +668,7 @@ package body XE_Utils is
          Get_Name_String (Sources (J));
          Flags (N_Flags) := new String'(Name_Buffer (1 .. Name_Len));
 
-         Predef := Predef or Is_Predefined_File (Sources (J));
+         Predef := Predef or else Is_Predefined_File (Sources (J));
       end loop;
 
       if Predef then
@@ -752,8 +756,7 @@ package body XE_Utils is
       begin
          Loc := GNAT.OS_Lib.Locate_Exec_On_Path (Exe);
          if Loc = null and then Show_Error then
-            Message (Exe, No_Name, "is not in your path");
-            raise Fatal_Error;
+            raise Fatal_Error with Exe & " is not in your path";
          end if;
       end;
       return Loc;
@@ -872,10 +875,13 @@ package body XE_Utils is
          return;
       end if;
 
-      if Program_Args = Binder or else Program_Args = Linker then
-         Add_Make_Switch (Argv);
-         return;
-      end if;
+      case Program_Args is
+         when Compiler | Binder | Linker =>
+            Add_Make_Switch (Argv);
+            return;
+         when others =>
+            null;
+      end case;
 
       if Project_File_Name_Expected then
          Project_File_Name          := new String'(Normalize_Pathname (Argv));
@@ -958,10 +964,15 @@ package body XE_Utils is
             --  -d: debugging traces
 
             if Argv'Length = 2 then
-               Debug_Mode := True;
+               Display_Compilation_Progress := True;
 
             else
                case Argv (Argv'First + 2) is
+                  --  -dd: debug mode
+
+                  when 'd' =>
+                     Debug_Mode := True;
+
                   --  -df: output base names only in error messages (to ensure
                   --       constant output for testsuites).
 
@@ -974,10 +985,18 @@ package body XE_Utils is
                   when 'P' =>
                      Use_PolyORB_Project := True;
 
-                  when others =>
-                  --  Other debugging flags are passed to the builder untouched
+                  --  -dB: Use gprbuild (implies -dP)
+                  --       (for experimentation, not expected to work yet???)
 
-                  Add_Make_Switch (Argv);
+                  when 'B' =>
+                     GPRBuild := Locate ("gprbuild");
+                     Use_GPRBuild := True;
+                     Use_PolyORB_Project := True;
+
+                  when others =>
+                     --  Pass other debugging flags to the builder untouched
+
+                     Add_Make_Switch (Argv);
 
                end case;
             end if;
@@ -989,6 +1008,10 @@ package body XE_Utils is
                when 'a' =>
                   Check_Readonly_Files := True;
                   Add_List_Switch (Argv);
+                  Add_Make_Switch (Argv);
+
+               when 'k' =>
+                  Keep_Going := True;
                   Add_Make_Switch (Argv);
 
                when 't' =>
@@ -1117,6 +1140,36 @@ package body XE_Utils is
       To_Lower (Name_Buffer (1 .. Name_Len));
       return Name_Find;
    end To_Lower;
+
+   ---------------------------
+   -- Set_Application_Names --
+   ---------------------------
+
+   procedure Set_Application_Names (Configuration_Name : Name_Id) is
+   begin
+      Get_Name_String (Configuration_Name);
+      To_Lower (Name_Buffer (1 .. Name_Len));
+      Add_Str_To_Name_Buffer ("_monolithic_app");
+
+      Monolithic_App_Unit_Name := Name_Find;
+
+      Add_Str_To_Name_Buffer (ADB_Suffix);
+      Monolithic_Src_Base_Name := Name_Find;
+
+      Monolithic_Src_Name := Dir (Id (Root), Monolithic_Src_Base_Name);
+      Monolithic_ALI_Name := To_Afile (Monolithic_Src_Name);
+      Monolithic_Obj_Name := To_Ofile (Monolithic_Src_Name);
+      Monolithic_Obj_Dir  := Dir (Id (Root), Id ("obj"));
+
+      Create_Dir (Monolithic_Obj_Dir);
+
+      Get_Name_String (Configuration_Name);
+      To_Lower (Name_Buffer (1 .. Name_Len));
+      Add_Str_To_Name_Buffer ("_dist_app");
+      Dist_App_Project := Name_Find;
+
+      Set_Corresponding_Project_File_Name (Dist_App_Project_File);
+   end Set_Application_Names;
 
    ------------------------
    -- Write_Missing_File --

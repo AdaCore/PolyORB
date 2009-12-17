@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -40,6 +40,7 @@ with PolyORB.Annotations;
 with PolyORB.Asynch_Ev;
 with PolyORB.Binding_Data;
 with PolyORB.Binding_Objects;
+with PolyORB.Binding_Objects.Lists;
 with PolyORB.Components;
 with PolyORB.Filters;
 with PolyORB.Jobs;
@@ -57,15 +58,16 @@ with PolyORB.Utils.Chained_Lists;
 
 package PolyORB.ORB is
 
-   package PAE renames PolyORB.Asynch_Ev;
-   package PBD renames PolyORB.Binding_Data;
-   package PBO renames PolyORB.Binding_Objects;
-   package PC  renames PolyORB.Components;
-   package PF  renames PolyORB.Filters;
-   package PJ  renames PolyORB.Jobs;
-   package POC renames PolyORB.ORB_Controller;
-   package PT  renames PolyORB.Transport;
-   package PTI renames PolyORB.Task_Info;
+   package PAE  renames PolyORB.Asynch_Ev;
+   package PBD  renames PolyORB.Binding_Data;
+   package PBO  renames PolyORB.Binding_Objects;
+   package PBOL renames PolyORB.Binding_Objects.Lists;
+   package PC   renames PolyORB.Components;
+   package PF   renames PolyORB.Filters;
+   package PJ   renames PolyORB.Jobs;
+   package POC  renames PolyORB.ORB_Controller;
+   package PT   renames PolyORB.Transport;
+   package PTI  renames PolyORB.Task_Info;
 
    ----------------------------------
    -- Abstract tasking policy type --
@@ -240,7 +242,7 @@ package PolyORB.ORB is
    --  A filter chain is instantiated using Chain, and associated with TE.
 
    procedure Unregister_Binding_Object
-     (ORB : Components.Component_Access;
+     (ORB : access ORB_Type;
       BO  : Binding_Objects.Binding_Object_Access);
    --  Unregister a Binding Object from the ORB
 
@@ -318,7 +320,7 @@ private
       Transport_Access_Points : TAP_List;
       --  The set of transport access points managed by this ORB
 
-      Binding_Objects : PBO.BO_List;
+      Binding_Objects : PBOL.List;
       --  The set of binding objects managed by this ORB
 
       Obj_Adapter : Obj_Adapters.Obj_Adapter_Access;

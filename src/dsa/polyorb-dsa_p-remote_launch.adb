@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2006-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2006-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -67,6 +67,10 @@ package body PolyORB.DSA_P.Remote_Launch is
    --  This should be made more portable.
    --  This is a no-op on non-Windows systems.
 
+   function Escape_Spaces (S : String) return String;
+   --  Protect shell metacharacters in S with an \
+   --  ??? Assumes a UNIX shell
+
    procedure Initialize;
    --  Retrieve rsh command and options from configuration
 
@@ -74,6 +78,30 @@ package body PolyORB.DSA_P.Remote_Launch is
    Rsh_Command : String_Access;
    Rsh_Options : String_Access;
    Rsh_Args    : String_List_Access;
+
+   -------------------
+   -- Escape_Spaces --
+   -------------------
+
+   function Escape_Spaces (S : String) return String is
+      R    : String (1 .. 2 * S'Length);
+      Last : Natural := 0;
+   begin
+      for J in S'Range loop
+         case S (J) is
+            when ' ' | ASCII.HT |
+                 ''' | '"' | '*' | '?' | '|' |
+                 '[' | ']' | '(' | ')' | '{' | '}' | '<' | '>' =>
+               Last := Last + 1;
+               R (Last) := '\';
+            when others =>
+               null;
+         end case;
+         Last := Last + 1;
+         R (Last) := S (J);
+      end loop;
+      return R (1 .. Last);
+   end Escape_Spaces;
 
    ----------------
    -- Initialize --
@@ -134,7 +162,7 @@ package body PolyORB.DSA_P.Remote_Launch is
    procedure Launch_Partition
      (Host : String; Command : String; Env_Vars : String)
    is
-      U_Command : constant String := Windows_To_Unix (Command);
+      U_Command : constant String := Escape_Spaces (Windows_To_Unix (Command));
       Pid       : Process_Id;
       pragma Unreferenced (Pid);
 

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -43,7 +43,6 @@ with PolyORB.Exceptions;
 with PolyORB.Initialization;
 with PolyORB.Log;
 with PolyORB.Servants.Iface;
-with PolyORB.Smart_Pointers;
 with PolyORB.Tasking.Threads.Annotations;
 with PolyORB.Utils.Chained_Lists;
 with PolyORB.Utils.Strings;
@@ -58,6 +57,7 @@ package body PortableServer is
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
 
+   use PolyORB.CORBA_P.Interceptors_Hooks;
    use PolyORB.Utils.Strings;
 
    ---------------------------------------
@@ -83,29 +83,29 @@ package body PortableServer is
       Skeleton : Internals.Request_Dispatcher;
    end record;
 
-   Null_Dispatcher_Note : constant Dispatcher_Note
-     := (PolyORB.Annotations.Note with Skeleton => null);
+   Null_Dispatcher_Note : constant Dispatcher_Note :=
+                            (PolyORB.Annotations.Note with Skeleton => null);
 
    procedure Default_Invoke
-     (Servant : access PolyORB.Smart_Pointers.Entity'Class;
+     (Servant : access PSPCE.Entity'Class;
       Request : PolyORB.Requests.Request_Access;
       Profile : PolyORB.Binding_Data.Profile_Access);
-   --  This is the default server side invocation handler.
+   --  This is the default server side invocation handler
 
    --------------------
    -- Default_Invoke --
    --------------------
 
    procedure Default_Invoke
-     (Servant : access PolyORB.Smart_Pointers.Entity'Class;
+     (Servant : access PSPCE.Entity'Class;
       Request : PolyORB.Requests.Request_Access;
       Profile : PolyORB.Binding_Data.Profile_Access)
    is
       pragma Unreferenced (Profile);
    begin
-      Invoke (DynamicImplementation'Class (Servant.all)'Access,
-              Request);
       --  Redispatch
+
+      Invoke (DynamicImplementation'Class (Servant.all)'Access, Request);
    end Default_Invoke;
 
    ---------------------

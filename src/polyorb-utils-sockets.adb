@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -160,8 +160,9 @@ package body PolyORB.Utils.Sockets is
 
    exception
       when E : PolyORB.Sockets.Socket_Error =>
-         O ("connect to " & Host_Name & " failed: "
-            & Ada.Exceptions.Exception_Message (E), Notice);
+         pragma Debug
+           (C, O ("connect to " & Host_Name & " failed: "
+                  & Ada.Exceptions.Exception_Message (E)));
          raise;
    end Connect_Socket;
 

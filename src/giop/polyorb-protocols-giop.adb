@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -153,7 +153,7 @@ package body PolyORB.Protocols.GIOP is
    begin
       pragma Debug (C, O ("Initializing GIOP session"));
       Tasking.Mutexes.Create (S.Mutex);
-      S.Buffer_In  := new Buffer_Type;
+      S.Buffer_In := new Buffer_Type;
    end Initialize;
 
    -------------
@@ -231,7 +231,7 @@ package body PolyORB.Protocols.GIOP is
 
          when Expect_Body =>
             pragma Debug (C, O ("Received GIOP message body"));
-            pragma Debug (Show (Sess.Buffer_In));
+            pragma Debug (C, Show (Sess.Buffer_In));
             Process_Message (Sess.Implem, Sess);
 
          when others =>
@@ -339,7 +339,11 @@ package body PolyORB.Protocols.GIOP is
       ORB   : constant ORB_Access := ORB_Access (Sess.Server);
 
    begin
-      pragma Debug (C, O ("Handle_Disconnect"));
+      pragma Debug (C, O ("Handle_Disconnect: enter"));
+
+      Enter (Sess.Mutex);
+
+      Sess.State := Not_Initialized;
 
       if Sess.Buffer_In /= null then
          Release (Sess.Buffer_In);
@@ -353,13 +357,22 @@ package body PolyORB.Protocols.GIOP is
             Sess.Pending_Reqs.Table (J) := null;
             Set_Exception (P.Req, Error);
             References.Binding.Unbind (P.Req.Target);
+
+            --  After the following call, P.Req is destroyed
+
             Emit_No_Reply (Component_Access (ORB),
                            Servants.Iface.Executed_Request'(Req => P.Req));
+
             Free (P);
          end if;
       end loop;
 
-      Sess.State := Not_Initialized;
+      --  All pending request entries have been cleared: reset table
+
+      Set_Last (Sess.Pending_Reqs, First (Sess.Pending_Reqs) - 1);
+
+      Leave (Sess.Mutex);
+      pragma Debug (C, O ("Handle_Disconnect: leave"));
    end Handle_Disconnect;
 
    --------------------
@@ -375,9 +388,10 @@ package body PolyORB.Protocols.GIOP is
       use PolyORB.Errors;
       use Unsigned_Long_Flags;
 
-      New_Pending_Req : Pending_Request_Access;
-      Error           : Errors.Error_Container;
-      Success         : Boolean;
+      New_Pending_Req    : Pending_Request_Access;
+      New_Pending_Req_Id : Types.Unsigned_Long;
+      Error              : Errors.Error_Container;
+      Success            : Boolean;
    begin
       if (Sess.Conf.Permitted_Sync_Scopes and R.Req_Flags) = 0
         or else (Sess.Implem.Permitted_Sync_Scopes and R.Req_Flags) = 0
@@ -395,9 +409,8 @@ package body PolyORB.Protocols.GIOP is
         or else Is_Set (Sync_With_Transport, R.Req_Flags)
       then
 
-         --  Oneway call: we won't see any reply for this request,
-         --  therefore we need to destroy the pending request
-         --  information now.
+         --  Oneway call: we won't see any reply for this request, so we need
+         --  to destroy the pending request information now.
 
          New_Pending_Req.Request_Id := Get_Request_Id (Sess);
          Leave (Sess.Mutex);
@@ -422,22 +435,31 @@ package body PolyORB.Protocols.GIOP is
       if Sess.Implem.Locate_Then_Request then
          New_Pending_Req.Locate_Req_Id := Get_Request_Id (Sess);
          Add_Pending_Request (Sess, New_Pending_Req);
+         New_Pending_Req_Id := New_Pending_Req.Request_Id;
          Leave (Sess.Mutex);
          Locate_Object (Sess.Implem, Sess, New_Pending_Req, Error);
       else
          Add_Pending_Request (Sess, New_Pending_Req);
+         New_Pending_Req_Id := New_Pending_Req.Request_Id;
          Leave (Sess.Mutex);
          Send_Request (Sess.Implem, Sess, New_Pending_Req, Error);
       end if;
 
       if Found (Error) then
-         Remove_Pending_Request (Sess, New_Pending_Req.Request_Id, Success);
+         Remove_Pending_Request (Sess, New_Pending_Req_Id, Success);
+         if Success then
+            Set_Exception (R, Error);
 
-         if not Success then
-            raise GIOP_Error;
+         else
+            --  If the session has been disconnected, all pending requests
+            --  have been flushed already: their exit status has been set,
+            --  and New_Pending_Req has already been deallocated. Nothing
+            --  left to do here.
+
+            pragma Assert (Sess.State = Not_Initialized);
+            null;
          end if;
 
-         Set_Exception (R, Error);
          Catch (Error);
 
          declare
@@ -496,9 +518,9 @@ package body PolyORB.Protocols.GIOP is
    -------------------
 
    procedure Locate_Object
-     (Sess  : access GIOP_Session;
+     (Sess    : access GIOP_Session;
       Profile : Binding_Data.Profile_Access;
-      Error : in out Errors.Error_Container)
+      Error   : in out Errors.Error_Container)
    is
       use PolyORB.Errors;
       use Unsigned_Long_Flags;
@@ -513,8 +535,8 @@ package body PolyORB.Protocols.GIOP is
       New_Pending_Req := new Pending_Request;
 
       New_Pending_Req.Req := new PolyORB.Requests.Request;
-      --  We build an empty request to store any exception sent back
-      --  by the remote note.
+      --  We build an empty Request to store any exception sent back by the
+      --  remote node.
 
       New_Pending_Req.Target_Profile := Profile;
 
@@ -947,8 +969,8 @@ package body PolyORB.Protocols.GIOP is
 
    procedure Remove_Pending_Request
      (Sess    : access GIOP_Session;
-      Id      :        Types.Unsigned_Long;
-      Success :    out Boolean)
+      Id      : Types.Unsigned_Long;
+      Success : out Boolean)
    is
       use Pend_Req_Tables;
 
@@ -957,8 +979,8 @@ package body PolyORB.Protocols.GIOP is
       pragma Debug (C, O ("Retrieving pending request with id"
                        & Types.Unsigned_Long'Image (Id)));
 
-      Success := False;
       Enter (Sess.Mutex);
+      Success := False;
 
       for J in First (Sess.Pending_Reqs) .. Last (Sess.Pending_Reqs) loop
          if Sess.Pending_Reqs.Table (J) /= null
