@@ -1,4 +1,4 @@
-with "polyorb", "polyorb_test_common", "cos_notification";
+with "polyorb", "polyorb_test_common", "polyorb_cos_notification";
 
 project local is
 

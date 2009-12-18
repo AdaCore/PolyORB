@@ -1,4 +1,4 @@
-with "polyorb", "polyorb_test_common", "cos_time";
+with "polyorb", "polyorb_test_common", "polyorb_cos_time";
 
 project local is
 
