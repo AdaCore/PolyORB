@@ -824,7 +824,7 @@ projects/polyorb_idls_cos_event.gpr
 projects/polyorb_idls_cos_naming.gpr
 projects/polyorb_idls_cos_notification.gpr
 projects/polyorb_idls_cos_time.gpr
-projects/polyorb_polyorb.gpr.in
+projects/polyorb.gpr.in
 projects/polyorb_src.gpr
 projects/polyorb_src_corba.gpr
 projects/polyorb_src_corba_dynamicany.gpr
