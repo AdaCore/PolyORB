@@ -35,7 +35,7 @@ default: all
 #
 # libpolyorb-corba.a -- ".PHONY" target to build the library
 # lib/libpolyorb-corba.a (and similarly for all the other libraries).
-# Each of these depends on the polyorb_.gpr target (e.g. lib/libpolyorb-corba.a
+# Each of these depends on the *.gpr target (e.g. lib/libpolyorb-corba.a
 # depends on polyorb_src_corba.gpr).
 #
 # examples/corba/all_functions/build-test -- target to build a particular
