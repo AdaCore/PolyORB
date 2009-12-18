@@ -431,10 +431,10 @@ ALL_PROJECT_FILES := ${sort \
 IGNORED_PROJECT_FILES := polyorb_build_all.gpr polyorb_common.gpr polyorb_config.gpr
 PROJECT_FILES := ${filter-out ${IGNORED_PROJECT_FILES},${ALL_PROJECT_FILES}}
 
-# The ones that start with "tools_" are for building (target) executables;
-# the rest are for building libraries.
-LIBRARY_PROJECT_FILES := ${filter-out tools_%,${PROJECT_FILES}}
-EXE_PROJECT_FILES := ${filter tools_%,${PROJECT_FILES}}
+# The ones that start with "polyorb_tools_" are for building (target)
+# executables. The rest are for building libraries.
+LIBRARY_PROJECT_FILES := ${filter-out polyorb_tools_%,${PROJECT_FILES}}
+EXE_PROJECT_FILES := ${filter polyorb_tools_%,${PROJECT_FILES}}
 
 # Additional C sources
 C_FILES=	src/csupport.c
