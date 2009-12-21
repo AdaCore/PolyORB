@@ -12,6 +12,11 @@ This date shows the implementation date of the feature. Any 2.6w wavefront
 subsequent to this date will contain the indicated feature, as will any
 subsequent releases.
 
+NF-27-IC17-019 Renamed PolyORB project files (2009-12-17)
+
+   The project files distributed with PolyORB have been renamed to include
+   a "polyorb_" prefix, to avoid clashes with user project files.
+
 NF-27-IB23-017 Embedded name server for DSA applications (2009-12-04)
 
    A small embedded name server can be optionally integrated in the main
