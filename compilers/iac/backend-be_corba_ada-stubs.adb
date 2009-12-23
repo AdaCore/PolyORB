@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -372,7 +372,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
 
          N := Map_Get_Members_Spec
            (Make_Selected_Component
-            (Defining_Identifier (Main_Package (Current_Entity)),
+            (Defining_Identifier (Stubs_Package (Current_Entity)),
              Identifier));
 
          Append_To (Visible_Part (Current_Package), N);
@@ -820,7 +820,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
                Append_To (Visible_Part (Current_Package), Fixed_Type_Node);
 
                T := Make_Selected_Component
-                 (Defining_Identifier (Main_Package (Current_Entity)), T);
+                 (Defining_Identifier (Stubs_Package (Current_Entity)), T);
 
                --  Link the front end node to the Ada type definition
 
@@ -891,7 +891,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
 
                T := Make_Selected_Component
                  (Make_Selected_Component
-                  (Defining_Identifier (Main_Package (Current_Entity)),
+                  (Defining_Identifier (Stubs_Package (Current_Entity)),
                    Seq_Package_Node),
                   Make_Identifier (TN (T_Sequence)));
 
@@ -958,7 +958,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
 
                T := Make_Selected_Component
                  (Make_Selected_Component
-                  (Defining_Identifier (Main_Package (Current_Entity)),
+                  (Defining_Identifier (Stubs_Package (Current_Entity)),
                    Pkg_Node),
                   T);
 

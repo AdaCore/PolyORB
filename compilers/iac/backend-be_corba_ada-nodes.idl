@@ -111,7 +111,7 @@ module Backend::BE_CORBA_Ada::Nodes {
      module or specification */
 
   interface IDL_Unit : Node_Id {
-    Node_Id Main_Package;
+    Node_Id Stubs_Package;
     // Points to the stub package declaration (if any)
 
     Node_Id Skeleton_Package;
@@ -164,7 +164,7 @@ module Backend::BE_CORBA_Ada::Nodes {
     Node_Id Package_Specification;
     // The package specification
 
-    Node_Id Package_Implementation;
+    Node_Id Package_Body;
     // The package body (if any)
   };
 
@@ -196,7 +196,7 @@ module Backend::BE_CORBA_Ada::Nodes {
     // What is a runtime package???
   };
 
-  interface Package_Implementation : Node_Id {
+  interface Package_Body : Node_Id {
     Node_Id Package_Declaration;
     // Points to the corresponding package declaration
 

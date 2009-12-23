@@ -78,7 +78,7 @@ package body Backend.BE_CORBA_Ada.Generator is
    procedure Generate_Object_Declaration (N : Node_Id);
    procedure Generate_Object_Instantiation (N : Node_Id);
    procedure Generate_Package_Declaration (N : Node_Id);
-   procedure Generate_Package_Implementation (N : Node_Id);
+   procedure Generate_Package_Body (N : Node_Id);
    procedure Generate_Package_Instantiation (N : Node_Id);
    procedure Generate_Package_Specification (N : Node_Id);
    procedure Generate_Parameter (N : Node_Id);
@@ -126,7 +126,7 @@ package body Backend.BE_CORBA_Ada.Generator is
 
    function Get_File_Name (N : Node_Id) return Name_Id is
       pragma Assert (Kind (N) = K_Package_Specification
-                     or else Kind (N) = K_Package_Implementation);
+                     or else Kind (N) = K_Package_Body);
       Package_Spec_Suffix : constant String := ".ads";
       Package_Body_Suffix : constant String := ".adb";
    begin
@@ -280,8 +280,8 @@ package body Backend.BE_CORBA_Ada.Generator is
          when K_Package_Declaration =>
             Generate_Package_Declaration (N);
 
-         when K_Package_Implementation =>
-            Generate_Package_Implementation (N);
+         when K_Package_Body =>
+            Generate_Package_Body (N);
 
          when K_Package_Instantiation =>
             Generate_Package_Instantiation (N);
@@ -1424,21 +1424,11 @@ package body Backend.BE_CORBA_Ada.Generator is
       Generate (Qualified_Expression (N));
    end Generate_Object_Instantiation;
 
-   ----------------------------------
-   -- Generate_Package_Declaration --
-   ----------------------------------
+   ---------------------------
+   -- Generate_Package_Body --
+   ---------------------------
 
-   procedure Generate_Package_Declaration (N : Node_Id) is
-   begin
-      Generate (Package_Specification (N));
-      Generate (Package_Implementation (N));
-   end Generate_Package_Declaration;
-
-   -------------------------------------
-   -- Generate_Package_Implementation --
-   -------------------------------------
-
-   procedure Generate_Package_Implementation (N : Node_Id) is
+   procedure Generate_Package_Body (N : Node_Id) is
       P  : Node_Id;
       Fd : File_Descriptor;
    begin
@@ -1455,7 +1445,7 @@ package body Backend.BE_CORBA_Ada.Generator is
         or else Is_Empty (Statements (N))
         or else (Length (Statements (N)) = 1
                  and then Kind (First_Node (Statements (N))) =
-                 K_Package_Implementation
+                 K_Package_Body
                  and then Is_Empty (Statements (First_Node (Statements (N)))))
       then
          return;
@@ -1489,7 +1479,7 @@ package body Backend.BE_CORBA_Ada.Generator is
       Write (Tok_Body);
       Write_Space;
 
-      if Kind (N) = K_Package_Implementation
+      if Kind (N) = K_Package_Body
         and then Is_Subunit_Package
         (Package_Specification (Package_Declaration (N)))
       then
@@ -1509,7 +1499,7 @@ package body Backend.BE_CORBA_Ada.Generator is
          Write_Indentation;
          Generate (P);
 
-         if not (Kind (P) = K_Package_Implementation
+         if not (Kind (P) = K_Package_Body
                  and then Is_Subunit_Package
                  (Package_Specification (Package_Declaration (P))))
          then
@@ -1542,7 +1532,7 @@ package body Backend.BE_CORBA_Ada.Generator is
       Write  (Tok_End);
       Write_Space;
 
-      if Kind (N) = K_Package_Implementation
+      if Kind (N) = K_Package_Body
         and then Is_Subunit_Package
         (Package_Specification (Package_Declaration (N)))
       then
@@ -1561,7 +1551,17 @@ package body Backend.BE_CORBA_Ada.Generator is
          Release_Output (Fd);
          Fd := Invalid_FD;
       end if;
-   end Generate_Package_Implementation;
+   end Generate_Package_Body;
+
+   ----------------------------------
+   -- Generate_Package_Declaration --
+   ----------------------------------
+
+   procedure Generate_Package_Declaration (N : Node_Id) is
+   begin
+      Generate (Package_Specification (N));
+      Generate (Package_Body (N));
+   end Generate_Package_Declaration;
 
    ------------------------------------
    -- Generate_Package_Instantiation --

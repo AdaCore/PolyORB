@@ -1734,7 +1734,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
            (Current_Entity))),
          FEN.K_Specification)
       then
-         Set_Parent (Unit, Main_Package (Current_Entity));
+         Set_Parent (Unit, Stubs_Package (Current_Entity));
       end if;
 
       --  Building the specification part of the package
@@ -1759,7 +1759,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
 
       --  Building the implementation part of the package
 
-      Pkg := New_Node (K_Package_Implementation);
+      Pkg := New_Node (K_Package_Body);
       Set_Context_Clause (Pkg, New_List);
 
       --  Disabling style checks. We put the pragma before the header
@@ -1773,7 +1773,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
 
       Set_Statements (Pkg, New_List);
       Set_Package_Declaration (Pkg, Unit);
-      Set_Package_Implementation (Unit, Pkg);
+      Set_Package_Body (Unit, Pkg);
 
       return Unit;
    end Make_Package_Declaration;
@@ -2017,7 +2017,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
       if Present (Prefix) then
          pragma Assert (Kind (Prefix) /= K_Package_Declaration      and then
                         Kind (Prefix) /= K_Package_Specification    and then
-                        Kind (Prefix) /= K_Package_Implementation   and then
+                        Kind (Prefix) /= K_Package_Body             and then
                         Kind (Prefix) /= K_Subprogram_Specification and then
                         Kind (Prefix) /= K_Subprogram_Body          and then
                         Kind (Prefix) /= K_Full_Type_Declaration);
@@ -2472,7 +2472,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
    procedure Set_CDR_Body (N : Node_Id := Current_Entity) is
    begin
       Table (Last).Current_Package :=
-        Package_Implementation (CDR_Package (N));
+        Package_Body (CDR_Package (N));
    end Set_CDR_Body;
 
    ------------------
@@ -2502,7 +2502,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
    procedure Set_Buffers_Body (N : Node_Id := Current_Entity) is
    begin
       Table (Last).Current_Package :=
-        Package_Implementation (Buffers_Package (N));
+        Package_Body (Buffers_Package (N));
    end Set_Buffers_Body;
 
    ----------------------
@@ -2522,7 +2522,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
    procedure Set_Helper_Body (N : Node_Id := Current_Entity) is
    begin
       Table (Last).Current_Package :=
-        Package_Implementation (Helper_Package (N));
+        Package_Body (Helper_Package (N));
    end Set_Helper_Body;
 
    ---------------------
@@ -2542,7 +2542,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
    procedure Set_Internals_Body (N : Node_Id := Current_Entity) is
    begin
       Table (Last).Current_Package :=
-        Package_Implementation (Internals_Package (N));
+        Package_Body (Internals_Package (N));
    end Set_Internals_Body;
 
    ------------------------
@@ -2562,7 +2562,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
    procedure Set_Impl_Body (N : Node_Id := Current_Entity) is
    begin
       Table (Last).Current_Package :=
-        Package_Implementation (Implementation_Package (N));
+        Package_Body (Implementation_Package (N));
    end Set_Impl_Body;
 
    -------------------
@@ -2582,7 +2582,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
    procedure Set_IR_Info_Body (N : Node_Id := Current_Entity) is
    begin
       Table (Last).Current_Package :=
-        Package_Implementation (Ir_Info_Package (N));
+        Package_Body (Ir_Info_Package (N));
    end Set_IR_Info_Body;
 
    ----------------------
@@ -2602,7 +2602,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
    procedure Set_Main_Body (N : Node_Id := Current_Entity) is
    begin
       Table (Last).Current_Package :=
-        Package_Implementation (Main_Package (N));
+        Package_Body (Stubs_Package (N));
    end Set_Main_Body;
 
    -------------------
@@ -2612,7 +2612,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
    procedure Set_Main_Spec (N : Node_Id := Current_Entity) is
    begin
       Table (Last).Current_Package :=
-        Package_Specification (Main_Package (N));
+        Package_Specification (Stubs_Package (N));
    end Set_Main_Spec;
 
    -----------------------
@@ -2622,7 +2622,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
    procedure Set_Skeleton_Body (N : Node_Id := Current_Entity) is
    begin
       Table (Last).Current_Package :=
-        Package_Implementation (Skeleton_Package (N));
+        Package_Body (Skeleton_Package (N));
    end Set_Skeleton_Body;
 
    -----------------------
