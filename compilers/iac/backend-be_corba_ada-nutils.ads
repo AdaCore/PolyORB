@@ -818,15 +818,16 @@ package Backend.BE_CORBA_Ada.Nutils is
       N5 : Node_Id := No_Node) return List_Id;
    --  Create a list which contains all the given nodes
 
-   function Make_Literal (Value  : Value_Id) return Node_Id;
+   function Make_Literal (Value : Value_Id) return Node_Id;
 
    function Make_Literal_With_Parent
      (Value  : Value_Id;
-      Parent : Node_Id := No_Node)
-     return Node_Id;
+      Parent : Node_Id := No_Node) return Node_Id;
    --  Same as Make_Literal, except that if parent is present and Value is not
    --  No_Value, creates a selected component whose prefix is the parent and
    --  whose selector name is the literal.
+   --  A selected component is never a literal, is this an expanded name
+   --  denoting an enumeration literal???
 
    function Make_Null_Statement return Node_Id;
 
@@ -840,7 +841,7 @@ package Backend.BE_CORBA_Ada.Nutils is
       Aliased_Present     : Boolean := False)
      return Node_Id;
    --  Parent is the package in which the Type declaration will be put
-   --  (useful for further with clauses and for designator expanding)
+   --  (useful for further with clauses and for designator expansion).
 
    function Make_Object_Instantiation
      (Qualified_Expression : Node_Id)
@@ -852,81 +853,67 @@ package Backend.BE_CORBA_Ada.Nutils is
      (Defining_Identifier : Node_Id;
       Generic_Package     : Node_Id;
       Parameter_List      : List_Id := No_List;
-      Parent              : Node_Id := Current_Package)
-     return Node_Id;
-   --  Parent is the package in which the Type declaration will be put
-   --  (useful for further with clauses and for designator expanding)
+      Parent              : Node_Id := Current_Package) return Node_Id;
+   --  Parent is the package in which the Type declaration will be put (useful
+   --  for further with clauses and for designator expansion).
 
    function Make_Parameter_Association
      (Selector_Name    : Node_Id;
-      Actual_Parameter : Node_Id)
-     return Node_Id;
+      Actual_Parameter : Node_Id) return Node_Id;
 
    function Make_Parameter_Specification
      (Defining_Identifier : Node_Id;
       Subtype_Mark        : Node_Id;
       Parameter_Mode      : Mode_Id := Mode_In;
-      Expression          : Node_Id := No_Node)
-      return                Node_Id;
+      Expression          : Node_Id := No_Node) return Node_Id;
 
    function Make_Pragma
      (The_Pragma    : Pragma_Id;
-      Argument_List : List_Id := No_List)
-     return Node_Id;
+      Argument_List : List_Id := No_List) return Node_Id;
 
    function Make_Qualified_Expression
      (Subtype_Mark : Node_Id;
-      Operand      : Node_Id)
-     return Node_Id;
+      Operand      : Node_Id) return Node_Id;
 
    function Make_Raise_Statement
-     (Raised_Error : Node_Id := No_Node)
-     return Node_Id;
+     (Raised_Error : Node_Id := No_Node) return Node_Id;
 
    function Make_Range_Constraint
-     (First : Node_Id; Last : Node_Id)
-     return Node_Id;
+     (First : Node_Id; Last : Node_Id) return Node_Id;
 
    function Make_Record_Aggregate
      (L             : List_Id;
-      Ancestor_Part : Node_Id := No_Node)
-     return Node_Id;
+      Ancestor_Part : Node_Id := No_Node) return Node_Id;
 
    function Make_Record_Definition
-     (Component_List : List_Id)
-     return Node_Id;
+     (Component_List : List_Id) return Node_Id;
 
    function Make_Record_Type_Definition
      (Record_Definition : Node_Id;
       Is_Abstract_Type  : Boolean := False;
       Is_Tagged_Type    : Boolean := False;
-      Is_Limited_Type   : Boolean := False)
-      return              Node_Id;
+      Is_Limited_Type   : Boolean := False) return Node_Id;
 
    function Make_Return_Statement
-     (Expression : Node_Id)
-     return Node_Id;
+     (Expression : Node_Id) return Node_Id;
 
    function Make_Subprogram_Call
      (Defining_Identifier   : Node_Id;
-      Actual_Parameter_Part : List_Id)
-     return Node_Id;
+      Actual_Parameter_Part : List_Id) return Node_Id;
 
    function Make_Subprogram_Body
      (Specification : Node_Id;
       Declarations  : List_Id;
-      Statements    : List_Id)
-     return Node_Id;
+      Statements    : List_Id) return Node_Id;
 
    function Make_Selected_Component
      (Prefix        : Node_Id;
-      Selector_Name : Node_Id)
-     return Node_Id;
+      Selector_Name : Node_Id) return Node_Id;
+
    function Make_Selected_Component
      (Prefix        : Name_Id;
-      Selector_Name : Name_Id)
-     return Node_Id;
-   --  If the prefix is No_Node (or No_Name), these functions return a
+      Selector_Name : Name_Id) return Node_Id;
+   --  If the prefix is No_Node (or No_Name), these functions return a simple
    --  simple Identifier.
 
    function Make_Subprogram_Specification
@@ -935,15 +922,13 @@ package Backend.BE_CORBA_Ada.Nutils is
       Return_Type             : Node_Id := No_Node;
       Parent                  : Node_Id := Current_Package;
       Renamed_Subprogram      : Node_Id := No_Node;
-      Instantiated_Subprogram : Node_Id := No_Node)
-     return Node_Id;
+      Instantiated_Subprogram : Node_Id := No_Node) return Node_Id;
    --  Parent is the package in which the Type declaration will be put
    --  (useful for further with clauses and for designator expanding)
 
    function Make_Type_Conversion
      (Subtype_Mark : Node_Id;
-      Expression   : Node_Id)
-     return Node_Id;
+      Expression   : Node_Id) return Node_Id;
 
    function Make_Slice
      (Prefix         : Node_Id;
@@ -959,15 +944,14 @@ package Backend.BE_CORBA_Ada.Nutils is
 
    function Make_Variant_Part
      (Discriminant : Node_Id;
-      Variant_List : List_Id)
-     return Node_Id;
+      Variant_List : List_Id) return Node_Id;
 
    procedure Make_Comment_Header
      (Package_Header     : List_Id;
       Package_Identifier : Node_Id);
-   --  This procedure generates a comment header for the generated
-   --  packages. The comment text depends on the nature of the package
-   --  (editable by the user or not)
+   --  This procedure generates a comment header for the generated pacakge.
+   --  The comment text depends on the nature of the package (editable by the
+   --  user or not).
 
    function Next_N_Node (N : Node_Id; Num : Natural) return Node_Id;
    --  This function executes Next_Node 'Num' times
