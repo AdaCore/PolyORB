@@ -189,6 +189,9 @@ package XE_Utils is
    procedure Write_Missing_File (Fname : File_Name_Type);
    --  Output an informational message to indicate that Fname is missing
 
+   procedure Write_Warnings_Pragmas;
+   --  Generate pragmas to turn off warnings and style checks
+
    -----------------------
    --  Command Handling --
    -----------------------

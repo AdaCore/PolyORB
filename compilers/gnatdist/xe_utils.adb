@@ -1180,4 +1180,20 @@ package body XE_Utils is
       Message ("file", Fname, "does not exist");
    end Write_Missing_File;
 
+   ----------------------------
+   -- Write_Warnings_Pragmas --
+   ----------------------------
+
+   procedure Write_Warnings_Pragmas is
+   begin
+      --  Turn off warnings
+
+      Write_Line ("pragma Warnings (Off);");
+
+      --  Turn off style checks and set maximum line length to the largest
+      --  supported value.
+
+      Write_Line ("pragma Style_Checks (""NM32766"");");
+   end Write_Warnings_Pragmas;
+
 end XE_Utils;

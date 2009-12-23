@@ -42,7 +42,6 @@ with XE_IO;       use XE_IO;
 with XE_Names;    use XE_Names;
 with XE_Units;    use XE_Units;
 with XE_Utils;    use XE_Utils;
-pragma Elaborate_All (XE_Utils);
 
 package body XE_List is
 
@@ -557,7 +556,7 @@ package body XE_List is
 
       Register_Temp_File (Monolithic_Src_File, Monolithic_Src_Name);
       Set_Output (Monolithic_Src_File);
-      Write_Line ("pragma Warnings (Off);");
+      Write_Warnings_Pragmas;
 
       --  Record the associated object and ALI files as temporary files to
       --  be cleaned up eventually.

@@ -288,7 +288,7 @@ package body XE_Back.PolyORB is
       Create_File (File, Filename);
       Set_Output  (File);
 
-      Write_Line  ("pragma Warnings (Off);");
+      Write_Warnings_Pragmas;
       Write_Line  ("pragma Ada_2005;");
 
       --  First drag platform the specific base setup
@@ -690,7 +690,7 @@ package body XE_Back.PolyORB is
       Filename := Dir (Current.Partition_Dir, Filename);
       Create_File (File, Filename);
       Set_Output  (File);
-      Write_Line  ("pragma Warnings (Off);");
+      Write_Warnings_Pragmas;
 
       --  Import the storage supports used by this partition
 
@@ -774,7 +774,7 @@ package body XE_Back.PolyORB is
       Filename := Dir (Current.Partition_Dir, Filename);
       Create_File (File, Filename);
       Set_Output  (File);
-      Write_Line  ("pragma Warnings (Off);");
+      Write_Warnings_Pragmas;
 
       Write_With_Clause (RU (RU_PolyORB_ORB));
       Write_With_Clause (RU (RU_PolyORB_Initialization));
