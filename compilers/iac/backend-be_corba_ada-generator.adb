@@ -1466,7 +1466,7 @@ package body Backend.BE_CORBA_Ada.Generator is
       then
          Fd := Set_Output (Get_File_Name (N));
 
-         P := First_Node (Withed_Packages (N));
+         P := First_Node (Context_Clause (N));
 
          while Present (P) loop
             Write_Indentation;
@@ -1624,7 +1624,7 @@ package body Backend.BE_CORBA_Ada.Generator is
 
       if not Is_Subunit_Package (N) then
          Fd := Set_Output (Get_File_Name (N));
-         P := First_Node (Withed_Packages (N));
+         P := First_Node (Context_Clause (N));
 
          while Present (P) loop
             Write_Indentation;

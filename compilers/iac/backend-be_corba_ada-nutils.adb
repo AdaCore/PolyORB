@@ -362,7 +362,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
          Set_Unreferenced (W, V => True);
       end if;
 
-      Append_To (Withed_Packages (Current_Package), W);
+      Append_To (Context_Clause (Current_Package), W);
    end Add_With_Package;
 
    ---------------
@@ -1740,16 +1740,16 @@ package body Backend.BE_CORBA_Ada.Nutils is
       --  Building the specification part of the package
 
       Pkg := New_Node (K_Package_Specification);
-      Set_Withed_Packages (Pkg, New_List);
+      Set_Context_Clause (Pkg, New_List);
 
       --  Disabling style checks. We put the pragma before the header
       --  comment because some lines in the header may be very long.
 
-      Append_To (Withed_Packages (Pkg), Make_Style_Check_Pragma);
+      Append_To (Context_Clause (Pkg), Make_Style_Check_Pragma);
 
       --  Adding a comment header
 
-      Make_Comment_Header (Withed_Packages (Pkg), Identifier);
+      Make_Comment_Header (Context_Clause (Pkg), Identifier);
 
       Set_Visible_Part (Pkg, New_List);
       Set_Subunits (Pkg, New_List);
@@ -1760,16 +1760,16 @@ package body Backend.BE_CORBA_Ada.Nutils is
       --  Building the implementation part of the package
 
       Pkg := New_Node (K_Package_Implementation);
-      Set_Withed_Packages (Pkg, New_List);
+      Set_Context_Clause (Pkg, New_List);
 
       --  Disabling style checks. We put the pragma before the header
       --  comment because some lines in the header may be very long.
 
-      Append_To (Withed_Packages (Pkg), Make_Style_Check_Pragma);
+      Append_To (Context_Clause (Pkg), Make_Style_Check_Pragma);
 
       --  Adding a comment header
 
-      Make_Comment_Header (Withed_Packages (Pkg), Identifier);
+      Make_Comment_Header (Context_Clause (Pkg), Identifier);
 
       Set_Statements (Pkg, New_List);
       Set_Package_Declaration (Pkg, Unit);

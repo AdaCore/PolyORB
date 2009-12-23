@@ -775,11 +775,11 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
       --  As a subunit of Helper, Interals shares its list of withed
       --  packages with Helper.
 
-      Set_Withed_Packages (Package_Specification (Z),
-                           Withed_Packages (Package_Specification (D)));
+      Set_Context_Clause (Package_Specification (Z),
+                           Context_Clause (Package_Specification (D)));
 
-      Set_Withed_Packages (Package_Implementation (Z),
-                           Withed_Packages (Package_Implementation (D)));
+      Set_Context_Clause (Package_Implementation (Z),
+                           Context_Clause (Package_Implementation (D)));
 
       Set_Internals_Package (P, Z);
 
