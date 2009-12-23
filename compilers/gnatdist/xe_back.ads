@@ -151,8 +151,8 @@ private
      (W : Name_Id;
       U : Boolean := False;
       E : Boolean := False);
-   --  Add a with clause W, a use clause when U is true and an
-   --  elaborate clause when E is true.
+   --  Add a with clause W, a use clause when U is true and an Elaborate_All
+   --  pragma when E is true.
 
    function Prefix (Check_For : String) return String;
    --  Return the PCS installation prefix as dynamically determined by the
