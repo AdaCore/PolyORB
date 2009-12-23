@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -1685,40 +1685,43 @@ package body Backend.BE_CORBA_Ada.Nutils is
    ------------------------------
 
    function Make_Package_Declaration (Identifier : Node_Id) return Node_Id is
-
-      function Get_Style_State return Value_Id;
-      --  This function returns a string literal which is the value
-      --  given to the pragma style_checks. The 'Off' value is does
-      --  not ignore line length.
-
-      ---------------------
-      -- Get_Style_State --
-      ---------------------
-
-      function Get_Style_State return Value_Id is
-         --  The maximum line length allowed by GNAT is 32766
-
-         Max_Line_Length : constant Int := 32766;
-         Result          : Value_Id;
-      begin
-         Set_Str_To_Name_Buffer ("NM");
-         Add_Nat_To_Name_Buffer (Max_Line_Length);
-         Result := New_String_Value (Name_Find, False);
-         return Result;
-      end Get_Style_State;
-
       Pkg         : Node_Id;
       Unit        : Node_Id;
-      N           : Node_Id;
-      Style_State : constant Value_Id := Get_Style_State;
+
+      function Make_Style_Check_Pragma return Node_Id;
+      --  Returns a node for a pragma deactivating style checks
+
+      -----------------------------
+      -- Make_Style_Check_Pragma --
+      -----------------------------
+
+      function Make_Style_Check_Pragma return Node_Id is
+      begin
+         --  Note: just using Style_Checks (Off) wouldn't turn off line length
+         --  checks, so we need to define the maximum line length explicitly.
+         --  We set it to the maximum value supported by GNAT: 32766.
+
+         Set_Str_To_Name_Buffer ("NM32766");
+
+         return Make_Pragma
+                  (Pragma_Style_Checks,
+                   New_List
+                     (Make_Literal
+                        (New_String_Value (Name_Find, Wide => False))));
+      end Make_Style_Check_Pragma;
+
+   --  Start of processing for Make_Package_Declaration
+
    begin
       Unit := New_Node (K_Package_Declaration);
       Set_Defining_Identifier (Unit, Identifier);
 
       if Kind (Identifier) = K_Defining_Identifier then
          Set_Declaration_Node (Identifier, Unit);
+
       elsif Kind (Identifier) = K_Selected_Component then
          Set_Declaration_Node (Selector_Name (Identifier), Unit);
+
       else
          raise Program_Error;
       end if;
@@ -1742,9 +1745,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
       --  Disabling style checks. We put the pragma before the header
       --  comment because some lines in the header may be very long.
 
-      N := Make_Pragma
-        (Pragma_Style_Checks, New_List (Make_Literal (Style_State)));
-      Append_To (Withed_Packages (Pkg), N);
+      Append_To (Withed_Packages (Pkg), Make_Style_Check_Pragma);
 
       --  Adding a comment header
 
@@ -1764,9 +1765,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
       --  Disabling style checks. We put the pragma before the header
       --  comment because some lines in the header may be very long.
 
-      N := Make_Pragma
-        (Pragma_Style_Checks, New_List (Make_Literal (Style_State)));
-      Append_To (Withed_Packages (Pkg), N);
+      Append_To (Withed_Packages (Pkg), Make_Style_Check_Pragma);
 
       --  Adding a comment header
 
@@ -1787,8 +1786,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
      (Defining_Identifier : Node_Id;
       Generic_Package     : Node_Id;
       Parameter_List      : List_Id := No_List;
-      Parent              : Node_Id := Current_Package)
-     return Node_Id
+      Parent              : Node_Id := Current_Package) return Node_Id
    is
       N : Node_Id;
    begin
