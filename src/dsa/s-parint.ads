@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2004-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -148,8 +148,7 @@ package System.Partition_Interface is
       --  Local address of the proxy object
    end record;
 
-   type RCI_Subp_Info_Array is array (Integer range <>)
-     of RCI_Subp_Info;
+   type RCI_Subp_Info_Array is array (Integer range <>) of RCI_Subp_Info;
 
    subtype Request_Access is PolyORB.Requests.Request_Access;
 
@@ -180,8 +179,7 @@ package System.Partition_Interface is
    function Caseless_String_Eq (S1, S2 : String) return Boolean;
    --  Case-less equality of S1 and S2
 
-   type Request_Handler_Access is access
-     procedure (R : Request_Access);
+   type Request_Handler_Access is access procedure (R : Request_Access);
 
    type Private_Info is private;
 
@@ -218,7 +216,7 @@ package System.Partition_Interface is
       Is_All_Calls_Remote : Boolean);
    --  Register the fact that the Name receiving stub is now elaborated.
    --  Register the access value to the package RPC_Receiver procedure.
-   --  Subp_Info is the address of an array of a statically subtype
+   --  Subp_Info is the address of an array of a statically constrained subtype
    --  of RCI_Subp_Info_Array with a range of 0 .. Subp_Info_Len - 1.
 
    function Find_Receiving_Stub
@@ -237,7 +235,7 @@ package System.Partition_Interface is
       Target       : Entity_Ptr;
       --  Target cannot be a References.Ref (a controlled type) because that
       --  would pollute RACW_Stub_Type's dispatch table (which must be exactly
-      --  identical to that of the designated tagged type).  Target must be a
+      --  identical to that of the designated tagged type). Target must be a
       --  pointer to References.Reference_Info.
 
       Asynchronous : Boolean;
@@ -245,7 +243,8 @@ package System.Partition_Interface is
 
    type RACW_Stub_Type_Access is access all RACW_Stub_Type;
    --  This type is used by the expansion to implement distributed objects.
-   --  Do not change its definition or its layout without updating exp_dist.adb
+   --  Do not change its definition or its layout without updating Exp_Dist
+   --  accordingly.
 
    function Same_Partition
      (Left  : access RACW_Stub_Type;
@@ -299,11 +298,11 @@ package System.Partition_Interface is
    --  is set to Null_Address.
 
    function Get_Reference
-     (RACW             : System.Address;
-      Type_Name        : String;
-      Stub_Tag         : Ada.Tags.Tag;
-      Is_RAS           : Boolean;
-      Receiver         : access Servant) return PolyORB.References.Ref;
+     (RACW      : System.Address;
+      Type_Name : String;
+      Stub_Tag  : Ada.Tags.Tag;
+      Is_RAS    : Boolean;
+      Receiver  : access Servant) return PolyORB.References.Ref;
    --  Create a reference from an RACW value with designated type Type_Name.
    --  Stub_Tag is the tag of the associated stub type. Is_RAS is True if the
    --  RACW is implementing a remote access-to-subprogram type.
@@ -319,10 +318,10 @@ package System.Partition_Interface is
    --  associated with Servant.
 
    function Get_RACW
-     (Ref              : PolyORB.References.Ref;
-      Stub_Tag         : Ada.Tags.Tag;
-      Is_RAS           : Boolean;
-      Asynchronous     : Boolean) return System.Address;
+     (Ref          : PolyORB.References.Ref;
+      Stub_Tag     : Ada.Tags.Tag;
+      Is_RAS       : Boolean;
+      Asynchronous : Boolean) return System.Address;
    --  From an object reference, create a remote access-to-classwide value
    --  designating the same object. Is_RAS indicates whether the RACW is
    --  implementing a remote access-to-subprogram type.
@@ -348,10 +347,8 @@ package System.Partition_Interface is
    Mode_Inout : PolyORB.Any.Flags renames PolyORB.Any.ARG_INOUT;
    subtype NamedValue is PolyORB.Any.NamedValue;
    subtype TypeCode is PolyORB.Any.TypeCode.Local_Ref;
-   procedure Set_TC
-     (A : in out Any;
-      T : PATC.Local_Ref)
-      renames PolyORB.Any.Set_Type;
+   procedure Set_TC (A : in out Any; T : PATC.Local_Ref)
+     renames PolyORB.Any.Set_Type;
 
    function Get_TC (A : Any) return PATC.Local_Ref;
 
@@ -374,7 +371,7 @@ package System.Partition_Interface is
    procedure NVList_Create (NVList : out PolyORB.Any.NVList.Ref)
      renames PolyORB.Any.NVList.Create;
    procedure NVList_Add_Item
-     (Self       :    PolyORB.Any.NVList.Ref;
+     (Self       : PolyORB.Any.NVList.Ref;
       Item_Name  : PolyORB.Types.Identifier;
       Item       : Any;
       Item_Flags : PolyORB.Any.Flags)
@@ -456,8 +453,8 @@ package System.Partition_Interface is
    --       function TC_AS return PATC.Local_Ref
    --       renames PolyORB.Any.TC_X;
 
-   --  The typecodes below define the mapping of Ada elementary
-   --  types onto PolyORB types.
+   --  The typecodes below define the mapping of Ada elementary types to
+   --  PolyORB types.
 
    function TC_A return PATC.Local_Ref
      renames PolyORB.Any.TC_Any;
@@ -587,8 +584,8 @@ package System.Partition_Interface is
    --  Stream object shall not exceed that of Item.
 
    procedure Release_Buffer (Stream : in out Buffer_Stream_Type);
-   --  Return storage allocated for Stream, needs to be called after any
-   --  data has been written to the buffer.
+   --  Return storage allocated for Stream, needs to be called after any data
+   --  has been written to the buffer.
 
    --------------
    -- Requests --
@@ -598,14 +595,14 @@ package System.Partition_Interface is
       renames PolyORB.Any.ExceptionList.Nil_Ref;
 
    procedure Request_Create
-     (Target    :        PolyORB.References.Ref;
-      Operation :        String;
-      Arg_List  :        PolyORB.Any.NVList.Ref;
+     (Target    : PolyORB.References.Ref;
+      Operation : String;
+      Arg_List  : PolyORB.Any.NVList.Ref;
       Result    : in out PolyORB.Any.NamedValue;
-      Exc_List  :        PolyORB.Any.ExceptionList.Ref :=
-                           PolyORB.Any.ExceptionList.Nil_Ref;
-      Req       :    out PolyORB.Requests.Request_Access;
-      Req_Flags :        PolyORB.Requests.Flags;
+      Exc_List  : PolyORB.Any.ExceptionList.Ref :=
+                    PolyORB.Any.ExceptionList.Nil_Ref;
+      Req       : out PolyORB.Requests.Request_Access;
+      Req_Flags :   PolyORB.Requests.Flags;
       Deferred_Arguments_Session : PolyORB.Components.Component_Access := null;
       Identification :   PolyORB.Requests.Arguments_Identification :=
                            PolyORB.Requests.Ident_By_Position;
@@ -617,7 +614,7 @@ package System.Partition_Interface is
       Invoke_Flags : PolyORB.Requests.Flags := 0);
 
    procedure Request_Arguments
-     (R     :        PolyORB.Requests.Request_Access;
+     (R     : PolyORB.Requests.Request_Access;
       Args  : in out PolyORB.Any.NVList.Ref);
 
    procedure Request_Set_Out (R : PolyORB.Requests.Request_Access);
