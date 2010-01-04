@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -90,6 +90,7 @@ package body Backend.BE_CORBA_Ada is
       Set_Space_Increment (3);
       Int0_Val := New_Integer_Value (0, 1, 10);
       Int1_Val := New_Integer_Value (1, 1, 10);
+      Int2_Val := New_Integer_Value (2, 1, 10);
       Nutils.Initialize;
    end Initialize;
 

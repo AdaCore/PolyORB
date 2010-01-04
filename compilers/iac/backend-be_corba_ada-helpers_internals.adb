@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2006-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2006-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -1266,10 +1266,6 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
       --  Used for code factorization. This procedure assumes that the
       --  current package body has been properly set.
 
-      function Get_Aggr_Count (E : Node_Id) return Node_Id;
-      --  Factorize some code between Get_Aggregate_Count_Body and
-      --  Set_Aggregate_Count_Body.
-
       ----------------------------
       -- Make_Indexed_Component --
       ----------------------------
@@ -1741,18 +1737,141 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
 
       function Get_Aggregate_Count_Body (E : Node_Id) return Node_Id is
          Spec       : constant Node_Id := Get_Aggregate_Count_Node
-           (BE_Node (Identifier (E)));
+                                            (BE_Node (Identifier (E)));
          Dcl_Part   : constant List_Id := New_List;
          Statements : constant List_Id := New_List;
          N          : Node_Id;
-         Returns    : constant Node_Id := Get_Aggr_Count (E);
-      begin
-         --  The ACC formal parameter is used only in case of a
-         --  multidimensional array.
+         Returns    : Node_Id;
 
-         if FEN.Kind (E) /= K_Complex_Declarator
-           or else not FEU.Is_Multidimensional_Array (E)
-         then
+         ACC_Referenced : Boolean := False;
+
+      begin
+         --  Prepare return expression
+
+         case FEN.Kind (E) is
+            when K_Enumeration_Type =>
+               --  Enumeration types have only one aggregate
+
+               Returns := Make_Literal (Int1_Val);
+
+            when K_Union_Type =>
+               declare
+                  Literal_Parent      : Node_Id := No_Node;
+                  Switch_Alternatives : constant List_Id := New_List;
+                  Switch_Case         : Node_Id;
+                  Switch_Item         : Node_Id;
+                  Choices             : List_Id;
+
+                  Orig_Type           : constant Node_Id :=
+                    FEU.Get_Original_Type_Specifier (Switch_Type_Spec (E));
+
+                  Has_Default : Boolean := False;
+               begin
+                  if FEN.Kind (Orig_Type) = K_Enumeration_Type then
+                     Literal_Parent := Map_Expanded_Name
+                       (Scope_Entity (Identifier (Orig_Type)));
+                  end if;
+
+                  Switch_Case := First_Entity (Switch_Type_Body (E));
+
+                  while Present (Switch_Case) loop
+                     Map_Choice_List
+                       (Labels (Switch_Case),
+                        Literal_Parent,
+                        Choices,
+                        Has_Default);
+
+                     N := Make_Return_Statement (Make_Literal (Int2_Val));
+                     Append_To (Switch_Alternatives,
+                       Make_Case_Statement_Alternative
+                         (Choices, New_List (N)));
+                     Switch_Case := Next_Entity (Switch_Case);
+                  end loop;
+
+                  if Has_Default then
+                     --  Member with default label is present: there is always
+                     --  a data mamber.
+
+                     Returns := Make_Literal (Int2_Val);
+
+                  else
+
+                     --  Add WHEN OTHERS clause in case some values are not
+                     --  covered.
+
+                     Append_To (Switch_Alternatives,
+                       Make_Case_Statement_Alternative
+                         (No_List,
+                          New_List
+                            (Make_Return_Statement
+                               (Make_Literal (Int1_Val)))));
+
+                     --  Build case statement
+
+                     N := Make_Selected_Component (PN (P_ACC), CN (C_V));
+                     Switch_Item := Make_Selected_Component
+                       (N,
+                        Make_Identifier (CN (C_Switch)));
+
+                     Append_To (Statements,
+                       Make_Case_Statement (Switch_Item, Switch_Alternatives));
+
+                     ACC_Referenced := True;
+                     Returns := No_Node;
+                  end if;
+               end;
+
+            when K_Structure_Type =>
+               declare
+                  Member_Count : Unsigned_Long_Long := 0;
+                  Member       : Node_Id;
+                  D            : Node_Id;
+               begin
+                  --  Count declarators
+
+                  Member := First_Entity (Members (E));
+                  while Present (Member) loop
+                     D := First_Entity (Declarators (Member));
+
+                     while Present (D) loop
+                        Member_Count := Member_Count + 1;
+                        D := Next_Entity (D);
+                     end loop;
+
+                     Member := Next_Entity (Member);
+                  end loop;
+
+                  Returns := Make_Literal
+                               (New_Integer_Value (Member_Count, 1, 10));
+               end;
+
+            when K_Complex_Declarator =>
+               declare
+                  Dim : constant Natural := FEU.Length (Array_Sizes (E));
+               begin
+                  if Dim = 1 then
+                     Returns := Make_Subprogram_Call
+                                  (Make_Identifier (Map_Lengths_Name (E)),
+                                   New_List (Make_Literal (Int1_Val)));
+                  else
+                     Returns := Make_Subprogram_Call
+                                  (Make_Identifier (Map_Lengths_Name (E)),
+                                   New_List
+                                     (Make_Selected_Component
+                                        (PN (P_ACC), CN (C_Dimen))));
+                     ACC_Referenced := True;
+                  end if;
+               end;
+
+            when others =>
+               raise Program_Error;
+
+         end case;
+
+         --  The ACC formal parameter is used only in case of multi-dimensional
+         --  arrays and unions without a default label.
+
+         if not ACC_Referenced then
             N := Make_Pragma
               (Pragma_Unreferenced,
                New_List (Make_Identifier (PN (P_ACC))));
@@ -1761,8 +1880,10 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
 
          --  The return statement
 
-         N := Make_Return_Statement (Returns);
-         Append_To (Statements, N);
+         if Present (Returns) then
+            N := Make_Return_Statement (Returns);
+            Append_To (Statements, N);
+         end if;
 
          N := Make_Subprogram_Body (Spec, Dcl_Part, Statements);
          return N;
@@ -1774,38 +1895,16 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
 
       function Set_Aggregate_Count_Body (E : Node_Id) return Node_Id is
          Spec       : constant Node_Id := Set_Aggregate_Count_Node
-           (BE_Node (Identifier (E)));
+                        (BE_Node (Identifier (E)));
          Dcl_Part   : constant List_Id := New_List;
          Statements : constant List_Id := New_List;
-         Aggr_Count : constant Node_Id := Get_Aggr_Count (E);
-         N          : Node_Id;
-         C          : Node_Id;
       begin
-         N := Make_Used_Type (RE (RE_Unsigned_Long_1));
-         Append_To (Dcl_Part, N);
+         --  Shadow aggregate contents do not have user-changeable length:
+         --  either they have a fixed size, or in the case of unions, a
+         --  variable size that is controlled by the discriminant value.
 
-         --  The ACC formal parameter is used only in case of a
-         --  multidimensional array.
-
-         if FEN.Kind (E) /= K_Complex_Declarator
-           or else not FEU.Is_Multidimensional_Array (E)
-         then
-            N := Make_Pragma
-              (Pragma_Unreferenced,
-               New_List (Make_Identifier (PN (P_ACC))));
-            Append_To (Dcl_Part, N);
-         end if;
-
-         --  The if statement
-
-         C := Make_Expression
-           (Make_Identifier (PN (P_Count)), Op_Not_Equal, Aggr_Count);
-         N := Make_Raise_Statement (Make_Identifier (EN (E_Program_Error)));
-         N := Make_If_Statement (C, New_List (N));
-         Append_To (Statements, N);
-
-         N := Make_Subprogram_Body (Spec, Dcl_Part, Statements);
-         return N;
+         Append_To (Statements, Make_Null_Statement);
+         return Make_Subprogram_Body (Spec, Dcl_Part, Statements);
       end Set_Aggregate_Count_Body;
 
       --------------------------------
@@ -2073,7 +2172,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                   Switch_Alternative  : Node_Id;
                   Switch_Case         : Node_Id;
                   Switch_Alternatives : List_Id;
-                  Default_Met         : Boolean := False;
+                  Has_Default         : Boolean := False;
                   Choices             : List_Id;
                   Wrap_Node           : Node_Id;
                   Literal_Parent      : Node_Id := No_Node;
@@ -2166,9 +2265,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
 
                   if FEN.Kind (Orig_Type) = K_Enumeration_Type then
                      Literal_Parent := Map_Expanded_Name
-                       (Scope_Entity
-                        (Identifier
-                         (Orig_Type)));
+                       (Scope_Entity (Identifier (Orig_Type)));
                   end if;
 
                   Switch_Alternatives := New_List;
@@ -2180,7 +2277,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                        (Labels (Switch_Case),
                         Literal_Parent,
                         Choices,
-                        Default_Met);
+                        Has_Default);
 
                      --  Get the type spec of the element
 
@@ -2235,12 +2332,12 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                   --  Add an empty when others clause to keep the compiler
                   --  happy.
 
-                  if not Default_Met then
+                  if not Has_Default then
                      Append_To (Switch_Alternatives,
                        Make_Case_Statement_Alternative (No_List, No_List));
                   end if;
 
-                  --  Build the switch case
+                  --  Build the case statement
 
                   N := Make_Case_Statement (Switch_Item, Switch_Alternatives);
                   Append_To (Else_Sts, N);
@@ -2712,72 +2809,6 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
          N := Finalize_Value_Body (E);
          Append_To (Statements (Current_Package), N);
       end Aggregate_Container_Routines;
-
-      --------------------
-      -- Get_Aggr_Count --
-      --------------------
-
-      function Get_Aggr_Count (E : Node_Id) return Node_Id is
-         N : Node_Id;
-      begin
-         case FEN.Kind (E) is
-            when K_Enumeration_Type =>
-               --  Enumeration types have only one aggregate
-
-               N := Make_Literal (Int1_Val);
-
-            when K_Union_Type =>
-               --  Union types have two aggregates, the switch and the
-               --  corresponding element.
-
-               N := Make_Literal (New_Integer_Value (2, 1, 10));
-
-            when K_Structure_Type =>
-               declare
-                  Member_Count : Unsigned_Long_Long := 0;
-                  Member       : Node_Id;
-                  D            : Node_Id;
-               begin
-                  --  Count the number of declarators
-
-                  Member := First_Entity (Members (E));
-                  while Present (Member) loop
-                     D := First_Entity (Declarators (Member));
-
-                     while Present (D) loop
-                        Member_Count := Member_Count + 1;
-                        D := Next_Entity (D);
-                     end loop;
-
-                     Member := Next_Entity (Member);
-                  end loop;
-
-                  N := Make_Literal (New_Integer_Value (Member_Count, 1, 10));
-               end;
-
-            when K_Complex_Declarator =>
-               declare
-                  Dim : constant Natural := FEU.Length (Array_Sizes (E));
-               begin
-                  if Dim = 1 then
-                     N := Make_Subprogram_Call
-                       (Make_Identifier (Map_Lengths_Name (E)),
-                        New_List (Make_Literal (Int1_Val)));
-                  else
-                     N := Make_Subprogram_Call
-                       (Make_Identifier (Map_Lengths_Name (E)),
-                        New_List
-                        (Make_Selected_Component (PN (P_ACC), CN (C_Dimen))));
-                  end if;
-               end;
-
-            when others =>
-               raise Program_Error;
-
-         end case;
-
-         return N;
-      end Get_Aggr_Count;
 
       ----------------------------
       -- Initialized_Identifier --

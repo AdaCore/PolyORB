@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2006-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2006-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -999,7 +999,7 @@ package body Backend.BE_CORBA_Ada.Common is
                Switch_Alternatives : List_Id;
                Switch_Node         : Node_Id;
                Switch_Case         : Node_Id;
-               Default_Met         : Boolean := False;
+               Has_Default         : Boolean := False;
             begin
                Switch_Node := Make_Identifier (CN (C_Switch));
                if Var_Exp /= No_Node then
@@ -1014,9 +1014,7 @@ package body Backend.BE_CORBA_Ada.Common is
 
                if FEN.Kind (C) = K_Enumeration_Type then
                   Literal_Parent := Map_Expanded_Name
-                    (Scope_Entity
-                     (Identifier
-                      (C)));
+                    (Scope_Entity (Identifier (C)));
                end if;
 
                Switch_Alternatives := New_List;
@@ -1027,7 +1025,7 @@ package body Backend.BE_CORBA_Ada.Common is
                     (Labels (Switch_Case),
                      Literal_Parent,
                      Choices,
-                     Default_Met);
+                     Has_Default);
 
                   L := New_List;
 
@@ -1063,7 +1061,7 @@ package body Backend.BE_CORBA_Ada.Common is
 
                --  Add an empty when others clause to keep the compiler happy
 
-               if not Default_Met then
+               if not Has_Default then
                   Append_To (Switch_Alternatives,
                     Make_Case_Statement_Alternative (No_List, No_List));
                end if;

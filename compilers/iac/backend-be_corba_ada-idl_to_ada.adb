@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -1614,7 +1614,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
      (Labels         :        List_Id;
       Literal_Parent :        Node_Id;
       Choices        :    out List_Id;
-      Default_Met    : in out Boolean)
+      Has_Default    : in out Boolean)
    is
       Label  : Node_Id;
       Choice : Node_Id;
@@ -1627,7 +1627,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
       Label   := First_Entity (Labels);
 
       if FEU.Expr_Value (Label) = No_Value then
-         Default_Met := True;
+         Has_Default := True;
       else
          while Present (Label) loop
             Choice := Make_Literal_With_Parent

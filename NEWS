@@ -44,6 +44,9 @@ Bug fixes
 A segmentation fault could occur while unmarshalling a record with a component
 of a private type. (IC16-046)
 
+PROGRAM_ERROR was raised when performing a local call involving IDL union
+with a switch that do not have an associated member label. (IB25-010)
+
 A resource leak was fixed in the idle tasks manager. (IB19-027)
 
 A race condition has been fixed in the Half_Sync_Half_Async ORB controller

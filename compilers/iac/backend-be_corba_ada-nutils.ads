@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -41,6 +41,7 @@ package Backend.BE_CORBA_Ada.Nutils is
 
    Int0_Val             : Value_Id; -- 0
    Int1_Val             : Value_Id; -- 1
+   Int2_Val             : Value_Id; -- 2
    CORBA_Name           : Name_Id;  -- "CORBA"
    Repository_Root_Name : Name_Id;  -- "Repository_Root"
    IDL_Sequences_Name   : Name_Id;  -- "IDL_Sequences"
