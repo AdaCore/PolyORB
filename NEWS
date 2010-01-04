@@ -44,9 +44,6 @@ Bug fixes
 po_gnatdist does not create files anymore outside of the private dsa/
 subdirectory. (IC14-034)
 
-PROGRAM_ERROR was raised when performing a local call involving IDL union
-with a switch that do not have an associated member label. (IB25-010)
-
 * PolyORB 2.6 (branched on 2009-10-07)
 ======================================
 
@@ -63,6 +60,9 @@ Bug fixes
 
 A segmentation fault could occur while unmarshalling a record with a component
 of a private type. (IC16-046)
+
+PROGRAM_ERROR was raised when performing a local call involving IDL union
+with a switch that do not have an associated member label. (IB25-010)
 
 A resource leak was fixed in the idle tasks manager. (IB19-027)
 
