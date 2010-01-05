@@ -155,6 +155,9 @@ package System.Partition_Interface is
    generic
       RCI_Name : String;
       Version  : String;
+      pragma Unreferenced (Version);
+      --  Not used anymore, kept to avoid compiler API change
+
    package RCI_Locator is
       function Get_RCI_Package_Ref return Object_Ref;
    end RCI_Locator;

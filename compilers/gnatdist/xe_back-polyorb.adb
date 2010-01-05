@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1995-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -128,7 +128,7 @@ package body XE_Back.PolyORB is
    -- Parameter types --
    ---------------------
 
-   type PS_Id is (PS_Tasking, PS_DSA, PS_DSA_Local_RCIs);
+   type PS_Id is (PS_Tasking, PS_DSA);
 
    PS : array (PS_Id) of Unit_Name_Type;
 
@@ -141,7 +141,6 @@ package body XE_Back.PolyORB is
       PE_Rsh_Options,
       PE_Boot_Location,
       PE_Self_Location,
-      PE_Reconnection_Policy,
       PE_Termination_Initiator,
       PE_Termination_Policy,
       PE_Partition_Name);
@@ -153,7 +152,6 @@ package body XE_Back.PolyORB is
       PE_Rsh_Options           => PS_DSA,
       PE_Boot_Location         => PS_DSA,
       PE_Self_Location         => PS_DSA,
-      PE_Reconnection_Policy   => PS_DSA,
       PE_Termination_Initiator => PS_DSA,
       PE_Termination_Policy    => PS_DSA,
       PE_Partition_Name        => PS_DSA,
@@ -554,6 +552,30 @@ package body XE_Back.PolyORB is
 
    procedure Generate_Parameters_Source (P : Partition_Id) is
       Current : Partition_Type renames Partitions.Table (P);
+
+      Section : constant Name_Id := PS (PS_DSA);
+      T       : constant Name_Id := Id ("true");
+
+      type Attribute_Type is (Local, Reconnection);
+
+      function Attribute_Name
+        (U : Conf_Unit_Id;
+         A : Attribute_Type) return Name_Id;
+      --  Return U'A
+
+      function Attribute_Name
+        (U : Conf_Unit_Id;
+         A : Attribute_Type) return Name_Id
+      is
+      begin
+         Get_Name_String (Conf_Units.Table (U).Name);
+         Add_Char_To_Name_Buffer (''');
+         Add_Str_To_Name_Buffer (Ada.Characters.Handling.To_Lower (A'Img));
+         return Name_Find;
+      end Attribute_Name;
+
+   --  Start of processing for Generate_Parameters_Source
+
    begin
       --  Set partition name
 
@@ -565,13 +587,6 @@ package body XE_Back.PolyORB is
       if Current.Termination /= No_Termination then
          Set_Conf (PE_Termination_Policy,
                    Termination_Img (Current.Termination));
-      end if;
-
-      --  Set reconnection policy
-
-      if Current.Reconnection /= No_Reconnection then
-         Set_Conf (PE_Reconnection_Policy,
-                   Reconnection_Img (Current.Reconnection));
       end if;
 
       --  Set boot location
@@ -614,21 +629,49 @@ package body XE_Back.PolyORB is
       Set_Conf (PE_Rsh_Command, Get_Rsh_Command);
       Set_Conf (PE_Rsh_Options, Get_Rsh_Options);
 
-      --  Set the DSA_Local_RCIs section parameters:
-      --  For each RCI assigned on this partition add a parameter <RCI NAME>
-      --  set to True.
+      --  For each RCI assigned on this partition add a parameter
+      --  <RCI NAME>'local set to True.
 
       declare
          U       : Conf_Unit_Id;
-         Section : constant Name_Id := PS (PS_DSA_Local_RCIs);
-         T       : constant Name_Id := Id ("true");
+         Key     : Name_Id;
       begin
          U := Current.First_Unit;
          while U /= No_Conf_Unit_Id loop
-            Set_Conf (Section, Conf_Units.Table (U).Name, T, Quote => True);
+            if Units.Table (Conf_Units.Table (U).My_Unit).RCI then
+               Key := Attribute_Name (U, Local);
+               Set_Conf (Section, Key, T, Quote => True);
+            end if;
             U := Conf_Units.Table (U).Next_Unit;
          end loop;
       end;
+
+      --  Set reconnection policies for all RCIs (note: we also set this for
+      --  local RCIs so that we can abort partition elaboration when a stale
+      --  reference is present in the name server and the partition's policy
+      --  is Reject_On_Restart.
+
+      for Rem_P in Partitions.First .. Partitions.Last loop
+         declare
+            Remote  : Partition_Type renames Partitions.Table (Rem_P);
+            U       : Conf_Unit_Id;
+            Key     : Name_Id;
+         begin
+            if Remote.Reconnection /= No_Reconnection then
+               U := Remote.First_Unit;
+               while U /= No_Conf_Unit_Id loop
+                  if Units.Table (Conf_Units.Table (U).My_Unit).RCI then
+                     Key := Attribute_Name (U, Reconnection);
+                     Set_Conf
+                       (Section, Key,
+                        Reconnection_Img (Remote.Reconnection),
+                        Quote => True);
+                  end if;
+                  U := Conf_Units.Table (U).Next_Unit;
+               end loop;
+            end if;
+         end;
+      end loop;
 
       --  The configuration is done, start generating the code
 

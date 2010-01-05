@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -137,12 +137,19 @@ package body System.Partition_Interface is
    Critical_Section : PTM.Mutex_Access;
    --  Protects shared data structures at the DSA personality level
 
-   procedure Initialize;
    procedure Initialize_Parameters;
+   procedure Initialize;
+   procedure Shutdown (Wait_For_Completion : Boolean);
    --  Procedures called during global PolyORB initialization
 
-   function Nameserver_Lookup (Name, Kind : String) return Ref;
-   --  Look up the specified (Name, Kind) pair from the DSA naming context
+   function Nameserver_Lookup
+     (Name    : String;
+      Kind    : String;
+      Initial : Boolean := True) return Ref;
+   --  Look up the specified (Name, Kind) pair from the DSA naming context.
+   --  If Initial is True, repeat lookup until a valid reference is obtained,
+   --  and raise an exception if maximum retry count is reached, else just
+   --  return an empty ref if name server retruns an empty or invalid result.
 
    procedure Nameserver_Register
      (Name : String;
@@ -160,6 +167,25 @@ package body System.Partition_Interface is
 
    Local_PID_Barrier   : PTC.Condition_Access;
    --  Barrier used by task waiting for Local_PID_Allocated to become True
+
+   --------------------------------------------
+   -- RCI lookup and reconnection management --
+   --------------------------------------------
+
+   --  These are the initial and default values
+
+   Time_Between_Requests : Duration := 1.0;
+   Max_Requests          : Natural := 10;
+
+   type Reconnection_Policy_Type is
+     (Fail_Until_Restart, Block_Until_Restart, Reject_On_Restart);
+   Default_Reconnection_Policy : constant Reconnection_Policy_Type :=
+                                   Fail_Until_Restart;
+
+   function Get_Reconnection_Policy
+     (Name : String) return Reconnection_Policy_Type;
+   --  Retrieve reconnection policy for this RCI from runtime parameters
+   --  set by gnatdist.
 
    ------------------------------------------------
    -- Termination manager of the local partition --
@@ -184,8 +210,9 @@ package body System.Partition_Interface is
    -- Map of all known RCI units --
    --------------------------------
 
-   type RCI_Info is record
+   type RCI_State is (Initial, Live, Dead);
 
+   type RCI_Info is limited record
       Is_All_Calls_Remote : Boolean := True;
       --  True if the package is remote or pragma All_Call_Remotes applies
 
@@ -194,6 +221,15 @@ package body System.Partition_Interface is
 
       Is_Local            : Boolean := False;
       --  True if the package is assigned on local partition
+
+      Reconnection_Policy : Reconnection_Policy_Type :=
+                              Default_Reconnection_Policy;
+      --  Reconnection policy for this RCI's partition
+
+      State               : RCI_State := Initial;
+      --  Initial: never looked up from name server
+      --  Live:    valid ref or trying to reconnect
+      --  Dead:    permanently unreachable (for Reject_On_Restart policy)
 
       Known_Partition_ID  : Boolean := False;
       --  True if the package is not assigned on local partition, and its
@@ -204,11 +240,16 @@ package body System.Partition_Interface is
 
    end record;
 
-   package Known_RCIs is new PolyORB.Dynamic_Dict (RCI_Info);
+   type RCI_Info_Access is access all RCI_Info;
+
+   package Known_RCIs is new PolyORB.Dynamic_Dict (RCI_Info_Access);
    --  This list is keyed with the lowercased full names of the RCI units
 
-   function Retrieve_RCI_Info (Name : String) return RCI_Info;
-   --  Retrieve RCI information for a local or remote RCI package
+   procedure Retrieve_RCI_Info (Name : String; Info : in out RCI_Info_Access);
+   --  Retrieve RCI information for a local or remote RCI package. If Info
+   --  is already set to a non-null value, it is used as the RCI_Info for the
+   --  unit, else it is looked up from Known_RCIs, and possibly dynamically
+   --  allocated (if not alread present in Known_RCIs).
 
    --  To limit the amount of memory leaked by the use of distributed object
    --  stub types, these are referenced in a hash table and reused whenever
@@ -232,6 +273,12 @@ package body System.Partition_Interface is
       Section, Key : String) return String;
 
    The_DSA_Source : aliased DSA_Source;
+
+   type RCI_Attribute is (Local, Reconnection);
+
+   function RCI_Attr (Name : String; Attr : RCI_Attribute) return String;
+   --  Some parameters in section DSA describe attributes of RCI units.
+   --  Their names are of the force RCI_Name'Attribute_Name.
 
    ------------------------
    -- Internal functions --
@@ -536,6 +583,7 @@ package body System.Partition_Interface is
       RCI     : Boolean := True)
    is
       use Ada.Exceptions;
+      Info : RCI_Info_Access;
    begin
       pragma Debug (C, O ("Check: checking RCI versions consistency"));
 
@@ -543,12 +591,12 @@ package body System.Partition_Interface is
          return;
       end if;
 
+      Retrieve_RCI_Info (Name, Info);
+
       declare
-         Info       : constant RCI_Info := Retrieve_RCI_Info (Name);
-         Type_Id    : constant String   := Type_Id_Of (Info.Base_Ref);
+         Type_Id    : constant String := Type_Id_Of (Info.Base_Ref);
          Last_Colon : Integer;
       begin
-
          for C in reverse Type_Id'Range loop
             if Type_Id (C) = ':' then
                Last_Colon := C;
@@ -597,6 +645,17 @@ package body System.Partition_Interface is
          return Get_Empty_Any_Aggregate (TC);
       end if;
    end Create_Any;
+
+   ------------
+   -- Detach --
+   ------------
+
+   procedure Detach is
+      procedure C_Detach;
+      pragma Import (C, C_Detach, "__PolyORB_detach");
+   begin
+      C_Detach;
+   end Detach;
 
    --------------------------
    -- DSA_Exception_To_Any --
@@ -936,9 +995,8 @@ package body System.Partition_Interface is
    function Get_Active_Partition_ID (Name : Unit_Name) return RPC.Partition_ID
    is
       Is_Local : constant Boolean :=
-        PolyORB.Parameters.Get_Conf ("dsa_local_rcis", To_Lower (Name));
-
-      Info     : RCI_Info;
+                   PolyORB.Parameters.Get_Conf ("dsa", RCI_Attr (Name, Local));
+      Info     : RCI_Info_Access;
    begin
 
       --  If the unit is local, we should return the partition_id of the local
@@ -955,13 +1013,13 @@ package body System.Partition_Interface is
          return Get_Local_Partition_ID;
       end if;
 
-      Info := Retrieve_RCI_Info (Name);
+      Retrieve_RCI_Info (Name, Info);
 
       if not Info.Known_Partition_ID then
          declare
-            Request : PolyORB.Requests.Request_Access;
+            Request  : PolyORB.Requests.Request_Access;
             Arg_List : PolyORB.Any.NVList.Ref;
-            Result : PolyORB.Any.NamedValue;
+            Result   : PolyORB.Any.NamedValue;
          begin
 
             --  XXX This hand-crafted stub should be replaced with
@@ -969,8 +1027,8 @@ package body System.Partition_Interface is
             --  declaration.
 
             PolyORB.Any.NVList.Create (Arg_List);
-            Result := (Name => To_PolyORB_String ("result"),
-                       Argument => Get_Empty_Any (TC_I),
+            Result := (Name      => To_PolyORB_String ("result"),
+                       Argument  => Get_Empty_Any (TC_I),
                        Arg_Modes => 0);
 
             PolyORB.Requests.Create_Request
@@ -985,7 +1043,6 @@ package body System.Partition_Interface is
             Info.Known_Partition_ID := True;
             Info.RCI_Partition_ID   :=
               RPC.Partition_ID (FA_I (Result.Argument));
-            Known_RCIs.Register (To_Lower (Name), Info);
          end;
       end if;
       pragma Assert (Info.Known_Partition_ID);
@@ -1086,6 +1143,20 @@ package body System.Partition_Interface is
       Is_Local := False;
       Addr := Null_Address;
    end Get_Local_Address;
+
+   -----------------------------
+   -- Get_Reconnection_Policy --
+   -----------------------------
+
+   function Get_Reconnection_Policy
+     (Name : String) return Reconnection_Policy_Type is
+   begin
+      return Reconnection_Policy_Type'Value
+               (PolyORB.Parameters.Get_Conf
+                  (Section => "dsa",
+                   Key     => RCI_Attr (Name, Reconnection),
+                   Default => Default_Reconnection_Policy'Img));
+   end Get_Reconnection_Policy;
 
    ------------
    -- Get_TC --
@@ -1302,9 +1373,11 @@ package body System.Partition_Interface is
       Subprogram_Name :     String;
       Subp_Ref        : out Object_Ref)
    is
-      Info : constant RCI_Info := Retrieve_RCI_Info (Pkg_Name);
+      Info : RCI_Info_Access;
 
    begin
+      Retrieve_RCI_Info (Pkg_Name, Info);
+
       if Info.Is_Local then
          --  Retrieve subprogram address using subprogram name and subprogram
          --  table. Warning: the name used MUST be the distribution-name (with
@@ -1496,6 +1569,20 @@ package body System.Partition_Interface is
 
       PTM.Create (Critical_Section);
       PTC.Create (Local_PID_Barrier);
+
+      --  Get runtime parameters
+
+      Time_Between_Requests :=
+        PolyORB.Parameters.Get_Conf
+          (Section => "dsa",
+           Key     => "delay_between_failed_requests",
+           Default => 1.0);
+
+      Max_Requests :=
+        PolyORB.Parameters.Get_Conf
+          (Section => "dsa",
+           Key     => "max_failed_requests",
+           Default => 10);
    end Initialize;
 
    ---------------------------
@@ -1512,6 +1599,8 @@ package body System.Partition_Interface is
 
       procedure Set_Conf (Section, Key, Value : String) is
       begin
+         pragma Debug
+           (C, O ("Set_Conf: [" & Section & "] " & Key & " = " & Value));
          PUCFCT.Insert (Conf_Table, Make_Global_Key (Section, Key), +Value);
       end Set_Conf;
 
@@ -1553,7 +1642,8 @@ package body System.Partition_Interface is
       end if;
       return True;
    exception
-         when others => return False;
+      when others =>
+         return False;
    end Is_Reference_Valid;
 
    --------------
@@ -1573,7 +1663,11 @@ package body System.Partition_Interface is
    -- Nameserver_Lookup --
    -----------------------
 
-   function Nameserver_Lookup (Name, Kind : String) return Ref is
+   function Nameserver_Lookup
+     (Name    : String;
+      Kind    : String;
+      Initial : Boolean := True) return Ref
+   is
       use PolyORB.Parameters;
       use PolyORB.Errors;
       use PolyORB.References.Binding;
@@ -1581,18 +1675,6 @@ package body System.Partition_Interface is
       LName : constant String := To_Lower (Name);
 
       Result : Ref;
-
-      Time_Between_Requests : constant Duration :=
-        Get_Conf
-          (Section => "dsa",
-           Key     => "delay_between_failed_requests",
-           Default => 1.0);
-
-      Max_Requests : constant Natural :=
-        Get_Conf
-          (Section => "dsa",
-           Key     => "max_failed_requests",
-           Default => 10);
 
       Retry_Count : Natural := 0;
    begin
@@ -1607,8 +1689,9 @@ package body System.Partition_Interface is
             Result := PSNNC.Client.Resolve
                         (Naming_Context, To_Name (LName, Kind));
 
-            exit when Is_Reference_Valid (Result);
-            --  Resolve succeeded: exit loop
+            if not Is_Reference_Valid (Result) then
+               PolyORB.References.Release (Result);
+            end if;
 
          exception
                --  Catch all exceptions: we will retry resolution, and bail
@@ -1617,8 +1700,12 @@ package body System.Partition_Interface is
             when E : others =>
                pragma Debug (C, O ("retry" & Retry_Count'Img & " got "
                  & Ada.Exceptions.Exception_Information (E)));
-               null;
+               PolyORB.References.Release (Result);
          end;
+
+         exit when not (Initial and then Is_Nil (Result));
+         --  Resolve succeeded, or just trying to refresh a stale ref:
+         --  exit loop.
 
          if Retry_Count = Max_Requests then
             raise System.RPC.Communication_Error with
@@ -1627,6 +1714,9 @@ package body System.Partition_Interface is
          Retry_Count := Retry_Count + 1;
          PolyORB.Tasking.Threads.Relative_Delay (Time_Between_Requests);
       end loop;
+
+      pragma Debug
+        (C, O ("Nameserver_Lookup (" & Name & "." & Kind & "): leave"));
       return Result;
    end Nameserver_Lookup;
 
@@ -1670,7 +1760,9 @@ package body System.Partition_Interface is
       --  Name is present in name server, check validity of the reference it
       --  resolves to.
 
-      if Is_Reference_Valid (Reg_Obj) then
+      if Get_Reconnection_Policy (Name) = Reject_On_Restart
+           or else Is_Reference_Valid (Reg_Obj)
+      then
          --  Reference is valid: RCI unit is already declared by another
          --  partition.
 
@@ -1762,27 +1854,24 @@ package body System.Partition_Interface is
 
    package body RCI_Locator is
 
-      Info : RCI_Info;
+      Info : RCI_Info_Access;
+      --  Cached access to RCI_Info to avoid extra hash table lookups on
+      --  subsequent calls.
+
+      -------------------------
+      -- Get_RCI_Package_Ref --
+      -------------------------
 
       function Get_RCI_Package_Ref return Object_Ref is
       begin
-         if PolyORB.References.Is_Nil (Info.Base_Ref) then
-            Info := Retrieve_RCI_Info (RCI_Name);
-            Check (RCI_Name, Version, True);
-         end if;
+         Retrieve_RCI_Info (RCI_Name, Info);
 
-         if PolyORB.References.Is_Nil (Info.Base_Ref) then
-            raise System.RPC.Communication_Error
-              with "unable to locate RCI " & RCI_Name;
+         --  In case of failure to obtain a valid reference, Retrieve_RCI_Info
+         --  raises Communication_Error, so here we know we have one.
 
-            --  XXX add an informative exception message.
-            --  NOTE: Here, we are in calling stubs, so it is OK to raise an
-            --  exception that is specific to the DSA applicative personality.
-
-         end if;
+         pragma Assert (not Is_Nil (Info.Base_Ref));
          return Info.Base_Ref;
       end Get_RCI_Package_Ref;
-
    end RCI_Locator;
 
    ---------------------------------
@@ -1790,9 +1879,9 @@ package body System.Partition_Interface is
    ---------------------------------
 
    procedure Register_Obj_Receiving_Stub
-     (Name          : String;
-      Handler       : Request_Handler_Access;
-      Receiver      : Servant_Access)
+     (Name     : String;
+      Handler  : Request_Handler_Access;
+      Receiver : Servant_Access)
    is
       use Receiving_Stub_Lists;
       Stub : Private_Info renames Receiver.Impl_Info;
@@ -1841,6 +1930,15 @@ package body System.Partition_Interface is
 
       return null;
    end Find_Receiving_Stub;
+
+   --------------
+   -- RCI_Attr --
+   --------------
+
+   function RCI_Attr (Name : String; Attr : RCI_Attribute) return String is
+   begin
+      return To_Lower (Name & "'" & Attr'Img);
+   end RCI_Attr;
 
    ------------------------------
    -- Register_Passive_Package --
@@ -1913,7 +2011,7 @@ package body System.Partition_Interface is
 
          PolyORB.POA.Activate_Object
            (Self      => PolyORB.POA.Obj_Adapter_Access
-              (Servant_Access (Stub.Receiver).Object_Adapter),
+                           (Servant_Access (Stub.Receiver).Object_Adapter),
             P_Servant => null,
             Hint      => Key'Unchecked_Access,
             U_Oid     => U_Oid,
@@ -1935,11 +2033,13 @@ package body System.Partition_Interface is
          pragma Debug (C, O ("Registering local RCI: " & Stub.Name.all));
 
          Known_RCIs.Register
-           (To_Lower (Stub.Name.all), RCI_Info'
+           (To_Lower (Stub.Name.all),
+            new RCI_Info'
               (Base_Ref            => Ref,
                Is_Local            => True,
-               Is_All_Calls_Remote =>
-                 Stub.Is_All_Calls_Remote,
+               Reconnection_Policy => Default_Reconnection_Policy,
+               State               => Live,
+               Is_All_Calls_Remote => Stub.Is_All_Calls_Remote,
                Known_Partition_ID  => False,
                RCI_Partition_ID    => RPC.Partition_ID'First));
 
@@ -2129,32 +2229,77 @@ package body System.Partition_Interface is
    -- Retrieve_RCI_Info --
    -----------------------
 
-   function Retrieve_RCI_Info (Name : String) return RCI_Info is
-      LName : constant String := To_Lower (Name);
-      Info : RCI_Info;
-      Base_Ref : Ref;
-
+   procedure Retrieve_RCI_Info
+     (Name : String;
+      Info : in out RCI_Info_Access)
+   is
+      LName    : constant String := To_Lower (Name);
    begin
       pragma Debug (C, O ("Retrieve RCI info: enter, Name = " & Name));
-      Info := Known_RCIs.Lookup (LName, Info);
+      if Info = null then
+         Info := Known_RCIs.Lookup (LName, null);
+
+         if Info = null then
+            --  Here for a new remote RCI
+
+            Info := new RCI_Info'
+                      (Base_Ref            => <>,
+                       Is_Local            => False,
+                       Reconnection_Policy => Get_Reconnection_Policy (Name),
+                       State               => Initial,
+                       Is_All_Calls_Remote => True,
+                       Known_Partition_ID  => False,
+                       RCI_Partition_ID    => RPC.Partition_ID'First);
+            Known_RCIs.Register (LName, Info);
+         end if;
+      end if;
 
       --  If RCI information is not available locally, we request it from the
       --  name server. Since some partitions might not be registered yet, we
       --  retry the query up to Max_Requests times.
 
-      if Is_Nil (Info.Base_Ref) then
-         Base_Ref := Nameserver_Lookup (LName, "RCI");
-         Info := RCI_Info'
-           (Base_Ref            => Base_Ref,
-            Is_Local            => False,
-            Is_All_Calls_Remote => True,
-            Known_Partition_ID  => False,
-            RCI_Partition_ID    => RPC.Partition_ID'First);
+      <<Lookup>>
+      if Info.State = Dead then
+         null;
 
-         Known_RCIs.Register (LName, Info);
+      elsif Is_Nil (Info.Base_Ref) then
+         Info.Base_Ref :=
+           Nameserver_Lookup (LName, "RCI", Initial => Info.State = Initial);
+         Info.State := Live;
       end if;
+
+      if not (Info.Is_Local or else Is_Reference_Valid (Info.Base_Ref)) then
+         --  Case of a remote RCI for which we have an invalid reference:
+         --  handle reconnection.
+
+         --  First unset Base_Ref to cause an exception if returning now, and
+         --  a new name server lookup when subsequently retrying to contact
+         --  the RCI unit.
+
+         PolyORB.References.Release (Info.Base_Ref);
+
+         case Info.Reconnection_Policy is
+            when Reject_On_Restart =>
+               Info.State := Dead;
+
+            when Block_Until_Restart =>
+               PolyORB.Tasking.Threads.Relative_Delay (Time_Between_Requests);
+               goto Lookup;
+
+            when Fail_Until_Restart =>
+               null;
+         end case;
+      end if;
+
+      --  Check that we have successfully conctacted the remote unit. Note:
+      --  for a local RCI, Info.Base_Ref is always a valid, non-nil reference.
+
+      if PolyORB.References.Is_Nil (Info.Base_Ref) then
+         raise System.RPC.Communication_Error
+           with "unable to locate RCI " & Name;
+      end if;
+
       pragma Debug (C, O ("Retrieve_RCI_Info: leave"));
-      return Info;
    end Retrieve_RCI_Info;
 
    ------------------------------------
@@ -2213,7 +2358,7 @@ package body System.Partition_Interface is
    begin
       --  NOTE: Actually this does more than set up an RPC receiver. A TypeCode
       --  corresponding to the RACW is also constructed (and this is vital also
-      --  on the client side.)
+      --  on the client side).
 
       Default_Servant.Obj_TypeCode := PATC.TC_Object;
       PATC.Add_Parameter
@@ -2256,6 +2401,21 @@ package body System.Partition_Interface is
          null;
       end if;
    end Setup_Object_RPC_Receiver;
+
+   --------------
+   -- Shutdown --
+   --------------
+
+   procedure Shutdown (Wait_For_Completion : Boolean) is
+      use type PolyORB.Initialization.Finalizer;
+   begin
+      --  Shut down the local termination manager, if it has already been
+      --  registered.
+
+      if The_TM_Shutdown /= null then
+         The_TM_Shutdown (Wait_For_Completion);
+      end if;
+   end Shutdown;
 
    --------------
    -- TC_Build --
@@ -2438,34 +2598,6 @@ package body System.Partition_Interface is
       end;
    end Write;
 
-   ------------
-   -- Detach --
-   ------------
-
-   procedure Detach is
-      procedure C_Detach;
-      pragma Import (C, C_Detach, "__PolyORB_detach");
-   begin
-      C_Detach;
-   end Detach;
-
-   ---------------------
-   -- Shutdown_Module --
-   ---------------------
-
-   procedure Shutdown_Module (Wait_For_Completion : Boolean);
-
-   procedure Shutdown_Module (Wait_For_Completion : Boolean) is
-      use type PolyORB.Initialization.Finalizer;
-   begin
-      --  Shut down the local termination manager, if it has already been
-      --  registered.
-
-      if The_TM_Shutdown /= null then
-         The_TM_Shutdown (Wait_For_Completion);
-      end if;
-   end Shutdown_Module;
-
    use PolyORB.Initialization;
    use PolyORB.Utils.Strings.Lists;
 
@@ -2502,7 +2634,7 @@ begin
        Provides  => Empty,
        Implicit  => False,
        Init      => Initialize'Access,
-       Shutdown  => Shutdown_Module'Access));
+       Shutdown  => Shutdown'Access));
 
    --  We initialize PolyORB, so that once s-parint is elaborated, the PCS is
    --  up and running, ready to process RPCs.
