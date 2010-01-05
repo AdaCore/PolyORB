@@ -41,6 +41,8 @@ See the features-27 file.
 Bug fixes
 ---------
 
+Support for partition attribute Reconnection was missing. (IB12-005)
+
 po_gnatdist does not create files anymore outside of the private dsa/
 subdirectory. (IC14-034)
 
