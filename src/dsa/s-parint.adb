@@ -2233,7 +2233,7 @@ package body System.Partition_Interface is
      (Name : String;
       Info : in out RCI_Info_Access)
    is
-      LName    : constant String := To_Lower (Name);
+      LName : constant String := To_Lower (Name);
    begin
       pragma Debug (C, O ("Retrieve RCI info: enter, Name = " & Name));
       if Info = null then
@@ -2259,36 +2259,40 @@ package body System.Partition_Interface is
       --  retry the query up to Max_Requests times.
 
       <<Lookup>>
-      if Info.State = Dead then
-         null;
+      if Info.State /= Dead then
 
-      elsif Is_Nil (Info.Base_Ref) then
-         Info.Base_Ref :=
-           Nameserver_Lookup (LName, "RCI", Initial => Info.State = Initial);
-         Info.State := Live;
-      end if;
+         if Is_Nil (Info.Base_Ref)
+           or else not Is_Reference_Valid (Info.Base_Ref)
+         then
+            Info.Base_Ref :=
+              Nameserver_Lookup
+                (LName, "RCI", Initial => Info.State = Initial);
+            Info.State := Live;
+         end if;
 
-      if not (Info.Is_Local or else Is_Reference_Valid (Info.Base_Ref)) then
-         --  Case of a remote RCI for which we have an invalid reference:
-         --  handle reconnection.
+         if Is_Nil (Info.Base_Ref) then
+            --  Case of a remote RCI for which we have an invalid reference:
+            --  handle reconnection.
 
-         --  First unset Base_Ref to cause an exception if returning now, and
-         --  a new name server lookup when subsequently retrying to contact
-         --  the RCI unit.
+            --  First unset Base_Ref to cause an exception if returning now,
+            --  and a new name server lookup when subsequently retrying to
+            --  contact the RCI unit.
 
-         PolyORB.References.Release (Info.Base_Ref);
+            PolyORB.References.Release (Info.Base_Ref);
 
-         case Info.Reconnection_Policy is
-            when Reject_On_Restart =>
-               Info.State := Dead;
+            case Info.Reconnection_Policy is
+               when Reject_On_Restart =>
+                  Info.State := Dead;
 
-            when Block_Until_Restart =>
-               PolyORB.Tasking.Threads.Relative_Delay (Time_Between_Requests);
-               goto Lookup;
+               when Block_Until_Restart =>
+                  PolyORB.Tasking.Threads.Relative_Delay
+                    (Time_Between_Requests);
+                  goto Lookup;
 
-            when Fail_Until_Restart =>
-               null;
-         end case;
+               when Fail_Until_Restart =>
+                  null;
+            end case;
+         end if;
       end if;
 
       --  Check that we have successfully conctacted the remote unit. Note:
