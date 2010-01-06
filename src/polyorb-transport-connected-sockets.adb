@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -38,8 +38,10 @@ with Ada.Exceptions;
 with System.Storage_Elements;
 
 with PolyORB.Asynch_Ev.Sockets;
+with PolyORB.Initialization;
 with PolyORB.Log;
 with PolyORB.Parameters;
+with PolyORB.Utils.Strings;
 
 package body PolyORB.Transport.Connected.Sockets is
 
@@ -57,6 +59,15 @@ package body PolyORB.Transport.Connected.Sockets is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
+
+   procedure Initialize;
+   --  Create Dummy_Selector
+
+   Dummy_Selector : Selector_Type;
+   --  Selector object used for Check_Validity, abortion is never used on this
+   --  selector.
+   --  WAG:6.3
+   --  Such a dummy selector should be provided by GNAT.Sockets directly.
 
    -----------------------
    -- Accept_Connection --
@@ -305,6 +316,30 @@ package body PolyORB.Transport.Connected.Sockets is
       Leave (TE.Mutex);
    end Write;
 
+   --------------------
+   -- Check_Validity --
+   --------------------
+
+   procedure Check_Validity (TE : access Socket_Endpoint) is
+      Buf  : Stream_Element_Array (1 .. 1);
+      Last : Stream_Element_Offset;
+
+      R_Set, W_Set : Socket_Set_Type;
+      Status : Selector_Status;
+   begin
+      Set (R_Set, TE.Socket);
+      Check_Selector (Dummy_Selector, R_Set, W_Set, Status, 0.0);
+
+      if Status = Completed and then Is_Set (R_Set, TE.Socket) then
+         Receive_Socket (TE.Socket, Buf, Last, Peek_At_Incoming_Data);
+         if Last = 0 then
+            --  Connection closed
+
+            Close (TE);
+         end if;
+      end if;
+   end Check_Validity;
+
    -----------
    -- Close --
    -----------
@@ -344,4 +379,27 @@ package body PolyORB.Transport.Connected.Sockets is
       Connected.Destroy (Connected_Transport_Endpoint (TE));
    end Destroy;
 
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize is
+   begin
+      Create_Selector (Dummy_Selector);
+   end Initialize;
+
+   use PolyORB.Initialization;
+   use PolyORB.Initialization.String_Lists;
+   use PolyORB.Utils.Strings;
+
+begin
+   Register_Module
+     (Module_Info'
+      (Name      => +"transport.connected.sockets",
+       Conflicts => Empty,
+       Depends   => Empty,
+       Provides  => +"transport",
+       Implicit  => False,
+       Init      => Initialize'Access,
+       Shutdown  => null));
 end PolyORB.Transport.Connected.Sockets;

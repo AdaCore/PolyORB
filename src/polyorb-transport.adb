@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -83,7 +83,8 @@ package body PolyORB.Transport is
    is
       use Filters.Iface;
    begin
-      if Msg in Check_Validity then
+      if Msg in Filters.Iface.Check_Validity then
+         Check_Validity (Transport_Endpoint'Class (TE.all)'Access);
          if TE.Closed then
             declare
                use Errors;
@@ -113,6 +114,15 @@ package body PolyORB.Transport is
       end if;
    end Handle_Message;
 
+   --------------------
+   -- Check_Validity --
+   --------------------
+
+   procedure Check_Validity (TE : access Transport_Endpoint) is
+   begin
+      null;
+   end Check_Validity;
+
    -----------
    -- Close --
    -----------
@@ -124,7 +134,7 @@ package body PolyORB.Transport is
       end if;
       Emit_No_Reply
         (TE.Server, ORB.Iface.Unregister_Endpoint'
-         (TE => Transport_Endpoint_Access (TE)));
+                      (TE => Transport_Endpoint_Access (TE)));
       TE.Closed := True;
    end Close;
 

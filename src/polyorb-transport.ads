@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -186,5 +186,9 @@ private
          In_Buf : Buffers.Buffer_Access;
          Max    : Ada.Streams.Stream_Element_Count;
       end record;
+
+   procedure Check_Validity (TE : access Transport_Endpoint);
+   --  Check whether TE is still valid, and if not, close it. Used for handling
+   --  of Check_Validity filter message.
 
 end PolyORB.Transport;
