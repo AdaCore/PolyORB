@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2003-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -72,10 +72,10 @@ package PolyORB.Utils.Sockets is
    --  Unmarshall socket address and port from a buffer
 
    procedure Connect_Socket
-     (Sock        : PolyORB.Sockets.Socket_Type;
+     (Sock        : in out PolyORB.Sockets.Socket_Type;
       Remote_Name : Socket_Name);
-   --  Front-end to PolyORB.Sockets.Connect_Socket, handles production of log
-   --  trace if the operation fails.
+   --  Front-end to PolyORB.Sockets.Connect_Socket. In case of failure, Sock is
+   --  closed, and a log trace is produced.
 
    function Is_IP_Address (Name : String) return Boolean;
    --  True iff S is an IP address in dotted quad notation

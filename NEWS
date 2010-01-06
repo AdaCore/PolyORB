@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---         Copyright (C) 1999-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 1999-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -40,6 +40,9 @@ See the features-26 file.
 
 Bug fixes
 ---------
+
+A socket leak occurring when an attempt to establish a TCP connection fails
+has been fixed. (J106-008)
 
 A segmentation fault could occur while unmarshalling a record with a component
 of a private type. (IC16-046)
