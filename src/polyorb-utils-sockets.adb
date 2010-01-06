@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -72,7 +72,7 @@ package body PolyORB.Utils.Sockets is
    --------------------
 
    procedure Connect_Socket
-     (Sock        : PolyORB.Sockets.Socket_Type;
+     (Sock        : in out PolyORB.Sockets.Socket_Type;
       Remote_Name : Socket_Name)
    is
 
@@ -163,6 +163,7 @@ package body PolyORB.Utils.Sockets is
          pragma Debug
            (C, O ("connect to " & Host_Name & " failed: "
                   & Ada.Exceptions.Exception_Message (E)));
+         PolyORB.Sockets.Close_Socket (Sock);
          raise;
    end Connect_Socket;
 
