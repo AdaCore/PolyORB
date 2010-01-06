@@ -188,7 +188,7 @@ private
       end record;
 
    procedure Check_Validity (TE : access Transport_Endpoint);
-   --  Check whether TE is still valid, and if not, close it. Used for handling
-   --  of Check_Validity filter message.
+   --  Check whether TE (which must not be closed) is still valid, and if not,
+   --  close it. Used for handling of Check_Validity filter message.
 
 end PolyORB.Transport;
