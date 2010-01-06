@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -43,7 +43,6 @@ package body PolyORB.Representations.CDR.GIOP_Utils is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
-   pragma Unreferenced (C); --  For conditional pragma Debug
 
    --------------
    -- Marshall --
@@ -51,19 +50,19 @@ package body PolyORB.Representations.CDR.GIOP_Utils is
 
    procedure Marshall
      (Buffer         : access Buffers.Buffer_Type;
-      Representation : CDR_Representation'Class;
+      Representation : access CDR_Representation'Class;
       Data           : PolyORB.Any.NamedValue;
       Error          : in out Errors.Error_Container)
    is
       use PolyORB.Any;
    begin
-      pragma Debug (O ("Marshall (NamedValue) : enter"));
+      pragma Debug (C, O ("Marshall (NamedValue) : enter"));
       Marshall_From_Any
         (Representation,
          Buffer,
          Get_Container (Data.Argument).all,
          Error);
-      pragma Debug (O ("Marshall (NamedValue) : end"));
+      pragma Debug (C, O ("Marshall (NamedValue) : end"));
    end Marshall;
 
    ----------------
@@ -72,13 +71,13 @@ package body PolyORB.Representations.CDR.GIOP_Utils is
 
    procedure Unmarshall
      (Buffer         : access Buffers.Buffer_Type;
-      Representation : CDR_Representation'Class;
+      Representation : access CDR_Representation'Class;
       Data           : in out PolyORB.Any.NamedValue;
       Error          : in out Errors.Error_Container)
    is
       use PolyORB.Any;
    begin
-      pragma Debug (O ("Unmarshall (NamedValue) : enter"));
+      pragma Debug (C, O ("Unmarshall (NamedValue) : enter"));
 
       Unmarshall_To_Any
         (Representation,
@@ -86,10 +85,10 @@ package body PolyORB.Representations.CDR.GIOP_Utils is
          Get_Container (Data.Argument).all,
          Error);
 
-      pragma Debug (O ("Unmarshall (NamedValue) : is_empty := "
+      pragma Debug (C, O ("Unmarshall (NamedValue) : is_empty := "
                        & Boolean'Image (PolyORB.Any.Is_Empty
                                         (Data.Argument))));
-      pragma Debug (O ("Unmarshall (NamedValue) : end"));
+      pragma Debug (C, O ("Unmarshall (NamedValue) : end"));
    end Unmarshall;
 
 end PolyORB.Representations.CDR.GIOP_Utils;

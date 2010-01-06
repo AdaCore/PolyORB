@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---           Copyright (C) 2006, Free Software Foundation, Inc.             --
+--         Copyright (C) 2006-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -35,6 +35,8 @@ with PolyORB.DSA_P.Partitions;
 pragma Elaborate_All (PolyORB.DSA_P.Partitions);
 with PolyORB.Initialization;
 with PolyORB.Log;
+with PolyORB.DSA_P.Storages.Config;
+pragma Elaborate_All (PolyORB.DSA_P.Storages.Config);
 with PolyORB.Termination_Manager.Bootstrap;
 pragma Elaborate_All (PolyORB.Termination_Manager.Bootstrap);
 
@@ -46,13 +48,12 @@ package body System.DSA_Services is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
-   pragma Unreferenced (C); --  For conditional pragma Debug
 
    use PolyORB.DSA_P.Partitions;
    use System.Partition_Interface;
 
 begin
-   --  Check that PCS is initialized
+   --  Check that the PCS is initialized
 
    pragma Assert (PolyORB.Initialization.Is_Initialized);
 
@@ -60,9 +61,22 @@ begin
 
    PolyORB.Termination_Manager.Bootstrap.Initialize_Termination_Manager;
 
-   --  Allocate to this partition a local partition ID
+   --  Initialize shared storage supports
 
-   Set_Local_Partition_ID (RPC.Partition_ID (Allocate_Partition_ID ("")));
+   PolyORB.DSA_P.Storages.Config.Initialize_Storages;
 
-   pragma Debug (O ("DSA_Services Initialized"));
+   --  Allocate to this partition a local partition ID, unless one has
+   --  already been allocated (case of the PID server partition).
+
+   if not Local_PID_Allocated then
+      Set_Local_Partition_ID
+        (RPC.Partition_ID (Allocate_Partition_ID (Get_Local_Partition_Name)));
+   end if;
+
+   --  DSA services are now fully initialized, and incoming remote subprogram
+   --  calls can be processed: activate all pending RPC receivers.
+
+   System.Partition_Interface.Activate_RPC_Receivers;
+
+   pragma Debug (C, O ("DSA_Services Initialized"));
 end System.DSA_Services;

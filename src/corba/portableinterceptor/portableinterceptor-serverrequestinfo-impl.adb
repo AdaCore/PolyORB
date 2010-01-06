@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -98,10 +98,8 @@ package body PortableInterceptor.ServerRequestInfo.Impl is
             Value (Iter).Context_Data :=
               new Encapsulation'
               (To_Encapsulation
-               (CORBA.IDL_SEQUENCES.IDL_SEQUENCE_Octet.To_Sequence
-                (CORBA.IDL_SEQUENCES.IDL_SEQUENCE_Octet.Element_Array
-                 (IOP.IDL_SEQUENCE_octet_2.To_Element_Array
-                  (Service_Context.Context_Data)))));
+               (CORBA.IDL_SEQUENCES.IDL_SEQUENCE_Octet.Sequence
+                (Service_Context.Context_Data)));
 
             return;
          end if;
@@ -113,10 +111,8 @@ package body PortableInterceptor.ServerRequestInfo.Impl is
          (Service_Id (Service_Context.Context_Id),
           new Encapsulation'
           (To_Encapsulation
-           (CORBA.IDL_SEQUENCES.IDL_SEQUENCE_Octet.To_Sequence
-            (CORBA.IDL_SEQUENCES.IDL_SEQUENCE_Octet.Element_Array
-             (IOP.IDL_SEQUENCE_octet_2.To_Element_Array
-              (Service_Context.Context_Data)))))));
+           (CORBA.IDL_SEQUENCES.IDL_SEQUENCE_Octet.Sequence
+            (Service_Context.Context_Data)))));
    end Add_Reply_Service_Context;
 
    --------------------
@@ -413,7 +409,7 @@ package body PortableInterceptor.ServerRequestInfo.Impl is
                                         Completed => CORBA.Completed_No));
       end if;
 
-      return CORBA.Internals.To_CORBA_Any (Self.Request.Exception_Info);
+      return CORBA.Any (Self.Request.Exception_Info);
    end Get_Sending_Exception;
 
    -------------------
@@ -456,8 +452,7 @@ package body PortableInterceptor.ServerRequestInfo.Impl is
    ---------------------------------------
 
    function Get_Target_Most_Derived_Interface
-     (Self : access Object)
-      return CORBA.RepositoryId
+     (Self : access Object) return CORBA.RepositoryId
    is
    begin
       if Self.Point /= Receive_Request then
@@ -467,7 +462,9 @@ package body PortableInterceptor.ServerRequestInfo.Impl is
       end if;
 
       return
-        PortableServer.Internals.Target_Most_Derived_Interface (Self.Servant);
+        CORBA.To_CORBA_String
+          (PortableServer.Internals.Target_Most_Derived_Interface
+            (Self.Servant));
    end Get_Target_Most_Derived_Interface;
 
    ----------
@@ -540,8 +537,7 @@ package body PortableInterceptor.ServerRequestInfo.Impl is
 
    function Target_Is_A
      (Self : access Object;
-      Id   : CORBA.RepositoryId)
-      return CORBA.Boolean
+      Id   : CORBA.RepositoryId) return CORBA.Boolean
    is
    begin
       if Self.Point /= Receive_Request then
@@ -550,7 +546,8 @@ package body PortableInterceptor.ServerRequestInfo.Impl is
                                         Completed => CORBA.Completed_No));
       end if;
 
-      return PortableServer.Internals.Target_Is_A (Self.Servant, Id);
+      return PortableServer.Internals.Target_Is_A
+        (Self.Servant, CORBA.To_Standard_String (Id));
    end Target_Is_A;
 
 end PortableInterceptor.ServerRequestInfo.Impl;

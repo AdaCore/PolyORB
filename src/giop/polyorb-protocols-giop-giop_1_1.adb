@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -74,7 +74,6 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
-   pragma Unreferenced (C); --  For conditional pragma Debug
 
    procedure Free is
       new Ada.Unchecked_Deallocation
@@ -121,10 +120,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
    -- Initialize_Implem --
    -----------------------
 
-   procedure Initialize_Implem
-     (Implem : access GIOP_Implem_1_1)
-   is
-      use PolyORB.Types;
+   procedure Initialize_Implem (Implem : access GIOP_Implem_1_1) is
    begin
       Implem.Data_Alignment        := Data_Alignment_1_1;
       Implem.Permitted_Sync_Scopes := Permitted_Sync_Scopes;
@@ -149,7 +145,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
       --  There is no SCtx for GIOP 1.1
 
       Sess.Repr := new GIOP_1_1_CDR_Representation;
-      pragma Debug (O ("Initialize context for GIOP session 1.1"));
+      pragma Debug (C, O ("Initialize context for GIOP session 1.1"));
    end Initialize_Session;
 
    ----------------------
@@ -172,7 +168,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
 
       Release (GIOP_1_1_CDR_Representation (Sess.Repr.all));
       Free (GIOP_1_1_CDR_Representation_Access (Sess.Repr));
-      pragma Debug (O ("Finalize context for GIOP session 1.1"));
+      pragma Debug (C, O ("Finalize context for GIOP session 1.1"));
    end Finalize_Session;
 
    ---------------------
@@ -185,7 +181,6 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
    is
       pragma Unreferenced (Implem);
       use PolyORB.ORB;
-      use PolyORB.Types;
 
       Sess : GIOP_Session renames GIOP_Session (S.all);
       MCtx : GIOP_Message_Context_1_1
@@ -275,7 +270,6 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
       use PolyORB.ORB;
       use PolyORB.ORB.Iface;
       use PolyORB.References;
-      use PolyORB.Types;
 
       ORB              : ORB_Access;
       Object_Key       : Objects.Object_Id_Access;
@@ -300,7 +294,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
 
       ORB := ORB_Access (S.Server);
 
-      pragma Debug (O ("Request_Received: entering"));
+      pragma Debug (C, O ("Request_Received: entering"));
 
       Unmarshall_Request_Message
         (S.Buffer_In,
@@ -317,7 +311,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
          Req_Flags := Sync_With_Transport;
       end if;
 
-      pragma Debug (O ("Object Key : "
+      pragma Debug (C, O ("Object Key : "
                        & Oid_To_Hex_String (Object_Key.all)));
 
       Args := Get_Empty_Arg_List
@@ -326,7 +320,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
          To_Standard_String (Operation));
 
       if not Is_Nil (Args) then
-         pragma Debug (O ("Immediate arguments unmarshalling"));
+         pragma Debug (C, O ("Immediate arguments unmarshalling"));
          Handle_Unmarshall_Arguments (S, Args, Error);
 
          if Found (Error) then
@@ -337,7 +331,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
          end if;
 
       else
-         pragma Debug (O ("Unmarshalling of arguments deferred"));
+         pragma Debug (C, O ("Unmarshalling of arguments deferred"));
          S.State := Waiting_Unmarshalling;
          Def_Args := Component_Access (S);
       end if;
@@ -378,14 +372,13 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
         (Req.Notepad,
          Request_Note'(Annotations.Note with Id => Request_Id));
 
-      Queue_Request_To_Handler
-        (ORB.Tasking_Policy, ORB,
-         Queue_Request'
-         (Request => Req,
-          Requestor => Component_Access (S)));
+      Queue_Request_To_Handler (ORB,
+        Queue_Request'
+          (Request   => Req,
+           Requestor => Component_Access (S)));
 
       Free (Object_Key);
-      pragma Debug (O ("Request queued."));
+      pragma Debug (C, O ("Request queued."));
    end Process_Request;
 
    ----------------
@@ -487,7 +480,6 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
 
       use PolyORB.ORB;
       use PolyORB.Binding_Data;
-      use PolyORB.Types;
 
       Sess          : GIOP_Session renames GIOP_Session (S.all);
       MCtx          : aliased GIOP_Message_Context_1_1;
@@ -499,9 +491,9 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
          raise GIOP_Error;
       end if;
 
-      pragma Debug (O ("Send locate request to find target object"));
-      pragma Debug (O ("Locate Request Id :" & R.Locate_Req_Id'Img));
-      pragma Debug (O ("Request Id :" & R.Request_Id'Img));
+      pragma Debug (C, O ("Send locate request to find target object"));
+      pragma Debug (C, O ("Locate Request Id :" & R.Locate_Req_Id'Img));
+      pragma Debug (C, O ("Request Id :" & R.Request_Id'Img));
 
       Buffer := new Buffer_Type;
       Header_Buffer := new Buffer_Type;
@@ -514,7 +506,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
 
       MCtx.Message_Type := Locate_Request;
       MCtx.Message_Size :=
-        Types.Unsigned_Long (Length (Buffer) - GIOP_Header_Size);
+        Types.Unsigned_Long (Length (Buffer.all) - GIOP_Header_Size);
 
       Marshall_Global_GIOP_Header (Sess'Access, MCtx'Access, Header_Buffer);
       Copy_Data (Header_Buffer.all, Header_Space);
@@ -539,7 +531,6 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
 
       use PolyORB.Errors;
       use PolyORB.Requests.Unsigned_Long_Flags;
-      use PolyORB.Types;
 
       Sess          : GIOP_Session renames GIOP_Session (S.all);
       MCtx          : aliased GIOP_Message_Context_1_1;
@@ -548,12 +539,12 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
       Header_Space  : Reservation;
       Resp_Exp      : constant Boolean :=
                         Is_Set (Sync_With_Target, R.Req.Req_Flags)
-                     or Is_Set (Sync_Call_Back,   R.Req.Req_Flags);
+                          or else
+                        Is_Set (Sync_Call_Back,   R.Req.Req_Flags);
       Oid           : constant Object_Id_Access :=
-        Binding_Data.Get_Object_Key (R.Target_Profile.all);
-      Sink          : constant Types.Octet := 0;
+                        Binding_Data.Get_Object_Key (R.Target_Profile.all);
    begin
-      pragma Debug (O ("Sending request , Id :" & R.Request_Id'Img));
+      pragma Debug (C, O ("Sending request, Id :" & R.Request_Id'Img));
 
       Buffer := new Buffer_Type;
       Header_Buffer := new Buffer_Type;
@@ -567,20 +558,20 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
       Marshall (Buffer, R.Request_Id);
       Marshall (Buffer, Resp_Exp);
       for J in 1 .. 3 loop
-         Marshall (Buffer, Sink);
+         Marshall (Buffer, Types.Octet'(0));
       end loop;
       Marshall
         (Buffer,
          Stream_Element_Array
          (Oid.all));
 
-      pragma Debug (O ("Operation : " & R.Req.Operation.all));
+      pragma Debug (C, O ("Operation : " & R.Req.Operation.all));
 
       Marshall_Latin_1_String (Buffer, R.Req.Operation.all);
       Marshall_Latin_1_String (Buffer, Nobody_Principal);
 
       Marshall_Argument_List
-        (Sess.Implem, Buffer, Sess.Repr.all, R.Req.Args, PolyORB.Any.ARG_IN,
+        (Sess.Implem, Buffer, Sess.Repr, R.Req.Args, PolyORB.Any.ARG_IN,
          Sess.Implem.Data_Alignment, Error);
 
       if Found (Error) then
@@ -596,13 +587,15 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
 
       MCtx.Message_Type := Request;
       MCtx.Message_Size :=
-        Types.Unsigned_Long (Length (Buffer) - GIOP_Header_Size);
+        Types.Unsigned_Long (Length (Buffer.all) - GIOP_Header_Size);
 
       Marshall_Global_GIOP_Header (Sess'Access, MCtx'Access, Header_Buffer);
       Copy_Data (Header_Buffer.all, Header_Space);
       Release (Header_Buffer);
       Emit_Message (Sess.Implem, Sess'Access, MCtx'Access, Buffer, Error);
-      pragma Debug (O ("Request sent, Id :" & R.Request_Id'Img));
+      pragma Debug (C, O ("Request sent, Id :" & R.Request_Id'Img
+                       & ", size:" & MCtx.Message_Size'Img));
+
       Release (Buffer);
    end Send_Request;
 
@@ -645,7 +638,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
    procedure Marshall_Argument_List
      (Implem              : access GIOP_Implem_1_1;
       Buffer              :        Buffers.Buffer_Access;
-      Representation      : CDR_Representation'Class;
+      Representation      : access CDR_Representation'Class;
       Args                : in out Any.NVList.Ref;
       Direction           :        Any.Flags;
       First_Arg_Alignment :        Buffers.Alignment_Type;
@@ -656,7 +649,6 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
       use PolyORB.Any.NVList.Internals;
       use PolyORB.Any.NVList.Internals.NV_Lists;
       use PolyORB.Errors;
-      use PolyORB.Types;
 
       It           : Iterator := First (List_Of (Args).all);
       First        : Boolean  := True;
@@ -670,7 +662,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
            or else Arg.Arg_Modes = Direction
            or else Arg.Arg_Modes = ARG_INOUT
          then
-            pragma Debug (O ("Marshalling argument "
+            pragma Debug (C, O ("Marshalling argument "
                              & Types.To_Standard_String (Arg.Name)
                                & " = " & Image (Arg.Argument)));
             if First then
@@ -702,7 +694,6 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
       Buffer  : access Buffers.Buffer_Type)
    is
       use Octet_Flags;
-      use PolyORB.Types;
 
       pragma Warnings (Off);
       pragma Unreferenced (Implem);
@@ -721,7 +712,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
       end if;
       pragma Assert (MCtx_1_1.Message_Endianness = Endianness (Buffer));
 
-      pragma Debug (O ("Message Endianness : "
+      pragma Debug (C, O ("Message Endianness : "
                        & MCtx_1_1.Message_Endianness'Img));
 
       if Is_Set (Bit_Fragment, Flags) then
@@ -731,13 +722,13 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
       --  Extract type
 
       MCtx_1_1.Message_Type := Unmarshall (Buffer);
-      pragma Debug (O ("Message Type       : "
+      pragma Debug (C, O ("Message Type       : "
                        & MCtx_1_1.Message_Type'Img));
 
       --  Extract size
 
       MCtx_1_1.Message_Size := Unmarshall (Buffer);
-      pragma Debug (O ("Message Size       :"
+      pragma Debug (C, O ("Message Size       :"
                        & MCtx_1_1.Message_Size'Img));
    end Unmarshall_GIOP_Header;
 
@@ -780,10 +771,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
       Principal        :    out Types.String;
       Service_Contexts :    out QoS_GIOP_Service_Contexts_Parameter_Access)
    is
-      use PolyORB.Types;
-
       Sink : Types.Octet;
-
    begin
       --  Service context
 
@@ -792,7 +780,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
       --  Request id
       Request_Id := Unmarshall (Buffer);
 
-      pragma Debug (O ("Request_Id :"
+      pragma Debug (C, O ("Request_Id :"
                        & Request_Id'Img));
 
       --  Response flags
@@ -801,9 +789,8 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
       --  Reserved
       for I in 1 .. 3 loop
          Sink :=  Unmarshall (Buffer);
-         if Sink /= 0 then
-            raise GIOP_Error;
-         end if;
+         pragma Debug (C and then Sink /= 0,
+           O ("reserved byte in GIOP 1.1 header is non-zero"));
       end loop;
 
       declare
@@ -814,7 +801,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
 
       --  Operation
       Operation := Types.String (Types.Identifier'(Unmarshall (Buffer)));
-      pragma Debug (O ("Operation  : "
+      pragma Debug (C, O ("Operation  : "
                        & Types.To_Standard_String (Operation)));
 
       Principal := Unmarshall_Latin_1_String (Buffer);

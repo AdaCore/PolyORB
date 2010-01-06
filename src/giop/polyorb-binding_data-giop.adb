@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -32,7 +32,6 @@
 ------------------------------------------------------------------------------
 
 with PolyORB.Binding_Objects;
-with PolyORB.Protocols.GIOP;
 
 package body PolyORB.Binding_Data.GIOP is
 
@@ -49,22 +48,21 @@ package body PolyORB.Binding_Data.GIOP is
 
    procedure Bind_Profile
      (Profile : access GIOP_Profile_Type;
-      The_ORB :        Components.Component_Access;
-      QoS     :        PolyORB.QoS.QoS_Parameters;
-      BO_Ref  :    out Smart_Pointers.Ref;
-      Error   :    out Errors.Error_Container)
+      The_ORB : Components.Component_Access;
+      QoS     : PolyORB.QoS.QoS_Parameters;
+      BO_Ref  : out Smart_Pointers.Ref;
+      Error   : out Errors.Error_Container)
    is
       use PolyORB.Binding_Objects;
       use PolyORB.Protocols.GIOP;
 
       use Transport_Mechanism_Lists;
 
-      Iter : Transport_Mechanism_Lists.Iterator
-        := First (Profile.Mechanisms);
+      Iter : Transport_Mechanism_Lists.Iterator := First (Profile.Mechanisms);
 
    begin
-      --  Go through all transport mechanism and try to bind it until
-      --  bind successfully complete or no more transport mechanisms.
+      --  Go through all transport mechanism and try to bind it until the
+      --  operation completes successfully.
 
       --  XXX This is a temporary implementation. It is not conformant
       --  with PortableInterceptors and RebindPolicy specifications.
@@ -93,6 +91,24 @@ package body PolyORB.Binding_Data.GIOP is
             Profile_Access (Profile), Error);
       end if;
    end Bind_Profile;
+
+   ----------------------
+   -- Get_GIOP_Version --
+   ----------------------
+
+   function Get_GIOP_Version
+     (P : GIOP_Profile_Type) return Protocols.GIOP.GIOP_Version
+   is
+      use Protocols.GIOP;
+      Minor : constant Integer := Integer (P.Version_Minor);
+   begin
+      pragma Assert (P.Version_Major = 1);
+      if Minor in To_GIOP_Version'Range then
+         return To_GIOP_Version (Minor);
+      else
+         raise GIOP_Error with "unsupported GIOP version 1." & Minor'Img;
+      end if;
+   end Get_GIOP_Version;
 
    ------------------
    -- Is_Colocated --
@@ -151,6 +167,7 @@ package body PolyORB.Binding_Data.GIOP is
                if Is_Local_Mechanism
                     (Value (F_Iter).all, Value (M_Iter).all)
                then
+                  P.Known_Local := True;
                   return True;
                end if;
 

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -42,11 +42,12 @@ package body PolyORB.Security.Authentication_Mechanisms is
 
    use PolyORB.Log;
 
-   package L is
-     new PolyORB.Log.Facility_Log
+   package L is new PolyORB.Log.Facility_Log
      ("polyorb.security.authentication_mechanisms");
-   procedure O (Message : in String; Level : Log_Level := Debug)
-      renames L.Output;
+   procedure O (Message : String; Level : Log_Level := Debug)
+     renames L.Output;
+   function C (Level : Log_Level := Debug) return Boolean
+     renames L.Enabled;
 
    type Client_Registry_Item is record
       Mechanism_OID  : PolyORB.ASN1.Object_Identifier;
@@ -218,7 +219,7 @@ package body PolyORB.Security.Authentication_Mechanisms is
    is
    begin
       pragma Debug
-        (O ("Register client authentication mechanism: "
+        (C, O ("Register client authentication mechanism: "
              & PolyORB.ASN1.To_String (Mechanism_OID)));
 
       Client_Registry_Item_Lists.Append
@@ -233,7 +234,7 @@ package body PolyORB.Security.Authentication_Mechanisms is
    is
    begin
       pragma Debug
-        (O ("Register target authentication mechanism: '"
+        (C, O ("Register target authentication mechanism: '"
              & Mechanism_Name & '''));
 
       Target_Registry_Item_Lists.Append

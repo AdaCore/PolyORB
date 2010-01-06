@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -106,7 +106,8 @@ private
    procedure Marshall_Argument_List
      (Implem              : access GIOP_Implem_1_1;
       Buffer              : Buffers.Buffer_Access;
-      Representation      : Representations.CDR.CDR_Representation'Class;
+      Representation      : access
+                              Representations.CDR.CDR_Representation'Class;
       Args                : in out Any.NVList.Ref;
       Direction           : Any.Flags;
       First_Arg_Alignment : Buffers.Alignment_Type;
@@ -118,7 +119,7 @@ private
 
    --  Data alignment
 
-   Data_Alignment_1_1 : constant Buffers.Alignment_Type := 1;
+   Data_Alignment_1_1 : constant Buffers.Alignment_Type := Buffers.Align_1;
 
    --  Principal
 

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -34,6 +34,7 @@
 --  Datagram Socket Access Point and End Point to recieve data from network
 
 with PolyORB.Sockets;
+with PolyORB.Utils.Sockets;
 
 package PolyORB.Transport.Datagram.Sockets_In is
 
@@ -53,16 +54,18 @@ package PolyORB.Transport.Datagram.Sockets_In is
      (SAP         : in out Socket_In_Access_Point;
       Socket      : Socket_Type;
       Address     : in out Sock_Addr_Type;
-      Update_Addr :        Boolean := True);
+      Update_Addr : Boolean := True);
    --  Init datagram socket socket
-   --  If Update_Addr is set, Address will be updated by the socket address
-   --  For multicast sockets, it will remove multicast address
+   --  If Update_Addr is set, Address will be updated with the assigned socket
+   --  address.
 
    function Create_Event_Source
      (TAP : access Socket_In_Access_Point)
       return Asynch_Ev.Asynch_Ev_Source_Access;
 
-   function Address_Of (SAP : Socket_In_Access_Point) return Sock_Addr_Type;
+   function Address_Of
+     (SAP : Socket_In_Access_Point) return Utils.Sockets.Socket_Name;
+   --  Return a Socket_Name designating SAP
 
    ---------------
    -- End Point --
@@ -70,7 +73,7 @@ package PolyORB.Transport.Datagram.Sockets_In is
 
    type Socket_In_Endpoint
      is new Datagram_Transport_Endpoint with private;
-   --  Datagram Socket End Point for reciving data
+   --  Datagram Socket Transport Endpoint for receiving data
 
    procedure Create
      (TE   : in out Socket_In_Endpoint;
@@ -78,24 +81,22 @@ package PolyORB.Transport.Datagram.Sockets_In is
       Addr :        Sock_Addr_Type);
 
    function Create_Event_Source
-     (TE : access Socket_In_Endpoint)
-      return Asynch_Ev.Asynch_Ev_Source_Access;
+     (TE : access Socket_In_Endpoint) return Asynch_Ev.Asynch_Ev_Source_Access;
 
    procedure Read
      (TE     : in out Socket_In_Endpoint;
-      Buffer :        Buffers.Buffer_Access;
+      Buffer : Buffers.Buffer_Access;
       Size   : in out Ada.Streams.Stream_Element_Count;
-      Error  :    out Errors.Error_Container);
+      Error  : out Errors.Error_Container);
    --  Read data from datagram socket
 
    procedure Write
      (TE     : in out Socket_In_Endpoint;
-      Buffer :        Buffers.Buffer_Access;
-      Error  :    out Errors.Error_Container);
+      Buffer : Buffers.Buffer_Access;
+      Error  : out Errors.Error_Container);
    pragma No_Return (Write);
-   --  Write data to datagram socket. This procedure should not be
-   --  used for read-only transport endpoints, Program_Error will be
-   --  raised at run-time.
+   --  A Socket_In_Endpoint is read-only, so this primitive operation raises
+   --  Program_Error.
 
    procedure Close (TE : access Socket_In_Endpoint);
 

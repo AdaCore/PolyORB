@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -247,11 +247,12 @@ package body PolyORB.Sequences is
    ---------------
 
    function Head_Tail
-     (Max_Length : Natural;
-      Source     : Bounds;
-      Count      : Natural;
-      Drop       : Truncation := Error;
-      What       : Extremity) return Program
+     (Max_Length       : Natural;
+      Source           : Bounds;
+      Count            : Natural;
+      Drop             : Truncation := Error;
+      What             : Extremity;
+      Suppress_Padding : Boolean := False) return Program
    is
       Prog : Program;
 
@@ -287,20 +288,22 @@ package body PolyORB.Sequences is
          Target_Bounds => (Target_Low, Target_High),
          Source_Bounds => (Source_Low, Source_High)));
 
-      --  Add padding for remaining elements
+      --  Add padding for remaining elements, unless suppressed
 
-      if What = Head then
-         Target_Low  := Copy_Length + 1;
-         Target_High := Count;
-      else
-         Target_Low  := 1;
-         Target_High := Count - Copy_Length;
+      if not Suppress_Padding then
+         if What = Head then
+            Target_Low  := Copy_Length + 1;
+            Target_High := Count;
+         else
+            Target_Low  := 1;
+            Target_High := Count - Copy_Length;
+         end if;
+
+         Push (Prog,
+           (Source => Right,
+            Target_Bounds => (Target_Low, Target_High),
+            Source_Bounds => (1, 1)));
       end if;
-
-      Push (Prog,
-        (Source => Right,
-         Target_Bounds => (Target_Low, Target_High),
-         Source_Bounds => (1, 1)));
 
       --  Adjust for bounded case
 
@@ -520,13 +523,13 @@ package body PolyORB.Sequences is
          Target_Lo_Last : constant Integer :=
                             Target_Bounds.Hi - Source_Len_Minus_1;
       begin
-         --  Check that we do not leave any element of the target unassgined
+         --  Check that we do not leave any element of the target unassigned
 
          pragma Assert (Sequences.Length (Target_Bounds)
                         mod Sequences.Length (Source_Bounds) = 0);
 
-         --  Perform as many assignments of the source slice as necessary
-         --  into the target.
+         --  Perform as many assignments of the source slice as necessary into
+         --  the target.
 
          while Target_Lo <= Target_Lo_Last loop
             Target (Target_Lo .. Target_Lo + Source_Len_Minus_1) :=

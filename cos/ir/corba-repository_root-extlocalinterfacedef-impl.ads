@@ -6,12 +6,12 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---           Copyright (C) 2006, Free Software Foundation, Inc.             --
+--         Copyright (C) 2006-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
--- provisions that follow apply solely to the contents neither explicitely  --
--- nor implicitely specified by the CORBA Specification defined by the OMG. --
+-- provisions that follow apply solely to the contents neither explicitly   --
+-- nor implicitly specified by the CORBA Specification defined by the OMG.  --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -74,13 +74,11 @@ package CORBA.Repository_Root.ExtLocalInterfaceDef.Impl is
          Name                        : Identifier;
          Version                     : VersionSpec;
          Defined_In                  : Container_Forward.Ref;
-         Contents                    : in
-           Contained.Impl.Contained_Seq.Sequence;
+         Contents                    : Contained.Impl.Contained_Seq.Sequence;
          Contained_View              : Contained.Impl.Object_Ptr;
          IDLType_View                : IDLType.Impl.Object_Ptr;
          Base_Interfaces             : InterfaceDefSeq;
-         InterfaceAttrExtension_View : in
-           InterfaceAttrExtension.Impl.Object_Ptr);
+         InterfaceAttrExtension_View : InterfaceAttrExtension.Impl.Object_Ptr);
       --  Recursively initialize object fields
 
    end Internals;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---           Copyright (C) 2006, Free Software Foundation, Inc.             --
+--        Copyright (C) 2006-2008, Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -46,11 +46,11 @@ package DHB.Worker_Factory.Impl is
 
    procedure Destroy
      (Self       : access Object;
-      The_Worker : in     DHB.Worker.Ref);
+      The_Worker : DHB.Worker.Ref);
 
    procedure Initialize
      (Self   : access Object;
-      RT_POA : in     RTPortableServer.POA.Local_Ref);
+      RT_POA : RTPortableServer.POA.Local_Ref);
 
 private
 

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---           Copyright (C) 2006, Free Software Foundation, Inc.             --
+--        Copyright (C) 2006-2008, Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -37,7 +37,10 @@ with DHB.Background_Worker.Helper;
 with DHB.Background_Worker.Impl;
 
 with DHB.Background_Worker_Factory.Skel;
+pragma Warnings (Off);
+--  Compiler wants Elaborate_All, but that causes cycles
 pragma Elaborate (DHB.Background_Worker_Factory.Skel);
+pragma Warnings (On);
 pragma Warnings (Off, DHB.Background_Worker_Factory.Skel);
 
 with PortableServer.POA;
@@ -65,7 +68,7 @@ package body DHB.Background_Worker_Factory.Impl is
 
    procedure Destroy
      (Self       : access Object;
-      The_Worker : in     DHB.Background_Worker.Ref)
+      The_Worker : DHB.Background_Worker.Ref)
    is
       pragma Unreferenced (Self, The_Worker);
 
@@ -79,7 +82,7 @@ package body DHB.Background_Worker_Factory.Impl is
 
    procedure Initialize
      (Self   : access Object;
-      RT_POA : in     RTPortableServer.POA.Local_Ref)
+      RT_POA : RTPortableServer.POA.Local_Ref)
    is
    begin
       Self.RT_POA := RT_POA;

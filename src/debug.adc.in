@@ -1,5 +1,0 @@
---  GNAT configuration pragmas for debugging-related settings
-
---  $Id$
-
-@DEBUG_ONLY@pragma Initialize_Scalars;

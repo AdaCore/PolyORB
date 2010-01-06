@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -42,10 +42,10 @@ with Ada_Be.Temporaries;    use Ada_Be.Temporaries;
 with Ada_Be.Debug;
 pragma Elaborate_All (Ada_Be.Debug);
 
-with Errors;      use Errors;
-with Platform;    use Platform;
-with String_Sets; use String_Sets;
-with Utils;       use Utils;
+with Idlac_Errors; use Idlac_Errors;
+with Platform;     use Platform;
+with String_Sets;  use String_Sets;
+with Idlac_Utils;  use Idlac_Utils;
 
 package body Ada_Be.Idl2Ada.Helper is
 
@@ -134,10 +134,6 @@ package body Ada_Be.Idl2Ada.Helper is
      (CU   : in out Compilation_Unit;
       Node : Node_Id);
    --  Generate the profile of the Wrap function
-
-   function Root_Type (Typ : Node_Id) return Node_Id;
-   --  Return the ultimate type derivation ancestor of Typ (unwinding all
-   --  typedefs and type references).
 
    -----------------------------------------------------------
    -- Specialised generation subprograms for each node kind --
@@ -455,7 +451,7 @@ package body Ada_Be.Idl2Ada.Helper is
                end if;
 
                Put (CU, Img (Index) & " => ");
-               Gen_Node_Stubs_Spec (CU, Bound_Node);
+               Gen_Constant_Value (CU, Expr => Bound_Node, Typ => No_Node);
 
                Index := Index + 1;
             end loop;
@@ -472,29 +468,33 @@ package body Ada_Be.Idl2Ada.Helper is
       II (CU);
       PL (CU, "use type PolyORB.Types.Unsigned_Long;");
       PL (CU, "use type PolyORB.Any.Mechanism;");
-      case NK is
-         when K_Enum =>
-            PL (CU, "pragma Unreferenced (TC, Index);");
 
-            --  ACC.V might be uninitialized and have an invalid representation
-            --  (case of Get_Aggregate_Element being called from within an
-            --  unmarshall routine), in which case we know that we will
-            --  overwrite Repr_Cache without using the invalid value; we must
-            --  disable validity checks here so that we do not fail a runtime
-            --  check on the bogus value when initializing Repr_Cache.
+      --  ACC.V might be uninitialized and have an invalid representation
+      --  (case of Get_Aggregate_Element being called from within an
+      --  unmarshall routine), in which case we know that we will
+      --  overwrite it without using the invalid value; we must
+      --  disable validity checks here so that we do not fail a runtime
+      --  check on the bogus value.
 
-            PL (CU, "pragma Suppress (" & Validity_Check_Name & ");");
+      PL (CU, "pragma Suppress (" & Validity_Check_Name & ");");
 
-         when K_Struct | K_Declarator | K_Union =>
-            PL (CU, "pragma Unreferenced (TC);");
+      --  The TypeCode formal is of no use here (we always statically know
+      --  the type of each aggregate element).
 
-         when others =>
-            null;
+      PL (CU, "pragma Unreferenced (TC);");
 
-      end case;
+      if NK = K_Enum then
+
+         --  An enum always has exactly one element, so we can ignore the
+         --  provided index.
+
+         PL (CU, "pragma Unreferenced (Index);");
+      end if;
+
       DI (CU);
       PL (CU, "begin");
       II (CU);
+
       case NK is
          when K_Enum =>
             PL (CU, "ACC.Repr_Cache := "
@@ -513,8 +513,8 @@ package body Ada_Be.Idl2Ada.Helper is
             while not Is_End (It) loop
                Get_Next_Node (It, M_Node);
                declare
-                  M_Typ       : constant Node_Id := M_Type (M_Node);
-                  It2 : Node_Iterator;
+                  M_Typ  : constant Node_Id := M_Type (M_Node);
+                  It2    : Node_Iterator;
                   M_Decl : Node_Id;
                begin
                   Init (It2, Decl (M_Node));
@@ -939,10 +939,11 @@ package body Ada_Be.Idl2Ada.Helper is
       Node : Node_Id) is
    begin
       PL (CU, "function Get_Aggregate_Element");
-      PL (CU, "  (ACC   : access " & T_Content & Ada_Name (Node) & ";");
-      PL (CU, "   TC    : PolyORB.Any.TypeCode.Object;");
+      PL (CU, "  (ACC   : not null access "
+              & T_Content & Ada_Name (Node) & ";");
+      PL (CU, "   TC    : PolyORB.Any.TypeCode.Object_Ptr;");
       PL (CU, "   Index : PolyORB.Types.Unsigned_Long;");
-      Put (CU, "   Mech  : access PolyORB.Any.Mechanism)"
+      Put (CU, "   Mech  : not null access PolyORB.Any.Mechanism)"
            & " return PolyORB.Any.Content'Class");
    end Gen_Get_Aggregate_Element_Profile;
 
@@ -983,7 +984,7 @@ package body Ada_Be.Idl2Ada.Helper is
    begin
       PL (CU, "procedure Set_Aggregate_Element");
       PL (CU, "  (ACC    : in out " & T_Content & Ada_Name (Node) & ";");
-      PL (CU, "   TC     : PolyORB.Any.TypeCode.Object;");
+      PL (CU, "   TC     : PolyORB.Any.TypeCode.Object_Ptr;");
       PL (CU, "   Index  : PolyORB.Types.Unsigned_Long;");
       Put (CU, "   From_C : in out PolyORB.Any.Any_Container'Class)");
    end Gen_Set_Aggregate_Element_Profile;
@@ -1154,8 +1155,8 @@ package body Ada_Be.Idl2Ada.Helper is
                PL (CU, "is");
                II (CU);
                PL (CU, "Members : constant "
-                   & Ada_Name (Members_Type (Node)));
-               PL (CU, "  := From_Any (CORBA.Internals.To_CORBA_Any (Item));");
+                   & Ada_Name (Members_Type (Node))
+                   & " := From_Any (CORBA.Any (Item));");
                DI (CU);
                PL (CU, "begin");
                II (CU);
@@ -1169,7 +1170,8 @@ package body Ada_Be.Idl2Ada.Helper is
                DI (CU);
                PL (CU, "end " & Raise_From_Any_Name (Node) & ";");
 
-               --  Register raiser.
+               --  Register raiser
+
                --  This has to be done in deferred initialization, after the
                --  TypeCode has been constructed.
 
@@ -1177,7 +1179,7 @@ package body Ada_Be.Idl2Ada.Helper is
 
                PL (CU, "PolyORB.Exceptions.Register_Exception");
                PL (CU, "  (CORBA.TypeCode.Internals.To_PolyORB_Object ("
-                   & Ada_TC_Name (Node) & "),");
+                       & Ada_TC_Name (Node) & "),");
                II (CU);
                PL (CU, Raise_From_Any_Name (Node) & "'Access);");
                DI (CU);
@@ -1216,6 +1218,7 @@ package body Ada_Be.Idl2Ada.Helper is
    is
    begin
       if From_Container then
+         Add_With (CU, "PolyORB.Any");
          Put (CU, "function From_Any (C : PolyORB.Any.Any_Container'Class) "
               & "return " & Ada_Type_Name (Type_Node));
       else
@@ -1248,10 +1251,11 @@ package body Ada_Be.Idl2Ada.Helper is
    is
    begin
       Add_With (CU, "PolyORB.Any");
-      PL (CU, "");
-      PL (CU, "procedure " & Raise_From_Any_Name (Node));
-      PL (CU, "  (Item    : PolyORB.Any.Any;");
-      Put (CU, "   Message : Standard.String)");
+      Add_With (CU, "PolyORB.Std");
+      PL  (CU, "");
+      PL  (CU, "procedure " & Raise_From_Any_Name (Node));
+      PL  (CU, "  (Item    : PolyORB.Any.Any;");
+      Put (CU, "   Message : PolyORB.Std.String)");
    end Gen_Raise_From_Any_Profile;
 
    -----------------------
@@ -1265,7 +1269,7 @@ package body Ada_Be.Idl2Ada.Helper is
    begin
       PL (CU, "");
       PL (CU, "procedure " & Raise_Name (Node));
-      Put (CU, "  (Members : in " & Ada_Name (Members_Type (Node)) & ")");
+      Put (CU, "  (Members : " & Ada_Name (Members_Type (Node)) & ")");
    end Gen_Raise_Profile;
 
    ------------------------
@@ -1298,12 +1302,7 @@ package body Ada_Be.Idl2Ada.Helper is
 
       NL (CU);
       Add_With (CU, "CORBA", Elab_Control => Elaborate_All);
-      Add_With (CU, "PolyORB.Any");
-
-      PL (CU, Ada_TC_Name (Node)
-          & " : CORBA.TypeCode.Object");
-      PL (CU, "  := CORBA.TypeCode.Internals.To_CORBA_Object "
-          & "(PolyORB.Any.TypeCode.TC_Object);");
+      PL (CU, Ada_TC_Name (Node) & " : CORBA.TypeCode.Object;");
 
       if not Local (Node) then
 
@@ -1353,11 +1352,7 @@ package body Ada_Be.Idl2Ada.Helper is
 
       NL (CU);
       Add_With (CU, "CORBA", Elab_Control => Elaborate_All);
-      Add_With (CU, "PolyORB.Any");
-
-      PL (CU, Ada_TC_Name (Node) & " : CORBA.TypeCode.Object");
-      PL (CU, "  := CORBA.TypeCode.Internals.To_CORBA_Object "
-          & "(PolyORB.Any.TypeCode.TC_Object);");
+      PL (CU, Ada_TC_Name (Node) & " : CORBA.TypeCode.Object;");
 
       if not Local (Node) then
 
@@ -1384,8 +1379,7 @@ package body Ada_Be.Idl2Ada.Helper is
      (CU   : in out Compilation_Unit;
       Node : Node_Id)
    is
-      Type_Name : constant String
-        := Ada_Type_Defining_Name (Mapping, Node);
+      Type_Name : constant String := Ada_Type_Defining_Name (Mapping, Node);
 
       Type_Full_Name : constant String
         := Ada_Type_Name (Node);
@@ -1427,8 +1421,7 @@ package body Ada_Be.Idl2Ada.Helper is
 
       NL (CU);
       Add_With (CU, "CORBA");
-      PL (CU, Ada_TC_Name (Node) & " : CORBA.TypeCode.Object");
-      PL (CU, "  := PolyORB.Any.TypeCode.TC_Value;");
+      PL (CU, Ada_TC_Name (Node) & " : CORBA.TypeCode.Object;");
 
       --  From_Any
 
@@ -1456,7 +1449,7 @@ package body Ada_Be.Idl2Ada.Helper is
       NL (CU);
       PL (CU, "procedure To_Any");
       II (CU);
-      PL (CU, "(Item            : in     " & Type_Full_Name & ";");
+      PL (CU, "(Item            : " & Type_Full_Name & ";");
       PL (CU, " Result          : in out CORBA.Any;");
       PL (CU, " Marshalled_List : in out RefAny_Seq.Sequence);");
       DI (CU);
@@ -1488,6 +1481,7 @@ package body Ada_Be.Idl2Ada.Helper is
 
       PL (CU, "use PolyORB.Log;");
       PL (CU, "use PolyORB.Any;");
+      PL (CU, "use PolyORB.Std;");
       PL (CU, "use PolyORB.CORBA_P.Value.Helper;");
       PL (CU, "use CORBA.Value;");
 
@@ -1495,7 +1489,7 @@ package body Ada_Be.Idl2Ada.Helper is
       PL (CU, "--  Logging for this package.");
       PL (CU, "package L is new PolyORB.Log.Facility_Log (""" & Name (CU)
           & """);");
-      PL (CU, "procedure O (Message : Standard.String; Level :" &
+      PL (CU, "procedure O (Message : PolyORB.Std.String; Level :" &
           " Log_Level := Debug)");
       PL (CU, "  renames L.Output;");
       NL (CU);
@@ -1589,9 +1583,12 @@ package body Ada_Be.Idl2Ada.Helper is
       PL (CU, "is");
       II (CU);
       PL (CU, "--  Get the ID, and then check the association list.");
-      PL (CU, "ID_Tag : CORBA.Any := CORBA.Internals.Get_Aggregate_Element");
-      PL (CU, "   (Item, CORBA.TC_String, CORBA.Unsigned_Long (0));");
-      PL (CU, "Temp_String : CORBA.String := CORBA.From_Any (ID_Tag);");
+      PL (CU, "ID_Tag : constant CORBA.Any :=");
+      PL (CU, "           CORBA.Internals.Get_Aggregate_Element");
+      PL (CU, "             (Item, CORBA.TC_String, "
+                            & "CORBA.Unsigned_Long (0));");
+      PL (CU, "Temp_String : constant CORBA.String :=");
+      PL (CU, "                CORBA.From_Any (ID_Tag);");
       PL (CU, "My_ID : Any_ID;");
       PL (CU, "Index : Natural;");
       DI (CU);
@@ -1727,7 +1724,7 @@ package body Ada_Be.Idl2Ada.Helper is
       PL (CU, "--  Actual To_Any conversion procedure.");
       PL (CU, "procedure To_Any");
       II (CU);
-      PL (CU, "(Item            : in     " & Type_Full_Name & ";");
+      PL (CU, "(Item            : " & Type_Full_Name & ";");
       PL (CU, " Result          : in out CORBA.Any;");
       PL (CU, " Marshalled_List : in out RefAny_Seq.Sequence)");
       DI (CU);
@@ -1869,11 +1866,11 @@ package body Ada_Be.Idl2Ada.Helper is
       NL (CU);
       PL (CU, "declare");
       II (CU);
-      PL (CU, "Name : CORBA.String :=");
+      PL (CU, "Name : constant CORBA.String :=");
       PL (CU, "   CORBA.To_CORBA_String ("""
           & Ada_Name (Node)
           & """);");
-      PL (CU, "Id : CORBA.String :=");
+      PL (CU, "Id   : constant CORBA.String :=");
       PL (CU, "   CORBA.To_CORBA_String ("""
           & Idl_Repository_Id (Node)
           & """);");
@@ -1897,7 +1894,8 @@ package body Ada_Be.Idl2Ada.Helper is
                      Get_Next_Node (It2, Content_Node_Id);
                      PL (CU, "Name_"
                          & Ada_Name (Content_Node_Id)
-                         & " : CORBA.String := CORBA.To_CORBA_String ("""
+                         & " : constant CORBA.String := "
+                         & "CORBA.To_CORBA_String ("""
                          & Ada_Name (Content_Node_Id)
                          & """);");
                   end loop;
@@ -1910,21 +1908,28 @@ package body Ada_Be.Idl2Ada.Helper is
       PL (CU, "begin");
       II (CU);
 
+      Add_With (CU, "PolyORB.Any");
+      PL (CU, Ada_TC_Name (Node) & " :=");
+      PL (CU, "  CORBA.TypeCode.Internals.To_CORBA_Object"
+            & " (PolyORB.Any.TypeCode.TC_Value);");
+
       --  Put the name and repository Id for the value
-      PL (CU, "CORBA.TypeCode.Internals.Add_Parameter");
+
+      PL (CU, "CORBA.Internals.Add_Parameter");
       PL (CU, "  (" & Ada_TC_Name (Node) & ", CORBA.To_Any (Name));");
-      PL (CU, "CORBA.TypeCode.Internals.Add_Parameter");
+      PL (CU, "CORBA.Internals.Add_Parameter");
       PL (CU, "  (" & Ada_TC_Name (Node) & ", CORBA.To_Any (Id));");
 
       --  Add the type modifier tag
-      PL (CU, "CORBA.TypeCode.Internals.Add_Parameter");
+
+      PL (CU, "CORBA.Internals.Add_Parameter");
       PL (CU, "  (" & Ada_TC_Name (Node)
           & ", CORBA.To_Any (CORBA.Short ("
           & Type_Modifier (Node) & ")));");
 
       --  Add the concrete base type
       --  XXX For the moment, a null TC is passed
-      PL (CU, "CORBA.TypeCode.Internals.Add_Parameter");
+      PL (CU, "CORBA.Internals.Add_Parameter");
       PL (CU, "  (" & Ada_TC_Name (Node)
           & ", CORBA.To_Any (CORBA.TC_Null));");
 
@@ -1945,14 +1950,14 @@ package body Ada_Be.Idl2Ada.Helper is
                   Init (It2, State_Declarators (State_Member_Node_Id));
                   while not Is_End (It2) loop
                      Get_Next_Node (It2, Content_Node_Id);
-                     PL (CU, "CORBA.TypeCode.Internals.Add_Parameter");
+                     PL (CU, "CORBA.Internals.Add_Parameter");
                      II (CU);
                      PL (CU, "(" & Ada_TC_Name (Node)
                          & ", CORBA.To_Any ( CORBA.Short ("
                          & Visibility (State_Member_Node_Id)
                          & ")));");
                      DI (CU);
-                     PL (CU, "CORBA.TypeCode.Internals.Add_Parameter");
+                     PL (CU, "CORBA.Internals.Add_Parameter");
                      II (CU);
                      PL (CU, "(" & Ada_TC_Name (Node)
                          & ", CORBA.To_Any ("
@@ -1960,7 +1965,7 @@ package body Ada_Be.Idl2Ada.Helper is
                             (State_Type (State_Member_Node_Id))
                          & "));");
                      DI (CU);
-                     PL (CU, "CORBA.TypeCode.Internals.Add_Parameter");
+                     PL (CU, "CORBA.Internals.Add_Parameter");
                      II (CU);
                      PL (CU, "(" & Ada_TC_Name (Node)
                          & ", CORBA.To_Any ("
@@ -1973,6 +1978,9 @@ package body Ada_Be.Idl2Ada.Helper is
             end if;
          end loop;
       end;
+
+      PL (CU, "CORBA.TypeCode.Internals.Disable_Reference_Counting ("
+              & Ada_TC_Name (Node) & ");");
 
       DI (CU);
       PL (CU, "end;");
@@ -2098,21 +2106,28 @@ package body Ada_Be.Idl2Ada.Helper is
       NL (CU);
       PL (CU, "declare");
       II (CU);
-      PL (CU, "Name : CORBA.String := CORBA.To_CORBA_String ("""
+      PL (CU, "Name : constant CORBA.String := CORBA.To_CORBA_String ("""
           & Ada_Name (Node)
           & """);");
-      PL (CU, "Id : CORBA.String := CORBA.To_CORBA_String ("""
+      PL (CU, "Id   : constant CORBA.String := CORBA.To_CORBA_String ("""
           & Idl_Repository_Id (Node)
           & """);");
       DI (CU);
       PL (CU, "begin");
       II (CU);
-      PL (CU, "CORBA.TypeCode.Internals.Add_Parameter ("
+      Add_With (CU, "PolyORB.Any");
+      PL (CU, Ada_TC_Name (Node) & " :=");
+      PL (CU, "  CORBA.TypeCode.Internals.To_CORBA_Object"
+            & " (PolyORB.Any.TypeCode.TC_Object);");
+      PL (CU, "CORBA.Internals.Add_Parameter ("
           & Ada_TC_Name (Node)
           & ", CORBA.To_Any (Name));");
-      PL (CU, "CORBA.TypeCode.Internals.Add_Parameter ("
+      PL (CU, "CORBA.Internals.Add_Parameter ("
           & Ada_TC_Name (Node)
           & ", CORBA.To_Any (Id));");
+      PL (CU, "CORBA.TypeCode.Internals.Disable_Reference_Counting ("
+              & Ada_TC_Name (Node) & ");");
+
       DI (CU);
       PL (CU, "end;");
       Divert (CU, Visible_Declarations);
@@ -2214,21 +2229,28 @@ package body Ada_Be.Idl2Ada.Helper is
       NL (CU);
       PL (CU, "declare");
       II (CU);
-      PL (CU, "Name : CORBA.String := CORBA.To_CORBA_String ("""
+      PL (CU, "Name : constant CORBA.String := CORBA.To_CORBA_String ("""
           & Ada_Name (Forward (Node))
           & """);");
-      PL (CU, "Id : CORBA.String := CORBA.To_CORBA_String ("""
+      PL (CU, "Id : constant CORBA.String := CORBA.To_CORBA_String ("""
           & Idl_Repository_Id (Node)
           & """);");
       DI (CU);
       PL (CU, "begin");
       II (CU);
-      PL (CU, "CORBA.TypeCode.Internals.Add_Parameter ("
+      Add_With (CU, "PolyORB.Any");
+      PL (CU, Ada_TC_Name (Node) & " :=");
+      PL (CU, "  CORBA.TypeCode.Internals.To_CORBA_Object"
+            & " (PolyORB.Any.TypeCode.TC_Object);");
+      PL (CU, "CORBA.Internals.Add_Parameter ("
           & Ada_TC_Name (Node)
           & ", CORBA.To_Any (Name));");
-      PL (CU, "CORBA.TypeCode.Internals.Add_Parameter ("
+      PL (CU, "CORBA.Internals.Add_Parameter ("
           & Ada_TC_Name (Node)
           & ", CORBA.To_Any (Id));");
+      PL (CU, "CORBA.TypeCode.Internals.Disable_Reference_Counting ("
+              & Ada_TC_Name (Node) & ");");
+
       DI (CU);
       PL (CU, "end;");
       Divert (CU, Visible_Declarations);
@@ -2246,13 +2268,7 @@ package body Ada_Be.Idl2Ada.Helper is
 
       NL (CU);
       Add_With (CU, "CORBA");
-      Add_With (CU, "PolyORB.Any");
-
-      PL (CU, Ada_TC_Name (Node) & " : CORBA.TypeCode.Object :=");
-      II (CU);
-      PL (CU, "CORBA.TypeCode.Internals.To_CORBA_object "
-          & "(PolyORB.Any.TypeCode.TC_Enum);");
-      DI (CU);
+      PL (CU, Ada_TC_Name (Node) & " : CORBA.TypeCode.Object;");
 
       --  From_Any
 
@@ -2285,29 +2301,11 @@ package body Ada_Be.Idl2Ada.Helper is
       NL (CU);
       Gen_From_Any_Profile (CU, Node, From_Container => True);
       PL (CU, " is");
-      II (CU);
-      PL (CU, "ACC : PolyORB.Any.Aggregate_Content'Class renames"
-          & " PolyORB.Any.Aggregate_Content'Class"
-          & " (PolyORB.Any.Get_Value (C).all);");
-      PL (CU, "El_M  : aliased PolyORB.Any.Mechanism :="
-          & " PolyORB.Any.By_Value;");
-      PL (CU, "El_CC : aliased PolyORB.Any.Content'Class :=");
-      II (CU);
-      PL (CU, "PolyORB.Any.Get_Aggregate_Element (ACC'Access,");
-      PL (CU, "                                       "
-          & "PolyORB.Any.TC_Unsigned_Long,");
-      PL (CU, "                                       "
-          & "0, El_M'Access);");
-      DI (CU);
-      PL (CU, "El_C : PolyORB.Any.Any_Container;");
-      DI (CU);
       PL (CU, "begin");
       II (CU);
-      PL (CU, "PolyORB.Any.Set_Type (El_C, PolyORB.Any.TC_Unsigned_Long);");
-      PL (CU, "PolyORB.Any.Set_Value (El_C, El_CC'Unchecked_Access);");
-      PL (CU, "return " & Ada_Name (Node)
+      PL (CU, "return " & Ada_Full_Name (Node)
           & "'Val (PolyORB.Types.Unsigned_Long'("
-          & "PolyORB.Any.From_Any (El_C)));");
+          & "PolyORB.Any.Get_Aggregate_Element (C, 0)));");
       DI (CU);
       PL (CU, "end From_Any;");
 
@@ -2316,8 +2314,7 @@ package body Ada_Be.Idl2Ada.Helper is
       PL (CU, " is");
       PL (CU, "begin");
       II (CU);
-      PL (CU, "return From_Any (PolyORB.Any.Get_Container "
-            & "(CORBA.Internals.To_PolyORB_Any (Item)).all);");
+      PL (CU, "return From_Any (CORBA.Get_Container (Item).all);");
       DI (CU);
       PL (CU, "end From_Any;");
 
@@ -2351,10 +2348,10 @@ package body Ada_Be.Idl2Ada.Helper is
       Divert (CU, Deferred_Initialization);
       PL (CU, "declare");
       II (CU);
-      PL (CU, "Name : CORBA.String := CORBA.To_CORBA_String ("""
+      PL (CU, "Name : constant CORBA.String := CORBA.To_CORBA_String ("""
           & Ada_Name (Node)
           & """);");
-      PL (CU, "Id : CORBA.String := CORBA.To_CORBA_String ("""
+      PL (CU, "Id : constant CORBA.String := CORBA.To_CORBA_String ("""
           & Idl_Repository_Id (Node)
           & """);");
       declare
@@ -2365,7 +2362,7 @@ package body Ada_Be.Idl2Ada.Helper is
          while not Is_End (It) loop
             Get_Next_Node (It, E_Node);
             PL (CU, Ada_Name (E_Node)
-                & "_Name : CORBA.String := CORBA.To_CORBA_String ("""
+                & "_Name : constant CORBA.String := CORBA.To_CORBA_String ("""
                 & Ada_Name (E_Node)
                 & """);");
          end loop;
@@ -2374,12 +2371,17 @@ package body Ada_Be.Idl2Ada.Helper is
       DI (CU);
       PL (CU, "begin");
       II (CU);
-      PL (CU, "CORBA.TypeCode.Internals.Add_Parameter ("
+      Add_With (CU, "PolyORB.Any");
+      PL (CU, Ada_TC_Name (Node) & " :=");
+      PL (CU, "  CORBA.TypeCode.Internals.To_CORBA_Object"
+            & " (PolyORB.Any.TypeCode.TC_Enum);");
+      PL (CU, "CORBA.Internals.Add_Parameter ("
           & Ada_TC_Name (Node)
           & ", CORBA.To_Any (Name));");
-      PL (CU, "CORBA.TypeCode.Internals.Add_Parameter ("
+      PL (CU, "CORBA.Internals.Add_Parameter ("
           & Ada_TC_Name (Node)
           & ", CORBA.To_Any (Id));");
+
       declare
          It     : Node_Iterator;
          E_Node : Node_Id;
@@ -2387,13 +2389,16 @@ package body Ada_Be.Idl2Ada.Helper is
          Init (It, Enumerators (Node));
          while not Is_End (It) loop
             Get_Next_Node (It, E_Node);
-            PL (CU, "CORBA.TypeCode.Internals.Add_Parameter ("
+            PL (CU, "CORBA.Internals.Add_Parameter ("
                 & Ada_TC_Name (Node)
                 & ", CORBA.To_Any ("
                 & Ada_Name (E_Node)
                 & "_Name));");
          end loop;
       end;
+      PL (CU, "CORBA.TypeCode.Internals.Disable_Reference_Counting ("
+              & Ada_TC_Name (Node) & ");");
+
       DI (CU);
       PL (CU, "end;");
       Divert (CU, Visible_Declarations);
@@ -2411,19 +2416,9 @@ package body Ada_Be.Idl2Ada.Helper is
       --  Typecode generation
 
       Add_With (CU, "CORBA", Elab_Control => Elaborate_All);
-      Add_With (CU, "PolyORB.Any");
 
       NL (CU);
-      PL (CU, Ada_TC_Name (Node) & " : CORBA.TypeCode.Object :=");
-      II (CU);
-      if Kind (Node) = K_Struct then
-         PL (CU, "CORBA.TypeCode.Internals.To_CORBA_Object "
-             & "(PolyORB.Any.TypeCode.TC_Struct);");
-      else
-         PL (CU, "CORBA.TypeCode.Internals.To_CORBA_Object ("
-             & "PolyORB.Any.TypeCode.TC_Except);");
-      end if;
-      DI (CU);
+      PL (CU, Ada_TC_Name (Node) & " : CORBA.TypeCode.Object;");
 
       if Kind (Node) = K_Struct then
          Struct_Node := Node;
@@ -2536,9 +2531,8 @@ package body Ada_Be.Idl2Ada.Helper is
                      It2         : Node_Iterator;
                      Decl_Node   : Node_Id;
                      Type_Node   : constant Node_Id := M_Type (Member_Node);
-                     Helper_Name : constant String := Helper_Unit (Type_Node);
-                     TCU_Name    : constant String := TC_Unit (Type_Node);
-
+                     Helper_Name : constant String  := Helper_Unit (Type_Node);
+                     TCU_Name    : constant String  := TC_Unit (Type_Node);
 
                   begin
                      Add_Helper_Dependency (CU, TCU_Name);
@@ -2633,7 +2627,12 @@ package body Ada_Be.Idl2Ada.Helper is
          Gen_To_Any_Profile (CU, Struct_Node);
          PL (CU, " is");
          II (CU);
-         PL (CU, "Result : CORBA.Any :=");
+         Put (CU, "Result : ");
+         if Is_Empty then
+            Put (CU, "constant ");
+         end if;
+
+         PL (CU, "CORBA.Any :=");
          II (CU);
          PL (CU, "CORBA.Internals.Get_Empty_Any_Aggregate ("
              & Ada_TC_Name (Node)
@@ -2690,10 +2689,10 @@ package body Ada_Be.Idl2Ada.Helper is
       NL (CU);
       PL (CU, "declare");
       II (CU);
-      PL (CU, "Name : CORBA.String := CORBA.To_CORBA_String ("""
+      PL (CU, "Name : constant CORBA.String := CORBA.To_CORBA_String ("""
           & Ada_Name (Node)
           & """);");
-      PL (CU, "Id : CORBA.String := CORBA.To_CORBA_String ("""
+      PL (CU, "Id : constant CORBA.String := CORBA.To_CORBA_String ("""
           & Idl_Repository_Id (Node)
           & """);");
 
@@ -2718,7 +2717,7 @@ package body Ada_Be.Idl2Ada.Helper is
                   Get_Next_Node (It2, Decl_Node);
                   PL (CU, "Arg_Name_"
                       & Ada_Name (Decl_Node)
-                      & " : CORBA.String := CORBA.To_CORBA_String ("""
+                      & " : constant CORBA.String := CORBA.To_CORBA_String ("""
                       & Ada_Name (Decl_Node)
                       & """);");
                end loop;
@@ -2729,10 +2728,22 @@ package body Ada_Be.Idl2Ada.Helper is
       DI (CU);
       PL (CU, "begin");
       II (CU);
-      PL (CU, "CORBA.TypeCode.Internals.Add_Parameter ("
+
+      Add_With (CU, "PolyORB.Any");
+      PL (CU, Ada_TC_Name (Node) & " :=");
+      Put (CU, "  CORBA.TypeCode.Internals.To_CORBA_Object"
+             & " (PolyORB.Any.TypeCode.");
+      if Kind (Node) = K_Struct then
+         Put (CU, "TC_Struct");
+      else
+         Put (CU, "TC_Except");
+      end if;
+      PL (CU, ");");
+
+      PL (CU, "CORBA.Internals.Add_Parameter ("
           & Ada_TC_Name (Node)
           & ", CORBA.To_Any (Name));");
-      PL (CU, "CORBA.TypeCode.Internals.Add_Parameter ("
+      PL (CU, "CORBA.Internals.Add_Parameter ("
           & Ada_TC_Name (Node)
           & ", CORBA.To_Any (Id));");
 
@@ -2758,12 +2769,12 @@ package body Ada_Be.Idl2Ada.Helper is
 
                while not Is_End (It2) loop
                   Get_Next_Node (It2, Decl_Node);
-                  PL (CU, "CORBA.TypeCode.Internals.Add_Parameter ("
+                  PL (CU, "CORBA.Internals.Add_Parameter ("
                       & Ada_TC_Name (Node)
                       & ", CORBA.To_Any ("
                       & Ada_Full_TC_Name (M_Type (Member_Node))
                       & "));");
-                  PL (CU, "CORBA.TypeCode.Internals.Add_Parameter ("
+                  PL (CU, "CORBA.Internals.Add_Parameter ("
                       & Ada_TC_Name (Node)
                       & ", CORBA.To_Any (Arg_Name_"
                       & Ada_Name (Decl_Node)
@@ -2772,6 +2783,8 @@ package body Ada_Be.Idl2Ada.Helper is
             end;
          end loop;
       end;
+      PL (CU, "CORBA.TypeCode.Internals.Disable_Reference_Counting ("
+              & Ada_TC_Name (Node) & ");");
 
       DI (CU);
       PL (CU, "end;");
@@ -2792,8 +2805,7 @@ package body Ada_Be.Idl2Ada.Helper is
       Add_With (CU, "CORBA");
 
       NL (CU);
-      PL (CU, Ada_TC_Name (Node)
-          & " : CORBA.TypeCode.Object;");
+      PL (CU, Ada_TC_Name (Node) & " : CORBA.TypeCode.Object;");
 
       --  From_Any
 
@@ -2851,22 +2863,21 @@ package body Ada_Be.Idl2Ada.Helper is
       NL (CU);
       PL (CU, "begin");
       II (CU);
-      PL (CU, Ada_TC_Name (Node) & " := ");
-      II (CU);
+      Put (CU, Ada_TC_Name (Node) & " := ");
 
       Add_With (CU, "CORBA", Elab_Control => Elaborate_All);
 
       if Is_Wide (Node) then
-         PL (CU, "CORBA.TypeCode.Internals.To_CORBA_Object" &
-             "(PolyORB.Any.TypeCode.Build_Bounded_Wide_String_TC ("
-             & Utils.Img (Expr_Value (Bound (Node))) & "));");
+         PL (CU, "CORBA.TypeCode.Internals.Build_Wstring_TC ("
+             & Img (Expr_Value (Bound (Node))) & ");");
       else
-         PL (CU, "CORBA.TypeCode.Internals.To_CORBA_Object" &
-             "(PolyORB.Any.TypeCode.Build_Bounded_String_TC ("
-             & Utils.Img (Expr_Value (Bound (Node))) & "));");
+         PL (CU, "CORBA.TypeCode.Internals.Build_String_TC ("
+             & Img (Expr_Value (Bound (Node))) & ");");
       end if;
 
-      DI (CU);
+      PL (CU, "CORBA.TypeCode.Internals.Disable_Reference_Counting ("
+              & Ada_TC_Name (Node) & ");");
+
       DI (CU);
       PL (CU, "end;");
       Divert (CU, Visible_Declarations);
@@ -2884,15 +2895,9 @@ package body Ada_Be.Idl2Ada.Helper is
       --  TypeCode generation
 
       Add_With (CU, "CORBA", Elab_Control => Elaborate_All);
-      Add_With (CU, "PolyORB.Any");
 
       NL (CU);
-      PL (CU, Ada_TC_Name (Node)
-          & " : CORBA.TypeCode.Object :=");
-      II (CU);
-      PL (CU, "CORBA.TypeCode.Internals.To_CORBA_Object "
-          & "(PolyORB.Any.TypeCode.TC_Union);");
-      DI (CU);
+      PL (CU, Ada_TC_Name (Node) & " : CORBA.TypeCode.Object;");
 
       if not Has_Local_Component (Node) then
          --  From_Any
@@ -2932,7 +2937,7 @@ package body Ada_Be.Idl2Ada.Helper is
          Gen_From_Any_Profile (CU, Node, From_Container => False);
          PL (CU, " is");
          II (CU);
-         PL (CU, "Label_Any : CORBA.Any :=");
+         PL (CU, "Label_Any : constant CORBA.Any :=");
          II (CU);
          PL (CU, "CORBA.Internals.Get_Aggregate_Element (Item,");
          PL (CU, "                             "
@@ -3130,10 +3135,10 @@ package body Ada_Be.Idl2Ada.Helper is
       NL (CU);
       PL (CU, "declare");
       II (CU);
-      PL (CU, "Name : CORBA.String := CORBA.To_CORBA_String ("""
+      PL (CU, "Name : constant CORBA.String := CORBA.To_CORBA_String ("""
           & Ada_Name (Node)
           & """);");
-      PL (CU, "Id : CORBA.String := CORBA.To_CORBA_String ("""
+      PL (CU, "Id : constant CORBA.String := CORBA.To_CORBA_String ("""
           & Idl_Repository_Id (Node)
        & """);");
 
@@ -3149,7 +3154,7 @@ package body Ada_Be.Idl2Ada.Helper is
 
             PL (CU, "Arg_Name_"
                 & Ada_Name (Case_Decl (Case_Node))
-                & " : CORBA.String := CORBA.To_CORBA_String ("""
+                & " : constant CORBA.String := CORBA.To_CORBA_String ("""
                 & Ada_Name (Case_Decl (Case_Node))
                 & """);");
          end loop;
@@ -3158,17 +3163,21 @@ package body Ada_Be.Idl2Ada.Helper is
       DI (CU);
       PL (CU, "begin");
       II (CU);
-      PL (CU, "CORBA.TypeCode.Internals.Add_Parameter" & ASCII.LF
+      Add_With (CU, "PolyORB.Any");
+      PL (CU, Ada_TC_Name (Node) & " :=");
+      PL (CU, "  CORBA.TypeCode.Internals.To_CORBA_Object"
+            & " (PolyORB.Any.TypeCode.TC_Union);");
+      PL (CU, "CORBA.Internals.Add_Parameter" & ASCII.LF
             & "  (" & Ada_TC_Name (Node) & "," & ASCII.LF
             & "   CORBA.To_Any (Name));");
-      PL (CU, "CORBA.TypeCode.Internals.Add_Parameter" & ASCII.LF
+      PL (CU, "CORBA.Internals.Add_Parameter" & ASCII.LF
             & "  (" & Ada_TC_Name (Node) & "," & ASCII.LF
             & "   CORBA.To_Any (Id));");
-      PL (CU, "CORBA.TypeCode.Internals.Add_Parameter" & ASCII.LF
+      PL (CU, "CORBA.Internals.Add_Parameter" & ASCII.LF
             & "  (" & Ada_TC_Name (Node) & "," & ASCII.LF
             & "   CORBA.To_Any (" & Ada_Full_TC_Name (ST_Node) & "));");
 
-      Put (CU, "CORBA.TypeCode.Internals.Add_Parameter" & ASCII.LF
+      Put (CU, "CORBA.Internals.Add_Parameter" & ASCII.LF
              & "  (" & Ada_TC_Name (Node) & "," & ASCII.LF
              & "   CORBA.To_Any (");
       declare
@@ -3206,23 +3215,23 @@ package body Ada_Be.Idl2Ada.Helper is
                Label_Node : Node_Id;
             begin
                if Default_Index (Node) = I then
-                  PL (CU, "CORBA.TypeCode.Internals.Add_Parameter" & ASCII.LF
+                  PL (CU, "CORBA.Internals.Add_Parameter" & ASCII.LF
                         & "  (" & Ada_TC_Name (Node) & "," & ASCII.LF
-                        & "   CORBA.To_Any (" & Switch_Helper_Name
+                        & "   " & Switch_Helper_Name
                         & ".To_Any (" & Ada_Type_Name (ST_Node)
-                        & "'First)));");
+                        & "'First));");
 
                   Add_Helper_Dependency
                     (CU,
                      Ada_Helper_Unit_Name (Mapping, Case_Type (Case_Node)));
 
-                  PL (CU, "CORBA.TypeCode.Internals.Add_Parameter" & ASCII.LF
+                  PL (CU, "CORBA.Internals.Add_Parameter" & ASCII.LF
                         & "  (" & Ada_TC_Name (Node) & "," & ASCII.LF
                         & "  CORBA.To_Any ("
                         & Ada_Full_TC_Name (Case_Type (Case_Node))
                         & "));");
 
-                  PL (CU, "CORBA.TypeCode.Internals.Add_Parameter" & ASCII.LF
+                  PL (CU, "CORBA.Internals.Add_Parameter" & ASCII.LF
                         & "  (" & Ada_TC_Name (Node) & "," & ASCII.LF
                         & "   CORBA.To_Any (Arg_Name_"
                         & Ada_Name (Case_Decl (Case_Node))
@@ -3232,26 +3241,26 @@ package body Ada_Be.Idl2Ada.Helper is
                   Init (It2, Labels (Case_Node));
                   while not Is_End (It2) loop
                      Get_Next_Node (It2, Label_Node);
-                     Put (CU, "CORBA.TypeCode.Internals.Add_Parameter"
+                     Put (CU, "CORBA.Internals.Add_Parameter"
                             & ASCII.LF
                             & "  (" & Ada_TC_Name (Node) & "," & ASCII.LF
-                            & "   CORBA.To_Any (" & Switch_Helper_Name
+                            & "   " & Switch_Helper_Name
                             & ".To_Any (" & Ada_Type_Name (ST_Node) & "'(");
                      Gen_Constant_Value (CU,
                        Expr => Label_Node, Typ => ST_Node);
-                     PL (CU, "))));");
+                     PL (CU, ")));");
 
                      Add_Helper_Dependency
                        (CU,
                         Ada_Helper_Unit_Name (Mapping, Case_Type (Case_Node)));
 
-                     PL (CU, "CORBA.TypeCode.Internals.Add_Parameter"
+                     PL (CU, "CORBA.Internals.Add_Parameter"
                            & ASCII.LF
                            & "  (" & Ada_TC_Name (Node) & "," & ASCII.LF
                            & "   CORBA.To_Any ("
                            & Ada_Full_TC_Name (Case_Type (Case_Node))
                            & "));");
-                     PL (CU, "CORBA.TypeCode.Internals.Add_Parameter"
+                     PL (CU, "CORBA.Internals.Add_Parameter"
                            & ASCII.LF
                            & "  (" & Ada_TC_Name (Node) & "," & ASCII.LF
                            & "   CORBA.To_Any (Arg_Name_"
@@ -3264,6 +3273,9 @@ package body Ada_Be.Idl2Ada.Helper is
             end;
          end loop;
       end;
+
+      PL (CU, "CORBA.TypeCode.Internals.Disable_Reference_Counting ("
+              & Ada_TC_Name (Node) & ");");
 
       DI (CU);
       PL (CU, "end;");
@@ -3285,27 +3297,15 @@ package body Ada_Be.Idl2Ada.Helper is
 
       NL (CU);
       Add_With (CU, "CORBA", Elab_Control => Elaborate_All);
-      Add_With (CU, "PolyORB.Any");
 
-      PL (CU, Ada_TC_Name (Node)
-           & " : CORBA.TypeCode.Object := ");
-      PL (CU, "CORBA.TypeCode.Internals.To_CORBA_Object (");
-
+      PL (CU, Ada_TC_Name (Node) & " : CORBA.TypeCode.Object;");
       if Is_Array then
-         PL (CU, "PolyORB.Any.TypeCode.TC_Array);");
-
          for J in 1 .. Length (Array_Bounds (Node)) - 1 loop
             PL (CU, Ada_TC_Name (Node) & "_TC_Dimension_"
                 & Img (J)
-                & " : CORBA.TypeCode.Object := "
-                & "CORBA.TypeCode.Internals.To_CORBA_Object "
-                & "(PolyORB.Any.TypeCode.TC_Array);");
-            null;
+                & " : CORBA.TypeCode.Object;");
          end loop;
          Gen_Aggregate_Content_Wrapper_Spec (CU, Node);
-
-      else
-         PL (CU, "PolyORB.Any.TypeCode.TC_Alias);");
       end if;
 
       if not Is_Interface_Type (Node)
@@ -3351,7 +3351,6 @@ package body Ada_Be.Idl2Ada.Helper is
          Gen_To_Any_Profile (CU, Node);
          PL (CU, ";");
 
-
       end if;
    end Gen_Type_Declarator_Spec;
 
@@ -3376,10 +3375,10 @@ package body Ada_Be.Idl2Ada.Helper is
       II (CU);
 
       if not Is_Array then
-         PL (CU, "Name : CORBA.String := CORBA.To_CORBA_String ("""
+         PL (CU, "Name : constant CORBA.String := CORBA.To_CORBA_String ("""
              & Ada_Name (Node)
              & """);");
-         PL (CU, "Id : CORBA.String := CORBA.To_CORBA_String ("""
+         PL (CU, "Id : constant CORBA.String := CORBA.To_CORBA_String ("""
              & Idl_Repository_Id (Node)
              & """);");
       end if;
@@ -3388,22 +3387,32 @@ package body Ada_Be.Idl2Ada.Helper is
       PL (CU, "begin");
       II (CU);
 
-      if Is_Array then
-         Gen_Array_TC (CU, Type_Node, Node);
-      else
+      Put (CU, Ada_TC_Name (Node) & " :=");
+
+      if not Is_Array then
          Add_Helper_Dependency (CU, TCU_Name);
-         PL (CU, "CORBA.TypeCode.Internals.Add_Parameter ("
-             & Ada_TC_Name (Node)
-             & ", CORBA.To_Any (Name));");
-         PL (CU, "CORBA.TypeCode.Internals.Add_Parameter ("
-             & Ada_TC_Name (Node)
-             & ", CORBA.To_Any (Id));");
-         PL (CU, "CORBA.TypeCode.Internals.Add_Parameter ("
-             & Ada_TC_Name (Node)
-             & ", CORBA.To_Any ("
-             & Ada_Full_TC_Name (Type_Node)
-             & "));");
+         PL (CU, " CORBA.TypeCode.Internals.Build_Alias_TC");
+         PL (CU, "  (Name => Name, Id => Id, Parent => "
+               & Ada_Full_TC_Name (Type_Node) & ");");
+
+      else
+         Add_With (CU, "PolyORB.Any");
+         NL (CU);
+         Put (CU, "  CORBA.TypeCode.Internals.To_CORBA_Object (");
+         PL (CU, "PolyORB.Any.TypeCode.TC_Array);");
+
+         for J in 1 .. Length (Array_Bounds (Node)) - 1 loop
+            PL (CU, Ada_TC_Name (Node) & "_TC_Dimension_"
+                & Img (J)
+                & " := "
+                & "CORBA.TypeCode.Internals.To_CORBA_Object"
+                & " (PolyORB.Any.TypeCode.TC_Array);");
+         end loop;
+         Gen_Array_TC (CU, Type_Node, Node);
       end if;
+
+      PL (CU, "CORBA.TypeCode.Internals.Disable_Reference_Counting ("
+              & Ada_TC_Name (Node) & ");");
 
       DI (CU);
       PL (CU, "end;");
@@ -3466,7 +3475,7 @@ package body Ada_Be.Idl2Ada.Helper is
 
                   NL (CU);
                   Put (CU, "for " & Loop_Parameter (Dim) & " in 0 .. ");
-                  Gen_Node_Stubs_Spec (CU, Bound_Node);
+                  Gen_Constant_Value (CU, Expr => Bound_Node, Typ => No_Node);
                   PL (CU, " - 1 loop");
                   II (CU);
 
@@ -3592,7 +3601,7 @@ package body Ada_Be.Idl2Ada.Helper is
 
                   NL (CU);
                   Put (CU, "for " & Loop_Parameter (Dim) & " in 0 .. ");
-                  Gen_Node_Stubs_Spec (CU, Bound_Node);
+                  Gen_Constant_Value (CU, Expr => Bound_Node, Typ => No_Node);
                   PL (CU, " - 1 loop");
                   II (CU);
 
@@ -3654,7 +3663,6 @@ package body Ada_Be.Idl2Ada.Helper is
 
       NL (CU);
       Add_With (CU, "CORBA");
-      Add_With (CU, "PolyORB.Any");
 
       PL (CU, Ada_TC_Name (Node) & " : CORBA.TypeCode.Object;");
 
@@ -3715,9 +3723,6 @@ package body Ada_Be.Idl2Ada.Helper is
          Add_Helper_Dependency (CU, Elt_Helper_Name);
          --  For element To_Any/From_Any
 
-         Add_Helper_Dependency (CU, Elt_TCU_Name);
-         --  For element TypeCode
-
          --  Generate Element_Wrap
 
          NL (CU);
@@ -3763,10 +3768,17 @@ package body Ada_Be.Idl2Ada.Helper is
       end if;
 
       Divert (CU, Deferred_Initialization);
+
+      Add_Helper_Dependency (CU, Elt_TCU_Name);
+      --  For element TypeCode
+
       NL (CU);
       PL (CU, Ada_TC_Name (Node) & " := ");
       PL (CU, "  CORBA.TypeCode.Internals.Build_Sequence_TC");
-      PL (CU, "    (" & Elt_TC_Name & "," & Img (B_Value) & ");");
+      PL (CU, "    (" & Elt_TC_Name & ", " & Img (B_Value) & ");");
+
+      PL (CU, "CORBA.TypeCode.Internals.Disable_Reference_Counting ("
+              & Ada_TC_Name (Node) & ");");
 
       if not Has_Local_Component (Node) then
          Put (CU, Seq_Helper_Name & ".Initialize" & ASCII.LF & "  (");
@@ -3791,12 +3803,7 @@ package body Ada_Be.Idl2Ada.Helper is
 
       NL (CU);
       Add_With (CU, "CORBA", Elab_Control => Elaborate_All);
-      Add_With (CU, "PolyORB.Any");
-
-      PL (CU, Ada_TC_Name (Decl_Node)
-          & " : CORBA.TypeCode.Object :="
-          & " CORBA.TypeCode.Internals.To_CORBA_Object "
-          & "(PolyORB.Any.TypeCode.TC_Fixed);");
+      PL (CU, Ada_TC_Name (Decl_Node) & " : CORBA.TypeCode.Object;");
 
       --  From_Any
 
@@ -3860,17 +3867,23 @@ package body Ada_Be.Idl2Ada.Helper is
 
       Divert (CU, Deferred_Initialization);
       NL (CU);
-      Put (CU, "CORBA.TypeCode.Internals.Add_Parameter ("
+      Add_With (CU, "PolyORB.Any");
+      PL (CU, Ada_TC_Name (Decl_Node) & " :=");
+      PL (CU, "  CORBA.TypeCode.Internals.To_CORBA_Object"
+            & " (PolyORB.Any.TypeCode.TC_Fixed);");
+      Put (CU, "CORBA.Internals.Add_Parameter ("
           & Ada_TC_Name (Decl_Node)
           & ", CORBA.To_Any (CORBA.Unsigned_Short (");
       Gen_Constant_Value (CU,
         Expr => Digits_Nb (Fixed_Node), Typ => No_Node);
       PL (CU, ")));");
-      Put (CU, "CORBA.TypeCode.Internals.Add_Parameter ("
+      Put (CU, "CORBA.Internals.Add_Parameter ("
           & Ada_TC_Name (Decl_Node)
           & ", CORBA.To_Any (CORBA.Short (");
       Gen_Constant_Value (CU, Expr => Scale (Fixed_Node), Typ => No_Node);
       PL (CU, ")));");
+      PL (CU, "CORBA.TypeCode.Internals.Disable_Reference_Counting ("
+              & Ada_TC_Name (Decl_Node) & ");");
       Divert (CU, Visible_Declarations);
    end Gen_Fixed_Body;
 
@@ -3919,16 +3932,16 @@ package body Ada_Be.Idl2Ada.Helper is
          else
             Last_Bound := True;
          end if;
-         Put (CU, "CORBA.TypeCode.Internals.Add_Parameter (");
+         Put (CU, "CORBA.Internals.Add_Parameter (");
          if First_Bound then
             Put (CU, Ada_TC_Name (Decl_Node));
          else
             Put (CU, Ada_TC_Name (Decl_Node) & "_TC_Dimension_" & Img (Index));
          end if;
          Put (CU, ", CORBA.To_Any (CORBA.Unsigned_Long (");
-         Gen_Node_Stubs_Spec (CU, Bound_Node);
+         Gen_Constant_Value (CU, Expr => Bound_Node, Typ => No_Node);
          PL (CU, ")));");
-         Put (CU, "CORBA.TypeCode.Internals.Add_Parameter (");
+         Put (CU, "CORBA.Internals.Add_Parameter (");
          if First_Bound then
             Put (CU, Ada_TC_Name (Decl_Node));
          else
@@ -3997,6 +4010,7 @@ package body Ada_Be.Idl2Ada.Helper is
      (CU   : in out Compilation_Unit;
       Node : Node_Id) is
    begin
+      Add_With (CU, "PolyORB.Any");
       Put (CU, "function Wrap (X : access "
            & Ada_Type_Name (Node) & ") return PolyORB.Any.Content'Class");
    end Gen_Wrap_Profile;
@@ -4029,38 +4043,6 @@ package body Ada_Be.Idl2Ada.Helper is
       pragma Assert (Kind (Node) = K_Exception);
       return "Raise_" & Ada_Name (Node);
    end Raise_Name;
-
-   ---------------
-   -- Root_Type --
-   ---------------
-
-   function Root_Type (Typ : Node_Id) return Node_Id is
-      Root_Typ : Node_Id;
-   begin
-      Root_Typ := Typ;
-
-      --  Unwind typedefs and scoped names
-
-      loop
-         case Kind (Root_Typ) is
-            when K_Scoped_Name =>
-               Root_Typ := Value (Root_Typ);
-
-            when K_Declarator =>
-               if Length (Array_Bounds (Root_Typ)) > 0
-                 or else Kind (T_Type (Parent (Root_Typ))) = K_Fixed
-               then
-                  exit;
-               end if;
-               Root_Typ := T_Type (Parent (Root_Typ));
-
-            when others =>
-               exit;
-         end case;
-      end loop;
-
-      return Root_Typ;
-   end Root_Type;
 
    -------------------
    -- Type_Modifier --

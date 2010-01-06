@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -36,6 +36,7 @@
 
 with PolyORB.Sockets;
 with PolyORB.Tasking.Mutexes;
+with PolyORB.Utils.Sockets;
 
 package PolyORB.Transport.Connected.Sockets is
 
@@ -66,13 +67,12 @@ package PolyORB.Transport.Connected.Sockets is
      (TAP : Socket_Access_Point;
       TE  : out Transport_Endpoint_Access);
 
-   function Address_Of (SAP : Socket_Access_Point)
-     return Sock_Addr_Type;
+   function Address_Of
+     (SAP : Socket_Access_Point) return Utils.Sockets.Socket_Name;
+   --  Return a socket name denoting SAP
 
-   type Socket_Endpoint
-     is new Transport_Endpoint with private;
-   --  An opened transport endpoint as a connected
-   --  stream-oriented socket.
+   type Socket_Endpoint is new Transport_Endpoint with private;
+   --  An opened transport endpoint as a connected stream-oriented socket
 
    procedure Create
      (TE : in out Socket_Endpoint;
@@ -99,8 +99,9 @@ package PolyORB.Transport.Connected.Sockets is
       Error  :    out Errors.Error_Container);
 
    procedure Close (TE : access Socket_Endpoint);
-
    procedure Destroy (TE : in out Socket_Endpoint);
+
+   procedure Check_Validity (TE : access Socket_Endpoint);
 
 private
 

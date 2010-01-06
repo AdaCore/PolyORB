@@ -1,0 +1,4 @@
+tin.idl:10:13: multiple declarations of "string_t"
+tin.idl:10:13: found declaration at line 6
+tin.idl:10:13: found declaration at line 2
+iac: 1 error(s)

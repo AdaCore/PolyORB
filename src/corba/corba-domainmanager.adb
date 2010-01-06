@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -37,6 +37,7 @@ with PolyORB.Types;
 
 with CORBA.Helper;
 with CORBA.Policy.Helper;
+
 with PolyORB.CORBA_P.Exceptions;
 with PolyORB.CORBA_P.Interceptors_Hooks;
 
@@ -53,15 +54,17 @@ package body CORBA.DomainManager is
    is
       Operation_Name : constant Standard.String := "get_domain_policy";
 
-      Arg_Name_Policy_Type : PolyORB.Types.Identifier
-        := PolyORB.Types.To_PolyORB_String ("policy_type");
-      Argument_Policy_Type : CORBA.Any
-        := CORBA.Helper.To_Any (Policy_Type);
-      Self_Ref             : CORBA.Object.Ref := CORBA.Object.Ref (Self);
+      Arg_Name_Policy_Type : constant PolyORB.Types.Identifier :=
+                               PolyORB.Types.To_PolyORB_String ("policy_type");
+      Argument_Policy_Type : constant CORBA.Any :=
+                               CORBA.Helper.To_Any (Policy_Type);
+      Self_Ref             : constant CORBA.Object.Ref :=
+                               CORBA.Object.Ref (Self);
       Request              : PolyORB.Requests.Request_Access;
       Arg_List             : PolyORB.Any.NVList.Ref;
       Result               : PolyORB.Any.NamedValue;
-      Result_Name          : CORBA.String := To_CORBA_String ("Result");
+      Result_Name          : constant CORBA.String :=
+                               To_CORBA_String ("Result");
 
    begin
       if CORBA.Object.Is_Nil (Self_Ref) then
@@ -72,13 +75,13 @@ package body CORBA.DomainManager is
       PolyORB.Any.NVList.Add_Item
         (Arg_List,
          Arg_Name_Policy_Type,
-         CORBA.Internals.To_PolyORB_Any (Argument_Policy_Type),
+         PolyORB.Any.Any (Argument_Policy_Type),
          PolyORB.Any.ARG_IN);
 
       Result :=
         (Name      => PolyORB.Types.Identifier (Result_Name),
-         Argument  => CORBA.Internals.To_PolyORB_Any
-         (CORBA.Internals.Get_Empty_Any (CORBA.Policy.Helper.TC_Policy)),
+         Argument  => CORBA.Internals.Get_Empty_Any
+                        (CORBA.Policy.Helper.TC_Policy),
          Arg_Modes => 0);
 
       PolyORB.Requests.Create_Request
@@ -93,24 +96,11 @@ package body CORBA.DomainManager is
         (Request,
          PolyORB.Requests.Flags (0));
 
-      if not PolyORB.Any.Is_Empty (Request.Exception_Info) then
-         declare
-            Info : constant Standard.String
-              := PolyORB.CORBA_P.Exceptions.Extract_Ada_Exception_Information
-              (Request);
-
-         begin
-            Result.Argument := Request.Exception_Info;
-            PolyORB.Requests.Destroy_Request (Request);
-            PolyORB.CORBA_P.Exceptions.Raise_From_Any (Result.Argument, Info);
-         end;
-      end if;
+      PolyORB.CORBA_P.Exceptions.Request_Raise_Occurrence (Request);
 
       PolyORB.Requests.Destroy_Request (Request);
 
-      return
-        CORBA.Policy.Helper.From_Any
-        (CORBA.Internals.To_CORBA_Any (Result.Argument));
+      return CORBA.Policy.Helper.From_Any (CORBA.Any (Result.Argument));
    end Get_Domain_Policy;
 
    ----------

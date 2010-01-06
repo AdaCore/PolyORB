@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,9 +31,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Automatic initialization of PolyORB subsystems.
+--  Automatic initialization of PolyORB subsystems
 
-with PolyORB.Initialization.Exceptions;
 with PolyORB.Log;
 with PolyORB.Utils.Chained_Lists;
 
@@ -45,7 +44,6 @@ package body PolyORB.Initialization is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
-   pragma Unreferenced (C); --  For conditional pragma Debug
 
    use String_Lists;
 
@@ -61,11 +59,10 @@ package body PolyORB.Initialization is
 
    type Dependency is record
       Target   : Module_Access;
-      --  The module being depended upon.
+      --  The module being depended upon
 
       Optional : Boolean;
-      --  If True, failure to initialize the target is not a
-      --  fatal error.
+      --  If True, failure to initialize the target is not a fatal error
    end record;
 
    package Dep_Lists is new PolyORB.Utils.Chained_Lists (Dependency);
@@ -120,14 +117,14 @@ package body PolyORB.Initialization is
    -- Internal subprograms --
    --------------------------
 
-   procedure Raise_Program_Error (Msg : String)
-      renames Exceptions.Raise_Program_Error;
+   procedure Raise_Program_Error (Msg : String);
+   pragma No_Return (Raise_Program_Error);
+   --  Raise Program_Error with the given exception message
 
    procedure Check_Conflicts;
-   --  For each module, check that it does not conflict
-   --  with any other registered module. If no conflicts
-   --  are detected, the name of the modules and its aliases
-   --  (the names of the subsystems it implements) are entered
+   --  For each module, check that it does not conflict with any other
+   --  registered module. If no conflicts are detected, the name of the modules
+   --  and its aliases (the names of the subsystems it implements) are entered
    --  into the global World list.
 
    procedure Resolve_Dependencies;
@@ -240,14 +237,23 @@ package body PolyORB.Initialization is
 
             declare
                Name    : String renames Value (SI).all;
-               Virtual : Module_Access := Lookup_Module (Name);
+               Last    : Integer := Name'Last;
+               Virtual : Module_Access;
             begin
+               if Name (Last) = '!' then
+                  Last := Last - 1;
+                  String_Lists.Append
+                    (Current.Info.Conflicts, Name (Name'First .. Last));
+               end if;
+
+               Virtual := Lookup_Module (Name (Name'First .. Last));
                if Virtual = null then
                   Virtual := new Module (Virtual => True);
-                  Virtual.Name := Value (SI);
-                  Check_Duplicate (Name);
+                  Virtual.Name := new String'(Name (Name'First .. Last));
+                  Check_Duplicate (Virtual.Name.all);
                   Append (Init_Info.World, Virtual);
                end if;
+
                Prepend (Virtual.Deps, Dependency'(
                  Target   => Current,
                  Optional => False));
@@ -280,9 +286,35 @@ package body PolyORB.Initialization is
             Conflicting := Lookup_Module (Value (SI).all);
 
             if Conflicting /= null then
-               Raise_Program_Error
-                 ("Conflict between " & Module_Name (Current).all
-                  & " and " & Module_Name (Conflicting).all);
+               if Conflicting.Virtual then
+                  declare
+                     First_Provider : constant Module_Access :=
+                                        Value
+                                          (First (Conflicting.Deps)).Target;
+                  begin
+                     --  For a conflict against a virtual module, do not fail
+                     --  if Current is the only provider: the conflict entry
+                     --  means in this case "conflict with any other provider".
+
+                     if First_Provider = Current
+                          and then Length (Conflicting.Deps) = 1
+                     then
+                        null;
+                     else
+                        Raise_Program_Error
+                          ("Conflict between "
+                           & Module_Name (Current).all
+                           & " and "
+                           & Module_Name (Conflicting).all
+                           & " provided by "
+                           & Module_Name (First_Provider).all);
+                     end if;
+                  end;
+               else
+                  Raise_Program_Error
+                    ("Conflict between " & Module_Name (Current).all
+                     & " and " & Module_Name (Conflicting).all);
+               end if;
             end if;
 
             Next (SI);
@@ -299,13 +331,22 @@ package body PolyORB.Initialization is
    procedure Check_Duplicate (Name : String) is
       Duplicate : constant Module_Access := Lookup_Module (Name);
    begin
-      pragma Debug (O ("Registering " & Name));
+      pragma Debug (C, O ("Registering " & Name));
 
       if Duplicate /= null then
          Raise_Program_Error
            ("Conflict: " & Name & " already registered.");
       end if;
    end Check_Duplicate;
+
+   -------------------------
+   -- Raise_Program_Error --
+   -------------------------
+
+   procedure Raise_Program_Error (Msg : String) is
+   begin
+      raise Program_Error with Msg;
+   end Raise_Program_Error;
 
    --------------------------
    -- Resolve_Dependencies --
@@ -399,7 +440,7 @@ package body PolyORB.Initialization is
       while not Last (MI) loop
          Dep := Value (MI).all;
 
-         pragma Debug (O ("DEP: """
+         pragma Debug (C, O ("DEP: """
                           & Module_Name (M).all & """ -> """
                           & Module_Name (Dep.Target).all & """;"));
 
@@ -437,7 +478,7 @@ package body PolyORB.Initialization is
       end loop;
 
       M.Deps_In_Progress := False;
-      pragma Debug (O ("Processed dependencies of " & Module_Name (M).all));
+      pragma Debug (C, O ("Processed dependencies of " & Module_Name (M).all));
 
       if Get_Conf_Hook /= null and then
         not Utils.Strings.To_Boolean
@@ -516,7 +557,7 @@ package body PolyORB.Initialization is
          Raise_Program_Error ("Already initialized");
       end if;
 
-      pragma Debug (O ("Initializing PolyORB"));
+      pragma Debug (C, O ("Initializing PolyORB"));
 
       if Init_Info /= null then
 
@@ -575,15 +616,15 @@ package body PolyORB.Initialization is
       L : Module_Lists.List renames Init_Info.Shutdown_Order;
       M : Module_Access;
    begin
-      pragma Debug (O ("Shutting down PolyORB"));
+      pragma Debug (C, O ("Shutting down PolyORB"));
 
       while not Is_Empty (L) loop
          Extract_First (L, M);
-         pragma Debug (O ("Shutting down module " & Module_Name (M).all));
+         pragma Debug (C, O ("Shutting down module " & Module_Name (M).all));
          M.Info.Shutdown (Wait_For_Completion);
       end loop;
 
-      pragma Debug (O ("Shutdown of PolyORB completed"));
+      pragma Debug (C, O ("Shutdown of PolyORB completed"));
    end Shutdown_World;
 
 end PolyORB.Initialization;

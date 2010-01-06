@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -52,7 +52,7 @@ package PolyORB.Errors.Helper is
 
    function To_Any (Item : Completion_Status) return Any.Any;
 
-   function TC_Completion_Status return PolyORB.Any.TypeCode.Object;
+   function TC_Completion_Status return PolyORB.Any.TypeCode.Local_Ref;
    --  The typecode for standard enumeration type completion_status
 
    --  Null_Members
@@ -66,7 +66,7 @@ package PolyORB.Errors.Helper is
 
    function System_Exception_TypeCode
      (Name : Standard.String)
-     return PolyORB.Any.TypeCode.Object;
+     return PolyORB.Any.TypeCode.Local_Ref;
    --  Return the TypeCode corresponding to the indicated
    --  system exception name.
 
@@ -79,13 +79,13 @@ package PolyORB.Errors.Helper is
 
    --  Standard exceptions
 
-   function TC_Comm_Failure return PolyORB.Any.TypeCode.Object;
+   function TC_Comm_Failure return PolyORB.Any.TypeCode.Local_Ref;
 
-   function TC_Transient return PolyORB.Any.TypeCode.Object;
+   function TC_Transient return PolyORB.Any.TypeCode.Local_Ref;
 
-   function TC_No_Response return PolyORB.Any.TypeCode.Object;
+   function TC_No_Response return PolyORB.Any.TypeCode.Local_Ref;
 
-   function TC_Obj_Adapter return PolyORB.Any.TypeCode.Object;
+   function TC_Obj_Adapter return PolyORB.Any.TypeCode.Local_Ref;
 
    --  ForwardRequest_Members
 
@@ -97,7 +97,7 @@ package PolyORB.Errors.Helper is
      (Item : PolyORB.Any.Any)
       return ForwardRequest_Members;
 
-   function TC_ForwardRequest return PolyORB.Any.TypeCode.Object;
+   function TC_ForwardRequest return PolyORB.Any.TypeCode.Local_Ref;
 
    --  ForwardRequestPerm_Members
 
@@ -109,7 +109,7 @@ package PolyORB.Errors.Helper is
      (Item : PolyORB.Any.Any)
       return ForwardRequestPerm_Members;
 
-   function TC_ForwardRequestPerm return PolyORB.Any.TypeCode.Object;
+   function TC_ForwardRequestPerm return PolyORB.Any.TypeCode.Local_Ref;
 
    --  NeedsAddressingMode_Members
 
@@ -121,7 +121,7 @@ package PolyORB.Errors.Helper is
      (Item : PolyORB.Any.Any)
       return NeedsAddressingMode_Members;
 
-   function TC_NeedsAddressingMode return PolyORB.Any.TypeCode.Object;
+   function TC_NeedsAddressingMode return PolyORB.Any.TypeCode.Local_Ref;
 
    function Error_To_Any (Error : Error_Container) return PolyORB.Any.Any;
 

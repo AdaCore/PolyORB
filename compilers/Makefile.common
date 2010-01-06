@@ -1,5 +1,0 @@
-ADAFLAGS+=	-gnatg $(STD_ADAFLAGS)
-GNATMAKE_FLAGS=	 \
-	-cargs $(ADAFLAGS) \
-	-bargs $(BARGS) \
-	-margs $(EXTRA_GNATMAKE_FLAGS)

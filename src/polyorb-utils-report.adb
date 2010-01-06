@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -219,7 +219,7 @@ package body PolyORB.Utils.Report is
          Put_Line (Output_FH, "#");
          Put_Line (Output_FH, "set size 1.0, 0.4");
          Put_Line (Output_FH, "set grid");
-         Put_Line (Output_FH, "set terminal postscript eps portrait "
+         Put_Line (Output_FH, "set terminal postscript eps "
                    & "enhanced colour lw 2 ""Helvetica"" 14");
          Put_Line (Output_FH, "set out """ & Filename & ".eps""");
          Put_Line (Output_FH, "#");
@@ -253,7 +253,7 @@ package body PolyORB.Utils.Report is
          Put_Line (Output_FH, "#");
          Put_Line (Output_FH, "set size 1.0, 0.4");
          Put_Line (Output_FH, "set grid");
-         Put_Line (Output_FH, "set terminal postscript eps portrait "
+         Put_Line (Output_FH, "set terminal postscript eps "
                    & "enhanced colour lw 2 ""Helvetica"" 14");
          Put_Line (Output_FH, "set data style linespoints");
          Put_Line (Output_FH, "set out """ & Filename & ".eps""");

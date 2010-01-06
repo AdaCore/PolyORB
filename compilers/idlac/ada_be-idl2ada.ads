@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -169,7 +169,9 @@ private
       Expr : Node_Id;
       Typ  : Node_Id);
    --  Generate the representation of a constant expression. Expr is the
-   --  expression node, and Typ is the IDL type of the expression.
+   --  expression node, and Typ is the IDL type of the expression. Typ may be
+   --  No_Node for integer constants, in which case the context must expect
+   --  a Standard.Integer value.
 
    procedure Gen_Node_Default
      (CU   : in out Compilation_Unit;

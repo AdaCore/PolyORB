@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2004 Free Software Foundation, Inc.             --
+--         Copyright (C) 2004-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -65,7 +65,11 @@ begin
    declare
       use CORBA.Impl;
 
-      Ref1, Ref2, Ref3 : CORBA.Object.Ref;
+      Ignored_Ref : CORBA.Object.Ref;
+      pragma Warnings (Off, Ignored_Ref);
+      --  WAGCC4.2: kill warning on use of Ignored_Ref
+
+      pragma Unreferenced (Ignored_Ref);  --  Just passed to Initiate_Servant.
       Group : CORBA.Object.Ref;
 
       Policies : CORBA.Policy.PolicyList;
@@ -93,9 +97,9 @@ begin
         := Servant_To_Id (GOA, PortableServer.Servant (Obj3));
 
    begin
-      Initiate_Servant (PortableServer.Servant (Obj1), Ref1);
-      Initiate_Servant (PortableServer.Servant (Obj2), Ref2);
-      Initiate_Servant (PortableServer.Servant (Obj3), Ref3);
+      Initiate_Servant (PortableServer.Servant (Obj1), Ignored_Ref);
+      Initiate_Servant (PortableServer.Servant (Obj2), Ignored_Ref);
+      Initiate_Servant (PortableServer.Servant (Obj3), Ignored_Ref);
 
       CORBA.ORB.String_To_Object
         (CORBA.To_CORBA_String

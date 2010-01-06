@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2000-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2000-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -57,7 +57,6 @@ package body SOAP.Types is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
-   pragma Unreferenced (C); --  For conditional pragma Debug
    --  the polyorb logging facility
 
    procedure Free is
@@ -908,7 +907,7 @@ package body SOAP.Types is
          declare
             use Ada.Streams;
 
-            Sq_Type : PolyORB.Any.TypeCode.Object
+            Sq_Type : constant PolyORB.Any.TypeCode.Local_Ref
               := PolyORB.Any.TypeCode.TC_Sequence;
             Byte_Stream : constant Ada.Streams.Stream_Element_Array
               := AWS.Translator.Base64_Decode (V (SOAP_Base64 (Obj)));
@@ -937,11 +936,11 @@ package body SOAP.Types is
       elsif Obj in SOAP_Array then
          declare
             use PolyORB.Any;
-            Ar_Type : PolyORB.Any.TypeCode.Object
-              := PolyORB.Any.TypeCode.TC_Array;
+            Ar_Type : constant PolyORB.Any.TypeCode.Local_Ref :=
+                        PolyORB.Any.TypeCode.TC_Array;
          begin
 
-            pragma Debug (O ("To_Any: SOAP_Array: nb of elements= "
+            pragma Debug (C, O ("To_Any: SOAP_Array: nb of elements= "
                              & Natural'Image (Size (SOAP_Array (Obj)))));
 
             PolyORB.Any.TypeCode.Add_Parameter
@@ -951,8 +950,8 @@ package body SOAP.Types is
             PolyORB.Any.TypeCode.Add_Parameter
               (Ar_Type,
                To_Any
-               (Get_Unwound_Type
-                (To_Any (-(SOAP_Array (Obj).O (SOAP_Array (Obj).O'First))))));
+               (TypeCode.To_Ref (Get_Unwound_Type
+                (To_Any (-(SOAP_Array (Obj).O (SOAP_Array (Obj).O'First)))))));
 
             --  We first build the typecode.
 
@@ -972,8 +971,8 @@ package body SOAP.Types is
          declare
             use PolyORB.Any;
 
-            St_Type : PolyORB.Any.TypeCode.Object
-              := PolyORB.Any.TypeCode.TC_Struct;
+            St_Type : constant PolyORB.Any.TypeCode.Local_Ref :=
+                        PolyORB.Any.TypeCode.TC_Struct;
          begin
             PolyORB.Any.TypeCode.Add_Parameter
               (St_Type,
@@ -985,12 +984,13 @@ package body SOAP.Types is
                                    ("repository_id")));
             for K in SOAP_Record (Obj).O'Range loop
                PolyORB.Any.TypeCode.Add_Parameter
-                 (St_Type, To_Any (Get_Unwound_Type
-                                   (To_Any (-(SOAP_Record (Obj).O (K))))));
+                 (St_Type, To_Any (TypeCode.To_Ref (Get_Unwound_Type
+                                   (To_Any (-(SOAP_Record (Obj).O (K)))))));
                --  thus we get the type
 
                declare
-                  The_Element : Object'Class := -(SOAP_Record (Obj).O (K));
+                  The_Element : constant Object'Class :=
+                                  -(SOAP_Record (Obj).O (K));
                begin
                   PolyORB.Any.TypeCode.Add_Parameter
                     (St_Type, PolyORB.Any.To_Any
@@ -1035,7 +1035,7 @@ package body SOAP.Types is
         := PolyORB.Any.TypeCode.Kind
         (PolyORB.Any.Get_Unwound_Type (Item));
    begin
-      pragma Debug (O ("From_Any: handling an Any of type "
+      pragma Debug (C, O ("From_Any: handling an Any of type "
                        & PolyORB.Any.Image (Get_Unwound_Type (Item))));
 
       if Kind_Of_Any = Tk_Null then
@@ -1108,7 +1108,7 @@ package body SOAP.Types is
             then
                raise Data_Error;
             else
-               pragma Debug (O ("From_Any: Tk_Sequence (base 64): "
+               pragma Debug (C, O ("From_Any: Tk_Sequence (base 64): "
                                 & "attempting to retrieve"
                                 & Unsigned_Long'Image (Number_Of_Elements)
                                 & " octets"));
@@ -1118,7 +1118,7 @@ package body SOAP.Types is
                        := PolyORB.Any.From_Any
                        (PolyORB.Any.Get_Aggregate_Element
                         (Item, PolyORB.Any.TypeCode.TC_Octet,
-                         Unsigned_Long (Index)));
+                         Index));
                   begin
                      Byte_Stream (Stream_Element_Offset (Index))
                        := Stream_Element (Element);
@@ -1137,11 +1137,11 @@ package body SOAP.Types is
               := Unsigned_Long (PolyORB.Any.TypeCode.Length
                                 (PolyORB.Any.Get_Type (Item)));
 
-            pragma Debug (O ("From_Any: Tk_Array: nb of elements= "
+            pragma Debug (C, O ("From_Any: Tk_Array: nb of elements= "
                              & Unsigned_Long'Image (Number_Of_Elements)));
 
             OS : Object_Set (1 .. Integer (Number_Of_Elements));
-            PolyORB_Type_Of_Elements : constant PolyORB.Any.TypeCode.Object
+            PolyORB_Type_Of_Elements : constant PolyORB.Any.TypeCode.Local_Ref
               := PolyORB.Any.TypeCode.Content_Type
               (PolyORB.Any.Get_Type (Item));
          begin
@@ -1155,7 +1155,7 @@ package body SOAP.Types is
                       (Index - 1)));
                begin
                   New_Object.Name := To_Unbounded_String ("item");
-                  pragma Debug (O ("From_Any: Tk_Array: index="
+                  pragma Debug (C, O ("From_Any: Tk_Array: index="
                                    & Positive'Image (Positive (Index))));
                   OS (Positive (Index)) := +(New_Object.all);
                end;
@@ -1175,7 +1175,7 @@ package body SOAP.Types is
          begin
             for Index in 1 .. Number_Of_Elements loop
                declare
-                  Element : PolyORB.Any.Any :=
+                  Element : constant PolyORB.Any.Any :=
                     (PolyORB.Any.Get_Aggregate_Element
                      (Item, PolyORB.Any.TypeCode.Member_Type
                       (PolyORB.Any.Get_Type (Item), Index - 1),
@@ -1193,7 +1193,7 @@ package body SOAP.Types is
             return new SOAP_Record'(R (OS, "item"));
          end;
       else
-         pragma Debug (O ("From_Any: no handler found for TCKind "
+         pragma Debug (C, O ("From_Any: no handler found for TCKind "
                           & Image (Get_Unwound_Type (Item)), Critical));
          raise Data_Error;
       end if;

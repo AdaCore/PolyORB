@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -45,7 +45,6 @@ package body PolyORB.Request_QoS is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
-   pragma Unreferenced (C); --  For conditional pragma Debug
 
    Call_Back_Array : array (QoS_Kind'Range) of Fetch_QoS_CB;
 
@@ -162,11 +161,11 @@ package body PolyORB.Request_QoS is
       A_Parameter : QoS_Parameter_Access;
 
    begin
-      pragma Debug (O ("Fetch_Qos: enter"));
+      pragma Debug (C, O ("Fetch_QoS: enter"));
 
       for J in Call_Back_Array'Range loop
          if Call_Back_Array (J) /= null then
-            pragma Debug (O ("Fetching QoS parameters for "
+            pragma Debug (C, O ("Fetching QoS parameters for "
                              & QoS_Kind'Image (J)));
 
             A_Parameter := Call_Back_Array (J) (Ref);
@@ -177,7 +176,7 @@ package body PolyORB.Request_QoS is
          end if;
       end loop;
 
-      pragma Debug (O ("Fetch_Qos: leave"));
+      pragma Debug (C, O ("Fetch_QoS: leave"));
       return Result;
    end Fetch_QoS;
 
@@ -215,7 +214,7 @@ package body PolyORB.Request_QoS is
 
    procedure Register (Kind : QoS_Kind; CB : Fetch_QoS_CB) is
    begin
-      pragma Debug (O ("Registering call back for "
+      pragma Debug (C, O ("Registering call back for "
                        & QoS_Kind'Image (Kind)));
 
       pragma Assert (Call_Back_Array (Kind) = null);

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -41,10 +41,12 @@ package body PolyORB.Security.Identities is
    use PolyORB.Log;
    use PolyORB.Security.Types;
 
-   package L is
-     new PolyORB.Log.Facility_Log ("polyorb.security.identity_tokens");
-   procedure O (Message : in String; Level : Log_Level := Debug)
-      renames L.Output;
+   package L is new PolyORB.Log.Facility_Log
+     ("polyorb.security.identity_tokens");
+   procedure O (Message : String; Level : Log_Level := Debug)
+     renames L.Output;
+   function C (Level : Log_Level := Debug) return Boolean
+     renames L.Enabled;
 
    type Registry_Item is record
       Kind        : PolyORB.Security.Types.Identity_Token_Type;
@@ -119,7 +121,7 @@ package body PolyORB.Security.Identities is
    is
    begin
       pragma Debug
-        (O ("Register identity token type:"
+        (C, O ("Register identity token type:"
          & Identity_Token_Type'Image (Kind)));
       Registry_Item_Lists.Append (Registry, (Kind, Constructor));
    end Register;

@@ -37,15 +37,16 @@ EOF
 cat > conftest/gnat.adc <<EOF
 [$4]
 EOF
-ac_try="cd conftest && $GNATCHOP -q src.ada && $1 $2 > /dev/null 2>../conftest.out"
-if AC_TRY_EVAL(ac_try); then
-  ifelse([$5], , :, [rm -rf conftest*
-  $5])
+dnl The ":" lines below ensure that neither branch of the "if" is empty
+if AC_TRY_COMMAND([cd conftest && $GNATCHOP -q src.ada && $1 $2 > /dev/null 2>../conftest.out])
+then
+  : Success
+  $5
 else
-  ifelse([$6], , :, [ rm -rf conftest*
-  $6])
+  : Failure
+  $6
 fi
-rm -f conftest*])
+rm -fr conftest*])
 
 dnl Usage: AM_TRY_ADA_CONFPRAGMA(pragma, success, failure)
 dnl Check whether a given configuration pragma is supported.
@@ -54,6 +55,14 @@ AC_DEFUN([AM_TRY_ADA_CONFPRAGMA],
 [AC_REQUIRE([AM_CROSS_PROG_GNATMAKE])
 AM_TRY_ADA($GNATMAKE_FOR_TARGET,[check.adb],
 [procedure Check is begin null; end Check;],[$1],[$2],[$3])])
+
+dnl Usage: AM_TRY_ADA_COMPILER_SWITCH(switch, success, failure)
+dnl Check whether a given compiler command line switch is supported.
+
+AC_DEFUN([AM_TRY_ADA_COMPILER_SWITCH],
+[AC_REQUIRE([AM_CROSS_PROG_GNATMAKE])
+AM_TRY_ADA([$GNATMAKE_FOR_TARGET $1],[check.adb],
+[procedure Check is begin null; end Check;],[],[$2],[$3])])
 
 dnl Usage: AM_PROG_WORKING_ADA
 dnl Try to compile a simple Ada program to test the compiler installation
@@ -130,7 +139,7 @@ AC_CHECK_PROGS(GNATMAKE, gnatmake)])
 
 dnl Usage: AM_CROSS_PROG_GNATMAKE
 dnl Look for gnatmake for the target (same as the host one if host and
-dnl target are equal)
+dnl target are equal). Sets GNATMAKE_FOR_TARGET and GNAT_DRIVER_FOR_TARGET.
 
 AC_DEFUN([AM_CROSS_PROG_GNATMAKE],
 [AC_REQUIRE([AM_PROG_WORKING_ADA])
@@ -140,6 +149,18 @@ AC_DEFUN([AM_CROSS_PROG_GNATMAKE],
  else
    AC_CHECK_PROGS(GNATMAKE_FOR_TARGET, [$target_alias-$GNATMAKE $target-$GNATMAKE])
  fi
+ GNAT_DRIVER_FOR_TARGET=`echo $GNATMAKE_FOR_TARGET | sed 's/make$//'`
+ AC_SUBST(GNAT_DRIVER_FOR_TARGET)
+
+ AC_MSG_CHECKING([whether $GNATMAKE_FOR_TARGET supports -aPdir])
+ if AC_TRY_COMMAND([gnatmake 2>&1 | grep " -aPdir" > /dev/null])
+ then
+   HAVE_GNATMAKE_APDIR=yes
+ else
+   HAVE_GNATMAKE_APDIR=no
+ fi
+ AC_MSG_RESULT($HAVE_GNATMAKE_APDIR)
+ AC_SUBST(HAVE_GNATMAKE_APDIR)
 ])
 
 dnl Usage: AM_CROSS_PROG_GNATLS
@@ -169,6 +190,28 @@ AC_DEFUN([AM_CROSS_PROG_CC],
    AC_CHECK_PROGS(CC_FOR_TARGET, [$target_alias-$CC $target-$CC])
  fi
 ])
+
+dnl Usage: AM_HAS_GNAT_PROJECT(project)
+dnl Check whether a given project file is available, and set
+dnl HAVE_GNAT_PROJECT_<project> to "yes" or "no" accordingly.
+
+AC_DEFUN([AM_HAS_GNAT_PROJECT],
+[AC_REQUIRE([AM_CROSS_PROG_GNATMAKE])
+AC_MSG_CHECKING([whether GNAT project $1.gpr is available])
+mkdir conftest
+cat > conftest/check.gpr <<EOF
+with "[$1]";
+project Check is for Source_Files use (); end Check;
+EOF
+if AC_TRY_COMMAND([cd conftest && $GNAT_DRIVER_FOR_TARGET ls -Pcheck system.ads > /dev/null 2>../conftest.out])
+then
+  HAVE_GNAT_PROJECT_$1=yes
+else
+  HAVE_GNAT_PROJECT_$1=no
+fi
+AC_MSG_RESULT($HAVE_GNAT_PROJECT_$1)
+AC_SUBST(HAVE_GNAT_PROJECT_$1)
+rm -fr conftest])
 
 dnl Usage: AM_HAS_GNAT_SOCKETS_COPY
 dnl Determine whether GNAT.Sockets has a Copy operation.
@@ -276,6 +319,20 @@ SUPPRESS_VALIDITY_USE_RANGE=""])
 AC_SUBST(SUPPRESS_VALIDITY_USE_VALIDITY)
 AC_SUBST(SUPPRESS_VALIDITY_USE_RANGE)])
 
+dnl Usage: AM_HAS_STYLESW_YG
+dnl Test whether the style checking switch -gnatyg (apply GNAT style checks)
+dnl is supported.
+
+AC_DEFUN([AM_HAS_STYLESW_YG],
+[AC_REQUIRE([AM_CROSS_PROG_GNATMAKE])
+AC_MSG_CHECKING([whether GNAT style checks are available])
+AM_TRY_ADA_COMPILER_SWITCH([-gnatyg],
+[AC_MSG_RESULT(yes)
+STYLE_SWITCH="-gnatyg"],
+[AC_MSG_RESULT(no, falling back to -gnaty)
+STYLE_SWITCH="-gnaty"])
+AC_SUBST(STYLE_SWITCH)])
+
 dnl Usage: AM_SUPPORT_RPC_ABORTION
 dnl For GNAT 5 or later with ZCX, we cannot support RPC abortion. In this
 dbl case, RPC execution may fail even when not aborted. Remove this feature
@@ -292,6 +349,9 @@ am_gnatlib_dir=`dirname $am_system_ads`
 am_gnatlib_dir=`dirname $am_gnatlib_dir`
 am_gnat_zcx_by_default=`$SED -ne 's/ZCX_By_Default.*:= *\(.*\);$/\1/p' \
   $am_system_ads`
+if test -z "$am_gnat_zcx_by_default"; then
+  am_gnat_zcx_by_default=False
+fi
 if test $am_gnat_major_version -ge "5"; then
   if test $am_gnat_zcx_by_default = "True"; then
     if test $SUPPORT_RPC_ABORTION = "True"; then
@@ -314,3 +374,63 @@ else
   EXCEPTION_MODEL="sjlj"
 fi
 ])
+
+dnl Usage: AM_ARG_ENABLE_POLICY(what, default)
+dnl Allow user to set configuration pragmas Assertion_Policy and Debug_Policy.
+dnl The provided default value may be overridden by earlier configure.ac
+dnl macros by setting xxx_POLICY_DEFAULT.
+
+define([downcase], [translit([$1], [A-Z], [a-z])])
+define([upcase], [translit([$1], [a-z], [A-Z])])
+
+AC_DEFUN([AM_ARG_ENABLE_POLICY],
+[
+define([_argname],downcase($1)[-policy])
+define([_varname],upcase($1)[_POLICY])
+define([_defname],upcase($1)[_POLICY_DEFAULT])
+_varname=${_defname:=$2}
+AC_ARG_ENABLE(_argname,
+AS_HELP_STRING([--enable-]_argname[=(Check|Ignore)], [Set ]$1[ policy @<:@default=$2@:>@]),
+[
+  case "`echo "${enableval}" | tr A-Z a-z`" in
+    yes|check) _varname=Check ;;
+    no|ignore) _varname=Ignore ;;
+    *) AC_MSG_ERROR("Invalid $1 policy identifier: ${enableval}") ;;
+  esac
+])
+AC_SUBST(_varname)
+undefine([_argname])
+undefine([_varname])
+undefine([_defname])
+])
+
+dnl Usage: AM_HAS_ATOMIC_INCDEC32
+dnl Determine whether platform/GNAT supports atomic increment/decrement
+dnl operations
+
+AC_DEFUN([AM_HAS_INTRINSIC_SYNC_COUNTERS],
+[AC_REQUIRE([AM_CROSS_PROG_GNATMAKE])
+AC_MSG_CHECKING([whether platform supports atomic increment/decrement])
+AM_TRY_ADA($GNATMAKE_FOR_TARGET,[check.adb],
+[
+with Interfaces; use Interfaces;
+procedure Check is
+   function Sync_Add_And_Fetch
+     (Ptr   : access Interfaces.Integer_32;
+      Value : Interfaces.Integer_32) return Interfaces.Integer_32;
+   pragma Import (Intrinsic, Sync_Add_And_Fetch, "__sync_add_and_fetch_4");
+   X : aliased Interfaces.Integer_32;
+   Y : Interfaces.Integer_32 := 0;
+   pragma Volatile (Y);
+   --  On some platforms (e.g. i386), GCC has limited support for
+   --  __sync_add_and_fetch_4 for the case where the result is not used.
+   --  Here we want to test for general availability, so make Y volatile to
+   --  prevent the store operation from being discarded.
+begin
+   Y := Sync_Add_And_Fetch (X'Access, 1);
+end Check;
+], [], [AC_MSG_RESULT(yes)
+SYNC_COUNTERS_IMPL="intrinsic"],
+[AC_MSG_RESULT(no)
+SYNC_COUNTERS_IMPL="mutex"])
+AC_SUBST(SYNC_COUNTERS_IMPL)])

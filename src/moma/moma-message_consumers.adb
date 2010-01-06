@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -171,14 +171,15 @@ package body MOMA.Message_Consumers is
    is
       use type PolyORB.Tasking.Priorities.External_Priority;
 
-      Argument_Mesg : PolyORB.Any.Any := PolyORB.Any.To_Any
-        (To_PolyORB_String (""));
+      Argument_Mesg : constant PolyORB.Any.Any :=
+                        PolyORB.Any.To_Any (To_PolyORB_String (""));
       --  XXX Temporary hack, should pass message filter ... or not ?
 
       Request        : PolyORB.Requests.Request_Access;
       Arg_List       : PolyORB.Any.NVList.Ref;
       Result         : PolyORB.Any.NamedValue;
-      Result_Name    : PolyORB.Types.String := To_PolyORB_String ("Result");
+      Result_Name    : constant PolyORB.Types.String :=
+                         To_PolyORB_String ("Result");
    begin
       PolyORB.Any.NVList.Create (Arg_List);
 

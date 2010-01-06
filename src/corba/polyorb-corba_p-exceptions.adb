@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,13 +31,10 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with CORBA;
-
 with PolyORB.Errors.Helper;
 with PolyORB.Exceptions;
 with PolyORB.Log;
 with PolyORB.QoS.Exception_Informations;
-with PolyORB.Request_QoS;
 with PolyORB.Types;
 
 package body PolyORB.CORBA_P.Exceptions is
@@ -56,67 +53,15 @@ package body PolyORB.CORBA_P.Exceptions is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
-   pragma Unreferenced (C); --  For conditional pragma Debug
-
-   ---------------------------------------
-   -- Extract_Ada_Exception_Information --
-   ---------------------------------------
-
-   function Extract_Ada_Exception_Information
-     (Request : PolyORB.Requests.Request_Access) return String
-   is
-      use PolyORB.QoS.Exception_Informations;
-
-      QoS : constant QoS_Ada_Exception_Information_Parameter_Access :=
-              QoS_Ada_Exception_Information_Parameter_Access
-                (PolyORB.Request_QoS.Extract_Reply_Parameter
-                  (PolyORB.QoS.Ada_Exception_Information, Request));
-
-   begin
-      if QoS /= null then
-         declare
-            S : constant String :=
-                  PolyORB.Types.To_Standard_String (QoS.Exception_Information);
-            Last : Integer := S'First + 150;
-         begin
-            if Last > S'Last then
-               Last := S'Last;
-            end if;
-            return "<Invocation Exception Info: " & S (S'First .. Last) & ">";
-         end;
-      else
-         return "";
-      end if;
-   end Extract_Ada_Exception_Information;
-
-   -----------------------------------
-   -- Set_Ada_Exception_Information --
-   -----------------------------------
-
-   procedure Set_Ada_Exception_Information
-     (Request : PolyORB.Requests.Request_Access;
-      Message : Standard.String)
-   is
-      use PolyORB.QoS.Exception_Informations;
-
-   begin
-      PolyORB.Request_QoS.Add_Reply_QoS
-      (Request,
-       PolyORB.QoS.Ada_Exception_Information,
-       new QoS_Ada_Exception_Information_Parameter'
-       (Kind                  => PolyORB.QoS.Ada_Exception_Information,
-        Exception_Information => PolyORB.Types.To_PolyORB_String (Message)));
-   end Set_Ada_Exception_Information;
 
    ------------------------
    -- Is_Forward_Request --
    ------------------------
 
    function Is_Forward_Request
-     (Occurrence : PolyORB.Any.Any)
-      return Boolean
+     (Occurrence : PolyORB.Any.Any) return Boolean
    is
-      use type PolyORB.Any.TypeCode.Object;
+      use type PolyORB.Any.TypeCode.Local_Ref;
    begin
       return not Is_Empty (Occurrence)
         and then Get_Type (Occurrence) = TC_ForwardRequest;
@@ -130,7 +75,7 @@ package body PolyORB.CORBA_P.Exceptions is
      (Occurrence : PolyORB.Any.Any)
      return Boolean
    is
-      use type PolyORB.Any.TypeCode.Object;
+      use type PolyORB.Any.TypeCode.Local_Ref;
 
    begin
       return not Is_Empty (Occurrence)
@@ -168,8 +113,8 @@ package body PolyORB.CORBA_P.Exceptions is
      (Occurrence : Any.Any;
       Message    : String := "")
    is
-      Repository_Id : constant PolyORB.Types.RepositoryId
-        := Any.TypeCode.Id (PolyORB.Any.Get_Type (Occurrence));
+      Repository_Id : constant PolyORB.Types.RepositoryId :=
+                        Any.TypeCode.Id (PolyORB.Any.Get_Type (Occurrence));
 
       EId : constant String := To_Standard_String (Repository_Id);
 
@@ -178,7 +123,7 @@ package body PolyORB.CORBA_P.Exceptions is
       Error    : Error_Container;
 
    begin
-      pragma Debug (O ("Raise_From_Any: enter"));
+      pragma Debug (C, O ("Raise_From_Any: enter"));
 
       Exception_Name_To_Error_Id (EId, Is_Error, Id);
 
@@ -195,11 +140,11 @@ package body PolyORB.CORBA_P.Exceptions is
                Error.Member := new Null_Members'(Null_Member);
          end case;
 
-         pragma Debug (O ("Raising " & Error_Id'Image (Error.Kind)));
+         pragma Debug (C, O ("Raising " & Error_Id'Image (Error.Kind)));
          Raise_From_Error (Error, Message);
 
       else
-         pragma Debug (O ("Raising " & EId));
+         pragma Debug (C, O ("Raising " & EId));
          Raise_User_Exception_From_Any (Repository_Id, Occurrence, Message);
       end if;
 
@@ -212,32 +157,38 @@ package body PolyORB.CORBA_P.Exceptions is
    -----------------------------
 
    function System_Exception_To_Any
+     (E : Ada.Exceptions.Exception_Occurrence) return CORBA.Any is
+   begin
+      return CORBA.Any (PolyORB.Any.Any'(System_Exception_To_Any (E)));
+   end System_Exception_To_Any;
+
+   function System_Exception_To_Any
      (E : Ada.Exceptions.Exception_Occurrence)
       return PolyORB.Any.Any
    is
       Repository_Id : RepositoryId;
       Members       : CORBA.System_Exception_Members;
-      TC            : TypeCode.Object;
-      Result        : Any.Any;
+      TC            : PolyORB.Any.TypeCode.Local_Ref;
+      Result        : PolyORB.Any.Any;
 
    begin
-      pragma Debug (O ("System_Exception_To_Any: enter."));
-      pragma Debug (O ("Exception_Name: " & Exception_Name (E)));
-      pragma Debug (O ("Exception_Message: " & Exception_Message (E)));
+      pragma Debug (C, O ("System_Exception_To_Any: enter."));
+      pragma Debug (C, O ("Exception_Name: " & Exception_Name (E)));
+      pragma Debug (C, O ("Exception_Message: " & Exception_Message (E)));
 
       begin
-         Repository_Id := Occurrence_To_Name (E);
+         Repository_Id := To_PolyORB_String (Occurrence_To_Name (E));
          CORBA.Get_Members (E, Members);
       exception
          when others =>
-            pragma Debug (O ("No matching system exception found, "
-                             & "will use CORBA.UNKNOWN"));
-            Repository_Id := To_PolyORB_String ("CORBA.UNKNOWN");
+            pragma Debug (C, O ("No matching system exception found, "
+                             & "will use CORBA/UNKNOWN"));
+            Repository_Id := To_PolyORB_String ("CORBA/UNKNOWN");
             Members := (1, CORBA.Completed_Maybe);
       end;
 
       declare
-         CORBA_Exception_Namespace : constant String := "CORBA.";
+         CORBA_Exception_Namespace : constant String := "CORBA/";
          --  All CORBA System exceptions are prefixed by this string
 
          Name : constant String := To_Standard_String (Repository_Id);
@@ -253,15 +204,12 @@ package body PolyORB.CORBA_P.Exceptions is
       end;
 
       Result := Get_Empty_Any_Aggregate (TC);
-      Add_Aggregate_Element
-        (Result,
-         CORBA.Internals.To_PolyORB_Any (CORBA.To_Any (Members.Minor)));
+      Add_Aggregate_Element (Result,
+         PolyORB.Any.Any (CORBA.To_Any (Members.Minor)));
+      Add_Aggregate_Element (Result,
+        PolyORB.Any.Any (CORBA.To_Any (Members.Completed)));
 
-      Add_Aggregate_Element
-        (Result,
-         CORBA.Internals.To_PolyORB_Any (CORBA.To_Any (Members.Completed)));
-
-      pragma Debug (O ("System_Exception_To_Any: leave"));
+      pragma Debug (C, O ("System_Exception_To_Any: leave"));
       return Result;
    end System_Exception_To_Any;
 
@@ -274,32 +222,81 @@ package body PolyORB.CORBA_P.Exceptions is
       Message : String := "")
    is
    begin
-      pragma Debug (O ("About to raise exception: "
+      pragma Debug (C, O ("About to raise exception: "
                        & Error_Id'Image (Error.Kind)));
 
       pragma Assert (Is_Error (Error));
 
       if Error.Kind in ORB_System_Error then
-         pragma Debug (O ("Raising CORBA Exception"));
+         pragma Debug (C, O ("Raising CORBA Exception"));
          CORBA_Raise_From_Error (Error, Message);
 
       elsif Error.Kind in POA_Error then
-         pragma Debug (O ("Raising PORTABLESERVER.POA Exception"));
+         pragma Debug (C, O ("Raising PORTABLESERVER.POA Exception"));
          POA_Raise_From_Error (Error, Message);
 
       elsif Error.Kind in POAManager_Error then
-         pragma Debug (O ("Raising PORTABLESERVER.POAManager Exception"));
+         pragma Debug (C, O ("Raising PORTABLESERVER.POAManager Exception"));
          POAManager_Raise_From_Error (Error, Message);
 
       elsif Error.Kind in PolyORB_Internal_Error then
          --  PolyORB internal errors are mapped to CORBA.Unknown
 
-         pragma Debug (O ("Raising CORBA.UNKNOWN"));
+         pragma Debug (C, O ("Raising CORBA.UNKNOWN"));
          CORBA.Raise_Unknown (CORBA.Default_Sys_Member);
       end if;
 
       raise Program_Error;
       --  Never reached (Raiser raises an exception.)
    end Raise_From_Error;
+
+   ------------------------------
+   -- Request_Raise_Occurrence --
+   ------------------------------
+
+   procedure Request_Raise_Occurrence (R : in out Requests.Request_Access) is
+   begin
+      if not Any.Is_Empty (R.Exception_Info) then
+         declare
+            Exception_Occurrence : constant Any.Any := R.Exception_Info;
+            Exception_Information :
+              constant String :=
+                PolyORB.QoS.Exception_Informations.
+                  Get_Exception_Information (R);
+            Last : Integer;
+         begin
+            Requests.Destroy_Request (R);
+
+            --  Truncate exception information to first 150 characters
+
+            if Exception_Information'Length <= 150 then
+               Last := Exception_Information'Last;
+            else
+               Last := Exception_Information'First + 149;
+            end if;
+
+            --  Strip trailing newline
+
+            if Last >= Exception_Information'First
+              and then Exception_Information (Last) = ASCII.LF
+            then
+               Last := Last - 1;
+            end if;
+
+            --  Raise exception, including original exception information if
+            --  present.
+
+            if Last >= Exception_Information'First then
+               Raise_From_Any
+                 (Exception_Occurrence,
+                  "<Original exception info: "
+                  & Exception_Information (Exception_Information'First .. Last)
+                  & ">");
+            else
+               Raise_From_Any (Exception_Occurrence);
+            end if;
+         end;
+      end if;
+   end Request_Raise_Occurrence;
 
 end PolyORB.CORBA_P.Exceptions;

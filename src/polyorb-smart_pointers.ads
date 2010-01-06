@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -32,8 +32,7 @@
 ------------------------------------------------------------------------------
 
 with Ada.Finalization;
-
-with PolyORB.Tasking.Mutexes;
+with Interfaces;
 
 package PolyORB.Smart_Pointers is
 
@@ -45,62 +44,41 @@ package PolyORB.Smart_Pointers is
 
    type Unsafe_Entity is abstract tagged limited private;
 
+   function Is_Controlled (X : Unsafe_Entity) return Boolean;
+   --  False expect for derived type from Smart_Pointers.Controlled_Entities
+
    procedure Finalize (X : in out Unsafe_Entity);
-   --  Unsafe_Entity is the base type of all objects that can be
-   --  referenced. It contains a Counter, which is the number of
-   --  references to this object, and is automatically destroyed when
-   --  the counter reaches 0. Before the entity is destroyed,
-   --  the Finalize operation is called. NOTE however that
-   --  Unsafe_Entity is *not* a controlled type: Finalize
-   --  is *only* called when an Entity is destroyed as a result
-   --  of its reference counter dropping to 0.
+   --  Unsafe_Entity is the base type of all objects that can be referenced.
+   --  It contains a Counter, which is the number of references to this
+   --  object, and is automatically destroyed when the counter reaches 0.
+   --  Before the entity is destroyed, the Finalize operation is called.
+   --  NOTE however that Unsafe_Entity is *not* a controlled type: Finalize
+   --  is *only* called when an Entity is destroyed as a result of its
+   --  reference counter dropping to 0.
 
    type Entity_Ptr is access all Unsafe_Entity'Class;
 
-   procedure Entity_Lock (X : in out Unsafe_Entity);
-   procedure Entity_Unlock (X : in out Unsafe_Entity);
-   --  Lock/unlock operations to be overloaded by derived types
-   --  if they need to be made task-safe. These operations must
-   --  guarantee mutual exclusion on accesses to the reference
-   --  counter.
-
-   function Reference_Counter (Obj : Unsafe_Entity) return Integer;
-   --  Return the value of Obj's reference counter.
-   --  This function is not task safe, and must not be used for anything but
-   --  debugging and the checking of assertions.
+   procedure Disable_Reference_Counting (Obj : in out Unsafe_Entity'Class);
+   --  Disable reference counting on Obj. No attempt will then be made to keep
+   --  track of references, and no automatic deallocation will occur after the
+   --  last reference is used. This is intended primarily for library-level
+   --  entities.
 
    ----------------------
    -- Task-safe entity --
    ----------------------
 
    type Non_Controlled_Entity is abstract new Unsafe_Entity with private;
-   --  Same as Unsafe_Entity, but accesses to the reference counter are
-   --  made task safe through calls to the Entity_Lock and Entity_Unlock
-   --  operations.
-
-   procedure Entity_Lock (X : in out Non_Controlled_Entity);
-   procedure Entity_Unlock (X : in out Non_Controlled_Entity);
-   --  Mutex operations
-
-   ---------------------------------
-   -- Controlled task-safe entity --
-   ---------------------------------
-
-   type Entity is abstract new Non_Controlled_Entity with private;
-
-   procedure Initialize (X : in out Entity);
-   --  An entity that is a controlled object. Contrary to
-   --  Non_Controlled_Entity, the Finalize operation is called
-   --  whenever the entity is finalized.
+   --  Same as Unsafe_Entity
 
    ---------
    -- Ref --
    ---------
 
    type Ref is new Ada.Finalization.Controlled with private;
-   --  The base type of all references. This type is often derived
-   --  but never extended. It contains one field, which designates
-   --  the referenced object.
+   pragma Preelaborable_Initialization (Ref);
+   --  The base type of all references. This type is often derived but never
+   --  extended. It contains one field, which designates the referenced object.
 
    procedure Adjust     (The_Ref : in out Ref);
    procedure Finalize   (The_Ref : in out Ref);
@@ -121,22 +99,15 @@ package PolyORB.Smart_Pointers is
    --  to a valid Entity object (even in the latter case). This allows a
    --  reference to be reconstructed from a saved Entity_Ptr value, ensuring
    --  that the designated entity is not being finalized.
+   --  The_Ref is expected to be nil before the call.
 
-   procedure Unref (The_Ref : in out Ref)
-     renames Finalize;
+   procedure Unref (The_Ref : in out Ref) renames Finalize;
+   procedure Release (The_Ref : in out Ref) renames Finalize;
 
    function Is_Nil (The_Ref : Ref) return Boolean;
    --  True iff The_Ref is a nil reference
 
-   function Is_Null (The_Ref : Ref) return Boolean
-     renames Is_Nil;
-
-   procedure Duplicate (The_Ref : in out Ref)
-     renames Adjust;
-   pragma Unreferenced (Duplicate);
-
-   procedure Release (The_Ref : in out Ref);
-   --  Reset The_Ref to nil
+   function Is_Null (The_Ref : Ref) return Boolean renames Is_Nil;
 
    function Entity_Of (The_Ref : Ref) return Entity_Ptr;
    --  Return the entity designated by The_Ref
@@ -157,38 +128,14 @@ package PolyORB.Smart_Pointers is
 
 private
 
-   ------------------------
-   -- Task-unsafe entity --
-   ------------------------
-
    type Unsafe_Entity is abstract tagged limited record
-      Counter : Integer := 0;
+      Counter : aliased Interfaces.Integer_32 := 0;
       --  Reference counter.
+      --  If set to -1, no reference counting is performed for this entity:
+      --  Inc_Usage and Dec_Usage are both no-ops in that case.
    end record;
-
-   ----------------------
-   -- Task-safe entity --
-   ----------------------
-
-   Counter_Lock : Tasking.Mutexes.Mutex_Access;
-   --  Global mutex used to guarantee consistency of concurrent accesses to
-   --  entity reference counters. To be created by a child unit during
-   --  PolyORB initialization.
 
    type Non_Controlled_Entity is abstract new Unsafe_Entity with null record;
-
-   type Entity_Controller (E : access Entity'Class)
-      is new Ada.Finalization.Limited_Controlled with null record;
-
-   procedure Initialize (X : in out Entity_Controller);
-   procedure Finalize   (X : in out Entity_Controller);
-
-   type Entity is abstract new Non_Controlled_Entity with record
-      Controller : Entity_Controller (Entity'Access);
-      --  Controller component used to trigger a call to the Entity's
-      --  Finalize primitive operation when it is Finalized (note that
-      --  Entity itself is not a controlled type).
-   end record;
 
    type Ref is new Ada.Finalization.Controlled with record
       A_Ref : Entity_Ptr := null;
@@ -213,8 +160,22 @@ private
      function (X : Ref'Class) return String;
    --  A function returning External_Tag (Entity_Of (X)'Tag)
 
-   Entity_External_Tag : Entity_External_Tag_Hook := null;
-   Ref_External_Tag    : Ref_External_Tag_Hook := null;
-   --  Hooks to be set up by a child unit during PolyORB initialization
+   procedure Initialize
+     (The_Entity_External_Tag : Entity_External_Tag_Hook;
+      The_Ref_External_Tag    : Ref_External_Tag_Hook;
+      The_Default_Trace       : Boolean);
+   --  Initialize internal structures and set debugging hooks (to be called by
+   --  child elaboration package)
+
+   --  Determination of whether to trace smart pointers event for a specific
+   --  entity type: in [smart_pointers] section, whether type T is traced
+   --  is determined by parameter T.trace, or if not set, by default.trace.
+   --  By default event is traced.
+
+   Trace_Section : constant String := "smart_pointers";
+   Trace_Suffix  : constant String := ".trace";
+
+   function Get_Trace (Entity_Type : String) return Boolean;
+   --  Return indication of whether to trace events for the given entity type
 
 end PolyORB.Smart_Pointers;

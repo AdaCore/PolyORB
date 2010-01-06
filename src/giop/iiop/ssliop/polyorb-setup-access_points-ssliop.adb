@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -41,6 +41,7 @@ with PolyORB.Setup.Access_Points.IIOP;
 with PolyORB.Sockets;
 with PolyORB.SSL;
 with PolyORB.Transport.Connected.Sockets.SSL;
+with PolyORB.Utils.Socket_Access_Points;
 with PolyORB.Utils.SSL_Access_Points;
 with PolyORB.Utils.Strings;
 
@@ -55,6 +56,7 @@ package body PolyORB.Setup.Access_Points.SSLIOP is
    use PolyORB.Sockets;
    use PolyORB.SSL;
    use PolyORB.Transport.Connected.Sockets.SSL;
+   use PolyORB.Utils.Socket_Access_Points;
    use PolyORB.Utils.SSL_Access_Points;
 
    --  The SSLIOP access point
@@ -87,12 +89,11 @@ package body PolyORB.Setup.Access_Points.SSLIOP is
         and then Get_Conf ("access_points", "iiop.ssliop", False)
       then
          declare
-            Port : constant Port_Type
-              := Port_Type
-              (Get_Conf
-               ("ssliop",
-                "polyorb.protocols.ssliop.default_port",
-                Integer (Any_Port)));
+            Port_Hint : constant Port_Interval := To_Port_Interval
+                          (Get_Conf
+                           ("ssliop",
+                            "polyorb.protocols.ssliop.default_port",
+                            (Integer (Any_Port), Integer (Any_Port))));
 
             Addr : constant Inet_Addr_Type
               := Inet_Addr (String'(Get_Conf
@@ -109,68 +110,68 @@ package body PolyORB.Setup.Access_Points.SSLIOP is
 
             Cont : SSL_Context_Type;
 
+            Profile_Factory : PolyORB.Binding_Data.Profile_Factory_Access;
+
          begin
             Create_Context
               (Cont,
                Any,
                Get_Conf
-               ("ssliop",
-                "polyorb.protocols.ssliop.privatekeyfile",
-                "privkey.pem"),
+                 ("ssliop",
+                  "polyorb.protocols.ssliop.privatekeyfile",
+                  "privkey.pem"),
                Get_Conf
-               ("ssliop",
-                "polyorb.protocols.ssliop.certificatefile",
-                "cacert.pem"),
+                 ("ssliop",
+                  "polyorb.protocols.ssliop.certificatefile",
+                  "cacert.pem"),
                CA_File,
                Get_Conf
-               ("ssliop",
-                "polyorb.protocols.ssliop.capath",
+                 ("ssliop",
+                  "polyorb.protocols.ssliop.capath",
                 ""),
                (Get_Conf
-                ("ssliop", "polyorb.protocols.ssliop.verify", False),
+                  ("ssliop", "polyorb.protocols.ssliop.verify", False),
                 Get_Conf
-                ("ssliop",
-                 "polyorb.protocols.ssliop.verify_fail_if_no_peer_cert",
-                 False),
+                  ("ssliop",
+                   "polyorb.protocols.ssliop.verify_fail_if_no_peer_cert",
+                   False),
                 Get_Conf
-                ("ssliop",
-                 "polyorb.protocols.ssliop.verify_client_once",
-                 False)));
+                  ("ssliop",
+                   "polyorb.protocols.ssliop.verify_client_once",
+                   False)));
 
             if CA_File /= "" then
                Load_Client_CA (Cont, CA_File);
             end if;
 
-            Initialize_Socket (SSLIOP_Access_Point, Addr, Port, Cont);
+            Initialize_Socket (SSLIOP_Access_Point, Addr, Port_Hint, Cont);
 
             Create_Factory
               (SSLIOP_Transport_Mechanism_Factory (Factory.all),
                SSLIOP_Access_Point.SAP);
 
+            Profile_Factory := Get_Profile_Factory;
+
             Add_Transport_Mechanism_Factory
-              (IIOP_Profile_Factory (Get_Profile_Factory.all),
-               Factory);
+              (IIOP_Profile_Factory (Profile_Factory.all), Factory);
 
             if Get_Conf
-               ("ssliop",
-                "polyorb.protocols.ssliop.disable_unprotected_invocations",
-                False)
+                 ("ssliop",
+                  "polyorb.protocols.ssliop.disable_unprotected_invocations",
+                  False)
             then
                Disable_Unprotected_Invocations
-                 (IIOP_Profile_Factory (Get_Profile_Factory.all));
-               Register_Access_Point
-                 (ORB    => The_ORB,
-                  TAP    => SSLIOP_Access_Point.SAP,
-                  Chain  => SSLIOP_Factories'Access,
-                  PF     => Get_Profile_Factory);
-
+                 (IIOP_Profile_Factory (Profile_Factory.all));
             else
-               Register_Access_Point
-                 (ORB    => The_ORB,
-                  TAP    => SSLIOP_Access_Point.SAP,
-                  Chain  => SSLIOP_Factories'Access,
-                  PF     => null);
+               Profile_Factory := null;
             end if;
+
+            Register_Access_Point
+              (ORB    => The_ORB,
+               TAP    => SSLIOP_Access_Point.SAP,
+               Chain  => SSLIOP_Factories'Access,
+               PF     => Profile_Factory);
+
          end;
       end if;
    end Initialize_Access_Points;

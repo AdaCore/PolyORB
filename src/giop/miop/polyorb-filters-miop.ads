@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -38,7 +38,6 @@ with Ada.Streams; use Ada.Streams;
 with PolyORB.Buffers;
 with PolyORB.Types;
 with PolyORB.Utils.Simple_Flags;
-pragma Elaborate_All (PolyORB.Utils.Simple_Flags);
 
 package PolyORB.Filters.MIOP is
 
@@ -57,7 +56,10 @@ private
    Default_Max_MIOP_Message_Size : constant Integer := 1000;
 
    --  Location of flags in MIOP packet
-   Flags_Index       : constant Stream_Element_Offset := 3;
+   Flags_Index       : constant Stream_Element_Offset := 6 - 1;
+   --  Note: Flags is at 6th position in MIOP 1.0 PacketHeader
+   --  structure, hence at index 6 - 1.
+
    Bit_Little_Endian : constant Octet_Flags.Bit_Count := 0;
    Bit_Collect_Mode  : constant Octet_Flags.Bit_Count := 1;
 

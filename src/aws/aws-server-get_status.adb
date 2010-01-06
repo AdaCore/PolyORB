@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2000-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2000-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -210,8 +210,6 @@ function AWS.Server.Get_Status (Server : HTTP) return String is
 --           Assoc ("ACTIVITY_COUNTER_V",      Activity_Counter),
 --           Assoc ("ACTIVITY_TIME_STAMP_V",   Activity_Time_Stamp));
 --     end Slot_Table;
-
-   use type Templates.Translate_Table;
 
    Admin_URI : constant String := CNF.Admin_URI (Server.Properties);
 

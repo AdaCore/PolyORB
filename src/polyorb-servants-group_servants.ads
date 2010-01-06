@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -155,24 +155,22 @@ private
 
    function Handle_Message
      (Self : access Group_Servant;
-      Msg  :        Components.Message'Class)
-     return Components.Message'Class;
+      Msg  : Components.Message'Class) return Components.Message'Class;
    --  Function used to intercept Unmarshall_Arguments message
 
    function Execute_Servant
-     (Self : access Group_Servant;
-      Msg  :        Components.Message'Class)
-      return Components.Message'Class;
+     (Self : not null access Group_Servant;
+      Msg  : Components.Message'Class) return Components.Message'Class;
    --  Dispatch request to targets
 
    procedure Register
      (Self : access Group_Servant;
-      Ref  :        PolyORB.References.Ref);
+      Ref  : PolyORB.References.Ref);
    --  Add a target ref to a group
 
    procedure Unregister
      (Self : access Group_Servant;
-      Ref  :        PolyORB.References.Ref);
+      Ref  : PolyORB.References.Ref);
    --  Remove a target ref from a group
 
    type Iterator is record

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -47,7 +47,6 @@ package body PolyORB.Call_Back is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
-   pragma Unreferenced (C); --  For conditional pragma Debug
 
    --------------------
    -- Handle_Message --
@@ -60,7 +59,7 @@ package body PolyORB.Call_Back is
    is
       Nothing : Components.Null_Message;
    begin
-      pragma Debug (O ("Handling message of type "
+      pragma Debug (C, O ("Handling message of type "
                        & Ada.Tags.External_Tag (S'Tag)));
 
       if S in Executed_Request then
@@ -68,7 +67,7 @@ package body PolyORB.Call_Back is
             Req : constant Request_Access
               := Executed_Request (S).Req;
          begin
-            pragma Debug (O (Requests.Image (Req.all)));
+            pragma Debug (C, O (Requests.Image (Req.all)));
 
             --  Execute Call Back function
             CB_Handler.CB_Function.all (Req.all, CB_Handler);

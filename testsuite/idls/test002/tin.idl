@@ -1,0 +1,84 @@
+//
+// Copyright (c) 1997 X/Open Company Ltd., A member of The Open Group.
+//
+// All rights reserved. No part of this source code may be reproduced,
+// stored in a retrieval system, or transmitted, in any form or by any
+// means, electronic, mechanical, photocopying, recording or otherwise,
+// except as stated in the end-user licence agreement, without the prior
+// permission of the copyright owners.
+//
+// Developed for X/Open by ApTest Ireland Limited.
+//
+// Project: CORVAL2
+//
+
+
+struct Avocado{
+  float and;
+  double and_eq;
+  unsigned long auto;
+  short bitand;
+  unsigned short bitor;
+  char bool;
+  boolean break;
+  octet catch;
+  float class;
+  double compl;
+  long const_cast;
+  unsigned long continue;
+  short delete;
+  unsigned short do;
+  char dynamic_cast;
+  boolean else;
+  octet explicit;
+  float extern;
+  long for;
+  unsigned long friend;
+  short goto;
+  unsigned short if;
+  octet int;
+  boolean mutable;
+  float namespace;
+  double new;
+  long not;
+  unsigned long not_eq;
+  short operator;
+  unsigned short or;
+  char or_eq;
+  boolean protected;
+  double register;
+  long reinterpret_cast;
+  unsigned long return;
+  short signed;
+  unsigned short sizeof;
+  char static;
+  octet static_cast;
+  boolean template;
+  float this;
+  double throw;
+  short type_id;
+  unsigned short typename;
+  char using;
+  octet virtual;
+  boolean volatile;
+  float wchar_t;
+  double while;
+  long xor;
+  unsigned long xor_eq;
+};
+
+interface idlServer {
+
+  exception AvocadoExcpt{
+    ::Avocado ex1;
+  };
+
+  attribute ::Avocado AvocadoAttr;
+
+  ::Avocado AvocadoOp(
+    in    ::Avocado p1,
+    out   ::Avocado p2,
+    inout ::Avocado p3
+  ) raises (AvocadoExcpt);
+};
+

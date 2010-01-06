@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -44,7 +44,7 @@ package TypedTest_Interface.Impl is
 
    type Object_Ptr is access all Object;
 
-   function EchoString (Self : access Object; Mesg : in CORBA.String)
+   function EchoString (Self : access Object; Mesg : CORBA.String)
                         return CORBA.String;
 
    function Create return CORBA.Impl.Object_Ptr;

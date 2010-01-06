@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---           Copyright (C) 2006, Free Software Foundation, Inc.             --
+--         Copyright (C) 2006-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -46,13 +46,13 @@ package body CORBA.Repository_Root.InterfaceAttrExtension.Impl is
 
    function create_ext_attribute
      (Self           : access Object;
-      id             : in     RepositoryId;
-      name           : in     Identifier;
-      version        : in     VersionSpec;
-      IDL_type       : in     IDLType.Ref;
-      mode           : in     AttributeMode;
-      get_exceptions : in     ExceptionDefSeq;
-      set_exceptions : in     ExceptionDefSeq)
+      id             :        RepositoryId;
+      name           :        Identifier;
+      version        :        VersionSpec;
+      IDL_type       :        IDLType.Ref;
+      mode           :        AttributeMode;
+      get_exceptions :        ExceptionDefSeq;
+      set_exceptions :        ExceptionDefSeq)
       return ExtAttributeDef.Ref
    is
    begin
@@ -132,7 +132,7 @@ package body CORBA.Repository_Root.InterfaceAttrExtension.Impl is
 
       procedure Init
         (Self        : access Object'Class;
-         Real_Object : in     IRObject.Impl.Object_Ptr)
+         Real_Object :        IRObject.Impl.Object_Ptr)
       is
       begin
          Self.Real := Container.Impl.Object_Ptr (Real_Object);

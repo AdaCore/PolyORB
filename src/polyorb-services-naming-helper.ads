@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -39,89 +39,68 @@ package PolyORB.Services.Naming.Helper is
 
    pragma Elaborate_Body;
 
-   --  Istring type.
-   TC_Istring : PolyORB.Any.TypeCode.Object := PolyORB.Any.TypeCode.TC_Alias;
+   --  Istring type
 
-   function From_Any (Item : PolyORB.Any.Any)
-      return Istring;
+   TC_Istring : PolyORB.Any.TypeCode.Local_Ref;
 
-   function To_Any (Item : Istring)
-     return PolyORB.Any.Any;
+   function From_Any (Item : PolyORB.Any.Any) return Istring;
+   function To_Any (Item : Istring) return PolyORB.Any.Any;
 
-   --  NameComponent type.
-   TC_NameComponent : PolyORB.Any.TypeCode.Object :=
-      PolyORB.Any.TypeCode.TC_Struct;
+   --  NameComponent type
 
-   function From_Any (Item : PolyORB.Any.Any)
-      return NameComponent;
+   TC_NameComponent : PolyORB.Any.TypeCode.Local_Ref;
 
-   function To_Any
-     (Item : NameComponent)
-     return PolyORB.Any.Any;
+   function From_Any (Item : PolyORB.Any.Any) return NameComponent;
+   function To_Any (Item : NameComponent) return PolyORB.Any.Any;
 
-   --  Sequence of NameComponent type.
-   TC_SEQUENCE_NameComponent : PolyORB.Any.TypeCode.Object
-     := PolyORB.Any.TypeCode.TC_Sequence;
+   --  Sequence of NameComponent type
 
-   function From_Any (Item : PolyORB.Any.Any)
-      return SEQUENCE_NameComponent.Sequence;
+   TC_SEQUENCE_NameComponent : PolyORB.Any.TypeCode.Local_Ref;
+
+   function From_Any
+     (Item : PolyORB.Any.Any) return SEQUENCE_NameComponent.Sequence;
 
    function To_Any
-     (Item : SEQUENCE_NameComponent.Sequence)
-     return PolyORB.Any.Any;
+     (Item : SEQUENCE_NameComponent.Sequence) return PolyORB.Any.Any;
 
-   --  Name type.
-   TC_Name : PolyORB.Any.TypeCode.Object := PolyORB.Any.TypeCode.TC_Alias;
+   --  Name type
 
-   function From_Any (Item : PolyORB.Any.Any)
-      return Name;
+   TC_Name : PolyORB.Any.TypeCode.Local_Ref;
 
-   function To_Any (Item : Name)
-     return PolyORB.Any.Any;
+   function From_Any (Item : PolyORB.Any.Any) return Name;
+   function To_Any (Item : Name) return PolyORB.Any.Any;
 
-   --  BindingType type.
-   TC_BindingType : PolyORB.Any.TypeCode.Object :=
-      PolyORB.Any.TypeCode.TC_Enum;
+   --  BindingType type
 
-   function From_Any (Item : PolyORB.Any.Any)
-      return BindingType;
+   TC_BindingType : PolyORB.Any.TypeCode.Local_Ref;
 
-   function To_Any (Item : BindingType)
-     return PolyORB.Any.Any;
+   function From_Any (Item : PolyORB.Any.Any) return BindingType;
+   function To_Any (Item : BindingType) return PolyORB.Any.Any;
 
-   --  Binding type.
-   TC_Binding : PolyORB.Any.TypeCode.Object :=
-      PolyORB.Any.TypeCode.TC_Struct;
+   --  Binding type
 
-   function From_Any (Item : PolyORB.Any.Any)
-      return Binding;
+   TC_Binding : PolyORB.Any.TypeCode.Local_Ref;
 
-   function To_Any (Item : Binding)
-     return PolyORB.Any.Any;
+   function From_Any (Item : PolyORB.Any.Any) return Binding;
+   function To_Any (Item : Binding) return PolyORB.Any.Any;
 
-   --  Sequence Binding type.
-   TC_SEQUENCE_Binding : PolyORB.Any.TypeCode.Object
-     := PolyORB.Any.TypeCode.TC_Sequence;
+   --  Sequence of Binding type
 
-   function From_Any (Item : PolyORB.Any.Any)
-      return SEQUENCE_Binding.Sequence;
+   TC_SEQUENCE_Binding : PolyORB.Any.TypeCode.Local_Ref;
 
-   function To_Any (Item : SEQUENCE_Binding.Sequence)
-     return PolyORB.Any.Any;
+   function From_Any (Item : PolyORB.Any.Any) return SEQUENCE_Binding.Sequence;
+   function To_Any (Item : SEQUENCE_Binding.Sequence) return PolyORB.Any.Any;
 
-   --  BindingList type.
-   TC_BindingList : PolyORB.Any.TypeCode.Object
-     := PolyORB.Any.TypeCode.TC_Alias;
+   --  BindingList type
 
-   function From_Any (Item : PolyORB.Any.Any)
-      return BindingList;
+   TC_BindingList : PolyORB.Any.TypeCode.Local_Ref;
 
-   function To_Any
-     (Item : BindingList)
-     return PolyORB.Any.Any;
+   function From_Any (Item : PolyORB.Any.Any) return BindingList;
+   function To_Any (Item : BindingList) return PolyORB.Any.Any;
 
-   TC_Object : PolyORB.Any.TypeCode.Object
-     := PolyORB.Any.TypeCode.TC_Object;
+   --  ??? Naming::Object ???
+
+   TC_Object : PolyORB.Any.TypeCode.Local_Ref;
 
    function To_Any (Item : PolyORB.References.Ref)
                     return PolyORB.Any.Any;

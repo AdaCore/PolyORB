@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -162,8 +162,7 @@ package body Menu is
    -- Set_Input --
    ---------------
 
-   procedure Set_Input
-     (Filename : in String_Access) is
+   procedure Set_Input (Filename : String_Access) is
    begin
       Open (File, In_File, Filename.all);
       Set_Input (File);

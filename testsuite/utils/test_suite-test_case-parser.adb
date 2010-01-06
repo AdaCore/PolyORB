@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -53,7 +53,7 @@ package body Test_Suite.Test_Case.Parser is
       Output   : Test_Suite_Output'Class)
      return Test'Class
    is
-      Default_Timeout : constant Integer := 10_000;
+      Default_Timeout : constant Integer := 100_000;
 
       Test_Id : constant String := Natural'Image (Number);
 
@@ -95,12 +95,13 @@ package body Test_Suite.Test_Case.Parser is
       declare
          Timeout_S : constant String := Get_Conf (Section, "timeout");
       begin
-         Timeout := Integer'Value (Timeout_S);
-         Log (Output, " Timeout :" & Integer'Image (Timeout));
-      exception
-         when others =>
+         if Timeout_S = "" then
             Timeout := Default_Timeout;
             Log (Output, " Timeout : (default)" & Integer'Image (Timeout));
+         else
+            Timeout := Integer'Value (Timeout_S);
+            Log (Output, " Timeout :" & Integer'Image (Timeout));
+         end if;
       end;
 
       Separator (Output);

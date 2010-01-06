@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -37,17 +37,16 @@ with Ada.Unchecked_Deallocation;
 with PolyORB.Binding_Data;
 with PolyORB.Buffers;
 with PolyORB.Errors;
+with PolyORB.Filters.Iface;
 with PolyORB.ORB;
 with PolyORB.QoS;
 with PolyORB.Representations.CDR;
+with PolyORB.Requests;
 with PolyORB.Tasking.Mutexes;
 with PolyORB.Transport;
 with PolyORB.Types;
 with PolyORB.Utils.Dynamic_Tables;
 with PolyORB.Utils.Simple_Flags;
-pragma Elaborate_All (PolyORB.Utils.Simple_Flags);
-with PolyORB.Filters.Iface;
-with PolyORB.Requests;
 
 package PolyORB.Protocols.GIOP is
 
@@ -62,7 +61,11 @@ package PolyORB.Protocols.GIOP is
    -- Version management --
    ------------------------
 
+   --  ??? How about other major versions
+   --  ??? How about other minor versions
+
    type GIOP_Version is (GIOP_V1_0, GIOP_V1_1, GIOP_V1_2);
+   --  Must be kept in ascending order
 
    To_GIOP_Version : constant array (0 .. 2) of GIOP_Version
      := (0 => GIOP_V1_0, 1 => GIOP_V1_1, 2 => GIOP_V1_2);
@@ -104,7 +107,8 @@ package PolyORB.Protocols.GIOP is
 
    procedure Handle_Data_Indication
      (Sess        : access GIOP_Session;
-      Data_Amount :        Stream_Element_Count);
+      Data_Amount : Stream_Element_Count;
+      Error       : in out Errors.Error_Container);
 
    procedure Handle_Disconnect
      (Sess : access GIOP_Session; Error : Errors.Error_Container);
@@ -169,12 +173,25 @@ package PolyORB.Protocols.GIOP is
 
    Fetch_Secure_Transport_QoS : Fetch_Secure_Transport_QoS_Hook := null;
 
+   function Get_Representation
+     (Sess : access GIOP_Session)
+     return PolyORB.Representations.CDR.CDR_Representation_Access;
+   --  Return the representation object used by the session.
+   --  Note: the user is not allowed to destroy this object
+
+   function Get_Buffer
+     (Sess : access GIOP_Session)
+     return PolyORB.Buffers.Buffer_Access;
+   --  Return the buffer object used by the session.
+   --  Note: the user is not allowed to destroy this object
+
 private
+
+   use PolyORB.Types;
 
    type GIOP_Protocol is abstract new Protocol with null record;
 
-   package Octet_Flags is
-      new PolyORB.Utils.Simple_Flags (Types.Octet, Types.Shift_Left);
+   package Octet_Flags is new PolyORB.Utils.Simple_Flags (Types.Octet);
 
    type Pending_Request is record
       Req            : Requests.Request_Access;
@@ -205,10 +222,12 @@ private
    GIOP_Default_Version : constant GIOP_Version := GIOP_V1_2;
 
    procedure Get_GIOP_Implem
-     (Sess    : access GIOP_Session;
-      Version :        GIOP_Version);
+     (Sess            : access GIOP_Session;
+      Version         : GIOP_Version;
+      Allow_Downgrade : Boolean := False);
    --  Retrieve a GIOP_Implem for the specified GIOP Version, and associate
-   --  it with Sess.
+   --  it with Sess. If Allow_Downgrade is True, and the given Version is
+   --  unavailable, try a lower version.
 
    --------------------------
    -- GIOP message context --
@@ -344,7 +363,8 @@ private
    procedure Marshall_Argument_List
      (Implem              : access GIOP_Implem;
       Buffer              : Buffers.Buffer_Access;
-      Representation      : Representations.CDR.CDR_Representation'Class;
+      Representation      : access
+                              Representations.CDR.CDR_Representation'Class;
       Args                : in out Any.NVList.Ref;
       Direction           : Any.Flags;
       First_Arg_Alignment : Buffers.Alignment_Type;
@@ -357,7 +377,8 @@ private
    procedure Unmarshall_Argument_List
      (Implem              : access GIOP_Implem;
       Buffer              : Buffers.Buffer_Access;
-      Representation      : Representations.CDR.CDR_Representation'Class;
+      Representation      : access
+                              Representations.CDR.CDR_Representation'Class;
       Args                : in out Any.NVList.Ref;
       Direction           : Any.Flags;
       First_Arg_Alignment : Buffers.Alignment_Type;
@@ -373,8 +394,7 @@ private
       S       : access Session'Class;
       R       : Request_Access;
       MCtx    : access GIOP_Message_Context'Class;
-      Buffer  : access PolyORB.Buffers.Buffer_Type)
-      is abstract;
+      Buffer  : access PolyORB.Buffers.Buffer_Type) is abstract;
 
    --  GIOP Implem management
 
@@ -391,7 +411,7 @@ private
    ------------------------
 
    type GIOP_Conf is record
-      GIOP_Def_Ver          : GIOP_Version;
+      GIOP_Default_Version  : GIOP_Version;
       --  Default GIOP Version
 
       GIOP_Implems      : GIOP_Implem_Array;
@@ -439,7 +459,7 @@ private
       --  Role of session for ORB
 
       Conf         : GIOP_Conf_Access;
-      --  Access to GIOP_Protocol, which contain GIOP_Implems
+      --  Configuration parameters
 
       --------------------------------------
       -- Global state of the GIOP session --
@@ -463,8 +483,8 @@ private
    procedure Initialize (S : in out GIOP_Session);
    procedure Destroy (S : in out GIOP_Session);
 
-   --  Magic identifier
-   --  Begin of all GIOP Messages
+   --  Magic identifier: 4 bytes at the begining of every GIOP message
+
    Magic : constant Stream_Element_Array (1 .. 4)
      := (Character'Pos ('G'),
          Character'Pos ('I'),
@@ -473,6 +493,11 @@ private
 
    --  Header size of GIOP_packet (non version specific header)
    GIOP_Header_Size : constant Stream_Element_Offset := 12;
+
+   --  Size of the fixed GIOP_packet header (version specific header)
+   GIOP_Fixed_Part_Size : constant Stream_Element_Offset := 6;
+
+   Request_Id_Size : constant := 4;
 
    --  Location of flags in GIOP packet
    Flags_Index       : constant Stream_Element_Offset := 7;
@@ -540,10 +565,11 @@ private
      (Sess    : access GIOP_Session;
       Id      :        Types.Unsigned_Long;
       Req     :    out Pending_Request;
-      Success :    out Boolean);
+      Success :    out Boolean;
+      Remove  :        Boolean := True);
    --  Retrieve a pending request of Sess by its request id, and
-   --  remove it from the list of pending requests. This procedure
-   --  ensures proper mutual exclusion.
+   --  remove it from the list of pending requests if Remove is set to
+   --  true. This procedure ensures proper mutual exclusion.
 
    procedure Get_Pending_Request_By_Locate
      (Sess    : access GIOP_Session;
@@ -573,9 +599,9 @@ private
    ---------------------------------
 
    procedure Unmarshall_System_Exception_To_Any
-     (Buffer : PolyORB.Buffers.Buffer_Access;
-      Repr   : PolyORB.Representations.CDR.CDR_Representation'Class;
-      Info   :    out Any.Any);
+     (Buffer : Buffers.Buffer_Access;
+      Repr   : access Representations.CDR.CDR_Representation'Class;
+      Info   : out Any.Any);
 
    function Get_Conf_Chain (Implem : access GIOP_Implem'Class) return String;
 

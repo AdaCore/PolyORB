@@ -6,12 +6,12 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
--- provisions that follow apply solely to the contents neither explicitely  --
--- nor implicitely specified by the CORBA Specification defined by the OMG. --
+-- provisions that follow apply solely to the contents neither explicitly   --
+-- nor implicitly specified by the CORBA Specification defined by the OMG.  --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -92,7 +92,7 @@ package PortableServer is
      abstract new DynamicImplementation with private;
    --  21.41.1
    --  Conforming implementations must provide a controlled (tagged)
-   --  Servant_Base type and default implementations of the primitve
+   --  Servant_Base type and default implementations of the primitive
    --  operations on Servant_Base that meet the required semantics.
 
    procedure Invoke
@@ -136,7 +136,7 @@ package PortableServer is
 
    --  Implementation Notes: these functions are not defined in the
    --  CORBA specification, but defined in various C++ ORB
-   --  implementation. They are provided as a facility.
+   --  implementations. They are provided as a facility.
 
    type ObjectId_Access is access ObjectId;
 
@@ -242,51 +242,43 @@ package PortableServer is
       --  DynamicImplementation.
 
       type Servant_Class_Predicate is access function
-        (For_Servant : Servant)
-        return Boolean;
+        (For_Servant : Servant) return Boolean;
 
       type Servant_Class_Is_A_Operation is access function
-        (Logical_Type_Id : Standard.String)
-        return CORBA.Boolean;
+        (Logical_Type_Id : Standard.String) return CORBA.Boolean;
 
       procedure Register_Skeleton
-        (Type_Id     : CORBA.RepositoryId;
+        (Type_Id     : String;
          Is_A        : Servant_Class_Predicate;
          Target_Is_A : Servant_Class_Is_A_Operation;
          Dispatcher  : Request_Dispatcher := null);
       --  Associate a type id with a class predicate.
-      --  A Dispatcher function can also be specified if the
-      --  class predicate corresponds to a class derived from
-      --  PortableServer.Servant_Base. For other classes derived
-      --  from PortableServer.DynamicImplementation, the user
-      --  must override the Invoke operation himself, and the
-      --  Dispatcher will be ignored and can be null.
+      --  A Dispatcher function can also be specified if the class predicate
+      --  corresponds to a class derived from PortableServer.Servant_Base.
+      --  For classes derived from PortableServer.DynamicImplementation, the
+      --  user must override the Invoke operation himself, and the Dispatcher
+      --  must be set to null.
       --  NOTE: This procedure is not thread safe.
 
-      function Get_Type_Id (For_Servant : Servant)
-        return CORBA.RepositoryId;
+      function Get_Type_Id (For_Servant : Servant) return Standard.String;
 
-      --  Subprograms for PortableInterceptor impelmentation
+      --  Subprograms for PortableInterceptor implementation
 
       function Target_Most_Derived_Interface
-        (For_Servant : Servant)
-        return CORBA.RepositoryId;
-      --  Return RepositoryId of most derived servant interface
+        (For_Servant : Servant) return Standard.String;
+      --  Return Type_Id of most derived servant interface
 
       function Target_Is_A
         (For_Servant     : Servant;
-         Logical_Type_Id : CORBA.RepositoryId)
-        return CORBA.Boolean;
+         Logical_Type_Id : Standard.String) return CORBA.Boolean;
       --  Check is servant support specified interface
 
       function To_PortableServer_ObjectId
-        (Id : PolyORB.Objects.Object_Id)
-        return ObjectId;
+        (Id : PolyORB.Objects.Object_Id) return ObjectId;
       --  Convert neutral Object_Id into PortableServer's ObjectId
 
       function To_PolyORB_Object_Id
-        (Id : ObjectId)
-        return PolyORB.Objects.Object_Id;
+        (Id : ObjectId) return PolyORB.Objects.Object_Id;
       --  Convert PortableServer's ObjectId into neutral Object_Id
 
    end Internals;
@@ -297,8 +289,8 @@ private
      abstract new CORBA.Impl.Object with null record;
 
    function Execute_Servant
-     (Self : access DynamicImplementation;
-      Msg  :        PolyORB.Components.Message'Class)
+     (Self : not null access DynamicImplementation;
+      Msg  : PolyORB.Components.Message'Class)
      return PolyORB.Components.Message'Class;
 
    type Servant_Base is

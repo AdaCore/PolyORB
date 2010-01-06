@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -50,7 +50,6 @@ package body PolyORB.Transport.Connected is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
-   pragma Unreferenced (C); --  For conditional pragma Debug
 
    ------------------
    -- Handle_Event --
@@ -66,7 +65,7 @@ package body PolyORB.Transport.Connected is
 
       New_TE : Transport_Endpoint_Access;
    begin
-      pragma Debug (O ("Handle_Event: Connected TAP AES"));
+      pragma Debug (C, O ("Handle_Event: Connected TAP AES"));
 
       --  Create transport endpoint
 
@@ -74,12 +73,11 @@ package body PolyORB.Transport.Connected is
         (Connected_Transport_Access_Point'Class (H.TAP.all), New_TE);
 
       if New_TE /= null then
-         Set_Allocation_Class (New_TE.all, Dynamic);
-
          --  Build a binding object based on the newly-created endpoint
 
          Binding_Objects.Setup_Binding_Object
-           (TE      => New_TE,
+           (ORB     => Components.Component_Access (H.ORB),
+            TE      => New_TE,
             FFC     => H.Filter_Factory_Chain.all,
             BO_Ref  => New_TE.Dependent_Binding_Object,
             Pro     => null);
@@ -106,8 +104,7 @@ package body PolyORB.Transport.Connected is
 
    function Handle_Message
      (TE  : access Connected_Transport_Endpoint;
-      Msg : Components.Message'Class)
-     return Components.Message'Class
+      Msg : Components.Message'Class) return Components.Message'Class
    is
       use PolyORB.Buffers;
       use PolyORB.Components;
@@ -117,10 +114,7 @@ package body PolyORB.Transport.Connected is
 
       Nothing : Components.Null_Message;
    begin
-      if Msg in Connect_Indication then
-         return Emit (TE.Upper, Msg);
-
-      elsif Msg in Data_Expected then
+      if Msg in Data_Expected then
          declare
             DE : Data_Expected renames Data_Expected (Msg);
          begin
@@ -134,7 +128,7 @@ package body PolyORB.Transport.Connected is
               (TE => Transport_Endpoint_Access (TE)));
 
       elsif Msg in Data_Indication then
-         pragma Debug (O ("Data received"));
+         pragma Debug (C, O ("Data received"));
 
          declare
             use type Ada.Streams.Stream_Element_Count;
@@ -180,9 +174,8 @@ package body PolyORB.Transport.Connected is
 
       elsif Msg in Set_Server then
          TE.Server := Set_Server (Msg).Server;
-         return Emit (TE.Upper, Msg);
-
-      elsif Msg in Connect_Confirmation then
+         TE.Binding_Object :=
+           Smart_Pointers.Entity_Ptr (Set_Server (Msg).Binding_Object);
          return Emit (TE.Upper, Msg);
 
       elsif Msg in Disconnect_Indication then
@@ -193,10 +186,8 @@ package body PolyORB.Transport.Connected is
          Close (Transport_Endpoint'Class (TE.all)'Access);
 
       else
-
-         --  Must not happen
-
-         raise Program_Error;
+         return Transport.Handle_Message
+                  (Transport_Endpoint (TE.all)'Access, Msg);
       end if;
 
       return Nothing;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -38,24 +38,29 @@ package body CORBA.Impl is
    ---------------------
 
    function Execute_Servant
-     (Self : access Object;
-      Msg  :        PolyORB.Components.Message'Class)
+     (Self : not null access Implementation;
+      Msg  : PolyORB.Components.Message'Class)
+     return PolyORB.Components.Message'Class
+   is
+   begin
+      return Execute_Servant (Self.As_Object, Msg);
+   end Execute_Servant;
+
+   ---------------------
+   -- Execute_Servant --
+   ---------------------
+
+   function Execute_Servant
+     (Self : not null access Object;
+      Msg  : PolyORB.Components.Message'Class)
      return PolyORB.Components.Message'Class
    is
       use PolyORB.Components;
-
-      Res : Null_Message;
+      Dummy : Null_Message;
+      --  Used in never-executed return statement
    begin
       raise Program_Error;
-      return Res;
-   end Execute_Servant;
-
-   function Execute_Servant
-     (Self : access Implementation;
-      Msg  :        PolyORB.Components.Message'Class)
-     return PolyORB.Components.Message'Class is
-   begin
-      return Execute_Servant (Self.As_Object, Msg);
+      return Dummy;
    end Execute_Servant;
 
    ------------------------
@@ -68,18 +73,6 @@ package body CORBA.Impl is
    begin
       return S.Neutral_View'Access;
    end To_PolyORB_Servant;
-
-   ---------
-   -- "=" --
-   ---------
-
-   function "="
-     (X, Y : Implementation)
-     return Boolean is
-   begin
-      raise Program_Error;
-      return False;
-   end "=";
 
    package body Internals is
 

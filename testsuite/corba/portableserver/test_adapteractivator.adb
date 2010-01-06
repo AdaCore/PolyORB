@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -109,7 +109,7 @@ package body Test_AdapterActivator is
       Policies : CORBA.Policy.PolicyList;
 
       Root_POA : constant PortableServer.POA.Local_Ref :=
-        PortableServer.POA.Helper.To_Ref
+        PortableServer.POA.Helper.To_Local_Ref
         (CORBA.ORB.Resolve_Initial_References
          (CORBA.ORB.To_CORBA_String ("RootPOA")));
 

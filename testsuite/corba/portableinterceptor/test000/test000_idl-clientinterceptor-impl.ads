@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2004 Free Software Foundation, Inc.             --
+--         Copyright (C) 2004-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -44,12 +44,12 @@ package Test000_Idl.ClientInterceptor.Impl is
 
    procedure Init
      (Self : access Object;
-      Name : in     Standard.String);
+      Name : Standard.String);
 
    procedure Set_Behavior
      (Self     : access Object;
-      Point    : in     Client_Interception_Point;
-      Behavior : in     Interceptor_Behavior);
+      Point    : Client_Interception_Point;
+      Behavior : Interceptor_Behavior);
 
    procedure Enable (Self : access Object);
 
@@ -81,22 +81,22 @@ private
 
    procedure Send_Request
      (Self : access Object;
-      RI   : in     PortableInterceptor.ClientRequestInfo.Local_Ref);
+      RI   : PortableInterceptor.ClientRequestInfo.Local_Ref);
 
    procedure Send_Poll
      (Self : access Object;
-      RI   : in     PortableInterceptor.ClientRequestInfo.Local_Ref);
+      RI   : PortableInterceptor.ClientRequestInfo.Local_Ref);
 
    procedure Receive_Reply
      (Self : access Object;
-      RI   : in     PortableInterceptor.ClientRequestInfo.Local_Ref);
+      RI   : PortableInterceptor.ClientRequestInfo.Local_Ref);
 
    procedure Receive_Exception
      (Self : access Object;
-      RI   : in     PortableInterceptor.ClientRequestInfo.Local_Ref);
+      RI   : PortableInterceptor.ClientRequestInfo.Local_Ref);
 
    procedure Receive_Other
      (Self : access Object;
-      RI   : in     PortableInterceptor.ClientRequestInfo.Local_Ref);
+      RI   : PortableInterceptor.ClientRequestInfo.Local_Ref);
 
 end Test000_Idl.ClientInterceptor.Impl;

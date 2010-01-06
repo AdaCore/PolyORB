@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -48,7 +48,7 @@ with PolyORB.QoS.Service_Contexts;
 with PolyORB.References;
 with PolyORB.Requests;
 with PolyORB.Request_QoS;
-with PolyORB.Smart_Pointers;
+with PolyORB.Smart_Pointers.Controlled_Entities;
 with PolyORB.Tasking.Mutexes;
 with PolyORB.Tasking.Threads.Annotations;
 with PolyORB.Utils.Chained_Lists;
@@ -72,6 +72,9 @@ package body PolyORB.CORBA_P.Interceptors is
    use PolyORB.Requests.Unsigned_Long_Flags;
    use PolyORB.Tasking.Mutexes;
    use PolyORB.Tasking.Threads.Annotations;
+   use type PolyORB.Any.TypeCode.Local_Ref;
+
+   package PSPCE renames PolyORB.Smart_Pointers.Controlled_Entities;
 
    --  Client Interceptors
 
@@ -128,7 +131,7 @@ package body PolyORB.CORBA_P.Interceptors is
    All_Server_Interceptors : ServerRequestInterceptor_Lists.List;
 
    procedure Server_Invoke
-     (Servant : access PolyORB.Smart_Pointers.Entity'Class;
+     (Servant : access PSPCE.Entity'Class;
       Request : PolyORB.Requests.Request_Access;
       Profile : PolyORB.Binding_Data.Profile_Access);
 
@@ -521,13 +524,12 @@ package body PolyORB.CORBA_P.Interceptors is
 
       Req_Id  : constant CORBA.Unsigned_Long := Allocate_Request_Id;
 
-      Target  : CORBA.Object.Ref;
+      Target  : constant CORBA.Object.Ref :=
+                  CORBA.Object.Internals.To_CORBA_Ref (Request.Target);
       TSC     : Slots_Note;
       Index   : Natural;
 
    begin
-      CORBA.Object.Internals.Convert_To_CORBA_Ref (Request.Target, Target);
-
       --  Getting thread scope slots information (allocating thread scope
       --  slots if it is not allocated), and make "logical copy" and place it
       --  in the request.
@@ -969,7 +971,7 @@ package body PolyORB.CORBA_P.Interceptors is
    -------------------
 
    procedure Server_Invoke
-     (Servant : access PolyORB.Smart_Pointers.Entity'Class;
+     (Servant : access PSPCE.Entity'Class;
       Request : PolyORB.Requests.Request_Access;
       Profile : PolyORB.Binding_Data.Profile_Access)
    is

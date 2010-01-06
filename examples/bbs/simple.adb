@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2002 Free Software Foundation, Inc.             --
+--         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -47,7 +47,7 @@ with Utils;            use Utils;
 
 procedure Simple is
 
-   procedure Post (Sender : in String; Message : in String);
+   procedure Post (Sender : String; Message : String);
    --  Post a message
 
    procedure Read;
@@ -60,7 +60,7 @@ procedure Simple is
    -- Post --
    ----------
 
-   procedure Post (Sender : in String; Message : in String) is
+   procedure Post (Sender : String; Message : String) is
    begin
       Post_Message (Sender, Message);
    exception

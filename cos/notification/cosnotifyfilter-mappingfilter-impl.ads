@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -57,17 +57,17 @@ package CosNotifyFilter.MappingFilter.Impl is
 
    function Add_Mapping_Constraints
      (Self      : access Object;
-      Pair_List : in CosNotifyFilter.MappingConstraintPairSeq)
+      Pair_List : CosNotifyFilter.MappingConstraintPairSeq)
      return CosNotifyFilter.MappingConstraintInfoSeq;
 
    procedure Modify_Mapping_Constraints
      (Self        : access Object;
-      Del_List    : in CosNotifyFilter.ConstraintIDSeq;
-      Modify_List : in CosNotifyFilter.MappingConstraintInfoSeq);
+      Del_List    : CosNotifyFilter.ConstraintIDSeq;
+      Modify_List : CosNotifyFilter.MappingConstraintInfoSeq);
 
    function Get_Mapping_Constraints
      (Self    : access Object;
-      Id_List : in CosNotifyFilter.ConstraintIDSeq)
+      Id_List : CosNotifyFilter.ConstraintIDSeq)
      return CosNotifyFilter.MappingConstraintInfoSeq;
 
    function Get_All_Mapping_Constraints
@@ -82,19 +82,19 @@ package CosNotifyFilter.MappingFilter.Impl is
 
    procedure Match
      (Self            : access Object;
-      Filterable_Data : in CORBA.Any;
+      Filterable_Data : CORBA.Any;
       Result_To_Set   : out CORBA.Any;
       Returns         : out CORBA.Boolean);
 
    procedure Match_Structured
      (Self            : access Object;
-      Filterable_Data : in CosNotification.StructuredEvent;
+      Filterable_Data : CosNotification.StructuredEvent;
       Result_To_Set   : out CORBA.Any;
       Returns         : out CORBA.Boolean);
 
    procedure Match_Typed
      (Self            : access Object;
-      Filterable_Data : in CosNotification.PropertySeq;
+      Filterable_Data : CosNotification.PropertySeq;
       Result_To_Set   : out CORBA.Any;
       Returns         : out CORBA.Boolean);
 

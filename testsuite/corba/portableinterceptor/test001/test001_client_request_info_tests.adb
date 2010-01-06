@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -52,8 +52,8 @@ package body Test001_Client_Request_Info_Tests is
    --------------------------------------
 
    procedure Test_Add_Request_Service_Context
-     (Point : in     Client_Interception_Point;
-      Info  : in     PortableInterceptor.ClientRequestInfo.Local_Ref)
+     (Point : Client_Interception_Point;
+      Info  : PortableInterceptor.ClientRequestInfo.Local_Ref)
    is
       Operation : constant String  := "add_request_service_context";
       Valid     : constant Boolean := Point = Send_Request;
@@ -88,8 +88,8 @@ package body Test001_Client_Request_Info_Tests is
    ----------------------------
 
    procedure Test_Effective_Profile
-     (Point : in     Client_Interception_Point;
-      Info  : in     PortableInterceptor.ClientRequestInfo.Local_Ref)
+     (Point : Client_Interception_Point;
+      Info  : PortableInterceptor.ClientRequestInfo.Local_Ref)
    is
       use type IOP.ProfileId;
 
@@ -117,8 +117,8 @@ package body Test001_Client_Request_Info_Tests is
    ---------------------------
 
    procedure Test_Effective_Target
-     (Point : in     Client_Interception_Point;
-      Info  : in     PortableInterceptor.ClientRequestInfo.Local_Ref)
+     (Point : Client_Interception_Point;
+      Info  : PortableInterceptor.ClientRequestInfo.Local_Ref)
    is
       Operation : constant String := "effective_target";
       Obj       : CORBA.Object.Ref;
@@ -209,8 +209,8 @@ package body Test001_Client_Request_Info_Tests is
    -----------------------------------
 
    procedure Test_Get_Effective_Components
-     (Point : in     Client_Interception_Point;
-      Info  : in     PortableInterceptor.ClientRequestInfo.Local_Ref)
+     (Point : Client_Interception_Point;
+      Info  : PortableInterceptor.ClientRequestInfo.Local_Ref)
    is
       use type IOP.ComponentId;
 
@@ -280,8 +280,8 @@ package body Test001_Client_Request_Info_Tests is
    -----------------------------
 
    procedure Test_Get_Request_Policy
-     (Point : in     Client_Interception_Point;
-      Info  : in     PortableInterceptor.ClientRequestInfo.Local_Ref)
+     (Point : Client_Interception_Point;
+      Info  : PortableInterceptor.ClientRequestInfo.Local_Ref)
    is
       Operation : constant String := "get_request_policy";
       Valid     : constant Boolean := Point /= Send_Poll;
@@ -335,8 +335,8 @@ package body Test001_Client_Request_Info_Tests is
    -----------------------------
 
    procedure Test_Received_Exception
-     (Point  : in     Client_Interception_Point;
-      Info   : in     PortableInterceptor.ClientRequestInfo.Local_Ref)
+     (Point  : Client_Interception_Point;
+      Info   : PortableInterceptor.ClientRequestInfo.Local_Ref)
    is
       Operation : constant String := "received_exception";
       Valid     : constant Boolean := Point = Receive_Exception;
@@ -375,8 +375,8 @@ package body Test001_Client_Request_Info_Tests is
    --------------------------------
 
    procedure Test_Received_Exception_Id
-     (Point  : in     Client_Interception_Point;
-      Info   : in     PortableInterceptor.ClientRequestInfo.Local_Ref)
+     (Point  : Client_Interception_Point;
+      Info   : PortableInterceptor.ClientRequestInfo.Local_Ref)
    is
       Operation : constant String := "received_exception_id";
       Valid     : constant Boolean := Point = Receive_Exception;
@@ -413,8 +413,8 @@ package body Test001_Client_Request_Info_Tests is
    -----------------
 
    procedure Test_Target
-     (Point  : in     Client_Interception_Point;
-      Info   : in     PortableInterceptor.ClientRequestInfo.Local_Ref)
+     (Point  : Client_Interception_Point;
+      Info   : PortableInterceptor.ClientRequestInfo.Local_Ref)
    is
       Operation : constant String := "target";
       Obj       : CORBA.Object.Ref;

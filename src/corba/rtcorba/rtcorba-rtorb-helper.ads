@@ -6,12 +6,12 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
--- provisions that follow apply solely to the contents neither explicitely  --
--- nor implicitely specified by the CORBA Specification defined by the OMG. --
+-- provisions that follow apply solely to the contents neither explicitly   --
+-- nor implicitly specified by the CORBA Specification defined by the OMG.  --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -36,11 +36,19 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+-------------------------------------------------
+--  This file has been generated automatically
+--  by IDLAC version 2.3.0w.
+--
+--  Do NOT hand-modify this file, as your
+--  changes will be lost when you re-run the
+--  IDL to Ada compiler.
+-------------------------------------------------
+pragma Style_Checks ("NM32766");
+
 with CORBA;
 pragma Elaborate_All (CORBA);
 with CORBA.Object;
-
-with PolyORB.Any;
 
 package RTCORBA.RTORB.Helper is
 
@@ -50,12 +58,11 @@ package RTCORBA.RTORB.Helper is
    function To_Local_Ref
      (The_Ref : CORBA.Object.Ref'Class) return RTCORBA.RTORB.Local_Ref;
 
-   TC_InvalidThreadpool : CORBA.TypeCode.Object :=
-                            CORBA.TypeCode.Internals.To_CORBA_Object
-                              (PolyORB.Any.TypeCode.TC_Except);
+   TC_RTORB : CORBA.TypeCode.Object;
 
-   function From_Any
-     (Item : CORBA.Any) return RTCORBA.RTORB.InvalidThreadpool_Members;
+   TC_InvalidThreadpool : CORBA.TypeCode.Object;
+
+   function From_Any (Item : CORBA.Any) return RTCORBA.RTORB.InvalidThreadpool_Members;
 
    function To_Any
      (Item : RTCORBA.RTORB.InvalidThreadpool_Members) return CORBA.Any;

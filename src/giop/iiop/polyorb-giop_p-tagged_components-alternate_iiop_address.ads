@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2005-2006 Free Software Foundation, Inc.           --
+--         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -33,7 +33,7 @@
 
 --  TAG_ALTERNATE_IIOP_ADDRESS tagged component
 
-with PolyORB.Sockets;
+with PolyORB.Utils.Sockets;
 
 package PolyORB.GIOP_P.Tagged_Components.Alternate_IIOP_Address is
 
@@ -41,7 +41,7 @@ package PolyORB.GIOP_P.Tagged_Components.Alternate_IIOP_Address is
      new Tagged_Component
      (Tag => Tag_Alternate_IIOP_Address, At_Most_Once => False)
      with record
-        Address : PolyORB.Sockets.Sock_Addr_Type;
+        Address : Utils.Sockets.Socket_Name_Ptr;
      end record;
 
    procedure Marshall_Component_Data
@@ -56,7 +56,6 @@ package PolyORB.GIOP_P.Tagged_Components.Alternate_IIOP_Address is
    procedure Release_Contents (C : access TC_Alternate_IIOP_Address);
 
    function Duplicate
-     (C : TC_Alternate_IIOP_Address)
-     return Tagged_Component_Access;
+     (C : TC_Alternate_IIOP_Address) return Tagged_Component_Access;
 
 end PolyORB.GIOP_P.Tagged_Components.Alternate_IIOP_Address;

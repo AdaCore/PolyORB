@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -46,7 +46,6 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Index_Manager is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
-   pragma Unreferenced (C); --  For conditional pragma Debug
 
    type Flag_Array is array (Index_Type) of Boolean;
 
@@ -113,7 +112,7 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Index_Manager is
          Id := Free_Stack (Offset);
          Offset := Modular (Integer (Offset) - 1);
          Number_Of_Used := Number_Of_Used + 1;
-         pragma Debug (O ("Get " & Integer'Image (Id)));
+         pragma Debug (C, O ("Get " & Integer'Image (Id)));
          Used (Id) := True;
       end Get;
 
@@ -141,7 +140,7 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Index_Manager is
 
       procedure Release (Id : Index_Type) is
       begin
-         pragma Debug (O ("Release" & Integer'Image (Id)));
+         pragma Debug (C, O ("Release" & Integer'Image (Id)));
          pragma Assert (Initialized);
          if not Used (Id) then
             raise Program_Error;

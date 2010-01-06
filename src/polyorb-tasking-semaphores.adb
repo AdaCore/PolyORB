@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -45,7 +45,6 @@ package body PolyORB.Tasking.Semaphores is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
-   pragma Unreferenced (C); --  For conditional pragma Debug
 
    ----------
    -- Free --
@@ -60,7 +59,7 @@ package body PolyORB.Tasking.Semaphores is
 
    procedure Create (S : out Semaphore_Access) is
    begin
-      pragma Debug (O ("Create"));
+      pragma Debug (C, O ("Create"));
 
       S := new Semaphore;
       S.Value := 0;
@@ -74,7 +73,7 @@ package body PolyORB.Tasking.Semaphores is
 
    procedure Destroy (S : in out Semaphore_Access) is
    begin
-      pragma Debug (O ("Destroy semaphore, Value was "
+      pragma Debug (C, O ("Destroy semaphore, Value was "
                        & Integer'Image (S.Value)));
 
       PTM.Destroy (S.Mutex);
@@ -90,7 +89,7 @@ package body PolyORB.Tasking.Semaphores is
    begin
       PTM.Enter (S.Mutex);
 
-      pragma Debug (O ("V (sem), value ="
+      pragma Debug (C, O ("V (sem), value ="
                        & Integer'Image (S.Value)));
 
       S.Value := S.Value + 1;
@@ -105,10 +104,10 @@ package body PolyORB.Tasking.Semaphores is
    procedure P (S : Semaphore_Access) is
    begin
       PTM.Enter (S.Mutex);
-      pragma Debug (O ("P (sem)"));
+      pragma Debug (C, O ("P (sem)"));
 
       while S.Value = 0 loop
-         pragma Debug (O ("Value is null, wait in semaphore"));
+         pragma Debug (C, O ("Value is null, wait in semaphore"));
          PTCV.Wait (S.Condition, S.Mutex);
       end loop;
 
@@ -127,7 +126,7 @@ package body PolyORB.Tasking.Semaphores is
       PTM.Enter (S.Mutex);
       Result := S.Value;
 
-      pragma Debug (O ("Get Semaphore value, value ="
+      pragma Debug (C, O ("Get Semaphore value, value ="
                        & Integer'Image (S.Value)));
 
       PTM.Leave (S.Mutex);

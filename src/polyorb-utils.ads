@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -41,20 +41,15 @@ package PolyORB.Utils is
 
    function Hex_Value (C : Character) return Integer;
    --  The integer value corresponding to hexadecimal digit C.
-   --  If C is not a valid hexadecimal digit, Constraint_Error
-   --  is raised.
+   --  If C is not a valid hexadecimal digit, Constraint_Error is raised.
 
    function SEA_To_Hex_String
-     (A : Ada.Streams.Stream_Element_Array)
-     return String;
-   --  Return a string of hexadecimal digits representing the
-   --  contents of A.
+     (A : Ada.Streams.Stream_Element_Array) return String;
+   --  Return a string of hexadecimal digits representing the contents of A
 
    function Hex_String_To_SEA
-     (S : String)
-     return Ada.Streams.Stream_Element_Array;
-   --  Return the Stream_Element_Array represented by the
-   --  string of hexadecimal digits contained in S.
+     (S : String) return Ada.Streams.Stream_Element_Array;
+   --  Return the Stream_Element_Array represented by hexadecimal string S
 
    No_Escape : constant String := "";
 
@@ -68,8 +63,8 @@ package PolyORB.Utils is
 
    function URI_Decode (S : String) return String;
    --  Implement the decoding scheme defined in the RFC 2396.
-   --  Return S with any %xy sequence replaced with the character
-   --  whose hexadecimal representation is xy.
+   --  Return S with any %xy sequence replaced with the character whose
+   --  hexadecimal representation is xy.
 
    -----------------------
    -- String operations --
@@ -85,14 +80,14 @@ package PolyORB.Utils is
       Start     : Integer;
       What      : Character;
       Skip      : Boolean;
-      Direction : Direction_Type)
-     return Integer;
-   --  If Skip is False, return the index of the
-   --  first occurrence of What in S starting at Start and going
-   --  in the indicated direction (which can be Forward or Backward).
-   --  If Skip is True, return the index of the
-   --  first occurrence of any character OTHER THAN What.
-   --  If no such character exists, S'Last + 1 is returned.
+      Direction : Direction_Type) return Integer;
+   --  If Skip is False, return the index of the first occurrence of What in S
+   --  starting at Start and going in the indicated direction (which can be
+   --  Forward or Backward).
+   --  If Skip is True, return the index of the first occurrence of any
+   --  character OTHER THAN What.
+   --  If no such character exists, S'Last + 1 is returned if Direction is
+   --  Forward, or S'First - 1 if Direction is Backward.
 
    --  Shorthands for commonly-used forms of Find_Skip
 
@@ -101,8 +96,7 @@ package PolyORB.Utils is
       Start     : Integer;
       What      : Character;
       Skip      : Boolean        := False;
-      Direction : Direction_Type := Forward)
-     return Integer
+      Direction : Direction_Type := Forward) return Integer
      renames Find_Skip;
 
    function Find_Whitespace
@@ -110,8 +104,7 @@ package PolyORB.Utils is
       Start     : Integer;
       What      : Character      := ' ';
       Skip      : Boolean        := False;
-      Direction : Direction_Type := Forward)
-     return Integer
+      Direction : Direction_Type := Forward) return Integer
      renames Find_Skip;
 
    function Skip_Whitespace
@@ -119,8 +112,7 @@ package PolyORB.Utils is
       Start     : Integer;
       What      : Character      := ' ';
       Skip      : Boolean        := True;
-      Direction : Direction_Type := Forward)
-     return Integer
+      Direction : Direction_Type := Forward) return Integer
      renames Find_Skip;
 
    function Has_Prefix (S : String; Prefix : String) return Boolean;

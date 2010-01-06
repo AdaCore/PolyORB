@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -71,7 +71,7 @@ package body Test000_Setup is
    use PolyORB.Utils.Report;
 
    package L is new PolyORB.Log.Facility_Log ("test000");
-   procedure O (Message : in Standard.String;
+   procedure O (Message : Standard.String;
                 Level : PolyORB.Log.Log_Level := PolyORB.Log.Debug)
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
@@ -126,7 +126,8 @@ package body Test000_Setup is
    begin
       if Reentrant then
          declare
-            IOR : CORBA.String := CORBA.Object.Object_To_String (Obj_Ref);
+            IOR : constant CORBA.String
+              := CORBA.Object.Object_To_String (Obj_Ref);
          begin
             if Verbose then
                Output
@@ -167,7 +168,7 @@ package body Test000_Setup is
    begin
       New_Test ("RootPOA");
 
-      Root_POA := PortableServer.POA.Helper.To_Ref
+      Root_POA := PortableServer.POA.Helper.To_Local_Ref
         (CORBA.ORB.Resolve_Initial_References
          (CORBA.ORB.To_CORBA_String ("RootPOA")));
 
@@ -187,12 +188,12 @@ package body Test000_Setup is
 
       Policies : CORBA.Policy.PolicyList;
 
-      Thread_Policy : CORBA.Policy.Ref :=
+      Thread_Policy : constant CORBA.Policy.Ref :=
         CORBA.Policy.Ref (Create_Thread_Policy
                           (PortableServer.ORB_CTRL_MODEL));
 
       Root_POA : constant PortableServer.POA.Local_Ref :=
-        PortableServer.POA.Helper.To_Ref
+        PortableServer.POA.Helper.To_Local_Ref
         (CORBA.ORB.Resolve_Initial_References
          (CORBA.ORB.To_CORBA_String ("RootPOA")));
 
@@ -362,12 +363,12 @@ package body Test000_Setup is
 
       Policies : CORBA.Policy.PolicyList;
 
-      Thread_Policy : CORBA.Policy.Ref :=
+      Thread_Policy : constant CORBA.Policy.Ref :=
         CORBA.Policy.Ref (Create_Thread_Policy
                           (PortableServer.SINGLE_THREAD_MODEL));
 
       Root_POA : constant PortableServer.POA.Local_Ref :=
-        PortableServer.POA.Helper.To_Ref
+        PortableServer.POA.Helper.To_Local_Ref
         (CORBA.ORB.Resolve_Initial_References
          (CORBA.ORB.To_CORBA_String ("RootPOA")));
 
@@ -441,12 +442,12 @@ package body Test000_Setup is
 
       Policies : CORBA.Policy.PolicyList;
 
-      Thread_Policy : CORBA.Policy.Ref :=
+      Thread_Policy : constant CORBA.Policy.Ref :=
         CORBA.Policy.Ref (Create_Thread_Policy
                           (PortableServer.MAIN_THREAD_MODEL));
 
       Root_POA : constant PortableServer.POA.Local_Ref :=
-        PortableServer.POA.Helper.To_Ref
+        PortableServer.POA.Helper.To_Local_Ref
         (CORBA.ORB.Resolve_Initial_References
          (CORBA.ORB.To_CORBA_String ("RootPOA")));
 
@@ -575,36 +576,36 @@ package body Test000_Setup is
 
       Policies : CORBA.Policy.PolicyList;
 
-      Thread_Policy : CORBA.Policy.Ref :=
+      Thread_Policy : constant CORBA.Policy.Ref :=
         CORBA.Policy.Ref
         (Create_Thread_Policy (Tp));
 
-      Lifespan_Policy : CORBA.Policy.Ref :=
+      Lifespan_Policy : constant CORBA.Policy.Ref :=
         CORBA.Policy.Ref
         (Create_Lifespan_Policy (Lp));
 
-      Id_Uniqueness_Policy : CORBA.Policy.Ref :=
+      Id_Uniqueness_Policy : constant CORBA.Policy.Ref :=
         CORBA.Policy.Ref
         (Create_Id_Uniqueness_Policy (Up));
 
-      Id_Assignment_Policy : CORBA.Policy.Ref :=
+      Id_Assignment_Policy : constant CORBA.Policy.Ref :=
         CORBA.Policy.Ref
         (Create_Id_Assignment_Policy (Ap));
 
-      Implicit_Activation_Policy : CORBA.Policy.Ref :=
+      Implicit_Activation_Policy : constant CORBA.Policy.Ref :=
         CORBA.Policy.Ref
         (Create_Implicit_Activation_Policy (Ip));
 
-      Servant_Retention_Policy : CORBA.Policy.Ref :=
+      Servant_Retention_Policy : constant CORBA.Policy.Ref :=
         CORBA.Policy.Ref
         (Create_Servant_Retention_Policy (Sp));
 
-      Request_Processing_Policy : CORBA.Policy.Ref :=
+      Request_Processing_Policy : constant CORBA.Policy.Ref :=
         CORBA.Policy.Ref
         (Create_Request_Processing_Policy (Rp));
 
       Root_POA : constant PortableServer.POA.Local_Ref :=
-        PortableServer.POA.Helper.To_Ref
+        PortableServer.POA.Helper.To_Local_Ref
         (CORBA.ORB.Resolve_Initial_References
          (CORBA.ORB.To_CORBA_String ("RootPOA")));
 
@@ -801,7 +802,7 @@ package body Test000_Setup is
    begin
 
       --
-      --  Servant_To_Refence implicitely activates servant.
+      --  Servant_To_Refence implicitly activates servant.
       --
 
       pragma Debug (O ("  ==> Implicit Activation sub test <=="));
@@ -865,7 +866,7 @@ package body Test000_Setup is
       end;
 
       --
-      --  Explicitely Activate servant with No Id.
+      --  Explicitly Activate servant with No Id.
       --
 
       pragma Debug (O ("  ==> Explicit Activation System Id sub test <=="));
@@ -894,14 +895,14 @@ package body Test000_Setup is
             Temp := Invoke_On_Servant (Obj_Ref);
 
             if not Temp then
-               pragma Debug (O ("FATAL: Invooke_On_Servant failed"));
+               pragma Debug (O ("FATAL: Invoke_On_Servant failed"));
                Result.Fatal := True;
             end if;
 
             --  Repository Id sanity check
 
-            Temp := Echo.Repository_Id = To_Standard_String
-              (Get_Type_Id (Reference_To_Servant (POA, Obj_Ref)));
+            Temp := Echo.Repository_Id
+              = Get_Type_Id (Reference_To_Servant (POA, Obj_Ref));
 
             if not Temp then
                pragma Debug (O ("Get_Type_Id failed"));
@@ -926,7 +927,7 @@ package body Test000_Setup is
                      Temp := Invoke_On_Servant (Obj_Ref2);
 
                      if not Temp then
-                        pragma Debug (O ("FATAL: Invooke_On_Servant failed"));
+                        pragma Debug (O ("FATAL: Invoke_On_Servant failed"));
                         Result.Fatal := True;
                      end if;
                   end;
@@ -1032,7 +1033,7 @@ package body Test000_Setup is
       end;
 
       --
-      --  Explicitely Activate servant with User Id.
+      --  Explicitly Activate servant with User Id.
       --
 
       pragma Debug (O ("  ==> Explicit Activation User Id sub test <=="));
@@ -1052,8 +1053,8 @@ package body Test000_Setup is
 
          --  Repository Id sanity check
 
-         Temp := Echo.Repository_Id = To_Standard_String
-           (Get_Type_Id (Reference_To_Servant (POA, Obj_Ref)));
+         Temp := Echo.Repository_Id =
+           Get_Type_Id (Reference_To_Servant (POA, Obj_Ref));
 
          if not Temp then
             pragma Debug (O ("Get_Type_Id failed"));
@@ -1084,7 +1085,7 @@ package body Test000_Setup is
          Temp := Invoke_On_Servant (Obj_Ref);
 
          if not Temp then
-            pragma Debug (O ("FATAL: Invooke_On_Servant failed"));
+            pragma Debug (O ("FATAL: Invoke_On_Servant failed"));
             Result.Fatal := True;
          end if;
 
@@ -1131,8 +1132,8 @@ package body Test000_Setup is
          begin
             --  Repository Id sanity check
 
-            Temp := Echo.Repository_Id = To_Standard_String
-              (Get_Type_Id (Reference_To_Servant (POA, Obj_Ref2)));
+            Temp := Echo.Repository_Id =
+              Get_Type_Id (Reference_To_Servant (POA, Obj_Ref2));
 
             if not Temp then
                pragma Debug (O ("Get_Type_Id failed"));
@@ -1244,7 +1245,7 @@ package body Test000_Setup is
                Temp := Invoke_On_Servant (Obj_Ref2);
 
                if not Temp then
-                  pragma Debug (O ("FATAL: Invooke_On_Servant failed"));
+                  pragma Debug (O ("FATAL: Invoke_On_Servant failed"));
                   Result.Fatal := True;
                end if;
             end;
@@ -1490,7 +1491,7 @@ package body Test000_Setup is
       Policies : CORBA.Policy.PolicyList;
 
       Root_POA : constant PortableServer.POA.Local_Ref :=
-        PortableServer.POA.Helper.To_Ref
+        PortableServer.POA.Helper.To_Local_Ref
         (CORBA.ORB.Resolve_Initial_References
          (CORBA.ORB.To_CORBA_String ("RootPOA")));
 
@@ -1574,10 +1575,11 @@ package body Test000_Setup is
       declare
          use PortableServer.IDL_SEQUENCE_PortableServer_POA_Forward;
 
-         Children : PortableServer.POAList
+         Children : constant PortableServer.POAList
            := PortableServer.POA.Get_The_Children (Child_POA);
 
-         Children_Array : Element_Array := To_Element_Array (Children);
+         Children_Array : constant Element_Array
+           := To_Element_Array (Children);
 
       begin
          if Children_Array'Length /= 2 then
@@ -1608,7 +1610,7 @@ package body Test000_Setup is
       use CORBA.Policy.IDL_SEQUENCE_Policy;
 
       Root_POA  : constant PortableServer.POA.Local_Ref
-        := PortableServer.POA.Helper.To_Ref
+        := PortableServer.POA.Helper.To_Local_Ref
         (CORBA.ORB.Resolve_Initial_References
          (CORBA.ORB.To_CORBA_String ("RootPOA")));
 
@@ -1623,19 +1625,19 @@ package body Test000_Setup is
       declare
          Policies : CORBA.Policy.PolicyList;
 
-         Lifespan_Policy : CORBA.Policy.Ref
+         Lifespan_Policy : constant CORBA.Policy.Ref
            := CORBA.Policy.Ref
            (Create_Lifespan_Policy (PERSISTENT));
 
-         Id_Assignment_Policy : CORBA.Policy.Ref
+         Id_Assignment_Policy : constant CORBA.Policy.Ref
            := CORBA.Policy.Ref
            (Create_Id_Assignment_Policy (USER_ID));
 
-         Implicit_Activation_Policy : CORBA.Policy.Ref
+         Implicit_Activation_Policy : constant CORBA.Policy.Ref
            := CORBA.Policy.Ref
            (Create_Implicit_Activation_Policy (NO_IMPLICIT_ACTIVATION));
 
-         Request_Processing_Policy : CORBA.Policy.Ref
+         Request_Processing_Policy : constant CORBA.Policy.Ref
            := CORBA.Policy.Ref
            (Create_Request_Processing_Policy (USE_SERVANT_MANAGER));
 
@@ -1809,8 +1811,6 @@ package body Test000_Setup is
          PortableServer.POA.Set_Servant (My_POA, new Echo.Impl.Object);
       end;
 
-      Success := False;
-
       declare
          Oid_1  : PortableServer.ObjectId;
          My_Ref : CORBA.Object.Ref;
@@ -1828,7 +1828,8 @@ package body Test000_Setup is
       exception
          when E : others =>
             Put_Line ("POA::reference_to_id test raised "
-              & Ada.Exceptions.Exception_Information (E));
+                        & Ada.Exceptions.Exception_Information (E));
+            Success := False;
       end;
 
       PolyORB.Utils.Report.Output ("Reference_To_Id (multiple id)", Success);

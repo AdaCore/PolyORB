@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -89,8 +89,7 @@ package body DynamicAny.DynAny.Impl is
    ---------------------
 
    function Component_Count
-     (Self : access Object)
-      return CORBA.Unsigned_Long
+     (Self : access Object) return CORBA.Unsigned_Long
    is
    begin
       if Is_Destroyed (Self) then
@@ -98,9 +97,8 @@ package body DynamicAny.DynAny.Impl is
       end if;
 
       declare
-         T : constant PolyORB.Any.TypeCode.Object
-           := Get_Unwound_Type (Self.Value);
-
+         T : constant PolyORB.Any.TypeCode.Object_Ptr :=
+               Get_Unwound_Type (Self.Value);
       begin
          case Kind (T) is
             when Tk_Sequence =>
@@ -147,9 +145,8 @@ package body DynamicAny.DynAny.Impl is
          CORBA.Raise_Object_Not_Exist (CORBA.Default_Sys_Member);
       end if;
 
-      return
-        PolyORB.CORBA_P.Dynamic_Any.Create
-        (CORBA.Internals.To_CORBA_Any (Self.Value), True, null);
+      return PolyORB.CORBA_P.Dynamic_Any.Create
+        (CORBA.Any (Self.Value), True, null);
    end Copy;
 
    -----------------------
@@ -200,13 +197,10 @@ package body DynamicAny.DynAny.Impl is
          begin
             Result :=
               PolyORB.CORBA_P.Dynamic_Any.Create
-              (CORBA.Internals.To_CORBA_Any (Elem),
-               True,
-               Object_Ptr (Self));
+                (CORBA.Any (Elem), True, Object_Ptr (Self));
 
             if Length (Self.Children) > Natural (Self.Current) then
-               --  If corresponding item in list already present then
-               --  set its value.
+               --  If corresponding item in list already present, set value
 
                Element (Self.Children, Natural (Self.Current)).all := Result;
 
@@ -256,12 +250,14 @@ package body DynamicAny.DynAny.Impl is
       Dyn_Any : Local_Ref'Class)
       return CORBA.Boolean
    is
+      use type CORBA.Any;
    begin
       if Is_Destroyed (Self) then
          CORBA.Raise_Object_Not_Exist (CORBA.Default_Sys_Member);
       end if;
 
-      return Self.Value = Get_Value (Object_Ptr (Entity_Of (Dyn_Any)));
+      return CORBA.Any (Self.Value)
+               = Get_Value (Object_Ptr (Entity_Of (Dyn_Any)));
    end Equal;
 
    --------------
@@ -293,9 +289,7 @@ package body DynamicAny.DynAny.Impl is
       end if;
 
       declare
-         Neutral : constant PolyORB.Any.Any
-           := CORBA.Internals.To_PolyORB_Any (Value);
-
+         Neutral : constant PolyORB.Any.Any := PolyORB.Any.Any (Value);
       begin
          if not Equivalent (Get_Type (Self.Value), Get_Type (Neutral)) then
             Helper.Raise_TypeMismatch
@@ -340,9 +334,7 @@ package body DynamicAny.DynAny.Impl is
 
       begin
          if K = Tk_Any then
-            return
-              CORBA.Internals.To_CORBA_Any
-              (PolyORB.Any.Any'(From_Any (Self.Value)));
+            return CORBA.Any (PolyORB.Any.Any'(From_Any (Self.Value)));
 
          elsif not Is_Ordinary_Aggregate (K) then
             Helper.Raise_TypeMismatch
@@ -360,9 +352,7 @@ package body DynamicAny.DynAny.Impl is
 
             begin
                if Kind (Get_Unwound_Type (Element)) = Tk_Any then
-                  return
-                    CORBA.Internals.To_CORBA_Any
-                    (PolyORB.Any.Any'(From_Any (Element)));
+                  return CORBA.Any (PolyORB.Any.Any'(From_Any (Element)));
 
                else
                   Helper.Raise_TypeMismatch
@@ -388,7 +378,7 @@ package body DynamicAny.DynAny.Impl is
 
       begin
          if K = Tk_Boolean then
-            return From_Any (Self.Value);
+            return CORBA.From_Any (CORBA.Any (Self.Value));
 
          elsif not Is_Ordinary_Aggregate (K) then
             Helper.Raise_TypeMismatch
@@ -596,10 +586,9 @@ package body DynamicAny.DynAny.Impl is
                if Is_Empty (Self.Children) then
                   Result :=
                     PolyORB.CORBA_P.Dynamic_Any.Create
-                    (CORBA.Internals.To_CORBA_Any
-                     (PolyORB.Any.Any'(From_Any (Self.Value))),
-                     True,
-                     Object_Ptr (Self));
+                      (CORBA.Any'(CORBA.From_Any (CORBA.Any (Self.Value))),
+                       True,
+                       Object_Ptr (Self));
                   Append (Self.Children, Result);
 
                else
@@ -1099,7 +1088,9 @@ package body DynamicAny.DynAny.Impl is
    -- Get_TypeCode --
    ------------------
 
-   function Get_TypeCode (Self : access Object) return CORBA.TypeCode.Object is
+   function Get_TypeCode
+     (Self : access Object) return CORBA.TypeCode.Object
+   is
    begin
       if Is_Destroyed (Self) then
          CORBA.Raise_Object_Not_Exist (CORBA.Default_Sys_Member);
@@ -1110,9 +1101,7 @@ package body DynamicAny.DynAny.Impl is
 
       begin
          if K = Tk_TypeCode then
-            return
-              CORBA.TypeCode.Internals.To_CORBA_Object
-              (PolyORB.Any.TypeCode.Object'(From_Any (Self.Value)));
+            return CORBA.From_Any (CORBA.Any (Self.Value));
 
          elsif not Is_Ordinary_Aggregate (K) then
             Helper.Raise_TypeMismatch
@@ -1124,15 +1113,13 @@ package body DynamicAny.DynAny.Impl is
 
          else
             declare
-               Element : constant PolyORB.Any.Any
-                 := Get_Aggregate_Element
-                 (Self.Value, TypeCode.TC_Any, Unsigned_Long (Self.Current));
+               Element : constant PolyORB.Any.Any :=
+                           Get_Aggregate_Element (Self.Value,
+                             TypeCode.TC_Any, Unsigned_Long (Self.Current));
 
             begin
                if Kind (Get_Unwound_Type (Element)) = Tk_Any then
-                  return
-                    CORBA.TypeCode.Internals.To_CORBA_Object
-                    (PolyORB.Any.TypeCode.Object'(From_Any (Element)));
+                  return CORBA.From_Any (CORBA.Any (Element));
 
                else
                   Helper.Raise_TypeMismatch
@@ -1516,9 +1503,8 @@ package body DynamicAny.DynAny.Impl is
 
       begin
          if K = Tk_Any then
-            Set_Any_Value
-              (CORBA.Internals.To_PolyORB_Any (Value),
-               Get_Container (Self.Value).all);
+            Set_Any_Value (PolyORB.Any.Any (Value),
+              Get_Container (Self.Value).all);
 
          elsif not Is_Ordinary_Aggregate (K) then
             Helper.Raise_TypeMismatch
@@ -1530,15 +1516,15 @@ package body DynamicAny.DynAny.Impl is
 
          else
             declare
-               Element : PolyORB.Any.Any
-                 := Get_Aggregate_Element
-                 (Self.Value, TypeCode.TC_Any, Unsigned_Long (Self.Current));
+               Element : constant PolyORB.Any.Any :=
+                           Get_Aggregate_Element (Self.Value,
+                              TypeCode.TC_Any,
+                              Unsigned_Long (Self.Current));
 
             begin
                if Kind (Get_Unwound_Type (Element)) = Tk_Any then
-                  Set_Any_Value
-                    (CORBA.Internals.To_PolyORB_Any (Value),
-                     Get_Container (Element).all);
+                  Set_Any_Value (PolyORB.Any.Any (Value),
+                    Get_Container (Element).all);
 
                else
                   Helper.Raise_TypeMismatch
@@ -1579,11 +1565,10 @@ package body DynamicAny.DynAny.Impl is
 
          else
             declare
-               Element : PolyORB.Any.Any
-                 := Get_Aggregate_Element
-                 (Self.Value,
-                  TypeCode.TC_Boolean,
-                  Unsigned_Long (Self.Current));
+               Element : constant PolyORB.Any.Any :=
+                           Get_Aggregate_Element (Self.Value,
+                             TypeCode.TC_Boolean,
+                             Unsigned_Long (Self.Current));
 
             begin
                if Kind (Get_Unwound_Type (Element)) = Tk_Boolean then
@@ -1646,9 +1631,10 @@ package body DynamicAny.DynAny.Impl is
 
          else
             declare
-               Element : PolyORB.Any.Any
-                 := Get_Aggregate_Element
-                 (Self.Value, TypeCode.TC_Char, Unsigned_Long (Self.Current));
+               Element : constant PolyORB.Any.Any :=
+                           Get_Aggregate_Element (Self.Value,
+                             TypeCode.TC_Char,
+                             Unsigned_Long (Self.Current));
 
             begin
                if Kind (Get_Unwound_Type (Element)) = Tk_Char then
@@ -1712,11 +1698,10 @@ package body DynamicAny.DynAny.Impl is
 
          else
             declare
-               Element : PolyORB.Any.Any
-                 := Get_Aggregate_Element
-                 (Self.Value,
-                  TypeCode.TC_Double,
-                  Unsigned_Long (Self.Current));
+               Element : constant PolyORB.Any.Any :=
+                           Get_Aggregate_Element (Self.Value,
+                             TypeCode.TC_Double,
+                             Unsigned_Long (Self.Current));
 
             begin
                if Kind (Get_Unwound_Type (Element)) = Tk_Double then
@@ -1770,7 +1755,7 @@ package body DynamicAny.DynAny.Impl is
       begin
          if K = Tk_Any then
             Set_Any_Value
-              (Get_Value (Object_Ptr (Entity_Of (Value))),
+              (PolyORB.Any.Any (Get_Value (Object_Ptr (Entity_Of (Value)))),
                Get_Container (Self.Value).all);
 
          elsif not Is_Ordinary_Aggregate (K) then
@@ -1783,14 +1768,16 @@ package body DynamicAny.DynAny.Impl is
 
          else
             declare
-               Element : PolyORB.Any.Any
-                 := Get_Aggregate_Element
-                 (Self.Value, TypeCode.TC_Any, Unsigned_Long (Self.Current));
+               Element : constant PolyORB.Any.Any :=
+                           Get_Aggregate_Element (Self.Value,
+                             TypeCode.TC_Any,
+                             Unsigned_Long (Self.Current));
 
             begin
                if Kind (Get_Unwound_Type (Element)) = Tk_Any then
                   Set_Any_Value
-                    (Get_Value (Object_Ptr (Entity_Of (Value))),
+                    (PolyORB.Any.Any
+                       (Get_Value (Object_Ptr (Entity_Of (Value)))),
                      Get_Container (Element).all);
 
                else
@@ -1833,11 +1820,10 @@ package body DynamicAny.DynAny.Impl is
 
          else
             declare
-               Element : PolyORB.Any.Any
-                 := Get_Aggregate_Element
-                 (Self.Value,
-                  TypeCode.TC_Float,
-                  Unsigned_Long (Self.Current));
+               Element : constant PolyORB.Any.Any :=
+                           Get_Aggregate_Element (Self.Value,
+                             TypeCode.TC_Float,
+                             Unsigned_Long (Self.Current));
 
             begin
                if Kind (Get_Unwound_Type (Element)) = Tk_Float then
@@ -1902,11 +1888,10 @@ package body DynamicAny.DynAny.Impl is
 
          else
             declare
-               Element : PolyORB.Any.Any
-                 := Get_Aggregate_Element
-                 (Self.Value,
-                  TypeCode.TC_Long,
-                  Unsigned_Long (Self.Current));
+               Element : constant PolyORB.Any.Any :=
+                           Get_Aggregate_Element (Self.Value,
+                             TypeCode.TC_Long,
+                             Unsigned_Long (Self.Current));
 
             begin
                if Kind (Get_Unwound_Type (Element)) = Tk_Long then
@@ -1972,11 +1957,10 @@ package body DynamicAny.DynAny.Impl is
 
          else
             declare
-               Element : PolyORB.Any.Any
-                 := Get_Aggregate_Element
-                 (Self.Value,
-                  TypeCode.TC_Long_Double,
-                  Unsigned_Long (Self.Current));
+               Element : constant PolyORB.Any.Any :=
+                           Get_Aggregate_Element (Self.Value,
+                             TypeCode.TC_Long_Double,
+                             Unsigned_Long (Self.Current));
 
             begin
                if Kind (Get_Unwound_Type (Element)) = Tk_LongDouble then
@@ -2043,11 +2027,10 @@ package body DynamicAny.DynAny.Impl is
 
          else
             declare
-               Element : PolyORB.Any.Any
-                 := Get_Aggregate_Element
-                 (Self.Value,
-                  TypeCode.TC_Long_Long,
-                  Unsigned_Long (Self.Current));
+               Element : constant PolyORB.Any.Any :=
+                           Get_Aggregate_Element (Self.Value,
+                             TypeCode.TC_Long_Long,
+                             Unsigned_Long (Self.Current));
 
             begin
                if Kind (Get_Unwound_Type (Element)) = Tk_LongLong then
@@ -2113,11 +2096,10 @@ package body DynamicAny.DynAny.Impl is
 
          else
             declare
-               Element : PolyORB.Any.Any
-                 := Get_Aggregate_Element
-                 (Self.Value,
-                  TypeCode.TC_Octet,
-                  Unsigned_Long (Self.Current));
+               Element : constant PolyORB.Any.Any :=
+                           Get_Aggregate_Element (Self.Value,
+                             TypeCode.TC_Octet,
+                             Unsigned_Long (Self.Current));
 
             begin
                if Kind (Get_Unwound_Type (Element)) = Tk_Octet then
@@ -2200,9 +2182,10 @@ package body DynamicAny.DynAny.Impl is
 
          else
             declare
-               Element : PolyORB.Any.Any
-                 := Get_Aggregate_Element
-                 (Self.Value, TypeCode.TC_Short, Unsigned_Long (Self.Current));
+               Element : constant PolyORB.Any.Any :=
+                           Get_Aggregate_Element (Self.Value,
+                             TypeCode.TC_Short,
+                             Unsigned_Long (Self.Current));
 
             begin
                if Kind (Get_Unwound_Type (Element)) = Tk_Short then
@@ -2267,11 +2250,10 @@ package body DynamicAny.DynAny.Impl is
 
          else
             declare
-               Element : PolyORB.Any.Any
-                 := Get_Aggregate_Element
-                 (Self.Value,
-                  TypeCode.TC_String,
-                  Unsigned_Long (Self.Current));
+               Element : constant PolyORB.Any.Any :=
+                           Get_Aggregate_Element (Self.Value,
+                             TypeCode.TC_String,
+                             Unsigned_Long (Self.Current));
 
             begin
                if Kind (Get_Unwound_Type (Element)) = Tk_String then
@@ -2320,11 +2302,10 @@ package body DynamicAny.DynAny.Impl is
 
          else
             declare
-               Element : PolyORB.Any.Any
-                 := Get_Aggregate_Element
-                 (Self.Value,
-                  TypeCode.TC_TypeCode,
-                  Unsigned_Long (Self.Current));
+               Element : constant PolyORB.Any.Any :=
+                           Get_Aggregate_Element (Self.Value,
+                             TypeCode.TC_TypeCode,
+                             Unsigned_Long (Self.Current));
 
             begin
                if Kind (Get_Unwound_Type (Element)) = Tk_TypeCode then
@@ -2373,11 +2354,10 @@ package body DynamicAny.DynAny.Impl is
 
          else
             declare
-               Element : PolyORB.Any.Any
-                 := Get_Aggregate_Element
-                 (Self.Value,
-                  TypeCode.TC_Unsigned_Long,
-                  Unsigned_Long (Self.Current));
+               Element : constant PolyORB.Any.Any :=
+                           Get_Aggregate_Element (Self.Value,
+                             TypeCode.TC_Unsigned_Long,
+                             Unsigned_Long (Self.Current));
 
             begin
                if Kind (Get_Unwound_Type (Element)) = Tk_Ulong then
@@ -2444,11 +2424,10 @@ package body DynamicAny.DynAny.Impl is
 
          else
             declare
-               Element : PolyORB.Any.Any
-                 := Get_Aggregate_Element
-                 (Self.Value,
-                  TypeCode.TC_Unsigned_Long_Long,
-                  Unsigned_Long (Self.Current));
+               Element : constant PolyORB.Any.Any :=
+                           Get_Aggregate_Element (Self.Value,
+                             TypeCode.TC_Unsigned_Long_Long,
+                             Unsigned_Long (Self.Current));
 
             begin
                if Kind (Get_Unwound_Type (Element)) = Tk_Ulonglong then
@@ -2515,11 +2494,10 @@ package body DynamicAny.DynAny.Impl is
 
          else
             declare
-               Element : PolyORB.Any.Any
-                 := Get_Aggregate_Element
-                 (Self.Value,
-                  TypeCode.TC_Unsigned_Short,
-                  Unsigned_Long (Self.Current));
+               Element : constant PolyORB.Any.Any :=
+                           Get_Aggregate_Element (Self.Value,
+                             TypeCode.TC_Unsigned_Short,
+                             Unsigned_Long (Self.Current));
 
             begin
                if Kind (Get_Unwound_Type (Element)) = Tk_Ushort then
@@ -2584,11 +2562,10 @@ package body DynamicAny.DynAny.Impl is
 
          else
             declare
-               Element : PolyORB.Any.Any
-                 := Get_Aggregate_Element
-                 (Self.Value,
-                  TypeCode.TC_Wchar,
-                  Unsigned_Long (Self.Current));
+               Element : constant PolyORB.Any.Any :=
+                           Get_Aggregate_Element (Self.Value,
+                             TypeCode.TC_Wchar,
+                             Unsigned_Long (Self.Current));
 
             begin
                if Kind (Get_Unwound_Type (Element)) = Tk_Widechar then
@@ -2653,11 +2630,10 @@ package body DynamicAny.DynAny.Impl is
 
          else
             declare
-               Element : PolyORB.Any.Any
-                 := Get_Aggregate_Element
-                 (Self.Value,
-                  TypeCode.TC_Wide_String,
-                  Unsigned_Long (Self.Current));
+               Element : constant PolyORB.Any.Any :=
+                           Get_Aggregate_Element (Self.Value,
+                             TypeCode.TC_Wide_String,
+                             Unsigned_Long (Self.Current));
 
             begin
                if Kind (Get_Unwound_Type (Element)) = Tk_Wstring then
@@ -2685,24 +2661,20 @@ package body DynamicAny.DynAny.Impl is
       ------------
 
       function Create
-        (Value  : PolyORB.Any.Any;
-         Parent : DynAny.Impl.Object_Ptr)
-         return Local_Ref
+        (Value  : CORBA.Any;
+         Parent : DynAny.Impl.Object_Ptr) return Local_Ref
       is
          Obj    : constant Object_Ptr := new Object;
          Result : Local_Ref;
 
       begin
-         Initialize (Obj, Value, Parent);
-
+         Initialize (Obj, PolyORB.Any.Any (Value), Parent);
          Set (Result, PolyORB.Smart_Pointers.Entity_Ptr (Obj));
-
          return Result;
       end Create;
 
       function Create
-        (Value : PolyORB.Any.TypeCode.Object)
-         return DynAny.Local_Ref
+        (Value : PolyORB.Any.TypeCode.Local_Ref) return DynAny.Local_Ref
       is
          Obj    : constant Object_Ptr := new Object;
          Result : Local_Ref;
@@ -2719,9 +2691,9 @@ package body DynamicAny.DynAny.Impl is
       -- Get_Value --
       ---------------
 
-      function Get_Value (Self : access Object'Class) return PolyORB.Any.Any is
+      function Get_Value (Self : access Object'Class) return CORBA.Any is
       begin
-         return Self.Value;
+         return CORBA.Any (Self.Value);
       end Get_Value;
 
       ----------------
@@ -2730,11 +2702,10 @@ package body DynamicAny.DynAny.Impl is
 
       procedure Initialize
         (Self     : access Object'Class;
-         IDL_Type : PolyORB.Any.TypeCode.Object)
+         IDL_Type : PolyORB.Any.TypeCode.Local_Ref)
       is
          pragma Unreferenced (Self);
          pragma Unreferenced (IDL_Type);
-
       begin
          raise Program_Error;
       end Initialize;
@@ -2890,8 +2861,7 @@ package body DynamicAny.DynAny.Impl is
 
    function Seek
      (Self  : access Object;
-      Index : CORBA.Long)
-      return CORBA.Boolean
+      Index : CORBA.Long) return CORBA.Boolean
    is
    begin
       if Is_Destroyed (Self) then
@@ -2927,17 +2897,18 @@ package body DynamicAny.DynAny.Impl is
    -------------
 
    function To_Any (Self : access Object) return CORBA.Any is
-      Result : PolyORB.Any.Any;
+      Result : CORBA.Any;
+      C_Value : constant CORBA.Any := CORBA.Any (Self.Value);
 
    begin
       if Is_Destroyed (Self) then
          CORBA.Raise_Object_Not_Exist (CORBA.Default_Sys_Member);
       end if;
 
-      Result := Get_Empty_Any (Get_Type (Self.Value));
-      Copy_Any_Value (Result, Self.Value);
+      Result := CORBA.Get_Empty_Any (CORBA.Get_Type (C_Value));
+      CORBA.Copy_Any_Value (Result, C_Value);
 
-      return CORBA.Internals.To_CORBA_Any (Result);
+      return Result;
    end To_Any;
 
 end DynamicAny.DynAny.Impl;

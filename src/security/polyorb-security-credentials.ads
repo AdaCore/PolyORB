@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -104,38 +104,36 @@ package PolyORB.Security.Credentials is
       return PolyORB.Security.Identities.Identity_Access
       is abstract;
 
-----   function Is_Valid (Self : Ref; Expiry_Time : out Time) return Boolean;
---
-----   type Security_Feature is
-----      (No_Protection, Integrity, Confidentiality,
-----       Integrity_And_Confidentiality, Detect_Replay, Detect_Misordering,
-----       Establish_Trust_In_Target, Establish_Trust_In_Client);
-----   --  from Security Service: No_Delegation, Simple_Delegation,
-----   --                         Composite_Delegation
-----   --  from CSIv2: Identity_Assertion, Delegation_By_Client
-----
-----   function Get_Security_Feature
-----     (Self : Ref; Feature : in Security_Feature) return Boolean;
---
---
+--   function Is_Valid (Self : Ref; Expiry_Time : out Time) return Boolean;
+
+--   type Security_Feature is
+--      (No_Protection, Integrity, Confidentiality,
+--       Integrity_And_Confidentiality, Detect_Replay, Detect_Misordering,
+--       Establish_Trust_In_Target, Establish_Trust_In_Client);
+--   --  from Security Service: No_Delegation, Simple_Delegation,
+--   --                         Composite_Delegation
+--   --  from CSIv2: Identity_Assertion, Delegation_By_Client
+
+--   function Get_Security_Feature
+--     (Self : Ref; Feature : Security_Feature) return Boolean;
+
 --   type Received_Credentials is abstract new Ref with null record;
---
+
 --   function Accepting_Credentials (Self : Ref) return Credentials
 --     is abstract;
---
+
 --   function Association_Options_Used
 --     (Self : Received_Credentials)
 --      return PolyORB.Security.Types.Association_Options
 --      is abstract;
---
+
 --   procedure Set_Invocation_Options_Required
 --     (Self    : Received_Credentials;
 --      Options : PolyORB.Security.Types.Association_Options)
 --      is abstract;
---
-----    Delegation_State
-----    Delegation_Mode
---
+
+--    Delegation_State
+--    Delegation_Mode
 
    --  Credentials Lists
 

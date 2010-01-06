@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -58,8 +58,8 @@ package body Test001_Request_Info_Tests is
    --------------------
 
    procedure Test_Arguments
-     (Point : in Interception_Point;
-      Info  : in PortableInterceptor.RequestInfo.Local_Ref'Class)
+     (Point : Interception_Point;
+      Info  : PortableInterceptor.RequestInfo.Local_Ref'Class)
    is
       Operation : constant String := "arguments";
       Valid     : constant Boolean
@@ -119,8 +119,8 @@ package body Test001_Request_Info_Tests is
    -------------------
 
    procedure Test_Contexts
-     (Point : in Interception_Point;
-      Info  : in PortableInterceptor.RequestInfo.Local_Ref'Class)
+     (Point : Interception_Point;
+      Info  : PortableInterceptor.RequestInfo.Local_Ref'Class)
    is
       Operation : constant String := "contexts";
       Valid     : constant Boolean
@@ -175,8 +175,8 @@ package body Test001_Request_Info_Tests is
    ---------------------
 
    procedure Test_Exceptions
-     (Point : in Interception_Point;
-      Info  : in PortableInterceptor.RequestInfo.Local_Ref'Class)
+     (Point : Interception_Point;
+      Info  : PortableInterceptor.RequestInfo.Local_Ref'Class)
    is
       Operation : constant String := "exceptions";
       Valid     : constant Boolean
@@ -230,8 +230,8 @@ package body Test001_Request_Info_Tests is
    ----------------------------
 
    procedure Test_Forward_Reference
-     (Point : in Interception_Point;
-      Info  : in PortableInterceptor.RequestInfo.Local_Ref'Class)
+     (Point : Interception_Point;
+      Info  : PortableInterceptor.RequestInfo.Local_Ref'Class)
    is
       Operation : constant String := "forward_reference";
       Valid     : constant Boolean
@@ -272,8 +272,8 @@ package body Test001_Request_Info_Tests is
    ------------------------------------
 
    procedure Test_Get_Reply_Service_Context
-     (Point : in Interception_Point;
-      Info  : in PortableInterceptor.RequestInfo.Local_Ref'Class)
+     (Point : Interception_Point;
+      Info  : PortableInterceptor.RequestInfo.Local_Ref'Class)
    is
       Operation : constant String := "get_reply_service_context";
       Valid     : constant Boolean
@@ -345,8 +345,8 @@ package body Test001_Request_Info_Tests is
    --------------------------------------
 
    procedure Test_Get_Request_Service_Context
-     (Point : in Interception_Point;
-      Info  : in PortableInterceptor.RequestInfo.Local_Ref'Class)
+     (Point : Interception_Point;
+      Info  : PortableInterceptor.RequestInfo.Local_Ref'Class)
    is
       Operation : constant String  := "get_request_service_context";
       Valid     : constant Boolean := Point /= Send_Poll;
@@ -414,8 +414,8 @@ package body Test001_Request_Info_Tests is
    -------------------
 
    procedure Test_Get_Slot
-     (Point : in Interception_Point;
-      Info  : in PortableInterceptor.RequestInfo.Local_Ref'Class)
+     (Point : Interception_Point;
+      Info  : PortableInterceptor.RequestInfo.Local_Ref'Class)
    is
       Operation : constant String := "get_slot";
       Val       : Any;
@@ -443,8 +443,8 @@ package body Test001_Request_Info_Tests is
    --------------------
 
    procedure Test_Operation
-     (Point : in Interception_Point;
-      Info  : in PortableInterceptor.RequestInfo.Local_Ref'Class)
+     (Point : Interception_Point;
+      Info  : PortableInterceptor.RequestInfo.Local_Ref'Class)
    is
       Operation : constant String := "operation";
 
@@ -465,8 +465,8 @@ package body Test001_Request_Info_Tests is
    ----------------------------
 
    procedure Test_Operation_Context
-     (Point : in Interception_Point;
-      Info  : in PortableInterceptor.RequestInfo.Local_Ref'Class)
+     (Point : Interception_Point;
+      Info  : PortableInterceptor.RequestInfo.Local_Ref'Class)
    is
       Operation : constant String := "operation_context";
       Valid     : constant Boolean
@@ -524,9 +524,9 @@ package body Test001_Request_Info_Tests is
    ---------------------
 
    procedure Test_Request_Id
-     (Point    : in Interception_Point;
-      Info     : in PortableInterceptor.RequestInfo.Local_Ref'Class;
-      Suppress : in Boolean := False)
+     (Point    : Interception_Point;
+      Info     : PortableInterceptor.RequestInfo.Local_Ref'Class;
+      Suppress : Boolean := False)
    is
       Operation : constant String := "request_id";
       Aux       : CORBA.Unsigned_Long;
@@ -569,8 +569,8 @@ package body Test001_Request_Info_Tests is
    -----------------------
 
    procedure Test_Reply_Status
-     (Point : in Interception_Point;
-      Info  : in PortableInterceptor.RequestInfo.Local_Ref'Class)
+     (Point : Interception_Point;
+      Info  : PortableInterceptor.RequestInfo.Local_Ref'Class)
    is
       Operation : constant String := "reply_status";
       Valid     : constant Boolean
@@ -647,8 +647,8 @@ package body Test001_Request_Info_Tests is
    -----------------
 
    procedure Test_Result
-     (Point : in Interception_Point;
-      Info  : in PortableInterceptor.RequestInfo.Local_Ref'Class)
+     (Point : Interception_Point;
+      Info  : PortableInterceptor.RequestInfo.Local_Ref'Class)
    is
       Operation : constant String := "result";
       Valid     : constant Boolean
@@ -704,8 +704,8 @@ package body Test001_Request_Info_Tests is
    ----------------------------
 
    procedure Test_Response_Expected
-     (Point : in Interception_Point;
-      Info  : in PortableInterceptor.RequestInfo.Local_Ref'Class)
+     (Point : Interception_Point;
+      Info  : PortableInterceptor.RequestInfo.Local_Ref'Class)
    is
       Operation : constant String := "response_expected";
 
@@ -728,8 +728,8 @@ package body Test001_Request_Info_Tests is
    ---------------------
 
    procedure Test_Sync_Scope
-     (Point : in Interception_Point;
-      Info  : in PortableInterceptor.RequestInfo.Local_Ref'Class)
+     (Point : Interception_Point;
+      Info  : PortableInterceptor.RequestInfo.Local_Ref'Class)
    is
       Operation : constant String := "sync_scope";
       Valid     : constant Boolean := Point /= Send_Poll;

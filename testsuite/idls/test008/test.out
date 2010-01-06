@@ -1,0 +1,11 @@
+typedef float Apple;
+typedef double Carrots;
+typedef long BlackCherry;
+typedef short Rhubarb;
+interface idlServer {
+ typedef unsigned long Pumpkin;
+ typedef unsigned short WaterMelon;
+ typedef char Dates;
+ typedef boolean Lychees;
+ Apple GardenPeas(in Apple p1, out BlackCherry p2, inout idlServer::Dates p3);
+};

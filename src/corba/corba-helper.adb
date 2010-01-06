@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -51,9 +51,8 @@ package body CORBA.Helper is
    -- From_Any --
    --------------
 
-   function From_Any (Item : CORBA.Any)
-      return CORBA.RepositoryId is
-      Result : CORBA.String := CORBA.From_Any (Item);
+   function From_Any (Item : CORBA.Any) return CORBA.RepositoryId is
+      Result : constant CORBA.String := CORBA.From_Any (Item);
    begin
       return CORBA.RepositoryId (Result);
    end From_Any;
@@ -62,9 +61,7 @@ package body CORBA.Helper is
    -- To_Any --
    ------------
 
-   function To_Any
-     (Item : CORBA.RepositoryId)
-     return CORBA.Any is
+   function To_Any (Item : CORBA.RepositoryId) return CORBA.Any is
       Result : CORBA.Any := CORBA.To_Any (CORBA.String (Item));
    begin
       CORBA.Internals.Set_Type (Result, TC_RepositoryId);
@@ -86,9 +83,8 @@ package body CORBA.Helper is
    -- From_Any --
    --------------
 
-   function From_Any (Item : CORBA.Any)
-      return CORBA.Identifier is
-      Result : CORBA.String := CORBA.From_Any (Item);
+   function From_Any (Item : CORBA.Any) return CORBA.Identifier is
+      Result : constant CORBA.String := CORBA.From_Any (Item);
    begin
       return CORBA.Identifier (Result);
    end From_Any;
@@ -97,9 +93,7 @@ package body CORBA.Helper is
    -- To_Any --
    ------------
 
-   function To_Any
-     (Item : CORBA.Identifier)
-     return CORBA.Any is
+   function To_Any (Item : CORBA.Identifier) return CORBA.Any is
       Result : CORBA.Any := CORBA.To_Any (CORBA.String (Item));
    begin
       CORBA.Internals.Set_Type (Result, TC_Identifier);
@@ -121,9 +115,8 @@ package body CORBA.Helper is
    -- From_Any --
    --------------
 
-   function From_Any (Item : CORBA.Any)
-      return CORBA.ScopedName is
-      Result : CORBA.String := CORBA.From_Any (Item);
+   function From_Any (Item : CORBA.Any) return CORBA.ScopedName is
+      Result : constant CORBA.String := CORBA.From_Any (Item);
    begin
       return CORBA.ScopedName (Result);
    end From_Any;
@@ -132,9 +125,7 @@ package body CORBA.Helper is
    -- To_Any --
    ------------
 
-   function To_Any
-     (Item : CORBA.ScopedName)
-     return CORBA.Any is
+   function To_Any (Item : CORBA.ScopedName) return CORBA.Any is
       Result : CORBA.Any := CORBA.To_Any (CORBA.String (Item));
    begin
       CORBA.Internals.Set_Type (Result, TC_ScopedName);
@@ -156,9 +147,7 @@ package body CORBA.Helper is
    -- From_Any --
    --------------
 
-   function From_Any (Item : CORBA.Any)
-      return CORBA.Visibility
-   is
+   function From_Any (Item : CORBA.Any) return CORBA.Visibility is
       Result : constant CORBA.Short := CORBA.From_Any (Item);
    begin
       return CORBA.Visibility (Result);
@@ -168,10 +157,7 @@ package body CORBA.Helper is
    -- To_Any --
    ------------
 
-   function To_Any
-     (Item : CORBA.Visibility)
-      return CORBA.Any
-   is
+   function To_Any (Item : CORBA.Visibility) return CORBA.Any is
       Result : CORBA.Any := CORBA.To_Any (CORBA.Short (Item));
    begin
       CORBA.Internals.Set_Type (Result, TC_Visibility);
@@ -225,59 +211,48 @@ package body CORBA.Helper is
       --  Build a typecode for type Name which is an alias of CORBA::String
 
       function Build_TC_Alias_String
-        (Name : Standard.String)
-         return CORBA.TypeCode.Object
+        (Name : Standard.String) return CORBA.TypeCode.Object
       is
-         TC : CORBA.TypeCode.Object
-           := TypeCode.Internals.To_CORBA_Object
-           (PolyORB.Any.TypeCode.TC_Alias);
-
       begin
-         TypeCode.Internals.Add_Parameter
-           (TC, CORBA.To_Any (To_CORBA_String (Name)));
-         TypeCode.Internals.Add_Parameter
-           (TC, CORBA.To_Any (To_CORBA_String
-                              ("IDL:omg.org/CORBA/" & Name & ":1.0")));
-         TypeCode.Internals.Add_Parameter
-           (TC, CORBA.To_Any (CORBA.TC_String));
-         return TC;
+         return CORBA.TypeCode.Internals.Build_Alias_TC
+           (Name   => To_CORBA_String (Name),
+            Id     => To_CORBA_String ("IDL:omg.org/CORBA/" & Name & ":1.0"),
+            Parent => CORBA.TC_String);
       end Build_TC_Alias_String;
 
    begin
       TC_RepositoryId_Cache := Build_TC_Alias_String ("RepositoryId");
-      TC_Identifier_Cache := Build_TC_Alias_String ("Identifier");
-      TC_ScopedName_Cache := Build_TC_Alias_String ("ScopedName");
+      CORBA.TypeCode.Internals.Disable_Reference_Counting
+        (TC_RepositoryId_Cache);
+
+      TC_Identifier_Cache   := Build_TC_Alias_String ("Identifier");
+      CORBA.TypeCode.Internals.Disable_Reference_Counting
+        (TC_Identifier_Cache);
+
+      TC_ScopedName_Cache   := Build_TC_Alias_String ("ScopedName");
+      CORBA.TypeCode.Internals.Disable_Reference_Counting
+        (TC_ScopedName_Cache);
 
       declare
-         Name : CORBA.String := CORBA.To_CORBA_String ("Visibility");
-         Id   : CORBA.String
-           := CORBA.To_CORBA_String ("IDL:omg.org/CORBA/Visibility:1.0");
+         Name : constant CORBA.String := CORBA.To_CORBA_String ("Visibility");
+         Id   : constant CORBA.String :=
+                  CORBA.To_CORBA_String ("IDL:omg.org/CORBA/Visibility:1.0");
       begin
-         TC_Visibility_Cache :=
-           TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TC_Alias);
-
-         TypeCode.Internals.Add_Parameter
-           (TC_Visibility_Cache, CORBA.To_Any (Name));
-         TypeCode.Internals.Add_Parameter
-           (TC_Visibility_Cache, CORBA.To_Any (Id));
-         TypeCode.Internals.Add_Parameter
-           (TC_Visibility_Cache, CORBA.To_Any (CORBA.TC_Short));
+         TC_Visibility_Cache := CORBA.TypeCode.Internals.Build_Alias_TC
+           (Name => Name, Id => Id, Parent => CORBA.TC_Short);
+         CORBA.TypeCode.Internals.Disable_Reference_Counting
+           (TC_Visibility_Cache);
       end;
 
       declare
-         Name : CORBA.String := CORBA.To_CORBA_String ("PolicyType");
-         Id   : CORBA.String
-           := CORBA.To_CORBA_String ("IDL:CORBA/PolicyType:1.0");
+         Name : constant CORBA.String := CORBA.To_CORBA_String ("PolicyType");
+         Id   : constant CORBA.String :=
+                  CORBA.To_CORBA_String ("IDL:CORBA/PolicyType:1.0");
       begin
-         TC_PolicyType_Cache :=
-           TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TC_Alias);
-
-         TypeCode.Internals.Add_Parameter
-           (TC_PolicyType_Cache, CORBA.To_Any (Name));
-         TypeCode.Internals.Add_Parameter
-           (TC_PolicyType_Cache, CORBA.To_Any (Id));
-         TypeCode.Internals.Add_Parameter
-           (TC_PolicyType_Cache, CORBA.To_Any (CORBA.TC_Unsigned_Long));
+         TC_PolicyType_Cache := CORBA.TypeCode.Internals.Build_Alias_TC
+           (Name => Name, Id => Id, Parent => CORBA.TC_Unsigned_Long);
+         CORBA.TypeCode.Internals.Disable_Reference_Counting
+           (TC_PolicyType_Cache);
       end;
    end Initialize;
 

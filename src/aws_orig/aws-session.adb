@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2000-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2000-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -39,6 +39,7 @@ with Ada.Strings.Unbounded;
 with Ada.Text_IO;
 
 with Table_Of_Static_Keys_And_Dynamic_Values_G;
+pragma Elaborate_All (Table_Of_Static_Keys_And_Dynamic_Values_G);
 
 with AWS.Default;
 with AWS.Containers.Key_Value;

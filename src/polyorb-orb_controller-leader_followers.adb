@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -49,6 +49,8 @@ package body PolyORB.ORB_Controller.Leader_Followers is
    use PolyORB.Tasking.Threads;
    use PolyORB.Tasking.Threads.Annotations;
 
+   --  Declaration of LF_Task_Note needs documentation???
+
    type LF_Task_Note is new PolyORB.Annotations.Note with record
       TI  : Thread_Id;
       Job : Job_Access;
@@ -63,13 +65,13 @@ package body PolyORB.ORB_Controller.Leader_Followers is
       TI :        PTI.Task_Info_Access)
    is
    begin
-      pragma Debug (O1 ("Register_Task (LF): enter"));
+      pragma Debug (C1, O1 ("Register_Task (LF): enter"));
 
       Register_Task (ORB_Controller (O.all)'Access, TI);
       Set_Note (Get_Current_Thread_Notepad.all,
                 LF_Task_Note'(Note with TI => Id (TI.all), Job => null));
 
-      pragma Debug (O1 ("Register_Task (LF): leave"));
+      pragma Debug (C1, O1 ("Register_Task (LF): leave"));
    end Register_Task;
 
    ---------------------
@@ -80,18 +82,18 @@ package body PolyORB.ORB_Controller.Leader_Followers is
      (O : access ORB_Controller_Leader_Followers;
       M : PAE.Asynch_Ev_Monitor_Access)
    is
-      AEM_Index : constant Natural := Index (O, M);
+      AEM_Index : constant Natural := Index (O.all, M);
 
    begin
       --  Force all tasks currently waiting on this monitor to abort
 
       if O.AEM_Infos (AEM_Index).TI /= null then
-         pragma Debug (O1 ("Disable_Polling: Aborting polling task"));
+         pragma Debug (C1, O1 ("Disable_Polling: Aborting polling task"));
          PTI.Request_Abort_Polling (O.AEM_Infos (AEM_Index).TI.all);
          PolyORB.Asynch_Ev.Abort_Check_Sources
            (Selector (O.AEM_Infos (AEM_Index).TI.all).all);
 
-         pragma Debug (O1 ("Disable_Polling: waiting abort is complete"));
+         pragma Debug (C1, O1 ("Disable_Polling: waiting abort is complete"));
          O.AEM_Infos (AEM_Index).Polling_Abort_Counter
            := O.AEM_Infos (AEM_Index).Polling_Abort_Counter + 1;
 
@@ -100,7 +102,7 @@ package body PolyORB.ORB_Controller.Leader_Followers is
          O.AEM_Infos (AEM_Index).Polling_Abort_Counter
            := O.AEM_Infos (AEM_Index).Polling_Abort_Counter - 1;
 
-         pragma Debug (O1 ("Disable_Polling: aborting done"));
+         pragma Debug (C1, O1 ("Disable_Polling: aborting done"));
       end if;
    end Disable_Polling;
 
@@ -112,16 +114,16 @@ package body PolyORB.ORB_Controller.Leader_Followers is
      (O : access ORB_Controller_Leader_Followers;
       M : PAE.Asynch_Ev_Monitor_Access)
    is
-      AEM_Index : constant Natural := Index (O, M);
+      AEM_Index : constant Natural := Index (O.all, M);
 
    begin
-      pragma Debug (O1 ("Enable_Polling"));
+      pragma Debug (C1, O1 ("Enable_Polling"));
 
       if O.AEM_Infos (AEM_Index).Polling_Abort_Counter = 0 then
 
          --  Allocate one task to poll on AES
 
-         Try_Allocate_One_Task (O);
+         Try_Allocate_One_Task (O, Allow_Transient => True);
       end if;
    end Enable_Polling;
 
@@ -133,29 +135,22 @@ package body PolyORB.ORB_Controller.Leader_Followers is
      (O : access ORB_Controller_Leader_Followers;
       E :        Event)
    is
-      use type PAE.Asynch_Ev_Monitor_Access;
       use type PRS.Request_Scheduler_Access;
-      use type PolyORB.Tasking.Threads.Thread_Id;
-
    begin
-      pragma Debug (O1 ("Notify_Event: " & Event_Kind'Image (E.Kind)));
+      pragma Debug (C1, O1 ("Notify_Event: " & Event_Kind'Image (E.Kind)));
 
       case E.Kind is
 
          when End_Of_Check_Sources =>
             declare
-               AEM_Index : constant Natural := Index (O, E.On_Monitor);
+               AEM_Index : constant Natural := Index (O.all, E.On_Monitor);
             begin
                --  A task completed polling on a monitor
 
-               pragma Debug (O1 ("End of check sources on monitor #"
+               pragma Debug (C1, O1 ("End of check sources on monitor #"
                                  & Natural'Image (AEM_Index)
                                  & Ada.Tags.External_Tag
                                  (O.AEM_Infos (AEM_Index).Monitor.all'Tag)));
-
-               O.Counters (Blocked) := O.Counters (Blocked) - 1;
-               O.Counters (Unscheduled) := O.Counters (Unscheduled) + 1;
-               pragma Assert (ORB_Controller_Counters_Valid (O));
 
                --  Reset TI
 
@@ -172,11 +167,11 @@ package body PolyORB.ORB_Controller.Leader_Followers is
 
          when Event_Sources_Added =>
             declare
-               AEM_Index : Natural := Index (O, E.Add_In_Monitor);
+               AEM_Index : Natural := Index (O.all, E.Add_In_Monitor);
             begin
                if AEM_Index = 0 then
                   --  This monitor was not yet registered, register it
-                  pragma Debug (O1 ("Adding new monitor"));
+                  pragma Debug (C1, O1 ("Adding new monitor"));
 
                   for J in O.AEM_Infos'Range loop
                      if O.AEM_Infos (J).Monitor = null then
@@ -186,7 +181,7 @@ package body PolyORB.ORB_Controller.Leader_Followers is
                      end if;
                   end loop;
                end if;
-               pragma Debug (O1 ("Added monitor at index:" & AEM_Index'Img
+               pragma Debug (C1, O1 ("Added monitor at index:" & AEM_Index'Img
                                  & " " & Ada.Tags.External_Tag
                                  (O.AEM_Infos (AEM_Index).Monitor.all'Tag)));
 
@@ -196,7 +191,7 @@ package body PolyORB.ORB_Controller.Leader_Followers is
                   --  No task is currently polling, allocate one
 
                   O.AEM_Infos (AEM_Index).Polling_Scheduled := True;
-                  Try_Allocate_One_Task (O);
+                  Try_Allocate_One_Task (O, Allow_Transient => True);
                end if;
             end;
 
@@ -207,12 +202,8 @@ package body PolyORB.ORB_Controller.Leader_Followers is
             null;
 
          when Job_Completed =>
-
             --  A task has completed the execution of a job
-
-            O.Counters (Running) := O.Counters (Running) - 1;
-            O.Counters (Unscheduled) := O.Counters (Unscheduled) + 1;
-            pragma Assert (ORB_Controller_Counters_Valid (O));
+            null;
 
          when ORB_Shutdown =>
 
@@ -222,9 +213,7 @@ package body PolyORB.ORB_Controller.Leader_Followers is
 
             --  Awake all idle tasks
 
-            for J in 1 .. O.Counters (Idle) loop
-               Awake_One_Idle_Task (O.Idle_Tasks);
-            end loop;
+            Awake_All_Idle_Tasks (O.Idle_Tasks);
 
             --  Unblock blocked tasks
 
@@ -258,7 +247,7 @@ package body PolyORB.ORB_Controller.Leader_Followers is
                   --  Queue event to main job queue
 
                   PJ.Queue_Job (O.Job_Queue, E.Event_Job);
-                  Try_Allocate_One_Task (O);
+                  Try_Allocate_One_Task (O, Allow_Transient => True);
                end if;
             end;
 
@@ -279,18 +268,18 @@ package body PolyORB.ORB_Controller.Leader_Followers is
 
                   declare
                      Note : LF_Task_Note;
-
+                     --  Need documentation???
                   begin
                      Get_Note
                        (Get_Current_Thread_Notepad.all,
                         Note);
 
-                     if Note.TI = Current_Task
-                       and then Note.Job = null
-                     then
+                     if Note.TI = Current_Task and then Note.Job = null then
                         --  Queue event directly into task attribute
+                        --  What if TI is a transient task and the request
+                        --  is an upcall???
 
-                        pragma Debug (O1 ("Queue request in task area"));
+                        pragma Debug (C1, O1 ("Queue request in task area"));
 
                         Set_Note
                           (Get_Current_Thread_Notepad.all,
@@ -298,10 +287,13 @@ package body PolyORB.ORB_Controller.Leader_Followers is
                                          with TI => Note.TI,
                                          Job => E.Request_Job));
                      else
-                        O.Number_Of_Pending_Jobs
-                          := O.Number_Of_Pending_Jobs + 1;
                         PJ.Queue_Job (O.Job_Queue, E.Request_Job);
-                        Try_Allocate_One_Task (O);
+                        Try_Allocate_One_Task
+                          (O, Allow_Transient =>
+                                not Is_Upcall (E.Request_Job.all));
+                        --  We don't want the ORB to borrow a transient task to
+                        --  make an upcall to application code, because this
+                        --  could take a long time or even deadlock.
                      end if;
                   end;
                end if;
@@ -309,80 +301,26 @@ package body PolyORB.ORB_Controller.Leader_Followers is
 
          when Request_Result_Ready =>
 
-            --  A Request has been completed and a response is
-            --  available. We must forward it to requesting task. We
-            --  ensure this task will stop its current action and ask
-            --  for rescheduling.
+            --  A Request has been completed and a response is available. We
+            --  must forward it to requesting task. We ensure this task will
+            --  stop its current action and ask for rescheduling.
 
-            case State (E.Requesting_Task.all) is
-               when Running =>
-
-                  --  We cannot abort a running task. We let it
-                  --  complete its job and ask for rescheduling.
-
-                  null;
-
-               when Blocked =>
-
-                  --  We abort this task. It will then leave Blocked
-                  --  state and ask for rescheduling.
-
-                  declare
-                     Sel : Asynch_Ev_Monitor_Access
-                       renames Selector (E.Requesting_Task.all);
-
-                  begin
-                     pragma Debug (O1 ("About to abort block"));
-
-                     pragma Assert (Sel /= null);
-                     Abort_Check_Sources (Sel.all);
-
-                     pragma Debug (O1 ("Aborted."));
-                  end;
-
-               when Idle =>
-
-                  --  We awake this task. It will then leave Idle
-                  --  state and ask for rescheduling.
-
-                  pragma Debug (O1 ("Signal requesting task"));
-
-                  Signal (Condition (E.Requesting_Task.all));
-
-               when Terminated
-                 | Unscheduled =>
-
-                  --  Nothing to do
-
-                  null;
-            end case;
+            Reschedule_Task (O, E.Requesting_Task);
 
          when Idle_Awake =>
-
-            O.Counters (Idle) := O.Counters (Idle) - 1;
-            O.Counters (Unscheduled) := O.Counters (Unscheduled) + 1;
-            pragma Assert (ORB_Controller_Counters_Valid (O));
-
             --  A task has left Idle state
 
             Remove_Idle_Task (O.Idle_Tasks, E.Awakened_Task);
 
          when Task_Registered =>
-
-            O.Registered_Tasks := O.Registered_Tasks + 1;
-            O.Counters (Unscheduled) := O.Counters (Unscheduled) + 1;
-            pragma Assert (ORB_Controller_Counters_Valid (O));
+            null;
 
          when Task_Unregistered =>
-
-            O.Counters (Terminated) := O.Counters (Terminated) - 1;
-            O.Registered_Tasks := O.Registered_Tasks - 1;
-            pragma Assert (ORB_Controller_Counters_Valid (O));
-
             Note_Task_Unregistered (O);
+
       end case;
 
-      pragma Debug (O2 (Status (O)));
+      pragma Debug (C2, O2 (Status (O.all)));
    end Notify_Event;
 
    -------------------
@@ -391,15 +329,34 @@ package body PolyORB.ORB_Controller.Leader_Followers is
 
    procedure Schedule_Task
      (O  : access ORB_Controller_Leader_Followers;
-      TI :        PTI.Task_Info_Access)
+      TI : PTI.Task_Info_Access)
    is
       Note : LF_Task_Note;
+      --  Needs documentation???
+
+      function Is_Schedulable (J : PJ.Job'Class) return Boolean;
+      --  True if J is schedulable for this task (i.e. not an upcall job
+      --  if the task is transient).
+
+      --------------------
+      -- Is_Schedulable --
+      --------------------
+
+      function Is_Schedulable (J : PJ.Job'Class) return Boolean is
+      begin
+         return TI.Kind = Permanent or else not Is_Upcall (J);
+      end Is_Schedulable;
 
    begin
-      pragma Debug (O1 ("Schedule_Task "
+      pragma Debug (C1, O1 ("Schedule_Task "
         & PTI.Image (TI.all) & ": enter"));
 
-      pragma Assert (PTI.State (TI.all) = Unscheduled);
+      if State (TI.all) = Terminated then
+         pragma Debug (C1, O1 ("Schedule_Task: task is terminated"));
+         return;
+      end if;
+
+      Set_State_Unscheduled (O.Summary, TI.all);
 
       Get_Note (Get_Current_Thread_Notepad.all, Note);
 
@@ -407,90 +364,66 @@ package body PolyORB.ORB_Controller.Leader_Followers is
 
       if Exit_Condition (TI.all)
         or else (O.Shutdown
-                 and then O.Number_Of_Pending_Jobs = 0
+                 and then not Has_Pending_Job (O)
                  and then TI.Kind = Permanent)
       then
+         Set_State_Terminated (O.Summary, TI.all);
 
-         O.Counters (Unscheduled) := O.Counters (Unscheduled) - 1;
-         O.Counters (Terminated) := O.Counters (Terminated) + 1;
-         pragma Assert (ORB_Controller_Counters_Valid (O));
+         pragma Debug (C1, O1 ("Task is now terminated"));
+         pragma Debug (C2, O2 (Status (O.all)));
+         return;
+      end if;
 
-         Set_State_Terminated (TI.all);
-
-         pragma Debug (O1 ("Task is now terminated"));
-         pragma Debug (O2 (Status (O)));
-
-      elsif Note.Job /= null then
-
-         --  Process locally queued job
-
-         O.Counters (Unscheduled) := O.Counters (Unscheduled) - 1;
-         O.Counters (Running) := O.Counters (Running) + 1;
-         pragma Assert (ORB_Controller_Counters_Valid (O));
-
-         declare
-            Job : constant Job_Access := Note.Job;
-
-         begin
+      declare
+         Job : Job_Access;
+      begin
+         if Note.Job /= null then
+            Job := Note.Job;
             Set_Note
               (Get_Current_Thread_Notepad.all,
                LF_Task_Note'(Annotations.Note
-                             with TI => Note.TI, Job => null));
+                 with TI => Note.TI, Job => null));
+         else
+            Job := PJ.Fetch_Job (O.Job_Queue, Is_Schedulable'Access);
+         end if;
 
-            Set_State_Running (TI.all, Job);
-         end;
+         if Job /= null then
+            Set_State_Running (O.Summary, TI.all, Job);
+            return;
+         end if;
+      end;
 
-      elsif not PJ.Is_Empty (O.Job_Queue) then
+      declare
+         AEM_Index : constant Natural := Need_Polling_Task (O);
+      begin
+         if AEM_Index > 0 then
+            O.AEM_Infos (AEM_Index).Polling_Scheduled := False;
+            O.AEM_Infos (AEM_Index).TI := TI;
 
-         --  Process job
+            Set_State_Blocked
+              (O.Summary,
+               TI.all,
+               O.AEM_Infos (AEM_Index).Monitor,
+               O.AEM_Infos (AEM_Index).Polling_Timeout);
 
-         O.Counters (Unscheduled) := O.Counters (Unscheduled) - 1;
-         O.Counters (Running) := O.Counters (Running) + 1;
-         pragma Assert (ORB_Controller_Counters_Valid (O));
+            pragma Debug (C1, O1 ("Task is now blocked on monitor"
+                              & Natural'Image (AEM_Index)
+                              & " " & Ada.Tags.External_Tag
+                              (O.AEM_Infos (AEM_Index).Monitor.all'Tag)));
 
-         Set_State_Running (TI.all, PJ.Fetch_Job (O.Job_Queue));
+            pragma Debug (C2, O2 (Status (O.all)));
+            return;
+         end if;
+      end;
 
-      elsif May_Poll (TI.all) then
-         declare
-            AEM_Index : constant Natural := Need_Polling_Task (O);
-         begin
-            if AEM_Index > 0 then
-               O.Counters (Unscheduled) := O.Counters (Unscheduled) - 1;
-               O.Counters (Blocked) := O.Counters (Blocked) + 1;
-               pragma Assert (ORB_Controller_Counters_Valid (O));
+      Set_State_Idle
+        (O.Summary,
+         TI.all,
+         Insert_Idle_Task (O.Idle_Tasks, TI),
+         O.ORB_Lock);
 
-               O.AEM_Infos (AEM_Index).Polling_Scheduled := False;
-               O.AEM_Infos (AEM_Index).TI := TI;
-
-               Set_State_Blocked
-                 (TI.all,
-                  O.AEM_Infos (AEM_Index).Monitor,
-                  O.AEM_Infos (AEM_Index).Polling_Timeout);
-
-               pragma Debug (O1 ("Task is now blocked on monitor"
-                                 & Natural'Image (AEM_Index)
-                                 & " " & Ada.Tags.External_Tag
-                                 (O.AEM_Infos (AEM_Index).Monitor.all'Tag)));
-
-               pragma Debug (O2 (Status (O)));
-            end if;
-         end;
-      end if;
-
-      if PTI.State (TI.all) = Unscheduled then
-         O.Counters (Unscheduled) := O.Counters (Unscheduled) - 1;
-         O.Counters (Idle) := O.Counters (Idle) + 1;
-         pragma Assert (ORB_Controller_Counters_Valid (O));
-
-         Set_State_Idle
-           (TI.all,
-            Insert_Idle_Task (O.Idle_Tasks, TI),
-            O.ORB_Lock);
-
-         pragma Debug (O1 ("Task is now idle"));
-         pragma Debug (O2 (Status (O)));
-
-      end if;
+      pragma Debug (C1, O1 ("Task is now idle"));
+      pragma Debug (C2, O2 (Status (O.all)));
    end Schedule_Task;
 
    ------------
@@ -498,20 +431,16 @@ package body PolyORB.ORB_Controller.Leader_Followers is
    ------------
 
    function Create
-     (OCF : access ORB_Controller_Leader_Followers_Factory)
-     return ORB_Controller_Access
+     (OCF : ORB_Controller_Leader_Followers_Factory)
+      return ORB_Controller_Access
    is
       pragma Unreferenced (OCF);
-
       OC : ORB_Controller_Leader_Followers_Access;
       RS : PRS.Request_Scheduler_Access;
-
    begin
       PRS.Create (RS);
       OC := new ORB_Controller_Leader_Followers (RS);
-
       Initialize (ORB_Controller (OC.all));
-
       return ORB_Controller_Access (OC);
    end Create;
 
@@ -536,9 +465,9 @@ begin
       (Name      => +"orb_controller.leader_followers",
        Conflicts => +"orb.no_tasking",
        Depends   => +"tasking.condition_variables"
-       &"tasking.mutexes"
-       & "request_scheduler?",
-       Provides  => +"orb_controller",
+         & "tasking.mutexes"
+         & "request_scheduler?",
+       Provides  => +"orb_controller!",
        Implicit  => False,
        Init      => Initialize'Access,
        Shutdown  => null));

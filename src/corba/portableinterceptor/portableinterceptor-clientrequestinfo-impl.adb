@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -107,10 +107,8 @@ package body PortableInterceptor.ClientRequestInfo.Impl is
             Value (Iter).Context_Data :=
               new Encapsulation'
               (To_Encapsulation
-               (CORBA.IDL_SEQUENCES.IDL_SEQUENCE_Octet.To_Sequence
-                (CORBA.IDL_SEQUENCES.IDL_SEQUENCE_Octet.Element_Array
-                 (IOP.IDL_SEQUENCE_octet_2.To_Element_Array
-                  (Service_Context.Context_Data)))));
+               (CORBA.IDL_SEQUENCES.IDL_SEQUENCE_Octet.Sequence
+                (Service_Context.Context_Data)));
 
             return;
          end if;
@@ -122,10 +120,8 @@ package body PortableInterceptor.ClientRequestInfo.Impl is
          (Service_Id (Service_Context.Context_Id),
           new Encapsulation'
           (To_Encapsulation
-           (CORBA.IDL_SEQUENCES.IDL_SEQUENCE_Octet.To_Sequence
-            (CORBA.IDL_SEQUENCES.IDL_SEQUENCE_Octet.Element_Array
-             (IOP.IDL_SEQUENCE_octet_2.To_Element_Array
-              (Service_Context.Context_Data)))))));
+           (CORBA.IDL_SEQUENCES.IDL_SEQUENCE_Octet.Sequence
+            (Service_Context.Context_Data)))));
    end Add_Request_Service_Context;
 
    -------------------
@@ -209,8 +205,8 @@ package body PortableInterceptor.ClientRequestInfo.Impl is
                if Value (Iter).Tag = Component_Id (Id) then
                   return
                     (Id,
-                     IOP.IDL_SEQUENCE_octet_1.To_Sequence
-                     (IOP.IDL_SEQUENCE_octet_1.Element_Array
+                     IOP.ComponentData
+                     (CORBA.IDL_SEQUENCES.IDL_SEQUENCE_Octet.To_Sequence
                       (CORBA.IDL_SEQUENCES.IDL_SEQUENCE_Octet.To_Element_Array
                        (To_Sequence (Value (Iter).Data.all)))));
                end if;
@@ -270,8 +266,8 @@ package body PortableInterceptor.ClientRequestInfo.Impl is
                     (Result,
                      IOP.TaggedComponent'
                      (Id,
-                      IOP.IDL_SEQUENCE_octet_1.To_Sequence
-                      (IOP.IDL_SEQUENCE_octet_1.Element_Array
+                      IOP.ComponentData
+                      (CORBA.IDL_SEQUENCES.IDL_SEQUENCE_Octet.To_Sequence
                        (CORBA.IDL_SEQUENCES.IDL_SEQUENCE_Octet.To_Element_Array
                         (To_Sequence (Value (Iter).Data.all))))));
                end if;
@@ -332,8 +328,8 @@ package body PortableInterceptor.ClientRequestInfo.Impl is
             (PolyORB.Representations.CDR.Common.Unmarshall (Buffer)));
 
          Result.Profile_Data :=
-           IOP.IDL_SEQUENCE_octet.To_Sequence
-           (IOP.IDL_SEQUENCE_octet.Element_Array
+           IOP.ProfileData
+           (CORBA.IDL_SEQUENCES.IDL_SEQUENCE_Octet.To_Sequence
             (CORBA.IDL_SEQUENCES.IDL_SEQUENCE_Octet.To_Element_Array
              (PolyORB.CORBA_P.Codec_Utils.To_Sequence
               (PolyORB.Representations.CDR.Common.Unmarshall (Buffer)))));
@@ -349,16 +345,10 @@ package body PortableInterceptor.ClientRequestInfo.Impl is
    --------------------------
 
    function Get_Effective_Target
-     (Self : access Object)
-      return CORBA.Object.Ref
+     (Self : access Object) return CORBA.Object.Ref
    is
-      Result : CORBA.Object.Ref;
-
    begin
-      CORBA.Object.Internals.Convert_To_CORBA_Ref
-        (Self.Request.Target, Result);
-
-      return Result;
+      return CORBA.Object.Internals.To_CORBA_Ref (Self.Request.Target);
    end Get_Effective_Target;
 
    --------------------
@@ -436,7 +426,7 @@ package body PortableInterceptor.ClientRequestInfo.Impl is
                                         Completed => CORBA.Completed_No));
       end if;
 
-      return CORBA.Internals.To_CORBA_Any (Self.Request.Exception_Info);
+      return CORBA.Any (Self.Request.Exception_Info);
    end Get_Received_Exception;
 
    -------------------------------

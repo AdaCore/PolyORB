@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,13 +31,14 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-package PolyORB.DSA_P.Partitions is
+--  Partition ID assignment server
 
+package PolyORB.DSA_P.Partitions is
    pragma Remote_Call_Interface;
    pragma Elaborate_Body;
 
-   function Allocate_Partition_ID
-     (Name : String)
-      return Integer;
+   function Allocate_Partition_ID (Name : String) return Integer;
+   --  Allocate a new partition identifier for the named partition (the name
+   --  is currently unused and has no defined semantics).
 
 end PolyORB.DSA_P.Partitions;

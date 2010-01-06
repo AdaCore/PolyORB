@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
@@ -44,9 +44,13 @@ with RTCORBA.Mutex;
 with RTCORBA.PriorityModelPolicy;
 with RTCORBA.ThreadpoolPolicy;
 
-with PolyORB.Smart_Pointers;
+with PolyORB.Std;
+
+with PolyORB.Smart_Pointers.Controlled_Entities;
 
 package RTCORBA.RTORB is
+
+   package PSPCE renames PolyORB.Smart_Pointers.Controlled_Entities;
 
    type Local_Ref is new CORBA.Object.Ref with private;
 
@@ -147,10 +151,12 @@ package RTCORBA.RTORB is
    procedure Raise_InvalidThreadpool
      (Excp_Memb : InvalidThreadpool_Members);
 
+   Repository_Id : constant PolyORB.Std.String :=
+                     "IDL:omg.org/RTCORBA/RTORB:1.0";
+
 private
 
    type Local_Ref is new CORBA.Object.Ref with null record;
-
-   type RTORB_Object is new PolyORB.Smart_Pointers.Entity with null record;
+   type RTORB_Object is new PSPCE.Entity with null record;
 
 end RTCORBA.RTORB;

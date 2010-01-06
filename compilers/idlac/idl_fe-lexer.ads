@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Errors;
+with Idlac_Errors;
 
 package Idl_Fe.Lexer is
 
@@ -182,7 +182,7 @@ package Idl_Fe.Lexer is
 
    package Lexer_State is
 
-      function Get_Lexer_Location return Errors.Location;
+      function Get_Lexer_Location return Idlac_Errors.Location;
       --  Return the location of the current token.
 
       function Get_Lexer_String return String;
@@ -216,7 +216,7 @@ private
    procedure Set_Token_Location;
    --  Set the line and column number of the current token
 
-   function Get_Real_Location return Errors.Location;
+   function Get_Real_Location return Idlac_Errors.Location;
    --  Return the real location in the parsed file, with corrections
    --  for tabs taken into account.
 

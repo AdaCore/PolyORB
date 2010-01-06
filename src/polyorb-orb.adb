@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  The ORB core module.
+--  The ORB core module
 
 with Ada.Exceptions;
 with Ada.Tags;
@@ -42,9 +42,9 @@ with PolyORB.Binding_Object_QoS;
 with PolyORB.Errors;
 with PolyORB.Filters.Iface;
 with PolyORB.Initialization;
-
 with PolyORB.Log;
 with PolyORB.ORB.Iface;
+with PolyORB.Parameters.Initialization;
 with PolyORB.References.Binding;
 with PolyORB.Request_QoS;
 with PolyORB.Servants.Iface;
@@ -54,9 +54,10 @@ with PolyORB.Tasking.Threads;
 with PolyORB.Transport.Handlers;
 with PolyORB.Utils.Strings;
 
---  The following units are used just to register initialization modules.
+--  Units included in closure for module registration purposes only
 
 pragma Warnings (Off, PolyORB.Any.Initialization);
+pragma Warnings (Off, PolyORB.Parameters.Initialization);
 pragma Warnings (Off, PolyORB.Smart_Pointers.Initialization);
 
 package body PolyORB.ORB is
@@ -83,27 +84,6 @@ package body PolyORB.ORB is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
-   pragma Unreferenced (C); --  For conditional pragma Debug
-
-   ---------------------------
-   -- Duplicate_Request_Job --
-   ---------------------------
-
-   function Duplicate_Request_Job
-     (RJ : access Jobs.Job'Class)
-     return Jobs.Job_Access
-   is
-      TRJ : Request_Job renames Request_Job (RJ.all);
-      NJ  : constant Job_Access := new Request_Job;
-      TNJ : Request_Job renames Request_Job (NJ.all);
-
-   begin
-      TNJ.ORB       := TRJ.ORB;
-      TNJ.Requestor := TRJ.Requestor;
-      TNJ.Request   := TRJ.Request;
-
-      return NJ;
-   end Duplicate_Request_Job;
 
    ----------------------------------------------
    -- Management of asynchronous event sources --
@@ -111,25 +91,28 @@ package body PolyORB.ORB is
 
    procedure Insert_Source
      (ORB : access ORB_Type;
-      AES :        PolyORB.Asynch_Ev.Asynch_Ev_Source_Access);
-   --  Insert AES in the set of asynchronous event sources
-   --  monitored by ORB. The caller must not hold the ORB lock.
+      AES : PolyORB.Asynch_Ev.Asynch_Ev_Source_Access);
+   --  Insert AES in the set of asynchronous event sources monitored by ORB.
+   --  The caller must not hold the ORB lock.
 
    procedure Delete_Source
      (ORB : access ORB_Type;
       AES : in out Asynch_Ev_Source_Access);
-   --  Delete AES from the set of asynchronous event sources
-   --  monitored by ORB. AES is destroyed.
-   --  The caller must not hold the ORB lock.
+   --  Delete AES from the set of asynchronous event sources monitored by ORB.
+   --  AES is destroyed. The caller must not hold the ORB lock.
 
    --------------------------------------------
    -- Annotations used by the ORB internally --
    --------------------------------------------
 
+   --  Transport access point note
+
    type TAP_Note is new Note with record
       Profile_Factory : Binding_Data.Profile_Factory_Access;
       AES             : Asynch_Ev.Asynch_Ev_Source_Access;
    end record;
+
+   --  Transport endpoint note
 
    type TE_Note is new Note with record
       AES : Asynch_Ev.Asynch_Ev_Source_Access;
@@ -147,9 +130,8 @@ package body PolyORB.ORB is
       pragma Unreferenced (ORB);
 
    begin
-      --  Note: this function will be completed when implementing support
-      --  for multiple ORB instances, as mandated by the CORBA
-      --  personality.
+      --  Note: this function will be completed when implementing support for
+      --  multiple ORB instances, as mandated by the CORBA personality.
 
       null;
    end Create;
@@ -163,36 +145,43 @@ package body PolyORB.ORB is
       Pro : Binding_Data.Profile_Access;
       QoS : PolyORB.QoS.QoS_Parameters) return Smart_Pointers.Ref
    is
-      use BO_Lists;
+      use PBOL;
 
       It     : Iterator;
       Result : Smart_Pointers.Ref;
 
    begin
-      pragma Debug (O ("Find_Reusable_Binding_Object: enter"));
-      pragma Debug (O ("#BO registered = "
+      pragma Debug (C, O ("Find_Reusable_Binding_Object: enter"));
+      pragma Debug (C, O ("#BO registered = "
         & Natural'Image (Length (ORB.Binding_Objects))));
 
       Enter_ORB_Critical_Section (ORB.ORB_Controller);
 
       It := First (ORB.Binding_Objects);
 
-      --  Loops through all the BO registered in ORB, and tries to find one
-      --  reusable by profile Pro.
+      --  Loop through all the BOs registered in ORB, and try to find one
+      --  that can be reused.
 
       All_Binding_Objects :
       while not Last (It) loop
 
-         --  XXX Check that the profile has been set.
-         --  Until bidirectionnal BO are implemented we cannot reuse the server
-         --  BOs as client BOs and inversely. So for the moment, server BOs
-         --  have a null profile and are not handled here. This check shall be
-         --  removed once bidirectionnal BO are implemented.
-
          declare
-            BO_Acc : Binding_Object_Access renames Value (It).all;
+            BO_Acc : Binding_Object_Access renames Value (It);
          begin
-            if Get_Profile (BO_Acc) /= null then
+            if not Valid (BO_Acc) then
+
+               --  Mark binding object as not referenced anymore and purge
+
+               Set_Referenced (BO_Acc, Referenced => False);
+               Remove (ORB.Binding_Objects, It);
+
+            elsif Get_Profile (BO_Acc) /= null then
+
+               --  Until bidirectionnal BO are implemented we cannot reuse the
+               --  server BOs as client BOs and inversely. So for the moment,
+               --  server BOs have a null profile and are not handled here.
+               --  This check shall be removed once bidirectional BO are
+               --  implemented.
 
                if Same_Node (Pro.all, Get_Profile (BO_Acc).all)
                     and then
@@ -220,7 +209,7 @@ package body PolyORB.ORB is
       end loop All_Binding_Objects;
 
       Leave_ORB_Critical_Section (ORB.ORB_Controller);
-      pragma Debug (O ("Find_Reusable_Binding_Object: leave "));
+      pragma Debug (C, O ("Find_Reusable_Binding_Object: leave"));
 
       --  If no reusable Binding Object has been found, Result is a nil
       --  Reference.
@@ -232,9 +221,9 @@ package body PolyORB.ORB is
    -- The ORB main loop --
    -----------------------
 
-   --  This is the main loop for all general-purpose ORB tasks. This
-   --  function MUST NOT be called recursively. Exceptions may not be
-   --  propagated from within ORB critical section.
+   --  This is the main loop for all general-purpose ORB tasks. This subprogram
+   --  must not be called recursively. Exceptions must not be propagated from
+   --  within ORB critical section.
 
    ------------------
    -- Perform_Work --
@@ -242,14 +231,13 @@ package body PolyORB.ORB is
 
    procedure Perform_Work
      (ORB       : access ORB_Type;
-      This_Task : in out Task_Info.Task_Info);
+      This_Task : in out PTI.Task_Info);
    pragma Inline (Perform_Work);
    --  Perform one item of work from Q.
-   --  Precondition: This function must be called from within ORB
-   --  critical section.
-   --  Postcondition: On exit, we reenter ORB critical section
-   --  Note: task running this function may exit ORB critical section
-   --  to perform on item.
+   --  Precondition:  Must be called from within ORB critical section.
+   --  Postcondition: On exit, ORB critical section has been reasserted.
+   --  Note: tasks running this function may exit ORB critical section
+   --  temporarily.
 
    procedure Perform_Work
      (ORB       : access ORB_Type;
@@ -258,14 +246,14 @@ package body PolyORB.ORB is
       use PolyORB.Task_Info;
 
    begin
-      pragma Debug (O ("TPF " & Image (This_Task) & ": "
+      pragma Debug (C, O ("TPF " & Image (This_Task) & ": "
                        & "enter Perform_Work"));
 
       pragma Assert (Task_Info.Job (This_Task) /= null);
 
       Leave_ORB_Critical_Section (ORB.ORB_Controller);
 
-      pragma Debug (O ("TPF " & Image (This_Task) & ": "
+      pragma Debug (C, O ("TPF " & Image (This_Task) & ": "
                        & "working on job "
                        & Ada.Tags.External_Tag
                        (Task_Info.Job (This_Task)'Tag)));
@@ -273,10 +261,10 @@ package body PolyORB.ORB is
       Run (Task_Info.Job (This_Task));
 
       Enter_ORB_Critical_Section (ORB.ORB_Controller);
-      pragma Debug (O ("TPF " & Image (This_Task) & ": "
+      pragma Debug (C, O ("TPF " & Image (This_Task) & ": "
                        & "leaving Perform_Work"));
 
-      Notify_Event (ORB.ORB_Controller, Job_Completed_E);
+      Notify_Event (ORB.ORB_Controller, Event'(Kind => Job_Completed));
    end Perform_Work;
 
    -----------------------
@@ -288,10 +276,10 @@ package body PolyORB.ORB is
       This_Task : in out Task_Info.Task_Info);
    pragma Inline (Try_Check_Sources);
    --  Check ORB's AES attached to A_Monitor for any incoming event.
-   --  Precondition: This function must be called from within ORB
-   --  critical section.
-   --  Postcondition: On exit, we reenter ORB critical section
-   --  Note: tasks running this function may exit ORB critical section.
+   --  Precondition:  Must be called from within ORB critical section.
+   --  Postcondition: On exit, ORB critical section has been reasserted.
+   --  Note: tasks running this function may exit ORB critical section
+   --  temporarily.
 
    procedure Try_Check_Sources
      (ORB       : access ORB_Type;
@@ -302,19 +290,19 @@ package body PolyORB.ORB is
    begin
       --  Inside the ORB critical section
 
-      pragma Debug (O ("Try_Check_Sources: task "
+      pragma Debug (C, O ("Try_Check_Sources: task "
                        & Image (This_Task)
                        & " about to Check_Sources."));
 
       Leave_ORB_Critical_Section (ORB.ORB_Controller);
 
       declare
-         Events : constant AES_Array
-           := Check_Sources (Selector (This_Task),
-                             Task_Info.Timeout (This_Task));
-         --  This_Task will block on this action until an
-         --  event occurs on one source monitors by A_Monitor,
-         --  or Abort_Check_Sources is called on A_Monitor.
+         Events : constant AES_Array :=
+                    Check_Sources
+                      (Selector (This_Task), Task_Info.Timeout (This_Task));
+         --  This_Task will block on this action until an event occurs on a
+         --  source monitored by A_Monitor, or Abort_Check_Sources is called
+         --  on A_Monitor.
 
       begin
 
@@ -322,7 +310,7 @@ package body PolyORB.ORB is
 
          Enter_ORB_Critical_Section (ORB.ORB_Controller);
 
-         pragma Debug (O ("Try_Check_Sources: task "
+         pragma Debug (C, O ("Try_Check_Sources: task "
                           & Image (This_Task)
                           & " returned from Check_Sources with"
                           & Integer'Image (Events'Length)
@@ -330,24 +318,18 @@ package body PolyORB.ORB is
 
          --  Queue events, if any
 
-         declare
-            Note : AES_Note;
-
-         begin
-            for J in Events'Range loop
-               Get_Note (Notepad_Of (Events (J)).all, Note);
-               Notify_Event
-                 (ORB.ORB_Controller,
-                  Event'(Kind      => Queue_Event_Job,
-                         Event_Job => Job_Access (Note.Handler),
-                         By_Task   => Id (This_Task)));
-            end loop;
-         end;
+         for J in Events'Range loop
+            Notify_Event
+              (ORB.ORB_Controller,
+               Event'(Kind      => Queue_Event_Job,
+                      Event_Job => Job_Access (Handler (Events (J).all)),
+                      By_Task   => Id (This_Task)));
+         end loop;
 
          --  Notify ORB controller of completion
 
          Notify_Event (ORB.ORB_Controller,
-                       Event'(Kind => End_Of_Check_Sources,
+                       Event'(Kind       => End_Of_Check_Sources,
                               On_Monitor => Selector (This_Task)));
 
          --  Inside ORB critical section
@@ -361,8 +343,8 @@ package body PolyORB.ORB is
 
    procedure Run
      (ORB            : access ORB_Type;
-      Exit_Condition :        Exit_Condition_T := (null, null);
-      May_Poll       :        Boolean := False)
+      Exit_Condition : Exit_Condition_T := (null, null);
+      May_Exit       : Boolean)
    is
       use PolyORB.Task_Info;
 
@@ -370,19 +352,22 @@ package body PolyORB.ORB is
         (Task_Kind_For_Exit_Condition (Exit_Condition.Condition = null));
 
    begin
+      pragma Assert (This_Task.Kind = Permanent or else May_Exit);
+      --  May_Exit is expected to always be True for transient tasks
+
       Enter_ORB_Critical_Section (ORB.ORB_Controller);
 
       --  Set up task information for This_Task
 
       Set_Id (This_Task);
       Set_Exit_Condition (This_Task, Exit_Condition.Condition);
-      Set_Polling (This_Task, May_Poll);
+      Set_May_Exit       (This_Task, May_Exit);
 
       if Exit_Condition.Task_Info /= null then
-         Exit_Condition.Task_Info.all := This_Task'Unchecked_Access;
-         --  This pointer must be reset to null before exiting Run
-         --  so as to not leave a dangling reference.
+         --  This pointer must be reset to null before exiting Run so as to
+         --  not leave a dangling reference.
 
+         Exit_Condition.Task_Info.all := This_Task'Unchecked_Access;
       end if;
 
       Register_Task (ORB.ORB_Controller, This_Task'Unchecked_Access);
@@ -402,17 +387,16 @@ package body PolyORB.ORB is
 
             when Blocked =>
 
-               --  This task will block on event sources, waiting for
-               --  incoming events.
+               --  This task will block on event sources, waiting for events
 
                Try_Check_Sources (ORB, This_Task);
 
             when Idle =>
 
-               --  This task is going idle. We are still inside the
-               --  ORB critical section at this point. The tasking
-               --  policy will release it while we are idle, and
-               --  re-assert it before returning.
+               --  This task is going idle. We are still inside the ORB
+               --  critical section at this point. The tasking policy will
+               --  release it while we are idle, and re-assert it before
+               --  returning.
 
                Idle (ORB.Tasking_Policy, This_Task, ORB_Access (ORB));
                Notify_Event
@@ -422,20 +406,17 @@ package body PolyORB.ORB is
 
             when Terminated =>
 
-               --  This task has reached its exit condition.
-               --  We may leave ORB main loop.
+               --  This task has reached its exit condition: leave main loop
 
                exit Main_Loop;
 
             when Unscheduled =>
 
-               --  This task is still unscheduled, this should not happen
+               --  This task is still unscheduled, this should not happen!
 
                raise Program_Error;
 
          end case;
-
-         Set_State_Unscheduled (This_Task);
 
          --  Condition at end of loop: inside the ORB critical section
 
@@ -449,8 +430,7 @@ package body PolyORB.ORB is
 
       Unregister_Task (ORB.ORB_Controller, This_Task'Unchecked_Access);
 
-      pragma Debug (O ("Run: leave."));
-
+      pragma Debug (C, O ("Run: leave."));
       Leave_ORB_Critical_Section (ORB.ORB_Controller);
 
    exception
@@ -468,8 +448,13 @@ package body PolyORB.ORB is
             Exit_Condition.Task_Info.all := null;
          end if;
 
-         Set_State_Terminated (This_Task);
+         --  Reassert critical section to remove current task from ORB
+         --  controller.
+
+         Enter_ORB_Critical_Section (ORB.ORB_Controller);
+         Terminate_Task (ORB.ORB_Controller, This_Task);
          Unregister_Task (ORB.ORB_Controller, This_Task'Unchecked_Access);
+         Leave_ORB_Critical_Section (ORB.ORB_Controller);
 
          raise;
    end Run;
@@ -480,10 +465,9 @@ package body PolyORB.ORB is
 
    function Work_Pending (ORB : access ORB_Type) return Boolean is
       Result : Boolean;
-
    begin
       Enter_ORB_Critical_Section (ORB.ORB_Controller);
-      Result := Is_A_Job_Pending (ORB.ORB_Controller);
+      Result := Has_Pending_Job (ORB.ORB_Controller);
       Leave_ORB_Critical_Section (ORB.ORB_Controller);
 
       return Result;
@@ -495,20 +479,13 @@ package body PolyORB.ORB is
 
    procedure Perform_Work (ORB : access ORB_Type) is
       Job : Job_Access;
-
    begin
       Enter_ORB_Critical_Section (ORB.ORB_Controller);
+      Job := Get_Pending_Job (ORB.ORB_Controller);
+      Leave_ORB_Critical_Section (ORB.ORB_Controller);
 
-      if Is_A_Job_Pending (ORB.ORB_Controller) then
-
-         Job := Get_Pending_Job (ORB.ORB_Controller);
-
-         Leave_ORB_Critical_Section (ORB.ORB_Controller);
-
+      if Job /= null then
          Run (Job);
-
-      else
-         Leave_ORB_Critical_Section (ORB.ORB_Controller);
       end if;
    end Perform_Work;
 
@@ -518,20 +495,21 @@ package body PolyORB.ORB is
 
    procedure Shutdown
      (ORB                 : access ORB_Type;
-      Wait_For_Completion :        Boolean := True)
+      Wait_For_Completion : Boolean := True)
    is
    begin
 
-      pragma Debug (O ("Shutdown: enter"));
+      pragma Debug (C, O ("Shutdown: enter"));
 
-      --  Stop accepting incoming connections.
+      --  Stop accepting incoming connections
+
       --  XXX TBD
 
       --  Shutdown the ORB
 
       Enter_ORB_Critical_Section (ORB.ORB_Controller);
 
-      Notify_Event (ORB.ORB_Controller, ORB_Shutdown_E);
+      Notify_Event (ORB.ORB_Controller, Event'(Kind => ORB_Shutdown));
 
       --  Wait for completion of pending requests, if required
 
@@ -541,7 +519,7 @@ package body PolyORB.ORB is
 
       Leave_ORB_Critical_Section (ORB.ORB_Controller);
 
-      pragma Debug (O ("Shutdown: leave"));
+      pragma Debug (C, O ("Shutdown: leave"));
    end Shutdown;
 
    ------------------------
@@ -558,7 +536,6 @@ package body PolyORB.ORB is
      return Binding_Data.Profile_Factory_Access
    is
       N : TAP_Note;
-
    begin
       Get_Note (Notepad_Of (TAP).all, N);
       return N.Profile_Factory;
@@ -570,30 +547,26 @@ package body PolyORB.ORB is
 
    procedure Register_Access_Point
      (ORB   : access ORB_Type;
-      TAP   :        PT.Transport_Access_Point_Access;
-      Chain :        PF.Factories_Access;
-      PF    :        PBD.Profile_Factory_Access)
+      TAP   : PT.Transport_Access_Point_Access;
+      Chain : PF.Factories_Access;
+      PF    : PBD.Profile_Factory_Access)
    is
-      New_AES : constant Asynch_Ev_Source_Access
-        := Create_Event_Source (TAP);
-      A_Note  : AES_Note;
-
+      New_AES : constant Asynch_Ev_Source_Access := Create_Event_Source (TAP);
    begin
-      pragma Debug (O ("Register_Access_Point: enter"));
+      pragma Debug (C, O ("Register_Access_Point: enter"));
 
       --  Set link from AES to TAP, Chain and PF
 
-      Get_Note (Notepad_Of (New_AES).all, A_Note);
       declare
-         Handler : constant AES_Event_Handler_Access := A_Note.Handler;
-         TAP_Handler : TAP_AES_Event_Handler
-           renames TAP_AES_Event_Handler (Handler.all);
+         H     : constant access AES_Event_Handler'Class :=
+                   Handler (New_AES.all);
+         TAP_H : TAP_AES_Event_Handler renames TAP_AES_Event_Handler (H.all);
       begin
-         Handler.AES := New_AES;
-         TAP_Handler.ORB := ORB_Access (ORB);
-         TAP_Handler.TAP := TAP;
-         TAP_Handler.Filter_Factory_Chain := Chain;
-         TAP_Handler.Profile_Factory := PF;
+         H.AES                      := New_AES;
+         TAP_H.ORB                  := ORB_Access (ORB);
+         TAP_H.TAP                  := TAP;
+         TAP_H.Filter_Factory_Chain := Chain;
+         TAP_H.Profile_Factory      := PF;
       end;
 
       --  Set link from TAP to PF, and from TAP to AES
@@ -602,13 +575,13 @@ package body PolyORB.ORB is
                 TAP_Note'(Note with Profile_Factory => PF, AES => New_AES));
 
       Enter_ORB_Critical_Section (ORB.ORB_Controller);
-      pragma Debug (O ("Inserting new source: Access Point"));
+      pragma Debug (C, O ("Inserting new source: Access Point"));
       TAP_Lists.Append (ORB.Transport_Access_Points, TAP);
       Leave_ORB_Critical_Section (ORB.ORB_Controller);
 
       Insert_Source (ORB, New_AES);
 
-      pragma Debug (O ("Register_Access_Point: leave"));
+      pragma Debug (C, O ("Register_Access_Point: leave"));
    end Register_Access_Point;
 
    ----------------------
@@ -617,11 +590,10 @@ package body PolyORB.ORB is
 
    function Is_Profile_Local
      (ORB : access ORB_Type;
-      P   : access Binding_Data.Profile_Type'Class)
-     return Boolean
+      P   : access Binding_Data.Profile_Type'Class) return Boolean
    is
    begin
-      if P.all in Binding_Data.Local.Local_Profile_Type then
+      if Binding_Data.Is_Local_Profile (P.all) then
          return True;
       end if;
 
@@ -658,83 +630,60 @@ package body PolyORB.ORB is
 
    procedure Register_Binding_Object
      (ORB  : access ORB_Type;
-      BO   :        Smart_Pointers.Ref;
-      Role :        Endpoint_Role)
+      BO   : Smart_Pointers.Ref;
+      Role : Endpoint_Role)
    is
-      TE      : constant Transport.Transport_Endpoint_Access
-        := Binding_Objects.Get_Endpoint (BO);
-      New_AES    : constant Asynch_Ev_Source_Access
-        := Create_Event_Source (TE);
+      TE         : constant Transport.Transport_Endpoint_Access :=
+                     Binding_Objects.Get_Endpoint (BO);
+      New_AES    : constant Asynch_Ev_Source_Access :=
+                     Create_Event_Source (TE);
       --  New_AES is null for output-only endpoints
 
-      A_Note  : AES_Note;
       ORB_Acc : constant ORB_Access := ORB_Access (ORB);
    begin
       pragma Debug
-        (O ("Register_Binding_Object (" & Role'Img & "): enter"));
+        (C, O ("Register_Binding_Object (" & Role'Img & "): enter"));
 
       declare
          BO_Acc : constant Binding_Object_Access :=
-           Binding_Object_Access (Smart_Pointers.Entity_Of (BO));
-         It : BO_Lists.Iterator;
+                    Binding_Object_Access (Smart_Pointers.Entity_Of (BO));
       begin
-
          Enter_ORB_Critical_Section (ORB.ORB_Controller);
 
          --  Register BO in the Binding_Objects list of ORB
 
-         BO_Lists.Prepend (ORB.Binding_Objects, BO_Acc);
-
-         --  Save the position
-
-         It := BO_Lists.First (ORB.Binding_Objects);
-
-         --  Set in BO the reference to its position on list so that it can
-         --  remove itself properly at finalization.
-
-         Register_Reference_Information
-                                 (BO => BO_Acc,
-                                  Referenced_In => Component_Access (ORB),
-                                  Referenced_At => It);
+         PBOL.Prepend (ORB.Binding_Objects, BO_Acc);
+         Set_Referenced (BO_Acc, Referenced => True);
 
          Leave_ORB_Critical_Section (ORB.ORB_Controller);
+
+         Emit_No_Reply
+           (Component_Access (TE),
+            Filters.Iface.Set_Server'
+              (Server         => Component_Access (ORB),
+               Binding_Object => BO_Acc));
       end;
 
-      Emit_No_Reply
-        (Component_Access (TE),
-         Filters.Iface.Set_Server'
-         (Server         => Component_Access (ORB),
-          Binding_Object =>
-            Binding_Objects.Binding_Object_Access
-          (Smart_Pointers.Entity_Of (BO))));
-
       if New_AES /= null then
-
          --  This is not a write only Endpoint
 
-         Get_Note (Notepad_Of (New_AES).all, A_Note);
-
          declare
-            Handler : constant AES_Event_Handler_Access
-              := A_Note.Handler;
-            TE_Handler : TE_AES_Event_Handler
-              renames TE_AES_Event_Handler (Handler.all);
-
+            H    : constant access AES_Event_Handler'Class :=
+                     Handler (New_AES.all);
+            TE_H : TE_AES_Event_Handler renames TE_AES_Event_Handler (H.all);
          begin
-
             --  Register link from AES to TE
 
-            Handler.AES := New_AES;
-            TE_Handler.ORB := ORB_Access (ORB);
-            TE_Handler.TE := TE;
+            H.AES    := New_AES;
+            TE_H.ORB := ORB_Access (ORB);
+            TE_H.TE  := TE;
          end;
       end if;
 
       --  Register link from TE to AES
 
       Set_Note
-        (Notepad_Of (TE).all,
-         TE_Note'(Annotations.Note with AES => New_AES));
+        (Notepad_Of (TE).all, TE_Note'(Annotations.Note with AES => New_AES));
 
       --  Assign execution resources to the newly-created connection
 
@@ -752,7 +701,7 @@ package body PolyORB.ORB is
                Active_Connection'(AES => New_AES, TE => TE));
       end case;
 
-      pragma Debug (O ("Register_Binding_Object: leave"));
+      pragma Debug (C, O ("Register_Binding_Object: leave"));
    end Register_Binding_Object;
 
    -------------------------------
@@ -760,17 +709,24 @@ package body PolyORB.ORB is
    -------------------------------
 
    procedure Unregister_Binding_Object
-     (ORB  : Components.Component_Access;
-      It   :        PBO.BO_Lists.Iterator)
+     (ORB : access ORB_Type;
+      BO  : Binding_Object_Access)
    is
       ORB_Acc : constant ORB_Access := ORB_Access (ORB);
-      Variable_It : BO_Lists.Iterator := It;
    begin
-      pragma Debug (O ("Unregister_Binding_Object: enter"));
+      pragma Debug (C, O ("Unregister_Binding_Object: enter"));
       Enter_ORB_Critical_Section (ORB_Acc.ORB_Controller);
-      BO_Lists.Remove (ORB_Acc.Binding_Objects, Variable_It);
+
+      --  If BO is still referenced, remove it now
+
+      if Referenced (BO) then
+         pragma Debug (C, O ("removing binding object"));
+         Set_Referenced (BO, Referenced => False);
+         PBOL.Remove_Element (ORB_Acc.Binding_Objects, BO);
+      end if;
+
       Leave_ORB_Critical_Section (ORB_Acc.ORB_Controller);
-      pragma Debug (O ("Unregister_Binding_Object: leave"));
+      pragma Debug (C, O ("Unregister_Binding_Object: leave"));
    end Unregister_Binding_Object;
 
    ------------------------
@@ -779,16 +735,14 @@ package body PolyORB.ORB is
 
    procedure Set_Object_Adapter
      (ORB : access ORB_Type;
-      OA  :        Obj_Adapters.Obj_Adapter_Access)
+      OA  : Obj_Adapters.Obj_Adapter_Access)
    is
       use type Obj_Adapters.Obj_Adapter_Access;
 
    begin
       Enter_ORB_Critical_Section (ORB.ORB_Controller);
-
       pragma Assert (ORB.Obj_Adapter = null);
       ORB.Obj_Adapter := OA;
-
       Leave_ORB_Critical_Section (ORB.ORB_Controller);
    end Set_Object_Adapter;
 
@@ -799,8 +753,8 @@ package body PolyORB.ORB is
    function Object_Adapter (ORB : access ORB_Type)
      return Obj_Adapters.Obj_Adapter_Access is
    begin
-      --  Per construction, ORB.Obj_Adapter is a read-only
-      --  component. No critical section is required.
+      --  Per construction, ORB.Obj_Adapter is a read-only component.
+      --  No critical section is required.
 
       return ORB.Obj_Adapter;
    end Object_Adapter;
@@ -811,21 +765,20 @@ package body PolyORB.ORB is
 
    procedure Insert_Source
      (ORB : access ORB_Type;
-      AES :        Asynch_Ev_Source_Access)
+      AES : Asynch_Ev_Source_Access)
    is
    begin
       Enter_ORB_Critical_Section (ORB.ORB_Controller);
 
-      pragma Debug (O ("Insert_Source: enter"));
+      pragma Debug (C, O ("Insert_Source: enter"));
       pragma Debug
-        (O ("Source type: " & Ada.Tags.External_Tag (AES.all'Tag)));
+        (C, O ("Source type: " & Ada.Tags.External_Tag (AES.all'Tag)));
 
       pragma Assert (AES /= null);
 
       declare
-         Monitors : constant Monitor_Array
-           := Get_Monitors (ORB.ORB_Controller);
-
+         Monitors : constant Monitor_Array :=
+                      Get_Monitors (ORB.ORB_Controller);
          Success : Boolean := False;
       begin
          for J in Monitors'Range loop
@@ -833,9 +786,9 @@ package body PolyORB.ORB is
             --  Try to register the source to an existing monitor
 
             Disable_Polling (ORB.ORB_Controller, Monitors (J));
-
             Register_Source (Monitors (J), AES, Success);
             Enable_Polling (ORB.ORB_Controller, Monitors (J));
+
             if Success then
                Notify_Event (ORB.ORB_Controller,
                              Event'(Kind           => Event_Sources_Added,
@@ -847,19 +800,19 @@ package body PolyORB.ORB is
          if not Success then
 
             --  Create a new monitor and register the source
-            pragma Debug (O ("Creating new monitor"));
+
+            pragma Debug (C, O ("Creating new monitor"));
 
             declare
-               New_AEM : constant Asynch_Ev_Monitor_Access
-                 := AEM_Factory_Of (AES.all).all;
+               New_AEM : constant Asynch_Ev_Monitor_Access :=
+                           AEM_Factory_Of (AES.all).all;
             begin
-               pragma Debug (O ("AEM: "
+               pragma Debug (C, O ("AEM: "
                                 & Ada.Tags.External_Tag (New_AEM.all'Tag)));
                Create (New_AEM.all);
 
-               --  In this situation, there could not be a task
-               --  polling on this monitor, there is no need to
-               --  disable polling.
+               --  In this situation, no task can be polling this monitor yet,
+               --  so no need to disable polling.
 
                Register_Source (New_AEM, AES, Success);
                pragma Assert (Success);
@@ -875,7 +828,7 @@ package body PolyORB.ORB is
          end if;
       end;
 
-      pragma Debug (O ("Insert_Source: leave"));
+      pragma Debug (C, O ("Insert_Source: leave"));
 
       Leave_ORB_Critical_Section (ORB.ORB_Controller);
    end Insert_Source;
@@ -894,7 +847,7 @@ package body PolyORB.ORB is
 
       Enter_ORB_Critical_Section (ORB.ORB_Controller);
 
-      pragma Debug (O ("Delete_Source: enter"));
+      pragma Debug (C, O ("Delete_Source: enter"));
 
       --  Disable polling to enable safe modification of AES list
 
@@ -905,7 +858,8 @@ package body PolyORB.ORB is
       Unregister_Source (Monitor.all, AES, Success);
 
       if Success then
-         Notify_Event (ORB.ORB_Controller, Event_Sources_Deleted_E);
+         Notify_Event
+           (ORB.ORB_Controller, Event'(Kind => Event_Sources_Deleted));
       end if;
 
       --  Modification completed, enable polling
@@ -918,7 +872,7 @@ package body PolyORB.ORB is
 
       Destroy (AES);
 
-      pragma Debug (O ("Delete_Source: leave"));
+      pragma Debug (C, O ("Delete_Source: leave"));
    end Delete_Source;
 
    ----------------------------------
@@ -929,19 +883,15 @@ package body PolyORB.ORB is
    -- Run --
    ---------
 
-   procedure Run (J : access Request_Job) is
+   procedure Run (J : not null access Request_Job) is
       AJ : Job_Access := Job_Access (J);
-
    begin
-      Handle_Request_Execution
-        (P => J.ORB.Tasking_Policy, ORB => J.ORB, RJ => J);
+      Run_Request (J.ORB, J.Request);
       Free (AJ);
-
    exception
       when E : others =>
-         pragma Debug (O ("Run: Got exception "
+         pragma Debug (C, O ("Run: Got exception "
                           & Ada.Exceptions.Exception_Information (E)));
-
          Free (AJ);
          raise;
    end Run;
@@ -950,55 +900,53 @@ package body PolyORB.ORB is
    -- Run_Request --
    -----------------
 
-   procedure Run_Request (J : access Request_Job) is
+   procedure Run_Request (ORB : access ORB_Type; Req : Request_Access) is
    begin
-      pragma Debug (O ("Run Request_Job: enter"));
-      pragma Assert (J.Request /= null);
+      pragma Debug (C, O ("Run Request_Job: enter"));
+      pragma Assert (Req /= null);
 
       declare
          use type Task_Info.Task_Info_Access;
          Surrogate : Components.Component_Access;
-         Pro : PolyORB.Binding_Data.Profile_Access;
+         Pro       : PolyORB.Binding_Data.Profile_Access;
 
       begin
-         pragma Debug (O ("Task " & Image (Current_Task)
+         pragma Debug (C, O ("Task " & Image (Current_Task)
                           & " executing: "
-                          & Requests.Image (J.Request.all)));
+                          & Requests.Image (Req.all)));
 
-         if J.Request.Requesting_Task /= null then
+         if Req.Requesting_Task /= null then
             pragma Debug
-              (O ("... requested by "
-                  & Task_Info.Image (J.Request.Requesting_Task.all)));
+              (C, O ("... requested by "
+                  & PTI.Image (Req.Requesting_Task.all)));
             null;
          end if;
 
-         if J.Request.Completed then
+         if Req.Completed then
 
             --  The request can be already marked as completed in the case
             --  where an error has been detected during immediate argument
             --  unmarshalling (case of a malformed SOAP argument
             --  representation, for example).
 
-            pragma Debug (O ("Request completed due to early error"));
+            pragma Debug (C, O ("Request completed due to early error"));
 
-            Emit_No_Reply (J.Requestor,
-                           Servants.Iface.Executed_Request'
-                           (Req => J.Request));
+            Emit_No_Reply (Req.Requesting_Component,
+                           Servants.Iface.Executed_Request'(Req => Req));
             return;
 
-         elsif Is_Set (Sync_None, J.Request.Req_Flags) then
+         elsif Is_Set (Sync_None, Req.Req_Flags) then
 
             --  At this point, the request has been queued, the Sync_None
             --  synchronisation policy has been completed.
             --  We bounce back the response to the requesting task.
 
-            pragma Debug (O ("Sync_None completed"));
+            pragma Debug (C, O ("Sync_None completed"));
 
-            Emit_No_Reply (J.Requestor,
-                           Servants.Iface.Executed_Request'
-                           (Req => J.Request));
+            Emit_No_Reply (Req.Requesting_Component,
+                           Servants.Iface.Executed_Request'(Req => Req));
 
-            J.Request.Completed := True;
+            Req.Completed := True;
          end if;
 
          --  Bind target reference to a servant if this is a local reference,
@@ -1008,12 +956,11 @@ package body PolyORB.ORB is
             use PolyORB.Errors;
 
             Error : Error_Container;
-
          begin
             References.Binding.Bind
-              (J.Request.Target,
-               J.ORB,
-               Request_QoS.Get_Request_QoS (J.Request),
+              (Req.Target,
+               ORB_Access (ORB),
+               Request_QoS.Get_Request_QoS (Req),
                Surrogate,
                Pro,
                False,
@@ -1022,40 +969,39 @@ package body PolyORB.ORB is
             --  call, to be discussed.
 
             if Found (Error) then
-               pragma Debug (O ("Run_Request: Got an error when binding: "
+               pragma Debug (C, O ("Run_Request: Got an error when binding: "
                                 & Error_Id'Image (Error.Kind)));
 
                --  Any error except ForwardLocation_E caught at this level
                --  implies a problem within the object adapter. We bounce the
                --  exception to the user for further processing.
 
-               Set_Exception (J.Request, Error);
+               Set_Exception (Req, Error);
                Catch (Error);
 
-               Emit_No_Reply (J.Requestor,
-                              Servants.Iface.Executed_Request'
-                              (Req => J.Request));
+               Emit_No_Reply (Req.Requesting_Component,
+                              Servants.Iface.Executed_Request'(Req => Req));
                return;
             end if;
          end;
 
-         --  At this point, the server has been contacted, a binding
-         --  has been created, a servant manager has been reached.
-         --  We are about to send the request to the target.
+         --  At this point, the server has been contacted, a binding has been
+         --  created, a servant manager has been reached. We are about to send
+         --  the request to the target.
 
-         if Is_Set (Sync_With_Server, J.Request.Req_Flags)
-           and then Is_Profile_Local (J.ORB, Pro)
+         if Is_Set (Sync_With_Server, Req.Req_Flags)
+           and then Is_Profile_Local (ORB, Pro)
          then
             --  We are on the server side, and use Sync_With_Server
             --  synchronization: we can send an Executed_Request
             --  message to the client prior to run the request.
 
-            pragma Debug (O ("With_Server completed, sending"
+            pragma Debug (C, O ("With_Server completed, sending"
                              & " Acknowledge_Request message"));
 
-            Emit_No_Reply (J.Requestor,
+            Emit_No_Reply (Req.Requesting_Component,
                            Servants.Iface.Acknowledge_Request'
-                           (Req => J.Request));
+                           (Req => Req));
          end if;
 
          --  Setup_Environment (Oid);
@@ -1064,31 +1010,29 @@ package body PolyORB.ORB is
          --  of a servant handling multiple oids.)
 
          declare
-            Result : constant Components.Message'Class
-              := Emit (Surrogate,
-                       Servants.Iface.Execute_Request'
-                       (Req => J.Request,
-                        Pro => Pro));
+            Result : constant Components.Message'Class :=
+                       Emit (Surrogate, Servants.Iface.Execute_Request'
+                                          (Req => Req, Pro => Pro));
          begin
             --  Unsetup_Environment ();
             --  Unbind (J.Req.Target, J.ORB, Servant);
             --  XXX Unbind must Release_Servant.
 
-            --  XXX Actually cannot unbind here: if the binding
-            --    object is destroyed that early, we won't
-            --    have the opportunity to receive a reply...
-            pragma Debug (O ("Run_Request: got "
+            --  XXX Actually cannot unbind here: if the binding object is
+            --    destroyed that early, we won't have the opportunity to
+            --    receive a reply...
+            pragma Debug (C, O ("Run_Request: got "
               & Ada.Tags.External_Tag (Result'Tag)));
 
             if Result not in Null_Message then
                begin
-                  Emit_No_Reply (J.Requestor, Result);
+                  Emit_No_Reply (Req.Requesting_Component, Result);
                   --  XXX issue: if we are on the server side, and the
                   --  transport layer has detected a disconnection while we
                   --  were processing the request, the Requestor (Session)
                   --  object here could have become invalid. For now we hack
-                  --  around this issue in an ugly fashion by catching
-                  --  all exceptions.
+                  --  around this issue in an ugly fashion by catching all
+                  --  exceptions.
                exception
                   when E : others =>
                      O ("Got exception sending Executed_Request:" & ASCII.LF
@@ -1097,7 +1041,8 @@ package body PolyORB.ORB is
 
             end if;
          end;
-         pragma Debug (O ("Run_Request: executed request"));
+         pragma Debug (C, O ("Run_Request: task " & Image (Current_Task)
+                               & " executed request"));
       end;
    end Run_Request;
 
@@ -1109,10 +1054,10 @@ package body PolyORB.ORB is
      (ORB : access ORB_Type;
       Oid : access Objects.Object_Id;
       Typ : String;
-      Ref :    out References.Ref)
+      Ref : out References.Ref)
    is
    begin
-      pragma Debug (O ("Create_Reference: enter"));
+      pragma Debug (C, O ("Create_Reference: enter"));
 
       Enter_ORB_Critical_Section (ORB.ORB_Controller);
 
@@ -1128,20 +1073,18 @@ package body PolyORB.ORB is
       begin
          while not Last (It) loop
             declare
-               PF : constant Profile_Factory_Access
-                 := Profile_Factory_Of (Value (It).all);
+               PF : constant Profile_Factory_Access :=
+                      Profile_Factory_Of (Value (It).all);
 
             begin
                if PF /= null then
 
                   --  Null profile factories may occur for access points that
-                  --  have an ad hoc protocol stack, but no binding data
-                  --  information.
+                  --  have an ad hoc protocol stack, but no binding data info.
 
                   declare
-                     P : constant Profile_Access
-                       := Create_Profile (PF, Oid.all);
-
+                     P : constant Profile_Access :=
+                           Create_Profile (PF, Oid.all);
                   begin
                      if P /= null then
                         Last_Profile := Last_Profile + 1;
@@ -1158,15 +1101,14 @@ package body PolyORB.ORB is
          Last_Profile := Last_Profile + 1;
          Profiles (Last_Profile) := new Local_Profile_Type;
          Create_Local_Profile
-           (Oid.all,
-            Local_Profile_Type (Profiles (Last_Profile).all));
+           (Oid.all, Local_Profile_Type (Profiles (Last_Profile).all));
 
          Leave_ORB_Critical_Section (ORB.ORB_Controller);
 
          References.Create_Reference
            (Profiles (Profiles'First .. Last_Profile), Typ, Ref);
       end;
-      pragma Debug (O ("Create_Reference: leave"));
+      pragma Debug (C, O ("Create_Reference: leave"));
    end Create_Reference;
 
    --------------------
@@ -1175,15 +1117,14 @@ package body PolyORB.ORB is
 
    function Handle_Message
      (ORB : access ORB_Type;
-      Msg :        PolyORB.Components.Message'Class)
-     return PolyORB.Components.Message'Class
+      Msg : Components.Message'Class) return Components.Message'Class
    is
-      use PolyORB.Servants.Iface;
+      use Servants.Iface;
 
       Nothing : Components.Null_Message;
 
    begin
-      pragma Debug (O ("Handling message of type "
+      pragma Debug (C, O ("Handling message of type "
                        & Ada.Tags.External_Tag (Msg'Tag)));
 
       if Msg in Iface.Queue_Request then
@@ -1191,45 +1132,39 @@ package body PolyORB.ORB is
          declare
             QR  : Iface.Queue_Request renames Iface.Queue_Request (Msg);
             Req : Requests.Request_Access renames QR.Request;
-            J   : constant Job_Access := new Request_Job;
          begin
-            pragma Debug (O ("Queue_Request: enter"));
-
-            Request_Job (J.all).ORB := ORB_Access (ORB);
-            Request_Job (J.all).Request := Req;
+            pragma Debug (C, O ("Queue_Request: enter"));
 
             if QR.Requestor = null then
 
                --  If the request was queued directly by a client, then the
-               --  ORB is responsible for setting its state to completed on
-               --  reply from the object.
+               --  ORB is responsible for setting its state to Completed upon
+               --  reception of a reply.
 
-               Request_Job (J.all).Requestor := Component_Access (ORB);
+               Req.Requesting_Component := Component_Access (ORB);
+               Run_Request (ORB, Req);
             else
-
-               Request_Job (J.all).Requestor := QR.Requestor;
-
+               Req.Requesting_Component := QR.Requestor;
+               declare
+                  J : constant Job_Access :=
+                        new Request_Job'(Job with
+                                         ORB       => ORB_Access (ORB),
+                                         Request   => Req);
+               begin
+                  Handle_Request_Execution
+                    (ORB.Tasking_Policy,
+                     ORB_Access (ORB),
+                     Request_Job (J.all)'Access);
+               end;
             end if;
-
-            Req.Requesting_Component := Request_Job (J.all).Requestor;
-
-            Enter_ORB_Critical_Section (ORB.ORB_Controller);
-            Notify_Event (ORB.ORB_Controller,
-                          Event'(Kind        => Queue_Request_Job,
-                                 Request_Job => J,
-                                 Target      => Req.Target));
-            Leave_ORB_Critical_Section (ORB.ORB_Controller);
-
-            pragma Debug (O ("Queue_Request: leave"));
+            pragma Debug (C, O ("Queue_Request: leave"));
          end;
 
       elsif Msg in Executed_Request then
          declare
             use PolyORB.Task_Info;
 
-            Req : Requests.Request
-              renames Executed_Request (Msg).Req.all;
-
+            Req : Requests.Request renames Executed_Request (Msg).Req.all;
          begin
 
             --  The processing of Executed_Request must be done in the ORB
@@ -1241,21 +1176,13 @@ package body PolyORB.ORB is
 
             Req.Completed := True;
 
-            --  XXX The correctness of the following is not
-            --  completely determined.
-            --  Is this mutitask-safe????
-
-            --  As of 20021122, the answer is NO.
-            --  Run evoluted DSA tests with -n 2 -c 100 -s 1
-            --  and Thread_Pool server.
-
-            pragma Debug (O ("Request completed."));
+            pragma Debug (C, O ("Request completed."));
             if Req.Requesting_Task /= null then
 
                --  Notify the requesting task
 
                pragma Debug
-                 (O ("... requesting task is "
+                 (C, O ("... requesting task is "
                      & Task_State'Image (State (Req.Requesting_Task.all))));
 
                Notify_Event (ORB.ORB_Controller,
@@ -1274,44 +1201,39 @@ package body PolyORB.ORB is
 
       elsif Msg in Iface.Monitor_Endpoint then
          declare
-            TE : constant Transport_Endpoint_Access
-              := Iface.Monitor_Endpoint (Msg).TE;
+            TE : constant Transport_Endpoint_Access :=
+                            Iface.Monitor_Endpoint (Msg).TE;
             Note : TE_Note;
-
          begin
             Get_Note (Notepad_Of (TE).all, Note);
-            --  Notes.AES is null for write only Endpoint
+
+            --  Notes.AES is null for write only Endpoints; we only monitor
+            --  read only and read/write Endpoints.
 
             if Note.AES /= null then
-
-               --  Monitor only read/write or read only Endpoint
-
-               pragma Debug (O ("Inserting source: Monitor_Endpoint"));
+               pragma Debug (C, O ("Inserting source: Monitor_Endpoint"));
                Insert_Source (ORB, Note.AES);
             end if;
          end;
 
       elsif Msg in Iface.Monitor_Access_Point then
          declare
-            TAP : constant Transport_Access_Point_Access
-              := Iface.Monitor_Access_Point (Msg).TAP;
+            TAP : constant Transport_Access_Point_Access :=
+                    Iface.Monitor_Access_Point (Msg).TAP;
             Note : TAP_Note;
-
          begin
             Get_Note (Notepad_Of (TAP).all, Note);
 
-            pragma Debug (O ("Inserting source: Monitor_Access_Point"));
+            pragma Debug (C, O ("Inserting source: Monitor_Access_Point"));
             Insert_Source (ORB, Note.AES);
          end;
 
       elsif Msg in Iface.Unregister_Endpoint then
          declare
             Note : TE_Note;
-
          begin
             Get_Note
-              (Notepad_Of
-               (Iface.Unregister_Endpoint (Msg).TE).all, Note);
+              (Notepad_Of (Iface.Unregister_Endpoint (Msg).TE).all, Note);
 
             if Note.AES /= null then
                Delete_Source (ORB, Note.AES);
@@ -1320,7 +1242,7 @@ package body PolyORB.ORB is
 
       else
          pragma Debug
-           (O ("ORB received unhandled message of type "
+           (C, O ("ORB received unhandled message of type "
                & Ada.Tags.External_Tag (Msg'Tag)));
          raise Program_Error;
       end if;
@@ -1335,10 +1257,10 @@ package body PolyORB.ORB is
    function Get_Binding_Objects (ORB : access ORB_Type)
      return BO_Ref_List
    is
-      use BO_Lists;
+      use PBOL;
       use Smart_Pointers;
 
-      It : BO_Lists.Iterator;
+      It : PBOL.Iterator;
       Result : BO_Ref_List;
    begin
       Enter_ORB_Critical_Section (ORB.ORB_Controller);
@@ -1350,15 +1272,20 @@ package body PolyORB.ORB is
          declare
             Ref : Smart_Pointers.Ref;
          begin
-            Smart_Pointers.Set (Ref, Entity_Ptr (Value (It).all));
-            BO_Ref_Lists.Prepend (Result, Ref);
+            Smart_Pointers.Reuse_Entity (Ref, Entity_Ptr (Value (It)));
+
+            --  If binding object is being finalized, Reuse_Entity leaves Ref
+            --  unset.
+
+            if not Is_Nil (Ref) then
+               BO_Ref_Lists.Prepend (Result, Ref);
+            end if;
          end;
 
          Next (It);
       end loop All_Binding_Objects;
 
       Leave_ORB_Critical_Section (ORB.ORB_Controller);
-
       return Result;
    end Get_Binding_Objects;
 
@@ -1367,8 +1294,7 @@ package body PolyORB.ORB is
    ----------------
 
    function Notepad_Of
-     (ORB : access ORB_Type)
-     return Annotations.Notepad_Access
+     (ORB : access ORB_Type) return Annotations.Notepad_Access
    is
    begin
       return ORB.Notepad'Access;
@@ -1380,15 +1306,26 @@ package body PolyORB.ORB is
 
    procedure Initialize;
 
-   procedure Initialize
-   is
+   procedure Initialize is
       The_Controller : POC.ORB_Controller_Access;
    begin
       Create (The_Controller);
-
       Setup.The_ORB := new ORB_Type (Setup.The_Tasking_Policy, The_Controller);
       Create (Setup.The_ORB.all);
    end Initialize;
+
+   ------------------------------
+   -- Queue_Request_To_Handler --
+   ------------------------------
+
+   procedure Queue_Request_To_Handler
+     (ORB : access ORB_Type;
+      Msg : Message'Class)
+   is
+   begin
+      pragma Assert (Msg in Iface.Queue_Request);
+      Emit_No_Reply (Component_Access (ORB), Msg);
+   end Queue_Request_To_Handler;
 
    ---------------------
    -- Shutdown Module --
@@ -1411,15 +1348,17 @@ begin
       (Name      => +"orb",
        Conflicts => Empty,
        Depends   => +"orb.tasking_policy"
-       & "binding_data.soap?"
-       & "binding_data.srp?"
-       & "binding_data.iiop?"
-       & "orb_controller"
-       & "protocols.srp?"
-       & "protocols.giop?"
-       & "protocols.soap?"
-       & "smart_pointers"
-       & "tasking.threads",
+                   & "binding_data.soap?"
+                   & "binding_data.srp?"
+                   & "binding_data.iiop?"
+                   & "orb_controller"
+                   --  ??? should not have hard-coded dependencies
+                   --  on specific protocols!
+                   & "protocols.srp?"
+                   & "protocols.giop?"
+                   & "protocols.soap?"
+                   & "smart_pointers"
+                   & "tasking.threads",
        Provides => Empty,
        Implicit => False,
        Init     => Initialize'Access,

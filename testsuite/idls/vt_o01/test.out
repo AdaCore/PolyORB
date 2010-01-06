@@ -1,0 +1,3 @@
+valuetype Val {
+ short op();
+};

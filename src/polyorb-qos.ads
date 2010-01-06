@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -36,6 +36,8 @@
 
 package PolyORB.QoS is
 
+   pragma Preelaborate;
+
    --  List of supported QoS policies
 
    type QoS_Kind is
@@ -47,7 +49,8 @@ package PolyORB.QoS is
       GIOP_Tagged_Components,
       DSA_TM_Info,
       Compound_Security,
-      Transport_Security);
+      Transport_Security,
+      GIOP_Static_Buffer);
 
    --  Definition of QoS parameters
 

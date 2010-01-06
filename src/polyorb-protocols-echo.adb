@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -65,7 +65,6 @@ package body PolyORB.Protocols.Echo is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
-   pragma Unreferenced (C); --  For conditional pragma Debug
 
    Rep : Rep_Test;
 
@@ -81,7 +80,6 @@ package body PolyORB.Protocols.Echo is
       --  This should be factored in PolyORB.Protocols.
 
       Session := new Echo_Session;
-      Set_Allocation_Class (Session.all, Dynamic);
 
       --  That is Echo-specific. Or is it?
 
@@ -128,7 +126,7 @@ package body PolyORB.Protocols.Echo is
 
    procedure Handle_Connect_Indication (S : access Echo_Session) is
    begin
-      pragma Debug (O ("Received new connection to echo service..."));
+      pragma Debug (C, O ("Received new connection to echo service..."));
 
       --  1. Send greetings to client.
 
@@ -199,8 +197,9 @@ package body PolyORB.Protocols.Echo is
    end Free;
 
    procedure Handle_Data_Indication
-     (S : access Echo_Session;
-      Data_Amount : Ada.Streams.Stream_Element_Count)
+     (S           : access Echo_Session;
+      Data_Amount : Ada.Streams.Stream_Element_Count;
+      Error       : in out Errors.Error_Container)
    is
       use Binding_Data.Local;
       use Objects;
@@ -208,9 +207,9 @@ package body PolyORB.Protocols.Echo is
 
    begin
       pragma Warnings (Off);
-      pragma Unreferenced (Data_Amount);
+      pragma Unreferenced (Data_Amount, Error);
       pragma Warnings (On);
-      pragma Debug (O ("Received data on echo service..."));
+      pragma Debug (C, O ("Received data on echo service..."));
       pragma Debug (Buffers.Show (S.Buffer));
 
       declare
@@ -236,7 +235,7 @@ package body PolyORB.Protocols.Echo is
          --  Clear buffer
 
          begin
-            pragma Debug (O ("Received request " & Method
+            pragma Debug (C, O ("Received request " & Method
                              & " on object " & Image (Oid)
                              & " with args " & Arg_String));
 
@@ -263,14 +262,13 @@ package body PolyORB.Protocols.Echo is
                Result    => Result,
                Req       => Req);
 
-            Queue_Request_To_Handler
-              (ORB.Tasking_Policy,
-               ORB,
-               Queue_Request'(Request   => Req,
-                              Requestor => Component_Access (S)));
-            --  This request is submitted to the ORB by internal
-            --  activity, not by a transient task lent by the
-            --  application. Requesting_Task is therefore null.
+            --  This request is submitted to the ORB by internal activity,
+            --  not by a transient task lent by the application:
+            --  set Requesting_Task to null.
+
+            Queue_Request_To_Handler (ORB,
+              Queue_Request'(Request   => Req,
+                             Requestor => Component_Access (S)));
 
          exception
             when E : others =>
@@ -292,12 +290,11 @@ package body PolyORB.Protocols.Echo is
    is
       pragma Unreferenced (Error);
    begin
-      pragma Debug (O ("Received disconnect."));
+      pragma Debug (C, O ("Received disconnect."));
 
-      --  Cleanup protocol.
+      --  Cleanup protocol
 
       Buffers.Release (S.Buffer);
-
    end Handle_Disconnect;
 
    procedure Handle_Flush (S : access Echo_Session) is

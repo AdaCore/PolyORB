@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2004-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -46,8 +46,8 @@ package body Test001_Client_Interceptor.Impl is
    use Test001_Request_Info_Tests;
 
    procedure Test_Interception_Point
-     (Point  : in     Client_Interception_Point;
-      Info   : in     PortableInterceptor.ClientRequestInfo.Local_Ref);
+     (Point  : Client_Interception_Point;
+      Info   : PortableInterceptor.ClientRequestInfo.Local_Ref);
 
    ----------
    -- Is_A --
@@ -55,7 +55,7 @@ package body Test001_Client_Interceptor.Impl is
 
    function Is_A
      (Self            : access Object;
-      Logical_Type_Id : in     Standard.String)
+      Logical_Type_Id : Standard.String)
       return Boolean
    is
       pragma Unreferenced (Self);
@@ -81,7 +81,7 @@ package body Test001_Client_Interceptor.Impl is
 
    procedure Receive_Exception
      (Self : access Object;
-      RI   : in     PortableInterceptor.ClientRequestInfo.Local_Ref)
+      RI   : PortableInterceptor.ClientRequestInfo.Local_Ref)
    is
       pragma Unreferenced (Self);
 
@@ -95,7 +95,7 @@ package body Test001_Client_Interceptor.Impl is
 
    procedure Receive_Other
      (Self : access Object;
-      RI   : in     PortableInterceptor.ClientRequestInfo.Local_Ref)
+      RI   : PortableInterceptor.ClientRequestInfo.Local_Ref)
    is
       pragma Unreferenced (Self);
 
@@ -109,7 +109,7 @@ package body Test001_Client_Interceptor.Impl is
 
    procedure Receive_Reply
      (Self : access Object;
-      RI   : in     PortableInterceptor.ClientRequestInfo.Local_Ref)
+      RI   : PortableInterceptor.ClientRequestInfo.Local_Ref)
    is
       pragma Unreferenced (Self);
 
@@ -123,7 +123,7 @@ package body Test001_Client_Interceptor.Impl is
 
    procedure Send_Poll
      (Self : access Object;
-      RI   : in     PortableInterceptor.ClientRequestInfo.Local_Ref)
+      RI   : PortableInterceptor.ClientRequestInfo.Local_Ref)
    is
       pragma Unreferenced (Self);
 
@@ -137,7 +137,7 @@ package body Test001_Client_Interceptor.Impl is
 
    procedure Send_Request
      (Self : access Object;
-      RI   : in     PortableInterceptor.ClientRequestInfo.Local_Ref)
+      RI   : PortableInterceptor.ClientRequestInfo.Local_Ref)
    is
       pragma Unreferenced (Self);
 
@@ -150,8 +150,8 @@ package body Test001_Client_Interceptor.Impl is
    -----------------------------
 
    procedure Test_Interception_Point
-     (Point  : in Client_Interception_Point;
-      Info   : in PortableInterceptor.ClientRequestInfo.Local_Ref)
+     (Point  : Client_Interception_Point;
+      Info   : PortableInterceptor.ClientRequestInfo.Local_Ref)
    is
    begin
       if not Test001_Globals.Enable_Test_Point (Point) then

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -72,14 +72,12 @@ package PolyORB.Transport is
      (TAP : access Transport_Access_Point)
      return Asynch_Ev.Asynch_Ev_Source_Access
       is abstract;
-   --  Create a view of TAP as an asyncrhonous event source. The AES_Note
-   --  on the newly-created event source must be associated to TAP's
-   --  event handler.
+   --  Create a view of TAP as an asynchronous event source. The Handler
+   --  of the newly-created event source is TAP.Handler.
 
    function Handle_Message
      (TAP : access Transport_Access_Point;
-      Msg :        Components.Message'Class)
-     return Components.Message'Class;
+      Msg : Components.Message'Class) return Components.Message'Class;
 
    -----------------------------------------------------------------
    -- A transport service endpoint:                               --
@@ -99,15 +97,12 @@ package PolyORB.Transport is
    --  An opened transport endpoint.
 
    function Notepad_Of
-     (TE : Transport_Endpoint_Access)
-     return Annotations.Notepad_Access;
+     (TE : Transport_Endpoint_Access) return Annotations.Notepad_Access;
    pragma Inline (Notepad_Of);
 
    function Handle_Message
      (TE  : access Transport_Endpoint;
-      Msg :        Components.Message'Class)
-     return Components.Message'Class
-     is abstract;
+      Msg : Components.Message'Class) return Components.Message'Class;
 
    function Upper
      (TE : Transport_Endpoint_Access)
@@ -127,9 +122,8 @@ package PolyORB.Transport is
      (TE : access Transport_Endpoint)
      return Asynch_Ev.Asynch_Ev_Source_Access
       is abstract;
-   --  Create a view of TE as an asyncrhonous event source. The AES_Note
-   --  on the newly-created event source must be associated to TE's
-   --  event handler.
+   --  Create a view of TE as an asynchronous event source. The Handler
+   --  of the newly-created event source is TE.Handler.
 
    procedure Read
      (TE     : in out Transport_Endpoint;
@@ -176,10 +170,15 @@ private
          Upper  : Components.Component_Access;
          --  Communication signal to upper layer.
 
+         Binding_Object : Smart_Pointers.Entity_Ptr;
+         --  Enclosing binding object entity (not reference counted, set for
+         --  both client side and server side TEs).
+
          Dependent_Binding_Object : Smart_Pointers.Ref;
-         --  For server-side transport endpoints, keep a reference
-         --  to the associated binding object as long as the
-         --  transport endpoint is alive.
+         --  For server-side transport endpoints, keep a reference to the
+         --  associated binding object as long as the transport endpoint is
+         --  is alive. Note: when Dependent_Binding_Object is set, its
+         --  entity is always equal to the above Binding_Object.
 
          Closed : Boolean := False;
          --  Set to True once Close has been called on this endpoint.
@@ -187,5 +186,9 @@ private
          In_Buf : Buffers.Buffer_Access;
          Max    : Ada.Streams.Stream_Element_Count;
       end record;
+
+   procedure Check_Validity (TE : access Transport_Endpoint);
+   --  Check whether TE (which must not be closed) is still valid, and if not,
+   --  close it. Used for handling of Check_Validity filter message.
 
 end PolyORB.Transport;

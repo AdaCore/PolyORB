@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2002 Free Software Foundation, Inc.             --
+--         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -42,7 +42,7 @@ package Common is
 
    procedure Initialize
      (Penpal : in out Penpal_Type;
-      Name   : in String);
+      Name   : String);
    --  Initialize a Penpal name. This will raise Sender_Error if the
    --  Name is empty. You must register this penpal to get new incoming
    --  messages.
@@ -52,9 +52,9 @@ package Common is
    --  has not been set.
 
    procedure New_Message
-     (Sender    : in String;
+     (Sender    : String;
       Recipient : access Penpal_Type;
-      Message   : in String);
+      Message   : String);
    --  This procedure will be called when the penpal has registered itself
    --  and a new message arrives on the BBS. Sender_Error or Message_Error
    --  will be raised if Sender or Message are empty.
@@ -75,7 +75,7 @@ private
       Penpal : out String_Access);
    procedure Write
      (Stream : access Ada.Streams.Root_Stream_Type'Class;
-      Penpal : in String_Access);
+      Penpal : String_Access);
    for String_Access'Read use Read;
    for String_Access'Write use Write;
 

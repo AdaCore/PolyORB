@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -155,6 +155,11 @@ package PolyORB.Binding_Data is
    --  True iff P designates an object that can be contacted at the access
    --  point associated with PF.
 
+   function Is_Local_Profile (P : Profile_Type'Class) return Boolean;
+   --  True if a previous call to Is_Local_Profile (two-argument version)
+   --  has previously returned True (optimization, used to avoid traversing
+   --  the list of all profile factories again).
+
    function Image (Prof : Profile_Type) return String is abstract;
    --  Used for debugging purposes
 
@@ -186,6 +191,8 @@ package PolyORB.Binding_Data is
 
 private
 
+   use type Types.Unsigned_Long;
+
    --  Standard tags defined by CORBA
 
    Tag_Internet_IOP        : constant Profile_Tag := 0;
@@ -194,14 +201,21 @@ private
    --  TAO value :
    --  Tag_UIPMC               : constant Profile_Tag := 1413566220;
 
-   --  Tags defined by PolyORB
+   --  Tags defined by PolyORB (see docs/OMG_TAGS for assigned ranges)
 
-   Tag_Local               : constant Profile_Tag := 16#7fffff00#;
-   Tag_SRP                 : constant Profile_Tag := 16#7fffff02#;
-   Tag_SOAP                : constant Profile_Tag := 16#7fffff03#;
-   Tag_DIOP                : constant Profile_Tag := 16#7fffff04#;
-   Tag_Neighbour           : constant Profile_Tag := 16#7fffff0e#;
-   Tag_Test                : constant Profile_Tag := 16#7fffff0f#;
+   Tag_PolyORB_First       : constant Profile_Tag := 16#504f0000#;
+   --  "PO\x00\x00"
+
+   Tag_Local               : constant Profile_Tag := Tag_PolyORB_First + 0;
+   Tag_SRP                 : constant Profile_Tag := Tag_PolyORB_First + 1;
+   Tag_SOAP                : constant Profile_Tag := Tag_PolyORB_First + 2;
+   Tag_DIOP                : constant Profile_Tag := Tag_PolyORB_First + 3;
+   Tag_Neighbour           : constant Profile_Tag := Tag_PolyORB_First + 4;
+
+   Tag_Test                : constant Profile_Tag := Tag_PolyORB_First + 255;
+
+   Tag_PolyORB_Last        : constant Profile_Tag := 16#504f00ff#;
+   --  "PO\x00\xff"
 
    Preference_Default : constant Profile_Preference
      := (Profile_Preference'First + Profile_Preference'Last) / 2;
@@ -218,6 +232,11 @@ private
       Continuation : PolyORB.Smart_Pointers.Ref;
       --  If the profile has been bound, this component designates its
       --  continuation (which is either a local servant, or a binding object).
+
+      Known_Local : Boolean := False;
+      --  Set True by Is_Local_Profile when it is determined that this profile
+      --  is local.
+
    end record;
 
    type Profile_Factory is abstract tagged limited null record;

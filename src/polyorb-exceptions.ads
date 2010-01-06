@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -92,7 +92,7 @@ package PolyORB.Exceptions is
    procedure Default_Raise_From_Any (Occurrence : PolyORB.Any.Any);
 
    procedure Register_Exception
-     (TC     : PolyORB.Any.TypeCode.Object;
+     (TC     : PolyORB.Any.TypeCode.Local_Ref;
       Raiser : Raise_From_Any_Procedure);
    --  Associate the TypeCode for a user-defined exception with
    --  a procedure that raises an occurrence of that exception,
@@ -125,7 +125,6 @@ package PolyORB.Exceptions is
    --  Returns the exception id from its name
 
    function Occurrence_To_Name
-     (Occurrence : Ada.Exceptions.Exception_Occurrence)
-      return PolyORB.Types.RepositoryId;
+     (Occurrence : Ada.Exceptions.Exception_Occurrence) return String;
 
 end PolyORB.Exceptions;

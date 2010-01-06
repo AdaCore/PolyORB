@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -63,24 +63,24 @@ package CosNotifyChannelAdmin.EventChannel.Impl is
 
    procedure New_For_Consumers
       (Self    : access Object;
-       Op      : in CosNotifyChannelAdmin.InterFilterGroupOperator;
+       Op      : CosNotifyChannelAdmin.InterFilterGroupOperator;
        Id      : out CosNotifyChannelAdmin.AdminID;
        Returns : out CosNotifyChannelAdmin.ConsumerAdmin.Ref);
 
    procedure New_For_Suppliers
       (Self    : access Object;
-       Op      : in CosNotifyChannelAdmin.InterFilterGroupOperator;
+       Op      : CosNotifyChannelAdmin.InterFilterGroupOperator;
        Id      : out CosNotifyChannelAdmin.AdminID;
        Returns : out CosNotifyChannelAdmin.SupplierAdmin.Ref);
 
    function Get_ConsumerAdmin
       (Self : access Object;
-       Id   : in CosNotifyChannelAdmin.AdminID)
+       Id   : CosNotifyChannelAdmin.AdminID)
        return CosNotifyChannelAdmin.ConsumerAdmin.Ref;
 
    function Get_SupplierAdmin
       (Self : access Object;
-       Id   : in CosNotifyChannelAdmin.AdminID)
+       Id   : CosNotifyChannelAdmin.AdminID)
        return CosNotifyChannelAdmin.SupplierAdmin.Ref;
 
    function Get_All_ConsumerAdmins
@@ -99,11 +99,11 @@ package CosNotifyChannelAdmin.EventChannel.Impl is
 
    procedure Set_QoS
       (Self : access Object;
-       QoS  : in CosNotification.QoSProperties);
+       QoS  : CosNotification.QoSProperties);
 
    procedure Validate_QoS
       (Self         : access Object;
-      Required_QoS  : in CosNotification.QoSProperties;
+      Required_QoS  : CosNotification.QoSProperties;
       Available_QoS : out CosNotification.NamedPropertyRangeSeq);
 
    --  IDL Operations inherited from CosNotification::AdminPropertiesAdmin
@@ -114,7 +114,7 @@ package CosNotifyChannelAdmin.EventChannel.Impl is
 
    procedure Set_Admin
       (Self  : access Object;
-       Admin : in CosNotification.AdminProperties);
+       Admin : CosNotification.AdminProperties);
 
    --  IDL Operations inherited from CosEventChannelAdmin::EventChannel
 
@@ -135,8 +135,8 @@ package CosNotifyChannelAdmin.EventChannel.Impl is
 
    function Create
      (Factory : CosNotifyChannelAdmin.EventChannelFactory.Ref;
-      Initial_QoS   : in CosNotification.QoSProperties;
-      Initial_Admin : in CosNotification.AdminProperties)
+      Initial_QoS   : CosNotification.QoSProperties;
+      Initial_Admin : CosNotification.AdminProperties)
      return Object_Ptr;
 
    function GetTotalConsumers
@@ -151,15 +151,15 @@ package CosNotifyChannelAdmin.EventChannel.Impl is
 
    procedure Post
      (Self : access Object;
-      Data : in CORBA.Any);
+      Data : CORBA.Any);
 
    procedure Structured_Post
      (Self         : access Object;
-      Notification : in CosNotification.StructuredEvent);
+      Notification : CosNotification.StructuredEvent);
 
    procedure Sequence_Post
      (Self          : access Object;
-      Notifications : in CosNotification.EventBatch);
+      Notifications : CosNotification.EventBatch);
 
    function TestConsumerLimit
      (Self : access Object)

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2000-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2000-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -52,7 +52,6 @@ package body SOAP.Client is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
-   pragma Unreferenced (C); --  For conditional pragma Debug
    --  the polyorb logging facility
 
 --   use Ada.Strings.Unbounded;
@@ -87,7 +86,8 @@ package body SOAP.Client is
       PolyORB_Request : PolyORB.Requests.Request_Access;
       PolyORB_Response : PolyORB.Any.NamedValue;
 
-      SOAP_Params : SOAP.Parameters.List := SOAP.Message.Parameters (P);
+      SOAP_Params : constant SOAP.Parameters.List
+        := SOAP.Message.Parameters (P);
       Reference : constant String :=
         Protocol (Host_URL (Connection.all))
         & "://"
@@ -96,14 +96,14 @@ package body SOAP.Client is
         & Path (Host_URL (Connection.all))
         & File (Host_URL (Connection.all));
    begin
-      pragma Debug (O ("Handle_Request: building a request named "
+      pragma Debug (C, O ("Handle_Request: building a request named "
                        & SOAPAction));
-      pragma Debug (O ("Handle_Request: Reference is " & Reference));
+      pragma Debug (C, O ("Handle_Request: Reference is " & Reference));
       Create (Args);
 
       for Index in 1 .. SOAP.Parameters.Argument_Count (SOAP_Params) loop
          Add_Item (Args, SOAP.Types.To_NamedValue
-                   (Parameters.Argument (SOAP_Params, Positive (Index))));
+                   (Parameters.Argument (SOAP_Params, Index)));
       end loop;
 
       Create_Request (Target => PolyORB.References.URI.String_To_Object
@@ -115,7 +115,7 @@ package body SOAP.Client is
 
       Invoke (PolyORB_Request);
 
-      pragma Debug (O ("Type of response is " & Image
+      pragma Debug (C, O ("Type of response is " & Image
                        (Get_Unwound_Type
                         (PolyORB_Request.Result.Argument))));
 
@@ -218,7 +218,7 @@ package body SOAP.Client is
 --    Response := AWS.Client.SOAP_Post (Connection, To_String (Message_Body));
 --     return Message.XML.Load_Response (AWS.Response.Message_Body (Response));
 
-      pragma Debug (O ("Call: processing a request named "
+      pragma Debug (C, O ("Call: processing a request named "
                         & Procedure_Name (P)));
       return Handle_Request (Connection, P, Procedure_Name (P));
 

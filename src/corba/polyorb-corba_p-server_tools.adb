@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -52,9 +52,22 @@ package body PolyORB.CORBA_P.Server_Tools is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
-   pragma Unreferenced (C); --  For conditional pragma Debug
 
    Root_POA : PortableServer.POA.Local_Ref;
+
+   ---------------------
+   -- Activate_Server --
+   ---------------------
+
+   procedure Activate_Server is
+   begin
+      PortableServer.POAManager.Activate
+        (PortableServer.POA.Get_The_POAManager (Get_Root_POA));
+
+      if Initiate_Server_Hook /= null then
+         Initiate_Server_Hook.all;
+      end if;
+   end Activate_Server;
 
    ------------------
    -- Get_Root_POA --
@@ -63,7 +76,7 @@ package body PolyORB.CORBA_P.Server_Tools is
    function Get_Root_POA return PortableServer.POA.Local_Ref is
    begin
       if PortableServer.POA.Is_Nil (Root_POA) then
-         Root_POA := PortableServer.POA.Helper.To_Ref
+         Root_POA := PortableServer.POA.Helper.To_Local_Ref
            (CORBA.ORB.Resolve_Initial_References
               (CORBA.ORB.To_CORBA_String ("RootPOA")));
       end if;
@@ -76,15 +89,10 @@ package body PolyORB.CORBA_P.Server_Tools is
 
    procedure Initiate_Server (Start_New_Task : Boolean := False) is
    begin
-      PortableServer.POAManager.Activate
-        (PortableServer.POA.Get_The_POAManager (Get_Root_POA));
-
-      if Initiate_Server_Hook /= null then
-         Initiate_Server_Hook.all;
-      end if;
-
+      Activate_Server;
       if Start_New_Task then
          PolyORB.Tasking.Threads.Create_Task (CORBA.ORB.Run'Access);
+
       else
          CORBA.ORB.Run;
       end if;
@@ -99,11 +107,11 @@ package body PolyORB.CORBA_P.Server_Tools is
       R : out CORBA.Object.Ref'Class)
    is
    begin
-      pragma Debug (O ("Initiate_Servant: enter"));
+      pragma Debug (C, O ("Initiate_Servant: enter"));
       CORBA.Object.Set
          (R, CORBA.Object.Object_Of
           (PortableServer.POA.Servant_To_Reference (Get_Root_POA, S)));
-      pragma Debug (O ("Initiate_Servant: end"));
+      pragma Debug (C, O ("Initiate_Servant: end"));
    end Initiate_Servant;
 
    ---------------------------------
@@ -139,7 +147,7 @@ package body PolyORB.CORBA_P.Server_Tools is
       Append (Policies,
               CORBA.Policy.Ref (Create_Lifespan_Policy
                                   (PortableServer.PERSISTENT)));
-      Serv_POA := PortableServer.POA.Helper.To_Ref
+      Serv_POA := PortableServer.POA.Helper.To_Local_Ref
         (PortableServer.POA.Create_POA
            (Get_Root_POA,
             CORBA.To_CORBA_String (Name),
@@ -150,7 +158,7 @@ package body PolyORB.CORBA_P.Server_Tools is
       CORBA.Object.Set (R, CORBA.Object.Object_Of (
         PortableServer.POA.Create_Reference_With_Id (Serv_POA,
           PortableServer.String_To_ObjectId ("O"),
-          PortableServer.Internals.Get_Type_Id (S))));
+          CORBA.To_CORBA_String (PortableServer.Internals.Get_Type_Id (S)))));
    end Initiate_Well_Known_Service;
 
    --------------------------

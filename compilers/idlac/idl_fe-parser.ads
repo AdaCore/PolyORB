@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -33,7 +33,7 @@
 
 with Idl_Fe.Lexer; use Idl_Fe.Lexer;
 with Idl_Fe.Types; use Idl_Fe.Types;
-with Errors;
+with Idlac_Errors;
 with Ada.Unchecked_Deallocation;
 
 package Idl_Fe.Parser is
@@ -88,16 +88,16 @@ private
    function View_Next_Next_Token return Idl_Token;
 
    --  Returns the location of the current_token
-   function Get_Token_Location return Errors.Location;
+   function Get_Token_Location return Idlac_Errors.Location;
 
    --  Returns the location of the previous token
-   function Get_Previous_Token_Location return Errors.Location;
+   function Get_Previous_Token_Location return Idlac_Errors.Location;
 
    --  Returns the location of the previous token
-   function Get_Previous_Previous_Token_Location return Errors.Location;
+   function Get_Previous_Previous_Token_Location return Idlac_Errors.Location;
 
    --  Returns the location of the current_token
-   function Get_Next_Token_Location return Errors.Location;
+   function Get_Next_Token_Location return Idlac_Errors.Location;
 
    --  The next three methods unreference a pointer without any
    --  verification. that's because the verification is useless
@@ -367,8 +367,8 @@ private
    --                               <value_name> { "," <value_name> }* ]
    --                               [ "supports" <interface_name>
    --                               { "," <interface_name> }* ]
-   procedure Parse_Value_Inheritance_Spec (Result : in out Node_Id;
-                                           Success : out Boolean);
+   procedure Parse_Value_Inheritance_Spec
+     (Result : Node_Id; Success : out Boolean);
 
    --  Rule 20
    --  <value_name> ::= <scoped_name>
@@ -966,7 +966,7 @@ private
    --  verifying that an interface can be imported :
    --     Int in a scoped name denoting the interface to be imported
    --     Scope is an interface where the other will be imported
-   --  This method verifies that there is no operation or
+   --  This function verifies that there is no operation or
    --  attributes in the new imported interface that clashes
    --  with the already imported ones.
    function Interface_Is_Importable (Int : Node_Id;
@@ -1056,8 +1056,7 @@ private
    --  C_General_Float
    --  Full indicates whether signed and unsigned types should be
    --  distinguished or not
-   procedure Check_Value_Range (Node : in out Node_Id;
-                                Full : Boolean);
+   procedure Check_Value_Range (Node : Node_Id; Full : Boolean);
 
    --  checks that the value contained by value is compatible with
    --  the type of value_type.
@@ -1103,48 +1102,42 @@ private
    --  addition of two fixed integer :
    --    R is the result
    --    Left and right are the operands
-   procedure Fixed_Add (Res : in out Constant_Value_Ptr;
-                        Left, Right : Constant_Value_Ptr);
+   procedure Fixed_Add (Res, Left, Right : Constant_Value_Ptr);
 
    --  subtraction of two fixed integer :
    --    R is the result
    --    Left and right are the operands
-   procedure Fixed_Sub (Res : in out Constant_Value_Ptr;
-                        Left, Right : Constant_Value_Ptr);
+   procedure Fixed_Sub (Res, Left, Right : Constant_Value_Ptr);
 
    --  multiplication of two fixed integer :
    --    R is the result
    --    Left and right are the operands
-   procedure Fixed_Mul (Res : in out Constant_Value_Ptr;
-                        Left, Right : Constant_Value_Ptr);
+   procedure Fixed_Mul (Res, Left, Right : Constant_Value_Ptr);
 
    --  division of two fixed integer :
    --    R is the result
    --    Left and right are the operands
-   procedure Fixed_Div (Res : in out Constant_Value_Ptr;
-                        Left, Right : Constant_Value_Ptr);
+   procedure Fixed_Div (Res, Left, Right : Constant_Value_Ptr);
 
    --  identity for a fixed integer :
    --    R is the result
    --    operand is the operand
-   procedure Fixed_Id (Res : in out Constant_Value_Ptr;
-                       Operand : Constant_Value_Ptr);
+   procedure Fixed_Id (Res, Operand : Constant_Value_Ptr);
 
-   --  inversion of a fixed integer :
+   --  negation of a fixed integer :
    --    R is the result
    --    operand is the operand
-   procedure Fixed_Neg (Res : in out Constant_Value_Ptr;
-                        Operand : Constant_Value_Ptr);
+   procedure Fixed_Neg (Res, Operand : Constant_Value_Ptr);
 
-   --  not operator between two Idl_Integer
+   --  bitwise negation of a fixed integer
    function "not" (X : Idl_Integer) return Idl_Integer;
 
-   ------------------------------
-   --  To resume after errors  --
-   ------------------------------
+   --------------------
+   -- Error recovery --
+   --------------------
 
-   --  This methods are called when the parser encounters an error
-   --  in order to try to continue the parsing
+   --  These procedures are called when the parser encounters an error, and
+   --  attempt to skip to a suitable recovery point.
 
    --  Goes to the beginning of the next definition.
    procedure Go_To_Next_Definition;

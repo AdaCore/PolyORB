@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -42,7 +42,7 @@ with Idl_Fe.Tree.Synthetic; use Idl_Fe.Tree.Synthetic;
 with Idl_Fe.Debug;
 pragma Elaborate_All (Idl_Fe.Debug);
 
-with Utils; use Utils;
+with Idlac_Utils; use Idlac_Utils;
 
 package body Idl_Fe.Types is
 
@@ -79,7 +79,7 @@ package body Idl_Fe.Types is
 
    function Find_Inherited_Identifier_Definition
      (Name : String;
-      Loc  : Errors.Location)
+      Loc  : Idlac_Errors.Location)
      return Identifier_Definition_Acc;
    --  Find the identifier definition in inherited interfaces.
    --  If this identifier is not defined, returns a null pointer.
@@ -94,10 +94,10 @@ package body Idl_Fe.Types is
 
    procedure Set_Location
      (N : Node_Id;
-      Loc : Errors.Location)
+      Loc : Idlac_Errors.Location)
    is
-      Loc2 : Errors.Location;
-      use Errors;
+      Loc2 : Idlac_Errors.Location;
+      use Idlac_Errors;
    begin
       Loc2.Col := Loc.Col;
       Loc2.Line := Loc.Line;
@@ -117,7 +117,7 @@ package body Idl_Fe.Types is
 
    function Get_Location
      (N : Node_Id)
-     return Errors.Location is
+     return Idlac_Errors.Location is
    begin
       return Loc (N);
    end Get_Location;
@@ -137,6 +137,24 @@ package body Idl_Fe.Types is
         & "."
         & Minor_Image (Major_Image'First + 1 .. Minor_Image'Last);
    end Image;
+
+   --------
+   -- No --
+   --------
+
+   function No (N : Node_Id) return Boolean is
+   begin
+      return N = No_Node;
+   end No;
+
+   -------------
+   -- Present --
+   -------------
+
+   function Present (N : Node_Id) return Boolean is
+   begin
+      return N /= No_Node;
+   end Present;
 
    --------------------------------
    -- Management of const values --
@@ -518,7 +536,7 @@ package body Idl_Fe.Types is
       if Definition  /= null then
          return Definition.Node;
       else
-         raise Errors.Fatal_Error;
+         raise Idlac_Errors.Fatal_Error;
       end if;
    end Get_Node;
 
@@ -918,7 +936,7 @@ package body Idl_Fe.Types is
       if Current_Scope = null then
          pragma Debug (O ("Push_Scope : current_scope is null."));
          pragma Debug (O ("Push_Scope : root scope is defined at " &
-                          Errors.Location_To_String
+                          Idlac_Errors.Location_To_String
                           (Get_Location (Scope))));
          Root_Scope := Stack;
       end if;
@@ -1011,12 +1029,12 @@ package body Idl_Fe.Types is
          while not Is_End (Forward_Defs) loop
             Get_Next_Node (Forward_Defs, Forward_Def);
 
-            Errors.Error
+            Idlac_Errors.Error
               ("The forward declaration " &
-               Errors.Location_To_String
+               Idlac_Errors.Location_To_String
                (Get_Location (Forward_Def)) &
                " is not implemented.",
-               Errors.Error,
+               Idlac_Errors.Error,
                Get_Location (Old_Scope.Scope));
          end loop;
       end if;
@@ -1043,7 +1061,7 @@ package body Idl_Fe.Types is
 
    function Is_Redefinable
      (Name  : String;
-      Loc   : Errors.Location;
+      Loc   : Idlac_Errors.Location;
       Scope : Node_Id := No_Node)
      return Boolean is
       A_Definition : Identifier_Definition_Acc;
@@ -1246,7 +1264,7 @@ package body Idl_Fe.Types is
 
    function Find_Identifier_Definition
      (Name : String;
-      Loc  : Errors.Location)
+      Loc  : Idlac_Errors.Location)
      return Identifier_Definition_Acc
    is
       Index : Uniq_Id;
@@ -1306,7 +1324,7 @@ package body Idl_Fe.Types is
 
    function Find_Identifier_Node
      (Name : String;
-      Loc  : Errors.Location)
+      Loc  : Idlac_Errors.Location)
      return Node_Id is
       Definition : Identifier_Definition_Acc;
    begin
@@ -1329,7 +1347,7 @@ package body Idl_Fe.Types is
       pragma Debug (O2 ("Redefine_Identifier : begin"));
       if A_Definition.Node = No_Node
         or else Definition (Node) /= null then
-         raise Errors.Internal_Error;
+         raise Idlac_Errors.Internal_Error;
       end if;
 
       Set_Definition (A_Definition.Node, null);
@@ -1353,7 +1371,7 @@ package body Idl_Fe.Types is
       Definition : Identifier_Definition_Acc;
       Index      : Uniq_Id;
       Scop       : Node_Id;
-      Loc        : constant Errors.Location
+      Loc        : constant Idlac_Errors.Location
         := Get_Location (Node);
    begin
       if Scope = No_Node then
@@ -1564,7 +1582,7 @@ package body Idl_Fe.Types is
         Imported_Table (Scope).Content_Table.Table (Index).Definition;
       if Definition_Test /= null then
          if Definition_Test /= Definition then
-            raise Errors.Internal_Error;
+            raise Idlac_Errors.Internal_Error;
          end if;
       end if;
       Imported_Table (Scope).Content_Table.
@@ -1618,7 +1636,7 @@ package body Idl_Fe.Types is
 
    function Find_Inherited_Identifier_Definition
      (Name : String;
-      Loc  : Errors.Location)
+      Loc  : Idlac_Errors.Location)
      return Identifier_Definition_Acc
    is
       Temp_List   : Node_List := Nil_List;
@@ -1658,10 +1676,10 @@ package body Idl_Fe.Types is
             pragma Debug (O ("Find_Inherited_Identifier_Definition: " &
                              "Multiple definitions found in inheritance"));
 
-            Errors.Error ("Multiple definitions found" &
+            Idlac_Errors.Error ("Multiple definitions found" &
                           " in inheritance: ambiguous " &
                           "reference",
-                          Errors.Error,
+                          Idlac_Errors.Error,
                           Loc);
 
             Result := Definition (Head (Result_List));

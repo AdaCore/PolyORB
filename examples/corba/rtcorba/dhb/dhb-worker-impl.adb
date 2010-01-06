@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---           Copyright (C) 2006, Free Software Foundation, Inc.             --
+--        Copyright (C) 2006-2008, Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -41,7 +41,10 @@ with PolyORB.RTCORBA_P.Setup;
 
 with Constants;
 with DHB.Worker.Skel;
+pragma Warnings (Off);
+--  Compiler wants Elaborate_All, but that causes cycles
 pragma Elaborate (DHB.Worker.Skel);
+pragma Warnings (On);
 pragma Warnings (Off, DHB.Worker.Skel);
 
 with Whetstone;
@@ -54,7 +57,7 @@ package body DHB.Worker.Impl is
 
    procedure Do_Some_Work
      (Self           : access Object;
-      Kilo_Whetstone : in     DHB.KWIPS)
+      Kilo_Whetstone : DHB.KWIPS)
    is
       pragma Unreferenced (Self);
 
@@ -68,8 +71,8 @@ package body DHB.Worker.Impl is
 
    procedure Do_Some_Work_With_Payload
      (Self           : access Object;
-      Kilo_Whetstone : in     DHB.KWIPS;
-      Payload        : in     DHB.Worker.U_sequence)
+      Kilo_Whetstone : DHB.KWIPS;
+      Payload        : DHB.Worker.U_sequence)
    is
       pragma Unreferenced (Self);
       pragma Unreferenced (Payload);
@@ -95,7 +98,7 @@ package body DHB.Worker.Impl is
    -- Ping --
    ----------
 
-   procedure Ping (Self : access Object; Data : in CORBA.Unsigned_Long) is
+   procedure Ping (Self : access Object; Data : CORBA.Unsigned_Long) is
       pragma Unreferenced (Self);
       pragma Unreferenced (Data);
 
@@ -109,7 +112,7 @@ package body DHB.Worker.Impl is
 
    function Round_Trip
      (Self : access Object;
-      Data : in     CORBA.Unsigned_Long)
+      Data : CORBA.Unsigned_Long)
      return CORBA.Unsigned_Long
    is
       pragma Unreferenced (Self);
@@ -124,7 +127,7 @@ package body DHB.Worker.Impl is
 
    function Round_Trip_With_Payload
      (Self : access Object;
-      Data : in     DHB.Worker.U_sequence)
+      Data : DHB.Worker.U_sequence)
      return DHB.Worker.U_sequence
    is
       pragma Unreferenced (Self);

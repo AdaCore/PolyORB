@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---           Copyright (C) 2006, Free Software Foundation, Inc.             --
+--         Copyright (C) 2006-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -577,8 +577,8 @@ package body CORBA.Repository_Root.ValueDef.Impl is
      return RepositoryIdSeq
    is
       Result : RepositoryIdSeq;
-      Val_Array : ValDef.Element_Array
-        := ValDef.To_Element_Array (ValDef.Sequence (ValDefSeq));
+      Val_Array : constant ValDef.Element_Array :=
+                    ValDef.To_Element_Array (ValDef.Sequence (ValDefSeq));
    begin
       for I in Val_Array'Range loop
          declare

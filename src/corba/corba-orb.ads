@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
@@ -44,8 +44,6 @@ with CORBA.NVList;
 with CORBA.Object;
 with CORBA.Policy;
 with CORBA.Sequences.Unbounded;
-
-with PolyORB.References;
 
 package CORBA.ORB is
 
@@ -230,13 +228,6 @@ package CORBA.ORB is
    procedure Initialize (ORB_Name : Standard.String);
    --  Implementation Note: this procedure is deprecated, use
    --  CORBA.ORB.Init instead
-
-   function Create_Reference
-     (Object : CORBA.Object.Ref;
-      Typ    : Standard.String)
-     return PolyORB.References.Ref;
-   --  Create an object reference that designates object Oid
-   --  of type Typ within this ORB.
 
    -------------------------------------
    -- CORBA.ORB Exceptions Management --

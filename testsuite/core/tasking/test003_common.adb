@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -59,9 +59,6 @@ package body Test003_Common is
 
    type Generic_Runnable_Arr is array (Task_Index) of Runnable_Access;
    R  : Generic_Runnable_Arr;
-
-   type Do_Nothing_Controller is new Runnable_Controller with null record;
-   --  Simple controller that does nothing
 
    Global_AM : Adv_Mutex_Access;
 
@@ -135,13 +132,9 @@ package body Test003_Common is
          Generic_Runnable (R (J).all).P := Wait_Task'Access;
 
          declare
-            pragma Warnings (Off);
-            T : constant Thread_Access := Run_In_Task
-              (TF => My_Thread_Factory,
-               R  => R (J),
-               C  => new Do_Nothing_Controller);
+            T : constant Thread_Access :=
+                  Run_In_Task (TF => My_Thread_Factory, R  => R (J));
             pragma Unreferenced (T);
-            pragma Warnings (On);
          begin
             null;
          end;

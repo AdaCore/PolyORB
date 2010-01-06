@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -35,11 +35,13 @@
 
 with Ada.Tags;
 
+with PolyORB.Filters.Iface;
 with PolyORB.Log;
 
 package body PolyORB.Filters is
 
    use PolyORB.Components;
+   use PolyORB.Filters.Iface;
    use PolyORB.Log;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.filters");
@@ -47,7 +49,6 @@ package body PolyORB.Filters is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
-   pragma Unreferenced (C); --  For conditional pragma Debug
 
    -------------------
    -- Connect_Lower --
@@ -84,7 +85,7 @@ package body PolyORB.Filters is
    begin
       if F.Upper /= null then
          pragma Debug
-           (O ("Destroying upper of type "
+           (C, O ("Destroying upper of type "
                & Ada.Tags.External_Tag (F.Upper'Tag)));
          PolyORB.Components.Destroy (F.Upper);
       end if;
@@ -103,10 +104,9 @@ package body PolyORB.Filters is
    begin
       for J in Factories'Range loop
          Create (Fact => Factories (J), Filt => F);
-         Set_Allocation_Class (F.all, Dynamic);
-         pragma Debug (O ("Created filter of type "
+
+         pragma Debug (C, O ("Created filter of type "
                           & Ada.Tags.External_Tag (F'Tag)));
-         --  Create new filter.
 
          Connect_Lower (F, Component_Access (Lower_F));
 
@@ -121,5 +121,37 @@ package body PolyORB.Filters is
 
       Top := F;
    end Create_Filter_Chain;
+
+   --------------------
+   -- Handle_Message --
+   --------------------
+
+   function Handle_Message
+     (F : access Filter; Msg : Message'Class) return Components.Message'Class
+   is
+   begin
+      --  Implement default progagation behaviour
+
+      if False
+        or else Msg in Data_Indication'Class
+        or else Msg in Connect_Indication'Class
+        or else Msg in Connect_Confirmation'Class
+        or else Msg in Disconnect_Indication'Class
+        or else Msg in Set_Server'Class
+      then
+         return Emit (F.Upper, Msg);
+
+      elsif False
+        or else Msg in Data_Expected'Class
+        or else Msg in Data_Out'Class
+        or else Msg in Disconnect_Request'Class
+        or else Msg in Check_Validity'Class
+      then
+         return Emit (F.Lower, Msg);
+
+      else
+         raise Program_Error;
+      end if;
+   end Handle_Message;
 
 end PolyORB.Filters;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -65,8 +65,7 @@ package body IOP.Codec.Impl is
 
    function Decode
      (Self : access Object;
-      Data : CORBA.IDL_SEQUENCES.OctetSeq)
-     return CORBA.Any
+      Data : CORBA.IDL_SEQUENCES.OctetSeq) return CORBA.Any
    is
       Data_Enc : aliased Encapsulation := To_Encapsulation (Data);
       Buffer   : Buffer_Access := new Buffer_Type;
@@ -74,10 +73,10 @@ package body IOP.Codec.Impl is
 
    begin
       Decapsulate (Data_Enc'Access, Buffer);
-      Result := Unmarshall (Buffer, Self.Representation.all);
+      Result := Unmarshall (Buffer, Self.Representation);
       Release (Buffer);
 
-      return CORBA.Internals.To_CORBA_Any (Result);
+      return CORBA.Any (Result);
    end Decode;
 
    ------------------
@@ -87,21 +86,20 @@ package body IOP.Codec.Impl is
    function Decode_Value
      (Self : access Object;
       Data : CORBA.IDL_SEQUENCES.OctetSeq;
-      TC   : CORBA.TypeCode.Object)
-     return CORBA.Any
+      TC   : CORBA.TypeCode.Object) return CORBA.Any
    is
       Data_Enc : aliased Encapsulation := To_Encapsulation (Data);
       Buffer   : Buffer_Access := new Buffer_Type;
       Error    : Error_Container;
-      Result   : PolyORB.Any.Any
-        := PolyORB.Any.Get_Empty_Any
-        (CORBA.TypeCode.Internals.To_PolyORB_Object (TC));
+      Result   : constant PolyORB.Any.Any :=
+                   PolyORB.Any.Get_Empty_Any
+                     (CORBA.TypeCode.Internals.To_PolyORB_Object (TC));
 
       use PolyORB.Any;
    begin
       Decapsulate (Data_Enc'Access, Buffer);
       Unmarshall_To_Any
-        (Self.Representation.all,
+        (Self.Representation,
          Buffer,
          Get_Container (Result).all,
          Error);
@@ -113,7 +111,7 @@ package body IOP.Codec.Impl is
          --  XXX Handling of errors must be investigated
       end if;
 
-      return CORBA.Internals.To_CORBA_Any (Result);
+      return CORBA.Any (Result);
    end Decode_Value;
 
    ------------
@@ -122,8 +120,7 @@ package body IOP.Codec.Impl is
 
    function Encode
      (Self : access Object;
-      Data : CORBA.Any)
-     return CORBA.IDL_SEQUENCES.OctetSeq
+      Data : CORBA.Any) return CORBA.IDL_SEQUENCES.OctetSeq
    is
       Buffer : Buffer_Access := new Buffer_Type;
       Result : CORBA.IDL_SEQUENCES.OctetSeq;
@@ -132,8 +129,8 @@ package body IOP.Codec.Impl is
       Start_Encapsulation (Buffer);
       Marshall
         (Buffer,
-         Self.Representation.all,
-         CORBA.Internals.To_PolyORB_Any (Data));
+         Self.Representation,
+         PolyORB.Any.Any (Data));
       Result := To_Sequence (Encapsulate (Buffer));
       Release (Buffer);
 
@@ -158,9 +155,9 @@ package body IOP.Codec.Impl is
    begin
       Start_Encapsulation (Buffer);
       Marshall_From_Any
-        (Self.Representation.all,
+        (Self.Representation,
          Buffer,
-         Get_Container (CORBA.Internals.To_PolyORB_Any (Data)).all,
+         CORBA.Get_Container (Data).all,
          Error);
 
       if Found (Error) then

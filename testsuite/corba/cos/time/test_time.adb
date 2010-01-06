@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -70,9 +70,9 @@ procedure Test_Time is
    -- Display --
    -------------
 
-   procedure Display (Time : in TIO.Ref);
+   procedure Display (Time : TIO.Ref);
 
-   procedure Display (Time : in TIO.Ref) is
+   procedure Display (Time : TIO.Ref) is
       IT : constant IntervalT := Get_time_interval (Time);
    begin
       Put_Line ("Lower bound:" & TimeT'Image (IT.lower_bound));
@@ -83,9 +83,9 @@ procedure Test_Time is
    -- Display --
    -------------
 
-   procedure Display (Time : in UTO.Ref);
+   procedure Display (Time : UTO.Ref);
 
-   procedure Display (Time : in UTO.Ref) is
+   procedure Display (Time : UTO.Ref) is
    begin
       Put_Line ("Time:      " & TimeT'Image (Get_time (Time)));
       Put_Line ("Inaccuracy:" & InaccuracyT'Image (Get_inaccuracy (Time)));

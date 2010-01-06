@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -47,7 +47,7 @@ with Test.Factory.Impl;
 
 package body Test_Support is
 
-   function To_ObjectId (Item : in Wide_String) return PortableServer.ObjectId;
+   function To_ObjectId (Item : Wide_String) return PortableServer.ObjectId;
 
    My_POA : PortableServer.POA.Local_Ref;
 
@@ -56,8 +56,8 @@ package body Test_Support is
    ----------------
 
    procedure Initialize is
-      Root_POA : PortableServer.POA.Local_Ref
-        := PortableServer.POA.Helper.To_Ref
+      Root_POA : constant PortableServer.POA.Local_Ref
+        := PortableServer.POA.Helper.To_Local_Ref
             (CORBA.ORB.Resolve_Initial_References
               (CORBA.ORB.To_CORBA_String ("RootPOA")));
 
@@ -107,7 +107,7 @@ package body Test_Support is
       declare
          Srv : constant Test.Factory.Impl.Object_Ptr
            := new Test.Factory.Impl.Object;
-         Ref : CORBA.Object.Ref
+         Ref : constant CORBA.Object.Ref
            := PortableServer.POA.Servant_To_Reference
                (Root_POA,
                 PortableServer.Servant (Srv));
@@ -123,7 +123,7 @@ package body Test_Support is
    -- Preallocate --
    -----------------
 
-   procedure Preallocate (Count : in Natural) is
+   procedure Preallocate (Count : Natural) is
    begin
       for J in 1 .. Count loop
          declare
@@ -143,7 +143,7 @@ package body Test_Support is
    -----------------
 
    function To_ObjectId
-     (Item : in Wide_String)
+     (Item : Wide_String)
       return PortableServer.ObjectId
    is
       use CORBA.IDL_SEQUENCES.IDL_SEQUENCE_Octet;
@@ -165,7 +165,7 @@ package body Test_Support is
    -- To_Object_Reference --
    -------------------------
 
-   function To_Object_Reference (Id : in Natural) return Test.Echo.Ref is
+   function To_Object_Reference (Id : Natural) return Test.Echo.Ref is
    begin
       return
         Test.Echo.Helper.To_Ref

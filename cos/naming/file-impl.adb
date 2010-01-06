@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -54,7 +54,7 @@ package body File.Impl is
    function Get_Root_POA return PortableServer.POA.Local_Ref is
    begin
       if PortableServer.POA.Is_Nil (Root_POA) then
-         Root_POA := PortableServer.POA.Helper.To_Ref
+         Root_POA := PortableServer.POA.Helper.To_Local_Ref
           (CORBA.ORB.Resolve_Initial_References
            (CORBA.ORB.ObjectId (Root_POA_String)));
       end if;

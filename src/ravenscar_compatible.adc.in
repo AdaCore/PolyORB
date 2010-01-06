@@ -2,7 +2,7 @@
 --  This check is to be made on all units except those specifically
 --  implementing the full tasking profile.
 
---  $Id$
+--  @configure_input@
 
 --  EXCLUDE: polyorb-tasking-profiles-full_tasking-condition_variables.adb
 --  EXCLUDE: polyorb-tasking-profiles-full_tasking-portable_mutexes.adb

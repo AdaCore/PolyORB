@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,13 +31,12 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Implementation of Threads under the No_Tasking profile.
+--  Implementation of Threads under the No_Tasking profile
 
 with PolyORB.Initialization;
 with PolyORB.Utils.Strings;
 
 with Ada.Calendar;
-with Ada.Unchecked_Conversion;
 
 package body PolyORB.Tasking.Profiles.No_Tasking.Threads is
 
@@ -96,8 +95,7 @@ package body PolyORB.Tasking.Profiles.No_Tasking.Threads is
       Name             : String := "";
       Default_Priority : System.Any_Priority := System.Default_Priority;
       Storage_Size     : Natural := 0;
-      R                : PTT.Runnable_Access;
-      C                : PTT.Runnable_Controller_Access)
+      R                : PTT.Runnable_Access)
      return PTT.Thread_Access
    is
       pragma Warnings (Off);
@@ -106,7 +104,6 @@ package body PolyORB.Tasking.Profiles.No_Tasking.Threads is
       pragma Unreferenced (Default_Priority);
       pragma Unreferenced (Storage_Size);
       pragma Unreferenced (R);
-      pragma Unreferenced (C);
       pragma Warnings (On);
    begin
       raise Tasking_Error;
@@ -218,10 +215,9 @@ package body PolyORB.Tasking.Profiles.No_Tasking.Threads is
 
    procedure Initialize is
       use Ada.Calendar;
-      function Time_To_Duration is
-         new Ada.Unchecked_Conversion (Time, Duration);
+      Epoch : constant Time := Time_Of (1970, 1, 1);
    begin
-      PTT.Node_Boot_Time := Time_To_Duration (Clock);
+      PTT.Node_Boot_Time := Clock - Epoch;
       PTT.Register_Thread_Factory (PTT.Thread_Factory_Access
                                    (The_Thread_Factory));
    end Initialize;

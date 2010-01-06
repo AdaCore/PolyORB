@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -33,15 +33,24 @@
 
 with Ada.Characters.Latin_1;
 with Ada.Exceptions;
---  with Interfaces.C.Strings;
+
+with Interfaces.C.Strings;
 with Interfaces.C.Pointers;
 
+with System.Storage_Elements;
+
 with PolyORB.Initialization;
+with PolyORB.Tasking.Mutexes;
+with PolyORB.Tasking.Threads;
 with PolyORB.Utils.Strings;
 
 package body PolyORB.X509 is
 
-   use Interfaces.C;
+   use Interfaces;
+   use type C.int;
+
+   package PTM renames PolyORB.Tasking.Mutexes;
+   package PTT renames PolyORB.Tasking.Threads;
 
 --   type X509_Lookup_Method_Record is null record;
 --   pragma Convention (C, X509_Lookup_Method_Record);
@@ -56,6 +65,39 @@ package body PolyORB.X509 is
       0);
    use Stream_Element_Pointers;
 
+   ------------------
+   -- Crypto locks --
+   ------------------
+
+   --  OpenSSL relies on the user to provide thread identification and a
+   --  mutual exclusion facility. In the case of PolyORB, we rely on
+   --  PolyORB.Tasking to provide both facilities.
+
+   type Lock_Array is array (C.int range <>) of PTM.Mutex_Access;
+   type Lock_Array_Access is access Lock_Array;
+
+   Crypto_Locks : Lock_Array_Access;
+   --  A set of n locks, where n is the value returned by OpenSSL function
+   --  CRYPTO_num_locks. These are used to implement the OpenSSL locking
+   --  callback.
+
+   procedure PolyORB_Locking_Function
+     (Mode : C.unsigned;
+      N    : C.int;
+      File : C.Strings.chars_ptr;
+      Line : C.int);
+   pragma Convention (C, PolyORB_Locking_Function);
+   --  Callback for CRYPTO_set_locking_callback:
+   --  Lock or unlock (depending on whether (Mode and CRYPTO_LOCK) is nonzero)
+   --  the N'th lock in Crypto_Locks.
+   --  File and Line denote a source location in the OpenSSL library, and are
+   --  provided for debugging purposes.
+
+   function PolyORB_Id_Function return C.unsigned_long;
+   pragma Convention (C, PolyORB_Id_Function);
+   --  Callback for CRYPTO_set_id_callback:
+   --  Return an unsigned long value identifying the current thread.
+
    procedure Initialize;
 
    procedure Raise_X509_Error;
@@ -64,7 +106,23 @@ package body PolyORB.X509 is
 
       type SSL_Error_Code is new Interfaces.C.unsigned_long;
 
-      --  X.509 Name operations
+      -------------------------------
+      -- Generic CRYPTO operations --
+      -------------------------------
+
+      function CRYPTO_num_locks return C.int;
+      --  Number of locks to be allocated for locking callback
+
+      function Get_CRYPTO_LOCK return C.unsigned;
+      --  Function returning the value of C macro CRYPTO_LOCK (used for
+      --  Mode parameter in locking callback).
+
+      CRYPTO_LOCK : constant C.unsigned;
+      --  Constant used to cache the value of C macro CRYPTO_LOCK
+
+      ---------------------------
+      -- X.509 Name operations --
+      ---------------------------
 
       procedure X509_NAME_free (Item : Name);
 
@@ -72,54 +130,70 @@ package body PolyORB.X509 is
 
       function d2i_X509_NAME
         (Buffer : Ada.Streams.Stream_Element_Array;
-         Length : Interfaces.C.int) return Name;
+         Length : C.int) return Name;
 
       procedure i2d_X509_NAME
         (Item   :     Name;
          Buffer : out Stream_Element_Pointers.Pointer;
-         Length : out Interfaces.C.int);
+         Length : out C.int);
 
       function X509_NAME_oneline (The_Name : Name) return String;
 
-      --  X.509 Certificate operations
+      ----------------------------------
+      -- X.509 Certificate operations --
+      ----------------------------------
 
       procedure X509_free (The_Certificate : Certificate);
 
       function X509_get_subject_name
         (The_Certificate : Certificate) return PolyORB.X509.Name;
 
-      --  X.509 Certificate Chain operations
+      ----------------------------------------
+      -- X.509 Certificate Chain operations --
+      ----------------------------------------
 
       function d2i_X509_CHAIN
         (Buffer : Ada.Streams.Stream_Element_Array;
-         Length : Interfaces.C.int) return Certificate_Chain;
+         Length : C.int) return Certificate_Chain;
 
       procedure i2d_X509_CHAIN
         (Item   :     Certificate_Chain;
          Buffer : out Stream_Element_Pointers.Pointer;
-         Length : out Interfaces.C.int);
+         Length : out C.int);
 
-      --  Error handling subprograms
+      --------------------------------
+      -- Error handling subprograms --
+      --------------------------------
 
       function ERR_get_error return SSL_Error_Code;
+      function ERR_error_string (Error_Code : SSL_Error_Code) return String;
 
-      function ERR_error_string (Error_Code : in SSL_Error_Code) return String;
-
-      --  Memory management
+      -----------------------
+      -- Memory management --
+      -----------------------
 
       procedure OPENSSL_free (Item : Stream_Element_Pointers.Pointer);
 
-      --  PolyORB's extensions
+      ------------------------
+      -- PolyORB extensions --
+      ------------------------
 
       procedure ERR_load_PolyORB_strings;
-      procedure PolyORB_threads_setup;
+
+      procedure Initialize
+        (Locking_Function : System.Address;
+         Id_Function      : System.Address);
+      --  Perform any required initialization at the C level.
+      --  Locking_Function is passed to CRYPTO_set_locking_callback.
+      --  Id_Function is passed to CRYPTO_set_id_callback.
 
    private
 
+      pragma Import (C, CRYPTO_num_locks,         "CRYPTO_num_locks");
+      pragma Import (C, Get_CRYPTO_LOCK,          "__PolyORB_Get_CRYPTO_LOCK");
       pragma Import (C, ERR_get_error,            "ERR_get_error");
       pragma Import (C, ERR_load_PolyORB_strings, "ERR_load_PolyORB_strings");
       pragma Import (C, OPENSSL_free,             "__PolyORB_OPENSSL_free");
-      pragma Import (C, PolyORB_threads_setup,    "__PolyORB_threads_setup");
       pragma Import (C, X509_NAME_dup,            "X509_NAME_dup");
       pragma Import (C, X509_NAME_free,           "X509_NAME_free");
       pragma Import (C, X509_free,                "X509_free");
@@ -128,6 +202,9 @@ package body PolyORB.X509 is
       pragma Import (C, d2i_X509_NAME,            "__PolyORB_d2i_X509_NAME");
       pragma Import (C, i2d_X509_CHAIN,           "__PolyORB_i2d_X509_CHAIN");
       pragma Import (C, i2d_X509_NAME,            "__PolyORB_i2d_X509_NAME");
+      pragma Import (C, Initialize,               "__PolyORB_X509_Intialize");
+
+      CRYPTO_LOCK : constant C.unsigned := Get_CRYPTO_LOCK;
 
    end Thin;
 
@@ -144,7 +221,7 @@ package body PolyORB.X509 is
 --        (Store : X509_Store;
 --         File  : Interfaces.C.char_array;
 --         Path  : Interfaces.C.Strings.chars_ptr)
---         return Interfaces.C.int;
+--         return C.int;
 --      pragma Import
 --        (C, X509_STORE_load_locations, "X509_STORE_load_locations");
 --
@@ -171,7 +248,7 @@ package body PolyORB.X509 is
 --        (Store : X509_Store;
 --         Path  : Interfaces.C.Strings.chars_ptr;
 --         File  : Interfaces.C.char_array)
---         return Interfaces.C.int;
+--         return C.int;
 --      pragma Import
 --        (C, X509_STORE_load_locations, "X509_STORE_load_locations");
 --
@@ -206,8 +283,8 @@ package body PolyORB.X509 is
 --      function X509_load_crl_file
 --        (Lookup    : X509_Lookup;
 --         File_Name : Interfaces.C.char_array;
---         File_Type : Interfaces.C.int)
---         return Interfaces.C.int;
+--         File_Type : C.int)
+--         return C.int;
 --      pragma Import (C, X509_load_crl_file, "X509_load_crl_file");
 --
 --      Lookup : constant X509_Lookup
@@ -235,7 +312,7 @@ package body PolyORB.X509 is
 --
 --      function X509_STORE_set_default_paths
 --        (Store : X509_Store)
---         return Interfaces.C.int;
+--         return C.int;
 --      pragma Import
 --        (C, X509_STORE_set_default_paths, "X509_STORE_set_default_paths");
 --
@@ -257,7 +334,7 @@ package body PolyORB.X509 is
 --      function X509_check_private_key
 --        (The_Certificate : Certificate;
 --         The_Private_Key : Private_Key)
---         return Interfaces.C.int;
+--         return C.int;
 --      pragma Import (C, X509_check_private_key, "X509_check_private_key");
 --
 --   begin
@@ -299,7 +376,7 @@ package body PolyORB.X509 is
 --         Store           : X509_Store;
 --         The_Certificate : Certificate;
 --         Chain           : Stack_Of_Certificate)
---         return Interfaces.C.int;
+--         return C.int;
 --      pragma Import (C, X509_STORE_CTX_init, "X509_STORE_CTX_init");
 --
 --      Context : constant X509_Context := X509_STORE_CTX_new;
@@ -335,6 +412,10 @@ package body PolyORB.X509 is
       return Result;
    end Decode;
 
+   ------------
+   -- Decode --
+   ------------
+
    function Decode (Item : Ada.Streams.Stream_Element_Array) return Name is
       Result : Name;
 
@@ -359,6 +440,10 @@ package body PolyORB.X509 is
          The_Certificate := null;
       end if;
    end Destroy;
+
+   -------------
+   -- Destroy --
+   -------------
 
    procedure Destroy (The_Name : in out Name) is
    begin
@@ -390,21 +475,18 @@ package body PolyORB.X509 is
      (Item : Certificate_Chain) return Ada.Streams.Stream_Element_Array
    is
       Buffer : Stream_Element_Pointers.Pointer;
-      Length : Interfaces.C.int;
+      Length : C.int;
 
    begin
       Thin.i2d_X509_CHAIN (Item, Buffer, Length);
 
-      if Length < 0
-        or else Buffer = null
-      then
+      if Length < 0 or else Buffer = null then
          Raise_X509_Error;
       end if;
 
       declare
-         Result : constant Ada.Streams.Stream_Element_Array
-           := Value (Buffer, ptrdiff_t (Length));
-
+         Result : constant Ada.Streams.Stream_Element_Array :=
+                    Value (Buffer, C.ptrdiff_t (Length));
       begin
          Thin.OPENSSL_free (Buffer);
 
@@ -412,26 +494,27 @@ package body PolyORB.X509 is
       end;
    end Encode;
 
+   ------------
+   -- Encode --
+   ------------
+
    function Encode (The_Name : Name) return Ada.Streams.Stream_Element_Array is
       Buffer : Stream_Element_Pointers.Pointer;
-      Length : Interfaces.C.int;
+      Length : C.int;
 
    begin
       Thin.i2d_X509_NAME (The_Name, Buffer, Length);
 
-      if Length < 0
-        or else Buffer = null
-      then
+      if Length < 0 or else Buffer = null then
          Raise_X509_Error;
       end if;
 
       declare
-         Result : constant Ada.Streams.Stream_Element_Array
-           := Value (Buffer, ptrdiff_t (Length));
+         Result : constant Ada.Streams.Stream_Element_Array :=
+                    Value (Buffer, C.ptrdiff_t (Length));
 
       begin
          Thin.OPENSSL_free (Buffer);
-
          return Result;
       end;
    end Encode;
@@ -490,7 +573,15 @@ package body PolyORB.X509 is
 
    procedure Initialize is
    begin
-      Thin.PolyORB_threads_setup;
+      Crypto_Locks := new Lock_Array (0 .. Thin.CRYPTO_num_locks - 1);
+      for J in Crypto_Locks'Range loop
+         PTM.Create (Crypto_Locks (J));
+      end loop;
+
+      Thin.Initialize
+        (Locking_Function => PolyORB_Locking_Function'Address,
+         Id_Function      => PolyORB_Id_Function'Address);
+
       Thin.ERR_load_PolyORB_strings;
    end Initialize;
 
@@ -502,12 +593,43 @@ package body PolyORB.X509 is
 --
 --      function sk_X509_num
 --        (Item : Stack_Of_Certificate)
---         return Interfaces.C.int;
+--         return C.int;
 --      pragma Import (C, sk_X509_num, "__PolyORB_sk_X509_num");
 --
 --   begin
 --      return Natural (sk_X509_num (Stack));
 --   end Length;
+
+   ------------------------------
+   -- PolyORB_Locking_Function --
+   ------------------------------
+
+   procedure PolyORB_Locking_Function
+     (Mode : C.unsigned;
+      N    : C.int;
+      File : C.Strings.chars_ptr;
+      Line : C.int)
+   is
+      pragma Unreferenced (File, Line);
+      use type C.unsigned;
+   begin
+      if (Mode and Thin.CRYPTO_LOCK) /= 0 then
+         PTM.Enter (Crypto_Locks (N));
+      else
+         PTM.Leave (Crypto_Locks (N));
+      end if;
+   end PolyORB_Locking_Function;
+
+   -------------------------
+   -- PolyORB_Id_Function --
+   -------------------------
+
+   function PolyORB_Id_Function return C.unsigned_long is
+   begin
+      return C.unsigned_long
+        (System.Storage_Elements.To_Integer
+         (PTT.To_Address (PTT.Current_Task)));
+   end PolyORB_Id_Function;
 
    ----------------------
    -- Raise_X509_Error --
@@ -546,7 +668,7 @@ package body PolyORB.X509 is
    -- Read --
    ----------
 
-   function Read (File_Name : in String) return Certificate is
+   function Read (File_Name : String) return Certificate is
 
       function PEM_read_certificate_file
         (File : Interfaces.C.char_array)
@@ -565,7 +687,7 @@ package body PolyORB.X509 is
       return Aux;
    end Read;
 
---   function Read (File_Name : in String) return Private_Key is
+--   function Read (File_Name : String) return Private_Key is
 --
 --      function PEM_read_PrivateKey_file
 --        (File : Interfaces.C.char_array)
@@ -606,13 +728,13 @@ package body PolyORB.X509 is
       ----------------------
 
       function ERR_error_string
-        (Error_Code : in SSL_Error_Code)
+        (Error_Code : SSL_Error_Code)
          return String
       is
          procedure ERR_error_string_n
-           (Error_Code : in SSL_Error_Code;
-            Buf        : in Interfaces.C.char_array;
-            Len        : in Interfaces.C.size_t);
+           (Error_Code : SSL_Error_Code;
+            Buf        : Interfaces.C.char_array;
+            Len        : Interfaces.C.size_t);
          pragma Import (C, ERR_error_string_n, "ERR_error_string_n");
 
          Buffer : Interfaces.C.char_array (1 .. 1024);
@@ -634,7 +756,7 @@ package body PolyORB.X509 is
          procedure X509_NAME_oneline
            (The_Name : Name;
             Buffer   : Interfaces.C.char_array;
-            Length   : Interfaces.C.int);
+            Length   : C.int);
          pragma Import (C, X509_NAME_oneline, "X509_NAME_oneline");
 
          Buffer : Interfaces.C.char_array (1 .. 1024);
@@ -665,7 +787,7 @@ package body PolyORB.X509 is
 --
 --      function X509_verify_cert
 --        (Context : X509_Context)
---         return Interfaces.C.int;
+--         return C.int;
 --      pragma Import (C, X509_verify_cert, "X509_verify_cert");
 --
 --   begin
@@ -683,10 +805,11 @@ begin
         (Module_Info'
          (Name      => +"x509",
           Conflicts => Empty,
-          Depends   => Empty,
+          Depends   => +"tasking.mutexes",
           Provides  => Empty,
           Implicit  => False,
           Init      => Initialize'Access,
           Shutdown  => null));
    end;
+
 end PolyORB.X509;

@@ -114,26 +114,26 @@ package body PolyORB.Security.Security_Manager is
          use PolyORB.Security.Types;
 
          Require_Integrity                 : constant Boolean
-           := Get_Conf ("security_manager", "require_integrity", False);
+           := Get_Conf ("security_manager", "integrity_required", False);
          Require_Confidentiality           : constant Boolean
-           := Get_Conf ("security_manager", "require_confidentiality", False);
+           := Get_Conf ("security_manager", "confidentiality_required", False);
          Require_Detect_Replay             : constant Boolean
-           := Get_Conf ("security_manager", "require_detect_replay", False);
+           := Get_Conf ("security_manager", "detect_replay_required", False);
          Require_Detect_Misordering        : constant Boolean
            := Get_Conf
-           ("security_manager", "require_detect_misordering", False);
+           ("security_manager", "detect_misordering_required", False);
          Require_Establish_Trust_In_Target : constant Boolean
            := Get_Conf
-           ("security_manager", "require_establish_trust_in_target", False);
+           ("security_manager", "establish_trust_in_target_required", False);
          Require_Establish_Trust_In_Client : constant Boolean
            := Get_Conf
-           ("security_manager", "require_establish_trust_in_client", False);
+           ("security_manager", "establish_trust_in_client_required", False);
          Require_Identity_Assertion        : constant Boolean
            := Get_Conf
-           ("security_manager", "require_identity_assertion", False);
+           ("security_manager", "identity_assertion_required", False);
          Require_Delegation_By_Client      : constant Boolean
            := Get_Conf
-           ("security_manager", "require_delegation_by_client", False);
+           ("security_manager", "delegation_by_client_required", False);
 
       begin
          if Require_Integrity then

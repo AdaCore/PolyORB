@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -45,46 +45,40 @@ package PolyORB.Services.Naming.NamingContext.Helper is
      (The_Ref : PolyORB.References.Ref)
      return PolyORB.Services.Naming.NamingContext.Ref;
 
-   --  NamingContext Type.
-   TC_NamingContext : PolyORB.Any.TypeCode.Object
-     := PolyORB.Any.TypeCode.TC_Object;
+   --  NamingContext type
 
-   function From_Any (Item : PolyORB.Any.Any)
-      return NamingContext.Ref;
+   TC_NamingContext : PolyORB.Any.TypeCode.Local_Ref;
 
-   function To_Any
-     (Item : NamingContext.Ref)
-     return PolyORB.Any.Any;
+   function From_Any (Item : PolyORB.Any.Any) return NamingContext.Ref;
 
-   --  NotFound exception.
-   TC_NotFoundReason : PolyORB.Any.TypeCode.Object :=
-      PolyORB.Any.TypeCode.TC_Enum;
+   function To_Any (Item : NamingContext.Ref) return PolyORB.Any.Any;
+
+   --  NotFound exception
+
+   TC_NotFoundReason : PolyORB.Any.TypeCode.Local_Ref;
 
    function From_Any (Item : PolyORB.Any.Any)
       return NamingContext.NotFoundReason;
 
    function To_Any
-     (Item : NamingContext.NotFoundReason)
-     return PolyORB.Any.Any;
+     (Item : NamingContext.NotFoundReason) return PolyORB.Any.Any;
 
-   TC_NotFound : PolyORB.Any.TypeCode.Object :=
-      PolyORB.Any.TypeCode.TC_Except;
+   TC_NotFound : PolyORB.Any.TypeCode.Local_Ref;
 
-   function From_Any (Item : PolyORB.Any.Any)
-      return NamingContext.NotFound_Members;
+   function From_Any
+     (Item : PolyORB.Any.Any) return NamingContext.NotFound_Members;
 
    function To_Any
-     (Item : NamingContext.NotFound_Members)
-     return PolyORB.Any.Any;
+     (Item : NamingContext.NotFound_Members) return PolyORB.Any.Any;
 
    procedure Raise_NotFound_From_Any
      (Item    : PolyORB.Any.Any;
       Message : Standard.String);
    pragma No_Return (Raise_NotFound_From_Any);
 
-   --  CannotProceed exception.
-   TC_CannotProceed : PolyORB.Any.TypeCode.Object :=
-      PolyORB.Any.TypeCode.TC_Except;
+   --  CannotProceed exception
+
+   TC_CannotProceed : PolyORB.Any.TypeCode.Local_Ref;
 
    function From_Any (Item : PolyORB.Any.Any)
       return NamingContext.CannotProceed_Members;
@@ -98,9 +92,9 @@ package PolyORB.Services.Naming.NamingContext.Helper is
       Message : Standard.String);
    pragma No_Return (Raise_CannotProceed_From_Any);
 
-   --  InvalidName exception.
-   TC_InvalidName : PolyORB.Any.TypeCode.Object :=
-      PolyORB.Any.TypeCode.TC_Except;
+   --  InvalidName exception
+
+   TC_InvalidName : PolyORB.Any.TypeCode.Local_Ref;
 
    function From_Any (Item : PolyORB.Any.Any)
       return NamingContext.InvalidName_Members;
@@ -114,9 +108,9 @@ package PolyORB.Services.Naming.NamingContext.Helper is
       Message : Standard.String);
    pragma No_Return (Raise_InvalidName_From_Any);
 
-   --  AlreadyBound exception.
-   TC_AlreadyBound : PolyORB.Any.TypeCode.Object :=
-      PolyORB.Any.TypeCode.TC_Except;
+   --  AlreadyBound exception
+
+   TC_AlreadyBound : PolyORB.Any.TypeCode.Local_Ref;
 
    function From_Any (Item : PolyORB.Any.Any)
       return NamingContext.AlreadyBound_Members;
@@ -130,9 +124,9 @@ package PolyORB.Services.Naming.NamingContext.Helper is
       Message : Standard.String);
    pragma No_Return (Raise_AlreadyBound_From_Any);
 
-   --  NotEmpty exception.
-   TC_NotEmpty : PolyORB.Any.TypeCode.Object :=
-      PolyORB.Any.TypeCode.TC_Except;
+   --  NotEmpty exception
+
+   TC_NotEmpty : PolyORB.Any.TypeCode.Local_Ref;
 
    function From_Any (Item : PolyORB.Any.Any)
       return NamingContext.NotEmpty_Members;

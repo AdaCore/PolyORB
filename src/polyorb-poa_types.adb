@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -32,6 +32,7 @@
 ------------------------------------------------------------------------------
 
 with Ada.Streams;
+with Ada.Unchecked_Conversion;
 
 with PolyORB.Log;
 
@@ -46,7 +47,6 @@ package body PolyORB.POA_Types is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
-   pragma Unreferenced (C); --  For conditional pragma Debug
 
    --  Object ids are represented as stream element arrays
    --  using a private representation, that need not be
@@ -54,8 +54,33 @@ package body PolyORB.POA_Types is
    --  is that the Get_* and Put_* subprograms below be
    --  consistent.
 
+   --  We assume that a time stamp's size is always an integral multiple of
+   --  the size of an unsigned long integer.
+
+   ULongs_In_Time_Stamp : constant :=
+                            Time_Stamp'Size / Types.Unsigned_Long'Size;
+   type Time_Stamp_As_ULongs is array (1 .. ULongs_In_Time_Stamp)
+     of Types.Unsigned_Long;
+
+   function To_ULongs is
+     new Ada.Unchecked_Conversion (Time_Stamp, Time_Stamp_As_ULongs);
+   function From_ULongs is
+     new Ada.Unchecked_Conversion (Time_Stamp_As_ULongs, Time_Stamp);
+
    --  The Get_* procedures operate at index SEI in array SEA,
    --  and advance SEI by the number of consumed Stream_Elements.
+
+   procedure Get_Time_Stamp
+     (SEA   : Object_Id;
+      SEI   : in out Stream_Element_Offset;
+      TS    :    out Time_Stamp;
+      Error : in out PolyORB.Errors.Error_Container);
+   --  Extract a time stamp
+
+   function Put_Time_Stamp
+     (TS : Time_Stamp)
+     return Object_Id;
+   --  Store a time stamp
 
    procedure Get_ULong
      (SEA   : Object_Id;
@@ -67,19 +92,19 @@ package body PolyORB.POA_Types is
    function Put_ULong
      (ULo : Types.Unsigned_Long)
      return Object_Id;
-   --  Store an unsigned long.
+   --  Store an unsigned long as 8 hexadecimal digits
 
    procedure Get_Boolean
      (SEA   : Object_Id;
       SEI   : in out Stream_Element_Offset;
       Boo   :    out Types.Boolean;
       Error : in out PolyORB.Errors.Error_Container);
-   --  Extract a boolean.
+   --  Extract a boolean
 
    function Put_Boolean
      (Boo : Types.Boolean)
      return Object_Id;
-   --  Store a boolean.
+   --  Store a boolean
 
    procedure Get_String_With_Length
      (SEA   : Object_Id;
@@ -157,6 +182,49 @@ package body PolyORB.POA_Types is
           Persistency_Flag => Persistency_Flag,
           Creator          => To_PolyORB_String (Creator)));
    end Create_Id;
+
+   --------------------
+   -- Get_Time_Stamp --
+   --------------------
+
+   procedure Get_Time_Stamp
+     (SEA   : Object_Id;
+      SEI   : in out Stream_Element_Offset;
+      TS    :    out Time_Stamp;
+      Error : in out PolyORB.Errors.Error_Container)
+   is
+      ULongs : Time_Stamp_As_ULongs;
+   begin
+      for J in ULongs'Range loop
+         Get_ULong (SEA, SEI, ULongs (J), Error);
+         if Errors.Found (Error) then
+            pragma Warnings (Off);  --  "TS" not set before return
+            return;
+            pragma Warnings (On);
+         end if;
+      end loop;
+      TS := From_ULongs (ULongs);
+   end Get_Time_Stamp;
+
+   --------------------
+   -- Put_Time_Stamp --
+   --------------------
+
+   function Put_Time_Stamp
+     (TS : Time_Stamp)
+     return Object_Id
+   is
+      ULongs : constant Time_Stamp_As_ULongs := To_ULongs (TS);
+      Result : Object_Id (1 .. 8 * ULongs'Length);
+      First  : Stream_Element_Offset := Result'First;
+
+   begin
+      for J in ULongs'Range loop
+         Result (First .. First + 7) := Put_ULong (ULongs (J));
+         First := First + 8;
+      end loop;
+      return Result;
+   end Put_Time_Stamp;
 
    ---------------
    -- Get_ULong --
@@ -413,7 +481,7 @@ package body PolyORB.POA_Types is
 
    begin
       U_Oid.System_Generated := False;
-      U_Oid.Persistency_Flag := 0;
+      U_Oid.Persistency_Flag := Null_Time_Stamp;
 
       U_Oid.Creator := To_PolyORB_String (Creator);
       Index := Oid'First + Stream_Element_Offset (Creator'Length) + 1;
@@ -429,7 +497,7 @@ package body PolyORB.POA_Types is
             return;
          end if;
 
-         Get_ULong (Oid, Index, U_Oid.Persistency_Flag, Error);
+         Get_Time_Stamp (Oid, Index, U_Oid.Persistency_Flag, Error);
          if PolyORB.Errors.Found (Error) then
             return;
          end if;
@@ -447,19 +515,17 @@ package body PolyORB.POA_Types is
       Oid_A : constant Object_Id_Access := new Object_Id'(Oid);
 
    begin
-      pragma Debug (O ("Oid is " & Image (Oid)));
+      pragma Debug (C, O ("Oid is " & Image (Oid)));
       return Oid_A;
    end U_Oid_To_Oid;
 
    function U_Oid_To_Oid (U_Oid : Unmarshalled_Oid) return Object_Id is
    begin
-      return Object_Id'
-        (Object_Id
-           (Put_String (U_Oid.Creator, With_Length => False)
-            & Stream_Element (Character'Pos (POA_Path_Separator))
-            & Put_String  (U_Oid.Id)
-            & Put_Boolean (U_Oid.System_Generated)
-            & Put_ULong   (U_Oid.Persistency_Flag)));
+      return Put_String  (U_Oid.Creator, With_Length => False)
+        & Character'Pos  (POA_Path_Separator)
+        & Put_String     (U_Oid.Id)
+        & Put_Boolean    (U_Oid.System_Generated)
+        & Put_Time_Stamp (U_Oid.Persistency_Flag);
    end U_Oid_To_Oid;
 
 end PolyORB.POA_Types;

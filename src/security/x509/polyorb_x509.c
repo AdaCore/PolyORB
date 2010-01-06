@@ -27,7 +27,7 @@
 ** covered by the  GNU Public License.                                      **
 **                                                                          **
 **                  PolyORB is maintained by AdaCore                        **
-**                     (email: sales at adacore.com)                           **
+**                    (email: sales at adacore.com)                         **
 **                                                                          **
 *****************************************************************************/
 
@@ -56,6 +56,14 @@ ASN1_ITEM_TEMPLATE(X509_CHAIN) =
 ASN1_ITEM_TEMPLATE_END(X509_CHAIN)
 
 IMPLEMENT_ASN1_FUNCTIONS(X509_CHAIN)
+
+/*****************************/
+/* __PolyORB_Get_CRYPTO_LOCK */
+/*****************************/
+
+unsigned int __PolyORB_Get_CRYPTO_LOCK (void) {
+  return (unsigned int) (CRYPTO_LOCK);
+}
 
 /****************************/
 /* __PolyORB_d2i_X509_CHAIN */
@@ -251,57 +259,14 @@ void ERR_load_PolyORB_strings(void) {
     }
 }
 
-/**************************/
-/* OpenSSL thread support */
-/**************************/
+/****************************/
+/* __PolyORB_X509_Intialize */
+/****************************/
 
-#include <pthread.h>
-
-static pthread_mutex_t *lock_cs;
-
-static unsigned long pthreads_thread_id(void);
-static void pthreads_locking_callback(int mode,
-                                      int type,
-                                      char *file,
-                                      int line);
-
-/***************************/
-/* __PolyORB_threads_setup */
-/***************************/
-
-void __PolyORB_threads_setup(void) {
-    int i;
-
-    lock_cs = OPENSSL_malloc(CRYPTO_num_locks() * sizeof(pthread_mutex_t));
-
-    for (i = 0; i < CRYPTO_num_locks(); i++) {
-        pthread_mutex_init(&(lock_cs [i]), NULL);
-    }
-
-    CRYPTO_set_id_callback((unsigned long (*)())pthreads_thread_id);
-    CRYPTO_set_locking_callback((void (*)())pthreads_locking_callback);
-}
-
-/*****************************/
-/* pthreads_locking_callback */
-/*****************************/
-
-static void pthreads_locking_callback(int mode,
-                                      int type,
-                                      char *file,
-                                      int line)
+void __PolyORB_X509_Intialize
+  (void (*locking_function)(int mode, int n, const char *file, int line),
+   unsigned long (*id_function)(void))
 {
-    if (mode & CRYPTO_LOCK) {
-        pthread_mutex_lock(&(lock_cs [type]));
-    } else {
-        pthread_mutex_unlock(&(lock_cs [type]));
-    }
-}
-
-/**********************/
-/* pthreads_thread_id */
-/**********************/
-
-unsigned long pthreads_thread_id(void) {
-    return (unsigned long)pthread_self();
+    CRYPTO_set_locking_callback (locking_function);
+    CRYPTO_set_id_callback (id_function);
 }

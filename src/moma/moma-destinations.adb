@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -258,9 +258,12 @@ package body MOMA.Destinations is
    procedure Initialize is
       use PolyORB.Utils.Strings;
 
-      T : PolyORB.Any.TypeCode.Object := PolyORB.Any.TypeCode.TC_Object;
+      T : constant PolyORB.Any.TypeCode.Local_Ref
+        := PolyORB.Any.TypeCode.TC_Object;
 
    begin
+      TC_MOMA_Destination := PolyORB.Any.TypeCode.TC_Struct;
+
       PolyORB.Any.TypeCode.Add_Parameter
         (TC_MOMA_Destination,
          To_Any (To_PolyORB_String ("moma_destination")));

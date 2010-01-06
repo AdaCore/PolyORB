@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2004 Free Software Foundation, Inc.             --
+--         Copyright (C) 2004-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -41,7 +41,7 @@ package body Test001_Globals is
    -- Image --
    -----------
 
-   function Image (Value : in Interception_Point) return String is
+   function Image (Value : Interception_Point) return String is
    begin
       return
         Ada.Characters.Handling.To_Lower (Interception_Point'Image (Value));
@@ -52,10 +52,10 @@ package body Test001_Globals is
    ------------
 
    procedure Output
-     (Point     : in Interception_Point;
-      Operation : in String;
-      Status    : in Boolean;
-      Comment   : in String := "")
+     (Point     : Interception_Point;
+      Operation : String;
+      Status    : Boolean;
+      Comment   : String := "")
    is
    begin
       if Point in Client_Interception_Point then

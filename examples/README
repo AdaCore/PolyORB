@@ -3,6 +3,8 @@ README for the PolyORB examples directory
 
 $Id$
 
+To build the examples, follow the instructions in the PolyORB User's Guide.
+
 * Directories :
 
 This directory contains a few demonstration of PolyORB's capabilities.

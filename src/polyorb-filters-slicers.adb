@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -50,7 +50,6 @@ package body PolyORB.Filters.Slicers is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
-   pragma Unreferenced (C); --  For conditional pragma Debug
 
    ------------
    -- Create --
@@ -66,7 +65,6 @@ package body PolyORB.Filters.Slicers is
 
       Res : constant Filter_Access := new Slicer_Filter;
    begin
-      Set_Allocation_Class (Res.all, Dynamic);
       Slicer_Filter (Res.all).Data_Expected := 0;
       Slicer := Res;
    end Create;
@@ -86,7 +84,7 @@ package body PolyORB.Filters.Slicers is
          declare
             DEM : Data_Expected renames Data_Expected (S);
          begin
-            pragma Debug (O ("Expecting" & DEM.Max'Img
+            pragma Debug (C, O ("Expecting" & DEM.Max'Img
                              & " bytes."));
 
             pragma Assert (True
@@ -98,7 +96,7 @@ package body PolyORB.Filters.Slicers is
             F.Data_Expected := DEM.Max;
             F.Initial_Data_Expected := DEM.Max;
             F.In_Buf := DEM.In_Buf;
-            F.Buffer_Length := Length (F.In_Buf);
+            F.Buffer_Length := Length (F.In_Buf.all);
 
             return Emit
               (F.Lower,
@@ -112,7 +110,7 @@ package body PolyORB.Filters.Slicers is
               := Stream_Element_Count (Data_Indication (S).Data_Amount);
 
          begin
-            pragma Debug (O ("Expected" & F.Data_Expected'Img
+            pragma Debug (C, O ("Expected" & F.Data_Expected'Img
                              & " bytes, received"
                              & Data_Received'Img));
             if F.In_Buf = null
@@ -123,12 +121,12 @@ package body PolyORB.Filters.Slicers is
             end if;
 
             pragma Assert
-              (Data_Received = Length (F.In_Buf) - F.Buffer_Length);
+              (Data_Received = Length (F.In_Buf.all) - F.Buffer_Length);
             --  Integrity check: Receive_Buffer must have increased
             --  Length (F.In_Buf) by exactly the amount of data received.
 
             F.Data_Expected := F.Data_Expected - Data_Received;
-            F.Buffer_Length := Length (F.In_Buf);
+            F.Buffer_Length := Length (F.In_Buf.all);
 
             if F.Data_Expected = 0 then
                declare
@@ -148,7 +146,7 @@ package body PolyORB.Filters.Slicers is
                      (Data_Amount => Total_Data_Amount));
                end;
             else
-               pragma Debug (O ("Expecting" & F.Data_Expected'Img
+               pragma Debug (C, O ("Expecting" & F.Data_Expected'Img
                                 & " further bytes."));
                Emit_No_Reply
                  (F.Lower,
@@ -157,22 +155,8 @@ package body PolyORB.Filters.Slicers is
             end if;
          end;
 
-      elsif False
-        or else S in Connect_Indication
-        or else S in Connect_Confirmation
-        or else S in Disconnect_Indication
-        or else S in Set_Server
-      then
-         return Emit (F.Upper, S);
-
-      elsif False
-        or else S in Data_Out
-        or else S in Disconnect_Request
-      then
-         return Emit (F.Lower, S);
-
       else
-         raise Program_Error;
+         return Filters.Handle_Message (Filters.Filter (F.all)'Access, S);
       end if;
 
       return Res;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
@@ -44,11 +44,12 @@ package RTCORBA.Current is
    type Local_Ref is new CORBA.Current.Local_Ref with private;
 
    function Get_The_Priority (Self : Local_Ref) return RTCORBA.Priority;
-   procedure Set_The_Priority (Self : Local_Ref; To   : RTCORBA.Priority);
+   procedure Set_The_Priority (Self : Local_Ref; To : RTCORBA.Priority);
 
 private
 
    type Local_Ref is new CORBA.Current.Local_Ref with null record;
-   type Current_Object is new PolyORB.Smart_Pointers.Entity with null record;
+   type Current_Object is new PolyORB.Smart_Pointers.Non_Controlled_Entity
+     with null record;
 
 end RTCORBA.Current;

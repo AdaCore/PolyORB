@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -33,16 +33,28 @@
 
 --  Helper subprograms to set up access points based on UDP sockets
 
+with Ada.Exceptions;
+
 with PolyORB.Components;
+with PolyORB.Log;
+with PolyORB.Platform;
 with PolyORB.Setup;
 with PolyORB.Transport.Datagram.Sockets_In;
 
 package body PolyORB.Utils.UDP_Access_Points is
 
    use PolyORB.Binding_Data;
+   use PolyORB.Log;
    use PolyORB.Sockets;
 
-   procedure Initialize_Socket (API : in out UDP_Access_Point_Info);
+   package L is new PolyORB.Log.Facility_Log
+     ("polyorb.utils.udp_access_points");
+   procedure O (Message : String; Level : Log_Level := Debug)
+     renames L.Output;
+   --  function C (Level : Log_Level := Debug) return Boolean
+   --    renames L.Enabled;
+
+   procedure Initialize_Socket (AP_Info : in out UDP_Access_Point_Info);
    pragma Inline (Initialize_Socket);
    --  Shared part between Initialize_Unicast_Socket and
    --  Initialize_Multicast_Socket.
@@ -51,17 +63,13 @@ package body PolyORB.Utils.UDP_Access_Points is
    -- Initialize_Socket --
    -----------------------
 
-   procedure Initialize_Socket (API : in out UDP_Access_Point_Info) is
+   procedure Initialize_Socket (AP_Info : in out UDP_Access_Point_Info) is
    begin
-      Create_Socket
-        (API.Socket, Family_Inet, Socket_Datagram);
+      Create_Socket (AP_Info.Socket, Family_Inet, Socket_Datagram);
 
       --  Allow reuse of local addresses
 
-      Set_Socket_Option
-        (API.Socket,
-         Socket_Level,
-         (Reuse_Address, True));
+      Set_Socket_Option (AP_Info.Socket, Socket_Level, (Reuse_Address, True));
    end Initialize_Socket;
 
    ---------------------------------
@@ -69,39 +77,54 @@ package body PolyORB.Utils.UDP_Access_Points is
    ---------------------------------
 
    procedure Initialize_Multicast_Socket
-     (API     : in out UDP_Access_Point_Info;
+     (AP_Info : in out UDP_Access_Point_Info;
       Address : Inet_Addr_Type;
       Port    : Port_Type)
    is
       use PolyORB.Transport.Datagram.Sockets_In;
 
    begin
-      Initialize_Socket (API);
+      Initialize_Socket (AP_Info);
 
-      API.Address :=
-        Sock_Addr_Type'(Addr => Address,
-                        Port => Port,
+      AP_Info.Address :=
+        Sock_Addr_Type'(Addr   => Address,
+                        Port   => Port,
                         Family => Family_Inet);
 
-      Set_Socket_Option
-        (API.Socket,
-         IP_Protocol_For_IP_Level,
-         (Add_Membership, Address, Any_Inet_Addr));
-      --  Register to multicast group
+      --  Bind socket: for UNIX it needs to be bound to the group address;
+      --  for Windows to INADDR_ANY.
 
-      Set_Socket_Option
-        (API.Socket,
-         IP_Protocol_For_IP_Level,
-         (Multicast_Loop, True));
-      --  Allow local multicast operation
+      if PolyORB.Platform.Windows_On_Target then
+         AP_Info.Address.Addr := Any_Inet_Addr;
+      end if;
 
       Init_Socket_In
-        (Socket_In_Access_Point (API.SAP.all), API.Socket, API.Address, False);
+        (Socket_In_Access_Point (AP_Info.SAP.all),
+         AP_Info.Socket,
+         AP_Info.Address,
+         Update_Addr => False);
 
-      if API.PF /= null then
+      --  Join multicast group on the appropriate interface (note that under
+      --  Windows, this is possible only after the socket is bound).
+
+      Set_Socket_Option
+        (AP_Info.Socket,
+         IP_Protocol_For_IP_Level,
+         (Name              => Add_Membership,
+          Multicast_Address => Address,
+          Local_Interface   => Any_Inet_Addr));
+
+      --  Allow local multicast operation
+
+      Set_Socket_Option
+        (AP_Info.Socket,
+         IP_Protocol_For_IP_Level,
+         (Multicast_Loop, True));
+
+      if AP_Info.PF /= null then
          Create_Factory
-           (API.PF.all,
-            API.SAP,
+           (AP_Info.PF.all,
+            AP_Info.SAP,
             PolyORB.Components.Component_Access (Setup.The_ORB));
       end if;
    end Initialize_Multicast_Socket;
@@ -111,8 +134,8 @@ package body PolyORB.Utils.UDP_Access_Points is
    -------------------------------
 
    procedure Initialize_Unicast_Socket
-     (API       : in out UDP_Access_Point_Info;
-      Port_Hint : Port_Type;
+     (AP_Info       : in out UDP_Access_Point_Info;
+      Port_Hint : Port_Interval;
       Address   : Inet_Addr_Type := Any_Inet_Addr)
    is
       use PolyORB.Transport.Datagram.Sockets_In;
@@ -120,37 +143,44 @@ package body PolyORB.Utils.UDP_Access_Points is
    begin
       --  Create Socket
 
-      Initialize_Socket (API);
+      Initialize_Socket (AP_Info);
 
-      --  Find a free port, search begin at Port_Hint
+      AP_Info.Address :=
+        Sock_Addr_Type'(Addr   => Address,
+                        Port   => Port_Hint.Lo,
+                        Family => Family_Inet);
 
-      API.Address.Addr := Address;
-      API.Address.Port := Port_Hint;
       loop
          begin
             Init_Socket_In
-              (Socket_In_Access_Point (API.SAP.all),
-               API.Socket,
-               API.Address);
+              (Socket_In_Access_Point (AP_Info.SAP.all),
+               AP_Info.Socket,
+               AP_Info.Address);
             exit;
          exception
-            when PolyORB.Sockets.Socket_Error =>
-               API.Address.Port := API.Address.Port + 1;
-               if API.Address.Port = Port_Hint then
+            when E : Sockets.Socket_Error =>
+
+               --  If a specific port range was given, try next port in range
+
+               if AP_Info.Address.Port /= Any_Port
+                 and then AP_Info.Address.Port < Port_Hint.Hi
+               then
+                  AP_Info.Address.Port := AP_Info.Address.Port + 1;
+               else
+                  O ("bind failed: " & Ada.Exceptions.Exception_Message (E),
+                     Notice);
                   raise;
-                  --  Argh! we tried every possible value and
-                  --  wrapped. Bail out.
                end if;
          end;
       end loop;
 
-      --  Create Profile Factory
+      --  Create profile factory
 
-      if API.PF /= null then
+      if AP_Info.PF /= null then
          Create_Factory
-           (API.PF.all,
-            API.SAP,
-            PolyORB.Components.Component_Access (Setup.The_ORB));
+           (AP_Info.PF.all,
+            AP_Info.SAP,
+            Components.Component_Access (Setup.The_ORB));
       end if;
    end Initialize_Unicast_Socket;
 

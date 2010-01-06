@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -125,7 +125,7 @@ package PolyORB.Representations.SRP is
                        return Types.String;
 
    function Unmarshall (Buffer : access Buffer_Type)
-                       return PolyORB.Any.TypeCode.Object;
+                       return PolyORB.Any.TypeCode.Local_Ref;
 
    function Unmarshall (Buffer : access Buffer_Type)
                        return PolyORB.Any.Any;
@@ -145,10 +145,6 @@ package PolyORB.Representations.SRP is
    procedure Marshall
      (Buffer : access Buffer_Type;
       Data   :        PolyORB.Types.Char);
-
-   procedure Marshall
-     (Buffer : access Buffer_Type;
-      Data   :        PolyORB.Types.Wchar);
 
    procedure Marshall
      (Buffer : access Buffer_Type;
@@ -188,10 +184,10 @@ package PolyORB.Representations.SRP is
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : PolyORB.Any.TypeCode.Object);
+      Data   : PolyORB.Any.TypeCode.Local_Ref);
 
    procedure Marshall_From_Any
-     (R      : Rep_SRP;
+     (R      : access Rep_SRP;
       Buffer : access Buffers.Buffer_Type;
       Data   : Any.Any_Container'Class;
       Error  : in out Errors.Error_Container);
@@ -201,7 +197,7 @@ package PolyORB.Representations.SRP is
       Data   : PolyORB.Any.Any_Container'Class);
 
    procedure Unmarshall_To_Any
-     (R      : Rep_SRP;
+     (R      : access Rep_SRP;
       Buffer : access Buffers.Buffer_Type;
       Data   : in out Any.Any_Container'Class;
       Error  : in out Errors.Error_Container);
@@ -236,7 +232,7 @@ package PolyORB.Representations.SRP is
    --  Unmarshall a string terminated by a CR/LF sequence.
 
    function Unmarshall_To_Any
-     (R      : Rep_SRP;
+     (R      : access Rep_SRP;
       Buffer : access Buffers.Buffer_Type) return Any.Any;
 
    --  Temporary procedure. Should be replaces by Marshall_From_Any when

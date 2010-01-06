@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2004-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -50,8 +50,8 @@ package body Test001_Server_Request_Info_Tests is
    ---------------------
 
    procedure Test_Adapter_Id
-     (Point  : in     Server_Interception_Point;
-      Info   : in     PortableInterceptor.ServerRequestInfo.Local_Ref)
+     (Point  : Server_Interception_Point;
+      Info   : PortableInterceptor.ServerRequestInfo.Local_Ref)
    is
       pragma Unreferenced (Info);
 
@@ -68,8 +68,8 @@ package body Test001_Server_Request_Info_Tests is
    -----------------------
 
    procedure Test_Adapter_Name
-     (Point  : in     Server_Interception_Point;
-      Info   : in     PortableInterceptor.ServerRequestInfo.Local_Ref)
+     (Point  : Server_Interception_Point;
+      Info   : PortableInterceptor.ServerRequestInfo.Local_Ref)
    is
       pragma Unreferenced (Info);
 
@@ -86,8 +86,8 @@ package body Test001_Server_Request_Info_Tests is
    ------------------------------------
 
    procedure Test_Add_Reply_Service_Context
-     (Point  : in     Server_Interception_Point;
-      Info   : in     PortableInterceptor.ServerRequestInfo.Local_Ref)
+     (Point  : Server_Interception_Point;
+      Info   : PortableInterceptor.ServerRequestInfo.Local_Ref)
    is
       Operation : constant String := "add_reply_service_context";
 
@@ -105,8 +105,8 @@ package body Test001_Server_Request_Info_Tests is
    ----------------------------
 
    procedure Test_Get_Server_Policy
-     (Point  : in     Server_Interception_Point;
-      Info   : in     PortableInterceptor.ServerRequestInfo.Local_Ref)
+     (Point  : Server_Interception_Point;
+      Info   : PortableInterceptor.ServerRequestInfo.Local_Ref)
    is
       Operation : constant String := "get_server_policy";
       Pol       : CORBA.Policy.Ref;
@@ -144,8 +144,8 @@ package body Test001_Server_Request_Info_Tests is
    --------------------
 
    procedure Test_Object_Id
-     (Point : in Server_Interception_Point;
-      Info  : in PortableInterceptor.ServerRequestInfo.Local_Ref)
+     (Point : Server_Interception_Point;
+      Info  : PortableInterceptor.ServerRequestInfo.Local_Ref)
    is
       Operation : constant String := "object_id";
       Valid     : constant Boolean
@@ -202,8 +202,8 @@ package body Test001_Server_Request_Info_Tests is
    -----------------
 
    procedure Test_ORB_Id
-     (Point : in Server_Interception_Point;
-      Info  : in PortableInterceptor.ServerRequestInfo.Local_Ref)
+     (Point : Server_Interception_Point;
+      Info  : PortableInterceptor.ServerRequestInfo.Local_Ref)
    is
       Operation : constant String := "orb_id";
       Valid     : constant Boolean
@@ -241,8 +241,8 @@ package body Test001_Server_Request_Info_Tests is
    ----------------------------
 
    procedure Test_Sending_Exception
-     (Point : in Server_Interception_Point;
-      Info  : in PortableInterceptor.ServerRequestInfo.Local_Ref)
+     (Point : Server_Interception_Point;
+      Info  : PortableInterceptor.ServerRequestInfo.Local_Ref)
    is
       Operation : constant String  := "sending_exception";
       Valid     : constant Boolean := Point = Send_Exception;
@@ -282,8 +282,8 @@ package body Test001_Server_Request_Info_Tests is
    --------------------
 
    procedure Test_Server_Id
-     (Point : in Server_Interception_Point;
-      Info  : in PortableInterceptor.ServerRequestInfo.Local_Ref)
+     (Point : Server_Interception_Point;
+      Info  : PortableInterceptor.ServerRequestInfo.Local_Ref)
    is
       Operation : constant String := "server_id";
       Valid     : constant Boolean
@@ -321,8 +321,8 @@ package body Test001_Server_Request_Info_Tests is
    -------------------
 
    procedure Test_Set_Slot
-     (Point : in Server_Interception_Point;
-      Info  : in PortableInterceptor.ServerRequestInfo.Local_Ref)
+     (Point : Server_Interception_Point;
+      Info  : PortableInterceptor.ServerRequestInfo.Local_Ref)
    is
       Operation : constant String := "set_slot";
 
@@ -346,8 +346,8 @@ package body Test001_Server_Request_Info_Tests is
    ----------------------
 
    procedure Test_Target_Is_A
-     (Point : in Server_Interception_Point;
-      Info  : in PortableInterceptor.ServerRequestInfo.Local_Ref)
+     (Point : Server_Interception_Point;
+      Info  : PortableInterceptor.ServerRequestInfo.Local_Ref)
    is
       Operation : constant String  := "target_is_a";
       Valid     : constant Boolean := Point = Receive_Request;
@@ -392,8 +392,8 @@ package body Test001_Server_Request_Info_Tests is
    ----------------------------------------
 
    procedure Test_Target_Most_Derived_Interface
-     (Point : in Server_Interception_Point;
-      Info  : in PortableInterceptor.ServerRequestInfo.Local_Ref)
+     (Point : Server_Interception_Point;
+      Info  : PortableInterceptor.ServerRequestInfo.Local_Ref)
    is
       Operation : constant String  := "target_most_derived_interface";
       Valid     : constant Boolean := Point = Receive_Request;

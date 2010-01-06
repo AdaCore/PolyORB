@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -51,7 +51,6 @@ package body PolyORB.Filters.MIOP.MIOP_Out is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
-   pragma Unreferenced (C); --  For conditional pragma Debug
 
    ------------
    -- Create --
@@ -69,7 +68,6 @@ package body PolyORB.Filters.MIOP.MIOP_Out is
 
       Res : constant Filter_Access := new MIOP_Out_Filter;
    begin
-      Set_Allocation_Class (Res.all, Dynamic);
       MIOP_Out_Filter (Res.all).MIOP_Buff := new Buffer_Type;
 
       --  read the max MIOP packet size in conf file
@@ -112,8 +110,7 @@ package body PolyORB.Filters.MIOP.MIOP_Out is
 
    function Handle_Message
      (F : access MIOP_Out_Filter;
-      S : Components.Message'Class)
-     return Components.Message'Class
+      S : Components.Message'Class) return Components.Message'Class
    is
       use PolyORB.Types;
 
@@ -124,16 +121,16 @@ package body PolyORB.Filters.MIOP.MIOP_Out is
          declare
             D : Data_Out renames Data_Out (S);
             --  Length of GIOP packet
-            L : constant Types.Unsigned_Short
-              := Types.Unsigned_Short (Length (D.Out_Buf));
+            L : constant Types.Unsigned_Short :=
+                  Types.Unsigned_Short (Length (D.Out_Buf.all));
             H : MIOP_Header;
          begin
-            pragma Debug (O ("Encapsulate GIOP data in a MIOP Packet,"
+            pragma Debug (C, O ("Encapsulate GIOP data in a MIOP Packet,"
                              & L'Img
                              & " bytes"));
             --  Create the request Unique Id
             H.Unique_Id := Generate_Unique_Id;
-            pragma Debug (O ("Unique Id :"
+            pragma Debug (C, O ("Unique Id :"
                              & To_Standard_String (H.Unique_Id)));
 
             --  Calculate the packet size
@@ -161,7 +158,7 @@ package body PolyORB.Filters.MIOP.MIOP_Out is
                --  Size check
                pragma Assert (Types.Unsigned_Short (CDR_Position (F.MIOP_Buff))
                              = H.Packet_Size);
-               pragma Debug (O ("Send MIOP Message, size : "
+               pragma Debug (C, O ("Send MIOP Message, size : "
                                 & H.Packet_Size'Img));
 
                --  Send packet
@@ -181,7 +178,7 @@ package body PolyORB.Filters.MIOP.MIOP_Out is
                      Packet_Total := Packet_Total + 1;
                   end if;
 
-                  pragma Debug (O ("Fragmenting MIOP packet, size : "
+                  pragma Debug (C, O ("Fragmenting MIOP packet, size : "
                                    & Types.Unsigned_Short
                                    (Header_Size + L)'Img
                                    & ", need "
@@ -210,7 +207,7 @@ package body PolyORB.Filters.MIOP.MIOP_Out is
                            F.MIOP_Buff,
                            H.Packet_Size - Header_Size);
 
-                     pragma Debug (O ("Send MIOP Fragment, number :"
+                     pragma Debug (C, O ("Send MIOP Fragment, number :"
                                       & H.Packet_Number'Img
                                       & ", size :"
                                       & H.Packet_Size'Img
@@ -230,23 +227,8 @@ package body PolyORB.Filters.MIOP.MIOP_Out is
             end if;
          end;
 
-      elsif False
-        or else S in Data_Indication
-        or else S in Connect_Indication
-        or else S in Connect_Confirmation
-        or else S in Disconnect_Indication
-        or else S in Set_Server
-      then
-         return Emit (F.Upper, S);
-
-      elsif False
-        or else S in Data_Expected'Class
-        or else S in Disconnect_Request
-      then
-         return Emit (F.Lower, S);
-
       else
-         raise Program_Error;
+         return Filters.Handle_Message (Filters.Filter (F.all)'Access, S);
       end if;
 
       return Res;

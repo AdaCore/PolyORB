@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -71,7 +71,7 @@ package body CORBA.Request is
 
       PResult : PolyORB.Any.NamedValue
         := (Name      => PolyORB.Types.Identifier (Result.Name),
-            Argument  => Internals.To_PolyORB_Any (Result.Argument),
+            Argument  => PolyORB.Any.Any (Result.Argument),
             Arg_Modes => PolyORB.Any.Flags (Result.Arg_Modes));
 
    begin
@@ -102,7 +102,7 @@ package body CORBA.Request is
 
       PResult : PolyORB.Any.NamedValue
         := (Name      => PolyORB.Types.Identifier (Result.Name),
-            Argument  => Internals.To_PolyORB_Any (Result.Argument),
+            Argument  => PolyORB.Any.Any (Result.Argument),
             Arg_Modes => PolyORB.Any.Flags (Result.Arg_Modes));
 
    begin
@@ -126,7 +126,7 @@ package body CORBA.Request is
      (Request : PolyORB.Requests.Request_Access;
       Flags   : PolyORB.Requests.Flags)
    is
-      use type PolyORB.Any.TypeCode.Object;
+      use type PolyORB.Any.TypeCode.Local_Ref;
       use type PolyORB.Requests.Request_Access;
 
    begin
@@ -198,23 +198,7 @@ package body CORBA.Request is
       PolyORB.CORBA_P.Interceptors_Hooks.Client_Invoke
         (Self.The_Request, PolyORB.Requests.Flags (Invoke_Flags));
 
-      if not PolyORB.Any.Is_Empty (Self.The_Request.Exception_Info) then
-         --  XXX warning, should verify that the raised exception
-         --  is either a system exception or a declared user
-         --  exception before propagating it: if an unknown
-         --  user exception gets up to here, CORBA.UNKNOWN
-         --  must be raised.
-
-         declare
-            Info : constant Standard.String
-              := PolyORB.CORBA_P.Exceptions.Extract_Ada_Exception_Information
-              (Self.The_Request);
-
-         begin
-            PolyORB.CORBA_P.Exceptions.Raise_From_Any
-              (Self.The_Request.Exception_Info, Info);
-         end;
-      end if;
+      PolyORB.CORBA_P.Exceptions.Request_Raise_Occurrence (Self.The_Request);
    end Invoke;
 
    ------------

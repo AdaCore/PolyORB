@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---           Copyright (C) 2006, Free Software Foundation, Inc.             --
+--         Copyright (C) 2006-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -40,7 +40,10 @@ with PolyORB.Tasking.Threads;
 with Constants;
 
 with DHB.Background_Worker.Skel;
+pragma Warnings (Off);
+--  Compiler wants Elaborate_All, but that causes cycles
 pragma Elaborate (DHB.Background_Worker.Skel);
+pragma Warnings (On);
 pragma Warnings (Off, DHB.Background_Worker.Skel);
 
 with Whetstone;
@@ -95,8 +98,8 @@ package body DHB.Background_Worker.Impl is
 
    procedure Do_Background_Work
      (Self           : access Object;
-      Kilo_Whetstone : in     DHB.KWIPS;
-      Priority       : in     RTCORBA.Priority)
+      Kilo_Whetstone : DHB.KWIPS;
+      Priority       : RTCORBA.Priority)
    is
       Ada_Priority : RTCORBA.NativePriority;
       Ok : Boolean;
@@ -130,8 +133,7 @@ package body DHB.Background_Worker.Impl is
             Name             => "",
             Default_Priority => Integer (Ada_Priority),
             Storage_Size     => 0,
-            R                => New_Background_Worker,
-            C                => new Runnable_Controller);
+            R                => New_Background_Worker);
          pragma Unreferenced (T);
       begin
          null;

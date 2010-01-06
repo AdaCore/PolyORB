@@ -1,0 +1,4 @@
+tin.idl:8:29: expected token <identifier>
+tin.idl:4:13: "thing" conflicts with declaration at line 3
+tin.idl:6:14: "foo" conflicts with scoped name at line 6
+iac: 3 error(s)

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -47,7 +47,7 @@ package all_functions.Impl is
 
    procedure Set_the_attribute
      (Self : access Object;
-      To   : in CORBA.Short);
+      To   : CORBA.Short);
 
    function Get_the_readonly_attribute
      (Self : access Object)
@@ -58,15 +58,20 @@ package all_functions.Impl is
 
    procedure in_proc
      (Self : access Object;
-      a : in CORBA.Short;
-      b : in CORBA.Short;
-      c : in CORBA.Short);
+      a : CORBA.Short;
+      b : CORBA.Short;
+      c : CORBA.Short);
 
    procedure out_proc
      (Self : access Object;
       a : out CORBA.Short;
       b : out CORBA.Short;
       c : out CORBA.Short);
+
+   procedure out_in_proc
+     (Self : access Object;
+      a : out CORBA.Short;
+      b : CORBA.Long);
 
    procedure inout_proc
      (Self : access Object;
@@ -75,16 +80,16 @@ package all_functions.Impl is
 
    procedure in_out_proc
      (Self : access Object;
-      a : in CORBA.Short;
-      b : in CORBA.Short;
+      a : CORBA.Short;
+      b : CORBA.Short;
       c : out CORBA.Short;
       d : out CORBA.Short);
 
    procedure in_inout_proc
      (Self : access Object;
-      a : in CORBA.Short;
+      a : CORBA.Short;
       b : in out CORBA.Short;
-      c : in CORBA.Short;
+      c : CORBA.Short;
       d : in out CORBA.Short);
 
    procedure out_inout_proc
@@ -96,7 +101,7 @@ package all_functions.Impl is
 
    procedure in_out_inout_proc
      (Self : access Object;
-      a : in CORBA.Short;
+      a : CORBA.Short;
       b : out CORBA.Short;
       c : in out CORBA.Short);
 
@@ -106,9 +111,9 @@ package all_functions.Impl is
 
    function in_fun
      (Self : access Object;
-      a : in CORBA.Short;
-      b : in CORBA.Short;
-      c : in CORBA.Short)
+      a : CORBA.Short;
+      b : CORBA.Short;
+      c : CORBA.Short)
       return CORBA.Short;
 
    procedure out_fun
@@ -126,17 +131,17 @@ package all_functions.Impl is
 
    procedure in_out_fun
      (Self : access Object;
-      a : in CORBA.Short;
-      b : in CORBA.Short;
+      a : CORBA.Short;
+      b : CORBA.Short;
       c : out CORBA.Short;
       d : out CORBA.Short;
       Returns : out CORBA.Short);
 
    procedure in_inout_fun
      (Self : access Object;
-      a : in CORBA.Short;
+      a : CORBA.Short;
       b : in out CORBA.Short;
-      c : in CORBA.Short;
+      c : CORBA.Short;
       d : in out CORBA.Short;
       Returns : out CORBA.Short);
 
@@ -150,7 +155,7 @@ package all_functions.Impl is
 
    procedure in_out_inout_fun
      (Self : access Object;
-      a : in CORBA.Short;
+      a : CORBA.Short;
       b : out CORBA.Short;
       c : in out CORBA.Short;
       Returns : out CORBA.Short);
@@ -160,10 +165,12 @@ package all_functions.Impl is
 
    procedure oneway_in_proc
      (Self : access Object;
-      a : in CORBA.Short;
-      b : in CORBA.Short);
+      a : CORBA.Short;
+      b : CORBA.Short);
 
    function oneway_checker (Self : access Object) return CORBA.Short;
+
+   procedure StopServer (Self : access Object);
 
 private
 

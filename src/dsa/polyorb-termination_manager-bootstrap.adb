@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---           Copyright (C) 2006, Free Software Foundation, Inc.             --
+--         Copyright (C) 2006-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -35,7 +35,6 @@ with Ada.Unchecked_Conversion;
 with PolyORB.Annotations;
 with PolyORB.Binding_Data.Neighbour;
 with PolyORB.Binding_Data;
-with PolyORB.Components;
 with PolyORB.DSA_P.Exceptions;
 with PolyORB.Errors;
 with PolyORB.Log;
@@ -46,7 +45,6 @@ with PolyORB.POA_Config;
 with PolyORB.POA_Config.RACWs;
 with PolyORB.POA_Manager;
 with PolyORB.QoS.Term_Manager_Info;
-with PolyORB.References.Binding;
 with PolyORB.Setup;
 with PolyORB.Smart_Pointers;
 with PolyORB.Tasking.Threads;
@@ -71,17 +69,16 @@ package body PolyORB.Termination_Manager.Bootstrap is
                 renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
                renames L.Enabled;
-   pragma Unreferenced (C); --  For conditional pragma Debug
 
    -------------------------
    -- Stub Types managing --
    -------------------------
 
-   type RACW_Tick_Stub_Type_Access is
+   type Term_Manager_Stub_Access is
      access all Term_Manager_Access'Stub_Type;
 
    --  We have to consider three views of the same type:
-   --    * RACW_Tick_Stub_Type_Access: the type returned by RACW'Stub_Type
+   --    * Term_Manager_Stub_Access: the type returned by RACW'Stub_Type
    --    * RACW_Stub_Type_Access: a general stub type used by S-PolInt
    --    * Term_Manager_Access : the type we use in the termination manager
    --  We define some Unchecked_Conversions between them:
@@ -91,14 +88,14 @@ package body PolyORB.Termination_Manager.Bootstrap is
    --  To disable "possible aliasing problem" warnings which do not apply in
    --  this case.
 
-   function RACW_Tick_To_RACW_Access is
+   function To_RACW_Stub_Access is
      new Ada.Unchecked_Conversion
-       (Source => RACW_Tick_Stub_Type_Access,
+       (Source => Term_Manager_Stub_Access,
         Target => RACW_Stub_Type_Access);
 
-   function RACW_Access_To_TM_Access is
+   function To_TM_Access is
      new Ada.Unchecked_Conversion
-       (Source => RACW_Stub_Type_Access,
+       (Source => System.Address,
         Target => Term_Manager_Access);
 
    pragma Warnings (On);
@@ -130,7 +127,7 @@ package body PolyORB.Termination_Manager.Bootstrap is
       pragma Assert (BO /= null);
 
       if Get_Profile (BO) = null then
-         pragma Debug (O ("Extracting TM ref from Server BO"));
+         pragma Debug (C, O ("Extracting TM ref from Server BO"));
 
          --  BO is a server side BO
 
@@ -138,23 +135,25 @@ package body PolyORB.Termination_Manager.Bootstrap is
          begin
             Get_Note (Notepad_Of (BO).all, Note);
          exception
-            when others =>
+            when Constraint_Error =>
                Leave_BO_Note_Lock;
                NK := Non_DSA_Node;
+               pragma Debug (C, O ("-> " & NK'Img));
                return;
          end;
-
          Leave_BO_Note_Lock;
 
          if References.Is_Nil (Note.TM_Ref) then
             NK := DSA_Node_Without_TM;
+            pragma Debug (C, O ("-> " & NK'Img));
             return;
          end if;
 
          NK := DSA_Node;
          Ref := Note.TM_Ref;
+
       else
-         pragma Debug (O ("Extracting TM ref from Client BO"));
+         pragma Debug (C, O ("Extracting TM ref from Client BO"));
 
          --  BO is a client side BO
 
@@ -184,7 +183,7 @@ package body PolyORB.Termination_Manager.Bootstrap is
 
       end if;
 
-      pragma Debug (O ("Extracted Ref is:" & Image (Ref)));
+      pragma Debug (C, O ("-> " & NK'Img & " TM: " & Image (Ref)));
    end Extract_TM_Reference_From_BO;
 
    ---------------
@@ -207,12 +206,9 @@ package body PolyORB.Termination_Manager.Bootstrap is
       use PolyORB.Errors;
       use PolyORB.Objects;
       use PolyORB.Parameters;
-      use PolyORB.References.Binding;
 
       TM           : constant Term_Manager_Ptr := new Term_Manager;
-      S            : Components.Component_Access;
-      Pro          : Binding_Data.Profile_Access;
-      Error        : Error_Container;
+      S            : System.Partition_Interface.Servant_Access;
 
       --  Retrieve the termination configuration parameters
 
@@ -251,7 +247,7 @@ package body PolyORB.Termination_Manager.Bootstrap is
       end Term_Policy_Value;
 
    begin
-      pragma Debug (O ("Initialize_Termination_Manager: enter"));
+      pragma Debug (C, O ("Initialize_Termination_Manager: enter"));
 
       if not Tasking_Available then
          if Term_Policy_Value (Term_Policy) = Local_Termination then
@@ -259,7 +255,7 @@ package body PolyORB.Termination_Manager.Bootstrap is
             --  If our profile is a no_tasking node with local_termination
             --  then there is nothing more to do!
 
-            pragma Debug (O ("No-tasking, Local_Termination node"));
+            pragma Debug (C, O ("No-tasking, Local_Termination node"));
             return;
          else
 
@@ -281,22 +277,16 @@ package body PolyORB.Termination_Manager.Bootstrap is
 
       --  We need the servant of TM so we can initiate a well known service
       --  pointing to it. We bind the reference and get the servant of TM.
+      --  Note, we can't bind The_TM_Ref to obtain the servant because the
+      --  corresponding POA has not been activated yet, and so we would get
+      --  the Hold_Servant instead.
 
-      Bind (R          => The_TM_Ref,
-            Local_ORB  => The_ORB,
-            Servant    => S,
-            Qos        => (others => null),
-            Pro        => Pro,
-            Local_Only => True,
-            Error      => Error);
-
-      if Found (Error) then
-         PolyORB.DSA_P.Exceptions.Raise_From_Error (Error);
-      end if;
+      S := Find_Receiving_Stub (RACW_Type_Name, Obj_Stub);
+      pragma Assert (S /= null);
 
       --  Start the Well Known Service
 
-      pragma Debug (O ("Initiating Well Known Service"));
+      pragma Debug (C, O ("Initiating Well Known Service"));
       Initiate_Well_Known_Service
         (S    => Servants.Servant_Access (S),
          Name => TM_Name_Space);
@@ -315,7 +305,7 @@ package body PolyORB.Termination_Manager.Bootstrap is
          Term_Manager_To_Address (Term_Manager_Access (TM)),
          Shutdown'Access);
 
-      pragma Debug (O ("Initialize_Termination_Manager: leave"));
+      pragma Debug (C, O ("Initialize_Termination_Manager: leave"));
    end Initialize_Termination_Manager;
 
    ---------------------------------
@@ -360,32 +350,16 @@ package body PolyORB.Termination_Manager.Bootstrap is
    -- Ref_To_Term_Manager_Access --
    --------------------------------
 
-   function Ref_To_Term_Manager_Access (R : References.Ref)
-     return Term_Manager_Access
+   function Ref_To_Term_Manager_Access
+     (R : References.Ref) return Term_Manager_Access
    is
-      The_Stub : constant RACW_Tick_Stub_Type_Access
-        := new Term_Manager_Access'Stub_Type;
-      --  A Stub of Term Manager type
-
-      The_Same_Stub : RACW_Stub_Type_Access;
    begin
-
-      --  We convert it to the general S-Pol_Int stub type so we can access the
-      --  target Field.
-
-      The_Same_Stub := RACW_Tick_To_RACW_Access (The_Stub);
-
-      --  We manually increment R reference counter since we don't want the
-      --  reference finalized while we got an RACW using it.
-
-      Smart_Pointers.Inc_Usage
-        (References.Entity_Of (R));
-
-      --  Finally, we assign the reference to the Stub target field
-
-      The_Same_Stub.Target := References.Entity_Of (R);
-
-      return RACW_Access_To_TM_Access (The_Same_Stub);
+      return To_TM_Access
+               (System.Partition_Interface.Get_RACW
+                  (Ref          => R,
+                   Stub_Tag     => Term_Manager_Access'Stub_Type'Tag,
+                   Is_RAS       => False,
+                   Asynchronous => False));
    end Ref_To_Term_Manager_Access;
 
    -----------------------
@@ -410,17 +384,18 @@ package body PolyORB.Termination_Manager.Bootstrap is
       Result       : References.Ref;
    begin
 
-      --  We retrieve the receiver stub of Term_Manager racw for this partition
+      --  We retrieve the receiver stub of Term_Manager RACW for this partition
 
-      Receiver := Retrieve_Receiving_Stub (RACW_Type_Name, Obj_Stub);
+      Receiver := Find_Receiving_Stub (RACW_Type_Name, Obj_Stub);
       pragma Assert (Receiver /= null);
 
       --  Then use it to get a reference to TM
 
-      Get_Reference (Addr     => Term_Manager_To_Address (TM),
-                     Typ      => RACW_Type_Name,
-                     Receiver => Receiver,
-                     Ref      => Result);
+      Build_Local_Reference
+        (Addr     => Term_Manager_To_Address (TM),
+         Typ      => RACW_Type_Name,
+         Receiver => Receiver,
+         Ref      => Result);
 
       return Result;
    end Term_Manager_Access_To_Ref;

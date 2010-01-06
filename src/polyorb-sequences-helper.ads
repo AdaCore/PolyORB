@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -33,6 +33,8 @@
 
 --  Any conversion subprograms for sequences (both bounded and unbounded)
 
+with System;
+
 with PolyORB.Any;
 with PolyORB.Types;
 
@@ -56,6 +58,7 @@ generic
 
    with function Element_From_Any (Item : PolyORB.Any.Any) return Element;
    with function Element_To_Any   (Item : Element) return PolyORB.Any.Any;
+   pragma Unreferenced (Element_To_Any);
    with function Element_Wrap (X : access Element)
      return PolyORB.Any.Content'Class;
 
@@ -66,7 +69,7 @@ package PolyORB.Sequences.Helper is
    function Wrap (X : access Sequence) return PolyORB.Any.Content'Class;
 
    procedure Initialize
-     (Element_TC, Sequence_TC : PolyORB.Any.TypeCode.Object);
+     (Element_TC, Sequence_TC : PolyORB.Any.TypeCode.Local_Ref);
 
 private
 
@@ -81,14 +84,15 @@ private
    --  Aggregate container primitives
 
    function Get_Aggregate_Element
-     (ACC   : access Sequence_Content;
-      TC    : PolyORB.Any.TypeCode.Object;
+     (ACC   : not null access Sequence_Content;
+      TC    : PolyORB.Any.TypeCode.Object_Ptr;
       Index : PolyORB.Types.Unsigned_Long;
-      Mech  : access PolyORB.Any.Mechanism) return PolyORB.Any.Content'Class;
+      Mech  : not null access PolyORB.Any.Mechanism)
+      return PolyORB.Any.Content'Class;
 
    procedure Set_Aggregate_Element
      (ACC    : in out Sequence_Content;
-      TC     : PolyORB.Any.TypeCode.Object;
+      TC     : PolyORB.Any.TypeCode.Object_Ptr;
       Index  : Types.Unsigned_Long;
       From_C : in out PolyORB.Any.Any_Container'Class);
 
@@ -102,6 +106,10 @@ private
    function Clone
      (ACC  : Sequence_Content;
       Into : PolyORB.Any.Content_Ptr := null) return PolyORB.Any.Content_Ptr;
+
+   function Unchecked_Get_V
+     (ACC : not null access Sequence_Content) return System.Address;
+   --  Return the address of the first stored element
 
    procedure Finalize_Value
      (ACC : in out Sequence_Content);

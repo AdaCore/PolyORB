@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -30,6 +30,9 @@
 --                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
+
+with Ada.Exceptions;
+with Ada.Text_IO;
 
 with CORBA.Object;
 with CORBA.ORB;
@@ -57,7 +60,7 @@ begin
    CORBA.ORB.Initialize ("ORB");
 
    Root_POA :=
-     PortableServer.POA.Helper.To_Ref
+     PortableServer.POA.Helper.To_Local_Ref
       (CORBA.ORB.Resolve_Initial_References
         (CORBA.ORB.To_CORBA_String ("RootPOA")));
    PortableServer.POAManager.Activate
@@ -66,17 +69,17 @@ begin
    declare
       use CORBA.Policy.IDL_SEQUENCE_Policy;
 
-      Implicit_Activation_Policy : CORBA.Policy.Ref
+      Implicit_Activation_Policy : constant CORBA.Policy.Ref
         := CORBA.Policy.Ref
             (PortableServer.POA.Create_Implicit_Activation_Policy
               (PortableServer.NO_IMPLICIT_ACTIVATION));
 
-      Id_Assignment_Policy : CORBA.Policy.Ref
+      Id_Assignment_Policy : constant CORBA.Policy.Ref
         := CORBA.Policy.Ref
             (PortableServer.POA.Create_Id_Assignment_Policy
               (PortableServer.USER_ID));
 
-      Request_Processing_Policy : CORBA.Policy.Ref
+      Request_Processing_Policy : constant CORBA.Policy.Ref
         := CORBA.Policy.Ref
             (PortableServer.POA.Create_Request_Processing_Policy
               (PortableServer.USE_SERVANT_MANAGER));
@@ -123,7 +126,7 @@ begin
    end;
 
    declare
-      Ref : CORBA.Object.Ref
+      Ref : constant CORBA.Object.Ref
         := PortableServer.POA.Create_Reference_With_Id
             (My_POA,
              PortableServer.String_To_ObjectId ("dead"),
@@ -159,4 +162,15 @@ begin
    CORBA.ORB.Shutdown (False);
 
    PolyORB.Utils.Report.End_Report;
+
+exception
+   when E : others =>
+      PolyORB.Utils.Report.Output
+        ("Got fatal exception ", False);
+      Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Information (E));
+
+      CORBA.ORB.Shutdown (False);
+
+      PolyORB.Utils.Report.End_Report;
+
 end Test000;

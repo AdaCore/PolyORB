@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -67,10 +67,12 @@ package body PolyORB.Parameters.File is
    -- Fetch_From_File --
    ---------------------
 
-   function Fetch_From_File (Key : String) return String;
+   function Fetch_From_File (Value : String) return String;
+   --  Given a value of the form "file:<filename>", return the first line
+   --  of the named file.
 
-   function Fetch_From_File (Key : String) return String is
-      Filename : constant String := Key (Key'First + 5 .. Key'Last);
+   function Fetch_From_File (Value : String) return String is
+      Filename : constant String := Value (Value'First + 5 .. Value'Last);
       File     : File_Type;
       Result   : String (1 .. 1024);
       Last     : Natural;
@@ -91,13 +93,13 @@ package body PolyORB.Parameters.File is
 
    function Get_Conf
      (Source       : access File_Source;
-      Section, Key : String)
-      return         String
+      Section, Key : String) return String
    is
       pragma Unreferenced (Source);
 
       V : constant String_Ptr :=
-         Lookup (Configuration_Table, Make_Global_Key (Section, Key), null);
+            Lookup (Configuration_Table, Make_Global_Key (Section, Key), null);
+
    begin
       if V /= null then
          return V.all;
@@ -113,8 +115,7 @@ package body PolyORB.Parameters.File is
    procedure Load_Configuration_File (Conf_File_Name : String) is
    begin
       PolyORB.Utils.Configuration_File.Load_Configuration_Table
-        (Conf_File_Name,
-         Configuration_Table);
+        (Conf_File_Name, Configuration_Table);
    end Load_Configuration_File;
 
    -----------------------------
@@ -123,12 +124,12 @@ package body PolyORB.Parameters.File is
 
    function Configuration_File_Name return String is
    begin
+      --  The key and section here are chosen so that the associated
+      --  environment variable (in the context of the Parameters.Environment
+      --  data source) is POLYORB_CONF.
+
       return Get_Conf (Section => "conf", Key => "",
                        Default => PolyORB_Conf_Default_Filename);
-      --  XXX special case for backwards compatibility: we want the
-      --  associated environment variable to be POLYORB_CONF for now.
-      --  Ultimately this should become Section => "configuration",
-      --  Key => "file".
    end Configuration_File_Name;
 
    ----------------

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -200,7 +200,7 @@ begin
    end;
 
    declare
-      Data   : Any := To_Any (Unsigned_Long'(1));
+      Data   : constant Any := To_Any (Unsigned_Long'(1));
       Stream : OctetSeq;
 
    begin

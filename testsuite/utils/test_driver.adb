@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -33,10 +33,10 @@
 
 --  Wrapper to launch PolyORB's testsuite
 
-with Ada.Exceptions;
 with Ada.Text_IO;
 
 with GNAT.Command_Line;
+with GNAT.OS_Lib;
 with GNAT.Source_Info;
 
 with Test_Suite.Scenarios;
@@ -44,6 +44,9 @@ with Test_Suite.Output.File;
 with Test_Suite.Output.Text;
 
 with PolyORB.Initialization;
+
+with PolyORB.Parameters.Initialization;
+pragma Warnings (Off, PolyORB.Parameters.Initialization);
 
 with PolyORB.Log.Stderr;
 pragma Warnings (Off, PolyORB.Log.Stderr);
@@ -77,12 +80,14 @@ procedure Test_Driver is
    Item           : String_Access;
    Configuration_Base_Dir : String_Access;
    Position : Integer := -1;
+   Verbose : Boolean := False;
 
    ---------
    -- Run --
    ---------
 
    procedure Run is
+      Result : Boolean;
    begin
       --  Execute test_driver
 
@@ -94,31 +99,31 @@ procedure Test_Driver is
             Test_Suite.Scenarios.Run_Scenario
               (Item.all, Position,
                Configuration_Base_Dir.all,
-               Test_Suite_Output'Class (Output.all));
+               Test_Suite_Output'Class (Output.all),
+               Result,
+               Verbose);
 
          when Run_All_Scenarios =>
             Test_Suite.Scenarios.Run_All_Scenarios
               (Item.all,
                Configuration_Base_Dir.all,
-               Test_Suite_Output'Class (Output.all));
+               Test_Suite_Output'Class (Output.all),
+               Result,
+               Verbose);
       end case;
 
       Log (Test_Suite_Output'Class (Output.all), "Test driver exited.");
+      if Result then
+         Log (Test_Suite_Output'Class (Output.all), "No test failed.");
+      else
+         Log (Test_Suite_Output'Class (Output.all), "Some tests failed.");
+      end if;
+
       Close (Test_Suite_Output'Class (Output.all));
 
-   exception
-      when E : others =>
-         Error (Test_Suite_Output'Class (Output.all),
-                "==> Internal Error <==");
-         Error (Test_Suite_Output'Class (Output.all),
-                " Got exception: "
-                & Ada.Exceptions.Exception_Name (E)
-                & ", "
-                & Ada.Exceptions.Exception_Message (E));
-         Error (Test_Suite_Output'Class (Output.all),
-                " with information: "
-                & Ada.Exceptions.Exception_Information (E));
-         Close (Test_Suite_Output'Class (Output.all));
+      if not Result then
+         GNAT.OS_Lib.OS_Exit (1);
+      end if;
    end Run;
 
    -----------------------
@@ -128,7 +133,7 @@ procedure Test_Driver is
    procedure Scan_Command_Line is
    begin
       loop
-         case Getopt ("scenario: full: output: config: position:") is
+         case Getopt ("scenario: full: output: config: position: verbose") is
             when ASCII.NUL =>
                exit;
 
@@ -146,7 +151,7 @@ procedure Test_Driver is
 
             when 'o' =>
                if Full_Switch = "output" then
-                  if Parameter = "text" then
+                  if Parameter = "stdout" then
                      Output := new Text_Output;
 
                   elsif Parameter = "file" then
@@ -170,6 +175,11 @@ procedure Test_Driver is
                   Position := Integer'Value (Parameter);
                end if;
 
+            when 'v' =>
+               if Full_Switch = "verbose" then
+                  Verbose := True;
+               end if;
+
             when others =>
                raise Program_Error;
          end case;
@@ -177,9 +187,11 @@ procedure Test_Driver is
 
    exception
       when Invalid_Switch =>
+         Scan_Succesful := False;
          Put_Line (Standard_Error, "Invalid Switch " & Full_Switch);
 
       when Invalid_Parameter =>
+         Scan_Succesful := False;
          Put_Line (Standard_Error, "No parameter for " & Full_Switch);
    end Scan_Command_Line;
 
@@ -188,27 +200,30 @@ procedure Test_Driver is
    -----------
 
    procedure Usage is
-      Filename : constant String := GNAT.Source_Info.File;
-      Executable_Name : constant String
-        := Filename (Filename'First .. Filename'Last - 4);
+      Filename        : constant String := GNAT.Source_Info.File;
+      Executable_Name : constant String :=
+                          Filename (Filename'First .. Filename'Last - 4);
 
    begin
       New_Line;
       Put_Line (Standard_Error, "Usage: " & Executable_Name
-                & " -scenario scenario_file [-position integer]"
-                & "|-full directory"
-                & " -output file|text -config dir,");
+                  & " -scenario scenario_file [-position N]"
+                  & "|-full directory"
+                  & " -output file|stdout -config dir,"
+                  & " -verbose");
       Put_Line (Standard_Error,
                 "  -scenario scenario_file : plays scenario_file,");
       Put_Line (Standard_Error,
-                "  -position integer : plays only test #position");
+                "  -position N             : plays only test #N");
       Put_Line (Standard_Error,
                 "  -full     directory     : plays all scenarios" &
                 " in directory.");
       Put_Line (Standard_Error,
-                "  -output   file|text     : output to stdout or files");
+                "  -output   file|stdout   : output to files|standard output");
       Put_Line (Standard_Error,
                 "  -config   dir           : directory for scenario files ");
+      Put_Line (Standard_Error,
+                "  -verbose                : print information on the run ");
 
       New_Line;
    end Usage;
@@ -224,14 +239,6 @@ begin
       Run;
    else
       Usage;
+      GNAT.OS_Lib.OS_Exit (1);
    end if;
-
-exception
-   when E : others =>
-      Put_Line (Standard_Error, "==> Internal Error <==");
-      Put_Line (Standard_Error, " Got exception: "
-                & Ada.Exceptions.Exception_Name (E)
-                & ", "
-                & Ada.Exceptions.Exception_Message (E));
-
 end Test_Driver;

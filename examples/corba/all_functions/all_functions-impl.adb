@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -34,6 +34,8 @@
 with all_functions.Skel;
 pragma Warnings (Off, all_functions.Skel);
 
+with CORBA.ORB;
+
 package body all_functions.Impl is
    use CORBA; --  WAG:5.03
 
@@ -49,7 +51,7 @@ package body all_functions.Impl is
 
    procedure Set_the_attribute
      (Self : access Object;
-      To   : in CORBA.Short)
+      To   : CORBA.Short)
    is
    begin
       Self.Attribute := To;
@@ -78,9 +80,9 @@ package body all_functions.Impl is
 
    procedure in_proc
      (Self : access Object;
-      a : in CORBA.Short;
-      b : in CORBA.Short;
-      c : in CORBA.Short)
+      a : CORBA.Short;
+      b : CORBA.Short;
+      c : CORBA.Short)
    is
       pragma Warnings (Off);
       pragma Unreferenced (Self, a, b, c);
@@ -88,6 +90,16 @@ package body all_functions.Impl is
    begin
       null;
    end in_proc;
+
+   procedure out_in_proc
+     (Self : access Object;
+      a : out CORBA.Short;
+      b : CORBA.Long)
+   is
+      pragma Unreferenced (Self);
+   begin
+      a := CORBA.Short (b) + 1;
+   end out_in_proc;
 
    procedure out_proc
      (Self : access Object;
@@ -119,8 +131,8 @@ package body all_functions.Impl is
 
    procedure in_out_proc
      (Self : access Object;
-      a : in CORBA.Short;
-      b : in CORBA.Short;
+      a : CORBA.Short;
+      b : CORBA.Short;
       c : out CORBA.Short;
       d : out CORBA.Short)
    is
@@ -134,9 +146,9 @@ package body all_functions.Impl is
 
    procedure in_inout_proc
      (Self : access Object;
-      a : in CORBA.Short;
+      a : CORBA.Short;
       b : in out CORBA.Short;
-      c : in CORBA.Short;
+      c : CORBA.Short;
       d : in out CORBA.Short)
    is
       pragma Warnings (Off);
@@ -157,16 +169,19 @@ package body all_functions.Impl is
       pragma Warnings (Off);
       pragma Unreferenced (Self);
       pragma Warnings (On);
+
+      Entry_B : constant CORBA.Short := B;
+      Entry_C : constant CORBA.Short := C;
    begin
-      a := 45;
-      b := 46;
-      c := 47;
-      d := 48;
+      a := 111;
+      b := Entry_C + 1;
+      c := Entry_B + 1;
+      d := 999;
    end out_inout_proc;
 
    procedure in_out_inout_proc
      (Self : access Object;
-      a : in CORBA.Short;
+      a : CORBA.Short;
       b : out CORBA.Short;
       c : in out CORBA.Short)
    is
@@ -191,9 +206,9 @@ package body all_functions.Impl is
 
    function in_fun
      (Self : access Object;
-      a : in CORBA.Short;
-      b : in CORBA.Short;
-      c : in CORBA.Short)
+      a : CORBA.Short;
+      b : CORBA.Short;
+      c : CORBA.Short)
       return CORBA.Short
    is
       pragma Warnings (Off);
@@ -237,8 +252,8 @@ package body all_functions.Impl is
 
    procedure in_out_fun
      (Self : access Object;
-      a : in CORBA.Short;
-      b : in CORBA.Short;
+      a : CORBA.Short;
+      b : CORBA.Short;
       c : out CORBA.Short;
       d : out CORBA.Short;
       Returns : out CORBA.Short)
@@ -254,9 +269,9 @@ package body all_functions.Impl is
 
    procedure in_inout_fun
      (Self : access Object;
-      a : in CORBA.Short;
+      a : CORBA.Short;
       b : in out CORBA.Short;
-      c : in CORBA.Short;
+      c : CORBA.Short;
       d : in out CORBA.Short;
       Returns : out CORBA.Short)
    is
@@ -290,7 +305,7 @@ package body all_functions.Impl is
 
    procedure in_out_inout_fun
      (Self : access Object;
-      a : in CORBA.Short;
+      a : CORBA.Short;
       b : out CORBA.Short;
       c : in out CORBA.Short;
       Returns : out CORBA.Short)
@@ -312,21 +327,21 @@ package body all_functions.Impl is
       pragma Warnings (On);
    begin
       Oneway_Value := 1;
-      delay 5.0;
+      delay 1.0;
       Oneway_Value := 2;
    end oneway_void_proc;
 
    procedure oneway_in_proc
      (Self : access Object;
-      a : in CORBA.Short;
-      b : in CORBA.Short)
+      a : CORBA.Short;
+      b : CORBA.Short)
    is
       pragma Warnings (Off);
       pragma Unreferenced (Self);
       pragma Warnings (On);
    begin
       Oneway_Value := a;
-      delay 5.0;
+      delay 1.0;
       Oneway_Value := b;
    end oneway_in_proc;
 
@@ -337,5 +352,13 @@ package body all_functions.Impl is
    begin
       return Oneway_Value;
    end oneway_checker;
+
+   procedure StopServer (Self : access Object) is
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Warnings (On);
+   begin
+      CORBA.ORB.Shutdown (Wait_For_Completion => False);
+   end StopServer;
 
 end all_functions.Impl;

@@ -1,0 +1,6 @@
+interface test_array {
+   exception e {
+      long f1;
+      short f2[45][21][10];
+   };
+};

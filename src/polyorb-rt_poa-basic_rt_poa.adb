@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -46,7 +46,6 @@ package body PolyORB.RT_POA.Basic_RT_POA is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
-   pragma Unreferenced (C); --  For conditional pragma Debug
 
    type Oid_Information is record
       U_Oid                 : PolyORB.POA_Types.Unmarshalled_Oid;
@@ -91,21 +90,21 @@ package body PolyORB.RT_POA.Basic_RT_POA is
          if A_Policy.all in PriorityModelPolicy'Class then
             if OA.Priority_Model_Policy /= null then
                pragma Debug
-                 (O ("Duplicate in PriorityModelPolicy: using last one"));
+                 (C, O ("Duplicate in PriorityModelPolicy: using last one"));
                null;
             end if;
             OA.Priority_Model_Policy := PriorityModelPolicy_Access (A_Policy);
-            pragma Debug (O ("Setting up PriorityModelPolicy"));
+            pragma Debug (C, O ("Setting up PriorityModelPolicy"));
          end if;
 
          if A_Policy.all in ThreadPoolPolicy'Class then
             if OA.Thread_Pool_Policy /= null then
                pragma Debug
-                 (O ("Duplicate in ThreadPoolPolicy: using last one"));
+                 (C, O ("Duplicate in ThreadPoolPolicy: using last one"));
                null;
             end if;
             OA.Thread_Pool_Policy := ThreadPoolPolicy_Access (A_Policy);
-            pragma Debug (O ("Setting up ThreadPoolPolicy"));
+            pragma Debug (C, O ("Setting up ThreadPoolPolicy"));
          end if;
 
          Next (It);
@@ -158,7 +157,7 @@ package body PolyORB.RT_POA.Basic_RT_POA is
       Error : in out PolyORB.Errors.Error_Container)
    is
    begin
-      pragma Debug (O ("Export: enter"));
+      pragma Debug (C, O ("Export: enter"));
 
       --  Export servant
 
@@ -186,7 +185,7 @@ package body PolyORB.RT_POA.Basic_RT_POA is
 
       end if;
 
-      pragma Debug (O ("Export: leave"));
+      pragma Debug (C, O ("Export: leave"));
    end Export;
 
    -------------------------------
@@ -216,7 +215,11 @@ package body PolyORB.RT_POA.Basic_RT_POA is
             if Found (Error2) then
                Catch (Error);
                Error := Error2;
+               pragma Warnings (Off);
+               --  Model, Server_External_Priority, and Server_ORB_Priority not
+               --  set before return
                return;
+               pragma Warnings (On);
             end if;
             while not Last (It) loop
                if U_Oid = Value (It).all.U_Oid then

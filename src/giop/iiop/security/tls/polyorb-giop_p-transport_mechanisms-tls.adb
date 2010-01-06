@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -49,18 +49,16 @@ with PolyORB.Security.Credentials.TLS;
 with PolyORB.Sockets;
 with PolyORB.TLS;
 with PolyORB.Transport.Connected.Sockets.TLS;
+with PolyORB.Utils.Sockets;
 with PolyORB.Utils.Strings;
 
 package body PolyORB.GIOP_P.Transport_Mechanisms.TLS is
 
---   use PolyORB.Binding_Data.GIOP.IIOP;
    use PolyORB.Components;
    use PolyORB.Errors;
    use PolyORB.GIOP_P.Tagged_Components;
    use PolyORB.GIOP_P.Tagged_Components.TLS_Sec_Trans;
-   use PolyORB.GIOP_P.Tagged_Components.TLS_Sec_Trans.Sock_Addr_Lists;
---   use PolyORB.GIOP_P.Transport_Mechanisms.IIOP;
---   use PolyORB.Parameters;
+   use PolyORB.GIOP_P.Tagged_Components.TLS_Sec_Trans.Socket_Name_Lists;
    use PolyORB.QoS;
    use PolyORB.QoS.Transport_Contexts;
    use PolyORB.Security.Credentials;
@@ -72,10 +70,10 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.TLS is
 
    procedure Initialize;
 
-   function Create
+   procedure Create
      (TC      : Tagged_Components.Tagged_Component_Access;
-      Profile : Binding_Data.Profile_Access)
-     return Transport_Mechanism_List;
+      Profile : Binding_Data.Profile_Access;
+      Mechs   : in out Transport_Mechanism_List);
    --  Create list of Transport Mechanism from list of Tagged Component
 
    function Create_QoS
@@ -110,20 +108,21 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.TLS is
    is
       Sock        : Socket_Type;
       TLS_Sock    : TLS_Socket_Type;
-      Remote_Addr : Sock_Addr_Type;
+      Remote_Addr : Utils.Sockets.Socket_Name_Ptr;
       TE          : PolyORB.Transport.Transport_Endpoint_Access;
-      Iter        : Sock_Addr_Lists.Iterator := First (Mechanism.Addresses);
-      Creds       : constant TLS_Credentials_Access
-        := Extract_TLS_Credentials
-        (QoS_Transport_Context_Parameter_Access
-         (QoS (Transport_Security)).Invocation_Credentials);
+      Iter        : Socket_Name_Lists.Iterator := First (Mechanism.Addresses);
+      Creds       : constant TLS_Credentials_Access :=
+                      Extract_TLS_Credentials
+                        (QoS_Transport_Context_Parameter_Access
+                           (QoS (Transport_Security)).Invocation_Credentials);
 
    begin
       if Profile.all
-        not in PolyORB.Binding_Data.GIOP.IIOP.IIOP_Profile_Type then
+        not in PolyORB.Binding_Data.GIOP.IIOP.IIOP_Profile_Type
+      then
          Throw (Error, Comm_Failure_E,
                 System_Exception_Members'
-                (Minor => 0, Completed => Completed_Maybe));
+                  (Minor => 0, Completed => Completed_Maybe));
          return;
       end if;
 
@@ -132,7 +131,7 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.TLS is
             Remote_Addr := Value (Iter).all;
 
             Create_Socket (Sock);
-            Connect_Socket (Sock, Remote_Addr);
+            Utils.Sockets.Connect_Socket (Sock, Remote_Addr.all);
 
             TLS_Sock := Create_Invocation_Socket (Creds);
 
@@ -141,10 +140,10 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.TLS is
 
             TE := new TLS_Endpoint;
             Create (TLS_Endpoint (TE.all), TLS_Sock);
-            Set_Allocation_Class (TE.all, Dynamic);
 
             Binding_Objects.Setup_Binding_Object
-              (TE,
+              (The_ORB,
+               TE,
                IIOP_Factories,
                BO_Ref,
                Binding_Data.Profile_Access (Profile));
@@ -160,6 +159,8 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.TLS is
 
          exception
             when Sockets.Socket_Error =>
+               --  This is dubious if not Last (Iter)???
+
                Throw (Error, Comm_Failure_E,
                       System_Exception_Members'
                       (Minor => 0, Completed => Completed_No));
@@ -179,25 +180,20 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.TLS is
    -- Create --
    ------------
 
-   function Create
+   procedure Create
      (TC      : Tagged_Components.Tagged_Component_Access;
-      Profile : Binding_Data.Profile_Access)
-     return Transport_Mechanism_List
+      Profile : Binding_Data.Profile_Access;
+      Mechs   : in out Transport_Mechanism_List)
    is
       pragma Unreferenced (Profile);
-
-      Result    : Transport_Mechanism_List;
-      Mechanism : constant Transport_Mechanism_Access
-        := new TLS_Transport_Mechanism;
-
+      Mechanism : constant Transport_Mechanism_Access :=
+                    new TLS_Transport_Mechanism;
    begin
       --  XXX Setup Target_Supports and Target_Requires
       TLS_Transport_Mechanism (Mechanism.all).Addresses :=
         Duplicate (TC_TLS_Sec_Trans (TC.all).Addresses);
 
-      Append (Result, Mechanism);
-
-      return Result;
+      Append (Mechs, Mechanism);
    end Create;
 
 --   --------------------
@@ -242,8 +238,8 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.TLS is
 --      declare
 --
 --         function Is_None
---           (Description : in String;
---            Parameter   : in String)
+--           (Description : String;
+--            Parameter   : String)
 --            return Boolean;
 --         --  Check is a Parameter have None value or not present
 --         --  in Description
@@ -253,8 +249,8 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.TLS is
 --         -------------
 --
 --         function Is_None
---           (Description : in String;
---            Parameter   : in String)
+--           (Description : String;
+--            Parameter   : String)
 --            return Boolean
 --         is
 --            None : constant String := "None";
@@ -402,8 +398,8 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.TLS is
 --      TC : constant Tagged_Component_Access := new TC_TLS_Sec_Trans;
 --
 --   begin
-----      TC_TLS_Sec_Trans (TC.all).Target_Supports := MF.Target_Supports;
-----      TC_TLS_Sec_Trans (TC.all).Target_Requires := MF.Target_Requires;
+--      --  TC_TLS_Sec_Trans (TC.all).Target_Supports := MF.Target_Supports;
+--      --  TC_TLS_Sec_Trans (TC.all).Target_Requires := MF.Target_Requires;
 --      TC_TLS_Sec_Trans (TC.all).Addresses       := Duplicate (MF.Addresses);
 --
 --      Add (Result, TC);
@@ -481,6 +477,8 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.TLS is
       end if;
 
       declare
+         use type Utils.Sockets.Socket_Name;
+
          L_Iter : Iterator := First (Left.Addresses);
          R_Iter : Iterator :=
                     First (TLS_Transport_Mechanism (Right).Addresses);
@@ -494,7 +492,7 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.TLS is
 
             Right_Addresses :
             while not Last (R_Iter) loop
-               if Value (L_Iter).all = Value (R_Iter).all then
+               if Value (L_Iter).all.all = Value (R_Iter).all.all then
                   return True;
                end if;
 
@@ -516,6 +514,7 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.TLS is
      (Left  : TLS_Transport_Mechanism;
       Right : Transport_Mechanism'Class) return Boolean
    is
+      use type Utils.Sockets.Socket_Name;
    begin
       if Right not in TLS_Transport_Mechanism then
          return False;
@@ -534,7 +533,7 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.TLS is
          end if;
 
          while not Last (L_Iter) loop
-            if Value (L_Iter).all /= Value (R_Iter).all then
+            if Value (L_Iter).all.all /= Value (R_Iter).all.all then
                return False;
             end if;
 

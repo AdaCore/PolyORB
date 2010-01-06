@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -33,7 +33,6 @@
 
 --  All_Types client
 
-with Ada.Characters.Handling;
 with Ada.Command_Line; use Ada.Command_Line;
 with Ada.Exceptions;
 with Ada.Text_IO;
@@ -42,12 +41,14 @@ with CORBA; use CORBA;
 with CORBA.Object;
 with CORBA.ORB;
 
+with all_types.Impl;
 with all_types.Helper; use all_types, all_types.Helper;
 with PolyORB.Utils.Report;
 
-with PolyORB.Setup.Client;
-pragma Warnings (Off, PolyORB.Setup.Client);
+with PolyORB.Setup.No_Tasking_Server;
+pragma Warnings (Off, PolyORB.Setup.No_Tasking_Server);
 
+with PolyORB.CORBA_P.Server_Tools; use PolyORB.CORBA_P.Server_Tools;
 with PolyORB.CORBA_P.Naming_Tools; use PolyORB.CORBA_P.Naming_Tools;
 
 procedure Client is
@@ -59,8 +60,15 @@ procedure Client is
    Howmany : Integer := 1;
    Sequence_Length : Integer := 5;
 
-   type Test_Type is (All_Tests, Long_Only, Sequence_Only);
+   Test_Unions : constant array (Integer range <>) of myUnionEnumSwitch :=
+                   ((Switch => Red, Foo => 31337),
+                    (Switch => Green, Bar => 534),
+                    (Switch => Blue, Baz => CORBA.To_CORBA_String ("grümpf")));
+
+   type Test_Type is (All_Tests, Long_Only, Sequence_Only, UnionSequence_Only);
    What : Test_Type := All_Tests;
+
+   Is_Local : Boolean := False;
 
 begin
    New_Test ("CORBA Types");
@@ -68,8 +76,12 @@ begin
    CORBA.ORB.Initialize ("ORB");
    if Argument_Count < 1 then
       Ada.Text_IO.Put_Line
-        ("usage : client <IOR_string_from_server|name|-i> "
-         & "[howmany [what]]");
+        ("Usage: client <IOR_string_from_server|name|-i|""local""> "
+         & "[howmany [what [seq-length]]]");
+      Ada.Text_IO.Put ("where <what> is one of:");
+      for J in Test_Type'Range loop
+         Ada.Text_IO.Put (" " & J'Img);
+      end loop;
       return;
    end if;
 
@@ -78,25 +90,32 @@ begin
    end if;
 
    if Argument_Count >= 3 then
-      declare
-         What_Arg : constant String
-           := Ada.Characters.Handling.To_Lower
-                (Argument (3));
       begin
-         if What_Arg = "true" or else What_Arg = "long" then
-            What := Long_Only;
-         elsif What_Arg = "sequence" then
-            What := Sequence_Only;
-            if Argument_Count > 3 then
-               Sequence_Length := Integer'Value
-                 (Argument (4));
-            end if;
-         end if;
+         What := Test_Type'Value (Argument (3));
+      exception
+         when Constraint_Error =>
+            What := All_Tests;
       end;
+
+      case What is
+         when Sequence_Only | UnionSequence_Only =>
+            if Argument_Count > 3 then
+               Sequence_Length := Integer'Value (Argument (4));
+            end if;
+
+         when others =>
+            null;
+      end case;
    end if;
 
    if Argument (1) = "-i" then
       Myall_types := To_Ref (Locate ("all_types"));
+
+   elsif Argument (1) = "local" then
+      Initiate_Servant (new all_types.Impl.Object, Myall_types);
+      Activate_Server;
+      Is_Local := True;
+
    else
       Myall_types := To_Ref (Locate (Argument (1)));
    end if;
@@ -108,7 +127,7 @@ begin
 
    Output ("test not null", not all_types.Is_Nil (Myall_types));
 
-   while Howmany > 0 loop
+   for Iterations in 1 .. Howmany loop
 
       if What = All_Tests or else What = Long_Only then
          declare
@@ -126,10 +145,10 @@ begin
 
       if What = All_Tests or else What = Sequence_Only then
          declare
-            X : U_sequence := U_sequence (IDL_SEQUENCE_short.Null_Sequence);
+            X : U_sequence := To_Sequence (Sequence_Length);
          begin
             for J in 1 .. Sequence_Length loop
-               X := X & CORBA.Short (J);
+               Replace_Element (X, J, CORBA.Short (J));
             end loop;
 
             declare
@@ -140,11 +159,39 @@ begin
                   goto End_Of_Loop;
                end if;
 
-               Output ("test unbounded sequence", Res = X);
+               Output ("test unbounded sequence (length"
+                 & Sequence_Length'Img & ")", Res = X);
             end;
          exception
             when others =>
                Output ("test unbounded sequence", False);
+         end;
+      end if;
+
+      if What = All_Tests or else What = UnionSequence_Only then
+         declare
+            X : UnionSequence := To_Sequence (Sequence_Length);
+         begin
+            for J in 1 .. Sequence_Length loop
+               Replace_Element (X, J, Test_Unions
+                          (Test_Unions'First + J mod Test_Unions'Length));
+            end loop;
+
+            declare
+               Res : constant UnionSequence := echoUnionSequence
+                                                 (Myall_types, X);
+            begin
+               if What = UnionSequence_Only then
+                  pragma Assert (Res = X);
+                  goto End_Of_Loop;
+               end if;
+
+               Output ("test sequence of unions (length"
+                 & Sequence_Length'Img & ")", Res = X);
+            end;
+         exception
+            when others =>
+               Output ("test sequence of unions", False);
          end;
       end if;
 
@@ -260,6 +307,43 @@ begin
       end;
 
       declare
+         X_Color : Color;
+         X_Octet : CORBA.Octet;
+         for X_Octet'Address use X_Color'Address;
+         pragma Import (Ada, X_Octet);
+
+         Success : Boolean := False;
+      begin
+         X_Color := Color'Last;
+         X_Octet := X_Octet + 1;
+
+         --  From this point on, X_Color has an invalid representation
+
+         begin
+            Success := echoColor (Myall_types, X_Color) = X_Color;
+
+            --  No exception raised: invalid value was copied verbatim and
+            --  was not checked, success.
+
+         exception
+            when CORBA.MARSHAL =>
+               Success := True;
+
+            when CORBA.UNKNOWN =>
+               --  For the local case, we MAY raise CONSTRAINT_ERROR on the
+               --  servant side, which is mapped back to CORBA.UNKNOWN on the
+               --  caller side.
+
+               Success := Is_Local;
+
+            when E : others =>
+               Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Information (E));
+               Success := False;
+         end;
+         Output ("test enum invalid rep", Success);
+      end;
+
+      declare
          X : Rainbow;
       begin
          for J in X'Range loop
@@ -274,9 +358,10 @@ begin
       --  Bounded sequences
 
       declare
-         X : B_sequence := B_sequence (IDL_SEQUENCE_10_short.Null_Sequence);
+         X : constant B_sequence :=
+               B_sequence (IDL_SEQUENCE_10_short.To_Sequence
+                 (IDL_SEQUENCE_10_short.Element_Array'(1, 2, 3, 4, 5)));
       begin
-         X := X & 1 & 2 & 3 & 4 & 5;
          Output ("test bounded sequence",  echoBsequence (Myall_types, X) = X);
       exception
          when others =>
@@ -369,7 +454,7 @@ begin
          for J in Test_Unions'Range loop
             Pass := echoUnion (Myall_types, Test_Unions (J))
               = Test_Unions (J);
-            Output ("test union" & Test_Unions (J).Switch'Img, Pass);
+            Output ("test union " & Test_Unions (J).Switch'Img, Pass);
          end loop;
       exception
          when others =>
@@ -377,22 +462,20 @@ begin
       end;
 
       declare
-         Test_Unions : constant array (Integer range <>) of myUnionEnumSwitch
-           := ((Switch => Red, Foo => 31337),
-               (Switch => Green, Bar => 534),
-               (Switch => Blue, Baz => CORBA.To_CORBA_String ("grümpf")));
          Pass : Boolean;
       begin
          for J in Test_Unions'Range loop
-            Pass := echoUnionEnumSwitch (Myall_types, Test_Unions (J))
-              = Test_Unions (J);
-            Output ("test union with enum switch "
-                    & Test_Unions (J).Switch'Img, Pass);
+            begin
+               Pass := echoUnionEnumSwitch (Myall_types, Test_Unions (J))
+                 = Test_Unions (J);
+               Output ("test union with enum switch "
+                       & Test_Unions (J).Switch'Img, Pass);
+            exception
+               when others =>
+                  Output ("test union with enum switch "
+                          & Test_Unions (J).Switch'Img, False);
+            end;
          end loop;
-
-      exception
-         when others =>
-            Output ("test union with enum switch", False);
       end;
 
       declare
@@ -546,30 +629,32 @@ begin
       declare
          Member : my_exception_Members;
       begin
-         testException (Myall_types, 2485);
+         testException (Myall_types, 2485, To_CORBA_String ("pouet"));
       exception
          when E : my_exception =>
-            Output ("test user exception", True);
             Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Information (E));
             Get_Members (E, Member);
-            Ok := (Member.info = 2485);
+            Ok := Member.info = 2485
+                    and then To_Standard_String (Member.why) = "pouet";
+
          when E : others =>
-            Output ("test user exception", False);
             Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Information (E));
       end;
+      Output ("test user exception", Ok);
 
       Ok := False;
       begin
          testUnknownException (Myall_types, 2485);
       exception
          when E : CORBA.Unknown =>
-            Output ("test unknown exception", True);
+            Ok := True;
             Ada.Text_IO.Put_Line
               (Ada.Exceptions.Exception_Information (E));
 
          when others =>
-            Output ("test unknown exception", False);
+            null;
       end;
+      Output ("test unknown exception", Ok);
 
       Ok := False;
       begin
@@ -584,8 +669,12 @@ begin
       Output ("test system exception", Ok);
 
       <<End_Of_Loop>>
-      Howmany := Howmany - 1;
+      null;
    end loop;
+
+   if What /= All_Tests then
+      Output ("test " & What'Img & " iterated" & Howmany'Img & " times", True);
+   end if;
 
    begin
       StopServer (Myall_types);

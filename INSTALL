@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---         Copyright (C) 1999-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 1999-2007 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -29,8 +29,9 @@
 
 This file details the compilation and installation of PolyORB.
 
-For more details about supported compilers, platforms or platform
-specific information, please refer to PolyORB User's Guide.
+For more details about build requirements, supported compilers,
+supported platforms and platform-specific information, please refer
+to the PolyORB User's Guide.
 
 Build instructions
 ------------------
@@ -45,15 +46,15 @@ newer, and libtool 1.5.8 or newer.
 To install PolyORB, execute:
 
   % ./configure [some options]
-  % make              (or gmake if your make is not GNU make)
-  % make install      (ditto)
+  % make
+  % make install
 
 This will install files in standard locations.
 
 If you want to choose another prefix than /usr/local, give configure a
 --prefix=whereveryouwant argument.
 
-Note: at this time, you MUST use GNU make to compile this software.
+NOTE: you MUST use GNU make (version 3.80 or later) to build PolyORB.
 
 Available options for the 'configure' script include:
 

@@ -1,0 +1,57 @@
+========================================================
+PolyORB 2.4 NEW FEATURES LIST Current as of Jun 09, 2008
+========================================================
+
+Copyright (c) 2008, AdaCore
+
+This file contains a complete list of new features in version 2.4 of PolyORB.
+See also file NEWS for various information about this release.
+
+An ISO date (YYYY-MM-DD) appears in parentheses after the description line.
+This date shows the implementation date of the feature. Any 2.4w wavefront
+subsequent to this date will contain the indicated feature, as will any
+subsequent releases.
+
+NF-24-H311-027 No default MIOP access point address (2008-03-17)
+
+  The MIOP (Unreliable Multicast Inter-ORB Protocol) access point does not
+  listen on a default group address anymore. Run-time configuration parameters
+  polyorb.miop.multicast_addr and polyorb.miop.multicast_port in section
+  [miop] must now be set explicitly to enable the MIOP access point.
+
+NF-24-H226-012 Gnatdist displays executed commands (2008-02-25)
+
+  When not in quiet mode, gnatdist now prints all commands it executes on
+  standard error, just as gnatmake.
+
+NF-24-H214-018 po_gnatdist does not depend on polyorb-config (2008-02-21)
+
+  The PolyORB/DSA partitioning tool, po_gnatdist, does not depend on the
+  external shell script polyorb-config to locate the PolyORB runtime library
+  anymore. This allows po_gnatdist to be usable on platforms that do not
+  provide a Bourne shell, such as MinGW.
+
+NF-24-H110-025 Environment variables passing to slave partitions (2008-02-25)
+
+  A list of environment variables can now be associated with partitions
+  in gnatdist configuration files. When starting a distributed application
+  using a generated launcher (shell or Ada), these variables are then passed
+  from the main partition's environment to the slave partitions.
+
+NF-24-H109-006 Conditional form of pragma Debug (2008-01-28)
+
+  PolyORB sources now use the conditional (two-argument) form of pragma Debug,
+  so that the debug message strings are constructed only if traces are
+  enabled for the particular module. This significantly reduces the run-time
+  performance cost of enabling pragma Debug. Users can thus decide to
+  leave it enabled even in production systems, for more convenient debugging.
+
+  As a result of making this the default, the supporting script
+  support/enable-conditional-debug has been removed from the PolyORB
+  distribution.
+
+NF-24-H107-031 Hosts with multiple IP addresses (2008-01-11)
+
+  When an object reference contains a host name corresponding to multiple
+  IP addresses, connection attempts try successive addresses in turn if
+  the connection fails, instead of bailing out after the first attempt.

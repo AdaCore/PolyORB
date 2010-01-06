@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -38,6 +38,7 @@ with PolyORB.GIOP_P.Tagged_Components.Alternate_IIOP_Address;
 with PolyORB.Initialization;
 with PolyORB.ORB;
 with PolyORB.Protocols.GIOP.IIOP;
+with PolyORB.Sockets;
 with PolyORB.Transport.Connected.Sockets;
 with PolyORB.Utils.Strings;
 
@@ -49,14 +50,14 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.IIOP is
    use PolyORB.GIOP_P.Tagged_Components.Alternate_IIOP_Address;
    use PolyORB.Sockets;
    use PolyORB.Transport.Connected.Sockets;
-   use Sock_Addr_Lists;
+   use Socket_Name_Lists;
 
    procedure Initialize;
 
-   function Create
+   procedure Create
      (TC      : Tagged_Components.Tagged_Component_Access;
-      Profile : Binding_Data.Profile_Access)
-     return Transport_Mechanism_List;
+      Profile : Binding_Data.Profile_Access;
+      Mechs   : in out Transport_Mechanism_List);
    --  Create list of Transport Mechanism from list of Tagged Component
 
    --------------------
@@ -67,8 +68,8 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.IIOP is
 
    Sli            : aliased PolyORB.Filters.Slicers.Slicer_Factory;
    Pro            : aliased PolyORB.Protocols.GIOP.IIOP.IIOP_Protocol;
-   IIOP_Factories : constant PolyORB.Filters.Factory_Array
-     := (0 => Sli'Access, 1 => Pro'Access);
+   IIOP_Factories : constant PolyORB.Filters.Factory_Array :=
+                      (0 => Sli'Access, 1 => Pro'Access);
 
    procedure Bind_Mechanism
      (Mechanism : IIOP_Transport_Mechanism;
@@ -83,11 +84,12 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.IIOP is
       use PolyORB.Binding_Data;
       use PolyORB.Binding_Objects;
 
-      Iter : Iterator := First (Mechanism.Addresses);
+      Iter : Socket_Name_Lists.Iterator := First (Mechanism.Addresses);
 
    begin
       if Profile.all
-        not in PolyORB.Binding_Data.GIOP.IIOP.IIOP_Profile_Type then
+        not in PolyORB.Binding_Data.GIOP.IIOP.IIOP_Profile_Type
+      then
          Throw (Error, Comm_Failure_E,
                 System_Exception_Members'
                 (Minor => 0, Completed => Completed_Maybe));
@@ -97,18 +99,18 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.IIOP is
       while not Last (Iter) loop
          declare
             Sock        : Socket_Type;
-            Remote_Addr : Sock_Addr_Type := Value (Iter).all;
-            TE          : constant PolyORB.Transport.Transport_Endpoint_Access
-              := new Socket_Endpoint;
+            Remote_Addr : Socket_Name renames Value (Iter).all.all;
+            TE          : constant Transport.Transport_Endpoint_Access :=
+                            new Socket_Endpoint;
 
          begin
             Create_Socket (Sock);
-            Connect_Socket (Sock, Remote_Addr);
+            Utils.Sockets.Connect_Socket (Sock, Remote_Addr);
             Create (Socket_Endpoint (TE.all), Sock);
-            Set_Allocation_Class (TE.all, Dynamic);
 
             Binding_Objects.Setup_Binding_Object
-              (TE,
+              (The_ORB,
+               TE,
                IIOP_Factories,
                BO_Ref,
                Profile_Access (Profile));
@@ -124,14 +126,12 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.IIOP is
             when Sockets.Socket_Error =>
                Throw (Error, Comm_Failure_E,
                       System_Exception_Members'
-                      (Minor => 0, Completed => Completed_Maybe));
+                      (Minor => 0, Completed => Completed_No));
          end;
 
          Next (Iter);
 
-         if not Last (Iter)
-           and then Found (Error)
-         then
+         if not Last (Iter) and then Found (Error) then
             Catch (Error);
          end if;
       end loop;
@@ -141,22 +141,25 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.IIOP is
    -- Create --
    ------------
 
-   function Create
+   procedure Create
      (TC      : Tagged_Components.Tagged_Component_Access;
-      Profile : Binding_Data.Profile_Access)
-     return Transport_Mechanism_List
+      Profile : Binding_Data.Profile_Access;
+      Mechs   : in out Transport_Mechanism_List)
    is
+      pragma Unreferenced (Mechs);
+      --  Behaviour is not conformant with spec, we add the additional address
+      --  from TC directly into the primary transport mechanism, instead of
+      --  creating a separate mechanism???
+
       use PolyORB.Binding_Data.GIOP;
 
-      Mechanism : constant Transport_Mechanism_Access
-        := Get_Primary_Transport_Mechanism (GIOP_Profile_Type (Profile.all));
+      Mechanism : constant Transport_Mechanism_Access :=
+        Get_Primary_Transport_Mechanism (GIOP_Profile_Type (Profile.all));
 
    begin
       Append
         (IIOP_Transport_Mechanism (Mechanism.all).Addresses,
-         TC_Alternate_IIOP_Address (TC.all).Address);
-
-      return Transport_Mechanism_List (Transport_Mechanism_Lists.Empty);
+         new Socket_Name'(TC_Alternate_IIOP_Address (TC.all).Address.all));
    end Create;
 
    --------------------
@@ -168,7 +171,9 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.IIOP is
       TAP :     Transport.Transport_Access_Point_Access)
    is
    begin
-      Append (MF.Addresses, Address_Of (Socket_Access_Point (TAP.all)));
+      Append
+        (MF.Addresses,
+         new Socket_Name'(Address_Of (Socket_Access_Point (TAP.all))));
    end Create_Factory;
 
    ------------------------------
@@ -198,11 +203,11 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.IIOP is
 
       while not Last (Iter) loop
          declare
-            TC : constant Tagged_Component_Access
-              := new TC_Alternate_IIOP_Address;
-
+            TC : constant Tagged_Component_Access :=
+                   new TC_Alternate_IIOP_Address;
          begin
-            TC_Alternate_IIOP_Address (TC.all).Address := Value (Iter).all;
+            TC_Alternate_IIOP_Address (TC.all).Address :=
+              new Socket_Name'(Value (Iter).all.all);
             Add (Result, TC);
          end;
 
@@ -220,10 +225,10 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.IIOP is
      (MF : IIOP_Transport_Mechanism_Factory)
       return Transport_Mechanism_Access
    is
-      Result  : constant Transport_Mechanism_Access
-        := new IIOP_Transport_Mechanism;
+      Result  : constant Transport_Mechanism_Access :=
+                  new IIOP_Transport_Mechanism;
       TResult : IIOP_Transport_Mechanism
-        renames IIOP_Transport_Mechanism (Result.all);
+                  renames IIOP_Transport_Mechanism (Result.all);
       Iter    : Iterator := First (MF.Addresses);
 
    begin
@@ -231,36 +236,35 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.IIOP is
       --  has been disabled), add only primary address with zero port number
       --  and ignore all alternate addresses. Otherwise, add all addresses.
 
-      if MF.Disabled then
+      while not Last (Iter) loop
          declare
-            Aux : Sock_Addr_Type := Value (Iter).all;
-
+            Addr : Socket_Name := Value (Iter).all.all;
          begin
-            Aux.Port := 0;
-            Append (TResult.Addresses, Aux);
+            if MF.Disabled then
+               Addr.Port := 0;
+            end if;
+            Append (TResult.Addresses, new Socket_Name'(Addr));
          end;
 
-      else
-         while not Last (Iter) loop
-            Append (TResult.Addresses, Value (Iter).all);
-            Next (Iter);
-         end loop;
-      end if;
+         --  In the disabled case, we just set the first address
 
+         exit when MF.Disabled;
+         Next (Iter);
+      end loop;
       return Result;
    end Create_Transport_Mechanism;
 
    function Create_Transport_Mechanism
-     (Address : Sockets.Sock_Addr_Type)
+     (Address : Utils.Sockets.Socket_Name)
       return Transport_Mechanism_Access
    is
-      Result  : constant Transport_Mechanism_Access
-        := new IIOP_Transport_Mechanism;
+      Result  : constant Transport_Mechanism_Access :=
+                  new IIOP_Transport_Mechanism;
       TResult : IIOP_Transport_Mechanism
         renames IIOP_Transport_Mechanism (Result.all);
 
    begin
-      Append (TResult.Addresses, Address);
+      Append (TResult.Addresses, new Socket_Name'(Address));
       return Result;
    end Create_Transport_Mechanism;
 
@@ -293,8 +297,6 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.IIOP is
       M  : access Transport_Mechanism'Class)
       return Boolean
    is
-      use type PolyORB.Sockets.Sock_Addr_Type;
-
       Iter_1 : Iterator;
 
    begin
@@ -313,7 +315,7 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.IIOP is
 
             begin
                while not Last (Iter_2) loop
-                  if Value (Iter_1).all = Value (Iter_2).all then
+                  if Value (Iter_1).all.all = Value (Iter_2).all.all then
                      return True;
                   end if;
 
@@ -332,11 +334,11 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.IIOP is
    -- Primary_Address_Of --
    ------------------------
 
-   function Primary_Address_Of (M : IIOP_Transport_Mechanism)
-     return Sockets.Sock_Addr_Type
+   function Primary_Address_Of
+     (M : IIOP_Transport_Mechanism) return Utils.Sockets.Socket_Name
    is
    begin
-      return Element (M.Addresses, 0).all;
+      return Element (M.Addresses, 0).all.all;
    end Primary_Address_Of;
 
    ----------------------
@@ -344,7 +346,12 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.IIOP is
    ----------------------
 
    procedure Release_Contents (M : access IIOP_Transport_Mechanism) is
+      Iter : Socket_Name_Lists.Iterator := First (M.Addresses);
    begin
+      while not Last (Iter) loop
+         Free (Value (Iter).all);
+         Next (Iter);
+      end loop;
       Deallocate (M.Addresses);
    end Release_Contents;
 
@@ -356,9 +363,14 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.IIOP is
      (TMA : IIOP_Transport_Mechanism)
      return IIOP_Transport_Mechanism
    is
+      Iter : Socket_Name_Lists.Iterator := First (TMA.Addresses);
+      Result : IIOP_Transport_Mechanism;
    begin
-      return IIOP_Transport_Mechanism'
-        (Addresses => Duplicate (TMA.Addresses));
+      while not Last (Iter) loop
+         Append (Result.Addresses, new Socket_Name'(Value (Iter).all.all));
+         Next (Iter);
+      end loop;
+      return Result;
    end Duplicate;
 
    ------------------
@@ -389,7 +401,7 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.IIOP is
 
             Right_Addresses :
             while not Last (R_Iter) loop
-               if Value (L_Iter).all = Value (R_Iter).all then
+               if Value (L_Iter).all.all = Value (R_Iter).all.all then
                   return True;
                end if;
                Next (R_Iter);

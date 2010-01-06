@@ -1,0 +1,204 @@
+# Common Makefile fragments for all PolyORB subsystems
+# $Id$
+
+#
+# PolyORB's libraries
+#
+
+aws_lib=-I$(top_builddir)/src/aws/libpolyorb-aws.la
+
+corba_lib=$(top_builddir)/src/corba/libpolyorb-corba.la \
+	  $(top_builddir)/src/corba/rtcorba/libpolyorb-corba-rtcorba.la
+
+moma_lib=$(top_builddir)/src/moma/libpolyorb-moma.la
+
+giop_lib=$(top_builddir)/src/giop/libpolyorb-giop.la \
+         $(top_builddir)/src/giop/diop/libpolyorb-giop-diop.la \
+         $(top_builddir)/src/giop/iiop/libpolyorb-giop-iiop.la \
+         $(top_builddir)/src/giop/miop/libpolyorb-giop-miop.la
+
+ifeq (${HAVE_SSL},yes)
+giop_lib += $(top_builddir)/src/giop/iiop/ssliop/libpolyorb-giop-iiop-ssliop.la
+endif
+
+soap_lib=$(top_builddir)/src/soap/libpolyorb-soap.la 
+
+srp_lib=$(top_builddir)/src/srp/libpolyorb-srp.la
+
+web_common_lib=$(top_builddir)/src/web_common/libpolyorb-web_common.la
+
+#
+# PolyORB's libraries -- NEW (should replace above)???
+#
+
+aws_lib=libpolyorb-aws.a
+
+corba_lib=libpolyorb-corba.a \
+	  libpolyorb-corba-rtcorba.a
+
+moma_lib=libpolyorb-moma.a
+
+giop_lib=libpolyorb-giop.a \
+         libpolyorb-giop-diop.a \
+         libpolyorb-giop-iiop.a \
+         libpolyorb-giop-miop.a
+
+ifeq (${HAVE_SSL},yes)
+giop_lib += libpolyorb-giop-iiop-ssliop.a
+endif
+
+soap_lib=libpolyorb-soap.a 
+
+srp_lib=libpolyorb-srp.a
+
+web_common_lib=libpolyorb-web_common.a
+
+# Build libpolyorb-setup last, since its project file has dependencies on
+# the various personality projects.
+
+POLYORB_LIBS=	libpolyorb.a \
+		@PROTO_LIBS@ \
+		@APPLI_LIBS@ \
+		@LIBS_LIBS@ \
+		libpolyorb-setup.a
+
+ifeq (${HAVE_SSL},yes)
+POLYORB_LIBS += libpolyorb-ssl.a
+endif
+
+dsa_lib=libpolyorb-dsa.a
+
+event_lib=libpolyorb-corba-cos-event.a libpolyorb-corba-cos-event-impl.a
+notification_lib=libpolyorb-corba-cos-notification.a libpolyorb-corba-cos-notification-impl.a
+naming_lib=libpolyorb-corba-cos-naming.a libpolyorb-corba-cos-naming-impl.a
+ir_lib=libpolyorb-corba-cos-ir-impl.a
+time_lib=libpolyorb-corba-cos-time.a libpolyorb-corba-cos-time-impl.a
+
+SERVICE_LIBS=@SERVICE_LIBS@
+
+APPLI_EXES=@APPLI_EXES@
+SERVICE_EXES=@SERVICE_EXES@
+
+#
+# PolyORB's include files
+#
+
+aws_inc=-I$(top_srcdir)/src/aws \
+	-I$(top_builddir)/src/aws \
+	-I$(top_srcdir)/src/aws_orig \
+	-I$(top_builddir)/src/aws_orig
+
+corba_inc=-I$(top_srcdir)/src/corba -I$(top_builddir)/src/corba \
+          -I$(top_srcdir)/src/corba/iop -I$(top_builddir)/src/corba/iop \
+          -I$(top_srcdir)/src/corba/messaging \
+          -I$(top_builddir)/src/corba/messaging \
+          -I$(top_srcdir)/src/corba/portableinterceptor \
+          -I$(top_builddir)/src/corba/portableinterceptor \
+          -I$(top_srcdir)/src/corba/rtcorba -I$(top_builddir)/src/corba/rtcorba
+
+moma_inc=-I$(top_srcdir)/src/moma -I$(top_builddir)/src/moma
+
+giop_inc=-I$(top_srcdir)/src/giop -I$(top_builddir)/src/giop \
+         -I$(top_srcdir)/src/giop/diop -I$(top_builddir)/src/giop/diop \
+         -I$(top_srcdir)/src/giop/iiop -I$(top_builddir)/src/giop/iiop \
+         -I$(top_srcdir)/src/giop/miop -I$(top_builddir)/src/giop/miop
+
+ifeq (${HAVE_SSL},yes)
+giop_inc+=-I$(top_srcdir)/src/giop/iiop/ssliop \
+	  -I$(top_builddir)/src/giop/iiop/ssliop
+endif
+
+soap_inc=-I$(top_srcdir)/src/soap -I$(top_builddir)/src/soap
+
+srp_inc=-I$(top_srcdir)/src/srp -I$(top_builddir)/src/srp
+
+web_common_inc=-I$(top_srcdir)/src/web_common -I$(top_builddir)/src/web_common
+
+naming_inc=-I$(top_srcdir)/cos/naming -I$(top_builddir)/cos/naming \
+           -I$(top_builddir)/idls/cos/naming
+
+time_inc=-I$(top_srcdir)/cos/time -I$(top_builddir)/cos/time \
+           -I$(top_builddir)/idls/cos/time
+
+event_inc=-I$(top_srcdir)/cos/event -I$(top_builddir)/cos/event \
+           -I$(top_builddir)/idls/cos/event
+
+notification_inc=-I$(top_srcdir)/cos/notification \
+                 -I$(top_builddir)/cos/notification \
+                 -I$(top_builddir)/idls/cos/notification
+
+ir_inc=-I$(top_srcdir)/cos/ir -I$(top_builddir)/cos/ir
+
+POLYORB_INCS =	\
+		-I$(top_srcdir)/src \
+		-I$(top_builddir)/src \
+		-I$(top_srcdir)/src/setup \
+		-I$(top_builddir)/src/setup \
+		@PROTO_INCS@ \
+		@APPLI_INCS@ \
+		@SERVICE_INCS@ \
+		@LIBS_INCS@
+
+ifeq (${HAVE_SSL},yes)
+POLYORB_INCS+=-I$(top_srcdir)/src/ssl -I$(top_builddir)/src/ssl
+endif
+
+#
+# ALI files install
+#
+
+aliDATA_INSTALL = $(INSTALL) -m 444
+
+#
+# Scripts and common build rules
+#
+
+SUFFIXES=	.c .adb .ads .lo .ali .idl
+ADACOMPILER=	$(top_builddir)/support/adacompiler
+LINKER=		$(top_builddir)/support/linker
+NATIVE_LINKER=	$(top_builddir)/support/native-linker
+MOVEIFCHANGE=	$(top_builddir)/support/move-if-change
+IDLAC_dir=	$(top_builddir)/compilers/$(IDLAC)
+IDLAC_bin=	$(IDLAC_dir)/$(IDLAC)
+IDLAC_WRAPPER=	$(top_builddir)/contrib/idlac_wrapper/idlac_wrapper
+GEN_CODESET_dir=$(top_builddir)/src/giop
+GEN_CODESET=	$(GEN_CODESET_dir)/gen_codeset
+
+LINK=		$(LINKER) -o $@
+
+.c.lo:
+	$(LTCOMPILE) -c $<
+
+.adb.lo:
+	@chmod a+x $(ADACOMPILER)
+	$(LIBTOOL) $(LIBTOOL_TAG) --mode=compile $(ADACOMPILER) -c $(ADAFLAGS) $<
+
+.ads.lo:
+	@chmod a+x $(ADACOMPILER)
+	$(LIBTOOL) $(LIBTOOL_TAG) --mode=compile $(ADACOMPILER) -c $(ADAFLAGS) $<
+
+.idl.ads:
+	$(IDLAC_bin) -I$(srcdir) $(IDLAC_FLAGS) $<
+                                                                                
+.idl.adb:
+	$(IDLAC_bin) -I$(srcdir) $(IDLAC_FLAGS) $<
+
+.idl.idl-stamp:
+	@chmod a+x $(IDLAC_WRAPPER)
+	$(IDLAC_WRAPPER) --idlac=$(IDLAC_bin) -I$(srcdir) $(IDLAC_FLAGS) $<
+	touch $@
+
+##  Prevent make from building ALI files before building corresponding .o
+##  files in parallel build (the ALI file comes for free as a by-product
+##  of building the object).
+
+.o.ali:
+	@true
+
+__default__:: all
+
+$(IDLAC): $(FORCE_IDLAC)
+	cd $(IDLAC_dir) && $(MAKE)
+
+$(GEN_CODESET): $(FORCE_GEN_CODESET)
+	cd $(GEN_CODESET_dir) && $(MAKE) all-gen_codeset

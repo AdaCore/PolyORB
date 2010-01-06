@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -135,7 +135,7 @@ procedure Client is
          --  Get Any Message
 
          declare
-            MOMA_Message_Temp : MOMA.Messages.Message'Class
+            MOMA_Message_Temp : constant MOMA.Messages.Message'Class
               := Receive (MOMA_Consumer);
          begin
             if MOMA_Message_Temp in MOMA.Messages.MAnys.MAny then
@@ -185,7 +185,7 @@ procedure Client is
             --  Get Byte Message
 
             declare
-               MOMA_Message_Temp : MOMA.Messages.Message'Class
+               MOMA_Message_Temp : constant MOMA.Messages.Message'Class
                  := Receive (MOMA_Consumer);
             begin
                if MOMA_Message_Temp in MOMA.Messages.MBytes.MByte then
@@ -301,7 +301,7 @@ procedure Client is
          --  Get Map Message
 
          declare
-            MOMA_Message_Temp : MOMA.Messages.Message'Class
+            MOMA_Message_Temp : constant MOMA.Messages.Message'Class
               := Receive (MOMA_Consumer);
          begin
             if MOMA_Message_Temp in MOMA.Messages.MMaps.MMap then
@@ -349,7 +349,7 @@ procedure Client is
          --  Get Text Message
 
          declare
-            MOMA_Message_Temp : MOMA.Messages.Message'Class
+            MOMA_Message_Temp : constant MOMA.Messages.Message'Class
               := Receive (MOMA_Consumer);
          begin
             if MOMA_Message_Temp in MOMA.Messages.MTexts.MText then

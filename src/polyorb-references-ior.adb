@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -51,7 +51,6 @@ package body PolyORB.References.IOR is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
-   pragma Unreferenced (C); --  For conditional pragma Debug
 
    IOR_Prefix : constant String := "IOR:";
 
@@ -67,14 +66,26 @@ package body PolyORB.References.IOR is
 
    Callbacks : Profile_Record_List.List;
 
+   type IOR_Streamer is new Ref_Streamer with null record;
+
+   procedure Read
+     (R : access IOR_Streamer;
+      S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out Ref'Class);
+
+   procedure Write
+     (R : access IOR_Streamer;
+      S : access Ada.Streams.Root_Stream_Type'Class;
+      V : Ref'Class);
+
    ----------------------
-   -- Marshall Profile --
+   -- Marshall_Profile --
    ----------------------
 
    procedure Marshall_Profile
      (Buffer  : access Buffer_Type;
-      P       :        Binding_Data.Profile_Access;
-      Success :    out Boolean)
+      P       : Binding_Data.Profile_Access;
+      Success : out Boolean)
    is
       use PolyORB.Types;
 
@@ -83,7 +94,7 @@ package body PolyORB.References.IOR is
       Iter : Iterator := First (Callbacks);
    begin
       pragma Assert (P /= null);
-      pragma Debug (O ("Marshall profile with tag :"
+      pragma Debug (C, O ("Marshall profile with tag :"
                        & Profile_Tag'Image (Get_Profile_Tag (P.all))));
 
       Success := False;
@@ -94,7 +105,7 @@ package body PolyORB.References.IOR is
             Info : constant Profile_Record := Value (Iter).all;
          begin
             pragma Debug
-              (O ("... with callback whose tag is "
+              (C, O ("... with callback whose tag is "
                   & Profile_Tag'Image (Info.Tag)));
 
             if T = Info.Tag then
@@ -108,6 +119,21 @@ package body PolyORB.References.IOR is
          Next (Iter);
       end loop;
    end Marshall_Profile;
+
+   ----------
+   -- Read --
+   ----------
+
+   procedure Read
+     (R : access IOR_Streamer;
+      S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out Ref'Class)
+   is
+      pragma Unreferenced (R);
+      Opaque : aliased Stream_Element_Array := Stream_Element_Array'Input (S);
+   begin
+      Ref (V) := Opaque_To_Object (Opaque'Access);
+   end Read;
 
    ------------------------
    -- Unmarshall_Profile --
@@ -126,12 +152,12 @@ package body PolyORB.References.IOR is
 
       Iter : Iterator := First (Callbacks);
    begin
-      pragma Debug (O ("Considering profile with tag"
+      pragma Debug (C, O ("Considering profile with tag"
                        & Profile_Tag'Image (Tag)));
 
       while not Last (Iter) loop
          pragma Debug
-           (O ("... with callback whose tag is "
+           (C, O ("... with callback whose tag is "
                & Profile_Tag'Image (Value (Iter).Tag)));
 
          if Value (Iter).Tag = Tag then
@@ -147,7 +173,7 @@ package body PolyORB.References.IOR is
       if not Known then
          --  No callback matches this tag.
          declare
-            pragma Debug (O ("Profile with tag"
+            pragma Debug (C, O ("Profile with tag"
                              & Profile_Tag'Image (Tag)
                              & " not found"));
 
@@ -175,14 +201,14 @@ package body PolyORB.References.IOR is
       use PolyORB.Types;
 
    begin
-      pragma Debug (O ("Marshall IOR: Enter"));
+      pragma Debug (C, O ("Marshall IOR: Enter"));
 
       if Is_Nil (Value) then
          Marshall
            (Buffer,
             PolyORB.Types.RepositoryId'(To_PolyORB_String ("")));
          Marshall (Buffer, Types.Unsigned_Long'(0));
-         pragma Debug (O ("Empty IOR"));
+         pragma Debug (C, O ("Empty IOR"));
 
       else
          Marshall
@@ -190,7 +216,7 @@ package body PolyORB.References.IOR is
             PolyORB.Types.RepositoryId'
               (To_PolyORB_String (Type_Id_Of (Value))));
 
-         Pad_Align (Buffer, 4);
+         Pad_Align (Buffer, Align_4);
 
          declare
             Profs     : constant Profile_Array := Profiles_Of (Value);
@@ -201,7 +227,7 @@ package body PolyORB.References.IOR is
          begin
             Set_Initial_Position (Count_Buf, CDR_Position (Buffer));
             Reserv := Reserve (Buffer, Counter'Size / Types.Octet'Size);
-            pragma Debug (O (Type_Id_Of (Value)));
+            pragma Debug (C, O (Type_Id_Of (Value)));
 
             for Profile_Index in Profs'Range loop
                pragma Assert (Profs (Profile_Index) /= null);
@@ -210,7 +236,7 @@ package body PolyORB.References.IOR is
                if Success then
                   Counter := Counter + 1;
                else
-                  pragma Debug (O ("Profile with tag"
+                  pragma Debug (C, O ("Profile with tag"
                                    & Profile_Tag'Image
                                    (Get_Profile_Tag
                                     (Profs (Profile_Index).all))
@@ -219,7 +245,7 @@ package body PolyORB.References.IOR is
                end if;
             end loop;
 
-            pragma Debug (O (Types.Unsigned_Long'Image (Counter)
+            pragma Debug (C, O (Types.Unsigned_Long'Image (Counter)
                              & " profile(s)"));
 
             Marshall (Count_Buf, Counter);
@@ -227,7 +253,7 @@ package body PolyORB.References.IOR is
             Release (Count_Buf);
          end;
       end if;
-      pragma Debug (O ("Marshall IOR: Leave"));
+      pragma Debug (C, O ("Marshall IOR: Leave"));
    end Marshall_IOR;
 
    --------------------
@@ -255,7 +281,7 @@ package body PolyORB.References.IOR is
    begin
 
       pragma Debug
-        (O ("Decapsulate_IOR: type " & Type_Id
+        (C, O ("Decapsulate_IOR: type " & Type_Id
             & " (" & Unsigned_Long'Image (N_Profiles) & " profiles)."));
 
       for N in 1 .. N_Profiles loop
@@ -334,9 +360,9 @@ package body PolyORB.References.IOR is
       use PolyORB.Utils.Strings;
 
    begin
-      pragma Debug (O ("Try to decode IOR"));
+      pragma Debug (C, O ("Try to decode IOR"));
       if Has_Prefix (Str, IOR_Prefix) then
-         pragma Debug (O ("IOR Header ok"));
+         pragma Debug (C, O ("IOR Header ok"));
          declare
             Octets : aliased Stream_Element_Array
               := Hex_String_To_SEA
@@ -357,12 +383,25 @@ package body PolyORB.References.IOR is
       Marshall_Profile_Body   : Marshall_Profile_Body_Type;
       Unmarshall_Profile_Body : Unmarshall_Profile_Body_Type)
    is
-      Elt : constant Profile_Record
-        := (Profile, Marshall_Profile_Body,
-            Unmarshall_Profile_Body);
+      Elt : constant Profile_Record :=
+              (Profile, Marshall_Profile_Body, Unmarshall_Profile_Body);
    begin
       Append (Callbacks, Elt);
    end Register;
+
+   -----------
+   -- Write --
+   -----------
+
+   procedure Write
+     (R : access IOR_Streamer;
+      S : access Ada.Streams.Root_Stream_Type'Class;
+      V : Ref'Class)
+   is
+      pragma Unreferenced (R);
+   begin
+      Stream_Element_Array'Output (S, Object_To_Opaque (Ref (V)));
+   end Write;
 
    ----------------
    -- Initialize --
@@ -373,6 +412,7 @@ package body PolyORB.References.IOR is
    procedure Initialize is
    begin
       Register_String_To_Object (IOR_Prefix, String_To_Object'Access);
+      References.The_Ref_Streamer := new IOR_Streamer;
    end Initialize;
 
    use PolyORB.Initialization;

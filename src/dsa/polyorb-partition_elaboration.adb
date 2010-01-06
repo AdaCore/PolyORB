@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---           Copyright (C) 2006, Free Software Foundation, Inc.             --
+--         Copyright (C) 2006-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,10 +31,24 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  This package body is provided for linking purpose. It will be replaced in a
---  distributed model by a partition-specific file.
+--  Dummy placeholder body, replaced by a partition-specific one by the
+--  partitioning tool.
+
+pragma Ada_2005;
 
 package body PolyORB.Partition_Elaboration is
+
+   ---------------
+   -- Configure --
+   ---------------
+
+   procedure Configure
+     (Set_Conf : access procedure (Section, Key, Value : String))
+   is
+      pragma Unreferenced (Set_Conf);
+   begin
+      null;
+   end Configure;
 
    -----------------
    -- Full_Launch --
@@ -45,6 +59,15 @@ package body PolyORB.Partition_Elaboration is
       null;
    end Full_Launch;
 
+   --------------------------
+   -- Run_Additional_Tasks --
+   --------------------------
+
+   procedure Run_Additional_Tasks is
+   begin
+      null;
+   end Run_Additional_Tasks;
+
 begin
-   raise Program_Error;
+   raise Program_Error with "dummy version of polyorb-partition_elaboration";
 end PolyORB.Partition_Elaboration;

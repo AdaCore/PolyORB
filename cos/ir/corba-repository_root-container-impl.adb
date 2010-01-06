@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -526,9 +526,8 @@ package body CORBA.Repository_Root.Container.Impl is
       --  if it begins with :: then lookup in all the repository
       if Head (Unbounded_String (search_name), 2) = "::" then
          declare
-            New_Search : ScopedName
-              := ScopedName (Tail (Unbounded_String (search_name),
-                                   Length (Unbounded_String (search_name)) - 2));
+            New_Search : constant ScopedName :=
+                           Tail (search_name, Length (search_name) - 2);
          begin
             if get_def_kind (Self) = dk_Repository then
                Result_Obj := Lookup_ScopedName (Self.Contents,
@@ -580,17 +579,19 @@ package body CORBA.Repository_Root.Container.Impl is
          case get_def_kind (Self) is
             when dk_Interface =>
                declare
-                  IntDefSeq : InterfaceDefSeq
-                    := InterfaceDef.Impl.get_base_interfaces
-                    (InterfaceDef.Impl.Object_Ptr (Get_Real_Object (Self)));
+                  IntDefSeq : constant InterfaceDefSeq :=
+                                InterfaceDef.Impl.get_base_interfaces
+                                  (InterfaceDef.Impl.Object_Ptr
+                                   (Get_Real_Object (Self)));
                   --  create the array of the parent interfaces
-                  Int_Array : IdF.Element_Array
-                    := IdF.To_Element_Array (IdF.Sequence (IntDefSeq));
+                  Int_Array : constant IdF.Element_Array :=
+                                IdF.To_Element_Array
+                                  (IdF.Sequence (IntDefSeq));
                begin
                   for I in Int_Array'Range loop
                      declare
-                        Int : constant InterfaceDef.Impl.Object_Ptr
-                          := InterfaceDef.Impl.To_Object (Int_Array (I));
+                        Int : constant InterfaceDef.Impl.Object_Ptr :=
+                                InterfaceDef.Impl.To_Object (Int_Array (I));
                         Res : ContainedSeq;
                      begin
                         --  we will get all the contained of the inherited interface
@@ -607,12 +608,14 @@ package body CORBA.Repository_Root.Container.Impl is
             when dk_Value =>
                --  check the supported interfaces
                declare
-                  IntDefSeq : InterfaceDefSeq
-                    := ValueDef.Impl.get_supported_interfaces
-                    (ValueDef.Impl.Object_Ptr (Get_Real_Object (Self)));
+                  IntDefSeq : constant InterfaceDefSeq :=
+                                ValueDef.Impl.get_supported_interfaces
+                                  (ValueDef.Impl.Object_Ptr
+                                   (Get_Real_Object (Self)));
                   --  create the array of the supported interfaces
-                  Int_Array : IdF.Element_Array
-                    := IdF.To_Element_Array (IdF.Sequence (IntDefSeq));
+                  Int_Array : constant IdF.Element_Array :=
+                                IdF.To_Element_Array
+                                  (IdF.Sequence (IntDefSeq));
                begin
                   for I in Int_Array'Range loop
                      declare
@@ -633,17 +636,20 @@ package body CORBA.Repository_Root.Container.Impl is
                end;
                --  check the abstract_base_value
                declare
-                  ValDefSeq : ValueDefSeq
-                    := ValueDef.Impl.get_abstract_base_values
-                    (ValueDef.Impl.Object_Ptr (Get_Real_Object (Self)));
+                  ValDefSeq : constant ValueDefSeq :=
+                                ValueDef.Impl.get_abstract_base_values
+                                  (ValueDef.Impl.Object_Ptr
+                                   (Get_Real_Object (Self)));
+
                   --  create the array of the supported values
-                  Val_Array : VDF.Element_Array
-                    := VDF.To_Element_Array (VDF.Sequence (ValDefSeq));
+                  Val_Array : constant VDF.Element_Array :=
+                                VDF.To_Element_Array
+                                  (VDF.Sequence (ValDefSeq));
                begin
                   for I in Val_Array'Range loop
                      declare
-                        Val : constant ValueDef.Impl.Object_Ptr
-                          := ValueDef.Impl.To_Object (Val_Array (I));
+                        Val : constant ValueDef.Impl.Object_Ptr :=
+                                ValueDef.Impl.To_Object (Val_Array (I));
                         Res : ContainedSeq;
                      begin
                         --  we will get all the definition of the inherited value
@@ -712,12 +718,15 @@ package body CORBA.Repository_Root.Container.Impl is
          case get_def_kind (Self) is
             when dk_Interface =>
                declare
-                  IntDefSeq : InterfaceDefSeq
-                    := InterfaceDef.Impl.get_base_interfaces
-                    (InterfaceDef.Impl.Object_Ptr (Get_Real_Object (Self)));
+                  IntDefSeq : constant InterfaceDefSeq :=
+                                InterfaceDef.Impl.get_base_interfaces
+                                  (InterfaceDef.Impl.Object_Ptr
+                                   (Get_Real_Object (Self)));
+
                   --  create the array of the parent interfaces
-                  Int_Array : IdF.Element_Array
-                    := IdF.To_Element_Array (IdF.Sequence (IntDefSeq));
+                  Int_Array : constant IdF.Element_Array :=
+                                IdF.To_Element_Array
+                                  (IdF.Sequence (IntDefSeq));
                begin
                   for I in Int_Array'Range loop
                      declare
@@ -741,17 +750,20 @@ package body CORBA.Repository_Root.Container.Impl is
             when dk_Value =>
                --  check the supported interfaces
                declare
-                  IntDefSeq : InterfaceDefSeq
-                    := ValueDef.Impl.get_supported_interfaces
-                    (ValueDef.Impl.Object_Ptr (Get_Real_Object (Self)));
+                  IntDefSeq : constant InterfaceDefSeq :=
+                                ValueDef.Impl.get_supported_interfaces
+                                  (ValueDef.Impl.Object_Ptr
+                                   (Get_Real_Object (Self)));
+
                   --  create the array of the supported interfaces
-                  Int_Array : IdF.Element_Array
-                    := IdF.To_Element_Array (IdF.Sequence (IntDefSeq));
+                  Int_Array : constant IdF.Element_Array :=
+                                IdF.To_Element_Array
+                                  (IdF.Sequence (IntDefSeq));
                begin
                   for I in Int_Array'Range loop
                      declare
-                       Int : constant InterfaceDef.Impl.Object_Ptr
-                         := InterfaceDef.Impl.To_Object (Int_Array (I));
+                       Int : constant InterfaceDef.Impl.Object_Ptr :=
+                               InterfaceDef.Impl.To_Object (Int_Array (I));
                        Res : ContainedSeq;
                      begin
                         --  we will get all the definition of the inherited interface
@@ -769,12 +781,15 @@ package body CORBA.Repository_Root.Container.Impl is
                end;
                --  check the abstract_base_value
                declare
-                  ValDefSeq : ValueDefSeq
-                    := ValueDef.Impl.get_abstract_base_values
-                    (ValueDef.Impl.Object_Ptr (Get_Real_Object (Self)));
+                  ValDefSeq : constant ValueDefSeq :=
+                                ValueDef.Impl.get_abstract_base_values
+                                  (ValueDef.Impl.Object_Ptr
+                                   (Get_Real_Object (Self)));
+
                   --  create the array of the supported values
-                  Val_Array : VDF.Element_Array
-                    := VDF.To_Element_Array (VDF.Sequence (ValDefSeq));
+                  Val_Array : constant VDF.Element_Array :=
+                                VDF.To_Element_Array
+                                  (VDF.Sequence (ValDefSeq));
                begin
                   for I in Val_Array'Range loop
                      declare

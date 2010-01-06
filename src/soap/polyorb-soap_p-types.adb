@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2000-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2000-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -44,8 +44,6 @@ with PolyORB.Binding_Data.SOAP;
 with PolyORB.Log;
 with PolyORB.Types;
 
-with SOAP.Utils;
-
 package body PolyORB.SOAP_P.Types is
 
    use Ada;
@@ -58,7 +56,6 @@ package body PolyORB.SOAP_P.Types is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
-   pragma Unreferenced (C); --  For conditional pragma Debug
 
    function xsi_type (Name : String) return String;
    --  Returns the xsi:type field for the XML type representation whose name
@@ -293,13 +290,12 @@ package body PolyORB.SOAP_P.Types is
 --    -- Image --
 --    -----------
 
-   function Image (NV : NamedValue) return String is
-      TC : constant TypeCode.Object
-        := Get_Unwound_Type (NV.Argument);
+   function Value_Image (NV : NamedValue) return String is
+      TC : constant TypeCode.Object_Ptr := Get_Unwound_Type (NV.Argument);
       Kind : constant TCKind := TypeCode.Kind (TC);
    begin
       pragma Debug
-        (O ("Image: enter, Kind is "
+        (C, O ("Image: enter, Kind is "
                        & TCKind'Image (Kind)));
       case Kind is
          when
@@ -331,28 +327,18 @@ package body PolyORB.SOAP_P.Types is
             end if;
 
          when Tk_Enum =>
-            declare
-               Pos : constant PolyORB.Types.Unsigned_Long
-                 := From_Any
-                 (Get_Aggregate_Element
-                  (NV.Argument, TC_Unsigned_Long, 0));
-               Enumerator : constant PolyORB.Types.String
-                 := From_Any (TypeCode.Get_Parameter (TC, Pos + 2).all);
-            begin
-               return To_Standard_String (Enumerator);
-            end;
+            return To_Standard_String
+                     (TypeCode.Enumerator_Name (TC,
+                        Get_Aggregate_Element (NV.Argument, 0)));
 
          when Tk_Void =>
             return "";
 
          when others =>
             --  XXX ???
-            pragma Debug
-              (O ("Image: Unsupported typecode kind:"
-                               & TCKind'Image (Kind)));
-            raise Data_Error;
+            return "Image: Unsupported TCKind:" & TCKind'Image (Kind);
       end case;
-   end Image;
+   end Value_Image;
 
 --    function Image (O : XSD_Time_Instant) return String is
 
@@ -561,7 +547,7 @@ package body PolyORB.SOAP_P.Types is
       Kind : constant TCKind := TypeCode.Kind (Get_Unwound_Type (NV.Argument));
    begin
       pragma Debug
-        (O ("XML_Image: arg """
+        (C, O ("XML_Image: arg """
                          & To_Standard_String (XML_Image.NV.Name)
                          & """ is a " & TCKind'Image (Kind)));
 
@@ -584,10 +570,10 @@ package body PolyORB.SOAP_P.Types is
               & " xsi:null=""1""/>";
 
          when others =>
-            pragma Debug (O ("Defaulting."));
+            pragma Debug (C, O ("Defaulting."));
             return "<" & To_Standard_String (NV.Name)
               & xsi_type (XML_Type (NV)) & '>'
-              & Image (NV)
+              & Value_Image (NV)
               & "</" & To_Standard_String (NV.Name) & '>';
       end case;
    end XML_Image;
@@ -666,7 +652,7 @@ package body PolyORB.SOAP_P.Types is
       return "<" & Tag_Name
         & " id="""
         & PolyORB.Types.Trimmed_Image (Unsigned_Long_Long (Pos)) & """>"
-        & Image (NV)
+        & Value_Image (NV)
         & "</" & Tag_Name & ">";
    end XML_Enum_Image;
 
@@ -714,7 +700,7 @@ package body PolyORB.SOAP_P.Types is
               := To_URI (SOAP_Profile_Type (SOAP_Profile.all));
          begin
             pragma Debug
-              (O ("Exporting object with URI: " & URI));
+              (C, O ("Exporting object with URI: " & URI));
             Append (Result, URI);
          end;
       else
@@ -732,12 +718,13 @@ package body PolyORB.SOAP_P.Types is
       use Ada.Strings.Unbounded;
 
       Result : Unbounded_String;
-      Element_Type : constant PolyORB.Any.TypeCode.Object
-        := TypeCode.Content_Type (Get_Unwound_Type (NV.Argument));
+      Element_Type : constant PolyORB.Any.TypeCode.Local_Ref :=
+                                PolyORB.Any.TypeCode.To_Ref
+                                  (TypeCode.Content_Type
+                                   (Get_Unwound_Type (NV.Argument)));
       New_Line : constant String := ASCII.CR & ASCII.LF;
    begin
-      Append (Result, SOAP.Utils.Tag
-              (To_Standard_String (NV.Name), Start => True));
+      Append (Result, Tag (To_Standard_String (NV.Name), Start => True));
       Append (Result, New_Line);
 
       declare
@@ -755,15 +742,14 @@ package body PolyORB.SOAP_P.Types is
                 (Name     => To_PolyORB_String ("e"),
                  Argument =>
                    PolyORB.Any.Get_Aggregate_Element
-                 (NV.Argument, Element_Type, I),
+                     (NV.Argument, Element_Type, I),
                  Arg_Modes => ARG_IN)));
 
             Append (Result, New_Line);
          end loop;
       end;
 
-      Append (Result, SOAP.Utils.Tag
-              (To_Standard_String (NV.Name), Start => False));
+      Append (Result, Tag (To_Standard_String (NV.Name), Start => False));
 
       return To_String (Result);
    end XML_Sequence_Image;
@@ -772,13 +758,12 @@ package body PolyORB.SOAP_P.Types is
       use Ada.Strings.Unbounded;
 
       Result : Unbounded_String;
-      Data_Type : constant PolyORB.Any.TypeCode.Object
-        := Get_Unwound_Type (NV.Argument);
+      Data_Type : constant PolyORB.Any.TypeCode.Object_Ptr :=
+                    Get_Unwound_Type (NV.Argument);
       New_Line : constant String := ASCII.CR & ASCII.LF;
    begin
-      pragma Debug (O ("XML_Record_Image: enter"));
-      Append (Result, SOAP.Utils.Tag
-              (To_Standard_String (NV.Name), Start => True));
+      pragma Debug (C, O ("XML_Record_Image: enter"));
+      Append (Result, Tag (To_Standard_String (NV.Name), Start => True));
       Append (Result, New_Line);
 
       declare
@@ -789,12 +774,13 @@ package body PolyORB.SOAP_P.Types is
             Append
               (Result, XML_Image
                (PolyORB.Any.NamedValue'
-                (Name     =>
-                   PolyORB.Any.TypeCode.Member_Name (Data_Type, I),
+                (Name     => PolyORB.Any.TypeCode.Member_Name (Data_Type, I),
                  Argument =>
                    PolyORB.Any.Get_Aggregate_Element
-                 (NV.Argument, PolyORB.Any.TypeCode.Member_Type
-                  (Data_Type, I), I),
+                     (NV.Argument,
+                      PolyORB.Any.TypeCode.To_Ref
+                        (PolyORB.Any.TypeCode.Member_Type (Data_Type, I)),
+                      I),
                  Arg_Modes =>
                    ARG_IN)));
 
@@ -802,10 +788,9 @@ package body PolyORB.SOAP_P.Types is
          end loop;
       end;
 
-      Append (Result, SOAP.Utils.Tag
-              (To_Standard_String (NV.Name), Start => False));
+      Append (Result, Tag (To_Standard_String (NV.Name), Start => False));
 
-      pragma Debug (O ("XML_Record_Image: leave"));
+      pragma Debug (C, O ("XML_Record_Image: leave"));
       return To_String (Result);
    end XML_Record_Image;
 

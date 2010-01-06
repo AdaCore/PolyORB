@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2004 Free Software Foundation, Inc.             --
+--          Copyright (C) 2004-2008, Free Software Foundation, Inc.         --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -43,21 +43,21 @@ package body PolyORB.GIOP_P.Tagged_Components.Code_Sets.Print is
    use PolyORB.GIOP_P.Code_Sets;
    use PolyORB.GIOP_P.Code_Sets.Code_Set_Id_Lists;
 
-   function C_Hex_Image (Value : in Code_Set_Id) return String;
+   function C_Hex_Image (Value : Code_Set_Id) return String;
    --  Return 16-based C-style image of Code_Set_Id value.
 
    procedure Output
-     (List : in Code_Set_Id_List;
-      Data : in Character);
+     (List : Code_Set_Id_List;
+      Data : Character);
 
-   function Description (Code_Set : in Code_Set_Id) return String;
+   function Description (Code_Set : Code_Set_Id) return String;
    --  Return code set description.
 
    -----------------
    -- C_Hex_Image --
    -----------------
 
-   function C_Hex_Image (Value : in Code_Set_Id) return String is
+   function C_Hex_Image (Value : Code_Set_Id) return String is
       package Code_Set_Id_IO is new Ada.Text_IO.Modular_IO (Code_Set_Id);
       use Code_Set_Id_IO;
 
@@ -79,7 +79,7 @@ package body PolyORB.GIOP_P.Tagged_Components.Code_Sets.Print is
    -- Description --
    -----------------
 
-   function Description (Code_Set : in Code_Set_Id) return String is
+   function Description (Code_Set : Code_Set_Id) return String is
       package PGSD renames PolyORB.GIOP_P.Code_Sets.Description_Data;
    begin
       for J in PGSD.Info'Range loop
@@ -97,8 +97,8 @@ package body PolyORB.GIOP_P.Tagged_Components.Code_Sets.Print is
    ------------
 
    procedure Output
-     (List : in Code_Set_Id_List;
-      Data : in Character)
+     (List : Code_Set_Id_List;
+      Data : Character)
    is
       Iter : Code_Set_Id_Lists.Iterator;
    begin
@@ -122,7 +122,7 @@ package body PolyORB.GIOP_P.Tagged_Components.Code_Sets.Print is
    -- Output_TC --
    ---------------
 
-   procedure Output_TC (TC : in TC_Code_Sets) is
+   procedure Output_TC (TC : TC_Code_Sets) is
    begin
       Inc_Indent;
 

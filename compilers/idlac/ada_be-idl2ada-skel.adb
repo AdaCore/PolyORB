@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -181,7 +181,8 @@ package body Ada_Be.Idl2Ada.Skel is
             & " constant CORBA.Identifier");
       PL (CU, ":= CORBA.To_CORBA_String (""Type_Id"");");
       Divert (CU, Operation_Body);
-      PL (CU, T_Arg_Any & "Type_Id : CORBA.Any := CORBA.To_Any (Type_Id);");
+      PL (CU, T_Arg_Any
+        & "Type_Id : constant CORBA.Any := CORBA.To_Any (Type_Id);");
       PL (CU, "");
       PL (CU, T_Result & " : CORBA.Boolean;");
       DI (CU);
@@ -384,6 +385,7 @@ package body Ada_Be.Idl2Ada.Skel is
       Divert (CU, Operation_Body);
       NL (CU);
       Add_With (CU, "CORBA.ServerRequest");
+      Add_With (CU, "PolyORB.Std");
       PL (CU, "procedure Invoke");
       PL (CU, "  (Self : PortableServer.Servant;");
       II (CU);
@@ -391,7 +393,7 @@ package body Ada_Be.Idl2Ada.Skel is
       DI (CU);
       PL (CU, "is");
       II (CU);
-      PL (CU, "Operation : constant Standard.String");
+      PL (CU, "Operation : constant PolyORB.Std.String");
       PL (CU, "   := CORBA.To_Standard_String");
       PL (CU, "        (CORBA.ServerRequest.Operation");
       PL (CU, "         (Request.all));");
@@ -422,7 +424,6 @@ package body Ada_Be.Idl2Ada.Skel is
       P_Node : Node_Id;
    begin
       pragma Assert ((NK = K_Interface) or else (NK = K_ValueType));
-      Add_With (CU, "Ada.Exceptions");
 
       NL (CU);
       PL (CU, "else");
@@ -438,12 +439,11 @@ package body Ada_Be.Idl2Ada.Skel is
       PL (CU, "CORBA.ServerRequest.Set_Exception");
       PL (CU, "  (Request,");
       II (CU);
-      PL (CU, "CORBA.Internals.To_CORBA_Any");
-      PL (CU, "(PolyORB.CORBA_P.Exceptions.System_Exception_To_Any (E)));");
+      PL (CU, "PolyORB.CORBA_P.Exceptions.System_Exception_To_Any (E));");
       DI (CU);
-      PL (CU, "PolyORB.CORBA_P.Exceptions.Set_Ada_Exception_Information");
-      PL (CU, "  (Request,");
-      PL (CU, "   Ada.Exceptions.Exception_Information (E));");
+      Add_With (CU, "PolyORB.QoS.Exception_Informations");
+      PL (CU, "PolyORB.QoS.Exception_Informations.Set_Exception_Information");
+      PL (CU, "  (Request, E);");
       DI (CU);
       DI (CU);
       PL (CU, "end Invoke;");
@@ -464,9 +464,9 @@ package body Ada_Be.Idl2Ada.Skel is
       Divert (CU, Deferred_Initialization);
 
       PL (CU, "PortableServer.Internals.Register_Skeleton");
-      Put (CU, "  (CORBA.To_CORBA_String (");
+      Put (CU, "  (");
       Put (CU, Ada_Full_Name (Node));
-      PL (CU, "." & Repository_Id_Name (Node) &"),");
+      PL (CU, "." & Repository_Id_Name (Node) &",");
       if not Is_Delegate then
          PL (CU, "   Servant_Is_A'Access,");
          PL (CU, "   Is_A'Access,");
@@ -623,7 +623,7 @@ package body Ada_Be.Idl2Ada.Skel is
                            Add_With (CU, TC_Unit (P_Typ));
 
                            PL (CU, Justify (T_Arg_Any & Arg_Name, Max_Len)
-                               & " : CORBA.Any := "
+                               & " : constant CORBA.Any := "
                                & "CORBA.Internals.Get_Wrapper_Any ("
                                & Ada_Full_TC_Name (P_Typ) & ", "
                                & T_Arg_CC & Arg_Name & "'Unchecked_Access);");
@@ -663,7 +663,8 @@ package body Ada_Be.Idl2Ada.Skel is
 
                   Add_With (CU, TC_Unit (Org_O_Type));
                   PL (CU, Justify (T_Arg_Any & T_Result, Max_Len)
-                      & " : CORBA.Any := CORBA.Internals.Get_Wrapper_Any ("
+                      & " : constant CORBA.Any :="
+                      & " CORBA.Internals.Get_Wrapper_Any ("
                       & Ada_Full_TC_Name (Org_O_Type)
                       & ", " & T_Arg_CC & T_Result & "'Unchecked_Access);");
                end if;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -119,18 +119,17 @@ package body DynamicAny.DynStruct.Impl is
       ------------
 
       function Create
-        (Value  : PolyORB.Any.Any;
-         Parent : DynAny.Impl.Object_Ptr)
-         return DynAny.Local_Ref
+        (Value  : CORBA.Any;
+         Parent : DynAny.Impl.Object_Ptr) return DynAny.Local_Ref
       is
          Obj    : constant Object_Ptr := new Object;
 
          Result : DynAny.Local_Ref;
 
       begin
-         pragma Assert (Kind (Get_Type (Value)) = Tk_Struct);
+         pragma Assert (Kind (CORBA.Get_Type (Value)) = Tk_Struct);
 
-         Initialize (Obj, Value, Parent);
+         Initialize (Obj, PolyORB.Any.Any (Value), Parent);
 
          DynAny.Set (Result, PolyORB.Smart_Pointers.Entity_Ptr (Obj));
 
@@ -138,7 +137,7 @@ package body DynamicAny.DynStruct.Impl is
       end Create;
 
       function Create
-        (Value : PolyORB.Any.TypeCode.Object)
+        (Value : PolyORB.Any.TypeCode.Local_Ref)
          return DynAny.Local_Ref
       is
          Obj    : constant Object_Ptr := new Object;
@@ -161,7 +160,7 @@ package body DynamicAny.DynStruct.Impl is
 
       procedure Initialize
         (Self     : access Object'Class;
-         IDL_Type : PolyORB.Any.TypeCode.Object)
+         IDL_Type : PolyORB.Any.TypeCode.Local_Ref)
       is
       begin
          DynAny.Impl.Internals.Initialize (Self, IDL_Type);

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -33,9 +33,17 @@
 
 --  PolyORB runtime configuration facility.
 
+pragma Ada_2005;
+
 package PolyORB.Parameters is
 
-   pragma Elaborate_Body;
+   pragma Preelaborate;
+
+   ------------------
+   -- Consumer API --
+   ------------------
+
+   --  Used by modules that retrieve configuration information
 
    function Get_Conf
      (Section, Key : String;
@@ -45,7 +53,7 @@ package PolyORB.Parameters is
 
    function Get_Conf
      (Section, Key : String;
-      Default : Boolean := False) return Boolean;
+      Default      : Boolean := False) return Boolean;
    --  Return the value of the global variable Key or Default if this
    --  variable is not defined, interpreting the value as a Boolean:
    --  * True if the value starts with '1' or 'Y' or 'y',
@@ -57,7 +65,7 @@ package PolyORB.Parameters is
 
    function Get_Conf
      (Section, Key : String;
-      Default : Duration := 0.0) return Duration;
+      Default      : Duration := 0.0) return Duration;
    --  Return the value of the global variable Key or Default if this
    --  variable is not defined, interpreting the value as an integer
    --  milliseconds duration.
@@ -65,18 +73,36 @@ package PolyORB.Parameters is
 
    function Get_Conf
      (Section, Key : String;
-      Default : Integer := 0) return Integer;
+      Default      : Integer := 0) return Integer;
    --  Return the value of the global variable Key or Default if this
    --  variable is not defined, interpreting the value as the decimal
    --  representation of an integer number.
    --  Constraint_Error is raised if the value is set to anything else.
 
+   type Interval is record
+      Lo, Hi : Integer;
+   end record;
+
+   function Get_Conf
+     (Section, Key : String;
+      Default      : Interval := (0, 0)) return Interval;
+   --  Return the value of the global variable Key or Default if this
+   --  variable is not defined, interpreting the value as an integer interval
+   --  defined by its bounds in decimal representation, separated by an hyphen.
+   --  If a single integer is given, it is used as both the low and high
+   --  bounds.
+   --  Constraint_Error is raised if the value is set to anything else.
+
    function Make_Global_Key (Section, Key : String) return String;
    --  Build dynamic key from (Section, Key) tuple
 
-private
+   ------------------
+   -- Provider API --
+   ------------------
 
-   type Parameters_Source is abstract tagged limited null record;
+   --  Used by modules that provide configuration information
+
+   type Parameters_Source is abstract tagged limited private;
    type Parameters_Source_Access is access all Parameters_Source'Class;
 
    function Get_Conf
@@ -89,11 +115,20 @@ private
    --  Register one source of configuration parameters. Sources are queried
    --  at run time in the order they were registered.
 
+private
+
+   type Parameters_Source is abstract tagged limited null record;
+
    type Fetch_From_File_T is access function (Key : String) return String;
    Fetch_From_File_Hook : Fetch_From_File_T := null;
    --  The fetch-from-file hook allows the value of a configuration parameter
    --  to be loaded indirectly from a file; this is independent of the use of a
    --  PolyORB configuration file as a source of configuration parameters (but
    --  both facilities are provided by the PolyORB.Parameters.File package).
+
+   procedure Initialize;
+   --  Complete the initialization of the configuration parameters framework,
+   --  after all sources have been initialized.
+   --  See PolyORB.Parameters.Initialization.
 
 end PolyORB.Parameters;

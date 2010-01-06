@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -48,11 +48,10 @@ package body PolyORB.References.URI is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
-   pragma Unreferenced (C); --  For conditional pragma Debug
 
    type Profile_Record is record
       Tag                    : PolyORB.Binding_Data.Profile_Tag;
-      Proto_Ident            : Types.String;
+      Proto_Ident            : String_Ptr;
       Profile_To_String_Body : Profile_To_String_Body_Type;
       String_To_Profile_Body : String_To_Profile_Body_Type;
    end record;
@@ -116,7 +115,7 @@ package body PolyORB.References.URI is
          end;
       end loop;
 
-      pragma Debug (O ("Profile found :" & Natural'Image (N)));
+      pragma Debug (C, O ("Profile found :" & Natural'Image (N)));
    end Get_URI_List;
 
    -----------------------
@@ -132,7 +131,7 @@ package body PolyORB.References.URI is
       Iter : Iterator := First (Callbacks);
    begin
       pragma Assert (P /= null);
-      pragma Debug (O ("Profile to string with tag:"
+      pragma Debug (C, O ("Profile to string with tag:"
                        & Profile_Tag'Image (Get_Profile_Tag (P.all))));
 
       T := Get_Profile_Tag (P.all);
@@ -147,10 +146,10 @@ package body PolyORB.References.URI is
                     Info.Profile_To_String_Body (P);
                begin
                   if Str'Length /= 0 then
-                     pragma Debug (O ("Profile ok"));
+                     pragma Debug (C, O ("Profile ok"));
                      return Str;
                   else
-                     pragma Debug (O ("Profile not ok"));
+                     pragma Debug (C, O ("Profile not ok"));
                      return Null_String;
                   end if;
                end;
@@ -160,7 +159,7 @@ package body PolyORB.References.URI is
          Next (Iter);
       end loop;
 
-      pragma Debug (O ("Profile not ok"));
+      pragma Debug (C, O ("Profile not ok"));
       return Null_String;
    end Profile_To_String;
 
@@ -172,29 +171,25 @@ package body PolyORB.References.URI is
      (Obj_Addr : String) return Binding_Data.Profile_Access
    is
       use PolyORB.Types;
+      use PolyORB.Utils;
 
       Iter : Iterator := First (Callbacks);
    begin
-      pragma Debug (O ("String_To_Profile: enter with "
+      pragma Debug (C, O ("String_To_Profile: enter with "
                        & Obj_Addr));
 
       while not Last (Iter) loop
-         declare
-            Ident : String renames To_String (Value (Iter).Proto_Ident);
-         begin
-            if Obj_Addr'Length > Ident'Length
-              and then Obj_Addr (Ident'Range) = Ident then
-               pragma Debug
-                 (O ("Try to unmarshall profile with profile factory tag "
-                     & Profile_Tag'Image (Value (Iter).Tag)));
-               return Value (Iter).String_To_Profile_Body (Obj_Addr);
-            end if;
-         end;
+         if Has_Prefix (Obj_Addr, Prefix => Value (Iter).Proto_Ident.all) then
+            pragma Debug
+              (C, O ("Try to unmarshall profile with profile factory tag "
+                  & Profile_Tag'Image (Value (Iter).Tag)));
+            return Value (Iter).String_To_Profile_Body (Obj_Addr);
+         end if;
 
          Next (Iter);
       end loop;
 
-      pragma Debug (O ("Profile not found for " & Obj_Addr));
+      pragma Debug (C, O ("Profile not found for " & Obj_Addr));
       return null;
    end String_To_Profile;
 
@@ -207,10 +202,10 @@ package body PolyORB.References.URI is
      return String
    is
    begin
-      pragma Debug (O ("Create URI with best profile: Enter"));
+      pragma Debug (C, O ("Create URI with best profile: Enter"));
 
       if Is_Nil (URI) then
-         pragma Debug (O ("URI is Empty"));
+         pragma Debug (C, O ("URI is Empty"));
          return Null_String;
       else
          declare
@@ -241,7 +236,7 @@ package body PolyORB.References.URI is
                end;
             end loop;
 
-            pragma Debug (O ("Create URI with best profile: Leave"));
+            pragma Debug (C, O ("Create URI with best profile: Leave"));
 
             if Best_Profile_Index > 0 then
                declare
@@ -268,14 +263,14 @@ package body PolyORB.References.URI is
       Result : URI_Type;
       Pro    : Profile_Access;
    begin
-      pragma Debug (O ("Try to decode URI: enter "));
+      pragma Debug (C, O ("Try to decode URI: enter "));
       Pro := String_To_Profile (Str);
 
       if Pro /= null then
          Create_Reference ((1 => Pro), "", References.Ref (Result));
       end if;
 
-      pragma Debug (O ("Try to decode URI: leave "));
+      pragma Debug (C, O ("Try to decode URI: leave "));
       return Result;
    end String_To_Object;
 
@@ -289,9 +284,11 @@ package body PolyORB.References.URI is
       Profile_To_String_Body : Profile_To_String_Body_Type;
       String_To_Profile_Body : String_To_Profile_Body_Type) is
    begin
+      pragma Debug (C, O ("Register URI cb: prefix=" & Proto_Ident
+                            & " tag=" & Tag'Img));
       Append (Callbacks,
               Profile_Record'(Tag,
-                              Types.To_PolyORB_String (Proto_Ident),
+                              new String'(Proto_Ident),
                               Profile_To_String_Body,
                               String_To_Profile_Body));
    end Register;
@@ -318,8 +315,7 @@ package body PolyORB.References.URI is
    begin
       while not Last (Iter) loop
          Register_String_To_Object
-           (PolyORB.Types.To_String (Value (Iter).Proto_Ident),
-            String_To_Object'Access);
+           (Value (Iter).Proto_Ident.all, String_To_Object'Access);
          Next (Iter);
       end loop;
    end Initialize;

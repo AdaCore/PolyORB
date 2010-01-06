@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -52,7 +52,6 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
-   pragma Unreferenced (C); --  For conditional pragma Debug
 
    ------------
    -- Create --
@@ -139,7 +138,7 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
       Index : Integer;
 
    begin
-      pragma Debug (O ("Assign_Object_Identifier: enter"));
+      pragma Debug (C, O ("Assign_Object_Identifier: enter"));
 
       Enter (POA.Map_Lock);
 
@@ -158,7 +157,7 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
       end if;
 
       if Hint /= null then
-         pragma Debug (O ("Hint is not null"));
+         pragma Debug (C, O ("Hint is not null"));
 
          declare
             U_Hint : Unmarshalled_Oid;
@@ -199,7 +198,7 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
          end;
 
       else
-         pragma Debug (O ("Hint is null"));
+         pragma Debug (C, O ("Hint is null"));
          --  XXX possible memory leak, to investigate.
          --  XXX If the servant retention policy is NON_RETAIN, should we not
          --   get rid of the active object map altogether? But in that case how
@@ -223,12 +222,12 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
          Leave (POA.Map_Lock);
       end if;
 
-      pragma Debug (O ("Object Name is '"
+      pragma Debug (C, O ("Object Name is '"
                        & PolyORB.Types.Trimmed_Image (Long_Long (Index))
                        & "'"));
 
       U_Oid := The_Entry.Oid.all;
-      pragma Debug (O ("Assign_Object_Identifier: leave"));
+      pragma Debug (C, O ("Assign_Object_Identifier: leave"));
    end Assign_Object_Identifier;
 
    -----------------------------------

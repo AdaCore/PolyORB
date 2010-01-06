@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -37,90 +37,95 @@ with PolyORB.Opaque; use PolyORB.Opaque;
 
 package body PolyORB.Utils.Buffers is
 
-   ---------
-   -- Rev --
-   ---------
+   -------------------------------
+   -- Align_Transfer_Elementary --
+   -------------------------------
 
-   function Rev (Octets : Stream_Element_Array) return Stream_Element_Array;
-   pragma Inline (Rev);
-   --  Reverse the order of an array of octets
+   package body Align_Transfer_Elementary is
 
-   function Rev (Octets : Stream_Element_Array) return Stream_Element_Array
-   is
-      Result : Stream_Element_Array (Octets'Range);
-   begin
-      for J in Octets'Range loop
-         Result (Octets'Last - J + Octets'First) := Octets (J);
-      end loop;
+      subtype SEA is Stream_Element_Array (1 .. T'Size / 8);
+      Alignment_Of_T : constant Alignment_Type := Alignment_Of (T'Size / 8);
 
-      return Result;
-   end Rev;
+      --------------
+      -- Marshall --
+      --------------
 
-   ------------------------------------
-   -- Align_Marshall_Big_Endian_Copy --
-   ------------------------------------
+      procedure Marshall
+        (Buffer : access Buffer_Type;
+         Item   : T)
+      is
+         Item_Address : System.Address := Item'Address;
+         Data_Address : Opaque_Pointer;
+         Item_Swapped : aliased T;
+      begin
+         if Alignment_Of_T /= Align_1 and then With_Alignment then
+            Pad_Align (Buffer, Alignment_Of_T);
+         end if;
 
-   procedure Align_Marshall_Big_Endian_Copy
-     (Buffer    : access Buffer_Type;
-      Octets    :        Stream_Element_Array;
-      Alignment :        Alignment_Type := 1) is
-   begin
-      if Endianness (Buffer) = Big_Endian then
-         Align_Marshall_Copy (Buffer, Octets, Alignment);
-      else
-         Align_Marshall_Copy (Buffer, Rev (Octets), Alignment);
-      end if;
-   end Align_Marshall_Big_Endian_Copy;
+         Allocate_And_Insert_Cooked_Data (Buffer, T'Size / 8, Data_Address);
 
-   --------------------------------------
-   -- Align_Unmarshall_Big_Endian_Copy --
-   --------------------------------------
+         --  Note: we can't just have a T object at Data_Address and assign
+         --  it with Item / Swapped (Item) because Data_Address may not be
+         --  suitably aligned. So instead overlay a constrained stream element
+         --  array, and assign that.
 
-   function Align_Unmarshall_Big_Endian_Copy
-     (Buffer    : access Buffer_Type;
-      Size      : Stream_Element_Count;
-      Alignment : Alignment_Type := 1) return Stream_Element_Array
-   is
-   begin
-      if Endianness (Buffer) = Big_Endian then
-         return Align_Unmarshall_Copy (Buffer, Size, Alignment);
-      else
-         return Rev (Align_Unmarshall_Copy (Buffer, Size, Alignment));
-      end if;
-   end Align_Unmarshall_Big_Endian_Copy;
+         declare
+            Z_Addr : constant System.Address := Data_Address;
+            Z : SEA;
+            for Z'Address use Z_Addr;
+            pragma Import (Ada, Z);
+         begin
+            if Item'Size > 8 and then Endianness (Buffer) /= Host_Order then
+               Item_Swapped := Swapped (Item);
+               Item_Address := Item_Swapped'Address;
+            end if;
 
-   -------------------------------------
-   -- Align_Marshall_Host_Endian_Copy --
-   -------------------------------------
+            declare
+               Item_Storage : SEA;
+               pragma Import (Ada, Item_Storage);
+               for Item_Storage'Address use Item_Address;
+            begin
+               Z := Item_Storage;
+            end;
+         end;
+      end Marshall;
 
-   procedure Align_Marshall_Host_Endian_Copy
-     (Buffer    : access Buffer_Type;
-      Octets    : Stream_Element_Array;
-      Alignment : Alignment_Type := 1) is
-   begin
-      if Endianness (Buffer) = Host_Order then
-         Align_Marshall_Copy (Buffer, Octets, Alignment);
-      else
-         Align_Marshall_Copy (Buffer, Rev (Octets), Alignment);
-      end if;
-   end Align_Marshall_Host_Endian_Copy;
+      ----------------
+      -- Unmarshall --
+      ----------------
 
-   --------------------------------------
-   -- Align_Unmarshall_Host_Endian_Copy --
-   --------------------------------------
+      function Unmarshall (Buffer : access Buffer_Type) return T is
+         Data_Address : Opaque_Pointer;
+      begin
+         if Alignment_Of_T /= Align_1 and then With_Alignment then
+            Align_Position (Buffer, Alignment_Of_T);
+         end if;
+         Extract_Data (Buffer, Data_Address, T'Size / 8);
 
-   function Align_Unmarshall_Host_Endian_Copy
-     (Buffer    : access Buffer_Type;
-      Size      : Stream_Element_Count;
-      Alignment : Alignment_Type := 1) return Stream_Element_Array
-   is
-   begin
-      if Endianness (Buffer) = Host_Order then
-         return Align_Unmarshall_Copy (Buffer, Size, Alignment);
-      else
-         return Rev (Align_Unmarshall_Copy (Buffer, Size, Alignment));
-      end if;
-   end Align_Unmarshall_Host_Endian_Copy;
+         --  Note: Need to go through a stream element array to account for
+         --  possibly misaligned extracted data (see comments in Marshall).
+
+         declare
+            Z_Addr : constant System.Address := Data_Address;
+            Z : SEA;
+            for Z'Address use Z_Addr;
+            pragma Import (Ada, Z);
+
+            Item : aliased T;
+            Item_Storage : SEA;
+            pragma Import (Ada, Item_Storage);
+            for Item_Storage'Address use Item'Address;
+         begin
+            Item_Storage := Z;
+
+            if Item'Size > 8 and then Endianness (Buffer) = Host_Order then
+               return Item;
+            else
+               return Swapped (Item);
+            end if;
+         end;
+      end Unmarshall;
+   end Align_Transfer_Elementary;
 
    -------------------------
    -- Align_Marshall_Copy --
@@ -129,7 +134,7 @@ package body PolyORB.Utils.Buffers is
    procedure Align_Marshall_Copy
      (Buffer    : access Buffer_Type;
       Octets    : Stream_Element_Array;
-      Alignment : Alignment_Type := 1)
+      Alignment : Alignment_Type := Align_1)
    is
       Data_Address : Opaque_Pointer;
    begin
@@ -153,31 +158,34 @@ package body PolyORB.Utils.Buffers is
    -- Align_Unmarshall_Copy --
    ---------------------------
 
-   function Align_Unmarshall_Copy
+   procedure Align_Unmarshall_Copy
      (Buffer    : access Buffer_Type;
-      Size      : Stream_Element_Count;
-      Alignment : Alignment_Type := 1) return Stream_Element_Array
+      Alignment : Alignment_Type := Align_1;
+      Data      : out Stream_Element_Array)
    is
-      package FSU is new Fixed_Size_Unmarshall
-        (Size => Size, Alignment => Alignment);
+      Index : Stream_Element_Offset := Data'First;
+      Size  : Stream_Element_Count;
+
+      Data_Address : Opaque_Pointer;
    begin
-      return Stream_Element_Array (FSU.Align_Unmarshall (Buffer).all);
+      Align_Position (Buffer, Alignment);
+      while Index /= Data'Last + 1 loop
+         Size := Data'Last - Index + 1;
+         Partial_Extract_Data (Buffer, Data_Address, Size);
+         pragma Assert (Size > 0);
+         --  Size may be less than what we requested, in case we are at
+         --  a chunk boundary, but at least *some* data must always be
+         --  returned.
+
+         declare
+            Extracted_Data : Stream_Element_Array (1 .. Size);
+            for Extracted_Data'Address use Data_Address;
+            pragma Import (Ada, Extracted_Data);
+         begin
+            Data (Index .. Index + Size - 1) := Extracted_Data;
+         end;
+         Index := Index + Size;
+      end loop;
    end Align_Unmarshall_Copy;
-
-   ---------------------------
-   -- Fixed_Size_Unmarshall --
-   ---------------------------
-
-   package body Fixed_Size_Unmarshall is
-
-      function Align_Unmarshall (Buffer : access Buffer_Type) return AZ is
-         Data_Address : Opaque_Pointer;
-      begin
-         Align_Position (Buffer, Alignment);
-         Extract_Data (Buffer, Data_Address, Size);
-         return Address_To_Access_Conversion.To_Pointer (Data_Address);
-      end Align_Unmarshall;
-
-   end Fixed_Size_Unmarshall;
 
 end PolyORB.Utils.Buffers;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2000-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2000-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -34,7 +34,6 @@
 with PolyORB.Any;
 
 with PolyORB.SOAP_P.Types;
-with SOAP.Utils;
 with PolyORB.SOAP_P.Message.Response;
 
 package body PolyORB.SOAP_P.Message is
@@ -142,8 +141,7 @@ package body PolyORB.SOAP_P.Message is
 
       --  Close payload objects.
 
-      Append (Message_Body,
-              SOAP.Utils.Tag ("awsns:" & Wrapper_Name (M), False) & NL);
+      Append (Message_Body, Tag ("awsns:" & Wrapper_Name (M), False) & NL);
 
       return Message_Body;
    end XML_Image;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -46,7 +46,6 @@ package body PolyORB.Object_Maps.User is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
-   pragma Unreferenced (C); --  For conditional pragma Debug
 
    ----------------
    -- Initialize --
@@ -86,7 +85,7 @@ package body PolyORB.Object_Maps.User is
       Item  : PolyORB.POA_Types.Unmarshalled_Oid)
      return Object_Map_Entry_Access is
    begin
-      pragma Debug (O ("User generated OID, look up in table"));
+      pragma Debug (C, O ("User generated OID, look up in table"));
 
       return Lookup (O_Map.User_Map, To_Standard_String (Item.Id), null);
    end Get_By_Id;
@@ -106,11 +105,11 @@ package body PolyORB.Object_Maps.User is
    begin
       while not Last (It) loop
          if not Is_Null (Value (It)) then
-            pragma Debug (O ("Examinating elt: "
+            pragma Debug (C, O ("Examinating elt: "
                              & To_Standard_String (Value (It).Oid.Id)));
 
             if Value (It).Servant = Item then
-               pragma Debug (O ("Found !"));
+               pragma Debug (C, O ("Found !"));
                return Value (It);
             end if;
          end if;
@@ -118,7 +117,7 @@ package body PolyORB.Object_Maps.User is
          Next (It);
       end loop;
 
-      pragma Debug (O ("Not Found !"));
+      pragma Debug (C, O ("Not Found !"));
       return null;
    end Get_By_Servant;
 

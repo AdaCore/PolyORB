@@ -33,6 +33,7 @@
 
 with CORBA.Object;
 with PolyORB.Utils.Report;
+pragma Elaborate_All (PolyORB.Utils.Report);
 
 package Utils is
 

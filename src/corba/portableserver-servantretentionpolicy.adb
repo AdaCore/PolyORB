@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -56,12 +56,7 @@ package body PortableServer.ServantRetentionPolicy is
    -- To_Ref --
    ------------
 
-   function To_Ref
-     (The_Ref : CORBA.Object.Ref'Class)
-     return Ref
-   is
-      use type CORBA.PolicyType;
-
+   function To_Ref (The_Ref : CORBA.Object.Ref'Class) return Ref is
    begin
       if The_Ref not in CORBA.Policy.Ref'Class
         or else Get_Policy_Type (CORBA.Policy.Ref (The_Ref)) /=
@@ -117,22 +112,22 @@ package body PortableServer.ServantRetentionPolicy is
    begin
       pragma Assert (The_Type = SERVANT_RETENTION_POLICY_ID);
 
-      if Get_Type (Value) /= TC_ServantRetentionPolicyValue then
+      if Get_Type (Value)
+           /= TC_ServantRetentionPolicyValue
+      then
          Raise_PolicyError ((Reason => BAD_POLICY_TYPE));
       end if;
 
       declare
-         Index : CORBA.Any
-           := CORBA.Internals.Get_Aggregate_Element (Value,
-                                                     CORBA.TC_Unsigned_Long,
-                                                     CORBA.Unsigned_Long (0));
-         Position : constant CORBA.Unsigned_Long := CORBA.From_Any (Index);
+         Position : constant CORBA.Unsigned_Long :=
+                      CORBA.From_Any
+                        (CORBA.Internals.Get_Aggregate_Element
+                         (Value,
+                          CORBA.TC_Unsigned_Long,
+                          CORBA.Unsigned_Long (0)));
       begin
-         if Position not in
-           ServantRetentionPolicyValue'Pos
-            (ServantRetentionPolicyValue'First) ..
-           ServantRetentionPolicyValue'Pos
-            (ServantRetentionPolicyValue'Last)
+         if Position > ServantRetentionPolicyValue'Pos
+                         (ServantRetentionPolicyValue'Last)
          then
             Raise_PolicyError ((Reason => BAD_POLICY_VALUE));
          end if;
@@ -178,7 +173,7 @@ begin
      (Module_Info'
       (Name      => +"portableserver.servantretentionpolicy",
        Conflicts => Empty,
-       Depends   => Empty,
+       Depends   => +"PortableServer.Helper",
        Provides  => Empty,
        Implicit  => False,
        Init      => Deferred_Initialization'Access,

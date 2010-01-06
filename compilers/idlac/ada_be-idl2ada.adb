@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -38,7 +38,7 @@
 --  XXX The latter should be moved away to a Ada_Be.Idl2Ada.Stubs
 --  child unit one day.
 
-with Ada.Characters.Handling;
+with Ada.Characters.Conversions;
 with Ada.Strings.Unbounded;
 with Ada.Unchecked_Deallocation;
 
@@ -62,8 +62,8 @@ with Ada_Be.Idl2Ada.IR_Info;
 with Ada_Be.Mappings;       use Ada_Be.Mappings;
 with Ada_Be.Mappings.CORBA; use Ada_Be.Mappings.CORBA;
 
-with Errors;                use Errors;
-with Utils;                 use Utils;
+with Idlac_Errors;          use Idlac_Errors;
+with Idlac_Utils;           use Idlac_Utils;
 
 with Ada.Strings.Fixed;     use Ada.Strings.Fixed;
 
@@ -541,8 +541,8 @@ package body Ada_Be.Idl2Ada is
                Original_VT_Name : constant String
                  := Ada_Full_Name
                  (Oldest_Supporting_ValueType (Node));
-               Self_Expr : constant String
-                 := Self_For_Operation (Mapping, Node);
+               Self_Expr : constant String :=
+                             Self_For_Operation (Mapping, Node);
             begin
                if not Is_Implicit_Inherited (Node) then
                   Add_With (CU, Parent_Scope_Name (Node)
@@ -1138,9 +1138,10 @@ package body Ada_Be.Idl2Ada is
       CU   : in out Compilation_Unit)
    is
    begin
+      Add_With (CU, "PolyORB.Std");
       NL (CU);
       PL (CU, Repository_Id_Name (Node)
-          & " : constant Standard.String");
+          & " : constant PolyORB.Std.String");
       PL (CU, "  := """ & Idl_Repository_Id (Node) & """;");
    end Gen_Repository_Id;
 
@@ -1167,13 +1168,13 @@ package body Ada_Be.Idl2Ada is
       PL (Stubs_Spec, "  (Self : "
           & Ada_Type_Defining_Name (Mapping, Node)
           & ";");
-      PL (Stubs_Spec, "   Logical_Type_Id : Standard.String)");
+      PL (Stubs_Spec, "   Logical_Type_Id : PolyORB.Std.String)");
       PL (Stubs_Spec, "  return CORBA.Boolean;");
 
       Divert (Stubs_Spec, Private_Declarations);
       NL (Stubs_Spec);
       PL (Stubs_Spec, "function Is_A");
-      PL (Stubs_Spec, "  (Logical_Type_Id : Standard.String)");
+      PL (Stubs_Spec, "  (Logical_Type_Id : PolyORB.Std.String)");
       PL (Stubs_Spec, "  return CORBA.Boolean;");
       Divert (Stubs_Spec, Visible_Declarations);
 
@@ -1188,7 +1189,7 @@ package body Ada_Be.Idl2Ada is
       PL (Stubs_Body, "  (Self : "
           & Ada_Type_Defining_Name (Mapping, Node)
           & ";");
-      PL (Stubs_Body, "   Logical_Type_Id : Standard.String)");
+      PL (Stubs_Body, "   Logical_Type_Id : PolyORB.Std.String)");
       PL (Stubs_Body, "  return CORBA.Boolean");
       PL (Stubs_Body, "is");
       PL (Stubs_Body, "begin");
@@ -1296,14 +1297,16 @@ package body Ada_Be.Idl2Ada is
       NL (Impl_Spec);
       PL (Impl_Spec, "function Is_A");
       PL (Impl_Spec, "  (Self            : access Object;");
-      PL (Impl_Spec, "   Logical_Type_Id : Standard.String) return Boolean;");
+      PL (Impl_Spec, "   Logical_Type_Id : PolyORB.Std.String) "
+                   & "return Boolean;");
 
       --  Implementation
 
       NL (Impl_Body);
       PL (Impl_Body, "function Is_A");
       PL (Impl_Body, "  (Self            : access Object;");
-      PL (Impl_Body, "   Logical_Type_Id : Standard.String) return Boolean");
+      PL (Impl_Body, "   Logical_Type_Id : PolyORB.Std.String) "
+                   & "return Boolean");
       PL (Impl_Body, "is");
       PL (Impl_Body, "begin");
       II (Impl_Body);
@@ -1334,7 +1337,7 @@ package body Ada_Be.Idl2Ada is
       PL (CU, "--  this interface.");
       NL (CU);
       PL (CU, "function Is_A");
-      PL (CU, "  (Logical_Type_Id : Standard.String)");
+      PL (CU, "  (Logical_Type_Id : PolyORB.Std.String)");
       PL (CU, "  return CORBA.Boolean");
       PL (CU, "is");
       PL (CU, "begin");
@@ -1409,7 +1412,7 @@ package body Ada_Be.Idl2Ada is
 
       PL (CU, " with null record;");
       --  The type is not produced as a private extension declaration, because
-      --  we may need to use it as a generic actual parameter to instanciate
+      --  we may need to use it as a generic actual parameter to instantiate
       --  CORBA.Forward.
 
    end Gen_Client_Stub_Type_Declaration;
@@ -1832,7 +1835,8 @@ package body Ada_Be.Idl2Ada is
                               end if;
 
                               Put (CU, "0 .. ");
-                              Gen_Node_Stubs_Spec (CU, Bound_Node);
+                              Gen_Constant_Value
+                                (CU, Expr => Bound_Node, Typ => No_Node);
                               Put (CU, " - 1");
                            end loop;
                            PL (CU, ") of");
@@ -1994,9 +1998,6 @@ package body Ada_Be.Idl2Ada is
          when K_Const_Dcl =>
 
             NL (CU);
-            Put (CU, "use type ");
-            Gen_Node_Stubs_Spec (CU, Constant_Type (Node));
-            PL (CU, ";");
             Put (CU, Name (Node) & " : constant ");
             Gen_Node_Stubs_Spec (CU, Constant_Type (Node));
             NL (CU);
@@ -2145,6 +2146,9 @@ package body Ada_Be.Idl2Ada is
                Is_Function   : constant Boolean := Kind (O_Type) /= K_Void;
                Decls_Div     : constant Diversion := Current_Diversion (CU);
 
+               Self_Expr : constant String :=
+                             Self_For_Operation (Mapping, Node);
+
                procedure Gen_Object_Self_Nil_Check;
                --  Generate object reference nil check
 
@@ -2156,7 +2160,7 @@ package body Ada_Be.Idl2Ada is
                begin
                   NL (CU);
                   PL (CU,
-                      "if CORBA.Object.Is_Nil (" & T_Self_Ref & ") then");
+                      "if Is_Nil (" & Self_Expr & ") then");
                   II (CU);
                   PL (CU, "CORBA.Raise_Inv_Objref (Default_Sys_Member);");
                   DI (CU);
@@ -2189,11 +2193,6 @@ package body Ada_Be.Idl2Ada is
 
                   begin
                      Add_With (CU, Impl_U_Name);
-                     Add_With (CU, "CORBA.Object");
-
-                     PL (CU, T_Self_Ref & " : CORBA.Object.Ref");
-                     PL (CU, "  := CORBA.Object.Ref ("
-                         & Self_For_Operation (Mapping, Node) & ");");
 
                      DI (CU);
                      PL (CU, "begin");
@@ -2313,7 +2312,7 @@ package body Ada_Be.Idl2Ada is
                                  Divert (CU, Decls_Div);
                                  NL (CU);
                                  PL (CU, O_Name & T_Arg_Name & Arg_Name
-                                     & " : PolyORB.Types.Identifier");
+                                     & " : constant PolyORB.Types.Identifier");
                                  PL (CU,
                                      "  := PolyORB.Types.To_PolyORB_String ("""
                                      & Arg_Name & """);");
@@ -2329,7 +2328,7 @@ package body Ada_Be.Idl2Ada is
 
                                  Add_With (CU, TC_Unit (P_Typ));
                                  PL (CU, T_Arg_Any & Arg_Name
-                                     & " : CORBA.Any :="
+                                     & " : constant CORBA.Any :="
                                      & " CORBA.Internals.Get_Wrapper_Any ("
                                      & Ada_Full_TC_Name (P_Typ) & ", "
                                      & T_Arg_CC & Arg_Name
@@ -2349,10 +2348,6 @@ package body Ada_Be.Idl2Ada is
                      NL (CU);
 
                      Add_With (CU, "CORBA.Object");
-                     PL (CU, T_Self_Ref & " : CORBA.Object.Ref");
-                     PL (CU, "  := CORBA.Object.Ref ("
-                         & Self_For_Operation (Mapping, Node) & ");");
-                     NL (CU);
                      PL (CU, T_Request
                          & " : PolyORB.Requests.Request_Access;");
 
@@ -2387,16 +2382,15 @@ package body Ada_Be.Idl2Ada is
                                  PL (CU, "PolyORB.Any.NVList.Add_Item");
                                  PL (CU, "  (" & T_Arg_List & ",");
                                  II (CU);
-                                 PL (CU, O_Name & T_Arg_Name
-                                     & Arg_Name & ",");
+                                 PL (CU, O_Name & T_Arg_Name & Arg_Name & ",");
 
-                                 PL (CU,
-                                     Conditional_Call
-                                       (Func      => "PolyORB.Any.Copy_Any",
-                                        Only_When => not Response_Expected,
-                                        Expr      =>
-                                          "CORBA.Internals.To_PolyORB_Any ("
-                                            & T_Arg_Any & Arg_Name & ")"));
+                                 Put (CU,
+                                      Conditional_Call
+                                        (Func      => "PolyORB.Any.Copy_Any",
+                                         Only_When => not Response_Expected,
+                                         Expr      => "PolyORB.Any.Any ("
+                                                      & T_Arg_Any & Arg_Name
+                                                      & ")"));
                                  PL (CU, ",");
                               end;
 
@@ -2456,12 +2450,12 @@ package body Ada_Be.Idl2Ada is
                      NL (CU);
                      PL (CU, T_Result & "_NV :=");
                      PL (CU, " (Name     => " & T_Result_Name & ",");
-                     PL (CU, "  Argument => CORBA.Internals.To_PolyORB_Any (");
+                     PL (CU, "  Argument =>");
 
                      Add_With (CU, TC_Unit (Org_O_Type));
                      II (CU);
                      PL (CU, "CORBA.Internals.Get_Empty_Any ("
-                         & Ada_Full_TC_Name (Org_O_Type) & ")),");
+                         & Ada_Full_TC_Name (Org_O_Type) & "),");
                      PL (CU, "Arg_Modes => 0);");
                      DI (CU);
                      if Kind (Org_O_Type) /= K_Void then
@@ -2503,34 +2497,10 @@ package body Ada_Be.Idl2Ada is
                      PL (CU,
                          "PolyORB.CORBA_P.Interceptors_Hooks.Client_Invoke");
                      PL (CU, "  (" & T_Request
-                       & ", PolyORB.Requests.Flags (0));");
+                         & ", PolyORB.Requests.Flags (0));");
 
-                     PL (CU, "if not PolyORB.Any.Is_Empty (" & T_Request
-                         & ".Exception_Info) then");
-                     II (CU);
-                     PL (CU, "declare");
-                     II (CU);
-                     PL (CU, "Message : constant Standard.String");
-                     PL (CU, "  := PolyORB.CORBA_P.Exceptions."
-                         & "Extract_Ada_Exception_Information");
-                     PL (CU, "  (" & T_Request & ");");
-                     DI (CU);
-                     NL (CU);
-                     PL (CU, "begin");
-                     II (CU);
-                     PL (CU, T_Result & "_NV.Argument := "
-                         & T_Request & ".Exception_Info;");
-                     PL (CU, "PolyORB.Requests.Destroy_Request"
-                         & " (" & T_Request & ");");
-                     PL (CU, "PolyORB.CORBA_P.Exceptions.Raise_From_Any");
-                     PL (CU, "  (" & T_Result & "_NV.Argument, Message);");
-                     DI (CU);
-                     PL (CU, "end;");
-                     NL (CU);
-                     PL (CU, "--  Not reached");
-                     NL (CU);
-                     DI (CU);
-                     PL (CU, "end if;");
+                     PL (CU, "PolyORB.CORBA_P.Exceptions."
+                         & "Request_Raise_Occurrence (" & T_Request & ");");
 
                      PL (CU, "PolyORB.Requests.Destroy_Request ("
                          & T_Request & ");");
@@ -2538,7 +2508,7 @@ package body Ada_Be.Idl2Ada is
                      if Response_Expected then
 
                         NL (CU);
-                        PL (CU, "--  Request has been synchronously invoked.");
+                        PL (CU, "--  Request has been synchronously invoked");
                         NL (CU);
 
                         if Kind (Org_O_Type) /= K_Void
@@ -2728,7 +2698,7 @@ package body Ada_Be.Idl2Ada is
               (CU, Declarator (Node), Object_Type);
             case Mode (Node) is
                when Mode_In =>
-                  Put (CU, " : in ");
+                  Put (CU, " : ");
                when Mode_Out =>
                   Put (CU, " : out ");
                when Mode_Inout =>
@@ -3011,12 +2981,22 @@ package body Ada_Be.Idl2Ada is
       return Ada_Name (Repository_Id_Identifier (Node));
    end Repository_Id_Name;
 
+   ------------------------
+   -- Gen_Constant_Value --
+   ------------------------
+
    procedure Gen_Constant_Value
      (CU   : in out Compilation_Unit;
       Expr : Node_Id;
       Typ  : Node_Id)
    is
       Value : constant Constant_Value_Ptr := Expr_Value (Expr);
+
+      To_CORBA_Prefix   : aliased String := "To_CORBA";
+      To_Bounded_Prefix : aliased String := "To_Bounded";
+      String_Cvt_Prefix : constant array (Boolean) of access String :=
+                            (False => To_CORBA_Prefix'Access,
+                             True  => To_Bounded_Prefix'Access);
    begin
       case Value.Kind is
          when
@@ -3028,13 +3008,30 @@ package body Ada_Be.Idl2Ada is
            C_ULongLong       |
            C_Octet           |
            C_General_Integer =>
-            Put (CU, Img (Integer_Value (Expr)));
+
+            declare
+               Int_Val : constant Idl_Integer := Integer_Value (Expr);
+            begin
+               --  If the value is negative, we use an expanded name for the
+               --  "-" operator, because it might not be directly visible. For
+               --  example, CORBA."-" (1234). If Typ is not provided, assume
+               --  that the "-" operator is directly visible (case of the
+               --  index type of an IDL array, which is Standard.Integer).
+
+               if Present (Typ) and then Int_Val < 0 then
+                  Put (CU, Library_Unit_Name (Mapping, Typ) & ".""-"" (");
+                  Put (CU, Img (-Int_Val));
+                  Put (CU, ")");
+               else
+                  Put (CU, Img (Int_Val));
+               end if;
+            end;
 
          when C_Char =>
             Put (CU, "'" & Value.Char_Value & "'");
 
          when C_WChar =>
-            Put (CU, Ada.Characters.Handling.To_String
+            Put (CU, Ada.Characters.Conversions.To_String
                  ("'" & Value.WChar_Value & "'"));
 
          when C_Boolean =>
@@ -3051,15 +3048,12 @@ package body Ada_Be.Idl2Ada is
            C_Fixed         |
            C_General_Fixed =>
             declare
-               Value_Digits : constant String
-                 := Img (Value.Fixed_Value);
+               Value_Digits : constant String := Img (Value.Fixed_Value);
+               Zeroes : constant String (1 .. Integer (Value.Scale)
+                                                - Value_Digits'Length + 1) :=
+                          (others => '0');
 
-               Zeroes : constant String
-                 (1 .. Integer (Value.Scale) - Value_Digits'Length + 1)
-                 := (others => '0');
-
-               All_Digits : constant String
-                 := Zeroes & Value_Digits;
+               All_Digits : constant String := Zeroes & Value_Digits;
             begin
                if Value.Scale = 0 then
                   Put (CU, Value_Digits);
@@ -3076,15 +3070,27 @@ package body Ada_Be.Idl2Ada is
             end;
 
          when C_String =>
-            Put (CU, Library_Unit_Name (Mapping, Typ)
-                 & ".To_CORBA_String ("""
-                 & String_Value (Expr) & """)");
+            declare
+               Bounded : constant Boolean := Present (Bound (Root_Type (Typ)));
+            begin
+               Put (CU, Library_Unit_Name (Mapping, Typ)
+                    & "."
+                    & String_Cvt_Prefix (Bounded).all
+                    & "_String ("""
+                    & String_Value (Expr) & """)");
+            end;
 
          when C_WString =>
-            Put (CU, Library_Unit_Name (Mapping, Typ)
-                 & ".To_CORBA_Wide_String ("""
-                 & Ada.Characters.Handling.To_String
-                 (WString_Value (Expr)) & """)");
+            declare
+               Bounded : constant Boolean := Present (Bound (Root_Type (Typ)));
+            begin
+               Put (CU, Library_Unit_Name (Mapping, Typ)
+                    & "."
+                    & String_Cvt_Prefix (Bounded).all
+                    & "_Wide_String ("""
+                    & Ada.Characters.Conversions.To_String
+                    (WString_Value (Expr)) & """)");
+            end;
 
          when C_Enum =>
             Put (CU, Ada_Full_Name (Enum_Value (Expr)));
@@ -3215,7 +3221,7 @@ package body Ada_Be.Idl2Ada is
       if With_Dependency'Length /= 0 then
          PL (CU, "+""" & With_Dependency & """");
       else
-         PL (CU, "Empty");
+         PL (CU, "PolyORB.Initialization.String_Lists.Empty");
       end if;
 
       Divert (CU, Visible_Declarations);
@@ -3260,12 +3266,12 @@ package body Ada_Be.Idl2Ada is
       PL (CU, "  (Module_Info'");
       II (CU);
       PL (CU, "(Name      => +""" & Name (CU) & """,");
-      PL (CU, " Conflicts => Empty,");
+      PL (CU, " Conflicts => PolyORB.Initialization.String_Lists.Empty,");
       PL (CU, " Depends   =>");
       Undivert (CU, Initialization_Dependencies);
 
       PL (CU, " ,");
-      PL (CU, " Provides  => Empty,");
+      PL (CU, " Provides  => PolyORB.Initialization.String_Lists.Empty,");
       PL (CU, " Implicit  => False,");
       PL (CU, " Init      => Deferred_Initialization'Access,");
       PL (CU, " Shutdown  => null));");

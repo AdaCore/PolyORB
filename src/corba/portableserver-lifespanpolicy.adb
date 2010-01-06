@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -56,11 +56,7 @@ package body PortableServer.LifespanPolicy is
    -- To_Ref --
    ------------
 
-   function To_Ref
-     (The_Ref : CORBA.Object.Ref'Class)
-     return Ref
-   is
-      use type CORBA.PolicyType;
+   function To_Ref (The_Ref : CORBA.Object.Ref'Class) return Ref is
    begin
       if The_Ref not in CORBA.Policy.Ref'Class
         or else Get_Policy_Type (CORBA.Policy.Ref (The_Ref)) /=
@@ -121,24 +117,22 @@ package body PortableServer.LifespanPolicy is
       end if;
 
       declare
-         Index : CORBA.Any
-           := CORBA.Internals.Get_Aggregate_Element (Value,
-                                                     CORBA.TC_Unsigned_Long,
-                                                     CORBA.Unsigned_Long (0));
-         Position : constant CORBA.Unsigned_Long := CORBA.From_Any (Index);
+         Position : constant CORBA.Unsigned_Long :=
+                      CORBA.From_Any
+                        (CORBA.Internals.Get_Aggregate_Element
+                          (Value,
+                           CORBA.TC_Unsigned_Long,
+                           CORBA.Unsigned_Long (0)));
       begin
-         if Position not in
-           LifespanPolicyValue'Pos (LifespanPolicyValue'First) ..
-           LifespanPolicyValue'Pos (LifespanPolicyValue'Last)
-         then
+         if Position > LifespanPolicyValue'Pos (LifespanPolicyValue'Last) then
             Raise_PolicyError ((Reason => BAD_POLICY_VALUE));
          end if;
       end;
 
       declare
          Result : CORBA.Policy.Ref;
-         Entity : constant PolyORB.Smart_Pointers.Entity_Ptr
-           := new Policy_Object_Type;
+         Entity : constant PolyORB.Smart_Pointers.Entity_Ptr :=
+                    new Policy_Object_Type;
       begin
          Set_Policy_Type (Policy_Object_Type (Entity.all), The_Type);
          Set_Policy_Value (Policy_Object_Type (Entity.all), Value);
@@ -174,7 +168,7 @@ begin
      (Module_Info'
       (Name      => +"portableserver.lifespanpolicy",
        Conflicts => Empty,
-       Depends   => Empty,
+       Depends   => +"PortableServer.Helper",
        Provides  => Empty,
        Implicit  => False,
        Init      => Deferred_Initialization'Access,

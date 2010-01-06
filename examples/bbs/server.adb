@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2002 Free Software Foundation, Inc.             --
+--         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -52,8 +52,8 @@ package body Server is
    protected Message_Board is
 
       procedure Add_Message
-        (Sender  : in String;
-         Content : in String);
+        (Sender  : String;
+         Content : String);
       --  Add a message to the message board. Sender_Error and Message_Error
       --  will be raised if the sender or the message are empty.
 
@@ -95,7 +95,7 @@ package body Server is
 
    protected Penpals_Handler is
 
-      procedure Add (Penpal : in Penpal_Pointer);
+      procedure Add (Penpal : Penpal_Pointer);
       --  Add a Penpal to the list, raise Sender_Error if the penpal has not
       --  been initialized.
 
@@ -122,7 +122,7 @@ package body Server is
    -- Broadcast --
    ---------------
 
-   procedure Broadcast (Sender : in String; Message : in String) is
+   procedure Broadcast (Sender : String; Message : String) is
       Penpals : constant Penpal_Array := Penpals_Handler.Get_List;
    begin
       Put_Line ("Sending a broadcast to " &
@@ -184,8 +184,8 @@ package body Server is
       -----------------
 
       procedure Add_Message
-        (Sender  : in String;
-         Content : in String)
+        (Sender  : String;
+         Content : String)
       is
       begin
          if Sender = "" then
@@ -264,7 +264,7 @@ package body Server is
       -- Add --
       ---------
 
-      procedure Add (Penpal : in Penpal_Pointer) is
+      procedure Add (Penpal : Penpal_Pointer) is
          Name    : constant String := Name_Of (Penpal);
          Current : Penpal_List     := Lookup (Name);
       begin
@@ -343,8 +343,8 @@ package body Server is
    ------------------
 
    procedure Post_Message
-     (Sender  : in String;
-      Message : in String)
+     (Sender  : String;
+      Message : String)
    is
    begin
       --  Add the message to the message board
@@ -362,7 +362,7 @@ package body Server is
    -- Register --
    --------------
 
-   procedure Register (Penpal : in Penpal_Pointer) is
+   procedure Register (Penpal : Penpal_Pointer) is
    begin
       Put_Line ("Registering a new penpal <" & Name_Of (Penpal) & ">");
       Penpals_Handler.Add (Penpal);

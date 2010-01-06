@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---           Copyright (C) 2006, Free Software Foundation, Inc.             --
+--         Copyright (C) 2006-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -63,7 +63,6 @@ package body PolyORB.QoS.Term_Manager_Info is
                 renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
                renames L.Enabled;
-   pragma Unreferenced (C); --  For conditional pragma Debug
 
    ---------------
    -- Callbacks --
@@ -107,7 +106,7 @@ package body PolyORB.QoS.Term_Manager_Info is
          --  If reference is already set, no need to extract info again
 
          if Is_Nil (Note.TM_Ref) then
-            pragma Debug (O ("Extracting TM info from request"));
+            pragma Debug (C, O ("Extracting TM info from request"));
 
             --  Extract the QoS parameter from the request
 
@@ -137,13 +136,13 @@ package body PolyORB.QoS.Term_Manager_Info is
 
       declare
          TMInfo : QoS_DSA_TM_Info_Parameter
-         renames QoS_DSA_TM_Info_Parameter (QoS.all);
+                    renames QoS_DSA_TM_Info_Parameter (QoS.all);
          Buffer : Buffer_Access := new Buffer_Type;
 
       begin
          Start_Encapsulation (Buffer);
 
-         pragma Debug (O ("Encapsulate :" & Image (TMInfo.TM_Ref)));
+         pragma Debug (C, O ("Encapsulate :" & Image (TMInfo.TM_Ref)));
 
          Marshall_IOR (Buffer, TMInfo.TM_Ref);
          Result.Context_Data := new Encapsulation'(Encapsulate (Buffer));
@@ -167,7 +166,7 @@ package body PolyORB.QoS.Term_Manager_Info is
       Decapsulate (SC.Context_Data, Buffer'Access);
       TM_Ref := Unmarshall_IOR (Buffer'Access);
 
-      pragma Debug (O ("Decapsulate:" & Image (TM_Ref)));
+      pragma Debug (C, O ("Decapsulate:" & Image (TM_Ref)));
 
       return new QoS_DSA_TM_Info_Parameter'(Kind       => DSA_TM_Info,
                                             TM_Ref     => TM_Ref);

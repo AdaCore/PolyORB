@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -52,7 +52,6 @@ package body PolyORB.ORB.No_Tasking is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
-   pragma Unreferenced (C); --  For conditional pragma Debug
 
    -----------------------------
    -- Handle_Close_Connection --
@@ -86,7 +85,7 @@ package body PolyORB.ORB.No_Tasking is
 
    begin
 
-      pragma Debug (O ("New client connection"));
+      pragma Debug (C, O ("New client connection"));
 
       Components.Emit_No_Reply (Component_Access (AC.TE),
          Connect_Confirmation'(null record));
@@ -109,7 +108,7 @@ package body PolyORB.ORB.No_Tasking is
       pragma Warnings (On);
 
    begin
-      pragma Debug (O ("New server connection"));
+      pragma Debug (C, O ("New server connection"));
 
       Components.Emit_No_Reply (Component_Access (AC.TE),
          Connect_Indication'(null record));
@@ -126,15 +125,15 @@ package body PolyORB.ORB.No_Tasking is
       ORB :        ORB_Access;
       RJ  : access Request_Job'Class)
    is
-      pragma Warnings (Off);
-      pragma Unreferenced (P, ORB);
-      pragma Warnings (On);
-
+      pragma Unreferenced (P);
+      J : Job_Access := Job_Access (RJ);
    begin
-      pragma Debug (O ("Request execution"));
+      pragma Debug (C, O ("Request execution"));
 
-      Run_Request (RJ);
       --  No tasking: execute the request in the current task.
+
+      Run_Request (ORB, RJ.Request);
+      Free (J);
    end Handle_Request_Execution;
 
    ----------
@@ -153,30 +152,13 @@ package body PolyORB.ORB.No_Tasking is
       pragma Warnings (On);
 
    begin
-      pragma Debug (O ("Dead lock detected !"));
+      pragma Debug (C, O ("Dead lock detected !"));
 
       raise Program_Error;
       --  When there is no tasking, the (only) task in the
       --  application may not go idle, since this would
       --  block the whole system forever.
    end Idle;
-
-   ------------------------------
-   -- Queue_Request_To_Handler --
-   ------------------------------
-
-   procedure Queue_Request_To_Handler
-     (P   : access No_Tasking;
-      ORB :        ORB_Access;
-      Msg :        Message'Class)
-   is
-      pragma Warnings (Off);
-      pragma Unreferenced (P);
-      pragma Warnings (On);
-
-   begin
-      Emit_No_Reply (Component_Access (ORB), Msg);
-   end Queue_Request_To_Handler;
 
    ----------------
    -- Initialize --
@@ -199,7 +181,7 @@ begin
       (Name      => +"orb.no_tasking",
        Conflicts => Empty,
        Depends   => Empty,
-       Provides  => +"orb.tasking_policy",
+       Provides  => +"orb.tasking_policy!",
        Implicit  => False,
        Init      => Initialize'Access,
        Shutdown  => null));

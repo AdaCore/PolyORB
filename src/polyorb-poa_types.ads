@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -58,12 +58,12 @@ package PolyORB.POA_Types is
    -- Time_Stamp --
    ----------------
 
-   subtype Time_Stamp is Unsigned_Long;
+   subtype Time_Stamp is Duration;
 
    Null_Time_Stamp : constant Time_Stamp;
    --  A time marker.
 
-   subtype Lifespan_Cookie is Unsigned_Long;
+   subtype Lifespan_Cookie is Time_Stamp;
    --  A piece of information embedded in an object id by the lifespan
    --  policy for control of reference validity across ORB executions.
 
@@ -301,6 +301,6 @@ package PolyORB.POA_Types is
 
 private
 
-   Null_Time_Stamp : constant Time_Stamp := 0;
+   Null_Time_Stamp : constant Time_Stamp := Time_Stamp'First;
 
 end PolyORB.POA_Types;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -54,7 +54,6 @@ package body PolyORB.POA_Policies.Thread_Policy.Single_Thread is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
-   pragma Unreferenced (C); --  For conditional pragma Debug
 
    type ST_Note is new PolyORB.Annotations.Note with record
       Lock : PolyORB.Tasking.Advanced_Mutexes.Adv_Mutex_Access;
@@ -144,7 +143,7 @@ package body PolyORB.POA_Policies.Thread_Policy.Single_Thread is
       --  does not allow to specify the thread attached to request handling.
       --  This work in No_Tasking tasking policy.
 
-      pragma Debug (O ("Handle_Request_Execution: Enter"));
+      pragma Debug (C, O ("Handle_Request_Execution: Enter"));
 
       --  Test if the servant has been attached to a advanced mutex.
       --  XXX Note that this could (should ?) be done by the POA.
@@ -161,7 +160,7 @@ package body PolyORB.POA_Policies.Thread_Policy.Single_Thread is
             AM : Adv_Mutex_Access;
             New_Note : ST_Note;
          begin
-            pragma Debug (O ("Attach a mutex to the servant."));
+            pragma Debug (C, O ("Attach a mutex to the servant."));
             Create (AM);
             New_Note := (PolyORB.Annotations.Note with Lock => AM);
             Set_Note
@@ -172,16 +171,16 @@ package body PolyORB.POA_Policies.Thread_Policy.Single_Thread is
 
       Get_Note (Notepad_Of (Servant_Access (Requestor)).all, N);
 
-      pragma Debug (O ("Waiting on servant's lock"));
+      pragma Debug (C, O ("Waiting on servant's lock"));
       Enter (N.Lock);
-      pragma Debug (O ("Waiting done"));
+      pragma Debug (C, O ("Waiting done"));
 
       declare
-         Result : PolyORB.Components.Message'Class :=
+         Result : constant PolyORB.Components.Message'Class :=
            Execute_Servant (Servant_Access (Requestor), Msg);
       begin
          Leave (N.Lock);
-         pragma Debug (O ("Handle_Request_Execution: Leave"));
+         pragma Debug (C, O ("Handle_Request_Execution: Leave"));
          return Result;
       end;
 

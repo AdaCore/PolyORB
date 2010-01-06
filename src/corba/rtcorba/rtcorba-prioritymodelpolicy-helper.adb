@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -55,10 +55,7 @@ package body RTCORBA.PriorityModelPolicy.Helper is
 
    function To_Local_Ref
      (The_Ref : CORBA.Object.Ref'Class)
-     return RTCORBA.PriorityModelPolicy.Local_Ref
-   is
-      use type CORBA.PolicyType;
-
+     return RTCORBA.PriorityModelPolicy.Local_Ref is
    begin
       --        if CORBA.Object.Is_Nil (The_Ref)
       --          or else CORBA.Object.Is_A (The_Ref, Repository_Id) then

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  You should instanciate this package to set up a ravenscar profile.
+--  You should instantiate this package to set up a ravenscar profile.
 
 with System;
 
@@ -55,7 +55,7 @@ generic
    --  Number of preallocated mutexes.
 
    Task_Priority                  : System.Priority;
-   --  Priority affected to the tasks of the pool.
+   --  Priority of the tasks of the pool.
 
    Storage_Size                   : Natural;
    --  Stack size of the system tasks.

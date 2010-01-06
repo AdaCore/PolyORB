@@ -1,3 +1,42 @@
+------------------------------------------------------------------------------
+--                                                                          --
+--                           POLYORB COMPONENTS                             --
+--                                                                          --
+--                             G N A T P R F H                              --
+--                                                                          --
+--                                 B o d y                                  --
+--                                                                          --
+--           Copyright (C) 2007, Free Software Foundation, Inc.             --
+--                                                                          --
+-- PolyORB is free software; you  can  redistribute  it and/or modify it    --
+-- under terms of the  GNU General Public License as published by the  Free --
+-- Software Foundation;  either version 2,  or (at your option)  any  later --
+-- version. PolyORB is distributed  in the hope that it will be  useful,    --
+-- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
+-- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
+-- License  for more details.  You should have received  a copy of the GNU  --
+-- General Public License distributed with PolyORB; see file COPYING. If    --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
+--                                                                          --
+-- As a special exception,  if other files  instantiate  generics from this --
+-- unit, or you link  this unit with other files  to produce an executable, --
+-- this  unit  does not  by itself cause  the resulting  executable  to  be --
+-- covered  by the  GNU  General  Public  License.  This exception does not --
+-- however invalidate  any other reasons why  the executable file  might be --
+-- covered by the  GNU Public License.                                      --
+--                                                                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
+--                                                                          --
+------------------------------------------------------------------------------
+
+--  Main driver for static perfect hash table generator
+
+pragma Style_Checks ("M2048");
+--  Configure substitutions may yield long lines
+--  @configure_input@
+
 with Ada.Command_Line; use Ada.Command_Line;
 with Ada.Text_IO;      use Ada.Text_IO;
 
@@ -124,8 +163,6 @@ begin
       Set_Input (File);
    end if;
 
-   Initialize (Seed, Default_K_To_V, Optim);
-
    while not End_Of_File (Current_Input) loop
       Get_Line (Buffer, Last);
       Insert (Buffer (1 .. Last));
@@ -135,6 +172,8 @@ begin
    V := 2 * K + 1;
    loop
       begin
+         K_To_V := Float (V) / Float (K);
+         Initialize (Seed, K_To_V, Optim);
          Compute (Position.all);
          exit;
       exception when others =>
@@ -142,11 +181,9 @@ begin
             raise;
          end if;
          V := V + 1;
-         K_To_V := Float (V) / Float (K);
-         Initialize (Seed, K_To_V, Optim);
       end;
    end loop;
 
    Produce (Pkg_Name.all);
-
+   Finalize;
 end GNATPrfh;

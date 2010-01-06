@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -34,6 +34,7 @@
 --  @@@ uses ada.calendar
 
 with Table_Of_Strings_And_Static_Values_G;
+pragma Elaborate_All (Table_Of_Strings_And_Static_Values_G);
 
 package body AWS.Resources.Embedded is
 

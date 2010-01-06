@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2002 Free Software Foundation, Inc.             --
+--         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -45,7 +45,7 @@ package Echo.Impl is
 
    function EchoString
      (Self : access Object;
-      Mesg : in     CORBA.String)
+      Mesg : CORBA.String)
      return CORBA.Short;
 
 end Echo.Impl;

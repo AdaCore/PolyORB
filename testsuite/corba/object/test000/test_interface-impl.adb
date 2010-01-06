@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---           Copyright (C) 2006, Free Software Foundation, Inc.             --
+--         Copyright (C) 2006-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -40,11 +40,9 @@ with PortableServer.POA;
 with PortableServer.POA.Helper;
 
 with Test_Interface.Skel;
-pragma Elaborate (Test_Interface.Skel);
 pragma Warnings (Off, Test_Interface.Skel);
 
 package body Test_Interface.Impl is
-
 
    function get_invalid_ref
      (Self : access Object) return Test_Interface.Ref'Class
@@ -53,7 +51,7 @@ package body Test_Interface.Impl is
       Root_POA : PortableServer.POA.Local_Ref;
       Result   : Test_Interface.Ref;
    begin
-      Root_POA := PortableServer.POA.Helper.To_Ref
+      Root_POA := PortableServer.POA.Helper.To_Local_Ref
         (CORBA.ORB.Resolve_Initial_References
          (CORBA.ORB.To_CORBA_String ("RootPOA")));
 
@@ -62,15 +60,15 @@ package body Test_Interface.Impl is
          use PortableServer.POA;
       begin
          Set (Result,
-           CORBA.Object.Object_Of
-             (Servant_To_Reference (Root_POA, new Object)));
+              CORBA.Object.Object_Of
+              (Servant_To_Reference (Root_POA, new Object)));
          Deactivate_Object (Root_POA, Reference_To_Id (Root_POA, Result));
       end;
       return Result;
    exception
       when E : others =>
          Put_Line ("get_invalid_ref: server side exception "
-           & Ada.Exceptions.Exception_Name (E));
+           & Ada.Exceptions.Exception_Information (E));
          raise;
    end get_invalid_ref;
 

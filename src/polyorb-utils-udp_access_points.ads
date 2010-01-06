@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -36,8 +36,11 @@
 with PolyORB.Binding_Data;
 with PolyORB.Sockets;
 with PolyORB.Transport;
+with PolyORB.Utils.Socket_Access_Points;
 
 package PolyORB.Utils.UDP_Access_Points is
+
+   use PolyORB.Utils.Socket_Access_Points;
 
    type UDP_Access_Point_Info is record
       Socket  : Sockets.Socket_Type;
@@ -48,12 +51,12 @@ package PolyORB.Utils.UDP_Access_Points is
    end record;
 
    procedure Initialize_Unicast_Socket
-     (API       : in out UDP_Access_Point_Info;
-      Port_Hint : Sockets.Port_Type;
-      Address : Sockets.Inet_Addr_Type := Sockets.Any_Inet_Addr);
+     (AP_Info   : in out UDP_Access_Point_Info;
+      Port_Hint : Port_Interval;
+      Address   : Sockets.Inet_Addr_Type := Sockets.Any_Inet_Addr);
 
    procedure Initialize_Multicast_Socket
-     (API     : in out UDP_Access_Point_Info;
+     (AP_Info : in out UDP_Access_Point_Info;
       Address : Sockets.Inet_Addr_Type;
       Port    : Sockets.Port_Type);
 

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -38,17 +38,23 @@ package Test_Suite.Scenarios is
    use Test_Suite.Output;
 
    procedure Run_Scenario
-     (Scenario_File : String;
-      Position      : Integer := -1;
+     (Scenario_File     : String;
+      Position          : Integer := -1;
       Configuration_Dir : String;
-      Output        : Test_Suite_Output'Class);
+      Output            : Test_Suite_Output'Class;
+      Test_Success      : out Boolean;
+      Verbose           : Boolean);
    --  Run scenario file Scenario_File. If Position is greater than
    --  -1, executes only test at #position position in Scenario_File.
+   --  On exit, set Test_Success according to test output.
 
    procedure Run_All_Scenarios
-     (Directory_Name : String;
+     (Directory_Name    : String;
       Configuration_Dir : String;
-      Output         : Test_Suite_Output'Class);
+      Output            : Test_Suite_Output'Class;
+      Test_Success      : out Boolean;
+      Verbose           : Boolean);
    --  Run recursively all scenarios in Directory_Name directory
+   --  On exit, set Test_Success according to test output.
 
 end Test_Suite.Scenarios;

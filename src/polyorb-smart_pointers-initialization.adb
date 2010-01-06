@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -37,7 +37,6 @@ with Ada.Tags;
 
 with PolyORB.Initialization;
 
-with PolyORB.Tasking.Mutexes;
 with PolyORB.Utils.Strings;
 
 package body PolyORB.Smart_Pointers.Initialization is
@@ -46,24 +45,24 @@ package body PolyORB.Smart_Pointers.Initialization is
    -- Debugging hooks implementation --
    ------------------------------------
 
-   function Entity_External_Tag
-     (X : Unsafe_Entity'Class)
-      return String;
-   function Ref_External_Tag
-     (X : Ref'Class)
-      return String;
+   function Entity_External_Tag (X : Unsafe_Entity'Class) return String;
+   function Ref_External_Tag (X : Ref'Class) return String;
    --  Return the external representation of X'Tag.
 
-   function Entity_External_Tag
-     (X : Unsafe_Entity'Class)
-      return String is
+   -------------------------
+   -- Entity_External_Tag --
+   -------------------------
+
+   function Entity_External_Tag (X : Unsafe_Entity'Class) return String is
    begin
       return Ada.Tags.External_Tag (X'Tag);
    end Entity_External_Tag;
 
-   function Ref_External_Tag
-     (X : Ref'Class)
-      return String is
+   ----------------------
+   -- Ref_External_Tag --
+   ----------------------
+
+   function Ref_External_Tag (X : Ref'Class) return String is
    begin
       return Ada.Tags.External_Tag (X'Tag);
    end Ref_External_Tag;
@@ -73,12 +72,14 @@ package body PolyORB.Smart_Pointers.Initialization is
    ----------------
 
    procedure Initialize;
+   --  Initialize Smart_Pointers module
 
    procedure Initialize is
    begin
-      Tasking.Mutexes.Create (Counter_Lock);
-      Smart_Pointers.Entity_External_Tag := Entity_External_Tag'Access;
-      Smart_Pointers.Ref_External_Tag    := Ref_External_Tag'Access;
+      Smart_Pointers.Initialize
+        (The_Entity_External_Tag => Entity_External_Tag'Access,
+         The_Ref_External_Tag    => Ref_External_Tag'Access,
+         The_Default_Trace       => Get_Trace ("default"));
    end Initialize;
 
    use PolyORB.Initialization;
@@ -90,7 +91,7 @@ begin
      (Module_Info'
       (Name      => +"smart_pointers",
        Conflicts => Empty,
-       Depends   => +"tasking.mutexes",
+       Depends   => +"tasking.mutexes" & "parameters",
        Provides  => Empty,
        Implicit  => False,
        Init      => Initialize'Access,

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -46,6 +46,8 @@ package body Test_Suite.Run is
    use GNAT.IO_Aux;
    use GNAT.OS_Lib;
    use GNAT.Regpat;
+
+   Executable_Suffix : String renames Get_Executable_Suffix.all;
 
    ---------
    -- Run --
@@ -104,10 +106,11 @@ package body Test_Suite.Run is
 
       --  Test the executable actually exists
 
-      if not Is_Regular_File (Command) and then
-         not Is_Regular_File (Command & ".exe")  --  for Windows
+      if not Is_Regular_File (Normalize_Pathname
+                                (Initial_Dir & Command & Executable_Suffix))
       then
-         Log (Output, Command & " does not exist !");
+         Log (Output, Normalize_Pathname (Initial_Dir
+                & Command & Executable_Suffix) & " does not exist !");
          Log (Output, "Aborting test");
 
          return False;
@@ -188,10 +191,6 @@ package body Test_Suite.Run is
             Test_Result := False;
 
             Close (Fd);
-            if Exec_In_Base_Dir then
-               Change_Dir (Initial_Dir);
-            end if;
-
             return Test_Result;
 
          when GNAT.Expect.Invalid_Process =>
@@ -201,8 +200,7 @@ package body Test_Suite.Run is
             Log (Output, "==> Invalid process <==");
             Test_Result := False;
 
-            Change_Dir (Initial_Dir);
-
+            Close (Fd);
             return Test_Result;
       end;
 
@@ -213,8 +211,8 @@ package body Test_Suite.Run is
            (Expect_Out (Fd) (Match (0).First .. Match (0).Last));
 
       elsif Result = Expect_Timeout then
-            Log (Output, "==> Time out ! <==");
-            Test_Result := False;
+         Log (Output, "==> Time out ! <==");
+         Test_Result := False;
 
       else
          Log (Output, "==> Unexpected output ! <==");
@@ -224,7 +222,6 @@ package body Test_Suite.Run is
       --  Clean up
 
       Close (Fd);
-
       return Test_Result;
 
    exception

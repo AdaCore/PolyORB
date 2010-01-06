@@ -17,7 +17,8 @@ package body CXE4005_Normal is
       RTT2        : access Cant_Use_In_Remote_Call;
       Test_Number : in     Integer;
       Obj_SN1     : out    Integer;
-      Obj_SN2     : out    Integer)is
+      Obj_SN2     : out    Integer)
+  is
   begin
     Report.Failed ("Call made where type is declared in a normal " &
                    "package.  Test number " &

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -55,7 +55,6 @@ package body PolyORB.Protocols is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
-   pragma Unreferenced (C); --  For conditional pragma Debug
 
    ---------------------------------
    -- Handle_Unmarshall_Arguments --
@@ -79,8 +78,7 @@ package body PolyORB.Protocols is
 
    function Handle_Message
      (Sess : access Session;
-      S    :        Components.Message'Class)
-     return Components.Message'Class
+      S    : Components.Message'Class) return Components.Message'Class
    is
       use PolyORB.Errors;
 
@@ -90,7 +88,7 @@ package body PolyORB.Protocols is
 
    begin
       pragma Debug
-        (O ("Handling message of type "
+        (C, O ("Handling message of type "
             & Ada.Tags.External_Tag (S'Tag)));
       if S in Connect_Indication then
          Handle_Connect_Indication (Session_Access (Sess));
@@ -104,7 +102,11 @@ package body PolyORB.Protocols is
 
       elsif S in Data_Indication then
          Handle_Data_Indication
-           (Session_Access (Sess), Data_Indication (S).Data_Amount);
+           (Session_Access (Sess), Data_Indication (S).Data_Amount, Error);
+
+         if Found (Error) then
+            return Filter_Error'(Error => Error);
+         end if;
 
       elsif S in Unmarshall_Arguments then
          declare
@@ -125,9 +127,8 @@ package body PolyORB.Protocols is
          Handle_Flush (Session_Access (Sess));
 
       elsif S in Set_Server then
-         Sess.Server := Set_Server (S).Server;
-         Sess.Dependent_Binding_Object
-           := Set_Server (S).Binding_Object;
+         Sess.Server                   := Set_Server (S).Server;
+         Sess.Dependent_Binding_Object := Set_Server (S).Binding_Object;
 
       elsif S in Execute_Request then
 
@@ -162,7 +163,7 @@ package body PolyORB.Protocols is
                   --  Delegate the decision and lookup process to the default
                   --  interface descriptor objet.
 
-                  Args : Any.NVList.Ref :=
+                  Args : constant Any.NVList.Ref :=
                            Get_Empty_Arg_List (Desc,
                                                Req.Target,
                                                Req.Operation.all);
@@ -175,18 +176,18 @@ package body PolyORB.Protocols is
                   pragma Assert (Reply in Unmarshalled_Arguments
                                  or else Reply in Arguments_Error);
                   if Reply in Unmarshalled_Arguments then
-                     pragma Debug (O ("Unmarshalled deferred arguments"));
+                     pragma Debug (C, O ("Unmarshalled deferred arguments"));
                      Req.Args := Unmarshalled_Arguments (Reply).Args;
                      Req.Result.Argument := Get_Empty_Result
                        (Desc, Req.Target, Req.Operation.all);
 
                      Req.Deferred_Arguments_Session := null;
                      pragma Debug
-                       (O ("Proxying request: " & Image (Req.all)));
+                       (C, O ("Proxying request: " & Image (Req.all)));
 
                   else
                      pragma Debug
-                       (O ("Unmarshall deferred arguments error"));
+                       (C, O ("Unmarshall deferred arguments error"));
                      Set_Exception (Req, Arguments_Error (Reply).Error);
 
                      --  Free data associated to Arguments_Error (Reply).Error
@@ -218,6 +219,7 @@ package body PolyORB.Protocols is
               or else Is_Set (Sync_With_Transport, Req_Flags)
               or else Is_Set (Sync_Call_Back,      Req_Flags)
             then
+               pragma Debug (C, O ("Completed Sync_With_Transport"));
                Req.Completed := True;
                return Executed_Request'(Req => Req);
             end if;
@@ -225,8 +227,7 @@ package body PolyORB.Protocols is
 
       elsif S in Executed_Request then
          declare
-            Req : Request_Access
-              := Executed_Request (S).Req;
+            Req : Request_Access := Executed_Request (S).Req;
          begin
 
             if Req.Deferred_Arguments_Session /= null then
@@ -259,11 +260,8 @@ package body PolyORB.Protocols is
             Send_Reply (Session_Access (Sess), Acknowledge_Request (S).Req);
          end if;
 
-      elsif S in Disconnect_Request then
-         return Emit (Lower (Sess), S);
-
       else
-         raise Program_Error;
+         return Filters.Handle_Message (Filters.Filter (Sess.all)'Access, S);
       end if;
 
       return Nothing;

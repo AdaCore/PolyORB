@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -65,22 +65,22 @@ package body Test_ServantActivator is
       Simple_Activator : Test_SimpleActivator.Local_Ref;
 
       Root_POA : constant PortableServer.POA.Local_Ref :=
-        PortableServer.POA.Helper.To_Ref
+        PortableServer.POA.Helper.To_Local_Ref
         (CORBA.ORB.Resolve_Initial_References
          (CORBA.ORB.To_CORBA_String ("RootPOA")));
 
       Policies : CORBA.Policy.PolicyList;
 
-      Implicit_Activation_Policy : CORBA.Policy.Ref :=
+      Implicit_Activation_Policy : constant CORBA.Policy.Ref :=
         CORBA.Policy.Ref
         (Create_Implicit_Activation_Policy
          (PortableServer.NO_IMPLICIT_ACTIVATION));
 
-      Id_Assignment_Policy : CORBA.Policy.Ref :=
+      Id_Assignment_Policy : constant CORBA.Policy.Ref :=
         CORBA.Policy.Ref
         (Create_Id_Assignment_Policy (PortableServer.USER_ID));
 
-      Request_Processing_Policy : CORBA.Policy.Ref :=
+      Request_Processing_Policy : constant CORBA.Policy.Ref :=
         CORBA.Policy.Ref
         (Create_Request_Processing_Policy
          (PortableServer.USE_SERVANT_MANAGER));

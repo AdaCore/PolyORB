@@ -4,7 +4,7 @@
 --                                                                          --
 --                         I D L _ F E . T Y P E S                          --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -36,7 +36,7 @@
 with Ada.Unchecked_Deallocation;
 with Interfaces;
 
-with Errors;
+with Idlac_Errors;
 
 package Idl_Fe.Types is
 
@@ -60,7 +60,7 @@ package Idl_Fe.Types is
    type Param_Mode is (Mode_In, Mode_Inout, Mode_Out);
 
    --  To manipulate the location of a node
-   subtype Location is Errors.Location;
+   subtype Location is Idlac_Errors.Location;
    procedure Set_Location (N : Node_Id;
                            Loc : Location);
    function Get_Location (N : Node_Id) return Location;
@@ -394,7 +394,7 @@ package Idl_Fe.Types is
 
    function Is_Redefinable
      (Name  : String;
-      Loc   : Errors.Location;
+      Loc   : Idlac_Errors.Location;
       Scope : Node_Id := No_Node)
      return Boolean;
    --  Check if the name is redefinable in Scope or in the current scope
@@ -404,7 +404,7 @@ package Idl_Fe.Types is
 
    function Find_Identifier_Definition
      (Name : String;
-      Loc  : Errors.Location)
+      Loc  : Idlac_Errors.Location)
      return Identifier_Definition_Acc;
    --  Find the definition associated with the usage occurence of
    --  identifier Name located at Loc.
@@ -412,7 +412,7 @@ package Idl_Fe.Types is
 
    function Find_Identifier_Node
      (Name : String;
-      Loc  : Errors.Location)
+      Loc  : Idlac_Errors.Location)
      return Node_Id;
    --  Find the node associated with the usage occurence of
    --  identifier Name located at Loc.
@@ -528,7 +528,7 @@ package Idl_Fe.Types is
    --  The table is actually represented as a pointer to allow reallocation
    type Table_Ptr is access all Big_Table_Type;
 
-   --  the table type that will be instanciated
+   --  the table type that will be instantiated
    type Table is record
       --  the table
       Table : Table_Ptr := null;

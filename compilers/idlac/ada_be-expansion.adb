@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -40,8 +40,8 @@ with Ada_Be.Identifiers;    use Ada_Be.Identifiers;
 with Ada_Be.Debug;
 pragma Elaborate_All (Ada_Be.Debug);
 
-with Errors;                use Errors;
-with Utils;                 use Utils;
+with Idlac_Errors;          use Idlac_Errors;
+with Idlac_Utils;           use Idlac_Utils;
 
 with Ada.Characters.Handling;
 with GNAT.HTable;
@@ -197,7 +197,7 @@ package body Ada_Be.Expansion is
    -- Utility routines --
    ----------------------
 
-   subtype Location is Errors.Location;
+   subtype Location is Idlac_Errors.Location;
 
    Current_Position_In_List : Node_Id := No_Node;
    procedure Expand_Node_List
@@ -395,7 +395,7 @@ package body Ada_Be.Expansion is
    --  Expand_Repository --
    ------------------------
 
-   Unknown_Filename : constant Errors.String_Ptr
+   Unknown_Filename : constant Idlac_Errors.String_Ptr
      := new String'("<unknown file>.idl");
 
    procedure  Expand_Repository (Node : Node_Id) is
@@ -404,13 +404,13 @@ package body Ada_Be.Expansion is
 
       type Header_Num is range 0 .. 1024;
       function Hash is new GNAT.HTable.Hash (Header_Num);
-      function Hash (A : Errors.String_Ptr) return Header_Num;
-      function Hash (A : Errors.String_Ptr) return Header_Num is
+      function Hash (A : Idlac_Errors.String_Ptr) return Header_Num;
+      function Hash (A : Idlac_Errors.String_Ptr) return Header_Num is
       begin
          return Hash (A.all);
       end Hash;
-      function Equals (A, B : Errors.String_Ptr) return Boolean;
-      function Equals (A, B : Errors.String_Ptr) return Boolean is
+      function Equals (A, B : Idlac_Errors.String_Ptr) return Boolean;
+      function Equals (A, B : Idlac_Errors.String_Ptr) return Boolean is
       begin
          return A.all = B.all;
       end Equals;
@@ -418,7 +418,7 @@ package body Ada_Be.Expansion is
         (Header_Num,
          Node_Id,
          No_Node,
-         Errors.String_Ptr,
+         Idlac_Errors.String_Ptr,
          Hash,
          Equals);
 
@@ -434,8 +434,8 @@ package body Ada_Be.Expansion is
       while not Is_End (Iterator) loop
          declare
             Current : Node_Id;
-            Loc : Errors.Location;
-            Filename : Errors.String_Ptr;
+            Loc : Idlac_Errors.Location;
+            Filename : Idlac_Errors.String_Ptr;
 
             Idl_File_Node : Node_Id;
             Success : Boolean;

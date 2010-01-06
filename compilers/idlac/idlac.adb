@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -42,12 +42,14 @@ with Idlac_Flags;       use Idlac_Flags;
 with Idl_Fe.Files;
 with Idl_Fe.Types;
 with Idl_Fe.Parser;
-with Errors;
+with Idlac_Errors;
 
 with Ada_Be.Expansion;
 with Ada_Be.Idl2Ada;
 with Ada_Be.Mappings.CORBA;
 with Ada_Be.Source_Streams;
+
+with Platform;
 
 procedure Idlac is
 
@@ -58,6 +60,7 @@ procedure Idlac is
 
    procedure Usage is
    begin
+      Put_Line (Current_Error, "IDLAC from PolyORB " & Platform.Version);
       Put_Line (Current_Error, "Usage: " & Command_Name
                 & " [-Edikpqv] [-[no]ir] [-gnatW8] [-o DIR]"
                 & " idl_file [-cppargs ...]");
@@ -88,12 +91,11 @@ procedure Idlac is
 
 begin
    begin
-      Initialize_Option_Scan
-        ('-', False, "cppargs");
+      Initialize_Option_Scan ('-', False, "cppargs");
 
       loop
          case Getopt ("E I: c d i k p q s v ir noir o: gnatW8") is
-            when ASCII.Nul => exit;
+            when ASCII.NUL => exit;
 
             when 'E' =>
                Preprocess_Only := True;
@@ -149,6 +151,10 @@ begin
                   Success : Boolean;
                begin
                   Idl_Fe.Files.Add_Search_Path (Parameter, Success);
+                  if not Success then
+                     raise Program_Error
+                       with Parameter & ": directory not found";
+                  end if;
                end;
 
             when others =>
@@ -231,25 +237,25 @@ begin
 
       Rep := Idl_Fe.Parser.Parse_Specification;
 
-      if Errors.Is_Error then
+      if Idlac_Errors.Is_Error then
          Put (Current_Error,
-              Natural'Image (Errors.Error_Number)
+              Natural'Image (Idlac_Errors.Error_Number)
               & " error(s)");
-         if Errors.Is_Warning then
+         if Idlac_Errors.Is_Warning then
             Put
               (Current_Error,
                " and "
-               & Natural'Image (Errors.Warning_Number)
+               & Natural'Image (Idlac_Errors.Warning_Number)
                & " warning(s)");
          end if;
          Put_Line (Current_Error, " during parsing.");
 
       else
          if Verbose then
-            if Errors.Is_Warning then
+            if Idlac_Errors.Is_Warning then
                Put_Line
                  (Current_Error,
-                  Natural'Image (Errors.Warning_Number)
+                  Natural'Image (Idlac_Errors.Warning_Number)
                   & " warning(s) during parsing.");
             else
                Put_Line (Current_Error, "Successfully parsed.");
@@ -259,7 +265,7 @@ begin
          --  Expand tree. This should not cause any errors!
 
          Ada_Be.Expansion.Expand_Repository (Rep);
-         pragma Assert (not Errors.Is_Error);
+         pragma Assert (not Idlac_Errors.Is_Error);
 
          --  Generate code
 
@@ -274,7 +280,7 @@ begin
 
       Idl_Fe.Parser.Finalize;
 
-      if Errors.Is_Error then
+      if Idlac_Errors.Is_Error then
          OS_Exit (2);
       end if;
    end if;

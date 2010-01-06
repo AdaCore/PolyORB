@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---           Copyright (C) 2006, Free Software Foundation, Inc.             --
+--         Copyright (C) 2006-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -30,6 +30,9 @@
 --                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
+
+pragma Ada_2005;
+
 pragma Warnings (Off);
 
 with PolyORB.Exceptions;
@@ -47,17 +50,11 @@ pragma Elaborate_All (PolyORB.Log);
 with PolyORB.Parameters;
 pragma Elaborate_All (PolyORB.Parameters);
 
-with PolyORB.Parameters.Partition;
-pragma Elaborate_All (PolyORB.Parameters.Partition);
-
 with PolyORB.ORB;
 pragma Elaborate_All (PolyORB.ORB);
 
 with PolyORB.ORB_Controller.Workers;
 pragma Elaborate_All (PolyORB.ORB_Controller.Workers);
-
-with PolyORB.Parameters;
-pragma Elaborate_All (PolyORB.Parameters);
 
 with PolyORB.POA;
 pragma Elaborate_All (PolyORB.POA);
@@ -77,9 +74,6 @@ pragma Elaborate_All (PolyORB.Services.Naming.Helper);
 with PolyORB.Services.Naming.NamingContext.Client;
 pragma Elaborate_All (PolyORB.Services.Naming.NamingContext.Client);
 
-with PolyORB.Setup.Base;
-pragma Elaborate_All (PolyORB.Setup.Base);
-
 with PolyORB.Setup.OA.Basic_POA;
 pragma Elaborate_All (PolyORB.Setup.OA.Basic_POA);
 
@@ -89,9 +83,19 @@ pragma Elaborate_All (PolyORB.Termination_Activity);
 package PolyORB.Partition_Elaboration is
    pragma Elaborate_Body;
 
+   procedure Configure
+     (Set_Conf : access procedure (Section, Key, Value : String));
+   --  Set various runtime configuration parameters using the provided callback
+
    procedure Full_Launch;
    --  Launch the slave partitions when using Ada Starter
 
-   --  We elaborate the body, which contains the distributed specific
-   --  elaboration code.
+   procedure Run_Additional_Tasks;
+   --  Run needed additional tasks according to selected
+   --  ORB tasking policy.
+
+   --  The body of this package provides further partition-specific
+   --  dependencies that are guaranteed to be elaborated before PCS
+   --  initialization, in addition to the Full_Launch starter.
+
 end PolyORB.Partition_Elaboration;

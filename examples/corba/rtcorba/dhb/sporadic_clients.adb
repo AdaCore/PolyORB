@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---           Copyright (C) 2006, Free Software Foundation, Inc.             --
+--         Copyright (C) 2006-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -61,9 +61,9 @@ package body Sporadic_Clients is
    ----------------
 
    procedure Run_Test_1
-     (Stamp             : in Standard.String;
-      Worker_String_Ref : in CORBA.String;
-      How_Many          : in Positive)
+     (Stamp             : Standard.String;
+      Worker_String_Ref : CORBA.String;
+      How_Many          : Positive)
    is
       Worker : DHB.Worker.Ref;
 
@@ -124,12 +124,12 @@ package body Sporadic_Clients is
    ----------------
 
    procedure Run_Test_1b
-     (Stamp                        : in Standard.String;
-      Worker_String_Ref            : in CORBA.String;
-      Worker_Priority              : in RTCORBA.Priority;
-      Background_Worker_String_Ref : in CORBA.String;
-      Background_Worker_Priority   : in RTCORBA.Priority;
-      How_Many                     : in Positive)
+     (Stamp                        : Standard.String;
+      Worker_String_Ref            : CORBA.String;
+      Worker_Priority              : RTCORBA.Priority;
+      Background_Worker_String_Ref : CORBA.String;
+      Background_Worker_Priority   : RTCORBA.Priority;
+      How_Many                     : Positive)
    is
       use type DHB.KWIPS;
 
@@ -143,10 +143,10 @@ package body Sporadic_Clients is
       Results : Stat_Vector (1 .. How_Many);
       Kilo_WIPS : DHB.KWIPS;
 
-      Current : RTCORBA.Current.Local_Ref
-        := RTCORBA.Current.Helper.To_Local_Ref
-        (CORBA.ORB.Resolve_Initial_References
-         (CORBA.ORB.To_CORBA_String ("RTCurrent")));
+      Current : constant RTCORBA.Current.Local_Ref :=
+                  RTCORBA.Current.Helper.To_Local_Ref
+                    (CORBA.ORB.Resolve_Initial_References
+                      (CORBA.ORB.To_CORBA_String ("RTCurrent")));
 
    begin
       New_Test ("Sporadic Test #1b");
@@ -198,9 +198,9 @@ package body Sporadic_Clients is
    ----------------
 
    procedure Run_Test_2
-     (Stamp             : in Standard.String;
-      Worker_String_Ref : in CORBA.String;
-      How_Many          : in Positive)
+     (Stamp             : Standard.String;
+      Worker_String_Ref : CORBA.String;
+      How_Many          : Positive)
    is
       Worker : DHB.Worker.Ref;
 
@@ -259,10 +259,10 @@ package body Sporadic_Clients is
    ----------------
 
    procedure Run_Test_3
-     (Stamp             : in Standard.String;
-      Worker_String_Ref : in CORBA.String;
-      How_Many          : in Positive;
-      Iterations        : in Natural)
+     (Stamp             : Standard.String;
+      Worker_String_Ref : CORBA.String;
+      How_Many          : Positive;
+      Iterations        : Natural)
    is
       use type DHB.Worker.U_sequence;
 

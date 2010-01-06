@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -192,8 +192,6 @@ package body CORBA.Repository_Root.Repository.Impl is
             IDL_Type := TC_Any;
          when pk_TypeCode =>
             IDL_Type := TC_TypeCode;
-         when pk_Principal =>
-            IDL_Type := TC_Principal;
          when pk_string =>
             IDL_Type := TC_String;
          when pk_objref =>
@@ -208,8 +206,16 @@ package body CORBA.Repository_Root.Repository.Impl is
             IDL_Type := TC_Wchar;
          when pk_wstring =>
             IDL_Type := TC_Wide_String;
+
+         --  ??? dubious: the following are not valid typecodes, they lack
+         --  some parameters.
+
          when pk_value_base =>
-            IDL_Type := TC_Value;
+            IDL_Type := CORBA.TypeCode.Internals.To_CORBA_Object
+                          (PolyORB.Any.TypeCode.TC_Value);
+         when pk_Principal =>
+            IDL_Type := CORBA.TypeCode.Internals.To_CORBA_Object
+                          (PolyORB.Any.TypeCode.TC_Principal);
       end case;
 
       --  initialize the object

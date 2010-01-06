@@ -1,0 +1,202 @@
+typedef struct Pimpernel66 {
+ struct KerrsPinks66 {
+ struct Wilja66 {
+ sequence<sequence<char, 18>, 18> BritishQueens66;
+ } Balmoral66;
+ } GoldenWonder66;
+} Cultra66;
+typedef struct ChineseLeaves67 {
+ struct Clementine67 {
+ struct Chestnut67 {
+ sequence<sequence<boolean, 13>> Currant67[15];
+ } Corriander67[11];
+ } RedCabbage67;
+} Broadbeans67;
+typedef struct RedChilly68 {
+ struct Chayato68 {
+ struct KiwanoMelon68 {
+ sequence<sequence<octet, 7>> IcebergLettuce68[10];
+ } Tomato68;
+ } PippinApple68;
+} Celeriac68;
+typedef struct VineTomatoes69 {
+ struct Chervil69 {
+ struct GreenChilly69 {
+ sequence<sequence<sequence<float>, 19>> Yam69;
+ } Blackberry69[12];
+ } GreenPepper69;
+} Scallion69;
+typedef struct Satsuma70 {
+ struct Parsley70 {
+ struct Peach70 {
+ sequence<sequence<sequence<float, 6>, 9>> Corn70;
+ } Squash70;
+ } YellowPepper70;
+} Peanuts70;
+typedef struct Chives71 {
+ struct Rasin71 {
+ struct Cherry71 {
+ sequence<sequence<sequence<double>>, 7> Radish71[4];
+ } GreenGrapes71[2];
+ } CookingApple71;
+} Mullberry71;
+typedef struct PepinoMelon72 {
+ struct Raspberry72 {
+ struct Peppercorn72 {
+ sequence<sequence<sequence<double, 5>>, 3> Papaya72[9];
+ } Susander72;
+ } Grapefruit72;
+} Damsons72;
+typedef struct BeefTomatoes73 {
+ struct Pear73 {
+ struct Walnuts73 {
+ sequence<sequence<sequence<long>>, 3> Kumquats73;
+ } Mangosteen73[17];
+ } RedPepper73;
+} FrenchBeans73;
+typedef struct Okra74 {
+ struct Chickpea74 {
+ struct Uglifruit74 {
+ sequence<sequence<sequence<long, 6>>, 6> Fennell74;
+ } Waterchestnut74;
+ } Beetroot74;
+} Plantain74;
+typedef struct RedGrapes75 {
+ struct Cassava75 {
+ struct Daikan75 {
+ sequence<sequence<sequence<short>>> Cloves75[18];
+ } BambooShoot75[15];
+ } Melon75;
+} BeechNut75;
+typedef struct Pomegranate76 {
+ struct Thyme76 {
+ struct Strawberry76 {
+ sequence<sequence<sequence<short, 11>>> Mustard76[7];
+ } BreadFruit76;
+ } Sweedes76;
+} Tarragon76;
+typedef struct GooseBerry77 {
+ struct HazelNut77 {
+ struct Onion77 {
+ sequence<sequence<sequence<unsigned long>>> Sweetcorn77;
+ } RedOnion77[14];
+ } Cinnamon77;
+} EggPlant77;
+typedef struct Avocado78 {
+ struct Zucchini78 {
+ struct Plum78 {
+ sequence<sequence<sequence<unsigned long, 11>>> Shallots78;
+ } KidneyBean78;
+ } ButterBean78;
+} GoldenDelicous78;
+typedef struct CantelopeMelon79 {
+ struct Tangarine79 {
+ struct Oregano79 {
+ sequence<sequence<sequence<unsigned long, 5>, 2>, 16> Dill79[4];
+ } SweetPotato79[5];
+ } Billberries79;
+} LolloRossa79;
+typedef struct Tofu80 {
+ struct Mushroom80 {
+ struct Almonds80 {
+ sequence<sequence<sequence<unsigned short>, 14>, 2> Beansprout80[11];
+ } Guava80;
+ } Runnerbean80;
+} Prunes80;
+typedef struct WhiteCabbage81 {
+ struct Parsnip81 {
+ struct Ginger81 {
+ sequence<sequence<sequence<unsigned short, 7>, 14>, 13> Cucumber81;
+ } LoganBerry81[1];
+ } Celery81;
+} Aniseed81;
+typedef struct Asparagus82 {
+ struct Mint82 {
+ struct BlackEyedBeans82 {
+ sequence<sequence<sequence<char>, 16>, 8> Apricots82;
+ } Leek82;
+ } GardenPeas82;
+} GaliaMelon82;
+typedef struct Coconut83 {
+ struct Lime83 {
+ struct PentlandDell82 {
+ sequence<sequence<sequence<char, 8>, 5>> KingEdward82[3];
+ } WaterMelon83[7];
+ } Dates83;
+} Lychees83;
+typedef struct Starfruit84 {
+ struct Lemon84 {
+ struct Banana84 {
+ sequence<sequence<sequence<boolean>, 6>> Apple84[5];
+ } Carrots84;
+ } BlackCherry84;
+} Rhubarb84;
+typedef struct Rooster84 {
+ struct Pimpernel84 {
+ struct Clementine84 {
+ sequence<sequence<sequence<boolean, 3>, 2>> Corriander84;
+ } GoldenWonder84[14];
+ } Cultra84;
+} MarisPiper84;
+typedef struct Homeguard85 {
+ struct Potato85 {
+ struct ChineseLeaves85 {
+ sequence<sequence<sequence<octet>, 13>> RedCabbage85;
+ } Broadbeans85;
+ } Record85;
+} BritishQueens85;
+typedef struct GalaApple86 {
+ struct RedChilly86 {
+ struct Chervil86 {
+ sequence<sequence<sequence<octet, 3>>, 4> Blackberry86[3];
+ } PippinApple86[2];
+ } Celeriac86;
+} Cauliflower86;
+typedef struct Chestnut87 {
+ struct PricklyPear87 {
+ struct VineTomatoes87 {
+ sequence<sequence<sequence<sequence<float>>>, 18> GreenPepper87[2];
+ } Scallion87;
+ } Currant87;
+} IcebergLettuce87;
+typedef struct Basil88 {
+ struct Satsuma88 {
+ struct Rasin88 {
+ sequence<sequence<sequence<sequence<float>, 7>>, 17> GreenGrapes88;
+ } YellowPepper88[5];
+ } Peanuts88;
+} CoxPippin88;
+typedef struct GreenChilly89 {
+ struct Eddo89 {
+ struct Chives89 {
+ sequence<sequence<sequence<sequence<float, 19>>>, 3> CookingApple89;
+ } Mullberry89;
+ } Yam89;
+} Corn89;
+interface idlServer {
+ exception Cultra66Excpt {
+ Cultra66 ex1;
+ };
+ attribute Cultra66 Cultra66Attr;
+ Cultra66 Cultra66Op(in Cultra66 p1, out Cultra66 p2, inout Cultra66 p3) raises (idlServer::Cultra66Excpt);
+ exception Pimpernel66Excpt {
+ Pimpernel66 ex1;
+ };
+ attribute Pimpernel66 Pimpernel66Attr;
+ Pimpernel66 Pimpernel66Op(in Pimpernel66 p1, out Pimpernel66 p2, inout Pimpernel66 p3) raises (idlServer::Pimpernel66Excpt);
+ exception KerrsPinks66Excpt {
+ Pimpernel66::KerrsPinks66 ex1;
+ };
+ attribute Pimpernel66::KerrsPinks66 KerrsPinks66Attr;
+ Pimpernel66::KerrsPinks66 KerrsPinks66Op(in Pimpernel66::KerrsPinks66 p1, out Pimpernel66::KerrsPinks66 p2, inout Pimpernel66::KerrsPinks66 p3) raises (idlServer::KerrsPinks66Excpt);
+ exception Wilja66Excpt {
+ Pimpernel66::KerrsPinks66::Wilja66 ex1;
+ };
+ attribute Pimpernel66::KerrsPinks66::Wilja66 Wilja66Attr;
+ Pimpernel66::KerrsPinks66::Wilja66 Wilja66Op(in Pimpernel66::KerrsPinks66::Wilja66 p1, out Pimpernel66::KerrsPinks66::Wilja66 p2, inout Pimpernel66::KerrsPinks66::Wilja66 p3) raises (idlServer::Wilja66Excpt);
+ exception Broadbeans67Excpt {
+ Broadbeans67 ex1;
+ };
+ attribute Broadbeans67 Broadbeans67Attr;
+ Broadbeans67 Broadbeans67Op(in Broadbeans67 p1, out Broadbeans67 p2, inout Broadbeans67 p3) raises (idlServer::Broadbeans67Excpt);
+};

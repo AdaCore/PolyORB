@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -40,8 +40,9 @@ with GNAT.Directory_Operations;
 with GNAT.OS_Lib;
 with GNAT.Table;
 
-with Errors;
+with Idlac_Errors;
 with Platform;
+with Utils;
 
 package body Idl_Fe.Files is
 
@@ -70,7 +71,7 @@ package body Idl_Fe.Files is
    is
    begin
       if Is_Directory (Path) then
-         if Path (Path'Last) = Dir_Separator then
+         if Utils.Is_Dir_Separator (Path (Path'Last)) then
             Search_Path.Append (new String'(Path));
          else
             Search_Path.Append (new String'(Path & Dir_Separator));
@@ -80,137 +81,6 @@ package body Idl_Fe.Files is
          Success := False;
       end if;
    end Add_Search_Path;
-
-   ---------------------
-   -- Preprocess_File --
-   ---------------------
-
-   function Preprocess_File (File_Name : String) return String is
-
-      use Ada.Command_Line;
-      use GNAT.Command_Line;
-
-      CPP_Arg_List : constant Argument_List_Access
-        := Argument_String_To_List (Platform.CXX_Preprocessor);
-
-      Tmp_File_Name_NUL : Temp_File_Name;
-      --  Name of the temporary file to which preprocessor output
-      --  is sent (NUL-terminated).
-
-      Tmp_File_Name    : String_Access;
-
-      Args             : Argument_List (1 .. 128);
-      Arg_Count        : Natural := Args'First - 1;
-      --  Arguments to be passed to the preprocessor
-
-      procedure Add_Argument (Arg : String);
-
-      ------------------
-      -- Add_Argument --
-      ------------------
-
-      procedure Add_Argument (Arg : String) is
-      begin
-         Arg_Count := Arg_Count + 1;
-         Args (Arg_Count) := new String'(Arg);
-      end Add_Argument;
-
-   begin
-      --  Create temporary file.
-
-      declare
-         Fd : File_Descriptor;
-      begin
-         Create_Temp_File (Fd, Tmp_File_Name_NUL);
-         if Fd = Invalid_FD then
-            Errors.Error
-              (Base_Name (Command_Name)
-                & ": cannot create temporary file name",
-               Errors.Fatal,
-               Errors.No_Location);
-            return "";
-         end if;
-
-         --  We don't need the file descriptor
-
-         Close (Fd);
-
-         Tmp_File_Name := new String'(
-           Tmp_File_Name_NUL (Tmp_File_Name_NUL'First
-                           .. Tmp_File_Name_NUL'Last - 1)
-           & Platform.CXX_Preprocessor_Suffix);
-      end;
-
-      --  Add platform specific C++ preprocessor arguments as well as C++
-      --  preprocessor command name.
-
-      for J in CPP_Arg_List'First + 1 .. CPP_Arg_List'Last loop
-         Add_Argument (CPP_Arg_List (J).all);
-      end loop;
-
-      --  Pass user options to the preprocessor.
-
-      Goto_Section ("cppargs");
-      while Getopt ("*") /= ASCII.Nul loop
-         Add_Argument (Full_Switch);
-      end loop;
-
-      --  Add all search paths.
-
-      for J in Search_Path.First .. Search_Path.Last loop
-         Add_Argument ("-I");
-         Add_Argument (Search_Path.Table (J).all);
-      end loop;
-
-      --  Always add the current directory at the end of the include list
-
-      Add_Argument ("-I");
-      Add_Argument (".");
-
-      --  Add output and source file names.
-
-      Add_Argument ("-o");
-      Add_Argument (Tmp_File_Name.all);
-      Add_Argument (File_Name);
-
-      declare
-         Preprocessor_Full_Pathname : constant String_Access
-           := Locate_Exec_On_Path (CPP_Arg_List (CPP_Arg_List'First).all);
-
-         Spawn_Result : Boolean;
-
-      begin
-         if Preprocessor_Full_Pathname = null then
-            Errors.Error
-              ("Cannot find preprocessor "
-               & "'" & CPP_Arg_List (CPP_Arg_List'First).all & "'",
-               Errors.Fatal,
-               Errors.No_Location);
-            Free (Tmp_File_Name);
-            return "";
-         end if;
-
-         Spawn (Preprocessor_Full_Pathname.all,
-                Args (Args'First .. Arg_Count),
-                Spawn_Result);
-
-         if not Spawn_Result then
-            Errors.Error
-              (Base_Name (Command_Name) & ": preprocessor failed",
-               Errors.Fatal,
-               Errors.No_Location);
-            Free (Tmp_File_Name);
-            return "";
-         end if;
-      end;
-
-      declare
-         Result : constant String := Tmp_File_Name.all;
-      begin
-         Free (Tmp_File_Name);
-         return Result;
-      end;
-   end Preprocess_File;
 
    ---------------------
    -- Locate_IDL_File --
@@ -224,7 +94,7 @@ package body Idl_Fe.Files is
       Separator : Natural;
 
    begin
-      --  If file can't have IDL file extension then add it.
+      --  If file doesn't have IDL file extension then add it.
 
       if File_Extension (File_Name) /= IDL_File_Suffix then
          return Locate_IDL_File (File_Name & IDL_File_Suffix);
@@ -233,8 +103,8 @@ package body Idl_Fe.Files is
       --  If File_Name has directory prefix then check file existence
       --  and return File_Name as result.
 
-      Separator :=
-        Index (File_Name, To_Set (Directory_Separator), Inside, Backward);
+      Separator := Index
+        (File_Name, To_Set (Dir_Separator & "/"), Inside, Backward);
 
       if Separator /= 0 then
          --  Directory prefix present: check file existence
@@ -248,14 +118,9 @@ package body Idl_Fe.Files is
 
       --  Check in the current working directory
 
-      declare
-         Full_Path : constant String := '.' & Dir_Separator & File_Name;
-
-      begin
-         if Is_Regular_File (Full_Path) then
-            return Full_Path;
-         end if;
-      end;
+      if Is_Regular_File (File_Name) then
+         return File_Name;
+      end if;
 
       for J in Search_Path.First .. Search_Path.Last loop
          declare
@@ -288,5 +153,144 @@ package body Idl_Fe.Files is
          return Locate_IDL_File (Scoped_Name & IDL_File_Suffix);
       end if;
    end Locate_IDL_Specification;
+
+   ---------------------
+   -- Preprocess_File --
+   ---------------------
+
+   function Preprocess_File (File_Name : String) return String is
+
+      use Ada.Command_Line;
+      use GNAT.Command_Line;
+
+      CPP_Arg_List : constant Argument_List_Access
+        := Argument_String_To_List (Platform.IDL_Preprocessor);
+
+      Tmp_File_Name_NUL : Temp_File_Name;
+      --  Name of the temporary file to which preprocessor output
+      --  is sent (NUL-terminated).
+
+      Tmp_File_Name    : String_Access;
+
+      Args             : Argument_List (1 .. 128);
+      Arg_Count        : Natural := Args'First - 1;
+      --  Arguments to be passed to the preprocessor
+
+      procedure Add_Argument (Arg : String);
+      --  Increment Arg_Count and set Args (Arg_Count) to Arg
+
+      ------------------
+      -- Add_Argument --
+      ------------------
+
+      procedure Add_Argument (Arg : String) is
+      begin
+         Arg_Count := Arg_Count + 1;
+         Args (Arg_Count) := new String'(Arg);
+      end Add_Argument;
+
+   begin
+      --  Create temporary file.
+
+      declare
+         Fd : File_Descriptor;
+      begin
+         Create_Temp_File (Fd, Tmp_File_Name_NUL);
+         if Fd = Invalid_FD then
+            Idlac_Errors.Error
+              (Base_Name (Command_Name)
+                & ": cannot create temporary file name",
+               Idlac_Errors.Fatal,
+               Idlac_Errors.No_Location);
+            return "";
+         end if;
+
+         --  We don't need the file descriptor
+
+         Close (Fd);
+
+         Tmp_File_Name := new String'(
+           Tmp_File_Name_NUL (Tmp_File_Name_NUL'First
+                           .. Tmp_File_Name_NUL'Last - 1)
+           & Platform.IDL_Preprocessor_Suffix);
+      end;
+
+      --  Add platform specific C++ preprocessor arguments as well as C++
+      --  preprocessor command name.
+
+      for J in CPP_Arg_List'First + 1 .. CPP_Arg_List'Last loop
+         Add_Argument (CPP_Arg_List (J).all);
+      end loop;
+
+      --  Pass user options to the preprocessor.
+
+      Goto_Section ("cppargs");
+      while Getopt ("*") /= ASCII.NUL loop
+         Add_Argument (Full_Switch);
+      end loop;
+
+      --  Add all search paths. Remove directory separator, because gcc does
+      --  not work on Windows when we call it with things like:
+      --     -I /some/directory\
+
+      for J in Search_Path.First .. Search_Path.Last loop
+         Add_Argument ("-I");
+         declare
+            Dir : String renames Search_Path.Table (J).all;
+            pragma Assert (Dir (Dir'Last) = Dir_Separator);
+         begin
+            Add_Argument (Dir (Dir'First .. Dir'Last - 1));
+         end;
+      end loop;
+
+      --  Always add the current directory at the end of the include list
+
+      Add_Argument ("-I");
+      Add_Argument (".");
+
+      --  Add output and source file names.
+
+      Add_Argument ("-o");
+      Add_Argument (Tmp_File_Name.all);
+      Add_Argument (File_Name);
+
+      declare
+         Preprocessor_Full_Pathname : constant String_Access
+           := Locate_Exec_On_Path (CPP_Arg_List (CPP_Arg_List'First).all);
+
+         Spawn_Result : Boolean;
+
+      begin
+         if Preprocessor_Full_Pathname = null then
+            Idlac_Errors.Error
+              ("Cannot find preprocessor "
+               & "'" & CPP_Arg_List (CPP_Arg_List'First).all & "'",
+               Idlac_Errors.Fatal,
+               Idlac_Errors.No_Location);
+            Free (Tmp_File_Name);
+            return "";
+         end if;
+
+         Spawn (Preprocessor_Full_Pathname.all,
+                Args (Args'First .. Arg_Count),
+                Spawn_Result);
+
+         if not Spawn_Result then
+            Idlac_Errors.Error
+              (Base_Name (Command_Name) & ": preprocessor failed",
+               Idlac_Errors.Fatal,
+               Idlac_Errors.No_Location);
+            Free (Tmp_File_Name);
+            return "";
+         end if;
+      end;
+
+      declare
+         Result : constant String := Tmp_File_Name.all;
+      begin
+         Free (Tmp_File_Name);
+         return Result;
+      end;
+   end Preprocess_File;
 
 end Idl_Fe.Files;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -40,11 +40,10 @@ package body PolyORB.Asynch_Ev.Sockets.TLS is
    use PolyORB.TLS;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.asynch_ev.sockets.tls");
-   procedure O (Message : in String; Level : Log_Level := Debug)
+   procedure O (Message : String; Level : Log_Level := Debug)
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
-   pragma Unreferenced (C); --  For conditional pragma Debug
 
    type Socket_Event_Monitor_Access is access all Socket_Event_Monitor;
 
@@ -76,27 +75,26 @@ package body PolyORB.Asynch_Ev.Sockets.TLS is
       Last   : Integer := 0;
 
    begin
-      pragma Debug (O ("Check_Sources: enter"));
+      pragma Debug (C, O ("Check_Sources: enter"));
 
       --  SSL transport may cache data in the internal buffer, so if cached
       --  data available then adding event source to the result
 
       declare
          Iter : Iterator := First (AEM.Sources);
-
       begin
          while not Source_Lists.Last (Iter) loop
-            if TLS_Event_Source (Value (Iter).all.all).TLS_Socket
+            if TLS_Event_Source (Value (Iter).all).TLS_Socket
                  /= No_TLS_Socket
               and then Pending_Length
-                (TLS_Event_Source (Value (Iter).all.all).TLS_Socket) /= 0
+                (TLS_Event_Source (Value (Iter).all).TLS_Socket) /= 0
             then
                Last := Last + 1;
-               Result (Last) := Value (Iter).all;
+               Result (Last) := Asynch_Ev_Source_Access (Value (Iter));
 
                Clear
                  (AEM.Monitored_Set,
-                  TLS_Event_Source (Value (Iter).all.all).Socket);
+                  TLS_Event_Source (Value (Iter).all).Socket);
                Remove (AEM.Sources, Iter);
 
             else
@@ -168,22 +166,22 @@ package body PolyORB.Asynch_Ev.Sockets.TLS is
       AES     :        Asynch_Ev_Source_Access;
       Success :    out Boolean) is
    begin
-      pragma Debug (O ("Register_Source: enter"));
+      pragma Debug (C, O ("Register_Source: enter"));
 
       Success := False;
       if AES.all not in TLS_Event_Source then
-         pragma Debug (O ("Register_Source: leave"));
+         pragma Debug (C, O ("Register_Source: leave"));
          return;
       end if;
 
       Set (AEM.Monitored_Set, TLS_Event_Source (AES.all).Socket);
-      Source_Lists.Append (AEM.Sources, AES);
-      pragma Debug (O ("Register_Source: Sources'Length:="
+      Source_Lists.Append (AEM.Sources, Socket_Event_Source (AES.all)'Access);
+      pragma Debug (C, O ("Register_Source: Sources'Length:="
                        & Integer'Image (Source_Lists.Length (AEM.Sources))));
       AES.Monitor := Asynch_Ev_Monitor_Access (AEM);
 
       Success := True;
-      pragma Debug (O ("Register_Source: leave"));
+      pragma Debug (C, O ("Register_Source: leave"));
    end Register_Source;
 
 end PolyORB.Asynch_Ev.Sockets.TLS;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -43,7 +43,6 @@ package body MOMA.Configuration is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
-   pragma Unreferenced (C); --  For conditional pragma Debug
 
    -----------------------------
    -- Load_Configuration_File --
@@ -74,7 +73,7 @@ package body MOMA.Configuration is
    begin
       Set_Name (Result, To_MOMA_String (Get_Conf (Section, "name")));
 
-      pragma Debug (O ("Pool #" & Natural'Image (Number) & " : "
+      pragma Debug (C, O ("Pool #" & Natural'Image (Number) & " : "
                        & "Name : " & To_Standard_String (Get_Name (Result))
                        & ", Type : " & Pool_S
                        & ", Persistent : " & Persistent_S));

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -73,13 +73,9 @@ package body CORBA.PolicyManager is
 
    function Get_Policy_Overrides
      (Self : Local_Ref;
-      TS   : CORBA.Policy.PolicyTypeSeq)
-     return CORBA.Policy.PolicyList
-   is
-      Self_Ref : CORBA.Object.Ref := CORBA.Object.Ref (Self);
-
+      TS   : CORBA.Policy.PolicyTypeSeq) return CORBA.Policy.PolicyList is
    begin
-      if CORBA.Object.Is_Nil (Self_Ref) then
+      if Is_Nil (Self) then
          CORBA.Raise_Inv_Objref (CORBA.Default_Sys_Member);
       end if;
 
@@ -117,10 +113,8 @@ package body CORBA.PolicyManager is
       Policies : CORBA.Policy.PolicyList;
       Set_Add  : SetOverrideType)
    is
-      Self_Ref : CORBA.Object.Ref := CORBA.Object.Ref (Self);
-
    begin
-      if CORBA.Object.Is_Nil (Self_Ref) then
+      if Is_Nil (Self) then
          CORBA.Raise_Inv_Objref (CORBA.Default_Sys_Member);
       end if;
 
@@ -134,7 +128,7 @@ package body CORBA.PolicyManager is
    is
       Npad    : Notepad_Access;
       Note    : Policy_Manager_Note;
-      Indexes : CORBA.Short;
+      Indexes : CORBA.Unsigned_Short;
 
    begin
       Enter (Self.Lock);

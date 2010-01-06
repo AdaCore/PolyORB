@@ -1,0 +1,20 @@
+Using PolyORB as DSA PCS
+========================
+
+PolyORB provides an application personality that implements a Partition
+Communication Subsystem for the Distributed Systems Annex of the Ada
+language, in conjunction with the GNAT compiler. In order to use this
+personality, you need to use matching releases of the compiler and
+middleware.
+
+The following combinations of releases are known to be compatible:
+
+GNAT version  | PolyORB version
+--------------+-----------------
+GNAT Pro 6.0  | PolyORB 2.2
+GNAT Pro 6.1  | PolyORB 2.3
+GNAT GPL 2008 | PolyORB 2.4
+GNAT Pro 6.2  | PolyORB 2.5
+GNAT GPL 2009 | PoylORB GPL 2009
+GNAT Pro 6.3  | PolyORB 2.6      (planned)
+

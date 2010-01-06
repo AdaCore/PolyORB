@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -59,7 +59,6 @@ with PolyORB.Security.Credentials;
 with PolyORB.Security.Security_Manager;
 with PolyORB.Security.Transport_Mechanisms;
 with PolyORB.Security.Types;
-with PolyORB.Smart_Pointers;
 with PolyORB.Tasking.Threads.Annotations;
 with PolyORB.Types;
 with PolyORB.Utils.Strings;
@@ -77,14 +76,13 @@ package body PolyORB.CORBA_P.TSS_State_Machine is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
-   pragma Unreferenced (C); --  For conditional pragma Debug
 
    procedure POA_Create
      (POA   :        PolyORB.POA.Obj_Adapter_Access;
       Error : in out PolyORB.Errors.Error_Container);
 
    procedure Server_Invoke
-     (Self    : access PolyORB.Smart_Pointers.Entity'Class;
+     (Self    : access PSPCE.Entity'Class;
       Request :        PolyORB.Requests.Request_Access;
       Profile :        PolyORB.Binding_Data.Profile_Access);
 
@@ -158,7 +156,7 @@ package body PolyORB.CORBA_P.TSS_State_Machine is
          Transport_Mechanism_Name      : constant String
            := Get_Conf (POA.Name.all, "transport_mechanism", "");
          Authentication_Mechanism_Name : constant String
-           := Get_Conf (POA.Name.all, "authentication", "none");
+           := Get_Conf (POA.Name.all, "authentication_mechanism", "none");
          Authentication_Required       : constant Boolean
            := Get_Conf (POA.Name.all, "authentication_required", False);
          Backward_Trust_Rules_File     : constant String
@@ -302,7 +300,7 @@ package body PolyORB.CORBA_P.TSS_State_Machine is
    -------------------
 
    procedure Server_Invoke
-     (Self    : access PolyORB.Smart_Pointers.Entity'Class;
+     (Self    : access PSPCE.Entity'Class;
       Request :        PolyORB.Requests.Request_Access;
       Profile :        PolyORB.Binding_Data.Profile_Access)
    is
@@ -345,7 +343,7 @@ package body PolyORB.CORBA_P.TSS_State_Machine is
 
             begin
                pragma Debug
-                (O ("Transport context without SAS message not accepted"));
+                (C, O ("Transport context without SAS message not accepted"));
 
                Throw
                  (Error,

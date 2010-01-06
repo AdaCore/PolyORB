@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -197,8 +197,7 @@ package body PolyORB.Utils is
       Start     : Integer;
       What      : Character;
       Skip      : Boolean;
-      Direction : Direction_Type)
-     return Integer
+      Direction : Direction_Type) return Integer
    is
       I : Integer := Start;
    begin
@@ -227,6 +226,12 @@ package body PolyORB.Utils is
    function To_Lower (S : String) return String is
 
       function To_Lower (C : Character) return Character;
+      --  Return C converted to lowercase, or unchanged if not an uppercase
+      --  letter.
+
+      --------------
+      -- To_Lower --
+      --------------
 
       function To_Lower (C : Character) return Character is
          C_Val : constant Natural := Character'Pos (C);
@@ -237,7 +242,6 @@ package body PolyORB.Utils is
            or else C_Val in 16#D8# .. 16#DE#
          then
             return Character'Val (C_Val + 16#20#);
-
          else
             return C;
          end if;
@@ -260,6 +264,12 @@ package body PolyORB.Utils is
    function To_Upper (S : String) return String is
 
       function To_Upper (C : Character) return Character;
+      --  Return C converted to uppercase, or unchanged if not a lowercase
+      --  letter.
+
+      --------------
+      -- To_Upper --
+      --------------
 
       function To_Upper (C : Character) return Character is
          C_Val : constant Natural := Character'Pos (C);
@@ -270,7 +280,6 @@ package body PolyORB.Utils is
            or else C_Val in 16#F8# .. 16#FE#
          then
             return Character'Val (C_Val - 16#20#);
-
          else
             return C;
          end if;

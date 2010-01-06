@@ -1,0 +1,11 @@
+module Test15 {
+
+    union U switch (long) {
+        case 0  : boolean value1;
+        default : boolean value2;
+    };
+
+    typedef sequence <U,1> OU;
+
+};
+

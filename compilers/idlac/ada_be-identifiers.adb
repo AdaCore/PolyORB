@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Utils; use Utils;
+with Idlac_Utils; use Idlac_Utils;
 
 with Idl_Fe.Tree; use Idl_Fe.Tree;
 with Idl_Fe.Tree.Synthetic; use Idl_Fe.Tree.Synthetic;
@@ -88,14 +88,15 @@ package body Ada_Be.Identifiers is
    --------------
 
    function Ada_Name (Node : Node_Id) return String is
-      Result : String
-        := Name (Node);
+      NK : constant Node_Kind := Kind (Node);
+
+      Result : String := Name (Node) & "U";
+      --  Reserve an additional character for the case of a terminal underscore
+
       First : Integer := Result'First;
-      NK : constant Node_Kind
-        := Kind (Node);
+      Last  : Integer := Result'Last - 1;
    begin
-      while First <= Result'Last
-        and then Result (First) = '_' loop
+      while First <= Last and then Result (First) = '_' loop
          First := First + 1;
       end loop;
 
@@ -112,21 +113,25 @@ package body Ada_Be.Identifiers is
          end if;
       end if;
 
-      for J in First .. Result'Last loop
+      for J in First .. Last loop
          if Result (J) = '_'
-           and then J < Result'Last
+           and then J < Last
            and then Result (J + 1) = '_' then
             Result (J + 1) := 'U';
          end if;
       end loop;
 
+      if Result (Last) = '_' then
+         Last := Last + 1;
+      end if;
+
       if False
         or else NK = K_Forward_Interface
         or else NK = K_Forward_ValueType
       then
-         return Result (First .. Result'Last) & "_Forward";
+         return Result (First .. Last) & "_Forward";
       else
-         return Result (First .. Result'Last);
+         return Result (First .. Last);
       end if;
    end Ada_Name;
 

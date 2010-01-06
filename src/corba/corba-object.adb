@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -50,16 +50,11 @@ package body CORBA.Object is
 
    use PolyORB.Smart_Pointers;
 
-   type Internal_Object is new PolyORB.Smart_Pointers.Entity with record
-      The_Object : PolyORB.Objects.Object_Id_Access;
-   end record;
-   type Internal_Object_Access is access all Internal_Object;
-
    --  Client stub for remote calls implementing predefined CORBA::Object
-   --  operations
+   --  operations.
 
-   RPC_Result_Name   : constant PolyORB.Types.Identifier
-                         := To_PolyORB_String ("Result");
+   RPC_Result_Name : constant PolyORB.Types.Identifier :=
+                       To_PolyORB_String ("Result");
 
    RPC_Is_A_Op_Name  : constant Standard.String := "_is_a";
    RPC_Is_A_Arg_Name : constant PolyORB.Types.Identifier :=
@@ -87,8 +82,7 @@ package body CORBA.Object is
 
    function Hash
      (Self    : Ref;
-      Maximum : CORBA.Unsigned_Long)
-      return CORBA.Unsigned_Long
+      Maximum : CORBA.Unsigned_Long) return CORBA.Unsigned_Long
    is
       use PolyORB.Utils.HFunctions.Mul;
 
@@ -103,10 +97,7 @@ package body CORBA.Object is
    -- Get_Interface --
    -------------------
 
-   function Get_Interface
-     (Self : Ref)
-     return CORBA.Object.Ref'Class
-   is
+   function Get_Interface (Self : Ref) return CORBA.Object.Ref'Class is
       Request          : PolyORB.Requests.Request_Access;
       Arg_List         : PolyORB.Any.NVList.Ref;
       Result           : PolyORB.Any.NamedValue;
@@ -126,9 +117,7 @@ package body CORBA.Object is
       --  No arguments
 
       Result := (Name      => RPC_Result_Name,
-                 Argument  =>
-                   CORBA.Internals.To_PolyORB_Any (
-                     CORBA.Internals.Get_Empty_Any (TC_Object)),
+                 Argument  => CORBA.Internals.Get_Empty_Any (TC_Object),
                  Arg_Modes => 0);
 
       PolyORB.Requests.Create_Request
@@ -141,22 +130,11 @@ package body CORBA.Object is
       PolyORB.CORBA_P.Interceptors_Hooks.Client_Invoke
         (Request, PolyORB.Requests.Flags (0));
 
-      if not PolyORB.Any.Is_Empty (Request.Exception_Info) then
-         declare
-            Info : constant Standard.String
-              := PolyORB.CORBA_P.Exceptions.Extract_Ada_Exception_Information
-              (Request);
-
-         begin
-            Result.Argument := Request.Exception_Info;
-            PolyORB.Requests.Destroy_Request (Request);
-            PolyORB.CORBA_P.Exceptions.Raise_From_Any (Result.Argument, Info);
-         end;
-      end if;
+      PolyORB.CORBA_P.Exceptions.Request_Raise_Occurrence (Request);
 
       PolyORB.Requests.Destroy_Request (Request);
-      return CORBA.Object.Helper.From_Any
-        (CORBA.Internals.To_CORBA_Any (Result.Argument));
+
+      return CORBA.Object.Helper.From_Any (CORBA.Any (Result.Argument));
    end Get_Interface;
 
    --------------
@@ -197,20 +175,10 @@ package body CORBA.Object is
       PolyORB.CORBA_P.Interceptors_Hooks.Client_Invoke
         (Request, PolyORB.Requests.Flags (0));
 
-      if not PolyORB.Any.Is_Empty (Request.Exception_Info) then
-         declare
-            Info : constant Standard.String
-              := PolyORB.CORBA_P.Exceptions.Extract_Ada_Exception_Information
-              (Request);
-
-         begin
-            Result.Argument := Request.Exception_Info;
-            PolyORB.Requests.Destroy_Request (Request);
-            PolyORB.CORBA_P.Exceptions.Raise_From_Any (Result.Argument, Info);
-         end;
-      end if;
+      PolyORB.CORBA_P.Exceptions.Request_Raise_Occurrence (Request);
 
       PolyORB.Requests.Destroy_Request (Request);
+
       return PolyORB.Any.From_Any (Result.Argument);
    end RPC_Is_A;
 
@@ -250,20 +218,8 @@ package body CORBA.Object is
          PolyORB.CORBA_P.Interceptors_Hooks.Client_Invoke
            (Request, PolyORB.Requests.Flags (0));
 
-         if not PolyORB.Any.Is_Empty (Request.Exception_Info) then
-            declare
-               Info : constant Standard.String
-                 := PolyORB.CORBA_P.Exceptions.
-                                             Extract_Ada_Exception_Information
-                 (Request);
+         PolyORB.CORBA_P.Exceptions.Request_Raise_Occurrence (Request);
 
-            begin
-               Result.Argument := Request.Exception_Info;
-               PolyORB.Requests.Destroy_Request (Request);
-               PolyORB.CORBA_P.Exceptions.Raise_From_Any
-                 (Result.Argument, Info);
-            end;
-         end if;
          PolyORB.Requests.Destroy_Request (Request);
 
          return PolyORB.Any.From_Any (Result.Argument);
@@ -308,6 +264,13 @@ package body CORBA.Object is
          --  Neutral core object
 
          else
+            --  ???
+            --  We should look up a registered mapping between the tag of
+            --  Entity_Of (Self) and a repository Id, as is currently done
+            --  for the particular case of servants in PortableServer.Internals
+            --  (the code of which should be moved to PolyORB.CORBA_P so it
+            --  can be used in a wider context).
+
             Raise_No_Implement (No_Implement_Members'
                                 (Minor     => 3,
                                  Completed => Completed_No));
@@ -460,7 +423,7 @@ package body CORBA.Object is
 
    procedure Duplicate (Self : in out Ref) is
    begin
-      Duplicate (PolyORB.Smart_Pointers.Ref (Self));
+      Adjust (PolyORB.Smart_Pointers.Ref (Self));
    end Duplicate;
 
    -------------
@@ -487,18 +450,6 @@ package body CORBA.Object is
 
    package body Internals is
 
-      -----------------------
-      -- To_PolyORB_Object --
-      -----------------------
-
-      function To_PolyORB_Object
-        (R : Ref)
-        return PolyORB.Objects.Object_Id
-      is
-      begin
-         return Internal_Object_Access (Entity_Of (R)).The_Object.all;
-      end To_PolyORB_Object;
-
       --------------------
       -- To_PolyORB_Ref --
       --------------------
@@ -506,28 +457,18 @@ package body CORBA.Object is
       function To_PolyORB_Ref (R : Ref) return PolyORB.References.Ref is
       begin
          return PolyORB.References.Ref (R);
---        is
---           E : constant PolyORB.Smart_Pointers.Entity_Ptr
---             := Entity_Of (R);
---           Result : PolyORB.References.Ref;
---        begin
---           PolyORB.References.Set (Result, E);
---           return Result;
       end To_PolyORB_Ref;
 
-      --------------------------
-      -- Convert_To_CORBA_Ref --
-      --------------------------
+      ------------------
+      -- To_CORBA_Ref --
+      ------------------
 
-      procedure Convert_To_CORBA_Ref
-        (Neutral_Ref : PolyORB.References.Ref;
-         CORBA_Ref   : in out CORBA.Object.Ref'Class)
-      is
-         E : constant PolyORB.Smart_Pointers.Entity_Ptr
-           := PolyORB.References.Entity_Of (Neutral_Ref);
+      function To_CORBA_Ref (R : PolyORB.References.Ref) return Ref is
+         Result : Ref;
       begin
-         Set (CORBA_Ref, E);
-      end Convert_To_CORBA_Ref;
+         Set (Result, PolyORB.References.Entity_Of (R));
+         return Result;
+      end To_CORBA_Ref;
 
    end Internals;
 
@@ -551,10 +492,11 @@ package body CORBA.Object is
    procedure Initialize is
    begin
       TC_Object_Cache := CORBA.TypeCode.Internals.To_CORBA_Object
-        (PolyORB.Any.TypeCode.TC_Object);
-      CORBA.TypeCode.Internals.Add_Parameter
+                           (PolyORB.Any.TypeCode.TC_Object);
+
+      CORBA.Internals.Add_Parameter
         (TC_Object_Cache, To_Any (To_CORBA_String ("Object")));
-      CORBA.TypeCode.Internals.Add_Parameter
+      CORBA.Internals.Add_Parameter
         (TC_Object_Cache, To_Any (To_CORBA_String ("IDL:CORBA/Object:1.0")));
    end Initialize;
 

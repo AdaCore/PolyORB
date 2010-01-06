@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -63,7 +63,7 @@ package CosNotifyChannelAdmin.ConsumerAdmin.Impl is
 
    procedure Set_Priority_Filter
      (Self : access Object;
-      To   : in CosNotifyFilter.MappingFilter.Ref);
+      To   : CosNotifyFilter.MappingFilter.Ref);
 
    function Get_Lifetime_Filter
      (Self : access Object)
@@ -71,7 +71,7 @@ package CosNotifyChannelAdmin.ConsumerAdmin.Impl is
 
    procedure Set_Lifetime_Filter
      (Self : access Object;
-      To   : in CosNotifyFilter.MappingFilter.Ref);
+      To   : CosNotifyFilter.MappingFilter.Ref);
 
    function Get_Pull_Suppliers
      (Self : access Object)
@@ -83,18 +83,18 @@ package CosNotifyChannelAdmin.ConsumerAdmin.Impl is
 
    function Get_Proxy_Supplier
      (Self       : access Object;
-      Proxy_Id   : in CosNotifyChannelAdmin.ProxyID)
+      Proxy_Id   : CosNotifyChannelAdmin.ProxyID)
      return CosNotifyChannelAdmin.ProxySupplier.Ref;
 
    procedure Obtain_Notification_Pull_Supplier
      (Self     : access Object;
-      Ctype    : in CosNotifyChannelAdmin.ClientType;
+      Ctype    : CosNotifyChannelAdmin.ClientType;
       Proxy_Id : out CosNotifyChannelAdmin.ProxyID;
       Returns  : out CosNotifyChannelAdmin.ProxySupplier.Ref);
 
    procedure Obtain_Notification_Push_Supplier
      (Self     : access Object;
-      Ctype    : in CosNotifyChannelAdmin.ClientType;
+      Ctype    : CosNotifyChannelAdmin.ClientType;
       Proxy_Id : out CosNotifyChannelAdmin.ProxyID;
       Returns  : out CosNotifyChannelAdmin.ProxySupplier.Ref);
 
@@ -108,11 +108,11 @@ package CosNotifyChannelAdmin.ConsumerAdmin.Impl is
 
    procedure Set_QoS
      (Self : access Object;
-      QoS  : in CosNotification.QoSProperties);
+      QoS  : CosNotification.QoSProperties);
 
    procedure Validate_QoS
      (Self          : access Object;
-      Required_QoS  : in CosNotification.QoSProperties;
+      Required_QoS  : CosNotification.QoSProperties;
       Available_QoS : out CosNotification.NamedPropertyRangeSeq);
 
    --  Inherited IDL operations from CosNotifyComm::NotifySubscribe
@@ -126,16 +126,16 @@ package CosNotifyChannelAdmin.ConsumerAdmin.Impl is
 
    function Add_Filter
      (Self       : access Object;
-      New_Filter : in CosNotifyFilter.Filter.Ref)
+      New_Filter : CosNotifyFilter.Filter.Ref)
      return CosNotifyFilter.FilterID;
 
    procedure Remove_Filter
      (Self   : access Object;
-      Filter : in CosNotifyFilter.FilterID);
+      Filter : CosNotifyFilter.FilterID);
 
    function Get_Filter
      (Self   : access Object;
-      Filter : in CosNotifyFilter.FilterID)
+      Filter : CosNotifyFilter.FilterID)
      return CosNotifyFilter.Filter.Ref;
 
    function Get_All_Filters
@@ -172,17 +172,17 @@ package CosNotifyChannelAdmin.ConsumerAdmin.Impl is
 
    procedure Post
      (Self          : access Object;
-      Data          : in CORBA.Any;
+      Data          : CORBA.Any;
       Internal_Post : CORBA.Boolean := False);
 
    procedure Structured_Post
      (Self          : access Object;
-      Notification  : in CosNotification.StructuredEvent;
+      Notification  : CosNotification.StructuredEvent;
       Internal_Post : CORBA.Boolean := False);
 
    procedure Sequence_Post
      (Self          : access Object;
-      Notifications : in CosNotification.EventBatch;
+      Notifications : CosNotification.EventBatch;
       Internal_Post : CORBA.Boolean := False);
 
 private

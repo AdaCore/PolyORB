@@ -40,7 +40,7 @@ module CORBA {
 #ifdef _PRE_3_0_COMPILER_
 #pragma prefix "omg.org"
 #else
-typeprefix CORBA "omg.org"
+typeprefix CORBA "omg.org"; // ";" suppresses iac warning about missing ";".
 #endif
 //PolyORB:WAidlac:end
 
@@ -178,6 +178,10 @@ typeprefix CORBA "omg.org"
 //----------------------------------------------------------------------------
 
 };
+
+#undef Context
+#undef Object
+#undef ValueBase
 
 #endif // _ORB_IDL_
 

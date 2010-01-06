@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -46,159 +46,164 @@ package all_types.Impl is
 
    function echoBoolean
      (Self : access Object;
-      arg : in CORBA.Boolean) return CORBA.Boolean;
+      arg : CORBA.Boolean) return CORBA.Boolean;
 
    function echoShort
      (Self : access Object;
-      arg : in CORBA.Short) return CORBA.Short;
+      arg : CORBA.Short) return CORBA.Short;
 
    function echoLong
      (Self : access Object;
-      arg : in CORBA.Long) return CORBA.Long;
+      arg : CORBA.Long) return CORBA.Long;
 
    function echoUShort
      (Self : access Object;
-      arg : in CORBA.Unsigned_Short) return CORBA.Unsigned_Short;
+      arg : CORBA.Unsigned_Short) return CORBA.Unsigned_Short;
 
    function echoULong
      (Self : access Object;
-      arg : in CORBA.Unsigned_Long) return CORBA.Unsigned_Long;
+      arg : CORBA.Unsigned_Long) return CORBA.Unsigned_Long;
 
    function echoULLong
      (Self : access Object;
-      arg : in CORBA.Unsigned_Long_Long) return CORBA.Unsigned_Long_Long;
+      arg : CORBA.Unsigned_Long_Long) return CORBA.Unsigned_Long_Long;
 
    function echoFloat
      (Self : access Object;
-      arg : in CORBA.Float) return CORBA.Float;
+      arg : CORBA.Float) return CORBA.Float;
 
    function echoDouble
      (Self : access Object;
-      arg : in CORBA.Double) return CORBA.Double;
+      arg : CORBA.Double) return CORBA.Double;
 
    function echoChar
      (Self : access Object;
-      arg : in CORBA.Char) return CORBA.Char;
+      arg : CORBA.Char) return CORBA.Char;
 
    function echoWChar
      (Self : access Object;
-      arg : in CORBA.Wchar) return CORBA.Wchar;
+      arg : CORBA.Wchar) return CORBA.Wchar;
 
    function echoOctet
      (Self : access Object;
-      arg : in CORBA.Octet) return CORBA.Octet;
+      arg : CORBA.Octet) return CORBA.Octet;
 
    function echoString
      (Self : access Object;
-      arg : in CORBA.String) return CORBA.String;
+      arg : CORBA.String) return CORBA.String;
 
    function echoWString
      (Self : access Object;
-      arg : in CORBA.Wide_String) return CORBA.Wide_String;
+      arg : CORBA.Wide_String) return CORBA.Wide_String;
 
    function echoRef
      (Self : access Object;
-      arg : in all_types.Ref) return all_types.Ref'Class;
+      arg : all_types.Ref) return all_types.Ref'Class;
 
    function echoObject
      (Self : access Object;
-      arg  : in CORBA.Object.Ref) return CORBA.Object.Ref;
+      arg  : CORBA.Object.Ref) return CORBA.Object.Ref;
 
    function echoOtherAllTypes
      (Self : access Object;
-      arg  : in all_types.otherAllTypes) return all_types.otherAllTypes;
+      arg  : all_types.otherAllTypes) return all_types.otherAllTypes;
 
    function echoOtherObject
      (Self : access Object;
-      arg  : in all_types.otherObject) return all_types.otherObject;
+      arg  : all_types.otherObject) return all_types.otherObject;
 
    function echoBoundedStr
      (Self : access Object;
-      arg  : in all_types.BoundedStr) return all_types.BoundedStr;
+      arg  : all_types.BoundedStr) return all_types.BoundedStr;
 
    function echoBoundedWStr
      (Self : access Object;
-      arg  : in all_types.BoundedWStr) return all_types.BoundedWStr;
+      arg  : all_types.BoundedWStr) return all_types.BoundedWStr;
 
    function echoColor
      (Self : access Object;
-      arg  : in Color) return Color;
+      arg  : Color) return Color;
 
    function echoRainbow
      (Self : access Object;
-      arg  : in Rainbow) return Rainbow;
+      arg  : Rainbow) return Rainbow;
 
    function echoArray
      (Self : access Object;
-      Arg : in simple_array) return simple_array;
+      Arg : simple_array) return simple_array;
 
    function echoMatrix
      (Self : access Object;
-      arg : in matrix) return matrix;
+      arg : matrix) return matrix;
 
    function echoBigMatrix
      (Self : access Object;
-      arg : in bigmatrix) return bigmatrix;
+      arg : bigmatrix) return bigmatrix;
 
    function echoNestedArray
      (Self : access Object;
-      Arg : in nested_array) return nested_array;
+      Arg : nested_array) return nested_array;
 
    function echoSixteenKb
      (Self : access Object;
-      arg : in sixteenKb) return sixteenKb;
+      arg : sixteenKb) return sixteenKb;
 
    procedure testException
      (Self : access Object;
-      arg : in CORBA.Long);
+      info : CORBA.Long;
+      why  : CORBA.String);
 
    procedure testUnknownException
      (Self : access Object;
-      arg : in CORBA.Long);
+      arg : CORBA.Long);
 
    procedure testSystemException
      (Self : access Object;
-      arg : in CORBA.Long);
+      arg : CORBA.Long);
 
    function echoStruct
      (Self : access Object;
-      arg  : in simple_struct) return simple_struct;
+      arg  : simple_struct) return simple_struct;
 
    function echoArrayStruct
      (Self : access Object;
-      arg  : in array_struct) return array_struct;
+      arg  : array_struct) return array_struct;
 
    function echoNestedStruct
      (Self : access Object;
-      arg  : in nested_struct) return nested_struct;
+      arg  : nested_struct) return nested_struct;
 
    function echoUnion
      (Self : access Object;
-      arg : in myUnion) return myUnion;
+      arg : myUnion) return myUnion;
 
    function echoUnionEnumSwitch
      (Self : access Object;
-      arg : in myUnionEnumSwitch) return myUnionEnumSwitch;
+      arg : myUnionEnumSwitch) return myUnionEnumSwitch;
 
    function echoNoMemberUnion
      (Self : access Object;
-      arg : in noMemberUnion) return noMemberUnion;
+      arg : noMemberUnion) return noMemberUnion;
 
    function echoUsequence
      (Self : access Object;
-      arg : in U_sequence) return U_sequence;
+      arg : U_sequence) return U_sequence;
 
    function echoBsequence
      (Self : access Object;
-      arg : in B_sequence) return B_sequence;
+      arg : B_sequence) return B_sequence;
+
+   function echoUnionSequence
+     (Self : access Object;
+      arg : unionSequence) return unionSequence;
 
    function echoMoney
      (Self : access Object;
-      Arg  : in Money) return Money;
+      Arg  : Money) return Money;
 
    procedure set_MyColor
      (Self : access Object;
-      arg : in Color);
+      arg : Color);
 
    function get_myColor
      (Self : access Object)

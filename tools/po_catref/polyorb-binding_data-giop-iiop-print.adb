@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -42,6 +42,7 @@ with PolyORB.GIOP_P.Transport_Mechanisms.IIOP;
 with PolyORB.GIOP_P.Tagged_Components.SSL_Sec_Trans.Print;
 with PolyORB.Sockets;
 with PolyORB.Types; use PolyORB.Types;
+with PolyORB.Utils.Sockets;
 with PolyORB.Utils.Strings;
 
 package body PolyORB.Binding_Data.GIOP.IIOP.Print is
@@ -50,10 +51,11 @@ package body PolyORB.Binding_Data.GIOP.IIOP.Print is
    use PolyORB.GIOP_P.Tagged_Components.SSL_Sec_Trans;
    use PolyORB.GIOP_P.Tagged_Components.SSL_Sec_Trans.Print;
    use PolyORB.GIOP_P.Transport_Mechanisms.IIOP;
+   use PolyORB.Sockets;
 
    function Get_Primary_IIOP_Address
      (Prof : IIOP_Profile_Type)
-      return PolyORB.Sockets.Sock_Addr_Type;
+      return Utils.Sockets.Socket_Name;
 
    ------------------------------
    -- Get_Primary_IIOP_Address --
@@ -61,7 +63,7 @@ package body PolyORB.Binding_Data.GIOP.IIOP.Print is
 
    function Get_Primary_IIOP_Address
      (Prof : IIOP_Profile_Type)
-      return PolyORB.Sockets.Sock_Addr_Type
+      return Utils.Sockets.Socket_Name
    is
    begin
       return
@@ -79,8 +81,6 @@ package body PolyORB.Binding_Data.GIOP.IIOP.Print is
       use Output;
 
       use PolyORB.Utils;
-      use type PolyORB.Sockets.Port_Type;
-
       use PolyORB.GIOP_P.Tagged_Components.Print;
 
       IIOP_Prof : IIOP_Profile_Type renames IIOP_Profile_Type (Prof.all);

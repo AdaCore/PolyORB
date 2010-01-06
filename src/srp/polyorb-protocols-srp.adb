@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -62,7 +62,6 @@ package body PolyORB.Protocols.SRP is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
-   pragma Unreferenced (C); --  For conditional pragma Debug
 
    Rep : constant Rep_SRP_Access := new Rep_SRP;
 
@@ -81,7 +80,6 @@ package body PolyORB.Protocols.SRP is
       --  This should be factored in PolyORB.Protocols.
 
       Session := new SRP_Session;
-      Set_Allocation_Class (Session.all, Dynamic);
 
       SRP_Session (Session.all).Buffer_In := new Buffers.Buffer_Type;
       SRP_Session (Session.all).Buffer_Out := new Buffers.Buffer_Type;
@@ -223,12 +221,11 @@ package body PolyORB.Protocols.SRP is
          (S.Dependent_Binding_Object));
 
       --  Queue the request for execution
-      Queue_Request_To_Handler
-        (ORB.Tasking_Policy,
-         ORB,
-         Queue_Request'
-         (Request   => Req,
-          Requestor => Component_Access (S)));
+
+      Queue_Request_To_Handler (ORB,
+        Queue_Request'
+          (Request   => Req,
+           Requestor => Component_Access (S)));
 
    end Request_Received;
 
@@ -266,7 +263,7 @@ package body PolyORB.Protocols.SRP is
 
    procedure Handle_Connect_Indication (S : access SRP_Session) is
    begin
-      pragma Debug (O ("Received new connection to SRP service..."));
+      pragma Debug (C, O ("Received new connection to SRP service..."));
 
       --  1. Send greetings to client.
 
@@ -310,15 +307,16 @@ package body PolyORB.Protocols.SRP is
    ----------------------------
 
    procedure Handle_Data_Indication
-     (S : access SRP_Session;
-      Data_Amount : Stream_Element_Count)
+     (S           : access SRP_Session;
+      Data_Amount : Stream_Element_Count;
+      Error       : in out Errors.Error_Container)
    is
    begin
       pragma Warnings (Off);
-      pragma Unreferenced (Data_Amount);
+      pragma Unreferenced (Data_Amount, Error);
       pragma Warnings (On);
 
-      pragma Debug (O ("Received data on SRP service..."));
+      pragma Debug (C, O ("Received data on SRP service..."));
       pragma Debug (Buffers.Show (S.Buffer_In));
 
       Request_Received (S);
@@ -339,11 +337,11 @@ package body PolyORB.Protocols.SRP is
    is
       pragma Unreferenced (Error);
    begin
-      pragma Debug (O ("Received disconnect."));
+      pragma Debug (C, O ("Received disconnect."));
 
-      --  Cleanup protocol.
+      --  Cleanup protocol
+
       Buffers.Release (S.Buffer_In);
-
    end Handle_Disconnect;
 
    ---------------------------------
@@ -436,7 +434,7 @@ package body PolyORB.Protocols.SRP is
 
          declare
             Value : aliased Stream_Element_Array :=
-              To_SEA (Current_Arg.all.Value.all & ASCII.nul);
+              To_SEA (Current_Arg.all.Value.all & ASCII.NUL);
          begin
             Initialize_Buffer (Buffer     => Temp_Buffer'Access,
                                Size       => Value'Length,

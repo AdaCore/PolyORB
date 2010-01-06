@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2002 Free Software Foundation, Inc.             --
+--            Copyright (C) 2002-2008, Free Software Foundation, Inc.       --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -35,7 +35,10 @@ with Ada.Dynamic_Priorities;
 with Ada.Text_IO;
 
 with Echo.Skel;
+pragma Warnings (Off);
+--  Compiler wants Elaborate_All, but that causes cycles
 pragma Elaborate (Echo.Skel);
+pragma Warnings (On);
 pragma Warnings (Off, Echo.Skel);
 --  No entity from Echo.Skel is referenced.
 
@@ -52,7 +55,7 @@ package body Echo.Impl is
 
    function EchoString
      (Self : access Object;
-      Mesg : in     CORBA.String)
+      Mesg : CORBA.String)
      return CORBA.Short
    is
       pragma Warnings (Off);
@@ -90,4 +93,3 @@ package body Echo.Impl is
    end EchoString;
 
 end Echo.Impl;
-

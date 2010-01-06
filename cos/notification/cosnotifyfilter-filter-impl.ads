@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -49,17 +49,17 @@ package CosNotifyFilter.Filter.Impl is
 
    function Add_Constraints
      (Self            : access Object;
-      Constraint_List : in CosNotifyFilter.ConstraintExpSeq)
+      Constraint_List : CosNotifyFilter.ConstraintExpSeq)
      return CosNotifyFilter.ConstraintInfoSeq;
 
    procedure Modify_Constraints
      (Self        : access Object;
-      Del_List    : in CosNotifyFilter.ConstraintIDSeq;
-      Modify_List : in CosNotifyFilter.ConstraintInfoSeq);
+      Del_List    : CosNotifyFilter.ConstraintIDSeq;
+      Modify_List : CosNotifyFilter.ConstraintInfoSeq);
 
    function Get_Constraints
      (Self    : access Object;
-      Id_List : in CosNotifyFilter.ConstraintIDSeq)
+      Id_List : CosNotifyFilter.ConstraintIDSeq)
      return CosNotifyFilter.ConstraintInfoSeq;
 
    function Get_All_Constraints
@@ -74,27 +74,27 @@ package CosNotifyFilter.Filter.Impl is
 
    function Match
      (Self            : access Object;
-      Filterable_Data : in CORBA.Any)
+      Filterable_Data : CORBA.Any)
      return CORBA.Boolean;
 
    function Match_Structured
      (Self            : access Object;
-      Filterable_Data : in CosNotification.StructuredEvent)
+      Filterable_Data : CosNotification.StructuredEvent)
      return CORBA.Boolean;
 
    function Match_Typed
      (Self            : access Object;
-      Filterable_Data : in CosNotification.PropertySeq)
+      Filterable_Data : CosNotification.PropertySeq)
      return CORBA.Boolean;
 
    function Attach_Callback
      (Self     : access Object;
-      Callback : in CosNotifyComm.NotifySubscribe.Ref)
+      Callback : CosNotifyComm.NotifySubscribe.Ref)
      return CosNotifyFilter.CallbackID;
 
    procedure Detach_Callback
      (Self     : access Object;
-      Callback : in CosNotifyFilter.CallbackID);
+      Callback : CosNotifyFilter.CallbackID);
 
    function Get_Callbacks
      (Self : access Object)

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -37,7 +37,7 @@ with Ada.Unchecked_Conversion;
 
 with System;
 
-with AWS.MIME;
+with PolyORB.Web.MIME;
 with PolyORB.SOAP_P.Response;
 
 with PolyORB.Filters.AWS_Interface;
@@ -68,7 +68,6 @@ package body PolyORB.Filters.HTTP is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
-   pragma Unreferenced (C); --  For conditional pragma Debug
 
    HTTP_Error : exception;
 
@@ -77,8 +76,8 @@ package body PolyORB.Filters.HTTP is
    -----------------------------------------
 
    procedure Handle_Data_Indication
-     (F : access HTTP_Filter;
-      S : Filters.Iface.Data_Indication);
+     (F     : access HTTP_Filter;
+      S     : Filters.Iface.Data_Indication);
    --  Process a Data_Indication message from lower layers.
 
    procedure Process_Line
@@ -173,8 +172,7 @@ package body PolyORB.Filters.HTTP is
 
    function Handle_Message
      (F : access HTTP_Filter;
-      S : Components.Message'Class)
-     return Components.Message'Class
+      S : Components.Message'Class) return Components.Message'Class
    is
       Res : Components.Null_Message;
    begin
@@ -219,8 +217,8 @@ package body PolyORB.Filters.HTTP is
 
          declare
             Buf : Buffer_Access := new Buffer_Type;
-            RD : constant PolyORB.SOAP_P.Response.Data
-              := AWS_Response_Out (S).Data;
+            RD  : constant PolyORB.SOAP_P.Response.Data :=
+                    AWS_Response_Out (S).Data;
          begin
             case PolyORB.SOAP_P.Response.Mode (RD) is
                when PolyORB.SOAP_P.Response.Header =>
@@ -233,20 +231,11 @@ package body PolyORB.Filters.HTTP is
             Release (Buf);
          end;
 
-      elsif False
-        or else S in Set_Server
-        or else S in Disconnect_Indication
-      then
-         return Emit (F.Upper, S);
-
-      elsif S in Disconnect_Request then
-         return Emit (F.Lower, S);
-
       elsif S in AWS_Get_SOAP_Action then
          return AWS_SOAP_Action'(SOAP_Action => F.SOAP_Action);
 
       else
-         raise Program_Error;
+         return Filters.Handle_Message (Filters.Filter (F.all)'Access, S);
       end if;
 
       return Res;
@@ -313,12 +302,12 @@ package body PolyORB.Filters.HTTP is
      (F : access HTTP_Filter;
       S : Filters.Iface.Data_Indication)
    is
-      Data_Received : Stream_Element_Count
-        := Stream_Element_Count (S.Data_Amount);
+      Data_Received : Stream_Element_Count :=
+                        Stream_Element_Count (S.Data_Amount);
 
       New_Data : PolyORB.Opaque.Opaque_Pointer;
-      New_Data_Position : Stream_Element_Offset
-        := Length (F.In_Buf) - Data_Received;
+      New_Data_Position : Stream_Element_Offset :=
+                            Length (F.In_Buf.all) - Data_Received;
    begin
 
       ---------------------------
@@ -395,13 +384,15 @@ package body PolyORB.Filters.HTTP is
                      --    (the end of this line).
 
                      New_Data_Position := CDR_Position (F.In_Buf);
-                     Data_Received := Length (F.In_Buf) - New_Data_Position;
+                     Data_Received :=
+                       Length (F.In_Buf.all) - New_Data_Position;
+
                      if Data_Received > 0 then
-                        pragma Debug (O ("Restarting HTTP processing"));
+                        pragma Debug (C, O ("Restarting HTTP processing"));
                         pragma Debug
-                          (O ("Transfer length:" & F.Transfer_Length'Img));
+                          (C, O ("Transfer length:" & F.Transfer_Length'Img));
                         pragma Debug
-                          (O ("Pending data:" & Data_Received'Img));
+                          (C, O ("Pending data:" & Data_Received'Img));
                         goto Process_Received_Data;
                      end if;
                      --  Update state, and restart data processing if
@@ -414,7 +405,7 @@ package body PolyORB.Filters.HTTP is
             end loop Scan_Line;
          end;
 
-         if CDR_Position (F.In_Buf) = Length (F.In_Buf) then
+         if CDR_Position (F.In_Buf) = Length (F.In_Buf.all) then
             --  All data currently in F.In_Buf has been processed,
             --  so release it (NB: in the HTTP filter, the initial
             --  position in the buffer is always 0.)
@@ -427,7 +418,7 @@ package body PolyORB.Filters.HTTP is
          -- Not in a line-by-line state: transferring entity --
          ------------------------------------------------------
 
-         pragma Debug (O ("Transferring entity"));
+         pragma Debug (C, O ("Transferring entity"));
 
          declare
             Data : PolyORB.Opaque.Opaque_Pointer;
@@ -443,14 +434,15 @@ package body PolyORB.Filters.HTTP is
             declare
                S : String (1 .. Integer (Data_Processed));
                for S'Address use Data;
+               pragma Import (Ada, S);
             begin
                Append (F.Entity, S);
             end;
 
             F.Transfer_Length := F.Transfer_Length - Data_Processed;
 
-            pragma Debug (O ("F.State:" & F.State'Img));
-            pragma Debug (O ("F.Transfer_Length:" & F.Transfer_Length'Img));
+            pragma Debug (C, O ("F.State:" & F.State'Img));
+            pragma Debug (C, O ("F.Transfer_Length:" & F.Transfer_Length'Img));
 
             if F.Transfer_Length = 0 then
                if F.Chunked then
@@ -477,7 +469,7 @@ package body PolyORB.Filters.HTTP is
             New_Data_Position := CDR_Position (F.In_Buf);
             Data_Received := Data_Received - Data_Processed;
             if Data_Received > 0 then
-               pragma Debug (O ("Restarting HTTP processing"));
+               pragma Debug (C, O ("Restarting HTTP processing"));
                goto Process_Received_Data;
             end if;
          end;
@@ -492,8 +484,8 @@ package body PolyORB.Filters.HTTP is
       --  according to the current state information (which
       --  may have been modified by the above processing.
 
-      pragma Debug (O ("F.State:" & F.State'Img));
-      pragma Debug (O ("F.Transfer_Length:" & F.Transfer_Length'Img));
+      pragma Debug (C, O ("F.State:" & F.State'Img));
+      pragma Debug (C, O ("F.Transfer_Length:" & F.Transfer_Length'Img));
 
       case F.Transfer_Length is
          when -1 =>
@@ -522,7 +514,7 @@ package body PolyORB.Filters.HTTP is
       Data : PolyORB.Opaque.Opaque_Pointer;
    begin
       pragma Debug
-        (O ("Processing line at position "
+        (C, O ("Processing line at position "
             & Stream_Element_Offset'Image
             (PolyORB.Buffers.CDR_Position (F.In_Buf))));
       PolyORB.Buffers.Extract_Data
@@ -532,8 +524,9 @@ package body PolyORB.Filters.HTTP is
          S : String (1 .. Integer (Line_Length) - 2);
          --  Ignore last 2 characters (CR/LF).
          for S'Address use Data;
+         pragma Import (Ada, S);
       begin
-         pragma Debug (O ("HTTP line received: " & S));
+         pragma Debug (C, O ("HTTP line received: " & S));
 
          case F.State is
             when Start_Line =>
@@ -551,7 +544,7 @@ package body PolyORB.Filters.HTTP is
                   Parse_Header_Line (F, S);
                else
                   --  End of headers (an empty line).
-                  pragma Debug (O ("Headers complete."));
+                  pragma Debug (C, O ("Headers complete."));
 
                   --  Determine the message body transfer length
                   --  (RFC 2616 4.4)
@@ -597,7 +590,7 @@ package body PolyORB.Filters.HTTP is
                      F.State := Entity;
                   end if;
                end if;
-               pragma Debug (O ("F.State: " & F.State'Img));
+               pragma Debug (C, O ("F.State: " & F.State'Img));
 
             when others =>
                raise Program_Error;
@@ -654,7 +647,9 @@ package body PolyORB.Filters.HTTP is
       if Item_First > S'Last then
          --  There was only LWS from Pos to the end of the string.
          Pos := S'Last + 1;
+         pragma Warnings (Off); --  "Last" not set before return
          return;
+         pragma Warnings (On);
       end if;
 
       Separator := Item_First;
@@ -739,9 +734,9 @@ package body PolyORB.Filters.HTTP is
       F.Version     := Parse_HTTP_Version (S (Version .. S'Last));
       F.State := Header;
 
-      pragma Debug (O ("Parsed request-line:"));
+      pragma Debug (C, O ("Parsed request-line:"));
       pragma Debug
-        (O (F.Request_Method'Img & " " & F.Request_URI.all
+        (C, O (F.Request_Method'Img & " " & F.Request_URI.all
             & " " & Image (F.Version)));
    end Parse_Request_Line;
 
@@ -770,8 +765,8 @@ package body PolyORB.Filters.HTTP is
 
       F.State := Header;
 
-      pragma Debug (O ("Parsed status-line:"));
-      pragma Debug (O (Image (F.Version) & " " & F.Status'Img
+      pragma Debug (C, O ("Parsed status-line:"));
+      pragma Debug (C, O (Image (F.Version) & " " & F.Status'Img
                        & S (Space .. S'Last)));
    end Parse_Status_Line;
 
@@ -781,7 +776,7 @@ package body PolyORB.Filters.HTTP is
    is
       use PolyORB.HTTP_Headers;
 
-      pragma Debug (O ("Parse_Header_Line: S=" & S));
+      pragma Debug (C, O ("Parse_Header_Line: S=" & S));
 
       Colon : constant Integer := Find (S, S'First, ':');
       Header_Kind : PolyORB.HTTP_Headers.Header;
@@ -789,7 +784,7 @@ package body PolyORB.Filters.HTTP is
       Tok_First, Tok_Last : Integer;
    begin
       if Colon > S'Last then
-         raise HTTP_Error;
+         raise HTTP_Error with "Malformed HTTP header: " & S;
       end if;
       Header_Kind := PolyORB.HTTP_Headers.In_Word_Set
         (S (S'First .. Colon - 1));
@@ -854,10 +849,10 @@ package body PolyORB.Filters.HTTP is
             if Pos > Tok_Last then
                raise HTTP_Error;
             end if;
-            pragma Debug (O ("SOAP action is " & S (Pos .. Tok_Last)));
+            pragma Debug (C, O ("SOAP action is " & S (Pos .. Tok_Last)));
 
             if S (Pos) = '"' and then S (Tok_Last) = '"' then
-               pragma Debug (O ("SOAP action is now "
+               pragma Debug (C, O ("SOAP action is now "
                                 & S (Pos + 1 .. Tok_Last - 1)));
                F.SOAP_Action := PolyORB.Types.To_PolyORB_String
                  (S (Pos + 1 .. Tok_Last - 1));
@@ -868,8 +863,8 @@ package body PolyORB.Filters.HTTP is
 
          when others =>
             pragma Debug
-              (O ("Ignoring HTTP header " & Header_Kind'Img & ":"));
-            pragma Debug (O (S));
+              (C, O ("Ignoring HTTP header " & Header_Kind'Img & ":"));
+            pragma Debug (C, O (S));
             null;
             --  Ignore non-recognised headers.
       end case;
@@ -908,7 +903,7 @@ package body PolyORB.Filters.HTTP is
    is
       use type PolyORB.Utils.Strings.String_Ptr;
    begin
-      pragma Debug (O ("Message_Complete: enter"));
+      pragma Debug (C, O ("Message_Complete: enter"));
 
       --  Check validity of message body buffer now.
       if F.Message_Buf = null then
@@ -1105,10 +1100,11 @@ package body PolyORB.Filters.HTTP is
          when POST =>
             if SOAP_Action'Length /= 0 then
                Put_Line
-                 (Buf, Header (H_Content_Type, AWS.MIME.Text_XML));
+                 (Buf, Header (H_Content_Type, PolyORB.Web.MIME.Text_XML));
             else
                Put_Line
-                 (Buf, Header (H_Content_Type, AWS.MIME.Appl_Form_Data));
+                 (Buf,
+                  Header (H_Content_Type, PolyORB.Web.MIME.Appl_Form_Data));
             end if;
             Put_Line
               (Buf, Header (H_Content_Length,

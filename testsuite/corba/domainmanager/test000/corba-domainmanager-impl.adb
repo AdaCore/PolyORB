@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -42,7 +42,7 @@ package body CORBA.DomainManager.Impl is
 
    function Get_Domain_Policy
      (Self        : access Object;
-      Policy_Type : in     CORBA.PolicyType)
+      Policy_Type : CORBA.PolicyType)
       return CORBA.Policy.Ref
    is
       pragma Unreferenced (Self);

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -66,7 +66,6 @@ package body MOMA.Message_Producers is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
-   pragma Unreferenced (C); --  For conditional pragma Debug
 
    procedure Response_Handler
      (Req :        PolyORB.Requests.Request;
@@ -117,8 +116,9 @@ package body MOMA.Message_Producers is
 
       MOMA_Ref : PolyORB.References.Ref;
       Producer : MOMA.Message_Producers.Message_Producer;
-      Type_Id_S : MOMA.Types.String :=
-        To_MOMA_String (Type_Id_Of (MOMA.Destinations.Get_Ref (Dest)));
+      Type_Id_S : constant MOMA.Types.String :=
+                    To_MOMA_String
+                      (Type_Id_Of (MOMA.Destinations.Get_Ref (Dest)));
 
       Error : Error_Container;
    begin
@@ -278,8 +278,8 @@ package body MOMA.Message_Producers is
 
       Message : MExecute := Create_Execute_Message;
    begin
-      pragma Debug (O ("Got : " & PolyORB.Requests.Image (Req)));
-      pragma Debug (O ("return value : "
+      pragma Debug (C, O ("Got : " & PolyORB.Requests.Image (Req)));
+      pragma Debug (C, O ("return value : "
                        & PolyORB.Any.Image (Req.Result.Argument)));
       declare
          Method_Name   : Map_Element;
@@ -358,12 +358,13 @@ package body MOMA.Message_Producers is
    is
       use type PolyORB.Tasking.Priorities.External_Priority;
 
-      Argument_Mesg : PolyORB.Any.Any := MOMA.Messages.To_Any (Message);
+      Argument_Mesg : constant PolyORB.Any.Any :=
+                        MOMA.Messages.To_Any (Message);
       Request       : PolyORB.Requests.Request_Access;
       Arg_List      : PolyORB.Any.NVList.Ref;
       Result        : PolyORB.Any.NamedValue;
    begin
-      pragma Debug (O ("Sending to MOM object : "
+      pragma Debug (C, O ("Sending to MOM object : "
                        & PolyORB.Any.Image (Argument_Mesg)));
       PolyORB.Any.NVList.Create (Arg_List);
 
@@ -421,7 +422,7 @@ package body MOMA.Message_Producers is
       Parameter_Map : Map;
 
    begin
-      pragma Debug (O ("Sending message to ORB object."));
+      pragma Debug (C, O ("Sending message to ORB object."));
 
       if Message not in MExecute then
          raise Program_Error;
@@ -434,15 +435,15 @@ package body MOMA.Message_Producers is
            := MOMA.Types.To_Standard_String
            (Get_String (Get_Element (Parameter_Map, 1)));
 
-         Result_TypeCode  : constant PolyORB.Any.TypeCode.Object
+         Result_TypeCode  : constant PolyORB.Any.TypeCode.Local_Ref
            := Get_Type (Get_Element (Parameter_Map, 2).Value);
       begin
-         pragma Debug (O ("Method name : " & Method_Name));
+         pragma Debug (C, O ("Method name : " & Method_Name));
 
          PolyORB.Any.NVList.Create (Arg_List);
 
          for J in 3 .. Length (Parameter_Map)  loop
-            pragma Debug (O ("Argument: " & PolyORB.Types.To_Standard_String
+            pragma Debug (C, O ("Argument: " & PolyORB.Types.To_Standard_String
                              (PolyORB.Any.From_Any
                               (Get_Element (Parameter_Map, J).Value))));
 
@@ -465,11 +466,11 @@ package body MOMA.Message_Producers is
             Req_Flags => PolyORB.Requests.Sync_Call_Back);
 
          if Result_TypeCode /= TypeCode.TC_Void then
-            pragma Debug (O ("Non void return parameter."));
+            pragma Debug (C, O ("Non void return parameter."));
             Attach_Request_To_CB (Request, Self.CBH);
          end if;
 
-         pragma Debug (O ("Invoking : "
+         pragma Debug (C, O ("Invoking : "
                           & PolyORB.Requests.Image (Request.all)));
 
          PolyORB.Requests.Invoke (Request);

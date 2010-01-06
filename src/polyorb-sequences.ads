@@ -139,14 +139,18 @@ private
    --  to the Left and Right operands when running the returned program.
 
    function Head_Tail
-     (Max_Length : Natural;
-      Source     : Bounds;
-      Count      : Natural;
-      Drop       : Truncation := Error;
-      What       : Extremity) return Program;
+     (Max_Length       : Natural;
+      Source           : Bounds;
+      Count            : Natural;
+      Drop             : Truncation := Error;
+      What             : Extremity;
+      Suppress_Padding : Boolean := False) return Program;
    --  Get Head or Tail, depending on What.
    --  Left:  Source
    --  Right: Padding element (bounds 1 .. 1)
+   --  If Suppress_Padding is True, the operation to copy the provided
+   --  padding value into the target sequence is not generated, and the
+   --  Right operand will be ignored at execution.
 
    function Replace_Slice
      (Max_Length : Natural;

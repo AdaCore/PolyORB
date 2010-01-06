@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -70,14 +70,10 @@ package PolyORB.Services.Naming.NamingContext.Servant is
    procedure Invoke
      (Self     : access Object;
       Request  : PolyORB.Requests.Request_Access);
-   --  Middleware 'glue'.
-
-   function If_Desc
-     return PolyORB.Obj_Adapters.Simple.Interface_Description;
+   function If_Desc return PolyORB.Obj_Adapters.Simple.Interface_Description;
    pragma Inline (If_Desc);
-   --  Middleware 'glue'.
+   --  Middleware 'glue'
 
-   function Create
-     return Object_Ptr;
+   function Create return Object_Ptr;
 
 end PolyORB.Services.Naming.NamingContext.Servant;

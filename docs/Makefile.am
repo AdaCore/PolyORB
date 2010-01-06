@@ -1,23 +1,94 @@
 info_TEXINFOS = polyorb_ug.texi polyorb_dg.texi
-man_MANS = po_names.1 idlac.1 polyorb-config.1 polyorb.7
+man_MANS = po_names.1 idlac.1 iac.1 polyorb-config.1 polyorb.7
 
-SUFFIXES = .idl .ads .adb .texi .sed .pdf .txt .html
+SUFFIXES = .idl .ads .adb .sed .pdf .texi .txt .info .html
+
+FIG2DEV=fig2dev
+
+FIGFILES=\
+  xe-arch.fig\
+  full-ex.fig\
+  corba-arch.fig
+
+FIG_PDFFILES = $(FIGFILES:=.pdf)
+FIG_EPSFILES = $(FIGFILES:=.eps)
+FIG_PNGFILES = $(FIGFILES:=.png)
+FIG_TXTFILES = $(FIGFILES:=.txt)
+
+# Ada sources from GLADE UG
+GLADE_ADAFILES=\
+  check_pid.adb\
+  acrrt.adb\
+  acrrt.ads\
+  acrrci.adb\
+  acrrci.ads\
+  acrmain.adb\
+  rcibank.ads\
+  terminal.ads\
+  types.ads\
+  rasbank.ads\
+  racwbank.ads\
+  mirrorbank.ads\
+  mirrorbank.adb\
+  bankclient.adb\
+  term1client.adb\
+  term2client.adb\
+  racwbank.adb\
+  newterminal.ads\
+  stringarraystream.ads\
+  stringarraystream.adb\
+  sharedobjects.ads\
+  storage.ads\
+  common.ads\
+  newworkers.ads\
+  newnewworkers.ads\
+  workercity.ads\
+  factory.ads\
+  newfactory.ads\
+  internal.ads\
+  rempkg1.ads\
+  rempkg1.adb\
+  rempkg2.ads\
+  rempkg2.adb\
+  remexcmain.adb\
+  node1.ads\
+  node1.adb\
+  node2.ads\
+  node2.adb\
+  nondeterministic.adb\
+  asynchronousrt.ads\
+  asynchronousrci.ads\
+  asynchronousmain.adb\
+  genericrci.ads\
+  rciinstantiation.ads\
+  rciclient.adb\
+  normalinstantiation.ads\
+  new_integers.ads\
+  new_integers.adb
+
+$(GLADE_ADAFILES): glade-sources
+	gnatchop -w $<
+
+GLADE_TEXIFILES1= $(GLADE_ADAFILES:=.texi)
+GLADE_TEXIFILES2 = $(GLADE_TEXIFILES1)
+GLADE_TEXIFILES = $(GLADE_TEXIFILES1) myconfig.cfg.texi
 
 polyorb_ug_TEXINFOS = polyorb_ug_ref.texi \
-	polyorb-corba_p-corbaloc.texi \
-	polyorb-corba_p-server_tools.texi \
-	polyorb-corba_p-naming_tools.texi \
-	polyorb-rtcorba_p-setup.texi \
-	polyorb-setup-tasking-ravenscar.texi \
-	echo.texi \
-	echo-impl.texi \
-	echo-impl-body.texi \
-	server-body.texi \
-	client-body.texi \
-	dsa_client-body.texi \
-	dsa_server.texi \
-	dsa_server-body.texi \
-	dsa_echo-cfg.texi
+	polyorb-corba_p-corbaloc.ads.texi \
+	polyorb-corba_p-server_tools.ads.texi \
+	polyorb-corba_p-naming_tools.ads.texi \
+	polyorb-rtcorba_p-setup.ads.texi \
+	polyorb-setup-tasking-ravenscar.ads.texi \
+	echo.idl.texi \
+	echo-impl.ads.texi \
+	echo-impl.adb.texi \
+	server.adb.texi \
+	client.adb.texi \
+	dsa_client.adb.texi \
+	dsa_server.ads.texi \
+	dsa_server.adb.texi \
+	dsa_echo-cfg.ads.texi \
+	$(GLADE_TEXIFILES)
 
 #
 # Rules to build specific files for PolyORB User's Guide
@@ -26,7 +97,7 @@ polyorb_ug_TEXINFOS = polyorb_ug_ref.texi \
 polyorb-corba_p-corbaloc.ads: $(top_srcdir)/src/corba/polyorb-corba_p-corbaloc.ads
 	cp -f $< .
 
-polyorb-corba_p-naming_tools.ads: $(top_srcdir)/cos/naming/polyorb-corba_p-naming_tools.ads
+polyorb-corba_p-naming_tools.ads: $(top_srcdir)/idls/cos/naming/polyorb-corba_p-naming_tools.ads
 	cp -f $< .
 
 polyorb-corba_p-server_tools.ads: $(top_srcdir)/src/corba/polyorb-corba_p-server_tools.ads
@@ -55,16 +126,15 @@ server.adb: $(top_srcdir)/examples/corba/echo/server.adb
 
 dsa_client.adb: $(top_srcdir)/examples/dsa/echo/client.adb
 	cp -f $< ./dsa_client.adb
-	
+
 dsa_server.ads: $(top_srcdir)/examples/dsa/echo/server.ads
 	cp -f $< ./dsa_server.ads
-	
+
 dsa_server.adb: $(top_srcdir)/examples/dsa/echo/server.adb
 	cp -f $< ./dsa_server.adb
-	
+
 dsa_echo-cfg.ads: $(top_srcdir)/examples/dsa/echo/echo.cfg
 	cp -f $< ./dsa_echo-cfg.ads
-
 
 polyorb_ug_ref.texi: polyorb_ug_ref.bbl
 	@${SED} -e 's/~/ /g' \
@@ -96,16 +166,29 @@ polyorb_ug_ref.aux: polyorb_ug_ref.tex polyorb_ug.bib
 # Generic rules to build the documentation in specific formats
 #
 
+# Cancel built-in implicit rules, we replace them later on
+%.html: %.texi
+%.info: %.texi
+%.txt: %.texi
+%.pdf: %.texi
+%.dvi: %.texi
+
 # The PolyORB User's Guide texi file does not provide Up links in @node
-# commands, but we want to force generation of HTML documentation anyway.
-%.html: ${srcdir}/%.texi
+# commands, but we want to force generation of all documentation anyway.
+%.html: ${srcdir}/%.texi ${polyorb_ug_TEXINFOS} $(FIG_PNGFILES)
 	-${MAKEINFO} -o $@ --force --html --number-sections $<
+	cp *.png $@
 
-%.txt: ${srcdir}/%.texi
-	-${MAKEINFO} -o $@ --ifinfo --number-sections $<
+%.info: ${srcdir}/%.texi ${polyorb_ug_TEXINFOS}
+	-${MAKEINFO} -o $@ --force --no-split --number-sections $<
 
-%.pdf: ${srcdir}/%.texi
-	-${TEXI2DVI} -o $@ --pdf $<
+%.txt : ${srcdir}/%.texi ${polyorb_ug_TEXINFOS}
+	-${MAKEINFO} -o $@ --force --no-split --plaintext --ifinfo --number-sections $<
+
+# Don't use -o $@ for PDF because it causes the doc build to be done in
+# a temporary directory, and Kpathsea doesn't know about PDF images.
+%.pdf: ${srcdir}/%.texi ${polyorb_ug_TEXINFOS} $(FIG_PDFFILES)
+	-${TEXI2DVI} --pdf $<
 
 # Setting the environment variable TEX to "tex" is needed on Windows,
 # to work around a problem with Cygwin.
@@ -114,7 +197,7 @@ polyorb_ug_ref.aux: polyorb_ug_ref.tex polyorb_ug.bib
 # (Fatal format file error; I'm stymied)
 # /usr/bin/texi2dvi: texinfo.tex appears to be broken, quitting.
 #See: http://www.mail-archive.com/bug-automake@gnu.org/msg00546.html
-%.dvi: ${srcdir}/%.texi
+%.dvi: ${srcdir}/%.texi ${polyorb_ug_TEXINFOS} $(FIG_EPSFILES)
 	TEX=tex \
 	TEXINPUTS="$(am__TEXINFO_TEX_DIR)$(PATH_SEPARATOR)$$TEXINPUTS" \
 	MAKEINFO='$(MAKEINFO) $(AM_MAKEINFOFLAGS) $(MAKEINFOFLAGS) -I $(srcdir)' \
@@ -124,48 +207,33 @@ polyorb_ug_ref.aux: polyorb_ug_ref.tex polyorb_ug.bib
 # Texi generation from .ads files
 #
 
-ADA_KW    = use package is in out exception function with type constant \
-		private of return range procedure begin end array record \
-		subtype generic limited access all
+%.sed: %.kw
+	$(top_srcdir)/support/gensedfile $< $@
 
-%.texi: %.ads ada.sed $(top_builddir)/support/gentexifile
-	AWK="${AWK}" SED="${SED}" $(top_builddir)/support/gentexifile $< NOGROUP
-	-@${RM} genout
+%.ads.texi: %.ads ada.sed $(top_srcdir)/support/gentexifile
+	AWK="${AWK}" SED="${SED}" $(top_srcdir)/support/gentexifile $< NOGROUP
 
-%-body.texi: %.adb ada.sed $(top_builddir)/support/gentexifile
-	AWK="${AWK}" SED="${SED}" $(top_builddir)/support/gentexifile $< NOGROUP
-	-@${RM} genout
+%.adb.texi: %.adb ada.sed $(top_srcdir)/support/gentexifile
+	AWK="${AWK}" SED="${SED}" $(top_srcdir)/support/gentexifile $< NOGROUP
 
-ada.sed:
-	echo "s/\([^@]\)@\([^@]\)/\1@@\2/g" > ada.sed
-	echo "s/-- \(.*\)$$/-- @i{\1}/" >> ada.sed
-	echo "s/\([^-][^-][^\"]*\)\"\([^\"]*\)\"/\1\"@i{\2}\"/g" >> ada.sed
-	echo "s/@@/@@@@/g" >> ada.sed
-	echo "s/_@_/_@@_/g" >> ada.sed
-	for kw in $(ADA_KW); do \
-		echo "s/^\([^-]* \)$$kw/\1@b{$$kw}/g" >> ada.sed; \
-		echo "s/^\( *\)$$kw /\1@b{$$kw} /g" >> ada.sed; \
-		echo "s/^$$kw$$/@b{$$kw}/g" >> ada.sed; \
-	done
+%.cfg.texi: %.cfg cfg.sed $(top_srcdir)/support/gentexifile
+	AWK="${AWK}" SED="${SED}" $(top_srcdir)/support/gentexifile $< NOGROUP
+
+%.idl.texi: %.idl idl.sed $(top_srcdir)/support/gentexifile
+	AWK="${AWK}" SED="${SED}" $(top_srcdir)/support/gentexifile $<
 
 #
-# Texi generation from .idl files
+# Figures
 #
 
-IDL_KW = module typedef struct sequence enum interface exception void in out raises
+%.fig.eps: %.fig
+	$(FIG2DEV) -L eps $< $@
 
-%.texi: %.idl idl.sed $(top_builddir)/support/gentexifile
-	AWK="${AWK}" SED="${SED}" $(top_builddir)/support/gentexifile $<
-	-@${RM} genout
+%.fig.pdf: %.fig
+	$(FIG2DEV) -L pdf $< $@
 
-idl.sed:
-	echo "s/{/\@{/g" > idl.sed
-	echo "s/}/\@}/g" >> idl.sed
-	for kw in $(IDL_KW); do \
-		echo "s/^\([^-]* \)$$kw/\1@b{$$kw}/g" >> idl.sed; \
-		echo "s/^\( *\)$$kw /\1@b{$$kw} /g" >> idl.sed; \
-		echo "s/^$$kw$$/@b{$$kw}/g" >> idl.sed; \
-	done
+%.fig.png: %.fig
+	$(FIG2DEV) -L png $< $@
 
 #
 # Local rules
@@ -179,29 +247,29 @@ clean-local: maintainer-clean
 		polyorb_ug_ref.dvi polyorb_ug_ref.log \
 		${polyorb_ug_TEXINFOS} \
 		polyorb_dg.pdf polyorb_dg.txt polyorb_dg.info \
-		idl.sed ada.sed *.ads *.adb *.idl
+		idl.sed ada.sed cfg.sed *.ads *.adb *.idl
 	-@${RM} -fr polyorb_ug.html polyorb_dg.html polyorb_ug_toc.html
 
 install-data-local:
-	$(INSTALL) -d $(prefix)/doc/polyorb
-	$(INSTALL) -d $(prefix)/doc/polyorb/info
-	$(INSTALL) -d $(prefix)/doc/polyorb/ps
-	$(INSTALL) -d $(prefix)/doc/polyorb/pdf
-	$(INSTALL) -d $(prefix)/doc/polyorb/txt
-	$(INSTALL) -d $(prefix)/doc/polyorb/html
-	$(INSTALL) -d $(prefix)/doc/polyorb/html/polyorb_ug
+	$(INSTALL) -d $(prefix)/share/doc/polyorb
+	$(INSTALL) -d $(prefix)/share/doc/polyorb/info
+	$(INSTALL) -d $(prefix)/share/doc/polyorb/ps
+	$(INSTALL) -d $(prefix)/share/doc/polyorb/pdf
+	$(INSTALL) -d $(prefix)/share/doc/polyorb/txt
+	$(INSTALL) -d $(prefix)/share/doc/polyorb/html
+	$(INSTALL) -d $(prefix)/share/doc/polyorb/html/polyorb_ug
 
 	for fmt in info ps pdf txt; \
 	do \
-		$(INSTALL_DATA) polyorb_ug.$$fmt $(prefix)/doc/polyorb/$$fmt/; \
+		$(INSTALL_DATA) polyorb_ug.$$fmt $(prefix)/share/doc/polyorb/$$fmt/; \
 	done
 	for f in polyorb_ug.html/*.html; \
 	do \
-		$(INSTALL_DATA) $$f $(prefix)/doc/polyorb/html/polyorb_ug; \
+		$(INSTALL_DATA) $$f $(prefix)/share/doc/polyorb/html/polyorb_ug; \
 	done
 
 MANIFEST: polyorb_ug.info polyorb_ug.html polyorb_ug.pdf polyorb_ug.ps polyorb_ug.txt \
-	polyorb_ug.info polyorb_dg.html polyorb_dg.pdf polyorb_dg.txt polyorb_dg.ps
+	polyorb_dg.info polyorb_dg.html polyorb_dg.pdf polyorb_dg.txt polyorb_dg.ps
 	-${RM} -f MANIFEST
 	echo polyorb_ug.info >> MANIFEST
 	echo polyorb_ug.ps >> MANIFEST
@@ -218,3 +286,7 @@ release: all
 	ln MANIFEST polyorb-doc/MANIFEST
 	tar cvzf polyorb-doc.tar.gz polyorb-doc
 	-${RM} -rf polyorb-doc
+
+debug:
+	@echo "polyorb_ug_TEXINFOS=${polyorb_ug_TEXINFOS}"
+	@echo "FIG_PDFFILES=${FIG_PDFFILES}"

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -43,7 +43,7 @@ package body PolyORB.Sequences.Helper is
    --  Global data
 
    Initialized : Boolean := False;
-   Sequence_TC, Element_TC : PolyORB.Any.TypeCode.Object;
+   Sequence_TC, Element_TC : PolyORB.Any.TypeCode.Local_Ref;
 
    -----------
    -- Clone --
@@ -91,10 +91,8 @@ package body PolyORB.Sequences.Helper is
    is
       pragma Suppress (Discriminant_Check);
 
-      Len : constant Integer
-        := Integer
-        (Types.Unsigned_Long'
-         (From_Any (Get_Aggregate_Element (Item, TC_Unsigned_Long, 0))));
+      Len : constant Integer :=
+              Integer (Types.Unsigned_Long'(Get_Aggregate_Element (Item, 0)));
 
       Result : aliased Sequence := New_Sequence (Len);
 
@@ -104,7 +102,7 @@ package body PolyORB.Sequences.Helper is
          Unchecked_Element_Of (Result'Access, J).all :=
            Element_From_Any
              (Get_Aggregate_Element
-                  (Item, Element_TC, Types.Unsigned_Long (J)));
+              (Item, Element_TC, Types.Unsigned_Long (J)));
       end loop;
       return Result;
    end From_Any;
@@ -125,13 +123,12 @@ package body PolyORB.Sequences.Helper is
    ---------------------------
 
    function Get_Aggregate_Element
-     (ACC   : access Sequence_Content;
-      TC    : PolyORB.Any.TypeCode.Object;
+     (ACC   : not null access Sequence_Content;
+      TC    : PolyORB.Any.TypeCode.Object_Ptr;
       Index : PolyORB.Types.Unsigned_Long;
-      Mech  : access PolyORB.Any.Mechanism) return PolyORB.Any.Content'Class
+      Mech  : not null access PolyORB.Any.Mechanism)
+      return PolyORB.Any.Content'Class
    is
-      use type PolyORB.Types.Unsigned_Long;
-      use type PolyORB.Any.Mechanism;
       pragma Unreferenced (TC);
    begin
       if Index = 0 then
@@ -150,7 +147,7 @@ package body PolyORB.Sequences.Helper is
    ----------------
 
    procedure Initialize
-     (Element_TC, Sequence_TC : PolyORB.Any.TypeCode.Object)
+     (Element_TC, Sequence_TC : PolyORB.Any.TypeCode.Local_Ref)
    is
    begin
       Helper.Element_TC  := Element_TC;
@@ -164,9 +161,7 @@ package body PolyORB.Sequences.Helper is
 
    procedure Set_Aggregate_Count
      (ACC   : in out Sequence_Content;
-      Count : PolyORB.Types.Unsigned_Long)
-   is
-      use type PolyORB.Types.Unsigned_Long;
+      Count : PolyORB.Types.Unsigned_Long) is
    begin
       Set_Length (ACC.V.all, Length => Integer (Count - 1));
    end Set_Aggregate_Count;
@@ -177,7 +172,7 @@ package body PolyORB.Sequences.Helper is
 
    procedure Set_Aggregate_Element
      (ACC    : in out Sequence_Content;
-      TC     : TypeCode.Object;
+      TC     : TypeCode.Object_Ptr;
       Index  : Types.Unsigned_Long;
       From_C : in out Any_Container'Class)
    is
@@ -202,19 +197,36 @@ package body PolyORB.Sequences.Helper is
 
    function To_Any (Item : Sequence) return Any.Any is
       pragma Assert (Initialized);
-      Result : Any.Any := Get_Empty_Any_Aggregate (Sequence_TC);
-
+      Result : Any.Any;
    begin
-      Add_Aggregate_Element
-        (Result, To_Any (Types.Unsigned_Long (Length (Item))));
-
-      for J in 1 .. Length (Item) loop
-         Add_Aggregate_Element (Result,
-           Element_To_Any
-             (Unchecked_Element_Of (Item'Unrestricted_Access, J).all));
-      end loop;
+      Set_Type (Result, Sequence_TC);
+      Set_Value
+        (Get_Container (Result).all,
+         new Sequence_Content'
+           (Any.Aggregate_Content with
+              V            => new Sequence'(Item),
+              Length_Cache => Unsigned_Long (Length (Item))),
+         Foreign => False);
       return Result;
    end To_Any;
+
+   ---------------------
+   -- Unchecked_Get_V --
+   ---------------------
+
+   function Unchecked_Get_V
+     (ACC : not null access Sequence_Content) return System.Address
+   is
+   begin
+      if ACC.V = null or else Length (ACC.V.all) = 0 then
+         return System.Null_Address;
+      end if;
+      return Unchecked_Element_Of (ACC.V, 1).all'Address;
+   end Unchecked_Get_V;
+
+   ----------
+   -- Wrap --
+   ----------
 
    function Wrap (X : access Sequence) return Any.Content'Class is
    begin

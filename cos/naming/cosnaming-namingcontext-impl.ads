@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -42,32 +42,32 @@ package CosNaming.NamingContext.Impl is
 
    procedure Bind
      (Self : access Object;
-      N    : in CosNaming.Name;
-      Obj  : in CORBA.Object.Ref);
+      N    : CosNaming.Name;
+      Obj  : CORBA.Object.Ref);
 
    procedure Rebind
      (Self : access Object;
-      N    : in CosNaming.Name;
-      Obj  : in CORBA.Object.Ref);
+      N    : CosNaming.Name;
+      Obj  : CORBA.Object.Ref);
 
    procedure Bind_Context
      (Self : access Object;
-      N    : in CosNaming.Name;
-      NC   : in CosNaming.NamingContext.Ref);
+      N    : CosNaming.Name;
+      NC   : CosNaming.NamingContext.Ref);
 
    procedure Rebind_Context
      (Self : access Object;
-      N    : in CosNaming.Name;
-      NC   : in CosNaming.NamingContext.Ref);
+      N    : CosNaming.Name;
+      NC   : CosNaming.NamingContext.Ref);
 
    function Resolve
      (Self : access Object;
-      N    : in CosNaming.Name)
+      N    : CosNaming.Name)
      return CORBA.Object.Ref;
 
    procedure Unbind
      (Self : access Object;
-      N    : in CosNaming.Name);
+      N    : CosNaming.Name);
 
    function New_Context
      (Self : access Object)
@@ -75,14 +75,14 @@ package CosNaming.NamingContext.Impl is
 
    function Bind_New_Context
      (Self : access Object;
-      N    : in CosNaming.Name)
+      N    : CosNaming.Name)
      return CosNaming.NamingContext.Ref;
 
    procedure Destroy (Self : access Object);
 
    procedure List
      (Self     : access Object;
-      How_Many : in CORBA.Unsigned_Long;
+      How_Many : CORBA.Unsigned_Long;
       BL       : out CosNaming.BindingList;
       BI       : out CosNaming.BindingIterator_Forward.Ref);
 

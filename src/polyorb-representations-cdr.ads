@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -38,13 +38,13 @@
 --    (http://www.omg.org/).
 
 with PolyORB.Types;
+with PolyORB.Utils.Dynamic_Tables;
 
 package PolyORB.Representations.CDR is
 
 --   pragma Elaborate_Body;
 
-   type CDR_Representation is abstract new Representation with null record;
-
+   type CDR_Representation is abstract new Representation with private;
    type CDR_Representation_Access is access all CDR_Representation'Class;
 
    --  The next two subprograms marshall or unmarshall the value of
@@ -52,13 +52,13 @@ package PolyORB.Representations.CDR is
    --  typecode).
 
    procedure Marshall_From_Any
-     (R      : CDR_Representation;
+     (R      : access CDR_Representation;
       Buffer : access Buffers.Buffer_Type;
       CData  : Any.Any_Container'Class;
       Error  : in out Errors.Error_Container);
 
    procedure Unmarshall_To_Any
-     (R      : CDR_Representation;
+     (R      : access CDR_Representation;
       Buffer : access Buffers.Buffer_Type;
       CData  : in out Any.Any_Container'Class;
       Error  : in out Errors.Error_Container);
@@ -131,35 +131,78 @@ package PolyORB.Representations.CDR is
 
    function Create_Representation
      (Major : Types.Octet;
-      Minor : Types.Octet)
-      return CDR_Representation_Access;
+      Minor : Types.Octet) return CDR_Representation_Access;
    --  Create Representation object for requested version
+
+   procedure Release (Representation : in out CDR_Representation);
 
    --  'Any' type
 
    procedure Marshall
      (Buffer         : access Buffers.Buffer_Type;
-      Representation : CDR_Representation'Class;
+      Representation : access CDR_Representation'Class;
       Data           : PolyORB.Any.Any);
 
    function Unmarshall
      (Buffer         : access Buffers.Buffer_Type;
-      Representation : CDR_Representation'Class)
-      return PolyORB.Any.Any;
+      Representation : access CDR_Representation'Class) return PolyORB.Any.Any;
+
+   --  'TypeCode' type
+
+   procedure Marshall
+     (Buffer : access Buffers.Buffer_Type;
+      R      : access CDR_Representation'Class;
+      Data   :        Any.TypeCode.Object_Ptr;
+      Error  : in out Errors.Error_Container);
+
+   procedure Unmarshall
+     (Buffer : access Buffers.Buffer_Type;
+      R      : access CDR_Representation'Class;
+      Data   :    out Any.TypeCode.Local_Ref;
+      Error  : in out Errors.Error_Container);
 
 private
 
-   --  'TypeCode.Object' type
+   --  Typecodes map management
 
-   procedure Marshall
-     (Buffer         : access Buffers.Buffer_Type;
-      Representation : CDR_Representation'Class;
-      Data           : PolyORB.Any.TypeCode.Object);
+   --  When a complex typecode is marshalled into a CDR stream, nested
+   --  typecodes can be stored as indirect references to a previous occurrence
+   --  of the same typecode within the same enclosing outermost complex
+   --  typecode. This is supported by keeping track of the mapping between
+   --  typecodes and their offset in the CDR stream within each CDR engine.
 
-   function Unmarshall
-     (Buffer         : access Buffers.Buffer_Type;
-      Representation : CDR_Representation'Class)
-      return PolyORB.Any.TypeCode.Object;
+   type TC_Map_Entry is record
+      Enclosing_Complex : Types.Long;
+      --  Index in the TC_Map of the innermost enclosing complex typecode, used
+      --  for computation of offset relative the to topmost complex typecode.
+      --  Set to -1 for the outermost complex TC.
+
+      TC_Ref            : Any.TypeCode.Object_Ptr;
+      --  TC object at this offset. Assumes reference semantics
+
+      Offset            : Types.Long;
+      --  Offset of this typecode in outermost CDR stream
+   end record;
+
+   package TC_Maps is new PolyORB.Utils.Dynamic_Tables
+     (Table_Component_Type => TC_Map_Entry,
+      Table_Index_Type     => Types.Long,
+      Table_Low_Bound      => 0,
+      Table_Initial        => 1,
+      Table_Increment      => 4);
+
+   use type Types.Long;
+   --  For unary minus operator used for component Current_Complex below
+
+   type CDR_Representation is abstract new Representation with record
+      TC_Map : TC_Maps.Instance;
+      --  Map of typecodes in current CDR stream. This map is flushed when the
+      --  outermost complex typecode has been completely processed.
+
+      Current_Complex : Types.Long := -1;
+      --  Index in TC_Map of complex typecode currently being processed, or
+      --  -1 if none.
+   end record;
 
    --  CDR Representation versions registry
 

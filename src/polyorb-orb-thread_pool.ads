@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -71,10 +71,10 @@ package PolyORB.ORB.Thread_Pool is
       This_Task : in out PolyORB.Task_Info.Task_Info;
       ORB       :        ORB_Access);
 
-   procedure Queue_Request_To_Handler
-     (P   : access Thread_Pool_Policy;
-      ORB :        ORB_Access;
-      Msg :        Message'Class);
+   function Get_Minimum_Spare_Threads return Natural;
+   function Get_Maximum_Spare_Threads return Natural;
+   function Get_Maximum_Threads       return Natural;
+   --  Return operational parameters of the thread pool
 
 private
 

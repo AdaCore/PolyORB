@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -125,7 +125,7 @@ package body CORBA.Object.Policies is
       Request     : PolyORB.Requests.Request_Access;
       Arg_List    : PolyORB.Any.NVList.Ref;
       Result      : PolyORB.Any.NamedValue;
-      Result_Name : CORBA.String := To_CORBA_String ("Result");
+      Result_Name : constant CORBA.String := To_CORBA_String ("Result");
 
    begin
       if CORBA.Object.Is_Nil (Self) then
@@ -136,9 +136,8 @@ package body CORBA.Object.Policies is
 
       Result :=
         (Name      => PolyORB.Types.Identifier (Result_Name),
-         Argument  => CORBA.Internals.To_PolyORB_Any
-         (CORBA.Internals.Get_Empty_Any
-          (CORBA.DomainManager.Helper.TC_IDL_SEQUENCE_DomainManager)),
+         Argument  => CORBA.Internals.Get_Empty_Any
+          (CORBA.DomainManager.Helper.TC_IDL_SEQUENCE_DomainManager),
          Arg_Modes => 0);
 
       PolyORB.Requests.Create_Request
@@ -151,23 +150,11 @@ package body CORBA.Object.Policies is
       PolyORB.CORBA_P.Interceptors_Hooks.Client_Invoke
         (Request, PolyORB.Requests.Flags (0));
 
-      if not PolyORB.Any.Is_Empty (Request.Exception_Info) then
-         declare
-            Info : constant Standard.String
-              := PolyORB.CORBA_P.Exceptions.Extract_Ada_Exception_Information
-              (Request);
-
-         begin
-            Result.Argument := Request.Exception_Info;
-            PolyORB.Requests.Destroy_Request (Request);
-            PolyORB.CORBA_P.Exceptions.Raise_From_Any (Result.Argument, Info);
-         end;
-      end if;
+      PolyORB.CORBA_P.Exceptions.Request_Raise_Occurrence (Request);
 
       PolyORB.Requests.Destroy_Request (Request);
 
-      return CORBA.DomainManager.Helper.From_Any
-        (CORBA.Internals.To_CORBA_Any (Result.Argument));
+      return CORBA.DomainManager.Helper.From_Any (CORBA.Any (Result.Argument));
    end Get_Domain_Managers;
 
    ----------------
@@ -270,7 +257,7 @@ package body CORBA.Object.Policies is
    is
       Npad    : Notepad_Access;
       Note    : Policy_Manager_Note;
-      Indexes : CORBA.Short;
+      Indexes : CORBA.Unsigned_Short;
 
    begin
       if Is_Nil (Self) then
@@ -342,6 +329,8 @@ package body CORBA.Object.Policies is
             Catch (Error);
             return;
          end if;
+      else
+         Result := True;
       end if;
    end Validate_Connection;
 

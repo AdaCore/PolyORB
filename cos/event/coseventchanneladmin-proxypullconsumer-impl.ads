@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -49,7 +49,7 @@ package CosEventChannelAdmin.ProxyPullConsumer.Impl is
 
    procedure Connect_Pull_Supplier
      (Self          : access Object;
-      Pull_Supplier : in     CosEventComm.PullSupplier.Ref);
+      Pull_Supplier : CosEventComm.PullSupplier.Ref);
 
    ------------------
    -- PullConsumer --

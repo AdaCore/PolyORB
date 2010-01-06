@@ -955,7 +955,7 @@ interface interface04 {
 
 
 /*** forwarded interfaces ***/
-// problem of abstraction at the instanciation
+// problem of abstraction at the instantiation
 abstract interface interfaceB;
 interface interfaceB {};
 interface interfaceC;
@@ -1041,7 +1041,7 @@ union unionB switch (boolean) {
 valuetype valuetypeB;
 valuetype valuetypeB;
 valuetype valuetypeB {};
-// problem of abstraction at the instanciation
+// problem of abstraction at the instantiation
 abstract valuetype valuetypeC;
 valuetype valuetypeC {};
 valuetype valuetypeD;

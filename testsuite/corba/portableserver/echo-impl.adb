@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -45,7 +45,7 @@ package body Echo.Impl is
 
    function EchoString
      (Self : access Object;
-      Mesg : in CORBA.String)
+      Mesg : CORBA.String)
      return CORBA.String
    is
       pragma Warnings (Off);
@@ -61,7 +61,7 @@ package body Echo.Impl is
 
    function EchoString_Wait
      (Self : access Object;
-      Mesg : in CORBA.String)
+      Mesg : CORBA.String)
      return CORBA.String
    is
       pragma Warnings (Off);
@@ -78,7 +78,7 @@ package body Echo.Impl is
 
    function EchoString_Reentrant
      (Self : access Object;
-      Mesg : in CORBA.String)
+      Mesg : CORBA.String)
      return CORBA.String
    is
       pragma Unreferenced (Self);

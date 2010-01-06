@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,69 +31,84 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Helper subprograms to set up access points based on TCP sockets
---  for a PolyORB server.
+--  Utility routines to set up TCP listening sockets
+
+with Ada.Exceptions;
 
 with PolyORB.Components;
+with PolyORB.Log;
 with PolyORB.Setup;
 with PolyORB.Transport.Connected.Sockets;
 
 package body PolyORB.Utils.TCP_Access_Points is
 
+   use PolyORB.Log;
    use PolyORB.Transport.Connected.Sockets;
+
+   package L is new PolyORB.Log.Facility_Log
+     ("polyorb.utils.tcp_access_points");
+   procedure O (Message : String; Level : Log_Level := Debug)
+     renames L.Output;
+   --  function C (Level : Log_Level := Debug) return Boolean
+   --    renames L.Enabled;
 
    -----------------------
    -- Initialize_Socket --
    -----------------------
 
    procedure Initialize_Socket
-     (DAP       : in out Access_Point_Info;
+     (API       : in out Access_Point_Info;
       Address   : Sockets.Inet_Addr_Type := Any_Inet_Addr;
-      Port_Hint : Port_Type)
+      Port_Hint : Port_Interval)
    is
-      Port : Port_Type := Port_Hint;
-
    begin
-      Create_Socket (DAP.Socket);
+      Create_Socket (API.Socket);
 
-      DAP.Address :=
-        Sock_Addr_Type'(Addr => Address,
-                        Port => Port,
+      API.Address :=
+        Sock_Addr_Type'(Addr   => Address,
+                        Port   => Port_Hint.Lo,
                         Family => Family_Inet);
 
       --  Allow reuse of local addresses
 
-      Set_Socket_Option
-        (DAP.Socket,
-         Socket_Level,
-         (Reuse_Address, True));
+      Set_Socket_Option (API.Socket, Socket_Level, (Reuse_Address, True));
 
-      if DAP.SAP = null then
-         DAP.SAP := new Socket_Access_Point;
+      if API.SAP = null then
+         API.SAP := new Socket_Access_Point;
       end if;
 
       loop
-         DAP.Address.Port := Port;
          begin
             Create
-              (Socket_Access_Point (DAP.SAP.all),
-               DAP.Socket,
-               DAP.Address);
+              (Socket_Access_Point (API.SAP.all),
+               API.Socket,
+               API.Address);
             exit;
          exception
-            when Sockets.Socket_Error =>
-               Port := Port + 1;
-               if Port = Port_Hint then
+            when E : Sockets.Socket_Error =>
+
+               --  If a specific port range was given, try next port in range
+
+               if API.Address.Port /= Any_Port
+                 and then API.Address.Port < Port_Hint.Hi
+               then
+                  API.Address.Port := API.Address.Port + 1;
+               else
+                  O ("bind failed: " & Ada.Exceptions.Exception_Message (E),
+                     Notice);
                   raise;
-                  --  Argh! we tried every possible value and
-                  --  wrapped. Bail out.
                end if;
+
          end;
       end loop;
 
-      if DAP.PF /= null then
+      --  Create profile factory
+
+      if API.PF /= null then
          Create_Factory
-           (DAP.PF.all, DAP.SAP, Components.Component_Access (Setup.The_ORB));
+           (API.PF.all,
+            API.SAP,
+            Components.Component_Access (Setup.The_ORB));
       end if;
    end Initialize_Socket;
 

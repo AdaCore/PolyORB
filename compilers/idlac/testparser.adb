@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -40,7 +40,7 @@ with Idl_Fe.Parser;
 with Idl_Fe.Display_Tree;
 with Ada_Be.Expansion;
 
-with Errors;
+with Idlac_Errors;
 
 procedure Testparser is
    Rep : Idl_Fe.Types.Node_Id;
@@ -55,7 +55,7 @@ begin
 
    loop
       case Getopt ("q e") is
-         when ASCII.Nul => exit;
+         when ASCII.NUL => exit;
 
          when 'q' =>
             --  Quiet.
@@ -90,19 +90,19 @@ begin
    end if;
 
    Put_Line (Current_Error, "Testparser : Finished ");
-   if Errors.Is_Error then
+   if Idlac_Errors.Is_Error then
       Put (Current_Error, "There were " &
-           Natural'Image (Errors.Error_Number) &
+           Natural'Image (Idlac_Errors.Error_Number) &
            " error(s)");
-      if Errors.Is_Warning then
+      if Idlac_Errors.Is_Warning then
          Put_Line (Current_Error, " and " &
-                   Natural'Image (Errors.Warning_Number) &
+                   Natural'Image (Idlac_Errors.Warning_Number) &
                    " warning(s) during parsing.");
       end if;
    else
-      if Errors.Is_Warning then
+      if Idlac_Errors.Is_Warning then
          Put_Line (Current_Error, "there was " &
-                   Natural'Image (Errors.Warning_Number) &
+                   Natural'Image (Idlac_Errors.Warning_Number) &
                    " warning(s) during parsing.");
       else
          Put_Line (Current_Error, "successfully parsed");

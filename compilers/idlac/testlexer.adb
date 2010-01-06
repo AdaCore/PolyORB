@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -34,7 +34,7 @@
 with Ada.Text_IO;
 with GNAT.Command_Line;
 with Idl_Fe.Lexer; use Idl_Fe.Lexer;
-with Errors;
+with Idlac_Errors;
 
 procedure Testlexer is
 
@@ -70,6 +70,6 @@ begin
       exit when Token = T_Eof;
    end loop;
 exception
-   when Errors.Fatal_Error =>
+   when Idlac_Errors.Fatal_Error =>
       null;
 end Testlexer;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -409,32 +409,29 @@ package body CORBA.Repository_Root.InterfaceDef.Impl is
                            New_Version);
    end move;
 
-   ------------------------------
-   --  inherited from IDLType  --
-   ------------------------------
-   function get_type
-     (Self : access Object)
-     return CORBA.TypeCode.Object
-   is
+   ----------------------------
+   -- Inherited from IDLType --
+   ----------------------------
+
+   function get_type (Self : access Object) return CORBA.TypeCode.Object is
    begin
-      return CORBA.ORB.Create_Interface_Tc (Get_Id (Self),
-                                                     Get_Name (Self));
+      return CORBA.ORB.Create_Interface_Tc (Get_Id (Self), Get_Name (Self));
    end get_type;
 
-   ---------------------------
-   --  Get_RepositoryIdSeq  --
-   ---------------------------
-   function Get_RepositoryIdSeq (IntDefSeq : InterfaceDefSeq)
-                                 return RepositoryIdSeq
+   -------------------------
+   -- Get_RepositoryIdSeq --
+   -------------------------
+
+   function Get_RepositoryIdSeq
+     (IntDefSeq : InterfaceDefSeq) return RepositoryIdSeq
    is
-      Result : RepositoryIdSeq;
-      Int_Array : IntDef.Element_Array
-        := IntDef.To_Element_Array (IntDef.Sequence (IntDefSeq));
+      Result    : RepositoryIdSeq;
+      Int_Array : constant IntDef.Element_Array :=
+                    IntDef.To_Element_Array (IntDef.Sequence (IntDefSeq));
    begin
       for I in Int_Array'Range loop
          declare
-            Int : constant Object_Ptr
-              := To_Object (Int_Array (I));
+            Int : constant Object_Ptr := To_Object (Int_Array (I));
          begin
             IdSeq.Append (IdSeq.Sequence (Result), Get_Id (Int));
          end;

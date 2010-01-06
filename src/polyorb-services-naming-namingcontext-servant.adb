@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -34,7 +34,6 @@
 with GNAT.HTable;
 --  XXX Use PolyORB's Hash table ...
 
-with Ada.Text_IO;
 with Ada.Unchecked_Deallocation;
 
 with PolyORB.Any;
@@ -77,7 +76,6 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
-   pragma Unreferenced (C); --  For conditional pragma Debug
 
    package PTM renames PolyORB.Tasking.Mutexes;
    Critical_Section : PTM.Mutex_Access;
@@ -85,17 +83,19 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
    procedure Bind
      (Self : access Object;
       N    : Name;
-      Obj  : PolyORB.References.Ref);
+      Obj  : PolyORB.References.Ref;
+      Exc  : access Any.Any);
 
    procedure Bind_Context
      (Self : access Object;
       N    : Name;
-      NC   : NamingContext.Ref);
+      NC   : NamingContext.Ref;
+      Exc  : access PolyORB.Any.Any);
 
    function Bind_New_Context
      (Self : access Object;
-      N    : Name)
-     return NamingContext.Ref;
+      N    : Name;
+      Exc  : access PolyORB.Any.Any) return NamingContext.Ref;
 
    procedure Destroy
      (Self : access Object);
@@ -118,21 +118,24 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
    procedure Rebind
      (Self : access Object;
       N    : Name;
-      Obj  : PolyORB.References.Ref);
+      Obj  : PolyORB.References.Ref;
+      Exc  : access Any.Any);
 
    procedure Rebind_Context
      (Self : access Object;
       N    : Name;
-      NC   : NamingContext.Ref);
+      NC   : NamingContext.Ref;
+      Exc  : access Any.Any);
 
    function Resolve
      (Self : access Object;
-      N    : Name)
-     return PolyORB.References.Ref;
+      N    : Name;
+      Exc  : access Any.Any) return PolyORB.References.Ref;
 
    procedure Unbind
      (Self : access Object;
-      N    : Name);
+      N    : Name;
+      Exc  : access Any.Any);
    --  Actual functions implemented by the servant.
 
    ------------
@@ -147,7 +150,7 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
 
       Arg_List    : PolyORB.Any.NVList.Ref;
    begin
-      pragma Debug (O ("The server is executing the request:"
+      pragma Debug (C, O ("The server is executing the request:"
                     & PolyORB.Requests.Image (Request.all)));
 
       Create (Arg_List);
@@ -157,11 +160,11 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
             use PolyORB.Errors;
 
             Type_Id          : PolyORB.Types.String;
-            Argument_Type_Id : PolyORB.Any.Any
-              := Get_Empty_Any (TypeCode.TC_String);
+            Argument_Type_Id : constant PolyORB.Any.Any :=
+                                 Get_Empty_Any (TypeCode.TC_String);
 
             Result           : PolyORB.Types.Boolean;
-            Exception_Error            : Error_Container;
+            Exception_Error  : Error_Container;
          begin
             --  Create argument list
 
@@ -175,7 +178,6 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
             if Found (Exception_Error) then
                raise Program_Error;
                --  XXX We should do something more constructive
-
             end if;
 
             Type_Id := From_Any (Argument_Type_Id);
@@ -184,7 +186,7 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
             Result := Is_A (To_Standard_String (Type_Id));
 
             --  Set Result
-            Request.Result.Argument := To_Any (Result);
+            Set_Result (Request, To_Any (Result));
 
          end;
 
@@ -193,11 +195,13 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
          declare
             use PolyORB.Errors;
 
-            N           : Name;
-            Argument_N  : PolyORB.Any.Any := Get_Empty_Any (TC_Name);
+            N            : Name;
+            Argument_N   : constant PolyORB.Any.Any := Get_Empty_Any (TC_Name);
 
             Obj          : PolyORB.References.Ref;
-            Argument_Obj : PolyORB.Any.Any := Get_Empty_Any (PSNH.TC_Object);
+            Argument_Obj : constant PolyORB.Any.Any :=
+                             Get_Empty_Any (PSNH.TC_Object);
+
             Exception_Error        : Error_Container;
          begin
             --  Create argument list
@@ -225,7 +229,7 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
             Obj := From_Any (Argument_Obj);
 
             --  Call implementation
-            Bind (Self, N, Obj);
+            Bind (Self, N, Obj, Request.Exception_Info'Access);
 
             return;
          end;
@@ -235,11 +239,13 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
          declare
             use PolyORB.Errors;
 
-            N          : Name;
-            Argument_N : PolyORB.Any.Any := Get_Empty_Any (TC_Name);
+            N            : Name;
+            Argument_N   : constant PolyORB.Any.Any := Get_Empty_Any (TC_Name);
 
             Obj          : PolyORB.References.Ref;
-            Argument_Obj : PolyORB.Any.Any := Get_Empty_Any (PSNH.TC_Object);
+            Argument_Obj : constant PolyORB.Any.Any :=
+                             Get_Empty_Any (PSNH.TC_Object);
+
             Exception_Error        : Error_Container;
          begin
             --  Create argument list
@@ -266,7 +272,7 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
             Obj := From_Any (Argument_Obj);
 
             --  Call implementation
-            Rebind (Self, N, Obj);
+            Rebind (Self, N, Obj, Request.Exception_Info'Access);
             return;
          end;
 
@@ -276,10 +282,12 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
             use PolyORB.Errors;
 
             N           : Name;
-            Argument_N  : PolyORB.Any.Any := Get_Empty_Any (TC_Name);
+            Argument_N  : constant PolyORB.Any.Any := Get_Empty_Any (TC_Name);
 
             Nc          : NamingContext.Ref;
-            Argument_Nc : PolyORB.Any.Any := Get_Empty_Any (TC_NamingContext);
+            Argument_Nc : constant PolyORB.Any.Any :=
+                            Get_Empty_Any (TC_NamingContext);
+
             Exception_Error       : Error_Container;
          begin
             --  Create argument list
@@ -307,7 +315,7 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
             Nc := From_Any (Argument_Nc);
 
             --  Call implementation
-            Bind_Context (Self, N, Nc);
+            Bind_Context (Self, N, Nc, Request.Exception_Info'Access);
 
             return;
          end;
@@ -318,10 +326,12 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
             use PolyORB.Errors;
 
             N           : Name;
-            Argument_N  : PolyORB.Any.Any := Get_Empty_Any (TC_Name);
+            Argument_N  : constant PolyORB.Any.Any := Get_Empty_Any (TC_Name);
 
             Nc          : NamingContext.Ref;
-            Argument_Nc : PolyORB.Any.Any := Get_Empty_Any (TC_NamingContext);
+            Argument_Nc : constant PolyORB.Any.Any :=
+                            Get_Empty_Any (TC_NamingContext);
+
             Exception_Error       : Error_Container;
          begin
             --  Create argument list
@@ -349,7 +359,7 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
             Nc := From_Any (Argument_Nc);
 
             --  Call implementation
-            Rebind_Context (Self, N, Nc);
+            Rebind_Context (Self, N, Nc, Request.Exception_Info'Access);
 
             return;
          end;
@@ -359,11 +369,12 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
          declare
             use PolyORB.Errors;
 
-            N          : Name;
-            Argument_N : PolyORB.Any.Any := Get_Empty_Any (TC_Name);
+            N               : Name;
+            Argument_N      : constant PolyORB.Any.Any :=
+                                Get_Empty_Any (TC_Name);
 
-            Result     : PolyORB.References.Ref;
-            Exception_Error      : Error_Container;
+            Result          : PolyORB.References.Ref;
+            Exception_Error : Error_Container;
          begin
             --  Create argument list
 
@@ -385,11 +396,15 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
             N := From_Any (Argument_N);
 
             --  Call implementation
-            Result := Resolve (Self, N);
+            pragma Debug (C, O ("Invoke: call Resolve stub"));
+            Result := Resolve (Self, N, Request.Exception_Info'Access);
 
             --  Set Result
-            Request.Result.Argument
-              := PolyORB.Services.Naming.Helper.To_Any (Result);
+
+            if Is_Empty (Request.Exception_Info) then
+               Set_Result (Request,
+                 PolyORB.Services.Naming.Helper.To_Any (Result));
+            end if;
 
             return;
          end;
@@ -400,7 +415,7 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
             use PolyORB.Errors;
 
             N           : Name;
-            Argument_N  : PolyORB.Any.Any := Get_Empty_Any (TC_Name);
+            Argument_N  : constant PolyORB.Any.Any := Get_Empty_Any (TC_Name);
             Exception_Error       : Error_Container;
          begin
             --  Create argument list
@@ -421,8 +436,7 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
             N := From_Any (Argument_N);
 
             --  Call implementation
-            Unbind (Self, N);
-
+            Unbind (Self, N, Request.Exception_Info'Access);
             return;
          end;
 
@@ -447,7 +461,7 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
             Result := New_Context (Self);
 
             --  Set Result
-            Request.Result.Argument := To_Any (Result);
+            Set_Result (Request, To_Any (Result));
 
             return;
          end;
@@ -457,8 +471,8 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
          declare
             use PolyORB.Errors;
 
-            N               : Name;
-            Argument_N      : PolyORB.Any.Any := Get_Empty_Any (TC_Name);
+            N          : Name;
+            Argument_N : constant PolyORB.Any.Any := Get_Empty_Any (TC_Name);
 
             Result          : NamingContext.Ref;
             Exception_Error : Error_Container;
@@ -481,10 +495,13 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
             N := From_Any (Argument_N);
 
             --  Call implementation
-            Result := Bind_New_Context (Self, N);
+            Result := Bind_New_Context
+                        (Self, N, Request.Exception_Info'Access);
 
-            --  Set Result
-            Request.Result.Argument := To_Any (Result);
+            if Is_Empty (Request.Exception_Info) then
+               --  Set Result
+               Set_Result (Request, To_Any (Result));
+            end if;
 
             return;
          end;
@@ -519,7 +536,7 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
       Result : PolyORB.Any.NVList.Ref;
    begin
       PolyORB.Any.NVList.Create (Result);
-      pragma Debug (O ("Parameter profile for " & Method & " requested."));
+      pragma Debug (C, O ("Parameter profile for " & Method & " requested."));
 
       if Method = "_is_a" then
          Add_Item (Result,
@@ -608,13 +625,11 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
    -- Get_Result_Profile --
    ------------------------
 
-   function Get_Result_Profile
-     (Method : String)
-     return PolyORB.Any.Any;
+   function Get_Result_Profile (Method : String) return PolyORB.Any.Any;
 
    function Get_Result_Profile (Method : String) return PolyORB.Any.Any is
    begin
-      pragma Debug (O ("Result profile for " & Method & " requested."));
+      pragma Debug (C, O ("Result profile for " & Method & " requested."));
 
       if Method = "_is_a" then
          return Get_Empty_Any (TypeCode.TC_Boolean);
@@ -720,7 +735,8 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
       N    : Name;
       Len  : out    Natural;
       Ctx  : out    NamingContext.Ref;
-      NC   : out    NameComponent);
+      NC   : out    NameComponent;
+      Exc  : access Any.Any);
    --  Resolve N from a given naming context Self: split a name N into
    --  its naming context Ctx and the last name component NC. Len is
    --  the length of N. If Len = 1, then Ctx must be ignored. To avoid
@@ -830,14 +846,18 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
    procedure Bind
      (Self : access Object;
       N    : Name;
-      Obj  : PolyORB.References.Ref)
+      Obj  : PolyORB.References.Ref;
+      Exc  : access Any.Any)
    is
       Len  : Natural;
       Ctx  : NamingContext.Ref;
       Last : NameComponent;
 
    begin
-      Get_Ctx_And_Last_NC (Self, N, Len, Ctx, Last);
+      Get_Ctx_And_Last_NC (Self, N, Len, Ctx, Last, Exc);
+      if not Is_Empty (Exc.all) then
+         return;
+      end if;
 
       if Len /= 1 then
          PSNNC.Bind (Ctx, To_Name (Last), Obj);
@@ -845,12 +865,13 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
       else
          declare
             BON : constant String := Encode (Self.Self, Last);
-
+            M : AlreadyBound_Members;
          begin
             PTM.Enter (Critical_Section);
             if Look_For_BO_In_NC (Self.Self, BON) /= null then
                PTM.Leave (Critical_Section);
-               raise AlreadyBound;
+               Exc.all := To_Any (M);
+               return;
             end if;
 
             Append_BO_To_NC (Self.Self, BON, Last, Nobject, Obj);
@@ -866,19 +887,23 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
    procedure Bind_Context
      (Self : access Object;
       N    : Name;
-      NC   : NamingContext.Ref)
+      NC   : NamingContext.Ref;
+      Exc  : access Any.Any)
    is
       Len  : Natural;
       Ctx  : NamingContext.Ref;
       Last : NameComponent;
 
    begin
-      pragma Debug (O ("Bind_Context: enter"));
-      Get_Ctx_And_Last_NC (Self, N, Len, Ctx, Last);
-      pragma Debug (O ("Bind_Context: len is" & Len'Img));
+      pragma Debug (C, O ("Bind_Context: enter"));
+      Get_Ctx_And_Last_NC (Self, N, Len, Ctx, Last, Exc);
+      if not Is_Empty (Exc.all) then
+         return;
+      end if;
+      pragma Debug (C, O ("Bind_Context: len is" & Len'Img));
 
       if Len /= 1 then
-         pragma Debug (O ("Bind_Context: binding relative name "
+         pragma Debug (C, O ("Bind_Context: binding relative name "
            & To_String (Last.id)));
          PSNNC.Bind_Context (Ctx, To_Name (Last), NC);
       else
@@ -905,22 +930,25 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
 
    function Bind_New_Context
      (Self : access Object;
-      N    : Name)
-     return NamingContext.Ref
+      N    : Name;
+      Exc  : access Any.Any) return NamingContext.Ref
    is
       Len  : Natural;
       Ctx  : NamingContext.Ref;
       Last : NameComponent;
 
    begin
-      Get_Ctx_And_Last_NC (Self, N, Len, Ctx, Last);
+      Get_Ctx_And_Last_NC (Self, N, Len, Ctx, Last, Exc);
+      if not Is_Empty (Exc.all) then
+         return NamingContext.Nil_Ref;
+      end if;
 
       if Len /= 1 then
          return PSNNC.Bind_New_Context (Ctx, To_Name (Last));
 
       else
          Ctx := New_Context (Self);
-         Bind_Context (Self, N, Ctx);
+         Bind_Context (Self, N, Ctx, Exc);
          return Ctx;
       end if;
    end Bind_New_Context;
@@ -965,18 +993,18 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
       BO : Bound_Object_Ptr;
 
    begin
-      Ada.Text_IO.Put_Line (Text);
+      pragma Debug (C, O (Text));
 
       BO := NC.Head;
       while BO /= null loop
-         Ada.Text_IO.Put (String (NC.Key));
-         Ada.Text_IO.Put (" ... ");
-         Ada.Text_IO.Put (To_Standard_String (BO.BN.id));
-         Ada.Text_IO.Put (ASCII.HT);
-         Ada.Text_IO.Put (To_Standard_String (BO.BN.kind));
-         Ada.Text_IO.Put (ASCII.HT);
-         Ada.Text_IO.Put (BO.BT'Img);
-         Ada.Text_IO.New_Line;
+         pragma Debug
+           (C, O (String (NC.Key)
+                    & " ... "
+                    & To_Standard_String (BO.BN.id)
+                    & ASCII.HT
+                    & To_Standard_String (BO.BN.kind)
+                    & ASCII.HT
+                    & BO.BT'Img));
          BO := BO.Next;
       end loop;
    end Display_NC;
@@ -1038,12 +1066,13 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
       N    : Name;
       Len  : out    Natural;
       Ctx  : out    NamingContext.Ref;
-      NC   : out    NameComponent)
+      NC   : out    NameComponent;
+      Exc  : access Any.Any)
    is
       use Names;
 
    begin
-      pragma Debug (O ("Get_Ctx_And_Last_NC: enter"));
+      pragma Debug (C, O ("Get_Ctx_And_Last_NC: enter"));
       Valid (Self.Self);
 
       PTM.Enter (Critical_Section);
@@ -1064,15 +1093,18 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
          if Len > 1 then
             Current_Idx := NCA'First;
             pragma Debug
-              (O ("Get_Ctx_And_Last_NC: resolve "
+              (C, O ("Get_Ctx_And_Last_NC: resolve "
                   & To_String (NCA (Current_Idx).id)));
-            Current_Obj := Resolve (Self, To_Name (NCA (Current_Idx)));
+            Current_Obj := Resolve (Self, To_Name (NCA (Current_Idx)), Exc);
+            if not Is_Empty (Exc.all) then
+               return;
+            end if;
             Current_Ctx := NamingContext.Helper.To_Ref (Current_Obj);
 
             Current_Idx := Current_Idx + 1;
             while Current_Idx < NCA'Last loop
                pragma Debug
-                 (O ("Get_Ctx_And_Last_NC: resolve "
+                 (C, O ("Get_Ctx_And_Last_NC: resolve "
                      & To_String (NCA (Current_Idx).id)));
                Current_Obj := PSNNC.Resolve
                  (Current_Ctx, To_Name (NCA (Current_Idx)));
@@ -1265,14 +1297,18 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
    procedure Rebind
      (Self : access Object;
       N    : Name;
-      Obj  : PolyORB.References.Ref)
+      Obj  : PolyORB.References.Ref;
+      Exc  : access Any.Any)
    is
       Len  : Natural;
       Ctx  : NamingContext.Ref;
       Last : NameComponent;
 
    begin
-      Get_Ctx_And_Last_NC (Self, N, Len, Ctx, Last);
+      Get_Ctx_And_Last_NC (Self, N, Len, Ctx, Last, Exc);
+      if not Is_Empty (Exc.all) then
+         return;
+      end if;
 
       if Len /= 1 then
          PSNNC.Rebind (Ctx, To_Name (Last), Obj);
@@ -1324,14 +1360,18 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
    procedure Rebind_Context
      (Self : access Object;
       N    : Name;
-      NC   : NamingContext.Ref)
+      NC   : NamingContext.Ref;
+      Exc  : access Any.Any)
    is
       Len  : Natural;
       Ctx  : NamingContext.Ref;
       Last : NameComponent;
 
    begin
-      Get_Ctx_And_Last_NC (Self, N, Len, Ctx, Last);
+      Get_Ctx_And_Last_NC (Self, N, Len, Ctx, Last, Exc);
+      if not Is_Empty (Exc.all) then
+         return;
+      end if;
 
       if Len /= 1 then
          PSNNC.Rebind_Context (Ctx, To_Name (Last), NC);
@@ -1418,15 +1458,18 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
 
    function Resolve
      (Self : access Object;
-      N    : Name)
-     return PolyORB.References.Ref
+      N    : Name;
+      Exc  : access Any.Any) return PolyORB.References.Ref
    is
       Len  : Natural;
       Ctx  : NamingContext.Ref;
       Last : NameComponent;
 
    begin
-      Get_Ctx_And_Last_NC (Self, N, Len, Ctx, Last);
+      Get_Ctx_And_Last_NC (Self, N, Len, Ctx, Last, Exc);
+      if not Is_Empty (Exc.all) then
+         return References.Nil_Ref;
+      end if;
 
       if Len /= 1 then
          return PSNNC.Resolve (Ctx, To_Name (Last));
@@ -1449,8 +1492,8 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
                begin
                   Member.why          := missing_node;
                   Member.rest_of_name := Null_Name;
-                  PolyORB.Exceptions.User_Raise_Exception
-                    (NotFound'Identity, Member);
+                  Exc.all := To_Any (Member);
+                  return References.Nil_Ref;
                end;
             end if;
 
@@ -1476,14 +1519,18 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
 
    procedure Unbind
      (Self : access Object;
-      N    : Name)
+      N    : Name;
+      Exc  : access Any.Any)
    is
       Len  : Natural;
       Ctx  : NamingContext.Ref;
       Last : NameComponent;
 
    begin
-      Get_Ctx_And_Last_NC (Self, N, Len, Ctx, Last);
+      Get_Ctx_And_Last_NC (Self, N, Len, Ctx, Last, Exc);
+      if not Is_Empty (Exc.all) then
+         return;
+      end if;
 
       if Len /= 1 then
          PSNNC.Unbind (Ctx, To_Name (Last));

@@ -1,0 +1,12 @@
+module m {
+  local interface LocInt {
+    long op1 (in long var1, inout short var2, out string var3);
+    attribute long MyAttr;
+  };
+  
+  local interface LocInt2 : LocInt{
+    long op2 (in long var1, inout short var2, out string var3);
+    attribute long MyAttr2;
+  };
+};
+

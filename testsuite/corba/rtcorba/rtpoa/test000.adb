@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -291,7 +291,7 @@ begin
          Thread_Pool_Id : RTCORBA.ThreadpoolId;
          Thread_Pool_Policy_Ref : RTCORBA.ThreadpoolPolicy.Local_Ref;
 
-         No_Implicit_Activation_Policy : CORBA.Policy.Ref
+         No_Implicit_Activation_Policy : constant CORBA.Policy.Ref
            := CORBA.Policy.Ref
            (Create_Implicit_Activation_Policy (NO_IMPLICIT_ACTIVATION));
 
@@ -608,7 +608,7 @@ begin
          pragma Warnings (Off, Ref_Client); --  WAG:5.02 DB08-008
          --  Assigned but never read
 
-         No_Implicit_Activation_Policy : CORBA.Policy.Ref
+         No_Implicit_Activation_Policy : constant CORBA.Policy.Ref
            := CORBA.Policy.Ref
            (Create_Implicit_Activation_Policy (NO_IMPLICIT_ACTIVATION));
 
@@ -694,7 +694,7 @@ begin
 
       --  Retrieve Root POA
 
-      Root_POA := PortableServer.POA.Helper.To_Ref
+      Root_POA := PortableServer.POA.Helper.To_Local_Ref
         (CORBA.ORB.Resolve_Initial_References
          (CORBA.ORB.To_CORBA_String ("RootPOA")));
 

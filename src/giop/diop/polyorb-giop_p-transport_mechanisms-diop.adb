@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -36,6 +36,7 @@ with PolyORB.Binding_Objects;
 with PolyORB.Filters;
 with PolyORB.ORB;
 with PolyORB.Protocols.GIOP.DIOP;
+with PolyORB.Sockets;
 with PolyORB.Transport.Datagram.Sockets_In;
 with PolyORB.Transport.Datagram.Sockets_Out;
 
@@ -46,16 +47,17 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.DIOP is
    use PolyORB.Sockets;
    use PolyORB.Transport.Datagram.Sockets_In;
    use PolyORB.Transport.Datagram.Sockets_Out;
+   use PolyORB.Utils.Sockets;
 
    ----------------
    -- Address_Of --
    ----------------
 
-   function Address_Of (M : DIOP_Transport_Mechanism)
-     return Sockets.Sock_Addr_Type
+   function Address_Of
+     (M : DIOP_Transport_Mechanism) return Utils.Sockets.Socket_Name
    is
    begin
-      return M.Address;
+      return M.Address.all;
    end Address_Of;
 
    --------------------
@@ -82,9 +84,7 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.DIOP is
       use PolyORB.Binding_Objects;
 
       Sock        : Socket_Type;
-      Remote_Addr : constant Sock_Addr_Type := Mechanism.Address;
       TE          : Transport.Transport_Endpoint_Access;
-
    begin
       if Profile.all
         not in PolyORB.Binding_Data.GIOP.DIOP.DIOP_Profile_Type then
@@ -100,11 +100,11 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.DIOP is
 
       TE := new Socket_Out_Endpoint;
 
-      Create (Socket_Out_Endpoint (TE.all), Sock, Remote_Addr);
-      Set_Allocation_Class (TE.all, Dynamic);
+      Create (Socket_Out_Endpoint (TE.all), Sock, Mechanism.Address.all);
 
       Binding_Objects.Setup_Binding_Object
-        (TE,
+        (The_ORB,
+         TE,
          DIOP_Factories,
          BO_Ref,
          Profile_Access (Profile));
@@ -129,7 +129,8 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.DIOP is
       TAP :     Transport.Transport_Access_Point_Access)
    is
    begin
-      MF.Address := Address_Of (Socket_In_Access_Point (TAP.all));
+      MF.Address :=
+        new Socket_Name'(Address_Of (Socket_In_Access_Point (TAP.all)));
    end Create_Factory;
 
    ------------------------------
@@ -160,13 +161,16 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.DIOP is
         renames DIOP_Transport_Mechanism (Result.all);
 
    begin
-      TResult.Address := MF.Address;
+      TResult.Address := new Socket_Name'(MF.Address.all);
       return Result;
    end Create_Transport_Mechanism;
 
+   --------------------------------
+   -- Create_Transport_Mechanism --
+   --------------------------------
+
    function Create_Transport_Mechanism
-     (Address : Sockets.Sock_Addr_Type)
-      return Transport_Mechanism_Access
+     (Address : Utils.Sockets.Socket_Name) return Transport_Mechanism_Access
    is
       Result  : constant Transport_Mechanism_Access
         := new DIOP_Transport_Mechanism;
@@ -174,7 +178,7 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.DIOP is
         renames DIOP_Transport_Mechanism (Result.all);
 
    begin
-      TResult.Address := Address;
+      TResult.Address := new Socket_Name'(Address);
       return Result;
    end Create_Transport_Mechanism;
 
@@ -184,11 +188,8 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.DIOP is
 
    function Is_Local_Mechanism
      (MF : access DIOP_Transport_Mechanism_Factory;
-      M  : access Transport_Mechanism'Class)
-      return Boolean
+      M  : access Transport_Mechanism'Class) return Boolean
    is
-      use type PolyORB.Sockets.Sock_Addr_Type;
-
    begin
       return M.all in DIOP_Transport_Mechanism
         and then DIOP_Transport_Mechanism (M.all).Address = MF.Address;
@@ -199,10 +200,8 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.DIOP is
    ----------------------
 
    procedure Release_Contents (M : access DIOP_Transport_Mechanism) is
-      pragma Unreferenced (M);
-
    begin
-      null;
+      Free (M.Address);
    end Release_Contents;
 
    ---------------
@@ -210,11 +209,11 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.DIOP is
    ---------------
 
    function Duplicate
-     (TMA : DIOP_Transport_Mechanism)
-     return DIOP_Transport_Mechanism
+     (TMA : DIOP_Transport_Mechanism) return DIOP_Transport_Mechanism
    is
    begin
-      return TMA;
+      return DIOP_Transport_Mechanism'
+               (Address => new Socket_Name'(TMA.Address.all));
    end Duplicate;
 
    ------------------

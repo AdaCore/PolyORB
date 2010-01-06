@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -55,7 +55,6 @@ package body PolyORB.Filters.Fragmenter is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
-   pragma Unreferenced (C); --  For conditional pragma Debug
 
    ------------
    -- Create --
@@ -65,24 +64,28 @@ package body PolyORB.Filters.Fragmenter is
      (Fact   : access Fragmenter_Factory;
       Fragmenter : out Filter_Access)
    is
+      pragma Unreferenced (Fact);
+
       Res : constant Filter_Access := new Fragmenter_Filter;
    begin
-      pragma Warnings (Off);
-      pragma Unreferenced (Fact);
-      pragma Warnings (On);
-      Set_Allocation_Class (Res.all, Dynamic);
       Fragmenter_Filter (Res.all).Data_Expected := 0;
+
       --  Create buffer for lower filter
+
       Fragmenter_Filter (Res.all).Socket_Buf := new Buffer_Type;
+
       Fragmenter := Res;
    end Create;
 
-   --  copy data between buffer
-   --  do not change CDR_Position of destination buffer
    procedure Copy
      (From : access Buffer_Type;
       To   : access Buffer_Type;
       Len  :        Ada.Streams.Stream_Element_Count);
+   --  Copy data from From to To, leaving CDR position of To unchanged
+
+   ----------
+   -- Copy --
+   ----------
 
    procedure Copy
      (From : access Buffer_Type;
@@ -131,7 +134,7 @@ package body PolyORB.Filters.Fragmenter is
                Release_Contents (F.Socket_Buf.all);
                F.Data_Expected := 0;
                F.In_Buf := null;
-               pragma Debug (O ("Sending"
+               pragma Debug (C, O ("Sending"
                                 & F.Initial_Data_Expected'Img
                                 & ", buffer empty"));
                --  Send data to upper filter
@@ -151,7 +154,7 @@ package body PolyORB.Filters.Fragmenter is
             Copy (F.Socket_Buf, F.In_Buf, F.Data_Expected);
             F.Data_Expected := 0;
             F.In_Buf := null;
-            pragma Debug (O ("Sending"
+            pragma Debug (C, O ("Sending"
                              & F.Initial_Data_Expected'Img
                              & ","
                              & Remaining (F.Socket_Buf)'Img
@@ -166,7 +169,7 @@ package body PolyORB.Filters.Fragmenter is
 
       else
          --  No data are present, ask for them to lower layer
-         pragma Debug (O ("Asking for "
+         pragma Debug (C, O ("Asking for "
                           & F.Data_Expected'Img
                           & " bytes"));
          return Emit
@@ -182,8 +185,7 @@ package body PolyORB.Filters.Fragmenter is
 
    function Handle_Message
      (F : access Fragmenter_Filter;
-      S : Components.Message'Class)
-     return Components.Message'Class
+      S : Components.Message'Class) return Components.Message'Class
    is
    begin
       if S in Data_Expected'Class then
@@ -191,7 +193,7 @@ package body PolyORB.Filters.Fragmenter is
             DEM : Data_Expected renames Data_Expected (S);
          begin
             --  Upper layer ask for data
-            pragma Debug (O ("Upper filter expects"
+            pragma Debug (C, O ("Upper filter expects"
                              & DEM.Max'Img
                              & " bytes"));
 
@@ -223,28 +225,14 @@ package body PolyORB.Filters.Fragmenter is
 
          begin
             --  Some data received
-            pragma Debug (O ("Received" & Data_Received'Img & " bytes"));
+            pragma Debug (C, O ("Received" & Data_Received'Img & " bytes"));
 
             --  Try to satisfy demand
             return Process_Data (F);
          end;
 
-      elsif False
-        or else S in Connect_Indication
-        or else S in Connect_Confirmation
-        or else S in Disconnect_Indication
-        or else S in Set_Server
-      then
-         return Emit (F.Upper, S);
-
-      elsif False
-        or else S in Data_Out
-        or else S in Disconnect_Request
-      then
-         return Emit (F.Lower, S);
-
       else
-         raise Program_Error;
+         return Filters.Handle_Message (Filters.Filter (F.all)'Access, S);
       end if;
    end Handle_Message;
 

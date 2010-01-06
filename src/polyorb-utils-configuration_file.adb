@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,6 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Directories;
 with Ada.Text_IO;
 
 with PolyORB.Initialization;
@@ -49,7 +50,6 @@ package body PolyORB.Utils.Configuration_File is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
-   pragma Unreferenced (C); --  For conditional pragma Debug
 
    use Configuration_Table;
 
@@ -144,7 +144,7 @@ package body PolyORB.Utils.Configuration_File is
 
    procedure Load_Configuration_Table
      (Configuration_Filename : String;
-      Table          : in out Configuration_Table.Table_Instance)
+      Table                  : in out Configuration_Table.Table_Instance)
    is
       Current_Section : String_Ptr := null;
       Current_Line    : Integer    := 0;
@@ -166,24 +166,23 @@ package body PolyORB.Utils.Configuration_File is
       use PolyORB.Utils;
 
    begin
-      pragma Debug (O ("Loading configuration from "
-                       & Configuration_Filename));
 
       --  Reset the table and the sections list
 
       Reset_Table (Table);
       Reset_Sections_List;
 
-      begin
-         Open (Conf_File, In_File, Configuration_Filename);
-      exception
-         when Name_Error =>
-            --  No configuration file
+      if not Ada.Directories.Exists (Configuration_Filename) then
 
-            pragma Debug (O ("No " & Configuration_Filename
-                             & " configuration file."));
-            return;
-      end;
+         pragma Debug (C, O ("No " & Configuration_Filename
+                          & " configuration file."));
+         return;
+      end if;
+
+      pragma Debug (C, O ("Loading configuration from "
+                       & Configuration_Filename));
+
+      Open (Conf_File, In_File, Configuration_Filename);
 
       while not End_Of_File (Conf_File) loop
          Get_Line (Conf_File, Line, Last);
@@ -222,27 +221,25 @@ package body PolyORB.Utils.Configuration_File is
                   begin
                      if Current_Section = null then
                         O ("Assignment out of any section on line" &
-                           Integer'Image (Current_Line) &
-                           ": " &
-                           Line (Line'First .. Last));
+                           Current_Line'Img & ": "
+                           & Line (Line'First .. Last), Error);
                         raise Constraint_Error;
                      end if;
 
-                     if Eq not in Line'First + 1 .. Last - 1 then
+                     if Eq not in Line'First + 1 .. Last then
                         O ("Syntax error on line" &
-                           Integer'Image (Current_Line) &
-                           ": " &
-                           Line (Line'First .. Last));
+                           Current_Line'Img & ": "
+                           & Line (Line'First .. Last), Error);
                         raise Constraint_Error;
                      end if;
 
                      declare
                         K : constant String :=
-                           Make_Global_Key
-                             (Section => Current_Section.all,
-                              Key     => Line (Line'First .. Eq - 1));
+                              Make_Global_Key
+                                (Section => Current_Section.all,
+                                 Key     => Line (Line'First .. Eq - 1));
                         V : String_Ptr      :=
-                           Configuration_Table.Lookup (Table, K, null);
+                              Configuration_Table.Lookup (Table, K, null);
                      begin
                         if V /= null then
                            Free (V);

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---           Copyright (C) 2006, Free Software Foundation, Inc.             --
+--         Copyright (C) 2006-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -54,7 +54,6 @@ package body AWS.Object_Adapter is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
-   pragma Unreferenced (C); --  For conditional pragma Debug
    --  the polyorb logging facility
 
    ---------------------
@@ -78,7 +77,7 @@ package body AWS.Object_Adapter is
       The_Poa_Manager : constant Basic_POA_Manager_Access :=
         new Basic_POA_Manager;
    begin
-      pragma Debug (O ("Unknown_Adapter: asked for <" & Name & ">"));
+      pragma Debug (C, O ("Unknown_Adapter: asked for <" & Name & ">"));
 
       PolyORB.POA_Policies.Policy_Lists.Append
         (Policies, PolyORB.POA_Policies.Request_Processing_Policy.
@@ -111,11 +110,11 @@ package body AWS.Object_Adapter is
       --  Activation policy is incompatible with Non_Retain, so we
       --  use No_Activation.
 
-      pragma Debug (O ("Unknown_Adapter: set POA policies"));
+      pragma Debug (C, O ("Unknown_Adapter: set POA policies"));
 
       Create (The_Poa_Manager);
 
-      pragma Debug (O ("Unknown_Adapter: creating a new sub-POA"));
+      pragma Debug (C, O ("Unknown_Adapter: creating a new sub-POA"));
       PolyORB.POA.Basic_POA.Create_POA
         (PolyORB.POA.Basic_POA.Basic_Obj_Adapter
          (Parent.all)'Access,
@@ -126,7 +125,7 @@ package body AWS.Object_Adapter is
          Error);
 
       if Found (Error) then
-         pragma Debug (O ("Error when creating the POA"));
+         pragma Debug (C, O ("Error when creating the POA"));
          null;
       end if;
 
@@ -137,13 +136,13 @@ package body AWS.Object_Adapter is
          Error);
 
       if Found (Error) then
-         pragma Debug (O ("AWS_Init: "
+         pragma Debug (C, O ("AWS_Init: "
                           & "unable to activate the POA Manager",
                           Critical));
          null;
       end if;
 
-      pragma Debug (O ("Unknown_Adapter: "
+      pragma Debug (C, O ("Unknown_Adapter: "
                        & "retrieving the servant from the parent POA"));
       PolyORB.POA.Basic_POA.Get_Servant
         (PolyORB.POA.Basic_POA.Basic_Obj_Adapter (Parent.all)'Access,
@@ -151,11 +150,11 @@ package body AWS.Object_Adapter is
          Error);
 
       if Found (Error) then
-         pragma Debug (O ("Error when getting the servant"));
+         pragma Debug (C, O ("Error when getting the servant"));
          null;
       end if;
 
-      pragma Debug (O ("Unknown_Adapter: "
+      pragma Debug (C, O ("Unknown_Adapter: "
                        & "setting the servant for the new POA"));
       PolyORB.POA.Basic_POA.Set_Servant
         (PolyORB.POA.Basic_POA.Basic_Obj_Adapter (The_Poa.all)'Access,
@@ -163,15 +162,14 @@ package body AWS.Object_Adapter is
          Error);
 
       if Found (Error) then
-         pragma Debug (O ("Error when setting the servant"));
+         pragma Debug (C, O ("Error when setting the servant"));
          null;
       end if;
 
       Result := True;
 
-      --  We always return 'true', as it is up to the AWS servant to
-      --  tell wether an object exists or not, whatever the path to it
-      --  may be.
+      --  We always return 'true', as it is up to the AWS servant to tell
+      --  whether an object exists or not, whatever the path to it may be.
    end Unknown_Adapter;
 
 end AWS.Object_Adapter;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -43,8 +43,6 @@ with PolyORB.Smart_Pointers;
 with PolyORB.Task_Info;
 with PolyORB.Types;
 with PolyORB.Utils.Simple_Flags;
-pragma Elaborate_All (PolyORB.Utils.Simple_Flags);
-
 with PolyORB.Utils.Strings;
 
 package PolyORB.Requests is
@@ -66,8 +64,7 @@ package PolyORB.Requests is
 
    type Flags is new Types.Unsigned_Long;
 
-   package Unsigned_Long_Flags is
-      new PolyORB.Utils.Simple_Flags (Flags, Shift_Left);
+   package Unsigned_Long_Flags is new PolyORB.Utils.Simple_Flags (Flags);
 
    ------------------------------------------
    -- Synchronisation of request execution --
@@ -156,9 +153,9 @@ package PolyORB.Requests is
       --  XXX This is client-side info. How do we construct it
       --      on a proxy object?
 
-      Exception_Info : Any.Any;
-      --  If non-empty, information relative to an exception
-      --  raised during execution of this request.
+      Exception_Info : aliased Any.Any;
+      --  If non-empty, information relative to an exception raised during
+      --  execution of this request.
 
       --  Ctxt_List  : CORBA.ContextList.Ref;
 

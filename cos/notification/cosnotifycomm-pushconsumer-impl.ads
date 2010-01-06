@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -54,7 +54,7 @@ package CosNotifyComm.PushConsumer.Impl is
 
    procedure Push
      (Self : access Object;
-      Data : in CORBA.Any);
+      Data : CORBA.Any);
 
    procedure Disconnect_Push_Consumer (Self : access Object);
 
@@ -66,7 +66,7 @@ package CosNotifyComm.PushConsumer.Impl is
 
    procedure Connect_Any_Proxy_Push_Supplier
      (Self  : access Object;
-      Proxy : in     CosNotifyChannelAdmin.ProxyPushSupplier.Ref);
+      Proxy : CosNotifyChannelAdmin.ProxyPushSupplier.Ref);
    --  Call by application to connect object with proxy
 
    function Pull

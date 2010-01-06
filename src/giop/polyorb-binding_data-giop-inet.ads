@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -34,38 +34,36 @@
 --  Common utilities for GIOP instances that rely on IP sockets.
 
 with PolyORB.Buffers;
-with PolyORB.Sockets;
+with PolyORB.Utils.Sockets;
 
 package PolyORB.Binding_Data.GIOP.INET is
 
    procedure Common_Marshall_Profile_Body
      (Buffer             : access Buffers.Buffer_Type;
       Profile            : Profile_Access;
-      Address            : Sockets.Sock_Addr_Type;
+      Sock               : Utils.Sockets.Socket_Name;
       Marshall_Object_Id : Boolean);
 
-   procedure Common_Unmarshall_Profile_Body
+   function Common_Unmarshall_Profile_Body
      (Buffer                       : access Buffers.Buffer_Type;
       Profile                      : Profile_Access;
-      Address                      : in out Sockets.Sock_Addr_Type;
       Unmarshall_Object_Id         : Boolean;
-      Unmarshall_Tagged_Components : Boolean);
+      Unmarshall_Tagged_Components : Boolean)
+      return Utils.Sockets.Socket_Name;
    --  If True always unmarshall tagged component, if False then the
    --  tagged components are unmarshalled only if Version_Minor >= 1.
 
    function Common_IIOP_DIOP_Profile_To_Corbaloc
      (Profile : Profile_Access;
-      Address : Sockets.Sock_Addr_Type;
-      Prefix  : String)
-     return String;
+      Address : Utils.Sockets.Socket_Name;
+      Prefix  : String) return String;
 
-   procedure Common_IIOP_DIOP_Corbaloc_To_Profile
+   function Common_IIOP_DIOP_Corbaloc_To_Profile
      (Str           : String;
       Default_Major : Types.Octet;
       Default_Minor : Types.Octet;
-      Profile       : in out Profile_Access;
-      Address       :    out Sockets.Sock_Addr_Type);
-   --  If subprogram found error then it free Profile and assign to
-   --  Profile null value.
+      Profile       : access Profile_Access) return Utils.Sockets.Socket_Name;
+   --  Set Profile.all.all and return address according to given corbaloc URI.
+   --  In case of error, Profile.all is freed.
 
 end PolyORB.Binding_Data.GIOP.INET;

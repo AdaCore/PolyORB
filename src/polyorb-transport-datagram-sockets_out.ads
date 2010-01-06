@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2003-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2003-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -35,6 +35,7 @@
 
 with PolyORB.Sockets;
 with PolyORB.Tasking.Mutexes;
+with PolyORB.Utils.Sockets;
 
 package PolyORB.Transport.Datagram.Sockets_Out is
 
@@ -52,8 +53,8 @@ package PolyORB.Transport.Datagram.Sockets_Out is
 
    procedure Create
      (TE   : in out Socket_Out_Endpoint;
-      S    :        Socket_Type;
-      Addr :        Sock_Addr_Type);
+      S    : Socket_Type;
+      Addr : Utils.Sockets.Socket_Name);
 
    function Create_Event_Source
      (TE : access Socket_Out_Endpoint)
@@ -61,9 +62,9 @@ package PolyORB.Transport.Datagram.Sockets_Out is
 
    procedure Read
      (TE     : in out Socket_Out_Endpoint;
-      Buffer :        Buffers.Buffer_Access;
+      Buffer : Buffers.Buffer_Access;
       Size   : in out Ada.Streams.Stream_Element_Count;
-      Error  :    out Errors.Error_Container);
+      Error  : out Errors.Error_Container);
    pragma No_Return (Read);
    --  Read data from datagram socket. This procedure should not be
    --  used for write-only transport endpoints, Program_Error will be
@@ -71,8 +72,8 @@ package PolyORB.Transport.Datagram.Sockets_Out is
 
    procedure Write
      (TE     : in out Socket_Out_Endpoint;
-      Buffer :        Buffers.Buffer_Access;
-      Error  :    out Errors.Error_Container);
+      Buffer : Buffers.Buffer_Access;
+      Error  : out Errors.Error_Container);
    --  Write data to datagram socket
 
    procedure Close (TE : access Socket_Out_Endpoint);

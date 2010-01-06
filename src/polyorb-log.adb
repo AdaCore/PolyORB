@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -169,6 +169,10 @@ package body PolyORB.Log is
       use Request_Lists;
       It : Request_Lists.Iterator;
    begin
+      --  Get default log level from configuration
+
+      Default_Log_Level := Get_Log_Level ("default");
+
       --  No more buffering after this point
 
       Buffer_Enable := False;

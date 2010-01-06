@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -56,11 +56,12 @@ package PolyORB.GIOP_P.Code_Sets is
    Char_Data_Fallback_Code_Set  : constant Code_Set_Id := UTF_8_Code_Set;
    Wchar_Data_Fallback_Code_Set : constant Code_Set_Id := UTF_16_Code_Set;
 
-   --  Ada95 Native Code_Set_Ids. See RM 3.5.2
+   --  Ada 95 Native Code_Set_Ids. See RM 3.5.2
 
-   Ada95_Native_Character_Code_Set : constant Code_Set_Id := Latin_1_Code_Set;
-   Ada95_Native_Wide_Character_Code_Set : constant Code_Set_Id
-     := UCS_2_Level_1_Code_Set;
+   Ada95_Native_Character_Code_Set      : constant Code_Set_Id :=
+                                            Latin_1_Code_Set;
+   Ada95_Native_Wide_Character_Code_Set : constant Code_Set_Id :=
+                                            UCS_2_Level_1_Code_Set;
 
    type Character_Set_Id is new PolyORB.Types.Unsigned_Short;
 
@@ -92,13 +93,13 @@ package PolyORB.GIOP_P.Code_Sets is
      Fallback : Code_Set_Id;
      TCS      :    out Code_Set_Id;
      Error    : in out PolyORB.Errors.Error_Container);
-   --  Proceed code set negotiation based on:
+   --  Select transmission code set to use based on:
    --   - CNCS - Client Native Code Set
    --   - CCCS - Client Conversion Code Sets
    --   - SNCS - Server Native Code Set
    --   - SCCS - Server Conversion Code Sets
    --  Fallback argument provide fallback code sets.
-   --  Return negotiated transmission code set (TCS) or throw
+   --  Returns negotiated transmission code set (TCS) or raises
    --  Codeset_Incompatible error if code sets are incompatible.
 
 private

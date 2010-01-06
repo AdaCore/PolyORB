@@ -6,12 +6,12 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
--- provisions that follow apply solely to the contents neither explicitely  --
--- nor implicitely specified by the CORBA Specification defined by the OMG. --
+-- provisions that follow apply solely to the contents neither explicitly   --
+-- nor implicitly specified by the CORBA Specification defined by the OMG.  --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -36,34 +36,39 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PolyORB.Any;
+-------------------------------------------------
+--  This file has been generated automatically
+--  by IDLAC version 2.3.0w.
+--
+--  Do NOT hand-modify this file, as your
+--  changes will be lost when you re-run the
+--  IDL to Ada compiler.
+-------------------------------------------------
+pragma Style_Checks ("NM32766");
 
 with CORBA;
 pragma Elaborate_All (CORBA);
+with CORBA.Object;
 
 package PortableServer.Current.Helper is
 
-   --  Current interface
+   function Unchecked_To_Local_Ref
+     (The_Ref : CORBA.Object.Ref'Class) return PortableServer.Current.Local_Ref;
 
-   TC_Current : CORBA.TypeCode.Object
-                  := CORBA.TypeCode.Internals.To_CORBA_Object
-                       (PolyORB.Any.TypeCode.TC_Object);
+   function To_Local_Ref
+     (The_Ref : CORBA.Object.Ref'Class) return PortableServer.Current.Local_Ref;
 
-   function To_Ref (The_Ref : CORBA.Object.Ref'Class) return Local_Ref;
-   function Unchecked_To_Ref
-     (The_Ref : CORBA.Object.Ref'Class) return Local_Ref;
+   TC_Current : CORBA.TypeCode.Object;
 
-   --  NoContext exception
+   TC_NoContext : CORBA.TypeCode.Object;
 
-   TC_NoContext : CORBA.TypeCode.Object
-                    := CORBA.TypeCode.Internals.To_CORBA_Object
-                         (PolyORB.Any.TypeCode.TC_Except);
+   function From_Any (Item : CORBA.Any) return PortableServer.Current.NoContext_Members;
 
-   function From_Any (Item : CORBA.Any) return NoContext_Members;
+   function To_Any
+     (Item : PortableServer.Current.NoContext_Members) return CORBA.Any;
 
-   function To_Any (Item : NoContext_Members) return CORBA.Any;
-
-   procedure Raise_NoContext (Members : NoContext_Members);
+   procedure Raise_NoContext
+     (Members : NoContext_Members);
    pragma No_Return (Raise_NoContext);
 
 end PortableServer.Current.Helper;

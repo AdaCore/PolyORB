@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -53,7 +53,6 @@ package body PolyORB.References is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
-   pragma Unreferenced (C); --  For conditional pragma Debug
 
    function Reference_Equivalence
      (Left, Right : Ref'Class;
@@ -87,7 +86,7 @@ package body PolyORB.References is
       Prefix_Info_Lists.Append (Prefixes,
                                 Prefix_Info'(Prefix => new String'(Prefix),
                                              Func   => Func));
-      pragma Debug (O ("register prefix: " & Prefix));
+      pragma Debug (C, O ("register prefix: " & Prefix));
    end Register_String_To_Object;
 
    ----------------------
@@ -120,7 +119,7 @@ package body PolyORB.References is
          end;
       end if;
 
-      pragma Debug (O ("New " & Image (R)));
+      pragma Debug (C, O ("New " & Image (R)));
    end Create_Reference;
 
    --------------
@@ -129,13 +128,13 @@ package body PolyORB.References is
 
    procedure Finalize (RI : in out Reference_Info) is
    begin
-      pragma Debug (O ("Finalize (Reference_Info): enter"));
+      pragma Debug (C, O ("Finalize (Reference_Info): enter"));
 
       Free (RI.Type_Id);
 
       for J in RI.Profiles'Range loop
          pragma Debug
-           (O ("Destroying profile of type "
+           (C, O ("Destroying profile of type "
                & Ada.Tags.External_Tag (RI.Profiles (J)'Tag)));
          Binding_Data.Destroy_Profile (RI.Profiles (J));
       end loop;
@@ -144,7 +143,7 @@ package body PolyORB.References is
       Binding_Info_Lists.Deallocate (RI.Binding_Info);
       Annotations.Destroy (RI.Notepad);
 
-      pragma Debug (O ("Finalize (Reference_Info): leave"));
+      pragma Debug (C, O ("Finalize (Reference_Info): leave"));
    end Finalize;
 
    ----------------------
@@ -161,21 +160,29 @@ package body PolyORB.References is
 
       RI   : constant Reference_Info_Access := Ref_Info_Of (R);
       Iter : Binding_Info_Lists.Iterator    := First (RI.Binding_Info);
+      BO   : Binding_Object_Access;
 
    begin
       while not Last (Iter) loop
-         if PolyORB.Binding_Object_QoS.Is_Compatible
-           (PolyORB.Binding_Objects.Binding_Object_Access
-            (Entity_Of (Value (Iter).all.Binding_Object_Ref)),
-            QoS)
-         then
-            BOC := Get_Component (Value (Iter).all.Binding_Object_Ref);
+         BO := Binding_Object_Access
+                 (Entity_Of (Value (Iter).Binding_Object_Ref));
+
+         --  If the binding object has become invalid, forget about it
+
+         if not Valid (BO) then
+            pragma Debug (C, O ("Removing invalid binding object"));
+            Remove (RI.Binding_Info, Iter);
+
+         --  If existing BO QoS is compatible with requested QoS, reuse it
+
+         elsif PolyORB.Binding_Object_QoS.Is_Compatible (BO, QoS) then
+            BOC := Get_Component (Value (Iter).Binding_Object_Ref);
             Pro := Value (Iter).all.Binding_Profile;
-
             return;
-         end if;
 
-         Next (Iter);
+         else
+            Next (Iter);
+         end if;
       end loop;
 
       BOC := null;
@@ -253,6 +260,18 @@ package body PolyORB.References is
       end if;
    end Is_Exported_Reference;
 
+   ----------------
+   -- Notepad_Of --
+   ----------------
+
+   function Notepad_Of
+     (R : Ref)
+     return Annotations.Notepad_Access
+   is
+   begin
+      return Ref_Info_Of (R).Notepad'Access;
+   end Notepad_Of;
+
    -----------------
    -- Profiles_Of --
    -----------------
@@ -274,6 +293,18 @@ package body PolyORB.References is
          end;
       end if;
    end Profiles_Of;
+
+   ----------
+   -- Read --
+   ----------
+
+   procedure Read
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out Ref)
+   is
+   begin
+      Read (The_Ref_Streamer, S, V);
+   end Read;
 
    ---------------------------
    -- Reference_Equivalence --
@@ -326,7 +357,7 @@ package body PolyORB.References is
          if E.all in Reference_Info'Class then
             return Reference_Info_Access (E);
          else
-            pragma Debug (O ("Ref_Info_Of: entity is a "
+            pragma Debug (C, O ("Ref_Info_Of: entity is a "
                              & Ada.Tags.External_Tag (E'Tag)));
             --  XXX does it make sense to have a non-child of
             --  Reference_Info stored into a PolyORB.ReferenceS.Ref ?
@@ -334,7 +365,7 @@ package body PolyORB.References is
             null;
          end if;
       else
-         pragma Debug (O ("Ref_Info_Of: nil ref."));
+         pragma Debug (C, O ("Ref_Info_Of: nil ref."));
          null;
       end if;
 
@@ -370,19 +401,6 @@ package body PolyORB.References is
       end if;
    end Share_Binding_Info;
 
-   ----------------
-   -- Type_Id_Of --
-   ----------------
-
-   function Type_Id_Of
-     (R : Ref)
-     return String is
-   begin
-      return Ref_Info_Of (R).Type_Id.all;
-      --  XXX Perhaps some cases of R not designating
-      --  a ref_info should be supported here?
-   end Type_Id_Of;
-
    ----------------------
    -- String_To_Object --
    ----------------------
@@ -408,15 +426,28 @@ package body PolyORB.References is
    end String_To_Object;
 
    ----------------
-   -- Notepad_Of --
+   -- Type_Id_Of --
    ----------------
 
-   function Notepad_Of
+   function Type_Id_Of
      (R : Ref)
-     return Annotations.Notepad_Access
+     return String is
+   begin
+      return Ref_Info_Of (R).Type_Id.all;
+      --  XXX Perhaps some cases of R not designating
+      --  a ref_info should be supported here?
+   end Type_Id_Of;
+
+   -----------
+   -- Write --
+   -----------
+
+   procedure Write
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : Ref)
    is
    begin
-      return Ref_Info_Of (R).Notepad'Access;
-   end Notepad_Of;
+      Write (The_Ref_Streamer, S, V);
+   end Write;
 
 end PolyORB.References;

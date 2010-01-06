@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -47,7 +47,6 @@ package body PolyORB.Binding_Objects is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
-   pragma Unreferenced (C); --  For conditional pragma Debug
 
    use PolyORB.Binding_Data;
 
@@ -60,20 +59,23 @@ package body PolyORB.Binding_Objects is
    procedure Finalize (X : in out Binding_Object) is
       use PolyORB.Annotations;
       use PolyORB.Components;
+      use PolyORB.Errors;
 
-      use BO_Lists;
-
-      Error : Errors.Error_Container;
-
+      Error : Error_Container;
    begin
-      pragma Debug (O ("Finalizing binding object."));
+      pragma Debug (C, O ("Finalizing binding object"));
 
       --  First remove the reference to this BO from its ORB so that is does
       --  not get reused while being finalized.
 
-      PolyORB.ORB.Unregister_Binding_Object (X.Referenced_In, X.Referenced_At);
+      ORB.Unregister_Binding_Object
+        (ORB.ORB_Access (X.ORB), X'Unchecked_Access);
 
       --  Notify protocol stack that it is about to be dismantled
+
+      Throw (Error,
+        Comm_Failure_E,
+        System_Exception_Members'(Minor => 0, Completed => Completed_Maybe));
 
       Emit_No_Reply (Component_Access (X.Transport_Endpoint),
                      Filters.Iface.Disconnect_Indication'(Error => Error));
@@ -81,7 +83,7 @@ package body PolyORB.Binding_Objects is
       --  Destroy the transport endpoint at the bottom of the protocol stack
       --  (and all other components connected up).
 
-      pragma Debug (O ("Destroying protocol stack"));
+      pragma Debug (C, O ("Destroying protocol stack"));
       Transport.Destroy (X.Transport_Endpoint);
 
       --  Finalize the data (profile and annotations)
@@ -92,7 +94,7 @@ package body PolyORB.Binding_Objects is
 
       Destroy (X.Notepad);
 
-      pragma Debug (O ("RIP."));
+      pragma Debug (C, O ("RIP"));
    end Finalize;
 
    -------------------
@@ -129,30 +131,49 @@ package body PolyORB.Binding_Objects is
       return BO.Profile;
    end Get_Profile;
 
-   ------------------------------------
-   -- Register_Reference_Information --
-   ------------------------------------
+   ----------
+   -- Link --
+   ----------
 
-   procedure Register_Reference_Information
-     (BO            : Binding_Object_Access;
-      Referenced_In : Components.Component_Access;
-      Referenced_At : BO_Lists.Iterator)
+   function Link
+     (X     : access Binding_Object'Class;
+      Which : Utils.Ilists.Link_Type) return access Binding_Object_Access
    is
    begin
-      pragma Debug (O ("BO : Registering reference Information."));
-      BO.Referenced_In := Referenced_In;
-      BO.Referenced_At := Referenced_At;
-   end Register_Reference_Information;
+      return X.Links (Which)'Unchecked_Access;
+   end Link;
+
+   ----------------
+   -- Referenced --
+   ----------------
+
+   function Referenced (BO : Binding_Object_Access) return Boolean is
+   begin
+      return BO.Referenced;
+   end Referenced;
+
+   --------------------
+   -- Set_Referenced --
+   --------------------
+
+   procedure Set_Referenced
+     (BO         : Binding_Object_Access;
+      Referenced : Boolean)
+   is
+   begin
+      BO.Referenced := Referenced;
+   end Set_Referenced;
 
    --------------------------
    -- Setup_Binding_Object --
    --------------------------
 
    procedure Setup_Binding_Object
-     (TE      :        Transport.Transport_Endpoint_Access;
-      FFC     :        Filters.Factory_Array;
-      BO_Ref  :    out Smart_Pointers.Ref;
-      Pro     :        Binding_Data.Profile_Access)
+     (ORB     : Components.Component_Access;
+      TE      : Transport.Transport_Endpoint_Access;
+      FFC     : Filters.Factory_Array;
+      BO_Ref  : out Smart_Pointers.Ref;
+      Pro     : Binding_Data.Profile_Access)
    is
       BO : Binding_Object_Access;
       Bottom : Filters.Filter_Access;
@@ -163,6 +184,7 @@ package body PolyORB.Binding_Objects is
 
       Set_Profile (BO, Pro);
 
+      BO.ORB := ORB;
       BO.Transport_Endpoint := TE;
       Filters.Create_Filter_Chain
         (FFC,
@@ -208,5 +230,19 @@ package body PolyORB.Binding_Objects is
    begin
       return BO.Notepad'Access;
    end Notepad_Of;
+
+   -----------
+   -- Valid --
+   -----------
+
+   function Valid (BO : Binding_Object_Access) return Boolean is
+      use Components;
+      use Filters.Iface;
+
+      Reply : constant Message'Class :=
+                Emit (Component_Access (BO.Top), Check_Validity'(null record));
+   begin
+      return Reply in Components.Null_Message;
+   end Valid;
 
 end PolyORB.Binding_Objects;

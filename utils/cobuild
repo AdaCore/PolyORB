@@ -20,6 +20,7 @@ usage () {
   echo ""
   echo "  Revision control options:"
   echo "    cvs   checkout PROJECT from CVS repository"
+  echo "    svn   checkout PROJECT from Subversion repository"
   echo "    p4    checkout PROJECT from Perforce repository"
   echo "    none  use source directory as is, do not attempt to checkout"
   echo ""

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -49,43 +49,44 @@ package body CORBA.Fixed_Point is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
-   pragma Unreferenced (C); --  For conditional pragma Debug
-
-   ---------------------
-   -- this is to help --
-   ---------------------
 
    package CDR_Fixed_F is
-      new PolyORB.Representations.CDR.Common.Fixed_Point (F);
+     new PolyORB.Representations.CDR.Common.Fixed_Point (F);
+
+   TC_Cache : TypeCode.Object;
+
+   function TC return TypeCode.Object;
+   --  Return typecode for this fixed point type
+
+   --------
+   -- TC --
+   --------
+
+   function TC return TypeCode.Object is
+   begin
+      if CORBA.TypeCode.Internals.Is_Nil (TC_Cache) then
+         TC_Cache := CORBA.TypeCode.Internals.To_CORBA_Object
+           (PolyORB.Any.TypeCode.Build_Complex_TC (Tk_Fixed,
+            (PolyORB.Any.To_Any (PolyORB.Types.Unsigned_Short (F'Digits)),
+             PolyORB.Any.To_Any (PolyORB.Types.Short (F'Scale)))));
+      end if;
+      return TC_Cache;
+   end TC;
 
    ------------
    -- To_Any --
    ------------
 
    function To_Any (Item : F) return CORBA.Any is
-      Tco : CORBA.TypeCode.Object;
-
+      Result : Any := CORBA.Internals.Get_Empty_Any_Aggregate (TC);
+      Octets : constant Ada.Streams.Stream_Element_Array :=
+                 CDR_Fixed_F.Fixed_To_Octets (Item);
    begin
-      CORBA.TypeCode.Internals.Set_Kind (Tco, PolyORB.Any.Tk_Fixed);
-      CORBA.TypeCode.Internals.Add_Parameter
-        (Tco, CORBA.To_Any (CORBA.Unsigned_Short (F'Digits)));
-      CORBA.TypeCode.Internals.Add_Parameter
-        (Tco, CORBA.To_Any (CORBA.Short (F'Scale)));
-
-      declare
-         Result : Any := CORBA.Internals.Get_Empty_Any_Aggregate (Tco);
-         Octets : constant Ada.Streams.Stream_Element_Array
-           := CDR_Fixed_F.Fixed_To_Octets (Item);
-
-      begin
-         for I in Octets'Range loop
-            CORBA.Internals.Add_Aggregate_Element
-              (Result,
-               CORBA.To_Any (CORBA.Octet (Octets (I))));
-         end loop;
-
-         return Result;
-      end;
+      for I in Octets'Range loop
+         CORBA.Internals.Add_Aggregate_Element
+           (Result, CORBA.To_Any (CORBA.Octet (Octets (I))));
+      end loop;
+      return Result;
    end To_Any;
 
    --------------
@@ -96,14 +97,15 @@ package body CORBA.Fixed_Point is
       use type PolyORB.Any.TCKind;
 
    begin
-      pragma Debug (O ("From_Any (Fixed) : enter"));
-      if TypeCode.Kind (Internals.Get_Unwound_Type (Item))
+      pragma Debug (C, O ("From_Any (Fixed) : enter"));
+      if PolyORB.Any.TypeCode.Kind (Internals.Get_Unwound_Type (Item))
         /= PolyORB.Any.Tk_Fixed
       then
          pragma Debug
-           (O ("From_Any (Fixed) : Bad_TypeCode, type is " &
-               CORBA.TCKind'Image
-               (TypeCode.Kind (Internals.Get_Unwound_Type (Item)))));
+           (C, O ("From_Any (Fixed) : Bad_TypeCode, type is " &
+               PolyORB.Any.TCKind'Image
+                (PolyORB.Any.TypeCode.Kind
+                 (Internals.Get_Unwound_Type (Item)))));
          raise Bad_TypeCode;
       end if;
 
@@ -114,23 +116,20 @@ package body CORBA.Fixed_Point is
            CORBA.Internals.Get_Aggregate_Count (Item);
          Octets : Stream_Element_Array (1 .. Stream_Element_Offset (Nb)) :=
            (others => 0);
-         Element : CORBA.Any;
       begin
-         for I in Octets'Range loop
-            pragma Debug (O ("From_Any (Fixed) : yet another octet"));
-            Element :=
-              CORBA.Internals.Get_Aggregate_Element
-              (Item,
-               CORBA.TC_Octet,
-               CORBA.Unsigned_Long (I - 1));
-            Octets (I) := Stream_Element
-              (CORBA.Octet'(CORBA.From_Any (Element)));
+         for J in Octets'Range loop
+            pragma Debug (C, O ("From_Any (Fixed) : yet another octet"));
+            Octets (J) :=
+              Stream_Element
+               (PolyORB.Types.Octet'(PolyORB.Any.Get_Aggregate_Element
+                (PolyORB.Any.Any (Item),
+                 PolyORB.Types.Unsigned_Long (J - 1))));
          end loop;
-         pragma Debug (O ("From_Any (Fixed) : return"));
+         pragma Debug (C, O ("From_Any (Fixed) : return"));
          return CDR_Fixed_F.Octets_To_Fixed (Octets);
 
       exception when CORBA.Marshal =>
-         pragma Debug (O ("From_Any (Fixed) : exception catched" &
+         pragma Debug (C, O ("From_Any (Fixed) : exception catched" &
                           "while returning"));
          raise CORBA.Bad_TypeCode;
       end;
@@ -189,10 +188,11 @@ package body CORBA.Fixed_Point is
    ---------------------------
 
    function Get_Aggregate_Element
-     (ACC   : access Fixed_Content;
-      TC    : PolyORB.Any.TypeCode.Object;
+     (ACC   : not null access Fixed_Content;
+      TC    : PolyORB.Any.TypeCode.Object_Ptr;
       Index : PolyORB.Types.Unsigned_Long;
-      Mech  : access PolyORB.Any.Mechanism) return PolyORB.Any.Content'Class
+      Mech  : not null access PolyORB.Any.Mechanism)
+      return PolyORB.Any.Content'Class
    is
       pragma Unreferenced (TC);
       use Ada.Streams;
@@ -220,7 +220,7 @@ package body CORBA.Fixed_Point is
 
    procedure Set_Aggregate_Element
      (ACC    : in out Fixed_Content;
-      TC     : PolyORB.Any.TypeCode.Object;
+      TC     : PolyORB.Any.TypeCode.Object_Ptr;
       Index  : PolyORB.Types.Unsigned_Long;
       From_C : in out PolyORB.Any.Any_Container'Class)
    is
