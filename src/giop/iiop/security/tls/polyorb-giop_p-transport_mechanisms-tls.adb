@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -118,10 +118,11 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.TLS is
 
    begin
       if Profile.all
-        not in PolyORB.Binding_Data.GIOP.IIOP.IIOP_Profile_Type then
+        not in PolyORB.Binding_Data.GIOP.IIOP.IIOP_Profile_Type
+      then
          Throw (Error, Comm_Failure_E,
                 System_Exception_Members'
-                (Minor => 0, Completed => Completed_Maybe));
+                  (Minor => 0, Completed => Completed_Maybe));
          return;
       end if;
 
@@ -158,6 +159,8 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.TLS is
 
          exception
             when Sockets.Socket_Error =>
+               --  This is dubious if not Last (Iter)???
+
                Throw (Error, Comm_Failure_E,
                       System_Exception_Members'
                       (Minor => 0, Completed => Completed_No));
