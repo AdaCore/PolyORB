@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -54,8 +54,7 @@ package body PolyORB.Asynch_Ev.Sockets is
    -- Create --
    ------------
 
-   procedure Create
-     (AEM : out Socket_Event_Monitor) is
+   procedure Create (AEM : out Socket_Event_Monitor) is
    begin
       Empty (AEM.Monitored_Set);
       Create_Selector (AEM.Selector);
@@ -65,8 +64,7 @@ package body PolyORB.Asynch_Ev.Sockets is
    -- Destroy --
    -------------
 
-   procedure Destroy
-     (AEM : in out Socket_Event_Monitor) is
+   procedure Destroy (AEM : in out Socket_Event_Monitor) is
    begin
       Empty (AEM.Monitored_Set);
       Close_Selector (AEM.Selector);
@@ -99,8 +97,9 @@ package body PolyORB.Asynch_Ev.Sockets is
 
    procedure Register_Source
      (AEM     : access Socket_Event_Monitor;
-      AES     :        Asynch_Ev_Source_Access;
-      Success :    out Boolean) is
+      AES     : Asynch_Ev_Source_Access;
+      Success : out Boolean)
+   is
    begin
       pragma Debug (C, O ("Register_Source: enter"));
 
@@ -159,18 +158,16 @@ package body PolyORB.Asynch_Ev.Sockets is
 
    function Check_Sources
      (AEM     : access Socket_Event_Monitor;
-      Timeout :        Duration)
-     return AES_Array
+      Timeout : Duration) return AES_Array
    is
       use Source_Lists;
 
       Result : AES_Array (1 .. Length (AEM.Sources));
       Last   : Integer := 0;
 
-      T : Duration := Timeout;
-
-      R_Set : Socket_Set_Type;
-      W_Set : Socket_Set_Type;
+      T      : Duration := Timeout;
+      R_Set  : Socket_Set_Type;
+      W_Set  : Socket_Set_Type;
       Status : Selector_Status;
 
    begin
@@ -181,6 +178,7 @@ package body PolyORB.Asynch_Ev.Sockets is
 
       if T = Constants.Forever then
          --  Convert special value of Timeout
+
          T := PolyORB.Sockets.Forever;
       end if;
 
@@ -205,13 +203,6 @@ package body PolyORB.Asynch_Ev.Sockets is
                else
                   O ("unexpected Socket_Error raised by Check_Selector: "
                      & Ada.Exceptions.Exception_Message (E), Error);
-
-                  --  Image function for socket sets is not present in all
-                  --  supported compilers, only in recent versions of GNAT Pro
-                  --  (added on 2008-07-29).
-
-                  --  pragma Debug
-                  --    (C, O ("Monitored set: " & Image (AEM.Monitored_Set)));
                   raise;
                end if;
          end;
@@ -264,8 +255,7 @@ package body PolyORB.Asynch_Ev.Sockets is
    -- Abort_Check_Sources --
    -------------------------
 
-   procedure Abort_Check_Sources
-     (AEM : Socket_Event_Monitor) is
+   procedure Abort_Check_Sources (AEM : Socket_Event_Monitor) is
    begin
       --  XXX check that selector is currently blocking!
       --  (and do it in a thread-safe manner, if applicable!)
@@ -277,8 +267,7 @@ package body PolyORB.Asynch_Ev.Sockets is
    -------------------------
 
    function Create_Event_Source
-     (Socket : PolyORB.Sockets.Socket_Type)
-     return Asynch_Ev_Source_Access
+     (Socket : PolyORB.Sockets.Socket_Type) return Asynch_Ev_Source_Access
    is
       Result : constant Asynch_Ev_Source_Access := new Socket_Event_Source;
    begin
@@ -290,11 +279,9 @@ package body PolyORB.Asynch_Ev.Sockets is
    -- Create_Socket_Event_Monitor --
    ---------------------------------
 
-   function Create_Socket_Event_Monitor
-     return Asynch_Ev_Monitor_Access;
+   function Create_Socket_Event_Monitor return Asynch_Ev_Monitor_Access;
 
-   function Create_Socket_Event_Monitor
-     return Asynch_Ev_Monitor_Access is
+   function Create_Socket_Event_Monitor return Asynch_Ev_Monitor_Access is
    begin
       return new Socket_Event_Monitor;
    end Create_Socket_Event_Monitor;
