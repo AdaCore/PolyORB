@@ -327,6 +327,7 @@ package body PolyORB.Transport.Connected.Sockets is
       R_Set, W_Set : Socket_Set_Type;
       Status : Selector_Status;
    begin
+      pragma Assert (TE.Socket /= No_Socket);
       Set (R_Set, TE.Socket);
       Check_Selector (Dummy_Selector, R_Set, W_Set, Status, 0.0);
 

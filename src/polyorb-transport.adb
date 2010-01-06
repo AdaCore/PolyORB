@@ -84,7 +84,13 @@ package body PolyORB.Transport is
       use Filters.Iface;
    begin
       if Msg in Filters.Iface.Check_Validity then
-         Check_Validity (Transport_Endpoint'Class (TE.all)'Access);
+         if not TE.Closed then
+            --  If TE is not closed yet, check that it is still valid, which
+            --  may cause it to close.
+
+            Check_Validity (Transport_Endpoint'Class (TE.all)'Access);
+         end if;
+
          if TE.Closed then
             declare
                use Errors;
