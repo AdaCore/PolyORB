@@ -1891,6 +1891,7 @@ src/soap/polyorb-soap_p-response.adb
 src/soap/polyorb-soap_p-response.ads
 src/soap/polyorb-soap_p-types.adb
 src/soap/polyorb-soap_p-types.ads
+src/soap/polyorb-soap_p.adb
 src/soap/polyorb-soap_p.ads
 src/soap/polyorb-utils-text_buffers.adb
 src/soap/polyorb-utils-text_buffers.ads
