@@ -41,6 +41,9 @@ See the features-27 file.
 Bug fixes
 ---------
 
+Source units imported from AWS for the SOAP protocol personality have been
+renamed to avoid clashes in applications mixing PolyORB and AWS. (J105-013)
+
 Support for partition attribute Reconnection was missing. (IB12-005)
 
 po_gnatdist does not create files anymore outside of the private dsa/
