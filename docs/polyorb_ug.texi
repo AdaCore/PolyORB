@@ -62,7 +62,7 @@
 @setfilename polyorb_ug.info
 @settitle PolyORB User's Guide
 
-@set COPYRIGHT Copyright @copyright{} 2003-2008, Free Software Foundation
+@set COPYRIGHT Copyright @copyright{} 2003-2010, Free Software Foundation
 @set AUTHORS1 Robert Duff, J@'er@^ome Hugues, Laurent Pautet,
 @set AUTHORS2 Thomas Quinot, Samuel Tardieu
 
@@ -4408,6 +4408,8 @@ the main procedure of the non-distributed application.
 
 @smallexample
 
+MAIN_PROCEDURE_IDENTIFIER ::=
+  ADA_UNIT
 MAIN_PROCEDURE_DECLARATION ::=
    @b{procedure} MAIN_PROCEDURE_IDENTIFIER @b{is in} PARTITION_IDENTIFIER;
 
@@ -4758,10 +4760,10 @@ function is used as a partition Host attribute.
 
 @smallexample
 
-SUBPROGRAM_DECLARATION ::=
-     @b{procedure} MAIN_PROCEDURE_IDENTIFIER @b{is} @b{in} PARTITION_NAME;
-   | @b{procedure} PROCEDURE_IDENTIFIER;
-   | @b{function} FUNCTION_IDENTIFIER
+PROCEDURE_DECLARATION ::=
+     @b{procedure} PROCEDURE_IDENTIFIER;
+FUNCTION_DECLARATION ::=
+     @b{function} FUNCTION_IDENTIFIER
         (PARAMETER_IDENTIFIER : [@b{in}] String)
          @b{return} String;
 
