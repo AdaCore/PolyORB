@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1995-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -1176,19 +1176,14 @@ package body XE_Parse is
       --  Token PROCEDURE has already been parsed.
 
       T_Identifier;
-
-      Procedure_Name := Token_Name;
       Procedure_Sloc := Get_Token_Location;
 
-      Take_Token ((Tok_Is, Tok_Semicolon, Tok_Dot));
+      P_Full_Ada_Identifier;
+      Procedure_Name := Token_Name;
 
       Search_Variable (Procedure_Name, Ada_Unit_Node);
 
-      if Token = Tok_Dot then
-         Write_Error_Message
-           (Get_Token_Location,
-            "main subprogram cannot be a child subprogram");
-      end if;
+      Take_Token ((Tok_Is, Tok_Semicolon));
 
       --  This procedure has to be declared when this statement is
       --  a declaration or when it has not been already declared.
