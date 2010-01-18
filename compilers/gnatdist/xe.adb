@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1995-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -53,8 +53,8 @@ package body XE is
    type Node_Type is
       record
          Kind    : Node_Kind;
-         Loc_X   : Int;
-         Loc_Y   : Int;
+         Loc_X   : Int := 0;
+         Loc_Y   : Int := 0;
          Name    : Name_Id;
          Node_1  : Node_Id;
          Node_2  : Node_Id;
