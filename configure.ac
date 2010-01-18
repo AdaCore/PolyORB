@@ -91,7 +91,13 @@ case "$host_os" in
   cygwin* | mingw*)
     HOST_EXE_SUFFIX=.exe
     WINDOWS_ON_HOST=True
+
+    # Make sure every call to ln(1) fails, and falls back to cp(1), because
+    # the compiler does not know how to handle Cygwin symbolic links.
+
+    SYMLINK_ALIAS="alias ln=/bin/false"
     ;;
+
   *)
     HOST_EXE_SUFFIX=
     WINDOWS_ON_HOST=False
@@ -879,4 +885,5 @@ done
 [
 RM="${RM}"
 LN_S="${LN_S}"
+${SYMLINK_ALIAS}
 ])
