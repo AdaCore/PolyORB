@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,27 +31,32 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Directories;
+
 with Namet;     use Namet;
 with Values;    use Values;
 
 with Flags;     use Flags;
 
-with Frontend.Nodes;  use Frontend.Nodes;
+with Frontend.Nodes; use Frontend.Nodes;
 with Frontend.Nutils;
 
-with Backend.BE_CORBA_Ada.IDL_To_Ada;  use Backend.BE_CORBA_Ada.IDL_To_Ada;
-with Backend.BE_CORBA_Ada.Nodes;       use Backend.BE_CORBA_Ada.Nodes;
-with Backend.BE_CORBA_Ada.Nutils;      use Backend.BE_CORBA_Ada.Nutils;
-with Backend.BE_CORBA_Ada.Runtime;     use Backend.BE_CORBA_Ada.Runtime;
-with Backend.BE_CORBA_Ada.Common;      use Backend.BE_CORBA_Ada.Common;
+with Backend.BE_CORBA_Ada.IDL_To_Ada; use Backend.BE_CORBA_Ada.IDL_To_Ada;
+with Backend.BE_CORBA_Ada.Nodes;      use Backend.BE_CORBA_Ada.Nodes;
+with Backend.BE_CORBA_Ada.Nutils;     use Backend.BE_CORBA_Ada.Nutils;
+with Backend.BE_CORBA_Ada.Runtime;    use Backend.BE_CORBA_Ada.Runtime;
+with Backend.BE_CORBA_Ada.Common;     use Backend.BE_CORBA_Ada.Common;
 
-with GNAT.Perfect_Hash_Generators; use GNAT.Perfect_Hash_Generators;
+with GNAT.Perfect_Hash_Generators;
 
 package body Backend.BE_CORBA_Ada.Skels is
 
    package FEN renames Frontend.Nodes;
    package BEN renames Backend.BE_CORBA_Ada.Nodes;
    package FEU renames Frontend.Nutils;
+   package PHG renames GNAT.Perfect_Hash_Generators;
+
+   use type PHG.Optimization;
 
    ------------------
    -- Package_Spec --
@@ -201,7 +206,7 @@ package body Backend.BE_CORBA_Ada.Skels is
       N_Subprograms           : Unsigned_Long_Long;
       Register_Procedure_List : List_Id;
       Invoke_Subp_Bodies      : List_Id;
-      Optim                   : Optimization;
+      Optim                   : PHG.Optimization;
 
       function Hash_Package_Name (E : Node_Id) return Name_Id;
       --  This function generates the name of the package that will
@@ -2046,9 +2051,9 @@ package body Backend.BE_CORBA_Ada.Skels is
          --  or CPU Time
 
          if Optimize_CPU and then not Optimize_Memory then
-            Optim := CPU_Time;
+            Optim := PHG.CPU_Time;
          elsif Optimize_Memory and then not Optimize_CPU then
-            Optim := Memory_Space;
+            Optim := PHG.Memory_Space;
          else
             declare Msg : constant String := "Cannot optimize CPU time"
               & " and memory space at the same time";
@@ -2141,17 +2146,17 @@ package body Backend.BE_CORBA_Ada.Skels is
          V := 2 * Natural (N_Subprograms) + 1;
          loop
             K_2_V := Float (V) / Float (N_Subprograms);
-            Initialize
+            PHG.Initialize
               (Seed   => Seed,
                K_To_V => K_2_V,
                Optim  => Optim);
 
             begin
-               Compute;
+               PHG.Compute;
                exit;
             exception
                when others =>
-                  if Optim = CPU_Time then
+                  if Optim = PHG.CPU_Time then
                      raise;
                   end if;
 
@@ -2165,15 +2170,26 @@ package body Backend.BE_CORBA_Ada.Skels is
          --  user specified an output directory, ensure the package is
          --  output there.
 
-         if Output_Directory /= null then
-            Produce (Output_Directory.all & Name_Buffer (1 .. Name_Len));
+         if Output_Directory = null then
+            PHG.Produce (Name_Buffer (1 .. Name_Len));
          else
-            Produce (Name_Buffer (1 .. Name_Len));
+            declare
+               use Ada.Directories;
+               Save_Current_Directory : constant String := Current_Directory;
+            begin
+               Set_Directory (Output_Directory.all);
+               PHG.Produce (Name_Buffer (1 .. Name_Len));
+               Set_Directory (Save_Current_Directory);
+            exception
+               when others =>
+                  Set_Directory (Save_Current_Directory);
+                  raise;
+            end;
          end if;
 
          --  Finalize the generator
 
-         Finalize;
+         PHG.Finalize;
       end Achieve_Hash_Function_Optimization;
 
       ------------------------------------
@@ -2194,7 +2210,7 @@ package body Backend.BE_CORBA_Ada.Skels is
          --  generator.
 
          Get_Name_String (Subp_Name);
-         Insert (Name_Buffer (1 .. Name_Len));
+         PHG.Insert (Name_Buffer (1 .. Name_Len));
 
          --  Generate the call to Register_Procedure, which put an
          --  access to the Invoke_XXXX in the right place into the
