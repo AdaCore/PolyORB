@@ -2166,19 +2166,21 @@ package body Backend.BE_CORBA_Ada.Skels is
 
          Get_Name_String (Hash_Package_Name (E));
 
-         --  Produce the package containing the Hash function; if the
-         --  user specified an output directory, ensure the package is
-         --  output there.
+         --  Produce the package containing the Hash function; if the user
+         --  specified an output directory, ensure the package is output there.
 
          if Output_Directory = null then
-            PHG.Produce (Name_Buffer (1 .. Name_Len));
+            PHG.Produce (Pkg_Name => Name_Buffer (1 .. Name_Len));
          else
+            --  Change directory before calling Produce (which always generates
+            --  sources in the current directory).
+
             declare
                use Ada.Directories;
                Save_Current_Directory : constant String := Current_Directory;
             begin
                Set_Directory (Output_Directory.all);
-               PHG.Produce (Name_Buffer (1 .. Name_Len));
+               PHG.Produce (Pkg_Name => Name_Buffer (1 .. Name_Len));
                Set_Directory (Save_Current_Directory);
             exception
                when others =>
