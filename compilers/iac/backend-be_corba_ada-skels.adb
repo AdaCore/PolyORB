@@ -422,8 +422,7 @@ package body Backend.BE_CORBA_Ada.Skels is
             --  Declare a local variable having the same type as the
             --  parameter.
 
-            --  Get the Ada type generated from the parameter type
-            --  spec.
+            --  Get the Ada type generated from the parameter type spec
 
             Type_Node := Get_Type_Definition_Node (Type_Spec (Param));
 
@@ -2033,9 +2032,18 @@ package body Backend.BE_CORBA_Ada.Skels is
          pragma Assert (FEN.Kind (E) = K_Interface_Declaration);
       begin
          Get_Name_String
-           (FEU.Fully_Qualified_Name
-            (FEN.Identifier (E),
-             Separator => "_"));
+           (Fully_Qualified_Name (Map_Fully_Qualified_Identifier (E)));
+
+         --  Note: the generated code assumes no user entities hide any
+         --  standard entities, so we can't generate Hash as a child unit
+         --  of the mapped stubs package.
+
+         for J in 1 .. Name_Len loop
+            if Name_Buffer (J) = '.' then
+               Name_Buffer (J) := '_';
+            end if;
+         end loop;
+
          Add_Str_To_Name_Buffer ("_Hash");
 
          return Name_Find;
@@ -2188,10 +2196,6 @@ package body Backend.BE_CORBA_Ada.Skels is
                   raise;
             end;
          end if;
-
-         --  Finalize the generator
-
-         PHG.Finalize;
       end Achieve_Hash_Function_Optimization;
 
       ------------------------------------
@@ -2385,6 +2389,29 @@ package body Backend.BE_CORBA_Ada.Skels is
          Is_A_Invk_Part : Node_Id;
          Implicit_CORBA : List_Id;
          Parent_Int     : Node_Id;
+
+         function In_Imported (Ent : Node_Id) return Boolean;
+         --  True if Ent, or any of its parent scopes, is imported
+
+         -----------------
+         -- In_Imported --
+         -----------------
+
+         function In_Imported (Ent : Node_Id) return Boolean is
+         begin
+            if No (Ent) then
+               return False;
+
+            elsif Imported (Ent) then
+               return True;
+
+            else
+               return Imported (Scope_Entity (Identifier (Ent)));
+            end if;
+         end In_Imported;
+
+      --  Start of processing for Visit_Interface_Declaration
+
       begin
          --  No Skel package is generated for an abstract or a local
          --  interface.
@@ -2433,6 +2460,13 @@ package body Backend.BE_CORBA_Ada.Skels is
             Visit_Operation_Subp => Visit_Operation_Declaration'Access,
             Skel                 => True);
 
+         --  Start with an empty method list for hash table computation
+         --  (Finalize cleans out any previously inserted words).
+
+         if Use_Minimal_Hash_Function then
+            PHG.Finalize;
+         end if;
+
          --  We make a difference between the Is_A Method and the rest of
          --  implicit CORBA methods for two reasons:
          --  * Is_A is not implicit since it is declared in the stub.
@@ -2450,12 +2484,11 @@ package body Backend.BE_CORBA_Ada.Skels is
 
          Implicit_CORBA := Implicit_CORBA_Methods;
 
-         --  At this point, all operations and attributes are
-         --  visited. We achieve the perfect hash function generation
-         --  and the building of the conditional structure which
-         --  handles the request.
+         --  At this point, all operations and attributes are visited. We
+         --  achieve the perfect hash function generation and the building of
+         --  the conditional structure which handles the request.
 
-         if Use_Minimal_Hash_Function then
+         if Use_Minimal_Hash_Function and then not In_Imported (E) then
             Achieve_Hash_Function_Optimization (E);
          end if;
 
