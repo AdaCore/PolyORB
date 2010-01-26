@@ -41,6 +41,10 @@ See the features-27 file.
 Bug fixes
 ---------
 
+Incorrect casing was used in IAC for the generated stubs and skeletons
+for attribute access subprograms (_get_ and _set_). This could lead to
+interoperability issues with conformant 3rd party ORBs. (J126-028)
+
 Source units imported from AWS for the SOAP protocol personality have been
 renamed to avoid clashes in applications mixing PolyORB and AWS. (J105-013)
 

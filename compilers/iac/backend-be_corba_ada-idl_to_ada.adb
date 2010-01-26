@@ -3400,7 +3400,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
    function Map_Operation_Name_Literal (O : Node_Id) return Name_Id is
    begin
       --  Literals for attribute accessors must be prefixed by '_'
-      --  (_Get_... and _Set_...). Attribute accessors are known by
+      --  (_get_... and _set_...). Attribute accessors are known by
       --  their null location (they are created at expansion time, so
       --  they do not have a location in the IDL file).
 
