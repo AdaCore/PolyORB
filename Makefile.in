@@ -596,11 +596,9 @@ ${PROJECT_FILES}: %.gpr: \
 
 # We treat the examples and testsuite directories the same.
 # Each subdirectory that has test (or example) programs should contain
-# Makefile.local and local.gpr, and may contain one or more *.idl files. We use
-# 'find' to find all of the *.idl and Makefile.local files.
+# local.gpr, and may contain one or more *.idl files. We use 'find' to find
+# all of the *.idl.
 #
-# Makefile.local should contain:
-# ${eval ${define_test}}
 # In addition, if there are any idl files, we need to define the flags to use
 # with idlac, and make the test target depend on building the idl, like this:
 # ${current_dir}<...>.idl-stamp: idlac_flags := <...>
@@ -636,22 +634,9 @@ test_idls := ${patsubst ${top_srcdir}/%,%,${test_idls}}
 test_idl_stamps := ${patsubst %.idl,%.idl-stamp,${test_idls}}
 self_idl_stamps += ${test_idl_stamps}
 
-# Macro to invoke at the top of each Makefile.local.
-# current_dir will have been defined automatically (see configure.ac).
+# Include all the Makefile.local files.
 
-define define_test
-test_target := ${current_dir}build-test
-test_targets += ${test_target}
-endef
-
-# Include all the Makefile.local files. Each one invokes define_test, which adds
-# the test name to test_targets, so test_targets ends up being a list of all
-# tests.
 @LOCAL_MAKEFILES@
-
-# Clean up current_dir and test_target
-current_dir :=
-test_target :=
 
 test_targets := ${sort ${test_targets}}
 
