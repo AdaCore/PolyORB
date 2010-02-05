@@ -250,6 +250,11 @@ clean-local: maintainer-clean
 		idl.sed ada.sed cfg.sed *.ads *.adb *.idl
 	-@${RM} -fr polyorb_ug.html polyorb_dg.html polyorb_ug_toc.html
 
+# Note: the target below can be invoked locally from the doc build dir,
+# in which case it will install the locally built documentation, or from
+# the top-level Makefile with docdir pointing to the doc source directory,
+# to install pre-built documentation.
+
 install-data-local:
 	$(INSTALL) -d $(prefix)/share/doc/polyorb
 	$(INSTALL) -d $(prefix)/share/doc/polyorb/info
@@ -261,12 +266,14 @@ install-data-local:
 
 	for fmt in info ps pdf txt; \
 	do \
-		$(INSTALL_DATA) polyorb_ug.$$fmt $(prefix)/share/doc/polyorb/$$fmt/; \
+		$(INSTALL_DATA) $(doc_build_dir)polyorb_ug.$$fmt $(docdir)/$$fmt/; \
 	done
 	for f in polyorb_ug.html/*.html; \
 	do \
-		$(INSTALL_DATA) $$f $(prefix)/share/doc/polyorb/html/polyorb_ug; \
+		$(INSTALL_DATA) $(doc_build_dir)$$f $(docdir)/html/polyorb_ug; \
 	done
+	$(INSTALL) -d $(datadir)/gps/plug-ins/
+	$(INSTALL_DATA) $(srcdir)/polyorb_gps.xml $(datadir)/gps/plug-ins/
 
 MANIFEST: polyorb_ug.info polyorb_ug.html polyorb_ug.pdf polyorb_ug.ps polyorb_ug.txt \
 	polyorb_dg.info polyorb_dg.html polyorb_dg.pdf polyorb_dg.txt polyorb_dg.ps

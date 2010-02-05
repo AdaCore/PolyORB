@@ -855,10 +855,14 @@ install: all
 	  -a ! -name 'polyorb-dsa_p-storages-config.ali' \
 	  -a ! -name 'polyorb-partition_elaboration.ali') | \
 	${XARGS_I} ${INSTALL} -m 444 {} ${prefix}/lib/polyorb
-	# Install documentation only if it has been built:
+	# Install documentation only if it has been built locally, or
+	# pre-built and packaged with sources.
 	if [ -r docs/polyorb_ug.html ]; \
 	then \
 	  (cd docs && ${MAKE} install-data-local prefix="${prefix}"); \
+	elif [ -r $(srcdir)/docs/polyorb_ug.html ]; \
+	then \
+	  (cd docs && ${MAKE} install-data-local prefix="${prefix}" doc_build_dir="$(srcdir)/docs/"); \
 	fi
 
 # polyorb-dsa_p-partitions.ali is a special case above.
