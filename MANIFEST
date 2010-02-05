@@ -459,6 +459,7 @@ docs/po_names.1
 docs/polyorb-config.1
 docs/polyorb.7
 docs/polyorb_dg.texi
+docs/polyorb_gps.xml
 docs/polyorb_ug.bib
 docs/polyorb_ug.texi
 docs/polyorb_ug_ref.tex
