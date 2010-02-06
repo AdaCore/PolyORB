@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -235,9 +235,9 @@ package body PolyORB.Services.Naming.Tools is
                end if;
                Append
                  (Result, NameComponent'
-                  (Id   => To_PolyORB_String
+                  (id   => To_PolyORB_String
                    (Unescaped (First .. Last_Unescaped_Period - 1)),
-                   Kind => To_PolyORB_String
+                   kind => To_PolyORB_String
                    (Unescaped (Last_Unescaped_Period + 1 .. Last))));
                Last_Unescaped_Period := Last;
                First := Last + 1;
