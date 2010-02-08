@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -1431,6 +1431,9 @@ package body Backend.BE_CORBA_Ada.Generator is
    procedure Generate_Package_Body (N : Node_Id) is
       P  : Node_Id;
       Fd : File_Descriptor;
+      Dcl  : constant Node_Id := Package_Declaration (N);
+      IDLU : constant Node_Id := IDL_Unit (Dcl);
+      Impl : constant Boolean := Dcl = Implementation_Package (IDLU);
    begin
       --  If the user wants to generates only the spec, or if the
       --  package body is empty, we don't generate it.
@@ -1442,7 +1445,7 @@ package body Backend.BE_CORBA_Ada.Generator is
       --  body is empty.
 
       if Disable_Pkg_Body_Gen
-        or else Is_Empty (Statements (N))
+        or else (Is_Empty (Statements (N)) and then not Impl)
         or else (Length (Statements (N)) = 1
                  and then Kind (First_Node (Statements (N))) =
                  K_Package_Body
