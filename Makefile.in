@@ -860,9 +860,9 @@ install: all
 	if [ -r docs/polyorb_ug.html ]; \
 	then \
 	  (cd docs && ${MAKE} install-data-local prefix="${prefix}"); \
-	elif [ -r $(srcdir)/docs/polyorb_ug.html ]; \
+	elif [ -r $(top_srcdir)/docs/polyorb_ug.html ]; \
 	then \
-	  (cd docs && ${MAKE} install-data-local prefix="${prefix}" doc_build_dir="$(srcdir)/docs/"); \
+	  (cd docs && ${MAKE} install-data-local prefix="${prefix}" doc_build_dir="$(top_srcdir)/docs/"); \
 	fi
 
 # polyorb-dsa_p-partitions.ali is a special case above.
