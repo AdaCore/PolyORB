@@ -870,8 +870,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
 
             Set_Str_To_Name_Buffer ("Impl");
             N := Make_Selected_Component
-              (I,
-               Make_Defining_Identifier (Name_Find));
+                   (I, Make_Defining_Identifier (Name_Find));
             D := Make_Package_Declaration (N);
             Set_IDL_Unit (D, P);
             Set_Parent (D, M);
