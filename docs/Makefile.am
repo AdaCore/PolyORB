@@ -252,25 +252,25 @@ clean-local: maintainer-clean
 
 # Note: the target below can be invoked locally from the doc build dir,
 # in which case it will install the locally built documentation, or from
-# the top-level Makefile with docdir pointing to the doc source directory,
-# to install pre-built documentation.
+# the top-level Makefile with doc_build_dir pointing to the doc source
+# directory, to install pre-built documentation.
 
 install-data-local:
-	$(INSTALL) -d $(prefix)/share/doc/polyorb
-	$(INSTALL) -d $(prefix)/share/doc/polyorb/info
-	$(INSTALL) -d $(prefix)/share/doc/polyorb/ps
-	$(INSTALL) -d $(prefix)/share/doc/polyorb/pdf
-	$(INSTALL) -d $(prefix)/share/doc/polyorb/txt
-	$(INSTALL) -d $(prefix)/share/doc/polyorb/html
-	$(INSTALL) -d $(prefix)/share/doc/polyorb/html/polyorb_ug
+	$(INSTALL) -d $(datadir)/doc/polyorb
+	$(INSTALL) -d $(datadir)/doc/polyorb/info
+	$(INSTALL) -d $(datadir)/doc/polyorb/ps
+	$(INSTALL) -d $(datadir)/doc/polyorb/pdf
+	$(INSTALL) -d $(datadir)/doc/polyorb/txt
+	$(INSTALL) -d $(datadir)/doc/polyorb/html
+	$(INSTALL) -d $(datadir)/doc/polyorb/html/polyorb_ug
 
 	for fmt in info ps pdf txt; \
 	do \
-		$(INSTALL_DATA) $(doc_build_dir)polyorb_ug.$$fmt $(docdir)/$$fmt/; \
+		$(INSTALL_DATA) $(doc_build_dir)polyorb_ug.$$fmt $(datadir)/doc/$$fmt/; \
 	done
 	for f in polyorb_ug.html/*.html; \
 	do \
-		$(INSTALL_DATA) $(doc_build_dir)$$f $(docdir)/html/polyorb_ug; \
+		$(INSTALL_DATA) $(doc_build_dir)$$f $(datadir)/doc/html/polyorb_ug; \
 	done
 	$(INSTALL) -d $(datadir)/gps/plug-ins/
 	$(INSTALL_DATA) $(srcdir)/polyorb_gps.xml $(datadir)/gps/plug-ins/
