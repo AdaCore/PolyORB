@@ -266,11 +266,11 @@ install-data-local:
 
 	for fmt in info ps pdf txt; \
 	do \
-		$(INSTALL_DATA) $(doc_build_dir)polyorb_ug.$$fmt $(datadir)/doc/$$fmt/; \
+		$(INSTALL_DATA) $(doc_build_dir)polyorb_ug.$$fmt $(datadir)/doc/polyorb/$$fmt/; \
 	done
 	for f in polyorb_ug.html/*.html; \
 	do \
-		$(INSTALL_DATA) $(doc_build_dir)$$f $(datadir)/doc/html/polyorb_ug; \
+		$(INSTALL_DATA) $(doc_build_dir)$$f $(datadir)/doc/polyorb/html/polyorb_ug; \
 	done
 	$(INSTALL) -d $(datadir)/gps/plug-ins/
 	$(INSTALL_DATA) $(srcdir)/polyorb_gps.xml $(datadir)/gps/plug-ins/
