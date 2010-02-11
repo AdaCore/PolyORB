@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -205,6 +205,16 @@ package body Backend.BE_CORBA_Ada.Stubs is
                      Expression := Make_Literal (FEU.Expr_Value (E));
                   end if;
                end;
+
+            when K_Enumerator =>
+
+               --  If it's an enumeration literal, we need to use an expanded
+               --  name.
+
+               Expression := Make_Literal_With_Parent
+                 (FEU.Expr_Value (E),
+                  Parent => Get_Parent_Unit_Name (Constant_Type));
+
             when others =>
                Expression := Make_Literal (FEU.Expr_Value (E));
          end case;

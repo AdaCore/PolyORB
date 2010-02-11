@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -1606,9 +1606,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
    ------------------------------
 
    function Make_Literal_With_Parent
-     (Value  : Value_Id;
-      Parent : Node_Id  := No_Node)
-     return Node_Id
+     (Value  : Value_Id; Parent : Node_Id) return Node_Id
    is
       N : Node_Id := New_Node (K_Literal);
 

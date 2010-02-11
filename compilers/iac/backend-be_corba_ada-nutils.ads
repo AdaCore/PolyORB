@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2005-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -821,13 +821,11 @@ package Backend.BE_CORBA_Ada.Nutils is
    function Make_Literal (Value : Value_Id) return Node_Id;
 
    function Make_Literal_With_Parent
-     (Value  : Value_Id;
-      Parent : Node_Id := No_Node) return Node_Id;
+     (Value  : Value_Id; Parent : Node_Id) return Node_Id;
    --  Same as Make_Literal, except that if parent is present and Value is not
    --  No_Value, creates a selected component whose prefix is the parent and
-   --  whose selector name is the literal.
-   --  A selected component is never a literal, is this an expanded name
-   --  denoting an enumeration literal???
+   --  whose selector name is the literal. This is needed for enumeration
+   --  literals; we need to refer to Package_Name.Enum_Lit.
 
    function Make_Null_Statement return Node_Id;
 
