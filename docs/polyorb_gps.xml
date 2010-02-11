@@ -7,7 +7,7 @@
   </submenu>
 
   <documentation_file>
-     <name>polyorb_ug.html</name>
+     <name>index.html</name>
      <descr>PolyORB User's Guide</descr>
      <category>GNAT</category>
      <menu>/Help/PolyORB/PolyORB User's Guide</menu>
