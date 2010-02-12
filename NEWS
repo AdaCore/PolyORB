@@ -41,6 +41,10 @@ See the features-27 file.
 Bug fixes
 ---------
 
+When referring to an enumeration literal in another package, IAC was generating
+just the literal, whereas an expanded name like Package_Name.Literal is
+needed. (J210-035)
+
 Incorrect casing was used in IAC for the generated stubs and skeletons
 for attribute access subprograms (_get_ and _set_). This could lead to
 interoperability issues with conformant 3rd party ORBs. (J126-028)
