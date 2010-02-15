@@ -175,14 +175,10 @@ polyorb_ug_ref.aux: polyorb_ug_ref.tex polyorb_ug.bib
 
 # The PolyORB User's Guide texi file does not provide Up links in @node
 # commands, but we want to force generation of all documentation anyway.
-# Note: in older versions of GPS, there is a bug whereby the wrong file
-# may be opened if the top file of some document does not have a unique name,
-# so we install a copy of index.html as polyorb_ug.html.
 
 %.html: ${srcdir}/%.texi ${polyorb_ug_TEXINFOS} $(FIG_PNGFILES)
 	-${MAKEINFO} -o $@ --force --html --number-sections $<
 	cp *.png $@
-	cd $@ && cp -p index.html polyorb_ug.html
 
 %.info: ${srcdir}/%.texi ${polyorb_ug_TEXINFOS}
 	-${MAKEINFO} -o $@ --force --no-split --number-sections $<
