@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -74,7 +74,7 @@ package body PolyORB.Protocols.SOAP_Pr is
 
    procedure Initialize;
 
-   procedure Process_Reply (S   : access SOAP_Session);
+   procedure Process_Reply (S : access SOAP_Session);
    --  ??? comment needed
 
    -------------------
@@ -294,8 +294,7 @@ package body PolyORB.Protocols.SOAP_Pr is
 
    function Handle_Message
      (Sess : access SOAP_Session;
-      S : Components.Message'Class)
-     return Components.Message'Class
+      S    : Components.Message'Class) return Components.Message'Class
    is
       use PolyORB.Protocols;
 
@@ -355,9 +354,9 @@ package body PolyORB.Protocols.SOAP_Pr is
       R   : Requests.Request_Access;
       Pro : access Binding_Data.Profile_Type'Class)
    is
-      P : PolyORB.SOAP_P.Message.Payload.Object;
+      P    : PolyORB.SOAP_P.Message.Payload.Object;
       SPro : Binding_Data.SOAP.SOAP_Profile_Type'Class
-        renames Binding_Data.SOAP.SOAP_Profile_Type'Class (Pro.all);
+               renames Binding_Data.SOAP.SOAP_Profile_Type'Class (Pro.all);
    begin
       pragma Assert (S.Pending_Rq = null);
       S.Pending_Rq := R;
@@ -398,14 +397,14 @@ package body PolyORB.Protocols.SOAP_Pr is
    -- Process_Reply --
    -------------------
 
-   procedure Process_Reply (S   : access SOAP_Session)
+   procedure Process_Reply (S : access SOAP_Session)
    is
       use PolyORB.Any;
       use PolyORB.Any.NVList;
       use PolyORB.Any.NVList.Internals;
       use PolyORB.Any.NVList.Internals.NV_Lists;
 
-      R : constant Requests.Request_Access := S.Pending_Rq;
+      R           : constant Requests.Request_Access := S.Pending_Rq;
       Return_Args : PolyORB.Any.NVList.Ref;
       --  This is an empty NVList, since SOAP is a self-described
       --  protocol. Thus it can fill the returned arguments by itself

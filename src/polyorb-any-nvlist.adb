@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -50,7 +50,7 @@ package body PolyORB.Any.NVList is
    --------------
 
    procedure Add_Item
-     (Self       :    Ref;
+     (Self       : Ref;
       Item_Name  : Identifier;
       Item       : Any;
       Item_Flags : Flags) is
@@ -115,7 +115,7 @@ package body PolyORB.Any.NVList is
    is
       use NV_Lists;
 
-      Obj : constant Object_Ptr := Object_Ptr (Entity_Of (NVList));
+      Obj    : constant Object_Ptr := Object_Ptr (Entity_Of (NVList));
       Result : PolyORB.Types.String := To_PolyORB_String ("");
    begin
       if Obj /= null then
@@ -143,13 +143,15 @@ package body PolyORB.Any.NVList is
 
    package body Internals is
 
-      function List_Of
-        (NVList : Ref)
-        return NV_List_Access
+      -------------
+      -- List_Of --
+      -------------
+
+      function List_Of (NVList : Ref) return NV_List_Access
       is
          use type PolyORB.Smart_Pointers.Entity_Ptr;
-         Entity : constant PolyORB.Smart_Pointers.Entity_Ptr
-            := Entity_Of (NVList);
+         Entity : constant PolyORB.Smart_Pointers.Entity_Ptr :=
+                    Entity_Of (NVList);
       begin
          if Entity /= null then
             return Object_Ptr (Entity_Of (NVList)).List'Access;

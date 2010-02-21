@@ -77,7 +77,7 @@ package body PolyORB.Transport.Connected.Sockets is
      (TAP :     Socket_Access_Point;
       TE  : out Transport_Endpoint_Access)
    is
-      New_Socket : Socket_Type;
+      New_Socket  : Socket_Type;
       New_Address : Sock_Addr_Type;
    begin
       TE := new Socket_Endpoint;
@@ -212,6 +212,10 @@ package body PolyORB.Transport.Connected.Sockets is
 
       procedure Receive_Socket (V : access Iovec);
       --  Lowlevel socket receive
+
+      --------------------
+      -- Receive_Socket --
+      --------------------
 
       procedure Receive_Socket (V : access Iovec) is
          Count : Ada.Streams.Stream_Element_Count;

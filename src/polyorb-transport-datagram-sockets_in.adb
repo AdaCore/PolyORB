@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -155,6 +155,10 @@ package body PolyORB.Transport.Datagram.Sockets_In is
       procedure Receive_Socket (V : access Iovec);
       --  Lowlevel socket receive
 
+      --------------------
+      -- Receive_Socket --
+      --------------------
+
       procedure Receive_Socket (V : access Iovec) is
          Count : Ada.Streams.Stream_Element_Count;
          Vecs  : Vector_Type (1 .. 1);
@@ -236,8 +240,8 @@ package body PolyORB.Transport.Datagram.Sockets_In is
      (TAP : access Socket_In_Access_Point)
      return Datagram_Transport_Endpoint_Access
    is
-      TE : constant Datagram_Transport_Endpoint_Access
-        := new Socket_In_Endpoint;
+      TE : constant Datagram_Transport_Endpoint_Access :=
+             new Socket_In_Endpoint;
 
    begin
       pragma Debug (C, O ("Create Endpoint for UDP socket"));

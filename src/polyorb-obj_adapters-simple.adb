@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -392,10 +392,8 @@ package body PolyORB.Obj_Adapters.Simple is
       Servant :    out Servants.Servant_Access;
       Error   : in out PolyORB.Errors.Error_Container)
    is
-      Index : constant Integer
-        := Oid_To_Index (Simple_OA_Oid (Id.all));
-
-      OME : Object_Map_Entry;
+      Index : constant Integer := Oid_To_Index (Simple_OA_Oid (Id.all));
+      OME   : Object_Map_Entry;
 
    begin
       Find_Entry (OA.all, Index, OME, Error);
