@@ -411,7 +411,7 @@ dnl operations
 AC_DEFUN([AM_HAS_INTRINSIC_SYNC_COUNTERS],
 [AC_REQUIRE([AM_CROSS_PROG_GNATMAKE])
 AC_MSG_CHECKING([whether platform supports atomic increment/decrement])
-AM_TRY_ADA($GNATMAKE_FOR_TARGET,[check.adb],
+AM_TRY_ADA([$GNATMAKE_FOR_TARGET $ADAFLAGS_FOR_TARGET],[check.adb],
 [
 with Interfaces; use Interfaces;
 procedure Check is
