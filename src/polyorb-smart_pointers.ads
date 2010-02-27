@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -80,8 +80,8 @@ package PolyORB.Smart_Pointers is
    --  The base type of all references. This type is often derived but never
    --  extended. It contains one field, which designates the referenced object.
 
-   procedure Adjust     (The_Ref : in out Ref);
-   procedure Finalize   (The_Ref : in out Ref);
+   procedure Adjust   (The_Ref : in out Ref);
+   procedure Finalize (The_Ref : in out Ref);
 
    procedure Set
      (The_Ref    : in out Ref;
