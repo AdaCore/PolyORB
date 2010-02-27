@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -56,8 +56,18 @@ package body PolyORB.Smart_Pointers is
    --  Produce debugging trace for the indicated event on Obj, if applicable
    --  (must be called just before updating Obj's reference counter).
 
-   Entity_External_Tag : Entity_External_Tag_Hook := null;
-   Ref_External_Tag    : Ref_External_Tag_Hook    := null;
+   function Dummy_Entity_External_Tag (X : Unsafe_Entity'Class) return String;
+   --  Dummy version of function returning External_Tag (X'Tag) to prevent
+   --  craches at elaboration time.
+
+   function Dummy_Ref_External_Tag (X : Ref'Class) return String;
+   --  Dummy version of function returning External_Tag (Entity_Of (X)'Tag) to
+   --  prevent craches at elaboration time.
+
+   Entity_External_Tag : Entity_External_Tag_Hook :=
+                           Dummy_Entity_External_Tag'Access;
+   Ref_External_Tag    : Ref_External_Tag_Hook    :=
+                           Dummy_Ref_External_Tag'Access;
    --  Debugging hooks, set at initialization
 
    Default_Trace : Boolean := True;
@@ -144,6 +154,28 @@ package body PolyORB.Smart_Pointers is
    begin
       Obj.Counter := -1;
    end Disable_Reference_Counting;
+
+   -------------------------------
+   -- Dummy_Entity_External_Tag --
+   -------------------------------
+
+   function Dummy_Entity_External_Tag
+     (X : Unsafe_Entity'Class) return String
+   is
+      pragma Unreferenced (X);
+   begin
+      return "";
+   end Dummy_Entity_External_Tag;
+
+   ----------------------------
+   -- Dummy_Ref_External_Tag --
+   ----------------------------
+
+   function Dummy_Ref_External_Tag (X : Ref'Class) return String is
+      pragma Unreferenced (X);
+   begin
+      return "";
+   end Dummy_Ref_External_Tag;
 
    ---------------
    -- Entity_Of --
