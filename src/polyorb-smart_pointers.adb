@@ -329,7 +329,7 @@ package body PolyORB.Smart_Pointers is
          --  Was 0, can't reuse entity, reset counter
 
          pragma Debug (C, Trace_Event (Dec_Usage, The_Entity));
-         Counter := Sync_Add_And_Fetch (The_Entity.Counter'Access, -11);
+         Counter := Sync_Add_And_Fetch (The_Entity.Counter'Access, -1);
 
       else
          The_Ref.A_Ref := The_Entity;
