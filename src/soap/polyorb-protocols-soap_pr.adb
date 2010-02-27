@@ -142,6 +142,10 @@ package body PolyORB.Protocols.SOAP_Pr is
             function Path_To_Oid (Path : Types.String)
               return Objects.Object_Id_Access;
 
+            -----------------
+            -- Path_To_Oid --
+            -----------------
+
             function Path_To_Oid (Path : Types.String)
               return Objects.Object_Id_Access
             is
