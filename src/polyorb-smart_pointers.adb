@@ -379,4 +379,22 @@ package body PolyORB.Smart_Pointers is
       end if;
    end Trace_Event;
 
+   ----------------
+   -- Use_Entity --
+   ----------------
+
+   procedure Use_Entity
+     (The_Ref    : in out Ref;
+      The_Entity : Entity_Ptr)
+   is
+   begin
+      pragma Assert (The_Ref.A_Ref = null);
+
+      if The_Entity.Counter = 0 then
+         pragma Debug (C, Trace_Event (Inc_Usage, The_Entity));
+         The_Entity.Counter := 1;
+         The_Ref.A_Ref := The_Entity;
+      end if;
+   end Use_Entity;
+
 end PolyORB.Smart_Pointers;

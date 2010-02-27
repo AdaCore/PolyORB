@@ -101,6 +101,15 @@ package PolyORB.Smart_Pointers is
    --  that the designated entity is not being finalized.
    --  The_Ref is expected to be nil before the call.
 
+   procedure Use_Entity
+     (The_Ref    : in out Ref;
+      The_Entity : Entity_Ptr);
+   --  Equivalent to Set (The_Ref, The_Entity) if The_Entity's usage counter
+   --  is zero. Otherwise, The_Ref is left unchanged. It set counter directly
+   --  without locking thus can be used before initialization of ORB; caller
+   --  is responsible for multitasking safety. It is expected to be used only
+   --  to associate new allocated entity object with reference.
+
    procedure Unref (The_Ref : in out Ref) renames Finalize;
    procedure Release (The_Ref : in out Ref) renames Finalize;
 
