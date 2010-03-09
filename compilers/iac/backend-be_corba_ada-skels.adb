@@ -2154,16 +2154,13 @@ package body Backend.BE_CORBA_Ada.Skels is
          V := 2 * Natural (N_Subprograms) + 1;
          loop
             K_2_V := Float (V) / Float (N_Subprograms);
-            PHG.Initialize
-              (Seed   => Seed,
-               K_To_V => K_2_V,
-               Optim  => Optim);
+            PHG.Initialize (Seed, K_2_V, Optim);
 
             begin
                PHG.Compute;
                exit;
             exception
-               when others =>
+               when PHG.Too_Many_Tries =>
                   if Optim = PHG.CPU_Time then
                      raise;
                   end if;
@@ -2460,13 +2457,6 @@ package body Backend.BE_CORBA_Ada.Skels is
             Visit_Operation_Subp => Visit_Operation_Declaration'Access,
             Skel                 => True);
 
-         --  Start with an empty method list for hash table computation
-         --  (Finalize cleans out any previously inserted words).
-
-         if Use_Minimal_Hash_Function then
-            PHG.Finalize;
-         end if;
-
          --  We make a difference between the Is_A Method and the rest of
          --  implicit CORBA methods for two reasons:
          --  * Is_A is not implicit since it is declared in the stub.
@@ -2476,11 +2466,10 @@ package body Backend.BE_CORBA_Ada.Skels is
 
          Is_A_Invk_Part := Is_A_Invoke_Part;
 
-         --  Here, we assign the list of the the implicit CORBA
-         --  methods It's important to do this before the finalization
-         --  of the hash function generator (in case of optimisation)
-         --  so that all the hash keys could be inserted before the
-         --  computation phase of the algorithm.
+         --  Here, we assign the list of the the implicit CORBA methods. It's
+         --  important to do this before the finalization of the hash function
+         --  generator (in case of optimisation) so that all the hash keys
+         --  could be inserted before the computation phase of the algorithm.
 
          Implicit_CORBA := Implicit_CORBA_Methods;
 
@@ -2488,8 +2477,12 @@ package body Backend.BE_CORBA_Ada.Skels is
          --  achieve the perfect hash function generation and the building of
          --  the conditional structure which handles the request.
 
-         if Use_Minimal_Hash_Function and then not In_Imported (E) then
-            Achieve_Hash_Function_Optimization (E);
+         if Use_Minimal_Hash_Function then
+            if not In_Imported (E) then
+               Achieve_Hash_Function_Optimization (E);
+            end if;
+
+            PHG.Finalize;
          end if;
 
          --  Here, we append the implicit CORBA methods either to the
