@@ -818,7 +818,7 @@ Available options for the 'configure' script include:
 
 @item  @option{--with-proto-perso="..."}: protocol personalities to build
 
-      Available personalities: GIOP, SOAP, SRP
+      Available personalities: GIOP, SOAP
 
       e.g.   @option{--with-proto-perso="giop soap"} to build both the GIOP
              and SOAP personalities
