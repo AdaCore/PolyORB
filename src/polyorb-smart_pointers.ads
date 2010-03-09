@@ -104,11 +104,11 @@ package PolyORB.Smart_Pointers is
    procedure Use_Entity
      (The_Ref    : in out Ref;
       The_Entity : Entity_Ptr);
-   --  Equivalent to Set (The_Ref, The_Entity) if The_Entity's usage counter
-   --  is zero. Otherwise, The_Ref is left unchanged. It set counter directly
-   --  without locking thus can be used before initialization of ORB; caller
-   --  is responsible for multitasking safety. It is expected to be used only
-   --  to associate new allocated entity object with reference.
+   --  Equivalent to Set (The_Ref, The_Entity), but requires The_Entity's usage
+   --  counter to be zero, and The_Ref to be a null reference. Does not require
+   --  the ORB to have been initialized. The caller is responsible to ensure
+   --  task safety (this subprogram is expected to be used only to associate
+   --  a reference to a newly allocated object).
 
    procedure Unref (The_Ref : in out Ref) renames Finalize;
    procedure Release (The_Ref : in out Ref) renames Finalize;

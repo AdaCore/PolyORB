@@ -57,12 +57,10 @@ package body PolyORB.Smart_Pointers is
    --  (must be called just before updating Obj's reference counter).
 
    function Dummy_Entity_External_Tag (X : Unsafe_Entity'Class) return String;
-   --  Dummy version of function returning External_Tag (X'Tag) to prevent
-   --  craches at elaboration time.
-
    function Dummy_Ref_External_Tag (X : Ref'Class) return String;
-   --  Dummy version of function returning External_Tag (Entity_Of (X)'Tag) to
-   --  prevent craches at elaboration time.
+   --  Dummy version of functions returning External_Tag (X'Tag) to prevent
+   --  crashes at elaboration time for early initialization of references
+   --  (before complete ORB initialization).
 
    Entity_External_Tag : Entity_External_Tag_Hook :=
                            Dummy_Entity_External_Tag'Access;
@@ -388,13 +386,11 @@ package body PolyORB.Smart_Pointers is
       The_Entity : Entity_Ptr)
    is
    begin
-      pragma Assert (The_Ref.A_Ref = null);
+      pragma Assert (The_Ref.A_Ref = null and then The_Entity.Counter = 0);
 
-      if The_Entity.Counter = 0 then
-         pragma Debug (C, Trace_Event (Inc_Usage, The_Entity));
-         The_Entity.Counter := 1;
-         The_Ref.A_Ref := The_Entity;
-      end if;
+      pragma Debug (C, Trace_Event (Inc_Usage, The_Entity));
+      The_Entity.Counter := 1;
+      The_Ref.A_Ref := The_Entity;
    end Use_Entity;
 
 end PolyORB.Smart_Pointers;
