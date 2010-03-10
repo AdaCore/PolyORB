@@ -2,9 +2,9 @@
 PolyORB 2.6 NEW FEATURES LIST
 =============================
 
-Copyright (C) 2009, AdaCore
+Copyright (C) 2009-2010, AdaCore
 
-This file contains a complete list of new features in version 2.5 of PolyORB.
+This file contains a complete list of new features in version 2.6 of PolyORB.
 See also file NEWS for various information about this release.
 
 An ISO date (YYYY-MM-DD) appears in parentheses after the description line.
