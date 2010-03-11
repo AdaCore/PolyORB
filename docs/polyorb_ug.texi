@@ -2065,7 +2065,7 @@ OPTIONS
            -hc      Using perfect minimal hash tables in skeletons
                     and minimize CPU time
            -hm      Using perfect minimal hash tables in skeletons
-                    and minimize memory space
+                    and minimize memory space. This is the default.
            -rs      Use the SII/SSI to handle requests
            -rd      Use the DII/DSI to handle requests (default)
            -da      Dump the Ada tree

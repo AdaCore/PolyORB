@@ -206,7 +206,6 @@ package body Backend.BE_CORBA_Ada.Skels is
       N_Subprograms           : Unsigned_Long_Long;
       Register_Procedure_List : List_Id;
       Invoke_Subp_Bodies      : List_Id;
-      Optim                   : PHG.Optimization;
 
       function Hash_Package_Name (E : Node_Id) return Name_Id;
       --  This function generates the name of the package that will
@@ -2055,21 +2054,6 @@ package body Backend.BE_CORBA_Ada.Skels is
 
       procedure Initialize_Hash_Function_Optimization is
       begin
-         --  Checking whether the user chose to optimize memory space
-         --  or CPU Time
-
-         if Optimize_CPU and then not Optimize_Memory then
-            Optim := PHG.CPU_Time;
-         elsif Optimize_Memory and then not Optimize_CPU then
-            Optim := PHG.Memory_Space;
-         else
-            declare Msg : constant String := "Cannot optimize CPU time"
-              & " and memory space at the same time";
-            begin
-               raise Program_Error with Msg;
-            end;
-         end if;
-
          --  Initialize the lists and the number of subprograms
 
          N_Subprograms           := 0;
@@ -2154,14 +2138,14 @@ package body Backend.BE_CORBA_Ada.Skels is
          V := 2 * Natural (N_Subprograms) + 1;
          loop
             K_2_V := Float (V) / Float (N_Subprograms);
-            PHG.Initialize (Seed, K_2_V, Optim);
+            PHG.Initialize (Seed, K_2_V, Optimization_Mode);
 
             begin
                PHG.Compute;
                exit;
             exception
                when PHG.Too_Many_Tries =>
-                  if Optim = PHG.CPU_Time then
+                  if Optimization_Mode = PHG.CPU_Time then
                      raise;
                   end if;
 

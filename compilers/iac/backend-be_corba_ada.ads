@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -34,6 +34,8 @@
 --  This is the package responsible of generating the CORBA Ada tree
 --  from the IDL tree according to the CORBA Ada mapping
 --  specifications.
+
+with GNAT.Perfect_Hash_Generators;
 
 package Backend.BE_CORBA_Ada is
 
@@ -98,11 +100,14 @@ package Backend.BE_CORBA_Ada is
    -----------------------------
 
    --  Skeleton optimization using minimal perfect hash functions
-   --  instead of the big "if .. elsif .. elsif ..."
+   --  instead of the big "if .. elsif .. elsif ...". The cascading 'if'
+   --  statements are no longer used. There is no command-line switch to revert
+   --  to that behavior. However, we are keeping the code "just in case", and
+   --  it can be invoked by setting Use_Minimal_Hash_Function to False.
 
-   Use_Minimal_Hash_Function : Boolean := False;
-   Optimize_CPU              : Boolean := False;
-   Optimize_Memory           : Boolean := False;
+   Use_Minimal_Hash_Function : constant Boolean := True;
+   Optimization_Mode         : GNAT.Perfect_Hash_Generators.Optimization
+     := GNAT.Perfect_Hash_Generators.Memory_Space;
 
    Use_SII : Boolean := False;
    --  The request handling method (SSI or DII). By default, the DII
