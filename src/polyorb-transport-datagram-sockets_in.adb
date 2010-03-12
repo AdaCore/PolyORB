@@ -60,13 +60,18 @@ package body PolyORB.Transport.Datagram.Sockets_In is
    --------------------
 
    procedure Init_Socket_In
-     (SAP         : in out Socket_In_Access_Point;
-      Socket      : Socket_Type;
-      Address     : in out Sock_Addr_Type;
-      Update_Addr :        Boolean := True)
+     (SAP          : in out Socket_In_Access_Point;
+      Socket       : Socket_Type;
+      Address      : in out Sock_Addr_Type;
+      Bind_Address : Sock_Addr_Type := No_Sock_Addr;
+      Update_Addr  : Boolean := True)
    is
    begin
-      Bind_Socket (Socket, Address);
+      if Bind_Address /= No_Sock_Addr then
+         Bind_Socket (Socket, Bind_Address);
+      else
+         Bind_Socket (Socket, Address);
+      end if;
 
       SAP.Socket := Socket;
 
@@ -79,6 +84,7 @@ package body PolyORB.Transport.Datagram.Sockets_In is
             SAP.Addr.Addr := Addresses (Get_Host_By_Name (Host_Name), 1);
          end if;
          Address := SAP.Addr;
+
       else
          SAP.Addr := Address;
       end if;

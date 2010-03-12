@@ -51,13 +51,17 @@ package PolyORB.Transport.Datagram.Sockets_In is
    --  Datagram Socket Access Point to receive data
 
    procedure Init_Socket_In
-     (SAP         : in out Socket_In_Access_Point;
-      Socket      : Socket_Type;
-      Address     : in out Sock_Addr_Type;
-      Update_Addr : Boolean := True);
+     (SAP          : in out Socket_In_Access_Point;
+      Socket       : Socket_Type;
+      Address      : in out Sock_Addr_Type;
+      Bind_Address : Sock_Addr_Type := No_Sock_Addr;
+      Update_Addr  : Boolean := True);
    --  Init datagram socket socket
    --  If Update_Addr is set, Address will be updated with the assigned socket
-   --  address.
+   --  address. If Bind_Address is not No_Sock_Addr, then that address is used
+   --  to bind the access point, Address. This is used for multicast sockets
+   --  on Windows, where we need to use IN_ADDR_ANY for Bind_Address, while
+   --  still recording the proper group address in SAP.
 
    function Create_Event_Source
      (TAP : access Socket_In_Access_Point)
@@ -77,8 +81,8 @@ package PolyORB.Transport.Datagram.Sockets_In is
 
    procedure Create
      (TE   : in out Socket_In_Endpoint;
-      S    :        Socket_Type;
-      Addr :        Sock_Addr_Type);
+      S    : Socket_Type;
+      Addr : Sock_Addr_Type);
 
    function Create_Event_Source
      (TE : access Socket_In_Endpoint) return Asynch_Ev.Asynch_Ev_Source_Access;
@@ -115,8 +119,8 @@ private
    type Socket_In_Endpoint is new Datagram_Transport_Endpoint
      with record
         Handler : aliased Datagram_TE_AES_Event_Handler;
-        Socket : Socket_Type := No_Socket;
-        Addr   : Sock_Addr_Type;
+        Socket  : Socket_Type := No_Socket;
+        Addr    : Sock_Addr_Type;
      end record;
 
 end PolyORB.Transport.Datagram.Sockets_In;

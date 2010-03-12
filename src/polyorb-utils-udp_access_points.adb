@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -82,7 +82,7 @@ package body PolyORB.Utils.UDP_Access_Points is
       Port    : Port_Type)
    is
       use PolyORB.Transport.Datagram.Sockets_In;
-
+      Bind_Address : Sock_Addr_Type;
    begin
       Initialize_Socket (AP_Info);
 
@@ -91,18 +91,21 @@ package body PolyORB.Utils.UDP_Access_Points is
                         Port   => Port,
                         Family => Family_Inet);
 
+      Bind_Address := AP_Info.Address;
+
       --  Bind socket: for UNIX it needs to be bound to the group address;
       --  for Windows to INADDR_ANY.
 
       if PolyORB.Platform.Windows_On_Target then
-         AP_Info.Address.Addr := Any_Inet_Addr;
+         Bind_Address.Addr := Any_Inet_Addr;
       end if;
 
       Init_Socket_In
         (Socket_In_Access_Point (AP_Info.SAP.all),
          AP_Info.Socket,
-         AP_Info.Address,
-         Update_Addr => False);
+         Address      => AP_Info.Address,
+         Bind_Address => Bind_Address,
+         Update_Addr  => False);
 
       --  Join multicast group on the appropriate interface (note that under
       --  Windows, this is possible only after the socket is bound).
