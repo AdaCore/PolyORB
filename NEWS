@@ -41,6 +41,9 @@ See the features-27 file.
 Bug fixes
 ---------
 
+Incoming multicast datagrams received on a MIOP access point were not
+correctly identified as referring to a local object on Windows. (J312-020)
+
 When referring to an enumeration literal in another package, IAC was generating
 just the literal, whereas an expanded name like Package_Name.Literal is
 needed. (J210-035)
