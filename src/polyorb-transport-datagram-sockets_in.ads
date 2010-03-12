@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2003-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -46,8 +46,8 @@ package PolyORB.Transport.Datagram.Sockets_In is
    -- Access Point --
    ------------------
 
-   type Socket_In_Access_Point
-   is new Datagram_Transport_Access_Point with private;
+   type Socket_In_Access_Point is
+     new Datagram_Transport_Access_Point with private;
    --  Datagram Socket Access Point to receive data
 
    procedure Init_Socket_In

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -58,11 +58,14 @@ package body PolyORB.Setup.Access_Points.UIPMC is
    use PolyORB.Transport.Datagram.Sockets_In;
    use PolyORB.Utils.UDP_Access_Points;
 
+   --  Just one UIPMC AP supported???
+
    UIPMC_Access_Point : UDP_Access_Point_Info
-     := (Socket  => No_Socket,
-         Address => No_Sock_Addr,
-         SAP     => new Socket_In_Access_Point,
-         PF      => new PolyORB.Binding_Data.GIOP.UIPMC.UIPMC_Profile_Factory);
+     := (Socket        => No_Socket,
+         Address       => No_Sock_Addr,
+         SAP           => new Socket_In_Access_Point,
+         PF            =>
+           new PolyORB.Binding_Data.GIOP.UIPMC.UIPMC_Profile_Factory);
 
    Fra : aliased Fragmenter_Factory;
    Min : aliased MIOP_In_Factory;
@@ -95,10 +98,10 @@ package body PolyORB.Setup.Access_Points.UIPMC is
            (UIPMC_Access_Point, Inet_Addr (Addr), Port);
 
          Register_Access_Point
-           (ORB    => The_ORB,
-            TAP    => UIPMC_Access_Point.SAP,
-            Chain  => UIPMC_Factories'Access,
-            PF     => UIPMC_Access_Point.PF);
+           (ORB   => The_ORB,
+            TAP   => UIPMC_Access_Point.SAP,
+            Chain => UIPMC_Factories'Access,
+            PF    => UIPMC_Access_Point.PF);
       end if;
 
    end Initialize_Access_Points;
