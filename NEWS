@@ -41,6 +41,10 @@ See the features-27 file.
 Bug fixes
 ---------
 
+The "install" Makefile target would fail to copy po_gnatdist to its proper
+location on hosts where the system does not provide the install(1) command,
+and the internal support/install-sh script is used instead. (J309-020)
+
 Incoming multicast datagrams received on a MIOP access point were not
 correctly identified as referring to a local object on Windows. (J312-020)
 
