@@ -70,7 +70,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
 
    use Entity_Stack;
 
-   procedure New_Operator (O : Operator_Type; I : String := "");
+   procedure New_Operator (Op : Operator_Type; I : String := "");
 
    function Internal_Name (P : Node_Id; L : GLists) return Name_Id;
    pragma Inline (Internal_Name);
@@ -801,8 +801,8 @@ package body Backend.BE_CORBA_Ada.Nutils is
    -- Image --
    -----------
 
-   function Image (O : Operator_Type) return String is
-      S : String := Operator_Type'Image (O);
+   function Image (Op : Operator_Type) return String is
+      S : String := Operator_Type'Image (Op);
    begin
       To_Lower (S);
 
@@ -2352,16 +2352,16 @@ package body Backend.BE_CORBA_Ada.Nutils is
    ------------------
 
    procedure New_Operator
-     (O : Operator_Type;
+     (Op : Operator_Type;
       I : String := "") is
    begin
-      if O in Keyword_Operator then
-         Set_Str_To_Name_Buffer (Image (O));
+      if Op in Keyword_Operator then
+         Set_Str_To_Name_Buffer (Image (Op));
       else
          Set_Str_To_Name_Buffer (I);
       end if;
 
-      Operator_Image (Operator_Type'Pos (O)) := Name_Find;
+      Operator_Image (Operator_Type'Pos (Op)) := Name_Find;
    end New_Operator;
 
    ----------------

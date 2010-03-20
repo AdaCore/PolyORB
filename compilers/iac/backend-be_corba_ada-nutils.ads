@@ -372,6 +372,7 @@ package Backend.BE_CORBA_Ada.Nutils is
       S_Get_Aggregate_Count,
       S_Get_Aggregate_Element,
       S_Hash,
+      S_Helper,
       S_Initialize,
       S_Invoke,
       S_Is_A,
@@ -509,12 +510,15 @@ package Backend.BE_CORBA_Ada.Nutils is
    --  If Unreferenced is True, generate a pragma Unreferenced.
 
    procedure Append_To (L : List_Id; E : Node_Id);
-   --  Append node E to the end of list L
+   --  Append node E to the end of list L. If E is the head of a list, all
+   --  following nodes are also appended to L. If E is in the middle of a list,
+   --  the list structure will get garbled. ???Perhaps we should distinguish
+   --  appending a node from appending a list.
 
    function Convert (K : Frontend.Nodes.Node_Kind) return RE_Id;
    --  If K is an IDL base type, returns the corresponding CORBA type
    --  (according to the mapping specifications. Otherwise, raises
-   --  Program_Error
+   --  Program_Error.
 
    procedure Push_Entity (E : Node_Id);
    --  Push the IDL_Entity E at the Top of the IDL_Entity stack
@@ -539,7 +543,7 @@ package Backend.BE_CORBA_Ada.Nutils is
    --  Program_Error is raised for all other kinds.
 
    function Get_Declaration_Node (N : Node_Id) return Node_Id;
-   --  If N is of kind K_Defininy_Identifier, return the value of its
+   --  If N is of kind K_Defining_Identifier, return the value of its
    --  Declaration_Node field. If N is of kind K_Selected_Component,
    --  return the value of its Selector_Name's Declaration_Node
    --  field. Otherwise, raise Program_Error.
@@ -550,7 +554,7 @@ package Backend.BE_CORBA_Ada.Nutils is
    --  Selector_Name. Otherwise, returns the Defining_Identifier of N.
 
    function Get_Name (N : Node_Id) return Name_Id;
-   --  If N is of kind K_Defininy_Identifier or K_identifier, return
+   --  If N is of kind K_Defining_Identifier or K_identifier, return
    --  the value of its Name field. If N is of kind
    --  K_Selected_Component, return the value of its Selector_Name's
    --  Name field. Otherwise, raise Program_Error.
@@ -573,9 +577,9 @@ package Backend.BE_CORBA_Ada.Nutils is
 
    function Image (T : Token_Type) return String;
    --  Return the lower case image of token T (used to build the
-   --  Token_Image table
+   --  Token_Image table)
 
-   function Image (O : Operator_Type) return String;
+   function Image (Op : Operator_Type) return String;
    --  Return the lower case image of token T. All '_' are replaced by
    --  spaces (used to build the Operator_Image table)
 
@@ -612,8 +616,8 @@ package Backend.BE_CORBA_Ada.Nutils is
      (N      : Node_Id;
       Withed : Boolean := True)
      return Node_Id;
-   --  copy the expanded name N add the proper 'with' clause (of the
-   --  parent) if the 'Withed' flag is set.
+   --  Copy the expanded name N. Add the proper 'with' clause (of the parent)
+   --  if the 'Withed' flag is set.
 
    function Expand_Designator
      (N               : Node_Id;
@@ -628,24 +632,22 @@ package Backend.BE_CORBA_Ada.Nutils is
    --  * a package specification
    --  * a package declaration
 
-   --  The new created node is a designator having the same defining
-   --  identifier as N. The parent unit name of the result is set
-   --  basing on:
+   --  The newly created node is a designator having the same defining
+   --  identifier as N. The parent unit name of the result is set based on:
 
    --  * the Parent_Unit_Name of node N defining identifier, if we are
    --  handling a forward interface declaration.
 
-   --  * the "Parent" field of N in the other cases.
+   --  * the "Parent" field of N in all other cases.
 
    ---------------------------------
    -- Ada Tree Building Functions --
    ---------------------------------
 
-   --  Each Make_<Node_Kind> function create a Node_Id of Kind
-   --  <Node_Kind>. The parameters of the function correspond usually
-   --  to the fields of the Node (see the file
-   --  backend-be_corba_ada-nodes.idl for more detail on the Ada tree
-   --  structure).
+   --  Each Make_<Node_Kind> function creates a Node_Id of Kind
+   --  <Node_Kind>. The parameters of the function usually correspond to the
+   --  fields of the Node (see the file backend-be_corba_ada-nodes.idl for more
+   --  detail on the Ada tree structure).
 
    --  ??? The "usually" above is frightening, these factory fuctions should
    --  be generated automatically, and their signatures should correspond
@@ -816,7 +818,8 @@ package Backend.BE_CORBA_Ada.Nutils is
       N3 : Node_Id := No_Node;
       N4 : Node_Id := No_Node;
       N5 : Node_Id := No_Node) return List_Id;
-   --  Create a list which contains all the given nodes
+   --  Create a list which contains all the given nodes (except No_Nodes are
+   --  ignored).
 
    function Make_Literal (Value : Value_Id) return Node_Id;
 
@@ -992,12 +995,11 @@ package Backend.BE_CORBA_Ada.Nutils is
    function To_Ada_Name
      (N                 : Name_Id;
       Is_Operation_Name : Boolean := False) return Name_Id;
-   --  Converts IDL name to Ada names. The IDL name is converted
-   --  according to the Ada mapping specifications. The following
-   --  modifications may be applied to the IDL name to produce the Ada
-   --  name:
+   --  Converts an IDL name into an Ada name. The IDL name is converted
+   --  according to the Ada mapping specifications. The following modifications
+   --  may be applied to the IDL name to produce the Ada name:
 
-   --  * Any leading underscore are removed
+   --  * Any leading underscores are removed
 
    --  * When there are two consecutive '_', replace the second
    --  underscore with the character 'U'.
