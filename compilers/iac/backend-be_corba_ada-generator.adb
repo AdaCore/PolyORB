@@ -2097,6 +2097,23 @@ package body Backend.BE_CORBA_Ada.Generator is
             Write_Indentation;
             Generate (M);
             Generate_Statement_Delimiter (M);
+
+            --  If this is a nested subprogram spec or body, or the next thing
+            --  is one of those, leave an extra blank line.
+
+            if Kind (M) = K_Subprogram_Specification
+              or else Kind (M) = K_Subprogram_Body
+            then
+               Write_Eol;
+
+            elsif Present (Next_Node (M))
+              and then (Kind (Next_Node (M)) = K_Subprogram_Specification
+                          or else Kind (Next_Node (M)) = K_Subprogram_Body)
+            then
+               Write_Eol;
+
+            end if;
+
             M := Next_Node (M);
          end loop;
 
