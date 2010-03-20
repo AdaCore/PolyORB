@@ -169,23 +169,50 @@ package body Backend.BE_CORBA_Ada.Skels is
 
       Invoke_Then_Statements  : List_Id := No_List;
       Invoke_Elsif_Statements : List_Id := No_List;
+      Invoke_Methods          : List_Id := No_List;
       Package_Initialization  : List_Id := No_List;
       Choice_List             : List_Id := No_List;
       Dependency_List         : List_Id := No_List;
       Has_Operations          : Boolean := False;
       Buffer_Necessary        : Boolean := False;
 
+      function Gen_Invoke_Method
+        (Operation_Name : Name_Id;
+         Declarations   : List_Id;
+         Statements     : List_Id) return Node_Id;
+      --  Generates and returns a call to the Invoke_<Operation_Name>
+      --  procedure. As a side effect, generates the spec and body of that
+      --  procedure, and appends them to Invoke_Methods. There is one such
+      --  procedure for each method, and they are called from the case
+      --  statement in the Helper procedure below.
+
+      function Gen_Invoke_Helper
+        (Case_Statement : Node_Id) return Node_Id;
+      --  Generates and returns a call to the Helper procedure. As a side
+      --  effect, generates the spec and body of that procedure, and appends
+      --  them to Invoke_Methods. The Helper procedure contains a case
+      --  statement that calls the appropriate Invoke_<Operation_Name>. Note
+      --  that this procedure is called "Helper" (as opposed to Invoke_Helper)
+      --  to avoid possible conflict with some Invoke_<Operation_Name>.
+
       function Deferred_Initialization_Body (E : Node_Id) return Node_Id;
       --  Generate the body of the deferred initialization procedure
 
       function Gen_Invoke_Part (E : Node_Id) return Node_Id;
-      --  Generate the statements related to the operation `E' in the
-      --  Invoke procedure.
+      --  Generate an 'elsif' or 'when ...' containing the statements related
+      --  to the operation `E' in the Invoke procedure.
 
       function Invoke_Body
         (E              : Node_Id;
          Is_A_Invk_Part : Node_Id)
         return Node_Id;
+      --  Generate the body of procedure Invoke. This body contains one nested
+      --  procedure Invoke_<Operation_Name> for each method, plus a procedure
+      --  Helper, which contains a case statement calling all the procedures
+      --  Invoke_<Operation_Name>. Invoke calls Helper and catches
+      --  exceptions. One reason for separating out the nested procedures is to
+      --  make the generated code compile in a reasonable amount of time/memory
+      --  in sjlj mode. Also, it seems a bit more readable.
 
       procedure Invoke_Declaration (L : List_Id);
       function Invoke_Spec return Node_Id;
@@ -276,6 +303,59 @@ package body Backend.BE_CORBA_Ada.Skels is
          return N;
       end Deferred_Initialization_Body;
 
+      -----------------------
+      -- Gen_Invoke_Helper --
+      -----------------------
+
+      function Gen_Invoke_Helper
+        (Case_Statement : Node_Id) return Node_Id is
+
+         Invoke_Helper : constant Node_Id :=
+           Make_Defining_Identifier (SN (S_Helper));
+
+         N : Node_Id;
+      begin
+         N := Make_Subprogram_Specification (Invoke_Helper, No_List);
+         Append_To (Invoke_Methods, N);
+         N := Make_Subprogram_Body
+           (Specification =>
+              Make_Subprogram_Specification (Invoke_Helper, No_List),
+            Declarations  => No_List,
+            Statements    => New_List (Case_Statement));
+         Append_To (Invoke_Methods, N);
+
+         N := Make_Subprogram_Call (Invoke_Helper, No_List);
+         return N;
+      end Gen_Invoke_Helper;
+
+      -----------------------
+      -- Gen_Invoke_Method --
+      -----------------------
+
+      function Gen_Invoke_Method
+        (Operation_Name : Name_Id;
+         Declarations   : List_Id;
+         Statements     : List_Id) return Node_Id is
+
+         Invoke_Method : constant Node_Id :=
+           Make_Defining_Identifier
+             (Add_Prefix_To_Name ("Invoke_", Operation_Name));
+
+         N : Node_Id;
+      begin
+         N := Make_Subprogram_Specification (Invoke_Method, No_List);
+         Append_To (Invoke_Methods, N);
+         N := Make_Subprogram_Body
+           (Specification =>
+              Make_Subprogram_Specification (Invoke_Method, No_List),
+            Declarations  => Declarations,
+            Statements    => Statements);
+         Append_To (Invoke_Methods, N);
+
+         N := Make_Subprogram_Call (Invoke_Method, No_List);
+         return N;
+      end Gen_Invoke_Method;
+
       ---------------------
       -- Gen_Invoke_Part --
       ---------------------
@@ -283,22 +363,22 @@ package body Backend.BE_CORBA_Ada.Skels is
       function Gen_Invoke_Part (E : Node_Id) return Node_Id is
          pragma Assert (FEN.Kind (E) = K_Operation_Declaration);
 
-         C                    : Node_Id;
-         N                    : Node_Id;
-         M                    : Node_Id;
-         Param                : Node_Id;
-         Param_Name           : Name_Id;
-         Type_Node            : Node_Id;
-         New_Name             : Name_Id;
-         Params               : List_Id;
-         Impl_Id              : Node_Id;
-         Operation_Name       : Name_Id := FEN.IDL_Name (Identifier (E));
-         Arg_Name             : Name_Id;
-         Discret_Choice_Value : Value_Id;
-         Record_Node          : Node_Id;
-         Declarative_Part     : constant List_Id := New_List;
-         Statements           : constant List_Id := New_List;
-         Inv_Profile          : constant List_Id := New_List;
+         C                     : Node_Id;
+         N                     : Node_Id;
+         M                     : Node_Id;
+         Param                 : Node_Id;
+         Param_Name            : Name_Id;
+         Type_Node             : Node_Id;
+         New_Name              : Name_Id;
+         Params                : List_Id;
+         Impl_Id               : Node_Id;
+         Operation_Name        : Name_Id := FEN.IDL_Name (Identifier (E));
+         Arg_Name              : Name_Id;
+         Discrete_Choice_Value : Value_Id;
+         Record_Node           : Node_Id;
+         Declarative_Part      : constant List_Id := New_List;
+         Statements            : constant List_Id := New_List;
+         Inv_Profile           : constant List_Id := New_List;
 
          --  The flags below indicate whether the operation is mapped
          --  to an Ada function or an Ada procedure.
@@ -391,6 +471,8 @@ package body Backend.BE_CORBA_Ada.Skels is
 
             return Result;
          end Exception_Handler_Alternative;
+
+         --  Start of processing for Gen_Invoke_Part
 
       begin
          --  The first argument in the implementation call is an
@@ -805,7 +887,7 @@ package body Backend.BE_CORBA_Ada.Skels is
             Append_To (Statements, N);
          end if;
 
-         --  The bloc above implements the generation of:
+         --  The block above implements the generation of:
 
          --  * The call of the corresponding method implemented by the
          --  programmer.
@@ -826,7 +908,7 @@ package body Backend.BE_CORBA_Ada.Skels is
          begin
 
             --  Looking whether the operation throws exceptions and
-            --  setting Inner_statement to the corresponding value.
+            --  setting Inner_Statements to the corresponding value.
 
             if not FEU.Is_Empty (Exceptions (E)) then
                Inner_Statements  := New_List;
@@ -1172,9 +1254,11 @@ package body Backend.BE_CORBA_Ada.Skels is
 
          Operation_Name := Map_Operation_Name_Literal (E);
 
-         --  If no optimization is requested by the user, we generate
-         --  an elsif statement. Else, we generate an case statement
-         --  alternative
+         --  If no optimization is requested by the user, we generate an elsif
+         --  statement. Otherwise, we generate a case statement alternative.
+
+         N := Gen_Invoke_Method
+           (Operation_Name, Declarative_Part, Statements);
 
          if not Use_Minimal_Hash_Function then
             C := Make_Expression
@@ -1184,9 +1268,6 @@ package body Backend.BE_CORBA_Ada.Skels is
                (New_String_Value
                 (Operation_Name, False)));
 
-            N := Make_Block_Statement
-              (Declarative_Part => Declarative_Part,
-               Statements       => Statements);
             N := Make_Elsif_Statement
               (C, New_List (N));
          else
@@ -1196,17 +1277,13 @@ package body Backend.BE_CORBA_Ada.Skels is
             Insert_And_Register_Statements (Operation_Name);
 
             --  Prepare the case alternative
-            --  * Discret Choice : value of N_Subprogram minus 1
+            --  * Discrete Choice : value of N_Subprogram minus 1
 
-            Discret_Choice_Value := New_Integer_Value
+            Discrete_Choice_Value := New_Integer_Value
               (N_Subprograms - 1, 1, 10);
 
-            N := Make_Block_Statement
-              (Declarative_Part => Declarative_Part,
-               Statements       => Statements);
-
             N := Make_Case_Statement_Alternative
-              (New_List (Make_Literal (Discret_Choice_Value)),
+              (New_List (Make_Literal (Discrete_Choice_Value)),
                New_List (N));
          end if;
 
@@ -1313,6 +1390,7 @@ package body Backend.BE_CORBA_Ada.Skels is
             N := Make_Case_Statement
               (Make_Identifier (VN (V_Index)),
                Invoke_Subp_Bodies);
+            N := Gen_Invoke_Helper (N);
             Append_To (Invoke_Then_Statements, N);
          end if;
 
@@ -1337,8 +1415,10 @@ package body Backend.BE_CORBA_Ada.Skels is
               New_List (Exception_Handler));
          Append_To (Invoke_Statements, N);
 
-         --  Generation of the Invoke Procedure
+         --  Generation of the Invoke Procedure. Note that Append_To is
+         --  appending the entire Invoke_Methods list onto D.
 
+         Append_To (D, First_Node (Invoke_Methods));
          N := Make_Subprogram_Body (Spec, D, Invoke_Statements);
 
          return N;
@@ -1486,14 +1566,16 @@ package body Backend.BE_CORBA_Ada.Skels is
       ----------------------
 
       function Is_A_Invoke_Part return Node_Id is
-         N                    : Node_Id;
-         Declarative_Part     : constant List_Id
+         N                     : Node_Id;
+         Declarative_Part      : constant List_Id
            := New_List;
-         Statements           : constant List_Id
+         Statements            : constant List_Id
            := New_List;
-         Discret_Choice_Value : Value_Id;
+         Discrete_Choice_Value : Value_Id;
 
          Profile : List_Id;
+
+         Operation_Name : Name_Id;
       begin
          --  Declarative part
 
@@ -1587,33 +1669,31 @@ package body Backend.BE_CORBA_Ada.Skels is
          Append_To (Statements, N);
 
          --  If no optimization is requested by the user, we generate
-         --  an elsif statement. Else, we generate a case alternative
-         --  statement
+         --  an elsif??? statement. Else, we generate a case alternative
+         --  statement.
+
+         Set_Str_To_Name_Buffer ("_is_a");
+         Operation_Name := Name_Find;
+
+         N := Gen_Invoke_Method
+           (Operation_Name, Declarative_Part, Statements);
 
          if not Use_Minimal_Hash_Function then
-            N := Make_Block_Statement
-              (Declarative_Part => Declarative_Part,
-               Statements       => Statements);
+            null;  --  ???No elsif here.
          else
             --  Insert the subprogram name into the hash function
             --  generator and add a call to Register_Procedure
 
-            Set_Str_To_Name_Buffer ("_is_a");
-            Insert_And_Register_Statements
-              (Name_Find);
+            Insert_And_Register_Statements (Operation_Name);
 
-            --  Prepare the case alternative * Discret Choice : value
+            --  Prepare the case alternative * Discrete Choice : value
             --  of N_Subprogram minus 1
 
-            Discret_Choice_Value := New_Integer_Value
+            Discrete_Choice_Value := New_Integer_Value
               (N_Subprograms - 1, 1, 10);
 
-            N := Make_Block_Statement
-              (Declarative_Part => Declarative_Part,
-               Statements       => Statements);
-
             N := Make_Case_Statement_Alternative
-              (New_List (Make_Literal (Discret_Choice_Value)),
+              (New_List (Make_Literal (Discrete_Choice_Value)),
                New_List (N));
          end if;
 
@@ -1651,13 +1731,20 @@ package body Backend.BE_CORBA_Ada.Skels is
             Method_Name_1 : String;
             Method_Name_2 : String := "")
          is
-            N              : Node_Id;
-            Discret_Choice : Node_Id;
-            Op_Name        : Name_Id;
-            C              : Node_Id;
+            N                    : Node_Id;
+            Discrete_Choice      : Node_Id;
+            Op_Name_1, Op_Name_2 : Name_Id;
+            C                    : Node_Id;
          begin
-            N := Make_Block_Statement (Declarative_Part => Declarations,
-                                       Statements       => Statements);
+            Set_Str_To_Name_Buffer (Method_Name_1);
+            Op_Name_1 := Name_Find;
+            if Method_Name_2 /= "" then
+               Set_Str_To_Name_Buffer (Method_Name_2);
+               Op_Name_2 := Name_Find;
+            end if;
+
+            N := Gen_Invoke_Method
+              (Op_Name_1, Declarations, Statements);
 
             --  If no optimization is requested by the user, we
             --  generate an elsif statement. Else, we generate a case
@@ -1665,24 +1752,19 @@ package body Backend.BE_CORBA_Ada.Skels is
 
             if not Use_Minimal_Hash_Function then
 
-               Set_Str_To_Name_Buffer (Method_Name_1);
-               Op_Name := Name_Find;
-
                C := Make_Expression
                  (Make_Defining_Identifier (VN (V_Operation)),
                   Op_Equal,
-                  Make_Literal (New_String_Value (Op_Name, False)));
+                  Make_Literal (New_String_Value (Op_Name_1, False)));
 
-               if Method_Name_2'Length /= 0 then
+               if Method_Name_2 /= "" then
                   declare
                      C_2 : Node_Id;
                   begin
-                     Set_Str_To_Name_Buffer (Method_Name_1);
-                     Op_Name := Name_Find;
                      C_2 := Make_Expression
                        (Make_Defining_Identifier (VN (V_Operation)),
                         Op_Equal,
-                        Make_Literal (New_String_Value (Op_Name, False)));
+                        Make_Literal (New_String_Value (Op_Name_2, False)));
                      C := Make_Expression (C, Op_Or_Else, C_2);
                   end;
                end if;
@@ -1693,33 +1775,31 @@ package body Backend.BE_CORBA_Ada.Skels is
                --  Insert the subprogram name into the hash function
                --  generator and add a call to Register_Procedure
 
-               Set_Str_To_Name_Buffer (Method_Name_1);
-               Insert_And_Register_Statements (Name_Find);
+               Insert_And_Register_Statements (Op_Name_1);
 
                --  Prepare the case alternative
 
-               --  * Discret Choice : value of N_Subprogram minus 1
+               --  * Discrete Choice : value of N_Subprogram minus 1
 
-               Discret_Choice := Make_Literal
+               Discrete_Choice := Make_Literal
                  (New_Integer_Value (N_Subprograms - 1, 1, 10));
 
-               if Method_Name_2'Length /= 0 then
+               if Method_Name_2 /= "" then
                   declare
                      DC_2 : Node_Id;
                   begin
-                     Set_Str_To_Name_Buffer (Method_Name_2);
-                     Insert_And_Register_Statements (Name_Find);
+                     Insert_And_Register_Statements (Op_Name_2);
 
                      DC_2 := Make_Literal
                        (New_Integer_Value (N_Subprograms - 1, 1, 10));
 
-                     Discret_Choice := Make_Expression
-                       (Discret_Choice, Op_Vertical_Bar, DC_2);
+                     Discrete_Choice := Make_Expression
+                       (Discrete_Choice, Op_Vertical_Bar, DC_2);
                   end;
                end if;
 
                N := Make_Case_Statement_Alternative
-                 (New_List (Discret_Choice),
+                 (New_List (Discrete_Choice),
                   New_List (N));
             end if;
 
@@ -1728,6 +1808,9 @@ package body Backend.BE_CORBA_Ada.Skels is
          end Add_Implicit_CORBA_Method;
 
          N       : Node_Id;
+
+         --  Start of processing for Implicit_CORBA_Methods
+
       begin
          --  For each implicit CORBA Method, add a similar block
          --  statement
@@ -2409,6 +2492,7 @@ package body Backend.BE_CORBA_Ada.Skels is
          Set_Skeleton_Body;
 
          Invoke_Then_Statements := New_List;
+         Invoke_Methods         := New_List;
          Package_Initialization := New_List;
          Dependency_List        := New_List;
          Has_Operations         := False;
@@ -2450,10 +2534,10 @@ package body Backend.BE_CORBA_Ada.Skels is
 
          Is_A_Invk_Part := Is_A_Invoke_Part;
 
-         --  Here, we assign the list of the the implicit CORBA methods. It's
+         --  Here, we assign the list of the implicit CORBA methods. It's
          --  important to do this before the finalization of the hash function
          --  generator (in case of optimisation) so that all the hash keys
-         --  could be inserted before the computation phase of the algorithm.
+         --  can be inserted before the computation phase of the algorithm.
 
          Implicit_CORBA := Implicit_CORBA_Methods;
 
@@ -2597,4 +2681,5 @@ package body Backend.BE_CORBA_Ada.Skels is
       end Visit_Specification;
 
    end Package_Body;
+
 end Backend.BE_CORBA_Ada.Skels;
