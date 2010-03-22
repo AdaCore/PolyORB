@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -43,21 +43,25 @@ package body Backend.Config is
 
    procedure Initialize is
    begin
-      Register
+      Register_Language
         (BE_IDL.Generate'Access,
          BE_IDL.Usage'Access,
          "idl",
          "Dump parsed IDL file");
-      Register
+      Register_Language
         (BE_CORBA_Ada.Generate'Access,
          BE_CORBA_Ada.Usage'Access,
          "ada",
          "Generate Ada source code");
-      Register
+      Register_Language
         (BE_Types.Generate'Access,
          BE_Types.Usage'Access,
          "types",
          "Generate a list of all types present in the IDL file");
+
+      --  Now set the current language to the default
+
+      Set_Current_Language ("ada");
    end Initialize;
 
 end Backend.Config;

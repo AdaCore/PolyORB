@@ -87,7 +87,7 @@ procedure IAC is
       --  %iac [general_switches] [-<backend>] [backend_switches] file
       --       [-cppargs preprocessor_flags]
 
-      --  Check whether the user precised the Backend to use ...
+      --  Check whether the user specified the Backend to use ...
 
       Initialize_Option_Scan;
       for I in 1 .. Argument_Count loop
@@ -103,12 +103,6 @@ procedure IAC is
             Found_Language := True;
          end if;
       end loop;
-
-      --  ... else we use the default backend
-
-      if not Found_Language then
-         Backend.Set_Current_Language (Backend.Current_Language);
-      end if;
 
       Initialize_Option_Scan ('-', False, "cppargs");
       loop
@@ -428,6 +422,15 @@ begin
    Generate (IDL_Spec);
 
 exception
+   --  We silently quit on Fatal_Error, because an error message has already
+   --  been issued.
+
+   when Fatal_Error =>
+      null;
+
+   --  Other exceptions are considered bugs. Print a "bug box", and exit with
+   --  non-zero exit code.
+
    when E : others =>
       declare
          Exception_String : constant String :=
