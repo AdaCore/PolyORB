@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2004-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -43,7 +43,9 @@ package Errors is
    --  Raised when idlac reaches an internal inconsistent state
 
    Fatal_Error : exception;
-   --  Raised when idlac has detected an external inconsistent state
+   --  Raised when idlac has detected an external inconsistent state; that is,
+   --  a user error like source-file-not-found. Whenever you raise Fatal_Error,
+   --  you should print an error message first.
 
    procedure Display_Error (S : String);
    procedure DE (S : String) renames Display_Error;

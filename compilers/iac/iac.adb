@@ -422,14 +422,14 @@ begin
    Generate (IDL_Spec);
 
 exception
-   --  We silently quit on Fatal_Error, because an error message has already
-   --  been issued.
+   --  We don't print a bug box on Fatal_Error, because an error message has
+   --  already been issued. We just set the exit status to non-zero.
 
    when Fatal_Error =>
-      null;
+      OS_Exit (1);
 
    --  Other exceptions are considered bugs. Print a "bug box", and exit with
-   --  non-zero exit code.
+   --  non-zero exit status.
 
    when E : others =>
       declare
