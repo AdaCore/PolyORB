@@ -447,19 +447,20 @@ its complexity, but it is clear that most of it can be automatically
 generated. Message passing diverts developer's attention from the
 application domain. The query and reply scenario is a classical scheme
 in distributed applications; using message passing for such a scheme
-can be compared to using a ``goto'' mechanism in a non-distributed
+can be compared to only using the ``goto'' mechanism in a non-distributed
 application.  This is considered unacceptable methodology in modern software
-engineering. A more robust design is be to use a
-structured approach based on procedure calls.
+engineering. A cleaner and more structured approach consists in using
+subprograms.
 
-In some respects, network programming can be compared to the
-multi-threading programming issue. The user can decide to split his code
-into several pieces and to multiplex the thread executions himself, using a
-table-driven model. The scheduling code ends up embedded into the user
+In some respects, network programming can be compared to parallel programming.
+The user can decide to split his code
+into several pieces and to multiplex the execution of threads himself, using
+a table-driven model. The scheduling code ends up embedded in the user
 code. This solution is error-prone and fragile in regard to any future
-modification. Relying on an implementation of threads such as provided in
-POSIX is a better solution. Relying on language primitives that support
-concurrency, such as Ada tasks, is best.
+modification. Relying on an implementation of threads such as provided in a
+POSIX operating environment is a better solution. Relying on language
+primitives that support concurrency, such as Ada tasks, is best, as the
+underlying parallelism support is thus entirely abstracted.
 
 @node Using a Middleware Environment, Using a Distributed Language, Using OS Network Services, Introduction to distributed systems
 @subsection Using a Middleware Environment
@@ -493,10 +494,10 @@ aware of their underlying message-passing implementation. In addition. the user
 may also require a number of more complex services to develop his
 distributed application. Some of these services are indispensable, for example
 a location service that allows clients to reference remote services via
-higher level names, instead of a traditional scheme for addressing remote
-services that use Internet host addresses and communication port
-numbers. Other services provide domain-independent interfaces that are
-frequently used by distributed applications.
+high level names (as opposed to a low level addressing scheme involving
+transport-specific endpoint addresses such as IP addresses and port numbers).
+Other services provide domain-independent interfaces that are frequently
+used by distributed applications.
 
 If we return to the multi-threaded programming comparison, the
 middleware solution is close to what a POSIX library or a language like
