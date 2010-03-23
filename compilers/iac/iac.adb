@@ -343,6 +343,7 @@ begin
       else
          Error_Name (1) := Main_Source;
          DE ("%not found");
+         raise Fatal_Error;
       end if;
    end if;
 
