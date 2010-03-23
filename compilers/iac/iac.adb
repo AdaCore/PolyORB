@@ -113,7 +113,12 @@ procedure IAC is
                exit;
 
             when 'b' =>
-               BEI.Default_Base := Natural'Value (Parameter);
+               begin
+                  BEI.Default_Base := Natural'Value (Parameter);
+               exception
+                  when Constraint_Error =>
+                     raise Invalid_Parameter;
+               end;
 
             when 'c' =>
                BEA.Disable_Server_Code_Gen := True;
@@ -182,7 +187,7 @@ procedure IAC is
                         BEA.Optimization_Mode := Memory_Space;
 
                      when others =>
-                        raise Program_Error;
+                        raise Invalid_Switch;
                   end case;
                end;
 
@@ -256,7 +261,7 @@ procedure IAC is
                         BEA.Use_Optimized_Buffers_Allocation := True;
 
                      when others =>
-                        raise Program_Error;
+                        raise Invalid_Switch;
                   end case;
                end;
 
@@ -268,7 +273,7 @@ procedure IAC is
                  and then Full_Switch /= "idl"
                  and then Full_Switch /= "types"
                then
-                  raise Program_Error;
+                  raise Invalid_Switch;
                end if;
          end case;
       end loop;
@@ -293,16 +298,22 @@ procedure IAC is
          BEA.Disable_Pkg_Spec_Gen := False;
       end if;
 
-      if Main_Source = No_Name then
-         Set_Str_To_Name_Buffer (Get_Argument);
-         if Name_Len /= 0 then
-            Main_Source := Name_Find;
+      Set_Str_To_Name_Buffer (Get_Argument);
+      if Name_Len /= 0 then
+         Main_Source := Name_Find;
+
+         if Get_Argument /= "" then
+            DE ("only one file name allowed");
          end if;
       end if;
+
+   --  These exceptions can come from Getopt, or be raised explicitly above
 
    exception
       when Invalid_Switch =>
          DE ("invalid switch: " & Full_Switch);
+      when Invalid_Parameter =>
+         DE ("invalid or missing parameter for switch: " & Full_Switch);
    end Scan_Switches;
 
    Preprocessed_File : File_Descriptor;
@@ -320,6 +331,7 @@ begin
    Scopes.Initialize;
 
    if Main_Source = No_Name then
+      DE ("missing .idl input file");
       Usage;
    end if;
 
