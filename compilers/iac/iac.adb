@@ -61,8 +61,22 @@ with Backend.BE_Types;
 
 procedure IAC is
 
+   procedure Command_Line_Error (Message : String);
+   --  Print out the error message and exit the program with non-zero status
+
    procedure Scan_Switches;
-   --  Scan command line switches and update Flags accordingly
+   --  Scan command line switches and update Flags accordingly. If the help
+   --  option (-h) is given, this does not return, but calls OS_Exit.
+
+   ------------------------
+   -- Command_Line_Error --
+   ------------------------
+
+   procedure Command_Line_Error (Message : String) is
+   begin
+      DE (Message);
+      OS_Exit (1);
+   end Command_Line_Error;
 
    -------------------
    -- Scan_Switches --
@@ -106,7 +120,7 @@ procedure IAC is
 
       Initialize_Option_Scan ('-', False, "cppargs");
       loop
-         case Getopt ("b: c d g! E e h! I: i k o: p q r! s t! ada idl "
+         case Getopt ("b: c d g! E e h hc hm I: i k o: p q r! s t! ada idl "
                       & "ir noir nocpp types") is
 
             when ASCII.NUL =>
@@ -176,24 +190,30 @@ procedure IAC is
                end if;
 
             when 'h' =>
-               declare
-                  S : constant String := Parameter;
-               begin
-                  case S (S'First) is
-                     when 'c' =>
-                        BEA.Optimization_Mode := CPU_Time;
+               --  Help switch (-h) prints usage message and exits the program
+               --  without doing anything else.
 
-                     when 'm' =>
-                        BEA.Optimization_Mode := Memory_Space;
+               if Full_Switch = "h" then
+                  Usage;
+                  OS_Exit (0);
 
-                     when others =>
-                        raise Invalid_Switch;
-                  end case;
-               end;
+               elsif Full_Switch = "hc" then
+                  BEA.Optimization_Mode := CPU_Time;
+
+               elsif Full_Switch = "hm" then
+                  BEA.Optimization_Mode := Memory_Space;
+
+               else
+                  --  Can't get here, because we already processed the '-h'
+                  --  switch.
+
+                  raise Program_Error;
+               end if;
 
             when 'i' =>
                if Full_Switch = "i" then
                   BEA.Impl_Packages_Gen := True;
+
                elsif Full_Switch = "ir" then
                   BEA.IR_Info_Packages_Gen := True;
                end if;
@@ -303,7 +323,7 @@ procedure IAC is
          Main_Source := Name_Find;
 
          if Get_Argument /= "" then
-            DE ("only one file name allowed");
+            Command_Line_Error ("only one file name allowed");
          end if;
       end if;
 
@@ -311,9 +331,10 @@ procedure IAC is
 
    exception
       when Invalid_Switch =>
-         DE ("invalid switch: " & Full_Switch);
+         Command_Line_Error ("invalid switch: " & Full_Switch);
       when Invalid_Parameter =>
-         DE ("invalid or missing parameter for switch: " & Full_Switch);
+         Command_Line_Error
+           ("invalid or missing parameter for switch: " & Full_Switch);
    end Scan_Switches;
 
    Preprocessed_File : File_Descriptor;
@@ -331,8 +352,7 @@ begin
    Scopes.Initialize;
 
    if Main_Source = No_Name then
-      DE ("missing .idl input file");
-      Usage;
+      Command_Line_Error ("missing .idl input file");
    end if;
 
    Get_Name_String (Main_Source);
@@ -342,8 +362,7 @@ begin
          Main_Source := Name_Find;
       else
          Error_Name (1) := Main_Source;
-         DE ("%not found");
-         raise Fatal_Error;
+         Command_Line_Error ("%not found");
       end if;
    end if;
 
@@ -439,7 +458,7 @@ exception
    --  already been issued. We just set the exit status to non-zero.
 
    when Fatal_Error =>
-      OS_Exit (1);
+      OS_Exit (2);
 
    --  Other exceptions are considered bugs. Print a "bug box", and exit with
    --  non-zero exit status.

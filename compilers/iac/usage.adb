@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -33,8 +33,6 @@
 
 with Ada.Command_Line; use Ada.Command_Line;
 
-with GNAT.OS_Lib; use GNAT.OS_Lib;
-
 with Backend; use Backend;
 with Output;  use Output;
 with Platform;
@@ -46,6 +44,8 @@ begin
    Write_Str  ("Usage: ");
    Write_Str  (Command_Name);
    Write_Line (" opts file [-cppargs args]");
+   Write_Eol;
+   Write_Line ("  -h       Print this help message, and do nothing else");
    Write_Eol;
    Write_Line ("  name is a file from which you can omit the .idl suffix");
    Write_Eol;
@@ -67,5 +67,4 @@ begin
    Write_Line ("  -<lang>  Generate code for a supported language");
    Write_Eol;
    Write_Languages (4, 12);
-   OS_Exit (1);
 end Usage;
