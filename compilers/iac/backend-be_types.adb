@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -552,7 +552,7 @@ package body Backend.BE_Types is
       Hdr : constant String (1 .. Indent - 1) := (others => ' ');
    begin
       Write_Str (Hdr);
-      Write_Str ("-p       Print the list generate");
+      Write_Str ("-p       Print the list generated");
       Write_Eol;
    end Usage;
 

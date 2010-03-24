@@ -230,17 +230,15 @@ procedure IAC is
                end if;
 
             when 'o' =>
-               if Output_Directory /= null
-                 or else not GNAT.OS_Lib.Is_Directory (Parameter)
-               then
-                  raise Invalid_Parameter;
-               else
+               if GNAT.OS_Lib.Is_Directory (Parameter) then
                   if Is_Dir_Separator (Parameter (Parameter'Last)) then
                      Output_Directory := new String'(Parameter);
                   else
                      Output_Directory := new String'
                        (Parameter & Directory_Operations.Dir_Separator);
                   end if;
+               else
+                  Command_Line_Error (Parameter & ": directory not found");
                end if;
 
             when 'p' =>

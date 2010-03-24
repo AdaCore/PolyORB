@@ -824,9 +824,9 @@ Available options for the 'configure' script include:
       e.g.   @option{--with-proto-perso="giop soap"} to build both the GIOP
              and SOAP personalities
 
-@item  @option{--with-idl-compiler="..."}: select default IDL compiler
+@item  @option{--with-idl-compiler="..."}: select IDL compiler
 
-       Available IDL compilers: iac, idlac
+       Available IDL compilers: iac (default), idlac
 
        e.g.  @option{--with-idl-compiler=''iac''} to build iac
 
@@ -1898,15 +1898,146 @@ To build the CORBA application personality, @pxref{Installation}.
 PolyORB provides two IDL-to-Ada compilers:
 
 @enumerate
+@item @command{iac} is the new, optimized PolyORB IDL-to-Ada compiler.
 @item @command{idlac} is the legacy PolyORB IDL-to-Ada compiler,
-@item @command{iac} is the new, optimized IDL-to-Ada compiler.
 @end enumerate
 
 @menu
-* Usage of idlac::
 * Usage of iac::
+* Usage of idlac::
 * Difference between idlac and iac::
 @end menu
+
+@c -------------------------------------------------------------------
+@node Usage of iac
+@subsection Usage of @command{iac}
+@cindex @command{iac}
+@c -------------------------------------------------------------------
+
+@noindent
+@command{iac} is PolyORB's new IDL-to-Ada compiler. It supports
+many command line parameters to control code generation optimizations
+such as use of static hashing for deterministic request dispatching,
+and optimized GIOP marshalling for CORBA applications.
+
+@smallexample
+
+@c XXX check consistency with corresponding man page
+
+NAME
+       iac - PolyORB's IDL-to-Ada compiler
+
+SYNOPSIS
+       iac [options] file [-cppargs args...]
+
+DESCRIPTION
+       iac is an IDL-to-Ada compiler, compliant with version 1.2 of the
+       ``Ada Language Mapping Specification'' produced by the OMG.
+
+OPTIONS
+       iac accepts the following options:
+
+@c The following needs to be kept in sync with the usage message printed
+@c by 'iac -h'.
+
+  -h       Print this help message, and do nothing else
+
+  file is the name of the .idl file (.idl suffix optional)
+
+  -E       Preprocess only
+  -k       Keep temporary files
+  -o DIR   Output directory (DIR must exist)
+  -p       Produce source on standard output
+  -q       Quiet mode
+
+  -dm      Generate debug messages when analyzing scopes
+
+  -df      Dump the frontend tree (the IDL tree)
+
+  -cppargs Pass arguments to the C++ preprocessor
+  -I <dir> Shortcut -cppargs -I directory. Use this flag
+           for the imported entities
+  -nocpp   Do not preprocess input
+
+  -<lang>  Generate code for one of the following languages:
+
+   types   Generate a list of all types present in the IDL file
+           -p       Print the list generated
+
+   ada     Generate Ada source code
+           -i       Generate implementation packages
+           -c       Generate code for client side only
+           -s       Generate code for server side only
+           -d       Generate delegation package (defunct)
+           -ir      Generate code for interface repository (defunct)
+           -noir    Do not generate code for interface repository (default)
+           -hc      Minimize CPU time in perfect hash tables in skels
+           -hm      Minimize memory use in perfect hash tables in skels
+                    This is the default.
+           -rs      Use the SII/SSI to handle requests
+           -rd      Use the DII/DSI to handle requests (default)
+           -da      Dump the Ada tree
+           -db      Generate only the package bodies
+           -ds      Generate only the package specs
+           -dw      Output the withed entities
+           -dt      Output tree warnings
+           -di      Generate code for imported entities
+
+   idl     Dump parsed IDL file
+           -b n     Base to output integer literals
+                    As a default (zero) use base from input
+           -e       Expand IDL Tree
+           -df      Dump IDL Tree (may be used in conjunction with -e
+                    to dump the expanded IDL tree)
+           -di      Output IDL code of imported entities  (may be
+                    used in conjunction with -e to output the
+                    expanded IDL code)
+
+EXIT STATUS
+       iac returns one of the following values upon exit:
+
+       0      Successful completion
+
+       1      Usage error
+
+       2      Illegal IDL specification
+
+@end smallexample
+
+@noindent
+@command{iac} creates several files :
+
+
+@itemize @bullet
+
+@item  @code{myinterface.ads}, @code{myinterface.adb} : these files contain
+  the mapping for user defined types (client and server side).
+
+@item @code{myinterface-impl.ads}, @code{myinterface-impl.adb} :
+  these files are to be filled in by the user. They contain the
+implementation of the server. They are generated only if the -i flag
+is specified.
+
+@item @code{myinterface.ads}, @code{myinterface.adb} : these files
+  contain the client stubs for the interface.
+
+@item @code{myinterface-skel.ads}, @code{myinterface-skel.adb} : these files
+  contain the server-side skeletons for the interface.
+
+@item @code{myinterface-helper.ads}, @code{myinterface-helper.adb} : these
+  files contain subprograms to marshal data into CORBA Any containers.
+
+@item @code{myinterface-ir_info.ads}, @code{myinterface-ir_info.adb} : these
+  files contain code for registering IDL definitions in the CORBA
+Interface Repository. They are generated only if the @code{'-ir'} flag
+is specified.
+
+@item @code{myinterface-cdr.ads}, @code{myinterface-cdr.adb} : these
+  files contain code for optimized CDR marshalling of GIOP
+messages. They are generated only if the @code{'-rs'} flag is
+specified.
+
+@end itemize
 
 @c -------------------------------------------------------------------
 @node Usage of idlac
@@ -2005,130 +2136,6 @@ EXIT STATUS
   files contain code for registering IDL definitions in the CORBA Interface
   Repository. They are generated only if the @code{'-ir'} flag is specified.
 
-
-@end itemize
-
-@c -------------------------------------------------------------------
-@node Usage of iac
-@subsection Usage of @command{iac}
-@cindex @command{iac}
-@c -------------------------------------------------------------------
-
-@noindent
-@command{iac} is PolyORB's new IDL-to-Ada compiler. It supports
-many command line parameters to control code generation optimizations
-such as use of static hashing for deterministic request dispatching,
-and optimized GIOP marshalling for CORBA applications.
-
-@smallexample
-
-@c XXX check consistency with corresponding man page
-
-NAME
-       iac - PolyORB's IDL-to-Ada compiler
-
-SYNOPSIS
-       iac [-Edikpqv] [-[no]ir] [-gnatW8] [-o DIR] idl_file [-cppargs ...]
-
-DESCRIPTION
-       iac is an IDL-to-Ada compiler, compliant with version 1.2 of the
-       ``Ada Language Mapping Specification'' produced by the OMG.
-
-OPTIONS
-       iac accepts the following options:
-
-  -E       Preprocess only
-  -k       Keep temporary files
-  -p       Produce source on standard output
-  -o DIR   Specify output directory (DIR must exist)
-
-  -dm      Generate debug messages when analyzing scopes
-
-  -df      Dump the frontend tree (the IDL tree)
-
-  -cppargs Pass arguments to the C++ preprocessor
-  -I <dir> Shortcut -cppargs -I directory. Use this flag
-           for the imported entities
-  -nocpp   Do not preprocess input
-
-  -<lang>  Generate code for a supported language
-
-   types   Generate a list of all types present in the IDL file
-           -p       Print the list generate
-
-   ada     Generate Ada source code
-           -i       Generate implementation packages
-           -c       Generate code for client side only
-           -s       Generate code for server side only
-           -d       Generate delegation package (defunct)
-           -ir      Generate code for interface repository (defunct)
-           -noir    Do not generate code for interface repository (default)
-           -hc      Using perfect minimal hash tables in skeletons
-                    and minimize CPU time
-           -hm      Using perfect minimal hash tables in skeletons
-                    and minimize memory space. This is the default.
-           -rs      Use the SII/SSI to handle requests
-           -rd      Use the DII/DSI to handle requests (default)
-           -da      Dump the Ada tree
-           -db      Generate only the package bodies
-           -ds      Generate only the package specs
-           -dw      Output the withed entities
-           -dt      Output tree warnings
-           -di      Generate code for imported entities
-
-   idl     Dump parsed IDL file
-           -b n     Base to output integer literal
-                    As a default (zero) use base from input
-           -e       Expand IDL Tree
-           -df      Dump IDL Tree (may be used in conjunction with -e
-                    to dump the expanded IDL tree)
-           -di      Output IDL code of imported entities  (may be
-                    used in conjunction with -e to output the
-                    expanded IDL code)
-
-EXIT STATUS
-       iac returns one of the following values upon exit:
-
-       0      Successful completion
-
-       1      Usage error
-
-       2      Illegal IDL specification
-
-@end smallexample
-
-@noindent
-@command{iac} creates several files :
-
-
-@itemize @bullet
-
-@item  @code{myinterface.ads}, @code{myinterface.adb} : these files contain
-  the mapping for user defined types (client and server side).
-
-@item @code{myinterface-impl.ads}, @code{myinterface-impl.adb} :
-  these files are to be filled in by the user. They contain the
-implementation of the server. They are generated only if the -i flag
-is specified.
-
-@item @code{myinterface.ads}, @code{myinterface.adb} : these files
-  contain the client stubs for the interface.
-
-@item @code{myinterface-skel.ads}, @code{myinterface-skel.adb} : these files
-  contain the server-side skeletons for the interface.
-
-@item @code{myinterface-helper.ads}, @code{myinterface-helper.adb} : these
-  files contain subprograms to marshal data into CORBA Any containers.
-
-@item @code{myinterface-ir_info.ads}, @code{myinterface-ir_info.adb} : these
-  files contain code for registering IDL definitions in the CORBA
-Interface Repository. They are generated only if the @code{'-ir'} flag
-is specified.
-
-@item @code{myinterface-cdr.ads}, @code{myinterface-cdr.adb} : these
-  files contain code for optimized CDR marshalling of GIOP
-messages. They are generated only if the @code{'-rs'} flag is
-specified.
 
 @end itemize
 

@@ -110,18 +110,16 @@ package body Backend.BE_CORBA_Ada is
       Write_Line
         (Hdr & "-d       Generate delegation package (defunct)");
       Write_Line
-        (Hdr & "-ir      Generate code for interface repository");
+        (Hdr & "-ir      Generate code for interface repository (defunct)");
       Write_Line
         (Hdr & "-noir    Do not generate code for interface repository "
          & "(default)");
       Write_Line
-        (Hdr & "-hc      Using perfect minimal hash tables in skeletons");
+        (Hdr & "-hc      Minimize CPU time in perfect hash tables in skels");
       Write_Line
-        (Hdr & "         and minimize CPU time");
+        (Hdr & "-hm      Minimize memory use in perfect hash tables in skels");
       Write_Line
-        (Hdr & "-hm      Using perfect minimal hash tables in skeletons");
-      Write_Line
-        (Hdr & "         and minimize memory space. This is the default.");
+        (Hdr & "         This is the default.");
       Write_Line
         (Hdr & "-rs      Use the SII/SSI to handle requests");
 
