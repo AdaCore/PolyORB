@@ -396,7 +396,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
    function Map_Container_Name (E : Node_Id) return Name_Id is
       The_Name : constant Name_Id := To_Ada_Name (IDL_Name (Identifier (E)));
    begin
-      Set_Str_To_Name_Buffer ("Content_Ü_");
+      Set_Str_To_Name_Buffer ("Content" & Unique_Infix);
       Get_Name_String_And_Append (The_Name);
       return Name_Find;
    end Map_Container_Name;
@@ -629,7 +629,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
 
       Type_Name : constant Name_Id := Map_Fixed_Type_Name (F);
    begin
-      Set_Str_To_Name_Buffer ("Helper_Ü_");
+      Set_Str_To_Name_Buffer ("Helper" & Unique_Infix);
       Get_Name_String_And_Append (Type_Name);
       return Name_Find;
    end Map_Fixed_Type_Helper_Name;
@@ -911,7 +911,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
    function Map_Indices_Name (D : Node_Id) return Name_Id is
       The_Name : constant Name_Id := To_Ada_Name (IDL_Name (Identifier (D)));
    begin
-      Set_Str_To_Name_Buffer ("Indices_Ü_");
+      Set_Str_To_Name_Buffer ("Indices" & Unique_Infix);
       Get_Name_String_And_Append (The_Name);
       return Name_Find;
    end Map_Indices_Name;
@@ -923,7 +923,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
    function Map_Lengths_Name (D : Node_Id) return Name_Id is
       The_Name : constant Name_Id := To_Ada_Name (IDL_Name (Identifier (D)));
    begin
-      Set_Str_To_Name_Buffer ("Lengths_Ü_");
+      Set_Str_To_Name_Buffer ("Lengths" & Unique_Infix);
       Get_Name_String_And_Append (The_Name);
       return Name_Find;
    end Map_Lengths_Name;
@@ -1006,7 +1006,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
    function Map_Pointer_Type_Name (E : Node_Id) return Name_Id is
       Type_Name : constant Name_Id := To_Ada_Name (IDL_Name (Identifier (E)));
    begin
-      Set_Str_To_Name_Buffer ("Ptr_Ü_");
+      Set_Str_To_Name_Buffer ("Ptr" & Unique_Infix);
       Get_Name_String_And_Append (Type_Name);
 
       return Name_Find;
@@ -3330,7 +3330,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
       Get_Name_String (O);
       Add_Str_To_Name_Buffer ("_Arg_Name_");
       Get_Name_String_And_Append (P);
-      Add_Str_To_Name_Buffer ("_Ü");
+      Add_Str_To_Name_Buffer (Unique_Suffix);
       return Name_Find;
    end Map_Argument_Identifier_Name;
 
@@ -3342,7 +3342,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
    begin
       Set_Str_To_Name_Buffer ("Argument_");
       Get_Name_String_And_Append (P);
-      Add_Str_To_Name_Buffer ("_Ü");
+      Add_Str_To_Name_Buffer (Unique_Suffix);
       return Name_Find;
    end Map_Argument_Name;
 
@@ -3354,7 +3354,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
    begin
       Set_Str_To_Name_Buffer ("Arg_CC_");
       Get_Name_String_And_Append (P);
-      Add_Str_To_Name_Buffer ("_Ü");
+      Add_Str_To_Name_Buffer (Unique_Suffix);
       return Name_Find;
    end Map_Argument_Content_Name;
 
@@ -3366,7 +3366,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
    begin
       Set_Str_To_Name_Buffer ("Arg_Any_");
       Get_Name_String_And_Append (P);
-      Add_Str_To_Name_Buffer ("_Ü");
+      Add_Str_To_Name_Buffer (Unique_Suffix);
       return Name_Find;
    end Map_Argument_Any_Name;
 
@@ -3377,7 +3377,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
    function Map_Result_Subprogram_Name (O : Name_Id) return Name_Id is
    begin
       Get_Name_String (O);
-      Add_Str_To_Name_Buffer ("_Result_Ü");
+      Add_Str_To_Name_Buffer ("_Result" & Unique_Suffix);
       return Name_Find;
    end Map_Result_Subprogram_Name;
 
@@ -3388,7 +3388,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
    function Map_Result_Identifier_Name (O : Name_Id) return Name_Id is
    begin
       Get_Name_String (O);
-      Add_Str_To_Name_Buffer ("_Result_Name_Ü");
+      Add_Str_To_Name_Buffer ("_Result_Name" & Unique_Suffix);
       return Name_Find;
    end Map_Result_Identifier_Name;
 

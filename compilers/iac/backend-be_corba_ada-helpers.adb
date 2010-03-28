@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -952,7 +952,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
                Add_Nat_To_Name_Buffer (I);
                Prev_Index_Node := Index_Node;
                Index_Node := Make_Defining_Identifier
-                 (Add_Suffix_To_Name (Var_Suffix, Name_Find));
+                 (Add_Suffix_To_Name (Unique_Suffix, Name_Find));
                Append_To (Index_List, Index_Node);
                Enclosing_Statements := Loop_Statements;
                Loop_Statements := New_List;
@@ -1705,7 +1705,7 @@ package body Backend.BE_CORBA_Ada.Helpers is
                Set_Str_To_Name_Buffer ("I");
                Add_Nat_To_Name_Buffer (I);
                M := Make_Defining_Identifier
-                 (Add_Suffix_To_Name (Var_Suffix, Name_Find));
+                 (Add_Suffix_To_Name (Unique_Suffix, Name_Find));
                Append_To (L, M);
                Enclosing_Statements := Loop_Statements;
                Loop_Statements := New_List;

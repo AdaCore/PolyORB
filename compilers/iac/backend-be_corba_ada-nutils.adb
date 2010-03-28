@@ -70,6 +70,29 @@ package body Backend.BE_CORBA_Ada.Nutils is
 
    use Entity_Stack;
 
+   Latin_1_Unique_String : constant String
+     := (1 => Character'Val (16#DC#));
+   Latin_1_Unique_Suffix : aliased constant String
+     := "_" & Latin_1_Unique_String;
+   Latin_1_Unique_Infix : aliased constant String
+     := Latin_1_Unique_Suffix & "_";
+
+   UTF_8_Unique_String : constant String
+     := (Character'Val (16#C3#), Character'Val (16#9C#));
+   UTF_8_Unique_Suffix : aliased constant String
+     := "_" & UTF_8_Unique_String;
+   UTF_8_Unique_Infix : aliased constant String
+     := UTF_8_Unique_Suffix & "_";
+
+   --  The following are returned by the Unique_Suffix and Unique_Infix
+   --  functions. We initialize them to the default Latin_1 values, and if
+   --  -gnatW8 is given on the command line, they get set to the UTF_8 values.
+
+   The_Unique_Suffix : access constant String
+     := Latin_1_Unique_Suffix'Access;
+   The_Unique_Infix : access constant String
+     := Latin_1_Unique_Infix'Access;
+
    procedure New_Operator (Op : Operator_Type; I : String := "");
 
    function Internal_Name (P : Node_Id; L : GLists) return Name_Id;
@@ -493,6 +516,24 @@ package body Backend.BE_CORBA_Ada.Nutils is
 
       return C;
    end Copy_Node;
+
+   -------------------
+   -- Unique_Suffix --
+   -------------------
+
+   function Unique_Suffix return String is
+   begin
+      return The_Unique_Suffix.all;
+   end Unique_Suffix;
+
+   ------------------
+   -- Unique_Infix --
+   ------------------
+
+   function Unique_Infix return String is
+   begin
+      return The_Unique_Infix.all;
+   end Unique_Infix;
 
    --------------------------
    -- Get_Declaration_Node --
@@ -981,7 +1022,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
       for V in Variable_Id loop
          Set_Str_To_Name_Buffer (Variable_Id'Image (V));
          Set_Str_To_Name_Buffer (Name_Buffer (3 .. Name_Len));
-         Add_Str_To_Name_Buffer (Var_Suffix);
+         Add_Str_To_Name_Buffer (Unique_Suffix);
          GNAT.Case_Util.To_Mixed (Name_Buffer (1 .. Name_Len));
          VN (V) := Name_Find;
       end loop;
@@ -2779,5 +2820,15 @@ package body Backend.BE_CORBA_Ada.Nutils is
 
       return The_List;
    end Get_GList;
+
+   ------------------------
+   -- Set_UTF_8_Encoding --
+   ------------------------
+
+   procedure Set_UTF_8_Encoding is
+   begin
+      The_Unique_Suffix := UTF_8_Unique_Suffix'Access;
+      The_Unique_Infix := UTF_8_Unique_Infix'Access;
+   end Set_UTF_8_Encoding;
 
 end Backend.BE_CORBA_Ada.Nutils;

@@ -56,6 +56,7 @@ with Frontend.Debug;
 
 with Backend.Config;
 with Backend.BE_CORBA_Ada;
+with Backend.BE_CORBA_Ada.Nutils;
 with Backend.BE_IDL;
 with Backend.BE_Types;
 
@@ -121,7 +122,7 @@ procedure IAC is
       Initialize_Option_Scan ('-', False, "cppargs");
       loop
          case Getopt ("b: c d g! E e h hc hm I: i k o: p q r! s t! ada idl "
-                      & "ir noir nocpp types") is
+                      & "ir noir nocpp types gnatW8") is
 
             when ASCII.NUL =>
                exit;
@@ -176,6 +177,13 @@ procedure IAC is
 
             when 'e' =>
                BEI.Expand_Tree := True;
+
+            when 'g' =>
+               if Full_Switch = "gnatW8" then
+                  BEA.Nutils.Set_UTF_8_Encoding;
+               else
+                  raise Program_Error;
+               end if;
 
             when 'I' =>
 
