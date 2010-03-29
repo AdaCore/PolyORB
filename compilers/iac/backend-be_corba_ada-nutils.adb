@@ -70,28 +70,30 @@ package body Backend.BE_CORBA_Ada.Nutils is
 
    use Entity_Stack;
 
-   Latin_1_Unique_String : constant String
-     := (1 => Character'Val (16#DC#));
-   Latin_1_Unique_Suffix : aliased constant String
-     := "_" & Latin_1_Unique_String;
-   Latin_1_Unique_Infix : aliased constant String
-     := Latin_1_Unique_Suffix & "_";
+   --  The following strings are included in internally generated identifiers
+   --  to create names that are guaranteed never to clash with any legal
+   --  IDL identifier.
 
-   UTF_8_Unique_String : constant String
-     := (Character'Val (16#C3#), Character'Val (16#9C#));
-   UTF_8_Unique_Suffix : aliased constant String
-     := "_" & UTF_8_Unique_String;
-   UTF_8_Unique_Infix : aliased constant String
-     := UTF_8_Unique_Suffix & "_";
+   Latin_1_Unique_String : constant String :=
+                             (1 => Character'Val (16#DC#));
+   Latin_1_Unique_Suffix : aliased constant String :=
+                             "_" & Latin_1_Unique_String;
+   Latin_1_Unique_Infix  : aliased constant String :=
+                             Latin_1_Unique_Suffix & "_";
+
+   UTF_8_Unique_String : constant String :=
+                           (Character'Val (16#C3#), Character'Val (16#9C#));
+   UTF_8_Unique_Suffix : aliased constant String :=
+                           "_" & UTF_8_Unique_String;
+   UTF_8_Unique_Infix  : aliased constant String :=
+                           UTF_8_Unique_Suffix & "_";
 
    --  The following are returned by the Unique_Suffix and Unique_Infix
    --  functions. We initialize them to the default Latin_1 values, and if
    --  -gnatW8 is given on the command line, they get set to the UTF_8 values.
 
-   The_Unique_Suffix : access constant String
-     := Latin_1_Unique_Suffix'Access;
-   The_Unique_Infix : access constant String
-     := Latin_1_Unique_Infix'Access;
+   The_Unique_Suffix : access constant String := Latin_1_Unique_Suffix'Access;
+   The_Unique_Infix  : access constant String := Latin_1_Unique_Infix'Access;
 
    procedure New_Operator (Op : Operator_Type; I : String := "");
 
