@@ -184,16 +184,14 @@ package body Backend.BE_CORBA_Ada.Skels is
       --  procedure. As a side effect, generates the spec and body of that
       --  procedure, and appends them to Invoke_Methods. There is one such
       --  procedure for each method, and they are called from the case
-      --  statement in the Helper procedure below.
+      --  statement in the Dispatch procedure below.
 
-      function Gen_Invoke_Helper
+      function Gen_Dispatch
         (Case_Statement : Node_Id) return Node_Id;
-      --  Generates and returns a call to the Helper procedure. As a side
+      --  Generates and returns a call to the Dispatch procedure. As a side
       --  effect, generates the spec and body of that procedure, and appends
-      --  them to Invoke_Methods. The Helper procedure contains a case
-      --  statement that calls the appropriate Invoke_<Operation_Name>. Note
-      --  that this procedure is called "Helper" (as opposed to Invoke_Helper)
-      --  to avoid possible conflict with some Invoke_<Operation_Name>.
+      --  them to Invoke_Methods. The Dispatch procedure contains a case
+      --  statement that calls the appropriate Invoke_<Operation_Name>.
 
       function Deferred_Initialization_Body (E : Node_Id) return Node_Id;
       --  Generate the body of the deferred initialization procedure
@@ -208,8 +206,8 @@ package body Backend.BE_CORBA_Ada.Skels is
         return Node_Id;
       --  Generate the body of procedure Invoke. This body contains one nested
       --  procedure Invoke_<Operation_Name> for each method, plus a procedure
-      --  Helper, which contains a case statement calling all the procedures
-      --  Invoke_<Operation_Name>. Invoke calls Helper and catches
+      --  Dispatch, which contains a case statement calling all the procedures
+      --  Invoke_<Operation_Name>. Invoke calls Dispatch and catches
       --  exceptions. One reason for separating out the nested procedures is to
       --  make the generated code compile in a reasonable amount of time/memory
       --  in sjlj mode. Also, it seems a bit more readable.
@@ -304,29 +302,29 @@ package body Backend.BE_CORBA_Ada.Skels is
       end Deferred_Initialization_Body;
 
       -----------------------
-      -- Gen_Invoke_Helper --
+      -- Gen_Dispatch --
       -----------------------
 
-      function Gen_Invoke_Helper
+      function Gen_Dispatch
         (Case_Statement : Node_Id) return Node_Id is
 
-         Invoke_Helper : constant Node_Id :=
-           Make_Defining_Identifier (SN (S_Helper));
+         Dispatch : constant Node_Id :=
+           Make_Defining_Identifier (SN (S_Dispatch));
 
          N : Node_Id;
       begin
-         N := Make_Subprogram_Specification (Invoke_Helper, No_List);
+         N := Make_Subprogram_Specification (Dispatch, No_List);
          Append_To (Invoke_Methods, N);
          N := Make_Subprogram_Body
            (Specification =>
-              Make_Subprogram_Specification (Invoke_Helper, No_List),
+              Make_Subprogram_Specification (Dispatch, No_List),
             Declarations  => No_List,
             Statements    => New_List (Case_Statement));
          Append_To (Invoke_Methods, N);
 
-         N := Make_Subprogram_Call (Invoke_Helper, No_List);
+         N := Make_Subprogram_Call (Dispatch, No_List);
          return N;
-      end Gen_Invoke_Helper;
+      end Gen_Dispatch;
 
       -----------------------
       -- Gen_Invoke_Method --
@@ -1390,7 +1388,7 @@ package body Backend.BE_CORBA_Ada.Skels is
             N := Make_Case_Statement
               (Make_Identifier (VN (V_Index)),
                Invoke_Subp_Bodies);
-            N := Gen_Invoke_Helper (N);
+            N := Gen_Dispatch (N);
             Append_To (Invoke_Then_Statements, N);
          end if;
 
