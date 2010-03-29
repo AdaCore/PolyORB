@@ -231,7 +231,7 @@ def gen_collect_result(report, show_diffs=False):
 
 def __parse_options():
     """Parse command lines options"""
-    m = Main()
+    m = Main(add_targets_options=True)
     m.add_option('--diffs', dest='diffs', action='store_true',
                  default=False, help='show diffs on stdout')
     m.add_option('-j', '--jobs', dest='jobs', type='int',
