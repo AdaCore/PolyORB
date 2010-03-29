@@ -1972,7 +1972,7 @@ OPTIONS
            -c       Generate code for client side only
            -s       Generate code for server side only
            -d       Generate delegation package (defunct)
-           -ir      Generate code for interface repository (defunct)
+           -ir      Generate code for interface repository
            -noir    Do not generate code for interface repository (default)
            -hc      Minimize CPU time in perfect hash tables in skels
            -hm      Minimize memory use in perfect hash tables in skels
