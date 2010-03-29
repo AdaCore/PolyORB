@@ -39,6 +39,9 @@ with Platform;
 
 procedure Usage is
 begin
+   --  Note: The following text needs to be kept in sync with the documentation
+   --  in polyorb_ug.texi.
+
    Set_Standard_Error;
    Write_Line ("IAC from PolyORB " & Platform.Version);
    Write_Str  ("Usage: ");
