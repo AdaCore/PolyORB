@@ -1959,6 +1959,9 @@ OPTIONS
            for the imported entities
   -nocpp   Do not preprocess input
 
+  -gnatW8  Use UTF-8 character encoding in Ada output.
+           (Default is Latin-1.)
+
   -<lang>  Generate code for one of the following languages:
 
    types   Generate a list of all types present in the IDL file

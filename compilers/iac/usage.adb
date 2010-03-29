@@ -64,6 +64,9 @@ begin
    Write_Line ("           for the imported entities");
    Write_Line ("  -nocpp   Do not preprocess input");
    Write_Eol;
+   Write_Line ("  -gnatW8  Use UTF-8 character encoding in Ada output.");
+   Write_Line ("           (Default is Latin-1.)");
+   Write_Eol;
    Write_Line ("  -<lang>  Generate code for one of the following languages:");
    Write_Eol;
    Write_Languages (4, 12);
