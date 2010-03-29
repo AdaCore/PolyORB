@@ -161,8 +161,8 @@ private
    --  from being preelaborable. So, we call External_Tag indirectly through
    --  a hook that is set during PolyORB initialization.
    --
-   --  Note: Ada.Tags is preelaborable in Ada2005, we need to review this
-   --  dependency
+   --  Note: Ada.Tags is preelaborable in Ada 2005, we need to review this
+   --  dependency.
 
    type Entity_External_Tag_Hook is access
      function (X : Unsafe_Entity'Class) return String;
