@@ -76,6 +76,7 @@ procedure IAC is
    procedure Command_Line_Error (Message : String) is
    begin
       DE (Message);
+      DE ("\type ""iac -h"" for help");
       OS_Exit (1);
    end Command_Line_Error;
 
