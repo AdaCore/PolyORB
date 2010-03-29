@@ -2830,7 +2830,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
    procedure Set_UTF_8_Encoding is
    begin
       The_Unique_Suffix := UTF_8_Unique_Suffix'Access;
-      The_Unique_Infix := UTF_8_Unique_Infix'Access;
+      The_Unique_Infix  := UTF_8_Unique_Infix'Access;
    end Set_UTF_8_Encoding;
 
 end Backend.BE_CORBA_Ada.Nutils;
