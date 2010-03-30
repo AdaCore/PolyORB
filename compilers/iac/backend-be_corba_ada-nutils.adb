@@ -201,7 +201,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
          if No (U) then
             if Output_Tree_Warnings then
                Write_Str  ("WARNING: node ");
-               Write_Name (Name (Defining_Identifier (E)));
+               Write_Name (Name (E));
                Write_Line (" has a null corresponding node");
             end if;
 
