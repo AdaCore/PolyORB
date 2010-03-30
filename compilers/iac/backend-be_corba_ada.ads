@@ -106,25 +106,23 @@ package Backend.BE_CORBA_Ada is
    --  it can be invoked by setting Use_Minimal_Hash_Function to False.
 
    Use_Minimal_Hash_Function : constant Boolean := True;
-   Optimization_Mode         : GNAT.Perfect_Hash_Generators.Optimization
-     := GNAT.Perfect_Hash_Generators.Memory_Space;
+   Optimization_Mode         : GNAT.Perfect_Hash_Generators.Optimization :=
+                                 GNAT.Perfect_Hash_Generators.Memory_Space;
 
    Use_SII : Boolean := False;
    --  The request handling method (SSI or DII). By default, the DII
    --  is used.
 
    Use_Optimized_Buffers_Allocation : Boolean := False;
-   --  Marshaller optimization using a one time allocation by
-   --  calculating the message body size of a GIOP request (used with
-   --  SII handling).
+   --  Marshaller optimization using a one time allocation by calculating the
+   --  message body size of a GIOP request (used with SII handling).
 
    Use_Compiler_Alignment : Boolean := False;
-   --  Marshalling optimization using the representation clause of the
-   --  Ada language to make the padding between parameters (used with
-   --  SII handling).
+   --  Marshalling optimization using Ada representation clauses to create
+   --  the padding between parameters (used with SII handling).
 
-   --  In some particular cases, some parts of the IDL tree must not
-   --  be generated. The entities below achieve this goal.
+   --  In some particular cases, some parts of the IDL tree must not be
+   --  generated. The entities below achieve this goal.
 
    type Package_Type is
      (PK_CDR_Spec,
@@ -147,12 +145,10 @@ package Backend.BE_CORBA_Ada is
 
    function Map_Particular_CORBA_Parts
      (E  : Node_Id;
-      PK : Package_Type)
-     return Boolean;
-   --  The mapping for some predefined CORBA IDL entities (the CORBA
-   --  module) is slightly different from the mapping of other
-   --  ``normal'' IDL entities. This function maps these entities and
-   --  return True if the passed `E' parameter is a Particular CORBA
-   --  entity.
+      PK : Package_Type) return Boolean;
+   --  The mapping for some predefined CORBA IDL entities (the CORBA module)
+   --  is slightly different from the mapping of standard IDL entities. This
+   --  function maps these entities and return True if the E parameter falls
+   --  into the special cases.
 
 end Backend.BE_CORBA_Ada;
