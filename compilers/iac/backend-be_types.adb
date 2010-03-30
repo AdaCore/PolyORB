@@ -195,11 +195,11 @@ package body Backend.BE_Types is
       end if;
 
       --  Open the temporary file
-      Descriptor := Create_New_File (Output_File, Text);
+      Descriptor := Create_File (Output_File, Text);
 
       --  Check the file descriptor
       if Descriptor = Invalid_FD then
-         DE ("fail to open the file called " & Output_File);
+         DE ("cannot create file: " & Output_File);
          raise Fatal_Error;
       end if;
 

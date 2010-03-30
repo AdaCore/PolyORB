@@ -52,7 +52,7 @@ package body Backend.Config is
         (BE_CORBA_Ada.Generate'Access,
          BE_CORBA_Ada.Usage'Access,
          "ada",
-         "Generate Ada source code");
+         "(default) Generate Ada source code");
       Register_Language
         (BE_Types.Generate'Access,
          BE_Types.Usage'Access,

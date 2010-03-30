@@ -1967,7 +1967,7 @@ OPTIONS
    types   Generate a list of all types present in the IDL file
            -p       Print the list generated
 
-   ada     Generate Ada source code
+   ada     (default) Generate Ada source code
            -i       Generate implementation packages
            -c       Generate code for client side only
            -s       Generate code for server side only

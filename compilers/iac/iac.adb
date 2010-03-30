@@ -122,8 +122,9 @@ procedure IAC is
 
       Initialize_Option_Scan ('-', False, "cppargs");
       loop
-         case Getopt ("b: c d E e h hc hm I: i k o: p q r! s t! ada idl "
-                      & "ir noir nocpp types gnatW8") is
+         case Getopt ("b: c d da db df di dm ds dt dw "
+                      & "E e h hc hm I: i k o: p q r! s "
+                      & "ada gnatW8 idl ir noir nocpp types") is
 
             when ASCII.NUL =>
                exit;
