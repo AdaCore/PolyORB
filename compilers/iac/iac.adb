@@ -62,7 +62,8 @@ with Backend.BE_Types;
 
 procedure IAC is
 
-   procedure Command_Line_Error (Message : String);
+   procedure Command_Line_Error (Template : Message_Template);
+   procedure Command_Line_Error (Template : Message_Template; S : String);
    --  Print out the error message and exit the program with non-zero status
 
    procedure Scan_Switches;
@@ -73,9 +74,20 @@ procedure IAC is
    -- Command_Line_Error --
    ------------------------
 
-   procedure Command_Line_Error (Message : String) is
+   procedure Command_Line_Error (Template : Message_Template) is
    begin
-      DE (Message);
+      DE (Template);
+      DE ("\type ""iac -h"" for help");
+      OS_Exit (1);
+   end Command_Line_Error;
+
+   ------------------------
+   -- Command_Line_Error --
+   ------------------------
+
+   procedure Command_Line_Error (Template : Message_Template; S : String) is
+   begin
+      DE (Template, S);
       DE ("\type ""iac -h"" for help");
       OS_Exit (1);
    end Command_Line_Error;
@@ -248,7 +260,7 @@ procedure IAC is
                        (Parameter & Directory_Operations.Dir_Separator);
                   end if;
                else
-                  Command_Line_Error (Parameter & ": directory not found");
+                  Command_Line_Error ("%: directory not found", Parameter);
                end if;
 
             when 'p' =>
@@ -339,10 +351,10 @@ procedure IAC is
 
    exception
       when Invalid_Switch =>
-         Command_Line_Error ("invalid switch: " & Full_Switch);
+         Command_Line_Error ("invalid switch: %", Full_Switch);
       when Invalid_Parameter =>
          Command_Line_Error
-           ("invalid or missing parameter for switch: " & Full_Switch);
+           ("invalid or missing parameter for switch: %", Full_Switch);
    end Scan_Switches;
 
    Preprocessed_File : File_Descriptor;
@@ -444,9 +456,9 @@ begin
 
    if N_Errors > 0 then
       Error_Int (1) := N_Errors;
-      Error_Int (2) := N_Warnings;
 
       if N_Warnings > 0 then
+         Error_Int (2) := N_Warnings;
          DE ("$ error(s) and $ warning(s)");
       else
          DE ("$ error(s)");

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -41,7 +41,7 @@ package body Errors is
    -- Display_Error --
    -------------------
 
-   procedure Display_Error (S : String) is
+   procedure Display_Error (Template : Message_Template) is
       procedure Check_Space;
       --  Ensure the last character of the name buffer is a space
 
@@ -78,8 +78,8 @@ package body Errors is
       Add_Str_To_Name_Buffer (": ");
 
       Kind := K_Error;
-      for J in S'Range loop
-         case S (J) is
+      for J in Template'Range loop
+         case Template (J) is
             when '\' =>
                Kind := K_Continuation;
                exit;
@@ -103,11 +103,11 @@ package body Errors is
             null;
       end case;
 
-      for J in S'Range loop
+      for J in Template'Range loop
 
          --  Process special insertion characters
 
-         case S (J) is
+         case Template (J) is
             when '%' =>
                Check_Space;
                Get_Name_String_And_Append (Error_Name (N));
@@ -158,13 +158,13 @@ package body Errors is
                --  Add space after insertion if not provided by S
 
                if Special then
-                  if S (J) /= ' ' then
+                  if Template (J) /= ' ' then
                      Add_Char_To_Name_Buffer (' ');
                   end if;
                   Special := False;
                end if;
 
-               Add_Char_To_Name_Buffer (S (J));
+               Add_Char_To_Name_Buffer (Template (J));
          end case;
       end loop;
 
@@ -179,6 +179,17 @@ package body Errors is
 
    end Display_Error;
 
+   -------------------
+   -- Display_Error --
+   -------------------
+
+   procedure Display_Error (Template : Message_Template; S : String) is
+   begin
+      Set_Str_To_Name_Buffer (S);
+      Error_Name (1) := Name_Find;
+      Display_Error (Template);
+   end Display_Error;
+
    ----------------
    -- Initialize --
    ----------------
@@ -187,7 +198,7 @@ package body Errors is
    begin
       Error_Loc  := (others => No_Location);
       Error_Name := (others => No_Name);
-      Error_Int  := (others => 0);
+      Error_Int  := (others => Int'Last);
    end Initialize;
 
 end Errors;

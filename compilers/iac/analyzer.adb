@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -342,7 +342,7 @@ package body Analyzer is
          then
             Error_Loc (1)  := Loc (T);
             Error_Name (1) := IDL_Name (Identifier (T));
-            Error_Name (1) := IDL_Name (Identifier (I));
+            Error_Name (2) := IDL_Name (Identifier (I));
             DE ("local interface#cannot appear as attribute " &
                 "in unconstrained interface#");
          end if;
@@ -762,7 +762,7 @@ package body Analyzer is
                then
                   Error_Loc (1)  := Loc (EM);
                   Error_Name (1) := IDL_Name (Identifier (MT));
-                  Error_Name (1) := IDL_Name (Identifier (I));
+                  Error_Name (2) := IDL_Name (Identifier (I));
                   DE ("local interface#cannot appear " &
                       "as an exception declaration " &
                       "in unconstrained interface#");
@@ -796,7 +796,7 @@ package body Analyzer is
          then
             Error_Loc (1)  := Loc (T);
             Error_Name (1) := IDL_Name (Identifier (T));
-            Error_Name (1) := IDL_Name (Identifier (I));
+            Error_Name (2) := IDL_Name (Identifier (I));
             DE ("local interface#cannot appear as parameter " &
                 "in unconstrained interface#");
          end if;
@@ -1577,7 +1577,7 @@ package body Analyzer is
 
       procedure Cannot_Interpret
         (E : Node_Id;
-         S : String;
+         S : Message_Template;
          T : Node_Kind);
       --  Output an error message to indicate that a value cannot be cast to
       --  a given type. E denotes the entity in which the cast occurs, V the
@@ -1587,7 +1587,11 @@ package body Analyzer is
       -- Cannot_Interpret --
       ----------------------
 
-      procedure Cannot_Interpret (E : Node_Id; S : String; T : Node_Kind) is
+      procedure Cannot_Interpret
+        (E : Node_Id;
+         S : Message_Template;
+         T : Node_Kind)
+      is
       begin
          Error_Loc (1)  := Loc (E);
          Error_Name (1) := Quoted (Image (T));

@@ -47,10 +47,27 @@ package Errors is
    --  a user error like source-file-not-found. Whenever you raise Fatal_Error,
    --  you should print an error message first.
 
-   procedure Display_Error (S : String);
-   procedure DE (S : String) renames Display_Error;
-   --  Display a warning or error message S. The following special characters
-   --  may appear in the message:
+   type Message_Template is new String;
+   --  Type of message templates used by Display_Error. We don't use type
+   --  String, because we want to avoid using input data (tainted data) as part
+   --  of the template. For example, if File_Name is a String that came from
+   --  the command line, then:
+   --
+   --      Display_Error ("file not found: %", File_Name); -- Correct
+   --      Display_Error ("file not found: " & File_Name); -- WRONG!
+   --
+   --  The second example will get a compilation error. If we allowed that,
+   --  then we would crash if File_Name = "%".
+
+   procedure Initialize;
+   --  [Re]Initialize global variables to decrease the likelihood of silently
+   --  using old values.
+
+   procedure Display_Error (Template : Message_Template);
+   procedure DE (Template : Message_Template) renames Display_Error;
+   --  Display a warning or error message based on the Template. The following
+   --  special characters may appear in the Template:
+   --
    --    % (Percent):      insert Error_Name (N)
    --    # (Hash):         insert Error_Name (N) within quotes
    --    ! (Exclamantion): insert Error_Loc (L)
@@ -62,7 +79,12 @@ package Errors is
    --  (note that Error_Loc (1) is always inserted ahead of the message, and
    --  L starts at 2 as far as explicit '!' insertions are concerned).
 
-   procedure Initialize;
+   procedure Display_Error (Template : Message_Template; S : String);
+   procedure DE (Template : Message_Template; S : String)
+     renames Display_Error;
+   --  Same as previous Display_Error, except first put S into Error_Name (1).
+   --  Template must contain a % special character, which will be replaced by
+   --  S.
 
    Error_Name : array (1 .. 2) of Name_Id;
    Error_Loc  : array (1 .. 2) of Location;

@@ -199,7 +199,7 @@ package body Backend.BE_Types is
 
       --  Check the file descriptor
       if Descriptor = Invalid_FD then
-         DE ("cannot create file: " & Output_File);
+         DE ("cannot create file: %", Output_File);
          raise Fatal_Error;
       end if;
 
