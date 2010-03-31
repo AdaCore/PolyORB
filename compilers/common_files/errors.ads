@@ -36,6 +36,11 @@ with Types;     use Types;
 
 package Errors is
 
+   pragma Elaborate_Body;
+   --  Because the body initializes the global variables below, so the compiler
+   --  otherwise warns that they could be accessed by elaboration code in other
+   --  packages.
+
    Not_Yet_Implemented : exception;
    --  Raised when code is not ready yet
 
@@ -58,10 +63,6 @@ package Errors is
    --
    --  The second example will get a compilation error. If we allowed that,
    --  then we would crash if File_Name = "%".
-
-   procedure Initialize;
-   --  [Re]Initialize global variables to decrease the likelihood of silently
-   --  using old values.
 
    procedure Display_Error (Template : Message_Template);
    procedure DE (Template : Message_Template) renames Display_Error;

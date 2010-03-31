@@ -366,7 +366,6 @@ begin
    --  Initialization step
 
    Namet.Initialize;
-   Errors.Initialize;
    Backend.Config.Initialize;
    Scan_Switches;
    Scopes.Initialize;

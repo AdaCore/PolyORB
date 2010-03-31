@@ -37,6 +37,10 @@ with Utils;  use Utils;
 
 package body Errors is
 
+   procedure Initialize;
+   --  [Re]Initialize global variables to decrease the likelihood of silently
+   --  using old values.
+
    -------------------
    -- Display_Error --
    -------------------
@@ -201,4 +205,6 @@ package body Errors is
       Error_Int  := (others => Int'Last);
    end Initialize;
 
+begin
+   Initialize;
 end Errors;
