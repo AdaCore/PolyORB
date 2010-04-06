@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -34,7 +34,6 @@
 with Errors;    use Errors;
 with Locations; use Locations;
 with Namet;     use Namet;
-with Scopes;    use Scopes;
 
 with Frontend.Debug;  use Frontend.Debug;
 with Frontend.Nodes;  use Frontend.Nodes;
@@ -124,6 +123,8 @@ package body Scopes is
       KC : Node_Kind;
       KE : constant Node_Kind := Kind (E);
       KS : constant Node_Kind := Kind (S);
+
+      --  Start of processing for Enter_Name_In_Scope
 
    begin
       if Present (C) then
@@ -385,7 +386,7 @@ package body Scopes is
       end if;
 
       --  When the previous scope was a type name that is nested in a
-      --  non module scope definition, the potential scope extends to
+      --  non-module scope definition, the potential scope extends to
       --  the enclosing non-module scope. We introduced the scoped
       --  names in the enclosing scope.
 

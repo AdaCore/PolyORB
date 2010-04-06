@@ -47,7 +47,7 @@ with Lexer;     use Lexer;
 with Namet;     use Namet;
 with Output;    use Output;
 with Parser;    use Parser;
-with Scopes;    use Scopes;
+with Scopes;
 with Types;     use Types;
 with Usage;
 with Utils;     use Utils;
@@ -171,7 +171,7 @@ procedure IAC is
                   BEI.Generate_Imported := True;
 
                elsif Full_Switch = "dm" then
-                  D_Scopes   := True;
+                  Scopes.D_Scopes := True;
 
                elsif Full_Switch = "ds" then
                   BEA.Disable_Pkg_Body_Gen := True;
@@ -417,7 +417,7 @@ begin
       end loop;
 
       Set_Str_To_Name_Buffer (Name_Buffer (First .. Last));
-      IDL_Spec_Name := Name_Find;
+      Scopes.IDL_Spec_Name := Name_Find;
    end;
 
    --  The "cppargs" section is processed in Lexer.Preprocess
@@ -437,11 +437,11 @@ begin
 
    --  Parser step
 
-   Parser.Process (IDL_Spec);
+   Parser.Process (Scopes.IDL_Spec);
 
    --  Analyzer step
 
-   Analyze (IDL_Spec);
+   Analyze (Scopes.IDL_Spec);
 
    --  Cleanup temporary files
 
@@ -470,7 +470,7 @@ begin
       DE ("$ warning(s)");
    end if;
 
-   Generate (IDL_Spec);
+   Generate (Scopes.IDL_Spec);
 
 exception
    --  We don't print a bug box on Fatal_Error, because an error message has

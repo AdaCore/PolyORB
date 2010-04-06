@@ -990,9 +990,9 @@ package body Analyzer is
          end if;
 
       --  Analyze multiple scoped names. Analyze parent of P first and then the
-      --  entity itself. Find the entity in the newly-analyzed parent
-      --  scope. Check whether the scope is a correct scope for a scoped name
-      --  (not an operation for instance).
+      --  entity itself. Find the entity in the newly-analyzed parent scope.
+      --  Check whether the scope is a correct scope for a scoped name (not an
+      --  operation for instance).
 
       else
          Analyze_Scoped_Name (P);
