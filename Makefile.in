@@ -227,7 +227,7 @@ build-po_gnatdist \
 	mkdir -p compilers/${compiler_dir} && \
 	  cd compilers/${compiler_dir} && \
 	  ${GNATMAKE} -m \
-	   $* \
+	   $*.adb \
 	   ${COMP_TOOLS_GNATMAKE_FLAGS} \
 	   -I${top_srcdir}/compilers/${compiler_dir} \
 	   ${PRJ_GNATMAKE_FLAGS} -bargs -E
@@ -2359,6 +2359,8 @@ debug-makefile:
 	@echo APPLI_EXES = ${APPLI_EXES}
 	@echo SERVICE_EXES = ${SERVICE_EXES}
 	@echo COMPILERS = ${COMPILERS}
+	@echo IAC_NODES_STAMPS = ${IAC_NODES_STAMPS}
+	@echo IAC_NODES_SOURCES = ${IAC_NODES_SOURCES}
 	@echo active_tests = ${active_tests}
 	@echo "debug-makefile done"
 
