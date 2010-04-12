@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -34,6 +34,11 @@
 package Backend.BE_CORBA_Ada.Runtime is
 
    --  Runtime Units
+
+   --  Note: there is intentionally no RU_System so that users can have an IDL
+   --  identifier of that name. If an entity in package System needs to be
+   --  referenced in generated code, an appropriate renaming should be declared
+   --  under the PolyORB hierarchy.
 
    type RU_Id is
      (RU_Null,
@@ -167,8 +172,7 @@ package Backend.BE_CORBA_Ada.Runtime is
       RU_PolyORB_Utils_Strings,
       RU_PolyORB_Utils_Strings_Lists,
       RU_PortableServer,
-      RU_PortableServer_Internals,
-      RU_System);
+      RU_PortableServer_Internals);
 
    --  Runtime Entities
 
@@ -199,7 +203,7 @@ package Backend.BE_CORBA_Ada.Runtime is
       RE_Get_Element,               --  Get_Element
       RE_Exception_Occurrence,      --  Ada.Exceptions.Exception_Occurrence
       RE_Stream_Element_Count,      --  Ada.Streams.Stream_Element_Count
-      RE_Address,                   --  System.Address
+      RE_Address,                   --  PolyORB.Types.Address
       RE_ARG_IN_0,                  --  CORBA.ARG_IN
       RE_ARG_OUT_0,                 --  CORBA.ARG_OUT
       RE_ARG_INOUT_0,               --  CORBA.ARG_INOUT
@@ -913,7 +917,6 @@ package Backend.BE_CORBA_Ada.Runtime is
          RE_Get_Element               => RU_Null,
          RE_Exception_Occurrence      => RU_Ada_Exceptions,
          RE_Stream_Element_Count      => RU_Ada_Streams,
-         RE_Address                   => RU_System,
          RE_ARG_IN_0                  => RU_CORBA,
          RE_ARG_OUT_0                 => RU_CORBA,
          RE_ARG_INOUT_0               => RU_CORBA,
@@ -1350,6 +1353,7 @@ package Backend.BE_CORBA_Ada.Runtime is
          RE_Natural                   => RU_PolyORB_Std,
          RE_String_2                  => RU_PolyORB_Std,
          RE_Nul                       => RU_PolyORB_Std_ASCII,
+         RE_Address                   => RU_PolyORB_Types,
          RE_Identifier                => RU_PolyORB_Types,
          RE_Long_1                    => RU_PolyORB_Types,
          RE_Short_1                   => RU_PolyORB_Types,
