@@ -1960,9 +1960,17 @@ package body PolyORB.Any is
      (ACC   : in out Default_Aggregate_Content;
       Count : Types.Unsigned_Long)
    is
+      Prev_Last : constant Integer := Content_Tables.Last (ACC.V);
    begin
       Content_Tables.Set_Last (ACC.V,
         Content_Tables.First (ACC.V) + Natural (Count) - 1);
+
+      --  Note: there is no default initialization for table elements, so
+      --  make sure here that they are properly initialized to null.
+
+      for J in Prev_Last + 1 .. Content_Tables.Last (ACC.V) loop
+         ACC.V.Table (J) := null;
+      end loop;
    end Set_Aggregate_Count;
 
    ---------------------------
@@ -2022,7 +2030,17 @@ package body PolyORB.Any is
          Finalize_Value (ACC.V.Table (V_First + 1).all);
       end if;
       Set_Type (El_C, TC);
-      Move_Any_Value (Dst_C => El_C, Src_C => From_C);
+
+      if From_C.Foreign then
+
+         --  If From_C is foreign, we are not allowed to steal its contents
+         --  pointer (it may become invalid at any point).
+
+         Copy_Any_Value (Dst_C => El_C, Src_C => From_C);
+
+      else
+         Move_Any_Value (Dst_C => El_C, Src_C => From_C);
+      end if;
    end Set_Aggregate_Element;
 
    -----------------------------

@@ -41,6 +41,9 @@ See the features-27 file.
 Bug fixes
 ---------
 
+A call with a formal parameter of a composite type could cause an erroneous
+memory access if the caller and callee were on the same partition. (J409-001)
+
 The "install" Makefile target would fail to copy po_gnatdist to its proper
 location on hosts where the system does not provide the install(1) command,
 and the internal support/install-sh script is used instead. (J309-020)
