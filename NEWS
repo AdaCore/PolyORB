@@ -41,6 +41,9 @@ See the features-27 file.
 Bug fixes
 ---------
 
+An IDL enumeration literal "SYSTEM" would cause a name clash in generated
+code. (J412-032)
+
 A call with a formal parameter of a composite type could cause an erroneous
 memory access if the caller and callee were on the same partition. (J409-001)
 
