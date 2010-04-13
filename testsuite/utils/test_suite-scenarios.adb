@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -117,7 +117,7 @@ package body Test_Suite.Scenarios is
                   end if;
 
                   Result_Total := Result_Total
-                    and (Result xor Extracted_Test.Expected_Failure);
+                    and then (Result xor Extracted_Test.Expected_Failure);
 
                   delay 1.0;
                end;
@@ -142,7 +142,7 @@ package body Test_Suite.Scenarios is
                end if;
 
                Result_Total := Result_Total
-                 and (Result xor Extracted_Test.Expected_Failure);
+                 and then (Result xor Extracted_Test.Expected_Failure);
 
             end;
          end if;

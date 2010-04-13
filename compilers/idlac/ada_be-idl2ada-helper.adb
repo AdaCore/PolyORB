@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -1790,7 +1790,7 @@ package body Ada_Be.Idl2Ada.Helper is
                      begin
                         if (Kind (Type_Node) = K_Scoped_Name) and then
                           ((Kind (Value (Type_Node)) =
-                               K_ValueType or
+                               K_ValueType or else
                            (Kind (Value (Type_Node)) =
                                K_Forward_ValueType)))
                         then
@@ -2596,7 +2596,7 @@ package body Ada_Be.Idl2Ada.Helper is
                      while not Is_End (It2) loop
                         Get_Next_Node (It2, Decl_Node);
 
-                        if Is_End (It) and Is_End (It2) then
+                        if Is_End (It) and then Is_End (It2) then
                            End_Of_Line := ");";
                         end if;
 
