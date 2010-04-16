@@ -41,6 +41,8 @@ See the features-27 file.
 Bug fixes
 ---------
 
+A memory leak in PolyORB.Configuration was fixed.
+
 An IDL enumeration literal "SYSTEM" would cause a name clash in generated
 code. (J412-032)
 
