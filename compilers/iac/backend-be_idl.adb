@@ -512,9 +512,9 @@ package body Backend.BE_IDL is
    begin
       Write (T_Fixed);
       Write (T_Less);
-      Write_Int (Int (N_Total (E)));
+      Write_Int (N_Total (E));
       Write (T_Comma);
-      Write_Int (Int (N_Scale (E)));
+      Write_Int (N_Scale (E));
       Write (T_Greater);
    end Generate_Fixed_Point_Type;
 

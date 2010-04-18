@@ -1032,7 +1032,7 @@ package body Parser is
 
          when T_Module =>
             Restore_Lexer (State);
-            Definition := Node_Id (P_Module);
+            Definition := P_Module;
 
          when T_Value_Type
            | T_Custom =>
