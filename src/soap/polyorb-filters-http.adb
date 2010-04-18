@@ -302,8 +302,7 @@ package body PolyORB.Filters.HTTP is
      (F : access HTTP_Filter;
       S : Filters.Iface.Data_Indication)
    is
-      Data_Received : Stream_Element_Count :=
-                        Stream_Element_Count (S.Data_Amount);
+      Data_Received : Stream_Element_Count := S.Data_Amount;
 
       New_Data : PolyORB.Opaque.Opaque_Pointer;
       New_Data_Position : Stream_Element_Offset :=

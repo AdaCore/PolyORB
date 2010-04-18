@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -91,15 +91,15 @@ procedure Test_Driver is
    begin
       --  Execute test_driver
 
-      Open (Test_Suite_Output'Class (Output.all));
-      Log (Test_Suite_Output'Class (Output.all), "Test driver launched.");
+      Open (Output.all);
+      Log (Output.all, "Test driver launched.");
 
       case To_Do is
          when Run_Scenario =>
             Test_Suite.Scenarios.Run_Scenario
               (Item.all, Position,
                Configuration_Base_Dir.all,
-               Test_Suite_Output'Class (Output.all),
+               Output.all,
                Result,
                Verbose);
 
@@ -107,19 +107,19 @@ procedure Test_Driver is
             Test_Suite.Scenarios.Run_All_Scenarios
               (Item.all,
                Configuration_Base_Dir.all,
-               Test_Suite_Output'Class (Output.all),
+               Output.all,
                Result,
                Verbose);
       end case;
 
-      Log (Test_Suite_Output'Class (Output.all), "Test driver exited.");
+      Log (Output.all, "Test driver exited.");
       if Result then
-         Log (Test_Suite_Output'Class (Output.all), "No test failed.");
+         Log (Output.all, "No test failed.");
       else
-         Log (Test_Suite_Output'Class (Output.all), "Some tests failed.");
+         Log (Output.all, "Some tests failed.");
       end if;
 
-      Close (Test_Suite_Output'Class (Output.all));
+      Close (Output.all);
 
       if not Result then
          GNAT.OS_Lib.OS_Exit (1);
