@@ -1578,10 +1578,9 @@ package body PolyORB.POA is
                return;
 
             when HOLDING =>
-               Servant := Servants.Servant_Access
-                 (Get_Hold_Servant
-                  (POA_Manager_Of (Obj_OA),
-                   POA_Types.Obj_Adapter_Access (Obj_OA)));
+               Servant := Get_Hold_Servant
+                 (POA_Manager_Of (Obj_OA),
+                  POA_Types.Obj_Adapter_Access (Obj_OA));
                Servants.Set_Executor
                  (Servant,
                   Executor (Obj_OA.Thread_Policy));

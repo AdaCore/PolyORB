@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -328,7 +328,7 @@ package body PolyORB.Requests is
 
       Dst_It : Iterator := First (List_Of (Dst_Args).all);
 
-      Copied_Src_Args : array (1 .. Long (Get_Count (Src_Args))) of Boolean
+      Copied_Src_Args : array (1 .. Get_Count (Src_Args)) of Boolean
         := (others => False);
       Src_Idx : Long;
       Src_It : Iterator;
@@ -469,7 +469,7 @@ package body PolyORB.Requests is
 
       Dst_It : Iterator := First (List_Of (Dst_Args).all);
 
-      Copied_Src_Args : array (1 .. Long (Get_Count (Src_Args))) of Boolean
+      Copied_Src_Args : array (1 .. Get_Count (Src_Args)) of Boolean
         := (others => False);
       Src_Idx : Long;
       Src_It : Iterator;
