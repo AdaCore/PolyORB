@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1995-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -1239,7 +1239,7 @@ package body XE is
       --  Remove the nodes created in the previous context.
 
       loop
-         exit when Nodes.Last <= Node_Id (Context.Last_Node);
+         exit when Nodes.Last <= Context.Last_Node;
          Nodes.Decrement_Last;
       end loop;
       N_Anonymous_Variable := Context.Anonymous;
