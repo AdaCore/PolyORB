@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -563,7 +563,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
          when Reference_Addr =>
             AM := Reference;
 
-            Target := References.Ref (Target_Addr.Ref.IOR);
+            Target := Target_Addr.Ref.IOR;
 
             Def_Args := Component_Access (S);
             --  XXX By default, we do deferred unmarshalling, we
@@ -614,7 +614,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
          if CSP /= null then
             SCtx.CS_Context := new QoS_GIOP_Code_Sets_Parameter'(CSP.all);
             Set_Converters
-              (GIOP_1_2_CDR_Representation (GIOP_Session (S.all).Repr.all),
+              (GIOP_1_2_CDR_Representation (S.all.Repr.all),
                Get_Converter (Native_Char_Code_Set,  CSP.Char_Data),
                Get_Converter (Native_Wchar_Code_Set, CSP.Wchar_Data));
          end if;
@@ -924,7 +924,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
                Ref.Selected_Profile_Index := Unmarshall (Buffer);
                Ref.IOR := Unmarshall (Buffer);
 
-               Target := References.Ref (Ref.IOR);
+               Target := Ref.IOR;
             end;
       end case;
 
