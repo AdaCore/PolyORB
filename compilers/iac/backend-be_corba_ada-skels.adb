@@ -985,10 +985,9 @@ package body Backend.BE_CORBA_Ada.Skels is
                C := Defining_Identifier (Impl_Node (BE_Node (Identifier (E))));
             end if;
 
-            --  Re-adjusting the parent unit name of the
-            --  operation. This is necessary in the case of operations
-            --  or attributes inherited from the second until the last
-            --  parent (multiple inheritance)
+            --  Re-adjusting the parent unit name of the operation. This is
+            --  necessary in the case of operations or attributes inherited
+            --  from the second until the last parent (multiple inheritance).
 
             Impl_Id := Make_Selected_Component
               (Defining_Identifier
