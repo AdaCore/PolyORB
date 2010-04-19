@@ -592,8 +592,6 @@ package Backend.BE_CORBA_Ada.Nutils is
    --  unit type. Arguments or result types of the enclosing unit
    --  types shall be mapped to the class of the mapped reference type
    --  (for example, to Ref'Class for an constrained references)."
-   --  This subprogram returns the corresponding Ada type from the
-   --  given IDL parameter according to the requirements above.
 
    procedure Initialize;
    --  Initialize the Nutils package by initializing different tables
