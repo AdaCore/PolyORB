@@ -87,11 +87,8 @@ EXTRA_GNATMAKE_FLAGS    = @EXTRA_GNATMAKE_FLAGS@
 # EXTRA_GNATMAKE_FLAGS are user-provided, empty by default (typically
 # used to specify a non-default --RTS switch).
 
-BASE_GNATMAKE_FLAGS	  :=--create-missing-dirs ${ADAFLAGS} ${PARALLEL_GNATMAKE_FLAGS} -gnatwR ${EXTRA_GNATMAKE_FLAGS}
+BASE_GNATMAKE_FLAGS	  :=--create-missing-dirs ${ADAFLAGS} ${PARALLEL_GNATMAKE_FLAGS} ${EXTRA_GNATMAKE_FLAGS}
 # Gnatmake flags for units built from project files
-# ???Temporarily adding -gnatwR (suppress warnings on redundant constructs),
-# because the compiler is now complaining about a lot of redundant type
-# conversions. We will remove this when those conversions are fixed.
 
 COMP_TOOLS_GNATMAKE_FLAGS := @STYLE_SWITCH@ -gnatwa@WARNINGS_MODE@ -gnat05 -gnatec=${top_builddir}/compilers/config.adc ${BASE_GNATMAKE_FLAGS}
 # Gnatmake flags for compilation tools mains, built without project files
