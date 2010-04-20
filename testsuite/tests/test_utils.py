@@ -144,7 +144,7 @@ def parse_cmd_line():
 
     Returns options object
     """
-    main = Main(require_docstring=False)
+    main = Main(require_docstring=False, add_targets_options=True)
     main.add_option('--timeout', dest='timeout', type=int,
                     default=None)
     main.add_option('--build-dir', dest="build_dir")
