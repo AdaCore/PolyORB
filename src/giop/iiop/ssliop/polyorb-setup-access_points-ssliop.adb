@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -81,14 +81,14 @@ package body PolyORB.Setup.Access_Points.SSLIOP is
    procedure Initialize_Access_Points is
       use PolyORB.Parameters;
 
-      Factory : constant Transport_Mechanism_Factory_Access
-        := new SSLIOP_Transport_Mechanism_Factory;
-
    begin
-      if Get_Conf ("access_points", "iiop", True)
-        and then Get_Conf ("access_points", "iiop.ssliop", False)
+      if Get_Conf ("access_points", "iiop", Default => True)
+        and then Get_Conf ("access_points", "iiop.ssliop", Default => False)
       then
          declare
+            Factory : constant Transport_Mechanism_Factory_Access :=
+                                 new SSLIOP_Transport_Mechanism_Factory;
+
             Port_Hint : constant Port_Interval := To_Port_Interval
                           (Get_Conf
                            ("ssliop",
@@ -146,11 +146,17 @@ package body PolyORB.Setup.Access_Points.SSLIOP is
 
             Initialize_Socket (SSLIOP_Access_Point, Addr, Port_Hint, Cont);
 
+            --  Create TM factory
+
             Create_Factory
               (SSLIOP_Transport_Mechanism_Factory (Factory.all),
                SSLIOP_Access_Point.SAP);
 
+            --  Retrieve primary IIOP profile factory
+
             Profile_Factory := Get_Profile_Factory;
+
+            --  Add newly created TM factory to profile factory
 
             Add_Transport_Mechanism_Factory
               (IIOP_Profile_Factory (Profile_Factory.all), Factory);
