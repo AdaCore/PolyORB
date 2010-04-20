@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -187,8 +187,8 @@ package body PolyORB.Binding_Data.GIOP.IIOP is
    is
       pragma Unreferenced (ORB);
 
-      MF : constant Transport_Mechanism_Factory_Access
-        := new IIOP_Transport_Mechanism_Factory;
+      MF : constant Transport_Mechanism_Factory_Access :=
+             new IIOP_Transport_Mechanism_Factory;
 
    begin
       Create_Factory (MF.all, TAP);
