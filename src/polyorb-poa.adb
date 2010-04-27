@@ -415,9 +415,7 @@ package body PolyORB.POA is
    -- Destroy_Policies --
    ----------------------
 
-   procedure Destroy_Policies
-     (OA : in out Obj_Adapter)
-   is
+   procedure Destroy_Policies (OA : in out Obj_Adapter) is
       procedure Free is new Ada.Unchecked_Deallocation
         (Policy'Class, Policy_Access);
    begin
@@ -489,10 +487,6 @@ package body PolyORB.POA is
       if OA.Servant_Manager /= null then
          Free (OA.Servant_Manager);
       end if;
-
-      --  Obj_Adapter is derived from Smart Pointers
-      --  so there is no need to deallocate the OA itself.
-      --  XXX is it pertinent to have this ???
 
       pragma Debug (C, O ("Destroy_OA: end"));
    end Destroy_OA;
@@ -667,7 +661,9 @@ package body PolyORB.POA is
 
       if Found (Error) then
          pragma Debug (C, O ("Got Error, destroying POA"));
-         Destroy (POA, False, False);
+         Destroy (POA,
+           Etherealize_Objects => False,
+           Wait_For_Completion => False);
          return;
       end if;
 
@@ -727,7 +723,7 @@ package body PolyORB.POA is
          Enter (Self.Children_Lock);
 
          declare
-            It : Iterator := First (Self.Children.all);
+            It        : Iterator := First (Self.Children.all);
             Child_Ref : Obj_Adapter_Ref;
             Child_Ptr : Obj_Adapter_Access;
          begin
@@ -738,9 +734,7 @@ package body PolyORB.POA is
                Child_Ref := Value (It);
                Child_Ptr := Obj_Adapter (Entity_Of (Child_Ref).all)'Access;
 
-               Destroy (Child_Ptr,
-                        Etherealize_Objects,
-                        Wait_For_Completion);
+               Destroy (Child_Ptr, Etherealize_Objects, Wait_For_Completion);
 
                --  NOTE: The child is detached automatically from the children
                --  map upon destruction.
@@ -1334,9 +1328,8 @@ package body PolyORB.POA is
    -------------
 
    procedure Destroy (OA : access Obj_Adapter) is
-      The_OA : constant Obj_Adapter_Access := Obj_Adapter_Access (OA);
    begin
-      Destroy (The_OA, True, True);
+      Destroy (OA, Etherealize_Objects => True, Wait_For_Completion => True);
       Obj_Adapters.Destroy (Obj_Adapters.Obj_Adapter (OA.all)'Access);
    end Destroy;
 
