@@ -85,6 +85,7 @@ package body PolyORB.Transport.Connected.Sockets is
         (Server  => TAP.Socket,
          Socket  => New_Socket,
          Address => New_Address);
+      pragma Debug (C, O ("Accept_Connection: from " & Image (New_Address)));
       Create (Socket_Endpoint (TE.all), New_Socket);
    end Accept_Connection;
 
@@ -108,6 +109,7 @@ package body PolyORB.Transport.Connected.Sockets is
       Socket  :        Socket_Type;
       Address : in out Sock_Addr_Type) is
    begin
+      pragma Debug (C, O ("Create: listening on " & Image (Address)));
       Bind_Socket (Socket, Address);
       Listen_Socket (Socket);
 
@@ -115,12 +117,12 @@ package body PolyORB.Transport.Connected.Sockets is
 
       if Address.Addr = Any_Inet_Addr then
 
-         --  Address is unspecified, choose one IP for the SAP looking
-         --  up hostname.
+         --  Address is unspecified, choose one IP for the SAP looking up
+         --  local host name.
          --  ??? Instead SAP.Addr should be a Socket_Name, and we should keep
          --  Host_Name unresolved.
 
-         SAP.Addr.Addr := Addresses (Get_Host_By_Name (Host_Name), 1);
+         SAP.Addr.Addr := Local_Inet_Address;
          Address := SAP.Addr;
 
       else

@@ -81,7 +81,7 @@ package body PolyORB.Transport.Datagram.Sockets_In is
             --  ??? Should keep Host_Name unresolved here, see comments in
             --  PolyORB.Transport.Connected.Sockets.Create.
 
-            SAP.Addr.Addr := Addresses (Get_Host_By_Name (Host_Name), 1);
+            SAP.Addr.Addr := Local_Inet_Address;
          end if;
          Address := SAP.Addr;
 

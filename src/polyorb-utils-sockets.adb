@@ -193,6 +193,26 @@ package body PolyORB.Utils.Sockets is
       return True;
    end Is_IP_Address;
 
+   ------------------------
+   -- Local_Inet_Address --
+   ------------------------
+
+   function Local_Inet_Address return Inet_Addr_Type is
+      Host_Entry : constant Host_Entry_Type := Get_Host_By_Name (Host_Name);
+      Candidate  : Inet_Addr_Type := No_Inet_Addr;
+
+   begin
+      for J in 1 .. Host_Entry.Addresses_Length loop
+         Candidate := Addresses (Host_Entry, J);
+         exit when not Has_Prefix (Image (Candidate), Prefix => "127.");
+
+         --  Should use netmask manipulation on Candidate instead of string
+         --  image???
+
+      end loop;
+      return Candidate;
+   end Local_Inet_Address;
+
    ---------------------
    -- Marshall_Socket --
    ---------------------

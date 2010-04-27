@@ -80,4 +80,8 @@ package PolyORB.Utils.Sockets is
    function Is_IP_Address (Name : String) return Boolean;
    --  True iff S is an IP address in dotted quad notation
 
+   function Local_Inet_Address return PolyORB.Sockets.Inet_Addr_Type;
+   --  Return an IP address associated with the local host name, preferring
+   --  non-loopback addresses over loopback ones.
+
 end PolyORB.Utils.Sockets;
