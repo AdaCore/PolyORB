@@ -27,7 +27,7 @@
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
 --               GLADE  is maintained by ACT Europe.                        --
---               (email: glade-report@act-europe.fr)                        --
+--                   (email: report@adacore.com)                            --
 --                                                                          --
 ------------------------------------------------------------------------------
 
