@@ -428,69 +428,6 @@ package body PolyORB.POA is
       Free (Policy_Access (OA.Servant_Retention_Policy));
    end Destroy_Policies;
 
-   ----------------
-   -- Destroy_OA --
-   ----------------
-
-   procedure Destroy_OA (OA : Obj_Adapter_Access) is
-      use PolyORB.Object_Maps;
-
-      procedure Free is new Ada.Unchecked_Deallocation
-        (Object_Map'Class, Object_Map_Access);
-
-   begin
-      pragma Debug (C, O ("Destroy_OA: enter"));
-
-      if not Is_Nil (OA.POA_Manager) then
-         Remove_POA (POA_Manager_Of (OA),
-                     POA_Types.Obj_Adapter_Access (OA));
-
-         Set (OA.POA_Manager, null);
-      end if;
-
-      --  Destroy_Policies (OA.all);
-      --  XXX Cannot destroy_policies here because another
-      --  POA initialised from the default configuration could
-      --  be using the same instances of policy objects!
-
-      --  XXX if so why don't we make policies a derived type from a
-      --  Smart Pointer ??
-
-      --  Destroy Locks
-
-      --  As Destroy_OA may be called when an exception is raised in
-      --  OA initialization, we first test the call is valid.
-
-      if OA.POA_Lock /= null then
-         Destroy (OA.POA_Lock);
-      end if;
-
-      if OA.Children_Lock /= null then
-         Destroy (OA.Children_Lock);
-      end if;
-
-      if OA.Map_Lock /= null then
-         Destroy (OA.Map_Lock);
-      end if;
-
-      --  These members may be null, test before freeing
-
-      if OA.Active_Object_Map /= null then
-         PolyORB.Object_Maps.Finalize (OA.Active_Object_Map.all);
-         Free (OA.Active_Object_Map);
-      end if;
-
-      if OA.Adapter_Activator /= null then
-         Free (OA.Adapter_Activator);
-      end if;
-
-      if OA.Servant_Manager /= null then
-         Free (OA.Servant_Manager);
-      end if;
-
-      pragma Debug (C, O ("Destroy_OA: end"));
-   end Destroy_OA;
-
    ---------------------
    -- Create_Root_POA --
    ---------------------
@@ -693,7 +630,11 @@ package body PolyORB.POA is
       Etherealize_Objects : Types.Boolean;
       Wait_For_Completion : Types.Boolean)
    is
+      use PolyORB.Object_Maps;
       use PolyORB.POA_Types.POA_HTables;
+
+      procedure Free is new Ada.Unchecked_Deallocation
+        (Object_Map'Class, Object_Map_Access);
 
    begin
       --  We might be finalizing a POA (because of reference counting)
@@ -769,7 +710,50 @@ package body PolyORB.POA is
 
       --  Destroy POA components
 
-      Destroy_OA (Obj_Adapter_Access (Self));
+      if not Is_Nil (Self.POA_Manager) then
+         Remove_POA (POA_Manager_Of (Self), Self.all'Access);
+         Unref (Self.POA_Manager);
+      end if;
+
+      --  Destroy_Policies (Self.all);
+      --  XXX Cannot destroy_policies here because another
+      --  POA initialised from the default configuration could
+      --  be using the same instances of policy objects!
+
+      --  XXX if so why don't we make policies a derived type from a
+      --  Smart Pointer ??
+
+      --  Destroy Locks
+
+      --  As Destroy may be called when an exception is raised during OA
+      --  initialization, check for non-null values explicitly.
+
+      if Self.POA_Lock /= null then
+         Destroy (Self.POA_Lock);
+      end if;
+
+      if Self.Children_Lock /= null then
+         Destroy (Self.Children_Lock);
+      end if;
+
+      if Self.Map_Lock /= null then
+         Destroy (Self.Map_Lock);
+      end if;
+
+      --  These members may be null, test before freeing
+
+      if Self.Active_Object_Map /= null then
+         Object_Maps.Finalize (Self.Active_Object_Map.all);
+         Free (Self.Active_Object_Map);
+      end if;
+
+      if Self.Adapter_Activator /= null then
+         Free (Self.Adapter_Activator);
+      end if;
+
+      if Self.Servant_Manager /= null then
+         Free (Self.Servant_Manager);
+      end if;
 
       pragma Debug (C, O ("POA destroyed"));
 
