@@ -48,7 +48,10 @@ package body PolyORB.Obj_Adapters is
 
    procedure Finalize (OA : in out Obj_Adapter) is
    begin
-      Destroy (Obj_Adapter'Class (OA)'Access);
+      --  Use Unchecked_Access so that passed value can be freely converted
+      --  to named access type within the processing for Destroy.
+
+      Destroy (Obj_Adapter'Class (OA)'Unchecked_Access);
    end Finalize;
 
    --------------------
