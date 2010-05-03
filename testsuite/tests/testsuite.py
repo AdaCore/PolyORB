@@ -115,7 +115,7 @@ def filter_list(pattern, run_test=""):
         test_list.append("always_fail")
         return test_list
     else:
-        return [t for t in test_list if run_test in t]
+        return [t for t in test_list if run_test.rstrip('/') in t]
 
 
 def gen_run_testcase(build_dir, testsuite_src_dir, coverage):
