@@ -66,6 +66,8 @@ def main():
     # Generate the discs list for test.opt parsing
     # Always add 'ALL'
     common_discs = Env().discriminants
+    with open(m.options.output_dir + '/discs', 'w') as f_disk:
+        f_disk.write(", ".join(common_discs))
 
     # Expand ~ and ~user contructions for user PATH
     if m.options.build_dir is None:
