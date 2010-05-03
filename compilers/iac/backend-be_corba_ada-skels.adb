@@ -2239,7 +2239,8 @@ package body Backend.BE_CORBA_Ada.Skels is
          --  specified an output directory, ensure the package is output there.
 
          if Output_Directory = null then
-            PHG.Produce (Pkg_Name => Name_Buffer (1 .. Name_Len));
+            PHG.Produce (Pkg_Name => Name_Buffer (1 .. Name_Len),
+                         Use_Stdout => Use_Stdout);
          else
             --  Change directory before calling Produce (which always generates
             --  sources in the current directory).
@@ -2249,7 +2250,8 @@ package body Backend.BE_CORBA_Ada.Skels is
                Save_Current_Directory : constant String := Current_Directory;
             begin
                Set_Directory (Output_Directory.all);
-               PHG.Produce (Pkg_Name => Name_Buffer (1 .. Name_Len));
+               PHG.Produce (Pkg_Name => Name_Buffer (1 .. Name_Len),
+                            Use_Stdout => Use_Stdout);
                Set_Directory (Save_Current_Directory);
             exception
                when others =>

@@ -267,7 +267,7 @@ procedure IAC is
                if Backend.Current_Language = "types" then
                   BET.Print_Types := True;
                end if;
-               Print_On_Stdout := True;
+               Use_Stdout := True;
 
             when 'q' =>
                Quiet := True;

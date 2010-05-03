@@ -41,6 +41,9 @@ See the features-27 file.
 Bug fixes
 ---------
 
+The -p option of iac is supposed to send the output to standard output, but it
+was sending part of the output (the perfect hash function) to files. (J503-020)
+
 Various minor memory leaks were fixed. (J420-020)
 
 An IDL enumeration literal "SYSTEM" would cause a name clash in generated

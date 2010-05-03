@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---           Copyright (C) 2007, Free Software Foundation, Inc.             --
+--         Copyright (C) 2007-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -44,7 +44,7 @@ package body Outfiles is
    function Set_Output (File_Name : Name_Id) return File_Descriptor is
       Fd : File_Descriptor;
    begin
-      if not Print_On_Stdout then
+      if not Use_Stdout then
          if Output_Directory /= null then
             Set_Str_To_Name_Buffer (Output_Directory.all);
          else
@@ -74,7 +74,7 @@ package body Outfiles is
 
    procedure Release_Output (Fd : File_Descriptor) is
    begin
-      if not Print_On_Stdout and then Fd /= Invalid_FD then
+      if not Use_Stdout and then Fd /= Invalid_FD then
          Close (Fd);
          Set_Standard_Output;
       end if;
