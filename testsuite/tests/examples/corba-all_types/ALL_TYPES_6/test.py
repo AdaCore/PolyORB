@@ -13,5 +13,5 @@ r1, r2 = (
         r'scenarios/polyorb_conf/giop_1_1.conf',
         args=['local']))
 if not r1 or not r2:
-    sys.exit(1)
+    fail()
 

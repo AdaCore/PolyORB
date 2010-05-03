@@ -1,24 +1,26 @@
 #!/usr/bin/env gnatpython
-
-"""./testsuite.py [OPTIONS] [TEST_PATH]
+"""
+%prog [OPTIONS] [TEST_PATH]
 
 Run the PolyORB testsuite
 
 To run only core tests:
-    ./testsuite.py core/
+    %prog core/
 To run a single example:
-    ./testsuite.py examples/corba-all_functions/ALL_FUNCTIONS_4/test.py
+    %prog examples/corba-all_functions/ALL_FUNCTIONS_4/test.py
 
-See ./testsuite.py -h for more help.
+See %prog -h for more help.
 """
 
 from gnatpython.env import Env
 from gnatpython.ex import Run, STDOUT
-from gnatpython.fileutils import mkdir
+from gnatpython.fileutils import mkdir, rm
 from gnatpython.main import Main
-from gnatpython.mainloop import MainLoop
-from gnatpython.optfileparser import OptFileParse
-from gnatpython.report import Report, GenerateRep
+from gnatpython.mainloop import (MainLoop, add_mainloop_options,
+                                 generate_collect_result,
+                                 generate_run_testcase)
+from gnatpython.testdriver import add_run_test_options
+from gnatpython.reports import ReportDiff
 
 from glob import glob
 
@@ -30,10 +32,32 @@ DEFAULT_TIMEOUT = 60
 
 logger = logging.getLogger('polyorb.testsuite')
 
+
 def main():
     """Run the testsuite and generate reports"""
     # Parse the command lines options
-    options = __parse_options()
+    m = Main()
+    add_mainloop_options(m)
+    add_run_test_options(m)
+    m.add_option('--diffs', dest='diffs', action='store_true',
+                 default=False, help='show diffs on stdout')
+    m.add_option("--old-result-dir", type="string", default=None,
+                 help="Old result dir (to generate the report)")
+    m.add_option('-b', '--build-dir', dest='build_dir',
+                 help='separate PolyORB build directory')
+    m.add_option('--testsuite-src-dir', dest='testsuite_src_dir',
+                 help='path to polyorb testsuite sources')
+    m.add_option('--coverage', dest='coverage', action='store_true',
+                 default=False, help='generate coverage information')
+    m.parse_args()
+
+    # Various files needed or created by the testsuite
+    results_file = m.options.output_dir + '/results'
+    report_file = m.options.output_dir + '/report'
+
+    if not m.options.failed_only:
+        rm(m.options.output_dir, True)
+        mkdir(m.options.output_dir)
 
     # Add current directory in PYTHONPATH (to find test_utils.py)
     env = Env()
@@ -41,45 +65,45 @@ def main():
 
     # Generate the discs list for test.opt parsing
     # Always add 'ALL'
-    common_discs = ['ALL', env.target.platform]
+    common_discs = Env().discriminants
+
+    # Expand ~ and ~user contructions for user PATH
+    if m.options.build_dir is None:
+        m.options.build_dir = os.path.join(os.getcwd(), os.pardir, os.pardir)
+    else:
+        m.options.build_dir = os.path.expanduser(m.options.build_dir)
+
+    if m.options.testsuite_src_dir is None:
+        m.options.testsuite_src_dir = os.path.join(os.getcwd(), os.pardir)
+    else:
+        m.options.testsuite_src_dir = os.path.expanduser(
+            m.options.testsuite_src_dir)
 
     # Compute the test list
-    non_dead_list, dead_list = generate_testcase_list(
-        filter_list('./*/*/*/test.py',
-                    options.run_test),
-        common_discs)
+    if m.args:
+        test_glob = m.args[0]
+    else:
+        test_glob = None
+    test_list = filter_list('./*/*/*', test_glob)
 
-    # Main loop :
-    #   - run all the tests
-    #   - collect the test results
-    #   - generate the res file
-    report = Report('res_polyorb')
+    collect_result = generate_collect_result(
+        m.options.output_dir, results_file, m.options.diffs)
+    run_testcase = generate_run_testcase('run-test.py',
+                                         common_discs, m.options)
 
-    # First report all dead tests
-    for test in dead_list:
-        report.add(test.filename, 'DEAD')
+    os.environ['TEST_CONFIG'] = os.path.join(os.getcwd(), 'env.dump')
+    env.options = m.options
+    env.log_dir = os.path.join(os.getcwd(), 'log')
+    env.store(os.environ['TEST_CONFIG'])
+    MainLoop(test_list, run_testcase, collect_result, m.options.mainloop_jobs)
 
-    mkdir('output')
+             #gen_run_testcase(options.build_dir, options.testsuite_src_dir,
+             #                 options.coverage),
 
-    # Then run all non dead tests
-    MainLoop(non_dead_list,
-             gen_run_testcase(options.build_dir, options.testsuite_src_dir,
-                              options.coverage),
-             gen_collect_result(report, options.diffs),
-             options.jobs)
-    report.write()
+    # Generate the report file
+    ReportDiff(m.options.output_dir,
+               m.options.old_result_dir).txt_image(report_file)
 
-    # Human readable report (rep file)
-    if options.old_res is not None and not os.path.exists(options.old_res):
-        logger.warning("Cannot find %s" % options.old_res)
-        options.old_res = None
-    rep = GenerateRep('res_polyorb',
-                      options.old_res,
-                      targetname=env.target.platform)
-    report_file = open('rep_polyorb', 'w')
-    report_file.write(rep.get_subject() + '\n\n')
-    report_file.write(rep.get_report())
-    report_file.close()
 
 def filter_list(pattern, run_test=""):
     """Compute the list of test matching pattern
@@ -92,67 +116,6 @@ def filter_list(pattern, run_test=""):
     else:
         return [t for t in test_list if run_test in t]
 
-def generate_testcase_list(test_list, discs):
-    """Generate the testcase list
-
-    Returns two sorted list:
-        - the non dead test list (to be run in the mainloop)
-        - the dead test list (not to be run)
-    """
-    dead_list = []
-    non_dead_list = []
-    for test in test_list:
-        tc = TestCase(test)
-        tc.parseopt(discs)
-        if tc.is_dead():
-            dead_list.append(tc)
-        else:
-            non_dead_list.append(tc)
-
-    # Sort lists
-    non_dead_list.sort()
-    dead_list.sort()
-    return (non_dead_list, dead_list)
-
-class TestCase(object):
-    """Creates a TestCase object.
-
-    Contains the result fo the test.opt parsing
-    """
-    def __init__(self, filename):
-        """Create a new TestCase for the given filename"""
-        self.testdir      = os.path.dirname(filename)
-        self.filename     = filename
-        self.expected_out = None
-        self.opt          = None
-
-    def __lt__(self, right):
-        """Use filename alphabetical order"""
-        return self.filename < right.filename
-
-    def parseopt(self, tags):
-        """Parse the test.opt with the given tags"""
-        test_opt = os.path.join(self.testdir, 'test.opt')
-        if os.path.exists(test_opt):
-            self.opt = OptFileParse(tags, test_opt)
-        self.expected_out = self.getopt('out', 'test.out')
-
-    def getopt(self, key, default=None):
-        """Get the value extracted from test.opt that correspond to key
-
-        If key is not found. Returns default.
-        """
-        if self.opt is None:
-            return default
-        else:
-            return self.opt.get_value(key, default_value=default)
-
-    def is_dead(self):
-        """Returns True if the test is DEAD"""
-        if self.opt is None:
-            return False
-        else:
-            return self.opt.is_dead
 
 def gen_run_testcase(build_dir, testsuite_src_dir, coverage):
     """Returns the run_testcase function"""
@@ -194,73 +157,6 @@ def gen_run_testcase(build_dir, testsuite_src_dir, coverage):
                                                 test.filename + '.error'),
                    error=STDOUT, timeout=int(timeout) + DEFAULT_TIMEOUT)
     return run_testcase
-
-def gen_collect_result(report, show_diffs=False):
-    """Returns the collect_result function"""
-    # success - xfail status dict
-    status_dict = {True: {True: 'UOK', False: 'OK'},
-                   False: {True: 'XFAIL', False: 'FAILED'}}
-
-    def collect_result(test, process, _job_info):
-        """Collect a test result"""
-        xfail = test.getopt('xfail', None) is not None
-        success = process.status == 0
-
-        # Avoid \ in filename for the final report
-        # Strip leading ./
-        test.filename = test.filename.replace('\\', '/')
-        test.filename = test.filename.replace('./', '')
-
-        status = status_dict[success][xfail]
-        logger.info("%-60s %s" % (test.filename, status))
-        if not success:
-            diff = ""
-            for filename in (test.filename, test.filename + '.error'):
-                if os.path.exists(os.path.join('output', filename)):
-                    f = open(os.path.join('output', filename))
-                    diff = f.read()
-                    f.close()
-
-            report.add(test.filename, status, diff=diff)
-            if show_diffs:
-                logger.info(diff)
-        else:
-            report.add(test.filename, status)
-
-    return collect_result
-
-def __parse_options():
-    """Parse command lines options"""
-    m = Main(add_targets_options=True)
-    m.add_option('--diffs', dest='diffs', action='store_true',
-                 default=False, help='show diffs on stdout')
-    m.add_option('-j', '--jobs', dest='jobs', type='int',
-                 metavar='N', default=1, help='Allow N jobs at once')
-    m.add_option('-b', '--build-dir', dest='build_dir',
-                 help='separate PolyORB build directory')
-    m.add_option("--old-res", dest="old_res", type="string",
-                 default=None, help="Old testsuite.res file")
-    m.add_option('--testsuite-src-dir', dest='testsuite_src_dir',
-                 help='path to polyorb testsuite sources')
-    m.add_option('--coverage', dest='coverage', action='store_true',
-                 default=False, help='generate coverage information')
-    m.parse_args()
-
-    if m.args:
-        # Run only one test
-        m.options.run_test = os.path.sep + m.args[0]
-        logger.info("Running only test '%s'" % m.options.run_test)
-    else:
-        m.options.run_test = ""
-
-    # Expand ~ and ~user contructions for user PATH
-    if m.options.build_dir is not None:
-        m.options.build_dir = os.path.expanduser(m.options.build_dir)
-    if m.options.testsuite_src_dir is not None:
-        m.options.testsuite_src_dir = os.path.expanduser \
-            (m.options.testsuite_src_dir)
-
-    return m.options
 
 if __name__ == "__main__":
     main()

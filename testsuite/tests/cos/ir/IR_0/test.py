@@ -4,5 +4,5 @@ import sys
 
 if not client_server(r'corba/cos/ir/client', r'',
                      r'corba/cos/ir/server', r''):
-    sys.exit(1)
+    fail()
 
