@@ -319,8 +319,7 @@ pragma Elaborate_Body (Lexer);
       Result : out GNAT.OS_Lib.File_Descriptor);
    --  Return a file descriptor of the preprocessed Source file
 
-   procedure Output
-     (Source : GNAT.OS_Lib.File_Descriptor);
+   procedure Output (Source : GNAT.OS_Lib.File_Descriptor);
    --  Output the preprocessed file Source
 
    procedure Process

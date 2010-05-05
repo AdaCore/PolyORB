@@ -37,6 +37,7 @@ with Namet;     use Namet;
 with Values;    use Values;
 
 with Flags;     use Flags;
+with Output;
 
 with Frontend.Nodes; use Frontend.Nodes;
 with Frontend.Nutils;
@@ -47,6 +48,7 @@ with Backend.BE_CORBA_Ada.Nutils;     use Backend.BE_CORBA_Ada.Nutils;
 with Backend.BE_CORBA_Ada.Runtime;    use Backend.BE_CORBA_Ada.Runtime;
 with Backend.BE_CORBA_Ada.Common;     use Backend.BE_CORBA_Ada.Common;
 
+with GNAT.OS_Lib;
 with GNAT.Perfect_Hash_Generators;
 
 package body Backend.BE_CORBA_Ada.Skels is
@@ -255,6 +257,11 @@ package body Backend.BE_CORBA_Ada.Skels is
       function Register_Procedure_Body (E : Node_Id) return Node_Id;
       --  Generation of the Register_Procedure subprogram which is
       --  called to register a procedure in the hash table.
+
+      procedure Put_To_Stdout;
+      --  Read the perfect-hash files in the current directory, and send them
+      --  to standard output. Used for the -p switch (see
+      --  Achieve_Hash_Function_Optimization below).
 
       ----------------------------------
       -- Deferred_Initialization_Body --
@@ -1927,6 +1934,52 @@ package body Backend.BE_CORBA_Ada.Skels is
          return Result_List;
       end Implicit_CORBA_Methods;
 
+      -------------------
+      -- Put_To_Stdout --
+      -------------------
+
+      procedure Put_To_Stdout is
+         use Ada.Directories;
+
+         procedure Do_One_File (Dir_Entry : Directory_Entry_Type);
+         --  Read the file, and send it to standard output. Called once for
+         --  each file in the current directory.
+
+         procedure Do_One_File (Dir_Entry : Directory_Entry_Type) is
+            use GNAT.OS_Lib;
+
+            F_Name : aliased constant String :=
+              Simple_Name (Dir_Entry) & ASCII.NUL;
+            FD : constant File_Descriptor :=
+              Open_Read (F_Name'Address, Binary);
+         begin
+            Output.Copy_To_Standard_Output (FD);
+         end Do_One_File;
+
+         Just_Ordinary : constant Filter_Type :=
+           (Ordinary_File => True, Directory | Special_File => False);
+         --  Filter out everything but ordinary files. The RM does not specify
+         --  whether "." and ".." are included in the search, so it seems safe
+         --  to explicit skip them.
+
+      begin
+         --  There are two files, called <something>.ads and <something>.adb.
+         --  We wish to avoid depending on the exact names. The RM does not
+         --  define the order of Search. We wish to print the spec first, then
+         --  the body. Each of the following Searches will iterate just once.
+
+         Search
+           (Current_Directory,
+            Pattern => "*.ads",
+            Filter => Just_Ordinary,
+            Process => Do_One_File'Access);
+         Search
+           (Current_Directory,
+            Pattern => "*.adb",
+            Filter => Just_Ordinary,
+            Process => Do_One_File'Access);
+      end Put_To_Stdout;
+
       -----------------------
       -- Servant_Is_A_Body --
       -----------------------
@@ -2150,6 +2203,8 @@ package body Backend.BE_CORBA_Ada.Skels is
          V     : Natural;
          Seed  : constant Natural := 4321; --  Needed by the hash algorithm
          K_2_V : Float;                    --  The ratio of the algorithm
+
+         use Ada.Directories;
       begin
          --  We add a "with" clause to be able to use the "Hash"
          --  function
@@ -2237,25 +2292,69 @@ package body Backend.BE_CORBA_Ada.Skels is
 
          --  Produce the package containing the Hash function; if the user
          --  specified an output directory, ensure the package is output there.
+         --  If the user specified -p (Use_Stdout), we ignore the
+         --  user-specified output directory (if any), and use a temporary
+         --  directory.
+
+         --  Note that Produce puts the output in files. It has a Use_Stdout
+         --  parameter, but we want to avoid using that, because it only exists
+         --  on recent versions of GNAT, which we don't want to depend on. So
+         --  instead, we use the temporary directory, then read the files and
+         --  send the data to standard output.  In order to avoid depending on
+         --  the file names chosen by Produce, we use wildcards. In the future,
+         --  we should eliminate this kludge, by using the Use_Stdout parameter
+         --  of Produce.
+
+         if Use_Stdout then
+            Output_Directory := new String'("iac.perfect-hash-files.temp");
+
+            --  Delete it first, in case it was left over from a previous
+            --  run of iac that crashed.
+
+            begin
+               Delete_Tree (Output_Directory.all);
+            exception
+               when Name_Error =>
+                  null;  --  It's not an error if it didn't exist
+            end;
+
+            Create_Directory (Output_Directory.all);
+         end if;
 
          if Output_Directory = null then
-            PHG.Produce (Pkg_Name => Name_Buffer (1 .. Name_Len),
-                         Use_Stdout => Use_Stdout);
+            PHG.Produce (Pkg_Name => Name_Buffer (1 .. Name_Len));
          else
             --  Change directory before calling Produce (which always generates
             --  sources in the current directory).
 
             declare
-               use Ada.Directories;
                Save_Current_Directory : constant String := Current_Directory;
+
+               procedure Cleanup;
+               --  Put back the current directory, and (if -p) delete the
+               --  temporary directory.
+
+               procedure Cleanup is
+               begin
+                  Set_Directory (Save_Current_Directory);
+
+                  if Use_Stdout then
+                     Delete_Tree (Output_Directory.all);
+                  end if;
+               end Cleanup;
+
             begin
                Set_Directory (Output_Directory.all);
-               PHG.Produce (Pkg_Name => Name_Buffer (1 .. Name_Len),
-                            Use_Stdout => Use_Stdout);
-               Set_Directory (Save_Current_Directory);
+               PHG.Produce (Pkg_Name => Name_Buffer (1 .. Name_Len));
+
+               if Use_Stdout then
+                  Put_To_Stdout;
+               end if;
+
+               Cleanup;
             exception
                when others =>
-                  Set_Directory (Save_Current_Directory);
+                  Cleanup;
                   raise;
             end;
          end if;

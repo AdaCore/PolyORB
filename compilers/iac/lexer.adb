@@ -520,20 +520,9 @@ package body Lexer is
    -- Output --
    ------------
 
-   procedure Output
-     (Source : File_Descriptor)
-   is
-      Length  : constant := 1024;
-      Buffer  : String (1 .. Length);
-      Result  : Integer;
+   procedure Output (Source : File_Descriptor) is
    begin
-      loop
-         Result := Read  (Source, Buffer (1)'Address, Length);
-         exit when Result <= 0;
-         Result := Write (Standout, Buffer (1)'Address, Result);
-      end loop;
-      Close (Source);
-
+      Copy_To_Standard_Output (Source);
       Make_Cleanup;
    end Output;
 
