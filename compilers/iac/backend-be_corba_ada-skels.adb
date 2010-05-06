@@ -1949,15 +1949,16 @@ package body Backend.BE_CORBA_Ada.Skels is
             use GNAT.OS_Lib;
 
             F_Name : aliased constant String :=
-              Simple_Name (Dir_Entry) & ASCII.NUL;
+                       Simple_Name (Dir_Entry) & ASCII.NUL;
             FD : constant File_Descriptor :=
-              Open_Read (F_Name'Address, Binary);
+                   Open_Read (F_Name'Address, Binary);
          begin
             Output.Copy_To_Standard_Output (FD);
          end Do_One_File;
 
          Just_Ordinary : constant Filter_Type :=
-           (Ordinary_File => True, Directory | Special_File => False);
+                           (Ordinary_File            => True,
+                            Directory | Special_File => False);
          --  Filter out everything but ordinary files. The RM does not specify
          --  whether "." and ".." are included in the search, so it seems safe
          --  to explicit skip them.
@@ -1971,12 +1972,12 @@ package body Backend.BE_CORBA_Ada.Skels is
          Search
            (Current_Directory,
             Pattern => "*.ads",
-            Filter => Just_Ordinary,
+            Filter  => Just_Ordinary,
             Process => Do_One_File'Access);
          Search
            (Current_Directory,
             Pattern => "*.adb",
-            Filter => Just_Ordinary,
+            Filter  => Just_Ordinary,
             Process => Do_One_File'Access);
       end Put_To_Stdout;
 
@@ -2254,20 +2255,18 @@ package body Backend.BE_CORBA_Ada.Skels is
                Expression    => Make_Null_Statement))));
          Append_To (Statements (Current_Package), N);
 
-         --  Insert the spec and the body of the Register_Procedure
-         --  procedure
+         --  Insert the spec and the body of the Register_Procedure procedure
 
          N := Register_Procedure_Spec;
          Append_To (Statements (Current_Package), N);
          N := Register_Procedure_Body (E);
          Append_To (Statements (Current_Package), N);
 
-         --  Compute the hash function generator, we use all positions
-         --  In the case of CPU time optimization, the algorithm
-         --  should succeed from the first iteration. For the Memory
-         --  space optimization the algorithm may fail, so we
-         --  increment the number of the graph vertexes until it
-         --  succeeds. We are sure that for V >= 257, the algorithm
+         --  Compute the hash function generator, we use all positions. In the
+         --  case of CPU time optimization, the algorithm should succeed from
+         --  the first iteration. For the Memory space optimization, it may
+         --  initially fail, in which case we increase the graph vertex count
+         --  until it succeeds. We are sure that for V >= 257, the algorithm
          --  will succeed.
 
          V := 2 * Natural (N_Subprograms) + 1;
@@ -2306,19 +2305,25 @@ package body Backend.BE_CORBA_Ada.Skels is
          --  of Produce.
 
          if Use_Stdout then
-            Output_Directory := new String'("iac.perfect-hash-files.temp");
+            declare
+               use GNAT.OS_Lib;
 
-            --  Delete it first, in case it was left over from a previous
-            --  run of iac that crashed.
+               Fd : File_Descriptor;
+               Fn : Temp_File_Name;
 
+               Dummy : Boolean;
+               pragma Unreferenced (Dummy);
             begin
-               Delete_Tree (Output_Directory.all);
-            exception
-               when Name_Error =>
-                  null;  --  It's not an error if it didn't exist
-            end;
+               Create_Temp_File (Fd, Fn);
+               Close (Fd);
 
-            Create_Directory (Output_Directory.all);
+               --  Strip trailing NUL from Fn
+
+               Output_Directory := new String'(Fn (Fn'First .. Fn'Last - 1));
+
+               Delete_File (Output_Directory.all, Success => Dummy);
+               Create_Directory (Output_Directory.all);
+            end;
          end if;
 
          if Output_Directory = null then
@@ -2333,6 +2338,10 @@ package body Backend.BE_CORBA_Ada.Skels is
                procedure Cleanup;
                --  Put back the current directory, and (if -p) delete the
                --  temporary directory.
+
+               -------------
+               -- Cleanup --
+               -------------
 
                procedure Cleanup is
                begin
@@ -2352,6 +2361,7 @@ package body Backend.BE_CORBA_Ada.Skels is
                end if;
 
                Cleanup;
+
             exception
                when others =>
                   Cleanup;
