@@ -36,7 +36,7 @@ logger = logging.getLogger('polyorb.testsuite')
 def main():
     """Run the testsuite and generate reports"""
     # Parse the command lines options
-    m = Main()
+    m = Main(add_targets_options=True)
     add_mainloop_options(m)
     add_run_test_options(m)
     m.add_option('--diffs', dest='diffs', action='store_true',
