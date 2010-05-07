@@ -13,7 +13,6 @@ See %prog -h for more help.
 """
 
 from gnatpython.env import Env
-from gnatpython.ex import Run, STDOUT
 from gnatpython.fileutils import mkdir, rm
 from gnatpython.main import Main
 from gnatpython.mainloop import (MainLoop, add_mainloop_options,
@@ -26,7 +25,6 @@ from glob import glob
 
 import logging
 import os
-import sys
 
 DEFAULT_TIMEOUT = 60
 
@@ -99,9 +97,6 @@ def main():
     env.store(os.environ['TEST_CONFIG'])
     MainLoop(test_list, run_testcase, collect_result, m.options.mainloop_jobs)
 
-             #gen_run_testcase(options.build_dir, options.testsuite_src_dir,
-             #                 options.coverage),
-
     # Generate the report file
     ReportDiff(m.options.output_dir,
                m.options.old_result_dir).txt_image(report_file)
@@ -118,48 +113,6 @@ def filter_list(pattern, run_test=""):
         return test_list
     else:
         return [t for t in test_list if run_test.rstrip('/') in t]
-
-
-def gen_run_testcase(build_dir, testsuite_src_dir, coverage):
-    """Returns the run_testcase function"""
-
-    # Set build_dir variable to the root of the build area, so test_utils.py
-    # can find it. This should be the directory in which PolyORB's ./configure
-    # was run. If the --build-dir option was specified, use that; otherwise,
-    # default to the source area (i.e. polyorb directory, two levels up from
-    # here).
-
-    # Set testsuite_src_dir variable to the root of the testsuite area. Default
-    # to one level up from here.
-    if build_dir is None:
-        build_dir = os.path.join(os.getcwd(), os.pardir, os.pardir)
-
-    if testsuite_src_dir is None:
-        testsuite_src_dir = os.path.join(os.getcwd(), os.pardir)
-
-    def run_testcase(test, _job_info):
-        """Run a single test
-
-        If limit is not set, run rlimit with DEFAULT_TIMEOUT
-        """
-        logger.debug("Running " + test.testdir)
-        timeout = test.getopt('limit')
-        if timeout is None:
-            timeout = DEFAULT_TIMEOUT
-
-        mkdir(os.path.dirname(os.path.join('output', test.filename)))
-
-        return Run([sys.executable,
-                    test.filename,
-                    '--timeout', str(timeout),
-                    '--out-file', os.path.join('output', test.filename),
-                    '--testsuite-src-dir', os.path.realpath(testsuite_src_dir),
-                    '--build-dir', os.path.realpath(build_dir),
-                    '--coverage=' + str(coverage)],
-                   bg=True, output=os.path.join('output',
-                                                test.filename + '.error'),
-                   error=STDOUT, timeout=int(timeout) + DEFAULT_TIMEOUT)
-    return run_testcase
 
 if __name__ == "__main__":
     main()
