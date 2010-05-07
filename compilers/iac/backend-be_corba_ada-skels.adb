@@ -1960,8 +1960,8 @@ package body Backend.BE_CORBA_Ada.Skels is
                            (Ordinary_File            => True,
                             Directory | Special_File => False);
          --  Filter out everything but ordinary files. The RM does not specify
-         --  whether "." and ".." are included in the search, so it seems safe
-         --  to explicit skip them.
+         --  whether "." and ".." are included in the search, so it seems best
+         --  to explicitly skip them.
 
       begin
          --  There are two files, called <something>.ads and <something>.adb.
