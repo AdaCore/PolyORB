@@ -49,7 +49,7 @@ class TestPolyORB(TestRunner):
 
 def main():
     """Run a test"""
-    m = Main()
+    m = Main(add_targets_options=True)
     add_run_test_options(m)
     m.parse_args()
     if not m.args:
