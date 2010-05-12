@@ -78,8 +78,9 @@ package PolyORB.Binding_Data is
    Tag_SOAP                : constant Profile_Tag;
    Tag_DIOP                : constant Profile_Tag;
    Tag_Neighbour           : constant Profile_Tag;
+   Tag_MDNS                : constant Profile_Tag;
+
    Tag_Test                : constant Profile_Tag;
-   Tag_MDNS          : constant Profile_Tag;
    type Profile_Preference is new Integer range 0 .. Integer'Last;
    --  Profile_Preference'First means "unsupported profile type".
 
@@ -211,7 +212,8 @@ private
    Tag_SOAP                : constant Profile_Tag := Tag_PolyORB_First + 2;
    Tag_DIOP                : constant Profile_Tag := Tag_PolyORB_First + 3;
    Tag_Neighbour           : constant Profile_Tag := Tag_PolyORB_First + 4;
-   Tag_MDNS              : constant Profile_Tag := Tag_PolyORB_First + 5;
+   Tag_MDNS                : constant Profile_Tag := Tag_PolyORB_First + 5;
+
    Tag_Test                : constant Profile_Tag := Tag_PolyORB_First + 255;
 
    Tag_PolyORB_Last        : constant Profile_Tag := 16#504f00ff#;
