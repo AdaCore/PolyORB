@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1995-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -1518,6 +1518,12 @@ package body XE_Front is
             Write_Str ("none");
       end case;
       Write_Eol;
+
+      if Default_Name_Server /= No_Name_Server then
+         Write_Field (1, "Name_Server");
+         Write_Name  (Name_Server_Img (Default_Name_Server));
+         Write_Eol;
+      end if;
 
       if Default_First_Boot_Location /= No_Location_Id then
          Write_Field (1, "Protocols");
