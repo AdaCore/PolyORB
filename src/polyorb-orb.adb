@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -170,42 +170,45 @@ package body PolyORB.ORB is
          begin
             if not Valid (BO_Acc) then
 
-               --  Mark binding object as not referenced anymore and purge
+               --  Mark binding object as not referenced anymore and
+               --  purge. Note no "Next (It);" in this case, because Remove
+               --  does that automatically.
 
                Set_Referenced (BO_Acc, Referenced => False);
                Remove (ORB.Binding_Objects, It);
 
-            elsif Get_Profile (BO_Acc) /= null then
+            else
+               if Get_Profile (BO_Acc) /= null then
 
-               --  Until bidirectionnal BO are implemented we cannot reuse the
-               --  server BOs as client BOs and inversely. So for the moment,
-               --  server BOs have a null profile and are not handled here.
-               --  This check shall be removed once bidirectional BO are
-               --  implemented.
+                  --  Until bidirectionnal BO are implemented we cannot reuse
+                  --  the server BOs as client BOs and inversely. So for the
+                  --  moment, server BOs have a null profile and are not
+                  --  handled here.  This check shall be removed once
+                  --  bidirectional BO are implemented.
 
-               if Same_Node (Pro.all, Get_Profile (BO_Acc).all)
-                    and then
-                  PolyORB.Binding_Object_QoS.Is_Compatible (BO_Acc, QoS)
-               then
+                  if Same_Node (Pro.all, Get_Profile (BO_Acc).all)
+                       and then
+                     PolyORB.Binding_Object_QoS.Is_Compatible (BO_Acc, QoS)
+                  then
 
-                  --  We know that BO_Acc is still valid, because the
-                  --  finalization of the binding object involves unregistering
-                  --  it in ORB critical section. However, BO_Acc.all might be
-                  --  in the process of being finalized already, i.e. its
-                  --  usage counter might have dropped to 0 already. In that
-                  --  case, Smart_Pointers.Reuse_Entity will leave Result
-                  --  unchanged (nil).
+                     --  We know that BO_Acc is still valid, because the
+                     --  finalization of the binding object involves
+                     --  unregistering it in ORB critical section. However,
+                     --  BO_Acc.all might be in the process of being finalized
+                     --  already, i.e. its usage counter might have dropped to
+                     --  0 already. In that case, Smart_Pointers.Reuse_Entity
+                     --  will leave Result unchanged (nil).
 
-                  Smart_Pointers.Reuse_Entity
-                    (Result, Smart_Pointers.Entity_Ptr (BO_Acc));
-                  exit All_Binding_Objects
-                    when not Smart_Pointers.Is_Nil (Result);
+                     Smart_Pointers.Reuse_Entity
+                       (Result, Smart_Pointers.Entity_Ptr (BO_Acc));
+                     exit All_Binding_Objects
+                       when not Smart_Pointers.Is_Nil (Result);
+                  end if;
                end if;
 
+               Next (It);
             end if;
          end;
-
-         Next (It);
       end loop All_Binding_Objects;
 
       Leave_ORB_Critical_Section (ORB.ORB_Controller);
