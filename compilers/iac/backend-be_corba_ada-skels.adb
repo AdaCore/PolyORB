@@ -2578,7 +2578,7 @@ package body Backend.BE_CORBA_Ada.Skels is
                return True;
 
             else
-               return Imported (Scope_Entity (Identifier (Ent)));
+               return In_Imported (Scope_Entity (Identifier (Ent)));
             end if;
          end In_Imported;
 
