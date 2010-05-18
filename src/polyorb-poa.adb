@@ -479,9 +479,9 @@ package body PolyORB.POA is
 
    procedure Initialize_POA
      (Self         : access Obj_Adapter;
-      Adapter_Name :        Standard.String;
-      A_POAManager :        POA_Manager.POAManager_Access;
-      Policies     :        POA_Policies.PolicyList;
+      Adapter_Name : Standard.String;
+      A_POAManager : POA_Manager.POAManager_Access;
+      Policies     : POA_Policies.PolicyList;
       POA          : in out Obj_Adapter_Access;
       Error        : in out PolyORB.Errors.Error_Container)
    is
