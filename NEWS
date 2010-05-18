@@ -41,6 +41,9 @@ See the features-27 file.
 Bug fixes
 ---------
 
+A remote call occurring after the target partition of another previous call
+had been disconnected could cause a hang on the calling side. (J511-002)
+
 The -p option of iac is supposed to send the output to standard output, but it
 was sending part of the output (the perfect hash function) to files. (J503-020)
 
