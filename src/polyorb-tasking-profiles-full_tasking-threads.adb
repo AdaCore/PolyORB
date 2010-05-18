@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -413,14 +413,12 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
       use Ada.Real_Time;
       use System.Tasking;
 
-      Time_0 : constant Time := Time_Of (0, Time_Span_Zero);
-
       TID : Task_Id;
       --  Task identifier used to climb up task tree until we reach the
       --  environment task.
 
    begin
-      PTT.Node_Boot_Time := To_Duration (Clock - Time_0);
+      PTT.Node_Boot_Time := To_Duration (Clock - Time_First);
       PTT.Register_Thread_Factory (PTT.Thread_Factory_Access
                                    (The_Thread_Factory));
       TID := System.Tasking.Self;
