@@ -413,12 +413,14 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
       use Ada.Real_Time;
       use System.Tasking;
 
+      Time_0 : constant Time := Time_Of (0, Time_Span_Zero);
+
       TID : Task_Id;
       --  Task identifier used to climb up task tree until we reach the
       --  environment task.
 
    begin
-      PTT.Node_Boot_Time := To_Duration (Clock - Time_First);
+      PTT.Node_Boot_Time := To_Duration (Clock - Time_0);
       PTT.Register_Thread_Factory (PTT.Thread_Factory_Access
                                    (The_Thread_Factory));
       TID := System.Tasking.Self;
