@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2006-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2006-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -35,6 +35,7 @@ with Ada.Environment_Variables;
 with Ada.Strings.Fixed;
 with Ada.Strings.Maps;
 
+with GNAT.Expect;
 with GNAT.OS_Lib;
 
 with PolyORB.Initialization;
@@ -166,15 +167,41 @@ package body PolyORB.DSA_P.Remote_Launch is
       Pid       : Process_Id;
       pragma Unreferenced (Pid);
 
+      Remote_Host : String_Access;
    begin
       pragma Debug (C, O ("Launch_Partition: enter"));
 
       --  ??? This is implemented assuming a UNIX-like shell on both the master
       --  and the slave hosts. This should be made more portable.
 
+      if Host (Host'First) = '`' then
+         declare
+            Argv : constant Argument_List_Access :=
+              Argument_String_To_List (Host (Host'First + 1 .. Host'Last - 1));
+            Command   : String renames Argv (Argv'First).all;
+            Arguments : constant Argument_List (1 .. Argv'Length - 1) :=
+              Argv (2 .. Argv'Last);
+            Status    : aliased Integer;
+         begin
+            Remote_Host :=
+              new String'(GNAT.Expect.Get_Command_Output
+                            (Command,
+                             Arguments,
+                             Input => "",
+                             Status => Status'Access));
+            if Status /= 0 then
+               raise Program_Error with "Unable to launch " & Command;
+            end if;
+         end;
+      else
+         Remote_Host := new String'(Host);
+      end if;
+
+      pragma Debug (C, O ("Remote_Host: " & Remote_Host.all));
+
       --  Local spawn
 
-      if Host (Host'First) /= '`' and then Is_Local_Host (Host) then
+      if Is_Local_Host (Remote_Host.all) then
 
          declare
             Args : Argument_List :=
@@ -235,7 +262,6 @@ package body PolyORB.DSA_P.Remote_Launch is
                end;
             end Expand_Env_Vars;
 
-            Remote_Host    : String_Access := new String'(Host);
             Remote_Command : String_Access :=
                                new String'(Expand_Env_Vars (Env_Vars)
                                              & U_Command
@@ -243,15 +269,17 @@ package body PolyORB.DSA_P.Remote_Launch is
          begin
             pragma Debug
               (C, O ("Enter Spawn (remote: "
-                     & Rsh_Command.all & " " & Rsh_Options.all & Host & "): "
-                     & Remote_Command.all));
+                       & Rsh_Command.all & " "
+                       & Rsh_Options.all
+                       & Remote_Host.all & "): "
+                       & Remote_Command.all));
             Pid := Non_Blocking_Spawn
                      (Rsh_Command.all,
                       Remote_Host & Rsh_Args.all & Remote_Command);
-            Free (Remote_Host);
             Free (Remote_Command);
          end;
       end if;
+      Free (Remote_Host);
 
       pragma Debug (C, O ("Launch_Partition: leave"));
    end Launch_Partition;
