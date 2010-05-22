@@ -172,15 +172,24 @@ package body PolyORB.DSA_P.Remote_Launch is
       pragma Debug (C, O ("Launch_Partition: enter"));
 
       --  ??? This is implemented assuming a UNIX-like shell on both the master
-      --  and the slave hosts. This should be made more portable.
+      --  and the slave hosts. This should be made more portable. If the
+      --  configuration file specified a shell script for the 'Host, then the
+      --  Host will look like `shell-script blah` (using back-quote notation),
+      --  so we have to strip off the back-quotes, and split it into command
+      --  name and arguments. We're using Argument_String_To_List to split off
+      --  the command name as well, which is also kludgy.
 
       if Host (Host'First) = '`' then
          declare
-            Argv : constant Argument_List_Access :=
+            Argv : Argument_List_Access :=
               Argument_String_To_List (Host (Host'First + 1 .. Host'Last - 1));
             Command   : String renames Argv (Argv'First).all;
+            --  First "argument" found by Argument_String_To_List is the name
+            --  of the shell script.
             Arguments : constant Argument_List (1 .. Argv'Length - 1) :=
               Argv (2 .. Argv'Last);
+            --  Get_Command_Output requires a 1-based array, so we need to
+            --  slide Arguments.
             Status    : aliased Integer;
          begin
             Remote_Host :=
@@ -192,7 +201,14 @@ package body PolyORB.DSA_P.Remote_Launch is
             if Status /= 0 then
                raise Program_Error with "Unable to launch " & Command;
             end if;
+            for J in Argv'Range loop
+               Free (Argv (J));
+            end loop;
+            Free (Argv);
          end;
+
+      --  Otherwise (no back-quote), we can just use Host as is.
+
       else
          Remote_Host := new String'(Host);
       end if;
