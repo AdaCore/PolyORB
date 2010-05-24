@@ -11,8 +11,9 @@ You should never call this module directly. To run a single testcase, use
 
 from gnatpython.env import Env
 from gnatpython.ex import Run, STDOUT
-from gnatpython.expect import ExpectProcess
 from gnatpython.fileutils import mkdir
+
+from subprocess import Popen, PIPE
 
 import os
 import re
@@ -65,20 +66,16 @@ def client_server(client_cmd, client_conf, server_cmd, server_conf):
     else:
         server_polyorb_conf = ""
 
-    os.environ[POLYORB_CONF] = server_polyorb_conf
-
-    # Run the server command and retrieve the IOR string
-    server_handle = ExpectProcess(
-        make_run_cmd([server], Env().options.coverage))
+    server_env = os.environ.copy()
+    server_env[POLYORB_CONF] = server_polyorb_conf
 
     try:
-        result = server_handle.expect([r"IOR:([a-z0-9]+)['|\n\r]"], 10)
-        if result != 0:
-            print "Expect error cannot find IOR when running %s" % server
-            server_handle.close()
-            return False
-
-        IOR_str = server_handle.out()[1]
+        # Run the server command and retrieve the IOR string
+        server_handle = Popen([server], stdout=PIPE, env=server_env)
+        IOR_str = server_handle.stdout.readline()
+        # Remove eol and '
+        IOR_str = IOR_str.strip()
+        IOR_str = IOR_str.strip("'")
 
         # Run the client with the IOR argument
 
@@ -100,15 +97,13 @@ def client_server(client_cmd, client_conf, server_cmd, server_conf):
             timeout=RLIMIT, env=client_env)
 
         # Kill the server process
-        server_handle.close()
+        server_handle.kill()
         for elmt in [client, server]:
             if Env().options.coverage:
                 run_coverage_analysis(elmt)
 
     except Exception, e:
-        # Be sure that the server handle is properly closed
         print e
-        server_handle.close()
 
     return _check_output(OUTPUT_FILENAME + 'server', 'server')
 
@@ -184,6 +179,7 @@ def run_coverage_analysis(command):
                 command + ".trace"],
                output=OUTPUT_FILENAME + '.trace', error=STDOUT,
                timeout=RLIMIT)
+
 
 def fail():
     print "TEST FAILED"
