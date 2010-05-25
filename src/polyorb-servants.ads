@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -50,7 +50,7 @@ package PolyORB.Servants is
    type Servant_Access is access all Servant'Class;
 
    function Handle_Message
-     (S   : access Servant;
+     (S   : not null access Servant;
       Msg : Components.Message'Class) return Components.Message'Class;
 
    function Execute_Servant

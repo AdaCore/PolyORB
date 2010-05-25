@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -109,7 +109,7 @@ package body PolyORB.Filters.MIOP.MIOP_Out is
    --------------------
 
    function Handle_Message
-     (F : access MIOP_Out_Filter;
+     (F : not null access MIOP_Out_Filter;
       S : Components.Message'Class) return Components.Message'Class
    is
       use PolyORB.Types;

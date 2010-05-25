@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -53,9 +53,8 @@ package body PolyORB.Call_Back is
    --------------------
 
    function Handle_Message
-     (CB_Handler : access Call_Back_Handler;
-      S          : PolyORB.Components.Message'Class)
-      return PolyORB.Components.Message'Class
+     (CB_Handler : not null access Call_Back_Handler;
+      S          : Components.Message'Class) return Components.Message'Class
    is
       Nothing : Components.Null_Message;
    begin

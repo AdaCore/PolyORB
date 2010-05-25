@@ -184,7 +184,7 @@ package body PolyORB.Filters.Fragmenter is
    --------------------
 
    function Handle_Message
-     (F : access Fragmenter_Filter;
+     (F : not null access Fragmenter_Filter;
       S : Components.Message'Class) return Components.Message'Class
    is
    begin

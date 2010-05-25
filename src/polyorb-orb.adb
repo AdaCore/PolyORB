@@ -122,6 +122,16 @@ package body PolyORB.ORB is
    -- ORB object operations --
    ---------------------------
 
+   procedure Perform_Work
+     (ORB       : access ORB_Type;
+      This_Task : in out PTI.Task_Info);
+   pragma Inline (Perform_Work);
+   --  Perform one item of work assigned to This_Task
+   --  Precondition:  Must be called from within ORB critical section.
+   --  Postcondition: On exit, ORB critical section has been reasserted.
+   --  Note: tasks running this function may exit ORB critical section
+   --  temporarily.
+
    ------------
    -- Create --
    ------------
@@ -147,100 +157,76 @@ package body PolyORB.ORB is
    is
       use PBOL;
 
-      It     : Iterator;
+      function Is_Reusable (BO_Acc : Binding_Object_Access) return Boolean;
+      --  True if this BO can be reused to contact the given profile with
+      --  the given QoS.
+
+      -----------------
+      -- Is_Reusable --
+      -----------------
+
+      function Is_Reusable (BO_Acc : Binding_Object_Access) return Boolean is
+      begin
+         if Get_Profile (BO_Acc) /= null then
+
+            --  Until bidirectionnal BO are implemented we cannot reuse the
+            --  server BOs as client BOs and inversely. So for the moment,
+            --  server BOs have a null profile and are not handled here. This
+            --  check shall be removed once bidirectional BO are implemented.
+
+            return Same_Node (Pro.all, Get_Profile (BO_Acc).all)
+                     and then
+                   PolyORB.Binding_Object_QoS.Is_Compatible (BO_Acc, QoS);
+         else
+            return False;
+         end if;
+      end Is_Reusable;
+
+      use BO_Ref_Lists;
+
+      Reusable_BOs : BO_Ref_List;
       Result : Smart_Pointers.Ref;
+
+   --  Start of processing for Find_Reusable_Binding_Object
 
    begin
       pragma Debug (C, O ("Find_Reusable_Binding_Object: enter"));
       pragma Debug (C, O ("#BO registered = "
         & Natural'Image (Length (ORB.Binding_Objects))));
 
-      Enter_ORB_Critical_Section (ORB.ORB_Controller);
+      Reusable_BOs := Get_Binding_Objects (ORB, Is_Reusable'Access);
 
-      It := First (ORB.Binding_Objects);
+      if not Is_Empty (Reusable_BOs) then
+         Extract_First (Reusable_BOs, Result);
 
-      --  Loop through all the BOs registered in ORB, and try to find one
-      --  that can be reused.
+         --  Get_Binding_Objects with a non-null predicate is expected to
+         --  return at most one object.
 
-      All_Binding_Objects :
-      while not Last (It) loop
+         pragma Assert (Is_Empty (Reusable_BOs));
+      end if;
 
-         declare
-            BO_Acc : Binding_Object_Access renames Value (It);
-         begin
-            if not Valid (BO_Acc) then
-
-               --  Mark binding object as not referenced anymore and
-               --  purge. Note no "Next (It);" in this case, because Remove
-               --  does that automatically.
-
-               Set_Referenced (BO_Acc, Referenced => False);
-               Remove (ORB.Binding_Objects, It);
-
-            else
-               if Get_Profile (BO_Acc) /= null then
-
-                  --  Until bidirectionnal BO are implemented we cannot reuse
-                  --  the server BOs as client BOs and inversely. So for the
-                  --  moment, server BOs have a null profile and are not
-                  --  handled here.  This check shall be removed once
-                  --  bidirectional BO are implemented.
-
-                  if Same_Node (Pro.all, Get_Profile (BO_Acc).all)
-                       and then
-                     PolyORB.Binding_Object_QoS.Is_Compatible (BO_Acc, QoS)
-                  then
-
-                     --  We know that BO_Acc is still valid, because the
-                     --  finalization of the binding object involves
-                     --  unregistering it in ORB critical section. However,
-                     --  BO_Acc.all might be in the process of being finalized
-                     --  already, i.e. its usage counter might have dropped to
-                     --  0 already. In that case, Smart_Pointers.Reuse_Entity
-                     --  will leave Result unchanged (nil).
-
-                     Smart_Pointers.Reuse_Entity
-                       (Result, Smart_Pointers.Entity_Ptr (BO_Acc));
-                     exit All_Binding_Objects
-                       when not Smart_Pointers.Is_Nil (Result);
-                  end if;
-               end if;
-
-               Next (It);
-            end if;
-         end;
-      end loop All_Binding_Objects;
-
-      Leave_ORB_Critical_Section (ORB.ORB_Controller);
       pragma Debug (C, O ("Find_Reusable_Binding_Object: leave"));
 
-      --  If no reusable Binding Object has been found, Result is a nil
-      --  Reference.
+      --  If no reusable Binding Object has been found, Result is a nil Ref
 
       return Result;
    end Find_Reusable_Binding_Object;
-
-   -----------------------
-   -- The ORB main loop --
-   -----------------------
-
-   --  This is the main loop for all general-purpose ORB tasks. This subprogram
-   --  must not be called recursively. Exceptions must not be propagated from
-   --  within ORB critical section.
 
    ------------------
    -- Perform_Work --
    ------------------
 
-   procedure Perform_Work
-     (ORB       : access ORB_Type;
-      This_Task : in out PTI.Task_Info);
-   pragma Inline (Perform_Work);
-   --  Perform one item of work from Q.
-   --  Precondition:  Must be called from within ORB critical section.
-   --  Postcondition: On exit, ORB critical section has been reasserted.
-   --  Note: tasks running this function may exit ORB critical section
-   --  temporarily.
+   procedure Perform_Work (ORB : access ORB_Type) is
+      Job : Job_Access;
+   begin
+      Enter_ORB_Critical_Section (ORB.ORB_Controller);
+      Job := Get_Pending_Job (ORB.ORB_Controller);
+      Leave_ORB_Critical_Section (ORB.ORB_Controller);
+
+      if Job /= null then
+         Run (Job);
+      end if;
+   end Perform_Work;
 
    procedure Perform_Work
      (ORB       : access ORB_Type;
@@ -344,6 +330,10 @@ package body PolyORB.ORB is
    -- Run --
    ---------
 
+   --  This is the main loop for all general-purpose ORB tasks. This subprogram
+   --  must not be called recursively. Exceptions must not be propagated from
+   --  within ORB critical section.
+
    procedure Run
      (ORB            : access ORB_Type;
       Exit_Condition : Exit_Condition_T := (null, null);
@@ -439,8 +429,8 @@ package body PolyORB.ORB is
    exception
       when E : others =>
 
-         --  At this point it is assumed that we are not in the ORB
-         --  critical section.
+         --  At this point it is assumed that we are not in the ORB critical
+         --  section.
 
          O ("ORB.Run got exception:", Error);
          O (Ada.Exceptions.Exception_Information (E), Error);
@@ -475,22 +465,6 @@ package body PolyORB.ORB is
 
       return Result;
    end Work_Pending;
-
-   ------------------
-   -- Perform_Work --
-   ------------------
-
-   procedure Perform_Work (ORB : access ORB_Type) is
-      Job : Job_Access;
-   begin
-      Enter_ORB_Critical_Section (ORB.ORB_Controller);
-      Job := Get_Pending_Job (ORB.ORB_Controller);
-      Leave_ORB_Critical_Section (ORB.ORB_Controller);
-
-      if Job /= null then
-         Run (Job);
-      end if;
-   end Perform_Work;
 
    --------------
    -- Shutdown --
@@ -968,8 +942,7 @@ package body PolyORB.ORB is
                Pro,
                False,
                Error);
-            --  XXX potential race condition, we may protect this
-            --  call, to be discussed.
+            --  Potential race condition, we may protect this call, TBD???
 
             if Found (Error) then
                pragma Debug (C, O ("Run_Request: Got an error when binding: "
@@ -1119,7 +1092,7 @@ package body PolyORB.ORB is
    --------------------
 
    function Handle_Message
-     (ORB : access ORB_Type;
+     (ORB : not null access ORB_Type;
       Msg : Components.Message'Class) return Components.Message'Class
    is
       use Servants.Iface;
@@ -1257,8 +1230,11 @@ package body PolyORB.ORB is
    -- Get_Binding_Objects --
    -------------------------
 
-   function Get_Binding_Objects (ORB : access ORB_Type)
-     return BO_Ref_List
+   function Get_Binding_Objects
+     (ORB       : access ORB_Type;
+      Predicate : access function
+                           (BO_Acc : Binding_Object_Access) return Boolean
+                    := null) return BO_Ref_List
    is
       use PBOL;
       use Smart_Pointers;
@@ -1273,19 +1249,35 @@ package body PolyORB.ORB is
       All_Binding_Objects :
       while not Last (It) loop
          declare
-            Ref : Smart_Pointers.Ref;
+            BO_Acc : Binding_Object_Access renames Value (It);
+            Ref    : Smart_Pointers.Ref;
          begin
-            Smart_Pointers.Reuse_Entity (Ref, Entity_Ptr (Value (It)));
+            if not Valid (BO_Acc) then
 
-            --  If binding object is being finalized, Reuse_Entity leaves Ref
-            --  unset.
+               --  Mark binding object as not referenced anymore and purge.
+               --  Note no "Next (It);" in this case, because Remove does that
+               --  automatically.
 
-            if not Is_Nil (Ref) then
-               BO_Ref_Lists.Prepend (Result, Ref);
+               Set_Referenced (BO_Acc, Referenced => False);
+               Remove (ORB.Binding_Objects, It);
+
+            elsif Predicate = null or else Predicate (BO_Acc) then
+               Smart_Pointers.Reuse_Entity (Ref, Entity_Ptr (Value (It)));
+
+               --  If binding object is being finalized, Reuse_Entity leaves
+               --  Ref unset.
+
+               if not Is_Nil (Ref) then
+                  BO_Ref_Lists.Prepend (Result, Ref);
+               end if;
+
+               --  If Predicate is not null, return just the first matching BO
+
+               exit All_Binding_Objects when Predicate /= null;
+
+               Next (It);
             end if;
          end;
-
-         Next (It);
       end loop All_Binding_Objects;
 
       Leave_ORB_Critical_Section (ORB.ORB_Controller);

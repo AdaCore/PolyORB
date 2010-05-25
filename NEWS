@@ -41,9 +41,12 @@ See the features-27 file.
 Bug fixes
 ---------
 
-If the 'Host attribute in a po_gnatdist configuration file is specified as a
-shell script to run, PolyORB was unable to run the shell script when launching
-a partition. (J521-020)
+The global termination policy in a DSA application might fail to detect
+application termination if a partition with local termination had been
+executed and completed. (J524-001)
+
+PolyORB failed to execute a shell command specified as a partition's Host
+attribute. (J521-020)
 
 IAC would incorrectly generate redundant perfect hash function packages
 for interfaces declared in a scope nested within an imported module. (J504-010)

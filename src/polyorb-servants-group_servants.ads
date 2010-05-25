@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -154,7 +154,7 @@ private
    type Group_Servant_Access is access all Group_Servant;
 
    function Handle_Message
-     (Self : access Group_Servant;
+     (Self : not null access Group_Servant;
       Msg  : Components.Message'Class) return Components.Message'Class;
    --  Function used to intercept Unmarshall_Arguments message
 

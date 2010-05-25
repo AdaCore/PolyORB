@@ -171,7 +171,7 @@ package body PolyORB.Filters.HTTP is
    --  Main filter message processing
 
    function Handle_Message
-     (F : access HTTP_Filter;
+     (F : not null access HTTP_Filter;
       S : Components.Message'Class) return Components.Message'Class
    is
       Res : Components.Null_Message;

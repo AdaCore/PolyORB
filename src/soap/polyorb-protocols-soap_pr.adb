@@ -297,7 +297,7 @@ package body PolyORB.Protocols.SOAP_Pr is
    --------------------
 
    function Handle_Message
-     (Sess : access SOAP_Session;
+     (Sess : not null access SOAP_Session;
       S    : Components.Message'Class) return Components.Message'Class
    is
       use PolyORB.Protocols;

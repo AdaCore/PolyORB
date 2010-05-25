@@ -74,9 +74,8 @@ package body PolyORB.Filters.Slicers is
    --------------------
 
    function Handle_Message
-     (F : access Slicer_Filter;
-      S :        Components.Message'Class)
-     return Components.Message'Class
+     (F : not null access Slicer_Filter;
+      S : Components.Message'Class) return Components.Message'Class
    is
       Res : Components.Null_Message;
    begin

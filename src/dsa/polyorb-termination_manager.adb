@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2006-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2006-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -156,8 +156,7 @@ package body PolyORB.Termination_Manager is
       use References;
       use Smart_Pointers;
 
-      L        : constant BO_Ref_List := Get_Binding_Objects (Setup.The_ORB);
-      It       : Iterator;
+      L        : BO_Ref_List := Get_Binding_Objects (Setup.The_ORB);
       R        : References.Ref;
       NK       : Node_Kind;
       RACW     : Term_Manager_Access;
@@ -166,15 +165,16 @@ package body PolyORB.Termination_Manager is
    begin
       pragma Debug (C,
         O ("Call_On_Neighbours (" & A_Name & "," & Stamp'Img & "): enter"));
-      It := First (L);
 
       All_Binding_Objects :
-      while not Last (It) loop
+      while not Is_Empty (L) loop
          declare
             use Ada.Exceptions;
+            BO_Ref : Smart_Pointers.Ref;
          begin
+            Extract_First (L, BO_Ref);
             Extract_TM_Reference_From_BO
-              (BO  => Binding_Object_Access (Entity_Of (Value (It).all)),
+              (BO  => Binding_Object_Access (Entity_Of (BO_Ref)),
                Ref => R,
                NK  => NK);
 
@@ -191,6 +191,8 @@ package body PolyORB.Termination_Manager is
                   Status := Status and N_Status;
 
                when DSA_Node_Without_TM =>
+                  pragma Debug
+                    (C, O ("DSA neighbour without TM"));
                   Status := False;
 
                when Non_DSA_Node =>
@@ -211,9 +213,8 @@ package body PolyORB.Termination_Manager is
             when System.RPC.Communication_Error =>
                Decrement_Activity;
          end;
-
-         Next (It);
       end loop All_Binding_Objects;
+
       pragma Debug (C,
         O ("Call_On_Neighbours (" & A_Name & ", " & Stamp'Img & "): leave -> "
            & Status'Img));

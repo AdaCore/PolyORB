@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -51,9 +51,8 @@ package PolyORB.Components is
    type Component_Access is access all Component'Class;
 
    function Handle_Message
-     (C : access Component;
-      M :        Message'Class)
-     return Message'Class
+     (C : not null access Component;
+      M : Message'Class) return Message'Class
       is abstract;
    --  Called internally when component C is to receive message M.
    --  Return a reply (possibly Null_Message if no specific contents

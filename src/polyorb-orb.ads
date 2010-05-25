@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -35,6 +35,8 @@
 --  Role: * to coordinate operation of the various subsystems.
 --        * to gateway asynchronous external events to the
 --          synchronous messaging architecture used within PolyORB.
+
+pragma Ada_2005;
 
 with PolyORB.Annotations;
 with PolyORB.Asynch_Ev;
@@ -91,7 +93,7 @@ package PolyORB.ORB is
 
    type ORB_Type (Tasking_Policy : access Tasking_Policy_Type'Class;
                   ORB_Controller :        POC.ORB_Controller_Access)
-   is new PolyORB.Components.Component with private;
+     is new PolyORB.Components.Component with private;
 
    type ORB_Access is access all ORB_Type;
 
@@ -251,8 +253,15 @@ package PolyORB.ORB is
    subtype BO_Ref_List is BO_Ref_Lists.List;
    --  A list of References to Binding Objects
 
-   function Get_Binding_Objects (ORB : access ORB_Type) return BO_Ref_List;
-   --  Return a list of references to the BOs owned by this ORB
+   function Get_Binding_Objects
+     (ORB       : access ORB_Type;
+      Predicate : access function
+                           (BO_Acc : Binding_Objects.Binding_Object_Access)
+                           return Boolean
+                    := null) return BO_Ref_List;
+   --  Return a list of references to the BOs owned by this ORB. If Predicate
+   --  is not null, look for BOs matching the predicate, and stop at the first
+   --  valid matching one.
 
    procedure Set_Object_Adapter
      (ORB : access ORB_Type;
@@ -274,7 +283,7 @@ package PolyORB.ORB is
    --  Create an object reference that designates object Oid within this ORB
 
    function Handle_Message
-     (ORB : access ORB_Type;
+     (ORB : not null access ORB_Type;
       Msg : Components.Message'Class) return Components.Message'Class;
 
    ----------------------------
