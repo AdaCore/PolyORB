@@ -52,9 +52,16 @@ with PolyORB.POA;
 with PolyORB.Binding_Objects;
 with PolyORB.Any;
 with PolyORB.POA_Types;
+--  with PolyORB.Transport;
+--  with PolyORB.Sockets;
+--  with PolyORB.Transport.Datagram.Sockets_Out;
+--  with PolyORB.Parameters;
+--  with PolyORB.Utils.Sockets;
+--  with PolyORB.Obj_Adapters.Simple;
 --  with PolyORB.POA_Manager;
 --  with PolyORB.POA_Config;
 package body PolyORB.Protocols.DNS is
+--   use PolyORB.Transport.Datagram.Sockets_Out;
    use PolyORB.Representations.DNS;
    use PolyORB.Binding_Objects;
    use PolyORB.Annotations;
@@ -69,6 +76,9 @@ package body PolyORB.Protocols.DNS is
    use Ada.Text_IO;
    use PolyORB.Filters.Iface;
    use PolyORB.Utils;
+--   use PolyORB.Sockets;
+--   use PolyORB.Parameters;
+--    use PolyORB.Utils.Sockets;
 --   use PolyORB.POA_Manager;
 --   use PolyORB.POA_Config;
 
@@ -142,6 +152,7 @@ package body PolyORB.Protocols.DNS is
 
          New_Pending_Req.Request_Id := Get_Request_Id (Sess);
          Leave (Sess.Mutex);
+         pragma Debug (C, O ("One way call : No reply expected"));
          Send_Request (Sess, New_Pending_Req, Error);
          Free (New_Pending_Req);
 
@@ -156,9 +167,12 @@ package body PolyORB.Protocols.DNS is
          Add_Pending_Request (Sess, New_Pending_Req);
          New_Pending_Req_Id := New_Pending_Req.Request_Id;
          Leave (Sess.Mutex);
+
+         pragma Debug (C, O ("Two way call : a reply is expected"));
          Send_Request (Sess, New_Pending_Req, Error);
 
       if Found (Error) then
+         pragma Debug (C, O ("An error is found after Send_Request"));
          Remove_Pending_Request (Sess, New_Pending_Req_Id, Success);
          if Success then
             Set_Exception (R, Error);
@@ -178,6 +192,7 @@ package body PolyORB.Protocols.DNS is
                Servants.Iface.Executed_Request'(Req => R));
          end;
       end if;
+      pragma Debug (C, O ("Invoke_Request : leaving"));
    end Invoke_Request;
 
    -------------------
@@ -239,28 +254,18 @@ package body PolyORB.Protocols.DNS is
       Error          : in out Errors.Error_Container)
    is
       use PolyORB.Any;
+      use PolyORB.Any.NVList.Internals;
+      use PolyORB.Any.NVList.Internals.NV_Lists;
       use PolyORB.Errors;
       use type PolyORB.Any.TypeCode.Local_Ref;
 
       Buffer_Out      : Buffer_Access := new Buffer_Type;
       Header_Buffer   : Buffer_Access := new Buffer_Type;
-      Header_Space    : constant Reservation :=
-      Reserve (Buffer_Out, DNS_Header_Size);
---      Existing_BO      : PolyORB.Smart_Pointers.Ref;
---      QoS        : PolyORB.QoS.QoS_Parameters;
---      Selected_Profile : Profile_Access;
-      --  Args_Out : Any.NVList.Ref;
-
+      Header_Space    : Reservation;
+      It : Iterator;
+      Arg : Element_Access;
    begin
---       Bind_Profile(Profile => ,
---                     The_ORB => ,
---                     QoS     => ,
---                     BO_Ref  => ,
---                    Error   => )
---        Existing_BO := Find_Reusable_Binding_Object
---                          (ORB_Access (S.Server), Selected_Profile, QoS);
-      pragma Debug (C, O ("Process reply of request " &
-       Types.To_Standard_String (Sess.MCtx.Request_Name)));
+
       if PolyORB.Any.Is_Empty (Request.Exception_Info) then
          Sess.MCtx.Rcode_Flag  := No_Error;
       end if;
@@ -274,21 +279,41 @@ package body PolyORB.Protocols.DNS is
             null;
       end case;
 
-      --  Marshall Header
-      --  Set parameter for header request marshalling
-      --  Marshall reply header
-      --  Args_Out := Request.Out_Args;
+      Set_Endianness (Buffer_Out, Big_Endian);
+      Set_Endianness (Header_Buffer, Big_Endian);
+      Header_Space := Reserve (Buffer_Out, DNS_Header_Size);
 
-      Marshall_DNS_Header_Reply
-          (Header_Buffer, Request, Sess.MCtx);
+      --  Retrieving the number of answers here
+      --  XXX temporary fix
+      It := First (List_Of (Request.Out_Args).all);
+      Next (It);
+      Next (It);
+      pragma Debug (C, O ("Out_Args : " &
+        Length (List_Of (Request.Out_Args).all)'Img));
+      Arg := Value (It);
+      Sess.MCtx.Nb_Answers := Types.Unsigned_Short
+        (Get_Aggregate_Count
+        (Aggregate_Content'Class (Get_Value (Get_Container
+            (Arg.Argument).all).all)) - 1);
 
+      Marshall_Latin_1_String (Buffer_Out, Sess.MCtx.Request_Name);
+      Marshall (Buffer_Out, Types.Unsigned_Short (12));
+      Marshall (Buffer_Out, Types.Unsigned_Short (1));
+
+      --  this is a response , we add the ttl field
+      --  XXX temporary fix for Unsigned_Long marshalling
+      Marshall (Buffer_Out, Types.Unsigned_Short (0));
+      Marshall (Buffer_Out, Types.Unsigned_Short (240));
+
+      Marshall_From_Any (Buffer_Out,
+                          Get_Container (Arg.Argument).all, True, Error);
       --  Copy Header
-
+      Marshall_DNS_Header_Reply
+        (Header_Buffer, Request, Sess.MCtx);
       Copy_Data (Header_Buffer.all, Header_Space);
       Release (Header_Buffer);
-
       --  Emit reply
-
+      Show (Buffer_Out);
       Emit_Message (Sess, Buffer_Out, Error);
       Release (Buffer_Out);
       pragma Debug (C, O ("Reply sent"));
@@ -303,6 +328,7 @@ package body PolyORB.Protocols.DNS is
       pragma Debug (C, O ("Handle_Connect_Indication"));
       pragma Assert (S.State = Not_Initialized);
       S.Role := Server;
+      Show  (S.Buffer_In);
       Initialize_Session (S);
       Expect_DNS_Header (S);
    end Handle_Connect_Indication;
@@ -317,6 +343,7 @@ package body PolyORB.Protocols.DNS is
       pragma Assert (S.State = Not_Initialized);
       S.Role := Client;
       Initialize_Session (S);
+      Expect_DNS_Header (S);
    end Handle_Connect_Confirmation;
 
 --  ----------------------------
@@ -340,23 +367,27 @@ package body PolyORB.Protocols.DNS is
          when Expect_Header =>
             pragma Debug (C, O ("Received Header Size " & Data_Amount'Img));
             Unmarshall_DNS_Header (Sess.MCtx, Sess.Buffer_In);
+            if Sess.Role = Client then
+               Reply_Received (Sess, Request_Id => 1,
+                               Rcode      => Sess.MCtx.Rcode_Flag);
+            else
             --  At this point we have all header fields stored in Sess.MCtx
-
             --  If the message is a question
-            if Sess.MCtx.Message_Type = Request then
-               for J in 1 .. Sess.MCtx.Nb_Questions loop
-                  Sess.State := Expect_Name;
-                  --  We need to receive the length of the question name
-                  Emit_No_Reply
-                   (Port => Lower (Sess),
-                   Msg  => DNS_Data_Expected'
-                    (In_Buf => Sess.Buffer_In,
-                     Max    => Stream_Element_Count
+               if Sess.MCtx.Message_Type = Request then
+                  for J in 1 .. Sess.MCtx.Nb_Questions loop
+                     Sess.State := Expect_Name;
+                     --  We need to receive the length of the question name
+                     Emit_No_Reply
+                      (Port => Lower (Sess),
+                       Msg  => DNS_Data_Expected'
+                       (In_Buf => Sess.Buffer_In,
+                        Max    => Stream_Element_Count
                        (1),
                        State  => Sess.State));
-               end loop;
-
+                  end loop;
+               end if;
             end if;
+
          --  at this point we have received the request name size
          when Expect_Name =>
             pragma Debug (C, O ("Received DNS message body"));
@@ -388,7 +419,7 @@ package body PolyORB.Protocols.DNS is
 
          when Expect_Body =>
             Process_Request (Sess);
-
+            Expect_DNS_Header (Sess);
          when others =>
 
             Throw
@@ -484,14 +515,22 @@ package body PolyORB.Protocols.DNS is
       Buffers.Release_Contents (Sess.Buffer_In.all);
 
       pragma Debug (C, O ("Expect Header : Here Buffer_In is empty"));
-
+      Set_Endianness (Sess.Buffer_In, Big_Endian);
       Sess.State := Expect_Header;
-      Emit_No_Reply
-        (Port => Lower (Sess),
-         Msg  => DNS_Data_Expected'
-         (In_Buf => Sess.Buffer_In,
-          Max    => DNS_Header_Size,
-          State  => Sess.State));
+      if Sess.Role = Server then
+         Emit_No_Reply
+           (Port => Lower (Sess),
+            Msg  => DNS_Data_Expected'
+             (In_Buf => Sess.Buffer_In,
+              Max    => DNS_Header_Size,
+              State  => Sess.State));
+      else
+         Emit_No_Reply
+           (Port => Lower (Sess),
+            Msg  => Data_Expected'
+             (In_Buf => Sess.Buffer_In,
+              Max    => DNS_Header_Size));
+      end if;
    end Expect_DNS_Header;
 
    --------------------
@@ -641,7 +680,9 @@ package body PolyORB.Protocols.DNS is
    begin
       pragma Debug (C, O ("Send_Request enter"));
       Buffer := new Buffer_Type;
+      Set_Endianness (Buffer, Big_Endian);
       Header_Buffer := new Buffer_Type;
+      Set_Endianness (Header_Buffer, Big_Endian);
       Header_Space := Reserve (Buffer, DNS_Header_Size);
 
       pragma Debug (C, O ("Marshalling request body"));
@@ -670,14 +711,14 @@ package body PolyORB.Protocols.DNS is
                              & " = " & Image (Arg.Argument)));
 
          Marshall_From_Any (Buffer,
-                            Get_Container (Arg.Argument).all, Error);
+                        Get_Container (Arg.Argument).all, False, Error);
       end if;
 
       Copy_Data (Header_Buffer.all, Header_Space);
       Release (Header_Buffer);
 
       Emit_Message (Sess'Access, Buffer, Error);
-
+      pragma Debug (C, O ("Send_Request : leave"));
       Release (Buffer);
    end Send_Request;
 
@@ -744,16 +785,33 @@ package body PolyORB.Protocols.DNS is
       use PolyORB.Any;
       use PolyORB.Servants;
       use PolyORB.POA_Types;
+--      use PolyORB.Transport;
+--      use PolyORB.Obj_Adapters.Simple;
 
       ORB              : ORB_Access;
       Arg_Name_Auth : constant PolyORB.Types.Identifier :=
         PolyORB.Types.To_PolyORB_String ("authoritative");
       Arg_Name_Question : constant PolyORB.Types.Identifier :=
         PolyORB.Types.To_PolyORB_String ("question");
+      Arg_Name_Answer : constant PolyORB.Types.Identifier :=
+        PolyORB.Types.To_PolyORB_String ("answer");
+      Arg_Name_Au : constant PolyORB.Types.Identifier :=
+        PolyORB.Types.To_PolyORB_String ("authority");
+      Arg_Name_Add : constant PolyORB.Types.Identifier :=
+        PolyORB.Types.To_PolyORB_String ("additional");
+
       Argument_Auth : PolyORB.Any.Any;
       Argument_Question : PolyORB.Any.Any;
+      Argument_Answer : PolyORB.Any.Any;
+      Argument_Additional : PolyORB.Any.Any;
+      Argument_Authority : PolyORB.Any.Any;
       Sequence_Length : Integer;
---      Q_sequence : rrSequence;
+      Q_sequence : rrSequence;
+      A_sequence : rrSequence;
+      Auth_sequence : rrSequence;
+      Add_sequence : rrSequence;
+
+      myRR : RR;
       TC  : constant TypeCode.Local_Ref
         := TypeCode.TC_Sequence;
       TCK : constant TCKind := TypeCode.Kind (TC);
@@ -775,61 +833,114 @@ package body PolyORB.Protocols.DNS is
       Root_POA : PolyORB.POA.Obj_Adapter_Access;
       Child_POA : PolyORB.POA.Obj_Adapter_Access;
       sm : Servants.Servant_Access;
-      U_Oid     :   Unmarshalled_Oid;
+      serv : Servants.Servant_Access;
+      BO_Ref : Smart_Pointers.Ref;
+
    begin
       if S.Role /= Server then
          raise DNS_Error;
       end if;
       ORB := ORB_Access (S.Server);
-
       pragma Debug (C, O ("Request_Received: entering"));
---        Unmarshall_DNS_Request_Message
---          (S.Buffer_In,
---           S.MCtx);
+      S.MCtx.Request_Name := Types.To_PolyORB_String
+        (Unmarshall_DNS_String (S.Buffer_In, S.MCtx.Request_Name_Length));
 
---        pragma Debug (C, O ("Request type : " & S.MCtx.Request_Type'Img));
---        pragma Debug (C, O ("Request name : " &
---          Types.To_Standard_String (S.MCtx.Request_Name)));
+      pragma Debug (C, O ("Request name : " &
+        Types.To_Standard_String (S.MCtx.Request_Name)));
 --  Creating an empty args list
 --      Object_Id := Get_Object_Key (Selected_Profile.all);
 
       Root_POA :=  PolyORB.POA.Obj_Adapter_Access
-          (Object_Adapter (ORB));
+        (Object_Adapter (ORB));
 
       Find_POA (Self        => Root_POA,
                    Name        => "DNS_POA",
-                   Activate_It => True,
+                   Activate_It => False,
                    POA         => Child_POA,
                    Error       => Error);
+
       pragma Debug (C, O ("Found POA : "
         & Child_POA.Name.all));
-      --  XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+      --  Retrieving the default servant for DNS_POA
       Get_Servant (Child_POA, sm, Error);
-      POA.Activate_Object (P_Servant => sm,
-                          Hint      => Object_Key,
-                          U_Oid     => U_Oid,
-                           Error     => Error);
-      pragma Debug (C, O ("OBJ active : "));
-      Servant_To_Id (Child_POA, sm,
-                     Object_Key, Error);
 
-      pragma Debug (C, O ("OBJ KEY : "
-        & Image (Object_Key.all)));
+      --  Retrieving the ObjectId associated to the servant
+      Servant_To_Id (Child_POA,
+                      P_Servant => sm,
+                      Oid       => Object_Key,
+                      Error     => Error);
 
-      Args := Get_Empty_Arg_List
-        (Object_Adapter (ORB),
-         Object_Key,
-         "Query");
+      pragma Debug (C, O ("OBJ KEY : " & Image (Object_Key.all)));
 
-      pragma Debug (C, O ("About to enter Unmarshall_Arg_List"));
-      Unmarshall_Argument_List
-        (S.Buffer_In, Args, Error);
+--        Args := Get_Empty_Arg_List
+--        (Object_Adapter (ORB),
+--         Object_Key,
+--         "Query");
+      Any.NVList.Create (Args);
 
-      pragma Debug (C, O ("Object_Key  OK:" & Image (String_To_Oid (
-        To_Standard_String (S.MCtx.Request_Name)))));
-      Object_Key := new PolyORB.Objects.Object_Id'(String_To_Oid
-               ("/" & To_Standard_String (S.MCtx.Request_Name)));
+      TC_RR := PolyORB.Any.TypeCode.TC_Struct;
+      Any.TypeCode.Add_Parameter (TC_RR, Any.To_Any ("RR"));
+      Any.TypeCode.Add_Parameter (TC_RR, Any.To_Any ("IDL:DNS/RR:1.0"));
+      Any.TypeCode.Add_Parameter (TC_RR, Any.To_Any
+                                  (Any.TypeCode.TC_String));
+      Any.TypeCode.Add_Parameter (TC_RR, Any.To_Any ("rr_name"));
+      --  initialize RR_Type
+      TC_RR_Type := PolyORB.Any.TypeCode.TC_Enum;
+      Any.TypeCode.Add_Parameter
+        (TC_RR_Type, Any.To_Any ("RR_Type"));
+      Any.TypeCode.Add_Parameter
+        (TC_RR_Type, Any.To_Any ("IDL:DNS/RR_Type:1.0"));
+      Any.TypeCode.Add_Parameter
+        (TC_RR_Type, Any.To_Any ("PTR"));
+      Any.TypeCode.Add_Parameter
+        (TC_RR_Type, Any.To_Any ("NS"));
 
+      Any.TypeCode.Add_Parameter
+         (TC_RR, Any.To_Any (TC_RR_Type));
+      Any.TypeCode.Add_Parameter
+         (TC_RR, Any.To_Any ("rr_type"));
+      Any.TypeCode.Disable_Reference_Counting
+        (Any.TypeCode.Object_Of (TC_RR).all);
+      --  Initialize rrSequence
+      TC_SEQUENCE_RR := Any.TypeCode.Build_Sequence_TC
+                 (TC_RR, 0);
+      Any.TypeCode.Disable_Reference_Counting
+        (Any.TypeCode.Object_Of (TC_SEQUENCE_RR).all);
+      SEQUENCE_RR_Helper.Initialize
+              (Element_TC => TC_RR,
+               Sequence_TC => TC_SEQUENCE_RR);
+
+      --  Assigning the in out authoritative argument
+      Argument_Auth := Any.To_Any (S.MCtx.AA_Flag);
+      Add_Item (Args, Arg_Name_Auth, Argument_Auth, Any.ARG_INOUT);
+      --  Assigning the question rrSequence
+      myRR.rr_name := S.MCtx.Request_Name;
+      myRR.rr_type := PTR;
+      Sequence_Length := Integer (S.MCtx.Nb_Questions);
+      Q_sequence := To_Sequence (Sequence_Length);
+      for J in 1 .. Sequence_Length loop
+         Replace_Element (Q_sequence, J, myRR);
+      end loop;
+      Argument_Question := To_Any (Q_sequence);
+      Add_Item (Args, Arg_Name_Question, Argument_Question, Any.ARG_IN);
+      --  initializing the out Answer rr sequence
+      A_sequence := To_Sequence (Sequence_Length);
+      Argument_Answer := To_Any (A_sequence);
+      Add_Item (Args, Arg_Name_Answer, Argument_Answer, Any.ARG_OUT);
+
+      --  initializing the out Authority rr sequence
+      Auth_sequence := To_Sequence (Sequence_Length);
+      Argument_Authority := To_Any (Auth_sequence);
+      Add_Item (Args, Arg_Name_Au, Argument_Authority, Any.ARG_OUT);
+
+      --  initializing the out Authority rr sequence
+      Add_sequence := To_Sequence (Sequence_Length);
+      Argument_Additional := To_Any (Add_sequence);
+      Add_Item (Args, Arg_Name_Add, Argument_Additional, Any.ARG_OUT);
+
+--        pragma Debug (C, O ("Args are null? :" & Args.Is_Null'Img));
+--        Unmarshall_Argument_List (S.Buffer_In, Args, Error);
       Target_Profile := new Local_Profile_Type;
       Create_Local_Profile
            (Object_Key.all,
@@ -837,31 +948,10 @@ package body PolyORB.Protocols.DNS is
       pragma Debug (C, O ("Local Profile created"));
 
       Create_Reference ((1 => Target_Profile), "", Target);
-
       pragma Debug (C, O ("Reference created"));
 
---        TC_SEQUENCE_RR := PolyORB.Any.TypeCode.Build_Sequence_TC
---         (PolyORB.Any.TC_String, 0);
---        PolyORB.Any.TypeCode.Disable_Reference_Counting
---         (Any.TypeCode.Object_Of (TC_SEQUENCE_RR).all);
---        SEQUENCE_RR_Helper.Initialize
---                (Element_TC => PolyORB.Any.TC_String,
---                 Sequence_TC => TC_SEQUENCE_RR);
-      --  Assigning the in out authoritative argument
-      Argument_Auth := Any.To_Any (S.MCtx.AA_Flag);
-      Add_Item (Args, Arg_Name_Auth, Argument_Auth, Any.ARG_INOUT);
-
-      --  Assigning the question rrSequence
---        Sequence_Length := Integer (S.MCtx.Nb_Questions);
---        Q_sequence := To_Sequence (Sequence_Length);
---        for J in 1 .. Sequence_Length loop
---           Replace_Element (Q_sequence, J, S.MCtx.Request_Name);
---        end loop;
---        Argument_Question := To_Any (Q_sequence);
---        Add_Item (Args, Arg_Name_Question, Argument_Question, Any.ARG_IN);
-
       Req_Flags := Sync_Call_Back;
-      pragma Debug (C, O ("Args retrieved"));
+
       Create_Request
         (Target    => Target,
          Operation => "Query",
@@ -878,9 +968,8 @@ package body PolyORB.Protocols.DNS is
         Queue_Request'
           (Request   => Req,
            Requestor => Component_Access (S)));
-
---      Free (Object_Key);
-      pragma Debug (C, O ("Request_Received: leaving"));
+      PolyORB.Objects.Free (Object_Key);
+      pragma Debug (C, O ("Process_Request: leaving"));
    end Process_Request;
 
    procedure Initialize_Session
@@ -926,21 +1015,19 @@ package body PolyORB.Protocols.DNS is
    begin
          --  Marshall DNS request header
       pragma Debug (C, O ("Marshalling DNS request header"));
-      --      Marshall (Header_Buffer, R.Request_Id);
-      Test_Request_Id := 0;
-      Marshall (Header_Buffer, Test_Request_Id);
-
-      --  Marshalling the DNS header flags;
+      --  Marshalling the transaction number
+      Marshall (Header_Buffer, Types.Unsigned_Short (0));
       Header_Flags := 0;
+      --  Marshalling the DNS header flags
       --  message is a request
       MCtx.QR_Flag := (MCtx.Message_Type = Reply);
-      Unsigned_Short_Flags.Set (Header_Flags, QR_Flag_Pos, False);
+      Unsigned_Short_Flags.Set (Header_Flags, QR_Flag_Pos, MCtx.QR_Flag);
 
       if R.Req.Operation.all = "Query" then
          --  message is a standard query
-         pragma Debug (C, O ("request is a standard query"));
+         pragma Debug (C, O ("request is a sstandard query"));
          MCtx.Opcode_Flag := Query;
-         for J in Opcode_Flag_Pos .. AA_Flag_Pos - 1 loop
+         for J in Opcode_Flag_Pos .. QR_Flag_Pos - 1 loop
             Unsigned_Short_Flags.Set (Header_Flags, J, False);
          end loop;
       end if;
@@ -950,33 +1037,35 @@ package body PolyORB.Protocols.DNS is
       Arg := Value (First (List_Of (R.Req.Args).all));
       Unsigned_Short_Flags.Set (Header_Flags,  AA_Flag_Pos,
                         PolyORB.Types.Boolean'(From_Any (Arg.Argument)));
+      pragma Debug (C, O ("retrieved authoritative flag"));
 
       --  TODO : if message size > max_message_size then tc=1
---     MCtx.TC_Flag := False;
-      Unsigned_Short_Flags.Set (Header_Flags, TC_Flag_Pos, False);
-
+      MCtx.TC_Flag := False;
+      Unsigned_Short_Flags.Set (Header_Flags, TC_Flag_Pos, MCtx.TC_Flag);
+      pragma Debug (C, O ("TC_Flag is set"));
       MCtx.Rec_Flag := False;
-      Unsigned_Short_Flags.Set (Header_Flags, Rec_Flag_Pos, False);
+      Unsigned_Short_Flags.Set (Header_Flags, Rec_Flag_Pos, MCtx.Rec_Flag);
+      pragma Debug (C, O ("Rec_Flag is set"));
       MCtx.Rec_Disp_Flag := False;
-      Unsigned_Short_Flags.Set (Header_Flags, Rec_Disp_Flag_Pos, False);
-      --  three reserved bits
-      for J in Res_Flag_Pos .. Rcode_Flag_Pos - 1 loop
-         Unsigned_Short_Flags.Set (Header_Flags, J, False);
-      end loop;
+      Unsigned_Short_Flags.Set
+        (Header_Flags, Rec_Disp_Flag_Pos, MCtx.Rec_Disp_Flag);
+      pragma Debug (C, O ("Rec_Disp_Flag is set"));
 
       --  As this is a query,not a response, Rcode = No_Error
       MCtx.Rcode_Flag := No_Error;
-      for J in Rcode_Flag_Pos .. 16 loop
+      for J in  Rcode_Flag_Pos  .. Res_Flag_Pos - 1 loop
          Unsigned_Short_Flags.Set (Header_Flags, J, False);
+         pragma Debug (C, O ("Setting Rcode flag bit nb:" & J'Img));
       end loop;
-
+      pragma Debug (C, O ("marshalling flags"));
       Marshall (Header_Buffer, Types.Unsigned_Short (Header_Flags));
 
       --  Number of questions being sent
+      pragma Debug (C, O ("marsh. of questions : " & MCtx.Nb_Questions'Img));
       Marshall (Header_Buffer, MCtx.Nb_Questions);
       --  By default, for a query, next fields = 0
-      MCtx.Nb_Responses := 0;
-      Marshall (Header_Buffer, MCtx.Nb_Responses);
+      MCtx.Nb_Answers := 0;
+      Marshall (Header_Buffer, MCtx.Nb_Answers);
       MCtx.Nb_Auth_Servers := 0;
       Marshall (Header_Buffer, MCtx.Nb_Auth_Servers);
       MCtx.Nb_Add_Infos := 0;
@@ -1000,6 +1089,7 @@ package body PolyORB.Protocols.DNS is
 
    begin
       pragma Debug (C, O ("Unmarshalling DNS header"));
+      Show (Buffer);
       --  Extract Request_Id
       Test_Request_Id := Unmarshall (Buffer);
       pragma Debug (C, O ("Request ID :" & Test_Request_Id'Img));
@@ -1016,17 +1106,8 @@ package body PolyORB.Protocols.DNS is
       end if;
       pragma Debug (C, O ("Message is a : " & MCtx.Message_Type'Img));
 
-      for J in Opcode_Flag_Pos .. AA_Flag_Pos - 1 loop
-         if Is_Set (J, Header_Flags) then
-            if J = AA_Flag_Pos - 2 and Is_Set (J + 1, Header_Flags) then
-               MCtx.Opcode_Flag := Status;
-            elsif J = AA_Flag_Pos - 2 and not Is_Set (J + 1, Header_Flags) then
-               MCtx.Opcode_Flag := IQuery;
-            end if;
-         else
-            MCtx.Opcode_Flag := Query;
-         end if;
-      end loop;
+      --  XXX todo: case on Opcode for IQuery and Status
+      MCtx.Opcode_Flag := Query;
 
       pragma Debug (C, O ("Opcode :" & MCtx.Opcode_Flag'Img));
 
@@ -1042,15 +1123,15 @@ package body PolyORB.Protocols.DNS is
       MCtx.Rec_Disp_Flag :=  Is_Set (Rec_Disp_Flag_Pos, Header_Flags);
       pragma Debug (C, O ("Rec_Disp_Flag : " & MCtx.Rec_Disp_Flag'Img));
 
-      --  TODO  : case on Rcode
+      --  XXX TODO  : case on Rcode
       MCtx.Rcode_Flag := No_Error;
       pragma Debug (C, O ("Rcode : No_Error"));
 
       MCtx.Nb_Questions := Unmarshall (Buffer);
       pragma Debug (C, O ("NB Questions :" & MCtx.Nb_Questions'Img));
 
-      MCtx.Nb_Responses := Unmarshall (Buffer);
-      pragma Debug (C, O ("NB Resp :" & MCtx.Nb_Responses'Img));
+      MCtx.Nb_Answers := Unmarshall (Buffer);
+      pragma Debug (C, O ("NB Resp :" & MCtx.Nb_Answers'Img));
 
       MCtx.Nb_Auth_Servers := Unmarshall (Buffer);
       pragma Debug (C, O ("NB Auth :" & MCtx.Nb_Auth_Servers'Img));
@@ -1078,18 +1159,19 @@ package body PolyORB.Protocols.DNS is
       pragma Debug (C, O ("Marshalling DNS header reply"));
 
       Marshall (Header_Buffer, Types.Unsigned_Short
-                (MCtx.Request_Id));
+                (0));
       --  Marshalling the DNS header flags;
       Header_Flags := 0;
-      --  message is a request
+      --  message is a reply
+      MCtx.Message_Type := Reply;
       MCtx.QR_Flag := (MCtx.Message_Type = Reply);
-      Unsigned_Short_Flags.Set (Header_Flags, QR_Flag_Pos, False);
+      Unsigned_Short_Flags.Set (Header_Flags, QR_Flag_Pos, MCtx.QR_Flag);
 
       if R.Operation.all = "Query" then
          --  message is a standard query
-         pragma Debug (C, O ("request is a standard query"));
+         pragma Debug (C, O ("request is a sstandard query"));
          MCtx.Opcode_Flag := Query;
-         for J in Opcode_Flag_Pos .. AA_Flag_Pos - 1 loop
+         for J in Opcode_Flag_Pos .. QR_Flag_Pos - 1 loop
             Unsigned_Short_Flags.Set (Header_Flags, J, False);
          end loop;
       end if;
@@ -1099,440 +1181,373 @@ package body PolyORB.Protocols.DNS is
       Arg := Value (First (List_Of (R.Args).all));
       Unsigned_Short_Flags.Set (Header_Flags,  AA_Flag_Pos,
                         PolyORB.Types.Boolean'(From_Any (Arg.Argument)));
-
+      pragma Debug (C, O ("Authoritative flag : "));
       --  TODO : if message size > max_message_size then tc=1
---     MCtx.TC_Flag := False;
-      Unsigned_Short_Flags.Set (Header_Flags, TC_Flag_Pos, False);
+      MCtx.TC_Flag := False;
+      Unsigned_Short_Flags.Set (Header_Flags, TC_Flag_Pos, MCtx.TC_Flag);
 
       MCtx.Rec_Flag := False;
-      Unsigned_Short_Flags.Set (Header_Flags, Rec_Flag_Pos, False);
+      Unsigned_Short_Flags.Set (Header_Flags, Rec_Flag_Pos, MCtx.Rec_Flag);
       MCtx.Rec_Disp_Flag := False;
-      Unsigned_Short_Flags.Set (Header_Flags, Rec_Disp_Flag_Pos, False);
+      Unsigned_Short_Flags.Set
+        (Header_Flags, Rec_Disp_Flag_Pos, MCtx.Rec_Disp_Flag);
       --  three reserved bits
-      for J in Res_Flag_Pos .. Rcode_Flag_Pos - 1 loop
-         Unsigned_Short_Flags.Set (Header_Flags, J, False);
-      end loop;
+--        for J in Res_Flag_Pos .. Rcode_Flag_Pos - 1 loop
+--           Unsigned_Short_Flags.Set (Header_Flags, J, False);
+--        end loop;
 
       --  As this is a query,not a response, Rcode = No_Error
       MCtx.Rcode_Flag := No_Error;
-      for J in Rcode_Flag_Pos .. 16 loop
+      for J in Rcode_Flag_Pos .. Res_Flag_Pos - 1 loop
          Unsigned_Short_Flags.Set (Header_Flags, J, False);
       end loop;
 
+      pragma Debug (C, O ("Flags have been set "));
       Marshall (Header_Buffer, Types.Unsigned_Short (Header_Flags));
-
       --  Number of questions being sent
       MCtx.Nb_Questions := 0;
       Marshall (Header_Buffer, MCtx.Nb_Questions);
-      --  By default, for a query, next fields = 0
-      MCtx.Nb_Responses := 1;
-      Marshall (Header_Buffer, MCtx.Nb_Responses);
+
+      --  XXX TODO: multiple answers, auth servers, additional infos
+      MCtx.Nb_Answers := 1;
+      Marshall (Header_Buffer, MCtx.Nb_Answers);
       MCtx.Nb_Auth_Servers := 0;
       Marshall (Header_Buffer, MCtx.Nb_Auth_Servers);
+
       MCtx.Nb_Add_Infos := 0;
       Marshall (Header_Buffer, MCtx.Nb_Add_Infos);
+      Show (Header_Buffer);
    end Marshall_DNS_Header_Reply;
-   --------------------------------
-   -- Unmarshall_Request_Message --
-   --------------------------------
 
-   procedure Unmarshall_DNS_Request_Message
-     (Buffer           : access Buffer_Type;
-      MCtx_Acc    : access DNS_Message_Context'Class
-     )
+   --------------
+   -- From_Any --
+   --------------
+   function From_Any
+     (C : PolyORB.Any.Any_Container'Class) return RR_Type
    is
-      use PolyORB.Any;
-      Error  : Errors.Error_Container;
-      Req_Type : Types.Unsigned_Short;
-      Args                : Any.NVList.Ref;
-      Q_Name : PolyORB.Any.Any;
-      Padding_Oct : Types.Octet;
-      MCtx :  DNS_Message_Context
-                   renames DNS_Message_Context (MCtx_Acc.all);
    begin
-      pragma Debug (C, O ("Unmarshalling DNS Request Message"));
-      Unmarshall_To_Any (Buffer,  Get_Container (Q_Name).all, Error);
-      MCtx.Request_Name :=  Any.From_Any (Q_Name);
+      return RR_Type'Val
+        (PolyORB.Types.Unsigned_Long'
+           (PolyORB.Any.Get_Aggregate_Element (C, 0)));
+   end From_Any;
+   function From_Any
+     (Item : PolyORB.Any.Any)
+     return RR_Type
+   is
+   begin
+      return From_Any
+        (PolyORB.Any.Get_Container
+           (Item).all);
+   end From_Any;
 
-      if  MCtx.Request_Name_Length
-          mod 2 = 1 then
-         Padding_Oct :=  Unmarshall (Buffer);
+   ------------
+   -- To_Any --
+   ------------
+
+   function To_Any
+     (Item : RR_Type)
+     return PolyORB.Any.Any
+   is
+      Result : PolyORB.Any.Any :=
+        PolyORB.Any.Get_Empty_Any_Aggregate
+           (TC_RR_Type);
+   begin
+      PolyORB.Any.Add_Aggregate_Element
+        (Result,
+         PolyORB.Any.To_Any
+           (PolyORB.Types.Unsigned_Long
+              (RR_Type'Pos
+                 (Item))));
+      return Result;
+   end To_Any;
+
+   function Wrap
+        (X : access RR_Type)
+        return PolyORB.Any.Content'Class
+   is
+   begin
+      return Content_RR_Type'(PolyORB.Any.Aggregate_Content with
+            V => Ptr_RR_Type (X), Repr_Cache => 0);
+   end Wrap;
+   ---------------------------
+   -- Get_Aggregate_Element --
+   ---------------------------
+
+   function Get_Aggregate_Element
+        (Acc : not null access Content_RR_Type;
+         Tc : PolyORB.Any.TypeCode.Object_Ptr;
+         Index : PolyORB.Types.Unsigned_Long;
+         Mech : not null access PolyORB.Any.Mechanism)
+        return PolyORB.Any.Content'Class
+    is
+         use type PolyORB.Types.Unsigned_Long;
+         use type PolyORB.Any.Mechanism;
+         pragma Suppress (Validity_Check);
+         pragma Unreferenced (Tc, Index);
+   begin
+      Acc.Repr_Cache := DNS.RR_Type'Pos (Acc.V.all);
+      Mech.all := PolyORB.Any.By_Value;
+      return PolyORB.Any.Wrap (Acc.Repr_Cache'Unrestricted_Access);
+   end Get_Aggregate_Element;
+
+      ---------------------------
+      -- Set_Aggregate_Element --
+      ---------------------------
+
+   procedure Set_Aggregate_Element
+        (Acc : in out Content_RR_Type;
+         Tc : PolyORB.Any.TypeCode.Object_Ptr;
+         Index : PolyORB.Types.Unsigned_Long;
+         From_C : in out PolyORB.Any.Any_Container'Class)
+      is
+         use type PolyORB.Types.Unsigned_Long;
+         pragma Assert ((Index = 0));
+         pragma Unreferenced (Tc);
+   begin
+      Acc.V.all := RR_Type'Val (PolyORB.Types.Unsigned_Long'
+                 (PolyORB.Any.From_Any (From_C)));
+   end Set_Aggregate_Element;
+
+      -------------------------
+      -- Get_Aggregate_Count --
+      -------------------------
+
+   function Get_Aggregate_Count
+        (Acc : Content_RR_Type)
+        return PolyORB.Types.Unsigned_Long
+      is
+         pragma Unreferenced (Acc);
+   begin
+      return 1;
+   end Get_Aggregate_Count;
+
+      -------------------------
+      -- Set_Aggregate_Count --
+      -------------------------
+
+   procedure Set_Aggregate_Count
+        (Acc : in out Content_RR_Type;
+         Count : PolyORB.Types.Unsigned_Long)
+   is
+   begin
+      null;
+   end Set_Aggregate_Count;
+
+      -----------
+      -- Clone --
+      -----------
+
+      function Clone
+        (Acc : Content_RR_Type;
+         Into : PolyORB.Any.Content_Ptr := null)
+        return PolyORB.Any.Content_Ptr
+      is
+         use type PolyORB.Any.Content_Ptr;
+         Target : PolyORB.Any.Content_Ptr;
+      begin
+         if (Into /= null) then
+            if (Into.all not in Content_RR_Type) then
+               return null;
+            end if;
+            Target := Into;
+            Content_RR_Type
+              (Target.all).V.all := Acc.V.all;
+         else
+            Target := new Content_RR_Type;
+            Content_RR_Type (Target.all).V := new RR_Type'(Acc.V.all);
+         end if;
+         Content_RR_Type (Target.all).Repr_Cache := Acc.Repr_Cache;
+         return Target;
+      end Clone;
+
+      --------------------
+      -- Finalize_Value --
+      --------------------
+
+   procedure Finalize_Value
+     (Acc : in out Content_RR_Type)
+   is
+      procedure Free is new Ada.Unchecked_Deallocation
+              (RR_Type, Ptr_RR_Type);
+   begin
+      Free (Acc.V);
+   end Finalize_Value;
+
+   --  Utilities for the RR type
+   --------------
+   -- From_Any --
+   --------------
+
+   function From_Any
+     (Item : PolyORB.Any.Any)
+     return RR
+   is
+   begin
+      return (rr_name => PolyORB.Any.From_Any
+        (PolyORB.Any.Get_Aggregate_Element
+           (Item,
+            PolyORB.Any.TypeCode.TC_String,
+            0)),
+      rr_type => From_Any
+        (PolyORB.Any.Get_Aggregate_Element
+           (Item,
+            TC_RR_Type,
+            1)));
+   end From_Any;
+
+   ------------
+   -- To_Any --
+   ------------
+
+   function To_Any
+     (Item : RR)
+     return PolyORB.Any.Any
+   is
+      Result : PolyORB.Any.Any :=
+        PolyORB.Any.Get_Empty_Any_Aggregate
+           (TC_RR);
+   begin
+      PolyORB.Any.Add_Aggregate_Element
+        (Result,
+         PolyORB.Any.To_Any
+           (Item.rr_name));
+      PolyORB.Any.Add_Aggregate_Element
+        (Result, To_Any (Item.rr_type));
+      return Result;
+   end To_Any;
+
+         -----------
+      -- Clone --
+      -----------
+
+   function Clone
+     (Acc : Content_RR;
+         Into : PolyORB.Any.Content_Ptr := null)
+        return PolyORB.Any.Content_Ptr
+   is
+      use type PolyORB.Any.Content_Ptr;
+      Target : PolyORB.Any.Content_Ptr;
+   begin
+      if (Into /= null) then
+         if (Into.all not in Content_RR) then
+            return null;
+         end if;
+         Target := Into;
+         Content_RR (Target.all).V.all := Acc.V.all;
+      else
+         Target := new Content_RR;
+         Content_RR (Target.all).V := new RR'(Acc.V.all);
       end if;
+      return Target;
+   end Clone;
+   procedure Finalize_Value
+        (Acc : in out Content_RR)
+   is
+      procedure Free is new Ada.Unchecked_Deallocation (RR, Ptr_RR);
+   begin
+         Free (Acc.V);
+   end Finalize_Value;
 
-      pragma Debug (C, O ("Request Name : " &
-              Types.To_Standard_String (MCtx.Request_Name)));
-      Req_Type := Unmarshall (Buffer);
-      pragma Debug (C, O ("RR_Type : PTR" & Req_Type'Img));
+         ---------------------------
+      -- Get_Aggregate_Element --
+      ---------------------------
 
-      if Req_Type = 12 then
-         MCtx.Request_Type := PTR;
-         pragma Debug (C, O ("RR_Type : PTR"));
-      end if;
-      MCtx.Request_Class := Unmarshall (Buffer);
-      pragma Debug (C, O ("Req_Class : " & MCtx.Request_Class'Img));
-      pragma Debug (C, O ("Leaving Unmarshall DNS Request Message"));
-   end Unmarshall_DNS_Request_Message;
+   function Get_Aggregate_Element
+     (Acc : not null access Content_RR;
+      Tc : PolyORB.Any.TypeCode.Object_Ptr;
+      Index : PolyORB.Types.Unsigned_Long;
+      Mech : not null access PolyORB.Any.Mechanism)
+      return PolyORB.Any.Content'Class
+   is
+      use type PolyORB.Types.Unsigned_Long;
+      use type PolyORB.Any.Mechanism;
+      pragma Suppress (Validity_Check);
+      pragma Unreferenced (Tc);
+   begin
+      Mech.all := PolyORB.Any.By_Reference;
+      case Index is
+         when 0 =>
+            return PolyORB.Any.Wrap (Acc.V.rr_name'Unrestricted_Access);
+         when 1 =>
+            return Wrap (Acc.V.rr_type'Unrestricted_Access);
+         pragma Warnings (Off);
+         when others =>
+            raise Constraint_Error;
+         pragma Warnings (On);
+      end case;
+   end Get_Aggregate_Element;
 
---     --------------
---     -- From_Any --
---     --------------
---     function From_Any
---       (C : PolyORB.Any.Any_Container'Class) return RR_Type
---     is
---     begin
---        return RR_Type'Val
---          (PolyORB.Types.Unsigned_Long'
---             (PolyORB.Any.Get_Aggregate_Element (C, 0)));
---     end From_Any;
---     function From_Any
---       (Item : PolyORB.Any.Any)
---       return RR_Type
---     is
---     begin
---        return From_Any
---          (PolyORB.Any.Get_Container
---             (Item).all);
---     end From_Any;
---
---     ------------
---     -- To_Any --
---     ------------
---
---     function To_Any
---       (Item : RR_Type)
---       return PolyORB.Any.Any
---     is
---        Result : PolyORB.Any.Any :=
---          PolyORB.Any.Get_Empty_Any_Aggregate
---             (TC_RR_Type);
---     begin
---        PolyORB.Any.Add_Aggregate_Element
---          (Result,
---           PolyORB.Any.To_Any
---             (PolyORB.Types.Unsigned_Long
---                (RR_Type'Pos
---                   (Item))));
---        return Result;
---     end To_Any;
---
---     function Wrap
---          (X : access RR_Type)
---          return PolyORB.Any.Content'Class
---     is
---     begin
---        return Content_RR_Type' (PolyORB.Any.Aggregate_Content with
---              V => Ptr_RR_Type (X), Repr_Cache => 0);
---     end Wrap;
---       ---------------------------
---        -- Get_Aggregate_Element --
---        ---------------------------
---
---        function Get_Aggregate_Element
---          (Acc : not null access Content_Ü_RR_Type;
---           Tc : PolyORB.Any.TypeCode.Object_Ptr;
---           Index : PolyORB.Types.Unsigned_Long;
---           Mech : not null access PolyORB.Any.Mechanism)
---          return PolyORB.Any.Content'Class
---        is
---           use type PolyORB.Types.Unsigned_Long;
---           use type PolyORB.Any.Mechanism;
---           pragma Suppress (Validity_Check);
---           pragma Unreferenced (Tc, Index);
---        begin
---           Acc.Repr_Cache :=
---             DNS.RR_Type'Pos
---                (Acc.V.all);
---           Mech.all :=
---             PolyORB.Any.By_Value;
---           return PolyORB.Any.Wrap
---             (Acc.Repr_Cache'Unrestricted_Access);
---        end Get_Aggregate_Element;
---
---        ---------------------------
---        -- Set_Aggregate_Element --
---        ---------------------------
---
---        procedure Set_Aggregate_Element
---          (Acc : in out Content_Ü_RR_Type;
---           Tc : PolyORB.Any.TypeCode.Object_Ptr;
---           Index : PolyORB.Types.Unsigned_Long;
---           From_C : in out PolyORB.Any.Any_Container'Class)
---        is
---           use type PolyORB.Types.Unsigned_Long;
---           pragma Assert ((Index
---              = 0));
---           pragma Unreferenced (Tc);
---        begin
---           Acc.V.all :=
---             DNS.RR_Type'Val
---                (PolyORB.Types.Unsigned_Long'
---                   (PolyORB.Any.From_Any
---                      (From_C)));
---        end Set_Aggregate_Element;
---
---        -------------------------
---        -- Get_Aggregate_Count --
---        -------------------------
---
---        function Get_Aggregate_Count
---          (Acc : Content_Ü_RR_Type)
---          return PolyORB.Types.Unsigned_Long
---        is
---           pragma Unreferenced (Acc);
---        begin
---           return 1;
---        end Get_Aggregate_Count;
---
---        -------------------------
---        -- Set_Aggregate_Count --
---        -------------------------
---
---        procedure Set_Aggregate_Count
---          (Acc : in out Content_Ü_RR_Type;
---           Count : PolyORB.Types.Unsigned_Long)
---        is
---        begin
---           null;
---        end Set_Aggregate_Count;
---
---        ---------------------
---        -- Unchecked_Get_V --
---        ---------------------
---
---        function Unchecked_Get_V
---          (Acc : not null access Content_Ü_RR_Type)
---          return System.Address
---        is
---           function To_Address
---             is new Ada.Unchecked_Conversion
---                (Ptr_Ü_RR_Type,
---                 System.Address);
---
---        begin
---           return To_Address
---             (Acc.V);
---        end Unchecked_Get_V;
---
---        -----------
---        -- Clone --
---        -----------
---
---        function Clone
---          (Acc : Content_Ü_RR_Type;
---           Into : PolyORB.Any.Content_Ptr := null)
---          return PolyORB.Any.Content_Ptr
---        is
---           use type PolyORB.Any.Content_Ptr;
---           Target : PolyORB.Any.Content_Ptr;
---        begin
---           if (Into /= null)
---        then
---           if (Into.all not in Content_RR_Type)
---           then
---              return null;
---           end if;
---           Target :=
---                Into;
---           Content_Ü_RR_Type
---                (Target.all).V.all := Acc.V.all;
---        else
---           Target := new Content_RR_Type;
---           Content_RR_Type (Target.all).V := new RR_Type' (Acc.V.all);
---        end if;
---        Content_RR_Type (Target.all).Repr_Cache := Acc.Repr_Cache;
---        return Target;
---     end Clone;
---
---        --------------------
---        -- Finalize_Value --
---        --------------------
---
---     procedure Finalize_Value
---       (Acc : in out Content_Ü_RR_Type)
---     is
---        procedure Free is new Ada.Unchecked_Deallocation
---                (RR_Type,
---                 Ptr_RR_Type);
---     begin
---        Free (Acc.V);
---     end Finalize_Value;
---
---     --  Utilities for the RR type
---     --------------
---     -- From_Any --
---     --------------
---
---     function From_Any
---       (Item : PolyORB.Any.Any)
---       return RR
---     is
---     begin
---        return (rr_name => PolyORB.Any.From_Any
---          (PolyORB.Any.Get_Aggregate_Element
---             (Item,
---              PolyORB.Any.TypeCode.TC_String,
---              0)),
---        rr_type => From_Any
---          (PolyORB.Any.Get_Aggregate_Element
---             (Item,
---              TC_RR_Type,
---              1)));
---     end From_Any;
---
---     ------------
---     -- To_Any --
---     ------------
---
---     function To_Any
---       (Item : RR)
---       return PolyORB.Any.Any
---     is
---        Result : PolyORB.Any.Any :=
---          PolyORB.Any.Get_Empty_Any_Aggregate
---             (TC_RR);
---     begin
---        PolyORB.Any.Add_Aggregate_Element
---          (Result,
---           PolyORB.Any.To_Any
---             (Item.rr_name));
---        PolyORB.Any.Add_Aggregate_Element
---          (Result, To_Any (Item.rr_type));
---        return Result;
---     end To_Any;
---
---           -----------
---        -- Clone --
---        -----------
---
---     function Clone
---       (Acc : Content_RR;
---           Into : PolyORB.Any.Content_Ptr := null)
---          return PolyORB.Any.Content_Ptr
---     is
---        use type PolyORB.Any.Content_Ptr;
---        Target : PolyORB.Any.Content_Ptr;
---     begin
---        if (Into /= null) then
---           if (Into.all not in Content_RR) then
---              return null;
---           end if;
---           Target := Into;
---           Content_RR (Target.all).V.all := Acc.V.all;
---        else
---           Target := new Content_RR;
---           Content_RR (Target.all).V := new RR'(Acc.V.all);
---        end if;
---        return Target;
---     end Clone;
---     procedure Finalize_Value
---          (Acc : in out Content_RR)
---     is
---        procedure Free is new Ada.Unchecked_Deallocation (RR, Ptr_RR);
---     begin
---           Free (Acc.V);
---     end Finalize_Value;
---
---           ---------------------------
---        -- Get_Aggregate_Element --
---        ---------------------------
---
---     function Get_Aggregate_Element
---       (Acc : not null access Content_RR;
---        Tc : PolyORB.Any.TypeCode.Object_Ptr;
---        Index : PolyORB.Types.Unsigned_Long;
---        Mech : not null access PolyORB.Any.Mechanism)
---        return PolyORB.Any.Content'Class
---     is
---        use type PolyORB.Types.Unsigned_Long;
---        use type PolyORB.Any.Mechanism;
---        pragma Suppress (Validity_Check);
---        pragma Unreferenced (Tc);
---     begin
---        Mech.all := PolyORB.Any.By_Reference;
---        case Index is
---           when 0 =>
---              return PolyORB.Any.Wrap (Acc.V.rr_name'Unrestricted_Access);
---           when 1 =>
---              return Wrap (Acc.V.rr_type'Unrestricted_Access);
---           pragma Warnings (Off);
---           when others =>
---              raise Constraint_Error;
---        pragma Warnings (On);
---        end case;
---     end Get_Aggregate_Element;
---
---     function Get_Aggregate_Count
---        (Acc : Content_RR)
---        return PolyORB.Types.Unsigned_Long
---     is
---        pragma Unreferenced (Acc);
---     begin
---        return 2;
---     end Get_Aggregate_Count;
---
---        -------------------------
---        -- Set_Aggregate_Count --
---        -------------------------
---
---     procedure Set_Aggregate_Count
---          (Acc : in out Content_RR;
---           Count : PolyORB.Types.Unsigned_Long)
---     is
---        begin
---           null;
---     end Set_Aggregate_Count;
---
---     function Wrap (X : access RR)
---          return PolyORB.Any.Content'Class
---     is
---     begin
---        return Content_RR' (PolyORB.Any.Aggregate_Content with
---              V => Ptr_RR
---                (X));
---     end Wrap;
---
---     function SEQUENCE_RR_Element_Wrap
---          (X : access RR)
---           return PolyORB.Any.Content'Class
---     is
---     begin
---        return Wrap (X.all'Unrestricted_Access);
---     end SEQUENCE_RR_Element_Wrap;
---
---     function Wrap
---          (X : access SEQUENCE_RR.Sequence)
---           return PolyORB.Any.Content'Class
---       renames SEQUENCE_RR_Helper.Wrap;
---
---     function From_Any
---       (Item : PolyORB.Any.Any)
---       return SEQUENCE_RR.Sequence renames
---        SEQUENCE_RR_Helper.From_Any;
---
---     function To_Any
---       (Item : SEQUENCE_RR.Sequence)
---        return PolyORB.Any.Any renames
---         SEQUENCE_RR_Helper.To_Any;
---
---     function From_Any
---       (Item : PolyORB.Any.Any)
---        return rrSequence
---     is
---        Result : constant SEQUENCE_RR.Sequence := From_Any (Item);
---     begin
---        return rrSequence (Result);
---     end From_Any;
---
---     function To_Any
---       (Item : rrSequence)
---        return PolyORB.Any.Any
---     is
---        Result : PolyORB.Any.Any := To_Any (SEQUENCE_RR.Sequence (Item));
---     begin
---        --  PolyORB.Any.Set_Type (Result, TC_rrSequence);
---        return Result;
---     end To_Any;
+   function Get_Aggregate_Count
+      (Acc : Content_RR)
+      return PolyORB.Types.Unsigned_Long
+   is
+      pragma Unreferenced (Acc);
+   begin
+      return 2;
+   end Get_Aggregate_Count;
 
+      -------------------------
+      -- Set_Aggregate_Count --
+      -------------------------
+
+   procedure Set_Aggregate_Count
+        (Acc : in out Content_RR;
+         Count : PolyORB.Types.Unsigned_Long)
+   is
+   begin
+         null;
+   end Set_Aggregate_Count;
+
+   function Wrap (X : access RR)
+        return PolyORB.Any.Content'Class
+   is
+   begin
+      return Content_RR'(PolyORB.Any.Aggregate_Content with
+            V => Ptr_RR (X));
+   end Wrap;
+
+   function SEQUENCE_RR_Element_Wrap
+        (X : access RR)
+         return PolyORB.Any.Content'Class
+   is
+   begin
+      return Wrap (X.all'Unrestricted_Access);
+   end SEQUENCE_RR_Element_Wrap;
+
+   function Wrap
+        (X : access SEQUENCE_RR.Sequence)
+         return PolyORB.Any.Content'Class
+     renames SEQUENCE_RR_Helper.Wrap;
+
+   function From_Any
+     (Item : PolyORB.Any.Any)
+     return SEQUENCE_RR.Sequence renames
+      SEQUENCE_RR_Helper.From_Any;
+
+   function To_Any
+     (Item : SEQUENCE_RR.Sequence)
+      return PolyORB.Any.Any renames
+       SEQUENCE_RR_Helper.To_Any;
+
+   function From_Any
+     (Item : PolyORB.Any.Any)
+      return rrSequence
+   is
+      Result : constant SEQUENCE_RR.Sequence := From_Any (Item);
+   begin
+      return rrSequence (Result);
+   end From_Any;
+
+   function To_Any
+     (Item : rrSequence)
+      return PolyORB.Any.Any
+   is
+      Result : constant PolyORB.Any.Any :=
+        To_Any (SEQUENCE_RR.Sequence (Item));
+   begin
+      --  PolyORB.Any.Set_Type (Result, TC_rrSequence);
+      return Result;
+   end To_Any;
    procedure Unmarshall_Argument_List
      (Buffer              :        Buffer_Access;
       Args                : in out Any.NVList.Ref;
@@ -1543,10 +1558,11 @@ package body PolyORB.Protocols.DNS is
       use PolyORB.Any.NVList.Internals.NV_Lists;
       use PolyORB.Errors;
 
-      It  : Iterator := First (List_Of (Args).all);
+      It  : Iterator;
       Arg : Element_Access;
    begin
       pragma Debug (C, O ("Unmarshall Argument List"));
+      It := First (List_Of (Args).all);
       while not Last (It) loop
          Arg := Value (It);
          pragma Debug (C, O ("First Argument unmarshall"));
@@ -1557,6 +1573,55 @@ package body PolyORB.Protocols.DNS is
          Next (It);
       end loop;
    end Unmarshall_Argument_List;
+
+   procedure Reply_Received
+     (Sess             : access DNS_Session;
+      Request_Id       : Types.Unsigned_Long;
+      Rcode     : Rcode_Type)
+   is
+      use PolyORB.Any;
+      use PolyORB.Errors;
+
+      Current_Req  : Pending_Request;
+      Success      : Boolean;
+
+--      ORB          : constant ORB_Access := ORB_Access (Sess.Server);
+
+--      Error        : Errors.Error_Container;
+   begin
+      pragma Debug (C, O ("Reply received: status = "
+                       & Rcode_Type'Image (Rcode)
+                       & ", id ="
+                       & Types.Unsigned_Long'Image (Request_Id)));
+
+      Get_Pending_Request (Sess, Request_Id, Current_Req, Success);
+
+      if not Success then
+         raise DNS_Error;
+      end if;
+
+      case Rcode is
+         when No_Error =>
+            --  Unmarshall reply body.
+               pragma Debug (C, O ("Use Anys"));
+
+--                 Unmarshall_To_Any
+--                   (Sess.Buffer_In,
+--                    Get_Container (Current_Req.Req.Result.Argument).all,
+--                    Error);
+
+               --  UNMARSHALL ARGUMENTS HERE
+
+--            Expect_DNS_Header (Sess);
+            Emit_No_Reply
+              (Current_Req.Req.Requesting_Component,
+               Servants.Iface.Executed_Request'
+               (Req => Current_Req.Req));
+
+         when others =>
+            null;
+      end case;
+   end Reply_Received;
 
    use PolyORB.Initialization;
    use PolyORB.Initialization.String_Lists;

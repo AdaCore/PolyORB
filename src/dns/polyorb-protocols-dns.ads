@@ -39,9 +39,9 @@ with PolyORB.Types;
 with PolyORB.Utils.Dynamic_Tables;
 with PolyORB.Filters.Iface;
 with PolyORB.Utils.Simple_Flags;
---  with PolyORB.Sequences.Unbounded;
---  with PolyORB.Sequences.Unbounded.Helper;
---  pragma Elaborate_All (Polyorb.Sequences.Unbounded.Helper);
+with PolyORB.Sequences.Unbounded;
+with PolyORB.Sequences.Unbounded.Helper;
+pragma Elaborate_All (Polyorb.Sequences.Unbounded.Helper);
 
 package PolyORB.Protocols.DNS is
    use Ada.Streams;
@@ -147,140 +147,139 @@ package PolyORB.Protocols.DNS is
       CNAME,
       A);
 
---     type RR is record
---        rr_name : PolyORB.Types.String;
---        rr_type : PolyORB.Protocols.DNS.RR_Type;
---     end record;
---
---     package SEQUENCE_RR is
---       new PolyORB.Sequences.Unbounded
---         (RR);
---
---     type rrSequence is
---       new SEQUENCE_RR.Sequence;
---     rrSequence_Repository_Id : constant Standard.String :=
---       "IDL:dns/rrSequence:1.0";
---
---     TC_RR_Type : PolyORB.Any.TypeCode.Local_Ref;
---     TC_RR : PolyORB.Any.TypeCode.Local_Ref;
---     TC_SEQUENCE_RR : PolyORB.Any.TypeCode.Local_Ref;
---     function From_Any
---       (C : PolyORB.Any.Any_Container'Class) return RR_Type;
---     function From_Any
---       (Item : PolyORB.Any.Any)
---        return RR_Type;
---
---     function To_Any
---       (Item : RR_Type)
---        return PolyORB.Any.Any;
---
---     function From_Any
---       (Item : PolyORB.Any.Any)
---       return RR;
---
---     function To_Any
---       (Item : RR)
---        return PolyORB.Any.Any;
---
---     function From_Any
---       (Item : PolyORB.Any.Any)
---       return SEQUENCE_RR.Sequence;
---
---     function To_Any
---       (Item : SEQUENCE_RR.Sequence)
---       return PolyORB.Any.Any;
---
---     function From_Any
---       (Item : PolyORB.Any.Any)
---       return rrSequence;
---
---     function To_Any
---       (Item : rrSequence)
---        return PolyORB.Any.Any;
---
---     function SEQUENCE_RR_Element_Wrap
---          (X : access RR)
---          return PolyORB.Any.Content'Class;
---
---     function Wrap
---          (X : access SEQUENCE_RR.Sequence)
---          return PolyORB.Any.Content'Class;
---
---     package SEQUENCE_RR_Helper is
---          new SEQUENCE_RR.Helper
---         (Element_From_Any => PolyORB.Protocols.DNS.From_Any,
---          Element_To_Any => PolyORB.Protocols.DNS.To_Any,
---          Element_Wrap => SEQUENCE_RR_Element_Wrap);
---
---     --  Utilities for the RR_Type type
---     type Ptr_RR_Type is access all RR_Type;
---     type Content_RR_Type is
---          new PolyORB.Any.Aggregate_Content with record
---           V : Ptr_RR_Type;
---           Repr_Cache : aliased PolyORB.Types.Unsigned_Long;
---     end record;
---
---     function Wrap
---          (X : access RR_Type)
---          return PolyORB.Any.Content'Class;
---     function Get_Aggregate_Element
---          (Acc : not null access Content_RR_Type;
---           Tc : PolyORB.Any.TypeCode.Object_Ptr;
---           Index : PolyORB.Types.Unsigned_Long;
---           Mech : not null access PolyORB.Any.Mechanism)
---          return PolyORB.Any.Content'Class;
---
---     procedure Set_Aggregate_Element
---          (Acc : in out Content_RR_Type;
---           Tc : PolyORB.Any.TypeCode.Object_Ptr;
---           Index : PolyORB.Types.Unsigned_Long;
---           From_C : in out PolyORB.Any.Any_Container'Class);
---
---     function Get_Aggregate_Count
---      (Acc : Content_RR_Type)
---          return PolyORB.Types.Unsigned_Long;
---
---     procedure Set_Aggregate_Count
---          (Acc : in out Content_RR_Type;
---           Count : PolyORB.Types.Unsigned_Long);
---     function Clone
---          (Acc : Content_RR_Type;
---           Into : PolyORB.Any.Content_Ptr := null)
---          return PolyORB.Any.Content_Ptr;
---     procedure Finalize_Value (Acc : in out Content_RR_Type);
---
---     --  Utilities for the RR type
---     type Ptr_RR is
---          access all RR;
---          access all RR;
---     type Content_RR is new PolyORB.Any.Aggregate_Content with record
---        V : Ptr_RR;
---     end record;
---        V : Ptr_RR;
---     function Clone
---       (Acc : Content_RR;
---        Into : PolyORB.Any.Content_Ptr := null)
---        return PolyORB.Any.Content_Ptr;
---       (Acc : Content_RR;
---     procedure Finalize_Value
---          (Acc : in out Content_RR);
---          (Acc : in out Content_RR);
---     function Get_Aggregate_Count
---        (Acc : Content_RR)
---         return PolyORB.Types.Unsigned_Long;
---        (Acc : Content_RR)
---     procedure Set_Aggregate_Count
---        (Acc : in out Content_RR;
---         Count : PolyORB.Types.Unsigned_Long);
---        (Acc : in out Content_RR;
---     function Get_Aggregate_Element
---       (Acc : not null access Content_RR;
---        Tc : PolyORB.Any.TypeCode.Object_Ptr;
---        Index : PolyORB.Types.Unsigned_Long;
---        Mech : not null access PolyORB.Any.Mechanism)
---        return PolyORB.Any.Content'Class;
---     function Wrap (X : access RR)
---       return PolyORB.Any.Content'Class;
+   type RR is record
+      rr_name : PolyORB.Types.String;
+      rr_type : PolyORB.Protocols.DNS.RR_Type;
+   end record;
+
+   package SEQUENCE_RR is
+     new PolyORB.Sequences.Unbounded
+       (RR);
+
+   type rrSequence is
+     new SEQUENCE_RR.Sequence;
+   rrSequence_Repository_Id : constant Standard.String :=
+     "IDL:dns/rrSequence:1.0";
+
+   TC_RR_Type : PolyORB.Any.TypeCode.Local_Ref;
+   TC_RR : PolyORB.Any.TypeCode.Local_Ref;
+   TC_SEQUENCE_RR : PolyORB.Any.TypeCode.Local_Ref;
+   function From_Any
+     (C : PolyORB.Any.Any_Container'Class) return RR_Type;
+   function From_Any
+     (Item : PolyORB.Any.Any)
+      return RR_Type;
+
+   function To_Any
+     (Item : RR_Type)
+      return PolyORB.Any.Any;
+
+   function From_Any
+     (Item : PolyORB.Any.Any)
+     return RR;
+
+   function To_Any
+     (Item : RR)
+      return PolyORB.Any.Any;
+
+   function From_Any
+     (Item : PolyORB.Any.Any)
+     return SEQUENCE_RR.Sequence;
+
+   function To_Any
+     (Item : SEQUENCE_RR.Sequence)
+     return PolyORB.Any.Any;
+
+   function From_Any
+     (Item : PolyORB.Any.Any)
+     return rrSequence;
+
+   function To_Any
+     (Item : rrSequence)
+      return PolyORB.Any.Any;
+
+   function SEQUENCE_RR_Element_Wrap
+        (X : access RR)
+        return PolyORB.Any.Content'Class;
+
+   function Wrap
+        (X : access SEQUENCE_RR.Sequence)
+        return PolyORB.Any.Content'Class;
+
+   package SEQUENCE_RR_Helper is
+        new SEQUENCE_RR.Helper
+       (Element_From_Any => PolyORB.Protocols.DNS.From_Any,
+        Element_To_Any => PolyORB.Protocols.DNS.To_Any,
+        Element_Wrap => SEQUENCE_RR_Element_Wrap);
+
+   --  Utilities for the RR_Type type
+   type Ptr_RR_Type is access all RR_Type;
+   type Content_RR_Type is
+        new PolyORB.Any.Aggregate_Content with record
+         V : Ptr_RR_Type;
+         Repr_Cache : aliased PolyORB.Types.Unsigned_Long;
+   end record;
+
+   function Wrap
+        (X : access RR_Type)
+        return PolyORB.Any.Content'Class;
+   function Get_Aggregate_Element
+        (Acc : not null access Content_RR_Type;
+         Tc : PolyORB.Any.TypeCode.Object_Ptr;
+         Index : PolyORB.Types.Unsigned_Long;
+         Mech : not null access PolyORB.Any.Mechanism)
+        return PolyORB.Any.Content'Class;
+
+   procedure Set_Aggregate_Element
+        (Acc : in out Content_RR_Type;
+         Tc : PolyORB.Any.TypeCode.Object_Ptr;
+         Index : PolyORB.Types.Unsigned_Long;
+         From_C : in out PolyORB.Any.Any_Container'Class);
+
+   function Get_Aggregate_Count
+    (Acc : Content_RR_Type)
+        return PolyORB.Types.Unsigned_Long;
+
+   procedure Set_Aggregate_Count
+        (Acc : in out Content_RR_Type;
+         Count : PolyORB.Types.Unsigned_Long);
+   function Clone
+        (Acc : Content_RR_Type;
+         Into : PolyORB.Any.Content_Ptr := null)
+        return PolyORB.Any.Content_Ptr;
+   procedure Finalize_Value (Acc : in out Content_RR_Type);
+
+   --  Utilities for the RR type
+   type Ptr_RR is
+        access all RR;
+   type Content_RR is new PolyORB.Any.Aggregate_Content with record
+      V : Ptr_RR;
+   end record;
+
+   function Clone
+     (Acc : Content_RR;
+      Into : PolyORB.Any.Content_Ptr := null)
+      return PolyORB.Any.Content_Ptr;
+
+   procedure Finalize_Value
+        (Acc : in out Content_RR);
+
+   function Get_Aggregate_Count
+      (Acc : Content_RR)
+       return PolyORB.Types.Unsigned_Long;
+
+   procedure Set_Aggregate_Count
+      (Acc : in out Content_RR;
+       Count : PolyORB.Types.Unsigned_Long);
+
+   function Get_Aggregate_Element
+     (Acc : not null access Content_RR;
+      Tc : PolyORB.Any.TypeCode.Object_Ptr;
+      Index : PolyORB.Types.Unsigned_Long;
+      Mech : not null access PolyORB.Any.Mechanism)
+      return PolyORB.Any.Content'Class;
+   function Wrap (X : access RR)
+     return PolyORB.Any.Content'Class;
    -----------------------------------------------------
    procedure Common_Send_Reply
     (Sess           : access DNS_Session;
@@ -291,7 +290,10 @@ package PolyORB.Protocols.DNS is
      (S      : access Session'Class);
    procedure Process_Request
      (S : access DNS_Session);
-
+   procedure Reply_Received
+     (Sess             : access DNS_Session;
+      Request_Id       : Types.Unsigned_Long;
+      Rcode     : Rcode_Type);
    procedure Initialize;
 private
    type Pending_Request is record
@@ -334,7 +336,7 @@ private
       Rcode_Flag         : Rcode_Type;
 
       Nb_Questions : Types.Unsigned_Short := 0;
-      Nb_Responses : Types.Unsigned_Short;
+      Nb_Answers : Types.Unsigned_Short;
       Nb_Auth_Servers : Types.Unsigned_Short;
       Nb_Add_Infos : Types.Unsigned_Short;
    end record;
@@ -370,14 +372,14 @@ private
    DNS_Max_Size : constant Stream_Element_Offset := 512;
 
    --  Bit_Count definition for DNS header flags
-   QR_Flag_Pos : constant Bit_Count := 1;
-   Opcode_Flag_Pos : constant Bit_Count := 2;
-   AA_Flag_Pos : constant Bit_Count := 6;
-   TC_Flag_Pos : constant Bit_Count := 7;
+   QR_Flag_Pos : constant Bit_Count := 15;
+   Opcode_Flag_Pos : constant Bit_Count := 11;
+   AA_Flag_Pos : constant Bit_Count := 10;
+   TC_Flag_Pos : constant Bit_Count := 9;
    Rec_Flag_Pos : constant Bit_Count := 8;
-   Rec_Disp_Flag_Pos : constant Bit_Count := 9;
-   Res_Flag_Pos : constant Bit_Count := 10;
-   Rcode_Flag_Pos : constant Bit_Count := 13;
+   Rec_Disp_Flag_Pos : constant Bit_Count := 7;
+   Res_Flag_Pos : constant Bit_Count := 4;
+   Rcode_Flag_Pos : constant Bit_Count := 0;
 
    procedure Expect_DNS_Header
      (Sess : access DNS_Session);
@@ -393,10 +395,7 @@ private
    procedure Unmarshall_DNS_Header
      (MCtx_Acc    : access DNS_Message_Context'Class;
       Buffer  : access Buffers.Buffer_Type);
-   procedure Unmarshall_DNS_Request_Message
-     (Buffer           : access Buffer_Type;
-      MCtx_Acc    : access DNS_Message_Context'Class
-     );
+
    procedure Unmarshall_Argument_List
      (Buffer              :        Buffer_Access;
       Args                : in out Any.NVList.Ref;

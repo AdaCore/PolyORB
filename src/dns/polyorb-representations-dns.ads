@@ -50,6 +50,7 @@ package PolyORB.Representations.DNS is
    procedure Marshall_From_Any
      (Buffer : access Buffers.Buffer_Type;
       CData  : Any.Any_Container'Class;
+      Is_Reply : Types.Boolean;
       Error  : in out Errors.Error_Container);
 
    procedure Unmarshall_To_Any

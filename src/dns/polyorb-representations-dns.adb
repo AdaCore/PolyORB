@@ -178,6 +178,7 @@ package body PolyORB.Representations.DNS is
    procedure Marshall_From_Any
      (Buffer : access Buffers.Buffer_Type;
       CData  : Any.Any_Container'Class;
+      Is_Reply : Types.Boolean;
       Error  : in out Errors.Error_Container)
    is
       Data_Type : constant TypeCode.Object_Ptr :=
@@ -198,19 +199,19 @@ package body PolyORB.Representations.DNS is
          El_CC : aliased Content'Class :=
                    Get_Aggregate_Element (ACC, TC, Index, El_M'Access);
          El_C : Any_Container;
+
       begin
          Set_Type (El_C, TC);
          Set_Value (El_C, El_CC'Unchecked_Access);
-
          pragma Debug (C, O ("Marshall_From_Any: in Marsh_Agg_El:"
            & El_C.Image));
 
-         --   XXX: this fix is temporary..
-         if El_C.Image = "PTR" then
+         --   XXX: this fix is temporary...
+         if El_C.Image = "PTR" and not Is_Reply then
             Marshall (Buffer, Types.Unsigned_Short (12));
             Marshall (Buffer, Types.Unsigned_Short (1));
          else
-            Marshall_From_Any (Buffer, El_C, Error);
+            Marshall_From_Any (Buffer, El_C, Is_Reply, Error);
          end if;
       end Marshall_Aggregate_Element;
 
@@ -251,7 +252,7 @@ package body PolyORB.Representations.DNS is
             begin
                Set_Type (Label_C, Label_TC);
                Set_Value (Label_C, Label_CC'Unchecked_Access);
-               Marshall_From_Any (Buffer, Label_C, Error);
+               Marshall_From_Any (Buffer, Label_C, Is_Reply, Error);
                if Found (Error) then
                   return;
                end if;
@@ -290,13 +291,17 @@ package body PolyORB.Representations.DNS is
             end;
 
          when Tk_Enum =>
-            Marshall_Aggregate_Element
-              (TypeCode.PTC_Unsigned_Long'Access,
-               Aggregate_Content'Class (Get_Value (CData).all)'Access,
-               0);
-
+            if not Is_Reply then
+               Marshall_Aggregate_Element
+                 (TypeCode.PTC_Unsigned_Long'Access,
+                  Aggregate_Content'Class (Get_Value (CData).all)'Access,
+                  0);
+            end if;
          when Tk_String =>
-
+            if Is_Reply then
+               Marshall (Buffer, Types.Unsigned_Short
+                         (To_Standard_String (From_Any (CData))'Length + 2));
+            end if;
             Marshall_Latin_1_String
               (Buffer,
                To_PolyORB_String (From_Any (CData)));
@@ -409,6 +414,7 @@ package body PolyORB.Representations.DNS is
                         when others =>
                            null;
                      end case;
+                     pragma Debug (C, O ("HERE MARSHALL :" & Image (El_TC)));
                      Marshall_Aggregate_Element (El_TC, ACC'Access, J);
                   end if;
                end loop;
@@ -975,6 +981,7 @@ package body PolyORB.Representations.DNS is
    pragma Inline (Swapped);
    package DNS_Unsigned_Long is
      new Align_Transfer_Elementary (T => PolyORB.Types.Unsigned_Long);
+
    function Unmarshall
      (Buffer : access Buffer_Type) return PolyORB.Types.Unsigned_Long
       renames DNS_Unsigned_Long.Unmarshall;
