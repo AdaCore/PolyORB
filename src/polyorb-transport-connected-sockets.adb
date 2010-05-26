@@ -74,7 +74,7 @@ package body PolyORB.Transport.Connected.Sockets is
    -----------------------
 
    procedure Accept_Connection
-     (TAP :     Socket_Access_Point;
+     (TAP : Socket_Access_Point;
       TE  : out Transport_Endpoint_Access)
    is
       New_Socket  : Socket_Type;
@@ -106,8 +106,9 @@ package body PolyORB.Transport.Connected.Sockets is
 
    procedure Create
      (SAP     : in out Socket_Access_Point;
-      Socket  :        Socket_Type;
-      Address : in out Sock_Addr_Type) is
+      Socket  : Socket_Type;
+      Address : in out Sock_Addr_Type)
+   is
    begin
       pragma Debug (C, O ("Create: listening on " & Image (Address)));
       Bind_Socket (Socket, Address);
@@ -126,7 +127,6 @@ package body PolyORB.Transport.Connected.Sockets is
          Address := SAP.Addr;
 
       else
-
          --  Use specified IP address for SAP
 
          SAP.Addr := Address;
@@ -155,7 +155,8 @@ package body PolyORB.Transport.Connected.Sockets is
 
    procedure Create
      (TE : in out Socket_Endpoint;
-      S  :        Socket_Type) is
+      S  : Socket_Type)
+   is
    begin
       TE.Socket := S;
 
@@ -188,7 +189,8 @@ package body PolyORB.Transport.Connected.Sockets is
    -----------------------
 
    function Is_Data_Available
-     (TE : Socket_Endpoint; N  : Natural) return Boolean
+     (TE : Socket_Endpoint;
+      N  : Natural) return Boolean
    is
       Request : Request_Type (N_Bytes_To_Read);
    begin
@@ -229,8 +231,11 @@ package body PolyORB.Transport.Connected.Sockets is
          V.Iov_Len := System.Storage_Elements.Storage_Offset (Count);
       end Receive_Socket;
 
-      procedure Receive_Buffer is new PolyORB.Buffers.Receive_Buffer
-        (Receive_Socket);
+      procedure Receive_Buffer is
+        new PolyORB.Buffers.Receive_Buffer (Receive_Socket);
+
+   --  Start of processing for Read
+
    begin
       begin
          Receive_Buffer (Buffer, Size, Data_Received);
@@ -295,6 +300,8 @@ package body PolyORB.Transport.Connected.Sockets is
       end Socket_Send;
 
       procedure Send_Buffer is new Buffers.Send_Buffer (Socket_Send);
+
+   --  Start of processing for Write
 
    begin
       pragma Debug (C, O ("Write: enter"));
