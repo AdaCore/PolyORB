@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---               P O L Y O R B . P R O T O C O L S . D N S                  --
+--               P O L Y O R B . D N S . H E L P E R                        --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
