@@ -75,13 +75,12 @@ def client_server(client_cmd, client_conf, server_cmd, server_conf):
         while True:
             line = server_handle.stdout.readline()
             if "IOR:" in line:
-                IOR_str = re.match(r".*'(IOR:[a-z0-9]+)['|\n\r]",
+                IOR_str = re.match(r".*(IOR:[a-z0-9]+)['|\n\r]",
                                    line).groups()[0]
                 break
         # Remove eol and '
         IOR_str = IOR_str.strip()
-        IOR_str = IOR_str.strip("'")
-        print "IOR", IOR_str
+        print IOR_str
 
         # Run the client with the IOR argument
 
