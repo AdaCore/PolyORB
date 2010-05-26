@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---               P O L Y O R B . D N S . H E L P E R                      --
+--                   P O L Y O R B . D N S . H E L P E R                    --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2010, Free Software Foundation, Inc.          --
+--           Copyright (C) 2010, Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -58,11 +58,15 @@ package PolyORB.DNS.Helper is
       IQuery,
       Status
      );
+
    type RR_Type is
-     (PTR,
-      TXT,
+     (A,
+      NS,
+      SOA,
       CNAME,
-      A);
+      PTR,
+      TXT,
+      SRV);
 
    type RR is record
       rr_name : PolyORB.Types.String;

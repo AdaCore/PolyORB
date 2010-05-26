@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---               P O L Y O R B . D N S . H E L P E R                        --
+--                   P O L Y O R B . D N S . H E L P E R                    --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2010, Free Software Foundation, Inc.          --
+--           Copyright (C) 2010, Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -30,6 +30,7 @@
 --                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
+
 with PolyORB.Log;
 with PolyORB.Initialization;
 with PolyORB.Utils.Strings;
@@ -57,10 +58,21 @@ package body PolyORB.DNS.Helper is
         (TC_RR_Type, Any.To_Any ("RR_Type"));
       Any.TypeCode.Add_Parameter
         (TC_RR_Type, Any.To_Any ("IDL:DNS/RR_Type:1.0"));
+
+      Any.TypeCode.Add_Parameter
+        (TC_RR_Type, Any.To_Any ("A"));
+      Any.TypeCode.Add_Parameter
+        (TC_RR_Type, Any.To_Any ("NS"));
+      Any.TypeCode.Add_Parameter
+        (TC_RR_Type, Any.To_Any ("SOA"));
+      Any.TypeCode.Add_Parameter
+        (TC_RR_Type, Any.To_Any ("CNAME"));
       Any.TypeCode.Add_Parameter
         (TC_RR_Type, Any.To_Any ("PTR"));
       Any.TypeCode.Add_Parameter
-        (TC_RR_Type, Any.To_Any ("NS"));
+        (TC_RR_Type, Any.To_Any ("TXT"));
+      Any.TypeCode.Add_Parameter
+        (TC_RR_Type, Any.To_Any ("SRV"));
 
       Any.TypeCode.Add_Parameter
          (TC_RR, Any.To_Any (TC_RR_Type));

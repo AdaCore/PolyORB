@@ -122,11 +122,6 @@ package PolyORB.Protocols.DNS is
       Reply,
       Update);
 
-   procedure Common_Send_Reply
-    (Sess           : access DNS_Session;
-     Request        : Requests.Request_Access;
-     Error          : in out Errors.Error_Container);
-
    procedure Process_Message
      (S      : access Session'Class);
    procedure Process_Request

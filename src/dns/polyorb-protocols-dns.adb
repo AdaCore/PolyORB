@@ -202,45 +202,6 @@ package body PolyORB.Protocols.DNS is
      (S       : access DNS_Session;
       Request :        Requests.Request_Access)
    is
-
-      use PolyORB.Errors;
-
-      Sess  : DNS_Session renames DNS_Session (S.all);
-      Error : Errors.Error_Container;
-   begin
-      if Sess.Role = Client then
-         raise DNS_Error;
-      end if;
-
-      Common_Send_Reply
-        (Sess'Access,
-         Request,
-         Error);
-      --  If an error is found, we send back an exception
-      if Found (Error) then
-         Set_Exception (Request, Error);
-         Catch (Error);
-
-         Common_Send_Reply
-           (Sess'Access,
-            Request,
-            Error);
-
-         if Found (Error) then
-            Catch (Error);
-            raise DNS_Error;
-         end if;
-      end if;
-   end Send_Reply;
-      -----------------------
-   -- Common_Send_Reply --
-   -----------------------
-
-   procedure Common_Send_Reply
-     (Sess           : access DNS_Session;
-      Request        :        Requests.Request_Access;
-      Error          : in out Errors.Error_Container)
-   is
       use PolyORB.Any;
       use PolyORB.Any.NVList.Internals;
       use PolyORB.Any.NVList.Internals.NV_Lists;
@@ -252,37 +213,22 @@ package body PolyORB.Protocols.DNS is
       Header_Space    : Reservation;
       It : Iterator;
       Arg : Element_Access;
-   begin
 
+      Sess  : DNS_Session renames DNS_Session (S.all);
+      Error : Errors.Error_Container;
+   begin
+      if Sess.Role = Client then
+         raise DNS_Error;
+      end if;
+
+      --  XXX: TODO : Manage eventual Exceptions and other Rcodes
       if PolyORB.Any.Is_Empty (Request.Exception_Info) then
          Sess.MCtx.Rcode_Flag  := No_Error;
       end if;
 
-      case Sess.MCtx.Rcode_Flag is
-
-         when No_Error =>
-            pragma Debug (C, O ("Using Any to send reply data"));
-            null;
-         when others =>
-            null;
-      end case;
-
       Set_Endianness (Buffer_Out, Big_Endian);
       Set_Endianness (Header_Buffer, Big_Endian);
       Header_Space := Reserve (Buffer_Out, DNS_Header_Size);
-
-      --  Retrieving the number of answers here
-      --  XXX temporary fix
-      It := First (List_Of (Request.Out_Args).all);
-      Next (It);
-      Next (It);
-      pragma Debug (C, O ("Out_Args : " &
-        Length (List_Of (Request.Out_Args).all)'Img));
-      Arg := Value (It);
-      Sess.MCtx.Nb_Answers := Types.Unsigned_Short
-        (Get_Aggregate_Count
-        (Aggregate_Content'Class (Get_Value (Get_Container
-            (Arg.Argument).all).all)) - 1);
 
       Marshall_Latin_1_String (Buffer_Out, Sess.MCtx.Request_Name);
       Marshall (Buffer_Out, Types.Unsigned_Short (12));
@@ -293,19 +239,29 @@ package body PolyORB.Protocols.DNS is
       Marshall (Buffer_Out, Types.Unsigned_Short (0));
       Marshall (Buffer_Out, Types.Unsigned_Short (240));
 
+      --  find and marshall the answer sequence
+      It := First (List_Of (Request.Out_Args).all);
+      Next (It);
+      Next (It);
+      Arg := Value (It);
       Marshall_From_Any (Buffer_Out,
-                          Get_Container (Arg.Argument).all, True, Error);
+                         Get_Container (Arg.Argument).all, True, Error);
+      --   XXX TODO: Find and marshall Auth servers and add. infos sequences
+
       --  Copy Header
       Marshall_DNS_Header_Reply
         (Header_Buffer, Request, Sess.MCtx);
       Copy_Data (Header_Buffer.all, Header_Space);
       Release (Header_Buffer);
+
       --  Emit reply
       Show (Buffer_Out);
-      Emit_Message (Sess, Buffer_Out, Error);
+      Emit_Message (Sess'Access, Buffer_Out, Error);
       Release (Buffer_Out);
       pragma Debug (C, O ("Reply sent"));
-   end Common_Send_Reply;
+
+   end Send_Reply;
+
    -------------------------------
    -- Handle_Connect_Indication --
    -------------------------------
@@ -357,8 +313,7 @@ package body PolyORB.Protocols.DNS is
             Unmarshall_DNS_Header (Sess.MCtx, Sess.Buffer_In);
             --
             if Sess.Role = Client then
-               Reply_Received (Sess, Request_Id => 1,
-                               Rcode      => Sess.MCtx.Rcode_Flag);
+               Process_Message (Sess);
             else
 
             --  At this point we have all header fields stored in Sess.MCtx
@@ -735,20 +690,8 @@ package body PolyORB.Protocols.DNS is
                raise DNS_Error;
             end if;
 
-            declare
-               Request_Id : Types.Unsigned_Long;
-               Rcode : Rcode_Type;
-            begin
-               null;
---                 Unmarshall_Service_Context_List
---                   (Sess.Buffer_In, Service_Contexts);
---
---                 Request_Id := Unmarshall (Sess.Buffer_In);
---                 Reply_Status := Unmarshall (Sess.Buffer_In);
---
---                 Common_Reply_Received
---                   (Sess'Access, Request_Id, Reply_Status, Service_Contexts);
-            end;
+            Reply_Received
+                (Sess'Access, Sess.MCtx.Request_Id, Sess.MCtx.Rcode_Flag);
          when others =>
             raise Program_Error;
       end case;
@@ -971,7 +914,8 @@ package body PolyORB.Protocols.DNS is
          --  Marshall DNS request header
       pragma Debug (C, O ("Marshalling DNS request header"));
       --  Marshalling the transaction number
-      Marshall (Header_Buffer, Types.Unsigned_Short (0));
+      MCtx.Request_Id := R.Request_Id;
+      Marshall (Header_Buffer, Types.Unsigned_Short (MCtx.Request_Id));
       Header_Flags := 0;
       --  Marshalling the DNS header flags
       --  message is a request
@@ -1107,14 +1051,14 @@ package body PolyORB.Protocols.DNS is
       use PolyORB.Any.NVList.Internals.NV_Lists;
 
       Arg : Element_Access;
-      Test_Request_Id : Types.Unsigned_Short;
       Header_Flags : Flags;
+      It : Iterator;
    begin
          --  Marshall DNS request header
-      pragma Debug (C, O ("Marshalling DNS header reply"));
+      pragma Debug (C, O ("Marshall_DNS_Header_Reply: enter"));
 
       Marshall (Header_Buffer, Types.Unsigned_Short
-                (0));
+                (MCtx.Request_Id));
       --  Marshalling the DNS header flags;
       Header_Flags := 0;
       --  message is a reply
@@ -1133,7 +1077,8 @@ package body PolyORB.Protocols.DNS is
 
       --  Marshalling the authoritative flag
       --  : retrieve it from the request's arguments list
-      Arg := Value (First (List_Of (R.Args).all));
+      It := First (List_Of (R.Args).all);
+      Arg := Value (It);
       Unsigned_Short_Flags.Set (Header_Flags,  AA_Flag_Pos,
                         PolyORB.Types.Boolean'(From_Any (Arg.Argument)));
       pragma Debug (C, O ("Authoritative flag : "));
@@ -1147,27 +1092,58 @@ package body PolyORB.Protocols.DNS is
       Unsigned_Short_Flags.Set
         (Header_Flags, Rec_Disp_Flag_Pos, MCtx.Rec_Disp_Flag);
       --  three reserved bits
-      --  As this is a query,not a response, Rcode = No_Error
-      MCtx.Rcode_Flag := No_Error;
-      for J in Rcode_Flag_Pos .. Res_Flag_Pos - 1 loop
-         Unsigned_Short_Flags.Set (Header_Flags, J, False);
-      end loop;
+
+      case MCtx.Rcode_Flag is
+         when No_Error =>
+            for J in Rcode_Flag_Pos .. Res_Flag_Pos - 1 loop
+               Unsigned_Short_Flags.Set (Header_Flags, J, False);
+            end loop;
+         --  XXX : TODO : other response codes
+         when others =>
+            for J in Rcode_Flag_Pos .. Res_Flag_Pos - 1 loop
+               Unsigned_Short_Flags.Set (Header_Flags, J, False);
+            end loop;
+      end case;
 
       pragma Debug (C, O ("Flags have been set "));
       Marshall (Header_Buffer, Types.Unsigned_Short (Header_Flags));
+
+      Next (It);
       --  Number of questions being sent
+      --  XXX : Should nb questions be always 0 for an answer?
       MCtx.Nb_Questions := 0;
+
       Marshall (Header_Buffer, MCtx.Nb_Questions);
 
-      --  XXX TODO: multiple answers, auth servers, additional infos
-      MCtx.Nb_Answers := 1;
+      Next (It);
+      --  Retrieving the number of  answers field here, so that
+      --  we could marshall them in the dns header
+      Arg := Value (It);
+      MCtx.Nb_Answers := Types.Unsigned_Short
+        (Get_Aggregate_Count
+        (Aggregate_Content'Class (Get_Value (Get_Container
+            (Arg.Argument).all).all)) - 1);
       Marshall (Header_Buffer, MCtx.Nb_Answers);
-      MCtx.Nb_Auth_Servers := 0;
+
+      --  retrieve and marshall nb of authority servers
+      Next (It);
+      Arg := Value (It);
+      MCtx.Nb_Auth_Servers := Types.Unsigned_Short
+        (Get_Aggregate_Count
+        (Aggregate_Content'Class (Get_Value (Get_Container
+            (Arg.Argument).all).all)) - 1);
       Marshall (Header_Buffer, MCtx.Nb_Auth_Servers);
 
-      MCtx.Nb_Add_Infos := 0;
+      --  retrieve and marshall nb of additionnal infos
+      Next (It);
+      Arg := Value (It);
+      MCtx.Nb_Add_Infos := Types.Unsigned_Short
+        (Get_Aggregate_Count
+        (Aggregate_Content'Class (Get_Value (Get_Container
+            (Arg.Argument).all).all)) - 1);
       Marshall (Header_Buffer, MCtx.Nb_Add_Infos);
-      Show (Header_Buffer);
+
+      pragma Debug (C, O ("Marshall_DNS_Header_Reply: leave"));
    end Marshall_DNS_Header_Reply;
 
    procedure Unmarshall_Argument_List
@@ -1176,7 +1152,6 @@ package body PolyORB.Protocols.DNS is
       Direction           :        Any.Flags;
       Error               : in out Errors.Error_Container)
    is
-
       use PolyORB.Any;
       use PolyORB.Any.NVList.Internals;
       use PolyORB.Any.NVList.Internals.NV_Lists;
@@ -1211,6 +1186,8 @@ package body PolyORB.Protocols.DNS is
       TTL := Unmarshall (Sess.Buffer_In);
       pragma Debug (C, O ("TTL : " & TTL'Img));
 
+      --  XXX TODO : case on Request type for other cases ->
+      --  the structure of the dns answer may change for different rr types
       if Sess.MCtx.Request_Type = PTR then
          --  Retrieve data length
          Data_Length := Unmarshall (Sess.Buffer_In);
@@ -1230,12 +1207,15 @@ package body PolyORB.Protocols.DNS is
          pragma Debug (C, O ("First arg is:  inout"));
          Set_Any_Value (Sess.MCtx.AA_Flag, Get_Container (Arg.Argument).all);
       end if;
+
       --  question rr sequence
+      --  XXX : TODO : Fill the loop to unmashall question sequences
       Next (It);
       Arg := Value (It);
       if Arg.Arg_Modes = ARG_IN then
-         pragma Debug (C, O ("Second arg is:  in"));
-         null;
+         for J in 1 .. Sess.MCtx.Nb_Questions loop
+            null;
+         end loop;
       end if;
       Next (It);
       Arg := Value (It);
@@ -1245,31 +1225,31 @@ package body PolyORB.Protocols.DNS is
          pragma Debug (C, O ("Third arg is:  out"));
          --  initializing the out Answer rr sequence
          A_sequence := To_Sequence (Integer (Sess.MCtx.Nb_Answers));
-         answerRR.rr_name := Answer;
-         answerRR.rr_type := Sess.MCtx.Request_Type;
-
+         --  XXX TODO : case of multiple answers -  to be fixed
          for J in 1 .. Integer (Sess.MCtx.Nb_Answers) loop
+            answerRR.rr_name := Answer;
+            answerRR.rr_type := Sess.MCtx.Request_Type;
             Replace_Element (A_sequence, J, answerRR);
          end loop;
 
          Argument_Answer := To_Any (A_sequence);
          Copy_Any_Value (Arg.Argument, Argument_Answer);
       end if;
+
       --  authority rr sequence
+      --  XXX : TODO : Fill the loop to unmashall authority sequence
       Next (It);
       Arg := Value (It);
       if Arg.Arg_Modes = ARG_OUT then
-         pragma Debug (C, O ("Fourth arg is:  out"));
          null;
       end if;
       --  additionnal info rr sequence
+      --  XXX : TODO : Fill the loop to unmashall add. infos sequence
       Next (It);
       Arg := Value (It);
       if Arg.Arg_Modes = ARG_OUT then
-         pragma Debug (C, O ("Fifth arg is:  out"));
          null;
       end if;
-
       pragma Debug (C, O ("Leaving Unmarshall_Argument_List"));
    end Unmarshall_Argument_List;
 
