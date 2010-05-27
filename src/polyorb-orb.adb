@@ -1261,19 +1261,21 @@ package body PolyORB.ORB is
                Set_Referenced (BO_Acc, Referenced => False);
                Remove (ORB.Binding_Objects, It);
 
-            elsif Predicate = null or else Predicate (BO_Acc) then
-               Smart_Pointers.Reuse_Entity (Ref, Entity_Ptr (Value (It)));
+            else
+               if Predicate = null or else Predicate (BO_Acc) then
+                  Smart_Pointers.Reuse_Entity (Ref, Entity_Ptr (Value (It)));
 
-               --  If binding object is being finalized, Reuse_Entity leaves
-               --  Ref unset.
+                  --  If binding object is being finalized, Reuse_Entity leaves
+                  --  Ref unset.
 
-               if not Is_Nil (Ref) then
-                  BO_Ref_Lists.Prepend (Result, Ref);
+                  if not Is_Nil (Ref) then
+                     BO_Ref_Lists.Prepend (Result, Ref);
+                  end if;
+
+                  --  If Predicate is not null, return first matching BO only
+
+                  exit All_Binding_Objects when Predicate /= null;
                end if;
-
-               --  If Predicate is not null, return just the first matching BO
-
-               exit All_Binding_Objects when Predicate /= null;
 
                Next (It);
             end if;
