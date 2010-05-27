@@ -130,7 +130,7 @@ package PolyORB.Protocols.DNS is
    procedure Reply_Received
      (Sess             : access DNS_Session;
       Request_Id       : Types.Unsigned_Long;
-      Rcode     : Rcode_Type);
+      RC     : Rcode);
    procedure Initialize;
 private
    type Pending_Request is record
@@ -170,7 +170,7 @@ private
       TC_Flag            : Types.Boolean;
       Rec_Flag           : Types.Boolean;
       Rec_Disp_Flag    : Types.Boolean;
-      Rcode_Flag         : Rcode_Type;
+      Rcode_Flag         : Rcode;
 
       Nb_Questions : Types.Unsigned_Short := 0;
       Nb_Answers : Types.Unsigned_Short;

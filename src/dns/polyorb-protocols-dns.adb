@@ -807,7 +807,6 @@ package body PolyORB.Protocols.DNS is
       pragma Debug (C, O ("OBJ KEY : " & Image (Object_Key.all)));
 
       Any.NVList.Create (Args);
-      Initialize_RR;
       --  Assigning the in out authoritative argument
       Argument_Auth := Any.To_Any (S.MCtx.AA_Flag);
       Add_Item (Args, Arg_Name_Auth, Argument_Auth, Any.ARG_INOUT);
@@ -1256,7 +1255,7 @@ package body PolyORB.Protocols.DNS is
    procedure Reply_Received
      (Sess             : access DNS_Session;
       Request_Id       : Types.Unsigned_Long;
-      Rcode     : Rcode_Type)
+      RC     : Rcode)
    is
       use PolyORB.Any;
       use PolyORB.Errors;
@@ -1268,7 +1267,7 @@ package body PolyORB.Protocols.DNS is
       Error        : Errors.Error_Container;
    begin
       pragma Debug (C, O ("Reply received: status = "
-                       & Rcode_Type'Image (Rcode)
+                       & Rcode'Image (RC)
                        & ", id ="
                        & Types.Unsigned_Long'Image (Request_Id)));
 
@@ -1277,8 +1276,8 @@ package body PolyORB.Protocols.DNS is
       if not Success then
          raise DNS_Error;
       end if;
-      Initialize_RR;
-      case Rcode is
+
+      case RC is
          when No_Error =>
 
                pragma Debug (C, O ("No_Error : Unmarshall Reply Body"));
