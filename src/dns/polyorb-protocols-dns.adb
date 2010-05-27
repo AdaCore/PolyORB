@@ -45,7 +45,6 @@ with PolyORB.Representations.DNS;
 with PolyORB.Utils;
 with PolyORB.Objects;
 with PolyORB.Binding_Data.Local;
-with PolyORB.Obj_Adapters;
 with PolyORB.Smart_Pointers;
 with PolyORB.ORB.Iface;
 with PolyORB.POA;
@@ -223,15 +222,25 @@ package body PolyORB.Protocols.DNS is
 
       --  XXX: TODO : Manage eventual Exceptions and other Rcodes
       if PolyORB.Any.Is_Empty (Request.Exception_Info) then
-         Sess.MCtx.Rcode_Flag  := No_Error;
+         Sess.MCtx.Rcode_Flag  := From_Any (Request.Result.Argument);
       end if;
 
       Set_Endianness (Buffer_Out, Big_Endian);
       Set_Endianness (Header_Buffer, Big_Endian);
       Header_Space := Reserve (Buffer_Out, DNS_Header_Size);
-
+      --  the first three fields of the DNS message reply are the same
+      --  as the question - Name, Type, Class
       Marshall_Latin_1_String (Buffer_Out, Sess.MCtx.Request_Name);
-      Marshall (Buffer_Out, Types.Unsigned_Short (12));
+
+      case Sess.MCtx.Request_Type is
+         when PTR =>
+            Marshall (Buffer_Out, Types.Unsigned_Short (12));
+         --  XXX : TODO : other RR types marshalling
+         when others =>
+            null;
+      end case;
+
+      --  Marshall the Class field : IN by default
       Marshall (Buffer_Out, Types.Unsigned_Short (1));
 
       --  this is a response , we add the ttl field
@@ -363,7 +372,7 @@ package body PolyORB.Protocols.DNS is
             end if;
 
          when Expect_Body =>
-            Process_Request (Sess);
+            Process_Message (Sess);
             Expect_DNS_Header (Sess);
          when others =>
 
@@ -711,15 +720,12 @@ package body PolyORB.Protocols.DNS is
       use PolyORB.Filters.Iface;
       use PolyORB.Objects;
       use PolyORB.Binding_Data.Local;
-      use PolyORB.Obj_Adapters;
       use PolyORB.ORB.Iface;
       use PolyORB.Smart_Pointers;
       use PolyORB.POA;
       use PolyORB.Any;
       use PolyORB.Servants;
       use PolyORB.POA_Types;
---      use PolyORB.Transport;
---      use PolyORB.Obj_Adapters.Simple;
 
       ORB              : ORB_Access;
       Arg_Name_Auth : constant PolyORB.Types.Identifier :=
@@ -745,12 +751,6 @@ package body PolyORB.Protocols.DNS is
       Add_sequence : rrSequence;
 
       myRR : RR;
-      TC  : constant TypeCode.Local_Ref
-        := TypeCode.TC_Sequence;
-      TCK : constant TCKind := TypeCode.Kind (TC);
-      OA               :  Obj_Adapters.Obj_Adapter_Access;
-      POA              : PolyORB.POA.Obj_Adapter_Access;
-      BO_List          : BO_Ref_List;
       Req_Flags        : Requests.Flags := 0;
       Object_Key       : PolyORB.Objects.Object_Id_Access;
       Target_Profile : Binding_Data.Profile_Access;
@@ -759,16 +759,12 @@ package body PolyORB.Protocols.DNS is
       Req              : Request_Access;
       Args             : Any.NVList.Ref;
       Def_Args         : Component_Access;
-      BO : Binding_Object_Access;
-      Servant    : Components.Component_Access;
-      It :  BO_Ref_Lists.Iterator;
+
       Error : Errors.Error_Container;
       Root_POA : PolyORB.POA.Obj_Adapter_Access;
       Child_POA : PolyORB.POA.Obj_Adapter_Access;
-      sm : Servants.Servant_Access;
-      serv : Servants.Servant_Access;
-      BO_Ref : Smart_Pointers.Ref;
-
+      Servant : Servants.Servant_Access;
+      Return_Code : Types.Unsigned_Short;
    begin
       if S.Role /= Server then
          raise DNS_Error;
@@ -777,11 +773,18 @@ package body PolyORB.Protocols.DNS is
       pragma Debug (C, O ("Request_Received: entering"));
       S.MCtx.Request_Name := Types.To_PolyORB_String
         (Unmarshall_DNS_String (S.Buffer_In, S.MCtx.Request_Name_Length));
+      Return_Code := Unmarshall (S.Buffer_In);
+
+      case Return_Code is
+         when 12 =>
+            S.MCtx.Request_Type := PTR;
+         --  XXX TODO : Other RR types
+         when others =>
+            null;
+      end case;
 
       pragma Debug (C, O ("Request name : " &
         Types.To_Standard_String (S.MCtx.Request_Name)));
---  Creating an empty args list
---      Object_Id := Get_Object_Key (Selected_Profile.all);
 
       Root_POA :=  PolyORB.POA.Obj_Adapter_Access
         (Object_Adapter (ORB));
@@ -796,15 +799,15 @@ package body PolyORB.Protocols.DNS is
         & Child_POA.Name.all));
 
       --  Retrieving the default servant for DNS_POA
-      Get_Servant (Child_POA, sm, Error);
+      Get_Servant (Child_POA, Servant, Error);
 
       --  Retrieving the ObjectId associated to the servant
       Servant_To_Id (Child_POA,
-                      P_Servant => sm,
+                      P_Servant => Servant,
                       Oid       => Object_Key,
                       Error     => Error);
 
-      pragma Debug (C, O ("OBJ KEY : " & Image (Object_Key.all)));
+      pragma Debug (C, O ("Object key found : " & Image (Object_Key.all)));
 
       Any.NVList.Create (Args);
       --  Assigning the in out authoritative argument
@@ -812,7 +815,7 @@ package body PolyORB.Protocols.DNS is
       Add_Item (Args, Arg_Name_Auth, Argument_Auth, Any.ARG_INOUT);
       --  Assigning the question rrSequence
       myRR.rr_name := S.MCtx.Request_Name;
-      myRR.rr_type := PTR;
+      myRR.rr_type := S.MCtx.Request_Type;
       Sequence_Length := Integer (S.MCtx.Nb_Questions);
       Q_sequence := To_Sequence (Sequence_Length);
       for J in 1 .. Sequence_Length loop
@@ -836,8 +839,6 @@ package body PolyORB.Protocols.DNS is
       Argument_Additional := To_Any (Add_sequence);
       Add_Item (Args, Arg_Name_Add, Argument_Additional, Any.ARG_OUT);
 
---        pragma Debug (C, O ("Args are null? :" & Args.Is_Null'Img));
---        Unmarshall_Argument_List (S.Buffer_In, Args, Error);
       Target_Profile := new Local_Profile_Type;
       Create_Local_Profile
            (Object_Key.all,
