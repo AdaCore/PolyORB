@@ -227,21 +227,31 @@ package body PolyORB.Protocols.DNS is
 
       Set_Endianness (Buffer_Out, Big_Endian);
       Set_Endianness (Header_Buffer, Big_Endian);
+
       Header_Space := Reserve (Buffer_Out, DNS_Header_Size);
       --  the first three fields of the DNS message reply are the same
       --  as the question - Name, Type, Class
       Marshall_Latin_1_String (Buffer_Out, Sess.MCtx.Request_Name);
 
       case Sess.MCtx.Request_Type is
+         when A =>
+            Marshall (Buffer_Out, A_Code);
+         when NS =>
+            Marshall (Buffer_Out, NS_Code);
+         when SOA =>
+            Marshall (Buffer_Out, SOA_Code);
+         when CNAME =>
+            Marshall (Buffer_Out, CNAME_Code);
          when PTR =>
-            Marshall (Buffer_Out, Types.Unsigned_Short (12));
-         --  XXX : TODO : other RR types marshalling
-         when others =>
-            null;
+            Marshall (Buffer_Out, PTR_Code);
+         when TXT =>
+            Marshall (Buffer_Out, TXT_Code);
+         when SRV =>
+            Marshall (Buffer_Out, SRV_Code);
       end case;
 
       --  Marshall the Class field : IN by default
-      Marshall (Buffer_Out, Types.Unsigned_Short (1));
+      Marshall (Buffer_Out, Default_Class_Code);
 
       --  this is a response , we add the ttl field
       --  XXX temporary fix for Unsigned_Long marshalling
@@ -299,9 +309,9 @@ package body PolyORB.Protocols.DNS is
       Expect_DNS_Header (S);
    end Handle_Connect_Confirmation;
 
---  ----------------------------
---     -- Handle_Data_Indication --
---     ----------------------------
+   ----------------------------
+   -- Handle_Data_Indication --
+   ----------------------------
 
    procedure Handle_Data_Indication
      (Sess       : access DNS_Session;
@@ -706,9 +716,9 @@ package body PolyORB.Protocols.DNS is
       end case;
       pragma Debug (C, O ("Processed message : leaving"));
    end Process_Message;
-      ---------------------
+   ---------------------
    -- Process_Request --
-      ---------------------
+   ---------------------
    procedure Process_Request
      (S : access DNS_Session)
    is
@@ -776,9 +786,20 @@ package body PolyORB.Protocols.DNS is
       Return_Code := Unmarshall (S.Buffer_In);
 
       case Return_Code is
-         when 12 =>
+         when A_Code =>
+            S.MCtx.Request_Type := A;
+         when NS_Code =>
+            S.MCtx.Request_Type := NS;
+         when SOA_Code =>
+            S.MCtx.Request_Type := SOA;
+         when CNAME_Code =>
+            S.MCtx.Request_Type := CNAME;
+         when PTR_Code =>
             S.MCtx.Request_Type := PTR;
-         --  XXX TODO : Other RR types
+         when TXT_Code =>
+            S.MCtx.Request_Type := TXT;
+         when SRV_Code =>
+            S.MCtx.Request_Type := SRV;
          when others =>
             null;
       end case;
@@ -922,13 +943,20 @@ package body PolyORB.Protocols.DNS is
       MCtx.QR_Flag := (MCtx.Message_Type = Reply);
       Unsigned_Short_Flags.Set (Header_Flags, QR_Flag_Pos, MCtx.QR_Flag);
 
-      if R.Req.Operation.all = "Query" then
-         --  message is a standard query
-         pragma Debug (C, O ("request is a sstandard query"));
+      if R.Req.Operation.all = Query_Name then
+         --  message is a standard query (0) - no flags to set
+         pragma Debug (C, O ("request is a standard Query"));
          MCtx.Opcode_Flag := Query;
-         for J in Opcode_Flag_Pos .. QR_Flag_Pos - 1 loop
-            Unsigned_Short_Flags.Set (Header_Flags, J, False);
-         end loop;
+
+      elsif R.Req.Operation.all = IQuery_Name then
+         pragma Debug (C, O ("request is an IQuery"));
+         MCtx.Opcode_Flag := IQuery;
+         Unsigned_Short_Flags.Set (Header_Flags,  QR_Flag_Pos - 1, True);
+
+      elsif R.Req.Operation.all = Status_Name then
+         pragma Debug (C, O ("request is a Status Query"));
+         MCtx.Opcode_Flag := Status;
+         Unsigned_Short_Flags.Set (Header_Flags, QR_Flag_Pos - 2, True);
       end if;
 
       --  Marshalling the authoritative flag
@@ -952,10 +980,7 @@ package body PolyORB.Protocols.DNS is
 
       --  As this is a query,not a response, Rcode = No_Error
       MCtx.Rcode_Flag := No_Error;
-      for J in  Rcode_Flag_Pos  .. Res_Flag_Pos - 1 loop
-         Unsigned_Short_Flags.Set (Header_Flags, J, False);
-         pragma Debug (C, O ("Setting Rcode flag bit nb:" & J'Img));
-      end loop;
+
       pragma Debug (C, O ("marshalling flags"));
       Marshall (Header_Buffer, Types.Unsigned_Short (Header_Flags));
 
@@ -1054,7 +1079,7 @@ package body PolyORB.Protocols.DNS is
       Header_Flags : Flags;
       It : Iterator;
    begin
-         --  Marshall DNS request header
+      --  Marshall DNS request header
       pragma Debug (C, O ("Marshall_DNS_Header_Reply: enter"));
 
       Marshall (Header_Buffer, Types.Unsigned_Short
@@ -1066,13 +1091,20 @@ package body PolyORB.Protocols.DNS is
       MCtx.QR_Flag := (MCtx.Message_Type = Reply);
       Unsigned_Short_Flags.Set (Header_Flags, QR_Flag_Pos, MCtx.QR_Flag);
 
-      if R.Operation.all = "Query" then
-         --  message is a standard query
-         pragma Debug (C, O ("request is a sstandard query"));
+      if R.Operation.all = Query_Name then
+         --  message is a standard query (0) - no flags to set
+         pragma Debug (C, O ("request is a standard Query"));
          MCtx.Opcode_Flag := Query;
-         for J in Opcode_Flag_Pos .. QR_Flag_Pos - 1 loop
-            Unsigned_Short_Flags.Set (Header_Flags, J, False);
-         end loop;
+
+      elsif R.Operation.all = IQuery_Name then
+         pragma Debug (C, O ("request is an IQuery"));
+         MCtx.Opcode_Flag := IQuery;
+         Unsigned_Short_Flags.Set (Header_Flags,  QR_Flag_Pos - 1, True);
+
+      elsif R.Operation.all = Status_Name then
+         pragma Debug (C, O ("request is a Status Query"));
+         MCtx.Opcode_Flag := Status;
+         Unsigned_Short_Flags.Set (Header_Flags, QR_Flag_Pos - 2, True);
       end if;
 
       --  Marshalling the authoritative flag
@@ -1094,15 +1126,73 @@ package body PolyORB.Protocols.DNS is
       --  three reserved bits
 
       case MCtx.Rcode_Flag is
+         --  No Error : 0x0000
          when No_Error =>
-            for J in Rcode_Flag_Pos .. Res_Flag_Pos - 1 loop
-               Unsigned_Short_Flags.Set (Header_Flags, J, False);
-            end loop;
-         --  XXX : TODO : other response codes
-         when others =>
-            for J in Rcode_Flag_Pos .. Res_Flag_Pos - 1 loop
-               Unsigned_Short_Flags.Set (Header_Flags, J, False);
-            end loop;
+            null;
+
+         --  Format Error : 0x0001
+         when Format_Error =>
+            Unsigned_Short_Flags.Set
+              (Header_Flags, Rcode_Flag_Pos, True);
+
+         --  Server Failure  : 0x0010
+         when Server_Failure =>
+            Unsigned_Short_Flags.Set
+              (Header_Flags, Rcode_Flag_Pos + 1, True);
+
+         --  Name Error : 0x0011
+         when PolyORB.DNS.Helper.Name_Error =>
+            Unsigned_Short_Flags.Set
+              (Header_Flags, Rcode_Flag_Pos, True);
+            Unsigned_Short_Flags.Set
+              (Header_Flags, Rcode_Flag_Pos + 1, True);
+
+         --  Not Implemented : 0x0100
+         when Not_Implemented =>
+            Unsigned_Short_Flags.Set
+              (Header_Flags, Rcode_Flag_Pos + 2, True);
+
+         --  Refused : 0x0101
+         when Refused =>
+            Unsigned_Short_Flags.Set
+              (Header_Flags, Rcode_Flag_Pos, True);
+            Unsigned_Short_Flags.Set
+              (Header_Flags, Rcode_Flag_Pos + 2, True);
+
+         --  YX Domain - name exists: 0x0110
+         when YX_Domain =>
+            Unsigned_Short_Flags.Set
+              (Header_Flags, Rcode_Flag_Pos + 1, True);
+            Unsigned_Short_Flags.Set
+              (Header_Flags, Rcode_Flag_Pos + 2, True);
+
+         --  YX RR set exists : 0x0111
+         when YX_RRSet =>
+            Unsigned_Short_Flags.Set
+              (Header_Flags, Rcode_Flag_Pos, True);
+            Unsigned_Short_Flags.Set
+              (Header_Flags, Rcode_Flag_Pos + 1, True);
+            Unsigned_Short_Flags.Set
+              (Header_Flags, Rcode_Flag_Pos + 2, True);
+
+         --  NX RR set  does not exist : 0x1000
+         when NX_RRSet =>
+            Unsigned_Short_Flags.Set
+              (Header_Flags, Rcode_Flag_Pos + 3, True);
+
+         --  Not Authoritative : 0x1001
+         when Not_Auth =>
+            Unsigned_Short_Flags.Set
+              (Header_Flags, Rcode_Flag_Pos, True);
+            Unsigned_Short_Flags.Set
+              (Header_Flags, Rcode_Flag_Pos + 3, True);
+
+         --  Name is out of zone : 0x1010
+         when Not_Zone =>
+            Unsigned_Short_Flags.Set
+              (Header_Flags, Rcode_Flag_Pos + 3, True);
+            Unsigned_Short_Flags.Set
+              (Header_Flags, Rcode_Flag_Pos + 1, True);
       end case;
 
       pragma Debug (C, O ("Flags have been set "));
@@ -1178,9 +1268,11 @@ package body PolyORB.Protocols.DNS is
         (Unmarshall_DNS_String
            (Sess.Buffer_In, Types.Unsigned_Short (Name_Length)));
       R_Type := Unmarshall (Sess.Buffer_In);
+
       if R_Type = 12 then
          Sess.MCtx.Request_Type := PTR;
       end if;
+
       Sess.MCtx.Request_Class := Unmarshall (Sess.Buffer_In);
       Empty := Unmarshall (Sess.Buffer_In);
       TTL := Unmarshall (Sess.Buffer_In);

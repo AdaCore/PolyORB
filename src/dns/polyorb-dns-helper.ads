@@ -40,6 +40,7 @@ with PolyORB.Any;
 
 package PolyORB.DNS.Helper is
 
+   --  Rcode type definition
    type Rcode is
      (No_Error,
       Format_Error,
@@ -53,11 +54,29 @@ package PolyORB.DNS.Helper is
       Not_Auth,
       Not_Zone);
 
+   --  Rcode constant code values ,
+   --  defined by IANA, ref: [RFC 5395] [RFC 1035]
+   No_Error_Code : constant Types.Unsigned_Short := 0;
+   Format_Error_Code : constant Types.Unsigned_Short := 1;
+   Server_Failure_Code : constant Types.Unsigned_Short := 2;
+   Name_Error_Code : constant Types.Unsigned_Short := 3;
+   Not_Implemented_Code : constant Types.Unsigned_Short := 4;
+   Refused_Code : constant Types.Unsigned_Short := 5;
+   YX_Domain_Code : constant Types.Unsigned_Short := 6;
+   YX_RRSet_Code : constant Types.Unsigned_Short := 7;
+   NX_RRSet_Code : constant Types.Unsigned_Short := 8;
+   Not_Auth_Code : constant Types.Unsigned_Short := 9;
+   Not_Zone_Code : constant Types.Unsigned_Short := 10;
+
    type Opcode_Type is
      (Query,
       IQuery,
       Status
      );
+   --  Opcode operation name definition
+   Query_Name : constant Standard.String := "Query";
+   IQuery_Name : constant Standard.String := "IQuery";
+   Status_Name : constant Standard.String := "Status";
 
    type RR_Type is
      (A,
@@ -68,6 +87,18 @@ package PolyORB.DNS.Helper is
       TXT,
       SRV);
 
+   --  Resource Record (RR) TYPEs constant code values
+   --  ,defined by IANA, ref: [RFC 5395] [RFC 1035]
+
+   A_Code : constant Types.Unsigned_Short := 1;
+   NS_Code : constant Types.Unsigned_Short := 2;
+   SOA_Code : constant Types.Unsigned_Short := 6;
+   CNAME_Code : constant Types.Unsigned_Short := 5;
+   PTR_Code : constant Types.Unsigned_Short := 12;
+   TXT_Code : constant Types.Unsigned_Short := 16;
+   SRV_Code : constant Types.Unsigned_Short := 33;
+
+   Default_Class_Code : constant Types.Unsigned_Short := 1;
    type RR is record
       rr_name : PolyORB.Types.String;
       rr_type :  PolyORB.DNS.Helper.RR_Type;
