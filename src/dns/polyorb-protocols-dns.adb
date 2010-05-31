@@ -1269,9 +1269,24 @@ package body PolyORB.Protocols.DNS is
            (Sess.Buffer_In, Types.Unsigned_Short (Name_Length)));
       R_Type := Unmarshall (Sess.Buffer_In);
 
-      if R_Type = 12 then
-         Sess.MCtx.Request_Type := PTR;
-      end if;
+      case R_Type is
+         when A_Code =>
+            Sess.MCtx.Request_Type := A;
+         when NS_Code =>
+            Sess.MCtx.Request_Type := NS;
+         when SOA_Code =>
+            Sess.MCtx.Request_Type := SOA;
+         when CNAME_Code =>
+            Sess.MCtx.Request_Type := CNAME;
+         when PTR_Code =>
+            Sess.MCtx.Request_Type := PTR;
+         when TXT_Code =>
+            Sess.MCtx.Request_Type := TXT;
+         when SRV_Code =>
+            Sess.MCtx.Request_Type := SRV;
+         when others =>
+            null;
+      end case;
 
       Sess.MCtx.Request_Class := Unmarshall (Sess.Buffer_In);
       Empty := Unmarshall (Sess.Buffer_In);
