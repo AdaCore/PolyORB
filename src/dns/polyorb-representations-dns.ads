@@ -34,29 +34,32 @@
 --  A data representation implementing the DNS Data Representation.
 
 --   with PolyORB.Utils.Dynamic_Tables;
-   with PolyORB.Any;
-   with PolyORB.Types;
+with PolyORB.Types;
 with PolyORB.Buffers;
 with PolyORB.Protocols.DNS;
+with PolyORB.Any;
+with PolyORB.Any.NVList;
+
 package PolyORB.Representations.DNS is
    use PolyORB.Types;
    use PolyORB.Buffers;
    use PolyORB.Protocols.DNS;
+   use PolyORB.Any;
+   use PolyORB.Any.NVList.Internals;
+   use PolyORB.Any.NVList.Internals.NV_Lists;
 
    --  The next two subprograms marshall or unmarshall the value of
    --  the Any, not the Any type itself (i.e. they do not marshall Data's
    --  typecode).
 
    procedure Marshall_From_Any
-     (Buffer : access Buffers.Buffer_Type;
-      CData  : Any.Any_Container'Class;
-      Is_Reply : Types.Boolean;
-      Error  : in out Errors.Error_Container);
+     (Buffer : Buffer_Access; Argument : Any.Any;
+     Is_Reply : Types.Boolean);
 
-   procedure Unmarshall_To_Any
-     (Buffer : access Buffers.Buffer_Type;
-      CData  : in out Any.Any_Container'Class;
-      Error  : in out Errors.Error_Container);
+--     procedure Unmarshall_To_Any
+--       (Buffer : access Buffers.Buffer_Type;
+--        CData  : in out Any.Any_Container'Class;
+--        Error  : in out Errors.Error_Container);
 
    --  'Identifier' type
 

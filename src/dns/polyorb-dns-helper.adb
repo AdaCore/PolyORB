@@ -256,13 +256,13 @@ package body PolyORB.DNS.Helper is
       TC_RR := PolyORB.Any.TypeCode.TC_Struct;
       Any.TypeCode.Add_Parameter (TC_RR, Any.To_Any ("RR"));
       Any.TypeCode.Add_Parameter (TC_RR, Any.To_Any ("IDL:DNS/RR:1.0"));
-      Any.TypeCode.Add_Parameter (TC_RR, Any.To_Any
-                                  (Any.TypeCode.TC_String));
+      Any.TypeCode.Add_Parameter (TC_RR, Any.To_Any (Any.TypeCode.TC_String));
       Any.TypeCode.Add_Parameter (TC_RR, Any.To_Any ("rr_name"));
-      Any.TypeCode.Add_Parameter
-         (TC_RR, Any.To_Any (TC_RR_Type));
-      Any.TypeCode.Add_Parameter
-         (TC_RR, Any.To_Any ("rr_type"));
+      Any.TypeCode.Add_Parameter (TC_RR, Any.To_Any (TC_RR_Type));
+      Any.TypeCode.Add_Parameter (TC_RR, Any.To_Any ("rr_type"));
+      Any.TypeCode.Add_Parameter (TC_RR, Any.To_Any (Any.TypeCode.TC_String));
+      Any.TypeCode.Add_Parameter (TC_RR, Any.To_Any ("rr_answer"));
+
       Any.TypeCode.Disable_Reference_Counting
         (Any.TypeCode.Object_Of (TC_RR).all);
    end Initialize_RR;
@@ -284,7 +284,12 @@ package body PolyORB.DNS.Helper is
         (PolyORB.Any.Get_Aggregate_Element
            (Item,
             TC_RR_Type,
-            1)));
+                    1)),
+      rr_answer => PolyORB.Any.From_Any
+        (PolyORB.Any.Get_Aggregate_Element
+           (Item,
+            PolyORB.Any.TypeCode.TC_String,
+            2)));
    end From_Any;
 
    ------------
@@ -305,6 +310,10 @@ package body PolyORB.DNS.Helper is
            (Item.rr_name));
       PolyORB.Any.Add_Aggregate_Element
         (Result, To_Any (Item.rr_type));
+      PolyORB.Any.Add_Aggregate_Element
+        (Result,
+         PolyORB.Any.To_Any
+           (Item.rr_answer));
       return Result;
    end To_Any;
 
@@ -362,6 +371,8 @@ package body PolyORB.DNS.Helper is
             return PolyORB.Any.Wrap (Acc.V.rr_name'Unrestricted_Access);
          when 1 =>
             return Wrap (Acc.V.rr_type'Unrestricted_Access);
+         when 2 =>
+            return PolyORB.Any.Wrap (Acc.V.rr_answer'Unrestricted_Access);
          pragma Warnings (Off);
          when others =>
             raise Constraint_Error;

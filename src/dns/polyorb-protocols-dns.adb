@@ -229,44 +229,14 @@ package body PolyORB.Protocols.DNS is
       Set_Endianness (Header_Buffer, Big_Endian);
 
       Header_Space := Reserve (Buffer_Out, DNS_Header_Size);
-      --  the first three fields of the DNS message reply are the same
-      --  as the question - Name, Type, Class
-      Marshall_Latin_1_String (Buffer_Out, Sess.MCtx.Request_Name);
-
-      case Sess.MCtx.Request_Type is
-         when A =>
-            Marshall (Buffer_Out, A_Code);
-         when NS =>
-            Marshall (Buffer_Out, NS_Code);
-         when SOA =>
-            Marshall (Buffer_Out, SOA_Code);
-         when CNAME =>
-            Marshall (Buffer_Out, CNAME_Code);
-         when PTR =>
-            Marshall (Buffer_Out, PTR_Code);
-         when TXT =>
-            Marshall (Buffer_Out, TXT_Code);
-         when SRV =>
-            Marshall (Buffer_Out, SRV_Code);
-      end case;
-
-      --  Marshall the Class field : IN by default
-      Marshall (Buffer_Out, Default_Class_Code);
-
-      --  this is a response , we add the ttl field
-      --  XXX temporary fix for Unsigned_Long marshalling
-      Marshall (Buffer_Out, Types.Unsigned_Short (0));
-      Marshall (Buffer_Out, Types.Unsigned_Short (240));
 
       --  find and marshall the answer sequence
       It := First (List_Of (Request.Out_Args).all);
       Next (It);
       Next (It);
       Arg := Value (It);
-      Marshall_From_Any (Buffer_Out,
-                         Get_Container (Arg.Argument).all, True, Error);
-      --   XXX TODO: Find and marshall Auth servers and add. infos sequences
-
+      Marshall_From_Any (Buffer_Out, Arg.Argument, True);
+      --  XXX: TODO : find and marshall auth and additional server RRs
       --  Copy Header
       Marshall_DNS_Header_Reply
         (Header_Buffer, Request, Sess.MCtx);
@@ -318,9 +288,11 @@ package body PolyORB.Protocols.DNS is
       Data_Amount : Ada.Streams.Stream_Element_Count;
       Error       : in out Errors.Error_Container)
    is
+      use PolyORB.Any.NVList;
+      use PolyORB.Any.TypeCode;
       use Errors;
       Label_Size : Types.Octet;
-
+      newRR : RR;
    begin
       pragma Debug (C, O ("Handle_Data_Indication : Enter"));
       pragma Debug (C, O ("Received data in state " & Sess.State'Img));
@@ -330,25 +302,25 @@ package body PolyORB.Protocols.DNS is
          when Expect_Header =>
             pragma Debug (C, O ("Received Header Size " & Data_Amount'Img));
             Unmarshall_DNS_Header (Sess.MCtx, Sess.Buffer_In);
-            --
+
             if Sess.Role = Client then
                Process_Message (Sess);
             else
-
-            --  At this point we have all header fields stored in Sess.MCtx
-            --  If the message is a question
+               Sess.MCtx.Q_sequence :=
+                 To_Sequence (Integer (Sess.MCtx.Nb_Questions));
+               Any.NVList.Create (Sess.MCtx.New_Args);
+               --  At this point we have all header fields stored in Sess.MCtx
+               --  If the message is a question
                if Sess.MCtx.Message_Type = Request then
-                  for J in 1 .. Sess.MCtx.Nb_Questions loop
-                     Sess.State := Expect_Name;
-                     --  We need to receive the length of the question name
-                     Emit_No_Reply
+                  Sess.State := Expect_Name;
+                  --  We need to receive the length of the first question name
+                  Emit_No_Reply
                       (Port => Lower (Sess),
                        Msg  => DNS_Data_Expected'
                        (In_Buf => Sess.Buffer_In,
                         Max    => Stream_Element_Count
                        (1),
                        State  => Sess.State));
-                  end loop;
                end if;
             end if;
 
@@ -382,8 +354,54 @@ package body PolyORB.Protocols.DNS is
             end if;
 
          when Expect_Body =>
-            Process_Message (Sess);
-            Expect_DNS_Header (Sess);
+            --  XXX : TODO : move this code to representations.dns
+            Sess.MCtx.Request_Name := Types.To_PolyORB_String (
+              Unmarshall_DNS_String (Sess.Buffer_In,
+                Sess.MCtx.Request_Name_Length));
+            Sess.MCtx.Request_Type_Code := Unmarshall (Sess.Buffer_In);
+            Sess.MCtx.Request_Class := Unmarshall (Sess.Buffer_In);
+
+            case Sess.MCtx.Request_Type_Code is
+               when A_Code =>
+                  Sess.MCtx.Request_Type := A;
+               when NS_Code =>
+                  Sess.MCtx.Request_Type := NS;
+               when SOA_Code =>
+                  Sess.MCtx.Request_Type := SOA;
+               when CNAME_Code =>
+                  Sess.MCtx.Request_Type := CNAME;
+               when PTR_Code =>
+                  Sess.MCtx.Request_Type := PTR;
+               when TXT_Code =>
+                  Sess.MCtx.Request_Type := TXT;
+               when SRV_Code =>
+                  Sess.MCtx.Request_Type := SRV;
+               when others =>
+                  null;
+            end case;
+
+            --  Assigning the question rrSequence
+            newRR.rr_name := Sess.MCtx.Request_Name;
+            newRR.rr_type := Sess.MCtx.Request_Type;
+            Replace_Element (Sess.MCtx.Q_sequence,
+                             Integer (Sess.MCtx.Nb_Questions), newRR);
+            Sess.MCtx.Nb_Questions := Sess.MCtx.Nb_Questions - 1;
+
+            if Sess.MCtx.Nb_Questions > 0 then
+                  Sess.State := Expect_Name;
+                  Emit_No_Reply
+                      (Port => Lower (Sess),
+                       Msg  => DNS_Data_Expected'
+                       (In_Buf => Sess.Buffer_In,
+                        Max    => Stream_Element_Count
+                       (1),
+                        State  => Sess.State));
+            end if;
+
+            if Sess.MCtx.Nb_Questions = 0 then
+               Process_Message (Sess);
+            end if;
+            --            Expect_DNS_Header (Sess);
          when others =>
 
             Throw
@@ -664,19 +682,8 @@ package body PolyORB.Protocols.DNS is
       --  Marshalling the header
       Sess.MCtx.Message_Type := Request;
       Marshall_DNS_Header (Header_Buffer, R, Sess.MCtx);
-
       --  Marshalling the IN argument : question RR sequence
-      if False
-         or else Arg.Arg_Modes = ARG_IN
-         or else Arg.Arg_Modes = ARG_INOUT
-      then
-         pragma Debug (C, O ("Marshalling argument "
-                             & Types.To_Standard_String (Arg.Name)
-                             & " = " & Image (Arg.Argument)));
-
-         Marshall_From_Any (Buffer,
-                        Get_Container (Arg.Argument).all, False, Error);
-      end if;
+      Marshall_From_Any (Buffer, Arg.Argument, False);
 
       Copy_Data (Header_Buffer.all, Header_Space);
       Release (Header_Buffer);
@@ -738,29 +745,6 @@ package body PolyORB.Protocols.DNS is
       use PolyORB.POA_Types;
 
       ORB              : ORB_Access;
-      Arg_Name_Auth : constant PolyORB.Types.Identifier :=
-        PolyORB.Types.To_PolyORB_String ("authoritative");
-      Arg_Name_Question : constant PolyORB.Types.Identifier :=
-        PolyORB.Types.To_PolyORB_String ("question");
-      Arg_Name_Answer : constant PolyORB.Types.Identifier :=
-        PolyORB.Types.To_PolyORB_String ("answer");
-      Arg_Name_Au : constant PolyORB.Types.Identifier :=
-        PolyORB.Types.To_PolyORB_String ("authority");
-      Arg_Name_Add : constant PolyORB.Types.Identifier :=
-        PolyORB.Types.To_PolyORB_String ("additional");
-
-      Argument_Auth : PolyORB.Any.Any;
-      Argument_Question : PolyORB.Any.Any;
-      Argument_Answer : PolyORB.Any.Any;
-      Argument_Additional : PolyORB.Any.Any;
-      Argument_Authority : PolyORB.Any.Any;
-      Sequence_Length : Integer;
-      Q_sequence : rrSequence;
-      A_sequence : rrSequence;
-      Auth_sequence : rrSequence;
-      Add_sequence : rrSequence;
-
-      myRR : RR;
       Req_Flags        : Requests.Flags := 0;
       Object_Key       : PolyORB.Objects.Object_Id_Access;
       Target_Profile : Binding_Data.Profile_Access;
@@ -781,31 +765,6 @@ package body PolyORB.Protocols.DNS is
       end if;
       ORB := ORB_Access (S.Server);
       pragma Debug (C, O ("Request_Received: entering"));
-      S.MCtx.Request_Name := Types.To_PolyORB_String
-        (Unmarshall_DNS_String (S.Buffer_In, S.MCtx.Request_Name_Length));
-      Return_Code := Unmarshall (S.Buffer_In);
-
-      case Return_Code is
-         when A_Code =>
-            S.MCtx.Request_Type := A;
-         when NS_Code =>
-            S.MCtx.Request_Type := NS;
-         when SOA_Code =>
-            S.MCtx.Request_Type := SOA;
-         when CNAME_Code =>
-            S.MCtx.Request_Type := CNAME;
-         when PTR_Code =>
-            S.MCtx.Request_Type := PTR;
-         when TXT_Code =>
-            S.MCtx.Request_Type := TXT;
-         when SRV_Code =>
-            S.MCtx.Request_Type := SRV;
-         when others =>
-            null;
-      end case;
-
-      pragma Debug (C, O ("Request name : " &
-        Types.To_Standard_String (S.MCtx.Request_Name)));
 
       Root_POA :=  PolyORB.POA.Obj_Adapter_Access
         (Object_Adapter (ORB));
@@ -830,35 +789,21 @@ package body PolyORB.Protocols.DNS is
 
       pragma Debug (C, O ("Object key found : " & Image (Object_Key.all)));
 
-      Any.NVList.Create (Args);
       --  Assigning the in out authoritative argument
-      Argument_Auth := Any.To_Any (S.MCtx.AA_Flag);
-      Add_Item (Args, Arg_Name_Auth, Argument_Auth, Any.ARG_INOUT);
+      Add_Item (S.MCtx.New_Args,
+                Arg_Name_Auth, To_Any (S.MCtx.AA_Flag), Any.ARG_INOUT);
       --  Assigning the question rrSequence
-      myRR.rr_name := S.MCtx.Request_Name;
-      myRR.rr_type := S.MCtx.Request_Type;
-      Sequence_Length := Integer (S.MCtx.Nb_Questions);
-      Q_sequence := To_Sequence (Sequence_Length);
-      for J in 1 .. Sequence_Length loop
-         Replace_Element (Q_sequence, J, myRR);
-      end loop;
-      Argument_Question := To_Any (Q_sequence);
-
-      Add_Item (Args, Arg_Name_Question, Argument_Question, Any.ARG_IN);
+      Add_Item (S.MCtx.New_Args,
+                Arg_Name_Question, To_Any (S.MCtx.Q_sequence), Any.ARG_IN);
       --  initializing the out Answer rr sequence
-      A_sequence := To_Sequence (Sequence_Length);
-      Argument_Answer := To_Any (A_sequence);
-      Add_Item (Args, Arg_Name_Answer, Argument_Answer, Any.ARG_OUT);
-
+      Add_Item (S.MCtx.New_Args,
+                Arg_Name_Answer, To_Any (S.MCtx.A_sequence), Any.ARG_OUT);
       --  initializing the out Authority rr sequence
-      Auth_sequence := To_Sequence (Sequence_Length);
-      Argument_Authority := To_Any (Auth_sequence);
-      Add_Item (Args, Arg_Name_Au, Argument_Authority, Any.ARG_OUT);
-
-      --  initializing the out Authority rr sequence
-      Add_sequence := To_Sequence (Sequence_Length);
-      Argument_Additional := To_Any (Add_sequence);
-      Add_Item (Args, Arg_Name_Add, Argument_Additional, Any.ARG_OUT);
+      Add_Item (S.MCtx.New_Args,
+                Arg_Name_Au, To_Any (S.MCtx.Auth_sequence), Any.ARG_OUT);
+      --  initializing the out Additional infos rr sequence
+      Add_Item (S.MCtx.New_Args,
+                Arg_Name_Add, To_Any (S.MCtx.Add_sequence), Any.ARG_OUT);
 
       Target_Profile := new Local_Profile_Type;
       Create_Local_Profile
@@ -873,8 +818,8 @@ package body PolyORB.Protocols.DNS is
 
       Create_Request
         (Target    => Target,
-         Operation => "Query",
-         Arg_List  => Args,
+         Operation => To_Standard_String (S.MCtx.Request_Opcode),
+         Arg_List  => S.MCtx.New_Args,
          Result    => Result,
          Deferred_Arguments_Session => Def_Args,
          Req       => Req,
@@ -951,12 +896,12 @@ package body PolyORB.Protocols.DNS is
       elsif R.Req.Operation.all = IQuery_Name then
          pragma Debug (C, O ("request is an IQuery"));
          MCtx.Opcode_Flag := IQuery;
-         Unsigned_Short_Flags.Set (Header_Flags,  QR_Flag_Pos - 1, True);
+         Unsigned_Short_Flags.Set (Header_Flags,  Opcode_Flag_Pos + 3, True);
 
       elsif R.Req.Operation.all = Status_Name then
          pragma Debug (C, O ("request is a Status Query"));
          MCtx.Opcode_Flag := Status;
-         Unsigned_Short_Flags.Set (Header_Flags, QR_Flag_Pos - 2, True);
+         Unsigned_Short_Flags.Set (Header_Flags, Opcode_Flag_Pos + 2, True);
       end if;
 
       --  Marshalling the authoritative flag
@@ -1030,8 +975,16 @@ package body PolyORB.Protocols.DNS is
       end if;
       pragma Debug (C, O ("Message is a : " & MCtx.Message_Type'Img));
 
-      --  XXX todo: case on Opcode for IQuery and Status
-      MCtx.Opcode_Flag := Query;
+      if Is_Set (Opcode_Flag_Pos + 3, Header_Flags) then
+         MCtx.Opcode_Flag := IQuery;
+         MCtx.Request_Opcode := To_PolyORB_String (IQuery_Name);
+      elsif Is_Set (Opcode_Flag_Pos + 2, Header_Flags) then
+         MCtx.Opcode_Flag := Status;
+         MCtx.Request_Opcode := To_PolyORB_String (Status_Name);
+      else
+         MCtx.Opcode_Flag := Query;
+         MCtx.Request_Opcode := To_PolyORB_String (Query_Name);
+      end if;
 
       pragma Debug (C, O ("Opcode :" & MCtx.Opcode_Flag'Img));
 
@@ -1099,12 +1052,12 @@ package body PolyORB.Protocols.DNS is
       elsif R.Operation.all = IQuery_Name then
          pragma Debug (C, O ("request is an IQuery"));
          MCtx.Opcode_Flag := IQuery;
-         Unsigned_Short_Flags.Set (Header_Flags,  QR_Flag_Pos - 1, True);
+         Unsigned_Short_Flags.Set (Header_Flags,  Opcode_Flag_Pos + 3, True);
 
       elsif R.Operation.all = Status_Name then
          pragma Debug (C, O ("request is a Status Query"));
          MCtx.Opcode_Flag := Status;
-         Unsigned_Short_Flags.Set (Header_Flags, QR_Flag_Pos - 2, True);
+         Unsigned_Short_Flags.Set (Header_Flags, QR_Flag_Pos + 2, True);
       end if;
 
       --  Marshalling the authoritative flag

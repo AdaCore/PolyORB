@@ -162,7 +162,9 @@ private
       Request_Name : Types.String;
       Request_Name_Length : Types.Unsigned_Short;
       Request_Type : RR_Type;
+      Request_Type_Code : Types.Unsigned_Short;
       Request_Class : Types.Unsigned_Short;
+      Request_Opcode : Types.String;
       --  DNS Header Flags
       QR_Flag           : Types.Boolean;
       AA_Flag          :  Types.Boolean;
@@ -172,10 +174,17 @@ private
       Rec_Disp_Flag    : Types.Boolean;
       Rcode_Flag         : Rcode;
 
+      Q_sequence : rrSequence;
+      A_sequence : rrSequence;
+      Auth_sequence : rrSequence;
+      Add_sequence : rrSequence;
+
       Nb_Questions : Types.Unsigned_Short := 0;
       Nb_Answers : Types.Unsigned_Short;
       Nb_Auth_Servers : Types.Unsigned_Short;
       Nb_Add_Infos : Types.Unsigned_Short;
+
+      New_Args : Any.NVList.Ref;
    end record;
    type DNS_Message_Ctx is new DNS_Message_Context with null record;
 

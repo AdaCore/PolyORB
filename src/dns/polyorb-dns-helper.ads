@@ -99,9 +99,11 @@ package PolyORB.DNS.Helper is
    SRV_Code : constant Types.Unsigned_Short := 33;
 
    Default_Class_Code : constant Types.Unsigned_Short := 1;
+
    type RR is record
       rr_name : PolyORB.Types.String;
       rr_type :  PolyORB.DNS.Helper.RR_Type;
+      rr_answer : PolyORB.Types.String;
    end record;
 
    procedure Initialize;
@@ -117,6 +119,23 @@ package PolyORB.DNS.Helper is
    TC_RR : PolyORB.Any.TypeCode.Local_Ref;
    TC_SEQUENCE_RR : PolyORB.Any.TypeCode.Local_Ref;
    TC_Rcode : PolyORB.Any.TypeCode.Local_Ref;
+
+   Arg_Name_Auth : constant PolyORB.Types.Identifier :=
+        PolyORB.Types.To_PolyORB_String ("authoritative");
+   Arg_Name_Question : constant PolyORB.Types.Identifier :=
+        PolyORB.Types.To_PolyORB_String ("question");
+   Arg_Name_Answer : constant PolyORB.Types.Identifier :=
+        PolyORB.Types.To_PolyORB_String ("answer");
+   Arg_Name_Au : constant PolyORB.Types.Identifier :=
+        PolyORB.Types.To_PolyORB_String ("authority");
+   Arg_Name_Add : constant PolyORB.Types.Identifier :=
+        PolyORB.Types.To_PolyORB_String ("additional");
+
+   Argument_Auth : PolyORB.Any.Any;
+   Argument_Question : PolyORB.Any.Any;
+   Argument_Answer : PolyORB.Any.Any;
+   Argument_Additional : PolyORB.Any.Any;
+   Argument_Authority : PolyORB.Any.Any;
 
    procedure Initialize_RR;
    procedure Initialize_rrSequence;
