@@ -101,14 +101,14 @@ def client_server(client_cmd, client_conf, server_cmd, server_conf):
             output=OUTPUT_FILENAME + 'server', error=STDOUT,
             timeout=RLIMIT, env=client_env)
 
-        # Kill the server process
-        server_handle.kill()
         for elmt in [client, server]:
             if Env().options.coverage:
                 run_coverage_analysis(elmt)
 
     except Exception, e:
         print e
+    finally:
+        server_handle.terminate()
 
     return _check_output(OUTPUT_FILENAME + 'server', 'server')
 
