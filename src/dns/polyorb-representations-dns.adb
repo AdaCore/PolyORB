@@ -56,15 +56,15 @@ package body PolyORB.Representations.DNS is
    procedure Marshall_From_Any
      (Buffer : Buffer_Access; Argument : Any.Any;
       Is_Reply : Types.Boolean) is
-      question_Seq : rrSequence;
-      question_rr : RR;
+      current_Seq : rrSequence;
+      current_rr : RR;
    begin
-      question_Seq := From_Any (Argument);
-      for J in 1 .. Length (question_Seq) loop
-         question_rr := Get_Element (question_Seq, J);
-         Marshall_Latin_1_String (Buffer, question_rr.rr_name);
+      current_Seq := From_Any (Argument);
+      for J in 1 .. Length (current_Seq) loop
+         current_rr := Get_Element (current_Seq, J);
+         Marshall_Latin_1_String (Buffer, current_rr.rr_name);
 
-         case question_rr.rr_type is
+         case current_rr.rr_type is
             when A =>
                Marshall (Buffer, A_Code);
             when NS =>
@@ -87,8 +87,8 @@ package body PolyORB.Representations.DNS is
             Marshall (Buffer, Types.Unsigned_Short (0));
             Marshall (Buffer, Types.Unsigned_Short (240));
             Marshall (Buffer, Types.Unsigned_Short
-              (To_Standard_String (question_rr.rr_answer)'Length + 2));
-            Marshall_Latin_1_String (Buffer, question_rr.rr_answer);
+              (To_Standard_String (current_rr.rr_answer)'Length + 2));
+            Marshall_Latin_1_String (Buffer, current_rr.rr_answer);
          end if;
 
       end loop;

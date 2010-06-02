@@ -186,8 +186,10 @@ private
 
       New_Args : Any.NVList.Ref;
    end record;
-   type DNS_Message_Ctx is new DNS_Message_Context with null record;
 
+   --  Index of the current question being received on server side
+   Current_Question_Nb : Types.Unsigned_Short := 0;
+   type DNS_Message_Ctx is new DNS_Message_Context with null record;
    type DNS_Session is new Session with record
       Buffer_In : PolyORB.Buffers.Buffer_Access;
       --  DNS Buffer in

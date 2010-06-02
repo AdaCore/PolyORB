@@ -386,7 +386,7 @@ package body PolyORB.DNS.Helper is
    is
       pragma Unreferenced (Acc);
    begin
-      return 2;
+      return 3;
    end Get_Aggregate_Count;
 
       -------------------------
