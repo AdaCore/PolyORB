@@ -829,7 +829,12 @@ package body PolyORB.Protocols.DNS is
         Queue_Request'
           (Request   => Req,
            Requestor => Component_Access (S)));
---      PolyORB.Objects.Free (Object_Key);
+
+      --  the object needs to be deactivated after execution,
+      --  so that next request can activate it again
+      Deactivate_Object
+       (Child_POA, Object_Key.all, Error);
+      PolyORB.Objects.Free (Object_Key);
       pragma Debug (C, O ("Process_Request: leaving"));
    end Process_Request;
 
