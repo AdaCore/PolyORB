@@ -220,7 +220,7 @@ package body PolyORB.Protocols.DNS is
          raise DNS_Error;
       end if;
 
-      --  XXX: TODO : Manage eventual Exceptions and other Rcodes
+      --  XXX: TODO : Manage eventual Exceptions
       if PolyORB.Any.Is_Empty (Request.Exception_Info) then
          Sess.MCtx.Rcode_Flag  := From_Any (Request.Result.Argument);
       end if;
@@ -261,7 +261,6 @@ package body PolyORB.Protocols.DNS is
       pragma Debug (C, O ("Handle_Connect_Indication"));
       pragma Assert (S.State = Not_Initialized);
       S.Role := Server;
-      Show  (S.Buffer_In);
       Initialize_Session (S);
       Expect_DNS_Header (S);
    end Handle_Connect_Indication;
@@ -306,6 +305,7 @@ package body PolyORB.Protocols.DNS is
             if Sess.Role = Client then
                Process_Message (Sess);
             else
+               Current_Question_Nb := 0;
                Sess.MCtx.Q_sequence :=
                  To_Sequence (Integer (Sess.MCtx.Nb_Questions));
                Any.NVList.Create (Sess.MCtx.New_Args);
@@ -360,7 +360,7 @@ package body PolyORB.Protocols.DNS is
                 Sess.MCtx.Request_Name_Length));
             Sess.MCtx.Request_Type_Code := Unmarshall (Sess.Buffer_In);
             Sess.MCtx.Request_Class := Unmarshall (Sess.Buffer_In);
-
+            pragma Debug (C, O ("Before Rtype code case"));
             case Sess.MCtx.Request_Type_Code is
                when A_Code =>
                   Sess.MCtx.Request_Type := A;
@@ -379,7 +379,7 @@ package body PolyORB.Protocols.DNS is
                when others =>
                   null;
             end case;
-
+            pragma Debug (C, O ("After Rtype code case"));
             --  Assigning the question rrSequence
             Current_Question_Nb := Current_Question_Nb + 1;
             newRR.rr_name := Sess.MCtx.Request_Name;
@@ -387,21 +387,18 @@ package body PolyORB.Protocols.DNS is
             Replace_Element (Sess.MCtx.Q_sequence,
                              Integer (Current_Question_Nb), newRR);
 
-            if Sess.MCtx.Nb_Questions > 0 then
-                  Sess.State := Expect_Name;
-                  Emit_No_Reply
-                      (Port => Lower (Sess),
-                       Msg  => DNS_Data_Expected'
-                       (In_Buf => Sess.Buffer_In,
-                        Max    => Stream_Element_Count
-                       (1),
-                        State  => Sess.State));
-            end if;
-
-            if Sess.MCtx.Nb_Questions = Current_Question_Nb then
+            if Sess.MCtx.Nb_Questions /= Current_Question_Nb then
+               Sess.State := Expect_Name;
+               Emit_No_Reply
+                   (Port => Lower (Sess),
+                    Msg  => DNS_Data_Expected'
+                    (In_Buf => Sess.Buffer_In,
+                     Max    => Stream_Element_Count (1),
+                     State  => Sess.State));
+            else
                Process_Message (Sess);
+               Expect_DNS_Header (Sess);
             end if;
-            Expect_DNS_Header (Sess);
          when others =>
 
             Throw
@@ -710,7 +707,7 @@ package body PolyORB.Protocols.DNS is
                raise DNS_Error;
             end if;
             Process_Request (Sess'Access);
-
+            pragma Debug (C, O ("In processed message"));
          when Reply =>
             if Sess.Role /= Client then
                raise DNS_Error;
@@ -780,7 +777,7 @@ package body PolyORB.Protocols.DNS is
 
       --  Retrieving the default servant for DNS_POA
       Get_Servant (Child_POA, Servant, Error);
-
+      pragma Debug (C, O ("Default servant retrieved "));
       --  Retrieving the ObjectId associated to the servant
       Servant_To_Id (Child_POA,
                       P_Servant => Servant,
@@ -832,7 +829,7 @@ package body PolyORB.Protocols.DNS is
         Queue_Request'
           (Request   => Req,
            Requestor => Component_Access (S)));
-      PolyORB.Objects.Free (Object_Key);
+--      PolyORB.Objects.Free (Object_Key);
       pragma Debug (C, O ("Process_Request: leaving"));
    end Process_Request;
 
@@ -877,7 +874,7 @@ package body PolyORB.Protocols.DNS is
       Test_Request_Id : Types.Unsigned_Short;
       Header_Flags : Flags;
    begin
-         --  Marshall DNS request header
+      --  Marshall DNS request header
       pragma Debug (C, O ("Marshalling DNS request header"));
       --  Marshalling the transaction number
       MCtx.Request_Id := R.Request_Id;
@@ -1209,7 +1206,6 @@ package body PolyORB.Protocols.DNS is
       Answer_Length : Types.Octet;
       Answer : Types.String;
       Argument_Answer : PolyORB.Any.Any;
-      A_sequence : rrSequence;
       answerRR : RR;
       pragma Unreferenced (Empty, Error);
    begin
@@ -1220,7 +1216,9 @@ package body PolyORB.Protocols.DNS is
          pragma Debug (C, O ("First arg is:  inout"));
          Set_Any_Value (Sess.MCtx.AA_Flag, Get_Container (Arg.Argument).all);
       end if;
-      A_sequence := To_Sequence (Integer (Sess.MCtx.Nb_Answers));
+      Sess.MCtx.A_sequence :=
+        To_Sequence (Integer (Sess.MCtx.Nb_Answers));
+
       Next (It);
       Next (It);
       Arg := Value (It);
@@ -1266,10 +1264,10 @@ package body PolyORB.Protocols.DNS is
             answerRR.rr_name := Sess.MCtx.Request_Name;
             answerRR.rr_type := Sess.MCtx.Request_Type;
             answerRR.rr_answer := Answer;
-            Replace_Element (A_sequence, Integer (J), answerRR);
+            Replace_Element (Sess.MCtx.A_sequence, Integer (J), answerRR);
          end if;
       end loop;
-      Argument_Answer := To_Any (A_sequence);
+      Argument_Answer := To_Any (Sess.MCtx.A_sequence);
       Copy_Any_Value (Arg.Argument, Argument_Answer);
 
       --  authority rr sequence
@@ -1300,7 +1298,6 @@ package body PolyORB.Protocols.DNS is
       Current_Req  : Pending_Request;
       Success      : Boolean;
 
---      ORB          : constant ORB_Access := ORB_Access (Sess.Server);
       Error        : Errors.Error_Container;
    begin
       pragma Debug (C, O ("Reply received: status = "

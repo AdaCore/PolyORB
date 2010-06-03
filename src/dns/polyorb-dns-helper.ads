@@ -131,12 +131,6 @@ package PolyORB.DNS.Helper is
    Arg_Name_Add : constant PolyORB.Types.Identifier :=
         PolyORB.Types.To_PolyORB_String ("additional");
 
-   Argument_Auth : PolyORB.Any.Any;
-   Argument_Question : PolyORB.Any.Any;
-   Argument_Answer : PolyORB.Any.Any;
-   Argument_Additional : PolyORB.Any.Any;
-   Argument_Authority : PolyORB.Any.Any;
-
    procedure Initialize_RR;
    procedure Initialize_rrSequence;
    function From_Any
