@@ -171,7 +171,8 @@ package body PolyORB.Binding_Data.DNS is
    begin
       Free (P.Object_Id);
       PolyORB.Annotations.Destroy (P.Notepad);
-      Release_Contents (P.Mechanisms);
+      --  XXX This is a temporary fix
+      --  Release_Contents (P.Mechanisms);
    end Release;
 
 end PolyORB.Binding_Data.DNS;

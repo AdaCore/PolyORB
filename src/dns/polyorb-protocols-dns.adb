@@ -40,7 +40,6 @@ with PolyORB.Errors;
 with PolyORB.References;
 with PolyORB.Initialization;
 with PolyORB.Utils.Strings;
-with Ada.Text_IO;
 with PolyORB.Representations.DNS;
 with PolyORB.Utils;
 with PolyORB.Objects;
@@ -65,7 +64,6 @@ package body PolyORB.Protocols.DNS is
    use PolyORB.Tasking.Mutexes;
    use PolyORB.Servants.Iface;
    use PolyORB.Types;
-   use Ada.Text_IO;
    use PolyORB.Filters.Iface;
    use PolyORB.Utils;
 
@@ -863,7 +861,8 @@ package body PolyORB.Protocols.DNS is
 
    procedure Initialize is
    begin
-      Put_Line ("Initializing DNS Protocol...");
+      pragma Debug (C, O ("Initializing DNS Protocol..."));
+      null;
    end Initialize;
 
    procedure Marshall_DNS_Header
@@ -1256,20 +1255,24 @@ package body PolyORB.Protocols.DNS is
          TTL := Unmarshall (Sess.Buffer_In);
          --  XXX TODO : case on Request type for other cases ->
          --  the structure of the dns answer may change for different rr types
-         if Sess.MCtx.Request_Type = PTR then
+         if Sess.MCtx.Request_Type = PTR or
+            Sess.MCtx.Request_Type = TXT then
             --  Retrieve data length
             Data_Length := Unmarshall (Sess.Buffer_In);
             pragma Debug (C, O ("Data Length : " & Data_Length'Img));
             Answer_Length := Unmarshall (Sess.Buffer_In);
             Answer := Types.To_PolyORB_String
-             (Unmarshall_DNS_String
-              (Sess.Buffer_In, Types.Unsigned_Short (Answer_Length)));
+                (Unmarshall_DNS_String
+                   (Sess.Buffer_In, Types.Unsigned_Short (Answer_Length)));
             pragma Debug (C, O ("Answer: "
-              & Types.To_Standard_String (Answer)));
+                 & Types.To_Standard_String (Answer)));
             answerRR.rr_name := Sess.MCtx.Request_Name;
             answerRR.rr_type := Sess.MCtx.Request_Type;
             answerRR.rr_answer := Answer;
             Replace_Element (Sess.MCtx.A_sequence, Integer (J), answerRR);
+         else
+            --  Should not happen for now
+            null;
          end if;
       end loop;
       Argument_Answer := To_Any (Sess.MCtx.A_sequence);
@@ -1302,7 +1305,7 @@ package body PolyORB.Protocols.DNS is
 
       Current_Req  : Pending_Request;
       Success      : Boolean;
-
+      ORB          : constant ORB_Access := ORB_Access (Sess.Server);
       Error        : Errors.Error_Container;
    begin
       pragma Debug (C, O ("Reply received: status = "
@@ -1321,11 +1324,11 @@ package body PolyORB.Protocols.DNS is
 
                pragma Debug (C, O ("No_Error : Unmarshall Reply Body"));
 
+               Copy_Any_Value (Current_Req.Req.Result.Argument, To_Any (RC));
                --  Unmarshall reply body.
                Unmarshall_Argument_List (Sess,
                        Current_Req.Req.Args, PolyORB.Any.ARG_OUT, Error);
 
---               Expect_DNS_Header (Sess);
                Emit_No_Reply
                  (Current_Req.Req.Requesting_Component,
                   Servants.Iface.Executed_Request'
@@ -1333,7 +1336,10 @@ package body PolyORB.Protocols.DNS is
 
          --  XXX tbd : manage other response codes cases
          when others =>
-            null;
+            Emit_No_Reply
+                (Component_Access (ORB),
+                  Servants.Iface.Executed_Request'
+                  (Req => Current_Req.Req));
       end case;
    end Reply_Received;
 
