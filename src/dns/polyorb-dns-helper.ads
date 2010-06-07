@@ -103,6 +103,7 @@ package PolyORB.DNS.Helper is
    type RR is record
       rr_name : PolyORB.Types.String;
       rr_type :  PolyORB.DNS.Helper.RR_Type;
+      TTL : PolyORB.Types.Unsigned_Long;
       rr_answer : PolyORB.Types.String;
    end record;
 

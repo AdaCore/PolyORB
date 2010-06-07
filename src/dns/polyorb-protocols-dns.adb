@@ -1251,6 +1251,7 @@ package body PolyORB.Protocols.DNS is
                null;
          end case;
          Sess.MCtx.Request_Class := Unmarshall (Sess.Buffer_In);
+         --  XXX temporaty fix for Unsigned long unmarshalling
          Empty := Unmarshall (Sess.Buffer_In);
          TTL := Unmarshall (Sess.Buffer_In);
          --  XXX TODO : case on Request type for other cases ->
@@ -1269,6 +1270,7 @@ package body PolyORB.Protocols.DNS is
             answerRR.rr_name := Sess.MCtx.Request_Name;
             answerRR.rr_type := Sess.MCtx.Request_Type;
             answerRR.rr_answer := Answer;
+            answerRR.TTL := Types.Unsigned_Long (TTL);
             Replace_Element (Sess.MCtx.A_sequence, Integer (J), answerRR);
          else
             --  Should not happen for now

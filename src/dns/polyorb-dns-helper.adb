@@ -260,6 +260,9 @@ package body PolyORB.DNS.Helper is
       Any.TypeCode.Add_Parameter (TC_RR, Any.To_Any ("rr_name"));
       Any.TypeCode.Add_Parameter (TC_RR, Any.To_Any (TC_RR_Type));
       Any.TypeCode.Add_Parameter (TC_RR, Any.To_Any ("rr_type"));
+      Any.TypeCode.Add_Parameter (TC_RR, Any.To_Any
+                                  (Any.TypeCode.TC_Unsigned_Long));
+      Any.TypeCode.Add_Parameter (TC_RR, Any.To_Any ("TTL"));
       Any.TypeCode.Add_Parameter (TC_RR, Any.To_Any (Any.TypeCode.TC_String));
       Any.TypeCode.Add_Parameter (TC_RR, Any.To_Any ("rr_answer"));
 
@@ -285,11 +288,16 @@ package body PolyORB.DNS.Helper is
            (Item,
             TC_RR_Type,
                     1)),
+      TTL => PolyORB.Any.From_Any
+        (PolyORB.Any.Get_Aggregate_Element
+           (Item,
+            PolyORB.Any.TypeCode.TC_Unsigned_Long,
+            2)),
       rr_answer => PolyORB.Any.From_Any
         (PolyORB.Any.Get_Aggregate_Element
            (Item,
             PolyORB.Any.TypeCode.TC_String,
-            2)));
+            3)));
    end From_Any;
 
    ------------
@@ -310,6 +318,10 @@ package body PolyORB.DNS.Helper is
            (Item.rr_name));
       PolyORB.Any.Add_Aggregate_Element
         (Result, To_Any (Item.rr_type));
+      PolyORB.Any.Add_Aggregate_Element
+        (Result,
+         PolyORB.Any.To_Any
+           (Item.TTL));
       PolyORB.Any.Add_Aggregate_Element
         (Result,
          PolyORB.Any.To_Any
@@ -372,6 +384,8 @@ package body PolyORB.DNS.Helper is
          when 1 =>
             return Wrap (Acc.V.rr_type'Unrestricted_Access);
          when 2 =>
+            return PolyORB.Any.Wrap (Acc.V.TTL'Unrestricted_Access);
+         when 3 =>
             return PolyORB.Any.Wrap (Acc.V.rr_answer'Unrestricted_Access);
          pragma Warnings (Off);
          when others =>
@@ -386,7 +400,7 @@ package body PolyORB.DNS.Helper is
    is
       pragma Unreferenced (Acc);
    begin
-      return 3;
+      return 4;
    end Get_Aggregate_Count;
 
       -------------------------

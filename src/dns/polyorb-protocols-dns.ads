@@ -184,6 +184,7 @@ private
       Nb_Auth_Servers : Types.Unsigned_Short;
       Nb_Add_Infos : Types.Unsigned_Short;
 
+      --  Arg list used on the server side to create local request
       New_Args : Any.NVList.Ref;
    end record;
 
