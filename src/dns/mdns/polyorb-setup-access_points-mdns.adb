@@ -35,7 +35,6 @@
 
 with PolyORB.Binding_Data.DNS.MDNS;
 with PolyORB.Filters;
-with PolyORB.Filters.Fragmenter;
 
 with PolyORB.Initialization;
 with PolyORB.Utils.Socket_Access_Points;
@@ -51,7 +50,6 @@ with PolyORB.Utils.UDP_Access_Points;
 package body PolyORB.Setup.Access_Points.MDNS is
 
    use PolyORB.Filters;
-   use PolyORB.Filters.Fragmenter;
    use PolyORB.ORB;
    use PolyORB.Sockets;
    use PolyORB.Transport.Datagram.Sockets_In;
@@ -64,10 +62,9 @@ package body PolyORB.Setup.Access_Points.MDNS is
          PF            =>
            new PolyORB.Binding_Data.DNS.MDNS.MDNS_Profile_Factory);
 
-   Fra : aliased Fragmenter_Factory;
    Pro : aliased Protocols.DNS.MDNS.MDNS_Protocol;
    MDNS_Factories : aliased Filters.Factory_Array
-     := (0 => Fra'Access, 1 => Pro'Access);
+     := (0 => Pro'Access);
 
    ------------------------------
    -- Initialize_Access_Points --

@@ -37,7 +37,6 @@ with PolyORB.ORB;
 with PolyORB.Tasking.Mutexes;
 with PolyORB.Types;
 with PolyORB.Utils.Dynamic_Tables;
-with PolyORB.Filters.Iface;
 with PolyORB.Utils.Simple_Flags;
 with PolyORB.DNS.Helper;
 
@@ -97,21 +96,6 @@ package PolyORB.Protocols.DNS is
 
    type DNS_Message_Context is abstract tagged private;
    type DNS_Message_Context_Access is access all DNS_Message_Context'Class;
-
-   ----------------
-   -- DNS State --
-   ----------------
-
-   type DNS_State is
-     (Not_Initialized,
-      Expect_Header,
-      Expect_Body,
-      Expect_Name
-      );
-   type DNS_Data_Expected is
-     new PolyORB.Filters.Iface.Data_Expected with record
-        State : DNS_State;
-     end record;
 
    -----------------------
    -- DNS message type --
@@ -184,7 +168,7 @@ private
       Nb_Auth_Servers : Types.Unsigned_Short;
       Nb_Add_Infos : Types.Unsigned_Short;
 
-      --  Arg list used on the server side to create local request
+      --  Arg list used on the server side to create local
       New_Args : Any.NVList.Ref;
    end record;
 
@@ -196,8 +180,6 @@ private
       --  DNS Buffer in
       Role   : PolyORB.ORB.Endpoint_Role;
       --  role of session for ORB
-      State        : DNS_State := Not_Initialized;
-      --  DNS state
       Mutex       : PolyORB.Tasking.Mutexes.Mutex_Access;
       --  DNS message context for the message being received
       Pending_Reqs : Pend_Req_Tables.Instance;

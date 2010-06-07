@@ -50,7 +50,7 @@ with PolyORB.POA;
 with PolyORB.Binding_Objects;
 with PolyORB.Any;
 with PolyORB.POA_Types;
-
+with PolyORB.Filters.Iface;
 package body PolyORB.Protocols.DNS is
 
    use PolyORB.Representations.DNS;
@@ -161,9 +161,7 @@ package body PolyORB.Protocols.DNS is
          Remove_Pending_Request (Sess, New_Pending_Req_Id, Success);
          if Success then
             Set_Exception (R, Error);
-
          else
-            pragma Assert (Sess.State = Not_Initialized);
             null;
          end if;
 
@@ -234,7 +232,16 @@ package body PolyORB.Protocols.DNS is
       Next (It);
       Arg := Value (It);
       Marshall_From_Any (Buffer_Out, Arg.Argument, True);
-      --  XXX: TODO : find and marshall auth and additional server RRs
+
+      --  find and marshall the authority servers RR sequence
+      Next (It);
+      Arg := Value (It);
+      Marshall_From_Any (Buffer_Out, Arg.Argument, True);
+      --  find and marshall the authority servers RR sequence
+      Next (It);
+      Arg := Value (It);
+      Marshall_From_Any (Buffer_Out, Arg.Argument, True);
+
       --  Copy Header
       Marshall_DNS_Header_Reply
         (Header_Buffer, Request, Sess.MCtx);
@@ -257,7 +264,6 @@ package body PolyORB.Protocols.DNS is
      (S : access DNS_Session) is
    begin
       pragma Debug (C, O ("Handle_Connect_Indication"));
-      pragma Assert (S.State = Not_Initialized);
       S.Role := Server;
       Initialize_Session (S);
       Expect_DNS_Header (S);
@@ -270,7 +276,6 @@ package body PolyORB.Protocols.DNS is
    procedure Handle_Connect_Confirmation (S : access DNS_Session) is
    begin
       pragma Debug (C, O ("Handle_Connect_Confirmation"));
-      pragma Assert (S.State = Not_Initialized);
       S.Role := Client;
       Initialize_Session (S);
       Expect_DNS_Header (S);
@@ -288,123 +293,14 @@ package body PolyORB.Protocols.DNS is
       use PolyORB.Any.NVList;
       use PolyORB.Any.TypeCode;
       use Errors;
-      Label_Size : Types.Octet;
-      newRR : RR;
+
    begin
       pragma Debug (C, O ("Handle_Data_Indication : Enter"));
-      pragma Debug (C, O ("Received data in state " & Sess.State'Img));
-      pragma Assert (Sess.State /= Not_Initialized);
-      case Sess.State is
+      pragma Debug (C, O ("Received data : " & Data_Amount'Img));
 
-         when Expect_Header =>
-            pragma Debug (C, O ("Received Header Size " & Data_Amount'Img));
-            Unmarshall_DNS_Header (Sess.MCtx, Sess.Buffer_In);
-
-            if Sess.Role = Client then
-               Process_Message (Sess);
-            else
-               Current_Question_Nb := 0;
-               Sess.MCtx.Q_sequence :=
-                 To_Sequence (Integer (Sess.MCtx.Nb_Questions));
-               Any.NVList.Create (Sess.MCtx.New_Args);
-               --  At this point we have all header fields stored in Sess.MCtx
-               --  If the message is a question
-               if Sess.MCtx.Message_Type = Request then
-                  Sess.State := Expect_Name;
-                  --  We need to receive the length of the first question name
-                  Emit_No_Reply
-                      (Port => Lower (Sess),
-                       Msg  => DNS_Data_Expected'
-                       (In_Buf => Sess.Buffer_In,
-                        Max    => Stream_Element_Count
-                       (1),
-                       State  => Sess.State));
-               end if;
-            end if;
-
-         --  at this point we have received the request name size
-         when Expect_Name =>
-            pragma Debug (C, O ("Received DNS message body"));
-            pragma Debug (C, Show (Sess.Buffer_In));
-
-            --  we unmarshall the request name size
-
-            Label_Size := Unmarshall (Sess.Buffer_In);
-            Sess.State := Expect_Body;
-
-            --  if it is 0 then we've already received the name, do nothing
-            if Label_Size /= Types.Octet (0) then
-               pragma Debug (C, O ("Label is of size " & Label_Size'Img));
-
-               Sess.MCtx.Request_Name_Length :=
-                 Types.Unsigned_Short (Label_Size);
-
-               --  we now need to receive the rest of the message
-               --  size = request's name size + 5 bytes for the rest
-               --  of the message + 1 byte of data alingment,if needed
-               Emit_No_Reply
-                 (Port => Lower (Sess),
-                  Msg  => DNS_Data_Expected'
-                    (In_Buf => Sess.Buffer_In,
-                     Max    => Stream_Element_Count
-                       (Label_Size + 5 + (Label_Size mod 2)),
-                       State  => Sess.State));
-            end if;
-
-         when Expect_Body =>
-            --  XXX : TODO : move this code to representations.dns
-            Sess.MCtx.Request_Name := Types.To_PolyORB_String (
-              Unmarshall_DNS_String (Sess.Buffer_In,
-                Sess.MCtx.Request_Name_Length));
-            Sess.MCtx.Request_Type_Code := Unmarshall (Sess.Buffer_In);
-            Sess.MCtx.Request_Class := Unmarshall (Sess.Buffer_In);
-            pragma Debug (C, O ("Before Rtype code case"));
-            case Sess.MCtx.Request_Type_Code is
-               when A_Code =>
-                  Sess.MCtx.Request_Type := A;
-               when NS_Code =>
-                  Sess.MCtx.Request_Type := NS;
-               when SOA_Code =>
-                  Sess.MCtx.Request_Type := SOA;
-               when CNAME_Code =>
-                  Sess.MCtx.Request_Type := CNAME;
-               when PTR_Code =>
-                  Sess.MCtx.Request_Type := PTR;
-               when TXT_Code =>
-                  Sess.MCtx.Request_Type := TXT;
-               when SRV_Code =>
-                  Sess.MCtx.Request_Type := SRV;
-               when others =>
-                  null;
-            end case;
-            pragma Debug (C, O ("After Rtype code case"));
-            --  Assigning the question rrSequence
-            Current_Question_Nb := Current_Question_Nb + 1;
-            newRR.rr_name := Sess.MCtx.Request_Name;
-            newRR.rr_type := Sess.MCtx.Request_Type;
-            Replace_Element (Sess.MCtx.Q_sequence,
-                             Integer (Current_Question_Nb), newRR);
-
-            if Sess.MCtx.Nb_Questions /= Current_Question_Nb then
-               Sess.State := Expect_Name;
-               Emit_No_Reply
-                   (Port => Lower (Sess),
-                    Msg  => DNS_Data_Expected'
-                    (In_Buf => Sess.Buffer_In,
-                     Max    => Stream_Element_Count (1),
-                     State  => Sess.State));
-            else
-               Process_Message (Sess);
-               Expect_DNS_Header (Sess);
-            end if;
-         when others =>
-
-            Throw
-              (Error,
-               Comm_Failure_E,
-               System_Exception_Members'(0, Completed_Maybe));
-
-      end case;
+      Unmarshall_DNS_Header (Sess.MCtx, Sess.Buffer_In);
+      Process_Message (Sess);
+      Expect_DNS_Header (Sess);
       pragma Debug (C, O ("Handle_Data_Indication : Leave"));
    exception
       when others =>
@@ -429,8 +325,6 @@ package body PolyORB.Protocols.DNS is
       pragma Debug (C, O ("Handle_Disconnect: enter"));
 
       Enter (Sess.Mutex);
-
-      Sess.State := Not_Initialized;
 
       if Sess.Buffer_In /= null then
          Release (Sess.Buffer_In);
@@ -493,21 +387,12 @@ package body PolyORB.Protocols.DNS is
 
       pragma Debug (C, O ("Expect Header : Here Buffer_In is empty"));
       Set_Endianness (Sess.Buffer_In, Big_Endian);
-      Sess.State := Expect_Header;
-      if Sess.Role = Server then
-         Emit_No_Reply
-           (Port => Lower (Sess),
-            Msg  => DNS_Data_Expected'
-             (In_Buf => Sess.Buffer_In,
-              Max    => DNS_Header_Size,
-              State  => Sess.State));
-      else
-         Emit_No_Reply
-           (Port => Lower (Sess),
-            Msg  => Data_Expected'
-             (In_Buf => Sess.Buffer_In,
-              Max    => DNS_Header_Size));
-      end if;
+
+      Emit_No_Reply
+        (Port => Lower (Sess),
+         Msg  => Data_Expected'
+          (In_Buf => Sess.Buffer_In,
+           Max    => DNS_Header_Size));
    end Expect_DNS_Header;
 
    --------------------
@@ -693,24 +578,22 @@ package body PolyORB.Protocols.DNS is
    is
       pragma Warnings (Off);
       Sess : DNS_Session renames DNS_Session (S.all);
-      MCtx : DNS_Message_Context
-               renames DNS_Message_Context (Sess.MCtx.all);
+      Label_Size : Types.Octet;
    begin
       pragma Debug (C, O ("Processing message of type :" &
-        MCtx.Message_Type'Img));
+        Sess.MCtx.Message_Type'Img));
 
-      case MCtx.Message_Type is
+      case Sess.MCtx.Message_Type is
          when Request =>
             if Sess.Role /= Server then
                raise DNS_Error;
             end if;
             Process_Request (Sess'Access);
-            pragma Debug (C, O ("In processed message"));
+
          when Reply =>
             if Sess.Role /= Client then
                raise DNS_Error;
             end if;
-
             Reply_Received
                 (Sess'Access, Sess.MCtx.Request_Id, Sess.MCtx.Rcode_Flag);
          when others =>
@@ -748,6 +631,7 @@ package body PolyORB.Protocols.DNS is
       Req              : Request_Access;
       Args             : Any.NVList.Ref;
       Def_Args         : Component_Access;
+      newRR : RR;
 
       Error : Errors.Error_Container;
       Root_POA : PolyORB.POA.Obj_Adapter_Access;
@@ -758,6 +642,41 @@ package body PolyORB.Protocols.DNS is
       if S.Role /= Server then
          raise DNS_Error;
       end if;
+      S.MCtx.Q_sequence :=
+                    To_Sequence (Integer (S.MCtx.Nb_Questions));
+      Any.NVList.Create (S.MCtx.New_Args);
+
+      for J in 1 .. S.MCtx.Nb_Questions loop
+         S.MCtx.Request_Name :=
+           Unmarshall_DNS_String (S.Buffer_In);
+         S.MCtx.Request_Type_Code := Unmarshall (S.Buffer_In);
+         S.MCtx.Request_Class := Unmarshall (S.Buffer_In);
+         case S.MCtx.Request_Type_Code is
+            when A_Code =>
+               S.MCtx.Request_Type := A;
+            when NS_Code =>
+               S.MCtx.Request_Type := NS;
+            when SOA_Code =>
+               S.MCtx.Request_Type := SOA;
+            when CNAME_Code =>
+               S.MCtx.Request_Type := CNAME;
+            when PTR_Code =>
+               S.MCtx.Request_Type := PTR;
+            when TXT_Code =>
+               S.MCtx.Request_Type := TXT;
+            when SRV_Code =>
+               S.MCtx.Request_Type := SRV;
+            when others =>
+               null;
+         end case;
+         --  Assigning the question rrSequence
+         Current_Question_Nb := Current_Question_Nb + 1;
+         newRR.rr_name := S.MCtx.Request_Name;
+         newRR.rr_type := S.MCtx.Request_Type;
+         Replace_Element (S.MCtx.Q_sequence,
+                          Integer (Current_Question_Nb), newRR);
+      end loop;
+      Current_Question_Nb := 0;
       ORB := ORB_Access (S.Server);
       pragma Debug (C, O ("Request_Received: entering"));
 
@@ -1227,10 +1146,7 @@ package body PolyORB.Protocols.DNS is
       Next (It);
       Arg := Value (It);
       for J in 1 .. Sess.MCtx.Nb_Answers loop
-         Name_Length := Unmarshall (Sess.Buffer_In);
-         Sess.MCtx.Request_Name := Types.To_PolyORB_String
-          (Unmarshall_DNS_String
-             (Sess.Buffer_In, Types.Unsigned_Short (Name_Length)));
+         Sess.MCtx.Request_Name := Unmarshall_DNS_String (Sess.Buffer_In);
          Sess.MCtx.Request_Type_Code := Unmarshall (Sess.Buffer_In);
          case Sess.MCtx.Request_Type_Code is
             when A_Code =>
@@ -1261,10 +1177,7 @@ package body PolyORB.Protocols.DNS is
             --  Retrieve data length
             Data_Length := Unmarshall (Sess.Buffer_In);
             pragma Debug (C, O ("Data Length : " & Data_Length'Img));
-            Answer_Length := Unmarshall (Sess.Buffer_In);
-            Answer := Types.To_PolyORB_String
-                (Unmarshall_DNS_String
-                   (Sess.Buffer_In, Types.Unsigned_Short (Answer_Length)));
+            Answer := Unmarshall_DNS_String (Sess.Buffer_In);
             pragma Debug (C, O ("Answer: "
                  & Types.To_Standard_String (Answer)));
             answerRR.rr_name := Sess.MCtx.Request_Name;

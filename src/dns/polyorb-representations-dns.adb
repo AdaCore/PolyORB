@@ -37,6 +37,7 @@
    with PolyORB.Utils.Strings;
    with PolyORB.Utils.Buffers;
    with PolyORB.DNS.Helper;
+   with PolyORB.Utils;
    pragma Elaborate_All (PolyORB.Utils.Buffers);
 
 package body PolyORB.Representations.DNS is
@@ -46,6 +47,7 @@ package body PolyORB.Representations.DNS is
    use PolyORB.Errors;
    use PolyORB.Utils.Buffers;
    use GNAT.Byte_Swapping;
+   use PolyORB.Utils;
    use PolyORB.DNS.Helper;
    package L is new PolyORB.Log.Facility_Log ("polyorb.representations.dns");
    procedure O (Message : String; Level : Log_Level := Debug)
@@ -62,7 +64,8 @@ package body PolyORB.Representations.DNS is
       current_Seq := From_Any (Argument);
       for J in 1 .. Length (current_Seq) loop
          current_rr := Get_Element (current_Seq, J);
-         Marshall_Latin_1_String (Buffer, current_rr.rr_name);
+
+         Marshall_DNS_String (Buffer, To_Standard_String (current_rr.rr_name));
 
          case current_rr.rr_type is
             when A =>
@@ -85,10 +88,11 @@ package body PolyORB.Representations.DNS is
          if Is_Reply then
             --  temporary fix for unsigned long marshalling
             Marshall (Buffer, Types.Unsigned_Short (0));
-            Marshall (Buffer, Types.Unsigned_Short (240));
+            Marshall (Buffer, Types.Unsigned_Short (current_rr.TTL));
             Marshall (Buffer, Types.Unsigned_Short
               (To_Standard_String (current_rr.rr_answer)'Length + 2));
-            Marshall_Latin_1_String (Buffer, current_rr.rr_answer);
+            Marshall_DNS_String (Buffer,
+                                 To_Standard_String (current_rr.rr_answer));
          end if;
 
       end loop;
@@ -194,7 +198,7 @@ package body PolyORB.Representations.DNS is
 
       Marshall (Buffer, PolyORB.Types.Octet'(Data'Length));
       Align_Marshall_Copy (Buffer, Str);
-      Marshall (Buffer, PolyORB.Types.Octet'(0));
+--      Marshall (Buffer, PolyORB.Types.Octet'(0));
 
       pragma Debug (C, O ("Marshall (String) : end"));
    end Marshall_Latin_1_String;
@@ -212,33 +216,67 @@ package body PolyORB.Representations.DNS is
       pragma Debug (C, O ("Marshall (PolyORB.Types.String) : end"));
    end Marshall_Latin_1_String;
 
-   function Unmarshall_DNS_String
+   procedure Marshall_DNS_String
      (Buffer : access Buffer_Type;
-      Length : Types.Unsigned_Short)
-      return Standard.String
+      Data   : Standard.String)
    is
-      Equiv  : String (1 .. Natural (Length));
-      End_Oct : Types.Octet;
+      S       : String renames Data;
+      Index   : Integer;
+      Index2  : Integer;
+      Label : PolyORB.Types.String;
+   begin
+      pragma Debug (C, O ("Marshall DNS string : enter"));
+      Index := S'First;
+      Index2 := Find (S, Index, '.');
+      while Index2 > Index loop
+         Label := To_PolyORB_String (S (Index .. Index2 - 1));
+         Marshall_Latin_1_String (Buffer, Label);
+         pragma Debug (C, O ("Marshall DNS string :label " &
+           To_Standard_String (Label)));
+         Index := Index2 + 1;
+         Index2 := Find (S, Index, '.');
+      end loop;
+      Marshall (Buffer, Types.Octet (0));
+      Show (Buffer);
+      pragma Debug (C, O ("Marshall DNS string: end"));
+   end Marshall_DNS_String;
+
+   function Unmarshall_DNS_String
+     (Buffer : access Buffer_Type)
+      return PolyORB.Types.String
+   is
+      Length : PolyORB.Types.Octet
+        := Unmarshall (Buffer);
+      Label : Types.String := To_PolyORB_String ("");
    begin
       pragma Debug (C, O ("Unmarshall (String): enter"));
       pragma Debug (C, O ("Unmarshall (String): length is " &
-                    PolyORB.Types.Unsigned_Short'Image (Length)));
-
+                    PolyORB.Types.Octet'Image (Length)));
       if Length = 0 then
-         return "";
+         return To_PolyORB_String ("");
       end if;
-
-      for J in Equiv'Range loop
-         Equiv (J) := Character'Val
-           (PolyORB.Types.Char'Pos (Unmarshall_Latin_1_Char (Buffer)));
+      while Length /= Types.Octet (0) loop
+         declare
+            Equiv  : String (1 .. Natural (Length));
+         begin
+            for J in Equiv'Range loop
+               Equiv (J) := Character'Val
+                 (PolyORB.Types.Char'Pos (Unmarshall_Latin_1_Char (Buffer)));
+            end loop;
+            Label := Label & To_PolyORB_String (Equiv);
+            pragma Debug (C, O ("Unmarshall DNS (String): -> " &
+              To_Standard_String (Label)));
+         end;
+         Length := Unmarshall (Buffer);
+         pragma Debug (C, O ("Unmarshall (String): length is " &
+             PolyORB.Types.Octet'Image (Length)));
+         if Length /= Types.Octet (0) then
+            Label := Label & ".";
+         end if;
       end loop;
-      End_Oct := Unmarshall (Buffer);
-      if End_Oct /= Types.Octet (0) then
-         raise Constraint_Error;
-      end if;
-
-      pragma Debug (C, O ("Unmarshall (String): -> " & Equiv));
-      return Equiv;
+      pragma Debug (C, O ("Unmarshall (String): -> " &
+        To_Standard_String (Label)));
+      return Label;
    end Unmarshall_DNS_String;
 
    function Unmarshall_Latin_1_String

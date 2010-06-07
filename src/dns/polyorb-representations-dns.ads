@@ -115,7 +115,9 @@ package PolyORB.Representations.DNS is
       return PolyORB.Types.Unsigned_Short
    ;
    --  'String' type
-
+   procedure Marshall_DNS_String
+     (Buffer : access Buffer_Type;
+      Data   : Standard.String);
    procedure Marshall_Latin_1_String
      (Buffer : access Buffer_Type;
       Data   : Standard.String);
@@ -128,9 +130,8 @@ package PolyORB.Representations.DNS is
       return Standard.String;
 
    function Unmarshall_DNS_String
-     (Buffer : access Buffer_Type;
-      Length : Types.Unsigned_Short)
-      return Standard.String;
+     (Buffer : access Buffer_Type)
+      return PolyORB.Types.String;
 
    procedure Marshall_Latin_1_Char
      (Buffer : access Buffer_Type;
