@@ -993,9 +993,6 @@ package body XE_Sem is
          A := Conf_Units.Table (CU).My_ALI;
 
          F := Dir (Monolithic_Obj_Dir, ALIs.Table (A).Afile);
-         if Debug_Mode then
-            Message ("update stamp from", F);
-         end if;
 
          --  Update most recent stamp of this partition
 
@@ -1075,6 +1072,10 @@ package body XE_Sem is
          else
             --  Mark this unit as explored and append its dependencies
 
+            if Debug_Mode then
+               Message ("append dependencies of", ALIs.Table (A).Uname);
+            end if;
+
             Set_Partition_Id (ALIs.Table (A).Uname, Partition);
             for J in
               ALIs.Table (A).First_Unit .. ALIs.Table (A).Last_Unit
@@ -1082,11 +1083,16 @@ package body XE_Sem is
                for K in
                  Units.Table (J).First_With .. Units.Table (J).Last_With
                loop
+                  if Debug_Mode then
+                     Message (" with", Withs.Table (K).Uname,
+                              "=>", Withs.Table (K).Afile);
+                  end if;
+
                   if Present (Withs.Table (K).Afile) then
                      A := Get_ALI_Id (Withs.Table (K).Afile);
                      if A /= No_ALI_Id
-                        and then
-                       Get_Partition_Id (ALIs.Table (A).Uname) /= Partition
+                          and then
+                        Get_Partition_Id (ALIs.Table (A).Uname) /= Partition
                      then
                         Files.Append (Withs.Table (K).Afile);
                      end if;

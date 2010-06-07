@@ -1819,6 +1819,10 @@ package body XE_Front is
    procedure Update_Most_Recent_Stamp (P : Partition_Id; F : File_Name_Type) is
       Most_Recent : File_Name_Type;
    begin
+      if Debug_Mode then
+         Message (" update stamp for", Partitions.Table (P).Name, "from", F);
+      end if;
+
       Most_Recent := Partitions.Table (P).Most_Recent;
       if No (Most_Recent) then
          Partitions.Table (P).Most_Recent := F;
