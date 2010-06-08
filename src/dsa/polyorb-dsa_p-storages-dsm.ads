@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---             P O L Y O R B . D S A _ P . S T O R A G E S . D S M          --
+--           P O L Y O R B . D S A _ P . S T O R A G E S . D S M            --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2008, Free Software Foundation, Inc.               --
+--         Copyright (C) 2008-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -82,61 +82,57 @@ package PolyORB.DSA_P.Storages.DSM is
      (Self      : access DSM_Manager_Type;
       Rqst_Node : DSM_Manager_RACW;
       Version   : Integer) is abstract;
-   --  Invalidation request trigered by a node which obtained write
-   --  access on shared variable V. This routines forward the
-   --  invalidation request to nodes in its copy set before reset it.
+   --  Invalidation request initiated by current write owner of variable V.
+   --  The invalidation request is forwarded to all nodes listed in the local
+   --  copy set.
 
    procedure Write_Request
      (Self        : access DSM_Manager_Type;
       Rqst_Node   : DSM_Manager_RACW) is abstract;
-   --  Remote request from node which needs write access on shared
-   --  variable V. This is an asynchronous procedure that involves
-   --  a Write_Reply remote call. If server node is the owner, it
-   --  replyies to request node, otherwise it forwards the request
-   --  to its propable owner.
+   --  Remote request from node requiring write access to shared variable V.
+   --  Owner node replies using Write_Reply below, any other node forwards the
+   --  request to the probable owner.
 
    procedure Write_Reply
      (Self        : access DSM_Manager_Type;
       Var_Data    : SDT.Any_Container_Ptr;
       Read_Copies : Copy_Set_Type;
       Version     : Integer) is abstract;
-   --  Remote asynchronous procedure that allows to reply to a write
-   --  request node by sending local copy set and shared variable data.
+   --  Remote asynchronous procedure: reply to write request, sends copy set
+   --  and shared variable data.
 
    procedure Read_Request
      (Self       : access DSM_Manager_Type;
       Rqst_Node  : DSM_Manager_RACW) is abstract;
-   --  Remote request from node which needs read access on shared
-   --  variable V. This is an asynchronous procedure that involves
-   --  a Read_Reply remote call. If server node is the owner, it
-   --  adds the request node its copy set and replyies to request
-   --  node, otherwise it forwards the request to its propable owner.
+   --  Remote request from a node requiring read access to shared variable V.
+   --  The owner node replies using Read_Reply below and adds the requesting
+   --  node to its copy set. Any other node forwards the request to the
+   --  probable owner of V.
 
    procedure Read_Reply
      (Self         : access DSM_Manager_Type;
       Var_Data     : SDT.Any_Container_Ptr;
       Reply_Node   : DSM_Manager_RACW;
       Version      : Integer) is abstract;
-   --  Remote asynchronous procedure that allows to reply to a read
-   --  request node by sending last writed value of the shared variable.
+   --  Remote asynchronous procedure for reply to read request: sends last
+   --  stored value of the shared variable.
 
    function Get_Initial_Owner
      (Self      : access DSM_Manager_Type;
-      Var_Name  : String)
-      return DSM_Manager_RACW
+      Var_Name  : String) return DSM_Manager_RACW
       is abstract;
-   --  Return the intial owner of the varibale Var_Name. It should be
-   --  called on a factory of a package.
+   --  Return the intial owner of the varibale Var_Name. It should be called on
+   --  a factory of a package.
 
    procedure Register_Passive_Package
      (Pkg_Name : String;
       Is_Owner : Boolean;
       Location : String);
-   --  Register a DSM manager factory for package Pkg_name
+   --  Register a DSM manager factory for package Pkg_Name
 
 private
 
-   type DSM_Manager_Type is abstract
-     new Shared_Data_Manager_Type with null record;
+   type DSM_Manager_Type is abstract new Shared_Data_Manager_Type
+     with null record;
 
 end PolyORB.DSA_P.Storages.DSM;
