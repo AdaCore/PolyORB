@@ -41,6 +41,9 @@ See the features-27 file.
 Bug fixes
 ---------
 
+In some cases, po_gnatdist failed to identify that a partition required
+re-linking after a source change. (J607-021)
+
 The global termination policy in a DSA application might fail to detect
 application termination if a partition with local termination had been
 executed and completed. (J524-001)
