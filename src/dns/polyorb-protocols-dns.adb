@@ -1181,7 +1181,7 @@ package body PolyORB.Protocols.DNS is
             answerRR.rr_name := Sess.MCtx.Request_Name;
             answerRR.rr_type := Sess.MCtx.Request_Type;
             answerRR.rr_answer := Answer;
-            answerRR.TTL := Types.Unsigned_Long (TTL);
+            answerRR.TTL := TTL;
             Replace_Element (Sess.MCtx.A_sequence, Integer (J), answerRR);
          else
             --  Should not happen for now
@@ -1242,6 +1242,7 @@ package body PolyORB.Protocols.DNS is
                Unmarshall_Argument_List (Sess,
                        Current_Req.Req.Args, PolyORB.Any.ARG_OUT, Error);
 
+               --  inform the requestor that the request has been executed
                Emit_No_Reply
                  (Current_Req.Req.Requesting_Component,
                   Servants.Iface.Executed_Request'

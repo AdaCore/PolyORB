@@ -33,7 +33,6 @@
 
 --  A data representation implementing the DNS Data Representation.
 
---   with PolyORB.Utils.Dynamic_Tables;
 with PolyORB.Types;
 with PolyORB.Buffers;
 with PolyORB.Protocols.DNS;
@@ -61,16 +60,6 @@ package PolyORB.Representations.DNS is
 --        CData  : in out Any.Any_Container'Class;
 --        Error  : in out Errors.Error_Container);
 
-   --  'Identifier' type
-
-   procedure Marshall
-     (Buffer : access Buffer_Type;
-      Data   : PolyORB.Types.Identifier);
-
-   function Unmarshall
-     (Buffer : access Buffer_Type)
-     return PolyORB.Types.Identifier;
-
    --  'Boolean' type
    procedure Marshall
      (Buffer : access Buffer_Type;
@@ -96,15 +85,6 @@ package PolyORB.Representations.DNS is
    function Unmarshall
      (Buffer : access Buffer_Type)
       return PolyORB.Types.Unsigned_Long;
-   --  'Unsigned_Long_Long'  type
-
-   procedure Marshall
-     (Buffer : access Buffer_Type;
-      Data   : PolyORB.Types.Unsigned_Long_Long);
-
-   function Unmarshall
-     (Buffer : access Buffer_Type)
-     return PolyORB.Types.Unsigned_Long_Long;
 
    --  'Unsigned_Short'  type
    procedure Marshall

@@ -86,7 +86,6 @@ package body PolyORB.Representations.DNS is
          Marshall (Buffer, Default_Class_Code);
 
          if Is_Reply then
-            --  temporary fix for unsigned long marshalling
             Marshall (Buffer, current_rr.TTL);
             Marshall (Buffer, Types.Unsigned_Short
               (To_Standard_String (current_rr.rr_answer)'Length + 2));
@@ -159,28 +158,6 @@ package body PolyORB.Representations.DNS is
       pragma Debug (C, O ("Marshall (Octet) : end"));
    end Marshall;
 
-      --  Marshalling of an Identifier
-   procedure Marshall
-     (Buffer : access Buffer_Type;
-      Data   : PolyORB.Types.Identifier)
-   is
-   begin
-      pragma Debug (C, O ("Marshall (Identifier) : enter"));
-      Marshall_Latin_1_String (Buffer, PolyORB.Types.String (Data));
-      pragma Debug (C, O ("Marshall (Identifier) : end"));
-   end Marshall;
-
-   function Unmarshall
-     (Buffer : access Buffer_Type)
-     return PolyORB.Types.Identifier
-   is
-   begin
-      pragma Debug (C, O ("Unmarshall (Identifier) : enter & end"));
-      return PolyORB.Types.Identifier
-        (PolyORB.Types.String'(Types.To_PolyORB_String
-         (Unmarshall_Latin_1_String (Buffer))));
-   end Unmarshall;
-
    procedure Marshall_Latin_1_String
      (Buffer : access Buffer_Type;
       Data   : Standard.String)
@@ -197,8 +174,6 @@ package body PolyORB.Representations.DNS is
 
       Marshall (Buffer, PolyORB.Types.Octet'(Data'Length));
       Align_Marshall_Copy (Buffer, Str);
---      Marshall (Buffer, PolyORB.Types.Octet'(0));
-
       pragma Debug (C, O ("Marshall (String) : end"));
    end Marshall_Latin_1_String;
 
@@ -366,19 +341,6 @@ package body PolyORB.Representations.DNS is
    function Unmarshall
      (Buffer : access Buffer_Type) return PolyORB.Types.Unsigned_Short
       renames DNS_Unsigned_Short.Unmarshall;
-
-   function Swapped is
-     new GNAT.Byte_Swapping.Swapped8 (PolyORB.Types.Unsigned_Long_Long);
-   package DNS_Unsigned_Long_Long is
-     new Align_Transfer_Elementary (T => PolyORB.Types.Unsigned_Long_Long);
-
-   procedure Marshall
-     (Buffer : access Buffer_Type; Data : PolyORB.Types.Unsigned_Long_Long)
-      renames DNS_Unsigned_Long_Long.Marshall;
-
-   function Unmarshall
-     (Buffer : access Buffer_Type) return PolyORB.Types.Unsigned_Long_Long
-      renames DNS_Unsigned_Long_Long.Unmarshall;
 
    procedure Initialize;
    procedure Initialize is
