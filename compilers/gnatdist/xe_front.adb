@@ -160,11 +160,6 @@ package body XE_Front is
          return;
       end if;
 
-      if Debug_Mode then
-         Message ("configuring unit", U,
-                  "on partition", Partitions.Table (P).Name);
-      end if;
-
       --  Mark this configured unit as already partitioned
 
       Set_Partition_Id (U, P);
