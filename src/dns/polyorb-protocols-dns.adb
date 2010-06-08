@@ -1122,15 +1122,14 @@ package body PolyORB.Protocols.DNS is
 
       It  : Iterator := First (List_Of (Args).all);
       Arg : Element_Access;
-      Empty : Types.Unsigned_Short;
-      TTL : Types.Unsigned_Short;
+      TTL : Types.Unsigned_Long;
       Name_Length : Types.Octet;
       Data_Length : Types.Unsigned_Short;
       Answer_Length : Types.Octet;
       Answer : Types.String;
       Argument_Answer : PolyORB.Any.Any;
       answerRR : RR;
-      pragma Unreferenced (Empty, Error);
+      pragma Unreferenced (Error);
    begin
       --  We know in advance the different types of the arguments
       --  First one is the authoritative flags - direction in out
@@ -1167,8 +1166,7 @@ package body PolyORB.Protocols.DNS is
                null;
          end case;
          Sess.MCtx.Request_Class := Unmarshall (Sess.Buffer_In);
-         --  XXX temporaty fix for Unsigned long unmarshalling
-         Empty := Unmarshall (Sess.Buffer_In);
+
          TTL := Unmarshall (Sess.Buffer_In);
          --  XXX TODO : case on Request type for other cases ->
          --  the structure of the dns answer may change for different rr types

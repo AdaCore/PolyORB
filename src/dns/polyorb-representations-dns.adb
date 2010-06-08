@@ -87,8 +87,7 @@ package body PolyORB.Representations.DNS is
 
          if Is_Reply then
             --  temporary fix for unsigned long marshalling
-            Marshall (Buffer, Types.Unsigned_Short (0));
-            Marshall (Buffer, Types.Unsigned_Short (current_rr.TTL));
+            Marshall (Buffer, current_rr.TTL);
             Marshall (Buffer, Types.Unsigned_Short
               (To_Standard_String (current_rr.rr_answer)'Length + 2));
             Marshall_DNS_String (Buffer,
@@ -341,7 +340,8 @@ package body PolyORB.Representations.DNS is
    function Swapped (X : Types.Unsigned_Long) return Types.Unsigned_Long;
    pragma Inline (Swapped);
    package DNS_Unsigned_Long is
-     new Align_Transfer_Elementary (T => PolyORB.Types.Unsigned_Long);
+     new Align_Transfer_Elementary (T => PolyORB.Types.Unsigned_Long,
+                                    With_Alignment => False);
 
    function Unmarshall
      (Buffer : access Buffer_Type) return PolyORB.Types.Unsigned_Long
@@ -357,7 +357,8 @@ package body PolyORB.Representations.DNS is
    function Swapped is
      new GNAT.Byte_Swapping.Swapped2 (PolyORB.Types.Unsigned_Short);
    package DNS_Unsigned_Short is
-     new Align_Transfer_Elementary (T => PolyORB.Types.Unsigned_Short);
+     new Align_Transfer_Elementary (T => PolyORB.Types.Unsigned_Short,
+                                    With_Alignment => False);
    procedure Marshall
      (Buffer : access Buffer_Type; Data : PolyORB.Types.Unsigned_Short)
       renames DNS_Unsigned_Short.Marshall;
