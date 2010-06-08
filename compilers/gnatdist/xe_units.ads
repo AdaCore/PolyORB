@@ -163,7 +163,6 @@ package XE_Units is
    --  Indicator of whether unit can be used as main program
 
    type ALIs_Record is record
-
       Ofile : File_Name_Type;
       --  Name of object file
 
@@ -204,19 +203,23 @@ package XE_Units is
       --  Note that PCS_Tasking is a stronger property than User_Tasking
       --  as this has also an impact on the termination policy.
 
+      Stamp_Checked : Boolean;
+      --  Set true when ALI file time stamp has been checked (reset
+      --  for each partition).
    end record;
 
    Default_ALI : constant ALIs_Record := (
-      Ofile        => No_File_Name,
-      Afile        => No_File_Name,
-      Sfile        => No_File_Name,
-      Uname        => No_Unit_Name,
-      First_Unit   => No_Unit_Id,
-      Last_Unit    => No_Unit_Id,
-      First_Sdep   => First_Sdep_Id,
-      Last_Sdep    => No_Sdep_Id,
-      Main_Program => None,
-      Tasking      => Unknown_Tasking);
+      Ofile         => No_File_Name,
+      Afile         => No_File_Name,
+      Sfile         => No_File_Name,
+      Uname         => No_Unit_Name,
+      First_Unit    => No_Unit_Id,
+      Last_Unit     => No_Unit_Id,
+      First_Sdep    => First_Sdep_Id,
+      Last_Sdep     => No_Sdep_Id,
+      Main_Program  => None,
+      Tasking       => Unknown_Tasking,
+      Stamp_Checked => False);
 
    package ALIs is new GNAT.Table (
      Table_Component_Type => ALIs_Record,

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1995-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -985,12 +985,22 @@ package body XE_Sem is
       Partitions.Table (Partition).First_Stub := Stubs.Last + 1;
       Partitions.Table (Partition).Last_Stub  := Stubs.Last;
 
+      --  Reset Stamp_Checked flag
+
+      for J in ALIs.First .. ALIs.Last loop
+         ALIs.Table (J).Stamp_Checked := False;
+      end loop;
+
       --  Append all the dependencies on units which are assigned to
       --  this partition.
 
       CU := Partitions.Table (Partition).First_Unit;
       while CU /= No_Conf_Unit_Id loop
          A := Conf_Units.Table (CU).My_ALI;
+
+         --  Mark unit as already checked now
+
+         ALIs.Table (A).Stamp_Checked := True;
 
          F := Dir (Monolithic_Obj_Dir, ALIs.Table (A).Afile);
 
@@ -1013,7 +1023,9 @@ package body XE_Sem is
          CU := Conf_Units.Table (CU).Next_Unit;
       end loop;
 
-      --  Explore the withed units
+      --  Explore the withed units. Any Shared Passive or RCI unit that is
+      --  seen from this point on is a stub unit (unlike conf units checked
+      --  in the above loop).
 
       <<Next_With>>
       while Files.First <= Files.Last loop
@@ -1032,7 +1044,17 @@ package body XE_Sem is
             goto Next_With;
          end if;
 
-         U := ALIs.Table (A).Last_Unit;
+         if ALIs.Table (A).Stamp_Checked then
+            if Debug_Mode then
+               Message
+                 ("stamps already checked for", ALIs.Table (A).Uname);
+            end if;
+            goto Next_With;
+         end if;
+
+         --  Mark unit as checked
+
+         ALIs.Table (A).Stamp_Checked := True;
 
          F := Dir (Monolithic_Obj_Dir, F);
          if Debug_Mode then
@@ -1043,18 +1065,15 @@ package body XE_Sem is
 
          Update_Most_Recent_Stamp (Partition, F);
 
-         --  This unit has already been assigned to this partition: no need to
-         --  explore any further.
+         --  Check for stub
 
-         if Get_Partition_Id (ALIs.Table (A).Uname) = Partition then
-            null;
-
-         elsif not Units.Table (U).Is_Generic
+         U := ALIs.Table (A).Last_Unit;
+         if not Units.Table (U).Is_Generic
            and then (Units.Table (U).RCI
                        or else Units.Table (U).Shared_Passive)
          then
-            --  This unit is not assigned to partition J and it is an RCI or
-            --  SP unit. Therefore, we append it to the partition stub list.
+            --  If RCI or SP unit is encountered now, mark it as a stub and do
+            --  not explore its dependencies any further.
 
             Stubs.Increment_Last;
             L := Stubs.Last;
@@ -1076,23 +1095,17 @@ package body XE_Sem is
                Message ("append dependencies of", ALIs.Table (A).Uname);
             end if;
 
-            Set_Partition_Id (ALIs.Table (A).Uname, Partition);
             for J in
               ALIs.Table (A).First_Unit .. ALIs.Table (A).Last_Unit
             loop
                for K in
                  Units.Table (J).First_With .. Units.Table (J).Last_With
                loop
-                  if Debug_Mode then
-                     Message (" with", Withs.Table (K).Uname,
-                              "=>", Withs.Table (K).Afile);
-                  end if;
-
                   if Present (Withs.Table (K).Afile) then
                      A := Get_ALI_Id (Withs.Table (K).Afile);
                      if A /= No_ALI_Id
                           and then
-                        Get_Partition_Id (ALIs.Table (A).Uname) /= Partition
+                        not ALIs.Table (A).Stamp_Checked
                      then
                         Files.Append (Withs.Table (K).Afile);
                      end if;
@@ -1120,7 +1133,7 @@ package body XE_Sem is
    begin
       if Debug_Mode then
          Message ("update partition", Partitions.Table (Partition).Name,
-                  "tasking ", Tasking_Img (T));
+                  "tasking", Tasking_Img (T));
       end if;
 
       Files.Append (ALIs.Table (ALI).Afile);
@@ -1141,8 +1154,8 @@ package body XE_Sem is
          elsif T = User_Tasking then
             if ALIs.Table (A).Tasking = PCS_Tasking then
                if Debug_Mode then
-                  Message ("update tasking from ", Tasking_Img (T),
-                           " to ", Tasking_Img (ALIs.Table (A).Tasking));
+                  Message ("update tasking from", Tasking_Img (T),
+                           "to", Tasking_Img (ALIs.Table (A).Tasking));
                end if;
 
                T := ALIs.Table (A).Tasking;
@@ -1198,7 +1211,9 @@ package body XE_Sem is
 
                      else
                         if Debug_Mode then
-                           Message ("push unit", N);
+                           Message
+                             ("push unit", N, "in partition",
+                              Partitions.Table (Partition).Name);
                         end if;
 
                         Set_Partition_Id (N, Partition);
