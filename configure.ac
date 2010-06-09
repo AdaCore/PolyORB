@@ -16,8 +16,8 @@ AC_MSG_NOTICE([Configuring PolyORB $POLYORB_VERSION])
 
 ifdef([LONGEST_FILE_NAME],[
 if test ! -f ${srcdir}/LONGEST_FILE_NAME; then
-  AC_MSG_ERROR([LONGEST_FILE_NAME
-not found, check your distribution!
+  AC_MSG_ERROR([Source directory sanity check failed, check your distribution!
+
 Note that this package must be extracted with GNU tar.])
 fi])
 
