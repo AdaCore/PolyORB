@@ -11,7 +11,15 @@ AC_CONFIG_AUX_DIR(support)
 AM_SUBVERSION
 POLYORB_VERSION="$PACKAGE_VERSION (rev. $SVNREVISION)"
 AC_SUBST(POLYORB_VERSION)
+
 AC_MSG_NOTICE([Configuring PolyORB $POLYORB_VERSION])
+
+ifdef([LONGEST_FILE_NAME],[
+if test ! -f ${srcdir}/LONGEST_FILE_NAME; then
+  AC_MSG_ERROR([LONGEST_FILE_NAME
+not found, check your distribution!
+Note that this package must be extracted with GNU tar.])
+fi])
 
 ##########################################
 # Initialization.
