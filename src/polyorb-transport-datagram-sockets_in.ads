@@ -120,7 +120,6 @@ private
      with record
         Handler : aliased Datagram_TE_AES_Event_Handler;
         Socket  : Socket_Type := No_Socket;
-        Addr    : Sock_Addr_Type;
      end record;
 
 end PolyORB.Transport.Datagram.Sockets_In;

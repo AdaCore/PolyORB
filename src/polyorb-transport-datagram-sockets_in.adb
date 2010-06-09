@@ -121,10 +121,11 @@ package body PolyORB.Transport.Datagram.Sockets_In is
 
    procedure Create
      (TE   : in out Socket_In_Endpoint;
-      S    :        Socket_Type;
-      Addr :        Sock_Addr_Type) is
+      S    : Socket_Type;
+      Addr : Sock_Addr_Type)
+   is
+      pragma Unreferenced (Addr);
    begin
-      TE.Addr := Addr;
       TE.Socket := S;
    end Create;
 
@@ -251,9 +252,7 @@ package body PolyORB.Transport.Datagram.Sockets_In is
 
    begin
       pragma Debug (C, O ("Create Endpoint for UDP socket"));
-
-      Socket_In_Endpoint (TE.all).Addr := TAP.Addr;
-      Socket_In_Endpoint (TE.all).Socket := TAP.Socket;
+      Create (Socket_In_Endpoint (TE.all), TAP.Socket, TAP.Addr);
       return TE;
    end Create_Endpoint;
 
