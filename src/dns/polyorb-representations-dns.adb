@@ -61,40 +61,67 @@ package body PolyORB.Representations.DNS is
       current_Seq : rrSequence;
       current_rr : RR;
    begin
+      pragma Debug (C, O ("Marshall_From_Any: enter"));
       current_Seq := From_Any (Argument);
       for J in 1 .. Length (current_Seq) loop
          current_rr := Get_Element (current_Seq, J);
-
          Marshall_DNS_String (Buffer, To_Standard_String (current_rr.rr_name));
 
          case current_rr.rr_type is
             when A =>
                Marshall (Buffer, A_Code);
-            when NS =>
-               Marshall (Buffer, NS_Code);
-            when SOA =>
-               Marshall (Buffer, SOA_Code);
-            when CNAME =>
-               Marshall (Buffer, CNAME_Code);
+               Marshall (Buffer, Default_Class_Code);
+               if Is_Reply then
+                  Marshall (Buffer, current_rr.TTL);
+                  Marshall (Buffer, Types.Unsigned_Short
+                            (current_rr.data_length));
+                  Marshall (Buffer, Get_Element
+                         (current_rr.rr_data.a_address, 1));
+                  Marshall (Buffer, Get_Element
+                         (current_rr.rr_data.a_address, 2));
+                  Marshall (Buffer, Get_Element
+                         (current_rr.rr_data.a_address, 3));
+                  Marshall (Buffer, Get_Element
+                         (current_rr.rr_data.a_address, 4));
+               end if;
             when PTR =>
                Marshall (Buffer, PTR_Code);
+               Marshall (Buffer, Default_Class_Code);
+               if Is_Reply then
+                  Marshall (Buffer, current_rr.TTL);
+                  Marshall (Buffer, Types.Unsigned_Short
+                   (current_rr.data_length));
+                  Marshall_DNS_String (Buffer,
+                   To_Standard_String (current_rr.rr_data.rr_answer));
+               end if;
             when TXT =>
                Marshall (Buffer, TXT_Code);
+               Marshall (Buffer, Default_Class_Code);
+               if Is_Reply then
+                  Marshall (Buffer, current_rr.TTL);
+                  Marshall (Buffer, Types.Unsigned_Short
+                   (current_rr.data_length));
+                  Marshall_DNS_String (Buffer,
+                   To_Standard_String (current_rr.rr_data.rr_answer));
+               end if;
             when SRV =>
                Marshall (Buffer, SRV_Code);
+               Marshall (Buffer, Default_Class_Code);
+               if Is_Reply then
+                  Marshall (Buffer, current_rr.TTL);
+                  Marshall (Buffer, Types.Unsigned_Short
+                            (current_rr.data_length));
+                  Marshall (Buffer, current_rr.rr_data.srv_data.priority);
+                  Marshall (Buffer, current_rr.rr_data.srv_data.weight);
+                  Marshall (Buffer, current_rr.rr_data.srv_data.port);
+                  Marshall_DNS_String (Buffer,
+                   To_Standard_String (current_rr.rr_data.srv_data.target));
+               end if;
+            when others =>
+               null;
          end case;
-         Marshall (Buffer, Default_Class_Code);
-
-         if Is_Reply then
-            Marshall (Buffer, current_rr.TTL);
-            Marshall (Buffer, Types.Unsigned_Short
-              (To_Standard_String (current_rr.rr_answer)'Length + 2));
-            Marshall_DNS_String (Buffer,
-                                 To_Standard_String (current_rr.rr_answer));
-         end if;
-
       end loop;
-
+      pragma Debug (C, O ("Marshall_From_Any: leave"));
    end Marshall_From_Any;
 
    --  XXX : TODO : Move unmarshalling procedure here
@@ -211,7 +238,6 @@ package body PolyORB.Representations.DNS is
          Index2 := Find (S, Index, '.');
       end loop;
       Marshall (Buffer, Types.Octet (0));
-      Show (Buffer);
       pragma Debug (C, O ("Marshall DNS string: end"));
    end Marshall_DNS_String;
 
@@ -227,6 +253,7 @@ package body PolyORB.Representations.DNS is
       pragma Debug (C, O ("Unmarshall (String): length is " &
                     PolyORB.Types.Octet'Image (Length)));
       if Length = 0 then
+         pragma Debug (C, O ("Unmarshall (String): returning empty"));
          return To_PolyORB_String ("");
       end if;
       while Length /= Types.Octet (0) loop
@@ -312,19 +339,15 @@ package body PolyORB.Representations.DNS is
       return X;
    end Swapped;
 
-   function Swapped (X : Types.Unsigned_Long) return Types.Unsigned_Long;
-   pragma Inline (Swapped);
+   function Swapped is
+     new GNAT.Byte_Swapping.Swapped4 (PolyORB.Types.Unsigned_Long);
    package DNS_Unsigned_Long is
      new Align_Transfer_Elementary (T => PolyORB.Types.Unsigned_Long,
                                     With_Alignment => False);
-
    function Unmarshall
      (Buffer : access Buffer_Type) return PolyORB.Types.Unsigned_Long
       renames DNS_Unsigned_Long.Unmarshall;
-   function Swapped (X : Types.Unsigned_Long) return Types.Unsigned_Long is
-   begin
-      return X;
-   end Swapped;
+
    procedure Marshall
      (Buffer : access Buffer_Type; Data : PolyORB.Types.Unsigned_Long)
       renames DNS_Unsigned_Long.Marshall;
