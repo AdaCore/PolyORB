@@ -631,6 +631,10 @@ package body PolyORB.Protocols.DNS is
       Args             : Any.NVList.Ref;
       Def_Args         : Component_Access;
       newRR : RR;
+      Q_sequence : rrSequence;
+      A_sequence : rrSequence;
+      Auth_sequence : rrSequence;
+      Add_sequence : rrSequence;
 
       Error : Errors.Error_Container;
       Root_POA : PolyORB.POA.Obj_Adapter_Access;
@@ -641,7 +645,7 @@ package body PolyORB.Protocols.DNS is
       if S.Role /= Server then
          raise DNS_Error;
       end if;
-      S.MCtx.Q_sequence :=
+      Q_sequence :=
                     To_Sequence (Integer (S.MCtx.Nb_Questions));
       Any.NVList.Create (S.MCtx.New_Args);
 
@@ -653,12 +657,6 @@ package body PolyORB.Protocols.DNS is
          case S.MCtx.Request_Type_Code is
             when A_Code =>
                S.MCtx.Request_Type := A;
-            when NS_Code =>
-               S.MCtx.Request_Type := NS;
-            when SOA_Code =>
-               S.MCtx.Request_Type := SOA;
-            when CNAME_Code =>
-               S.MCtx.Request_Type := CNAME;
             when PTR_Code =>
                S.MCtx.Request_Type := PTR;
             when TXT_Code =>
@@ -666,13 +664,14 @@ package body PolyORB.Protocols.DNS is
             when SRV_Code =>
                S.MCtx.Request_Type := SRV;
             when others =>
-               null;
+               --  should not happen for now
+               raise DNS_Error;
          end case;
          --  Assigning the question rrSequence
          Current_Question_Nb := Current_Question_Nb + 1;
          newRR.rr_name := S.MCtx.Request_Name;
          newRR.rr_type := S.MCtx.Request_Type;
-         Replace_Element (S.MCtx.Q_sequence,
+         Replace_Element (Q_sequence,
                           Integer (Current_Question_Nb), newRR);
       end loop;
       Current_Question_Nb := 0;
@@ -707,16 +706,16 @@ package body PolyORB.Protocols.DNS is
                 Arg_Name_Auth, To_Any (S.MCtx.AA_Flag), Any.ARG_INOUT);
       --  Assigning the question rrSequence
       Add_Item (S.MCtx.New_Args,
-                Arg_Name_Question, To_Any (S.MCtx.Q_sequence), Any.ARG_IN);
+                Arg_Name_Question, To_Any (Q_sequence), Any.ARG_IN);
       --  initializing the out Answer rr sequence
       Add_Item (S.MCtx.New_Args,
-                Arg_Name_Answer, To_Any (S.MCtx.A_sequence), Any.ARG_OUT);
+                Arg_Name_Answer, To_Any (A_sequence), Any.ARG_OUT);
       --  initializing the out Authority rr sequence
       Add_Item (S.MCtx.New_Args,
-                Arg_Name_Au, To_Any (S.MCtx.Auth_sequence), Any.ARG_OUT);
+                Arg_Name_Au, To_Any (Auth_sequence), Any.ARG_OUT);
       --  initializing the out Additional infos rr sequence
       Add_Item (S.MCtx.New_Args,
-                Arg_Name_Add, To_Any (S.MCtx.Add_sequence), Any.ARG_OUT);
+                Arg_Name_Add, To_Any (Add_sequence), Any.ARG_OUT);
 
       Target_Profile := new Local_Profile_Type;
       Create_Local_Profile
@@ -1119,10 +1118,6 @@ package body PolyORB.Protocols.DNS is
 
       It  : Iterator := First (List_Of (Args).all);
       Arg : Element_Access;
-      Name_Length : Types.Octet;
-      Answer_Length : Types.Octet;
-      Argument_Answer : PolyORB.Any.Any;
-      answerRR : RR;
       pragma Unreferenced (Error);
    begin
       --  We know in advance the different types of the arguments
@@ -1132,83 +1127,23 @@ package body PolyORB.Protocols.DNS is
          pragma Debug (C, O ("First arg is:  inout"));
          Set_Any_Value (Sess.MCtx.AA_Flag, Get_Container (Arg.Argument).all);
       end if;
-      Sess.MCtx.A_sequence :=
-        To_Sequence (Integer (Sess.MCtx.Nb_Answers));
-
       Next (It);
       Next (It);
       Arg := Value (It);
-      for J in 1 .. Sess.MCtx.Nb_Answers loop
-         Sess.MCtx.Request_Name := Unmarshall_DNS_String (Sess.Buffer_In);
-         Sess.MCtx.Request_Type_Code := Unmarshall (Sess.Buffer_In);
-         case Sess.MCtx.Request_Type_Code is
-            when A_Code =>
-               Sess.MCtx.Request_Type := A;
-            when PTR_Code =>
-               Sess.MCtx.Request_Type := PTR;
-            when TXT_Code =>
-               Sess.MCtx.Request_Type := TXT;
-            when SRV_Code =>
-               Sess.MCtx.Request_Type := SRV;
-            when others =>
-               --  Should not happen for now
-               raise DNS_Error;
-         end case;
-
-         answerRR.rr_name := Sess.MCtx.Request_Name;
-         answerRR.rr_type := Sess.MCtx.Request_Type;
-         Sess.MCtx.Request_Class := Unmarshall (Sess.Buffer_In);
-         answerRR.TTL := Unmarshall (Sess.Buffer_In);
-         pragma Debug (C, O ("TTL : " & answerRR.TTL'Img));
-         answerRR.data_length := Unmarshall (Sess.Buffer_In);
-         pragma Debug (C, O ("Data Length : " & answerRR.data_length'Img));
-         --  Part specific to each RR type
-         declare
-            rr_d : RR_Data (Sess.MCtx.Request_Type);
-         begin
-            case Sess.MCtx.Request_Type is
-               when SRV =>
-                  rr_d.srv_data.priority := Unmarshall (Sess.Buffer_In);
-                  rr_d.srv_data.weight := Unmarshall (Sess.Buffer_In);
-                  rr_d.srv_data.port := Unmarshall (Sess.Buffer_In);
-                  rr_d.srv_data.target :=
-                    Unmarshall_DNS_String (Sess.Buffer_In);
-               when A =>
-                  rr_d.a_address :=
-                    IDL_AT_Sequence_4_octet
-                      (IDL_SEQUENCE_4_octet.To_Sequence
-                           (IDL_SEQUENCE_4_octet.Element_Array'(
-                            Unmarshall (Sess.Buffer_In),
-                            Unmarshall (Sess.Buffer_In),
-                            Unmarshall (Sess.Buffer_In),
-                            Unmarshall (Sess.Buffer_In))));
-               when others =>
-                  rr_d.rr_answer := Unmarshall_DNS_String (Sess.Buffer_In);
-                  pragma Debug (C, O ("Answer: "
-                     & Types.To_Standard_String (answerRR.rr_data.rr_answer)));
-            end case;
-            answerRR.rr_data := rr_d;
-            Replace_Element (Sess.MCtx.A_sequence, Integer (J), answerRR);
-         end;
-      end loop;
-
-      Argument_Answer := To_Any (Sess.MCtx.A_sequence);
-      Copy_Any_Value (Arg.Argument, Argument_Answer);
-      pragma Debug (C, O ("After Copy_Any_Value"));
+      Unmarshall_To_Any (Sess.Buffer_In, Arg.Argument,
+                         Integer (Sess.MCtx.Nb_Answers), True);
       --  authority rr sequence
       --  XXX : TODO : Fill the loop to unmashall authority sequence
       Next (It);
       Arg := Value (It);
-      if Arg.Arg_Modes = ARG_OUT then
-         null;
-      end if;
+      Unmarshall_To_Any (Sess.Buffer_In, Arg.Argument,
+                           Integer (Sess.MCtx.Nb_Auth_Servers), True);
       --  additionnal info rr sequence
       --  XXX : TODO : Fill the loop to unmashall add. infos sequence
       Next (It);
       Arg := Value (It);
-      if Arg.Arg_Modes = ARG_OUT then
-         null;
-      end if;
+      Unmarshall_To_Any (Sess.Buffer_In, Arg.Argument,
+                           Integer (Sess.MCtx.Nb_Add_Infos), True);
       pragma Debug (C, O ("Leaving Unmarshall_Argument_List"));
    end Unmarshall_Argument_List;
 

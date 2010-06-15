@@ -158,11 +158,6 @@ private
       Rec_Disp_Flag    : Types.Boolean;
       Rcode_Flag         : Rcode;
 
-      Q_sequence : rrSequence;
-      A_sequence : rrSequence;
-      Auth_sequence : rrSequence;
-      Add_sequence : rrSequence;
-
       Nb_Questions : Types.Unsigned_Short := 0;
       Nb_Answers : Types.Unsigned_Short;
       Nb_Auth_Servers : Types.Unsigned_Short;

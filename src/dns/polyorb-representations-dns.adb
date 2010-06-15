@@ -128,16 +128,77 @@ package body PolyORB.Representations.DNS is
    -----------------------
    -- Unmarshall_To_Any --
    -----------------------
---     procedure Unmarshall_To_Any
---       (Buffer : access Buffer_Type;
---       )
---     is
---        TC  : constant TypeCode.Object_Ptr :=
---                Unwind_Typedefs (Get_Type_Obj (CData));
---        TCK : constant TCKind := TypeCode.Kind (TC);
---     begin
---
---     end Unmarshall_To_Any;
+   procedure Unmarshall_To_Any
+     (Buffer : Buffer_Access; Arg : Any.Any; Length : Integer;
+      Is_Reply : Types.Boolean)
+   is
+      Request_Type_Code : Types.Unsigned_Short;
+      Request_Class : Types.Unsigned_Short;
+      pragma Unreferenced (Request_Class);
+      current_rr : RR;
+      current_Seq : rrSequence := To_Sequence (Length);
+   begin
+      for J in 1 .. Length loop
+         current_rr.rr_name := Unmarshall_DNS_String (Buffer);
+         Request_Type_Code := Unmarshall (Buffer);
+         case Request_Type_Code is
+            when A_Code =>
+               current_rr.rr_type := A;
+            when PTR_Code =>
+               current_rr.rr_type := PTR;
+            when TXT_Code =>
+               current_rr.rr_type := TXT;
+            when SRV_Code =>
+               current_rr.rr_type := SRV;
+            when others =>
+               --  Should not happen for now
+               raise DNS_Error;
+         end case;
+         Request_Class := Unmarshall (Buffer);
+         if not Is_Reply then
+            return;
+         end if;
+         current_rr.TTL := Unmarshall (Buffer);
+         pragma Debug (C, O ("TTL : " & current_rr.TTL'Img));
+         current_rr.data_length := Unmarshall (Buffer);
+         pragma Debug (C, O ("Data Length : " & current_rr.data_length'Img));
+         --  Part specific to each RR type
+         declare
+            rr_d : RR_Data (current_rr.rr_type);
+         begin
+            pragma Debug (C, O ("enter case"));
+            case current_rr.rr_type is
+               when SRV =>
+                  rr_d.srv_data.priority := Unmarshall (Buffer);
+                  rr_d.srv_data.weight := Unmarshall (Buffer);
+                  rr_d.srv_data.port := Unmarshall (Buffer);
+                  rr_d.srv_data.target :=
+                    Unmarshall_DNS_String (Buffer);
+               when A =>
+                  pragma Debug (C, O ("it is an A"));
+                  rr_d.a_address :=
+                    IDL_AT_Sequence_4_octet
+                      (IDL_SEQUENCE_4_octet.To_Sequence
+                           (IDL_SEQUENCE_4_octet.Element_Array'(
+                            Unmarshall (Buffer),
+                            Unmarshall (Buffer),
+                            Unmarshall (Buffer),
+                            Unmarshall (Buffer))));
+               when others =>
+                  rr_d.rr_answer := Unmarshall_DNS_String (Buffer);
+                  pragma Debug (C, O ("Answer: "
+                  & Types.To_Standard_String (current_rr.rr_data.rr_answer)));
+            end case;
+            current_rr.rr_data := rr_d;
+            pragma Debug (C, O ("before replace element"));
+            Replace_Element (current_Seq, Integer (J), current_rr);
+            pragma Debug (C, O ("after replace element"));
+         end;
+      end loop;
+
+      Copy_Any_Value (Arg, To_Any (current_Seq));
+      pragma Debug (C, O ("After Copy_Any_Value"));
+   end Unmarshall_To_Any;
 
       --  Marshalling of a Boolean
 

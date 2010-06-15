@@ -55,10 +55,9 @@ package PolyORB.Representations.DNS is
      (Buffer : Buffer_Access; Argument : Any.Any;
      Is_Reply : Types.Boolean);
 
---     procedure Unmarshall_To_Any
---       (Buffer : access Buffers.Buffer_Type;
---        CData  : in out Any.Any_Container'Class;
---        Error  : in out Errors.Error_Container);
+   procedure Unmarshall_To_Any
+     (Buffer : Buffer_Access; Arg : Any.Any; Length : Integer;
+      Is_Reply : Types.Boolean);
 
    --  'Boolean' type
    procedure Marshall
