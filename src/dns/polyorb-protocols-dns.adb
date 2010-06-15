@@ -249,7 +249,6 @@ package body PolyORB.Protocols.DNS is
       Release (Header_Buffer);
 
       --  Emit reply
-      Show (Buffer_Out);
       Emit_Message (Sess'Access, Buffer_Out, Error);
       Release (Buffer_Out);
       pragma Debug (C, O ("Reply sent"));
@@ -641,6 +640,8 @@ package body PolyORB.Protocols.DNS is
       Child_POA : PolyORB.POA.Obj_Adapter_Access;
       Servant : Servants.Servant_Access;
       Return_Code : Types.Unsigned_Short;
+      Request_Type_Code : Types.Unsigned_Short;
+      Request_Class : Types.Unsigned_Short;
    begin
       if S.Role /= Server then
          raise DNS_Error;
@@ -650,27 +651,26 @@ package body PolyORB.Protocols.DNS is
       Any.NVList.Create (S.MCtx.New_Args);
 
       for J in 1 .. S.MCtx.Nb_Questions loop
-         S.MCtx.Request_Name :=
+         newRR.rr_name :=
            Unmarshall_DNS_String (S.Buffer_In);
-         S.MCtx.Request_Type_Code := Unmarshall (S.Buffer_In);
-         S.MCtx.Request_Class := Unmarshall (S.Buffer_In);
-         case S.MCtx.Request_Type_Code is
+         Request_Type_Code := Unmarshall (S.Buffer_In);
+         Request_Class := Unmarshall (S.Buffer_In);
+         case Request_Type_Code is
             when A_Code =>
-               S.MCtx.Request_Type := A;
+               newRR.rr_type := A;
             when PTR_Code =>
-               S.MCtx.Request_Type := PTR;
+               newRR.rr_type := PTR;
             when TXT_Code =>
-               S.MCtx.Request_Type := TXT;
+               newRR.rr_type := TXT;
             when SRV_Code =>
-               S.MCtx.Request_Type := SRV;
+               newRR.rr_type := SRV;
             when others =>
                --  should not happen for now
                raise DNS_Error;
          end case;
          --  Assigning the question rrSequence
          Current_Question_Nb := Current_Question_Nb + 1;
-         newRR.rr_name := S.MCtx.Request_Name;
-         newRR.rr_type := S.MCtx.Request_Type;
+
          Replace_Element (Q_sequence,
                           Integer (Current_Question_Nb), newRR);
       end loop;
@@ -1133,13 +1133,11 @@ package body PolyORB.Protocols.DNS is
       Unmarshall_To_Any (Sess.Buffer_In, Arg.Argument,
                          Integer (Sess.MCtx.Nb_Answers), True);
       --  authority rr sequence
-      --  XXX : TODO : Fill the loop to unmashall authority sequence
       Next (It);
       Arg := Value (It);
       Unmarshall_To_Any (Sess.Buffer_In, Arg.Argument,
                            Integer (Sess.MCtx.Nb_Auth_Servers), True);
       --  additionnal info rr sequence
-      --  XXX : TODO : Fill the loop to unmashall add. infos sequence
       Next (It);
       Arg := Value (It);
       Unmarshall_To_Any (Sess.Buffer_In, Arg.Argument,

@@ -124,7 +124,6 @@ package body PolyORB.Representations.DNS is
       pragma Debug (C, O ("Marshall_From_Any: leave"));
    end Marshall_From_Any;
 
-   --  XXX : TODO : Move unmarshalling procedure here
    -----------------------
    -- Unmarshall_To_Any --
    -----------------------
@@ -159,14 +158,11 @@ package body PolyORB.Representations.DNS is
             return;
          end if;
          current_rr.TTL := Unmarshall (Buffer);
-         pragma Debug (C, O ("TTL : " & current_rr.TTL'Img));
          current_rr.data_length := Unmarshall (Buffer);
-         pragma Debug (C, O ("Data Length : " & current_rr.data_length'Img));
          --  Part specific to each RR type
          declare
             rr_d : RR_Data (current_rr.rr_type);
          begin
-            pragma Debug (C, O ("enter case"));
             case current_rr.rr_type is
                when SRV =>
                   rr_d.srv_data.priority := Unmarshall (Buffer);
@@ -175,7 +171,6 @@ package body PolyORB.Representations.DNS is
                   rr_d.srv_data.target :=
                     Unmarshall_DNS_String (Buffer);
                when A =>
-                  pragma Debug (C, O ("it is an A"));
                   rr_d.a_address :=
                     IDL_AT_Sequence_4_octet
                       (IDL_SEQUENCE_4_octet.To_Sequence
@@ -186,13 +181,9 @@ package body PolyORB.Representations.DNS is
                             Unmarshall (Buffer))));
                when others =>
                   rr_d.rr_answer := Unmarshall_DNS_String (Buffer);
-                  pragma Debug (C, O ("Answer: "
-                  & Types.To_Standard_String (current_rr.rr_data.rr_answer)));
             end case;
             current_rr.rr_data := rr_d;
-            pragma Debug (C, O ("before replace element"));
             Replace_Element (current_Seq, Integer (J), current_rr);
-            pragma Debug (C, O ("after replace element"));
          end;
       end loop;
 

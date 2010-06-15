@@ -143,11 +143,6 @@ private
    type DNS_Message_Context is abstract tagged record
       Message_Type : Msg_Type;
       Request_Id   : aliased Types.Unsigned_Long;
-      Request_Name : Types.String;
-      Request_Name_Length : Types.Unsigned_Short;
-      Request_Type : RR_Type;
-      Request_Type_Code : Types.Unsigned_Short;
-      Request_Class : Types.Unsigned_Short;
       Request_Opcode : Types.String;
       --  DNS Header Flags
       QR_Flag           : Types.Boolean;
@@ -163,7 +158,7 @@ private
       Nb_Auth_Servers : Types.Unsigned_Short;
       Nb_Add_Infos : Types.Unsigned_Short;
 
-      --  Arg list used on the server side to create local
+      --  Arg list used on the server side to create local request
       New_Args : Any.NVList.Ref;
    end record;
 
