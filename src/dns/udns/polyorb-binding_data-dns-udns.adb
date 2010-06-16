@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---      P O L Y O R B . B I N D I N G _ D A T A . D N S . M D N S           --
+--      P O L Y O R B . B I N D I N G _ D A T A . D N S . U D N S           --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 with PolyORB.DNS.Transport_Mechanisms;
-with PolyORB.DNS.Transport_Mechanisms.MDNS;
+with PolyORB.DNS.Transport_Mechanisms.UDNS;
 with PolyORB.Initialization;
 with PolyORB.Log;
 with Ada.Streams;
@@ -43,11 +43,11 @@ with PolyORB.Utils;
 with PolyORB.Utils.Strings;
 with PolyORB.Utils.Sockets;
 with PolyORB.ORB;
-with PolyORB.Setup.MDNS;
+with PolyORB.Setup.UDNS;
 
-package body PolyORB.Binding_Data.DNS.MDNS is
+package body PolyORB.Binding_Data.DNS.UDNS is
    use PolyORB.DNS.Transport_Mechanisms;
-   use PolyORB.DNS.Transport_Mechanisms.MDNS;
+   use PolyORB.DNS.Transport_Mechanisms.UDNS;
    use PolyORB.Log;
    use PolyORB.Objects;
    use PolyORB.References.Corbaloc;
@@ -57,13 +57,13 @@ package body PolyORB.Binding_Data.DNS.MDNS is
    use Ada.Streams;
 
    package L is new PolyORB.Log.Facility_Log
-     ("polyorb.binding_data.dns.mdns");
+     ("polyorb.binding_data.dns.udns");
    procedure O (Message : Standard.String; Level : Log_Level := Debug)
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
 
-   MDNS_Corbaloc_Prefix : constant String := "mdns";
+   UDNS_Corbaloc_Prefix : constant String := "udns";
 
    Preference : Profile_Preference;
 
@@ -75,13 +75,13 @@ package body PolyORB.Binding_Data.DNS.MDNS is
    ---------------------
 
    function Get_Profile_Tag
-     (Profile : MDNS_Profile_Type)
+     (Profile : UDNS_Profile_Type)
      return Profile_Tag
    is
       pragma Unreferenced (Profile);
 
    begin
-      return Tag_MDNS;
+      return Tag_UDNS;
    end Get_Profile_Tag;
 
    ----------------------------
@@ -89,7 +89,7 @@ package body PolyORB.Binding_Data.DNS.MDNS is
    ----------------------------
 
    function Get_Profile_Preference
-     (Profile : MDNS_Profile_Type)
+     (Profile : UDNS_Profile_Type)
      return Profile_Preference
    is
       pragma Unreferenced (Profile);
@@ -103,14 +103,14 @@ package body PolyORB.Binding_Data.DNS.MDNS is
    --------------------
 
    procedure Create_Factory
-     (PF  : out MDNS_Profile_Factory;
+     (PF  : out UDNS_Profile_Factory;
       TAP :     Transport.Transport_Access_Point_Access;
       ORB :     Components.Component_Access)
    is
       pragma Unreferenced (ORB);
 
       MF : constant Transport_Mechanism_Factory_Access
-        := new MDNS_Transport_Mechanism_Factory;
+        := new UDNS_Transport_Mechanism_Factory;
 
    begin
       Create_Factory (MF.all, TAP);
@@ -122,20 +122,20 @@ package body PolyORB.Binding_Data.DNS.MDNS is
    --------------------
 
    function Create_Profile
-     (PF  : access MDNS_Profile_Factory;
+     (PF  : access UDNS_Profile_Factory;
       Oid :        Objects.Object_Id)
      return Profile_Access
  is
-      Result : constant Profile_Access := new MDNS_Profile_Type;
+      Result : constant Profile_Access := new UDNS_Profile_Type;
 
-      TResult : MDNS_Profile_Type renames MDNS_Profile_Type (Result.all);
+      TResult : UDNS_Profile_Type renames UDNS_Profile_Type (Result.all);
    begin
       TResult.Object_Id     := new Object_Id'(Oid);
       --  Create transport mechanism
       Append
         (TResult.Mechanisms,
          Create_Transport_Mechanism
-         (MDNS_Transport_Mechanism_Factory
+         (UDNS_Transport_Mechanism_Factory
           (Element (PF.Mechanisms, 0).all.all)));
       return Result;
    end Create_Profile;
@@ -144,10 +144,10 @@ package body PolyORB.Binding_Data.DNS.MDNS is
    -- Duplicate_Profile --
    -----------------------
 
-   function Duplicate_Profile (P : MDNS_Profile_Type) return Profile_Access is
-      Result : constant Profile_Access := new MDNS_Profile_Type;
+   function Duplicate_Profile (P : UDNS_Profile_Type) return Profile_Access is
+      Result : constant Profile_Access := new UDNS_Profile_Type;
 
-      TResult : MDNS_Profile_Type renames MDNS_Profile_Type (Result.all);
+      TResult : UDNS_Profile_Type renames UDNS_Profile_Type (Result.all);
 
    begin
       TResult.Object_Id     := new Object_Id'(P.Object_Id.all);
@@ -156,17 +156,17 @@ package body PolyORB.Binding_Data.DNS.MDNS is
    end Duplicate_Profile;
 
    ---------------------------------
-   -- Marshall_MDNS_Profile_Body --
+   -- Marshall_UDNS_Profile_Body --
    ---------------------------------
 
-   procedure Marshall_MDNS_Profile_Body
+   procedure Marshall_UDNS_Profile_Body
      (Buf     : access Buffer_Type;
       Profile : Profile_Access)
    is
       pragma Unreferenced (Buf);
       Sock : constant Socket_Name := Address_Of
-         (MDNS_Transport_Mechanism
-            (Element (MDNS_Profile_Type (Profile.all).Mechanisms, 0).all.all));
+         (UDNS_Transport_Mechanism
+            (Element (UDNS_Profile_Type (Profile.all).Mechanisms, 0).all.all));
 --        DNS_Profile : DNS_Profile_Type'Class
 --        renames DNS_Profile_Type'Class (Profile.all);
       Profile_Body : Buffer_Access := new Buffer_Type;
@@ -176,29 +176,29 @@ package body PolyORB.Binding_Data.DNS.MDNS is
 --  Marshall (Profile_Body, Stream_Element_Array (DNS_Profile.Object_Id.all));
 --     Marshall (Buffer, Encapsulate (Profile_Body));
       Release (Profile_Body);
-   end Marshall_MDNS_Profile_Body;
+   end Marshall_UDNS_Profile_Body;
 
    -----------------------------------
-   -- Unmarshall_MDNS_Profile_Body --
+   -- Unmarshall_UDNS_Profile_Body --
    -----------------------------------
 
-   function Unmarshall_MDNS_Profile_Body
+   function Unmarshall_UDNS_Profile_Body
      (Buffer : access Buffer_Type) return Profile_Access
    is
       pragma Warnings (Off);
       pragma Unreferenced (Buffer);
-      Result   : Profile_Access := new MDNS_Profile_Type;
+      Result   : Profile_Access := new UDNS_Profile_Type;
       Address : constant Socket_Name := Address_Of
-         (MDNS_Transport_Mechanism
-           (Element (MDNS_Profile_Type (Result.all).Mechanisms, 0).all.all));
+         (UDNS_Transport_Mechanism
+           (Element (UDNS_Profile_Type (Result.all).Mechanisms, 0).all.all));
    begin
-      pragma Debug (C, O ("Unmarshall_MDNS_Profile_body: enter"));
+      pragma Debug (C, O ("Unmarshall_UDNS_Profile_body: enter"));
       --  Create transport mechanism
       Append
-        (MDNS_Profile_Type (Result.all).Mechanisms,
+        (UDNS_Profile_Type (Result.all).Mechanisms,
          Create_Transport_Mechanism (Address));
       return Result;
-   end Unmarshall_MDNS_Profile_Body;
+   end Unmarshall_UDNS_Profile_Body;
 
    -------------------------
    -- Profile_To_Corbaloc --
@@ -208,19 +208,19 @@ package body PolyORB.Binding_Data.DNS.MDNS is
       use PolyORB.Sockets;
       use PolyORB.Utils;
 
-      MDNS_Profile : MDNS_Profile_Type
-      renames MDNS_Profile_Type (P.all);
-      Prefix : constant String := MDNS_Corbaloc_Prefix;
+      UDNS_Profile : UDNS_Profile_Type
+      renames UDNS_Profile_Type (P.all);
+      Prefix : constant String := UDNS_Corbaloc_Prefix;
       Oid_Str : String (1 .. P.Object_Id'Length);
       pragma Import (Ada, Oid_Str);
       for Oid_Str'Address use
         P.Object_Id (P.Object_Id'First)'Address;
    begin
-      pragma Debug (C, O ("MDNS_Profile_To_Corbaloc"));
+      pragma Debug (C, O ("UDNS_Profile_To_Corbaloc"));
       return Prefix & ":@" & Utils.Sockets.Image
           (Address_Of
-           (MDNS_Transport_Mechanism (Element
-            (MDNS_Profile.Mechanisms, 0).all.all)))
+           (UDNS_Transport_Mechanism (Element
+            (UDNS_Profile.Mechanisms, 0).all.all)))
           & "/" & URI_Encode (Oid_Str, Also_Escape => No_Escape);
    end Profile_To_Corbaloc;
 
@@ -231,9 +231,9 @@ package body PolyORB.Binding_Data.DNS.MDNS is
    function Corbaloc_To_Profile (Str : String) return Profile_Access is
       use PolyORB.Utils;
 
-      Profile  : Profile_Access := new MDNS_Profile_Type;
-      TResult : MDNS_Profile_Type
-        renames MDNS_Profile_Type (Profile.all);
+      Profile  : Profile_Access := new UDNS_Profile_Type;
+      TResult : UDNS_Profile_Type
+        renames UDNS_Profile_Type (Profile.all);
 
       Host_First, Host_Last : Natural;
       Port : Sockets.Port_Type;
@@ -245,7 +245,7 @@ package body PolyORB.Binding_Data.DNS.MDNS is
       Index2  : Integer;
 --      Temp_Ref : TC_Group_Info_Access;
    begin
-      pragma Debug (C, O ("MDNS corbaloc to profile: enter"));
+      pragma Debug (C, O ("UDNS corbaloc to profile: enter"));
       Index := Find (S, S'First, '@') + 1;
       --  Index at start of host
 
@@ -311,7 +311,7 @@ package body PolyORB.Binding_Data.DNS.MDNS is
            + Port;
       begin
          Append
-         (MDNS_Profile_Type (Profile.all).Mechanisms,
+         (UDNS_Profile_Type (Profile.all).Mechanisms,
           Create_Transport_Mechanism (Address));
          return Profile;
       end;
@@ -321,12 +321,12 @@ package body PolyORB.Binding_Data.DNS.MDNS is
    -- Image --
    -----------
 
-   function Image (Prof : MDNS_Profile_Type) return String is
+   function Image (Prof : UDNS_Profile_Type) return String is
    begin
       return "Address : "
           & Utils.Sockets.Image
           (Address_Of
-          (MDNS_Transport_Mechanism (Element (Prof.Mechanisms, 0).all.all)))
+          (UDNS_Transport_Mechanism (Element (Prof.Mechanisms, 0).all.all)))
           & ", Object_Id : "
           & PolyORB.Objects.Image (Prof.Object_Id.all);
    end Image;
@@ -336,7 +336,7 @@ package body PolyORB.Binding_Data.DNS.MDNS is
    ------------
 
    function Get_OA
-     (Profile : MDNS_Profile_Type)
+     (Profile : UDNS_Profile_Type)
      return PolyORB.Smart_Pointers.Entity_Ptr
    is
       pragma Unreferenced (Profile);
@@ -355,8 +355,8 @@ package body PolyORB.Binding_Data.DNS.MDNS is
    procedure Initialize is
       Preference_Offset : constant String
         := PolyORB.Parameters.Get_Conf
-        (Section => "mdns",
-         Key     => "polyorb.binding_data.mdns.preference",
+        (Section => "udns",
+         Key     => "polyorb.binding_data.udns.preference",
          Default => "0");
 
    begin
@@ -364,12 +364,12 @@ package body PolyORB.Binding_Data.DNS.MDNS is
       Preference := Preference_Default - 1 + Profile_Preference'Value
         (Preference_Offset);
       Register
-       (Tag_MDNS,
-        Marshall_MDNS_Profile_Body'Access,
-        Unmarshall_MDNS_Profile_Body'Access);
+       (Tag_UDNS,
+        Marshall_UDNS_Profile_Body'Access,
+        Unmarshall_UDNS_Profile_Body'Access);
       Register
-        (Tag_MDNS,
-         MDNS_Corbaloc_Prefix,
+        (Tag_UDNS,
+         UDNS_Corbaloc_Prefix,
          Profile_To_Corbaloc'Access,
          Corbaloc_To_Profile'Access);
    end Initialize;
@@ -381,11 +381,11 @@ package body PolyORB.Binding_Data.DNS.MDNS is
 begin
    Register_Module
      (Module_Info'
-      (Name      => +"binding_data.mdns",
+      (Name      => +"binding_data.udns",
        Conflicts => Empty,
-       Depends   =>  +"protocols.dns.mdns" & "sockets",
+       Depends   =>  +"protocols.dns.udns" & "sockets",
        Provides  => +"binding_factories",
        Implicit  => False,
        Init      => Initialize'Access,
        Shutdown  => null));
-end PolyORB.Binding_Data.DNS.MDNS;
+end PolyORB.Binding_Data.DNS.UDNS;

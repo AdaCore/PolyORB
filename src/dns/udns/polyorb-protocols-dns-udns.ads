@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---          P O L Y O R B . P R O T O C O L S . DNS . MDNS                  --
+--          P O L Y O R B . P R O T O C O L S . DNS . UDNS                  --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
@@ -31,15 +31,15 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-package PolyORB.Protocols.DNS.MDNS is
+package PolyORB.Protocols.DNS.UDNS is
 
-   type MDNS_Protocol is new DNS_Protocol with private;
+   type UDNS_Protocol is new DNS_Protocol with private;
 
    procedure Create
-     (Proto   : access MDNS_Protocol;
+     (Proto   : access UDNS_Protocol;
       Session :    out Filter_Access);
 
 private
-   type MDNS_Protocol is new DNS_Protocol with null record;
+   type UDNS_Protocol is new DNS_Protocol with null record;
 
-end PolyORB.Protocols.DNS.MDNS;
+end PolyORB.Protocols.DNS.UDNS;

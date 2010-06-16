@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                  P O L Y O R B . S E T U P . M D N S                     --
+--         P O L Y O R B . P R O T O C O L S . D N S. U D N S               --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
@@ -31,16 +31,22 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Warnings (Off);
---  No entities referenced.
-
-with PolyORB.Protocols.DNS;
-pragma Warnings (On);
-
 with PolyORB.Initialization;
 with PolyORB.Utils.Strings;
 
-package body PolyORB.Setup.MDNS is
+package body PolyORB.Protocols.DNS.UDNS is
+
+   ------------
+   -- Create --
+   ------------
+
+   procedure Create
+     (Proto   : access UDNS_Protocol;
+      Session :    out Filter_Access) is
+   begin
+      PolyORB.Protocols.DNS.Create (DNS_Protocol (Proto.all)'Access,
+                                     Session);
+   end Create;
 
    ----------------
    -- Initialize --
@@ -49,8 +55,12 @@ package body PolyORB.Setup.MDNS is
    procedure Initialize;
 
    procedure Initialize is
+      F : constant Requests.Flags :=
+        Sync_None or
+        Sync_With_Transport;
+      pragma Unreferenced (F);
    begin
-      null;
+      PolyORB.Protocols.DNS.Initialize;
    end Initialize;
 
    use PolyORB.Initialization;
@@ -60,12 +70,11 @@ package body PolyORB.Setup.MDNS is
 begin
    Register_Module
      (Module_Info'
-      (Name      => +"setup.mdns",
+      (Name      => +"protocols.dns.udns",
        Conflicts => Empty,
-       Depends   => +"protocols.dns"
-       & "smart_pointers",
+       Depends   => +"setup.udns",
        Provides  => Empty,
        Implicit  => False,
        Init      => Initialize'Access,
        Shutdown  => null));
-end PolyORB.Setup.MDNS;
+end PolyORB.Protocols.DNS.UDNS;

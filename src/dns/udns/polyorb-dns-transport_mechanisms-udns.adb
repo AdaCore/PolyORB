@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                POLYORB.DNS.TRANSPORT_MECHANISMS.MDNS                     --
+--                POLYORB.DNS.TRANSPORT_MECHANISMS.UDNS                     --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
@@ -31,25 +31,22 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PolyORB.Binding_Data.DNS.MDNS;
+with PolyORB.Binding_Data.DNS.UDNS;
 with PolyORB.Binding_Objects;
 with PolyORB.ORB;
 --  with PolyORB.Parameters;
-with PolyORB.Protocols.DNS.MDNS;
+with PolyORB.Protocols.DNS.UDNS;
 with PolyORB.Sockets;
 with PolyORB.Transport.Datagram.Sockets_In;
-with PolyORB.Transport.Datagram.Sockets_Out;
 with PolyORB.Filters;
-with Ada.Text_IO;
-package body PolyORB.DNS.Transport_Mechanisms.MDNS is
 
-   use Ada.Text_IO;
+package body PolyORB.DNS.Transport_Mechanisms.UDNS is
+
    use PolyORB.Components;
    use PolyORB.Errors;
 --   use PolyORB.Parameters;
    use PolyORB.Sockets;
    use PolyORB.Transport.Datagram.Sockets_In;
-   use PolyORB.Transport.Datagram.Sockets_Out;
    use PolyORB.Utils.Sockets;
 
    ----------------
@@ -57,7 +54,7 @@ package body PolyORB.DNS.Transport_Mechanisms.MDNS is
    ----------------
 
    function Address_Of
-     (M : MDNS_Transport_Mechanism) return Utils.Sockets.Socket_Name
+     (M : UDNS_Transport_Mechanism) return Utils.Sockets.Socket_Name
    is
    begin
       return M.Address.all;
@@ -69,12 +66,12 @@ package body PolyORB.DNS.Transport_Mechanisms.MDNS is
 
    --  Factories
 
-   Pro : aliased PolyORB.Protocols.DNS.MDNS.MDNS_Protocol;
-   MDNS_Factories : constant PolyORB.Filters.Factory_Array
+   Pro : aliased PolyORB.Protocols.DNS.UDNS.UDNS_Protocol;
+   UDNS_Factories : constant PolyORB.Filters.Factory_Array
      := (0 => Pro'Access);
 
    procedure Bind_Mechanism
-     (Mechanism : MDNS_Transport_Mechanism;
+     (Mechanism : UDNS_Transport_Mechanism;
       Profile   : access PolyORB.Binding_Data.Profile_Type'Class;
       The_ORB   : Components.Component_Access;
       QoS       : PolyORB.QoS.QoS_Parameters;
@@ -87,6 +84,7 @@ package body PolyORB.DNS.Transport_Mechanisms.MDNS is
       use PolyORB.Binding_Objects;
 
       Sock        : Socket_Type;
+      Addr        : Sock_Addr_Type;
 --        TTL         : constant Natural :=
 --                        Natural (Get_Conf ("dns", "polyorb.dns.ttl",
 --                                           Default_TTL));
@@ -95,7 +93,7 @@ package body PolyORB.DNS.Transport_Mechanisms.MDNS is
 
    begin
       if Profile.all
-        not in PolyORB.Binding_Data.DNS.MDNS.MDNS_Profile_Type then
+        not in PolyORB.Binding_Data.DNS.UDNS.UDNS_Profile_Type then
          Throw (Error, Comm_Failure_E,
                 System_Exception_Members'
                 (Minor => 0, Completed => Completed_Maybe));
@@ -106,22 +104,19 @@ package body PolyORB.DNS.Transport_Mechanisms.MDNS is
                      Family => Family_Inet,
                      Mode   => Socket_Datagram);
 
---        Set_Socket_Option
---          (Sock,
---           Socket_Level, (Reuse_Address, True));
---
---        Set_Socket_Option
---          (Sock,
---           IP_Protocol_For_IP_Level, (Multicast_TTL, TTL));
+      Set_Socket_Option
+        (Sock,
+         Socket_Level, (Reuse_Address, True));
 
-      TE := new Socket_Out_Endpoint;
-
-      Create (Socket_Out_Endpoint (TE.all), Sock, Mechanism.Address.all);
-      Put_Line ("Registering ENDPOINT");
+      TE := new Socket_In_Endpoint;
+      Addr.Addr := Inet_Addr (Mechanism.Address.all.Host_Name);
+      Addr.Port := Mechanism.Address.all.Port;
+      PolyORB.Transport.Datagram.Sockets_In.Create
+        (Socket_In_Endpoint (TE.all), Sock, Addr);
       Binding_Objects.Setup_Binding_Object
         (The_ORB,
          TE,
-         MDNS_Factories,
+         UDNS_Factories,
          BO_Ref,
          Profile_Access (Profile));
 
@@ -141,7 +136,7 @@ package body PolyORB.DNS.Transport_Mechanisms.MDNS is
    --------------------
 
    procedure Create_Factory
-     (MF  : out MDNS_Transport_Mechanism_Factory;
+     (MF  : out UDNS_Transport_Mechanism_Factory;
       TAP :     Transport.Transport_Access_Point_Access)
    is
    begin
@@ -154,13 +149,13 @@ package body PolyORB.DNS.Transport_Mechanisms.MDNS is
    --------------------------------
 
    function Create_Transport_Mechanism
-     (MF : MDNS_Transport_Mechanism_Factory)
+     (MF : UDNS_Transport_Mechanism_Factory)
       return Transport_Mechanism_Access
    is
       Result  : constant Transport_Mechanism_Access
-        := new MDNS_Transport_Mechanism;
-      TResult : MDNS_Transport_Mechanism
-        renames MDNS_Transport_Mechanism (Result.all);
+        := new UDNS_Transport_Mechanism;
+      TResult : UDNS_Transport_Mechanism
+        renames UDNS_Transport_Mechanism (Result.all);
 
    begin
       TResult.Address := new Socket_Name'(MF.Address.all);
@@ -172,9 +167,9 @@ package body PolyORB.DNS.Transport_Mechanisms.MDNS is
       return Transport_Mechanism_Access
    is
       Result  : constant Transport_Mechanism_Access
-        := new MDNS_Transport_Mechanism;
-      TResult : MDNS_Transport_Mechanism
-        renames MDNS_Transport_Mechanism (Result.all);
+        := new UDNS_Transport_Mechanism;
+      TResult : UDNS_Transport_Mechanism
+        renames UDNS_Transport_Mechanism (Result.all);
 
    begin
       TResult.Address := new Socket_Name'(Address);
@@ -186,20 +181,20 @@ package body PolyORB.DNS.Transport_Mechanisms.MDNS is
    ------------------------
 
    function Is_Local_Mechanism
-     (MF : access MDNS_Transport_Mechanism_Factory;
+     (MF : access UDNS_Transport_Mechanism_Factory;
       M  : access Transport_Mechanism'Class)
       return Boolean is
    begin
-      return M.all in MDNS_Transport_Mechanism
+      return M.all in UDNS_Transport_Mechanism
                and then
-             MDNS_Transport_Mechanism (M.all).Address.all = MF.Address.all;
+             UDNS_Transport_Mechanism (M.all).Address.all = MF.Address.all;
    end Is_Local_Mechanism;
 
    ----------------------
    -- Release_Contents --
    ----------------------
 
-   procedure Release_Contents (M : access MDNS_Transport_Mechanism) is
+   procedure Release_Contents (M : access UDNS_Transport_Mechanism) is
    begin
       Free (M.Address);
    end Release_Contents;
@@ -209,11 +204,11 @@ package body PolyORB.DNS.Transport_Mechanisms.MDNS is
    ---------------
 
    function Duplicate
-     (TMA : MDNS_Transport_Mechanism)
-     return MDNS_Transport_Mechanism
+     (TMA : UDNS_Transport_Mechanism)
+     return UDNS_Transport_Mechanism
    is
    begin
-      return MDNS_Transport_Mechanism'
+      return UDNS_Transport_Mechanism'
                (Address => new Socket_Name'(TMA.Address.all));
    end Duplicate;
 
@@ -222,12 +217,12 @@ package body PolyORB.DNS.Transport_Mechanisms.MDNS is
    ------------------
 
    function Is_Colocated
-     (Left  : MDNS_Transport_Mechanism;
+     (Left  : UDNS_Transport_Mechanism;
       Right : Transport_Mechanism'Class) return Boolean
    is
    begin
-      return Right in MDNS_Transport_Mechanism
-        and then Left.Address = MDNS_Transport_Mechanism (Right).Address;
+      return Right in UDNS_Transport_Mechanism
+        and then Left.Address = UDNS_Transport_Mechanism (Right).Address;
    end Is_Colocated;
 
-end PolyORB.DNS.Transport_Mechanisms.MDNS;
+end PolyORB.DNS.Transport_Mechanisms.UDNS;

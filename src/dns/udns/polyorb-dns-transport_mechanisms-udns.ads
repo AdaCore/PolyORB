@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---    P O L Y O R B . S E T U P . A C C E S S _ P O I N T S . M D N S       --
+--                POLYORB.DNS.TRANSPORT_MECHANISMS.UDNS                     --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2010, Free Software Foundation, Inc.               --
+--         Copyright (C) 2005-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,10 +31,70 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Setup socket for MDNS
+with PolyORB.Utils.Sockets;
 
-package PolyORB.Setup.Access_Points.MDNS is
+package PolyORB.DNS.Transport_Mechanisms.UDNS is
 
-   pragma Elaborate_Body;
+   type UDNS_Transport_Mechanism is new Transport_Mechanism with private;
 
-end PolyORB.Setup.Access_Points.MDNS;
+   procedure Bind_Mechanism
+     (Mechanism : UDNS_Transport_Mechanism;
+      Profile   : access PolyORB.Binding_Data.Profile_Type'Class;
+      The_ORB   : Components.Component_Access;
+      QoS       : PolyORB.QoS.QoS_Parameters;
+      BO_Ref    : out Smart_Pointers.Ref;
+      Error     : out Errors.Error_Container);
+
+   procedure Release_Contents (M : access UDNS_Transport_Mechanism);
+
+   --  UDNS Transport Mechanism specific subprograms
+
+   function Address_Of
+     (M : UDNS_Transport_Mechanism)
+      return Utils.Sockets.Socket_Name;
+   --  Return address of transport mechanism's transport access point.
+
+   type UDNS_Transport_Mechanism_Factory is
+     new Transport_Mechanism_Factory with private;
+
+   procedure Create_Factory
+     (MF  : out UDNS_Transport_Mechanism_Factory;
+      TAP :     Transport.Transport_Access_Point_Access);
+
+   function Is_Local_Mechanism
+     (MF : access UDNS_Transport_Mechanism_Factory;
+      M  : access Transport_Mechanism'Class) return Boolean;
+
+   --  UDNS Transport Mechanism Factory specific subprograms
+
+   function Create_Transport_Mechanism
+     (MF : UDNS_Transport_Mechanism_Factory)
+      return Transport_Mechanism_Access;
+   --  Create transport mechanism
+
+   function Create_Transport_Mechanism
+     (Address : Utils.Sockets.Socket_Name)
+      return Transport_Mechanism_Access;
+   --  Create transport mechanism for specified transport access point address
+
+   function Duplicate
+     (TMA : UDNS_Transport_Mechanism)
+     return UDNS_Transport_Mechanism;
+
+   function Is_Colocated
+     (Left  : UDNS_Transport_Mechanism;
+      Right : Transport_Mechanism'Class) return Boolean;
+
+private
+
+   type UDNS_Transport_Mechanism is new Transport_Mechanism with record
+      Address : Utils.Sockets.Socket_Name_Ptr;
+   end record;
+
+   type UDNS_Transport_Mechanism_Factory is
+     new Transport_Mechanism_Factory with
+   record
+      Address : Utils.Sockets.Socket_Name_Ptr;
+   end record;
+
+end PolyORB.DNS.Transport_Mechanisms.UDNS;

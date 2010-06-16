@@ -2,9 +2,9 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---         P O L Y O R B . P R O T O C O L S . D N S. M D N S               --
+--                    P O L Y O R B . S E T U P . U D N S                   --
 --                                                                          --
---                                 B o d y                                  --
+--                                 S p e c                                  --
 --                                                                          --
 --         Copyright (C) 2010, Free Software Foundation, Inc.               --
 --                                                                          --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
--- Floor, Boston, MA 02111-1301, USA.                                       --
+-- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
+-- Boston, MA 02111-1307, USA.                                              --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,55 +26,13 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                  PolyORB is maintained by AdaCore                        --
---                     (email: sales@adacore.com)                           --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PolyORB.Initialization;
-with PolyORB.Utils.Strings;
+package PolyORB.Setup.UDNS is
 
-package body PolyORB.Protocols.DNS.MDNS is
+   pragma Elaborate_Body;
 
-   ------------
-   -- Create --
-   ------------
-
-   procedure Create
-     (Proto   : access MDNS_Protocol;
-      Session :    out Filter_Access) is
-   begin
-      PolyORB.Protocols.DNS.Create (DNS_Protocol (Proto.all)'Access,
-                                     Session);
-   end Create;
-
-   ----------------
-   -- Initialize --
-   ----------------
-
-   procedure Initialize;
-
-   procedure Initialize is
-      F : constant Requests.Flags :=
-        Sync_None or
-        Sync_With_Transport;
-      pragma Unreferenced (F);
-   begin
-      PolyORB.Protocols.DNS.Initialize;
-   end Initialize;
-
-   use PolyORB.Initialization;
-   use PolyORB.Initialization.String_Lists;
-   use PolyORB.Utils.Strings;
-
-begin
-   Register_Module
-     (Module_Info'
-      (Name      => +"protocols.dns.mdns",
-       Conflicts => Empty,
-       Depends   => +"setup.mdns",
-       Provides  => Empty,
-       Implicit  => False,
-       Init      => Initialize'Access,
-       Shutdown  => null));
-end PolyORB.Protocols.DNS.MDNS;
+end PolyORB.Setup.UDNS;

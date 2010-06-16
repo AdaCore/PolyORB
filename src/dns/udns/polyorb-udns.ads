@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                    P O L Y O R B . S E T U P . M D N S                   --
+--                       P O L Y O R B . U D N S                            --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
@@ -31,8 +31,11 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-package PolyORB.Setup.MDNS is
+--  The root of all PolyORB packages that are specific to the
+--  UDNS personality.
 
-   pragma Elaborate_Body;
+package PolyORB.UDNS is
 
-end PolyORB.Setup.MDNS;
+   pragma Pure;
+
+end PolyORB.UDNS;

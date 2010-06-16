@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                POLYORB.DNS.TRANSPORT_MECHANISMS.MDNS                     --
+--      P O L Y O R B . B I N D I N G _ D A T A . D N S . U D N S           --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2005-2010, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,70 +31,56 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PolyORB.Utils.Sockets;
+with PolyORB.Buffers;
+--  with PolyORB.Types;
 
-package PolyORB.DNS.Transport_Mechanisms.MDNS is
+package PolyORB.Binding_Data.DNS.UDNS is
 
-   type MDNS_Transport_Mechanism is new Transport_Mechanism with private;
+   use PolyORB.Buffers;
+   DNS_Error : exception;
 
-   procedure Bind_Mechanism
-     (Mechanism : MDNS_Transport_Mechanism;
-      Profile   : access PolyORB.Binding_Data.Profile_Type'Class;
-      The_ORB   : Components.Component_Access;
-      QoS       : PolyORB.QoS.QoS_Parameters;
-      BO_Ref    : out Smart_Pointers.Ref;
-      Error     : out Errors.Error_Container);
+   type UDNS_Profile_Type is new DNS_Profile_Type with private;
+   type UDNS_Profile_Factory is new DNS_Profile_Factory with private;
 
-   procedure Release_Contents (M : access MDNS_Transport_Mechanism);
+   function Create_Profile
+     (PF  : access UDNS_Profile_Factory;
+      Oid :        Objects.Object_Id)
+     return Profile_Access;
 
-   --  MDNS Transport Mechanism specific subprograms
+   function Duplicate_Profile
+     (P : UDNS_Profile_Type)
+     return Profile_Access;
 
-   function Address_Of
-     (M : MDNS_Transport_Mechanism)
-      return Utils.Sockets.Socket_Name;
-   --  Return address of transport mechanism's transport access point.
+   function Get_Profile_Tag (Profile : UDNS_Profile_Type) return Profile_Tag;
+   pragma Inline (Get_Profile_Tag);
 
-   type MDNS_Transport_Mechanism_Factory is
-     new Transport_Mechanism_Factory with private;
+   function Get_Profile_Preference
+     (Profile : UDNS_Profile_Type)
+     return Profile_Preference;
+   pragma Inline (Get_Profile_Preference);
 
    procedure Create_Factory
-     (MF  : out MDNS_Transport_Mechanism_Factory;
-      TAP :     Transport.Transport_Access_Point_Access);
+     (PF  : out UDNS_Profile_Factory;
+      TAP :     Transport.Transport_Access_Point_Access;
+      ORB :     Components.Component_Access);
 
-   function Is_Local_Mechanism
-     (MF : access MDNS_Transport_Mechanism_Factory;
-      M  : access Transport_Mechanism'Class) return Boolean;
+   procedure Marshall_UDNS_Profile_Body
+     (Buf     : access Buffer_Type;
+      Profile :        Profile_Access);
 
-   --  MDNS Transport Mechanism Factory specific subprograms
+   function Unmarshall_UDNS_Profile_Body
+     (Buffer   : access Buffer_Type)
+    return  Profile_Access;
 
-   function Create_Transport_Mechanism
-     (MF : MDNS_Transport_Mechanism_Factory)
-      return Transport_Mechanism_Access;
-   --  Create transport mechanism
+   function Image (Prof : UDNS_Profile_Type) return String;
 
-   function Create_Transport_Mechanism
-     (Address : Utils.Sockets.Socket_Name)
-      return Transport_Mechanism_Access;
-   --  Create transport mechanism for specified transport access point address
-
-   function Duplicate
-     (TMA : MDNS_Transport_Mechanism)
-     return MDNS_Transport_Mechanism;
-
-   function Is_Colocated
-     (Left  : MDNS_Transport_Mechanism;
-      Right : Transport_Mechanism'Class) return Boolean;
+   function Get_OA
+     (Profile : UDNS_Profile_Type)
+     return PolyORB.Smart_Pointers.Entity_Ptr;
+   pragma Inline (Get_OA);
 
 private
+   type UDNS_Profile_Type is new DNS_Profile_Type with null record;
+   type UDNS_Profile_Factory is new DNS_Profile_Factory with null record;
 
-   type MDNS_Transport_Mechanism is new Transport_Mechanism with record
-      Address : Utils.Sockets.Socket_Name_Ptr;
-   end record;
-
-   type MDNS_Transport_Mechanism_Factory is
-     new Transport_Mechanism_Factory with
-   record
-      Address : Utils.Sockets.Socket_Name_Ptr;
-   end record;
-
-end PolyORB.DNS.Transport_Mechanisms.MDNS;
+end PolyORB.Binding_Data.DNS.UDNS;

@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---    P O L Y O R B . S E T U P . A C C E S S _ P O I N T S . M D N S       --
+--    P O L Y O R B . S E T U P . A C C E S S _ P O I N T S . U D N S       --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
@@ -31,9 +31,9 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Setup socket for MDNS
+--  Setup socket for UDNS
 
-with PolyORB.Binding_Data.DNS.MDNS;
+with PolyORB.Binding_Data.DNS.UDNS;
 with PolyORB.Filters;
 
 with PolyORB.Initialization;
@@ -41,13 +41,13 @@ with PolyORB.Utils.Socket_Access_Points;
 with PolyORB.ORB;
 with PolyORB.Parameters;
 with PolyORB.Protocols;
-with PolyORB.Protocols.DNS.MDNS;
+with PolyORB.Protocols.DNS.UDNS;
 with PolyORB.Sockets;
 with PolyORB.Transport.Datagram.Sockets_In;
 with PolyORB.Utils.Strings;
 with PolyORB.Utils.UDP_Access_Points;
 
-package body PolyORB.Setup.Access_Points.MDNS is
+package body PolyORB.Setup.Access_Points.UDNS is
 
    use PolyORB.Filters;
    use PolyORB.ORB;
@@ -55,15 +55,15 @@ package body PolyORB.Setup.Access_Points.MDNS is
    use PolyORB.Transport.Datagram.Sockets_In;
    use PolyORB.Utils.UDP_Access_Points;
    use PolyORB.Utils.Socket_Access_Points;
-   MDNS_Access_Point : UDP_Access_Point_Info
+   UDNS_Access_Point : UDP_Access_Point_Info
      := (Socket        => No_Socket,
          Address       => No_Sock_Addr,
          SAP           => new Socket_In_Access_Point,
          PF            =>
-           new PolyORB.Binding_Data.DNS.MDNS.MDNS_Profile_Factory);
+           new PolyORB.Binding_Data.DNS.UDNS.UDNS_Profile_Factory);
 
-   Pro : aliased Protocols.DNS.MDNS.MDNS_Protocol;
-   MDNS_Factories : aliased Filters.Factory_Array
+   Pro : aliased Protocols.DNS.UDNS.UDNS_Protocol;
+   UDNS_Factories : aliased Filters.Factory_Array
      := (0 => Pro'Access);
 
    ------------------------------
@@ -77,32 +77,32 @@ package body PolyORB.Setup.Access_Points.MDNS is
       use PolyORB.Parameters;
 
 --        Addr : constant String :=
---                 Get_Conf ("mdns", "polyorb.mdns.multicast_addr", "");
+--                 Get_Conf ("udns", "polyorb.udns.multicast_addr", "");
 --        Port : constant Port_Type :=
---         Port_Type (Get_Conf ("mdns", "polyorb.mdns.multicast_port", 0));
+--         Port_Type (Get_Conf ("udns", "polyorb.udns.multicast_port", 0));
       Addr : constant Inet_Addr_Type :=
         Inet_Addr (String'(
-          Get_Conf ("mdns",
-                       "polyorb.mdns.unicast_addr", Image (No_Inet_Addr))));
+          Get_Conf ("udns",
+                       "polyorb.udns.unicast_addr", Image (No_Inet_Addr))));
 --        Port : constant Port_Type :=
---          Port_Type (Get_Conf ("mdns", "polyorb.mdns.unicast_port", 0));
+--          Port_Type (Get_Conf ("udns", "polyorb.udns.unicast_port", 0));
       Port_Hint : constant Port_Interval := To_Port_Interval
                           (Get_Conf
-                           ("mdns",
-                            "polyorb.mdns.unicast_port",
+                           ("udns",
+                            "polyorb.udns.unicast_port",
                             (Integer (Any_Port), Integer (Any_Port))));
 
    begin
 
-      if Get_Conf ("access_points", "mdns", True) then
+      if Get_Conf ("access_points", "udns", True) then
 --           Initialize_Multicast_Socket
---             (MDNS_Access_Point, Inet_Addr (Addr), Port);
-         Initialize_Unicast_Socket (MDNS_Access_Point, Port_Hint, Addr);
+--             (UDNS_Access_Point, Inet_Addr (Addr), Port);
+         Initialize_Unicast_Socket (UDNS_Access_Point, Port_Hint, Addr);
          Register_Access_Point
            (ORB   => The_ORB,
-            TAP   => MDNS_Access_Point.SAP,
-            Chain => MDNS_Factories'Access,
-            PF    => MDNS_Access_Point.PF);
+            TAP   => UDNS_Access_Point.SAP,
+            Chain => UDNS_Factories'Access,
+            PF    => UDNS_Access_Point.PF);
       end if;
    end Initialize_Access_Points;
 
@@ -113,11 +113,11 @@ package body PolyORB.Setup.Access_Points.MDNS is
 begin
    Register_Module
      (Module_Info'
-      (Name      => +"access_points.mdns",
+      (Name      => +"access_points.udns",
        Conflicts => String_Lists.Empty,
        Depends   => +"orb" & "sockets",
        Provides  => String_Lists.Empty,
        Implicit  => False,
        Init      => Initialize_Access_Points'Access,
        Shutdown  => null));
-end PolyORB.Setup.Access_Points.MDNS;
+end PolyORB.Setup.Access_Points.UDNS;

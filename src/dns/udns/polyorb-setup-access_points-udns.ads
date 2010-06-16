@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---      P O L Y O R B . B I N D I N G _ D A T A . D N S . M D N S           --
+--    P O L Y O R B . S E T U P . A C C E S S _ P O I N T S . U D N S       --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2003-2010, Free Software Foundation, Inc.          --
+--         Copyright (C) 2010, Free Software Foundation, Inc.               --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,56 +31,10 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PolyORB.Buffers;
---  with PolyORB.Types;
+--  Setup socket for UDNS
 
-package PolyORB.Binding_Data.DNS.MDNS is
+package PolyORB.Setup.Access_Points.UDNS is
 
-   use PolyORB.Buffers;
-   DNS_Error : exception;
+   pragma Elaborate_Body;
 
-   type MDNS_Profile_Type is new DNS_Profile_Type with private;
-   type MDNS_Profile_Factory is new DNS_Profile_Factory with private;
-
-   function Create_Profile
-     (PF  : access MDNS_Profile_Factory;
-      Oid :        Objects.Object_Id)
-     return Profile_Access;
-
-   function Duplicate_Profile
-     (P : MDNS_Profile_Type)
-     return Profile_Access;
-
-   function Get_Profile_Tag (Profile : MDNS_Profile_Type) return Profile_Tag;
-   pragma Inline (Get_Profile_Tag);
-
-   function Get_Profile_Preference
-     (Profile : MDNS_Profile_Type)
-     return Profile_Preference;
-   pragma Inline (Get_Profile_Preference);
-
-   procedure Create_Factory
-     (PF  : out MDNS_Profile_Factory;
-      TAP :     Transport.Transport_Access_Point_Access;
-      ORB :     Components.Component_Access);
-
-   procedure Marshall_MDNS_Profile_Body
-     (Buf     : access Buffer_Type;
-      Profile :        Profile_Access);
-
-   function Unmarshall_MDNS_Profile_Body
-     (Buffer   : access Buffer_Type)
-    return  Profile_Access;
-
-   function Image (Prof : MDNS_Profile_Type) return String;
-
-   function Get_OA
-     (Profile : MDNS_Profile_Type)
-     return PolyORB.Smart_Pointers.Entity_Ptr;
-   pragma Inline (Get_OA);
-
-private
-   type MDNS_Profile_Type is new DNS_Profile_Type with null record;
-   type MDNS_Profile_Factory is new DNS_Profile_Factory with null record;
-
-end PolyORB.Binding_Data.DNS.MDNS;
+end PolyORB.Setup.Access_Points.UDNS;
