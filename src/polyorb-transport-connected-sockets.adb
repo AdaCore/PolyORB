@@ -374,13 +374,13 @@ package body PolyORB.Transport.Connected.Sockets is
             Close_Socket (TE.Socket);
             TE.Socket := No_Socket;
          end if;
-         Leave (TE.Mutex);
       exception
          when E : others =>
             pragma Debug (C, O ("Close (Socket_Endpoint): got "
                              & Ada.Exceptions.Exception_Information (E)));
             null;
       end;
+      Leave (TE.Mutex);
    end Close;
 
    -------------
