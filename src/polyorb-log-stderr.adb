@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -39,6 +39,18 @@ with PolyORB.Utils.Strings;
 
 package body PolyORB.Log.Stderr is
 
+   Failed_Message      : constant String :=
+     "polyorb.log.stderr: write operation is failed" & ASCII.LF;
+   Interrupted_Message : constant String :=
+     "polyorb.log.stderr: write operation is interrupted" & ASCII.LF;
+
+   type Write_Status is (Success, Interrupted, Failed);
+
+   function Write (S : String) return Write_Status;
+   --  Outputs string to standard error. Output operation can be interrupted
+   --  by signal, implementation is trying to complete output in this case
+   --  and returns Interrupted status.
+
    --------------
    -- Put_Line --
    --------------
@@ -46,18 +58,67 @@ package body PolyORB.Log.Stderr is
    procedure Put_Line (S : String);
 
    procedure Put_Line (S : String) is
-      SS : aliased String := S & ASCII.LF;
-
-      procedure C_Write
-        (Fd  : Interfaces.C.int;
-         P   : System.Address;
-         Len : Interfaces.C.int);
-      pragma Import (C, C_Write, "write");
+      SS : aliased constant String := S & ASCII.LF;
+      X  : Write_Status;
+      pragma Unreferenced (X);
 
    begin
-      C_Write (2, SS (SS'First)'Address, SS'Length);
-      --  2 is standard error
+      case Write (SS) is
+         when Success =>
+            null;
+
+         when Interrupted =>
+            X := Write (Interrupted_Message);
+
+         when Failed =>
+            X := Write (Failed_Message);
+      end case;
    end Put_Line;
+
+   -----------
+   -- Write --
+   -----------
+
+   function Write (S : String) return Write_Status is
+
+      use type Interfaces.C.int;
+      use type Interfaces.C.size_t;
+
+      function C_Write
+        (Fd  : Interfaces.C.int;
+         P   : System.Address;
+         Len : Interfaces.C.int) return Interfaces.C.size_t;
+      pragma Import (C, C_Write, "write");
+
+      P : Natural          := 0;
+      C : Interfaces.C.int := 0;
+      R : Interfaces.C.size_t;
+
+   begin
+      loop
+         R := C_Write (2, S (S'First + Integer (C))'Address, S'Length - C);
+         P := P + 1;
+
+         if R = -1 then
+            --  Operation was failed.
+
+            return Failed;
+         end if;
+
+         C := C + Interfaces.C.int (R);
+
+         if C = S'Length then
+            --  Output is completed.
+
+            if P = 1 then
+               return Success;
+
+            else
+               return Interrupted;
+            end if;
+         end if;
+      end loop;
+   end Write;
 
    ----------------
    -- Initialize --
