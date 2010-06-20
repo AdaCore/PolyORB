@@ -6293,7 +6293,7 @@ The OMG defines a CORBA-compliant ORB as an implementation of the CORBA
 specifications that supports CORBA Core and one mapping of CORBA's IDL.
 
 Here is a summary of PolyORB's conformance issues with the latest CORBA
-specifications (revision 3.0, formal/02-06-01)
+specifications (revision 3.0, formal/02-06-01).
 
 @menu
 * CORBA IDL-to-Ada mapping::
@@ -6397,7 +6397,7 @@ PolyORB supports this chapter with the following limitations:
 calls may not work;
 @item @code{Wait_For_Completion} and @code{Etherealize_Objects} are
 not taken into account in @code{PortableServer.POAManager};
-@item @code{PortableServer.POAManagerFactory} API is not implemented.
+@item the @code{PortableServer.POAManagerFactory} API is not implemented.
 @end itemize
 
 @end itemize
@@ -6474,7 +6474,7 @@ PolyORB provides no support for these chapters.
 @noindent
 COS Services are specifications of high level services that are
 optional extensions to the CORBA specification. They provide helper
-packages to build distributed applications.  PolyORB implement the
+packages to build distributed applications.  PolyORB implements the
 following COS Services:
 
 @c XXX should indicate version for each COS
@@ -6514,7 +6514,7 @@ on this point.
 
 @noindent
 RT-CORBA specifications rely on the CORBA application
-personality; the same issues and implementations notes apply.
+personality; the same issues and implementation notes apply.
 
 In addition, here is a list of issues with the implementation of
 RT-CORBA static @cite{[OMG02a]} and dynamic scheduling @cite{[OMG03]}
