@@ -40,16 +40,16 @@ with PolyORB.Utils.Strings;
 package body PolyORB.Log.Stderr is
 
    Failed_Message      : constant String :=
-     "polyorb.log.stderr: write operation is failed" & ASCII.LF;
+                           "polyorb.log.stderr: write failed" & ASCII.LF;
    Interrupted_Message : constant String :=
-     "polyorb.log.stderr: write operation is interrupted" & ASCII.LF;
+                           "polyorb.log.stderr: write interrupted" & ASCII.LF;
 
    type Write_Status is (Success, Interrupted, Failed);
 
    function Write (S : String) return Write_Status;
    --  Outputs string to standard error. Output operation can be interrupted
-   --  by signal, implementation is trying to complete output in this case
-   --  and returns Interrupted status.
+   --  by a signal, in which case we try to complete output and return
+   --  Interrupted status.
 
    --------------
    -- Put_Line --
@@ -80,7 +80,6 @@ package body PolyORB.Log.Stderr is
    -----------
 
    function Write (S : String) return Write_Status is
-
       use type Interfaces.C.int;
       use type Interfaces.C.size_t;
 
@@ -89,10 +88,14 @@ package body PolyORB.Log.Stderr is
          P   : System.Address;
          Len : Interfaces.C.int) return Interfaces.C.size_t;
       pragma Import (C, C_Write, "write");
+      --  write(2) system call
 
       P : Natural          := 0;
       C : Interfaces.C.int := 0;
       R : Interfaces.C.size_t;
+      --  Comments needed???
+
+   --  Start of processing for Write
 
    begin
       loop
@@ -108,7 +111,7 @@ package body PolyORB.Log.Stderr is
          C := C + Interfaces.C.int (R);
 
          if C = S'Length then
-            --  Output is completed.
+            --  Output complete
 
             if P = 1 then
                return Success;
