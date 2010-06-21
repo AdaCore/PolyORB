@@ -194,14 +194,14 @@ package XE_Units is
 
       Tasking : Tasking_Type;
       --  Indicator of whether the unit (or the collocated units it
-      --  depends on) drags tasking.
+      --  depends on) drags in tasking.
       --  Notation:
       --     Unknown_Tasking : tasking has not been established
       --     PCS_Tasking     : tasking is required because of PCS code
       --     User_Tasking    : tasking is required because of user code
       --     No_Tasking      : tasking is not required for this unit
       --  Note that PCS_Tasking is a stronger property than User_Tasking
-      --  as this has also an impact on the termination policy.
+      --  as this also has an impact on the termination policy.
 
       Stamp_Checked : Boolean;
       --  Set true when ALI file time stamp has been checked (reset
