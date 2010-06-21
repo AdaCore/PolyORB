@@ -317,7 +317,9 @@ package body XE_Back.PolyORB is
          Write_With_Clause (RU (RU_PolyORB_Setup_Tasking_Full_Tasking));
 
          if Current.Tasking = User_Tasking then
-            Write_With_Clause (RU (RU_PolyORB_ORB_No_Tasking));
+            Write_With_Clause
+              (RU (RU_PolyORB_ORB) and
+                 ORB_Tasking_Policy_Img (Thread_Pool));
             Write_With_Clause (RU (RU_PolyORB_Binding_Data_GIOP_IIOP));
 
          else
