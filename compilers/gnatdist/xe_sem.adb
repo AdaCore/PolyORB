@@ -691,12 +691,10 @@ package body XE_Sem is
    begin
       for J in ALIs.Table (ALI).First_Unit .. ALIs.Table (ALI).Last_Unit loop
 
-         --  No need to investigate further when the unit is a RCI
-         --  unit or has RACW objects.
+         --  No need to investigate further when the unit is a RCI unit or has
+         --  RACW objects.
 
-         if Units.Table (J).RCI
-           or else Units.Table (J).Has_RACW
-         then
+         if Units.Table (J).RCI or else Units.Table (J).Has_RACW then
             T := PCS_Tasking;
             exit;
          end if;
