@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1996-2006 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- GARLIC is free software;  you can redistribute it and/or modify it under --
 -- terms of the  GNU General Public License  as published by the Free Soft- --
@@ -83,8 +83,8 @@ package body System.Garlic.Termination is
    --  A new stamp value is assigned to each termination detection wave.
 
    function ">" (S1, S2 : Stamp_Type) return Boolean;
-   --  Compare two stamps. S1 > S2 means that S1 is very likely to have been
-   --  issued prior to S2.
+   --  Compare two stamps. S1 > S2 means that S2 is very likely to have been
+   --  issued prior to S1.
 
    Time_Between_Checks : constant Duration := 1.0;
    Time_To_Synchronize : constant Duration := 5.0;
