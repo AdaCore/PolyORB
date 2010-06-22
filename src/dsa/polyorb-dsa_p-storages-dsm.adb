@@ -211,8 +211,7 @@ package body PolyORB.DSA_P.Storages.DSM is
 
    function Create
      (Manager_Factory : access DSM_Manager;
-      Full_Name       : String)
-      return Shared_Data_Manager_RACW
+      Full_Name       : String) return Shared_Data_Manager_RACW
    is
       use Copy_Set_Tables;
       Manager    : DSM_Manager_Access;
@@ -242,6 +241,7 @@ package body PolyORB.DSA_P.Storages.DSM is
 
          Manager.Status     := Write;
          Manager.Prob_Owner := DSM_Manager_RACW (Manager);
+
       else
          pragma Debug (C, O ("Retrieve initial owner of variable "
                              & Full_Name & " from name server"));
