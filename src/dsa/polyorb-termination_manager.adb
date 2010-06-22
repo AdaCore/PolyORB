@@ -345,8 +345,9 @@ package body PolyORB.Termination_Manager is
    -- Is_Terminated --
    -------------------
 
-   function Is_Terminated (TM : access Term_Manager; Stamp : Stamp_Type)
-     return Boolean
+   function Is_Terminated
+     (TM    : access Term_Manager;
+      Stamp : Stamp_Type) return Boolean
    is
       Local_Decision        : Boolean := True;
       Neighbours_Decision   : Boolean := True;
@@ -367,7 +368,7 @@ package body PolyORB.Termination_Manager is
             pragma Debug (C, O ("New wave (Is_Terminated) received"));
       end case;
 
-      --  Compute the number of expected non terminating tasks
+      --  Compute the number of expected non-terminating tasks
 
       pragma Debug (C, O ("TM.Is_Initiator = " & TM.Is_Initiator'Img));
       pragma Debug (C, O ("TM.Non_Terminating_Tasks ="
@@ -377,7 +378,7 @@ package body PolyORB.Termination_Manager is
 
          --  If the termination manager is not the initiator, local termination
          --  will be checked inside a request job so one of the ORB tasks will
-         --  be running at that time, so we have one more non terminating task.
+         --  be running at that time, so we have one more non-terminating task.
 
          Non_Terminating_Tasks := TM.Non_Terminating_Tasks + 1;
       else
@@ -441,8 +442,8 @@ package body PolyORB.Termination_Manager is
       TM.Termination_Policy := T;
       TM.Is_Initiator       := Initiator;
 
-      --  Since we are running the termination loop in a new task,
-      --  we should consider it as a non terminating task.
+      --  Since we are running the termination loop in a new task, we should
+      --  consider it as a non-terminating task.
 
       TM.Non_Terminating_Tasks := TM.Non_Terminating_Tasks + 1;
 
