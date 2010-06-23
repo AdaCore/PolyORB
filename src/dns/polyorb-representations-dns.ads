@@ -85,6 +85,14 @@ package PolyORB.Representations.DNS is
      (Buffer : access Buffer_Type)
       return PolyORB.Types.Unsigned_Long;
 
+   --  'Unsigned_Long_Long' type
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Data   :  PolyORB.Types.Unsigned_Long_Long);
+   function Unmarshall
+     (Buffer : access Buffer_Type)
+      return PolyORB.Types.Unsigned_Long_Long;
+
    --  'Unsigned_Short'  type
    procedure Marshall
      (Buffer : access Buffer_Type;
@@ -108,6 +116,10 @@ package PolyORB.Representations.DNS is
      (Buffer : access Buffer_Type)
       return Standard.String;
 
+   function Unmarshall_Latin_1_String
+     (Buffer : access Buffer_Type)
+      return PolyORB.Types.String;
+
    function Unmarshall_DNS_String
      (Buffer : access Buffer_Type)
       return PolyORB.Types.String;
@@ -117,4 +129,14 @@ package PolyORB.Representations.DNS is
       Data   : PolyORB.Types.Char);
    function Unmarshall_Latin_1_Char
      (Buffer : access Buffer_Type) return PolyORB.Types.Char;
+
+   --  Identifier type
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Data   : PolyORB.Types.Identifier);
+
+   function Unmarshall
+     (Buffer : access Buffer_Type)
+      return PolyORB.Types.Identifier;
+
 end PolyORB.Representations.DNS;

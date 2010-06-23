@@ -31,12 +31,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PolyORB.Buffers;
---  with PolyORB.Types;
-
 package PolyORB.Binding_Data.DNS.UDNS is
 
-   use PolyORB.Buffers;
    DNS_Error : exception;
 
    type UDNS_Profile_Type is new DNS_Profile_Type with private;
@@ -63,14 +59,6 @@ package PolyORB.Binding_Data.DNS.UDNS is
      (PF  : out UDNS_Profile_Factory;
       TAP :     Transport.Transport_Access_Point_Access;
       ORB :     Components.Component_Access);
-
-   procedure Marshall_UDNS_Profile_Body
-     (Buf     : access Buffer_Type;
-      Profile :        Profile_Access);
-
-   function Unmarshall_UDNS_Profile_Body
-     (Buffer   : access Buffer_Type)
-    return  Profile_Access;
 
    function Image (Prof : UDNS_Profile_Type) return String;
 

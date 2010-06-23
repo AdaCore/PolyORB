@@ -51,6 +51,8 @@ with PolyORB.Binding_Objects;
 with PolyORB.Any;
 with PolyORB.POA_Types;
 with PolyORB.Filters.Iface;
+with PolyORB.Obj_Adapters.Group_Object_Adapter;
+with PolyORB.Servants.Group_Servants;
 package body PolyORB.Protocols.DNS is
 
    use PolyORB.Representations.DNS;
@@ -66,6 +68,7 @@ package body PolyORB.Protocols.DNS is
    use PolyORB.Types;
    use PolyORB.Filters.Iface;
    use PolyORB.Utils;
+   use PolyORB.Obj_Adapters.Group_Object_Adapter;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.protocols.dns");
    procedure O (Message : String; Level : Log_Level := Debug)
@@ -619,6 +622,7 @@ package body PolyORB.Protocols.DNS is
       use PolyORB.Any;
       use PolyORB.Servants;
       use PolyORB.POA_Types;
+      use PolyORB.Servants.Group_Servants;
 
       ORB              : ORB_Access;
       Req_Flags        : Requests.Flags := 0;
@@ -675,6 +679,22 @@ package body PolyORB.Protocols.DNS is
                           Integer (Current_Question_Nb), newRR);
       end loop;
       Current_Question_Nb := 0;
+      --  Assigning the in out authoritative argument
+      Add_Item (S.MCtx.New_Args,
+           Arg_Name_Auth, To_Any (S.MCtx.AA_Flag), Any.ARG_INOUT);
+      --  Assigning the question rrSequence
+      Add_Item (S.MCtx.New_Args,
+           Arg_Name_Question, To_Any (Q_sequence), Any.ARG_IN);
+      --  initializing the out Answer rr sequence
+      Add_Item (S.MCtx.New_Args,
+           Arg_Name_Answer, To_Any (A_sequence), Any.ARG_OUT);
+      --  initializing the out Authority rr sequence
+      Add_Item (S.MCtx.New_Args,
+           Arg_Name_Au, To_Any (Auth_sequence), Any.ARG_OUT);
+      --  initializing the out Additional infos rr sequence
+      Add_Item (S.MCtx.New_Args,
+                Arg_Name_Add, To_Any (Add_sequence), Any.ARG_OUT);
+
       ORB := ORB_Access (S.Server);
       pragma Debug (C, O ("Request_Received: entering"));
 
@@ -682,7 +702,7 @@ package body PolyORB.Protocols.DNS is
         (Object_Adapter (ORB));
 
       Find_POA (Self        => Root_POA,
-                   Name        => "DNS_POA",
+                   Name        => "RootGOA",
                    Activate_It => False,
                    POA         => Child_POA,
                    Error       => Error);
@@ -692,64 +712,87 @@ package body PolyORB.Protocols.DNS is
 
       --  Retrieving the default servant for DNS_POA
       Get_Servant (Child_POA, Servant, Error);
-      pragma Debug (C, O ("Default servant retrieved "));
-      --  Retrieving the ObjectId associated to the servant
-      Servant_To_Id (Child_POA,
-                      P_Servant => Servant,
-                      Oid       => Object_Key,
-                      Error     => Error);
-
-      pragma Debug (C, O ("Object key found : " & Image (Object_Key.all)));
-
-      --  Assigning the in out authoritative argument
-      Add_Item (S.MCtx.New_Args,
-                Arg_Name_Auth, To_Any (S.MCtx.AA_Flag), Any.ARG_INOUT);
-      --  Assigning the question rrSequence
-      Add_Item (S.MCtx.New_Args,
-                Arg_Name_Question, To_Any (Q_sequence), Any.ARG_IN);
-      --  initializing the out Answer rr sequence
-      Add_Item (S.MCtx.New_Args,
-                Arg_Name_Answer, To_Any (A_sequence), Any.ARG_OUT);
-      --  initializing the out Authority rr sequence
-      Add_Item (S.MCtx.New_Args,
-                Arg_Name_Au, To_Any (Auth_sequence), Any.ARG_OUT);
-      --  initializing the out Additional infos rr sequence
-      Add_Item (S.MCtx.New_Args,
-                Arg_Name_Add, To_Any (Add_sequence), Any.ARG_OUT);
-
-      Target_Profile := new Local_Profile_Type;
-      Create_Local_Profile
-           (Object_Key.all,
-            Local_Profile_Type (Target_Profile.all));
-      pragma Debug (C, O ("Local Profile created"));
-
-      Create_Reference ((1 => Target_Profile), "", Target);
-      pragma Debug (C, O ("Reference created"));
-
       Req_Flags := Sync_Call_Back;
+      if Found (Error) then
+         --  In  this case we have a group
+         pragma Debug (C, O ("No default Servant"));
+         declare
+            The_Ref : PolyORB.References.Ref;
+            Gr_Length : Natural;
+            Iter : Iterator;
+         begin
+            --  FIXME temporary fix to retrieve group servant
+            PolyORB.References.String_To_Object
+              ("corbaloc:mdns:@239.239.239.18:5353/TestDomain-1234", The_Ref);
 
-      Create_Request
-        (Target    => Target,
-         Operation => To_Standard_String (S.MCtx.Request_Opcode),
-         Arg_List  => S.MCtx.New_Args,
-         Result    => Result,
-         Deferred_Arguments_Session => Def_Args,
-         Req       => Req,
-         Req_Flags => Req_Flags,
-         Dependent_Binding_Object =>
-           Smart_Pointers.Entity_Ptr
-             (S.Dependent_Binding_Object));
+            --  Should use Find_Servant or Id_To_Servant
+            Servant := Get_Group (The_Ref, False);
 
-      Queue_Request_To_Handler (ORB,
-        Queue_Request'
-          (Request   => Req,
-           Requestor => Component_Access (S)));
+            Get_Group_Length (Servant, Gr_Length, Error);
 
-      --  the object needs to be deactivated after execution,
-      --  so that next request can activate it again
-      Deactivate_Object
-       (Child_POA, Object_Key.all, Error);
-      PolyORB.Objects.Free (Object_Key);
+            pragma Debug (C, O ("Group Length : " & Gr_Length'Img));
+            Group_Servants.First (Servant, Iter, Error);
+            for J in 1 .. Gr_Length loop
+               Target := Group_Servants.Value (Iter);
+               pragma Debug (C, O ("Reference created"));
+
+               Create_Request
+                  (Target    => Target,
+                  Operation => To_Standard_String (S.MCtx.Request_Opcode),
+                  Arg_List  => S.MCtx.New_Args,
+                  Result    => Result,
+                  Deferred_Arguments_Session => Def_Args,
+                  Req       => Req,
+                  Req_Flags => Req_Flags,
+                  Dependent_Binding_Object =>
+                    Smart_Pointers.Entity_Ptr
+                       (S.Dependent_Binding_Object));
+                  Queue_Request_To_Handler (ORB,
+                    Queue_Request'
+                    (Request   => Req,
+                     Requestor => Component_Access (S)));
+               Next (Iter);
+            end loop;
+         end;
+      else
+         pragma Debug (C, O ("Default servant retrieved "));
+         --  Retrieving the ObjectId associated to the servant
+         Servant_To_Id (Child_POA,
+                           P_Servant => Servant,
+                           Oid       => Object_Key,
+                           Error     => Error);
+         pragma Debug (C, O ("Object key found : " & Image (Object_Key.all)));
+
+         Target_Profile := new Local_Profile_Type;
+         Create_Local_Profile
+           (Object_Key.all,
+              Local_Profile_Type (Target_Profile.all));
+         pragma Debug (C, O ("Local Profile created"));
+         Create_Reference ((1 => Target_Profile), "", Target);
+         pragma Debug (C, O ("Reference created"));
+
+         Create_Request
+            (Target    => Target,
+            Operation => To_Standard_String (S.MCtx.Request_Opcode),
+            Arg_List  => S.MCtx.New_Args,
+            Result    => Result,
+            Deferred_Arguments_Session => Def_Args,
+            Req       => Req,
+            Req_Flags => Req_Flags,
+            Dependent_Binding_Object =>
+                Smart_Pointers.Entity_Ptr
+                 (S.Dependent_Binding_Object));
+         Queue_Request_To_Handler (ORB,
+          Queue_Request'
+             (Request   => Req,
+              Requestor => Component_Access (S)));
+         --  the object needs to be deactivated after execution,
+         --  so that next request can activate it again
+         Deactivate_Object
+          (Child_POA, Object_Key.all, Error);
+         PolyORB.Objects.Free (Object_Key);
+      end if;
+
       pragma Debug (C, O ("Process_Request: leaving"));
    end Process_Request;
 
