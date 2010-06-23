@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -143,9 +143,9 @@ package body PolyORB.Log is
 
    type Log_Request is record
       Facility_Level : Log_Level_Ptr;
-      Facility : String_Ptr;
-      Message  : String_Ptr;
-      Level    : Log_Level;
+      Facility       : String_Ptr;
+      Message        : String_Ptr;
+      Level          : Log_Level;
    end record;
 
    --  During initialization (before the configuration and logging modules
