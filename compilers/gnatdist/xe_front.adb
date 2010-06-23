@@ -725,23 +725,30 @@ package body XE_Front is
       L : Location_Id := No_Location_Id;
 
    begin
+      --  Create default location
+
       Add_Location
         (F, L,
          Id (Get_Def_Storage_Name),
          Id (Get_Def_Storage_Data));
       Default_Data_Location := F;
 
+      --  Create default partition
+
       N := Get_Node_Name (Node_Id (Partition_Type_Node));
       Create_Partition (N, Null_Node, P);
       Default_Partition_Id := P;
 
+      --  Create default channel
+
       Channels.Increment_Last;
       C := Channels.Last;
-      Channels.Table (C).Name := Get_Node_Name (Node_Id (Channel_Type_Node));
-
-      Channels.Table (C).Filter := No_Filter_Name;
       Default_Channel_Id := C;
 
+      --  Set properties of default channel
+
+      Channels.Table (C).Name   := Get_Node_Name (Node_Id (Channel_Type_Node));
+      Channels.Table (C).Filter := No_Filter_Name;
    end Initialize;
 
    ----------------
