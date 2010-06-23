@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with GNAT.Table;
-
 with Types; use Types;
 
 package Scopes is
@@ -53,14 +51,6 @@ package Scopes is
    --  like attributes and operations are inherited (scoped and explicitly
    --  visible) while other entities are just made visible (implicitly
    --  visible).
-
-   type Scope_Stack_Entry is record
-      Node : Node_Id;
-   end record;
-
-   No_Scope_Depth : constant Int := -1;
-   package Scope_Stack is
-      new GNAT.Table (Scope_Stack_Entry, Int, No_Scope_Depth + 1, 10, 10);
 
    D_Scopes : Boolean := False;
    --  When true, displays more information when analyzing the scopes

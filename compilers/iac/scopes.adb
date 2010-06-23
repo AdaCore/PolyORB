@@ -31,6 +31,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with GNAT.Table;
+
 with Errors;    use Errors;
 with Locations; use Locations;
 with Namet;     use Namet;
@@ -40,6 +42,14 @@ with Frontend.Nodes;  use Frontend.Nodes;
 with Frontend.Nutils; use Frontend.Nutils;
 
 package body Scopes is
+
+   type Scope_Stack_Entry is record
+      Node : Node_Id;
+   end record;
+
+   No_Scope_Depth : constant Int := -1;
+   package Scope_Stack is
+      new GNAT.Table (Scope_Stack_Entry, Int, No_Scope_Depth + 1, 10, 10);
 
    use Scope_Stack;
 
@@ -155,7 +165,6 @@ package body Scopes is
            and then KE = K_Module
          then
             Set_Scoped_Identifiers (E, Scoped_Identifiers (C));
-            Remove_From_Scope (H, S);
 
          --  If the current entity is a scoped name, it has been
          --  introduced in purpose and cannot be removed.
@@ -532,9 +541,8 @@ package body Scopes is
 
    function Visible_Node (N : Node_Id) return Node_Id
    is
-      H : Node_Id := First_Homonym (N);
+      H : constant Node_Id := First_Homonym (N);
       E : Node_Id;
-      S : Node_Id;
 
    begin
       if Present (H) then
@@ -547,33 +555,7 @@ package body Scopes is
          end if;
 
          if Visible (H) then
-            S := Scope_Entity (H);
-            H := Homonym (H);
-
-            if Present (H)
-              and then Visible (H)
-              and then Scope_Entity (H) = S
-            then
-               Error_Loc  (1)  := Loc      (N);
-               Error_Name (1)  := IDL_Name (N);
-               DE ("multiple declarations of#");
-
-               H := First_Homonym (N);
-               while Present (H)
-                 and then Visible (H)
-                 and then Scope_Entity (H) = S
-               loop
-                  Error_Loc  (1)  := Loc (N);
-                  Error_Loc  (2)  := Loc (H);
-                  DE ("\found declaration!");
-                  H := Homonym (H);
-               end loop;
-
-               return No_Node;
-
-            else
-               return Corresponding_Entity (First_Homonym (N));
-            end if;
+            return Corresponding_Entity (H);
          end if;
       end if;
 

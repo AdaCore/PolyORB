@@ -689,6 +689,8 @@ package body Analyzer is
 
    procedure Analyze_Module (E : Node_Id)
    is
+      pragma Assert (Kind (E) = K_Specification or else Kind (E) = K_Module);
+
       C : Node_Id;
       L : List_Id;
    begin
@@ -706,6 +708,38 @@ package body Analyzer is
          end loop;
          Pop_Scope;
       end if;
+
+      --  Now go through the definitions, and merge all modules with the same
+      --  into a single module that includes all the definitions nested in all
+      --  of them. The last one is the one that remains; the others are erased
+      --  from the tree, and from the Homonym chain. This has to happen after
+      --  they have all been analyzed, so that visibility will work properly
+      --  during analysis.
+
+      L := Definitions (E);
+      C := First_Entity (L);
+      while Present (C) loop
+         if Kind (C) = K_Module then
+            declare
+               H : constant Node_Id := Homonym (Identifier (C));
+               Prev : Node_Id;
+               New_Defs : List_Id;
+            begin
+               if Present (H) then
+                  Prev := Corresponding_Entity (H);
+                  New_Defs := Definitions (Prev);
+                  Append_To
+                    (New_Defs,
+                     First_Entity (Definitions (C)));
+                  Set_Definitions (C, New_Defs);
+                  Remove_Node_From_List (Prev, L);
+                  Set_Homonym (Identifier (C), No_Node);
+               end if;
+            end;
+         end if;
+
+         C := Next_Entity (C);
+      end loop;
    end Analyze_Module;
 
    -------------------------

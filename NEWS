@@ -41,6 +41,10 @@ See the features-27 file.
 Bug fixes
 ---------
 
+The iac compiler did not handle modules that come in multiple parts
+correcly. The parts should all be considered part of the same
+module. (IA01-028)
+
 The global termination management circuitry would erroneously terminate
 the initiator partition when all partitions have deferred termination
 policy. (J602-015)

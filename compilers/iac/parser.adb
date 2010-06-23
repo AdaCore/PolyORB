@@ -37,7 +37,7 @@ with GNAT.OS_Lib;       use GNAT.OS_Lib;
 
 with Errors;            use Errors;
 with Namet;             use Namet;
-with Scopes;            use Scopes;
+with Scopes;
 with Values;            use Values;
 
 with Frontend.Nodes;    use Frontend.Nodes;
@@ -2503,8 +2503,8 @@ package body Parser is
          Definitions := FEN.Definitions (Specification);
          Imports     := FEN.Imports (Specification);
       else
-         Identifier :=
-           Make_Identifier (Token_Location, IDL_Spec_Name, No_Node, No_Node);
+         Identifier := Make_Identifier
+           (Token_Location, Scopes.IDL_Spec_Name, No_Node, No_Node);
          Specification := New_Node (K_Specification, Token_Location);
          Bind_Identifier_To_Entity (Identifier, Specification);
          Definitions   := New_List (Token_Location);

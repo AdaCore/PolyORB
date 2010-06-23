@@ -35,7 +35,15 @@ with Flags;  use Flags;
 with Namet;  use Namet;
 with Output; use Output;
 
+with Ada.Containers.Ordered_Sets;
+
 package body Outfiles is
+
+   package Name_Sets is new Ada.Containers.Ordered_Sets
+     (Element_Type => Name_Id);
+   use Name_Sets;
+
+   File_Names_Seen : Name_Sets.Set := Empty_Set;
 
    ----------------
    -- Set_Output --
@@ -45,6 +53,11 @@ package body Outfiles is
       Fd : File_Descriptor;
    begin
       if not Use_Stdout then
+         --  Assert that we don't try to write the same file twice. Insert will
+         --  raise Constraint_Error if the same name is inserted again.
+
+         pragma Debug (Insert (File_Names_Seen, File_Name));
+
          if Output_Directory /= null then
             Set_Str_To_Name_Buffer (Output_Directory.all);
          else
