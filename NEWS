@@ -41,6 +41,10 @@ See the features-27 file.
 Bug fixes
 ---------
 
+The global termination management circuitry would erroneously terminate
+the initiator partition when all partitions have deferred termination
+policy. (J602-015)
+
 In some cases, po_gnatdist failed to identify that a partition required
 re-linking after a source change. (J607-021)
 
