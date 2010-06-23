@@ -1111,11 +1111,27 @@ package body XE_Back.PolyORB is
 
    procedure Run_Backend (Self : access PolyORB_Backend)
    is
-      Current : Partition_Type;
-      Is_Initiator_Set : Boolean := False;
+      Current                   : Partition_Type;
+      Is_Initiator_Set          : Boolean := False;
+      Enable_Global_Termination : Boolean := False;
    begin
       Prepare_Directories;
       Generate_All_Stubs_And_Skels;
+
+      --  Scan all partitions to check global application properties
+
+      for J in Partitions.First + 1 .. Partitions.Last loop
+         Current := Partitions.Table (J);
+
+         pragma Assert (Current.Termination /= No_Termination);
+
+         --  Enable a termination initiator only if at least one node has
+         --  global termination.
+
+         if Current.Termination = Global_Termination then
+            Enable_Global_Termination := True;
+         end if;
+      end loop;
 
       --  For each partition, generate the elaboration, main, executable
       --  and stamp files.
@@ -1130,12 +1146,14 @@ package body XE_Back.PolyORB is
 
          --  Set termination initiator option on first partition with non local
          --  termination. Note that this must be done outside of the To_Build
-         --  test. Otherwise, when building two partitions in separate
-         --  gnatdist runs, both may end up being set up as initiators.
+         --  test. Otherwise, when building two partitions in separate gnatdist
+         --  runs, both may end up being set up as initiators. Note that if
+         --  no partition has global termination, then no initiator is defined.
 
          if not Is_Initiator_Set
            and then Current.Tasking /= No_Tasking
            and then Current.Termination /= Local_Termination
+           and then Enable_Global_Termination
          then
             Set_Str_To_Name_Buffer ("true");
             Set_Conf (PE_Termination_Initiator, Name_Find);

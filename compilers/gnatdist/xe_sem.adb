@@ -298,7 +298,6 @@ package body XE_Sem is
       end if;
 
       for J in Partitions.First + 1 .. Partitions.Last loop
-
          --  Apply default values for unspecified attributes. Note that this
          --  must be done even for partitions that are not built, since their
          --  attributes might be referenced by other partitions, e.g. when
@@ -425,7 +424,7 @@ package body XE_Sem is
          --  termination.
 
          if Current.Termination = Local_Termination
-           and then not Storage_Properties.Allow_Local_Term
+              and then not Storage_Properties.Allow_Local_Term
          then
             Message ("partition", Quote (Current.Name),
                      "cannot locally terminate while using",
@@ -670,15 +669,18 @@ package body XE_Sem is
                   Tasking_Img (Current.Tasking));
       end if;
 
-      if Current.Termination = No_Termination
-        and then Current.Tasking /= PCS_Tasking
-      then
-         Current.Termination := Local_Termination;
+      if Current.Termination = No_Termination then
+         if Current.Tasking /= PCS_Tasking then
+            Current.Termination := Local_Termination;
 
-         if Debug_Mode then
-            Message ("local termination forced for", Current.Name);
+            if Debug_Mode then
+               Message ("local termination forced for", Current.Name);
+            end if;
+         else
+            Current.Termination := Global_Termination;
          end if;
       end if;
+
    end Assign_Partition_Termination;
 
    -------------------------
