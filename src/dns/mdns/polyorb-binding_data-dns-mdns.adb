@@ -230,7 +230,7 @@ package body PolyORB.Binding_Data.DNS.MDNS is
       Index2  : Integer;
 
    begin
-      pragma Debug (C, O ("MDNS corbaloc to profile: enter"));
+      pragma Debug (C, O ("MDNS corbaloc to profile: enter: "));
       Index := Find (S, S'First, '@') + 1;
       --  Index at start of host
 
@@ -238,6 +238,7 @@ package body PolyORB.Binding_Data.DNS.MDNS is
          Colon : constant Integer := Find (S, Index, ':');
          Slash : constant Integer := Find (S, Index, '/');
       begin
+
          if Colon < Slash then
             --  Port number is present
             Index2 := Colon - 1;
@@ -276,13 +277,15 @@ package body PolyORB.Binding_Data.DNS.MDNS is
          return null;
       end if;
       TResult.G_I := new Group_Info;
-      TResult.G_I.Group_Domain_Id := To_PolyORB_String ("TestDomain");
+      --  temporary fix
+      TResult.G_I.Group_Domain_Id :=
+        To_PolyORB_String ("RootGOA");
       TResult.G_I.Object_Group_Id := 5252;
-      pragma Debug (C, O ("Before TO_OBJECT_ID"));
+
       TResult.Object_Id := To_Object_Id (TResult.G_I.all);
-      pragma Debug (C, O ("After TO_OBJECT_ID"));
+
       if TResult.Object_Id = null then
-         pragma Debug (C, O ("Object ID IS NULL"));
+
          Destroy_Profile (Profile);
          return null;
       end if;
@@ -330,55 +333,6 @@ package body PolyORB.Binding_Data.DNS.MDNS is
         (PolyORB.Setup.MDNS.MDNS_GOA);
    end Get_OA;
 
-   function From_String
-     (S : String)
-     return Group_Info_Access
-   is
-      use PolyORB.Utils.Strings;
-
-      Index  : Integer := S'First;
-      Index2 : Integer;
-      G_I    : constant Group_Info_Access := new Group_Info;
-
-   begin
-      pragma Debug (C, O ("Extract Group_Info from string"));
-
-      Index2 := Find (S, Index, '.');
-      if Index2 = S'Last + 1 then
-         return null;
-      end if;
-
-      Index := Index2 + 1;
-
-      Index2 := Find (S, Index, '-');
-      if Index2 = S'Last + 1 then
-         return null;
-      end if;
-
-      Index := Index2 + 1;
-
-      Index2 := Find (S, Index, '-');
-      if Index2 = S'Last + 1 then
-         return null;
-      end if;
-
-      G_I.Group_Domain_Id := To_PolyORB_String (S (Index .. Index2 - 1));
-      Index := Index2 + 1;
-
-      Index2 := Find (S, Index, '-');
-      if Index2 = S'Last + 1 then
-         G_I.Object_Group_Id
-           := Types.Unsigned_Long_Long'Value (S (Index .. S'Last));
-
-      else
-         G_I.Object_Group_Id
-           := Types.Unsigned_Long_Long'Value (S (Index .. Index2 - 1));
-         G_I.Object_Group_Ref_Version
-           := Types.Unsigned_Long'Value (S (Index2 + 1 .. S'Last));
-      end if;
---      pragma Debug (C, O ("Group Info : " & Image (G_I)));
-      return G_I;
-   end From_String;
    ----------------
    -- Initialize --
    ----------------

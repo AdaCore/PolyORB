@@ -39,7 +39,7 @@ with PolyORB.Types;
 with PolyORB.Utils.Dynamic_Tables;
 with PolyORB.Utils.Simple_Flags;
 with PolyORB.DNS.Helper;
-
+with PolyORB.References;
 package PolyORB.Protocols.DNS is
    use Ada.Streams;
    use PolyORB.Buffers;
@@ -116,7 +116,15 @@ package PolyORB.Protocols.DNS is
       Request_Id       : Types.Unsigned_Long;
       RC     : Rcode);
    procedure Initialize;
+   procedure Set_Default_Servant
+     (The_Ref : PolyORB.References.Ref);
+
+   procedure Get_Default_Servant
+     (The_Ref : out PolyORB.References.Ref);
 private
+   Object_Reference : PolyORB.References.Ref;
+   --  Default Object Reference, specified by user
+
    type Pending_Request is record
       Req            : Requests.Request_Access;
       Request_Id :   Types.Unsigned_Long;
@@ -177,6 +185,7 @@ private
       Req_Index    : Types.Unsigned_Long := 1;
       --  Counter to have new Request Index
       MCtx : DNS_Message_Context_Access;
+      --  Access to Message_Context
    end record;
 
    type DNS_Session_Access is access all DNS_Session;

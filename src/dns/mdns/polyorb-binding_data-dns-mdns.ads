@@ -63,9 +63,7 @@ package PolyORB.Binding_Data.DNS.MDNS is
       ORB :     Components.Component_Access);
 
    function Image (Prof : MDNS_Profile_Type) return String;
-   function From_String
-     (S : String)
-     return Group_Info_Access;
+
    function Get_OA
      (Profile : MDNS_Profile_Type)
      return PolyORB.Smart_Pointers.Entity_Ptr;

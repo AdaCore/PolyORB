@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                P O L Y O R B . P R O T O C O L S . D N S                 --
+--               P O L Y O R B . P R O T O C O L S . D N S                  --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---           Copyright (C) 2010, Free Software Foundation, Inc.             --
+--         Copyright (C) 2010, Free Software Foundation, Inc.               --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -38,22 +38,18 @@ with PolyORB.References.Binding;
 with PolyORB.Any.NVList;
 with PolyORB.Binding_Data;
 with PolyORB.Errors;
-with PolyORB.References;
 with PolyORB.Initialization;
 with PolyORB.Utils.Strings;
 with PolyORB.Representations.DNS;
 with PolyORB.Utils;
 with PolyORB.Objects;
-with PolyORB.Binding_Data.Local;
 with PolyORB.Smart_Pointers;
 with PolyORB.ORB.Iface;
 with PolyORB.POA;
 with PolyORB.Binding_Objects;
 with PolyORB.Any;
-with PolyORB.POA_Types;
 with PolyORB.Filters.Iface;
-with PolyORB.Obj_Adapters.Group_Object_Adapter;
-with PolyORB.Servants.Group_Servants;
+
 package body PolyORB.Protocols.DNS is
 
    use PolyORB.Representations.DNS;
@@ -69,7 +65,6 @@ package body PolyORB.Protocols.DNS is
    use PolyORB.Types;
    use PolyORB.Filters.Iface;
    use PolyORB.Utils;
-   use PolyORB.Obj_Adapters.Group_Object_Adapter;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.protocols.dns");
    procedure O (Message : String; Level : Log_Level := Debug)
@@ -199,7 +194,7 @@ package body PolyORB.Protocols.DNS is
 
    procedure Send_Reply
      (S       : access DNS_Session;
-      Request : Requests.Request_Access)
+      Request :        Requests.Request_Access)
    is
       use PolyORB.Any;
       use PolyORB.Any.NVList.Internals;
@@ -213,7 +208,7 @@ package body PolyORB.Protocols.DNS is
       It : Iterator;
       Arg : Element_Access;
 
-      Sess  : DNS_Session renames S.all;
+      Sess  : DNS_Session renames DNS_Session (S.all);
       Error : Errors.Error_Container;
    begin
       if Sess.Role = Client then
@@ -616,16 +611,12 @@ package body PolyORB.Protocols.DNS is
       use PolyORB.References;
       use PolyORB.Filters.Iface;
       use PolyORB.Objects;
-      use PolyORB.Binding_Data.Local;
       use PolyORB.ORB.Iface;
       use PolyORB.Smart_Pointers;
       use PolyORB.POA;
       use PolyORB.Any;
       use PolyORB.Servants;
-      use PolyORB.POA_Types;
-      use PolyORB.Servants.Group_Servants;
 
-      ORB              : ORB_Access;
       Req_Flags        : Requests.Flags := 0;
       Object_Key       : PolyORB.Objects.Object_Id_Access;
       Target_Profile : Binding_Data.Profile_Access;
@@ -634,7 +625,7 @@ package body PolyORB.Protocols.DNS is
       Req              : Request_Access;
       Args             : Any.NVList.Ref;
       Def_Args         : Component_Access;
-      newRR : RR;
+      New_RR : RR;
       Q_sequence : rrSequence;
       A_sequence : rrSequence;
       Auth_sequence : rrSequence;
@@ -647,7 +638,9 @@ package body PolyORB.Protocols.DNS is
       Return_Code : Types.Unsigned_Short;
       Request_Type_Code : Types.Unsigned_Short;
       Request_Class : Types.Unsigned_Short;
+
    begin
+
       if S.Role /= Server then
          raise DNS_Error;
       end if;
@@ -656,19 +649,19 @@ package body PolyORB.Protocols.DNS is
       Any.NVList.Create (S.MCtx.New_Args);
 
       for J in 1 .. S.MCtx.Nb_Questions loop
-         newRR.rr_name :=
+         New_RR.rr_name :=
            Unmarshall_DNS_String (S.Buffer_In);
          Request_Type_Code := Unmarshall (S.Buffer_In);
          Request_Class := Unmarshall (S.Buffer_In);
          case Request_Type_Code is
             when A_Code =>
-               newRR.rr_type := A;
+               New_RR.rr_type := A;
             when PTR_Code =>
-               newRR.rr_type := PTR;
+               New_RR.rr_type := PTR;
             when TXT_Code =>
-               newRR.rr_type := TXT;
+               New_RR.rr_type := TXT;
             when SRV_Code =>
-               newRR.rr_type := SRV;
+               New_RR.rr_type := SRV;
             when others =>
                --  should not happen for now
                raise DNS_Error;
@@ -677,7 +670,7 @@ package body PolyORB.Protocols.DNS is
          Current_Question_Nb := Current_Question_Nb + 1;
 
          Replace_Element (Q_sequence,
-                          Integer (Current_Question_Nb), newRR);
+                          Integer (Current_Question_Nb), New_RR);
       end loop;
       Current_Question_Nb := 0;
       --  Assigning the in out authoritative argument
@@ -696,103 +689,29 @@ package body PolyORB.Protocols.DNS is
       Add_Item (S.MCtx.New_Args,
                 Arg_Name_Add, To_Any (Add_sequence), Any.ARG_OUT);
 
-      ORB := ORB_Access (S.Server);
       pragma Debug (C, O ("Request_Received: entering"));
 
-      Root_POA :=  PolyORB.POA.Obj_Adapter_Access
-        (Object_Adapter (ORB));
+      Req_Flags := Sync_With_Transport;
 
-      Find_POA (Self        => Root_POA,
-                   Name        => "RootGOA",
-                   Activate_It => False,
-                   POA         => Child_POA,
-                   Error       => Error);
+      --  retrieve the user specified target object
+      Get_Default_Servant (Target);
 
-      pragma Debug (C, O ("Found POA : "
-        & Child_POA.Name.all));
+      Create_Request
+         (Target    => Target,
+          Operation => To_Standard_String (S.MCtx.Request_Opcode),
+          Arg_List  => S.MCtx.New_Args,
+          Result    => Result,
+          Deferred_Arguments_Session => Def_Args,
+          Req       => Req,
+          Req_Flags => Req_Flags,
+          Dependent_Binding_Object =>
+          Smart_Pointers.Entity_Ptr
+              (S.Dependent_Binding_Object));
 
-      --  Retrieving the default servant for DNS_POA
-      Get_Servant (Child_POA, Servant, Error);
-      Req_Flags := Sync_Call_Back;
-      if Found (Error) then
-         --  In  this case we have a group
-         pragma Debug (C, O ("No default Servant"));
-         declare
-            The_Ref : PolyORB.References.Ref;
-            Gr_Length : Natural;
-            Iter : Iterator;
-         begin
-            --  FIXME temporary fix to retrieve group servant
-            PolyORB.References.String_To_Object
-              ("corbaloc:mdns:@239.239.239.18:5353/TestDomain-1234", The_Ref);
-
-            --  Should use Find_Servant or Id_To_Servant
-            Servant := Get_Group (The_Ref, False);
-
-            Get_Group_Length (Servant, Gr_Length, Error);
-
-            pragma Debug (C, O ("Group Length : " & Gr_Length'Img));
-            Group_Servants.First (Servant, Iter, Error);
-            for J in 1 .. Gr_Length loop
-               Target := Group_Servants.Value (Iter);
-               pragma Debug (C, O ("Reference created"));
-
-               Create_Request
-                  (Target    => Target,
-                  Operation => To_Standard_String (S.MCtx.Request_Opcode),
-                  Arg_List  => S.MCtx.New_Args,
-                  Result    => Result,
-                  Deferred_Arguments_Session => Def_Args,
-                  Req       => Req,
-                  Req_Flags => Req_Flags,
-                  Dependent_Binding_Object =>
-                    Smart_Pointers.Entity_Ptr
-                       (S.Dependent_Binding_Object));
-                  Queue_Request_To_Handler (ORB,
-                    Queue_Request'
-                    (Request   => Req,
-                     Requestor => Component_Access (S)));
-               Next (Iter);
-            end loop;
-         end;
-      else
-         pragma Debug (C, O ("Default servant retrieved "));
-         --  Retrieving the ObjectId associated to the servant
-         Servant_To_Id (Child_POA,
-                           P_Servant => Servant,
-                           Oid       => Object_Key,
-                           Error     => Error);
-         pragma Debug (C, O ("Object key found : " & Image (Object_Key.all)));
-
-         Target_Profile := new Local_Profile_Type;
-         Create_Local_Profile
-           (Object_Key.all,
-              Local_Profile_Type (Target_Profile.all));
-         pragma Debug (C, O ("Local Profile created"));
-         Create_Reference ((1 => Target_Profile), "", Target);
-         pragma Debug (C, O ("Reference created"));
-
-         Create_Request
-            (Target    => Target,
-            Operation => To_Standard_String (S.MCtx.Request_Opcode),
-            Arg_List  => S.MCtx.New_Args,
-            Result    => Result,
-            Deferred_Arguments_Session => Def_Args,
-            Req       => Req,
-            Req_Flags => Req_Flags,
-            Dependent_Binding_Object =>
-                Smart_Pointers.Entity_Ptr
-                 (S.Dependent_Binding_Object));
-         Queue_Request_To_Handler (ORB,
-          Queue_Request'
-             (Request   => Req,
-              Requestor => Component_Access (S)));
-         --  the object needs to be deactivated after execution,
-         --  so that next request can activate it again
-         Deactivate_Object
-          (Child_POA, Object_Key.all, Error);
-         PolyORB.Objects.Free (Object_Key);
-      end if;
+      Queue_Request_To_Handler (ORB_Access (S.Server),
+                Queue_Request'
+                 (Request   => Req,
+                  Requestor => Component_Access (S)));
 
       pragma Debug (C, O ("Process_Request: leaving"));
    end Process_Request;
@@ -1237,6 +1156,20 @@ package body PolyORB.Protocols.DNS is
                   (Req => Current_Req.Req));
       end case;
    end Reply_Received;
+
+   procedure Set_Default_Servant
+     (The_Ref : PolyORB.References.Ref)
+   is
+   begin
+      Object_Reference := The_Ref;
+   end Set_Default_Servant;
+
+   procedure Get_Default_Servant
+     (The_Ref : out PolyORB.References.Ref)
+   is
+   begin
+      The_Ref := Object_Reference;
+   end Get_Default_Servant;
 
    use PolyORB.Initialization;
    use PolyORB.Initialization.String_Lists;

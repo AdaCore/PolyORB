@@ -41,8 +41,8 @@ package PolyORB.MDNS.Groups is
    ----------------
 
    type Group_Info is record
-      Group_Domain_Id : Types.String := Types.To_PolyORB_String ("test");
-      Object_Group_Id : Types.Unsigned_Long_Long := 12;
+      Group_Domain_Id : Types.String := Types.To_PolyORB_String ("TestDomain");
+      Object_Group_Id : Types.Unsigned_Long_Long := 5252;
       Object_Group_Ref_Version : Types.Unsigned_Long := 0;
    end record;
 
