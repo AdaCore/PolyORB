@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---    P O L Y O R B . S E T U P . A C C E S S _ P O I N T S . M D N S       --
+--     P O L Y O R B . S E T U P . A C C E S S _ P O I N T S . M D N S      --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2010, Free Software Foundation, Inc.               --
+--           Copyright (C) 2010, Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -42,7 +42,7 @@ with PolyORB.Parameters;
 with PolyORB.Protocols;
 with PolyORB.Protocols.DNS.MDNS;
 with PolyORB.Sockets;
-with PolyORB.Transport.Datagram.Sockets_In;
+with PolyORB.Transport.Datagram.Sockets;
 with PolyORB.Utils.Strings;
 with PolyORB.Utils.UDP_Access_Points;
 
@@ -51,18 +51,18 @@ package body PolyORB.Setup.Access_Points.MDNS is
    use PolyORB.Filters;
    use PolyORB.ORB;
    use PolyORB.Sockets;
-   use PolyORB.Transport.Datagram.Sockets_In;
+   use PolyORB.Transport.Datagram.Sockets;
    use PolyORB.Utils.UDP_Access_Points;
+
    MDNS_Access_Point : UDP_Access_Point_Info
      := (Socket        => No_Socket,
          Address       => No_Sock_Addr,
-         SAP           => new Socket_In_Access_Point,
+         SAP           => new Socket_Access_Point,
          PF            =>
            new PolyORB.Binding_Data.DNS.MDNS.MDNS_Profile_Factory);
 
    Pro : aliased Protocols.DNS.MDNS.MDNS_Protocol;
-   MDNS_Factories : aliased Filters.Factory_Array
-     := (0 => Pro'Access);
+   MDNS_Factories : aliased Filters.Factory_Array := (0 => Pro'Access);
 
    ------------------------------
    -- Initialize_Access_Points --
@@ -84,7 +84,7 @@ package body PolyORB.Setup.Access_Points.MDNS is
       if Get_Conf ("access_points", "mdns", True) then
          Initialize_Multicast_Socket
            (MDNS_Access_Point, Addr, Port);
---           Initialize_Unicast_Socket (MDNS_Access_Point, Port_Hint, Addr);
+
          Register_Access_Point
            (ORB   => The_ORB,
             TAP   => MDNS_Access_Point.SAP,

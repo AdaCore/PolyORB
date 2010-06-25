@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                P O L Y O R B . U T I L S . S O C K E T S                 --
+--                     P O L Y O R B _ S R C _ D N S                        --
 --                                                                          --
---                                 S p e c                                  --
+--                                 P r o j                                  --
 --                                                                          --
---         Copyright (C) 2003-2010, Free Software Foundation, Inc.          --
+--         Copyright (C) 2007-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,56 +31,25 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  General purpose functions for using sockets with string and buffers
+with "polyorb_common", "polyorb_src";
 
-with Ada.Unchecked_Deallocation;
+project PolyORB_src_dns is
 
-with PolyORB.Buffers;
-with PolyORB.Sockets;
+   Dir := "src/dns";
+   Obj_Dir := PolyORB_Common.Build_Dir & Dir;
+   for Object_Dir use Obj_Dir;
+   for Source_Dirs use (Obj_Dir, PolyORB_Common.Source_Dir & Dir);
 
-package PolyORB.Utils.Sockets is
+   for Library_Name use "polyorb-dns";
+   for Library_Dir use PolyORB_Common.Build_Dir & "lib";
+   for Library_ALI_Dir use PolyORB_Common.Build_Dir & "ali/src_dns";
+   for Library_Kind use "static";
 
-   type Socket_Name (Name_Len : Natural) is record
-      Host_Name : String (1 .. Name_Len);
-      Port      : PolyORB.Sockets.Port_Type;
-   end record;
+   package Compiler is
 
-   function To_Address
-     (SN : Socket_Name) return PolyORB.Sockets.Sock_Addr_Type;
-   --  Convert socket name to socket address
+      for Default_Switches ("Ada")
+         use PolyORB_Src.Compiler'Default_Switches ("Ada");
 
-   type Socket_Name_Ptr is access all Socket_Name;
-   procedure Free is
-     new Ada.Unchecked_Deallocation (Socket_Name, Socket_Name_Ptr);
+   end Compiler;
 
-   function "+"
-     (Host_Name : String;
-      Port      : PolyORB.Sockets.Port_Type) return Socket_Name;
-   --  Return a Socket_Name with the given contents
-
-   function Image (SN : Socket_Name) return String;
-   --  Return representation of SN as <host_name>:<port>
-
-   procedure Marshall_Socket
-     (Buffer : access PolyORB.Buffers.Buffer_Type;
-      Sock   : Socket_Name);
-   --  Marshall socket address and port in a buffer
-
-   function Unmarshall_Socket
-     (Buffer : access PolyORB.Buffers.Buffer_Type) return Socket_Name;
-   --  Unmarshall socket address and port from a buffer
-
-   procedure Connect_Socket
-     (Sock        : in out PolyORB.Sockets.Socket_Type;
-      Remote_Name : Socket_Name);
-   --  Front-end to PolyORB.Sockets.Connect_Socket. In case of failure, Sock is
-   --  closed, and a log trace is produced.
-
-   function Is_IP_Address (Name : String) return Boolean;
-   --  True iff S is an IP address in dotted quad notation
-
-   function Local_Inet_Address return PolyORB.Sockets.Inet_Addr_Type;
-   --  Return an IP address associated with the local host name, preferring
-   --  non-loopback addresses over loopback ones.
-
-end PolyORB.Utils.Sockets;
+end PolyORB_src_dns;

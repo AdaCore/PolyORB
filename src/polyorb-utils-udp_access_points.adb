@@ -39,7 +39,7 @@ with PolyORB.Components;
 with PolyORB.Log;
 with PolyORB.Platform;
 with PolyORB.Setup;
-with PolyORB.Transport.Datagram.Sockets_In;
+with PolyORB.Transport.Datagram.Sockets;
 
 package body PolyORB.Utils.UDP_Access_Points is
 
@@ -81,7 +81,7 @@ package body PolyORB.Utils.UDP_Access_Points is
       Address : Inet_Addr_Type;
       Port    : Port_Type)
    is
-      use PolyORB.Transport.Datagram.Sockets_In;
+      use PolyORB.Transport.Datagram.Sockets;
       Bind_Address : Sock_Addr_Type;
    begin
       Initialize_Socket (AP_Info);
@@ -100,8 +100,8 @@ package body PolyORB.Utils.UDP_Access_Points is
          Bind_Address.Addr := Any_Inet_Addr;
       end if;
 
-      Init_Socket_In
-        (Socket_In_Access_Point (AP_Info.SAP.all),
+      Init_Socket
+        (Socket_Access_Point (AP_Info.SAP.all),
          AP_Info.Socket,
          Address      => AP_Info.Address,
          Bind_Address => Bind_Address,
@@ -137,11 +137,11 @@ package body PolyORB.Utils.UDP_Access_Points is
    -------------------------------
 
    procedure Initialize_Unicast_Socket
-     (AP_Info       : in out UDP_Access_Point_Info;
+     (AP_Info   : in out UDP_Access_Point_Info;
       Port_Hint : Port_Interval;
       Address   : Inet_Addr_Type := Any_Inet_Addr)
    is
-      use PolyORB.Transport.Datagram.Sockets_In;
+      use PolyORB.Transport.Datagram.Sockets;
 
    begin
       --  Create Socket
@@ -155,13 +155,13 @@ package body PolyORB.Utils.UDP_Access_Points is
 
       loop
          begin
-            Init_Socket_In
-              (Socket_In_Access_Point (AP_Info.SAP.all),
+            Init_Socket
+              (Socket_Access_Point (AP_Info.SAP.all),
                AP_Info.Socket,
                AP_Info.Address);
             exit;
          exception
-            when E : Sockets.Socket_Error =>
+            when E : Socket_Error =>
 
                --  If a specific port range was given, try next port in range
 

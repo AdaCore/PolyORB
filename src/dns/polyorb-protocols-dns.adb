@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---               P O L Y O R B . P R O T O C O L S . D N S                  --
+--                P O L Y O R B . P R O T O C O L S . D N S                 --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2010, Free Software Foundation, Inc.          --
+--           Copyright (C) 2010, Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -30,6 +30,7 @@
 --                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
+
 with  PolyORB.Log;
 with PolyORB.Servants.Iface;
 with PolyORB.Annotations;
@@ -198,7 +199,7 @@ package body PolyORB.Protocols.DNS is
 
    procedure Send_Reply
      (S       : access DNS_Session;
-      Request :        Requests.Request_Access)
+      Request : Requests.Request_Access)
    is
       use PolyORB.Any;
       use PolyORB.Any.NVList.Internals;
@@ -212,7 +213,7 @@ package body PolyORB.Protocols.DNS is
       It : Iterator;
       Arg : Element_Access;
 
-      Sess  : DNS_Session renames DNS_Session (S.all);
+      Sess  : DNS_Session renames S.all;
       Error : Errors.Error_Container;
    begin
       if Sess.Role = Client then

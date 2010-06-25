@@ -44,7 +44,7 @@ with PolyORB.Parameters;
 with PolyORB.Protocols;
 with PolyORB.Protocols.GIOP.UIPMC;
 with PolyORB.Sockets;
-with PolyORB.Transport.Datagram.Sockets_In;
+with PolyORB.Transport.Datagram.Sockets;
 with PolyORB.Utils.Strings;
 with PolyORB.Utils.UDP_Access_Points;
 
@@ -55,7 +55,7 @@ package body PolyORB.Setup.Access_Points.UIPMC is
    use PolyORB.Filters.MIOP.MIOP_In;
    use PolyORB.ORB;
    use PolyORB.Sockets;
-   use PolyORB.Transport.Datagram.Sockets_In;
+   use PolyORB.Transport.Datagram.Sockets;
    use PolyORB.Utils.UDP_Access_Points;
 
    --  Just one UIPMC AP supported???
@@ -63,7 +63,7 @@ package body PolyORB.Setup.Access_Points.UIPMC is
    UIPMC_Access_Point : UDP_Access_Point_Info
      := (Socket        => No_Socket,
          Address       => No_Sock_Addr,
-         SAP           => new Socket_In_Access_Point,
+         SAP           => new Socket_Access_Point,
          PF            =>
            new PolyORB.Binding_Data.GIOP.UIPMC.UIPMC_Profile_Factory);
 

@@ -491,6 +491,12 @@ libpolyorb-dsa.a: PRJ_GNATMAKE_FLAGS := -a
 # Some components of the DSA application personality are child units of
 # System: use -a to allow them to be compiled.
 
+.PHONY: libpolyorb-dns.a
+libpolyorb-dns.a: polyorb_src_dns.gpr
+.PHONY: libpolyorb-dns-udns.a
+libpolyorb-dns-udns.a: polyorb_src_dns_udns.gpr
+.PHONY: libpolyorb-dns-mdns.a
+libpolyorb-dns-mdns.a: polyorb_src_dns_mdns.gpr
 .PHONY: libpolyorb-giop.a
 libpolyorb-giop.a: polyorb_src_giop.gpr
 .PHONY: libpolyorb-giop-diop.a

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -37,16 +37,14 @@ with PolyORB.Filters;
 with PolyORB.ORB;
 with PolyORB.Protocols.GIOP.DIOP;
 with PolyORB.Sockets;
-with PolyORB.Transport.Datagram.Sockets_In;
-with PolyORB.Transport.Datagram.Sockets_Out;
+with PolyORB.Transport.Datagram.Sockets;
 
 package body PolyORB.GIOP_P.Transport_Mechanisms.DIOP is
 
    use PolyORB.Components;
    use PolyORB.Errors;
    use PolyORB.Sockets;
-   use PolyORB.Transport.Datagram.Sockets_In;
-   use PolyORB.Transport.Datagram.Sockets_Out;
+   use PolyORB.Transport.Datagram.Sockets;
    use PolyORB.Utils.Sockets;
 
    ----------------
@@ -98,9 +96,11 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.DIOP is
                      Family => Family_Inet,
                      Mode   => Socket_Datagram);
 
-      TE := new Socket_Out_Endpoint;
-
-      Create (Socket_Out_Endpoint (TE.all), Sock, Mechanism.Address.all);
+      TE := new Socket_Endpoint;
+      Create
+        (Socket_Endpoint (TE.all),
+         Sock,
+         Utils.Sockets.To_Address (Mechanism.Address.all));
 
       Binding_Objects.Setup_Binding_Object
         (The_ORB,
@@ -130,7 +130,7 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.DIOP is
    is
    begin
       MF.Address :=
-        new Socket_Name'(Address_Of (Socket_In_Access_Point (TAP.all)));
+        new Socket_Name'(Address_Of (Socket_Access_Point (TAP.all)));
    end Create_Factory;
 
    ------------------------------

@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                  POLYORB.TRANSPORT.DATAGRAM.SOCKETS_IN                   --
+--   P O L Y O R B . T R A N S P O R T . D A T A G R A M . S O C K E T S    --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
@@ -36,7 +36,7 @@
 with PolyORB.Sockets;
 with PolyORB.Utils.Sockets;
 
-package PolyORB.Transport.Datagram.Sockets_In is
+package PolyORB.Transport.Datagram.Sockets is
 
    pragma Elaborate_Body;
 
@@ -46,12 +46,12 @@ package PolyORB.Transport.Datagram.Sockets_In is
    -- Access Point --
    ------------------
 
-   type Socket_In_Access_Point is
+   type Socket_Access_Point is
      new Datagram_Transport_Access_Point with private;
    --  Datagram Socket Access Point to receive data
 
-   procedure Init_Socket_In
-     (SAP          : in out Socket_In_Access_Point;
+   procedure Init_Socket
+     (SAP          : in out Socket_Access_Point;
       Socket       : Socket_Type;
       Address      : in out Sock_Addr_Type;
       Bind_Address : Sock_Addr_Type := No_Sock_Addr;
@@ -64,63 +64,63 @@ package PolyORB.Transport.Datagram.Sockets_In is
    --  still recording the proper group address in SAP.
 
    function Create_Event_Source
-     (TAP : access Socket_In_Access_Point)
+     (TAP : access Socket_Access_Point)
       return Asynch_Ev.Asynch_Ev_Source_Access;
 
    function Address_Of
-     (SAP : Socket_In_Access_Point) return Utils.Sockets.Socket_Name;
+     (SAP : Socket_Access_Point) return Utils.Sockets.Socket_Name;
    --  Return a Socket_Name designating SAP
 
    ---------------
    -- End Point --
    ---------------
 
-   type Socket_In_Endpoint
+   type Socket_Endpoint
      is new Datagram_Transport_Endpoint with private;
    --  Datagram Socket Transport Endpoint for receiving data
 
    procedure Create
-     (TE   : in out Socket_In_Endpoint;
+     (TE   : in out Socket_Endpoint;
       S    : Socket_Type;
       Addr : Sock_Addr_Type);
    --  Called on client side to assign remote server address
 
    function Create_Event_Source
-     (TE : access Socket_In_Endpoint) return Asynch_Ev.Asynch_Ev_Source_Access;
+     (TE : access Socket_Endpoint) return Asynch_Ev.Asynch_Ev_Source_Access;
 
    procedure Read
-     (TE     : in out Socket_In_Endpoint;
+     (TE     : in out Socket_Endpoint;
       Buffer : Buffers.Buffer_Access;
       Size   : in out Ada.Streams.Stream_Element_Count;
       Error  : out Errors.Error_Container);
    --  Read data from datagram socket
 
    procedure Write
-     (TE     : in out Socket_In_Endpoint;
+     (TE     : in out Socket_Endpoint;
       Buffer : Buffers.Buffer_Access;
       Error  : out Errors.Error_Container);
    --  Write data to datagram socket
 
-   procedure Close (TE : access Socket_In_Endpoint);
+   procedure Close (TE : access Socket_Endpoint);
 
    function Create_Endpoint
-     (TAP : access Socket_In_Access_Point)
+     (TAP : access Socket_Access_Point)
      return Datagram_Transport_Endpoint_Access;
    --  Called on server side to initialize socket
 
 private
 
-   type Socket_In_Access_Point is new Datagram_Transport_Access_Point
+   type Socket_Access_Point is new Datagram_Transport_Access_Point
      with record
         Socket : Socket_Type := No_Socket;
         Addr   : Sock_Addr_Type;
      end record;
 
-   type Socket_In_Endpoint is new Datagram_Transport_Endpoint
+   type Socket_Endpoint is new Datagram_Transport_Endpoint
      with record
         Handler        : aliased Datagram_TE_AES_Event_Handler;
         Socket         : Socket_Type := No_Socket;
         Remote_Address : Sock_Addr_Type;
      end record;
 
-end PolyORB.Transport.Datagram.Sockets_In;
+end PolyORB.Transport.Datagram.Sockets;

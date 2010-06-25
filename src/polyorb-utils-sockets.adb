@@ -183,9 +183,7 @@ package body PolyORB.Utils.Sockets is
    function Is_IP_Address (Name : String) return Boolean is
    begin
       for J in Name'Range loop
-         if Name (J) /= '.'
-           and then Name (J) not in '0' .. '9'
-         then
+         if Name (J) /= '.' and then Name (J) not in '0' .. '9' then
             return False;
          end if;
       end loop;
@@ -244,29 +242,21 @@ package body PolyORB.Utils.Sockets is
       return Host_Name + Port_Type (Port);
    end Unmarshall_Socket;
 
-   --------------------
-   -- String_To_Addr --
-   --------------------
+   ----------------
+   -- To_Address --
+   ----------------
 
-   function String_To_Addr (Str : Standard.String) return Inet_Addr_Type is
-      use PolyORB.Types;
-
-      Hostname_Seen : Boolean := False;
+   function To_Address (SN : Socket_Name) return Sock_Addr_Type is
    begin
-      for J in Str'Range loop
-         if Str (J) not in '0' .. '9'
-           and then Str (J) /= '.'
-         then
-            Hostname_Seen := True;
-            exit;
+      return Result : Sock_Addr_Type do
+         if Is_IP_Address (SN.Host_Name) then
+            Result.Addr := Inet_Addr (SN.Host_Name);
+         else
+            Result.Addr := Addresses (Get_Host_By_Name (SN.Host_Name), 1);
          end if;
-      end loop;
 
-      if Hostname_Seen then
-         return Addresses (Get_Host_By_Name (Str), 1);
-      else
-         return Inet_Addr (Str);
-      end if;
-   end String_To_Addr;
+         Result.Port := SN.Port;
+      end return;
+   end To_Address;
 
 end PolyORB.Utils.Sockets;

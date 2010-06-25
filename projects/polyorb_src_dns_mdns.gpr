@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                 POLYORB.TRANSPORT.DATAGRAM.SOCKETS_OUT                   --
+--                     P O L Y O R B _ S R C _ D N S                        --
 --                                                                          --
---                                 S p e c                                  --
+--                                 P r o j                                  --
 --                                                                          --
---         Copyright (C) 2003-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2007-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,62 +31,25 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Datagram Socket End Point to send data to network
+with "polyorb_common", "polyorb_src", "polyorb_src_dns";
 
-with PolyORB.Sockets;
-with PolyORB.Tasking.Mutexes;
-with PolyORB.Utils.Sockets;
+project PolyORB_src_dns_mdns is
 
-package PolyORB.Transport.Datagram.Sockets_Out is
+   Dir := "src/dns/mdns";
+   Obj_Dir := PolyORB_Common.Build_Dir & Dir;
+   for Object_Dir use Obj_Dir;
+   for Source_Dirs use (Obj_Dir, PolyORB_Common.Source_Dir & Dir);
 
-   pragma Elaborate_Body;
+   for Library_Name use "polyorb-dns-mdns";
+   for Library_Dir use PolyORB_Common.Build_Dir & "lib";
+   for Library_ALI_Dir use PolyORB_Common.Build_Dir & "ali/src_dns_mdns";
+   for Library_Kind use "static";
 
-   use PolyORB.Sockets;
+   package Compiler is
 
-   ---------------
-   -- End Point --
-   ---------------
+      for Default_Switches ("Ada")
+         use PolyORB_Src.Compiler'Default_Switches ("Ada");
 
-   type Socket_Out_Endpoint
-     is new Datagram_Transport_Endpoint with private;
-   --  Datagram Socket Access Point to send data
+   end Compiler;
 
-   procedure Create
-     (TE   : in out Socket_Out_Endpoint;
-      S    : Socket_Type;
-      Addr : Utils.Sockets.Socket_Name);
-
-   function Create_Event_Source
-     (TE : access Socket_Out_Endpoint)
-      return Asynch_Ev.Asynch_Ev_Source_Access;
-
-   procedure Read
-     (TE     : in out Socket_Out_Endpoint;
-      Buffer : Buffers.Buffer_Access;
-      Size   : in out Ada.Streams.Stream_Element_Count;
-      Error  : out Errors.Error_Container);
-   pragma No_Return (Read);
-   --  Read data from datagram socket. This procedure should not be
-   --  used for write-only transport endpoints, Program_Error will be
-   --  raised at run-time.
-
-   procedure Write
-     (TE     : in out Socket_Out_Endpoint;
-      Buffer : Buffers.Buffer_Access;
-      Error  : out Errors.Error_Container);
-   --  Write data to datagram socket
-
-   procedure Close (TE : access Socket_Out_Endpoint);
-
-   procedure Destroy (TE : in out Socket_Out_Endpoint);
-
-private
-
-   type Socket_Out_Endpoint is new Datagram_Transport_Endpoint
-     with record
-        Socket : Socket_Type := No_Socket;
-        Addr   : Sock_Addr_Type;
-        Mutex  : Tasking.Mutexes.Mutex_Access;
-     end record;
-
-end PolyORB.Transport.Datagram.Sockets_Out;
+end PolyORB_src_dns_mdns;

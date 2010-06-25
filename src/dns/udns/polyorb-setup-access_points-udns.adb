@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---    P O L Y O R B . S E T U P . A C C E S S _ P O I N T S . U D N S       --
+--     P O L Y O R B . S E T U P . A C C E S S _ P O I N T S . U D N S      --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2010, Free Software Foundation, Inc.               --
+--           Copyright (C) 2010, Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -43,7 +43,7 @@ with PolyORB.Parameters;
 with PolyORB.Protocols;
 with PolyORB.Protocols.DNS.UDNS;
 with PolyORB.Sockets;
-with PolyORB.Transport.Datagram.Sockets_In;
+with PolyORB.Transport.Datagram.Sockets;
 with PolyORB.Utils.Strings;
 with PolyORB.Utils.UDP_Access_Points;
 
@@ -52,13 +52,13 @@ package body PolyORB.Setup.Access_Points.UDNS is
    use PolyORB.Filters;
    use PolyORB.ORB;
    use PolyORB.Sockets;
-   use PolyORB.Transport.Datagram.Sockets_In;
+   use PolyORB.Transport.Datagram.Sockets;
    use PolyORB.Utils.UDP_Access_Points;
    use PolyORB.Utils.Socket_Access_Points;
    UDNS_Access_Point : UDP_Access_Point_Info
      := (Socket        => No_Socket,
          Address       => No_Sock_Addr,
-         SAP           => new Socket_In_Access_Point,
+         SAP           => new Socket_Access_Point,
          PF            =>
            new PolyORB.Binding_Data.DNS.UDNS.UDNS_Profile_Factory);
 

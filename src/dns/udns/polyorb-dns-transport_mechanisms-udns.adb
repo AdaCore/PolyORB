@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                POLYORB.DNS.TRANSPORT_MECHANISMS.UDNS                     --
+--                  POLYORB.DNS.TRANSPORT_MECHANISMS.UDNS                   --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
@@ -34,19 +34,17 @@
 with PolyORB.Binding_Data.DNS.UDNS;
 with PolyORB.Binding_Objects;
 with PolyORB.ORB;
---  with PolyORB.Parameters;
 with PolyORB.Protocols.DNS.UDNS;
 with PolyORB.Sockets;
-with PolyORB.Transport.Datagram.Sockets_In;
+with PolyORB.Transport.Datagram.Sockets;
 with PolyORB.Filters;
 
 package body PolyORB.DNS.Transport_Mechanisms.UDNS is
 
    use PolyORB.Components;
    use PolyORB.Errors;
---   use PolyORB.Parameters;
    use PolyORB.Sockets;
-   use PolyORB.Transport.Datagram.Sockets_In;
+   use PolyORB.Transport.Datagram.Sockets;
    use PolyORB.Utils.Sockets;
 
    ----------------
@@ -67,8 +65,8 @@ package body PolyORB.DNS.Transport_Mechanisms.UDNS is
    --  Factories
 
    Pro : aliased PolyORB.Protocols.DNS.UDNS.UDNS_Protocol;
-   UDNS_Factories : constant PolyORB.Filters.Factory_Array
-     := (0 => Pro'Access);
+   UDNS_Factories : constant PolyORB.Filters.Factory_Array :=
+                      (0 => Pro'Access);
 
    procedure Bind_Mechanism
      (Mechanism : UDNS_Transport_Mechanism;
@@ -84,11 +82,6 @@ package body PolyORB.DNS.Transport_Mechanisms.UDNS is
       use PolyORB.Binding_Objects;
 
       Sock        : Socket_Type;
-      Addr        : Sock_Addr_Type;
---        TTL         : constant Natural :=
---                        Natural (Get_Conf ("dns", "polyorb.dns.ttl",
---                                           Default_TTL));
-
       TE          : Transport.Transport_Endpoint_Access;
 
    begin
@@ -108,11 +101,12 @@ package body PolyORB.DNS.Transport_Mechanisms.UDNS is
         (Sock,
          Socket_Level, (Reuse_Address, True));
 
-      TE := new Socket_In_Endpoint;
-      Addr.Addr := Inet_Addr (Mechanism.Address.all.Host_Name);
-      Addr.Port := Mechanism.Address.all.Port;
-      PolyORB.Transport.Datagram.Sockets_In.Create
-        (Socket_In_Endpoint (TE.all), Sock, Addr);
+      TE := new Socket_Endpoint;
+      Create
+        (Socket_Endpoint (TE.all),
+         Sock,
+         To_Address (Mechanism.Address.all));
+
       Binding_Objects.Setup_Binding_Object
         (The_ORB,
          TE,
@@ -141,7 +135,7 @@ package body PolyORB.DNS.Transport_Mechanisms.UDNS is
    is
    begin
       MF.Address :=
-        new Socket_Name'(Address_Of (Socket_In_Access_Point (TAP.all)));
+        new Socket_Name'(Address_Of (Socket_Access_Point (TAP.all)));
    end Create_Factory;
 
    --------------------------------

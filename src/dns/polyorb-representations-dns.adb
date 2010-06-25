@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---          P O L Y O R B . R E P R E S E N T A T I O N S . D N S            --
+--          P O L Y O R B . R E P R E S E N T A T I O N S . D N S           --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
@@ -30,6 +30,7 @@
 --                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
+
    with Ada.Streams;
    with PolyORB.Initialization;
    with PolyORB.Log;
@@ -73,8 +74,7 @@ package body PolyORB.Representations.DNS is
                Marshall (Buffer, Default_Class_Code);
                if Is_Reply then
                   Marshall (Buffer, current_rr.TTL);
-                  Marshall (Buffer, Types.Unsigned_Short
-                            (current_rr.data_length));
+                  Marshall (Buffer, current_rr.data_length);
                   Marshall (Buffer, Get_Element
                          (current_rr.rr_data.a_address, 1));
                   Marshall (Buffer, Get_Element
@@ -84,39 +84,40 @@ package body PolyORB.Representations.DNS is
                   Marshall (Buffer, Get_Element
                          (current_rr.rr_data.a_address, 4));
                end if;
+
             when PTR =>
                Marshall (Buffer, PTR_Code);
                Marshall (Buffer, Default_Class_Code);
                if Is_Reply then
                   Marshall (Buffer, current_rr.TTL);
-                  Marshall (Buffer, Types.Unsigned_Short
-                   (current_rr.data_length));
+                  Marshall (Buffer, current_rr.data_length);
                   Marshall_DNS_String (Buffer,
                    To_Standard_String (current_rr.rr_data.rr_answer));
                end if;
+
             when TXT =>
                Marshall (Buffer, TXT_Code);
                Marshall (Buffer, Default_Class_Code);
                if Is_Reply then
                   Marshall (Buffer, current_rr.TTL);
-                  Marshall (Buffer, Types.Unsigned_Short
-                   (current_rr.data_length));
+                  Marshall (Buffer, current_rr.data_length);
                   Marshall_DNS_String (Buffer,
                    To_Standard_String (current_rr.rr_data.rr_answer));
                end if;
+
             when SRV =>
                Marshall (Buffer, SRV_Code);
                Marshall (Buffer, Default_Class_Code);
                if Is_Reply then
                   Marshall (Buffer, current_rr.TTL);
-                  Marshall (Buffer, Types.Unsigned_Short
-                            (current_rr.data_length));
+                  Marshall (Buffer, current_rr.data_length);
                   Marshall (Buffer, current_rr.rr_data.srv_data.priority);
                   Marshall (Buffer, current_rr.rr_data.srv_data.weight);
                   Marshall (Buffer, current_rr.rr_data.srv_data.port);
                   Marshall_DNS_String (Buffer,
                    To_Standard_String (current_rr.rr_data.srv_data.target));
                end if;
+
             when others =>
                null;
          end case;
@@ -128,14 +129,17 @@ package body PolyORB.Representations.DNS is
    -- Unmarshall_To_Any --
    -----------------------
    procedure Unmarshall_To_Any
-     (Buffer : Buffer_Access; Arg : Any.Any; Length : Integer;
+     (Buffer   : Buffer_Access;
+      Arg      : Any.Any;
+      Length   : Integer;
       Is_Reply : Types.Boolean)
    is
-      Request_Type_Code : Types.Unsigned_Short;
-      Request_Class : Types.Unsigned_Short;
+      Request_Class     : Types.Unsigned_Short;
       pragma Unreferenced (Request_Class);
-      current_rr : RR;
-      current_Seq : rrSequence := To_Sequence (Length);
+
+      Request_Type_Code : Types.Unsigned_Short;
+      current_rr        : RR;
+      current_Seq       : rrSequence := To_Sequence (Length);
    begin
       for J in 1 .. Length loop
          current_rr.rr_name := Unmarshall_DNS_String (Buffer);
@@ -143,33 +147,40 @@ package body PolyORB.Representations.DNS is
          case Request_Type_Code is
             when A_Code =>
                current_rr.rr_type := A;
+
             when PTR_Code =>
                current_rr.rr_type := PTR;
+
             when TXT_Code =>
                current_rr.rr_type := TXT;
+
             when SRV_Code =>
                current_rr.rr_type := SRV;
+
             when others =>
                --  Should not happen for now
                raise DNS_Error;
          end case;
+
          Request_Class := Unmarshall (Buffer);
          if not Is_Reply then
             return;
          end if;
          current_rr.TTL := Unmarshall (Buffer);
          current_rr.data_length := Unmarshall (Buffer);
+
          --  Part specific to each RR type
+
          declare
             rr_d : RR_Data (current_rr.rr_type);
          begin
             case current_rr.rr_type is
                when SRV =>
                   rr_d.srv_data.priority := Unmarshall (Buffer);
-                  rr_d.srv_data.weight := Unmarshall (Buffer);
-                  rr_d.srv_data.port := Unmarshall (Buffer);
-                  rr_d.srv_data.target :=
-                    Unmarshall_DNS_String (Buffer);
+                  rr_d.srv_data.weight   := Unmarshall (Buffer);
+                  rr_d.srv_data.port     := Unmarshall (Buffer);
+                  rr_d.srv_data.target   := Unmarshall_DNS_String (Buffer);
+
                when A =>
                   rr_d.a_address :=
                     IDL_AT_Sequence_4_octet
@@ -179,6 +190,7 @@ package body PolyORB.Representations.DNS is
                             Unmarshall (Buffer),
                             Unmarshall (Buffer),
                             Unmarshall (Buffer))));
+
                when others =>
                   rr_d.rr_answer := Unmarshall_DNS_String (Buffer);
             end case;

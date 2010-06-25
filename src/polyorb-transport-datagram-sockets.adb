@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                  POLYORB.TRANSPORT.DATAGRAM.SOCKETS_IN                   --
+--   P O L Y O R B . T R A N S P O R T . D A T A G R A M . S O C K E T S    --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
@@ -38,7 +38,7 @@ with PolyORB.Opaque;
 with PolyORB.Asynch_Ev.Sockets;
 with PolyORB.Log;
 
-package body PolyORB.Transport.Datagram.Sockets_In is
+package body PolyORB.Transport.Datagram.Sockets is
 
    use Ada.Streams;
 
@@ -53,12 +53,12 @@ package body PolyORB.Transport.Datagram.Sockets_In is
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
 
-   --------------------
-   -- Init_Socket_In --
-   --------------------
+   -----------------
+   -- Init_Socket --
+   -----------------
 
-   procedure Init_Socket_In
-     (SAP          : in out Socket_In_Access_Point;
+   procedure Init_Socket
+     (SAP          : in out Socket_Access_Point;
       Socket       : Socket_Type;
       Address      : in out Sock_Addr_Type;
       Bind_Address : Sock_Addr_Type := No_Sock_Addr;
@@ -86,14 +86,14 @@ package body PolyORB.Transport.Datagram.Sockets_In is
       else
          SAP.Addr := Address;
       end if;
-   end Init_Socket_In;
+   end Init_Socket;
 
    -------------------------
    -- Create_Event_Source --
    -------------------------
 
    function Create_Event_Source
-     (TAP : access Socket_In_Access_Point) return Asynch_Ev_Source_Access
+     (TAP : access Socket_Access_Point) return Asynch_Ev_Source_Access
    is
       Ev_Src : constant Asynch_Ev_Source_Access :=
                  Create_Event_Source (TAP.Socket);
@@ -107,7 +107,7 @@ package body PolyORB.Transport.Datagram.Sockets_In is
    ----------------
 
    function Address_Of
-     (SAP : Socket_In_Access_Point) return Utils.Sockets.Socket_Name
+     (SAP : Socket_Access_Point) return Utils.Sockets.Socket_Name
    is
    begin
       return Image (SAP.Addr.Addr) + SAP.Addr.Port;
@@ -118,7 +118,7 @@ package body PolyORB.Transport.Datagram.Sockets_In is
    ------------
 
    procedure Create
-     (TE   : in out Socket_In_Endpoint;
+     (TE   : in out Socket_Endpoint;
       S    : Socket_Type;
       Addr : Sock_Addr_Type)
    is
@@ -132,7 +132,7 @@ package body PolyORB.Transport.Datagram.Sockets_In is
    -------------------------
 
    function Create_Event_Source
-     (TE : access Socket_In_Endpoint) return Asynch_Ev_Source_Access
+     (TE : access Socket_Endpoint) return Asynch_Ev_Source_Access
    is
       Ev_Src : constant Asynch_Ev_Source_Access :=
                  Create_Event_Source (TE.Socket);
@@ -146,7 +146,7 @@ package body PolyORB.Transport.Datagram.Sockets_In is
    ----------
 
    procedure Read
-     (TE     : in out Socket_In_Endpoint;
+     (TE     : in out Socket_Endpoint;
       Buffer :        Buffers.Buffer_Access;
       Size   : in out Stream_Element_Count;
       Error  :    out Errors.Error_Container)
@@ -187,7 +187,7 @@ package body PolyORB.Transport.Datagram.Sockets_In is
          --  the buffer, so that upper layers could treat it correctly
          Set_CDR_Position (Buffer, 0);
       exception
-         when E : Sockets.Socket_Error =>
+         when E : Socket_Error =>
             O ("receive failed: " & Ada.Exceptions.Exception_Message (E),
                Notice);
             Throw (Error, Comm_Failure_E,
@@ -210,7 +210,7 @@ package body PolyORB.Transport.Datagram.Sockets_In is
    -----------
 
    procedure Write
-     (TE     : in out Socket_In_Endpoint;
+     (TE     : in out Socket_Endpoint;
       Buffer :        Buffers.Buffer_Access;
       Error  :    out Errors.Error_Container)
    is
@@ -229,7 +229,7 @@ package body PolyORB.Transport.Datagram.Sockets_In is
          PolyORB.Sockets.Send_Socket
            (TE.Socket, Data, Last, TE.Remote_Address);
       exception
-         when E : Sockets.Socket_Error =>
+         when E : Socket_Error =>
             O ("send failed: " & Ada.Exceptions.Exception_Information (E),
                Notice);
             Throw (Error, Comm_Failure_E,
@@ -248,7 +248,7 @@ package body PolyORB.Transport.Datagram.Sockets_In is
    -- Close --
    -----------
 
-   procedure Close (TE : access Socket_In_Endpoint) is
+   procedure Close (TE : access Socket_Endpoint) is
    begin
       pragma Debug (C, O ("Closing UDP socket"));
       if TE.Closed then
@@ -265,16 +265,16 @@ package body PolyORB.Transport.Datagram.Sockets_In is
    ---------------------
 
    function Create_Endpoint
-     (TAP : access Socket_In_Access_Point)
+     (TAP : access Socket_Access_Point)
      return Datagram_Transport_Endpoint_Access
    is
       TE : constant Datagram_Transport_Endpoint_Access :=
-             new Socket_In_Endpoint;
+             new Socket_Endpoint;
 
    begin
       pragma Debug (C, O ("Create Endpoint for UDP socket"));
-      Socket_In_Endpoint (TE.all).Socket := TAP.Socket;
+      Socket_Endpoint (TE.all).Socket := TAP.Socket;
       return TE;
    end Create_Endpoint;
 
-end PolyORB.Transport.Datagram.Sockets_In;
+end PolyORB.Transport.Datagram.Sockets;
