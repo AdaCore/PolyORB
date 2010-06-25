@@ -1708,10 +1708,8 @@ src/polyorb-transport-connected-sockets.adb
 src/polyorb-transport-connected-sockets.ads
 src/polyorb-transport-connected.adb
 src/polyorb-transport-connected.ads
-src/polyorb-transport-datagram-sockets_in.adb
-src/polyorb-transport-datagram-sockets_in.ads
-src/polyorb-transport-datagram-sockets_out.adb
-src/polyorb-transport-datagram-sockets_out.ads
+src/polyorb-transport-datagram-sockets.adb
+src/polyorb-transport-datagram-sockets.ads
 src/polyorb-transport-datagram.adb
 src/polyorb-transport-datagram.ads
 src/polyorb-transport-handlers.adb
