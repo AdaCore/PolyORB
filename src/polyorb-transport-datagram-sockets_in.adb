@@ -31,12 +31,10 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Datagram Socket Access Point and End Point to recieve data from network
+--  Datagram Socket Access Point and End Point to receive data from network
 
 with Ada.Exceptions;
-
-with System.Storage_Elements;
-
+with PolyORB.Opaque;
 with PolyORB.Asynch_Ev.Sockets;
 with PolyORB.Log;
 
@@ -124,9 +122,9 @@ package body PolyORB.Transport.Datagram.Sockets_In is
       S    : Socket_Type;
       Addr : Sock_Addr_Type)
    is
-      pragma Unreferenced (Addr);
    begin
       TE.Socket := S;
+      TE.Remote_Address := Addr;
    end Create;
 
    -------------------------
@@ -154,40 +152,40 @@ package body PolyORB.Transport.Datagram.Sockets_In is
       Error  :    out Errors.Error_Container)
    is
       use PolyORB.Buffers;
+      use PolyORB.Opaque;
       use PolyORB.Errors;
 
-      Data_Received : Stream_Element_Count;
-      Request : Request_Type (N_Bytes_To_Read);
-
-      procedure Receive_Socket (V : access Iovec);
-      --  Lowlevel socket receive
-
-      --------------------
-      -- Receive_Socket --
-      --------------------
-
-      procedure Receive_Socket (V : access Iovec) is
-         Count : Ada.Streams.Stream_Element_Count;
-         Vecs  : Vector_Type (1 .. 1);
-         pragma Import (Ada, Vecs);
-         for Vecs'Address use V.all'Address;
-      begin
-         PolyORB.Sockets.Receive_Vector (TE.Socket, Vecs, Count);
-         V.Iov_Len := System.Storage_Elements.Storage_Offset (Count);
-      end Receive_Socket;
-
-      procedure Receive_Buffer is new PolyORB.Buffers.Receive_Buffer
-        (Receive_Socket);
+      Request       : Request_Type (N_Bytes_To_Read);
+      Data_Address  : Opaque_Pointer;
+      Last          : Ada.Streams.Stream_Element_Offset;
+      From          : Sock_Addr_Type;
+      Flags         : constant Request_Flag_Type := No_Request_Flag;
 
    begin
-      --  Must read all data in one call from datagram socket.
-      --  Amount read is often greater than asked amount.
 
       Control_Socket (TE.Socket, Request);
       Size := Stream_Element_Offset (Request.Size);
-      pragma Debug (C, O ("To read :" & Size'Img));
+
+      --  Point Data_Address to the allocated memory chunk
+      Allocate_And_Insert_Cooked_Data (Buffer, Size, Data_Address);
+
+      declare
+         Item   : aliased Ada.Streams.Stream_Element_Array (1 .. Size);
+         for Item'Address use Data_Address;
+         pragma Import (Ada, Item);
       begin
-         Receive_Buffer (Buffer, Size, Data_Received);
+
+         Receive_Socket (TE.Socket, Item, Last, From, Flags);
+
+         pragma Debug (C, O ("Remote address  :" & Image (From)));
+         pragma Debug (C, O ("To read :" & Size'Img));
+
+         --  We assign the remote host's address to the endpoint
+         TE.Remote_Address := From;
+
+         --  we need to reset the current CDR position at the beginning of
+         --  the buffer, so that upper layers could treat it correctly
+         Set_CDR_Position (Buffer, 0);
       exception
          when E : Sockets.Socket_Error =>
             O ("receive failed: " & Ada.Exceptions.Exception_Message (E),
@@ -202,11 +200,9 @@ package body PolyORB.Transport.Datagram.Sockets_In is
                    (Minor => 0, Completed => Completed_Maybe));
       end;
 
-      pragma Assert (Data_Received /= 0);
-      pragma Debug (C, O (Data_Received'Img & " byte(s) received"));
-      pragma Assert (Data_Received <= Size);
+      pragma Assert (Size /= 0);
+      pragma Debug (C, O (Size'Img & " byte(s) received"));
 
-      Size := Data_Received;
    end Read;
 
    -----------
@@ -218,9 +214,34 @@ package body PolyORB.Transport.Datagram.Sockets_In is
       Buffer :        Buffers.Buffer_Access;
       Error  :    out Errors.Error_Container)
    is
+      use PolyORB.Buffers;
+      use PolyORB.Errors;
+
+      Data : constant Stream_Element_Array :=
+               To_Stream_Element_Array (Buffer.all);
+      Last : Stream_Element_Offset;
+
    begin
-      raise Program_Error;
-      --  Should never happen
+      pragma Debug (C, O ("Write: enter"));
+      pragma Debug (C, O ("Send to : " & Image (TE.Remote_Address)));
+      pragma Debug (C, O ("Buffer Size : " & Data'Length'Img));
+      begin
+         PolyORB.Sockets.Send_Socket
+           (TE.Socket, Data, Last, TE.Remote_Address);
+      exception
+         when E : Sockets.Socket_Error =>
+            O ("send failed: " & Ada.Exceptions.Exception_Information (E),
+               Notice);
+            Throw (Error, Comm_Failure_E,
+                   System_Exception_Members'
+                   (Minor => 0, Completed => Completed_Maybe));
+
+         when others =>
+            Throw (Error, Unknown_E,
+                   System_Exception_Members'
+                   (Minor => 0, Completed => Completed_Maybe));
+      end;
+      pragma Debug (C, O ("Write: leave"));
    end Write;
 
    -----------
@@ -252,7 +273,7 @@ package body PolyORB.Transport.Datagram.Sockets_In is
 
    begin
       pragma Debug (C, O ("Create Endpoint for UDP socket"));
-      Create (Socket_In_Endpoint (TE.all), TAP.Socket, TAP.Addr);
+      Socket_In_Endpoint (TE.all).Socket := TAP.Socket;
       return TE;
    end Create_Endpoint;
 

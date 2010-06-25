@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Datagram Socket Access Point and End Point to recieve data from network
+--  Datagram Socket Access Point and End Point to receive data from network
 
 with PolyORB.Sockets;
 with PolyORB.Utils.Sockets;
@@ -83,6 +83,7 @@ package PolyORB.Transport.Datagram.Sockets_In is
      (TE   : in out Socket_In_Endpoint;
       S    : Socket_Type;
       Addr : Sock_Addr_Type);
+   --  Called on client side to assign remote server address
 
    function Create_Event_Source
      (TE : access Socket_In_Endpoint) return Asynch_Ev.Asynch_Ev_Source_Access;
@@ -98,15 +99,14 @@ package PolyORB.Transport.Datagram.Sockets_In is
      (TE     : in out Socket_In_Endpoint;
       Buffer : Buffers.Buffer_Access;
       Error  : out Errors.Error_Container);
-   pragma No_Return (Write);
-   --  A Socket_In_Endpoint is read-only, so this primitive operation raises
-   --  Program_Error.
+   --  Write data to datagram socket
 
    procedure Close (TE : access Socket_In_Endpoint);
 
    function Create_Endpoint
      (TAP : access Socket_In_Access_Point)
      return Datagram_Transport_Endpoint_Access;
+   --  Called on server side to initialize socket
 
 private
 
@@ -118,8 +118,9 @@ private
 
    type Socket_In_Endpoint is new Datagram_Transport_Endpoint
      with record
-        Handler : aliased Datagram_TE_AES_Event_Handler;
-        Socket  : Socket_Type := No_Socket;
+        Handler        : aliased Datagram_TE_AES_Event_Handler;
+        Socket         : Socket_Type := No_Socket;
+        Remote_Address : Sock_Addr_Type;
      end record;
 
 end PolyORB.Transport.Datagram.Sockets_In;
