@@ -1788,9 +1788,12 @@ package body Backend.BE_CORBA_Ada.Helpers is
                Object_Definition => RE (RE_Any),
                Expression => N);
             Append_To (D, N);
+
             N := Make_Subprogram_Call
-              (Make_Attribute_Reference (Map_Expanded_Name (E), A_Pos),
-               New_List (Make_Defining_Identifier (PN (P_Item))));
+                   (Make_Attribute_Reference
+                      (Expand_Designator
+                         (Type_Def_Node (BE_Node (Identifier (E)))), A_Pos),
+                    New_List (Make_Defining_Identifier (PN (P_Item))));
             N := Make_Type_Conversion (RE (RE_Unsigned_Long), N);
             N := Make_Subprogram_Call (RE (RE_To_Any_0), New_List (N));
             N := Make_Subprogram_Call
