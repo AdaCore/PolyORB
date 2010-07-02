@@ -41,6 +41,9 @@ See the features-27 file.
 Bug fixes
 ---------
 
+The iac compiler generated illegal Ada for helpers in the case of an
+enum type called 'Result'. (J701-270)
+
 The iac compiler did not handle modules that come in multiple parts
 correcly. The parts should all be considered part of the same
 module. (IA01-028)
