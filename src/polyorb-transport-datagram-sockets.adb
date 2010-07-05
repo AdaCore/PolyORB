@@ -34,7 +34,9 @@
 --  Datagram Socket Access Point and End Point to receive data from network
 
 with Ada.Exceptions;
-with PolyORB.Opaque;
+
+with System.Storage_Elements;
+
 with PolyORB.Asynch_Ev.Sockets;
 with PolyORB.Log;
 
@@ -147,62 +149,57 @@ package body PolyORB.Transport.Datagram.Sockets is
 
    procedure Read
      (TE     : in out Socket_Endpoint;
-      Buffer :        Buffers.Buffer_Access;
+      Buffer : Buffers.Buffer_Access;
       Size   : in out Stream_Element_Count;
-      Error  :    out Errors.Error_Container)
+      Error  : out Errors.Error_Container)
    is
       use PolyORB.Buffers;
-      use PolyORB.Opaque;
       use PolyORB.Errors;
 
       Request       : Request_Type (N_Bytes_To_Read);
-      Data_Address  : Opaque_Pointer;
-      Last          : Ada.Streams.Stream_Element_Offset;
-      From          : Sock_Addr_Type;
-      Flags         : constant Request_Flag_Type := No_Request_Flag;
+      Data_Received : Ada.Streams.Stream_Element_Offset;
+
+      procedure Lowlevel_Receive_Datagram (V : access Iovec);
+      --  Receive datagram from TE into V
+
+      -------------------------------
+      -- Lowlevel_Receive_Datagram --
+      -------------------------------
+
+      procedure Lowlevel_Receive_Datagram (V : access Iovec) is
+         Count : Stream_Element_Count;
+         Item  : Stream_Element_Array (1 .. Stream_Element_Offset (V.Iov_Len));
+         for Item'Address use V.Iov_Base;
+      begin
+         Receive_Socket
+           (TE.Socket, Item, Count, TE.Remote_Address, No_Request_Flag);
+         V.Iov_Len := System.Storage_Elements.Storage_Offset (Count);
+      end Lowlevel_Receive_Datagram;
+
+      procedure Receive_Datagram is
+        new Buffers.Receive_Buffer (Lowlevel_Receive_Datagram);
+
+   --  Start of processing for Read
 
    begin
-
-      Control_Socket (TE.Socket, Request);
-      Size := Stream_Element_Offset (Request.Size);
-
-      --  Point Data_Address to the allocated memory chunk
-      Allocate_And_Insert_Cooked_Data (Buffer, Size, Data_Address);
-
-      declare
-         Item   : aliased Ada.Streams.Stream_Element_Array (1 .. Size);
-         for Item'Address use Data_Address;
-         pragma Import (Ada, Item);
       begin
-
-         Receive_Socket (TE.Socket, Item, Last, From, Flags);
-
-         pragma Debug (C, O ("Remote address  :" & Image (From)));
-         pragma Debug (C, O ("To read :" & Size'Img));
-
-         --  We assign the remote host's address to the endpoint
-         TE.Remote_Address := From;
-
-         --  we need to reset the current CDR position at the beginning of
-         --  the buffer, so that upper layers could treat it correctly
-         Set_CDR_Position (Buffer, 0);
+         Control_Socket (TE.Socket, Request);
+         Size := Stream_Element_Offset (Request.Size);
+         Receive_Datagram (Buffer, Size, Data_Received);
       exception
          when E : Socket_Error =>
             O ("receive failed: " & Ada.Exceptions.Exception_Message (E),
                Notice);
             Throw (Error, Comm_Failure_E,
                    System_Exception_Members'
-                   (Minor => 0, Completed => Completed_Maybe));
+                     (Minor => 0, Completed => Completed_Maybe));
 
          when others =>
             Throw (Error, Unknown_E,
                    System_Exception_Members'
-                   (Minor => 0, Completed => Completed_Maybe));
+                     (Minor => 0, Completed => Completed_Maybe));
       end;
-
-      pragma Assert (Size /= 0);
-      pragma Debug (C, O (Size'Img & " byte(s) received"));
-
+      Size := Data_Received;
    end Read;
 
    -----------
