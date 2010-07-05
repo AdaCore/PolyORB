@@ -205,10 +205,11 @@ package body PolyORB.Protocols.DNS is
       Buffer_Out      : Buffer_Access := new Buffer_Type;
       Header_Buffer   : Buffer_Access := new Buffer_Type;
       Header_Space    : Reservation;
-      It : Iterator;
+
+      It  : Iterator;
       Arg : Element_Access;
 
-      Sess  : DNS_Session renames DNS_Session (S.all);
+      Sess  : DNS_Session renames S.all;
       Error : Errors.Error_Container;
    begin
       if Sess.Role = Client then
@@ -216,6 +217,7 @@ package body PolyORB.Protocols.DNS is
       end if;
 
       --  XXX: TODO : Manage eventual Exceptions
+
       if PolyORB.Any.Is_Empty (Request.Exception_Info) then
          Sess.MCtx.Rcode_Flag  := From_Any (Request.Result.Argument);
       end if;
@@ -225,33 +227,38 @@ package body PolyORB.Protocols.DNS is
 
       Header_Space := Reserve (Buffer_Out, DNS_Header_Size);
 
-      --  find and marshall the answer sequence
+      --  Find and marshall the answer sequence
+
       It := First (List_Of (Request.Out_Args).all);
       Next (It);
       Next (It);
       Arg := Value (It);
       Marshall_From_Any (Buffer_Out, Arg.Argument, True);
 
-      --  find and marshall the authority servers RR sequence
+      --  Find and marshall the authority servers RR sequence
+
       Next (It);
       Arg := Value (It);
       Marshall_From_Any (Buffer_Out, Arg.Argument, True);
-      --  find and marshall the authority servers RR sequence
+
+      --  Find and marshall the authority servers RR sequence
+
       Next (It);
       Arg := Value (It);
       Marshall_From_Any (Buffer_Out, Arg.Argument, True);
 
       --  Copy Header
+
       Marshall_DNS_Header_Reply
         (Header_Buffer, Request, Sess.MCtx);
       Copy_Data (Header_Buffer.all, Header_Space);
       Release (Header_Buffer);
 
       --  Emit reply
+
       Emit_Message (Sess'Access, Buffer_Out, Error);
       Release (Buffer_Out);
       pragma Debug (C, O ("Reply sent"));
-
    end Send_Reply;
 
    -------------------------------
