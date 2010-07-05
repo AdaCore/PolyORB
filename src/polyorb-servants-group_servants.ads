@@ -31,8 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Servant which manage groups of servants
---  Work as a proxy
+--  A servant that manages a group of servants, and acts as a proxy for them
 
 with PolyORB.Any.NVList;
 with PolyORB.Components;
@@ -55,8 +54,7 @@ package PolyORB.Servants.Group_Servants is
    ------------------------------
 
    function Create_Group_Servant
-     (Oid : Object_Id_Access)
-     return PolyORB.Servants.Servant_Access;
+     (Oid : Object_Id_Access) return PolyORB.Servants.Servant_Access;
    --  Create a new group servant
 
    procedure Destroy_Group_Servant
@@ -64,14 +62,14 @@ package PolyORB.Servants.Group_Servants is
    --  Destroy group servant
 
    procedure Get_Group_Object_Id
-     (Group :        PolyORB.Servants.Servant_Access;
-      Oid   :    out Object_Id_Access;
+     (Group : PolyORB.Servants.Servant_Access;
+      Oid   : out Object_Id_Access;
       Error : in out PolyORB.Errors.Error_Container);
    --  Return group object id
 
    procedure Get_Group_Length
-     (Group :        PolyORB.Servants.Servant_Access;
-      L     :    out Natural;
+     (Group : PolyORB.Servants.Servant_Access;
+      L     : out Natural;
       Error : in out PolyORB.Errors.Error_Container);
    --  Return group length
 
@@ -80,8 +78,8 @@ package PolyORB.Servants.Group_Servants is
    --------------------------
 
    procedure Associate
-     (Group :        PolyORB.Servants.Servant_Access;
-      Ref   :        PolyORB.References.Ref;
+     (Group : PolyORB.Servants.Servant_Access;
+      Ref   : PolyORB.References.Ref;
       Error : in out PolyORB.Errors.Error_Container);
    --  Associate a servant ref with a group
 
