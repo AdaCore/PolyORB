@@ -126,27 +126,27 @@ package PolyORB.Transport is
 
    procedure Read
      (TE     : in out Transport_Endpoint;
-      Buffer :        Buffers.Buffer_Access;
+      Buffer : Buffers.Buffer_Access;
       Size   : in out Ada.Streams.Stream_Element_Count;
-      Error  :    out Errors.Error_Container)
+      Error  : out Errors.Error_Container)
       is abstract;
-   --  Receive data from TE into Buffer. When Read is Called,
-   --  Size is set to the maximum size of the data to be received.
+   --  Receive data from TE into Buffer at the current position. On entry,
+   --  called, Size is set to the maximum size of the data to be received.
    --  On return, Size is set to the effective amount of data received.
+   --  The current position in Buffer remains unchanged.
 
    procedure Write
      (TE     : in out Transport_Endpoint;
       Buffer :        Buffers.Buffer_Access;
       Error  :    out Errors.Error_Container)
       is abstract;
-   --  Write out the contents of Buffer onto TE.
+   --  Write out the contents of Buffer onto TE
 
    procedure Close (TE : access Transport_Endpoint);
-   --  Dissociate the transport endpoint from any communication
-   --  resource.
+   --  Dissociate the transport endpoint from any communication resource
 
    procedure Destroy (TE : in out Transport_Endpoint);
-   --  Destroy any resources allocated to TE.
+   --  Destroy any resources allocated to TE
 
    procedure Destroy (TE : in out Transport_Endpoint_Access);
    --  Destroy TE and the protocol stack built upon it, recursively.
