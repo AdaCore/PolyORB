@@ -90,6 +90,9 @@ package body PolyORB.Setup.Access_Points.UIPMC is
    begin
       if Get_Conf ("access_points", "uipmc", True) then
 
+         --  If multicast group address or port number is not set, access
+         --  point is deactivated.
+
          if Addr = "" or else Port = 0 then
             return;
          end if;
