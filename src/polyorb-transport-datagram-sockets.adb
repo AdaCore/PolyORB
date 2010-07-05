@@ -170,6 +170,7 @@ package body PolyORB.Transport.Datagram.Sockets is
          Count : Stream_Element_Count;
          Item  : Stream_Element_Array (1 .. Stream_Element_Offset (V.Iov_Len));
          for Item'Address use V.Iov_Base;
+         pragma Import (Ada, Item);
       begin
          Receive_Socket
            (TE.Socket, Item, Count, TE.Remote_Address, No_Request_Flag);
