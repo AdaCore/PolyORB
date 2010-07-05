@@ -74,16 +74,22 @@ package body PolyORB.Setup.Access_Points.MDNS is
    is
       use PolyORB.Parameters;
 
-      Addr : constant Inet_Addr_Type :=
-        Inet_Addr (String'(
-          Get_Conf ("mdns",
-                       "polyorb.mdns.multicast_addr", Image (No_Inet_Addr))));
+      Addr : constant String :=
+               Get_Conf ("mdns", "polyorb.mdns.multicast_addr", "");
       Port : constant Port_Type :=
                Port_Type (Get_Conf ("mdns", "polyorb.mdns.multicast_port", 0));
    begin
       if Get_Conf ("access_points", "mdns", True) then
+
+         --  If multicast group address or port number is not set, access
+         --  point is deactivated.
+
+         if Addr = "" or else Port = 0 then
+            return;
+         end if;
+
          Initialize_Multicast_Socket
-           (MDNS_Access_Point, Addr, Port);
+           (MDNS_Access_Point, Inet_Addr (Addr), Port);
 
          Register_Access_Point
            (ORB   => The_ORB,
