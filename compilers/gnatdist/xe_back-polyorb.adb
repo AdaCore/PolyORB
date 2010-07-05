@@ -239,8 +239,7 @@ package body XE_Back.PolyORB is
    -- Generate_Ada_Starter_Code --
    -------------------------------
 
-   procedure Generate_Ada_Starter_Code
-   is
+   procedure Generate_Ada_Starter_Code is
       Remote_Host : Name_Id;
    begin
       for J in Partitions.First + 1 .. Partitions.Last loop

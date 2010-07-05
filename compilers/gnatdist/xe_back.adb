@@ -470,8 +470,7 @@ package body XE_Back is
    -- Generate_Starter_File --
    ---------------------------
 
-   procedure Generate_Starter_File (Backend : Backend_Access)
-   is
+   procedure Generate_Starter_File (Backend : Backend_Access) is
       procedure Generate_Boot_Server_Evaluation (P : Partition_Id);
       procedure Generate_Host_Name_Evaluation   (P : Partition_Id);
       procedure Generate_Executable_Invocation  (P : Partition_Id);
@@ -482,7 +481,6 @@ package body XE_Back is
 
       procedure Generate_Boot_Server_Evaluation (P : Partition_Id) is
          L : Location_Id := Partitions.Table (P).First_Network_Loc;
-
       begin
          if L = No_Location_Id then
             L := Default_First_Boot_Location;
@@ -516,7 +514,6 @@ package body XE_Back is
          Ext_Quote : constant Character := '"';  -- "
          Int_Quote : Character := ''';  -- '
          Current   : Partition_Type renames Partitions.Table (P);
-
       begin
 
          --  For the main partition, the command should be
@@ -574,7 +571,6 @@ package body XE_Back is
 
       procedure Generate_Host_Name_Evaluation (P : Partition_Id) is
          H : Name_Id;
-
       begin
          Write_Image (H, Partitions.Table (P).Host, P);
          if No (H) then
@@ -598,6 +594,8 @@ package body XE_Back is
       File      : File_Descriptor;
       Exec_File : File_Name_Type;
       Success   : Boolean;
+
+   --  Start of processing for Generate_Starter_File
 
    begin
       --  Do not build start unless also building all partitions
