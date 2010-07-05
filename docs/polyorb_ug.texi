@@ -5378,8 +5378,8 @@ requeued in the anonymous tasks pool.
 By default @command{po_gnatdist} will use the Ada starter. So if you
 have not specified @code{pragma Starter (None);} in the
 @command{po_gnatdist} configuration file, you should have a starter in
-your build directory, named after your configuration file.  In this case
-you just have to run this program.
+your build directory, named after the main procedure defined in the
+configuration file.  In this case you just have to run this program.
 
 If you don't want to use the Starter and have specified @code{pragma
 Starter (None);} in your configuration file, then you should have, in
