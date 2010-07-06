@@ -698,7 +698,7 @@ package body PolyORB.Protocols.DNS is
 
       pragma Debug (C, O ("Request_Received: entering"));
 
-      Req_Flags := Sync_With_Transport;
+      Req_Flags := Sync_With_Target;
 
       --  retrieve the user specified target object
       Get_Default_Servant (Target);
@@ -708,7 +708,7 @@ package body PolyORB.Protocols.DNS is
           Operation => To_Standard_String (S.MCtx.Request_Opcode),
           Arg_List  => S.MCtx.New_Args,
           Result    => Result,
-          Deferred_Arguments_Session => Def_Args,
+          Deferred_Arguments_Session => null,
           Req       => Req,
           Req_Flags => Req_Flags,
           Dependent_Binding_Object =>

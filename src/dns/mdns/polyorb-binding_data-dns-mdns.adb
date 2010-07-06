@@ -40,10 +40,9 @@ with PolyORB.Sockets;
 with PolyORB.Utils;
 with PolyORB.Utils.Strings;
 with PolyORB.Utils.Sockets;
-with PolyORB.Obj_Adapters;
-with PolyORB.Servants.Group_Servants;
 with PolyORB.Setup.MDNS;
-with PolyORB.Types;
+with Ada.Streams;
+
 package body PolyORB.Binding_Data.DNS.MDNS is
    use PolyORB.DNS.Transport_Mechanisms;
    use PolyORB.DNS.Transport_Mechanisms.MDNS;
@@ -52,7 +51,7 @@ package body PolyORB.Binding_Data.DNS.MDNS is
    use PolyORB.References.Corbaloc;
    use PolyORB.Utils;
    use PolyORB.Utils.Sockets;
-   use PolyORB.Types;
+   use Ada.Streams;
 
    package L is new PolyORB.Log.Facility_Log
      ("polyorb.binding_data.dns.mdns");
@@ -124,52 +123,20 @@ package body PolyORB.Binding_Data.DNS.MDNS is
       Oid :        Objects.Object_Id)
      return Profile_Access
    is
-      use PolyORB.Errors;
-      use PolyORB.Obj_Adapters;
-      use PolyORB.Servants;
-      use PolyORB.Servants.Group_Servants;
-
-      GS       : PolyORB.Servants.Servant_Access;
-      Oid_Access : Object_Id_Access := new Object_Id'(Oid);
-      Error    : Error_Container;
+      Result : constant Profile_Access := new MDNS_Profile_Type;
+      TResult : MDNS_Profile_Type renames MDNS_Profile_Type (Result.all);
 
    begin
-      pragma Debug (C, O ("enter:Oid = " & Image (Oid_Access.all)));
-      Find_Servant
-        (Obj_Adapter_Access (PolyORB.Setup.MDNS.MDNS_GOA),
-         Oid_Access, GS, Error);
-      pragma Debug (C, O ("After Find_Servant"));
-      if Found (Error) then
-         pragma Debug (C, O ("AN ERROR IS FOUND"));
-         Free (Oid_Access);
-         return null;
-      end if;
-      pragma Debug (C, O ("Before Get_Group_Object_Id"));
-      Get_Group_Object_Id (GS, Oid_Access, Error);
-      pragma Debug (C, O ("After Get_Group_Object_Id"));
-      if Found (Error)
-        or else Oid /= Oid_Access.all
-      then
-         pragma Debug (C, O ("AN ERROR IS FOUND"));
-         Free (Oid_Access);
-         return null;
-      end if;
-
-      declare
-         Result : constant Profile_Access := new MDNS_Profile_Type;
-         TResult : MDNS_Profile_Type renames MDNS_Profile_Type (Result.all);
-      begin
-         TResult.Object_Id := Oid_Access;
-         --  Create transport mechanism
-         Append
-           (TResult.Mechanisms,
-            Create_Transport_Mechanism
-            (MDNS_Transport_Mechanism_Factory
-                 (Element (PF.Mechanisms, 0).all.all)));
-         TResult.G_I.all := To_Group_Info (Oid_Access);
-         pragma Debug (C, O ("Create:Oid = " & Image (TResult.Object_Id.all)));
-         return Result;
-      end;
+      TResult.Object_Id     := new Object_Id'(Oid);
+      pragma Debug (C, O ("enter:Oid = " & Image (TResult.Object_Id.all)));
+      --  Create transport mechanism
+      Append
+        (TResult.Mechanisms,
+         Create_Transport_Mechanism
+         (MDNS_Transport_Mechanism_Factory
+              (Element (PF.Mechanisms, 0).all.all)));
+      pragma Debug (C, O ("leave"));
+      return Result;
    end Create_Profile;
 
    -----------------------
@@ -207,8 +174,7 @@ package body PolyORB.Binding_Data.DNS.MDNS is
           (Address_Of
            (MDNS_Transport_Mechanism (Element
             (MDNS_Profile.Mechanisms, 0).all.all)))
-        & "/TestDomain-1234";
---        & URI_Encode (Oid_Str, Also_Escape => No_Escape);
+        & "/";
    end Profile_To_Corbaloc;
 
    -------------------------
@@ -268,7 +234,6 @@ package body PolyORB.Binding_Data.DNS.MDNS is
          else
             Port := 5353;
          end if;
-         Index := Slash + 1;
       end;
 
       if Index > S'Last then
@@ -276,16 +241,18 @@ package body PolyORB.Binding_Data.DNS.MDNS is
          Destroy_Profile (Profile);
          return null;
       end if;
-      TResult.G_I := new Group_Info;
-      --  temporary fix
-      TResult.G_I.Group_Domain_Id :=
-        To_PolyORB_String ("RootGOA");
-      TResult.G_I.Object_Group_Id := 5252;
 
-      TResult.Object_Id := To_Object_Id (TResult.G_I.all);
+      declare
+         Oid_Str : constant String := URI_Decode (S (Index .. S'Last));
+         Oid     : Object_Id (Stream_Element_Offset (Oid_Str'First)
+                        .. Stream_Element_Offset (Oid_Str'Last));
+         pragma Import (Ada, Oid);
+         for Oid'Address use Oid_Str (Oid_Str'First)'Address;
+      begin
+         TResult.Object_Id := new Object_Id'(Oid);
+      end;
 
       if TResult.Object_Id = null then
-
          Destroy_Profile (Profile);
          return null;
       end if;

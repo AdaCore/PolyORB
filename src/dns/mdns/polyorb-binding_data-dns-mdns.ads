@@ -31,10 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PolyORB.MDNS.Groups;
-
 package PolyORB.Binding_Data.DNS.MDNS is
-   use PolyORB.MDNS.Groups;
    DNS_Error : exception;
 
    type MDNS_Profile_Type is new DNS_Profile_Type with private;
@@ -70,9 +67,7 @@ package PolyORB.Binding_Data.DNS.MDNS is
    pragma Inline (Get_OA);
 
 private
-   type MDNS_Profile_Type is new DNS_Profile_Type with record
-      G_I : PolyORB.MDNS.Groups.Group_Info_Access;
-   end record;
+   type MDNS_Profile_Type is new DNS_Profile_Type with null record;
 
    type MDNS_Profile_Factory is new DNS_Profile_Factory with null record;
 
