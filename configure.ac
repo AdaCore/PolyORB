@@ -221,7 +221,10 @@ CC="$CC_FOR_TARGET"
 # junk preprocessor test that will use the host preprocessor
 # instead of the target compiler.
 
-AC_CHECK_HEADERS([fcntl.h], [], [], [/*relax*/])
+AC_CHECK_HEADERS([fcntl.h],
+ [],
+ [AC_ERROR([One or more required header file could not be found.])],
+ [/*relax*/])
 
 AC_CHECK_FUNCS(setsid)
 CC="$save_CC"
