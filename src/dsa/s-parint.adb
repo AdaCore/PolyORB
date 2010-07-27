@@ -243,7 +243,9 @@ package body System.Partition_Interface is
    type RCI_Info_Access is access all RCI_Info;
 
    package Known_RCIs is new PolyORB.Dynamic_Dict (RCI_Info_Access);
-   --  This list is keyed with the lowercased full names of the RCI units
+   --  This list is keyed with the lowercased full names of the RCI units.
+   --  Concurrent accesses to Known_RCIs after elaboration must be protected
+   --  by the DSA critical section.
 
    procedure Retrieve_RCI_Info (Name : String; Info : in out RCI_Info_Access);
    --  Retrieve RCI information for a local or remote RCI package. If Info
@@ -2234,8 +2236,12 @@ package body System.Partition_Interface is
       Info : in out RCI_Info_Access)
    is
       LName : constant String := To_Lower (Name);
+      Entry_Pending : Boolean := False;
    begin
       pragma Debug (C, O ("Retrieve RCI info: enter, Name = " & Name));
+
+      PTM.Enter (Critical_Section);
+
       if Info = null then
          Info := Known_RCIs.Lookup (LName, null);
 
@@ -2251,6 +2257,12 @@ package body System.Partition_Interface is
                        Known_Partition_ID  => False,
                        RCI_Partition_ID    => RPC.Partition_ID'First);
             Known_RCIs.Register (LName, Info);
+
+         elsif Info.State = Initial then
+            --  Entry is in Initial state, and another task is taking care
+            --  of the lookup.
+
+            Entry_Pending := True;
          end if;
       end if;
 
@@ -2258,11 +2270,16 @@ package body System.Partition_Interface is
       --  name server. Since some partitions might not be registered yet, we
       --  retry the query up to Max_Requests times.
 
+      PTM.Leave (Critical_Section);
+
       <<Lookup>>
       if Info.State /= Dead then
+         --  If state is Initial and Entry_Created is false, this means another
+         --  task is in the process of looking up this RCI from the name
+         --  server: just wait for Base_Ref to become non-null.
 
-         if Is_Nil (Info.Base_Ref)
-           or else not Is_Reference_Valid (Info.Base_Ref)
+         if (Is_Nil (Info.Base_Ref) and then not Entry_Pending)
+               or else not Is_Reference_Valid (Info.Base_Ref)
          then
             Info.Base_Ref :=
               Nameserver_Lookup
@@ -2271,14 +2288,13 @@ package body System.Partition_Interface is
          end if;
 
          if Is_Nil (Info.Base_Ref) then
+            if Entry_Pending then
+               PolyORB.Tasking.Threads.Relative_Delay (Time_Between_Requests);
+               goto Lookup;
+            end if;
+
             --  Case of a remote RCI for which we have an invalid reference:
             --  handle reconnection.
-
-            --  First unset Base_Ref to cause an exception if returning now,
-            --  and a new name server lookup when subsequently retrying to
-            --  contact the RCI unit.
-
-            PolyORB.References.Release (Info.Base_Ref);
 
             case Info.Reconnection_Policy is
                when Reject_On_Restart =>
