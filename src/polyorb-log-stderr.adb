@@ -35,9 +35,15 @@ with Interfaces.C;
 with System;
 
 with PolyORB.Initialization;
+with PolyORB.Parameters;
 with PolyORB.Utils.Strings;
 
 package body PolyORB.Log.Stderr is
+
+   use PolyORB.Parameters;
+
+   Enable_Timestamps   : Boolean := False;
+   --  If set true, all messages are prefixed with a timestamp
 
    Failed_Message      : constant String :=
                            "polyorb.log.stderr: write failed" & ASCII.LF;
@@ -56,11 +62,40 @@ package body PolyORB.Log.Stderr is
    --------------
 
    procedure Put_Line (S : String);
+   --  Write S to output, possibly prefixed with a timestamp.
+   --  If write operation fails or is interrupted, generate an additional
+   --  informational message.
 
    procedure Put_Line (S : String) is
-      SS : aliased constant String := S & ASCII.LF;
+      function Timestamp return String;
+      --  If timestamps are enabled, return a timestamp for this message,
+      --  else return an empty string.
+
+      function Timestamp return String is
+         Result : String := "0000-00-00 00:00:00  ";
+         --  Note additional empty space at end of string to account for the
+         --  fact that we will use strftime(2) to fill in this string, which
+         --  will append a NUL character.
+
+         procedure C_Timestamp
+           (Buf     : System.Address;
+            Bufsize : Interfaces.C.int);
+         pragma Import (C, C_Timestamp, "__PolyORB_timestamp");
+
+      begin
+         if Enable_Timestamps then
+            C_Timestamp (Result'Address, Result'Length);
+            return Result (Result'First .. Result'Last - 1);
+         else
+            return "";
+         end if;
+      end Timestamp;
+
+      SS : aliased constant String := Timestamp & S & ASCII.LF;
       X  : Write_Status;
       pragma Unreferenced (X);
+
+   --  Start of processing for Put_Line
 
    begin
       case Write (SS) is
@@ -135,6 +170,8 @@ package body PolyORB.Log.Stderr is
       if PolyORB.Log.Internals.Log_Hook = null then
          PolyORB.Log.Internals.Log_Hook := Put_Line'Access;
       end if;
+
+      Enable_Timestamps := Get_Conf ("log", "timestamp", Default => False);
    end Initialize;
 
    use PolyORB.Initialization;

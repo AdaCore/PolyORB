@@ -1477,10 +1477,20 @@ packages for which you want debug information:
 polyorb.a_package=debug
 @end smallexample
 
-@noindent
 Note that some packages may not provide such information. See the sample
 configuration file @file{src/polyorb.conf} for the complete list of
 packages that provide traces.
+
+A default logging level may be specified using a line of the form
+@smallexample
+default=<level>
+@end smallexample
+
+Time stamps may optionally be prepended to every generated trace.
+This is enabled using:
+@smallexample
+timestamp=true
+@end smallexample
 
 @c -------------------------------------------------------------------
 @node Tracing exceptions
