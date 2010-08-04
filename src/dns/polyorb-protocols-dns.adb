@@ -703,6 +703,10 @@ package body PolyORB.Protocols.DNS is
       --  We need to extract the Object Id of the default mdns servant
       --  from the Child_POA, in order to create a local reference pointing it
 
+      --  The POA should not be used, instead a procedure should be exposed
+      --  by this protocol personality allowing the user to set the default
+      --  servant for this protocol???
+
       Find_POA (Self        => Root_POA,
                 Name        => "DNS_POA",
                 Activate_It => False,
