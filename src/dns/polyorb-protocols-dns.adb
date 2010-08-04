@@ -49,9 +49,12 @@ with PolyORB.POA;
 with PolyORB.Binding_Objects;
 with PolyORB.Any;
 with PolyORB.Filters.Iface;
+with PolyORB.Binding_Data.Local;
+with PolyORB.Setup;
 
 package body PolyORB.Protocols.DNS is
 
+   use PolyORB.Binding_Data.Local;
    use PolyORB.Representations.DNS;
    use PolyORB.Binding_Objects;
    use PolyORB.Annotations;
@@ -229,7 +232,7 @@ package body PolyORB.Protocols.DNS is
 
       --  Find and marshall the answer sequence
 
-      It := First (List_Of (Request.Out_Args).all);
+      It := First (List_Of (Request.Args).all);
       Next (It);
       Next (It);
       Arg := Value (It);
@@ -255,7 +258,7 @@ package body PolyORB.Protocols.DNS is
       Release (Header_Buffer);
 
       --  Emit reply
-
+      Show (Buffer_Out);
       Emit_Message (Sess'Access, Buffer_Out, Error);
       Release (Buffer_Out);
       pragma Debug (C, O ("Reply sent"));
@@ -639,7 +642,8 @@ package body PolyORB.Protocols.DNS is
       Add_sequence : rrSequence;
 
       Error : Errors.Error_Container;
-      Root_POA : PolyORB.POA.Obj_Adapter_Access;
+      Root_POA : PolyORB.POA.Obj_Adapter_Access :=  POA.Obj_Adapter_Access
+                                  (Object_Adapter (PolyORB.Setup.The_ORB));
       Child_POA : PolyORB.POA.Obj_Adapter_Access;
       Servant : Servants.Servant_Access;
       Return_Code : Types.Unsigned_Short;
@@ -696,12 +700,28 @@ package body PolyORB.Protocols.DNS is
       Add_Item (S.MCtx.New_Args,
                 Arg_Name_Add, To_Any (Add_sequence), Any.ARG_OUT);
 
-      pragma Debug (C, O ("Request_Received: entering"));
+      --  We need to extract the Object Id of the default mdns servant
+      --  from the Child_POA, in order to create a local reference pointing it
 
-      Req_Flags := Sync_With_Target;
+      Find_POA (Self        => Root_POA,
+                Name        => "DNS_POA",
+                Activate_It => False,
+                POA         => Child_POA,
+                Error       => Error);
+      Get_Servant (Child_POA, Servant, Error);
+      Export (Child_POA, Servant, null, Object_Key, Error);
 
-      --  retrieve the user specified target object
-      Get_Default_Servant (Target);
+      declare
+         Target_Profile : constant Binding_Data.Profile_Access
+           := new Local_Profile_Type;
+      begin
+         Create_Local_Profile
+           (Object_Key.all,
+            Local_Profile_Type (Target_Profile.all));
+
+         Create_Reference ((1 => Target_Profile), "", Target);
+
+      end;
 
       Create_Request
          (Target    => Target,
@@ -710,7 +730,7 @@ package body PolyORB.Protocols.DNS is
           Result    => Result,
           Deferred_Arguments_Session => null,
           Req       => Req,
-          Req_Flags => Req_Flags,
+          Req_Flags => Sync_With_Target,
           Dependent_Binding_Object =>
           Smart_Pointers.Entity_Ptr
               (S.Dependent_Binding_Object));
@@ -1145,16 +1165,17 @@ package body PolyORB.Protocols.DNS is
                pragma Debug (C, O ("No_Error : Unmarshall Reply Body"));
 
                Copy_Any_Value (Current_Req.Req.Result.Argument, To_Any (RC));
+               pragma Debug (C, O ("After Copy Any Value"));
                --  Unmarshall reply body.
                Unmarshall_Argument_List (Sess,
                        Current_Req.Req.Args, PolyORB.Any.ARG_OUT, Error);
-
+               pragma Debug (C, O ("After Unmarshall_Argument_List"));
                --  inform the requestor that the request has been executed
                Emit_No_Reply
                  (Current_Req.Req.Requesting_Component,
                   Servants.Iface.Executed_Request'
                     (Req => Current_Req.Req));
-
+               pragma Debug (C, O ("After Emit No_Reply"));
          --  XXX tbd : manage other response codes cases
          when others =>
             Emit_No_Reply

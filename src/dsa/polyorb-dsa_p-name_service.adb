@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                  P O L Y O R B . S E T U P . M D N S                     --
+--           P O L Y O R B . D S A _ P . N A M E _ S E R V I C E            --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2010, Free Software Foundation, Inc.               --
+--           Copyright (C) 2010, Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,41 +31,50 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Warnings (Off);
---  No entities referenced.
+with PolyORB.DSA_P.Name_Service.mDNS;
+with PolyORB.DSA_P.Name_Service.COS_Naming;
+with PolyORB.Parameters;
+with System.RPC;
 
-with PolyORB.Protocols.DNS;
-pragma Warnings (On);
+package body PolyORB.DSA_P.Name_Service is
 
-with PolyORB.Initialization;
-with PolyORB.Utils.Strings;
-
-package body PolyORB.Setup.MDNS is
-   use PolyORB.Smart_Pointers;
-   ----------------
-   -- Initialize --
-   ----------------
-
-   procedure Initialize;
-
-   procedure Initialize is
+   procedure Initialize_Name_Context
+     (Name_Ctx : in out Name_Context_Access)
+   is
+      Name_Context_String : constant String :=
+                                    PolyORB.Parameters.Get_Conf
+                                      ("dsa", "name_context", "COS");
    begin
-      null;
-   end Initialize;
 
-   use PolyORB.Initialization;
-   use PolyORB.Initialization.String_Lists;
-   use PolyORB.Utils.Strings;
+      --  If mDNS is configured by user
+      if Name_Context_String = "MDNS" then
+         Name_Ctx := new PolyORB.DSA_P.Name_Service.mDNS.MDNS_Name_Context;
+         declare
+            Nameservice_Location : constant String :=
+                                    PolyORB.Parameters.Get_Conf
+                                      ("dsa", "name_service");
+         begin
+            PolyORB.DSA_P.Name_Service.mDNS.Initiate_MDNS_Context
+              (Nameservice_Location, Name_Ctx);
+         end;
+      --  COS Naming case
+      else
+         Name_Ctx
+           := new PolyORB.DSA_P.Name_Service.COS_Naming.COS_Name_Context;
+         declare
+            Nameserver_Location : constant String :=
+                                    PolyORB.Parameters.Get_Conf
+                                      ("dsa", "name_service");
+         begin
+            PolyORB.References.String_To_Object
+              (Nameserver_Location, Name_Ctx.Base_Ref);
+         exception
+            when others =>
+               raise System.RPC.Communication_Error
+             with "unable to locate name server " & Nameserver_Location;
+         end;
+      end if;
 
-begin
-   Register_Module
-     (Module_Info'
-      (Name      => +"setup.mdns",
-       Conflicts => Empty,
-       Depends   => +"protocols.dns"
-       & "smart_pointers",
-       Provides  => Empty,
-       Implicit  => False,
-       Init      => Initialize'Access,
-       Shutdown  => null));
-end PolyORB.Setup.MDNS;
+   end Initialize_Name_Context;
+
+end PolyORB.DSA_P.Name_Service;

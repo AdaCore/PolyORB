@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                  P O L Y O R B . S E T U P . M D N S                     --
+--                 POLYORB.DSA_P.NAME_SERVICE.MDNS.CLIENT                   --
 --                                                                          --
---                                 B o d y                                  --
+--                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2010, Free Software Foundation, Inc.               --
+--           Copyright (C) 2010, Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,41 +31,28 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Warnings (Off);
---  No entities referenced.
+with PolyORB.References;
+with PolyORB.DSA_P.Name_Service.mDNS.Helper;
 
-with PolyORB.Protocols.DNS;
-pragma Warnings (On);
+package PolyORB.DSA_P.Name_Service.mDNS.Client is
 
-with PolyORB.Initialization;
-with PolyORB.Utils.Strings;
+   function Resolve
+     (The_Ref : PolyORB.References.Ref;
+      Name    : String;
+      Kind    : String)
+      return PolyORB.References.Ref;
 
-package body PolyORB.Setup.MDNS is
-   use PolyORB.Smart_Pointers;
-   ----------------
-   -- Initialize --
-   ----------------
+   procedure Query
+     (Self : PolyORB.References.Ref;
+      authoritative : in out PolyORB.Types.Boolean;
+      question : PolyORB.DSA_P.Name_Service.mDNS.Helper.rrSequence;
+      answer : out PolyORB.DSA_P.Name_Service.mDNS.Helper.rrSequence;
+      authority : out PolyORB.DSA_P.Name_Service.mDNS.Helper.rrSequence;
+      additional : out PolyORB.DSA_P.Name_Service.mDNS.Helper.rrSequence;
+      Returns : out PolyORB.DSA_P.Name_Service.mDNS.Helper.Rcode);
 
-   procedure Initialize;
+private
+   procedure Parse_TXT_Record (Answer_RR : PolyORB.Types.String;
+                               Version_id : out PolyORB.Types.String);
 
-   procedure Initialize is
-   begin
-      null;
-   end Initialize;
-
-   use PolyORB.Initialization;
-   use PolyORB.Initialization.String_Lists;
-   use PolyORB.Utils.Strings;
-
-begin
-   Register_Module
-     (Module_Info'
-      (Name      => +"setup.mdns",
-       Conflicts => Empty,
-       Depends   => +"protocols.dns"
-       & "smart_pointers",
-       Provides  => Empty,
-       Implicit  => False,
-       Init      => Initialize'Access,
-       Shutdown  => null));
-end PolyORB.Setup.MDNS;
+end PolyORB.DSA_P.Name_Service.mDNS.Client;

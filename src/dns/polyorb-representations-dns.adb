@@ -190,7 +190,10 @@ package body PolyORB.Representations.DNS is
                             Unmarshall (Buffer),
                             Unmarshall (Buffer),
                             Unmarshall (Buffer))));
-
+               when TXT =>
+                  pragma Debug (C, O ("Message is a TXT record"));
+                  rr_d.rr_answer := Unmarshall_DNS_String (Buffer);
+                  pragma Debug (C, O (To_Standard_String (rr_d.rr_answer)));
                when others =>
                   rr_d.rr_answer := Unmarshall_DNS_String (Buffer);
             end case;
@@ -258,7 +261,7 @@ package body PolyORB.Representations.DNS is
       pragma Import (Ada, Str);
 
    begin
-      pragma Debug (C, O ("Marshall (String) : enter"));
+      pragma Debug (C, O ("Marshall (String) : enter:" & Data'Length'Img));
       if Data'Length = 0 then
          return;
       end if;

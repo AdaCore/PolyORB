@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                  P O L Y O R B . S E T U P . M D N S                     --
+--                  POLYORB.DSA_P.NAME_SERVICE.COS_NAMING                   --
 --                                                                          --
---                                 B o d y                                  --
+--                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2010, Free Software Foundation, Inc.               --
+--           Copyright (C) 2010, Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,41 +31,47 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Warnings (Off);
---  No entities referenced.
+with PolyORB.References;
+with PolyORB.DSA_P.Name_Service;
+with PolyORB.Services.Naming;
+package PolyORB.DSA_P.Name_Service.COS_Naming is
 
-with PolyORB.Protocols.DNS;
-pragma Warnings (On);
+   type COS_Name_Context is new Name_Context with null record;
 
-with PolyORB.Initialization;
-with PolyORB.Utils.Strings;
+   procedure Nameserver_Register
+     (Name_Ctx : access COS_Name_Context;
+      Name : String;
+      Kind : String;
+      Obj  : PolyORB.References.Ref);
+   --  Register object with the specified (Name, Kind) pair into the
+   --  DSA naming context.
 
-package body PolyORB.Setup.MDNS is
-   use PolyORB.Smart_Pointers;
-   ----------------
-   -- Initialize --
-   ----------------
+   function Nameserver_Lookup
+     (Name_Ctx : access COS_Name_Context;
+      Name     : String;
+      Kind     : String;
+      Initial  : Boolean := True) return PolyORB.References.Ref;
+   --  Look up the specified (Name, Kind) pair from the DSA naming context.
+   --  If Initial is True, repeat lookup until a valid reference is obtained,
+   --  and raise an exception if maximum retry count is reached, else just
+   --  return an empty ref if name server retruns an empty or invalid result.
 
-   procedure Initialize;
+   type Reconnection_Policy_Type is
+     (Fail_Until_Restart, Block_Until_Restart, Reject_On_Restart);
+   Default_Reconnection_Policy : constant Reconnection_Policy_Type :=
+     Fail_Until_Restart;
 
-   procedure Initialize is
-   begin
-      null;
-   end Initialize;
+   type RCI_Attribute is (Local, Reconnection);
 
-   use PolyORB.Initialization;
-   use PolyORB.Initialization.String_Lists;
-   use PolyORB.Utils.Strings;
+   function RCI_Attr (Name : String; Attr : RCI_Attribute) return String;
+   function To_Name (Id, Kind : String) return PolyORB.Services.Naming.Name;
+   --  Construct a name consisting of a single name component with the given
+   --  id and kind.
+   function Is_Reference_Valid (R : PolyORB.References.Ref) return Boolean;
+   --  Binds a reference to determine whether it is valid
 
-begin
-   Register_Module
-     (Module_Info'
-      (Name      => +"setup.mdns",
-       Conflicts => Empty,
-       Depends   => +"protocols.dns"
-       & "smart_pointers",
-       Provides  => Empty,
-       Implicit  => False,
-       Init      => Initialize'Access,
-       Shutdown  => null));
-end PolyORB.Setup.MDNS;
+   function Get_Reconnection_Policy
+     (Name : String) return Reconnection_Policy_Type;
+   --  Retrieve reconnection policy for this RCI from runtime parameters
+   --  set by gnatdist.
+end PolyORB.DSA_P.Name_Service.COS_Naming;

@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                  P O L Y O R B . S E T U P . M D N S                     --
+--           P O L Y O R B . D S A _ P . N A M E _ S E R V I C E            --
 --                                                                          --
---                                 B o d y                                  --
+--                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2010, Free Software Foundation, Inc.               --
+--           Copyright (C) 2010, Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,41 +31,40 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Warnings (Off);
---  No entities referenced.
+with PolyORB.References;
+with PolyORB.Types;
 
-with PolyORB.Protocols.DNS;
-pragma Warnings (On);
+package PolyORB.DSA_P.Name_Service is
 
-with PolyORB.Initialization;
-with PolyORB.Utils.Strings;
+   type Name_Context is abstract tagged record
+      Base_Ref : PolyORB.References.Ref;
+      Stringified_Ref : PolyORB.Types.String;
+   end record;
+   --  The abstract type used to disptach Nameserver_Lookup/
+   --  Nameserver_Register. The Stringified_Ref is used only on client's side
+   --  , it is assigned by Initialize_MDNS_Context and is used in
+   --  Nameserver_Lookup in order to initialize the remote Base_Ref field.
 
-package body PolyORB.Setup.MDNS is
-   use PolyORB.Smart_Pointers;
-   ----------------
-   -- Initialize --
-   ----------------
+   type Name_Context_Access is access all Name_Context'Class;
 
-   procedure Initialize;
+   function Nameserver_Lookup
+     (Name_Ctx : access Name_Context;
+      Name     : String;
+      Kind     : String;
+      Initial  : Boolean := True) return PolyORB.References.Ref is abstract;
+   --  abstract declaration of Nameserver_Lookup
 
-   procedure Initialize is
-   begin
-      null;
-   end Initialize;
+   procedure Nameserver_Register
+     (Name_Ctx : access Name_Context;
+      Name : String;
+      Kind : String;
+      Obj  : PolyORB.References.Ref) is abstract;
+   --  abstract declaration of Nameserver_Register
 
-   use PolyORB.Initialization;
-   use PolyORB.Initialization.String_Lists;
-   use PolyORB.Utils.Strings;
+   procedure Initialize_Name_Context (Name_Ctx : in out Name_Context_Access);
+   --  Called by the System.Partition_Interface.Initialize procedure, during
+   --  partition's elaboration. Depending on the current configuration,
+   --  sets the Name Context to mDNS or COS_Naming and the Base_Ref to
+   --  the corresponding remote reference.
 
-begin
-   Register_Module
-     (Module_Info'
-      (Name      => +"setup.mdns",
-       Conflicts => Empty,
-       Depends   => +"protocols.dns"
-       & "smart_pointers",
-       Provides  => Empty,
-       Implicit  => False,
-       Init      => Initialize'Access,
-       Shutdown  => null));
-end PolyORB.Setup.MDNS;
+end PolyORB.DSA_P.Name_Service;
