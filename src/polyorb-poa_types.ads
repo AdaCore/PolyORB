@@ -144,12 +144,13 @@ package PolyORB.POA_Types is
       Persistency_Flag : Lifespan_Cookie;
       --  Object's Lifespan
    end record;
+
+   function "=" (Left, Right : Unmarshalled_Oid) return Standard.Boolean;
+
    type Unmarshalled_Oid_Access is access Unmarshalled_Oid;
 
    procedure Free is new Ada.Unchecked_Deallocation
      (Unmarshalled_Oid, Unmarshalled_Oid_Access);
-
-   function "=" (Left, Right : Unmarshalled_Oid) return Standard.Boolean;
 
    function Create_Id
      (Name             : Standard.String;
