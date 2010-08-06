@@ -63,11 +63,12 @@ package PolyORB.DSA_P.Name_Service.mDNS.Servant is
    package Local_Entry_List is new PolyORB.Dynamic_Dict (Local_Entry_Ptr);
    --  The list of all entries. key=Unit Name, value - pointer to Local_Entry
 
-   procedure Query (Self : access Object; authoritative : in out Boolean;
-                    question : rrSequence;
-                    answer : out rrSequence;
-                    authority : out rrSequence;
-                    additional : out rrSequence;
+   procedure Query (Self : access Object;
+                    Authoritative : in out Boolean;
+                    Question : rrSequence;
+                    Answer : out rrSequence;
+                    Authority : out rrSequence;
+                    Additional : out rrSequence;
                     Response : out Rcode);
    --  This procedure is called Invoke upon reception of distant query
    --  Depending on the incoming request, it generates the corresponding
@@ -92,7 +93,8 @@ private
    procedure Find_Answer_RR (Question       : RR;
                              Answer_Seq     : out rrSequence;
                              Authority_Seq  : out rrSequence;
-                             Additional_Seq : out rrSequence);
+                             Additional_Seq : out rrSequence;
+                             Response       : out Rcode);
    --  The local procedure responsible for looking up for the record and
    --  constructing the answer sequences conforming to the RCI/SP<->RR mapping
 end PolyORB.DSA_P.Name_Service.mDNS.Servant;

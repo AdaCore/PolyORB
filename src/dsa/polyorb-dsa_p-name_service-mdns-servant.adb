@@ -50,29 +50,26 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Servant is
      renames L.Enabled;
 
    procedure Query (Self : access Object;
-                    authoritative : in out Boolean;
-                    question : rrSequence;
-                    answer : out rrSequence;
-                    authority : out rrSequence;
-                    additional : out rrSequence;
+                    Authoritative : in out Boolean;
+                    Question : rrSequence;
+                    Answer : out rrSequence;
+                    Authority : out rrSequence;
+                    Additional : out rrSequence;
                     Response : out Rcode)
    is
-      pragma Unreferenced (Self, authority);
-      ques : RR;
+      pragma Unreferenced (Self);
    begin
 
       --  by default, each partition is autoritative
-      authoritative := True;
+      Authoritative := True;
 
       --  for each received question we must look for an RR or a list of RRs
       --  and assign them to the RR answer/additional infos sequence
-      for J in 1 .. Length (question) loop
-         ques := Get_Element (question, J);
-         Find_Answer_RR (ques, answer, authority, additional);
+      for J in 1 .. Length (Question) loop
+         Find_Answer_RR (Get_Element (Question, J),
+                         Answer, Authority, Additional, Response);
       end loop;
 
-      --  XXX :TODO - manage other Rcodes
-      Response := No_Error;
    end Query;
 
    procedure Invoke
@@ -192,7 +189,8 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Servant is
                Copy_Any_Value (Arg.Argument, Argument_Additional);
             end;
 
-            PolyORB.Requests.Set_Result (Request, To_Any (No_Error));
+            PolyORB.Requests.Set_Result (Request, To_Any (Result));
+
             return;
          end;
 
@@ -202,13 +200,15 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Servant is
    procedure Find_Answer_RR (Question       : RR;
                              Answer_Seq     : out rrSequence;
                              Authority_Seq  : out rrSequence;
-                             Additional_Seq : out rrSequence)
+                             Additional_Seq : out rrSequence;
+                             Response       : out Rcode)
    is
 
       TTL : constant PolyORB.Types.Unsigned_Long := 240;
       Answer : RR;
       SRV_RR : SRV_Data;
       Version : PolyORB.Types.String;
+      Current_Entry : Local_Entry_Ptr;
       pragma Unreferenced (Authority_Seq);
 
    begin
@@ -224,6 +224,22 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Servant is
          --  rr sequence).
 
          when SRV =>
+
+            --  xxx: concurent access mutex locks?
+
+            Current_Entry := Local_Entry_List.Lookup
+              (Types.To_Standard_String (Question.rr_name), null);
+
+            if Current_Entry = null then
+
+               --  If the record is not found locally, we return a
+               --  Name_Error DNS Rcode to client.
+
+               Response := Name_Error;
+
+               return;
+            end if;
+
             Answer_Seq := To_Sequence (1);
             Additional_Seq := To_Sequence (1);
             Answer.rr_name := Question.rr_name;
@@ -232,11 +248,8 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Servant is
 
             declare
                SRV_RR_Data   : RR_Data (Answer.rr_type);
-               Current_Entry : Local_Entry_Ptr;
             begin
-               --  xxx: concurent access mutex locks?
-               Current_Entry := Local_Entry_List.Lookup
-                 (Types.To_Standard_String (Question.rr_name), null);
+
                Version := Current_Entry.Version;
 
                declare
@@ -275,7 +288,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Servant is
                Answer.rr_data := TXT_RR_Data;
             end;
             Replace_Element (Additional_Seq, 1, Answer);
-
+            Response := No_Error;
          --  XXX:The following RRs are used for testing purposes currently
          when A =>
             Answer.rr_name := Question.rr_name;

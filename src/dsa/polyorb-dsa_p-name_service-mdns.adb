@@ -154,7 +154,6 @@ package body PolyORB.DSA_P.Name_Service.mDNS is
       LName : constant String := To_Lower (Name);
       pragma Unreferenced (Initial, LName);
       Result : PolyORB.References.Ref;
-      Ref_Tmp : PolyORB.References.Ref;
    begin
       pragma Debug
         (C, O ("Nameserver_Lookup (" & Name & "." & Kind & "): enter"));
@@ -175,15 +174,11 @@ package body PolyORB.DSA_P.Name_Service.mDNS is
 
       --  Invoke the Resolve procedure which calls the remote object
       --  constructs a local reference as a result and returns it.
+
       Result :=
         PolyORB.DSA_P.Name_Service.mDNS.Client.Resolve
           (Context.Base_Ref, Name, Kind);
 
-      PolyORB.References.Create_Reference
-        (PolyORB.References.Profiles_Of (Result), "TESTDSA", Ref_Tmp);
-
-      PolyORB.References.Set (Result,
-                                     PolyORB.References.Entity_Of (Ref_Tmp));
       pragma Debug
         (C, O ("Nameserver_Lookup (" & Name & "." & Kind & "): leave"));
 

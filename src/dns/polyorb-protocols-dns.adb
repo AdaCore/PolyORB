@@ -843,7 +843,6 @@ package body PolyORB.Protocols.DNS is
                    renames DNS_Message_Context (MCtx_Acc.all);
 
       Test_Request_Id : Types.Unsigned_Short;
-
    begin
       pragma Debug (C, O ("Unmarshalling DNS header"));
       --  Extract Request_Id
@@ -873,23 +872,27 @@ package body PolyORB.Protocols.DNS is
          MCtx.Request_Opcode := To_PolyORB_String (Query_Name);
       end if;
 
-      pragma Debug (C, O ("Opcode :" & MCtx.Opcode_Flag'Img));
-
       MCtx.AA_Flag := Is_Set (AA_Flag_Pos, Header_Flags);
-      pragma Debug (C, O ("AA_Flag : " & MCtx.AA_Flag'Img));
-
       MCtx.TC_Flag :=  Is_Set (TC_Flag_Pos, Header_Flags);
-      pragma Debug (C, O ("TC_Flag : " & MCtx.TC_Flag'Img));
-
       MCtx.Rec_Flag :=  Is_Set (Rec_Flag_Pos, Header_Flags);
-      pragma Debug (C, O ("Rec_Flag : " & MCtx.Rec_Flag'Img));
+      MCtx.Rec_Disp_Flag :=  Is_Set (Rcode_Flag_Pos + 3, Header_Flags);
 
-      MCtx.Rec_Disp_Flag :=  Is_Set (Rec_Disp_Flag_Pos, Header_Flags);
-      pragma Debug (C, O ("Rec_Disp_Flag : " & MCtx.Rec_Disp_Flag'Img));
+      --  currently only No_Error and Name_Error cases are supported
 
-      --  XXX TODO  : case on Rcode
-      MCtx.Rcode_Flag := No_Error;
-      pragma Debug (C, O ("Rcode : No_Error"));
+      if not Is_Set (Rcode_Flag_Pos + 3, Header_Flags) then
+         if not Is_Set (Rcode_Flag_Pos + 2, Header_Flags) then
+            if not Is_Set (Rcode_Flag_Pos + 1, Header_Flags) then
+               if not Is_Set (Rcode_Flag_Pos, Header_Flags) then
+                  MCtx.Rcode_Flag := No_Error;
+               end if;
+            else
+               if Is_Set (Rcode_Flag_Pos, Header_Flags) then
+                  MCtx.Rcode_Flag := Name_Error;
+               end if;
+            end if;
+         end if;
+      end if;
+      pragma Debug (C, O ("RCODE :" & MCtx.Rcode_Flag'Img));
 
       MCtx.Nb_Questions := Unmarshall (Buffer);
       pragma Debug (C, O ("NB Questions :" & MCtx.Nb_Questions'Img));
@@ -1156,7 +1159,15 @@ package body PolyORB.Protocols.DNS is
                   Servants.Iface.Executed_Request'
                     (Req => Current_Req.Req));
                pragma Debug (C, O ("After Emit No_Reply"));
-         --  XXX tbd : manage other response codes cases
+
+         when Name_Error =>
+            pragma Debug (C, O ("Name_Error : Record was not found"));
+            Copy_Any_Value (Current_Req.Req.Result.Argument, To_Any (RC));
+            Emit_No_Reply
+               (Current_Req.Req.Requesting_Component,
+                  Servants.Iface.Executed_Request'
+                    (Req => Current_Req.Req));
+
          when others =>
             Emit_No_Reply
                 (Component_Access (ORB),

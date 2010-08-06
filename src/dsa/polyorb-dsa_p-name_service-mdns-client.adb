@@ -179,20 +179,24 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Client is
          if Add_rr.rr_type = TXT then
             Parse_TXT_Record (Add_rr.rr_data.rr_answer, Version_Id);
 
-            --  XXX : temporary solution for reconstructing the Ref.
-            --  should create a new String_To_Object procedure that
-            --  constructs the Ref with the given Type_Id to support
-            --  version checking bt System.Partition Interface as shown
-            --  below (the code is commented out for now, because this
-            --  String to Object procedure is not yet defined.
-            --  It works, tested locally. TO BE IMPLEMENTED and comitted):
---           Ref := PolyORB.References.Corbaloc.String_To_Object
---             (Types.To_Standard_String (Answer_rr.rr_data.srv_data.target),
---              "DSA:" & Types.To_Standard_String (Answer_rr.rr_name) & ":"
---               & Types.To_Standard_String (Version_Id));
+            --  creating a the reference form it's stringified representation
+
+            PolyORB.References.String_To_Object
+              (Types.To_Standard_String (Answer_rr.rr_data.srv_data.target),
+               Ref);
+
+            --  setting it's type id, for version checking purposes
+
+            if PolyORB.References.Type_Id_Of (Ref) = "" then
+               PolyORB.References.Set_Type_Id
+                 (Ref, "DSA:" & To_Standard_String (Answer_rr.rr_name) & ":"
+                    & To_Standard_String (Version_Id));
+            end if;
 
          end if;
-
+      elsif Res = Name_Error then
+         pragma Debug (C, O ("Record was not found"));
+         null;
       else
          raise Program_Error;
       end if;
