@@ -49,12 +49,10 @@ with PolyORB.POA;
 with PolyORB.Binding_Objects;
 with PolyORB.Any;
 with PolyORB.Filters.Iface;
-with PolyORB.Binding_Data.Local;
 with PolyORB.Setup;
 
 package body PolyORB.Protocols.DNS is
 
-   use PolyORB.Binding_Data.Local;
    use PolyORB.Representations.DNS;
    use PolyORB.Binding_Objects;
    use PolyORB.Annotations;
@@ -258,7 +256,7 @@ package body PolyORB.Protocols.DNS is
       Release (Header_Buffer);
 
       --  Emit reply
-      Show (Buffer_Out);
+
       Emit_Message (Sess'Access, Buffer_Out, Error);
       Release (Buffer_Out);
       pragma Debug (C, O ("Reply sent"));
@@ -310,6 +308,7 @@ package body PolyORB.Protocols.DNS is
       Process_Message (Sess);
       Expect_DNS_Header (Sess);
       pragma Debug (C, O ("Handle_Data_Indication : Leave"));
+
    exception
       when others =>
          Throw
@@ -700,32 +699,9 @@ package body PolyORB.Protocols.DNS is
       Add_Item (S.MCtx.New_Args,
                 Arg_Name_Add, To_Any (Add_sequence), Any.ARG_OUT);
 
-      --  We need to extract the Object Id of the default mdns servant
-      --  from the Child_POA, in order to create a local reference pointing it
+      --  Retrieve the default servant, specified by user
 
-      --  The POA should not be used, instead a procedure should be exposed
-      --  by this protocol personality allowing the user to set the default
-      --  servant for this protocol???
-
-      Find_POA (Self        => Root_POA,
-                Name        => "DNS_POA",
-                Activate_It => False,
-                POA         => Child_POA,
-                Error       => Error);
-      Get_Servant (Child_POA, Servant, Error);
-      Export (Child_POA, Servant, null, Object_Key, Error);
-
-      declare
-         Target_Profile : constant Binding_Data.Profile_Access
-           := new Local_Profile_Type;
-      begin
-         Create_Local_Profile
-           (Object_Key.all,
-            Local_Profile_Type (Target_Profile.all));
-
-         Create_Reference ((1 => Target_Profile), "", Target);
-
-      end;
+      Target := Get_Default_Servant;
 
       Create_Request
          (Target    => Target,
@@ -1196,11 +1172,10 @@ package body PolyORB.Protocols.DNS is
       Object_Reference := The_Ref;
    end Set_Default_Servant;
 
-   procedure Get_Default_Servant
-     (The_Ref : out PolyORB.References.Ref)
+   function Get_Default_Servant return PolyORB.References.Ref
    is
    begin
-      The_Ref := Object_Reference;
+      return Object_Reference;
    end Get_Default_Servant;
 
    use PolyORB.Initialization;

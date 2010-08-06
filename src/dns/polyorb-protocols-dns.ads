@@ -116,11 +116,12 @@ package PolyORB.Protocols.DNS is
       Request_Id       : Types.Unsigned_Long;
       RC     : Rcode);
    procedure Initialize;
+
    procedure Set_Default_Servant
      (The_Ref : PolyORB.References.Ref);
+   function Get_Default_Servant return PolyORB.References.Ref;
+   --  Set/Get the user specified default servant
 
-   procedure Get_Default_Servant
-     (The_Ref : out PolyORB.References.Ref);
 private
    Object_Reference : PolyORB.References.Ref;
    --  Default Object Reference, specified by user
@@ -146,6 +147,7 @@ private
        (Pending_Request_Access, Natural, 1, 10, 10);
 
    type DNS_Protocol is new Protocol with null record;
+
    --  For now the DNS message context is exhaustive for all
    --  dns message fields.. to be discussed
    type DNS_Message_Context is abstract tagged record
