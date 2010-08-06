@@ -35,6 +35,7 @@
 
 with PolyORB.POA_Policies;
 with PolyORB.References;
+with PolyORB.Objects;
 with PolyORB.DSA_P.Name_Service;
 
 package PolyORB.DSA_P.Name_Service.mDNS is
@@ -67,7 +68,8 @@ package PolyORB.DSA_P.Name_Service.mDNS is
 
    procedure Initiate_MDNS_Context
      (MDNS_Reference : String;
-      Context : out PolyORB.DSA_P.Name_Service.Name_Context_Access);
+      Context : out PolyORB.DSA_P.Name_Service.Name_Context_Access;
+      Oid : out PolyORB.Objects.Object_Id_Access);
    --  Initiates the mDNS Name Context by initizalizing the servant object,
    --  and setting is as a default servant for a newly created child_POA.
    --  A stringified reference is assigned to Context.Stringified_Reference

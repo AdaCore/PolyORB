@@ -31,6 +31,9 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+--  This package represents the CORBA COS Naming context, that uses the
+--  concept of a centralized name server.
+
 with PolyORB.References;
 with PolyORB.DSA_P.Name_Service;
 with PolyORB.Services.Naming;
@@ -56,22 +59,10 @@ package PolyORB.DSA_P.Name_Service.COS_Naming is
    --  and raise an exception if maximum retry count is reached, else just
    --  return an empty ref if name server retruns an empty or invalid result.
 
-   type Reconnection_Policy_Type is
-     (Fail_Until_Restart, Block_Until_Restart, Reject_On_Restart);
-   Default_Reconnection_Policy : constant Reconnection_Policy_Type :=
-     Fail_Until_Restart;
-
-   type RCI_Attribute is (Local, Reconnection);
-
-   function RCI_Attr (Name : String; Attr : RCI_Attribute) return String;
    function To_Name (Id, Kind : String) return PolyORB.Services.Naming.Name;
    --  Construct a name consisting of a single name component with the given
    --  id and kind.
    function Is_Reference_Valid (R : PolyORB.References.Ref) return Boolean;
    --  Binds a reference to determine whether it is valid
 
-   function Get_Reconnection_Policy
-     (Name : String) return Reconnection_Policy_Type;
-   --  Retrieve reconnection policy for this RCI from runtime parameters
-   --  set by gnatdist.
 end PolyORB.DSA_P.Name_Service.COS_Naming;

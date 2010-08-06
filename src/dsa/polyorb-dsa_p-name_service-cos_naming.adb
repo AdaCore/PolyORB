@@ -45,12 +45,12 @@ with PolyORB.Components;
 with PolyORB.Binding_Data;
 with PolyORB.Setup;
 with PolyORB.Initialization;
-with PolyORB.Parameters;
 
 package body PolyORB.DSA_P.Name_Service.COS_Naming is
    use PolyORB.Utils;
    use PolyORB.Log;
    use PolyORB.Smart_Pointers;
+
    package L is new PolyORB.Log.Facility_Log
      ("polyorb.dsa_p.name_service.cos_naming");
    procedure O (Message : String; Level : Log_Level := Debug)
@@ -230,26 +230,4 @@ package body PolyORB.DSA_P.Name_Service.COS_Naming is
          return False;
    end Is_Reference_Valid;
 
-   -----------------------------
-   -- Get_Reconnection_Policy --
-   -----------------------------
-
-   function Get_Reconnection_Policy
-     (Name : String) return Reconnection_Policy_Type is
-   begin
-      return Reconnection_Policy_Type'Value
-               (PolyORB.Parameters.Get_Conf
-                  (Section => "dsa",
-                   Key     => RCI_Attr (Name, Reconnection),
-                   Default => Default_Reconnection_Policy'Img));
-   end Get_Reconnection_Policy;
-
-   --------------
-   -- RCI_Attr --
-   --------------
-
-   function RCI_Attr (Name : String; Attr : RCI_Attribute) return String is
-   begin
-      return To_Lower (Name & "'" & Attr'Img);
-   end RCI_Attr;
 end PolyORB.DSA_P.Name_Service.COS_Naming;

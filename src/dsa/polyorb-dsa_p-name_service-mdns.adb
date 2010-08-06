@@ -35,13 +35,11 @@ with PolyORB.Any;
 with PolyORB.Any.NVList;
 with PolyORB.Log;
 with PolyORB.Utils;
-with PolyORB.Objects;
 with PolyORB.Errors;
 with PolyORB.POA;
 with PolyORB.Setup;
 with PolyORB.ORB;
 with PolyORB.DSA_P.Exceptions;
-with PolyORB.POA_Types;
 with PolyORB.POA_Policies.Request_Processing_Policy.Use_Default_Servant;
 with PolyORB.POA_Policies.Servant_Retention_Policy.Retain;
 with PolyORB.POA_Policies.Id_Assignment_Policy.System;
@@ -54,7 +52,7 @@ with PolyORB.Minimal_Servant;
 with PolyORB.Types;
 with PolyORB.DSA_P.Name_Service.mDNS.Client;
 with PolyORB.DSA_P.Name_Service.mDNS.Servant;
-with GNAT.Sockets;
+
 package body PolyORB.DSA_P.Name_Service.mDNS is
 
    use PolyORB.POA_Policies;
@@ -71,6 +69,9 @@ package body PolyORB.DSA_P.Name_Service.mDNS is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
+
+   Root_DNS     : aliased PolyORB.DSA_P.Name_Service.mDNS.Servant.
+     Object_Ptr;
 
    ------------------------------
    -- Initialize_MDNS_Policies --
@@ -115,8 +116,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS is
 
    begin
       pragma Debug (C, O ("About to register " & Name & " on mDNS servant"));
-      pragma Debug (C, O ("Local Addr : "
-        & GNAT.Sockets.Host_Name));
+
       --  In this block we retrieve the Version Id of the package
 
       declare
@@ -154,7 +154,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS is
       LName : constant String := To_Lower (Name);
       pragma Unreferenced (Initial, LName);
       Result : PolyORB.References.Ref;
-
+      Ref_Tmp : PolyORB.References.Ref;
    begin
       pragma Debug
         (C, O ("Nameserver_Lookup (" & Name & "." & Kind & "): enter"));
@@ -179,14 +179,22 @@ package body PolyORB.DSA_P.Name_Service.mDNS is
         PolyORB.DSA_P.Name_Service.mDNS.Client.Resolve
           (Context.Base_Ref, Name, Kind);
 
+      PolyORB.References.Create_Reference
+        (PolyORB.References.Profiles_Of (Result), "TESTDSA", Ref_Tmp);
+
+      PolyORB.References.Set (Result,
+                                     PolyORB.References.Entity_Of (Ref_Tmp));
       pragma Debug
-       (C, O ("Nameserver_Lookup (" & Name & "." & Kind & "): leave"));
+        (C, O ("Nameserver_Lookup (" & Name & "." & Kind & "): leave"));
+
       return Result;
    end Nameserver_Lookup;
 
    procedure Initiate_MDNS_Context
      (MDNS_Reference : String;
-      Context : out PolyORB.DSA_P.Name_Service.Name_Context_Access) is
+      Context : out PolyORB.DSA_P.Name_Service.Name_Context_Access;
+      Oid : out PolyORB.Objects.Object_Id_Access)
+   is
       use PolyORB.Errors;
       use PolyORB.POA;
       use PolyORB.DSA_P.Name_Service.mDNS.Servant;
@@ -200,9 +208,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS is
       DNS_POA : POA.Obj_Adapter_Access;
       Policies : PolyORB.POA_Policies.PolicyList;
       Error : Error_Container;
-      Oid : PolyORB.POA_Types.Object_Id_Access;
-      Root_DNS     : aliased PolyORB.DSA_P.Name_Service.mDNS.Servant.
-                                                             Object_Ptr;
+
    begin
       pragma Assert (Context /= null);
 
@@ -226,14 +232,14 @@ package body PolyORB.DSA_P.Name_Service.mDNS is
       Context.Stringified_Ref := Types.To_PolyORB_String (MDNS_Reference &
                                   PolyORB.Objects.Oid_To_Hex_String (Oid.all));
 
+      pragma Debug (C, O (To_Standard_String (Context.Stringified_Ref)));
+
       Activate (POAManager_Access
                 (PolyORB.POA_Manager.Entity_Of (DNS_POA.POA_Manager)), Error);
 
       if Found (Error) then
          PolyORB.DSA_P.Exceptions.Raise_From_Error (Error);
       end if;
-
-      PolyORB.POA_Types.Free (Oid);
       pragma Debug (C, O ("Leaving"));
    end Initiate_MDNS_Context;
 
