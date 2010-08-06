@@ -112,6 +112,13 @@ package body PolyORB.DSA_P.Name_Service is
              with "unable to locate name server " & Nameserver_Location;
          end;
       end if;
+
+      Max_Requests :=
+        PolyORB.Parameters.Get_Conf
+          (Section => "dsa",
+           Key     => "max_failed_requests",
+           Default => 10);
+
       pragma Debug (C, O ("Initialize_Name_Context : Leave"));
    end Initialize_Name_Context;
 

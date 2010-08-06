@@ -75,19 +75,27 @@ package PolyORB.DSA_P.Name_Service is
    function Get_Name_Context return Name_Context_Access;
    --  Retrieves the name context, used by System.Partition_Interface
 
+   --------------------------------------------
+   -- RCI lookup and reconnection management --
+   --------------------------------------------
+
+   Time_Between_Requests : Duration := 1.0;
+   Max_Requests          : Natural := 10;
+   --  These are the initial and default values
+
    type Reconnection_Policy_Type is
      (Fail_Until_Restart, Block_Until_Restart, Reject_On_Restart);
    Default_Reconnection_Policy : constant Reconnection_Policy_Type :=
-     Fail_Until_Restart;
-
-   type RCI_Attribute is (Local, Reconnection);
-
-   function RCI_Attr (Name : String; Attr : RCI_Attribute) return String;
+                                   Fail_Until_Restart;
 
    function Get_Reconnection_Policy
      (Name : String) return Reconnection_Policy_Type;
    --  Retrieve reconnection policy for this RCI from runtime parameters
    --  set by gnatdist.
+
+   type RCI_Attribute is (Local, Reconnection);
+
+   function RCI_Attr (Name : String; Attr : RCI_Attribute) return String;
 
    function Is_Reference_Valid (R : PolyORB.References.Ref) return Boolean;
    --  Binds a reference to determine whether it is valid
