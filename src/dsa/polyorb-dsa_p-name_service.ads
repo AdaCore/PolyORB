@@ -31,6 +31,9 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+--  This package implements the abstract name context primitives, that
+--  permit the dispatching between different concrete contexts.
+
 with PolyORB.References;
 with PolyORB.Types;
 
@@ -47,6 +50,8 @@ package PolyORB.DSA_P.Name_Service is
 
    type Name_Context_Access is access all Name_Context'Class;
 
+   Name_Ctx : PolyORB.DSA_P.Name_Service.Name_Context_Access;
+
    function Nameserver_Lookup
      (Name_Ctx : access Name_Context;
       Name     : String;
@@ -61,10 +66,26 @@ package PolyORB.DSA_P.Name_Service is
       Obj  : PolyORB.References.Ref) is abstract;
    --  abstract declaration of Nameserver_Register
 
-   procedure Initialize_Name_Context (Name_Ctx : in out Name_Context_Access);
+   procedure Initialize_Name_Context;
    --  Called by the System.Partition_Interface.Initialize procedure, during
    --  partition's elaboration. Depending on the current configuration,
    --  sets the Name Context to mDNS or COS_Naming and the Base_Ref to
    --  the corresponding remote reference.
 
+   function Get_Name_Context return Name_Context_Access;
+   --  Retrieves the name context, used by System.Partition_Interface
+
+   type Reconnection_Policy_Type is
+     (Fail_Until_Restart, Block_Until_Restart, Reject_On_Restart);
+   Default_Reconnection_Policy : constant Reconnection_Policy_Type :=
+     Fail_Until_Restart;
+
+   type RCI_Attribute is (Local, Reconnection);
+
+   function RCI_Attr (Name : String; Attr : RCI_Attribute) return String;
+
+   function Get_Reconnection_Policy
+     (Name : String) return Reconnection_Policy_Type;
+   --  Retrieve reconnection policy for this RCI from runtime parameters
+   --  set by gnatdist.
 end PolyORB.DSA_P.Name_Service;

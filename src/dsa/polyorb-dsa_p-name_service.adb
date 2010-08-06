@@ -34,29 +34,62 @@
 with PolyORB.DSA_P.Name_Service.mDNS;
 with PolyORB.DSA_P.Name_Service.COS_Naming;
 with PolyORB.Parameters;
+with PolyORB.Binding_Data;
+with PolyORB.Binding_Data.Local;
 with System.RPC;
+with PolyORB.Objects;
+with PolyORB.Log;
+with PolyORB.POA_Types;
+with PolyORB.Utils;
 
 package body PolyORB.DSA_P.Name_Service is
+   use PolyORB.Log;
+   use PolyORB.DSA_P.Name_Service.mDNS;
+
+   package L is new PolyORB.Log.Facility_Log
+     ("polyorb.dsa_p.name_service");
+   procedure O (Message : String; Level : Log_Level := Debug)
+     renames L.Output;
+   function C (Level : Log_Level := Debug) return Boolean
+               renames L.Enabled;
 
    procedure Initialize_Name_Context
-     (Name_Ctx : in out Name_Context_Access)
    is
+      use PolyORB.Binding_Data;
+      use PolyORB.Binding_Data.Local;
+      use PolyORB.References;
+
       Name_Context_String : constant String :=
                                     PolyORB.Parameters.Get_Conf
                                       ("dsa", "name_context", "COS");
    begin
+      pragma Debug (C, O ("Initialize_Name_Context : Enter"));
 
       --  If mDNS is configured by user
+
       if Name_Context_String = "MDNS" then
          Name_Ctx := new PolyORB.DSA_P.Name_Service.mDNS.MDNS_Name_Context;
+
          declare
             Nameservice_Location : constant String :=
                                     PolyORB.Parameters.Get_Conf
-                                      ("dsa", "name_service");
+                ("dsa", "name_service");
+            Target_Profile : constant Binding_Data.Profile_Access
+              := new Local_Profile_Type;
+            Object_Key : PolyORB.Objects.Object_Id_Access;
          begin
             PolyORB.DSA_P.Name_Service.mDNS.Initiate_MDNS_Context
-              (Nameservice_Location, Name_Ctx);
+              (Nameservice_Location, Name_Ctx, Object_Key);
+
+            --  Creating the local mDNS servant Reference from it's Oid
+
+            Create_Local_Profile
+              (Object_Key.all, Local_Profile_Type (Target_Profile.all));
+            Create_Reference ((1 => Target_Profile), "", Name_Ctx.Base_Ref);
+
+            PolyORB.POA_Types.Free (Object_Key);
          end;
+
       --  COS Naming case
       else
          Name_Ctx
@@ -68,13 +101,44 @@ package body PolyORB.DSA_P.Name_Service is
          begin
             PolyORB.References.String_To_Object
               (Nameserver_Location, Name_Ctx.Base_Ref);
+
          exception
             when others =>
                raise System.RPC.Communication_Error
              with "unable to locate name server " & Nameserver_Location;
          end;
       end if;
-
+      pragma Debug (C, O ("Initialize_Name_Context : Leave"));
    end Initialize_Name_Context;
 
+   function Get_Name_Context return Name_Context_Access
+   is
+   begin
+      return Name_Ctx;
+   end Get_Name_Context;
+
+   -----------------------------
+   -- Get_Reconnection_Policy --
+   -----------------------------
+
+   function Get_Reconnection_Policy
+     (Name : String) return Reconnection_Policy_Type is
+   begin
+      return Reconnection_Policy_Type'Value
+               (PolyORB.Parameters.Get_Conf
+                  (Section => "dsa",
+                   Key     => RCI_Attr (Name, Reconnection),
+                   Default => Default_Reconnection_Policy'Img));
+   end Get_Reconnection_Policy;
+
+   --------------
+   -- RCI_Attr --
+   --------------
+
+   function RCI_Attr (Name : String; Attr : RCI_Attribute) return String
+   is
+      use PolyORB.Utils;
+   begin
+      return To_Lower (Name & "'" & Attr'Img);
+   end RCI_Attr;
 end PolyORB.DSA_P.Name_Service;
