@@ -41,6 +41,10 @@ with PolyORB.Objects;
 with PolyORB.Log;
 with PolyORB.POA_Types;
 with PolyORB.Utils;
+with PolyORB.Errors;
+with PolyORB.Components;
+with PolyORB.Setup;
+with PolyORB.References.Binding;
 
 package body PolyORB.DSA_P.Name_Service is
    use PolyORB.Log;
@@ -141,4 +145,39 @@ package body PolyORB.DSA_P.Name_Service is
    begin
       return To_Lower (Name & "'" & Attr'Img);
    end RCI_Attr;
+
+   ------------------------
+   -- Is_Reference_Valid --
+   ------------------------
+
+   function Is_Reference_Valid (R : PolyORB.References.Ref) return Boolean
+   is
+      use PolyORB.References.Binding;
+      use PolyORB.Errors;
+
+      S            : PolyORB.Components.Component_Access;
+      Pro          : PolyORB.Binding_Data.Profile_Access;
+      Error        : PolyORB.Errors.Error_Container;
+   begin
+
+      --  Bind the reference to ensure validity
+
+      Bind (R          => R,
+            Local_ORB  => PolyORB.Setup.The_ORB,
+            Servant    => S,
+            QoS        => (others => null),
+            Pro        => Pro,
+            Local_Only => False,
+            Error      => Error);
+
+      if Found (Error) then
+         Catch (Error);
+         return False;
+      end if;
+      return True;
+   exception
+      when others =>
+         return False;
+   end Is_Reference_Valid;
+
 end PolyORB.DSA_P.Name_Service;

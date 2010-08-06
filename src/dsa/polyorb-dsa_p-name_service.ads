@@ -88,4 +88,7 @@ package PolyORB.DSA_P.Name_Service is
      (Name : String) return Reconnection_Policy_Type;
    --  Retrieve reconnection policy for this RCI from runtime parameters
    --  set by gnatdist.
+
+   function Is_Reference_Valid (R : PolyORB.References.Ref) return Boolean;
+   --  Binds a reference to determine whether it is valid
 end PolyORB.DSA_P.Name_Service;

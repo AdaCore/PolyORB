@@ -62,7 +62,5 @@ package PolyORB.DSA_P.Name_Service.COS_Naming is
    function To_Name (Id, Kind : String) return PolyORB.Services.Naming.Name;
    --  Construct a name consisting of a single name component with the given
    --  id and kind.
-   function Is_Reference_Valid (R : PolyORB.References.Ref) return Boolean;
-   --  Binds a reference to determine whether it is valid
 
 end PolyORB.DSA_P.Name_Service.COS_Naming;
