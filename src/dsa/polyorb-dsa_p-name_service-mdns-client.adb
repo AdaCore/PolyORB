@@ -30,7 +30,7 @@
 --                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
-
+with Ada.Characters.Handling;
 with PolyORB.Any.NVList;
 with PolyORB.Any;
 with PolyORB.Types;
@@ -48,6 +48,9 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Client is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
+
+   function To_Lower (S : String) return String
+     renames Ada.Characters.Handling.To_Lower;
 
    Query_Arg_Name_Authoritative : constant PolyORB.Types.Identifier :=
      PolyORB.Types.To_PolyORB_String
@@ -118,8 +121,6 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Client is
       use PolyORB.Any.NVList.Internals.NV_Lists;
       use PolyORB.Types;
 
-      pragma Unreferenced (Kind);
-
       Request : PolyORB.Requests.Request_Access;
       Arg_List : PolyORB.Any.NVList.Ref;
 
@@ -144,10 +145,9 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Client is
       Q_sequence := To_Sequence (1);
       PolyORB.Any.NVList.Create
         (Arg_List);
-      Question_RR.rr_name := To_PolyORB_String (Name);
+      Question_RR.rr_name := To_PolyORB_String (Name & "._" & To_Lower (Kind));
       Question_RR.rr_type := SRV;
       Question_RR.TTL := 240;
-
       Replace_Element (Q_sequence, 1, Question_RR);
 
       --  calling the query procedure
@@ -161,7 +161,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Client is
          Returns       => Res);
 
       --  If the the object has been successfully found
-      --  and the out arguments received we recevie a No_Error Rcode.
+      --  and the out arguments received we receive a No_Error Rcode.
 
       if Res = No_Error then
 

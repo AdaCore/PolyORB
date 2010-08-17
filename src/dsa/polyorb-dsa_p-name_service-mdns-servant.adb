@@ -35,7 +35,7 @@ with PolyORB.Any.NVList;
 with PolyORB.Errors;
 with PolyORB.Log;
 with PolyORB.Any;
-
+with PolyORB.Utils;
 with PolyORB.References.Corbaloc;
 
 package body PolyORB.DSA_P.Name_Service.mDNS.Servant is
@@ -212,7 +212,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Servant is
       TTL : constant PolyORB.Types.Unsigned_Long := 240;
       Answer : RR;
       SRV_RR : SRV_Data;
-      Version : PolyORB.Types.String;
+      Version, Current_Name, Current_Kind : PolyORB.Types.String;
       Current_Entry : Local_Entry_Ptr;
       pragma Unreferenced (Authority_Seq);
 
@@ -229,14 +229,13 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Servant is
          --  rr sequence).
 
          when SRV =>
-
-            --  xxx: concurent access mutex locks?
-
+            Parse_Question_Name
+              (Question.rr_name, Current_Name, Current_Kind);
             Current_Entry := Local_Entry_List.Lookup
-              (Types.To_Standard_String (Question.rr_name), null);
+                 (Types.To_Standard_String (Current_Name), null);
 
             if Current_Entry = null then
-
+               pragma Debug (C, O ("Current entry is null??"));
                --  If the record is not found locally, we return a
                --  Name_Error DNS Rcode to client.
 
@@ -348,6 +347,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Servant is
    end Find_Answer_RR;
 
    procedure Append_Entry_To_Context (Name     : PolyORB.Types.String;
+
                                       Kind     : PolyORB.Types.String;
                                       Version  : PolyORB.Types.String;
                                       Base_Ref : PolyORB.References.Ref)
@@ -368,4 +368,22 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Servant is
       pragma Debug (C, O ("Entry Appended : leaving"));
    end Append_Entry_To_Context;
 
+   procedure Parse_Question_Name (Question : PolyORB.Types.String;
+                                  Name : out PolyORB.Types.String;
+                                  Kind : out PolyORB.Types.String) is
+      use PolyORB.Utils;
+      use PolyORB.Types;
+      S : constant String :=
+        PolyORB.Types.To_Standard_String (Question);
+      Index : Integer;
+      Index2 : Integer;
+   begin
+      Index  := PolyORB.Utils.Find (S, S'Last, '_', False, Backward);
+      Index2 := S'Last;
+      Name := Types.To_PolyORB_String (S (S'First .. Index - 2));
+      Kind := Types.To_PolyORB_String (S (Index + 1 .. Index2));
+      if Kind /= "rci" and Kind /= "sp" then
+         raise Constraint_Error;
+      end if;
+   end Parse_Question_Name;
 end PolyORB.DSA_P.Name_Service.mDNS.Servant;

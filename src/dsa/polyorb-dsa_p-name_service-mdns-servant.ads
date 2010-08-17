@@ -103,4 +103,10 @@ private
                              Response       : out Rcode);
    --  The local procedure responsible for looking up for the record and
    --  constructing the answer sequences conforming to the RCI/SP<->RR mapping
+
+   procedure Parse_Question_Name (Question : PolyORB.Types.String;
+                                  Name : out PolyORB.Types.String;
+                                  Kind : out PolyORB.Types.String);
+   --  Extract the Name and Kind of the requested package from the incoming
+   --  Question name
 end PolyORB.DSA_P.Name_Service.mDNS.Servant;
