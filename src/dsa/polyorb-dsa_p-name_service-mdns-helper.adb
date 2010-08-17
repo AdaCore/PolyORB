@@ -31,6 +31,9 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+--  mDNS Helper package containing type declarations and corresponding
+--  marshall/unmarshall primitives
+
 with PolyORB.Log;
 with PolyORB.Initialization;
 with PolyORB.Utils.Strings;

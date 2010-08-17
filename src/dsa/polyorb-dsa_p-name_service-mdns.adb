@@ -209,7 +209,6 @@ package body PolyORB.DSA_P.Name_Service.mDNS is
 
       Initialize_MDNS_Policies (Policies);
       Root_DNS := new PolyORB.DSA_P.Name_Service.mDNS.Servant.Object;
-
       Create_POA
         (Root_POA,
          "DNS_POA",
@@ -217,21 +216,13 @@ package body PolyORB.DSA_P.Name_Service.mDNS is
          Policies     => Policies,
          POA          => DNS_POA,
          Error        => Error);
-
-      Set_Servant (DNS_POA,
-                   Minimal_Servant.To_PolyORB_Servant
-                     (PolyORB.Minimal_Servant.Servant_Acc (Root_DNS)), Error);
-
+      Set_Servant (DNS_POA, Minimal_Servant.To_PolyORB_Servant
+                   (PolyORB.Minimal_Servant.Servant_Acc (Root_DNS)), Error);
       Servant_To_Id (DNS_POA, DNS_POA.Default_Servant, Oid, Error);
-
       Context.Stringified_Ref := Types.To_PolyORB_String (MDNS_Reference &
                                   PolyORB.Objects.Oid_To_Hex_String (Oid.all));
-
-      pragma Debug (C, O (To_Standard_String (Context.Stringified_Ref)));
-
       Activate (POAManager_Access
                 (PolyORB.POA_Manager.Entity_Of (DNS_POA.POA_Manager)), Error);
-
       if Found (Error) then
          PolyORB.DSA_P.Exceptions.Raise_From_Error (Error);
       end if;

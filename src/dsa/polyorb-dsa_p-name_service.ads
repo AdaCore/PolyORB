@@ -44,8 +44,8 @@ package PolyORB.DSA_P.Name_Service is
       Stringified_Ref : PolyORB.Types.String;
    end record;
    --  The abstract type used to disptach Nameserver_Lookup/
-   --  Nameserver_Register. The Stringified_Ref is used only on client's side
-   --  , it is assigned by Initialize_MDNS_Context and is used in
+   --  Nameserver_Register. The Stringified_Ref is used only on client's side,
+   --  it is assigned by Initialize_MDNS_Context and is used in
    --  Nameserver_Lookup in order to initialize the remote Base_Ref field.
 
    type Name_Context_Access is access all Name_Context'Class;

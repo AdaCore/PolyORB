@@ -31,6 +31,11 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+--  This package implements the actual mDNS servant. It stores a local list
+--  of entries representing the respective RCI/SP packages and upon reception
+--  of a request, looks up the requested package's informations and send them
+--  back to the client partition.
+
 with PolyORB.Minimal_Servant;
 with PolyORB.Requests;
 with PolyORB.DSA_P.Name_Service.mDNS.Helper;
@@ -57,6 +62,7 @@ package PolyORB.DSA_P.Name_Service.mDNS.Servant is
       Base_Ref : PolyORB.References.Ref;
       --  Actual reference to the package
    end record;
+
    type Local_Entry_Ptr is access all Local_Entry;
    --  A local entry contains all the data relevant to packages that we need
 
@@ -70,7 +76,7 @@ package PolyORB.DSA_P.Name_Service.mDNS.Servant is
                     Authority : out rrSequence;
                     Additional : out rrSequence;
                     Response : out Rcode);
-   --  This procedure is called Invoke upon reception of distant query
+   --  This procedure is called by Invoke upon reception of distant query
    --  Depending on the incoming request, it generates the corresponding
    --  Resource Records by lookup up the local list of Local_Entry objects.
 

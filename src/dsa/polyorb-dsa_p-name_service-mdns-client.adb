@@ -36,7 +36,6 @@ with PolyORB.Any;
 with PolyORB.Types;
 with PolyORB.Requests;
 with PolyORB.Log;
---  with PolyORB.References.Corbaloc;
 with PolyORB.Utils;
 
 package body PolyORB.DSA_P.Name_Service.mDNS.Client is
@@ -50,25 +49,25 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Client is
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
 
-   Query_Arg_Name_authoritative : constant PolyORB.Types.Identifier :=
+   Query_Arg_Name_Authoritative : constant PolyORB.Types.Identifier :=
      PolyORB.Types.To_PolyORB_String
-        ("authoritative");
+        ("Authoritative");
 
-   Query_Arg_Name_question : constant PolyORB.Types.Identifier :=
+   Query_Arg_Name_Question : constant PolyORB.Types.Identifier :=
      PolyORB.Types.To_PolyORB_String
-        ("question");
+        ("Question");
 
-   Query_Arg_Name_answer : constant PolyORB.Types.Identifier :=
+   Query_Arg_Name_Answer : constant PolyORB.Types.Identifier :=
      PolyORB.Types.To_PolyORB_String
-        ("answer");
+        ("Answer");
 
-   Query_Arg_Name_authority : constant PolyORB.Types.Identifier :=
+   Query_Arg_Name_Authority : constant PolyORB.Types.Identifier :=
      PolyORB.Types.To_PolyORB_String
-        ("authority");
+        ("Authority");
 
-   Query_Arg_Name_additional : constant PolyORB.Types.Identifier :=
+   Query_Arg_Name_Additional : constant PolyORB.Types.Identifier :=
      PolyORB.Types.To_PolyORB_String
-        ("additional");
+        ("Additional");
 
    Query_Result_Name : constant PolyORB.Types.Identifier :=
      PolyORB.Types.To_PolyORB_String
@@ -154,15 +153,16 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Client is
       --  calling the query procedure
       Query
         (Self          => The_Ref,
-         authoritative => Authoritative,
-         question      => Q_sequence,
-         answer        => A_sequence,
-         authority     => Auth_sequence,
-         additional    => Add_sequence,
+         Authoritative => Authoritative,
+         Question      => Q_sequence,
+         Answer        => A_sequence,
+         Authority     => Auth_sequence,
+         Additional    => Add_sequence,
          Returns       => Res);
 
-      --  if there is No_Error Rcode then the object has been
-      --  successfully found and the out arguments received
+      --  If the the object has been successfully found
+      --  and the out arguments received we recevie a No_Error Rcode.
+
       if Res = No_Error then
 
          Answer_rr := Get_Element (A_sequence, 1);
@@ -179,13 +179,13 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Client is
          if Add_rr.rr_type = TXT then
             Parse_TXT_Record (Add_rr.rr_data.rr_answer, Version_Id);
 
-            --  creating a the reference form it's stringified representation
+            --  Creating a reference form its stringified representation
 
             PolyORB.References.String_To_Object
               (Types.To_Standard_String (Answer_rr.rr_data.srv_data.target),
                Ref);
 
-            --  setting it's type id, for version checking purposes
+            --  Setting its type id, for version checking purposes
 
             if PolyORB.References.Type_Id_Of (Ref) = "" then
                PolyORB.References.Set_Type_Id
@@ -213,11 +213,11 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Client is
 
    procedure Query
      (Self : PolyORB.References.Ref;
-      authoritative : in out PolyORB.Types.Boolean;
-      question : PolyORB.DSA_P.Name_Service.mDNS.Helper.rrSequence;
-      answer : out PolyORB.DSA_P.Name_Service.mDNS.Helper.rrSequence;
-      authority : out PolyORB.DSA_P.Name_Service.mDNS.Helper.rrSequence;
-      additional : out PolyORB.DSA_P.Name_Service.mDNS.Helper.rrSequence;
+      Authoritative : in out PolyORB.Types.Boolean;
+      Question : PolyORB.DSA_P.Name_Service.mDNS.Helper.rrSequence;
+      Answer : out PolyORB.DSA_P.Name_Service.mDNS.Helper.rrSequence;
+      Authority : out PolyORB.DSA_P.Name_Service.mDNS.Helper.rrSequence;
+      Additional : out PolyORB.DSA_P.Name_Service.mDNS.Helper.rrSequence;
       Returns : out PolyORB.DSA_P.Name_Service.mDNS.Helper.Rcode)
    is
       Argument_List : PolyORB.Any.NVList.Ref;
@@ -227,50 +227,50 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Client is
       Arg_CC_Result : aliased PolyORB.Any.Content'Class :=
         mDNS.Helper.Internals.Wrap
            (Result'Unrestricted_Access);
-      Arg_CC_authoritative : aliased PolyORB.Any.Content'Class :=
+      Arg_CC_Authoritative : aliased PolyORB.Any.Content'Class :=
         PolyORB.Any.Wrap
-           (authoritative'Unrestricted_Access);
-      Arg_Any_authoritative : constant PolyORB.Any.Any :=
+           (Authoritative'Unrestricted_Access);
+      Arg_Any_Authoritative : constant PolyORB.Any.Any :=
 
       Get_Wrapper_Any
            (PolyORB.Any.TC_Boolean,
-            Arg_CC_authoritative'Unchecked_Access);
+            Arg_CC_Authoritative'Unchecked_Access);
 
-      Arg_CC_question : aliased PolyORB.Any.Content'Class :=
+      Arg_CC_Question : aliased PolyORB.Any.Content'Class :=
         PolyORB.DSA_P.Name_Service.mDNS.Helper.Internals.Wrap
            (PolyORB.DSA_P.Name_Service.mDNS.Helper.IDL_SEQUENCE_DNS_RR.Sequence
-              (question)'Unrestricted_Access);
-      Arg_Any_question : constant PolyORB.Any.Any :=
+              (Question)'Unrestricted_Access);
+      Arg_Any_Question : constant PolyORB.Any.Any :=
        Get_Wrapper_Any
            (PolyORB.DSA_P.Name_Service.mDNS.Helper.TC_rrSequence,
-            Arg_CC_question'Unchecked_Access);
-      Arg_CC_answer : aliased PolyORB.Any.Content'Class :=
+            Arg_CC_Question'Unchecked_Access);
+      Arg_CC_Answer : aliased PolyORB.Any.Content'Class :=
         PolyORB.DSA_P.Name_Service.mDNS.Helper.Internals.Wrap
            (PolyORB.DSA_P.Name_Service.mDNS.Helper.IDL_SEQUENCE_DNS_RR.Sequence
-              (answer)'Unrestricted_Access);
-      Arg_Any_answer : constant PolyORB.Any.Any :=
+              (Answer)'Unrestricted_Access);
+      Arg_Any_Answer : constant PolyORB.Any.Any :=
         Get_Wrapper_Any
            (PolyORB.DSA_P.Name_Service.mDNS.Helper.TC_rrSequence,
-            Arg_CC_answer'Unchecked_Access);
-      pragma Warnings (Off, answer);
-      Arg_CC_authority : aliased PolyORB.Any.Content'Class :=
+            Arg_CC_Answer'Unchecked_Access);
+      pragma Warnings (Off, Answer);
+      Arg_CC_Authority : aliased PolyORB.Any.Content'Class :=
         PolyORB.DSA_P.Name_Service.mDNS.Helper.Internals.Wrap
            (PolyORB.DSA_P.Name_Service.mDNS.Helper.IDL_SEQUENCE_DNS_RR.Sequence
-              (authority)'Unrestricted_Access);
-      Arg_Any_authority : constant PolyORB.Any.Any :=
+              (Authority)'Unrestricted_Access);
+      Arg_Any_Authority : constant PolyORB.Any.Any :=
         Get_Wrapper_Any
            (PolyORB.DSA_P.Name_Service.mDNS.Helper.TC_rrSequence,
-            Arg_CC_authority'Unchecked_Access);
-      pragma Warnings (Off, authority);
-      Arg_CC_additional : aliased PolyORB.Any.Content'Class :=
+            Arg_CC_Authority'Unchecked_Access);
+      pragma Warnings (Off, Authority);
+      Arg_CC_Additional : aliased PolyORB.Any.Content'Class :=
         PolyORB.DSA_P.Name_Service.mDNS.Helper.Internals.Wrap
            (PolyORB.DSA_P.Name_Service.mDNS.Helper.IDL_SEQUENCE_DNS_RR.Sequence
-              (additional)'Unrestricted_Access);
-      Arg_Any_additional : constant PolyORB.Any.Any :=
+              (Additional)'Unrestricted_Access);
+      Arg_Any_Additional : constant PolyORB.Any.Any :=
         Get_Wrapper_Any
            (PolyORB.DSA_P.Name_Service.mDNS.Helper.TC_rrSequence,
-            Arg_CC_additional'Unchecked_Access);
-      pragma Warnings (Off, additional);
+            Arg_CC_Additional'Unchecked_Access);
+      pragma Warnings (Off, Additional);
       Request : PolyORB.Requests.Request_Access;
       Result_Nv : PolyORB.Any.NamedValue :=
         Query_Result;
@@ -286,29 +286,29 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Client is
       --  Fill the Argument list
       PolyORB.Any.NVList.Add_Item
         (Argument_List,
-         Query_Arg_Name_authoritative,
-         Arg_Any_authoritative,
+         Query_Arg_Name_Authoritative,
+         Arg_Any_Authoritative,
          PolyORB.Any.ARG_INOUT);
 
       PolyORB.Any.NVList.Add_Item
         (Argument_List,
-         Query_Arg_Name_question,
-           Arg_Any_question,
+         Query_Arg_Name_Question,
+           Arg_Any_Question,
          PolyORB.Any.ARG_IN);
       PolyORB.Any.NVList.Add_Item
         (Argument_List,
-         Query_Arg_Name_answer,
-         Arg_Any_answer,
+         Query_Arg_Name_Answer,
+         Arg_Any_Answer,
          PolyORB.Any.ARG_OUT);
       PolyORB.Any.NVList.Add_Item
         (Argument_List,
-         Query_Arg_Name_authority,
-           Arg_Any_authority,
+         Query_Arg_Name_Authority,
+           Arg_Any_Authority,
          PolyORB.Any.ARG_OUT);
       PolyORB.Any.NVList.Add_Item
         (Argument_List,
-         Query_Arg_Name_additional,
-           Arg_Any_additional,
+         Query_Arg_Name_Additional,
+           Arg_Any_Additional,
          PolyORB.Any.ARG_OUT);
       --  Setting the result value
       PolyORB.Any.Set_Value

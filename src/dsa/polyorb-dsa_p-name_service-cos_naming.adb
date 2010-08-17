@@ -141,7 +141,9 @@ package body PolyORB.DSA_P.Name_Service.COS_Naming is
 
       --  Unit not known yet, we therefore know that it is remote, and we
       --  need to look it up with the naming service.
+
       PSNNC.Set (Context, Entity_Of (Smart_Pointers.Ref (Name_Ctx.Base_Ref)));
+
       loop
          begin
             Result := PSNNC.Client.Resolve

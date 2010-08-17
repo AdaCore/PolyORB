@@ -64,8 +64,7 @@ package body PolyORB.DSA_P.Name_Service is
       use PolyORB.References;
 
       Name_Context_String : constant String :=
-                                    PolyORB.Parameters.Get_Conf
-                                      ("dsa", "name_context", "COS");
+        PolyORB.Parameters.Get_Conf ("dsa", "name_context", "COS");
    begin
       pragma Debug (C, O ("Initialize_Name_Context : Enter"));
 
@@ -76,16 +75,15 @@ package body PolyORB.DSA_P.Name_Service is
 
          declare
             Nameservice_Location : constant String :=
-                                    PolyORB.Parameters.Get_Conf
-                ("dsa", "name_service");
-            Target_Profile : constant Binding_Data.Profile_Access
-              := new Local_Profile_Type;
+              PolyORB.Parameters.Get_Conf ("dsa", "name_service");
+            Target_Profile : constant Binding_Data.Profile_Access :=
+              new Local_Profile_Type;
             Object_Key : PolyORB.Objects.Object_Id_Access;
          begin
             PolyORB.DSA_P.Name_Service.mDNS.Initiate_MDNS_Context
               (Nameservice_Location, Name_Ctx, Object_Key);
 
-            --  Creating the local mDNS servant Reference from it's Oid
+            --  Creating the local mDNS servant Reference from its Oid
 
             Create_Local_Profile
               (Object_Key.all, Local_Profile_Type (Target_Profile.all));
@@ -100,8 +98,7 @@ package body PolyORB.DSA_P.Name_Service is
            := new PolyORB.DSA_P.Name_Service.COS_Naming.COS_Name_Context;
          declare
             Nameserver_Location : constant String :=
-                                    PolyORB.Parameters.Get_Conf
-                                      ("dsa", "name_service");
+              PolyORB.Parameters.Get_Conf ("dsa", "name_service");
          begin
             PolyORB.References.String_To_Object
               (Nameserver_Location, Name_Ctx.Base_Ref);

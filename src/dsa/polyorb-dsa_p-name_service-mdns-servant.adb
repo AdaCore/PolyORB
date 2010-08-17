@@ -59,12 +59,12 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Servant is
    is
       pragma Unreferenced (Self);
    begin
-
-      --  by default, each partition is autoritative
       Authoritative := True;
+      --  by default, each partition is autoritative
 
       --  for each received question we must look for an RR or a list of RRs
       --  and assign them to the RR answer/additional infos sequence
+
       for J in 1 .. Length (Question) loop
          Find_Answer_RR (Get_Element (Question, J),
                          Answer, Authority, Additional, Response);
@@ -107,15 +107,17 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Servant is
                PolyORB.Any.Get_Empty_Any (TC_IDL_SEQUENCE_DNS_RR);
 
             Question : rrSequence;
-            authoritative : PolyORB.Types.Boolean;
-            answer       : rrSequence;
-            authority    : rrSequence;
-            additional   : rrSequence;
+            Authoritative : PolyORB.Types.Boolean;
+            Answer       : rrSequence;
+            Authority    : rrSequence;
+            Additional   : rrSequence;
             Result          : Rcode;
             Exception_Error : Error_Container;
 
          begin
+
             --  Create argument list
+
             pragma Debug (C, O ("Creating argument list"));
             Add_Item (Arg_List,
                       Arg_Name_Auth,
@@ -147,22 +149,23 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Servant is
             end if;
 
             --  retrieving IN arguments from the Any representation
-            authoritative :=  PolyORB.Any.From_Any (Argument_Authoritative);
+
+            Authoritative :=  PolyORB.Any.From_Any (Argument_Authoritative);
             Question := To_Sequence (1);
             Question := From_Any (Argument_Question);
 
             Query (Self,
-                   authoritative,
+                   Authoritative,
                    Question,
-                   answer,
-                   authority,
-                   additional,
+                   Answer,
+                   Authority,
+                   Additional,
                    Result);
 
-            --  Convertion the out rr sequences to the Any type
-            Argument_Answer := To_Any (answer);
-            Argument_Authority := To_Any (authority);
-            Argument_Additional := To_Any (additional);
+            --  Converting the out rr sequences to the Any type
+            Argument_Answer := To_Any (Answer);
+            Argument_Authority := To_Any (Authority);
+            Argument_Additional := To_Any (Additional);
 
             --  Setting out args
             declare
@@ -170,20 +173,23 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Servant is
                Arg : Element_Access;
             begin
                Arg := Value (It);
-               Set_Any_Value (authoritative,
+               Set_Any_Value (Authoritative,
                             Get_Container (Arg.Argument).all);
                Next (It);
                Arg := Value (It);
                Copy_Any_Value (Arg.Argument, Argument_Question);
                --  answer rr sequence
+
                Next (It);
                Arg := Value (It);
                Copy_Any_Value (Arg.Argument, Argument_Answer);
                --  authority servers rr sequence
+
                Next (It);
                Arg := Value (It);
                Copy_Any_Value (Arg.Argument, Argument_Authority);
                --  additionnal info rr sequence
+
                Next (It);
                Arg := Value (It);
                Copy_Any_Value (Arg.Argument, Argument_Additional);
@@ -193,7 +199,6 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Servant is
 
             return;
          end;
-
       end if;
    end Invoke;
 
@@ -218,7 +223,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Servant is
          --  Currently, the protocol for exchanging mDNS messages in the
          --  in the mDNS context implies the usage of the SRV/TXT mapping,
          --  so upon reception of an SRV message, we generate an answer
-         --  resource record by looking up the Local_Entry_List and we assign
+         --  resource record by looking up the Local_Entry_List and assigning
          --  the necessary data to  the SRV record (stored in the
          --  Answer rr sequence) and the TXT record (stored in the Additional
          --  rr sequence).
@@ -264,7 +269,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Servant is
                SRV_RR.priority := PolyORB.Types.Unsigned_Short (0);
                SRV_RR.weight := PolyORB.Types.Unsigned_Short (0);
                SRV_RR.port := PolyORB.Types.Unsigned_Short (0);
-               --  currently default values
+               --  For the current SRV/TXT mapping, values by default
 
                Answer.data_length := PolyORB.Types.Unsigned_Short
                 (8 + PolyORB.Types.To_Standard_String (SRV_RR.target)'Length);
@@ -289,6 +294,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Servant is
             end;
             Replace_Element (Additional_Seq, 1, Answer);
             Response := No_Error;
+
          --  XXX:The following RRs are used for testing purposes currently
          when A =>
             Answer.rr_name := Question.rr_name;
@@ -349,6 +355,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Servant is
       New_Entry : Local_Entry_Ptr;
    begin
       pragma Debug (C, O ("Appending new entry "));
+
       New_Entry := new Local_Entry;
       New_Entry.Name := Name;
       New_Entry.Kind := Kind;
