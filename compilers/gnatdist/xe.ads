@@ -218,11 +218,12 @@ package XE is
    -- ORB Tasking Policy Type --
    -----------------------------
 
-   type Name_Server_Type is new Int range 950 .. 952;
+   type Name_Server_Type is new Int range 950 .. 953;
 
    No_Name_Server  : constant Name_Server_Type := 950;
    Embedded        : constant Name_Server_Type := 951;
    Standalone      : constant Name_Server_Type := 952;
+   Multicast       : constant Name_Server_Type := 953;
    Name_Server_Img : array (Name_Server_Type) of Name_Id;
 
    ------------------

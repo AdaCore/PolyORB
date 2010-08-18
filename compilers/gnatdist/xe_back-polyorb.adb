@@ -70,6 +70,10 @@ package body XE_Back.PolyORB is
       RU_PolyORB_Binding_Data,
       RU_PolyORB_Binding_Data_GIOP,
       RU_PolyORB_Binding_Data_GIOP_IIOP,
+      RU_PolyORB_Binding_Data_DNS,
+      RU_PolyORB_Binding_Data_DNS_MDNS,
+      RU_PolyORB_Protocols,
+      RU_PolyORB_Protocols_DNS,
       RU_PolyORB_Initialization,
       RU_PolyORB_ORB_Controller,
       RU_PolyORB_ORB_Controller_Workers,
@@ -77,6 +81,8 @@ package body XE_Back.PolyORB is
       RU_PolyORB_ORB_No_Tasking,
       RU_PolyORB_DSA_P,
       RU_PolyORB_DSA_P_Name_Server,
+      RU_PolyORB_DSA_P_Name_Service,
+      RU_PolyORB_DSA_P_Name_Service_mDNS,
       RU_PolyORB_DSA_P_Remote_Launch,
       RU_PolyORB_DSA_P_Storages,
       RU_PolyORB_DSA_P_Storages_Config,
@@ -85,6 +91,7 @@ package body XE_Back.PolyORB is
       RU_PolyORB_Setup,
       RU_PolyORB_Setup_Access_Points,
       RU_PolyORB_Setup_Access_Points_IIOP,
+      RU_PolyORB_Setup_Access_Points_MDNS,
       RU_PolyORB_Setup_Base,
       RU_PolyORB_Setup_IIOP,
       RU_PolyORB_Setup_OA,
@@ -112,17 +119,21 @@ package body XE_Back.PolyORB is
       RE_Run,
       RE_Run_In_Task,
       RE_Shutdown_World,
-      RE_The_ORB);
+      RE_The_ORB,
+      RE_Set_Default_Servant,
+      RE_Get_MDNS_Servant);
 
    RE : array (RE_Id) of Unit_Name_Type;
 
    RE_Unit_Table : constant array (RE_Id) of RU_Id :=
-     (RE_Check            => RU_System_Partition_Interface,
-      RE_Launch_Partition => RU_PolyORB_DSA_P_Remote_Launch,
-      RE_Run              => RU_PolyORB_ORB,
-      RE_Run_In_Task      => RU_PolyORB_Tasking_Threads,
-      RE_Shutdown_World   => RU_PolyORB_Initialization,
-      RE_The_ORB          => RU_PolyORB_Setup);
+     (RE_Check               => RU_System_Partition_Interface,
+      RE_Launch_Partition    => RU_PolyORB_DSA_P_Remote_Launch,
+      RE_Run                 => RU_PolyORB_ORB,
+      RE_Run_In_Task         => RU_PolyORB_Tasking_Threads,
+      RE_Shutdown_World      => RU_PolyORB_Initialization,
+      RE_The_ORB             => RU_PolyORB_Setup,
+      RE_Set_Default_Servant => RU_PolyORB_Protocols_DNS,
+      RE_Get_MDNS_Servant    => RU_PolyORB_DSA_P_Name_Service_mDNS);
 
    ---------------------
    -- Parameter types --
@@ -143,7 +154,8 @@ package body XE_Back.PolyORB is
       PE_Self_Location,
       PE_Termination_Initiator,
       PE_Termination_Policy,
-      PE_Partition_Name);
+      PE_Partition_Name,
+      PE_Name_Context);
 
    PE : array (PE_Id) of Unit_Name_Type;
 
@@ -155,6 +167,7 @@ package body XE_Back.PolyORB is
       PE_Termination_Initiator => PS_DSA,
       PE_Termination_Policy    => PS_DSA,
       PE_Partition_Name        => PS_DSA,
+      PE_Name_Context          => PS_DSA,
       PE_Start_Threads         => PS_Tasking,
       PE_Max_Spare_Threads     => PS_Tasking,
       PE_Max_Threads           => PS_Tasking,
@@ -312,6 +325,10 @@ package body XE_Back.PolyORB is
          Write_With_Clause (RU (RU_PolyORB_ORB_No_Tasking));
          Write_With_Clause (RU (RU_PolyORB_Binding_Data_GIOP_IIOP));
 
+         if Default_Name_Server = Multicast then
+            Write_With_Clause (RU (RU_PolyORB_Binding_Data_DNS_MDNS));
+         end if;
+
       else
          Write_With_Clause (RU (RU_PolyORB_Setup_Tasking_Full_Tasking));
 
@@ -320,13 +337,17 @@ package body XE_Back.PolyORB is
               (RU (RU_PolyORB_ORB) and
                  ORB_Tasking_Policy_Img (Thread_Pool));
             Write_With_Clause (RU (RU_PolyORB_Binding_Data_GIOP_IIOP));
-
+            if Default_Name_Server = Multicast then
+               Write_With_Clause (RU (RU_PolyORB_Binding_Data_DNS_MDNS));
+            end if;
          else
             Write_With_Clause
               (RU (RU_PolyORB_ORB) and ORB_Tasking_Policy_Img
                (Current.ORB_Tasking_Policy));
             Write_With_Clause (RU (RU_PolyORB_Setup_Access_Points_IIOP));
-
+            if Default_Name_Server = Multicast then
+               Write_With_Clause (RU (RU_PolyORB_Setup_Access_Points_MDNS));
+            end if;
          end if;
       end if;
 
@@ -674,6 +695,14 @@ package body XE_Back.PolyORB is
          end;
       end loop;
 
+      --  Set the corect Name_Context, depending on the Name_Server
+
+      if Default_Name_Server = Multicast then
+         Set_Conf (PE_Name_Context, XE_Utils.Id ("MDNS"));
+      else
+         Set_Conf (PE_Name_Context, XE_Utils.Id ("COS"));
+      end if;
+
       --  The configuration is done, start generating the code
 
       Write_Indentation;
@@ -826,6 +855,11 @@ package body XE_Back.PolyORB is
       Write_With_Clause (RU (RU_System_Partition_Interface));
       Write_With_Clause (RU (RU_System_DSA_Services));
 
+      if Default_Name_Server = Multicast then
+         Write_With_Clause (RU (RU_PolyORB_DSA_P_Name_Service_mDNS));
+         Write_With_Clause (RU (RU_PolyORB_Protocols_DNS));
+      end if;
+
       --  Assign RCI or SP skels on the partition
 
       Conf_Unit := Current.First_Unit;
@@ -845,6 +879,15 @@ package body XE_Back.PolyORB is
       Write_Line (" is");
       Write_Line ("begin");
       Increment_Indentation;
+
+      --  If Name_Server is Multicast, set the default mDNS servant
+
+      if Default_Name_Server = Multicast then
+         Write_Call (RU (RE_Unit_Table (RE_Set_Default_Servant)) and
+                     RE (RE_Set_Default_Servant),
+                     RU (RE_Unit_Table (RE_Get_MDNS_Servant)) and
+                     RE (RE_Get_MDNS_Servant));
+      end if;
 
       --  Check version consistency of RCI stubs
 

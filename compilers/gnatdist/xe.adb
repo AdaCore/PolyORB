@@ -1049,7 +1049,8 @@ package body XE is
       Name_Server_Img
         := (No_Name_Server => Id ("Undefined name server kind"),
             Embedded       => Id ("Embedded"),
-            Standalone     => Id ("Standalone"));
+            Standalone     => Id ("Standalone"),
+            Multicast      => Id ("Multicast"));
    end Initialize;
 
    ------------------
