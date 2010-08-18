@@ -229,4 +229,10 @@ package body PolyORB.DSA_P.Name_Service.mDNS is
       pragma Debug (C, O ("Leaving"));
    end Initiate_MDNS_Context;
 
+   function Get_MDNS_Servant return PolyORB.References.Ref
+   is
+   begin
+      return PolyORB.DSA_P.Name_Service.Get_Name_Context.Base_Ref;
+   end Get_MDNS_Servant;
+
 end PolyORB.DSA_P.Name_Service.mDNS;

@@ -75,4 +75,7 @@ package PolyORB.DSA_P.Name_Service.mDNS is
    --  A stringified reference is assigned to Context.Stringified_Reference
    --  which is used to create the Context.Base_Ref in Nameserver_Lookup
 
+   function Get_MDNS_Servant return PolyORB.References.Ref;
+   --  Offered to the user, used by the partition main file in order to
+   --  retrieve the default mDNS servant and assign it to the DNS protocol
 end PolyORB.DSA_P.Name_Service.mDNS;
