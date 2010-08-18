@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -34,6 +34,7 @@
 --  Automatic initialization of PolyORB subsystems
 
 with PolyORB.Log;
+with PolyORB.Platform;
 with PolyORB.Utils.Chained_Lists;
 
 package body PolyORB.Initialization is
@@ -557,7 +558,7 @@ package body PolyORB.Initialization is
          Raise_Program_Error ("Already initialized");
       end if;
 
-      pragma Debug (C, O ("Initializing PolyORB"));
+      pragma Debug (C, O ("Initializing PolyORB " & Platform.Version));
 
       if Init_Info /= null then
 
