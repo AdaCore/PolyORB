@@ -6,6 +6,7 @@ Run the PolyORB testsuite
 
 To run only core tests:
     %prog core/
+
 To run a single example:
     %prog examples/corba-all_functions/ALL_FUNCTIONS_4/test.py
 
