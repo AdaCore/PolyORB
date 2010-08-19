@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -46,10 +46,17 @@ package body PolyORB.ORB_Controller is
    --------------------
 
    procedure Terminate_Task
-     (O  : access ORB_Controller; TI : in out PTI.Task_Info)
+     (O : access ORB_Controller; TI : PTI.Task_Info_Access)
    is
    begin
-      Set_State_Terminated (O.Summary, TI);
+      --  If terminating an idle task, notify ourselves
+
+      if State (TI.all) = Idle then
+         Notify_Event (ORB_Controller'Class (O.all)'Access,
+           Event'(Kind => Idle_Awake, Awakened_Task => TI));
+      end if;
+
+      Set_State_Terminated (O.Summary, TI.all);
    end Terminate_Task;
 
    ------------

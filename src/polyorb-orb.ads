@@ -144,7 +144,7 @@ package PolyORB.ORB is
 
    procedure Idle
      (P         : access Tasking_Policy_Type;
-      This_Task : in out PTI.Task_Info;
+      This_Task : PTI.Task_Info_Access;
       ORB       : ORB_Access) is abstract;
    --  Called by a task that has nothing to do.
    --  The calling task must be in the ORB critical section at the call point;

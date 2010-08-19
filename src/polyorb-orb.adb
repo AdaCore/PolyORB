@@ -34,6 +34,7 @@
 --  The ORB core module
 
 with Ada.Exceptions;
+with Ada.Finalization;
 with Ada.Tags;
 
 with PolyORB.Any.Initialization;
@@ -330,6 +331,74 @@ package body PolyORB.ORB is
    -- Run --
    ---------
 
+   --  Controlled type Task_Witness implements the Scope Lock idiom to handle
+   --  exceptions and asynchronous abort while we are executing the ORB main
+   --  loop.
+
+   type Task_Witness
+     (This              : access Task_Info.Task_Info;
+      ORB_Controller    : access POC.ORB_Controller'Class;
+      Exit_Condition_TI : access PTI.Task_Info_Access)
+     is new Ada.Finalization.Limited_Controlled with
+   record
+      Normal_Exit : Boolean := False;
+      --  Set True when exiting through normal completion of the protected
+      --  block (as opposed to abort or exception).
+   end record;
+
+   procedure Initialize (TW : in out Task_Witness);
+   --  Register TW.This with OC
+
+   procedure Finalize (TW : in out Task_Witness);
+   --  Unregister TW.This from OC
+
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize (TW : in out Task_Witness) is
+   begin
+      pragma Debug
+        (O ("Initializing task witness for " & PTI.Image (TW.This.all)));
+      Enter_ORB_Critical_Section (TW.ORB_Controller);
+
+      if TW.Exit_Condition_TI /= null then
+         --  This pointer must be reset to null before exiting Run so as to
+         --  not leave a dangling reference.
+
+         TW.Exit_Condition_TI.all := TW.This.all'Unchecked_Access;
+      end if;
+
+      Register_Task (TW.ORB_Controller, TW.This.all'Unchecked_Access);
+   end Initialize;
+
+   --------------
+   -- Finalize --
+   --------------
+
+   procedure Finalize (TW : in out Task_Witness) is
+   begin
+      pragma Debug
+        (O ("Finalizing task witness for " & PTI.Image (TW.This.all)));
+
+      --  Remove references to TW.This
+
+      if TW.Exit_Condition_TI /= null then
+         TW.Exit_Condition_TI.all := null;
+      end if;
+
+      if not TW.Normal_Exit then
+         --  Reassert critical section to remove current task from ORB
+         --  controller if because of abort or exception.
+
+         Enter_ORB_Critical_Section (TW.ORB_Controller);
+         Terminate_Task (TW.ORB_Controller, TW.This.all'Unchecked_Access);
+      end if;
+
+      Unregister_Task (TW.ORB_Controller, TW.This.all'Unchecked_Access);
+      Leave_ORB_Critical_Section (TW.ORB_Controller);
+   end Finalize;
+
    --  This is the main loop for all general-purpose ORB tasks. This subprogram
    --  must not be called recursively. Exceptions must not be propagated from
    --  within ORB critical section.
@@ -348,107 +417,93 @@ package body PolyORB.ORB is
       pragma Assert (This_Task.Kind = Permanent or else May_Exit);
       --  May_Exit is expected to always be True for transient tasks
 
-      Enter_ORB_Critical_Section (ORB.ORB_Controller);
-
       --  Set up task information for This_Task
 
-      Set_Id (This_Task);
+      Set_Id             (This_Task);
       Set_Exit_Condition (This_Task, Exit_Condition.Condition);
       Set_May_Exit       (This_Task, May_Exit);
 
-      if Exit_Condition.Task_Info /= null then
-         --  This pointer must be reset to null before exiting Run so as to
-         --  not leave a dangling reference.
+      --  Enter critical section (scope lock using Witness)
 
-         Exit_Condition.Task_Info.all := This_Task'Unchecked_Access;
-      end if;
+      declare
+         Witness : Task_Witness
+                     (This              => This_Task'Unchecked_Access,
+                      ORB_Controller    => ORB.ORB_Controller,
+                      Exit_Condition_TI => Exit_Condition.Task_Info);
+         pragma Unreferenced (Witness);
+      begin
+         --  ORB Main loop
 
-      Register_Task (ORB.ORB_Controller, This_Task'Unchecked_Access);
+         Main_Loop :
+         loop
+            Schedule_Task (ORB.ORB_Controller, This_Task'Unchecked_Access);
 
-      --  ORB Main loop
+            case State (This_Task) is
+               when Running =>
 
-      Main_Loop :
-      loop
-         Schedule_Task (ORB.ORB_Controller, This_Task'Unchecked_Access);
+                  --  This task will process one job
 
-         case State (This_Task) is
-            when Running =>
+                  Perform_Work (ORB, This_Task);
 
-               --  This task will process one job
+               when Blocked =>
 
-               Perform_Work (ORB, This_Task);
+                  --  This task will block on event sources, waiting for events
 
-            when Blocked =>
+                  Try_Check_Sources (ORB, This_Task);
 
-               --  This task will block on event sources, waiting for events
+               when Idle =>
 
-               Try_Check_Sources (ORB, This_Task);
+                  --  This task is going idle. We are still inside the ORB
+                  --  critical section at this point. The tasking policy will
+                  --  release it while we are idle, and re-assert it before
+                  --  returning.
 
-            when Idle =>
+                  Idle
+                    (ORB.Tasking_Policy,
+                     This_Task'Unchecked_Access,
+                     ORB_Access (ORB));
 
-               --  This task is going idle. We are still inside the ORB
-               --  critical section at this point. The tasking policy will
-               --  release it while we are idle, and re-assert it before
-               --  returning.
+                  --  Note: tasking policy may have decided to terminate this
+                  --  task, in which case the ORB controller has already been
+                  --  notified.
 
-               Idle (ORB.Tasking_Policy, This_Task, ORB_Access (ORB));
-               Notify_Event
-                 (ORB.ORB_Controller,
-                  Event'(Kind          => Idle_Awake,
-                         Awakened_Task => This_Task'Unchecked_Access));
+                  if State (This_Task) /= Terminated then
+                     Notify_Event
+                       (ORB.ORB_Controller,
+                        Event'(Kind          => Idle_Awake,
+                               Awakened_Task => This_Task'Unchecked_Access));
+                  end if;
 
-            when Terminated =>
+               when Terminated =>
 
-               --  This task has reached its exit condition: leave main loop
+                  --  This task has reached its exit condition: leave main loop
 
-               exit Main_Loop;
+                  exit Main_Loop;
 
-            when Unscheduled =>
+               when Unscheduled =>
 
-               --  This task is still unscheduled, this should not happen!
+                  --  This task is still unscheduled, this should not happen!
 
-               raise Program_Error;
+                  raise Program_Error;
 
-         end case;
+            end case;
 
-         --  Condition at end of loop: inside the ORB critical section
+            --  Condition at end of loop: inside the ORB critical section
 
-      end loop Main_Loop;
+         end loop Main_Loop;
 
-      --  Remove reference to This_Task
+         Witness.Normal_Exit := True;
 
-      if Exit_Condition.Task_Info /= null then
-         Exit_Condition.Task_Info.all := null;
-      end if;
-
-      Unregister_Task (ORB.ORB_Controller, This_Task'Unchecked_Access);
+         --  Upon exiting this block, Witness is finalized, causing This_Task
+         --  to be unregistered from the ORB controller.
+      end;
 
       pragma Debug (C, O ("Run: leave."));
-      Leave_ORB_Critical_Section (ORB.ORB_Controller);
 
    exception
       when E : others =>
-
-         --  At this point it is assumed that we are not in the ORB critical
-         --  section.
-
          O ("ORB.Run got exception:", Error);
          O (Ada.Exceptions.Exception_Information (E), Error);
-
-         --  Remove reference to This_Task
-
-         if Exit_Condition.Task_Info /= null then
-            Exit_Condition.Task_Info.all := null;
-         end if;
-
-         --  Reassert critical section to remove current task from ORB
-         --  controller.
-
-         Enter_ORB_Critical_Section (ORB.ORB_Controller);
-         Terminate_Task (ORB.ORB_Controller, This_Task);
-         Unregister_Task (ORB.ORB_Controller, This_Task'Unchecked_Access);
-         Leave_ORB_Critical_Section (ORB.ORB_Controller);
-
          raise;
    end Run;
 
