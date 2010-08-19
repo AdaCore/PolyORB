@@ -112,6 +112,7 @@ def filter_list(pattern, run_test=""):
         test_list.append("always_fail")
         return test_list
     else:
+        run_test = run_test.replace('test.py', '')
         return [t for t in test_list if run_test.rstrip('/') in t]
 
 if __name__ == "__main__":
