@@ -201,6 +201,10 @@ package all_types.Impl is
      (Self : access Object;
       Arg  : Money) return Money;
 
+   function echoAny
+     (Self : access Object;
+      Arg  : CORBA.Any) return CORBA.Any;
+
    procedure set_MyColor
      (Self : access Object;
       arg : Color);

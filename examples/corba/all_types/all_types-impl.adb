@@ -402,6 +402,14 @@ package body all_types.Impl is
       return arg;
    end echoUnionSequence;
 
+   function echoAny
+     (Self : access Object;
+      Arg  : CORBA.Any) return CORBA.Any
+   is
+   begin
+      return Arg;
+   end echoAny;
+
    procedure set_MyColor
      (Self : access Object;
       arg : Color)

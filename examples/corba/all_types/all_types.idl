@@ -138,6 +138,11 @@ interface all_types {
   typedef fixed<18,2> Money;
   Money echoMoney (in Money arg);
 
+  // Any
+  // ---
+
+  Any echoAny (in Any arg);
+
   // Attributes
   // ----------
   readonly attribute long Counter;
