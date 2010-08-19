@@ -68,13 +68,11 @@ private
 
    type DNS_Profile_Type is abstract new Profile_Type with record
       --  Transport mechanisms list
-      Mechanisms    :
-        PDTM.Transport_Mechanism_List;
+      Mechanisms : PDTM.Transport_Mechanism_List;
    end record;
 
    type DNS_Profile_Factory is abstract new Profile_Factory with record
-      Mechanisms :
-        PDTM.Transport_Mechanism_Factory_List;
+      Mechanisms : PDTM.Transport_Mechanism_Factory_List;
    end record;
 
 end PolyORB.Binding_Data.DNS;

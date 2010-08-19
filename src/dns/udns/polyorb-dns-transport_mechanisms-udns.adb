@@ -131,7 +131,7 @@ package body PolyORB.DNS.Transport_Mechanisms.UDNS is
 
    procedure Create_Factory
      (MF  : out UDNS_Transport_Mechanism_Factory;
-      TAP :     Transport.Transport_Access_Point_Access)
+      TAP : Transport.Transport_Access_Point_Access)
    is
    begin
       MF.Address :=
@@ -143,13 +143,12 @@ package body PolyORB.DNS.Transport_Mechanisms.UDNS is
    --------------------------------
 
    function Create_Transport_Mechanism
-     (MF : UDNS_Transport_Mechanism_Factory)
-      return Transport_Mechanism_Access
+     (MF : UDNS_Transport_Mechanism_Factory) return Transport_Mechanism_Access
    is
-      Result  : constant Transport_Mechanism_Access
-        := new UDNS_Transport_Mechanism;
+      Result  : constant Transport_Mechanism_Access :=
+                  new UDNS_Transport_Mechanism;
       TResult : UDNS_Transport_Mechanism
-        renames UDNS_Transport_Mechanism (Result.all);
+                  renames UDNS_Transport_Mechanism (Result.all);
 
    begin
       TResult.Address := new Socket_Name'(MF.Address.all);
@@ -157,14 +156,12 @@ package body PolyORB.DNS.Transport_Mechanisms.UDNS is
    end Create_Transport_Mechanism;
 
    function Create_Transport_Mechanism
-     (Address : Utils.Sockets.Socket_Name)
-      return Transport_Mechanism_Access
+     (Address : Utils.Sockets.Socket_Name) return Transport_Mechanism_Access
    is
-      Result  : constant Transport_Mechanism_Access
-        := new UDNS_Transport_Mechanism;
+      Result  : constant Transport_Mechanism_Access :=
+                  new UDNS_Transport_Mechanism;
       TResult : UDNS_Transport_Mechanism
-        renames UDNS_Transport_Mechanism (Result.all);
-
+                  renames UDNS_Transport_Mechanism (Result.all);
    begin
       TResult.Address := new Socket_Name'(Address);
       return Result;
@@ -198,8 +195,7 @@ package body PolyORB.DNS.Transport_Mechanisms.UDNS is
    ---------------
 
    function Duplicate
-     (TMA : UDNS_Transport_Mechanism)
-     return UDNS_Transport_Mechanism
+     (TMA : UDNS_Transport_Mechanism) return UDNS_Transport_Mechanism
    is
    begin
       return UDNS_Transport_Mechanism'

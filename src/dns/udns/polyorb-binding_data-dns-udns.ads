@@ -40,12 +40,10 @@ package PolyORB.Binding_Data.DNS.UDNS is
 
    function Create_Profile
      (PF  : access UDNS_Profile_Factory;
-      Oid :        Objects.Object_Id)
-     return Profile_Access;
+      Oid : Objects.Object_Id) return Profile_Access;
 
    function Duplicate_Profile
-     (P : UDNS_Profile_Type)
-     return Profile_Access;
+     (P : UDNS_Profile_Type) return Profile_Access;
 
    function Get_Profile_Tag (Profile : UDNS_Profile_Type) return Profile_Tag;
    pragma Inline (Get_Profile_Tag);
