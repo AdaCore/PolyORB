@@ -1600,10 +1600,25 @@ package body System.Partition_Interface is
       --------------
 
       procedure Set_Conf (Section, Key, Value : String) is
+         LS : constant String := To_Lower (Section);
+         LK : constant String := To_Lower (Key);
       begin
          pragma Debug
            (C, O ("Set_Conf: [" & Section & "] " & Key & " = " & Value));
          PUCFCT.Insert (Conf_Table, Make_Global_Key (Section, Key), +Value);
+
+         --  Placeholders for future special handling of Self_Location and
+         --  Boot_Location attributes. ???
+
+         if LS = "dsa" then
+            if LK = "self_location" then
+               null;
+
+            elsif LK = "boot_location" then
+               null;
+
+            end if;
+         end if;
       end Set_Conf;
 
    --  Start of processing for Initialize_Parameters
@@ -2238,7 +2253,7 @@ package body System.Partition_Interface is
       LName : constant String := To_Lower (Name);
       Entry_Pending : Boolean := False;
    begin
-      pragma Debug (C, O ("Retrieve RCI info: enter, Name = " & Name));
+      pragma Debug (C, O ("Retrieve_RCI_Info: enter, Name = " & Name));
 
       PTM.Enter (Critical_Section);
 
