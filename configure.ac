@@ -221,12 +221,16 @@ CC="$CC_FOR_TARGET"
 # junk preprocessor test that will use the host preprocessor
 # instead of the target compiler.
 
+# Mandatory features
+
 AC_CHECK_HEADERS([fcntl.h],
  [],
  [AC_ERROR([One or more required header file could not be found.])],
  [/*relax*/])
 
-AC_CHECK_FUNCS(setsid)
+# Optional features
+
+AC_CHECK_FUNCS([setsid strftime])
 CC="$save_CC"
 
 ##########################################
@@ -560,7 +564,7 @@ has_xmlada=no
 
 dnl Legacy build infrastructure: find XmlAda using xmlada-config
 
-AC_MSG_CHECKING([XmlAda])
+AC_MSG_CHECKING([for XML/Ada])
 if xmlada-config --version 2>&1 | ${GREP} "^XmlAda" > /dev/null 2>&1; then
    XMLADA_INCS="`xmlada-config --cflags`"
    XMLADA_LIBS="`xmlada-config --libs`"
@@ -571,7 +575,7 @@ fi
 AC_MSG_RESULT($has_xmlada)
 AM_CONDITIONAL(HAS_XMLADA, test x"$has_xmlada" = xyes)
 
-dnl Projects-based build infrastructure: find XmlAda project in project path
+dnl Projects-based build infrastructure: find XML/Ada project in project path
 dnl AM_HAS_GNAT_PROJECT([xmlada])
 dnl AM_CONDITIONAL(HAS_XMLADA, test x"$HAVE_GNAT_PROJECT_xmlada" = xyes)
 
