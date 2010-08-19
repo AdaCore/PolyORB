@@ -12,6 +12,12 @@ This date shows the implementation date of the feature. Any 2.7 wavefront
 subsequent to this date will contain the indicated feature, as will any
 subsequent releases.
 
+NF-27-J817-001 Abortable RPC (2010-08-19)
+
+   Client-side remote subprogram calls can now safely be aborted using
+   asynchronous transfer of control (note that no attempt is make to cancel
+   the corresponding server-side execution).
+
 NF-27-J723-021 Time stamps in traces (2010-07-28)
 
    Time stamps can now optionally be generated for trace messages logged
