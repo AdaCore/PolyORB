@@ -102,8 +102,8 @@ package PolyORB.ORB is
    -----------------
 
    type Request_Job is new PJ.Job with record
-      ORB       : ORB_Access;
-      Request   : Requests.Request_Access;
+      ORB     : ORB_Access;
+      Request : Requests.Request_Access;
    end record;
 
    -------------------------------
