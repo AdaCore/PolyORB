@@ -96,8 +96,7 @@ package PolyORB.Binding_Data is
    --  returned Entity_Ptr cannot be modified nor destroyed.
 
    function Get_Object_Key
-     (Profile : Profile_Type)
-     return Objects.Object_Id_Access;
+     (Profile : Profile_Type) return Objects.Object_Id_Access;
    --  Retrieve the opaque object key from Profile.
 
    procedure Bind_Profile
@@ -221,8 +220,9 @@ private
    Tag_PolyORB_Last        : constant Profile_Tag := 16#504f00ff#;
    --  "PO\x00\xff"
 
-   Preference_Default : constant Profile_Preference
-     := (Profile_Preference'First + Profile_Preference'Last) / 2;
+   Preference_Default : constant Profile_Preference :=
+                          (Profile_Preference'First
+                         + Profile_Preference'Last) / 2;
 
    type Profile_Type is abstract tagged limited record
       Object_Id    : Objects.Object_Id_Access;
