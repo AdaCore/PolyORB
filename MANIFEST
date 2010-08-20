@@ -2120,7 +2120,6 @@ testsuite/corba/harness/local.gpr
 testsuite/corba/harness/server_common.adb
 testsuite/corba/harness/server_common.ads
 testsuite/corba/harness/server_no_tasking.adb
-testsuite/corba/harness/server_no_tasking2.adb
 testsuite/corba/harness/server_thread_per_request.adb
 testsuite/corba/harness/server_thread_per_session.adb
 testsuite/corba/harness/server_thread_pool.adb
