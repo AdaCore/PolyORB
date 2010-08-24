@@ -196,7 +196,6 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Servant is
             end;
 
             PolyORB.Requests.Set_Result (Request, To_Any (Result));
-
             return;
          end;
       end if;
@@ -208,34 +207,33 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Servant is
                              Additional_Seq : out rrSequence;
                              Response       : out Rcode)
    is
+      use PolyORB.Types;
 
       TTL : constant PolyORB.Types.Unsigned_Long := 240;
       Answer : RR;
-      SRV_RR : SRV_Data;
-      Version, Current_Name, Current_Kind : PolyORB.Types.String;
+      Current_Name, Current_Kind : PolyORB.Types.String;
       Current_Entry : Local_Entry_Ptr;
-      pragma Unreferenced (Authority_Seq);
+      pragma Unreferenced (Authority_Seq, Additional_Seq);
 
    begin
 
       case Question.rr_type is
 
          --  Currently, the protocol for exchanging mDNS messages in the
-         --  in the mDNS context implies the usage of the SRV/TXT mapping,
-         --  so upon reception of an SRV message, we generate an answer
+         --  in the mDNS context implies the usage of the TXT mapping,
+         --  so upon reception of an SRV message request, we generate an answer
          --  resource record by looking up the Local_Entry_List and assigning
-         --  the necessary data to  the SRV record (stored in the
-         --  Answer rr sequence) and the TXT record (stored in the Additional
-         --  rr sequence).
+         --  the necessary data (stringified reference and version id)
+         --  to  the TXT recorde reply (stored in the Answer rr sequence).
 
          when SRV =>
             Parse_Question_Name
               (Question.rr_name, Current_Name, Current_Kind);
             Current_Entry := Local_Entry_List.Lookup
-                 (Types.To_Standard_String (Current_Name), null);
+              (To_Standard_String (Current_Name), null);
 
             if Current_Entry = null then
-               pragma Debug (C, O ("Current entry is null??"));
+
                --  If the record is not found locally, we return a
                --  Name_Error DNS Rcode to client.
 
@@ -245,53 +243,26 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Servant is
             end if;
 
             Answer_Seq := To_Sequence (1);
-            Additional_Seq := To_Sequence (1);
             Answer.rr_name := Question.rr_name;
             Answer.TTL := TTL;
-            Answer.rr_type := SRV;
-
-            declare
-               SRV_RR_Data   : RR_Data (Answer.rr_type);
-            begin
-
-               Version := Current_Entry.Version;
-
-               declare
-                  Base_Ref_String : constant String :=
-                    PolyORB.References.Corbaloc.Object_To_String
-                      (Current_Entry.Base_Ref);
-               begin
-                  SRV_RR.target :=
-                    PolyORB.Types.To_PolyORB_String (Base_Ref_String);
-               end;
-
-               SRV_RR.priority := PolyORB.Types.Unsigned_Short (0);
-               SRV_RR.weight := PolyORB.Types.Unsigned_Short (0);
-               SRV_RR.port := PolyORB.Types.Unsigned_Short (0);
-               --  For the current SRV/TXT mapping, values by default
-
-               Answer.data_length := PolyORB.Types.Unsigned_Short
-                (8 + PolyORB.Types.To_Standard_String (SRV_RR.target)'Length);
-               SRV_RR_Data.srv_data := SRV_RR;
-               Answer.rr_data := SRV_RR_Data;
-            end;
-
-            Replace_Element (Answer_Seq, 1, Answer);
-            Answer.rr_name := SRV_RR.target;
             Answer.rr_type := TXT;
 
             declare
                TXT_RR_Data : RR_Data (Answer.rr_type);
+               Base_Ref_String : constant String :=
+                 References.Corbaloc.Object_To_String (Current_Entry.Base_Ref);
             begin
-               TXT_RR_Data.rr_answer := PolyORB.Types.To_PolyORB_String
-                 ("version=" & PolyORB.Types.To_Standard_String (Version));
+
+               TXT_RR_Data.rr_answer := To_PolyORB_String
+                 ("reference=" & Base_Ref_String &
+                  "\.version=" & To_Standard_String (Current_Entry.Version));
 
                Answer.data_length := PolyORB.Types.Unsigned_Short
-                 (2 + PolyORB.Types.To_Standard_String
+                 (PolyORB.Types.To_Standard_String
                     (TXT_RR_Data.rr_answer)'Length);
                Answer.rr_data := TXT_RR_Data;
             end;
-            Replace_Element (Additional_Seq, 1, Answer);
+            Replace_Element (Answer_Seq, 1, Answer);
             Response := No_Error;
 
          --  XXX:The following RRs are used for testing purposes currently

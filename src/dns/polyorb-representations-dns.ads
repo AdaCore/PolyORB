@@ -105,6 +105,16 @@ package PolyORB.Representations.DNS is
    procedure Marshall_DNS_String
      (Buffer : access Buffer_Type;
       Data   : Standard.String);
+
+   procedure Marshall_TXT_String
+     (Buffer : access Buffer_Type;
+      Data   : Standard.String);
+
+   function Unmarshall_TXT_String
+     (Buffer      : access Buffer_Type;
+      Data_Length : PolyORB.Types.Unsigned_Short)
+      return PolyORB.Types.String;
+
    procedure Marshall_Latin_1_String
      (Buffer : access Buffer_Type;
       Data   : Standard.String);

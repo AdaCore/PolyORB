@@ -64,7 +64,9 @@ package PolyORB.DSA_P.Name_Service.mDNS.Client is
    --  the DNS Rcode associated.
 
 private
-   procedure Parse_TXT_Record (Answer_RR : PolyORB.Types.String;
+   procedure Parse_TXT_Record (Answer_RR  : PolyORB.Types.String;
+                               Str_Ref    : out PolyORB.Types.String;
                                Version_id : out PolyORB.Types.String);
-   --  Extract the version of the package from the TXT record.
+   --  Extract the stringified reference and the version of the package
+   --  from the TXT record.
 end PolyORB.DSA_P.Name_Service.mDNS.Client;

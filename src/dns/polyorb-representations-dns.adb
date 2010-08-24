@@ -101,7 +101,7 @@ package body PolyORB.Representations.DNS is
                if Is_Reply then
                   Marshall (Buffer, current_rr.TTL);
                   Marshall (Buffer, current_rr.data_length);
-                  Marshall_DNS_String (Buffer,
+                  Marshall_TXT_String (Buffer,
                    To_Standard_String (current_rr.rr_data.rr_answer));
                end if;
 
@@ -192,7 +192,8 @@ package body PolyORB.Representations.DNS is
                             Unmarshall (Buffer))));
                when TXT =>
                   pragma Debug (C, O ("Message is a TXT record"));
-                  rr_d.rr_answer := Unmarshall_DNS_String (Buffer);
+                  rr_d.rr_answer := Unmarshall_TXT_String
+                    (Buffer, current_rr.data_length);
                   pragma Debug (C, O (To_Standard_String (rr_d.rr_answer)));
                when others =>
                   rr_d.rr_answer := Unmarshall_DNS_String (Buffer);
@@ -307,6 +308,74 @@ package body PolyORB.Representations.DNS is
       Marshall (Buffer, Types.Octet (0));
       pragma Debug (C, O ("Marshall DNS string: end"));
    end Marshall_DNS_String;
+
+   procedure Marshall_TXT_String
+     (Buffer : access Buffer_Type;
+      Data   : Standard.String)
+   is
+      S       : String renames Data;
+      Index   : Integer;
+      Index2  : Integer;
+      Label : PolyORB.Types.String;
+   begin
+      pragma Debug (C, O ("Marshall TXT string : enter"));
+      Index := S'First;
+      Index2 := Find (S, Index, '\') + 1;
+      while Index2 > Index and Index /= S'Last + 3   loop
+         Label := To_PolyORB_String (S (Index .. Index2 - 2));
+         Marshall_Latin_1_String (Buffer, Label);
+         pragma Debug (C, O ("Marshall TXT string :label " &
+           To_Standard_String (Label)));
+         Index := Index2 + 1;
+         Index2 := Find (S, Index, '\') + 1;
+         pragma Debug (C, O ("Index2=" & Index2'Img & " > Index="
+           & Index'Img));
+      end loop;
+      pragma Debug (C, O ("Marshall TXT string: end"));
+   end Marshall_TXT_String;
+
+   function Unmarshall_TXT_String
+     (Buffer      : access Buffer_Type;
+      Data_Length : PolyORB.Types.Unsigned_Short)
+      return PolyORB.Types.String
+   is
+      Length : PolyORB.Types.Octet
+        := Unmarshall (Buffer);
+      Current_Length : PolyORB.Types.Unsigned_Short := 0;
+      Label : Types.String := To_PolyORB_String ("");
+   begin
+      pragma Debug (C, O ("Unmarshall TXT: enter"));
+      pragma Debug (C, O ("Unmarshall TXT: length is " &
+                    PolyORB.Types.Octet'Image (Length)));
+      if Length = 0 then
+         pragma Debug (C, O ("Unmarshall TXT: returning empty"));
+         return To_PolyORB_String ("");
+      end if;
+
+      while Data_Length > Current_Length loop
+         declare
+            Equiv  : String (1 .. Natural (Length));
+         begin
+            for J in Equiv'Range loop
+               Equiv (J) := Character'Val
+                 (PolyORB.Types.Char'Pos (Unmarshall_Latin_1_Char (Buffer)));
+            end loop;
+            Label := Label & To_PolyORB_String (Equiv);
+            pragma Debug (C, O ("Unmarshall DNS (String): -> " &
+              To_Standard_String (Label)));
+            Current_Length := Current_Length +
+              To_Standard_String (Label)'Length;
+         end;
+         if Data_Length > Current_Length then
+            Length := Unmarshall (Buffer);
+            Label := Label & "\.";
+            Current_Length := Current_Length + 2;
+         end if;
+      end loop;
+      pragma Debug (C, O ("Unmarshall (String): -> " &
+        To_Standard_String (Label)));
+      return Label;
+   end Unmarshall_TXT_String;
 
    function Unmarshall_DNS_String
      (Buffer : access Buffer_Type)

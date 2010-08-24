@@ -132,8 +132,8 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Client is
       Authoritative : Types.Boolean;
 
       Res : Rcode;
-      Answer_rr, Add_rr : RR;
-      Version_Id : PolyORB.Types.String;
+      Answer_rr : RR;
+      Version_Id, Str_Ref : PolyORB.Types.String;
       Ref : PolyORB.References.Ref;
    begin
       pragma Debug (C, O ("Enter Resolve : sending to :"
@@ -170,20 +170,18 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Client is
          pragma Debug (C, O ("Answer: " &
            PolyORB.Types.To_Standard_String (Answer_rr.rr_name)));
 
-         pragma Debug (C, O ("Target: " &
+         pragma Debug (C, O ("TXT: " &
            PolyORB.Types.To_Standard_String
-             (Answer_rr.rr_data.srv_data.target)));
+             (Answer_rr.rr_data.rr_answer)));
 
-         Add_rr := Get_Element (Add_sequence, 1);
-
-         if Add_rr.rr_type = TXT then
-            Parse_TXT_Record (Add_rr.rr_data.rr_answer, Version_Id);
+         if Answer_rr.rr_type = TXT then
+            Parse_TXT_Record
+              (Answer_rr.rr_data.rr_answer, Str_Ref, Version_Id);
 
             --  Creating a reference form its stringified representation
 
             PolyORB.References.String_To_Object
-              (Types.To_Standard_String (Answer_rr.rr_data.srv_data.target),
-               Ref);
+              (Types.To_Standard_String (Str_Ref), Ref);
 
             --  Setting its type id, for version checking purposes
 
@@ -330,7 +328,8 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Client is
       PolyORB.Requests.Destroy_Request (Request);
    end Query;
 
-   procedure Parse_TXT_Record (Answer_RR : PolyORB.Types.String;
+   procedure Parse_TXT_Record (Answer_RR  : PolyORB.Types.String;
+                               Str_Ref    : out PolyORB.Types.String;
                                Version_id : out PolyORB.Types.String) is
       use PolyORB.Utils;
       S : constant String :=
@@ -339,6 +338,9 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Client is
       Index2 : Integer;
    begin
       Index  := Find (S, S'First, '=') + 1;
+      Index2 := Find (S, Index, '\') - 1;
+      Str_Ref := Types.To_PolyORB_String (S (Index .. Index2));
+      Index := Find (S, Index2, '=') + 1;
       Index2 := S'Last;
       Version_id := Types.To_PolyORB_String (S (Index .. Index2));
    end Parse_TXT_Record;
