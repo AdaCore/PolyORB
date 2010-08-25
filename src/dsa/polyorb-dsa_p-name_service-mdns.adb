@@ -34,7 +34,6 @@
 with PolyORB.Any;
 with PolyORB.Any.NVList;
 with PolyORB.Log;
-with PolyORB.Utils;
 with PolyORB.Errors;
 with PolyORB.POA;
 with PolyORB.Setup;
@@ -52,6 +51,9 @@ with PolyORB.Minimal_Servant;
 with PolyORB.Types;
 with PolyORB.DSA_P.Name_Service.mDNS.Client;
 with PolyORB.DSA_P.Name_Service.mDNS.Servant;
+with Ada.Exceptions;
+with System.RPC;
+with PolyORB.Tasking.Threads;
 
 package body PolyORB.DSA_P.Name_Service.mDNS is
 
@@ -149,35 +151,60 @@ package body PolyORB.DSA_P.Name_Service.mDNS is
       Initial : Boolean := True) return PolyORB.References.Ref
    is
       use PolyORB.Errors;
-      use PolyORB.Utils;
 
-      LName : constant String := To_Lower (Name);
-      pragma Unreferenced (Initial, LName);
       Result : PolyORB.References.Ref;
+      Retry_Count : Natural := 0;
    begin
       pragma Debug
         (C, O ("Nameserver_Lookup (" & Name & "." & Kind & "): enter"));
 
-      --  Unit not known yet, we therefore know that it is remote, and we
-      --  need to look it up with the mDNS naming service.
-
-      --  We create the remote reference from the stringified Ref
-
-      PolyORB.References.String_To_Object
-        (Types.To_Standard_String (Context.Stringified_Ref),
-         Context.Base_Ref);
-
-      if Context.Base_Ref.Is_Null then
-         pragma Debug (C, O ("Target is null"));
-         raise Program_Error;
-      end if;
-
       --  Invoke the Resolve procedure which calls the remote object
       --  constructs a local reference as a result and returns it.
 
-      Result :=
-        PolyORB.DSA_P.Name_Service.mDNS.Client.Resolve
-          (Context.Base_Ref, Name, Kind);
+      loop
+         begin
+            --  Unit not known yet, we therefore know that it is remote, and we
+            --  need to look it up with the mDNS naming service.
+
+            --  We create the remote reference from the stringified Ref
+
+            PolyORB.References.String_To_Object
+              (Types.To_Standard_String (Context.Stringified_Ref),
+               Context.Base_Ref);
+
+            if References.Is_Nil (Context.Base_Ref) then
+               raise Constraint_Error;
+            end if;
+
+            Result :=
+              PolyORB.DSA_P.Name_Service.mDNS.Client.Resolve
+                (Context.Base_Ref, Name, Kind);
+
+            if not Is_Reference_Valid (Result) then
+               PolyORB.References.Release (Result);
+            end if;
+
+         exception
+               --  Catch all exceptions: we will retry resolution, and bail
+               --  out after Max_Requests iterations.
+
+            when E : others =>
+               pragma Debug (C, O ("retry" & Retry_Count'Img & " got "
+                 & Ada.Exceptions.Exception_Information (E)));
+               PolyORB.References.Release (Result);
+         end;
+
+         exit when not (Initial and then PolyORB.References.Is_Nil (Result));
+         --  Resolve succeeded, or just trying to refresh a stale ref:
+         --  exit loop.
+
+         if Retry_Count = Max_Requests then
+            raise System.RPC.Communication_Error with
+              "lookup of " & Kind & " " & Name & " failed";
+         end if;
+         Retry_Count := Retry_Count + 1;
+         PolyORB.Tasking.Threads.Relative_Delay (Time_Between_Requests);
+      end loop;
 
       pragma Debug
         (C, O ("Nameserver_Lookup (" & Name & "." & Kind & "): leave"));

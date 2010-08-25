@@ -37,6 +37,7 @@ with PolyORB.Types;
 with PolyORB.Requests;
 with PolyORB.Log;
 with PolyORB.Utils;
+with System.RPC;
 
 package body PolyORB.DSA_P.Name_Service.mDNS.Client is
    use PolyORB.DSA_P.Name_Service.mDNS.Helper;
@@ -194,7 +195,8 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Client is
          end if;
       elsif Res = Name_Error then
          pragma Debug (C, O ("Record was not found"));
-         null;
+         raise System.RPC.Communication_Error with
+              "Name_Error";
       else
          raise Program_Error;
       end if;
