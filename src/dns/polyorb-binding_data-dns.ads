@@ -30,6 +30,7 @@
 --                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
+
 with PolyORB.DNS.Transport_Mechanisms;
 
 package PolyORB.Binding_Data.DNS is

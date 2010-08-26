@@ -31,6 +31,9 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+--  Package providing the data binding facilities for the uDNS transport
+--  mechanism, specific to the DNS protocol personality
+
 package PolyORB.Binding_Data.DNS.UDNS is
 
    DNS_Error : exception;
