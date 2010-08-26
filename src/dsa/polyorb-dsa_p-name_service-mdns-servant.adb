@@ -36,7 +36,10 @@ with PolyORB.Errors;
 with PolyORB.Log;
 with PolyORB.Any;
 with PolyORB.Utils;
+with PolyORB.Utils.Strings;
 with PolyORB.References.Corbaloc;
+with PolyORB.Tasking.Mutexes;
+with PolyORB.Initialization;
 
 package body PolyORB.DSA_P.Name_Service.mDNS.Servant is
    use PolyORB.Errors;
@@ -48,6 +51,9 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Servant is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
+
+   package PTM renames PolyORB.Tasking.Mutexes;
+   Critical_Section : PTM.Mutex_Access;
 
    procedure Query (Self : access Object;
                     Authoritative : in out Boolean;
@@ -229,8 +235,11 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Servant is
          when SRV =>
             Parse_Question_Name
               (Question.rr_name, Current_Name, Current_Kind);
+
+            PTM.Enter (Critical_Section);
             Current_Entry := Local_Entry_List.Lookup
               (To_Standard_String (Current_Name), null);
+            PTM.Leave (Critical_Section);
 
             if Current_Entry = null then
 
@@ -333,9 +342,10 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Servant is
       New_Entry.Version := Version;
       New_Entry.Base_Ref := Base_Ref;
 
-      --  XXX: needs a mutex?
+      PTM.Enter (Critical_Section);
       Local_Entry_List.Register (PolyORB.Types.To_Standard_String
                                  (Name), New_Entry);
+      PTM.Leave (Critical_Section);
       pragma Debug (C, O ("Entry Appended : leaving"));
    end Append_Entry_To_Context;
 
@@ -357,4 +367,29 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Servant is
          raise Constraint_Error;
       end if;
    end Parse_Question_Name;
+
+   ----------------
+   -- Initialize --
+   ----------------
+   procedure Initialize;
+
+   procedure Initialize is
+   begin
+      PTM.Create (Critical_Section);
+   end Initialize;
+
+   use PolyORB.Initialization;
+   use PolyORB.Initialization.String_Lists;
+   use PolyORB.Utils.Strings;
+
+begin
+   Register_Module
+     (Module_Info'
+      (Name      => +"naming.NamingContext.servant",
+       Conflicts => Empty,
+       Depends   => +"tasking.mutexes",
+       Provides  => Empty,
+       Implicit  => False,
+       Init      => Initialize'Access,
+       Shutdown  => null));
 end PolyORB.DSA_P.Name_Service.mDNS.Servant;
