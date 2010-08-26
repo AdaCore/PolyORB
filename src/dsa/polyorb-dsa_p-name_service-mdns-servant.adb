@@ -385,7 +385,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Servant is
 begin
    Register_Module
      (Module_Info'
-      (Name      => +"naming.NamingContext.servant",
+      (Name      => +"name_service.mdns.servant",
        Conflicts => Empty,
        Depends   => +"tasking.mutexes",
        Provides  => Empty,
