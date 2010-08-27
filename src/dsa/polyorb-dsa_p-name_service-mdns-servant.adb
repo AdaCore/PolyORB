@@ -66,9 +66,9 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Servant is
       pragma Unreferenced (Self);
    begin
       Authoritative := True;
-      --  by default, each partition is autoritative
+      --  By default, each partition is autoritative
 
-      --  for each received question we must look for an RR or a list of RRs
+      --  For each received question we must look for an RR or a list of RRs
       --  and assign them to the RR answer/additional infos sequence
 
       for J in 1 .. Length (Question) loop
@@ -233,8 +233,19 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Servant is
          --  to  the TXT recorde reply (stored in the Answer rr sequence).
 
          when SRV =>
-            Parse_Question_Name
-              (Question.rr_name, Current_Name, Current_Kind);
+
+            --  If the request message is not correctly structured,
+            --  send back a Name_Error Rcode to client
+
+            begin
+               Parse_Question_Name
+                 (Question.rr_name, Current_Name, Current_Kind);
+            exception
+               when others =>
+                  pragma Debug (C, O ("Record not Found, return Name_Error"));
+                  Response := Name_Error;
+                  return;
+            end;
 
             PTM.Enter (Critical_Section);
             Current_Entry := Local_Entry_List.Lookup
@@ -247,7 +258,6 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Servant is
                --  Name_Error DNS Rcode to client.
 
                Response := Name_Error;
-
                return;
             end if;
 
