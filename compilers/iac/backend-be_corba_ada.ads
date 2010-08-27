@@ -110,8 +110,8 @@ package Backend.BE_CORBA_Ada is
                                  GNAT.Perfect_Hash_Generators.Memory_Space;
 
    Use_SII : Boolean := False;
-   --  The request handling method (SSI or DII). By default, the DII
-   --  is used.
+   --  The request handling method (Static Implementation Interface or Dynamic
+   --  Implementation Interface). Default is DII.
 
    Use_Optimized_Buffers_Allocation : Boolean := False;
    --  Marshaller optimization using a one time allocation by calculating the
