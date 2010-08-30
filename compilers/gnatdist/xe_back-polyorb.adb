@@ -1103,13 +1103,6 @@ package body XE_Back.PolyORB is
          PE (E) := Strip (PE_Id'Image (E), To_Lower => True);
       end loop;
 
-      --  Pass name server IOR from starter to all slave partitions
-
-      Add_Environment_Variable
-        (Partitions.Table (Default_Partition_Id).First_Env_Var,
-         Partitions.Table (Default_Partition_Id).Last_Env_Var,
-         Id ("POLYORB_DSA_NAME_SERVICE"));
-
       Generate_PCS_Project_Files;
       Generate_Application_Project_Files;
    end Initialize;

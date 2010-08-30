@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1995-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -547,11 +547,19 @@ package body XE_Back is
          Write_Name (To_Absolute_File (Current.Executable_File));
          Write_Char (Int_Quote);
 
-         Write_Str  (" --boot_location ");
+         --  Boot_Location not currently supported with PolyORB, instead pass
+         --  name service reference directly.
 
+         --  Write_Str  (" --boot_location ");
+         --  Write_Char (Int_Quote);
+         --  Write_Str  ("$BOOT_LOCATION");
+         --  Write_Char (Int_Quote);
+
+         Write_Str (" --polyorb-dsa-name_service=");
          Write_Char (Int_Quote);
-         Write_Str  ("$BOOT_LOCATION");
+         Write_Str  ("$POLYORB_DSA_NAME_SERVICE");
          Write_Char (Int_Quote);
+
          Write_Name (Current.Command_Line);
 
          if P /= Main_Partition then

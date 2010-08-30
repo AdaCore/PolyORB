@@ -233,7 +233,7 @@ package body PolyORB.DSA_P.Remote_Launch is
       --  Remote spawn
 
       else
-         declare
+         Remote_Spawn : declare
             function Expand_Env_Vars (Vars : String) return String;
             --  Given a space separated list of environment variable names,
             --  return a space separated list of assigments of the form:
@@ -281,7 +281,13 @@ package body PolyORB.DSA_P.Remote_Launch is
             Remote_Command : String_Access :=
                                new String'(Expand_Env_Vars (Env_Vars)
                                              & U_Command
-                                             & " --polyorb-dsa-detach");
+                                             & " --polyorb-dsa-detach"
+                                             & " --polyorb-dsa-name_service="
+                                             & Get_Conf
+                                                 ("dsa", "name_service", ""));
+
+         --  Start of processing for Remote_Spawn
+
          begin
             pragma Debug
               (C, O ("Enter Spawn (remote: "
@@ -293,7 +299,7 @@ package body PolyORB.DSA_P.Remote_Launch is
                      (Rsh_Command.all,
                       Remote_Host & Rsh_Args.all & Remote_Command);
             Free (Remote_Command);
-         end;
+         end Remote_Spawn;
       end if;
       Free (Remote_Host);
 
