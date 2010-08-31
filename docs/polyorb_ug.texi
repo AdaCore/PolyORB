@@ -4856,7 +4856,8 @@ the latter case, the list does not replace the default one but instead
 complements it (i.e. variables specified for @b{Partition} are passed
 in addition to the partition specific ones).
 
-Use of this features requires that remote nodes provide a Bourne shell.
+Use of this features requires that remote nodes provide the POSIX env(1)
+command.
 
 @smallexample
 
