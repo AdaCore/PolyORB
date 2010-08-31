@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 1995-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -101,10 +101,13 @@ private
    --  program.
 
    function Get_Env_Vars
-     (P : Partition_Id; Names_Only : Boolean) return String;
+     (P          : Partition_Id;
+      Q          : Character := ' ';
+      Names_Only : Boolean) return String;
    --  Return a series of environment variables assignment for partition P
-   --  (if Names_Only is False), or a space separated list of environment
-   --  variable names only (if Names_Only is True).
+   --  (if Names_Only is False, in which case values are encosed with Q), or a
+   --  space separated list of environment variable names only (if Names_Only
+   --  is True).
 
    procedure Generate_Application_Project_Files;
    --  Generate a project file for the appplication code, extending the one

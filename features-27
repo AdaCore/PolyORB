@@ -24,6 +24,11 @@ NF-27-J723-021 Time stamps in traces (2010-07-28)
    to standard error. This feature is enabled by setting "timestamp=true"
    in section [log] of the PolyORB configuration.
 
+NF-27-J521-019 DSA starter does not depend on Bourne shell (2010-08-31)
+
+   The generated Ada and shell starters for DSA applications do not require
+   the remote node to provide a Bourne shell anymore.
+
 NF-27-J511-001 po_gnatdist reports Name_Server setting (2010-05-12)
 
    If a pragma Name_Server is given in the configuration file, po_gnatdist

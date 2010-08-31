@@ -33,6 +33,7 @@
 
 with Ada.Environment_Variables;
 with Ada.Strings.Fixed;
+with Ada.Strings.Unbounded;
 with Ada.Strings.Maps;
 
 with GNAT.Expect;
@@ -241,41 +242,47 @@ package body PolyORB.DSA_P.Remote_Launch is
 
             function Expand_Env_Vars (Vars : String) return String is
                use Ada.Environment_Variables;
+               use Ada.Strings.Unbounded;
+
                First, Last : Integer;
+               Result : Unbounded_String;
             begin
                First := Vars'First;
 
-               --  Find first character of name
-
-               while First <= Env_Vars'Last
-                       and then Env_Vars (First) = ' '
                loop
-                  First := First + 1;
+                  --  Find first character of name
+
+                  while First <= Env_Vars'Last
+                          and then Env_Vars (First) = ' '
+                  loop
+                     First := First + 1;
+                  end loop;
+                  exit when First > Env_Vars'Last;
+
+                  --  Find last character of name
+
+                  Last := First;
+                  while Last < Env_Vars'Last
+                          and then Env_Vars (Last + 1) /= ' '
+                  loop
+                     Last := Last + 1;
+                  end loop;
+
+                  declare
+                     Var_Name : String renames Vars (First .. Last);
+                  begin
+                     if Exists (Var_Name) then
+                        if Length (Result) = 0 then
+                           Result := To_Unbounded_String ("env ");
+                        end if;
+                        Result := Result &
+                                  Var_Name & "='" & Value (Var_Name) & "' ";
+                     end if;
+                  end;
+
+                  First := Last + 1;
                end loop;
-               if First > Env_Vars'Last then
-                  return "";
-               end if;
-
-               --  Find last character of name
-
-               Last := First;
-               while Last < Env_Vars'Last
-                       and then Env_Vars (Last + 1) /= ' '
-               loop
-                  Last := Last + 1;
-               end loop;
-
-               declare
-                  Var_Name : String renames Vars (First .. Last);
-                  Rest     : String renames
-                               Expand_Env_Vars (Vars (Last + 1 .. Vars'Last));
-               begin
-                  if Exists (Var_Name) then
-                     return Var_Name & "='" & Value (Var_Name) & "' " & Rest;
-                  else
-                     return Rest;
-                  end if;
-               end;
+               return To_String (Result);
             end Expand_Env_Vars;
 
             Remote_Command : String_Access :=
