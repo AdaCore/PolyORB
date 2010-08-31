@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -171,7 +171,7 @@ package body PolyORB.Protocols.GIOP.Common is
 
       Static_Buffer : constant QoS_GIOP_Static_Buffer_Parameter_Access :=
         QoS_GIOP_Static_Buffer_Parameter_Access
-        (Extract_Request_Parameter (PolyORB.QoS.GIOP_Static_Buffer, Request));
+        (Extract_Request_Parameter (QoS.GIOP_Static_Buffer, Request.all));
    begin
       Get_Note (Request.Notepad, N);
 
@@ -721,22 +721,22 @@ package body PolyORB.Protocols.GIOP.Common is
       Static_Buffer :=
         QoS_GIOP_Static_Buffer_Parameter_Access
         (Extract_Request_Parameter
-         (PolyORB.QoS.GIOP_Static_Buffer, Current_Req.Req));
+         (QoS.GIOP_Static_Buffer, Current_Req.Req.all));
 
       if not Success then
          raise GIOP_Error;
       end if;
 
       Add_Reply_QoS
-        (Current_Req.Req,
+        (Current_Req.Req.all,
          GIOP_Service_Contexts,
          QoS_Parameter_Access (Service_Contexts));
-      Rebuild_Reply_QoS_Parameters (Current_Req.Req);
+      Rebuild_Reply_QoS_Parameters (Current_Req.Req.all);
 
       case Reply_Status is
          when No_Exception =>
 
-            --  Unmarshall reply body.
+            --  Unmarshall reply body
 
             if Static_Buffer = null then
                pragma Debug (C, O ("Use Anys"));

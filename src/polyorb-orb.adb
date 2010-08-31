@@ -77,7 +77,6 @@ package body PolyORB.ORB is
    use PolyORB.Tasking.Threads;
    use PolyORB.Transport;
    use PolyORB.Transport.Handlers;
-   use PolyORB.Types;
    use Unsigned_Long_Flags;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.orb");
@@ -336,9 +335,9 @@ package body PolyORB.ORB is
    --  loop.
 
    type Task_Witness
-     (This              : access Task_Info.Task_Info;
-      ORB_Controller    : access POC.ORB_Controller'Class;
-      Exit_Condition_TI : access PTI.Task_Info_Access)
+     (This           : access Task_Info.Task_Info;
+      ORB_Controller : access POC.ORB_Controller'Class;
+      TI_Reference   : access PTI.Task_Info_Access)
      is new Ada.Finalization.Limited_Controlled with
    record
       Normal_Exit : Boolean := False;
@@ -362,11 +361,11 @@ package body PolyORB.ORB is
         (O ("Initializing task witness for " & PTI.Image (TW.This.all)));
       Enter_ORB_Critical_Section (TW.ORB_Controller);
 
-      if TW.Exit_Condition_TI /= null then
+      if TW.TI_Reference /= null then
          --  This pointer must be reset to null before exiting Run so as to
          --  not leave a dangling reference.
 
-         TW.Exit_Condition_TI.all := TW.This.all'Unchecked_Access;
+         TW.TI_Reference.all := TW.This.all'Unchecked_Access;
       end if;
 
       Register_Task (TW.ORB_Controller, TW.This.all'Unchecked_Access);
@@ -383,8 +382,8 @@ package body PolyORB.ORB is
 
       --  Remove references to TW.This
 
-      if TW.Exit_Condition_TI /= null then
-         TW.Exit_Condition_TI.all := null;
+      if TW.TI_Reference /= null then
+         TW.TI_Reference.all := null;
       end if;
 
       if not TW.Normal_Exit then
@@ -399,20 +398,24 @@ package body PolyORB.ORB is
       Leave_ORB_Critical_Section (TW.ORB_Controller);
    end Finalize;
 
+   --  An ORB task is Permanent if its Request is null (case True), Transient
+   --  if it is not.
+
    --  This is the main loop for all general-purpose ORB tasks. This subprogram
    --  must not be called recursively. Exceptions must not be propagated from
    --  within ORB critical section.
 
    procedure Run
-     (ORB            : access ORB_Type;
-      Exit_Condition : Exit_Condition_T := (null, null);
-      May_Exit       : Boolean)
+     (ORB      : access ORB_Type;
+      Request  : Requests.Request_Access := null;
+      May_Exit : Boolean)
    is
-      use PolyORB.Task_Info;
+      use PTI;
 
-      This_Task : aliased Task_Info.Task_Info
-        (Task_Kind_For_Exit_Condition (Exit_Condition.Condition = null));
-
+      Task_Kinds : constant array (Boolean) of Task_Kind :=
+                     (False => Transient, True => Permanent);
+      This_Task  : aliased PTI.Task_Info (Task_Kinds (Request = null));
+      TI_Ref     : access Task_Info_Access := null;
    begin
       pragma Assert (This_Task.Kind = Permanent or else May_Exit);
       --  May_Exit is expected to always be True for transient tasks
@@ -420,16 +423,21 @@ package body PolyORB.ORB is
       --  Set up task information for This_Task
 
       Set_Id             (This_Task);
-      Set_Exit_Condition (This_Task, Exit_Condition.Condition);
+      if Request /= null then
+         Set_Exit_Condition (This_Task, Request.Completed'Access);
+         TI_Ref := Request.Requesting_Task'Access;
+      else
+         Set_Exit_Condition (This_Task, null);
+      end if;
       Set_May_Exit       (This_Task, May_Exit);
 
       --  Enter critical section (scope lock using Witness)
 
       declare
          Witness : Task_Witness
-                     (This              => This_Task'Unchecked_Access,
-                      ORB_Controller    => ORB.ORB_Controller,
-                      Exit_Condition_TI => Exit_Condition.Task_Info);
+                     (This           => This_Task'Unchecked_Access,
+                      ORB_Controller => ORB.ORB_Controller,
+                      TI_Reference   => TI_Ref);
          pragma Unreferenced (Witness);
       begin
          --  ORB Main loop
@@ -992,7 +1000,7 @@ package body PolyORB.ORB is
             References.Binding.Bind
               (Req.Target,
                ORB_Access (ORB),
-               Request_QoS.Get_Request_QoS (Req),
+               Request_QoS.Get_Request_QoS (Req.all),
                Surrogate,
                Pro,
                False,

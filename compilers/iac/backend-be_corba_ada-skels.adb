@@ -2147,7 +2147,7 @@ package body Backend.BE_CORBA_Ada.Skels is
          N := Make_Subprogram_Call
            (RE (RE_Set_Exception_Information),
             New_List
-            (Make_Identifier (PN (P_Request)),
+            (Make_Explicit_Dereference (Make_Identifier (PN (P_Request))),
              Make_Identifier (PN (P_E))));
          Append_To (S, N);
 

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -262,7 +262,7 @@ package body PolyORB.CORBA_P.Exceptions is
             Exception_Information :
               constant String :=
                 PolyORB.QoS.Exception_Informations.
-                  Get_Exception_Information (R);
+                  Get_Exception_Information (R.all);
             Last : Integer;
          begin
             Requests.Destroy_Request (R);

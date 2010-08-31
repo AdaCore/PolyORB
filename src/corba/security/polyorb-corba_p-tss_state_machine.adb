@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -312,10 +312,10 @@ package body PolyORB.CORBA_P.TSS_State_Machine is
 
       Request_QoS      : constant QoS_Security_Context_Parameter_Access
         := QoS_Security_Context_Parameter_Access
-        (Extract_Request_Parameter (Compound_Security, Request));
+        (Extract_Request_Parameter (Compound_Security, Request.all));
       Transport_QoS    : constant QoS_Transport_Context_Parameter_Access
         := QoS_Transport_Context_Parameter_Access
-        (Extract_Request_Parameter (Transport_Security, Request));
+        (Extract_Request_Parameter (Transport_Security, Request.all));
       Reply_QoS        : QoS_Security_Context_Parameter_Access;
       Stateful         : Boolean;
       Context_Accepted : Boolean := False;
@@ -464,7 +464,7 @@ package body PolyORB.CORBA_P.TSS_State_Machine is
       end if;
 
       Add_Reply_QoS
-        (Request, Compound_Security, QoS_Parameter_Access (Reply_QoS));
+        (Request.all, Compound_Security, QoS_Parameter_Access (Reply_QoS));
 
       --  Destroy current Security Current note
 

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -81,12 +81,12 @@ package body PortableInterceptor.ClientRequestInfo.Impl is
 
       SCP :=
         QoS_GIOP_Service_Contexts_Parameter_Access
-         (Extract_Request_Parameter (GIOP_Service_Contexts, Self.Request));
+         (Extract_Request_Parameter (GIOP_Service_Contexts, Self.Request.all));
 
       if SCP = null then
          SCP := new QoS_GIOP_Service_Contexts_Parameter;
          Add_Request_QoS
-           (Self.Request,
+           (Self.Request.all,
             GIOP_Service_Contexts,
             QoS_Parameter_Access (SCP));
       end if;

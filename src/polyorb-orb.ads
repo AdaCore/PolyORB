@@ -55,7 +55,6 @@ with PolyORB.Requests;
 with PolyORB.Smart_Pointers;
 with PolyORB.Task_Info;
 with PolyORB.Transport;
-with PolyORB.Types;
 with PolyORB.Utils.Chained_Lists;
 
 package PolyORB.ORB is
@@ -156,13 +155,6 @@ package PolyORB.ORB is
    -- Server object operations --
    ------------------------------
 
-   type Task_Info_Access_Access is access all PTI.Task_Info_Access;
-
-   type Exit_Condition_T is record
-      Condition : PolyORB.Types.Boolean_Ptr;
-      Task_Info : Task_Info_Access_Access;
-   end record;
-
    procedure Create (ORB : in out ORB_Type);
    --  Initialize a newly-allocated ORB object
 
@@ -183,21 +175,21 @@ package PolyORB.ORB is
    --  Binding Object if found, or a nil reference if not.
 
    procedure Run
-     (ORB            : access ORB_Type;
-      Exit_Condition : Exit_Condition_T := (null, null);
-      May_Exit       : Boolean);
+     (ORB      : access ORB_Type;
+      Request  : Requests.Request_Access := null;
+      May_Exit : Boolean);
    --  Execute the ORB until:
    --    - Exit_Condition.Condition.all becomes True
    --      (if Exit_Condition.Condition /= null), or
    --    - Shutdown is called on this ORB.
 
-   --  This procedure is executed by permanent ORB tasks (those with
-   --  Exit_Condition.Condition = null), and is also entered by user tasks that
-   --  need to wait for a certain condition to occur.
+   --  This procedure is executed by permanent ORB tasks (those with a null
+   --  Request parameter), and is also entered by user tasks that need to wait
+   --  need to wait for the completion of a Request ("transient" tasks).
 
-   --  If Exit_Condition.Task_Info is not null, it is set on entry into Run to
-   --  an access value that designates this task's Task_Info structure while it
-   --  is executing ORB.Run.
+   --  If Request is not null, its Requesting_Task component is set on entry
+   --  into Run to designate this task's Task_Info structure while it is
+   --  executing ORB.Run.
 
    --  For a permanent task, if May_Exit is False then the task remains in this
    --  procedure until ORB shutdown, else it may return earlier (in which case

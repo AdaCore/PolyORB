@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -176,11 +176,11 @@ package body CORBA.Request is
                PolyORB.Requests.Reset_Request (Request);
 
                Add_Request_QoS
-                 (Request,
+                 (Request.all,
                   GIOP_Addressing_Mode,
                   new QoS_GIOP_Addressing_Mode_Parameter'
-                  (Kind => GIOP_Addressing_Mode,
-                   Mode => Members.Mode));
+                    (Kind => GIOP_Addressing_Mode,
+                     Mode => Members.Mode));
             end;
          end if;
       end loop;

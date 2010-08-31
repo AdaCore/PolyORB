@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2004-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -73,23 +73,19 @@ package PolyORB.QoS.Service_Contexts is
    procedure Release_Contents
      (QoS : access QoS_GIOP_Service_Contexts_Parameter);
 
-   procedure Rebuild_Request_Service_Contexts
-     (Req : PolyORB.Requests.Request_Access);
-   --  Reconstruct list of GIOP Service Contexts from the list of
-   --  QoS Parameters.
+   procedure Rebuild_Request_Service_Contexts (Req : in out Requests.Request);
+   --  Reconstruct list of GIOP Service Contexts from the list of QoS
+   --  Parameters.
 
-   procedure Rebuild_Reply_Service_Contexts
-     (Req : PolyORB.Requests.Request_Access);
-   --  Reconstruct list of GIOP Service Contexts from the list of
-   --  QoS Parameters.
+   procedure Rebuild_Reply_Service_Contexts (Req : in out Requests.Request);
+   --  Reconstruct list of GIOP Service Contexts from the list of QoS
+   --  Parameters.
 
-   procedure Rebuild_Request_QoS_Parameters
-     (Req : PolyORB.Requests.Request_Access);
-   --  Reconstruct list of QoS Parameters from list of GIOP Service Contexts.
+   procedure Rebuild_Request_QoS_Parameters (Req : in out Requests.Request);
+   --  Reconstruct list of QoS Parameters from list of GIOP Service Contexts
 
-   procedure Rebuild_Reply_QoS_Parameters
-     (Req : PolyORB.Requests.Request_Access);
-   --  Reconstruct list of QoS Parameters from list of GIOP Service Contexts.
+   procedure Rebuild_Reply_QoS_Parameters (Req : in out Requests.Request);
+   --  Reconstruct list of QoS Parameters from list of GIOP Service Contexts
 
    type To_Service_Context is
       access function (QoS : QoS_Parameter_Access) return Service_Context;

@@ -72,7 +72,7 @@ package System.Partition_Interface is
    DSA_Implementation : constant DSA_Implementation_Name := PolyORB_DSA;
    --  Identification of this DSA implementation variant
 
-   PCS_Version : constant := 3;
+   PCS_Version : constant := 4;
    --  Version of the PCS API (for Exp_Dist consistency check).
    --  This version number is matched against Gnatvsn.PCS_Version_Number to
    --  ensure that the versions of Exp_Dist and the PCS are consistent.
@@ -150,6 +150,7 @@ package System.Partition_Interface is
 
    type RCI_Subp_Info_Array is array (Integer range <>) of RCI_Subp_Info;
 
+   subtype Request is PolyORB.Requests.Request;
    subtype Request_Access is PolyORB.Requests.Request_Access;
 
    generic
@@ -597,23 +598,23 @@ package System.Partition_Interface is
    Nil_Exc_List : PolyORB.Any.ExceptionList.Ref
       renames PolyORB.Any.ExceptionList.Nil_Ref;
 
-   procedure Request_Create
-     (Target    : PolyORB.References.Ref;
+   procedure Request_Setup
+     (Req       : out PolyORB.Requests.Request;
+      Target    : PolyORB.References.Ref;
       Operation : String;
       Arg_List  : PolyORB.Any.NVList.Ref;
       Result    : in out PolyORB.Any.NamedValue;
       Exc_List  : PolyORB.Any.ExceptionList.Ref :=
                     PolyORB.Any.ExceptionList.Nil_Ref;
-      Req       : out PolyORB.Requests.Request_Access;
       Req_Flags :   PolyORB.Requests.Flags;
       Deferred_Arguments_Session : PolyORB.Components.Component_Access := null;
       Identification :   PolyORB.Requests.Arguments_Identification :=
                            PolyORB.Requests.Ident_By_Position;
       Dependent_Binding_Object : PolyORB.Smart_Pointers.Entity_Ptr := null
-     ) renames PolyORB.Requests.Create_Request;
+     ) renames PolyORB.Requests.Setup_Request;
 
    procedure Request_Invoke
-     (R            : PolyORB.Requests.Request_Access;
+     (R            : access PolyORB.Requests.Request;
       Invoke_Flags : PolyORB.Requests.Flags := 0);
 
    procedure Request_Arguments
@@ -627,10 +628,6 @@ package System.Partition_Interface is
       Val  : Any)
      renames PolyORB.Requests.Set_Result;
 
-   procedure Request_Destroy
-     (Self : in out PolyORB.Requests.Request_Access)
-     renames PolyORB.Requests.Destroy_Request;
-
    Asynchronous_P_To_Sync_Scope : constant array (Boolean)
      of PolyORB.Requests.Flags :=
        (False => PolyORB.Requests.Sync_With_Target,
@@ -639,10 +636,9 @@ package System.Partition_Interface is
    --  Request_Flags to use for a request according to whether or not the call
    --  is asynchronous.
 
-   procedure Request_Raise_Occurrence (R : in out Request_Access);
-   --  If R terminated with an exception, raise that exception. In that case,
-   --  the request is destroyed before raising the exception, and this
-   --  subprogram does not return. If no exception occurred, do nothing.
+   procedure Request_Raise_Occurrence (R : Request);
+   --  If R terminated with an exception, raise that exception
+   --  If no exception occurred, do nothing.
 
    procedure Register_Termination_Manager
      (Ref      : PolyORB.References.Ref;

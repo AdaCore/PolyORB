@@ -583,20 +583,20 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
              (S.Dependent_Binding_Object));
 
       Add_Request_QoS
-        (Req,
+        (Req.all,
          GIOP_Addressing_Mode,
          new QoS_GIOP_Addressing_Mode_Parameter'
          (Kind => GIOP_Addressing_Mode, Mode => AM));
 
       Add_Request_QoS
-        (Req,
+        (Req.all,
          GIOP_Service_Contexts,
          QoS_Parameter_Access (Service_Contexts));
-      Rebuild_Request_QoS_Parameters (Req);
+      Rebuild_Request_QoS_Parameters (Req.all);
 
       if Fetch_Secure_Transport_QoS /= null then
          Add_Request_QoS
-         (Req,
+         (Req.all,
           Transport_Security,
           Fetch_Secure_Transport_QoS
           (PolyORB.Transport.Transport_Endpoint_Access
@@ -607,7 +607,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
       if not SCtx.CSN_Complete then
          CSP :=
            QoS_GIOP_Code_Sets_Parameter_Access
-             (Extract_Request_Parameter (GIOP_Code_Sets, Req));
+             (Extract_Request_Parameter (GIOP_Code_Sets, Req.all));
          SCtx.CS_Context   := null;
          SCtx.CSN_Complete := True;
 
@@ -1074,7 +1074,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
       Header_Space  : Reservation;
       Static_Buffer : constant QoS_GIOP_Static_Buffer_Parameter_Access :=
         QoS_GIOP_Static_Buffer_Parameter_Access
-        (Extract_Request_Parameter (PolyORB.QoS.GIOP_Static_Buffer, R.Req));
+          (Extract_Request_Parameter (QoS.GIOP_Static_Buffer, R.Req.all));
    begin
       pragma Debug (C, O ("Sending request, Id :" & R.Request_Id'Img));
 
@@ -1085,7 +1085,8 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
 
       if SCtx.CS_Context /= null then
          Add_Request_QoS
-           (R.Req, GIOP_Code_Sets,
+           (R.Req.all,
+            GIOP_Code_Sets,
             new QoS_GIOP_Code_Sets_Parameter'(SCtx.CS_Context.all));
       end if;
 
@@ -1136,9 +1137,9 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
 
          OA_Entity : constant PolyORB.Smart_Pointers.Entity_Ptr
            := Get_OA (R.Target_Profile.all);
-         QoS       : constant QoS_GIOP_Addressing_Mode_Parameter_Access
-           := QoS_GIOP_Addressing_Mode_Parameter_Access
-           (Extract_Request_Parameter (GIOP_Addressing_Mode, R.Req));
+         QoS       : constant QoS_GIOP_Addressing_Mode_Parameter_Access :=
+           QoS_GIOP_Addressing_Mode_Parameter_Access
+             (Extract_Request_Parameter (GIOP_Addressing_Mode, R.Req.all));
          Mode      : Addressing_Disposition := Key_Addr;
 
       begin
@@ -1218,11 +1219,11 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
 
       --  Service context
 
-      Rebuild_Request_Service_Contexts (R.Req);
+      Rebuild_Request_Service_Contexts (R.Req.all);
       Marshall_Service_Context_List
         (Buffer,
          QoS_GIOP_Service_Contexts_Parameter_Access
-           (Extract_Request_Parameter (GIOP_Service_Contexts, R.Req)));
+           (Extract_Request_Parameter (GIOP_Service_Contexts, R.Req.all)));
 
       --  Arguments
 
@@ -1626,11 +1627,11 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
       Marshall (Buffer, MCtx_1_2.Request_Id);
       Marshall (Buffer, MCtx_1_2.Reply_Status);
 
-      Rebuild_Reply_Service_Contexts (R);
+      Rebuild_Reply_Service_Contexts (R.all);
       Marshall_Service_Context_List
        (Buffer,
         QoS_GIOP_Service_Contexts_Parameter_Access
-         (Extract_Reply_Parameter (GIOP_Service_Contexts, R)));
+         (Extract_Reply_Parameter (GIOP_Service_Contexts, R.all)));
    end Marshall_GIOP_Header_Reply;
 
    -----------------------------

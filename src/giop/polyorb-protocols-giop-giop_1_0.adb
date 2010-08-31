@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -367,8 +367,10 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
          (S.Dependent_Binding_Object));
 
       Add_Request_QoS
-        (Req, GIOP_Service_Contexts, QoS_Parameter_Access (Service_Contexts));
-      Rebuild_Request_QoS_Parameters (Req);
+        (Req.all,
+         GIOP_Service_Contexts,
+         QoS_Parameter_Access (Service_Contexts));
+      Rebuild_Request_QoS_Parameters (Req.all);
 
       Set_Note
         (Req.Notepad,
@@ -556,11 +558,11 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
       Header_Buffer := new Buffer_Type;
       Header_Space := Reserve (Buffer, GIOP_Header_Size);
 
-      Rebuild_Request_Service_Contexts (R.Req);
+      Rebuild_Request_Service_Contexts (R.Req.all);
       Marshall_Service_Context_List
         (Buffer,
          QoS_GIOP_Service_Contexts_Parameter_Access
-           (Extract_Request_Parameter (GIOP_Service_Contexts, R.Req)));
+           (Extract_Request_Parameter (GIOP_Service_Contexts, R.Req.all)));
 
       Marshall (Buffer, R.Request_Id);
       Marshall (Buffer, Resp_Exp);
@@ -765,11 +767,11 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
         & MCtx_1_0.Request_Id'Img
         & ", status = " & MCtx_1_0.Reply_Status'Img));
 
-      Rebuild_Reply_Service_Contexts (R);
+      Rebuild_Reply_Service_Contexts (R.all);
       Marshall_Service_Context_List
         (Buffer,
          QoS_GIOP_Service_Contexts_Parameter_Access
-           (Extract_Reply_Parameter (GIOP_Service_Contexts, R)));
+           (Extract_Reply_Parameter (GIOP_Service_Contexts, R.all)));
       Marshall (Buffer, MCtx_1_0.Request_Id);
       Marshall (Buffer, MCtx_1_0.Reply_Status);
    end Marshall_GIOP_Header_Reply;

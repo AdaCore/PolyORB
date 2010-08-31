@@ -1351,12 +1351,12 @@ package body PolyORB.POA is
       end if;
 
       Implicit_Activate_Servant
-        (OA.Implicit_Activation_Policy.all,
-         POA_Types.Obj_Adapter_Access (OA),
-         Obj,
-         Key,
-         Oid,
-         Error);
+        (Self      => OA.Implicit_Activation_Policy.all,
+         OA        => POA_Types.Obj_Adapter_Access (OA),
+         P_Servant => Obj,
+         Hint      => Key,
+         Oid       => Oid,
+         Error     => Error);
    end Export;
 
    --------------

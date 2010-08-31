@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -32,6 +32,8 @@
 ------------------------------------------------------------------------------
 
 --  The Request object
+
+with Ada.Finalization;
 
 with PolyORB.Annotations;
 with PolyORB.Any.ExceptionList;
@@ -101,114 +103,101 @@ package PolyORB.Requests is
    Default_Flags : constant Flags;
    --  Default flag for member Req_Flags of request.
 
-   type Request is limited record
-      --  Ctx        : CORBA.Context.Ref;
+   type Request is new Ada.Finalization.Limited_Controlled with record
       Target    : References.Ref;
-      --  A ref designating the target object.
+      --  A ref designating the target object
 
       Operation : PolyORB.Utils.Strings.String_Ptr;
-      --  The name of the method to be invoked.
+      --  The name of the method to be invoked
 
       Args_Ident : Arguments_Identification := Ident_By_Position;
-      --  To optimize the handling of Args, we can provide a hint
-      --  about the structure of the NV_List.
+      --  To optimize the handling of Args, we can provide a hint about the
+      --  structure of the NV_List.
 
       Args      : Any.NVList.Ref;
-      --  The arguments to the request, for transmission
-      --  from caller to callee.
+      --  The arguments to the request, for transmission from caller to callee.
 
-      --  On the server side, the Protocol layer MAY set this
-      --  component directly OR set the following component
-      --  instead. The Application layer MUST NOT access this
-      --  component directly, and MUST use operation Arguments
-      --  below to retrieve the arguments from an invocation and
-      --  set up the structure for returned (out-mode) arguments.
+      --  On the server side, the Protocol layer MAY set this component
+      --  directly OR set the following component instead. The Application
+      --  layer MUST NOT access this component directly, and MUST use operation
+      --  Arguments below to retrieve the arguments from an invocation and set
+      --  up the structure for returned (out-mode) arguments.
 
       Out_Args : Any.NVList.Ref;
-      --  Same as Args but for transmission from callee to caller.
+      --  Same as Args but for transmission from callee to caller
 
       Deferred_Arguments_Session : Components.Component_Access;
-      --  If Args have not been unmarshalled at the time the
-      --  request is created, then this component must be
-      --  set to the Session on which the arguments are
-      --  waiting to be unmarshalled.
+      --  If Args have not been unmarshalled at the time the request is
+      --  created, then this component must be set to the Session on which the
+      --  arguments are waiting to be unmarshalled.
 
       Arguments_Called  : Boolean := False;
       Set_Result_Called : Boolean := False;
       --  Flags to guard against double invocation of Arguments and Set_Result
       --  on the same request.
 
-      --  When creating a Request object with deferred arguments,
-      --  it is the Protocol layer's responsibility to ensure that
-      --  consistent information is presented when
-      --  Unmarshall_Arguments is called.
+      --  When creating a Request object with deferred arguments, it is the
+      --  Protocol layer's responsibility to ensure that consistent information
+      --  is presented when Unmarshall_Arguments is called.
 
       Result    : Any.NamedValue;
-      --  The result returned by the object after execution of
-      --  this request.
+      --  The result returned by the object after execution of this request
 
       Exc_List   : PolyORB.Any.ExceptionList.Ref;
-      --  The list of user exceptions potentially raised by
-      --  this request.
-      --  XXX This is client-side info. How do we construct it
-      --      on a proxy object?
+      --  The list of user exceptions potentially raised by this request
+      --  XXX This is client-side info. How do we construct it on a proxy
+      --      object?
 
       Exception_Info : aliased Any.Any;
       --  If non-empty, information relative to an exception raised during
       --  execution of this request.
 
-      --  Ctxt_List  : CORBA.ContextList.Ref;
-
       Req_Flags : Flags;
-      --  Addition flags
+      --  Additional flags
 
       Completed : aliased Boolean := False;
       --  Indicate whether the request is completed or not.
-      --  Note: request execution state when completing the request
-      --  depends on synchronisation flags used.
+      --  Note: request execution state when completing the request depends on
+      --  synchronisation flags used.
 
       Requesting_Task : aliased PolyORB.Task_Info.Task_Info_Access;
-      --  Task requesting request completion. This task will be 'used'
-      --  by ORB main loop until the request is completed.
+      --  Task requesting request completion. This task will be executing the
+      --  ORB main loop until the request is completed.
       --  Note: Requesting_Task is set up when entering ORB main loop,
       --  see PolyORB.ORB.Run for more details.
 
       Requesting_Component : Components.Component_Access;
-      --  Component requesting request execution. The response, if
-      --  any, will be redirected to this component.
+      --  Component requesting request execution. The response, if any, will be
+      --  redirected to this component.
 
       Dependent_Binding_Object : Smart_Pointers.Ref;
-      --  A reference to the binding object from which a server-side
-      --  request was created. Used to prevent said BO from being
-      --  destroyed will the request is still being processed
-      --  by the application layer.
+      --  A reference to the binding object from which a server-side request
+      --  was created. Used to prevent said BO from being destroyed will the
+      --  request is still being processed by the application layer.
 
-      --  XXX study feasibility & cost of merging Dependent_Binding_Object
-      --  with Requestor? Maybe by making all components
-      --  Non_Controlled_Entities?
+      --  XXX study feasibility & cost of merging Dependent_Binding_Object with
+      --  Requestor? Maybe by making all components Non_Controlled_Entities?
 
       Notepad : Annotations.Notepad;
-      --  Request objects are manipulated by both the
-      --  Application layer (which creates them on the client
-      --  side and handles their execution on the server side)
-      --  and the Protocol layer (which sends them out on
-      --  the client side and receives them on the server side).
+      --  Request objects are manipulated by both the Application layer (which
+      --  creates them on the client side and handles their execution on the
+      --  server side) and the Protocol layer (which sends them out on the
+      --  client side and receives them on the server side).
       --
-      --  If only one layer had a need to associate specific
-      --  information with a Request object, one could imagine
-      --  that this layer would make a type extension of Request
-      --  to store such information.
+      --  If only one layer had a need to associate specific information with a
+      --  Request object, one could imagine that this layer would make a type
+      --  extension of Request to store such information.
       --
-      --  In our case, /both/ layers may need to attach
-      --  layer-specific information to the same request object.
-      --  Ada type derivation can therefore not be used (this
-      --  would require actual Request objects to derive from
-      --  both the application-layer derivation and the
-      --  protocol-layer derivation). For this reason, annotations
-      --  are used instead to allow each layer to independently
-      --  store its specific add-on information in a Request.
-
+      --  In our case, /both/ layers may need to attach layer-specific
+      --  information to the same request object. Ada type derivation can
+      --  therefore not be used (this would require actual Request objects to
+      --  derive from both the application-layer derivation and the
+      --  protocol-layer derivation). For this reason, annotations are used
+      --  instead to allow each layer to independently store its specific
+      --  add-on information in a Request.
    end record;
+
+   procedure Finalize (Req : in out Request);
 
    type Request_Access is access all Request;
 
@@ -217,19 +206,30 @@ package PolyORB.Requests is
       Operation                  : String;
       Arg_List                   : Any.NVList.Ref;
       Result                     : in out Any.NamedValue;
-      Exc_List                   : Any.ExceptionList.Ref
-        := Any.ExceptionList.Nil_Ref;
-      Req                        :    out Request_Access;
-      Req_Flags                  : Flags
-        := Default_Flags;
-      Deferred_Arguments_Session : Components.Component_Access
-        := null;
-      Identification             : Arguments_Identification
-        := Ident_By_Position;
-      Dependent_Binding_Object   : Smart_Pointers.Entity_Ptr
-        := null);
+      Exc_List                   : Any.ExceptionList.Ref :=
+                                     Any.ExceptionList.Nil_Ref;
+      Req                        : out Request_Access;
+      Req_Flags                  : Flags := Default_Flags;
+      Deferred_Arguments_Session : Components.Component_Access := null;
+      Identification             : Arguments_Identification :=
+                                     Ident_By_Position;
+      Dependent_Binding_Object   : Smart_Pointers.Entity_Ptr := null);
 
-   procedure Invoke (Self : Request_Access; Invoke_Flags : Flags := 0);
+   procedure Setup_Request
+     (Req                        : out Request;
+      Target                     : References.Ref;
+      Operation                  : String;
+      Arg_List                   : Any.NVList.Ref;
+      Result                     : in out Any.NamedValue;
+      Exc_List                   : Any.ExceptionList.Ref :=
+                                     Any.ExceptionList.Nil_Ref;
+      Req_Flags                  : Flags := Default_Flags;
+      Deferred_Arguments_Session : Components.Component_Access := null;
+      Identification             : Arguments_Identification :=
+                                     Ident_By_Position;
+      Dependent_Binding_Object   : Smart_Pointers.Entity_Ptr := null);
+
+   procedure Invoke (Self : access Request; Invoke_Flags : Flags := 0);
    --  Run Self.
    --  XXX Invoke_Flags is currently set to 0, and not used. It is kept
    --  for future use.
@@ -270,7 +270,7 @@ package PolyORB.Requests is
    --  to Args.  Identification is used to specify the
    --  capailities of the server personality.
 
-   procedure Destroy_Request (R : in out Request_Access);
+   procedure Destroy_Request (Req : in out Request_Access);
 
    function Image (Req : Request) return String;
    --  For debugging purposes

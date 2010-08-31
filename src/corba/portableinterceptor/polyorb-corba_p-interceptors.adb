@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -543,7 +543,7 @@ package body PolyORB.CORBA_P.Interceptors is
       loop
          Set_Note (Request.Notepad, TSC);
 
-         Rebuild_Request_Service_Contexts (Request);
+         Rebuild_Request_Service_Contexts (Request.all);
 
          Index := Length (All_Client_Interceptors);
 
@@ -566,7 +566,7 @@ package body PolyORB.CORBA_P.Interceptors is
             end if;
          end loop;
 
-         Rebuild_Request_QoS_Parameters (Request);
+         Rebuild_Request_QoS_Parameters (Request.all);
 
          --  Avoid operation invocation if interceptor raise system
          --  exception.
@@ -580,8 +580,8 @@ package body PolyORB.CORBA_P.Interceptors is
             Set_Note (Request.Notepad, TSC);
          end if;
 
-         Rebuild_Request_Service_Contexts (Request);
-         Rebuild_Reply_Service_Contexts (Request);
+         Rebuild_Request_Service_Contexts (Request.all);
+         Rebuild_Reply_Service_Contexts (Request.all);
 
          for J in reverse 0 .. Index - 1 loop
             if not PolyORB.Any.Is_Empty (Request.Exception_Info) then
@@ -674,7 +674,7 @@ package body PolyORB.CORBA_P.Interceptors is
                PolyORB.Requests.Reset_Request (Request);
 
                Add_Request_QoS
-                 (Request,
+                 (Request.all,
                   GIOP_Addressing_Mode,
                   new QoS_GIOP_Addressing_Mode_Parameter'
                   (Kind => GIOP_Addressing_Mode,
@@ -955,7 +955,7 @@ package body PolyORB.CORBA_P.Interceptors is
          end loop;
       end if;
 
-      Rebuild_Reply_QoS_Parameters (Request);
+      Rebuild_Reply_QoS_Parameters (Request.all);
 
       PolyORB.Annotations.Set_Note (Request.Notepad, Note);
 
@@ -1010,7 +1010,7 @@ package body PolyORB.CORBA_P.Interceptors is
       Allocate_Slots (RSC);
       Set_Note (Request.Notepad, RSC);
 
-      Rebuild_Request_Service_Contexts (Request);
+      Rebuild_Request_Service_Contexts (Request.all);
 
       for J in 0 .. Note.Last_Interceptor - 1 loop
          Call_Receive_Request_Service_Contexts
@@ -1035,7 +1035,7 @@ package body PolyORB.CORBA_P.Interceptors is
          end if;
       end loop;
 
-      Rebuild_Reply_QoS_Parameters (Request);
+      Rebuild_Reply_QoS_Parameters (Request.all);
 
       --  Copy ing request scope slots to thread scope slots
 
@@ -1122,7 +1122,7 @@ package body PolyORB.CORBA_P.Interceptors is
          end if;
       end loop;
 
-      Rebuild_Reply_QoS_Parameters (Request);
+      Rebuild_Reply_QoS_Parameters (Request.all);
    end Server_Invoke;
 
    -------------------------------------------

@@ -835,7 +835,7 @@ package body System.Partition_Interface is
                   --  service context.
 
                   PolyORB.QoS.Exception_Informations.Set_Exception_Information
-                    (EMsg.Req, E);
+                    (EMsg.Req.all, E);
             end;
 
             <<Request_Completed>>
@@ -2118,7 +2118,7 @@ package body System.Partition_Interface is
    -- Request_Raise_Occurrence --
    ------------------------------
 
-   procedure Request_Raise_Occurrence (R : in out Request_Access) is
+   procedure Request_Raise_Occurrence (R : Request) is
       use Ada.Exceptions;
       use PolyORB.DSA_P.Exceptions;
       use PolyORB.Exceptions;
@@ -2130,7 +2130,6 @@ package body System.Partition_Interface is
                      PolyORB.QoS.Exception_Informations.
                        Get_Exception_Message (R);
          begin
-            PolyORB.Requests.Destroy_Request (R);
             Raise_From_Any (E, Msg);
          end;
       end if;
@@ -2222,7 +2221,7 @@ package body System.Partition_Interface is
    --------------------
 
    procedure Request_Invoke
-     (R            : PolyORB.Requests.Request_Access;
+     (R            : access PolyORB.Requests.Request;
       Invoke_Flags : PolyORB.Requests.Flags          := 0)
    is
       use PolyORB.QoS;
@@ -2233,11 +2232,11 @@ package body System.Partition_Interface is
       Increment_Activity;
 
       Add_Request_QoS
-        (R,
+        (R.all,
          DSA_TM_Info,
-         new QoS_DSA_TM_Info_Parameter'(
-           Kind   => DSA_TM_Info,
-           TM_Ref => The_TM_Ref));
+         new QoS_DSA_TM_Info_Parameter'
+               (Kind   => DSA_TM_Info,
+                TM_Ref => The_TM_Ref));
 
       PolyORB.Requests.Invoke (R, Invoke_Flags);
    end Request_Invoke;

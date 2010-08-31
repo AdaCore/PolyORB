@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -283,8 +283,7 @@ package body PolyORB.Task_Info is
       use type Types.Boolean_Ptr;
 
    begin
-      pragma Assert
-        (TI.Kind = Task_Kind_For_Exit_Condition (Exit_Condition = null));
+      pragma Assert ((TI.Kind = Permanent) = (Exit_Condition = null));
       TI.Exit_Condition := Exit_Condition;
    end Set_Exit_Condition;
 
