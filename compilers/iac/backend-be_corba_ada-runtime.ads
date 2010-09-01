@@ -660,19 +660,19 @@ package Backend.BE_CORBA_Ada.Runtime is
                                     --     Insert_Raw_Data
       RE_Opaque_Pointer,            --  PolyORB.Opaque.Opaque_Pointer
       RE_Arguments_2,               --  PolyORB.Requests.Arguments
+      RE_Request,                   --  PolyORB.Requests.Request
       RE_Request_Access,            --  PolyORB.Requests.Request_Access
       RE_Request_Args,              --  PolyORB.Requests.Request_Args
       RE_Request_Args_Access,       --  PolyORB.Requests.Request_Args_Access
       RE_Request_Payload,           --  PolyORB.Requests.Request_Payload
       RE_Request_Payload_Access,    --  PolyORB.Requests.Request_Payload_Access
-      RE_Create_Request,            --  PolyORB.Requests.Create_Request
+      RE_Setup_Request,             --  PolyORB.Requests.Setup_Request
       RE_Flags,                     --  PolyORB.Requests.Flags
       RE_Sync_None,                 --  PolyORB.Requests.Sync_None
       RE_Sync_With_Transport,       --  PolyORB.Requests.Sync_With_Transport
       RE_Sync_With_Server,          --  PolyORB.Requests.Sync_With_Server
       RE_Sync_With_Target,          --  PolyORB.Requests.Sync_With_Target
       RE_Sync_Call_Back,            --  PolyORB.Requests.Sync_Call_Back
-      RE_Destroy_Request,           --  PolyORB.Requests.Destroy_Request
       RE_CORBA_Helper_1,            --  PolyORB.Sequences.Bounded.CORBA_Helper
       RE_CORBA_Helper_2,            --  PolyORB.Sequences.Unbounded.
       --                                   CORBA_Helper
@@ -1330,13 +1330,13 @@ package Backend.BE_CORBA_Ada.Runtime is
          RE_Opaque_Pointer            => RU_PolyORB_Opaque,
 
          RE_Arguments_2               => RU_PolyORB_Requests,
+         RE_Request                   => RU_PolyORB_Requests,
          RE_Request_Access            => RU_PolyORB_Requests,
          RE_Request_Args              => RU_PolyORB_Requests,
          RE_Request_Args_Access       => RU_PolyORB_Requests,
          RE_Request_Payload           => RU_PolyORB_Requests,
          RE_Request_Payload_Access    => RU_PolyORB_Requests,
-         RE_Create_Request            => RU_PolyORB_Requests,
-         RE_Destroy_Request           => RU_PolyORB_Requests,
+         RE_Setup_Request             => RU_PolyORB_Requests,
          RE_Flags                     => RU_PolyORB_Requests,
          RE_Sync_None                 => RU_PolyORB_Requests,
          RE_Sync_With_Transport       => RU_PolyORB_Requests,

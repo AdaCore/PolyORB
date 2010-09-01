@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -88,7 +88,7 @@ package body PortableServer is
 
    procedure Default_Invoke
      (Servant : access PSPCE.Entity'Class;
-      Request : PolyORB.Requests.Request_Access;
+      Request : access PolyORB.Requests.Request;
       Profile : PolyORB.Binding_Data.Profile_Access);
    --  This is the default server side invocation handler
 
@@ -98,14 +98,16 @@ package body PortableServer is
 
    procedure Default_Invoke
      (Servant : access PSPCE.Entity'Class;
-      Request : PolyORB.Requests.Request_Access;
+      Request : access PolyORB.Requests.Request;
       Profile : PolyORB.Binding_Data.Profile_Access)
    is
       pragma Unreferenced (Profile);
    begin
       --  Redispatch
 
-      Invoke (DynamicImplementation'Class (Servant.all)'Access, Request);
+      Invoke
+        (DynamicImplementation'Class (Servant.all)'Access,
+         Request.all'Unchecked_Access);
    end Default_Invoke;
 
    ---------------------
@@ -474,8 +476,8 @@ package body PortableServer is
 
    procedure Initialize is
    begin
-      PolyORB.CORBA_P.Interceptors_Hooks.Server_Invoke
-        := Default_Invoke'Access;
+      PolyORB.CORBA_P.Interceptors_Hooks.Server_Invoke :=
+        Default_Invoke'Access;
    end Initialize;
 
    use PolyORB.Initialization;

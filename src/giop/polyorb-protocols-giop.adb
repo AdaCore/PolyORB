@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -355,7 +355,7 @@ package body PolyORB.Protocols.GIOP is
          then
             P := Sess.Pending_Reqs.Table (J);
             Sess.Pending_Reqs.Table (J) := null;
-            Set_Exception (P.Req, Error);
+            Set_Exception (P.Req.all, Error);
             References.Binding.Unbind (P.Req.Target);
 
             --  After the following call, P.Req is destroyed
@@ -418,7 +418,7 @@ package body PolyORB.Protocols.GIOP is
          Free (New_Pending_Req);
 
          if Found (Error) then
-            Set_Exception (R, Error);
+            Set_Exception (R.all, Error);
             Catch (Error);
 
             --  Since this is a oneway called, this request will return to the
@@ -448,7 +448,7 @@ package body PolyORB.Protocols.GIOP is
       if Found (Error) then
          Remove_Pending_Request (Sess, New_Pending_Req_Id, Success);
          if Success then
-            Set_Exception (R, Error);
+            Set_Exception (R.all, Error);
 
          else
             --  If the session has been disconnected, all pending requests

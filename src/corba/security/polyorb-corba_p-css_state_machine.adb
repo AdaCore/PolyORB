@@ -68,7 +68,7 @@ package body PolyORB.CORBA_P.CSS_State_Machine is
    procedure Initialize;
 
    procedure Security_Client_Invoke
-     (Request : PolyORB.Requests.Request_Access;
+     (Request : access PolyORB.Requests.Request;
       Flags   : PolyORB.Requests.Flags);
 
    ----------------
@@ -86,7 +86,7 @@ package body PolyORB.CORBA_P.CSS_State_Machine is
    ----------------------------
 
    procedure Security_Client_Invoke
-     (Request : PolyORB.Requests.Request_Access;
+     (Request : access PolyORB.Requests.Request;
       Flags   : PolyORB.Requests.Flags)
    is
       use PolyORB.CORBA_P.Security_Policy;
@@ -135,7 +135,7 @@ package body PolyORB.CORBA_P.CSS_State_Machine is
                (Minor     => 0,
                 Completed => PolyORB.Errors.Completed_No));
 
-            PolyORB.Requests.Set_Exception (Request, Error);
+            PolyORB.Requests.Set_Exception (Request.all, Error);
 
             return;
          end;
@@ -148,7 +148,6 @@ package body PolyORB.CORBA_P.CSS_State_Machine is
         or else not Is_Protected (Mechanism.all)
       then
          Legacy_Client_Invoke (Request, Flags);
-
          return;
       end if;
 
@@ -168,7 +167,7 @@ package body PolyORB.CORBA_P.CSS_State_Machine is
                (Minor     => 0,
                 Completed => PolyORB.Errors.Completed_No));
 
-            PolyORB.Requests.Set_Exception (Request, Error);
+            PolyORB.Requests.Set_Exception (Request.all, Error);
 
             return;
          end;

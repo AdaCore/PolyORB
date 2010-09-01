@@ -204,7 +204,7 @@ package body PolyORB.Protocols.SOAP_Pr is
             if Found (Unmarshall_Error) then
                System_Exception_Members
                  (Unmarshall_Error.Member.all).Completed := Completed_No;
-               Set_Exception (Req, Unmarshall_Error);
+               Set_Exception (Req.all, Unmarshall_Error);
                Req.Completed := True;
                Catch (Unmarshall_Error);
             end if;
@@ -269,7 +269,7 @@ package body PolyORB.Protocols.SOAP_Pr is
       if S.Pending_Rq /= null then
          P := S.Pending_Rq;
          S.Pending_Rq := null;
-         Set_Exception (P, Error);
+         Set_Exception (P.all, Error);
 
          --  After the following call, S may become invalid
 

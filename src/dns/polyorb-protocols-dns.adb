@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---               P O L Y O R B . P R O T O C O L S . D N S                  --
+--                P O L Y O R B . P R O T O C O L S . D N S                 --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2010, Free Software Foundation, Inc.               --
+--           Copyright (C) 2010, Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -110,7 +110,7 @@ package body PolyORB.Protocols.DNS is
 
    procedure Invoke_Request
      (Sess : access DNS_Session;
-      R    :        Requests.Request_Access;
+      R    : Requests.Request_Access;
       Pro  : access Binding_Data.Profile_Type'Class)
    is
       use PolyORB.Binding_Data;
@@ -142,7 +142,7 @@ package body PolyORB.Protocols.DNS is
          Free (New_Pending_Req);
 
          if Found (Error) then
-            Set_Exception (R, Error);
+            Set_Exception (R.all, Error);
             Catch (Error);
          end if;
          return;
@@ -160,7 +160,7 @@ package body PolyORB.Protocols.DNS is
          pragma Debug (C, O ("An error is found after Send_Request"));
          Remove_Pending_Request (Sess, New_Pending_Req_Id, Success);
          if Success then
-            Set_Exception (R, Error);
+            Set_Exception (R.all, Error);
          else
             null;
          end if;
@@ -343,7 +343,7 @@ package body PolyORB.Protocols.DNS is
          then
             P := Sess.Pending_Reqs.Table (J);
             Sess.Pending_Reqs.Table (J) := null;
-            Set_Exception (P.Req, Error);
+            Set_Exception (P.Req.all, Error);
             References.Binding.Unbind (P.Req.Target);
 
             --  After the following call, P.Req is destroyed

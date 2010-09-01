@@ -1015,7 +1015,7 @@ package body PolyORB.ORB is
                --  implies a problem within the object adapter. We bounce the
                --  exception to the user for further processing.
 
-               Set_Exception (Req, Error);
+               Set_Exception (Req.all, Error);
                Catch (Error);
 
                Emit_No_Reply (Req.Requesting_Component,

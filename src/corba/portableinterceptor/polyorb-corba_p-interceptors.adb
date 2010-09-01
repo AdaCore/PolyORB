@@ -89,7 +89,7 @@ package body PolyORB.CORBA_P.Interceptors is
    All_Client_Interceptors : ClientRequestInterceptor_Lists.List;
 
    procedure Client_Invoke
-     (Request : PolyORB.Requests.Request_Access;
+     (Request : access PolyORB.Requests.Request;
       Flags   : PolyORB.Requests.Flags);
 
    function Create_Client_Request_Info
@@ -132,11 +132,11 @@ package body PolyORB.CORBA_P.Interceptors is
 
    procedure Server_Invoke
      (Servant : access PSPCE.Entity'Class;
-      Request : PolyORB.Requests.Request_Access;
+      Request : access PolyORB.Requests.Request;
       Profile : PolyORB.Binding_Data.Profile_Access);
 
    procedure Server_Intermediate
-     (Request        : PolyORB.Requests.Request_Access;
+     (Request        : access PolyORB.Requests.Request;
       From_Arguments : Boolean);
 
    function Create_Server_Request_Info
@@ -499,7 +499,7 @@ package body PolyORB.CORBA_P.Interceptors is
    -------------------
 
    procedure Client_Invoke
-     (Request : PolyORB.Requests.Request_Access;
+     (Request : access PolyORB.Requests.Request;
       Flags   : PolyORB.Requests.Flags)
    is
       use ClientRequestInterceptor_Lists;
@@ -553,7 +553,7 @@ package body PolyORB.CORBA_P.Interceptors is
             Call_Send_Request
               (Element (All_Client_Interceptors, J).all,
                Create_Client_Request_Info
-               (Request, Req_Id, Send_Request, Target),
+                 (Request.all'Unchecked_Access, Req_Id, Send_Request, Target),
                True,
                Request.Exception_Info);
 
@@ -593,7 +593,10 @@ package body PolyORB.CORBA_P.Interceptors is
                   Call_Receive_Other
                     (Element (All_Client_Interceptors, J).all,
                      Create_Client_Request_Info
-                     (Request, Req_Id, Receive_Other, Target),
+                       (Request.all'Unchecked_Access,
+                        Req_Id,
+                        Receive_Other,
+                        Target),
                      True,
                      Request.Exception_Info);
 
@@ -601,7 +604,10 @@ package body PolyORB.CORBA_P.Interceptors is
                   Call_Receive_Exception
                     (Element (All_Client_Interceptors, J).all,
                      Create_Client_Request_Info
-                     (Request, Req_Id, Receive_Exception, Target),
+                       (Request.all'Unchecked_Access,
+                        Req_Id,
+                        Receive_Exception,
+                        Target),
                      True,
                      Request.Exception_Info);
                end if;
@@ -615,14 +621,20 @@ package body PolyORB.CORBA_P.Interceptors is
                   Call_Receive_Reply
                     (Element (All_Client_Interceptors, J).all,
                      Create_Client_Request_Info
-                     (Request, Req_Id, Receive_Reply, Target),
+                       (Request.all'Unchecked_Access,
+                        Req_Id,
+                        Receive_Reply,
+                        Target),
                      False,
                      Request.Exception_Info);
                else
                   Call_Receive_Other
                     (Element (All_Client_Interceptors, J).all,
                      Create_Client_Request_Info
-                     (Request, Req_Id, Receive_Other, Target),
+                       (Request.all'Unchecked_Access,
+                        Req_Id,
+                        Receive_Other,
+                        Target),
                      True,
                      Request.Exception_Info);
                end if;
@@ -655,7 +667,7 @@ package body PolyORB.CORBA_P.Interceptors is
                  (Ref,
                   Smart_Pointers.Entity_Of (Members.Forward_Reference));
 
-               PolyORB.Requests.Reset_Request (Request);
+               PolyORB.Requests.Reset_Request (Request.all);
             end;
 
          else
@@ -671,7 +683,7 @@ package body PolyORB.CORBA_P.Interceptors is
                  := PolyORB.Errors.Helper.From_Any (Request.Exception_Info);
 
             begin
-               PolyORB.Requests.Reset_Request (Request);
+               PolyORB.Requests.Reset_Request (Request.all);
 
                Add_Request_QoS
                  (Request.all,
@@ -910,7 +922,7 @@ package body PolyORB.CORBA_P.Interceptors is
    -------------------------
 
    procedure Server_Intermediate
-     (Request        : PolyORB.Requests.Request_Access;
+     (Request        : access PolyORB.Requests.Request;
       From_Arguments : Boolean)
    is
       use ServerRequestInterceptor_Lists;
@@ -934,12 +946,12 @@ package body PolyORB.CORBA_P.Interceptors is
             Call_Receive_Request
               (Value (It).all,
                Create_Server_Request_Info
-               (Note.Servant,
-                Request,
-                Note.Request_Id,
-                Note.Profile,
-                Receive_Request,
-                From_Arguments),
+                 (Note.Servant,
+                  Request.all'Unchecked_Access,
+                  Note.Request_Id,
+                  Note.Profile,
+                  Receive_Request,
+                  From_Arguments),
                True,
                Note.Exception_Info);
 
@@ -972,7 +984,7 @@ package body PolyORB.CORBA_P.Interceptors is
 
    procedure Server_Invoke
      (Servant : access PSPCE.Entity'Class;
-      Request : PolyORB.Requests.Request_Access;
+      Request : access PolyORB.Requests.Request;
       Profile : PolyORB.Binding_Data.Profile_Access)
    is
       use ServerRequestInterceptor_Lists;
@@ -1016,12 +1028,12 @@ package body PolyORB.CORBA_P.Interceptors is
          Call_Receive_Request_Service_Contexts
            (Element (All_Server_Interceptors, J).all,
             Create_Server_Request_Info
-            (null,
-             Request,
-             Note.Request_Id,
-             Profile,
-             Receive_Request_Service_Contexts,
-             False),
+              (null,
+               Request.all'Unchecked_Access,
+               Note.Request_Id,
+               Profile,
+               Receive_Request_Service_Contexts,
+               False),
             True,
             Request.Exception_Info);
 
@@ -1050,7 +1062,7 @@ package body PolyORB.CORBA_P.Interceptors is
       if not Skip_Invocation then
          PortableServer.Invoke
            (PortableServer.DynamicImplementation'Class (Servant.all)'Access,
-            Request);
+            Request.all'Unchecked_Access);
          --  Redispatch
       end if;
 
@@ -1081,7 +1093,12 @@ package body PolyORB.CORBA_P.Interceptors is
                Call_Send_Other
                  (Element (All_Server_Interceptors, J).all,
                   Create_Server_Request_Info
-                  (null, Request, Note.Request_Id, Profile, Send_Other, True),
+                    (null,
+                     Request.all'Unchecked_Access,
+                     Note.Request_Id,
+                     Profile,
+                     Send_Other,
+                     True),
                   True,
                   Request.Exception_Info);
 
@@ -1089,12 +1106,12 @@ package body PolyORB.CORBA_P.Interceptors is
                Call_Send_Exception
                  (Element (All_Server_Interceptors, J).all,
                   Create_Server_Request_Info
-                  (null,
-                   Request,
-                   Note.Request_Id,
-                   Profile,
-                   Send_Exception,
-                   True),
+                    (null,
+                     Request.all'Unchecked_Access,
+                     Note.Request_Id,
+                     Profile,
+                     Send_Exception,
+                     True),
                   True,
                   Request.Exception_Info);
             end if;
@@ -1108,14 +1125,24 @@ package body PolyORB.CORBA_P.Interceptors is
                Call_Send_Reply
                  (Element (All_Server_Interceptors, J).all,
                   Create_Server_Request_Info
-                  (null, Request, Note.Request_Id, Profile, Send_Reply, True),
+                    (null,
+                     Request.all'Unchecked_Access,
+                     Note.Request_Id,
+                     Profile,
+                     Send_Reply,
+                     True),
                   False,
                   Request.Exception_Info);
             else
                Call_Send_Other
                  (Element (All_Server_Interceptors, J).all,
                   Create_Server_Request_Info
-                  (null, Request, Note.Request_Id, Profile, Send_Other, True),
+                    (null,
+                     Request.all'Unchecked_Access,
+                     Note.Request_Id,
+                     Profile,
+                     Send_Other,
+                     True),
                   True,
                   Request.Exception_Info);
             end if;

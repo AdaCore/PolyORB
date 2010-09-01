@@ -541,7 +541,7 @@ package body PolyORB.Protocols.GIOP.Common is
                end if;
 
                if Found (Error) then
-                  Set_Exception (Req.Req, Error);
+                  Set_Exception (Req.Req.all, Error);
                   Catch (Error);
 
                   Expect_GIOP_Header (Sess);
@@ -761,7 +761,7 @@ package body PolyORB.Protocols.GIOP.Common is
                   --  the server did not provide a valid codeset
                   --  component. We convert this exception to Inv_ObjRef 2.
 
-                  Set_Exception (Current_Req.Req, Error);
+                  Set_Exception (Current_Req.Req.all, Error);
                   Catch (Error);
 
                else
@@ -776,7 +776,7 @@ package body PolyORB.Protocols.GIOP.Common is
                      --  the server did not provide a valid codeset
                      --  component. We convert this exception to Inv_ObjRef 2.
 
-                     Set_Exception (Current_Req.Req, Error);
+                     Set_Exception (Current_Req.Req.all, Error);
                      Catch (Error);
 
                   end if;
@@ -888,7 +888,7 @@ package body PolyORB.Protocols.GIOP.Common is
                      --  the server did not provide a valid codeset
                      --  component. We convert this exception to Inv_ObjRef 2.
 
-                     Set_Exception (Current_Req.Req, Error);
+                     Set_Exception (Current_Req.Req.all, Error);
                      Catch (Error);
                   end if;
 

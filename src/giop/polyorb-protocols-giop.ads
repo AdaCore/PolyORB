@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -207,9 +207,8 @@ private
    procedure Free is new Ada.Unchecked_Deallocation
      (Pending_Request, Pending_Request_Access);
 
-   package Pend_Req_Tables is
-      new PolyORB.Utils.Dynamic_Tables
-     (Pending_Request_Access, Natural, 1, 10, 10);
+   package Pend_Req_Tables is new
+     PolyORB.Utils.Dynamic_Tables (Pending_Request_Access, Natural, 1, 10, 10);
 
    --------------------
    -- GIOP send mode --

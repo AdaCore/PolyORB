@@ -684,13 +684,13 @@ package body PolyORB.Requests is
    -- Reset_Request --
    -------------------
 
-   procedure Reset_Request (Request : PolyORB.Requests.Request_Access) is
+   procedure Reset_Request (Request : in out PolyORB.Requests.Request) is
       Null_Any : PolyORB.Any.Any;
 
    begin
-      Request.Completed := False;
+      Request.Completed        := False;
       Request.Arguments_Called := False;
-      Request.Exception_Info := Null_Any;
+      Request.Exception_Info   := Null_Any;
    end Reset_Request;
 
    ---------------
@@ -852,7 +852,7 @@ package body PolyORB.Requests is
    -- Set_Exception --
    -------------------
 
-   procedure Set_Exception (Self : Request_Access; Error : Error_Container) is
+   procedure Set_Exception (Self : in out Request; Error : Error_Container) is
    begin
       Self.Exception_Info := PolyORB.Errors.Helper.Error_To_Any (Error);
    end Set_Exception;

@@ -259,7 +259,7 @@ package PolyORB.Requests is
       Error : in out Error_Container);
    --  Set the value of Self's result to Val
 
-   procedure Set_Exception (Self : Request_Access; Error : Error_Container);
+   procedure Set_Exception (Self : in out Request; Error : Error_Container);
    pragma Inline (Set_Exception);
 
    procedure Set_Out_Args
@@ -275,7 +275,7 @@ package PolyORB.Requests is
    function Image (Req : Request) return String;
    --  For debugging purposes
 
-   procedure Reset_Request (Request : PolyORB.Requests.Request_Access);
+   procedure Reset_Request (Request : in out PolyORB.Requests.Request);
    --  Set request to a state where it can be re-issued: exception and
    --  arguments status are reseted.
 

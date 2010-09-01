@@ -49,7 +49,7 @@ with CORBA.Object;
 package body CORBA.Request is
 
    procedure Default_Invoke
-     (Request : PolyORB.Requests.Request_Access;
+     (Request : access PolyORB.Requests.Request;
       Flags   : PolyORB.Requests.Flags);
    --  Default request invocation subprogram
 
@@ -63,27 +63,27 @@ package body CORBA.Request is
       Operation : Identifier;
       Arg_List  : CORBA.NVList.Ref;
       Result    : in out NamedValue;
-      Request   :    out Object;
+      Request   : out Object;
       Req_Flags : Flags)
    is
       pragma Unreferenced (Ctx);
       pragma Unreferenced (Req_Flags);
 
-      PResult : PolyORB.Any.NamedValue
-        := (Name      => PolyORB.Types.Identifier (Result.Name),
-            Argument  => PolyORB.Any.Any (Result.Argument),
-            Arg_Modes => PolyORB.Any.Flags (Result.Arg_Modes));
+      PResult : PolyORB.Any.NamedValue :=
+                  (Name      => PolyORB.Types.Identifier (Result.Name),
+                   Argument  => PolyORB.Any.Any (Result.Argument),
+                   Arg_Modes => PolyORB.Any.Flags (Result.Arg_Modes));
 
    begin
-      PolyORB.Requests.Create_Request
-        (Target    => CORBA.Object.Internals.To_PolyORB_Ref
-         (CORBA.Object.Ref (CORBA.AbstractBase.Ref'Class (Self))),
+      PolyORB.Requests.Setup_Request
+        (Req       => Request.The_Request,
+         Target    => CORBA.Object.Internals.To_PolyORB_Ref
+                        (CORBA.Object.Ref (AbstractBase.Ref'Class (Self))),
          Operation => To_Standard_String (Operation),
-         Arg_List  => CORBA.NVList.Internals.To_PolyORB_Ref (Arg_List),
+         Arg_List  => NVList.Internals.To_PolyORB_Ref (Arg_List),
          Result    => PResult,
-         Req       => Request.The_Request,
          Req_Flags => PolyORB.Requests.Default_Flags);
-      --  XX For now, we use the default flags
+      --  For now, we use the default flags???
    end Create_Request;
 
    procedure Create_Request
@@ -94,7 +94,7 @@ package body CORBA.Request is
       Result    : in out NamedValue;
       Exc_List  : ExceptionList.Ref;
       Ctxt_List : ContextList.Ref;
-      Request   :    out CORBA.Request.Object;
+      Request   : out CORBA.Request.Object;
       Req_Flags : Flags)
    is
       pragma Unreferenced (Ctx, Ctxt_List);
@@ -106,16 +106,16 @@ package body CORBA.Request is
             Arg_Modes => PolyORB.Any.Flags (Result.Arg_Modes));
 
    begin
-      PolyORB.Requests.Create_Request
-        (Target    => CORBA.Object.Internals.To_PolyORB_Ref
-         (CORBA.Object.Ref (CORBA.AbstractBase.Ref'Class (Self))),
+      PolyORB.Requests.Setup_Request
+        (Req       => Request.The_Request,
+         Target    => CORBA.Object.Internals.To_PolyORB_Ref
+                        (CORBA.Object.Ref (AbstractBase.Ref'Class (Self))),
          Operation => To_Standard_String (Operation),
          Arg_List  => CORBA.NVList.Internals.To_PolyORB_Ref (Arg_List),
          Result    => PResult,
          Exc_List  => CORBA.ExceptionList.Internals.To_PolyORB_Ref (Exc_List),
-         Req       => Request.The_Request,
          Req_Flags => PolyORB.Requests.Default_Flags);
-      --  XX For now, we use the default flags
+      --  For now, we use the default flags???
    end Create_Request;
 
    --------------------
@@ -123,11 +123,10 @@ package body CORBA.Request is
    --------------------
 
    procedure Default_Invoke
-     (Request : PolyORB.Requests.Request_Access;
+     (Request : access PolyORB.Requests.Request;
       Flags   : PolyORB.Requests.Flags)
    is
       use type PolyORB.Any.TypeCode.Local_Ref;
-      use type PolyORB.Requests.Request_Access;
 
    begin
       loop
@@ -157,7 +156,7 @@ package body CORBA.Request is
                   PolyORB.Smart_Pointers.Entity_Of
                   (Members.Forward_Reference));
 
-               PolyORB.Requests.Reset_Request (Request);
+               PolyORB.Requests.Reset_Request (Request.all);
                Request.Target := Ref;
             end;
 
@@ -173,7 +172,7 @@ package body CORBA.Request is
                  := PolyORB.Errors.Helper.From_Any (Request.Exception_Info);
 
             begin
-               PolyORB.Requests.Reset_Request (Request);
+               PolyORB.Requests.Reset_Request (Request.all);
 
                Add_Request_QoS
                  (Request.all,
@@ -196,7 +195,7 @@ package body CORBA.Request is
    is
    begin
       PolyORB.CORBA_P.Interceptors_Hooks.Client_Invoke
-        (Self.The_Request, PolyORB.Requests.Flags (Invoke_Flags));
+        (Self.The_Request'Access, PolyORB.Requests.Flags (Invoke_Flags));
 
       PolyORB.CORBA_P.Exceptions.Request_Raise_Occurrence (Self.The_Request);
    end Invoke;
@@ -207,17 +206,8 @@ package body CORBA.Request is
 
    procedure Delete (Self : in out Object) is
    begin
-      PolyORB.Requests.Destroy_Request (Self.The_Request);
+      null;
    end Delete;
-
-   --------------
-   -- Finalize --
-   --------------
-
-   procedure Finalize (X : in out Object) is
-   begin
-      PolyORB.Requests.Destroy_Request (X.The_Request);
-   end Finalize;
 
    ----------------
    -- Initialize --
