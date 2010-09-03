@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---              P O L Y O R B . M I N I M A L _ S E R V A N T               --
+--                                  R C I                                   --
 --                                                                          --
---                                 B o d y                                  --
+--                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2010, Free Software Foundation, Inc.          --
+--           Copyright (C) 2010, Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,43 +31,18 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PolyORB.Errors;
+package RCI is
+   pragma Remote_Call_Interface;
 
-package body PolyORB.Minimal_Servant is
+   procedure Block_On_Entry (Call_Id : Integer);
+   --  Subprogram that returns on first call and then always blocks forever
 
-   ---------------------
-   -- Execute_Servant --
-   ---------------------
+   function Blocked_Calls return Natural;
+   --  Return count of tasks blocked on the above
 
-   function Execute_Servant
-     (Self : not null access Implementation;
-      Req  : Requests.Request_Access) return Boolean is
-   begin
-      return Execute_Servant (Self.As_Servant, Req);
-   end Execute_Servant;
+   procedure Allow_Terminate;
+   --  Allow server to terminate (once all calls to Block_On_Entry are
+   --  cancelled). Until this is called, an application task exists
+   --  that prevents local termination of the server partition.
 
-   function Execute_Servant
-     (Self : not null access Servant;
-      Req  : Requests.Request_Access) return Boolean
-   is
-      use PolyORB.Errors;
-      use PolyORB.Requests;
-
-      Error : Error_Container;
-   begin
-      Invoke (Servant'Class (Self.all)'Access, Req);
-      Set_Out_Args (Req, Error);
-      return True;
-   end Execute_Servant;
-
-   ------------------------
-   -- To_PolyORB_Servant --
-   ------------------------
-
-   function To_PolyORB_Servant (S : access Servant)
-     return PolyORB.Servants.Servant_Access is
-   begin
-      return S.Neutral_View'Access;
-   end To_PolyORB_Servant;
-
-end PolyORB.Minimal_Servant;
+end RCI;

@@ -96,8 +96,7 @@ package PolyORB.Protocols is
 
    procedure Abort_Request
      (S : access Session;
-      R :        Request_Access)
-      is abstract;
+      R : Request_Access) is abstract;
    --  Abort pending invocation of R.
 
    procedure Send_Reply

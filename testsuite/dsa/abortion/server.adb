@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---              P O L Y O R B . M I N I M A L _ S E R V A N T               --
+--                               S E R V E R                                --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2010, Free Software Foundation, Inc.          --
+--           Copyright (C) 2010, Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,43 +31,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PolyORB.Errors;
-
-package body PolyORB.Minimal_Servant is
-
-   ---------------------
-   -- Execute_Servant --
-   ---------------------
-
-   function Execute_Servant
-     (Self : not null access Implementation;
-      Req  : Requests.Request_Access) return Boolean is
-   begin
-      return Execute_Servant (Self.As_Servant, Req);
-   end Execute_Servant;
-
-   function Execute_Servant
-     (Self : not null access Servant;
-      Req  : Requests.Request_Access) return Boolean
-   is
-      use PolyORB.Errors;
-      use PolyORB.Requests;
-
-      Error : Error_Container;
-   begin
-      Invoke (Servant'Class (Self.all)'Access, Req);
-      Set_Out_Args (Req, Error);
-      return True;
-   end Execute_Servant;
-
-   ------------------------
-   -- To_PolyORB_Servant --
-   ------------------------
-
-   function To_PolyORB_Servant (S : access Servant)
-     return PolyORB.Servants.Servant_Access is
-   begin
-      return S.Neutral_View'Access;
-   end To_PolyORB_Servant;
-
-end PolyORB.Minimal_Servant;
+with Ada.Text_IO; use Ada.Text_IO;
+procedure Server is
+begin
+   Put_Line ("Server started");
+end Server;

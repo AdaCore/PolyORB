@@ -45,6 +45,7 @@ package Backend.BE_CORBA_Ada.Nutils is
    CORBA_Name           : Name_Id;  -- "CORBA"
    Repository_Root_Name : Name_Id;  -- "Repository_Root"
    IDL_Sequences_Name   : Name_Id;  -- "IDL_Sequences"
+   DomainManager_Name   : Name_Id;  -- "DomainManager"
 
    Initialized          : Boolean  := False;
 

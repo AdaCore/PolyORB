@@ -36,7 +36,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PolyORB.Components;
+with PolyORB.Requests;
 with PolyORB.Servants;
 with PolyORB.Smart_Pointers;
 with PolyORB.Smart_Pointers.Controlled_Entities;
@@ -56,8 +56,7 @@ package CORBA.Impl is
 
    function Execute_Servant
      (Self : not null access Object;
-      Msg  : PolyORB.Components.Message'Class)
-     return PolyORB.Components.Message'Class;
+      Req  : PolyORB.Requests.Request_Access) return Boolean;
 
    function To_PolyORB_Servant
      (S : access Object)
@@ -76,14 +75,13 @@ package CORBA.Impl is
 
 private
 
-   type Implementation (As_Object : access Object'Class)
-   is new PolyORB.Servants.Servant with null record;
+   type Implementation (As_Object : access Object'Class) is
+     new PolyORB.Servants.Servant with null record;
    --  The CORBA personality is based on the Portable Object Adapter.
 
-   function Execute_Servant
+   overriding function Execute_Servant
      (Self : not null access Implementation;
-      Msg  : PolyORB.Components.Message'Class)
-     return PolyORB.Components.Message'Class;
+      Req  : PolyORB.Requests.Request_Access) return Boolean;
 
    type Object is abstract new PSPCE.Entity with record
       Neutral_View : aliased Implementation (Object'Access);

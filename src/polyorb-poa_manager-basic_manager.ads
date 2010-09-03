@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -33,7 +33,6 @@
 
 --  Base POA Manager concrete implementation.
 
-with PolyORB.Components;
 with PolyORB.Requests;
 with PolyORB.Tasking.Mutexes;
 with PolyORB.Utils.Chained_Lists;
@@ -109,9 +108,9 @@ package PolyORB.POA_Manager.Basic_Manager is
    type Hold_Servant is new PolyORB.Servants.Servant with private;
    type Hold_Servant_Access is access all Hold_Servant;
 
-   function Execute_Servant
+   overriding function Execute_Servant
      (Obj : not null access Hold_Servant;
-      Msg : Components.Message'Class) return Components.Message'Class;
+      Req : Requests.Request_Access) return Boolean;
    --  Implementation of the Hold_Servant servant
 
 private

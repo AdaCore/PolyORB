@@ -137,6 +137,15 @@ package body PolyORB.Requests is
       Free (Req);
    end Destroy_Request;
 
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize (Req : in out Request) is
+   begin
+      Tasking.Mutexes.Create (Req.Upcall_Abortable_Mutex);
+   end Initialize;
+
    --------------
    -- Finalize --
    --------------
@@ -145,6 +154,7 @@ package body PolyORB.Requests is
    begin
       PolyORB.Utils.Strings.Free (Req.Operation);
       Annotations.Destroy (Req.Notepad);
+      Tasking.Mutexes.Destroy (Req.Upcall_Abortable_Mutex);
    end Finalize;
 
    ------------

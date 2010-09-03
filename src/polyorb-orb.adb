@@ -337,7 +337,8 @@ package body PolyORB.ORB is
    type Task_Witness
      (This           : access Task_Info.Task_Info;
       ORB_Controller : access POC.ORB_Controller'Class;
-      TI_Reference   : access PTI.Task_Info_Access)
+      TI_Reference   : access PTI.Task_Info_Access;
+      Req            : access Requests.Request)
      is new Ada.Finalization.Limited_Controlled with
    record
       Normal_Exit : Boolean := False;
@@ -378,7 +379,8 @@ package body PolyORB.ORB is
    procedure Finalize (TW : in out Task_Witness) is
    begin
       pragma Debug
-        (O ("Finalizing task witness for " & PTI.Image (TW.This.all)));
+        (O ("Finalizing task witness for " & PTI.Image (TW.This.all)
+            & ", Normal_Exit = " & TW.Normal_Exit'Img));
 
       --  Remove references to TW.This
 
@@ -388,9 +390,20 @@ package body PolyORB.ORB is
 
       if not TW.Normal_Exit then
          --  Reassert critical section to remove current task from ORB
-         --  controller if because of abort or exception.
+         --  controller if terminating because of abort or exception.
 
          Enter_ORB_Critical_Section (TW.ORB_Controller);
+
+         if TW.Req /= null and then TW.Req.Surrogate /= null then
+
+            --  Notify surrogate that request was aborted
+
+            Emit_No_Reply
+              (TW.Req.Surrogate,
+               Servants.Iface.Abort_Request'
+                 (Req => TW.Req.all'Unchecked_Access));
+         end if;
+
          Terminate_Task (TW.ORB_Controller, TW.This.all'Unchecked_Access);
       end if;
 
@@ -422,14 +435,14 @@ package body PolyORB.ORB is
 
       --  Set up task information for This_Task
 
-      Set_Id             (This_Task);
+      Set_Id (This_Task);
       if Request /= null then
          Set_Exit_Condition (This_Task, Request.Completed'Access);
          TI_Ref := Request.Requesting_Task'Access;
       else
          Set_Exit_Condition (This_Task, null);
       end if;
-      Set_May_Exit       (This_Task, May_Exit);
+      Set_May_Exit (This_Task, May_Exit);
 
       --  Enter critical section (scope lock using Witness)
 
@@ -437,7 +450,8 @@ package body PolyORB.ORB is
          Witness : Task_Witness
                      (This           => This_Task'Unchecked_Access,
                       ORB_Controller => ORB.ORB_Controller,
-                      TI_Reference   => TI_Ref);
+                      TI_Reference   => TI_Ref,
+                      Req            => Request);
          pragma Unreferenced (Witness);
       begin
          --  ORB Main loop
@@ -947,9 +961,6 @@ package body PolyORB.ORB is
 
       declare
          use type Task_Info.Task_Info_Access;
-         Surrogate : Components.Component_Access;
-         Pro       : PolyORB.Binding_Data.Profile_Access;
-
       begin
          pragma Debug (C, O ("Task " & Image (Current_Task)
                           & " executing: "
@@ -1001,8 +1012,8 @@ package body PolyORB.ORB is
               (Req.Target,
                ORB_Access (ORB),
                Request_QoS.Get_Request_QoS (Req.all),
-               Surrogate,
-               Pro,
+               Req.Surrogate,
+               Req.Profile,
                False,
                Error);
             --  Potential race condition, we may protect this call, TBD???
@@ -1029,7 +1040,7 @@ package body PolyORB.ORB is
          --  the request to the target.
 
          if Is_Set (Sync_With_Server, Req.Req_Flags)
-           and then Is_Profile_Local (ORB, Pro)
+           and then Is_Profile_Local (ORB, Req.Profile)
          then
             --  We are on the server side, and use Sync_With_Server
             --  synchronization: we can send an Executed_Request
@@ -1050,8 +1061,9 @@ package body PolyORB.ORB is
 
          declare
             Result : constant Components.Message'Class :=
-                       Emit (Surrogate, Servants.Iface.Execute_Request'
-                                          (Req => Req, Pro => Pro));
+                       Emit (Req.Surrogate, Servants.Iface.Execute_Request'
+                                              (Req => Req,
+                                               Pro => Req.Profile));
          begin
             --  Unsetup_Environment ();
             --  Unbind (J.Req.Target, J.ORB, Servant);

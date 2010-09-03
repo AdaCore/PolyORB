@@ -33,16 +33,21 @@
 
 --  The Request object
 
+pragma Ada_2005;
+
 with Ada.Finalization;
 
 with PolyORB.Annotations;
 with PolyORB.Any.ExceptionList;
 with PolyORB.Any.NVList;
+with PolyORB.Binding_Data;
 with PolyORB.Components;
 with PolyORB.Errors;
 with PolyORB.References;
 with PolyORB.Smart_Pointers;
 with PolyORB.Task_Info;
+with PolyORB.Tasking.Mutexes;
+with PolyORB.Tasking.Threads;
 with PolyORB.Types;
 with PolyORB.Utils.Simple_Flags;
 with PolyORB.Utils.Strings;
@@ -65,7 +70,6 @@ package PolyORB.Requests is
    --  arguments are identified. It is used by the internal mechanisms.
 
    type Flags is new Types.Unsigned_Long;
-
    package Unsigned_Long_Flags is new PolyORB.Utils.Simple_Flags (Flags);
 
    ------------------------------------------
@@ -79,22 +83,23 @@ package PolyORB.Requests is
    Sync_Call_Back      : constant Flags;
    --  Flags to be used for member Req_Flags of request.
 
-   --  When a request is not synchronised, the middleware returns
-   --  to the caller before passing the request to the transport
-   --  layer. The middleware MUST guarantee that the call is
-   --  non-blocking.
+   --  When a request is not synchronised, the middleware returns to the caller
+   --  before passing the request to the transport layer. The middleware MUST
+   --  guarantee that the call is non-blocking.
 
-   --  When a request is synchronised With_Transport, the middleware
-   --  must not return to the caller before the corresponding
-   --  message has been accepted by the transport layer.
+   --  When a request is synchronised With_Transport, the middleware must not
+   --  return to the caller before the corresponding message has been accepted
+   --  by the transport layer.
 
-   --  When a request is synchronised With_Server, the middleware
-   --  does not return before receiving a confirmation that the
-   --  request message has been received by the server middleware.
+   --  When a request is synchronised With_Server, the middleware does not
+   --  return before receiving a confirmation that the request message has been
+   --  received by the server middleware.
 
-   --  When a request is synchronised With_Target, the middlware
-   --  does not return to the caller before receinving a confirmation
-   --  that the request has been executed by the target object.
+   --  When a request is synchronised With_Target, the middlware does not
+   --  return to the caller before receinving a confirmation that the request
+   --  has been executed by the target object.
+
+   --  Document Sync_Call_Back???
 
    -------------
    -- Request --
@@ -170,6 +175,20 @@ package PolyORB.Requests is
       --  Component requesting request execution. The response, if any, will be
       --  redirected to this component.
 
+      Surrogate : Components.Component_Access;
+      --  Component handling request execution
+
+      Profile : Binding_Data.Profile_Access;
+      --  Profile of target ref selected when binding to Surrogate
+
+      Upcall_Abortable : access Tasking.Threads.Abortable'Class;
+      Upcall_Abortable_Mutex : Tasking.Mutexes.Mutex_Access;
+      --  While the request is being served by an upcall to an application
+      --  servant, this handle is set to designate the corresponding abortable
+      --  object, to allow the execution to be aborted. Abortion should occur
+      --  under Upcall_Abortable_Mutex protection to ensure that the abortable
+      --  object is not prematurely destroyed.
+
       Dependent_Binding_Object : Smart_Pointers.Ref;
       --  A reference to the binding object from which a server-side request
       --  was created. Used to prevent said BO from being destroyed will the
@@ -197,6 +216,7 @@ package PolyORB.Requests is
       --  add-on information in a Request.
    end record;
 
+   procedure Initialize (Req : in out Request);
    procedure Finalize (Req : in out Request);
 
    type Request_Access is access all Request;
@@ -240,15 +260,13 @@ package PolyORB.Requests is
       Error          : in out Error_Container;
       Identification :        Arguments_Identification := Ident_By_Position;
       Can_Extend     :        Boolean := False);
-      --  Retrieve the invocation's arguments into Args.  Call back
-      --  the protocol layer to do the unmarshalling, if
-      --  necessary. Should be called exactly once from within a
-      --  servant's Invoke primitive. Args MUST be a correctly typed
-      --  NVList for the signature of the method being invoked.  If
-      --  Can_Extend is set to True and Self contains extra arguments
-      --  that are not required by Args, they are
-      --  appended. Identification is used to specify the capailities
-      --  of the server personality.
+      --  Retrieve the invocation's arguments into Args. Call back the protocol
+      --  layer to do the unmarshalling, if necessary. Should be called exactly
+      --  once from within a servant's Invoke primitive. Args MUST be a
+      --  correctly typed NVList for the signature of the method being invoked.
+      --  If Can_Extend is set to True and Self contains extra arguments that
+      --  are not required by Args, they are appended. Identification is used
+      --  to specify the capailities of the server personality.
 
    procedure Set_Result (Self : Request_Access; Val : Any.Any);
    --  Set the value of Self's result to Val. Assert no error has been thrown
@@ -266,9 +284,9 @@ package PolyORB.Requests is
      (Self           :        Request_Access;
       Error          : in out Error_Container;
       Identification : Arguments_Identification := Ident_By_Position);
-   --  Copy back the values of out and inout arguments from Out_Args
-   --  to Args.  Identification is used to specify the
-   --  capailities of the server personality.
+   --  Copy back the values of out and inout arguments from Out_Args to Args.
+   --  Identification is used to specify the capabilities of the server
+   --  personality.
 
    procedure Destroy_Request (Req : in out Request_Access);
 
@@ -277,7 +295,7 @@ package PolyORB.Requests is
 
    procedure Reset_Request (Request : in out PolyORB.Requests.Request);
    --  Set request to a state where it can be re-issued: exception and
-   --  arguments status are reseted.
+   --  arguments status are reset.
 
 private
 
@@ -288,9 +306,9 @@ private
    Sync_Call_Back      : constant Flags := 16;
    Default_Flags       : constant Flags := Sync_With_Target;
 
-   Ident_By_Position : constant Arguments_Identification := (True, False);
+   Ident_By_Position : constant Arguments_Identification := (True,  False);
    Ident_By_Name     : constant Arguments_Identification := (False, True);
    Ident_Unspecified : constant Arguments_Identification := (False, False);
-   Ident_Both        : constant Arguments_Identification := (True, True);
+   Ident_Both        : constant Arguments_Identification := (True,  True);
 
 end PolyORB.Requests;

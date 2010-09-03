@@ -70,7 +70,7 @@ package body PolyORB.DSA_P.Remote_Launch is
    --  This is a no-op on non-Windows systems.
 
    function Escape_Spaces (S : String) return String;
-   --  Protect shell metacharacters in S with an \
+   --  Protect spaces and shell metacharacters in S with a backslash
    --  ??? Assumes a UNIX shell
 
    procedure Initialize;
@@ -164,7 +164,10 @@ package body PolyORB.DSA_P.Remote_Launch is
    procedure Launch_Partition
      (Host : String; Command : String; Env_Vars : String)
    is
-      U_Command : constant String := Escape_Spaces (Windows_To_Unix (Command));
+      U_Command : constant String :=
+                    Escape_Spaces (Windows_To_Unix (Command))
+                                     & " --polyorb-dsa-name_service="
+                                     & Get_Conf ("dsa", "name_service", "");
       Pid       : Process_Id;
       pragma Unreferenced (Pid);
 
@@ -288,10 +291,7 @@ package body PolyORB.DSA_P.Remote_Launch is
             Remote_Command : String_Access :=
                                new String'(Expand_Env_Vars (Env_Vars)
                                              & U_Command
-                                             & " --polyorb-dsa-detach"
-                                             & " --polyorb-dsa-name_service="
-                                             & Get_Conf
-                                                 ("dsa", "name_service", ""));
+                                             & " --polyorb-dsa-detach");
 
          --  Start of processing for Remote_Spawn
 

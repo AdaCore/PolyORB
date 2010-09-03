@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---           Copyright (C) 2009, Free Software Foundation, Inc.             --
+--         Copyright (C) 2009-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,9 +31,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PolyORB.Components;
-
-use PolyORB;
+with PolyORB; use PolyORB;
+with PolyORB.Requests;
 
 package AWS.Server.Servants is
 
@@ -46,14 +45,12 @@ private
    type Web_Servant_Acc is access all Web_Servant;
    type SOAP_Servant_Acc is access all SOAP_Servant;
 
-   function Execute_Servant
+   overriding function Execute_Servant
      (S   : not null access Web_Servant;
-      Msg : Components.Message'Class)
-     return Components.Message'Class;
+      Req : Requests.Request_Access) return Boolean;
 
-   function Execute_Servant
+   overriding function Execute_Servant
      (S   : not null access SOAP_Servant;
-      Msg : Components.Message'Class)
-     return Components.Message'Class;
+      Req : Requests.Request_Access) return Boolean;
 
 end AWS.Server.Servants;

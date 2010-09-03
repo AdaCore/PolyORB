@@ -225,11 +225,16 @@ package body PolyORB.Protocols is
             end if;
          end;
 
+      elsif S in Servants.Iface.Abort_Request then
+         Abort_Request
+           (Session_Access (Sess),
+            Servants.Iface.Abort_Request (S).Req);
+         return Null_Message'(null record);
+
       elsif S in Executed_Request then
          declare
             Req : Request_Access := Executed_Request (S).Req;
          begin
-
             if Req.Deferred_Arguments_Session /= null then
 
                --  The request has been aborted before being fully processed.
@@ -241,11 +246,14 @@ package body PolyORB.Protocols is
                   Protocols.Iface.Flush'(Message with null record));
             end if;
 
-            if False
-              or else Is_Set (Sync_With_Target, Req.Req_Flags)
-              or else Is_Set (Sync_Call_Back,   Req.Req_Flags)
+            if Req.Completed
+                 and then
+               (Is_Set (Sync_With_Target, Req.Req_Flags)
+                  or else
+                Is_Set (Sync_Call_Back,   Req.Req_Flags))
             then
-               --  Send a reply if one is expected.
+               --  Send a reply if one is expected (per sync scope) and the
+               --  request was completed (i.e. not aborted).
 
                Send_Reply (Session_Access (Sess), Req);
             end if;

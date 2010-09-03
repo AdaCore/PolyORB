@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2010, Free Software Foundation, Inc.          --
+--           Copyright (C) 2010, Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,105 +31,89 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Command_Line;
-with Ada.Text_IO;
-
-with PolyORB.Any.ExceptionList;
-with PolyORB.Any.NVList;
-with PolyORB.Components;
-with PolyORB.Initialization;
-with PolyORB.ORB.Iface;
-with PolyORB.References;
-with PolyORB.Requests;
-with PolyORB.Types;
-
-with PolyORB.Setup.Client;
-pragma Warnings (Off, PolyORB.Setup.Client);
-
-with PolyORB.Utils.Report;
+with Ada.Text_IO; use Ada.Text_IO;
+with RCI;
+with GNAT.OS_Lib;
 
 procedure Client is
 
-   use Ada.Text_IO;
-   use PolyORB.Utils.Report;
+   task Monitor is
+      entry Call (Call_Id : Integer);
+      entry Check;
+      entry Kill;
+   end Monitor;
 
-   -------------------
-   -- Issue_Request --
-   -------------------
-
-   procedure Issue_Request
-     (Obj_Ref   : PolyORB.References.Ref;
-      Req_Flags : PolyORB.Requests.Flags);
-
-   procedure Issue_Request
-     (Obj_Ref   : PolyORB.References.Ref;
-      Req_Flags : PolyORB.Requests.Flags)
-   is
-      use PolyORB.Any;
-      use PolyORB.Any.NVList;
-      use PolyORB.Components;
-      use PolyORB.ORB.Iface;
-      use PolyORB.Requests;
-      use PolyORB.Types;
-
-      Req : Request_Access;
-      Args : PolyORB.Any.NVList.Ref;
-      Result : PolyORB.Any.NamedValue;
-
+   task body Monitor is
+      My_Call_Id : Natural;
    begin
-      Create (Args);
-      Add_Item
-        (Args,
-         To_PolyORB_String ("ping"),
-         To_Any (To_PolyORB_String ("ping !")),
-         ARG_IN);
+      loop
+         select
+            accept Call (Call_Id : Integer) do
+               My_Call_Id := Call_Id;
+            end Call;
+            delay 0.1;
+            Put_Line ("Call" & My_Call_Id'Img & " in progress (blocked):"
+                      & RCI.Blocked_Calls'Img);
+         or
+            accept Check do
+               Put_Line ("Monitor: checking blocked calls");
+               Put_Line ("Calls blocked:" & RCI.Blocked_Calls'Img);
+            end Check;
+         or
+            accept Kill do
+               null;
+            end Kill;
+            delay 0.1;
+            RCI.Allow_Terminate;
+            GNAT.OS_Lib.OS_Exit (0);
+         end select;
+      end loop;
+   end Monitor;
 
-      Create_Request
-        (Obj_Ref,
-         "ping",
-         Args,
-         Result,
-         PolyORB.Any.ExceptionList.Nil_Ref,
-         Req,
-         Req_Flags);
+   procedure Do_Call (Call_Id : Integer; S : String) is
+   begin
+      Put_Line ("Call" & Call_Id'Img & ": " & S);
+      select
+         delay 0.5;
+         Put_Line ("Call" & Call_Id'Img & " timed out");
+      then abort
+         RCI.Block_On_Entry (Call_Id);
+      end select;
+   end Do_Call;
 
-      Output ("Created servant request with flag"
-              & PolyORB.Requests.Flags'Image (Req_Flags),
-              True);
-
-      Emit_No_Reply
-        (Component_Access (PolyORB.Setup.The_ORB),
-         Queue_Request'(Request   => Req,
-                        Requestor => null));
-
-      PolyORB.ORB.Run
-        (PolyORB.Setup.The_ORB,
-         Request  => Req,
-         May_Exit => True);
-   end Issue_Request;
+   Num_Calls : constant := 7;
+   --  Vary this constant and observe behaviour to identify memory leaks
 
 begin
-   New_Test ("Request synchronization policies");
+   Put_Line ("Client started");
 
-   PolyORB.Initialization.Initialize_World;
+   --  Call 1: sanity check. The call returns normally,
+   --  the timeout does not trigger.
 
-   if Ada.Command_Line.Argument_Count < 1 then
-      Put_Line ("usage : client <IOR_string_from_server>");
-      return;
-   end if;
+   Do_Call (1, "passing");
 
-   declare
-      Obj_Ref : PolyORB.References.Ref;
+   --  Calls 1001 .. 10xx: Aborted calls
+   --  Call blocks, timeout triggers, request is cancelled.
+   --  For each call the monitor must report 1 blocked call
+   --  (previous calls have been cancelled).
 
-   begin
-      PolyORB.References.String_To_Object
-        (Ada.Command_Line.Argument (1), Obj_Ref);
+   for J in 1001 .. 1000 + Num_Calls loop
+      Put_Line ("Call" & J'Img & ": block and abort call");
+      Monitor.Call (J);
+      Do_Call (J, "blocking");
+   end loop;
 
-      Issue_Request (Obj_Ref, PolyORB.Requests.Sync_None);
-      Issue_Request (Obj_Ref, PolyORB.Requests.Sync_With_Transport);
-      Issue_Request (Obj_Ref, PolyORB.Requests.Sync_With_Server);
-      Issue_Request (Obj_Ref, PolyORB.Requests.Sync_With_Target);
-   end;
+   --  Sanity check: no call remains blocked
 
-   End_Report;
+   Put_Line ("Client idle");
+   Monitor.Check;
+
+   --  Call 3: blocking/terminating
+   --  Call blocks, partition terminates and disconnects.
+   --  The server must abort and clean up the request,
+   --  and then cleanly terminate.
+
+   Put_Line ("Call 3: block and terminate partition");
+   Monitor.Kill;
+   Do_Call (3, "blocking/terminating");
 end Client;

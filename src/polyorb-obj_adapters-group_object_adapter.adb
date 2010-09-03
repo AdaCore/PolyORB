@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -72,31 +72,6 @@ package body PolyORB.Obj_Adapters.Group_Object_Adapter is
       Destroy (GOA.Lock);
       Destroy (Obj_Adapter (GOA.all)'Access);
    end Destroy;
-
-   ------------------------------
-   -- Handle_Request_Execution --
-   ------------------------------
-
-   function Handle_Request_Execution
-     (Self      : access Simple_Executor;
-      Msg       : PolyORB.Components.Message'Class;
-      Requestor : PolyORB.Components.Component_Access)
-     return PolyORB.Components.Message'Class
-   is
-      use PolyORB.Servants;
-
-      pragma Warnings (Off);
-      pragma Unreferenced (Self);
-      pragma Warnings (On);
-
-   begin
-      --  At this stage, PolyORB.ORB.Run has already affected a thread
-      --  to handle the request execution, in which this current call
-      --  is executed. Thus we just need to call the Execute_Servant
-      --  procedure to go on with the request execution.
-
-      return Execute_Servant (Servant_Access (Requestor), Msg);
-   end Handle_Request_Execution;
 
    --------------------------------------
    -- Interface to application objects --

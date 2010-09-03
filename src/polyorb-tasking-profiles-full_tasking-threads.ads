@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -114,6 +114,10 @@ package PolyORB.Tasking.Profiles.Full_Tasking.Threads is
 
    function Independent_Count (TF : access Full_Tasking_Thread_Factory_Type)
      return Natural;
+
+   function Make_Abortable
+     (TF : access Full_Tasking_Thread_Factory_Type;
+      R  : PTT.Runnable_Access) return PTT.Abortable'Class;
 
 private
 

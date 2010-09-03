@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PolyORB.Components;
+with PolyORB.Requests;
 with PolyORB.Servants;
 
 package Ping_Object is
@@ -40,9 +40,8 @@ package Ping_Object is
 
    type My_Object is new PolyORB.Servants.Servant with null record;
 
-   function Execute_Servant
+   overriding function Execute_Servant
      (Obj : not null access My_Object;
-      Msg : PolyORB.Components.Message'Class)
-     return PolyORB.Components.Message'Class;
+      Req : PolyORB.Requests.Request_Access) return Boolean;
 
 end Ping_Object;

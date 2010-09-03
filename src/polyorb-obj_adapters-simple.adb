@@ -103,31 +103,6 @@ package body PolyORB.Obj_Adapters.Simple is
       end if;
    end Find_Entry;
 
-   ------------------------------
-   -- Handle_Request_Execution --
-   ------------------------------
-
-   function Handle_Request_Execution
-     (Self      : access Simple_Executor;
-      Msg       : PolyORB.Components.Message'Class;
-      Requestor : PolyORB.Components.Component_Access)
-     return PolyORB.Components.Message'Class
-   is
-      use PolyORB.Servants;
-
-      pragma Warnings (Off);
-      pragma Unreferenced (Self);
-      pragma Warnings (On);
-
-   begin
-      --  At this stage, PolyORB.ORB.Run has already affected a thread
-      --  to handle the request execution, in which this current call
-      --  is executed. Thus we just need to call the Execute_Servant
-      --  procedure to go on with the request execution.
-
-      return Execute_Servant (Servant_Access (Requestor), Msg);
-   end Handle_Request_Execution;
-
    ------------
    -- Create --
    ------------
@@ -389,7 +364,7 @@ package body PolyORB.Obj_Adapters.Simple is
    procedure Find_Servant
      (OA      : access Simple_Obj_Adapter;
       Id      : access Objects.Object_Id;
-      Servant :    out Servants.Servant_Access;
+      Servant : out Servants.Servant_Access;
       Error   : in out PolyORB.Errors.Error_Container)
    is
       Index : constant Integer := Oid_To_Index (Simple_OA_Oid (Id.all));

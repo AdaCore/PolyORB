@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -62,15 +62,9 @@ package PolyORB.Protocols.GIOP.Common is
       type Table_Type is (<>);
       type Target_Type is mod <>;
       with function Unmarshall
-        (Buffer : access PolyORB.Buffers.Buffer_Type)
-        return Target_Type;
+        (Buffer : access PolyORB.Buffers.Buffer_Type) return Target_Type;
    function Generic_Unmarshall
-     (Buffer : access PolyORB.Buffers.Buffer_Type)
-     return Table_Type;
-
-   --------------------------
-   -- Common Process Reply --
-   --------------------------
+     (Buffer : access PolyORB.Buffers.Buffer_Type) return Table_Type;
 
    procedure Marshall
      (Buffer : access PolyORB.Buffers.Buffer_Type;
@@ -86,10 +80,6 @@ package PolyORB.Protocols.GIOP.Common is
       MCtx           : access GIOP_Message_Context'Class;
       Error          : in out Errors.Error_Container);
    --  XXX documentation required!!!
-
-   ------------------
-   -- Locate Reply --
-   ------------------
 
    type Locate_Reply_Type is
      (Unknown_Object,
@@ -116,22 +106,18 @@ package PolyORB.Protocols.GIOP.Common is
 
    procedure Common_Process_Locate_Reply
      (Sess              : access GIOP_Session;
-      Locate_Request_Id :        Types.Unsigned_Long;
-      Loc_Type          :        Locate_Reply_Type);
+      Locate_Request_Id : Types.Unsigned_Long;
+      Loc_Type          : Locate_Reply_Type);
 
-   ----------------------------------
-   -- Common_Process_Abort_Request --
-   ----------------------------------
-
-   procedure Common_Process_Abort_Request
+   procedure Common_Send_Cancel_Request
      (Sess  : access GIOP_Session;
       R     : Request_Access;
       MCtx  : access GIOP_Message_Context'Class;
       Error : in out Errors.Error_Container);
 
-   ---------------------------
-   -- Common_Reply_Received --
-   ---------------------------
+   procedure Common_Process_Cancel_Request
+     (Sess       : access GIOP_Session;
+      Request_Id : Types.Unsigned_Long);
 
    procedure Common_Reply_Received
      (Sess             : access GIOP_Session;

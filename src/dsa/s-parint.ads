@@ -680,11 +680,9 @@ private
 
    pragma Inline (Caseless_String_Eq, Get_Aggregate_Element);
 
-   function Execute_Servant
+   overriding function Execute_Servant
      (Self : not null access Servant;
-      Msg  : PolyORB.Components.Message'Class)
-     return PolyORB.Components.Message'Class;
-   pragma Inline (Execute_Servant);
+      Req  : PolyORB.Requests.Request_Access) return Boolean;
 
    type Buffer_Stream_Type is new Ada.Streams.Root_Stream_Type with record
       Buf : aliased PolyORB.Buffers.Buffer_Type;

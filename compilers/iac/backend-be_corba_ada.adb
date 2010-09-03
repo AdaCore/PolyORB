@@ -262,18 +262,23 @@ package body Backend.BE_CORBA_Ada is
       procedure Dispatched_Visit (Entity : Node_Id) is
          E_Name : Name_Id;
       begin
-         if FEN.Kind (Entity) = K_Module then
-            E_Name := FEN.IDL_Name (Identifier (Entity));
-         else
-            return;
-         end if;
+         case FEN.Kind (Entity) is
+            when K_Module                        |
+                 K_Interface_Declaration         |
+                 K_Forward_Interface_Declaration =>
+               E_Name := FEN.IDL_Name (Identifier (Entity));
+
+            when others =>
+               return;
+         end case;
 
          if E_Name = Nutils.Repository_Root_Name then
 
             --  Uncomment the instruction below if you want to
-            --  generate code for the CORBA::IDL_Sequences module:
+            --  generate code for various parts of the CORBA module:
 
-            --  or else E_Name = Nutils.IDL_Sequences_name
+            --  or else E_Name = Nutils.IDL_Sequences_Name
+            --  or else E_Name = Nutils.DomainManager_Name
 
             case PK is
                when PK_CDR_Spec =>

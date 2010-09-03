@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -33,8 +33,8 @@
 
 --  A simple test server object that uses the SOA.
 
-with PolyORB.Components;
 with PolyORB.Obj_Adapters.Simple;
+with PolyORB.Requests;
 with PolyORB.Servants;
 with PolyORB.Types;
 
@@ -62,10 +62,9 @@ package PolyORB.Test_Object_SOA is
       I : Types.Long)
      return Types.Long;
 
-   function Execute_Servant
+   overriding function Execute_Servant
      (Obj : not null access My_Object;
-      Msg : Components.Message'Class)
-     return Components.Message'Class;
+      Req : Requests.Request_Access) return Boolean;
 
    function If_Desc
      return Obj_Adapters.Simple.Interface_Description;

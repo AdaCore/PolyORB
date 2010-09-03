@@ -45,7 +45,7 @@ package PolyORB.Components is
    --  The root type for all messages that can be exchanged
    --  between components.
 
-   type Null_Message is new Message with private;
+   type Null_Message is new Message with null record;
 
    type Component is abstract tagged limited private;
    type Component_Access is access all Component'Class;
@@ -95,8 +95,5 @@ package PolyORB.Components is
    type Component_Factory is access function return Component_Access;
 
 private
-
-   type Null_Message is new Message with null record;
    type Component is abstract tagged limited null record;
-
 end PolyORB.Components;

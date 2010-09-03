@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---              P O L Y O R B . M I N I M A L _ S E R V A N T               --
+--                                  R C I                                   --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2010, Free Software Foundation, Inc.          --
+--           Copyright (C) 2010, Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,43 +31,95 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PolyORB.Errors;
+with Ada.Finalization;
+with Ada.Text_IO; use Ada.Text_IO;
 
-package body PolyORB.Minimal_Servant is
+package body RCI is
 
-   ---------------------
-   -- Execute_Servant --
-   ---------------------
+   task Keep_Alive is
+      entry Allow_Terminate;
+   end Keep_Alive;
 
-   function Execute_Servant
-     (Self : not null access Implementation;
-      Req  : Requests.Request_Access) return Boolean is
+   task body Keep_Alive is
    begin
-      return Execute_Servant (Self.As_Servant, Req);
-   end Execute_Servant;
+      accept Allow_Terminate;
+   end Keep_Alive;
 
-   function Execute_Servant
-     (Self : not null access Servant;
-      Req  : Requests.Request_Access) return Boolean
-   is
-      use PolyORB.Errors;
-      use PolyORB.Requests;
+   protected Barrier is
+      entry Wait;
+      --  First call is passing, subsequent block for ever
 
-      Error : Error_Container;
+      function Blocked_Calls return Natural;
+   private
+      Passing : Boolean := True;
+   end Barrier;
+
+   protected body Barrier is
+      entry Wait when Passing is
+      begin
+         Passing := False;
+      end Wait;
+
+      function Blocked_Calls return Natural is
+      begin
+         return Wait'Count;
+      end Blocked_Calls;
+   end Barrier;
+
+   type Witness (Call_Id : Integer) is
+     new Ada.Finalization.Limited_Controlled with
+   record
+      Completed : Boolean := False;
+   end record;
+
+   procedure Initialize (X : in out Witness);
+   procedure Finalize (X : in out Witness);
+
+   procedure Initialize (X : in out Witness) is
    begin
-      Invoke (Servant'Class (Self.all)'Access, Req);
-      Set_Out_Args (Req, Error);
-      return True;
-   end Execute_Servant;
+      Put_Line ("call" & X.Call_Id'Img & " started");
+   end Initialize;
 
-   ------------------------
-   -- To_PolyORB_Servant --
-   ------------------------
-
-   function To_PolyORB_Servant (S : access Servant)
-     return PolyORB.Servants.Servant_Access is
+   procedure Finalize (X : in out Witness) is
    begin
-      return S.Neutral_View'Access;
-   end To_PolyORB_Servant;
+      Put_Line ("call" & X.Call_Id'Img
+                & " terminated, completed = " & X.Completed'Img);
+   end Finalize;
 
-end PolyORB.Minimal_Servant;
+   procedure Block_On_Entry (Call_Id : Integer) is
+      W : Witness (Call_Id);
+   begin
+      Barrier.Wait;
+      W.Completed := True;
+   end Block_On_Entry;
+
+   function Blocked_Calls return Natural is
+   begin
+      Put_Line ("Blocked_Calls: enter");
+      return Barrier.Blocked_Calls;
+   end Blocked_Calls;
+
+   procedure Allow_Terminate is
+   begin
+      Keep_Alive.Allow_Terminate;
+   end Allow_Terminate;
+
+   type Pkg_Witness is
+      new Ada.Finalization.Limited_Controlled with null record;
+
+   procedure Initialize (X : in out Pkg_Witness);
+   procedure Finalize (X : in out Pkg_Witness);
+
+   procedure Initialize (X : in out Pkg_Witness) is
+   begin
+      Put_Line ("Pkg_Witness: initialize");
+   end Initialize;
+
+   procedure Finalize (X : in out Pkg_Witness) is
+   begin
+      Put_Line ("Pkg_Witness: finalize");
+   end Finalize;
+
+   PW : Pkg_Witness;
+
+end RCI;

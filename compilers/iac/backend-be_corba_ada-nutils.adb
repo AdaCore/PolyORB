@@ -1051,10 +1051,15 @@ package body Backend.BE_CORBA_Ada.Nutils is
 
       Set_Str_To_Name_Buffer ("CORBA");
       CORBA_Name := Name_Find;
+
       Set_Str_To_Name_Buffer ("Repository_Root");
       Repository_Root_Name := Name_Find;
+
       Set_Str_To_Name_Buffer ("IDL_Sequences");
       IDL_Sequences_Name := Name_Find;
+
+      Set_Str_To_Name_Buffer ("DomainManager");
+      DomainManager_Name := Name_Find;
    end Initialize;
 
    --------------

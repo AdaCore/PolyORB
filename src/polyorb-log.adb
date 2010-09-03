@@ -32,6 +32,7 @@
 ------------------------------------------------------------------------------
 
 with Ada.Unchecked_Deallocation;
+
 with PolyORB.Initialization;
 with PolyORB.Utils.Chained_Lists;
 with PolyORB.Utils.Strings;
@@ -159,13 +160,13 @@ package body PolyORB.Log is
    Buffer : Request_List_Access;
 
    Buffer_Enable : Boolean := True;
-   --  Buffering is disabled as soon as Flush is called
+   --  Buffering is disabled as soon as Initialize is called
 
-   -----------
-   -- Flush --
-   -----------
+   ----------------
+   -- Initialize --
+   ----------------
 
-   procedure Flush is
+   procedure Initialize is
       use Request_Lists;
       It : Request_Lists.Iterator;
    begin
@@ -194,7 +195,7 @@ package body PolyORB.Log is
       end loop;
       Deallocate (Buffer.all);
       Free (Buffer);
-   end Flush;
+   end Initialize;
 
    ------------
    -- Output --

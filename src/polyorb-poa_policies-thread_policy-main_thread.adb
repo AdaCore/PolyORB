@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -37,7 +37,6 @@
 --  processed sequentially.
 
 with PolyORB.Log;
-with PolyORB.Servants;
 with PolyORB.Tasking.Mutexes;
 
 package body PolyORB.POA_Policies.Thread_Policy.Main_Thread is
@@ -103,15 +102,14 @@ package body PolyORB.POA_Policies.Thread_Policy.Main_Thread is
 
    end Check_Compatibility;
 
-   ------------------------------
-   -- Handle_Request_Execution --
-   ------------------------------
+   ------------------------
+   -- Execute_In_Context --
+   ------------------------
 
-   function Handle_Request_Execution
+   function Execute_In_Context
      (Self      : access Main_Thread_Executor;
-      Msg       :        PolyORB.Components.Message'Class;
-      Requestor :        PolyORB.Components.Component_Access)
-      return PolyORB.Components.Message'Class
+      Req       : Requests.Request_Access;
+      Requestor : Components.Component_Access) return Boolean
    is
       use PolyORB.Servants;
       use PolyORB.Tasking.Mutexes;
@@ -124,16 +122,15 @@ package body PolyORB.POA_Policies.Thread_Policy.Main_Thread is
       --  This policy only prevents us to have to concurrent calls to
       --  Main_Thread POAs.
 
-      --  XXX This dirty implementation associates a global lock to
-      --  all Main_Thread POA.
+      --  XXX This dirty implementation associates a global lock to all
+      --  Main_Thread POA.
 
-      --  XXX However, this is a waste of ressources as a number of
-      --  threads would wait on a given and known lock.  We should try
-      --  to specialize threads, and have only one threads to handle
-      --  all upcalls made on all main_thread POAs ?  cf
-      --  PolyORB.ORB.Thread_Per_Session for a pattern.
+      --  XXX However, this is a waste of ressources as a number of threads
+      --  would wait on a given and known lock. We should try to specialize
+      --  threads, and have only one threads to handle all upcalls made on all
+      --  main_thread POAs ? cf PolyORB.ORB.Thread_Per_Session for a pattern.
 
-      pragma Debug (C, O ("Handle_Request_Execution: Enter"));
+      pragma Debug (C, O ("Execute_In_Context: Enter"));
 
       if not Initialized then
          pragma Debug (C, O ("Initialize policy"));
@@ -146,14 +143,13 @@ package body PolyORB.POA_Policies.Thread_Policy.Main_Thread is
       pragma Debug (C, O ("Waiting done"));
 
       declare
-         Result : constant PolyORB.Components.Message'Class :=
-           Execute_Servant (Servant_Access (Requestor), Msg);
+         Res : constant Boolean :=
+                 Abortable_Execute_Servant (Servant_Access (Requestor), Req);
       begin
          Leave (Main_Thread_Lock);
-         pragma Debug (C, O ("Handle_Request_Execution: Leave"));
-         return Result;
+         pragma Debug (C, O ("Execute_In_Context: Leave"));
+         return Res;
       end;
-
-   end Handle_Request_Execution;
+   end Execute_In_Context;
 
 end PolyORB.POA_Policies.Thread_Policy.Main_Thread;

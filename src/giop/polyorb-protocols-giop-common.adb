@@ -162,20 +162,32 @@ package body PolyORB.Protocols.GIOP.Common is
       Buffer_Out      : Buffer_Access := new Buffer_Type;
       Header_Buffer   : Buffer_Access := new Buffer_Type;
       Header_Space    : constant Reservation :=
-        Reserve (Buffer_Out, GIOP_Header_Size);
+                          Reserve (Buffer_Out, GIOP_Header_Size);
       Reply_Status    : Reply_Status_Type;
       N               : Request_Note;
       Request_Id      : Types.Unsigned_Long renames N.Id;
       CORBA_Occurence : PolyORB.Any.Any;
       Data_Alignment  : Alignment_Type := Sess.Implem.Data_Alignment;
+      Success         : Boolean;
 
-      Static_Buffer : constant QoS_GIOP_Static_Buffer_Parameter_Access :=
+      Static_Buffer   : constant QoS_GIOP_Static_Buffer_Parameter_Access :=
         QoS_GIOP_Static_Buffer_Parameter_Access
         (Extract_Request_Parameter (QoS.GIOP_Static_Buffer, Request.all));
    begin
       Get_Note (Request.Notepad, N);
 
       pragma Debug (C, O ("Process reply of request id =" & Request_Id'Img));
+
+      --  Remove request from list of pending server-side (abortable) requests
+
+      Sess.Remove_Pending_Request (Request_Id, Success);
+      if not Success then
+
+         --  A missing request means the client cancelled it: nothing to do
+         --  (discard reply).
+
+         return;
+      end if;
 
       if PolyORB.Any.Is_Empty (Request.Exception_Info) then
          Reply_Status := No_Exception;
@@ -473,6 +485,42 @@ package body PolyORB.Protocols.GIOP.Common is
       Release (Buffer);
    end Common_Locate_Reply;
 
+   -----------------------------------
+   -- Common_Process_Cancel_Request --
+   -----------------------------------
+
+   procedure Common_Process_Cancel_Request
+     (Sess       : access GIOP_Session;
+      Request_Id : Types.Unsigned_Long)
+   is
+      use Components;
+
+      Pending_Req : Pending_Request;
+      Success     : Boolean;
+   begin
+      pragma Debug
+        (C, O ("Cancel_Request received, Request_Id:" & Request_Id'Img));
+
+      Sess.Mutex.Enter;
+      Sess.Get_Pending_Request
+        (Id      => Request_Id,
+         Req     => Pending_Req,
+         Success => Success);
+
+      --  Note: abortion must be done while still holding the Sess mutex,
+      --  to ensure that the request does not disappear under our feet because
+      --  it has completed.
+
+      if Success and then Pending_Req.Req.Surrogate /= null then
+         Emit_No_Reply
+           (Pending_Req.Req.Surrogate,
+            Servants.Iface.Abort_Request'(Req => Pending_Req.Req));
+      end if;
+
+      Sess.Mutex.Leave;
+      Expect_GIOP_Header (Sess);
+   end Common_Process_Cancel_Request;
+
    ---------------------------------
    -- Common_Process_Locate_Reply --
    ---------------------------------
@@ -488,7 +536,7 @@ package body PolyORB.Protocols.GIOP.Common is
         := PolyORB.ORB.ORB_Access (Sess.Server);
 
    begin
-      pragma Debug (C, O ("Locate Reply received, Request Id :"
+      pragma Debug (C, O ("Locate_Reply received, Request Id:"
                        & Locate_Request_Id'Img
                        & " , type: "
                        & Loc_Type'Img));
@@ -506,7 +554,8 @@ package body PolyORB.Protocols.GIOP.Common is
                  (Sess,
                   Locate_Request_Id,
                   Req,
-                  Success);
+                  Success,
+                  Remove => False);
 
                if not Success then
                   raise GIOP_Error;
@@ -572,7 +621,8 @@ package body PolyORB.Protocols.GIOP.Common is
                  (Sess,
                   Locate_Request_Id,
                   Req,
-                  Success);
+                  Success,
+                  Remove => False);
 
                if not Success then
                   raise GIOP_Error;
@@ -614,7 +664,8 @@ package body PolyORB.Protocols.GIOP.Common is
                  (Sess,
                   Locate_Request_Id,
                   Req,
-                  Success);
+                  Success,
+                  Remove => False);
 
                if not Success then
                   raise GIOP_Error;
@@ -651,11 +702,11 @@ package body PolyORB.Protocols.GIOP.Common is
       end case;
    end Common_Process_Locate_Reply;
 
-   ----------------------------------
-   -- Common_Process_Abort_Request --
-   ----------------------------------
+   --------------------------------
+   -- Common_Send_Cancel_Request --
+   --------------------------------
 
-   procedure Common_Process_Abort_Request
+   procedure Common_Send_Cancel_Request
      (Sess  : access GIOP_Session;
       R     :        Request_Access;
       MCtx  : access GIOP_Message_Context'Class;
@@ -663,14 +714,18 @@ package body PolyORB.Protocols.GIOP.Common is
    is
       use PolyORB.Annotations;
 
-      Current_Req   : Pending_Request;
-      Current_Note  : Request_Note;
-      Buffer        : Buffer_Access;
-      Success       : Boolean;
+      Current_Req  : Pending_Request;
+      Current_Note : Request_Note;
+      Buffer       : Buffer_Access;
+      Success      : Boolean;
 
    begin
       Get_Note (R.Notepad, Current_Note);
+
+      Sess.Mutex.Enter;
       Get_Pending_Request (Sess, Current_Note.Id, Current_Req, Success);
+      Sess.Mutex.Leave;
+
       if not Success then
          raise GIOP_Error;
       end if;
@@ -685,7 +740,7 @@ package body PolyORB.Protocols.GIOP.Common is
       Emit_Message (Sess.Implem, Sess, MCtx.all'Access, Buffer, Error);
 
       Release (Buffer);
-   end Common_Process_Abort_Request;
+   end Common_Send_Cancel_Request;
 
    ---------------------------
    -- Common_Reply_Received --
@@ -717,15 +772,22 @@ package body PolyORB.Protocols.GIOP.Common is
                        & ", id ="
                        & Types.Unsigned_Long'Image (Request_Id)));
 
+      Sess.Mutex.Enter;
       Get_Pending_Request (Sess, Request_Id, Current_Req, Success);
+      Sess.Mutex.Leave;
+
+      if not Success then
+         --  The request for this reply has been cancelled: just discard the
+         --  message.
+
+         Expect_GIOP_Header (Sess);
+         return;
+      end if;
+
       Static_Buffer :=
         QoS_GIOP_Static_Buffer_Parameter_Access
         (Extract_Request_Parameter
          (QoS.GIOP_Static_Buffer, Current_Req.Req.all));
-
-      if not Success then
-         raise GIOP_Error;
-      end if;
 
       Add_Reply_QoS
         (Current_Req.Req.all,

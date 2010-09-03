@@ -32,8 +32,67 @@
 ------------------------------------------------------------------------------
 
 with PolyORB.Servants.Iface;
+with PolyORB.Tasking.Threads;
 
 package body PolyORB.Servants is
+
+   type Req_Runnable is new PolyORB.Tasking.Threads.Runnable with record
+      Servant  : access Servants.Servant'Class;
+      Req      : Requests.Request_Access;
+      Aborted  : Boolean := True;
+   end record;
+
+   procedure Run (RR : access Req_Runnable);
+
+   ---------
+   -- Run --
+   ---------
+
+   procedure Run (RR : access Req_Runnable) is
+   begin
+      RR.Req.Completed := Execute_Servant (RR.Servant, RR.Req);
+      RR.Aborted := False;
+   end Run;
+
+   -------------------------------
+   -- Abortable_Execute_Servant --
+   -------------------------------
+
+   function Abortable_Execute_Servant
+     (S   : not null access Servant'Class;
+      Req : Requests.Request_Access) return Boolean
+   is
+      use PolyORB.Tasking.Threads;
+
+      R : aliased Req_Runnable := (Servant => S, Req => Req, others => <>);
+      A : aliased Abortable'Class :=
+            Make_Abortable (Get_Thread_Factory, R'Unchecked_Access);
+   begin
+      Req.Upcall_Abortable := A'Unchecked_Access;
+      A.Run;
+      Req.Upcall_Abortable_Mutex.Enter;
+      Req.Upcall_Abortable := null;
+      Req.Upcall_Abortable_Mutex.Leave;
+
+      --  Generate Executed_Request if completed normally or aborted
+
+      return Req.Completed or R.Aborted;
+   end Abortable_Execute_Servant;
+
+   ------------------------
+   -- Execute_In_Context --
+   ------------------------
+
+   function Execute_In_Context
+     (Self      : access Executor;
+      Req       : Requests.Request_Access;
+      Requestor : Components.Component_Access) return Boolean
+   is
+      use PolyORB.Servants;
+      pragma Unreferenced (Self);
+   begin
+      return Abortable_Execute_Servant (Servant_Access (Requestor), Req);
+   end Execute_In_Context;
 
    ----------------
    -- Notepad_Of --
@@ -70,10 +129,30 @@ package body PolyORB.Servants is
 
    begin
       if Msg in Execute_Request then
-         return Handle_Request_Execution
-           (S.Exec,
-            Msg,
-            PolyORB.Components.Component_Access (S));
+         declare
+            Req : constant Requests.Request_Access :=
+                    Execute_Request (Msg).Req;
+         begin
+            if Execute_In_Context
+              (S.Exec, Req, PolyORB.Components.Component_Access (S))
+            then
+               return Executed_Request'(Req => Req);
+            else
+               return Components.Null_Message'(null record);
+            end if;
+         end;
+
+      elsif Msg in Abort_Request then
+         declare
+            Req : constant Requests.Request_Access := Abort_Request (Msg).Req;
+         begin
+            Req.Upcall_Abortable_Mutex.Enter;
+            if Req.Upcall_Abortable /= null then
+               Req.Upcall_Abortable.Abort_Run;
+            end if;
+            Req.Upcall_Abortable_Mutex.Leave;
+         end;
+         return Components.Null_Message'(null record);
 
       else
          raise Program_Error;

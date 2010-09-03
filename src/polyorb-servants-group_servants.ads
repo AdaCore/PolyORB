@@ -156,9 +156,9 @@ private
       Msg  : Components.Message'Class) return Components.Message'Class;
    --  Function used to intercept Unmarshall_Arguments message
 
-   function Execute_Servant
+   overriding function Execute_Servant
      (Self : not null access Group_Servant;
-      Msg  : Components.Message'Class) return Components.Message'Class;
+      Req  : Requests.Request_Access) return Boolean;
    --  Dispatch request to targets
 
    procedure Register

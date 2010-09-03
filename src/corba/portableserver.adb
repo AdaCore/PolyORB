@@ -42,7 +42,7 @@ with PolyORB.Errors;
 with PolyORB.Exceptions;
 with PolyORB.Initialization;
 with PolyORB.Log;
-with PolyORB.Servants.Iface;
+with PolyORB.Servants;
 with PolyORB.Tasking.Threads.Annotations;
 with PolyORB.Utils.Chained_Lists;
 with PolyORB.Utils.Strings;
@@ -116,100 +116,84 @@ package body PortableServer is
 
    function Execute_Servant
      (Self : not null access DynamicImplementation;
-      Msg  : PolyORB.Components.Message'Class)
-     return PolyORB.Components.Message'Class
+      Req  : PolyORB.Requests.Request_Access) return Boolean
    is
-      use PolyORB.Servants.Iface;
+      use CORBA.ServerRequest;
+      use PolyORB.Annotations;
+      use PolyORB.Binding_Data;
+      use PolyORB.Errors;
+      use PolyORB.Requests;
+      use PolyORB.Tasking.Threads.Annotations;
+
+      R         : constant Request_Access := Req;
+      P         : constant Profile_Access := Req.Profile;
+      Error     : Error_Container;
 
    begin
       pragma Debug (C, O ("Execute_Servant: enter"));
 
-      if Msg in Execute_Request then
+      if PortableServer_Current_Registered then
          declare
-            use CORBA.ServerRequest;
-            use PolyORB.Annotations;
-            use PolyORB.Binding_Data;
-            use PolyORB.Errors;
-            use PolyORB.Requests;
-            use PolyORB.Tasking.Threads.Annotations;
-
-            R         : constant Request_Access := Execute_Request (Msg).Req;
-            P         : constant Profile_Access := Execute_Request (Msg).Pro;
-            Error     : Error_Container;
+            Notepad   : constant Notepad_Access := Get_Current_Thread_Notepad;
+            Save_Note : PortableServer_Current_Note;
+            Note      : constant PortableServer_Current_Note :=
+                          (PolyORB.Annotations.Note with Request => R,
+                           Profile                               => P);
 
          begin
-            if PortableServer_Current_Registered then
-               declare
-                  Notepad   : constant Notepad_Access
-                    := Get_Current_Thread_Notepad;
-                  Save_Note : PortableServer_Current_Note;
-                  Note      : constant PortableServer_Current_Note
-                    := (PolyORB.Annotations.Note with Request => R,
-                        Profile => P);
+            --  Save POA Current note
 
-               begin
-                  --  Save POA Current note
+            Get_Note (Notepad.all, Save_Note,
+                      Null_PortableServer_Current_Note);
 
-                  Get_Note (Notepad.all, Save_Note,
-                            Null_PortableServer_Current_Note);
+            --  Set new POA Current note
 
-                  --  Set new POA Current note
+            Set_Note (Notepad.all, Note);
 
-                  Set_Note (Notepad.all, Note);
+            --  Process invocation
 
-                  --  Process invocation
+            PolyORB.CORBA_P.Interceptors_Hooks.Server_Invoke
+              (DynamicImplementation'Class (Self.all)'Access, R, P);
 
-                  PolyORB.CORBA_P.Interceptors_Hooks.Server_Invoke
-                    (DynamicImplementation'Class (Self.all)'Access, R, P);
+            --  Restore original POA Current note
 
-                  --  Restore original POA Current note
-
-                  Set_Note (Notepad.all, Save_Note);
-               end;
-
-            else
-               --  Process invocation
-
-               PolyORB.CORBA_P.Interceptors_Hooks.Server_Invoke
-                 (DynamicImplementation'Class (Self.all)'Access, R, P);
-            end if;
-
-            --  Implementation Note: As part of PortableInterceptors
-            --  specifications, an interception point may raise an exception
-            --  before Arguments is called. An exception may also have been
-            --  raised by Arguments itself, in which case Arguments_Called is
-            --  True and the R.Exception_Info Any is non-empty. We set out
-            --  arguments only if no exception was raised.
-
-            --  Note: At this point the stack frame of the skel has been exited
-            --  and the shadow any's for IN mode arguments now have dangling
-            --  content pointers. In particular this means that any call to
-            --  Image (R.Out_Args) is likely to fail on such arguments.
-
-            if R.Arguments_Called
-                 and then
-               PolyORB.Any.Is_Empty (R.Exception_Info)
-            then
-               pragma Debug
-                 (C, O ("Execute_Servant: executed, setting out args"));
-               Set_Out_Args (R, Error);
-
-               if Found (Error) then
-                  raise Program_Error;
-                  --  XXX We should do something if we find a PolyORB exception
-
-               end if;
-            end if;
-
-            pragma Debug (C, O ("Execute_Servant: leave"));
-            return Executed_Request'(Req => R);
+            Set_Note (Notepad.all, Save_Note);
          end;
 
       else
-         pragma Debug (C, O ("Execute_Servant: bad message, leave"));
-         raise Program_Error;
+         --  Process invocation
 
+         PolyORB.CORBA_P.Interceptors_Hooks.Server_Invoke
+           (DynamicImplementation'Class (Self.all)'Access, R, P);
       end if;
+
+      --  Implementation Note: As part of PortableInterceptors specifications,
+      --  an interception point may raise an exception before Arguments is
+      --  called. An exception may also have been raised by Arguments itself,
+      --  in which case Arguments_Called is True and the R.Exception_Info Any
+      --  is non-empty. We set out arguments only if no exception was raised.
+
+      --  Note: At this point the stack frame of the skel has been exited and
+      --  the shadow any's for IN mode arguments now have dangling content
+      --  pointers. In particular this means that any call to Image
+      --  (R.Out_Args) is likely to fail on such arguments.
+
+      if R.Arguments_Called
+        and then
+          PolyORB.Any.Is_Empty (R.Exception_Info)
+      then
+         pragma Debug
+           (C, O ("Execute_Servant: executed, setting out args"));
+         Set_Out_Args (R, Error);
+
+         if Found (Error) then
+            raise Program_Error;
+            --  XXX We should do something if we find a PolyORB exception
+         end if;
+      end if;
+
+      pragma Debug (C, O ("Execute_Servant: leave"));
+      return True;
    end Execute_Servant;
 
    ------------
@@ -223,11 +207,11 @@ package body PortableServer is
       use type Internals.Request_Dispatcher;
 
       P_Servant : constant PolyORB.Servants.Servant_Access :=
-        CORBA.Impl.To_PolyORB_Servant
-        (CORBA.Impl.Object (Servant (Self).all)'Access);
+                    CORBA.Impl.To_PolyORB_Servant
+                      (CORBA.Impl.Object (Servant (Self).all)'Access);
 
-      Notepad : constant PolyORB.Annotations.Notepad_Access
-        := PolyORB.Servants.Notepad_Of (P_Servant);
+      Notepad : constant PolyORB.Annotations.Notepad_Access :=
+                  PolyORB.Servants.Notepad_Of (P_Servant);
 
       Dispatcher : Dispatcher_Note;
 
@@ -240,7 +224,7 @@ package body PortableServer is
         (Notepad.all, Dispatcher, Null_Dispatcher_Note);
 
       if Dispatcher.Skeleton = null then
-         pragma Debug (C, O ("Cacheing information about skeleton"));
+         pragma Debug (C, O ("Caching information about skeleton"));
 
          Dispatcher.Skeleton := Find_Info (Servant (Self)).Dispatcher;
          PolyORB.Annotations.Set_Note (Notepad.all, Dispatcher);

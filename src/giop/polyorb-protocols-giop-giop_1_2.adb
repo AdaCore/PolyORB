@@ -46,7 +46,6 @@ with PolyORB.Log;
 with PolyORB.Obj_Adapters;
 with PolyORB.Obj_Adapters.Group_Object_Adapter;
 with PolyORB.Opaque;
-with PolyORB.ORB.Iface;
 with PolyORB.Parameters;
 with PolyORB.Protocols.GIOP.Common;
 pragma Elaborate_All (PolyORB.Protocols.GIOP.Common);
@@ -116,6 +115,10 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
      (Addressing_Disposition, Types.Unsigned_Short, Marshall);
 
    --  Helpers
+
+   -----------------------------
+   -- Marshall_Locate_Request --
+   -----------------------------
 
    procedure Marshall_Locate_Request
      (Buffer     : Buffer_Access;
@@ -242,6 +245,13 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
 
             Process_Request (Sess'Access);
 
+         when Cancel_Request =>
+            if Sess.Role /= Server then
+               raise Bidirectionnal_GIOP_Not_Implemented;
+            end if;
+            Common_Process_Cancel_Request
+              (Sess'Access, Request_Id => Unmarshall (Sess.Buffer_In));
+
          when Reply =>
             if Sess.Role /= Client then
                raise Bidirectionnal_GIOP_Not_Implemented;
@@ -273,8 +283,6 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
             if Sess.Role /= Server then
                raise Bidirectionnal_GIOP_Not_Implemented;
             end if;
-
-            Cancel_Pending_Request (Sess'Access);
             Expect_GIOP_Header (Sess'Access);
 
          when Fragment =>
@@ -421,8 +429,6 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
          when Message_Error =>
             raise GIOP_Error;
 
-         when others =>
-            raise Program_Error;
       end case;
    end Process_Message;
 
@@ -439,7 +445,6 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
       use PolyORB.Binding_Data.Local;
       use PolyORB.Obj_Adapters;
       use PolyORB.ORB;
-      use PolyORB.ORB.Iface;
       use PolyORB.QoS.Addressing_Modes;
       use PolyORB.References;
 
@@ -448,7 +453,6 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
       SCtx  : GIOP_Session_Context_1_2
                 renames GIOP_Session_Context_1_2 (S.SCtx.all);
 
-      ORB              : constant ORB_Access := ORB_Access (S.Server);
       Sync             : Sync_Scope;
       Target_Addr      : Target_Address_Access;
       Operation        : Types.String;
@@ -508,7 +512,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
                                  Target_Addr.Object_Key.all)));
 
             Args := Get_Empty_Arg_List
-              (Object_Adapter (ORB),
+              (Object_Adapter (ORB_Access (S.Server)),
                Target_Addr.Object_Key,
                To_Standard_String (Operation));
 
@@ -620,15 +624,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
          end if;
       end if;
 
-      Set_Note
-        (Req.Notepad,
-         Request_Note'(Annotations.Note with Id => MCtx.Request_Id));
-
-      Queue_Request_To_Handler (ORB,
-        Queue_Request'
-          (Request   => Req,
-           Requestor => Component_Access (S)));
-
+      Queue_Request (S, Req, MCtx.Request_Id);
       Free (Target_Addr);
       pragma Debug (C, O ("Request queued."));
    end Process_Request;
@@ -1371,11 +1367,11 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
       end if;
    end Negotiate_Code_Set_And_Update_Session;
 
-   ---------------------------
-   -- Process_Abort_Request --
-   ---------------------------
+   -------------------------
+   -- Send_Cancel_Request --
+   -------------------------
 
-   procedure Process_Abort_Request
+   procedure Send_Cancel_Request
      (Implem : access GIOP_Implem_1_2;
       S      : access Session'Class;
       R      : Request_Access)
@@ -1396,12 +1392,12 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
 
       MCtx.Fragmented := False;
       MCtx.Message_Type := Cancel_Request;
-      Common_Process_Abort_Request (Sess'Access, R, MCtx'Access, Error);
+      Common_Send_Cancel_Request (Sess'Access, R, MCtx'Access, Error);
       if Found (Error) then
          Catch (Error);
          raise GIOP_Error;
       end if;
-   end Process_Abort_Request;
+   end Send_Cancel_Request;
 
    ---------------------------------
    -- Unmarshalling / Marshalling --

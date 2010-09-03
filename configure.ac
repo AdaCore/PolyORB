@@ -531,29 +531,6 @@ DEFPROTOCOLDATA=""
 AC_SUBST(DEFPROTOCOLDATA)
 AC_SUBST(DEFPROTOCOLNAME)
 
-#
-# Check whether we remove support for RPC abortion
-#
-AC_ARG_ENABLE(rpc-abortion,
-AS_HELP_STRING([--enable-rpc-abortion], [Enable RPC abortion even when not supported]),
-[SUPPORT_RPC_ABORTION="True"],
-[SUPPORT_RPC_ABORTION="Default"])
-AM_SUPPORT_RPC_ABORTION
-AC_MSG_CHECKING(whether we support RPC abortion)
-if test "$SUPPORT_RPC_ABORTION" = "True"; then
-  AC_MSG_RESULT([true])
-else
-  AC_MSG_RESULT([false])
-fi
-AC_SUBST(SUPPORT_RPC_ABORTION)
-
-#
-# Check for exception model
-#
-AC_MSG_CHECKING(for exception model to use)
-AC_MSG_RESULT($EXCEPTION_MODEL)
-AC_SUBST(GNAT_RTS_FLAG)
-
 ##########################################
 # XML/Ada
 ##########################################
