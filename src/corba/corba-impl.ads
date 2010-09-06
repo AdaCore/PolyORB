@@ -79,7 +79,7 @@ private
      new PolyORB.Servants.Servant with null record;
    --  The CORBA personality is based on the Portable Object Adapter.
 
-   overriding function Execute_Servant
+   function Execute_Servant
      (Self : not null access Implementation;
       Req  : PolyORB.Requests.Request_Access) return Boolean;
 
