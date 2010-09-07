@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -145,6 +145,7 @@ package body Frontend.Nutils is
      (E : Node_Id; N : Node_Id; L : List_Id; Success : out Boolean) is
       Entity : Node_Id;
    begin
+      Success := True;
       Entity := First_Entity (L);
       if Entity = N then
          Set_Next_Entity (E, Entity);
