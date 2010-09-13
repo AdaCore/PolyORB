@@ -3,7 +3,7 @@
 """test utils
 
 This module is imported by all testcase. It parse the command lines options
-and provide some usefull functions.
+and provide some useful functions.
 
 You should never call this module directly. To run a single testcase, use
  ./testsuite.py NAME_OF_TESTCASE
