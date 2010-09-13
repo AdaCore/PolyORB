@@ -413,7 +413,8 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
            (Sess'Access,
             Request,
             MCtx'Access,
-            Error);
+            Error,
+            Recovery => True);
 
          if Found (Error) then
             Catch (Error);

@@ -78,8 +78,20 @@ package PolyORB.Protocols.GIOP.Common is
      (Sess           : access GIOP_Session;
       Request        : Requests.Request_Access;
       MCtx           : access GIOP_Message_Context'Class;
-      Error          : in out Errors.Error_Container);
-   --  XXX documentation required!!!
+      Error          : in out Errors.Error_Container;
+      Recovery       : Boolean := False);
+   --  Part of processing for sending a result or exception reply that is
+   --  shared across all GIOP versions.
+   --  For each completed request, this is initially called with Recovery set
+   --  False. If an error occurs, a second call is made with Recovery set True.
+   --  In the first case, the request is expected to be marked pending on the
+   --  Session (if not, it means we have received a cancel request, and we
+   --  do not attempt to send a reply). In that case, the request is removed
+   --  from the pending list. In the second case, the check is not made, and
+   --  a reply is always sent (on the basis that an error occurred during the
+   --  first attempt, which means that at that time the request was indeed
+   --  pending, otherwise Common_Send_Reply would have returned immediately
+   --  with no error).
 
    type Locate_Reply_Type is
      (Unknown_Object,

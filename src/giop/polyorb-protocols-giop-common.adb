@@ -150,7 +150,8 @@ package body PolyORB.Protocols.GIOP.Common is
      (Sess           : access GIOP_Session;
       Request        :        Requests.Request_Access;
       MCtx           : access GIOP_Message_Context'Class;
-      Error          : in out Errors.Error_Container)
+      Error          : in out Errors.Error_Container;
+      Recovery       : Boolean := False)
    is
       use PolyORB.Annotations;
       use PolyORB.Any;
@@ -181,10 +182,13 @@ package body PolyORB.Protocols.GIOP.Common is
       --  Remove request from list of pending server-side (abortable) requests
 
       Sess.Remove_Pending_Request (Request_Id, Success);
-      if not Success then
+      if not Success and then not Recovery then
 
-         --  A missing request means the client cancelled it: nothing to do
-         --  (discard reply).
+         --  A missing request upon first attempt means the client cancelled
+         --  it: nothing to do (discard reply). On second attempt (Recovery
+         --  case), however, the request is always missing from the pending
+         --  list because it has been found, and removed, during the first
+         --  attempt.
 
          return;
       end if;
