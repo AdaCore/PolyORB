@@ -88,11 +88,11 @@ Options:
             Output all the flags (compiler and linker) required
             to compile your program.
         [--prefix[=DIR]]
-            Output the directory in which PolyORB architecture-independent 
-           files are installed, or set this directory to DIR.
+            Output the directory in which PolyORB architecture-independent
+            files are installed, or set this directory to DIR.
         [--exec-prefix[=DIR]]
-            Output the directory in which PolyORB architecture-dependent 
-           files are installed, or set this directory to DIR.
+            Output the directory in which PolyORB architecture-dependent
+            files are installed, or set this directory to DIR.
         [--version|-v]
             Output the version of PolyORB.
         [--config]
@@ -135,7 +135,7 @@ while test $# -gt 0; do
       fi
       ;;
     --prefix)
-      echo_prefix=true      
+      echo_prefix=true
       ;;
     --exec-prefix=*)
       exec_prefix=$optarg
@@ -156,7 +156,7 @@ Personalities built :
 * SSL support               : @HAVE_SSL@
 EOF
       exit 0
-      ;;  
+      ;;
     --libs)
       echo_libs=true
       ;;
@@ -212,33 +212,37 @@ for P in $appli; do
    if [ "x@HAVE_SSL@" = "xyes" ]; then
      polyorb_lib="$polyorb_lib -lpolyorb-corba-security -lpolyorb-corba-security-gssup"
    fi
- fi 
+ fi
 
  if [ "x$P" = "xaws" ]
  then
    polyorb_lib="$polyorb_lib -lpolyorb-web_common"
    require_xmlada=true
- fi 
+ fi
 done
 
 for P in $proto; do
  polyorb_lib="$polyorb_lib -lpolyorb-${P}"
 
- if [ "x$P" = "xgiop" ]
- then
-   polyorb_lib="$polyorb_lib -lpolyorb-giop-diop -lpolyorb-giop-iiop -lpolyorb-giop-miop"  
+ case "$P" in
+  giop)
+   polyorb_lib="$polyorb_lib -lpolyorb-giop-diop -lpolyorb-giop-iiop -lpolyorb-giop-miop"
    if [ "x@HAVE_SSL@" = "xyes" ]
    then
      polyorb_lib="$polyorb_lib -lpolyorb-giop-iiop-ssliop"
      polyorb_lib="$polyorb_lib -lpolyorb-giop-iiop-security -lpolyorb-giop-iiop-security-tls"
    fi
- fi
+   ;;
 
- if [ "x$P" = "xsoap" ]
- then
+  soap)
    polyorb_lib="$polyorb_lib -lpolyorb-web_common"
    require_xmlada=true
- fi
+   ;;
+
+  dns)
+   polyorb_lib="$polyorb_lib -lpolyorb-dns-udns -lpolyorb-dns-mdns"
+   ;;
+ esac
 done
 
 if [ "x@HAVE_SSL@" = "xyes" ]
