@@ -1493,14 +1493,12 @@ package body XE_Front is
 
    procedure Show_Configuration is
    begin
-      Write_Str (" ------------------------------");
+      Write_Line (" ------------------------------");
+      Write_Line (" ---- Configuration report ----");
+      Write_Line (" ------------------------------");
       Write_Eol;
-      Write_Str (" ---- Configuration report ----");
-      Write_Eol;
-      Write_Str (" ------------------------------");
-      Write_Eol;
-      Write_Str ("Configuration :");
-      Write_Eol;
+
+      Write_Line ("Configuration :");
 
       Write_Field (1, "Name");
       Write_Name  (Configuration);
@@ -1552,14 +1550,13 @@ package body XE_Front is
             Write_Eol;
          end;
       end if;
-      Write_Eol;
 
       for P in Partitions.First + 1 .. Partitions.Last loop
+         Write_Eol;
          Show_Partition (P);
       end loop;
 
-      Write_Str (" -------------------------------");
-      Write_Eol;
+      Write_Line (" -------------------------------");
       if Channels.First + 1 <= Channels.Last then
          Write_Eol;
          declare
@@ -1587,8 +1584,7 @@ package body XE_Front is
                Write_Eol;
             end loop;
          end;
-         Write_Str (" -------------------------------");
-         Write_Eol;
+         Write_Line (" -------------------------------");
       end if;
    end Show_Configuration;
 
@@ -1788,7 +1784,6 @@ package body XE_Front is
             Write_Line (")");
             U := Conf_Units.Table (U).Next_Unit;
          end loop;
-         Write_Eol;
       end if;
 
       if Partitions.Table (P).First_Env_Var /= No_Env_Var_Id then
@@ -1801,7 +1796,6 @@ package body XE_Front is
             Write_Line ("""");
             V := Env_Vars.Table (V).Next_Env_Var;
          end loop;
-         Write_Eol;
       end if;
    end Show_Partition;
 
