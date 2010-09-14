@@ -36,6 +36,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with Ada.Exceptions;
 
 with CORBA.Forward;
@@ -287,7 +289,7 @@ private
    type DynamicImplementation is
      abstract new CORBA.Impl.Object with null record;
 
-   function Execute_Servant
+   overriding function Execute_Servant
      (Self : not null access DynamicImplementation;
       Req  : PolyORB.Requests.Request_Access) return Boolean;
 

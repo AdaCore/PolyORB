@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
@@ -78,7 +78,7 @@ private
    type Current_Object is new CORBA.Local.Object with null record;
 
    function Is_A
-     (Obj             : access Current_Object;
+     (Obj             : not null access Current_Object;
       Logical_Type_Id : Standard.String) return Boolean;
 
 end PortableServer.Current;

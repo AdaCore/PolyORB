@@ -36,6 +36,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with PolyORB.Requests;
 with PolyORB.Servants;
 with PolyORB.Smart_Pointers;
@@ -79,7 +81,7 @@ private
      new PolyORB.Servants.Servant with null record;
    --  The CORBA personality is based on the Portable Object Adapter.
 
-   function Execute_Servant
+   overriding function Execute_Servant
      (Self : not null access Implementation;
       Req  : PolyORB.Requests.Request_Access) return Boolean;
 
