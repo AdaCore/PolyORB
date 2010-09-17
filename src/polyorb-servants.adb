@@ -65,11 +65,16 @@ package body PolyORB.Servants is
       use PolyORB.Tasking.Threads;
 
       R : aliased Req_Runnable := (Servant => S, Req => Req, others => <>);
+
+      pragma Warnings (Off); --  WAG:FSF-4.5.0
+      --  Hide warning "A is not referenced"
       A : aliased Abortable'Class :=
             Make_Abortable (Get_Thread_Factory, R'Unchecked_Access);
+
    begin
       Req.Upcall_Abortable := A'Unchecked_Access;
       A.Run;
+      pragma Warnings (On);
       Req.Upcall_Abortable_Mutex.Enter;
       Req.Upcall_Abortable := null;
       Req.Upcall_Abortable_Mutex.Leave;
