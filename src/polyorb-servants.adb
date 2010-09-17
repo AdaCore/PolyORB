@@ -70,11 +70,11 @@ package body PolyORB.Servants is
       --  Hide warning "A is not referenced"
       A : aliased Abortable'Class :=
             Make_Abortable (Get_Thread_Factory, R'Unchecked_Access);
+      pragma Warnings (On);
 
    begin
       Req.Upcall_Abortable := A'Unchecked_Access;
       A.Run;
-      pragma Warnings (On);
       Req.Upcall_Abortable_Mutex.Enter;
       Req.Upcall_Abortable := null;
       Req.Upcall_Abortable_Mutex.Leave;
