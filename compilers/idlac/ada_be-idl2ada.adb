@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -2500,7 +2500,8 @@ package body Ada_Be.Idl2Ada is
                          & ", PolyORB.Requests.Flags (0));");
 
                      PL (CU, "PolyORB.CORBA_P.Exceptions."
-                         & "Request_Raise_Occurrence (" & T_Request & ");");
+                         & "Request_Raise_Occurrence (" & T_Request
+                         & ".all);");
 
                      PL (CU, "PolyORB.Requests.Destroy_Request ("
                          & T_Request & ");");
