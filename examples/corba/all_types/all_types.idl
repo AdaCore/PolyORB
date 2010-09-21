@@ -141,7 +141,7 @@ interface all_types {
   // Any
   // ---
 
-  Any echoAny (in Any arg);
+  any echoAny (in any arg);
 
   // Attributes
   // ----------
