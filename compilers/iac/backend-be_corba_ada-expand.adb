@@ -1644,7 +1644,6 @@ package body Backend.BE_CORBA_Ada.Expand is
          raise Program_Error with "Bad container";
       end if;
 
-      pragma Warnings (Off);
       FEU.Insert_Before_Node (E, Before, Definitions);
    end Insert_Definition;
 
