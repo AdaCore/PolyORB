@@ -41,6 +41,10 @@ See the features-27 file.
 Bug fixes
 ---------
 
+The iac compiler failed to check the rule that requires IDL keywords to have
+the correct case (for example, "any" is correct, but "ANY" is wrong).
+(J921-012)
+
 The iac compiler generated illegal Ada for helpers in the case of an
 enum type called 'Result'. (J701-270)
 

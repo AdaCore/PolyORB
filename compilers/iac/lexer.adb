@@ -1111,6 +1111,22 @@ package body Lexer is
 
       if not Escaped then
          Token := To_Token (Token_Name);
+
+         --  Check that the case of keywords is correct.
+         --  IDL Syntax and semantics, CORBA V2.3 § 3.2.4
+         --
+         --  keywords must be written exactly as in the above list. Identifiers
+         --  that collide with keywords (...) are illegal.
+
+         if Fatal and then
+           Token in Keyword_Type and then
+           Token_Name /= Token_Image (Token)
+         then
+            Error_Loc (1) := Token_Location;
+            Error_Name (1) := Token_Image (Token);
+            DE ("incorrect case; # expected");
+         end if;
+
          if Token = T_Error then
             Token := T_Identifier;
          elsif Token = T_True then
