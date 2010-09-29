@@ -588,11 +588,11 @@ soap_enabled=`echo ${PROTO_LIST} | ${AWK} '/soap/ {print "yes"}'`
 
 if test x"$soap_enabled" = xyes -a x"$has_xmlada" != xyes
 then
-   AC_MSG_ERROR("Protocol personality SOAP requires XmlAda")
+   AC_MSG_ERROR("Protocol personality SOAP requires XML/Ada")
 fi
 
 ##########################################
-# Update Xml/Ada configuration flags
+# Update XML/Ada configuration flags
 # iff SOAP is built
 ##########################################
 
