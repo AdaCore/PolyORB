@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -54,9 +54,9 @@ package body PolyORB.GIOP_P.Tagged_Components is
      renames L.Enabled;
 
    type Bind_Tag is record
-      Tag  : Tag_Value;
+      Tag                 : Tag_Value;
       New_Empty_Component : New_Empty_Component_Func_Access;
-      Fetch_Component : Fetch_Component_Func_Access;
+      Fetch_Component     : Fetch_Component_Func_Access;
    end record;
 
    Binding_List : array (1 .. 10) of Bind_Tag;
@@ -187,9 +187,9 @@ package body PolyORB.GIOP_P.Tagged_Components is
       --  Register tag
 
       Binding_List (Bind_Index)
-        := Bind_Tag'(Tag => Tag,
+        := Bind_Tag'(Tag                 => Tag,
                      New_Empty_Component => New_Empty_Component,
-                     Fetch_Component => Fetch_Component);
+                     Fetch_Component     => Fetch_Component);
    end Register;
 
    -------------------------------
