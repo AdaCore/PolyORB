@@ -27,8 +27,22 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-* PolyORB 2.7
+* PolyORB 2.8
 =============
+
+This release contains the PolyORB generic middleware, and its CORBA
+and DSA instantiations. In addition to the 2.7 release, it includes:
+
+New features
+------------
+
+See the features-28 file.
+
+Bug fixes
+---------
+
+* PolyORB 2.7 (branched on 2010-10-01)
+======================================
 
 This release contains the PolyORB generic middleware, and its CORBA
 and DSA instantiations. In addition to the 2.6 release, it includes:
