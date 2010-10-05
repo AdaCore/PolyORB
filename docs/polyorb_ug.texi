@@ -921,13 +921,6 @@ Solaris (all versions):
 be set to that tr(1) is /usr/bin/tr, /use/xpg4/bin/tr or GNU tr.
 
 @noindent
-Solaris 2.8:
-
-/usr/bin/sed and /usr/ucb/sed will silently chop long
-lines, and /usr/xpg4/bin/sed will enter an endless loop while
-processing PolyORB files. GNU sed is required to configure and build PolyORB.
-
-@noindent
 Tru64 5.1A:
 
 The default maximal data segment size may not be sufficient to compile
