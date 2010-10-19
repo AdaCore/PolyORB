@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -35,7 +35,6 @@
 
 with PolyORB.Any;
 with PolyORB.Any.NVList;
-with PolyORB.Components;
 with PolyORB.Errors;
 with PolyORB.Objects;
 with PolyORB.Servants;
@@ -134,13 +133,7 @@ private
       PolyORB.Utils.HFunctions.Hyper.Next_Hash_Parameters);
    use Perfect_Htable;
 
-   type Simple_Executor is new Servants.Executor with null record;
-
-   function Handle_Request_Execution
-     (Self      : access Simple_Executor;
-      Msg       : PolyORB.Components.Message'Class;
-      Requestor : PolyORB.Components.Component_Access)
-     return PolyORB.Components.Message'Class;
+   subtype Simple_Executor is Servants.Executor;
 
    type Group_Object_Adapter is new Obj_Adapter with record
       Lock : PolyORB.Tasking.Mutexes.Mutex_Access;

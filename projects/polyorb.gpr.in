@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 P r o j                                  --
 --                                                                          --
---           Copyright (C) 2007, Free Software Foundation, Inc.             --
+--         Copyright (C) 2007-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,8 +31,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with "common", "src_setup";
-@NO_SSL@with "src_setup_security";
+with "polyorb_common", "polyorb_src_setup";
+@NO_SSL@with "polyorb_src_setup_security";
 @WITH_SERVICE_PRJS@
 
 project PolyORB is

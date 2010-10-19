@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1995-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -41,6 +41,7 @@ with XE_Front;    use XE_Front;
 with XE_IO;       use XE_IO;
 with XE_Names;    use XE_Names;
 with XE_Utils;    use XE_Utils;
+with XE_Storages; use XE_Storages;
 
 with XE_Back;
 pragma Elaborate_All (XE_Back);
@@ -51,6 +52,7 @@ package body XE_Back.GARLIC is
 
    procedure Set_PCS_Dist_Flags (Self : access GARLIC_Backend);
    procedure Initialize (Self : access GARLIC_Backend);
+   procedure Register_Storages (Self : access GARLIC_Backend);
    procedure Run_Backend (Self : access GARLIC_Backend);
    function Get_Detach_Flag (Self : access GARLIC_Backend) return Name_Id;
 
@@ -156,9 +158,6 @@ package body XE_Back.GARLIC is
    --  Add a protocol of name Name to the chained list which starts at
    --  First and ends at Last.
 
-   function Location_List_Image (Location : Location_Id) return Name_Id;
-   --  Explore linked list of locations to build its image
-
    procedure Generate_Elaboration_File (P : Partition_Id);
    --  Create the elaboration unit for the given partition. This unit
    --  overloads the default PCS settings.
@@ -167,19 +166,34 @@ package body XE_Back.GARLIC is
    --  Compile main partition file and elaboration file.
    --  Bind and link partition to create executable.
 
+   procedure Generate_PCS_Project_Files;
+
    procedure Generate_Partition_Main_File (P : Partition_Id);
    --  Create a procedure which "withes" all the RCI or SP receivers
    --  of the partition and insert the main procedure if needed.
 
-   procedure Generate_PCS_Project_Files;
+   procedure Generate_Overridden_PCS_Units_File
+     (P : Partition_Id;
+      F : out File_Descriptor);
+   --  Generate the initial list of PCS files that are overridden by the
+   --  partition. Further per-partition generation subprograms may append to
+   --  that list by writing further lines using the returned file descriptor.
 
-   procedure Generate_Protocol_Config_File (P : Partition_Id);
-   --  Create protocol configuration file that includes the protocols
-   --  required in the GLADE configuration file for this partition.
+   procedure Generate_Protocol_Config_File
+     (P : Partition_Id;
+      F : File_Descriptor);
+   --  Create protocol configuration file that includes the protocols required
+   --  for this partition.
+   --  If the unit is generated, write its name to F to note that the
+   --  corresponding PCS source is overridden.
 
-   procedure Generate_Storage_Config_File (P : Partition_Id);
-   --  Create storage configuration file that includes the storages
-   --  required in the GLADE configuration file for this partition.
+   procedure Generate_Storage_Config_File
+     (P : Partition_Id;
+      F : File_Descriptor);
+   --  Create storage configuration file that includes the storages required
+   --  for this partition.
+   --  If the unit is generated, write its name to F to note that the
+   --  corresponding PCS source is overridden.
 
    function Name (U : Unit_Id) return Name_Id;
    --  Take a unit id and return its name removing unit suffix.
@@ -193,8 +207,7 @@ package body XE_Back.GARLIC is
                        (Check_For => DSA_Inc_Rel_Dir
                                       & Dir_Separator & "s-garlic.ads");
 
-   DSA_Inc_Dir : constant String :=
-                   GARLIC_Prefix & Dir_Separator & DSA_Inc_Rel_Dir;
+   DSA_Inc_Dir : constant String := GARLIC_Prefix & DSA_Inc_Rel_Dir;
 
    ------------------
    -- Add_Protocol --
@@ -268,7 +281,7 @@ package body XE_Back.GARLIC is
       Filename := Dir (Current.Partition_Dir, Filename);
       Create_File (File, Filename);
       Set_Output  (File);
-      Write_Line  ("pragma Warnings (Off);");
+      Write_Warnings_Pragmas;
 
       Write_With_Clause (RU (RU_System_Garlic_Filters), True);
       Write_With_Clause (RU (RU_System_Garlic_Heart), True);
@@ -278,7 +291,7 @@ package body XE_Back.GARLIC is
       Write_With_Clause (RU (RU_System_Garlic_Remote), True);
       Write_With_Clause (RU (RU_System_Garlic_Types), True);
 
-      if Current.Tasking = 'N' then
+      if Current.Tasking = No_Tasking then
          Write_With_Clause (RU (RU_System_Garlic_No_Tasking), False, True);
 
       else
@@ -412,11 +425,11 @@ package body XE_Back.GARLIC is
 
       --  Set tasking policy and with appropriate package
 
-      if Current.Tasking = 'N' then
+      if Current.Tasking = No_Tasking then
          Write_Call (RE (RE_Initialize_0));
          Write_Call (RE (RE_Set_Light_PCS), Id ("True"));
 
-      elsif Current.Tasking = 'U' then
+      elsif Current.Tasking = User_Tasking then
          Write_Call (RE (RE_Initialize_1));
          Write_Call (RE (RE_Set_Pure_Client), Id ("True"));
 
@@ -518,21 +531,18 @@ package body XE_Back.GARLIC is
    ------------------------------
 
    procedure Generate_Executable_File (P : Partition_Id) is
-      Current    : Partition_Type renames Partitions.Table (P);
-      Part_Dir   : Directory_Name_Type;
-      I_Part_Dir : String_Access;
-      Comp_Args  : String_List (1 .. 6);
-      Make_Args  : String_List (1 .. 8);
-      Sfile      : File_Name_Type;
-      Prj_Fname  : File_Name_Type;
+      Current       : Partition_Type renames Partitions.Table (P);
+      Executable    : File_Name_Type renames Current.Executable_File;
+      Partition_Dir : Directory_Name_Type renames Current.Partition_Dir;
+      I_Part_Dir    : String_Access;
+      Comp_Args     : String_List (1 .. 7);
+      Make_Args     : String_List (1 .. 11);
+      Sfile         : File_Name_Type;
+      Prj_Fname     : File_Name_Type;
 
    begin
-      Part_Dir   := Current.Partition_Dir;
-
-      Name_Len := 2;
-      Name_Buffer (1) := '-';
-      Name_Buffer (2) := 'I';
-      Get_Name_String_And_Append (Part_Dir);
+      Set_Str_To_Name_Buffer ("-I");
+      Get_Name_String_And_Append (Partition_Dir);
       I_Part_Dir := new String'(Name_Buffer (1 .. Name_Len));
 
       --  Give the priority to partition and stub directory against
@@ -543,28 +553,30 @@ package body XE_Back.GARLIC is
       Comp_Args (3) := A_Stub_Dir;
       Comp_Args (4) := I_Current_Dir;
       Comp_Args (5) := Project_File_Flag;
-      Prj_Fname     := Dir (Part_Dir, Part_Prj_File_Name);
+
+      Prj_Fname     := Dir (Partition_Dir, Part_Prj_File_Name);
       Comp_Args (6) := new String'(Get_Name_String (Prj_Fname));
+      Comp_Args (7) := new String'(Partition_Dir_Flag (P));
 
       --  Compile Garlic elaboration file
 
       Sfile := Elaboration_File & ADB_Suffix_Id;
-      Sfile := Dir (Part_Dir, Sfile);
+      Sfile := Dir (Partition_Dir, Sfile);
       Compile (Sfile, Comp_Args);
 
       --  Compile protocol configuration file if any
 
       Sfile := Protocol_Config_File & ADB_Suffix_Id;
-      if Is_Regular_File (Dir (Part_Dir, Sfile)) then
-         Sfile := Dir (Part_Dir, Sfile);
+      if Is_Regular_File (Dir (Partition_Dir, Sfile)) then
+         Sfile := Dir (Partition_Dir, Sfile);
          Compile (Sfile, Comp_Args);
       end if;
 
       --  Compile storage support configuration file if any
 
       Sfile := Storage_Config_File & ADB_Suffix_Id;
-      if Is_Regular_File (Dir (Part_Dir, Sfile)) then
-         Sfile := Dir (Part_Dir, Sfile);
+      if Is_Regular_File (Dir (Partition_Dir, Sfile)) then
+         Sfile := Dir (Partition_Dir, Sfile);
          Compile (Sfile, Comp_Args);
       end if;
 
@@ -580,8 +592,6 @@ package body XE_Back.GARLIC is
       Sfile := Partition_Main_File & ADB_Suffix_Id;
       Build (Sfile, Comp_Args, Fatal => False);
 
-      Free (Comp_Args (6));
-
       --  Now we just want to bind and link as the ALI files are now
       --  consistent.
 
@@ -593,13 +603,22 @@ package body XE_Back.GARLIC is
       Make_Args (6) := Link_Only_Flag;
 
       Make_Args (7) := Project_File_Flag;
-      Prj_Fname := Dir (Part_Dir, Part_Prj_File_Name);
+      Prj_Fname := Dir (Partition_Dir, Part_Prj_File_Name);
       Make_Args (8) := new String'(Get_Name_String (Prj_Fname));
+      Make_Args (9) := Comp_Args (7);
+
+      Make_Args (10) := Output_Flag;
+      Make_Args (11) :=
+        new String'(Get_Name_String (Strip_Directory (Executable)));
 
       Build (Sfile, Make_Args, Fatal => True);
 
+      Free (Comp_Args (6));
+      Free (Comp_Args (7));
+
       Free (Make_Args (2));
       Free (Make_Args (8));
+      Free (Make_Args (11));
    end Generate_Executable_File;
 
    ----------------------------------
@@ -639,11 +658,11 @@ package body XE_Back.GARLIC is
       Filename := Dir (Current.Partition_Dir, Filename);
       Create_File (File, Filename);
       Set_Output  (File);
-      Write_Line  ("pragma Warnings (Off);");
+      Write_Warnings_Pragmas;
 
       Write_With_Clause (RU (RU_System_Partition_Interface), True);
       Write_With_Clause (RU (RU_System_RPC));
-      if Current.Tasking /= 'N' then
+      if Current.Tasking /= No_Tasking then
          Write_With_Clause (RU (RU_System_RPC_Server));
       end if;
       Write_With_Clause (RU (RU_System_Garlic_Startup), False, True);
@@ -761,63 +780,87 @@ package body XE_Back.GARLIC is
       Set_Standard_Output;
    end Generate_Partition_Main_File;
 
+   ----------------------------------------
+   -- Generate_Overridden_PCS_Units_File --
+   ----------------------------------------
+
+   procedure Generate_Overridden_PCS_Units_File
+     (P : Partition_Id;
+      F : out File_Descriptor)
+   is
+      Partition_Dir : Directory_Name_Type;
+      Filename      : File_Name_Type;
+   begin
+      if P = No_Partition_Id then
+         Partition_Dir := Stub_Dir_Name;
+      else
+         Partition_Dir := Partitions.Table (P).Partition_Dir;
+      end if;
+      Filename := Dir (Partition_Dir, Overridden_PCS_Units);
+      Create_File (F, Filename);
+      Set_Output  (F);
+
+      --  Always overridden
+
+      Write_Line  ("s-garela.adb");
+
+      if User_Provided_S_RPC then
+         --  User has provided an alternative version of s-rpc: remove the
+         --  one from GARLIC from the project.
+
+         Write_Line ("s-rpc.adb");
+      end if;
+
+      Set_Standard_Output;
+   end Generate_Overridden_PCS_Units_File;
+
    --------------------------------
    -- Generate_PCS_Project_Files --
    --------------------------------
 
    procedure Generate_PCS_Project_Files is
-      Prj_Fname  : File_Name_Type;
-      Prj_File   : File_Descriptor;
+      Prj_Fname : File_Name_Type;
+      File      : File_Descriptor;
    begin
       --  Use GARLIC sources, but remove files that need to be overridden
       --  per-partition.
 
       Prj_Fname := Dir (Id (Root), PCS_Project_File);
-      Create_File (Prj_File, Prj_Fname);
-      Set_Output (Prj_File);
+      Create_File (File, Prj_Fname);
+      Set_Output (File);
       Write_Str  ("project ");
       Write_Name (PCS_Project);
 
       Write_Line (" is");
       Write_Line ("   for Externally_Built use ""true"";");
       Write_Line ("   for Source_Dirs use (""" & DSA_Inc_Dir & """);");
-      Write_Line ("   for Locally_Removed_Files use");
-
-      --  Overridden
-
-      Write_Str  ("     (""");
-      Write_Name (Elaboration_File);
-      Write_Line (".adb"",");
-
-      Write_Str  ("      """);
-      Write_Name (Protocol_Config_File);
-      Write_Line (".adb"",");
-
-      Write_Str  ("      """);
-      Write_Name (Storage_Config_File);
-      Write_Str  (".adb""");
-
-      if User_Provided_S_RPC then
-         --  User has provided an alternative version of s-rpc: remove the
-         --  one from GARLIC from the project.
-
-         Write_Line (",");
-         Write_Str  ("      ""s-rpc.adb""");
-      end if;
-
-      Write_Line (");");
+      Write_Str  ("   Partition_Dir := external (""PARTITION_DIR"", """);
+      Write_Name (Stub_Dir_Name);
+      Write_Line (""");");
+      Write_Str  ("   for Excluded_Source_List_File use"
+                  & " Partition_Dir & """ & Dir_Separator);
+      Write_Name (Overridden_PCS_Units);
+      Write_Line (""";");
       Write_Str  ("end ");
       Write_Name (PCS_Project);
       Write_Line (";");
-      Close (Prj_File);
+      Close (File);
       Set_Standard_Output;
+
+      --  Generate default exclusion list for RCI calling stubs
+
+      Generate_Overridden_PCS_Units_File (No_Partition_Id, File);
+      Close (File);
    end Generate_PCS_Project_Files;
 
    -----------------------------------
    -- Generate_Protocol_Config_File --
    -----------------------------------
 
-   procedure Generate_Protocol_Config_File (P : Partition_Id) is
+   procedure Generate_Protocol_Config_File
+     (P : Partition_Id;
+      F : File_Descriptor)
+   is
       Filename  : File_Name_Type;
       File      : File_Descriptor;
       Current   : Partition_Type renames Partitions.Table (P);
@@ -831,7 +874,7 @@ package body XE_Back.GARLIC is
       Filename := Dir (Current.Partition_Dir, Protocol_Config_File);
       Location := Current.First_Network_Loc;
 
-      Light_PCS := Current.Tasking = 'N'
+      Light_PCS := Current.Tasking = No_Tasking
         and then Current.Light_PCS /= BFalse;
 
       --  Having no protocol configured on this partition is not
@@ -850,11 +893,19 @@ package body XE_Back.GARLIC is
       end if;
 
       Filename := Filename & ADB_Suffix_Id;
+
+      --  Record that this PCS source file is overridden
+
+      Set_Output (F);
+      Write_Name (Protocol_Config_File);
+      Write_Name (ADB_Suffix_Id);
+      Write_Eol;
+
       Create_File (File, Filename);
       Set_Output  (File);
-      Write_Line  ("pragma Warnings (Off);");
+      Write_Warnings_Pragmas;
 
-      --  Withed location protocols
+      --  Required location protocols
 
       while Location /= No_Location_Id loop
          Add_Protocol (First_Loc, Last_Loc, Locations.Table (Location).Major);
@@ -879,7 +930,7 @@ package body XE_Back.GARLIC is
          Major := Capitalize (Locations.Table (Location).Major);
          Major := RU (RU_System_Garlic_Protocols) and Major;
          Write_With_Clause (Major, False, True);
-         if Current.Tasking /= 'N' then
+         if Current.Tasking /= No_Tasking then
             Major := Major and "Server";
             Write_With_Clause (Major, False, True);
          end if;
@@ -924,7 +975,10 @@ package body XE_Back.GARLIC is
    -- Generate_Storage_Config_File --
    ----------------------------------
 
-   procedure Generate_Storage_Config_File (P : Partition_Id) is
+   procedure Generate_Storage_Config_File
+     (P : Partition_Id;
+      F : File_Descriptor)
+   is
       Filename    : File_Name_Type;
       File        : File_Descriptor := Invalid_FD;
       Current     : Partition_Type renames Partitions.Table (P);
@@ -935,6 +989,31 @@ package body XE_Back.GARLIC is
       Use_Default : Boolean := False;
       Conf_Unit   : Conf_Unit_Id;
       Unit        : Unit_Id;
+
+      procedure Setup_Output;
+      --  Open output file and record it as an overridden PCS unit, if not
+      --  already done.
+
+      ------------------
+      -- Setup_Output --
+      ------------------
+
+      procedure Setup_Output is
+      begin
+         if File = Invalid_FD then
+
+            --  Record that this PCS source file is overridden
+
+            Set_Output (F);
+            Write_Name (Storage_Config_File);
+            Write_Name (ADB_Suffix_Id);
+            Write_Eol;
+
+            Create_File (File, Filename);
+            Set_Output  (File);
+            Write_Warnings_Pragmas;
+         end if;
+      end Setup_Output;
 
    begin
       Filename := Dir (Current.Partition_Dir, Storage_Config_File);
@@ -951,11 +1030,7 @@ package body XE_Back.GARLIC is
          Unit  := ALIs.Table (Get_ALI_Id (Uname)).Last_Unit;
 
          if Units.Table (Unit).Shared_Passive then
-            if File = Invalid_FD then
-               Create_File (File, Filename);
-               Set_Output  (File);
-               Write_Line  ("pragma Warnings (Off);");
-            end if;
+            Setup_Output;
 
             Partition := Get_Partition_Id (Uname);
             Location  := Partitions.Table (Partition).Storage_Loc;
@@ -979,11 +1054,7 @@ package body XE_Back.GARLIC is
          Unit := Conf_Units.Table (Conf_Unit).My_Unit;
 
          if Units.Table (Unit).Shared_Passive then
-            if File = Invalid_FD then
-               Create_File (File, Filename);
-               Set_Output  (File);
-               Write_Line  ("pragma Warnings (Off);");
-            end if;
+            Setup_Output;
 
             Location := Current.Storage_Loc;
             if Location /= No_Location_Id then
@@ -1168,31 +1239,6 @@ package body XE_Back.GARLIC is
       Generate_Application_Project_Files;
    end Initialize;
 
-   -------------------------
-   -- Location_List_Image --
-   -------------------------
-
-   function Location_List_Image
-     (Location : Location_Id)
-     return Name_Id
-   is
-      L : Location_Id := Location;
-
-   begin
-      Name_Len := 0;
-      loop
-         Get_Name_String_And_Append (Locations.Table (L).Major);
-         if Present (Locations.Table (L).Minor) then
-            Add_Str_To_Name_Buffer ("://");
-            Get_Name_String_And_Append (Locations.Table (L).Minor);
-         end if;
-         L := Locations.Table (L).Next_Location;
-         exit when L = No_Location_Id;
-         Add_Char_To_Name_Buffer (' ');
-      end loop;
-      return Quote (Name_Find);
-   end Location_List_Image;
-
    ----------
    -- Name --
    ----------
@@ -1202,44 +1248,94 @@ package body XE_Back.GARLIC is
       return Name (Units.Table (U).Uname);
    end Name;
 
+   -----------------------
+   -- Register_Storages --
+   -----------------------
+
+   procedure Register_Storages (Self : access GARLIC_Backend)
+   is
+      pragma Unreferenced (Self);
+   begin
+      Register_Storage
+        (Storage_Name     => "dfs",
+         Allow_Passive    => True,
+         Allow_Local_Term => True,
+         Need_Tasking     => False);
+      --  Registrer "dfs" storage support
+
+      Register_Storage
+        (Storage_Name     => "dsm",
+         Allow_Passive    => False,
+         Allow_Local_Term => False,
+         Need_Tasking     => True);
+      --  Registrer "dsm" storage support
+
+   end Register_Storages;
+
    -----------------
    -- Run_Backend --
    -----------------
 
    procedure Run_Backend (Self : access GARLIC_Backend)
    is
-      Current : Partition_Type;
-   begin
+      type Pass_Type is (Prepare, Build);
+      --  We iterate twice over all partitions: a Prepare pass where source
+      --  code and configuration files are produced, and then a Build pass
+      --  after stubs have been compiled.
 
-      Prepare_Directories;
+      procedure Iterate_Over_All_Partitions (Pass : Pass_Type);
+      --  Execute required processing for the given pass for all partitions
+      --  that need to be built.
 
-      Generate_All_Stubs_And_Skels;
+      procedure Iterate_Over_All_Partitions (Pass : Pass_Type) is
+         Current              : Partition_Type;
+         Overridden_PCS_Units : File_Descriptor;
+      begin
+         for J in Partitions.First + 1 .. Partitions.Last loop
+            if Partitions.Table (J).To_Build then
+               Current := Partitions.Table (J);
 
-      --  Create partition files and fill partition directories
+               if Current.To_Build and then Current.Passive /= BTrue then
+                  if Rebuild_Partition (J) then
+                     case Pass is
+                        when Prepare =>
+                           Generate_Partition_Main_File (J);
 
-      for J in Partitions.First + 1 .. Partitions.Last loop
-         if Partitions.Table (J).To_Build then
-            Current := Partitions.Table (J);
+                           --  Prepare overridden PCS units. This is required
+                           --  for building the receiver stubs, since they
+                           --  use the partition project file.
 
-            if Current.To_Build and then Current.Passive /= BTrue then
-               if Rebuild_Partition (J) then
-                  if not Quiet_Mode then
-                     Message ("building partition", Current.Name);
+                           Generate_Overridden_PCS_Units_File
+                             (J, Overridden_PCS_Units);
+                           Generate_Elaboration_File (J);
+                           Generate_Protocol_Config_File
+                             (J, Overridden_PCS_Units);
+                           Generate_Storage_Config_File
+                             (J, Overridden_PCS_Units);
+                           Close (Overridden_PCS_Units);
+
+                        when Build =>
+                           if not Quiet_Mode then
+                              Message ("building partition", Current.Name);
+                           end if;
+                           Generate_Executable_File (J);
+                           Generate_Stamp_File (J);
+                     end case;
                   end if;
 
-                  Generate_Partition_Main_File (J);
-                  Generate_Elaboration_File (J);
-                  Generate_Protocol_Config_File (J);
-                  Generate_Storage_Config_File (J);
-                  Generate_Executable_File (J);
-                  Generate_Stamp_File (J);
+               elsif Verbose_Mode and then Pass = Prepare then
+                  Message ("no need to expand", Current.Name);
                end if;
-
-            elsif Verbose_Mode then
-               Message ("no need to expand", Current.Name);
             end if;
-         end if;
-      end loop;
+         end loop;
+      end Iterate_Over_All_Partitions;
+
+   begin
+      Prepare_Directories;
+      Iterate_Over_All_Partitions (Pass => Prepare);
+
+      Generate_All_Stubs_And_Skels;
+      Iterate_Over_All_Partitions (Pass => Build);
 
       Generate_Starter_File (Backend_Access (Self));
    end Run_Backend;
@@ -1252,8 +1348,7 @@ package body XE_Back.GARLIC is
       pragma Unreferenced (Self);
    begin
       if not Is_Directory (DSA_Inc_Dir) then
-         Message ("GARLIC library not found");
-         raise Fatal_Error;
+         raise Fatal_Error with "GARLIC library not found";
       end if;
 
       Scan_Dist_Arg ("-aI" & DSA_Inc_Dir);

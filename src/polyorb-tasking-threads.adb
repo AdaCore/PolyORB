@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Unchecked_Deallocation;
-
 package body PolyORB.Tasking.Threads is
 
    My_Thread_Factory : Thread_Factory_Access;
@@ -40,12 +38,15 @@ package body PolyORB.Tasking.Threads is
 
    Initialised       : Boolean := False;
 
-   ----------
-   -- Free --
-   ----------
+   ---------------
+   -- Abort_Run --
+   ---------------
 
-   procedure Free is new Ada.Unchecked_Deallocation
-     (Runnable'Class, Runnable_Access);
+   procedure Abort_Run (AR : access Abortable) is
+   begin
+      --  By default abortion is not supported and this opeartion has no effect
+      null;
+   end Abort_Run;
 
    -----------------
    -- Awake_Count --
@@ -60,13 +61,11 @@ package body PolyORB.Tasking.Threads is
    -- Create_Task --
    -----------------
 
-   procedure Create_Task
-     (Main : Parameterless_Procedure)
-   is
-      T : constant Thread_Access
-        := Run_In_Task
-             (TF => My_Thread_Factory,
-              P  => Main);
+   procedure Create_Task (Main : Parameterless_Procedure) is
+      T : constant Thread_Access :=
+            Run_In_Task
+              (TF => My_Thread_Factory,
+               P  => Main);
       pragma Warnings (Off);
       pragma Unreferenced (T);
       pragma Warnings (On);
@@ -83,21 +82,6 @@ package body PolyORB.Tasking.Threads is
    begin
       return Get_Current_Thread_Id (My_Thread_Factory);
    end Current_Task;
-
-   -------------------
-   -- Free_Runnable --
-   -------------------
-
-   procedure Free_Runnable
-     (C : in out Runnable_Controller;
-      R : in out Runnable_Access)
-   is
-      pragma Warnings (Off);
-      pragma Unreferenced (C);
-      pragma Warnings (On);
-   begin
-      Free (R);
-   end Free_Runnable;
 
    ------------------------
    -- Get_Thread_Factory --
@@ -129,6 +113,19 @@ package body PolyORB.Tasking.Threads is
    begin
       return Independent_Count (My_Thread_Factory);
    end Independent_Count;
+
+   --------------------
+   -- Make_Abortable --
+   --------------------
+
+   function Make_Abortable
+     (TF : access Thread_Factory_Type;
+      R  : Runnable_Access) return Abortable'Class
+   is
+      pragma Unreferenced (TF);
+   begin
+      return Abortable'(R => R);
+   end Make_Abortable;
 
    -----------------------------
    -- Register_Thread_Factory --
@@ -163,6 +160,15 @@ package body PolyORB.Tasking.Threads is
    begin
       return Thread_Id (System.Null_Address);
    end Null_Thread_Id;
+
+   ---------
+   -- Run --
+   ---------
+
+   procedure Run (AR : access Abortable) is
+   begin
+      Run (AR.R);
+   end Run;
 
    ----------------
    -- To_Address --

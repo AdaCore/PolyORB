@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2006-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2006-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -110,8 +110,7 @@ package body PolyORB.QoS.Term_Manager_Info is
 
             --  Extract the QoS parameter from the request
 
-            QoS_Acc := Extract_Request_Parameter
-              (DSA_TM_Info, Request_Access (R));
+            QoS_Acc := Extract_Request_Parameter (DSA_TM_Info, R.all);
 
             --  Store the reference in the requestor BO's notepad
 
@@ -136,7 +135,7 @@ package body PolyORB.QoS.Term_Manager_Info is
 
       declare
          TMInfo : QoS_DSA_TM_Info_Parameter
-         renames QoS_DSA_TM_Info_Parameter (QoS.all);
+                    renames QoS_DSA_TM_Info_Parameter (QoS.all);
          Buffer : Buffer_Access := new Buffer_Type;
 
       begin

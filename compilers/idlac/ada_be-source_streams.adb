@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -42,6 +42,7 @@ pragma Elaborate_All (Ada_Be.Debug);
 
 with Output;
 with Platform;
+with Utils;
 
 package body Ada_Be.Source_Streams is
 
@@ -678,15 +679,14 @@ package body Ada_Be.Source_Streams is
    --------------------------
 
    function Set_Output_Directory (Dir : String) return Boolean is
-      Sep : Character renames GNAT.Directory_Operations.Dir_Separator;
    begin
       if not GNAT.OS_Lib.Is_Directory (Dir) then
          return False;
       end if;
 
       Output_Directory := To_Unbounded_String (Dir);
-      if Dir (Dir'Last) /= Sep then
-         Append (Output_Directory, Sep);
+      if not Utils.Is_Dir_Separator (Dir (Dir'Last)) then
+         Append (Output_Directory, GNAT.Directory_Operations.Dir_Separator);
       end if;
       return True;
    end Set_Output_Directory;

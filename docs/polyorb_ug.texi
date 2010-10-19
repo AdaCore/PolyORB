@@ -55,12 +55,16 @@
 @c
 @c oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
-@c $Id: //droopi/main/docs/polyorb_ug.texi#25 $
+@c $Id$
 
-@include version.texi
+@include svn.texi
 
 @setfilename polyorb_ug.info
 @settitle PolyORB User's Guide
+
+@set COPYRIGHT Copyright @copyright{} 2003-2010, Free Software Foundation
+@set AUTHORS1 Robert Duff, J@'er@^ome Hugues, Laurent Pautet,
+@set AUTHORS2 Thomas Quinot, Samuel Tardieu
 
 @setchapternewpage odd
 @syncodeindex fn cp
@@ -70,15 +74,17 @@
 @titlepage
 
 @title PolyORB User's Guide
-@subtitle Version @value{EDITION}
-@subtitle Date: @value{UPDATED}
-@author Robert Duff, J@'er@^ome Hugues, Laurent Pautet,
-@author Thomas Quinot, Samuel Tardieu
+@include polyorb_version.texi
+@subtitle Version @value{POLYORB_VERSION}
+@svndate $Date$ 
+@subtitle @value{SVNDate}
+@author @value{AUTHORS1}
+@author @value{AUTHORS2}
 
 @page
 @vskip 0pt plus 1filll
 
-Copyright @copyright{} 2003-2008, Free Software Foundation
+@value{COPYRIGHT}
 
 @noindent
 Permission is granted to copy, distribute and/or modify this document
@@ -103,9 +109,15 @@ entitled ``GNU Free Documentation License''.
 
 PolyORB User's Guide
 
-J@'er@^ome Hugues, Laurent Pautet, Thomas Quinot, Samuel Tardieu
+@include polyorb_version.texi
+Version @value{POLYORB_VERSION}
 
-Copyright @copyright{} 2003-2008, Free Software Foundation
+$Date$
+
+@value{AUTHORS1}
+@value{AUTHORS2}
+
+@value{COPYRIGHT}
 
 @noindent
 Permission is granted to copy, distribute and/or modify this document
@@ -181,7 +193,7 @@ Configuration
 * Compile-time configuration::
 * Run-time configuration::
 * Setting up protocol personalities::
-* Activating debug information::
+* Activating debugging traces::
 * Tracing exceptions::
 * polyorb.gpr::
 * polyorb-config::
@@ -435,19 +447,20 @@ its complexity, but it is clear that most of it can be automatically
 generated. Message passing diverts developer's attention from the
 application domain. The query and reply scenario is a classical scheme
 in distributed applications; using message passing for such a scheme
-can be compared to using a ``goto'' mechanism in a non-distributed
+can be compared to only using the ``goto'' mechanism in a non-distributed
 application.  This is considered unacceptable methodology in modern software
-engineering. A more robust design is be to use a
-structured approach based on procedure calls.
+engineering. A cleaner and more structured approach consists in using
+subprograms.
 
-In some respects, network programming can be compared to the
-multi-threading programming issue. The user can decide to split his code
-into several pieces and to multiplex the thread executions himself, using a
-table-driven model. The scheduling code ends up embedded into the user
+In some respects, network programming can be compared to parallel programming.
+The user can decide to split his code
+into several pieces and to multiplex the execution of threads himself, using
+a table-driven model. The scheduling code ends up embedded in the user
 code. This solution is error-prone and fragile in regard to any future
-modification. Relying on an implementation of threads such as provided in
-POSIX is a better solution. Relying on language primitives that support
-concurrency, such as Ada tasks, is best.
+modification. Relying on an implementation of threads such as provided in a
+POSIX operating environment is a better solution. Relying on language
+primitives that support concurrency, such as Ada tasks, is best, as the
+underlying parallelism support is thus entirely abstracted.
 
 @node Using a Middleware Environment, Using a Distributed Language, Using OS Network Services, Introduction to distributed systems
 @subsection Using a Middleware Environment
@@ -481,10 +494,10 @@ aware of their underlying message-passing implementation. In addition. the user
 may also require a number of more complex services to develop his
 distributed application. Some of these services are indispensable, for example
 a location service that allows clients to reference remote services via
-higher level names, instead of a traditional scheme for addressing remote
-services that use Internet host addresses and communication port
-numbers. Other services provide domain-independent interfaces that are
-frequently used by distributed applications.
+high level names (as opposed to a low level addressing scheme involving
+transport-specific endpoint addresses such as IP addresses and port numbers).
+Other services provide domain-independent interfaces that are frequently
+used by distributed applications.
 
 If we return to the multi-threaded programming comparison, the
 middleware solution is close to what a POSIX library or a language like
@@ -683,11 +696,13 @@ GNAT and the @code{GNAT.Sockets} package are available.}
 @c -------------------------------------------------------------------
 
 @noindent
+GNU tar is required to unpack PolyORB source packages.
+
 Ada compiler:
 @itemize @bullet
-@item GNAT Pro 5.04a1 or later
-@item GNAT GPL 2006  or later
-@item FSF GCC 4.2 or later
+@item GNAT Pro 6.0 or later
+@item GNAT GPL 2007 or later
+@item FSF GCC 4.3 or later
 @end itemize
 
 For builds for cross targets, both a native and a cross compiler are
@@ -809,6 +824,12 @@ Available options for the 'configure' script include:
       e.g.   @option{--with-proto-perso="giop soap"} to build both the GIOP
              and SOAP personalities
 
+@item  @option{--with-idl-compiler="..."}: select IDL compiler
+
+       Available IDL compilers: iac (default), idlac
+
+       e.g.  @option{--with-idl-compiler=''iac''} to build iac
+
 @item  @option{--with-corba-services="..."}: CORBA COS services to build
 
       Available services: event, ir, naming, notification, time
@@ -894,21 +915,10 @@ or newer, automake 1.6.3 or newer, and libtool 1.5.8 or newer.
 @c -------------------------------------------------------------------
 
 @noindent
-Solaris 2.8:
+Solaris (all versions):
 
-@itemize @bullet
-
-@item /usr/bin/sed and /usr/ucb/sed will silently chop long
-    lines, and /usr/xpg4/bin/sed will enter an endless loop while
-    processing PolyORB files.
-    GNU sed is required to configure and build PolyORB.
-
-@item /usr/ucb/tr does not handle control character escape sequences: it
-    cannot be used to recompute dependencies ('make depend');
-    /usr/bin/tr or /usr/xpg4/bin/tr must be used.
-
-
-@end itemize
+/usr/ucb/tr is not suitable to build PolyORB. Your PATH must
+be set to that tr(1) is /usr/bin/tr, /use/xpg4/bin/tr or GNU tr.
 
 @noindent
 Tru64 5.1A:
@@ -925,6 +935,8 @@ AIX 5.2:
 
 PolyORB must be compiled with the -mminimal-toc compiler switch. This is
 taken care of automatically by the PolyORB configure script.
+
+The 'ulimit' command may be needed as for Tru64 (see above).
 
 @noindent
 HP-UX 11.00:
@@ -1103,7 +1115,7 @@ communication protocol for Web Services.
 * Compile-time configuration::
 * Run-time configuration::
 * Setting up protocol personalities::
-* Activating debug information::
+* Activating debugging traces::
 * Tracing exceptions::
 * polyorb.gpr::
 * polyorb-config::
@@ -1190,8 +1202,15 @@ one of them in your application node to activate the corresponding
 setup.
 
 @itemize @bullet
-@item @code{PolyORB.Setup.Client}: a client node, without tasking
+@item @code{PolyORB.Setup.No_Tasking_Client}: a client node, without any
+tasking support, configured to use all protocol personalities built with
+PolyORB. Note that this configuration should not be used with multiple
+application tasks.
+
+@item @code{PolyORB.Setup.Thread_Pool_Client}: a client node, with tasking
 enabled, configured to use all protocol personalities built with PolyORB.
+This configuration places no restriction on the use of tasking by
+application code. Middleware tasking policy is @code{Thread_Pool}.
 
 @item @code{PolyORB.Setup.Ravenscar_TP_Server}: a server node, with tasking
 enabled, configured to use all protocol personalities built with
@@ -1431,17 +1450,17 @@ Each protocol supports a variety of configuration parameters, please
 refer to the protocols' sections for more details.
 
 @c -------------------------------------------------------------------
-@node Activating debug information
-@section Activating debug information
-@cindex Debug information
+@node Activating debugging traces
+@section Activating debugging traces
+@cindex Debugging traces
 @c -------------------------------------------------------------------
 
 @noindent
 To activate the output of debug information, you must first configure
-and compile PolyORB with debug activated, see
-@command{--enable-debug} flag in @ref{Installation}.
+and compile PolyORB with debugging traces activated (which is the default,
+unless your build is configured with @command{--enable-debug-policy=ignore}).
 
-To output debug information on a selected package, create a
+To output debugging traces on a selected package, create a
 configuration file with a @code{[log]} section and the name of the
 packages for which you want debug information:
 
@@ -1451,10 +1470,20 @@ packages for which you want debug information:
 polyorb.a_package=debug
 @end smallexample
 
-@noindent
 Note that some packages may not provide such information. See the sample
 configuration file @file{src/polyorb.conf} for the complete list of
-packages that provide debug information.
+packages that provide traces.
+
+A default logging level may be specified using a line of the form
+@smallexample
+default=<level>
+@end smallexample
+
+Time stamps may optionally be prepended to every generated trace.
+This is enabled using:
+@smallexample
+timestamp=true
+@end smallexample
 
 @c -------------------------------------------------------------------
 @node Tracing exceptions
@@ -1463,13 +1492,8 @@ packages that provide debug information.
 @c -------------------------------------------------------------------
 
 @noindent
-To trace exception propagation in PolyORB's source code, it is
-necessary to:
-
-@enumerate
-@item compile PolyORB with debug activated,
-@item activate debug information on package @code{PolyORB.Exceptions}.
-@end enumerate
+To trace exception propagation in PolyORB's source code, activate debugging
+traces for package @code{PolyORB.Exceptions}.
 
 @c -------------------------------------------------------------------
 @node polyorb.gpr
@@ -1877,15 +1901,149 @@ To build the CORBA application personality, @pxref{Installation}.
 PolyORB provides two IDL-to-Ada compilers:
 
 @enumerate
+@item @command{iac} is the new, optimized PolyORB IDL-to-Ada compiler.
 @item @command{idlac} is the legacy PolyORB IDL-to-Ada compiler,
-@item @command{iac} is the new, optimized IDL-to-Ada compiler.
 @end enumerate
 
 @menu
-* Usage of idlac::
 * Usage of iac::
+* Usage of idlac::
 * Difference between idlac and iac::
 @end menu
+
+@c -------------------------------------------------------------------
+@node Usage of iac
+@subsection Usage of @command{iac}
+@cindex @command{iac}
+@c -------------------------------------------------------------------
+
+@noindent
+@command{iac} is PolyORB's new IDL-to-Ada compiler. It supports
+many command line parameters to control code generation optimizations
+such as use of static hashing for deterministic request dispatching,
+and optimized GIOP marshalling for CORBA applications.
+
+@smallexample
+
+@c XXX check consistency with corresponding man page
+
+NAME
+       iac - PolyORB's IDL-to-Ada compiler
+
+SYNOPSIS
+       iac [options] file [-cppargs args...]
+
+DESCRIPTION
+       iac is an IDL-to-Ada compiler, compliant with version 1.2 of the
+       ``Ada Language Mapping Specification'' produced by the OMG.
+
+OPTIONS
+       iac accepts the following options:
+
+@c The following needs to be kept in sync with the usage message printed
+@c by 'iac -h'.
+
+  -h       Print this help message, and do nothing else
+
+  file is the name of the .idl file (.idl suffix optional)
+
+  -E       Preprocess only
+  -k       Keep temporary files
+  -o DIR   Output directory (DIR must exist)
+  -p       Produce source on standard output
+  -q       Quiet mode
+
+  -dm      Generate debug messages when analyzing scopes
+
+  -df      Dump the frontend tree (the IDL tree)
+
+  -cppargs Pass arguments to the C++ preprocessor
+  -I <dir> Shortcut -cppargs -I directory. Use this flag
+           for the imported entities
+  -nocpp   Do not preprocess input
+
+  -gnatW8  Use UTF-8 character encoding in Ada output.
+           (Default is Latin-1.)
+
+  -<lang>  Generate code for one of the following languages:
+
+   types   Generate a list of all types present in the IDL file
+           -p       Print the list generated
+
+   ada     (default) Generate Ada source code
+           -i       Generate implementation packages
+           -c       Generate code for client side only
+           -s       Generate code for server side only
+           -d       Generate delegation package (defunct)
+           -ir      Generate code for interface repository
+           -noir    Do not generate code for interface repository (default)
+           -hc      Minimize CPU time in perfect hash tables in skels
+           -hm      Minimize memory use in perfect hash tables in skels
+                    This is the default.
+           -rs      Use the SII/SSI to handle requests
+           -rd      Use the DII/DSI to handle requests (default)
+           -da      Dump the Ada tree
+           -db      Generate only the package bodies
+           -ds      Generate only the package specs
+           -dw      Output the withed entities
+           -dt      Output tree warnings
+           -di      Generate code for imported entities
+
+   idl     Dump parsed IDL file
+           -b n     Base to output integer literals
+                    As a default (zero) use base from input
+           -e       Expand IDL Tree
+           -df      Dump IDL Tree (may be used in conjunction with -e
+                    to dump the expanded IDL tree)
+           -di      Output IDL code of imported entities  (may be
+                    used in conjunction with -e to output the
+                    expanded IDL code)
+
+EXIT STATUS
+       iac returns one of the following values upon exit:
+
+       0      Successful completion
+
+       1      Usage error
+
+       2      Illegal IDL specification
+
+@end smallexample
+
+@noindent
+@command{iac} creates several files :
+
+
+@itemize @bullet
+
+@item  @code{myinterface.ads}, @code{myinterface.adb} : these files contain
+  the mapping for user defined types (client and server side).
+
+@item @code{myinterface-impl.ads}, @code{myinterface-impl.adb} :
+  these files are to be filled in by the user. They contain the
+implementation of the server. They are generated only if the -i flag
+is specified.
+
+@item @code{myinterface.ads}, @code{myinterface.adb} : these files
+  contain the client stubs for the interface.
+
+@item @code{myinterface-skel.ads}, @code{myinterface-skel.adb} : these files
+  contain the server-side skeletons for the interface.
+
+@item @code{myinterface-helper.ads}, @code{myinterface-helper.adb} : these
+  files contain subprograms to marshal data into CORBA Any containers.
+
+@item @code{myinterface-ir_info.ads}, @code{myinterface-ir_info.adb} : these
+  files contain code for registering IDL definitions in the CORBA
+Interface Repository. They are generated only if the @code{'-ir'} flag
+is specified.
+
+@item @code{myinterface-cdr.ads}, @code{myinterface-cdr.adb} : these
+  files contain code for optimized CDR marshalling of GIOP
+messages. They are generated only if the @code{'-rs'} flag is
+specified.
+
+@end itemize
 
 @c -------------------------------------------------------------------
 @node Usage of idlac
@@ -1988,129 +2146,6 @@ EXIT STATUS
 @end itemize
 
 @c -------------------------------------------------------------------
-@node Usage of iac
-@subsection Usage of @command{iac}
-@cindex @command{iac}
-@c -------------------------------------------------------------------
-
-@noindent
-@command{iac} is PolyORB's new IDL-to-Ada compiler. It supports
-many command line parameters to control code generation optimizations
-such as use of static hashing for deterministic request dispatching,
-and optimized GIOP marshalling for CORBA applications.
-
-@smallexample
-
-@c XXX check consistency with corresponding man page
-
-NAME
-       iac - PolyORB's IDL-to-Ada compiler
-
-SYNOPSIS
-       iac [-Edikpqv] [-[no]ir] [-gnatW8] [-o DIR] idl_file [-cppargs ...]
-
-DESCRIPTION
-       iac is an IDL-to-Ada compiler, compliant with version 1.2 of the
-       ``Ada Language Mapping Specification'' produced by the OMG.
-
-OPTIONS
-       iac accepts the following options:
-
-  -E       Preprocess only
-  -k       Keep temporary files
-  -p       Produce source on standard output
-  -o DIR   Specify output directory (DIR must exist)
-
-  -dm      Generate debug messages when analyzing scopes
-
-  -df      Dump the frontend tree (the IDL tree)
-
-  -cppargs Pass arguments to the C++ preprocessor
-  -I <dir> Shortcut -cppargs -I directory. Use this flag
-           for the imported entities
-
-  -<lang>  Generate code for a supported language
-
-   types   Generate a list of all types present in the IDL file
-           -p       Print the list generate
-
-   ada     Generate Ada source code
-           -i       Generate implementation packages
-           -c       Generate code for client side only
-           -s       Generate code for server side only
-           -d       Generate delegation package (defunct)
-           -ir      Generate code for interface repository (defunct)
-           -noir    Do not generate code for interface repository (default)
-           -hc      Using perfect minimal hash tables in skeletons
-                    and minimize CPU time
-           -hm      Using perfect minimal hash tables in skeletons
-                    and minimize memory space
-           -rs      Use the SII/SSI to handle requests
-           -rd      Use the DII/DSI to handle requests (default)
-           -da      Dump the Ada tree
-           -db      Generate only the package bodies
-           -ds      Generate only the package specs
-           -dw      Output the withed entities
-           -dt      Output tree warnings
-           -di      Generate code for imported entities
-
-   idl     Dump parsed IDL file
-           -b n     Base to output integer literal
-                    As a default (zero) use base from input
-           -e       Expand IDL Tree
-           -df      Dump IDL Tree (may be used in conjunction with -e
-                    to dump the expanded IDL tree)
-           -di      Output IDL code of imported entities  (may be
-                    used in conjunction with -e to output the
-                    expanded IDL code)
-
-EXIT STATUS
-       iac returns one of the following values upon exit:
-
-       0      Successful completion
-
-       1      Usage error
-
-       2      Illegal IDL specification
-
-@end smallexample
-
-@noindent
-@command{iac} creates several files :
-
-
-@itemize @bullet
-
-@item  @code{myinterface.ads}, @code{myinterface.adb} : these files contain
-  the mapping for user defined types (client and server side).
-
-@item @code{myinterface-impl.ads}, @code{myinterface-impl.adb} :
-  these files are to be filled in by the user. They contain the
-implementation of the server. They are generated only if the -i flag
-is specified.
-
-@item @code{myinterface.ads}, @code{myinterface.adb} : these files
-  contain the client stubs for the interface.
-
-@item @code{myinterface-skel.ads}, @code{myinterface-skel.adb} : these files
-  contain the server-side skeletons for the interface.
-
-@item @code{myinterface-helper.ads}, @code{myinterface-helper.adb} : these
-  files contain subprograms to marshal data into CORBA Any containers.
-
-@item @code{myinterface-ir_info.ads}, @code{myinterface-ir_info.adb} : these
-  files contain code for registering IDL definitions in the CORBA
-Interface Repository. They are generated only if the @code{'-ir'} flag
-is specified.
-
-@item @code{myinterface-cdr.ads}, @code{myinterface-cdr.adb} : these
-  files contain code for optimized CDR marshalling of GIOP
-messages. They are generated only if the @code{'-rs'} flag is
-specified.
-
-@end itemize
-
-@c -------------------------------------------------------------------
 @node Difference between idlac and iac
 @subsection Difference between idlac and iac
 @c -------------------------------------------------------------------
@@ -2126,6 +2161,11 @@ lacks the following feature:
 @item generation of delegation files.
 @end enumerate
 @end itemize
+
+@command{iac} implements additional name clash resolution rules.
+When the name of an IDL operation clashes with a primitive operation
+of Ada.Finalization.Controlled (of which CORBA.Object.Ref is a derived
+type), it is prefixed with "IDL_" in generated sources.
 
 @c -------------------------------------------------------------------
 @node Resolving names in a CORBA application
@@ -4065,11 +4105,11 @@ application should be configured. It is up to the user to define what
 are the partitions in his program and on which machines they should be
 executed.
 
-The tool @t{gnatdist} and its configuration language
+The tool @t{po_gnatdist} and its configuration language
 allows the user to partition his program and to specify the
 machines on which the individual partitions are to execute.
 
-@t{gnatdist} reads a configuration file (whose syntax is described in
+@t{po_gnatdist} reads a configuration file (whose syntax is described in
 section @ref{The Configuration Language}) and builds several
 executables, one for each partition. It also takes care of launching the
 different partitions (default) with parameters that can be specific to
@@ -4093,7 +4133,7 @@ types packages.  Specify the main procedure of the distributed
 application (see @ref{Partition Attribute Main}).
 
 @item
-Type `gnatdist @i{<configuration-file>}'.
+Type `po_gnatdist @i{<configuration-file>}'.
 
 @item
 Start the distributed application by invoking the start-up shell script
@@ -4107,18 +4147,18 @@ Starter}).
 
 @smallexample
 
-gnatdist [switches] configuration-file [list-of-partitions]
+po_gnatdist [switches] configuration-file [list-of-partitions]
 
 @end smallexample
 
 @c We should add some explanations of the gnatdist specific flags
 @c -n, -M and on some particular mechanism (a spec without a body).
 
-The switches of @t{gnatdist} are, for the time being, exactly the same
+The switches of @t{po_gnatdist} are, for the time being, exactly the same
 as those of gnatmake, with the addition of @t{--PCS}, which allows the
 user to override the default selection of distribution runtime library
-(PCS). By default @t{gnatdist} outputs a configuration
-report and the actions performed. The switch -n allows @t{gnatdist} to
+(PCS). By default @t{po_gnatdist} outputs a configuration
+report and the actions performed. The switch -n allows @t{po_gnatdist} to
 skip the first stage of recompilation of the non-distributed
 application.
 
@@ -4128,13 +4168,13 @@ distributed application, as the user may want to use different
 distributed configurations depending on load and other characteristics
 of the computing environment.
 
-If a list of partitions is provided on the command line of the gnatdist
+If a list of partitions is provided on the command line of the po_gnatdist
 command, only these partitions will be built. In the following
 configuration example, the user can type :
 
 @smallexample
 
-gnatdist @i{<configuration> <partition_2> <partition_3>}
+po_gnatdist @i{<configuration> <partition_2> <partition_3>}
 
 @end smallexample
 
@@ -4154,6 +4194,7 @@ environment variables.
 * Location Declaration::
 * Partition Attribute Main::
 * Pragma Starter::
+* Pragma Name_Server::
 * Pragma Boot_Location::
 * Partition Attribute Self_Location::
 * Partition Attribute Passive::
@@ -4168,11 +4209,9 @@ environment variables.
 * Partition Attribute Environment_Variables::
 * Partition Attribute Termination::
 * Partition Attribute Reconnection::
-* Channel Declaration::
-* Partition and Channel Attribute Filter::
-* Pragma Registration_Filter::
 * Pragma Version::
 * Partition Attribute Task_Pool::
+* Partition Attribute ORB_Tasking_Policy::
 * A Complete Example::
 @end menu
 
@@ -4180,7 +4219,7 @@ environment variables.
 @subsubsection Language Keywords
 
 All the Ada keywords are reserved keywords of the configuration
-language. @t{gnatdist} generates full Ada code in order to build the
+language. @t{po_gnatdist} generates full Ada code in order to build the
 different executables. To avoid naming conflicts between Ada and the
 configuration language, all the Ada keywords have been reserved even if
 they are not used in the configuration language.
@@ -4192,9 +4231,6 @@ There are three new keywords:
 @item @i{configuration} to encapsulate a configuration
 
 @item @i{Partition} that is a predefined type to declare partitions
-
-@item @i{Channel} that is a predefined type to declare channels between
-partitions.
 
 @end itemize
 
@@ -4212,20 +4248,18 @@ PRAGMA ::=
 @end smallexample
 
 It is also possible to modify the default behavior of all the partitions
-(or channels) via an attribute definition clause applied to the
-predefined type @b{Partition} (or @b{Channel}).
+via an attribute definition clause applied to the predefined type
+@b{Partition}.
 
 @smallexample
 
 REPRESENTATION_CLAUSE ::=
    @b{for} Partition'ATTRIBUTE_NAME @b{use} ATTRIBUTE_ARGUMENTS;
- | @b{for} Channel'ATTRIBUTE_NAME @b{use} ATTRIBUTE_ARGUMENTS;
 
 @end smallexample
 
 It is also possible to modify the default behavior of a given partition
-(or channel) via an attribute definition clause applied to the partition
-(or channel) itself.
+via an attribute definition clause applied to the partition itself.
 
 @smallexample
 
@@ -4263,7 +4297,7 @@ CONFIGURATION_UNIT ::=
 @subsubsection Partition Declaration
 
 In the declarative part, the user declares his partitions and can change
-their default behavior. @t{gnatdist} provides a predefined type
+their default behavior. @t{po_gnatdist} provides a predefined type
 @b{Partition}. The user can declare a list of partitions and can also
 initialize these partitions with an initial list of Ada units.
 
@@ -4273,7 +4307,6 @@ DECLARATIVE_PART ::= @{DECLARATIVE_ITEM@}
 
 DECLARATIVE_ITEM ::=
    PARTITION_DECLARATION
- | CHANNEL_DECLARATION
  | REPRESENTATION_CLAUSE
  | SUBPROGRAM_DECLARATION
  | PRAGMA
@@ -4302,7 +4335,7 @@ Once declared, a partition is an empty list of Ada units. The operator
 @b{":="} adds the Ada units list on the right side to the current list
 of Ada units that are already mapped to the partition. This is a
 non-destructive operation. Whether a unit is a relevant Ada unit or not
-is checked later on by the back-end of @t{gnatdist}. These assignments
+is checked later on by the back-end of @t{po_gnatdist}. These assignments
 can occur in the declarative part as well as in the body part.
 
 @smallexample
@@ -4378,7 +4411,7 @@ approach has several advantages.
 
 In a non-distributed case, the user executes only one main executable
 possibly with a name corresponding to the main unit name of his
-application. With @t{gnatdist}, in a distributed case, a main executable
+application. With @t{po_gnatdist}, in a distributed case, a main executable
 with a name corresponding to the main unit name is responsible for
 starting the entire distributed application. Therefore, the user can
 start his application the same way he used to do in the non-distributed
@@ -4389,6 +4422,8 @@ the main procedure of the non-distributed application.
 
 @smallexample
 
+MAIN_PROCEDURE_IDENTIFIER ::=
+  ADA_UNIT
 MAIN_PROCEDURE_DECLARATION ::=
    @b{procedure} MAIN_PROCEDURE_IDENTIFIER @b{is in} PARTITION_IDENTIFIER;
 
@@ -4414,7 +4449,7 @@ REPRESENTATION_CLAUSE ::=
 
 @end smallexample
 
-@node Pragma Starter, Pragma Boot_Location, Partition Attribute Main, The Configuration Language
+@node Pragma Starter, Pragma Name_Server, Partition Attribute Main, The Configuration Language
 @subsubsection Pragma Starter
 
 As a default, the main executable is a full Ada starter procedure. That
@@ -4476,11 +4511,33 @@ The Command parameter indicates the name of the remote shell command
 name and the Options parameter corresponds to the additional flags to
 pass to the remote shell command.
 
-@node Pragma Boot_Location, Partition Attribute Self_Location, Pragma Starter, The Configuration Language
+@node Pragma Name_Server, Pragma Boot_Location, Pragma Starter, The Configuration Language
+@subsubsection Pragma Name_Server
+
+@smallexample
+
+NAME_SERVER_LITERAL ::= Embedded   |
+                       Standalone
+
+PRAGMA ::=
+   @b{pragma} Name_Server ([Name_Server_Kind =>] NAME_SERVER_LITERAL);
+
+@end smallexample
+
+By default, partitions in a PolyORB/DSA application rely on an external,
+stand-alone name server launched by the user, and whose location is retrieved
+from runtime configuration.
+
+A pragma Name_Server with parameter Embedded can be used to request the
+PCS to instead set up a name server within the main partition. If the
+Ada starter is used, the location of the name server is passed automatically
+to slave partitions.
+
+@node Pragma Boot_Location, Partition Attribute Self_Location, Pragma Name_Server, The Configuration Language
 @subsubsection Pragma Boot_Location
 
 When a partition starts executing, one of the first steps consists in a
-connection to the boot server.  This pragma provides one or more
+connection to the boot server. This pragma provides one or more
 locations in order to get a connection with the boot server.
 
 @smallexample
@@ -4546,7 +4603,7 @@ executable is the @i{tcp} protocol.
 @subsubsection Partition Attribute Passive
 
 By default, a partition is an active partition. This attribute allows to
-define a passive partition. In this case, @t{gnatdist} checks that only
+define a passive partition. In this case, @t{po_gnatdist} checks that only
 shared passive units are mapped on the partition. As this partition
 cannot register itself, its location is hard-coded in all the partitions
 that depend on its shared passive units.
@@ -4599,20 +4656,20 @@ change dynamically its location either.
 @node  Partition Attribute Allow_Light_PCS, Pragma Priority, Partition Attribute Data_Location, The Configuration Language
 @subsubsection Partition Attribute Allow_Light_PCS
 
-On some circumstances, @t{gnatdist} can detect that a partition does not need
+On some circumstances, @t{po_gnatdist} can detect that a partition does not need
 the full PCS functionalities. This occurs in particular when the
 partition does use any task, any RCI unit or any RACW object. Therefore,
 the partition does not receive any message that is not a reply to a
 previous request. In this case, the PCS does not drag in the tasking
 library and a light PCS is linked in the partition executable.
-This specific configuration is automatically determined by GNATDIST with
-the ALI file information.
+This specific configuration is automatically determined by
+@t{po_gnatdist} with the ALI file information.
 
 This optimization can be inappropriate especially when the user wants to
 use the "Distributed Shared Memory" storage support which runs Li and
 Hudak's algorithm. In this case, messages are exchanged without being
 replies to previously sent requests and the normal PCS should be linked
-instead of the light one. Note also that GNATDIST cannot know for sure
+instead of the light one. Note also that @t{po_gnatdist} cannot know for sure
 that the DSM storage support assigned at configuration time is used at
 run-time. The user can configure this optimization with the following
 attribute.
@@ -4717,10 +4774,10 @@ function is used as a partition Host attribute.
 
 @smallexample
 
-SUBPROGRAM_DECLARATION ::=
-     @b{procedure} MAIN_PROCEDURE_IDENTIFIER @b{is} @b{in} PARTITION_NAME;
-   | @b{procedure} PROCEDURE_IDENTIFIER;
-   | @b{function} FUNCTION_IDENTIFIER
+PROCEDURE_DECLARATION ::=
+     @b{procedure} PROCEDURE_IDENTIFIER;
+FUNCTION_DECLARATION ::=
+     @b{function} FUNCTION_IDENTIFIER
         (PARAMETER_IDENTIFIER : [@b{in}] String)
          @b{return} String;
 
@@ -4792,6 +4849,9 @@ the latter case, the list does not replace the default one but instead
 complements it (i.e. variables specified for @b{Partition} are passed
 in addition to the partition specific ones).
 
+Use of this features requires that remote nodes provide the POSIX env(1)
+command.
+
 @smallexample
 
 STRING_LITERAL_LIST ::=
@@ -4818,8 +4878,8 @@ periodically by the main boot server.
 @smallexample
 
 TERMINATION_LITERAL ::= Global_Termination |
-                         Local_Termination  |
-                         Deferred_Termination
+                        Local_Termination  |
+                        Deferred_Termination
 
 REPRESENTATION_CLAUSE ::=
    @b{for} PARTITION_IDENTIFIER'Termination @b{use} TERMINATION_LITERAL;
@@ -4839,8 +4899,7 @@ termination policy is the default policy.
 termination. The only difference is that when a partition with a
 deferred termination policy receives a termination request, it just
 ignores it. This policy allows a partition to run forever without
-preventing a set of partitions from terminating. This policy is not yet
-implemented.
+preventing a set of partitions from terminating.
 
 @item When a partition is configured with the local termination policy,
 it terminates as soon as the classical Ada termination is detected by
@@ -4912,14 +4971,6 @@ remote procedure calls to this partition are resumed.
 
 @end itemize
 
-@c @node Channel Declaration, Partition and Channel Attribute Filter, Partition Attribute Reconnection, The Configuration Language
-@c @subsubsection Channel Declaration
-
-@c @node Partition and Channel Attribute Filter, Pragma Registration_Filter, Channel Declaration, The Configuration Language
-@c @subsubsection Partition and Channel Attribute Filter
-
-@c GARLIC specific
-
 @node Pragma Version, Partition Attribute Task_Pool, Partition Attribute Reconnection, The Configuration Language
 @subsubsection Pragma Version
 
@@ -4935,7 +4986,7 @@ PRAGMA ::=
 
 @end smallexample
 
-@node Partition Attribute Task_Pool, A Complete Example, Pragma Version, The Configuration Language
+@node Partition Attribute Task_Pool, Partition Attribute ORB_Tasking_Policy, Pragma Version, The Configuration Language
 @subsubsection Partition Attribute Task_Pool
 
 When multiple remote subprogram calls occur on the same partition, they
@@ -4988,7 +5039,28 @@ configuration is declared as follows:
 
 @end smallexample
 
-@node A Complete Example,  , Partition Attribute Task_Pool, The Configuration Language
+@node Partition Attribute ORB_Tasking_Policy, A Complete Example, Partition Attribute Task_Pool, The Configuration Language
+@subsubsection Partition Attribute ORB_Tasking_Policy
+
+By default, the Thread_Pool ORB tasking policy is used for all partitions.
+This attribute allows selection of an alternate policy among those
+provided by PolyORB (see @ref{PolyORB ORB Tasking policies}) for
+each partition.
+
+@smallexample
+ORB_TASKING_POLICY_LITERAL ::= Thread_Pool        |
+                               Thread_Per_Session |
+                               Thread_Per_Request
+
+REPRESENTATION_CLAUSE ::=
+   @b{for} PARTITION_IDENTIFIER'ORB_Tasking_Policy @b{use} ORB_TASKING_POLICY_LITERAL;
+
+@end smallexample
+
+@i{Note: @ref{Partition Attribute Task_Pool} has no effect when another policy
+than Thread_Pool is activated.}
+
+@node A Complete Example,  , Partition Attribute ORB_Tasking_Policy, The Configuration Language
 @subsubsection A Complete Example
 
 Almost every keyword and construct defined in the configuration language
@@ -5004,16 +5076,16 @@ types:
 
 @smallexample
 
-gnatdist myconfig.cfg
+po_gnatdist myconfig.cfg
 
 @end smallexample
 
 If the user wants to build only some partitions then he will list the
-partitions to build on the @t{gnatdist} command line as follows:
+partitions to build on the @t{po_gnatdist} command line as follows:
 
 @smallexample
 
-gnatdist myconfig.cfg partition_2 partition_3
+po_gnatdist myconfig.cfg partition_2 partition_3
 
 @end smallexample
 
@@ -5029,7 +5101,7 @@ this example. If the line @i{procedure Master_Procedure is in
 Partition_1;} was missing, Partition 1 would be completely empty. This is
 forbidden, because a partition has to contain at least one library unit.
 
-@t{gnatdist} produces an executable with the name of @i{Master_Procedure}
+@t{po_gnatdist} produces an executable with the name of @i{Master_Procedure}
 which will start the various partitions on their host machines in the
 background. The main partition is launched in foreground. Note that by
 killing this main procedure the whole distributed application is terminated.
@@ -5102,41 +5174,15 @@ version of the declaration of an RCI library unit than the one included in
 the partition to which the RCI library unit was assigned. When the
 pragma Version is set to False, no consistency check is performed.
 
-@item @b{Line 335}
-Declare two channels. Other channels between partitions remain
-unknown.
-
-@item @b{Line 37}
-Use transparent compression / decompression for the arguments and
-results of any remote calls on channel @i{Channel_1}, i.e. between
-@i{Partition_1} and @i{Partition_4}.
-
-@item @b{Line 38}
-Use filter @i{My_Own_Filter} on any declared channel ie @i{Channel_1}
-amd @i{Channel_2}. As @i{Channel_1} filter attribute is already
-assigned, this applies only to @i{Channel_2}. This filter must be
-implemented in a package @i{System.Garlic.Filters.My_Own_Filter}.
-
-@item @b{Line 39}
-For all data exchanged between partitions, use the filter @i{ZIP}. (I.e.
-for both arriving remote calls as well as for calls made by a
-partition.)
-
-@item @b{Line 41}
-@i{Some_Filter} will be used to exchange a filter's parameters between
-two partitions. @i{Some_Filter} itself must be an algorithm that doesn't
-need its own parameters to be filtered again. This filter must be
-implemented in a package @i{System.Garlic.Filters.Some_Filter}.
-
-@item @b{Line 43}
+@item @b{Line 34}
 The configuration body is optional. The user may have fully described
 his configuration in the declaration part.
 
-@item @b{Line 44}
+@item @b{Line 35}
 Partition 2 contains two RCI packages RCI_B2 and RCI_B4 and a normal
 package. A normal package is not categorized.
 
-@item @b{Line 45}
+@item @b{Line 36}
 Partition 3 contains one RCI package RCI_B3
 
 @end enumerate
@@ -5195,7 +5241,7 @@ use to spawn remote programs.
 @node Gnatdist Internals, PolyORB PCS Internals, Partition Runtime Parameters, Building a DSA application with PolyORB
 @subsection Gnatdist Internals
 
-Here is what goes on in @t{gnatdist} when building a distributed application:
+Here is what goes on in @t{po_gnatdist} when building a distributed application:
 
 @itemize @bullet
 @item
@@ -5210,7 +5256,7 @@ partition running on machine B). Several timestamp checks are performed
 to avoid useless code recompilation and stub generation.
 
 @item
-@t{gnatdist} performs a number of consistency checks. For instance it checks
+@t{po_gnatdist} performs a number of consistency checks. For instance it checks
 that all packages marked as remote call interface (RCI) and shared
 passive (SP) are mapped onto partitions. It also checks that a RCI or SP
 package is mapped onto only one partition.
@@ -5244,7 +5290,6 @@ Some of these features are not configurable by the user.
 * Executing Concurrent Remote Calls::
 * Priority Inheritance::
 * Remote Call Abortion::
-* User Filter Implementation::
 @end menu
 
 @node Application Startup, Heterogeneous System, PolyORB PCS Internals, PolyORB PCS Internals
@@ -5252,9 +5297,10 @@ Some of these features are not configurable by the user.
 
 A name server needs to be started prior to starting any application
 partition. Once the name server is started, its location must be passed
-to all partitions as the @t{name_service} runtime parameter. When using
-an Ada starter, it is sufficient to pass the name server location to the
-starter, and it will be propagated automatically to all partitions.
+to all partitions as the @t{name_service} runtime parameter in the
+@t{[dsa]} section of the configuration. When using an Ada starter, it is
+sufficient to pass the name server location to the starter, and it will be
+propagated automatically to all partitions.
 
 Upon elaboration, each partition registers its RCI packages with the
 name server. Once this is done, remote calls to RCI subprograms can proceed.
@@ -5324,12 +5370,10 @@ Priority @ref{Partition Attribute Priority}.
 @node Remote Call Abortion, , Priority Inheritance, PolyORB PCS Internals
 @subsubsection Remote Call Abortion
 
-@c Is this implemented in PolyORB/DSA???
-
 When a remote procedure call is aborted, PolyORB will abort the calling
 task on the caller side. It will also try to abort the remote anonymous
-task performing the remote call. This task will be aborted without being
-requeued in the anonymous tasks pool.
+task performing the remote call, unless runtime parameter
+@code{abortable_rpcs} in section @code{[tasking]} is set False on the server.
 
 @c -------------------------------------------------------------------
 @node Running a DSA application
@@ -5339,8 +5383,8 @@ requeued in the anonymous tasks pool.
 By default @command{po_gnatdist} will use the Ada starter. So if you
 have not specified @code{pragma Starter (None);} in the
 @command{po_gnatdist} configuration file, you should have a starter in
-your build directory, named after your configuration file.  In this case
-you just have to run this program.
+your build directory, named after the main procedure defined in the
+configuration file.  In this case you just have to run this program.
 
 If you don't want to use the Starter and have specified @code{pragma
 Starter (None);} in your configuration file, then you should have, in
@@ -5349,11 +5393,28 @@ You'll have to start each of these programs manually.
 
 In both cases you must specify a name server for your application.
 You can use for example the one included in PolyORB:
-@file{po_cos_naming}.
+@file{po_cos_naming}. When running this name server it will output its
+IOR URI named @code{POLYORB_CORBA_NAME_SERVICE}.
 
 Just ensure that you set the global environment variable
 @code{POLYORB_DSA_NAME_SERVICE} to an IOR URI referencing the
-running name server.
+running name server. When using the @file{po_cos_naming} name server
+just set @code{POLYORB_DSA_NAME_SERVICE} environment variable to the
+first value output for @code{POLYORB_DSA_NAME_SERVICE} before
+launching each DSA partition.
+
+Here is a small trace output that demonstrates the setup
+
+@smallexample
+
+polyorb/examples/dsa/echo% ../../../tools/po_cos_naming/po_cos_naming&
+polyorb/examples/dsa/echo% POLYORB_CORBA_NAME_SERVICE=''....''
+
+polyorb/examples/dsa/echo% export POLYORB_DSA_NAME_SERVICE=''...''
+polyorb/examples/dsa/echo% ./client 
+The client has started!
+Thus spake my server upon me:Hi!
+@end smallexample
 
 @c -------------------------------------------------------------------
 @node MOMA
@@ -5862,7 +5923,7 @@ PolyORB supports the following list of code sets:
 
 @noindent
 Some ORBs report incompatiblity in code sets because fallback
-converters are not explicitely present in the reference.
+converters are not explicitly present in the reference.
 To work around this issue, you may use the following parameters:
 
 @smallexample
@@ -6237,7 +6298,7 @@ The OMG defines a CORBA-compliant ORB as an implementation of the CORBA
 specifications that supports CORBA Core and one mapping of CORBA's IDL.
 
 Here is a summary of PolyORB's conformance issues with the latest CORBA
-specifications (revision 3.0, formal/02-06-01)
+specifications (revision 3.0, formal/02-06-01).
 
 @menu
 * CORBA IDL-to-Ada mapping::
@@ -6341,7 +6402,7 @@ PolyORB supports this chapter with the following limitations:
 calls may not work;
 @item @code{Wait_For_Completion} and @code{Etherealize_Objects} are
 not taken into account in @code{PortableServer.POAManager};
-@item @code{PortableServer.POAManagerFactory} API is not implemented.
+@item the @code{PortableServer.POAManagerFactory} API is not implemented.
 @end itemize
 
 @end itemize
@@ -6418,7 +6479,7 @@ PolyORB provides no support for these chapters.
 @noindent
 COS Services are specifications of high level services that are
 optional extensions to the CORBA specification. They provide helper
-packages to build distributed applications.  PolyORB implement the
+packages to build distributed applications.  PolyORB implements the
 following COS Services:
 
 @c XXX should indicate version for each COS
@@ -6458,7 +6519,7 @@ on this point.
 
 @noindent
 RT-CORBA specifications rely on the CORBA application
-personality; the same issues and implementations notes apply.
+personality; the same issues and implementation notes apply.
 
 In addition, here is a list of issues with the implementation of
 RT-CORBA static @cite{[OMG02a]} and dynamic scheduling @cite{[OMG03]}

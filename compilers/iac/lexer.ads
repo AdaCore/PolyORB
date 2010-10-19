@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -251,7 +251,7 @@ pragma Elaborate_Body (Lexer);
    --  Return next token but do not update the lexer state that is
    --  Token, Token_Name and Token_Location.
 
-   procedure Unexpected_Token (T : Token_Type; C : String := "");
+   procedure Unexpected_Token (T : Token_Type; C : String);
    --  Output an error message to indicate that T is unexpected. If C
    --  is not a null string, the message also indicates in which
    --  construct it is not expected.
@@ -319,8 +319,7 @@ pragma Elaborate_Body (Lexer);
       Result : out GNAT.OS_Lib.File_Descriptor);
    --  Return a file descriptor of the preprocessed Source file
 
-   procedure Output
-     (Source : GNAT.OS_Lib.File_Descriptor);
+   procedure Output (Source : GNAT.OS_Lib.File_Descriptor);
    --  Output the preprocessed file Source
 
    procedure Process

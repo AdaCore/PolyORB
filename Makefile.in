@@ -13,7 +13,7 @@ default: all
 # first, although this make file mostly ignores the results of configure.
 
 # NOTE: You must set the ADA_PROJECT_PATH so that we can find xmlada.gpr.
-# See projects/src_soap.gpr.
+# See projects/polyorb_src_soap.gpr.
 
 # Interesting targets to use from the command line:
 #
@@ -24,14 +24,18 @@ default: all
 #
 # testsuite -- builds the examples and testsuite
 #
-# src_corba.gpr -- target to build src/corba (and similarly for all the *.gpr
-# files in the projects subdirectory). That is, there is a ".PHONY" target with
-# the same name as each project file, sans directory name.
+# run_tests -- runs the testsuite (presumes polyorb built)
+#
+# all-and-test -- builds everything needed, then runs the testsuite
+#
+# polyorb_src_corba.gpr -- target to build src/corba (and similarly for all
+# the *.gpr files in the projects subdirectory). That is, there is a ".PHONY"
+# target with the same name as each project file, sans directory name.
 #
 # libpolyorb-corba.a -- ".PHONY" target to build the library
 # lib/libpolyorb-corba.a (and similarly for all the other libraries).
-# Each of these depends on the .gpr target (e.g. lib/libpolyorb-corba.a
-# depends on src_corba.gpr).
+# Each of these depends on the *.gpr target (e.g. lib/libpolyorb-corba.a
+# depends on polyorb_src_corba.gpr).
 #
 # examples/corba/all_functions/build-test -- target to build a particular
 # example (and similarly for other subdirectories under examples).
@@ -82,10 +86,10 @@ EXTRA_GNATMAKE_FLAGS    = @EXTRA_GNATMAKE_FLAGS@
 # EXTRA_GNATMAKE_FLAGS are user-provided, empty by default (typically
 # used to specify a non-default --RTS switch).
 
-BASE_GNATMAKE_FLAGS	  := ${ADAFLAGS} ${PARALLEL_GNATMAKE_FLAGS} ${EXTRA_GNATMAKE_FLAGS}
+BASE_GNATMAKE_FLAGS	  :=--create-missing-dirs ${ADAFLAGS} ${PARALLEL_GNATMAKE_FLAGS} ${EXTRA_GNATMAKE_FLAGS}
 # Gnatmake flags for units built from project files
 
-COMP_TOOLS_GNATMAKE_FLAGS := @STYLE_SWITCH@ -gnatwa@WARNINGS_MODE@ -gnat05 ${BASE_GNATMAKE_FLAGS}
+COMP_TOOLS_GNATMAKE_FLAGS := @STYLE_SWITCH@ -gnatwa@WARNINGS_MODE@ -gnat05 -gnatec=${top_builddir}/compilers/config.adc ${BASE_GNATMAKE_FLAGS}
 # Gnatmake flags for compilation tools mains, built without project files
 
 # Extra flags for target
@@ -219,12 +223,15 @@ build-iac \
 build-po_gnatdist \
 \
 : build-%:
-	cd compilers/${compiler_dir} && \
+	mkdir -p compilers/${compiler_dir} && \
+	  cd compilers/${compiler_dir} && \
 	  ${GNATMAKE} -m \
-	   $* \
+	   $*.adb \
 	   ${COMP_TOOLS_GNATMAKE_FLAGS} \
 	   -I${top_srcdir}/compilers/${compiler_dir} \
-	   ${PRJ_GNATMAKE_FLAGS}
+	   ${PRJ_GNATMAKE_FLAGS} -bargs -E
+# Binder switch -E causes traceback information to be included in
+# Exception_Occurrences.
 
 # The following variables are used for invoking idlac. There is a static
 # pattern rule for each; see "Rules for running idlac", below. Each file
@@ -291,6 +298,7 @@ src/soap/polyorb-http_methods.adb: ${GEN_HTTP_BODY} compilers/gnatprfh/gnatprfh
 # Note that the second gen_http_body command below overwrites perfect_hash.adb
 # with different content.
 src/soap/polyorb-http_methods.adb src/soap/polyorb-http_headers.adb: ${GEN_HTTP_BODY} compilers/gnatprfh/gnatprfh ${top_srcdir}/src/soap/polyorb-http_methods.ads ${top_srcdir}/src/soap/polyorb-http_headers.ads
+	mkdir -p src/soap
 	cd src/soap && ${GEN_HTTP_BODY} ${GNATPRFH} ${top_srcdir}/src/soap Method
 	cd src/soap && ${GEN_HTTP_BODY} ${GNATPRFH} ${top_srcdir}/src/soap Header
 
@@ -301,8 +309,8 @@ src/soap/polyorb-http_methods.adb src/soap/polyorb-http_headers.adb: ${GEN_HTTP_
 GEN_CODESET = src/giop/gen_codeset
 
 build-gen_codeset:
-	cd src/giop && \
-	  ${GNATMAKE} gen_codeset -I${top_srcdir}/src/giop ${COMP_TOOLS_GNATMAKE_FLAGS}
+	mkdir -p src/giop && cd src/giop && \
+	  ${GNATMAKE} gen_codeset -I${top_srcdir}/src/giop ${COMP_TOOLS_GNATMAKE_FLAGS} -bargs -E
 
 src/giop/polyorb-giop_p-code_sets-data.ads-stamp: ${top_srcdir}/src/giop/cs_registry1.2h ${GEN_CODESET}
 	cd src/giop && ./gen_codeset -c "PolyORB.GIOP_P.Code_Sets.Data" \
@@ -374,6 +382,7 @@ polyorb-idl-stamps: build-@IDLAC@ ${polyorb_idl_stamps} cos/ir/orb.idl-stamp
 #???What is the following all about?  Why does it "chmod" and "rm"?
 cos/ir/orb.idl-stamp: ${top_srcdir}/idls/CORBA_IDL/orb.idl ${top_srcdir}/idls/CORBA_IDL/CORBA_InterfaceRepository.idl ${top_srcdir}/idls/CORBA_IDL/CORBA_TypeCode.idl ${IDLAC_bin} ${IDLAC_WRAPPER}
 	@chmod a+x ${IDLAC_WRAPPER}
+	mkdir -p ${dir $@}
 	cd ${dir $@} && ${idlac} $<
 	${RM} cos/ir/corba-repository_root.ads
 	touch $@
@@ -420,13 +429,13 @@ ALL_PROJECT_FILES := ${sort \
                        ${notdir ${wildcard ${top_builddir}/projects/*.gpr}}}
 
 # Remove the ones that shouldn't be built:
-IGNORED_PROJECT_FILES := build_all.gpr common.gpr config.gpr
+IGNORED_PROJECT_FILES := polyorb_build_all.gpr polyorb_common.gpr polyorb_config.gpr
 PROJECT_FILES := ${filter-out ${IGNORED_PROJECT_FILES},${ALL_PROJECT_FILES}}
 
-# The ones that start with "tools_" are for building (target) executables;
-# the rest are for building libraries.
-LIBRARY_PROJECT_FILES := ${filter-out tools_%,${PROJECT_FILES}}
-EXE_PROJECT_FILES := ${filter tools_%,${PROJECT_FILES}}
+# The ones that start with "polyorb_tools_" are for building (target)
+# executables. The rest are for building libraries.
+LIBRARY_PROJECT_FILES := ${filter-out polyorb_tools_%,${PROJECT_FILES}}
+EXE_PROJECT_FILES := ${filter polyorb_tools_%,${PROJECT_FILES}}
 
 # Additional C sources
 C_FILES=	src/csupport.c
@@ -436,22 +445,140 @@ do-gnatmake: ${POLYORB_LIBS} ${SERVICE_LIBS} ${EXE_PROJECT_FILES} #??? ${APPLI_E
 #???lib/polyorb.ali is missing the first time around.
 # Because we can't share library directories!
 
+.PHONY: libpolyorb-aws.a
+libpolyorb-aws.a: polyorb_src_aws.gpr
+.PHONY: libpolyorb-corba-cos-event-impl.a
+libpolyorb-corba-cos-event-impl.a: polyorb_cos_event.gpr
+.PHONY: libpolyorb-corba-cos-ir-impl.a
+libpolyorb-corba-cos-ir-impl.a: polyorb_cos_ir.gpr
+.PHONY: libpolyorb-corba-cos-naming-impl.a
+libpolyorb-corba-cos-naming-impl.a: polyorb_cos_naming.gpr
+.PHONY: libpolyorb-corba-cos-notification-impl.a
+libpolyorb-corba-cos-notification-impl.a: polyorb_cos_notification.gpr
+.PHONY: libpolyorb-corba-cos-time-impl.a
+libpolyorb-corba-cos-time-impl.a: polyorb_cos_time.gpr
+.PHONY: libpolyorb-corba-cos-event.a
+libpolyorb-corba-cos-event.a: polyorb_idls_cos_event.gpr
+.PHONY: libpolyorb-corba-cos-naming.a
+libpolyorb-corba-cos-naming.a: polyorb_idls_cos_naming.gpr
+.PHONY: libpolyorb-corba-cos-notification.a
+libpolyorb-corba-cos-notification.a: polyorb_idls_cos_notification.gpr
+.PHONY: libpolyorb-corba-cos-time.a
+libpolyorb-corba-cos-time.a: polyorb_idls_cos_time.gpr
+.PHONY: libpolyorb.a
+libpolyorb.a: polyorb_src.gpr
+.PHONY: libpolyorb-corba.a
+libpolyorb-corba.a: polyorb_src_corba.gpr
+.PHONY: libpolyorb-corba-dynamicany.a
+libpolyorb-corba-dynamicany.a: polyorb_src_corba_dynamicany.gpr
+.PHONY: libpolyorb-corba-iop.a
+libpolyorb-corba-iop.a: polyorb_src_corba_iop.gpr
+.PHONY: libpolyorb-corba-messaging.a
+libpolyorb-corba-messaging.a: polyorb_src_corba_messaging.gpr
+.PHONY: libpolyorb-corba-portableinterceptor.a
+libpolyorb-corba-portableinterceptor.a: polyorb_src_corba_portableinterceptor.gpr
+.PHONY: libpolyorb-corba-rtcorba.a
+libpolyorb-corba-rtcorba.a: polyorb_src_corba_rtcorba.gpr
+.PHONY: libpolyorb-corba-security.a
+libpolyorb-corba-security.a: polyorb_src_corba_security.gpr
+.PHONY: libpolyorb-corba-security-gssup.a
+libpolyorb-corba-security-gssup.a: polyorb_src_corba_security_gssup.gpr
+
+.PHONY: libpolyorb-dsa.a
+libpolyorb-dsa.a: polyorb_src_dsa.gpr
+libpolyorb-dsa.a: PRJ_GNATMAKE_FLAGS := -a
+# Some components of the DSA application personality are child units of
+# System: use -a to allow them to be compiled.
+
+.PHONY: libpolyorb-dns.a
+libpolyorb-dns.a: polyorb_src_dns.gpr
+.PHONY: libpolyorb-dns-udns.a
+libpolyorb-dns-udns.a: polyorb_src_dns_udns.gpr
+.PHONY: libpolyorb-dns-mdns.a
+libpolyorb-dns-mdns.a: polyorb_src_dns_mdns.gpr
+.PHONY: libpolyorb-giop.a
+libpolyorb-giop.a: polyorb_src_giop.gpr
+.PHONY: libpolyorb-giop-diop.a
+libpolyorb-giop-diop.a: polyorb_src_giop_diop.gpr
+.PHONY: libpolyorb-giop-iiop.a
+libpolyorb-giop-iiop.a: polyorb_src_giop_iiop.gpr
+.PHONY: libpolyorb-giop-iiop-security.a
+libpolyorb-giop-iiop-security.a: polyorb_src_giop_iiop_security.gpr
+.PHONY: libpolyorb-giop-iiop-security-tls.a
+libpolyorb-giop-iiop-security-tls.a: polyorb_src_giop_iiop_security_tls.gpr
+.PHONY: libpolyorb-giop-iiop-ssliop.a
+libpolyorb-giop-iiop-ssliop.a: polyorb_src_giop_iiop_ssliop.gpr
+.PHONY: libpolyorb-giop-miop.a
+libpolyorb-giop-miop.a: polyorb_src_giop_miop.gpr
+.PHONY: libpolyorb-moma.a
+libpolyorb-moma.a: polyorb_src_moma.gpr
+.PHONY: libpolyorb-security.a
+libpolyorb-security.a: polyorb_src_security.gpr
+.PHONY: libpolyorb-security-gssup.a
+libpolyorb-security-gssup.a: polyorb_src_security_gssup.gpr
+.PHONY: libpolyorb-security-tls.a
+libpolyorb-security-tls.a: polyorb_src_security_tls.gpr
+.PHONY: libpolyorb-security-x509.a
+libpolyorb-security-x509.a: polyorb_src_security_x509.gpr
+.PHONY: libpolyorb-setup.a
+libpolyorb-setup.a: polyorb_src_setup.gpr
+.PHONY: libpolyorb-setup-security.a
+libpolyorb-setup-security.a: polyorb_src_setup_security.gpr
+.PHONY: libpolyorb-soap.a
+libpolyorb-soap.a: polyorb_src_soap.gpr
+.PHONY: libpolyorb-srp.a
+libpolyorb-srp.a: polyorb_src_srp.gpr
+.PHONY: libpolyorb-ssl.a
+libpolyorb-ssl.a: polyorb_src_ssl.gpr
+.PHONY: libpolyorb-web_common.a
+libpolyorb-web_common.a: polyorb_src_web_common.gpr
+
+# Additional dependencies:
+
+polyorb_src.gpr:		src/csupport.o
+polyorb_src_corba.gpr: polyorb_src_corba_dynamicany.gpr polyorb_src_corba_iop.gpr polyorb_src_corba_messaging.gpr polyorb_src_corba_portableinterceptor.gpr polyorb_src_corba_rtcorba.gpr
+
+ifeq (${HAVE_SSL},yes)
+polyorb_src_giop_iiop.gpr: polyorb_src_giop_iiop_security.gpr polyorb_src_giop_iiop_security_tls.gpr
+polyorb_src_setup.gpr: polyorb_src_setup_security.gpr
+polyorb_src_corba.gpr: polyorb_src_corba_security.gpr polyorb_src_corba_security_gssup.gpr
+polyorb_src.gpr: polyorb_src_security.gpr polyorb_src_security_gssup.gpr polyorb_src_security_x509.gpr polyorb_src_security_tls.gpr
+
+# Additional dependencies upon C files
+C_FILES += 					\
+	src/ssl/polyorb_ssl.c			\
+	src/security/polyorb_asn1.c		\
+	src/security/x509/polyorb_x509.c
+
+polyorb_src_ssl.gpr:		src/ssl/polyorb_ssl.o
+polyorb_src_security.gpr:	src/security/polyorb_asn1.o
+polyorb_src_security_x509.gpr:	src/security/x509/polyorb_x509.o
+endif
+
+# Rule for compilation of C source files
+C_OBJECTS=${C_FILES:.c=.o}
+${C_OBJECTS}: %.o: ${top_srcdir}/%.c
+	${CC_FOR_TARGET} -c -o $@ -I${top_builddir}/src ${CPPFLAGS} ${CFLAGS} ${CFLAGS_FOR_TARGET} $<
+
+### No additions to C_FILES / C_OBJECTS beyond this point
+
 # The mkdir.flag targets are used to create the necessary directories. There is
 # one ALI directory for each project file (for example, ali/src_corba is the
-# ALI directory for projects/src_corba.gpr). There is also a single library
-# directory (lib) shared by all project files.
+# ALI directory for projects/polyorb_src_corba.gpr). There is also a single
+# library directory (lib) shared by all project files.
 # Note: This would be unnecessary if we used the -p switch of gnatmake,
 # but we want this to work with older versions of gnatmake that do not
 # support -p (this option was introduced in GNAT 6.0).
 # WAG: 5.04
-ALI_FLAGS := ${patsubst %.gpr,ali/%/mkdir.flag,${PROJECT_FILES}}
-MKDIR_FLAGS := ${ALI_FLAGS} lib/mkdir.flag
+ALI_MKDIR_FLAGS = ${patsubst %.gpr,ali/%/mkdir.flag,${PROJECT_FILES}}
+C_MKDIR_FLAGS   = ${patsubst %,%mkdir.flag,${dir ${C_OBJECTS}}}
+MKDIR_FLAGS     = ${ALI_MKDIR_FLAGS} ${C_MKDIR_FLAGS} lib/mkdir.flag
 
 ${MKDIR_FLAGS}: %/mkdir.flag:
 	mkdir -p $*
 	touch $@
 
-# Note that each foo.gpr target depends on ALL .../mkdir.flag targets,
+# Note that each polyorb_foo.gpr target depends on ALL .../mkdir.flag targets,
 # because gnatmake needs to look at the ALI directories for imported
 # projects.
 
@@ -468,114 +595,7 @@ ${PROJECT_FILES}: %.gpr: \
     src/giop/polyorb-giop_p-code_sets-data.ads-stamp \
     tools/po_catref/polyorb-giop_p-code_sets-description_data.ads-stamp
 	ADA_PROJECT_PATH="${top_builddir}/projects${PATH_SEP}${top_srcdir}/projects${PATH_SEP}$$ADA_PROJECT_PATH" \
-	  ${GNATMAKE_FOR_TARGET} -P $@ ${BASE_GNATMAKE_FLAGS} ${PRJ_GNATMAKE_FLAGS} ${GNATMAKE_FLAGS_FOR_TARGET}
-
-.PHONY: libpolyorb-corba-cos-event-impl.a
-libpolyorb-corba-cos-event-impl.a: cos_event.gpr
-.PHONY: libpolyorb-corba-cos-ir-impl.a
-libpolyorb-corba-cos-ir-impl.a: cos_ir.gpr
-.PHONY: libpolyorb-corba-cos-naming-impl.a
-libpolyorb-corba-cos-naming-impl.a: cos_naming.gpr
-.PHONY: libpolyorb-corba-cos-notification-impl.a
-libpolyorb-corba-cos-notification-impl.a: cos_notification.gpr
-.PHONY: libpolyorb-corba-cos-time-impl.a
-libpolyorb-corba-cos-time-impl.a: cos_time.gpr
-.PHONY: libpolyorb-corba-cos-event.a
-libpolyorb-corba-cos-event.a: idls_cos_event.gpr
-.PHONY: libpolyorb-corba-cos-naming.a
-libpolyorb-corba-cos-naming.a: idls_cos_naming.gpr
-.PHONY: libpolyorb-corba-cos-notification.a
-libpolyorb-corba-cos-notification.a: idls_cos_notification.gpr
-.PHONY: libpolyorb-corba-cos-time.a
-libpolyorb-corba-cos-time.a: idls_cos_time.gpr
-.PHONY: libpolyorb.a
-libpolyorb.a: src.gpr
-.PHONY: libpolyorb-corba.a
-libpolyorb-corba.a: src_corba.gpr
-.PHONY: libpolyorb-corba-dynamicany.a
-libpolyorb-corba-dynamicany.a: src_corba_dynamicany.gpr
-.PHONY: libpolyorb-corba-iop.a
-libpolyorb-corba-iop.a: src_corba_iop.gpr
-.PHONY: libpolyorb-corba-messaging.a
-libpolyorb-corba-messaging.a: src_corba_messaging.gpr
-.PHONY: libpolyorb-corba-portableinterceptor.a
-libpolyorb-corba-portableinterceptor.a: src_corba_portableinterceptor.gpr
-.PHONY: libpolyorb-corba-rtcorba.a
-libpolyorb-corba-rtcorba.a: src_corba_rtcorba.gpr
-.PHONY: libpolyorb-corba-security.a
-libpolyorb-corba-security.a: src_corba_security.gpr
-.PHONY: libpolyorb-corba-security-gssup.a
-libpolyorb-corba-security-gssup.a: src_corba_security_gssup.gpr
-
-.PHONY: libpolyorb-dsa.a
-libpolyorb-dsa.a: src_dsa.gpr
-libpolyorb-dsa.a: PRJ_GNATMAKE_FLAGS := -a
-# Some components of the DSA application personality are child units of
-# System: use -a to allow them to be compiled.
-
-.PHONY: libpolyorb-giop.a
-libpolyorb-giop.a: src_giop.gpr
-.PHONY: libpolyorb-giop-diop.a
-libpolyorb-giop-diop.a: src_giop_diop.gpr
-.PHONY: libpolyorb-giop-iiop.a
-libpolyorb-giop-iiop.a: src_giop_iiop.gpr
-.PHONY: libpolyorb-giop-iiop-security.a
-libpolyorb-giop-iiop-security.a: src_giop_iiop_security.gpr
-.PHONY: libpolyorb-giop-iiop-security-tls.a
-libpolyorb-giop-iiop-security-tls.a: src_giop_iiop_security_tls.gpr
-.PHONY: libpolyorb-giop-iiop-ssliop.a
-libpolyorb-giop-iiop-ssliop.a: src_giop_iiop_ssliop.gpr
-.PHONY: libpolyorb-giop-miop.a
-libpolyorb-giop-miop.a: src_giop_miop.gpr
-.PHONY: libpolyorb-moma.a
-libpolyorb-moma.a: src_moma.gpr
-.PHONY: libpolyorb-security.a
-libpolyorb-security.a: src_security.gpr
-.PHONY: libpolyorb-security-gssup.a
-libpolyorb-security-gssup.a: src_security_gssup.gpr
-.PHONY: libpolyorb-security-tls.a
-libpolyorb-security-tls.a: src_security_tls.gpr
-.PHONY: libpolyorb-security-x509.a
-libpolyorb-security-x509.a: src_security_x509.gpr
-.PHONY: libpolyorb-setup.a
-libpolyorb-setup.a: src_setup.gpr
-.PHONY: libpolyorb-setup-security.a
-libpolyorb-setup-security.a: src_setup_security.gpr
-.PHONY: libpolyorb-soap.a
-libpolyorb-soap.a: src_soap.gpr
-.PHONY: libpolyorb-srp.a
-libpolyorb-srp.a: src_srp.gpr
-.PHONY: libpolyorb-ssl.a
-libpolyorb-ssl.a: src_ssl.gpr
-.PHONY: libpolyorb-web_common.a
-libpolyorb-web_common.a: src_web_common.gpr
-
-# Additional dependencies:
-
-src.gpr:		src/csupport.o
-src_corba.gpr: src_corba_dynamicany.gpr src_corba_iop.gpr src_corba_messaging.gpr src_corba_portableinterceptor.gpr src_corba_rtcorba.gpr
-
-ifeq (${HAVE_SSL},yes)
-src_giop_iiop.gpr: src_giop_iiop_security.gpr src_giop_iiop_security_tls.gpr
-src_setup.gpr: src_setup_security.gpr
-src_corba.gpr: src_corba_security.gpr src_corba_security_gssup.gpr
-src.gpr: src_security.gpr src_security_gssup.gpr src_security_x509.gpr src_security_tls.gpr
-
-# Additional dependencies upon C files
-C_FILES += 					\
-	src/ssl/polyorb_ssl.c			\
-	src/security/polyorb_asn1.c		\
-	src/security/x509/polyorb_x509.c
-
-src_ssl.gpr:		src/ssl/polyorb_ssl.o
-src_security.gpr:	src/security/polyorb_asn1.o
-src_security_x509.gpr:	src/security/x509/polyorb_x509.o
-endif
-
-# Rule for compilation of C source files
-C_OBJECTS=${C_FILES:.c=.o}
-${C_OBJECTS}: %.o: ${top_srcdir}/%.c
-	${CC_FOR_TARGET} -c -o $@ -I${top_builddir}/src ${CPPFLAGS} ${CFLAGS} ${CFLAGS_FOR_TARGET} $<
+	  ${GNATMAKE_FOR_TARGET} -P $@ ${BASE_GNATMAKE_FLAGS} ${PRJ_GNATMAKE_FLAGS} ${GNATMAKE_FLAGS_FOR_TARGET} -bargs -E
 
 ##########################
 # examples and testsuite #
@@ -583,11 +603,9 @@ ${C_OBJECTS}: %.o: ${top_srcdir}/%.c
 
 # We treat the examples and testsuite directories the same.
 # Each subdirectory that has test (or example) programs should contain
-# Makefile.local and local.gpr, and may contain one or more *.idl files. We use
-# 'find' to find all of the *.idl and Makefile.local files.
+# local.gpr, and may contain one or more *.idl files. We use 'find' to find
+# all of the *.idl.
 #
-# Makefile.local should contain:
-# ${eval ${define_test}}
 # In addition, if there are any idl files, we need to define the flags to use
 # with idlac, and make the test target depend on building the idl, like this:
 # ${current_dir}<...>.idl-stamp: idlac_flags := <...>
@@ -595,24 +613,25 @@ ${C_OBJECTS}: %.o: ${top_srcdir}/%.c
 # Note that ${current_dir} contains a trailing slash.
 
 # local.gpr should contain:
-# with "polyorb", "test_common";
+# with "polyorb", "polyorb_test_common";
 # 
-# project test is
+# project local is
 # 
 #    Dir := external ("Test_Dir");
-#    for Source_Dirs use (Test_Common.Root_Build_Dir & Dir, Test_Common.Root_Source_Dir & Dir);
-#    for Object_Dir use Test_Common.Root_Build_Dir & Dir;
+#    Obj_Dir := PolyORB_Test_Common.Build_Dir & Dir;
+#    for Object_Dir use Obj_Dir;
+#    for Source_Dirs use (Obj_Dir, PolyORB_Test_Common.Source_Dir & Dir);
 # 
 #    package Compiler is
 # 
 #       for Default_Switches ("Ada")
-#          use Test_Common.Compiler'Default_Switches ("Ada");
+#          use PolyORB_Test_Common.Compiler'Default_Switches ("Ada");
 # 
 #    end Compiler;
 # 
 #    for Main use (<...>);
 # 
-# end test;
+# end local;
 # The only variable part is the Mains.
 
 test_dirs := ${top_srcdir}/examples ${top_srcdir}/testsuite
@@ -622,29 +641,16 @@ test_idls := ${patsubst ${top_srcdir}/%,%,${test_idls}}
 test_idl_stamps := ${patsubst %.idl,%.idl-stamp,${test_idls}}
 self_idl_stamps += ${test_idl_stamps}
 
-# Macro to invoke at the top of each Makefile.local.
-# current_dir will have been defined automatically (see configure.ac).
+# Include all the Makefile.local files.
 
-define define_test
-test_target := ${current_dir}build-test
-test_targets += ${test_target}
-endef
-
-# Include all the Makefile.local files. Each one invokes define_test, which adds
-# the test name to test_targets, so test_targets ends up being a list of all
-# tests.
 @LOCAL_MAKEFILES@
-
-# Clean up current_dir and test_target
-current_dir :=
-test_target :=
 
 test_targets := ${sort ${test_targets}}
 
 .PHONY: ${test_targets}
 ${test_targets}: %/build-test:
 	ADA_PROJECT_PATH="${top_builddir}/projects${PATH_SEP}${top_srcdir}/projects${PATH_SEP}$$ADA_PROJECT_PATH" \
-	  ${GNATMAKE_FOR_TARGET} "-XTest_Dir=$*" -P ${top_srcdir}/$*/local.gpr ${BASE_GNATMAKE_FLAGS} ${GNATMAKE_FLAGS_FOR_TARGET}
+	  ${GNATMAKE_FOR_TARGET} "-XTest_Dir=$*" -P ${top_srcdir}/$*/local.gpr ${BASE_GNATMAKE_FLAGS} ${GNATMAKE_FLAGS_FOR_TARGET} -bargs -E
 
 # Set active_tests to a subset of test_targets -- remove the ones that are for
 # application personalities that were not configured. Note: examples/polyorb
@@ -702,7 +708,7 @@ print_active_tests:
 	@echo "Tests to build: ${patsubst %/build-test,%,${active_tests}}"
 
 .PHONY: testsuite
-testsuite: print_active_tests ${active_tests} build-test_driver
+testsuite: print_active_tests ${active_tests}
 
 # Create the 'examples' target as a subset of 'testsuite' -- just the ones
 # under the 'examples' subdirectory:
@@ -712,10 +718,17 @@ active_examples := ${filter examples/%,${active_tests}}
 .PHONY: examples
 examples: ${active_examples}
 
-.PHONY: build-test_driver
-build-test_driver: 
-	ADA_PROJECT_PATH="${top_builddir}/projects${PATH_SEP}${top_srcdir}/projects${PATH_SEP}$$ADA_PROJECT_PATH" \
-	  ${GNATMAKE_FOR_TARGET} -P projects/testsuite_utils.gpr ${BASE_GNATMAKE_FLAGS} ${PRJ_GNATMAKE_FLAGS} ${GNATMAKE_FLAGS_FOR_TARGET}
+.PHONY: run_tests
+run_tests:
+	cd testsuite/tests && ./testsuite.py --diffs --testsuite-src-dir=${top_srcdir}/testsuite
+
+# 'all' depends on either build-iac or build-idlac; we might as well build
+# both, here. We run_tests via recursive make, rather than having all-and-test
+# depend on run_tests, so it works for parallel make (run_tests should not
+# run concurrently with the other stuff).
+.PHONY: all-and-test
+all-and-test: all build-iac build-idlac examples testsuite
+	${MAKE} run_tests
 
 ################################################################
 
@@ -804,13 +817,14 @@ install: all
 	${RM} -fr "${prefix}/lib/gnat/polyorb"
 	${INSTALL} -d ${prefix}/lib/gnat/polyorb
 	${INSTALL} -d ${prefix}/lib/polyorb
+	${INSTALL} -d ${prefix}/lib/polyorb/static
 	${RM} -fr "${prefix}/include/polyorb"
 	${INSTALL} -d ${prefix}/include/polyorb
 	for comp in ${COMPILER_EXES}; do \
 	  ${INSTALL} ${top_builddir}/compilers/$${comp}${COMPILER_EXE_SUFFIX} ${prefix}/bin; \
 	  : Special case, symlink iac as idlac for backwards compatibility; \
 	  if [ `basename $${comp}` = iac ]; then \
-	    cd ${prefix}/bin && ${RM} -f idlac && ${LN_S} iac idlac; \
+	    (cd ${prefix}/bin && ${RM} -f idlac${TOOL_EXE_SUFFIX} && ${LN_S} iac${TOOL_EXE_SUFFIX} idlac${TOOL_EXE_SUFFIX}); \
           fi; \
 	done
 	${INSTALL} ${top_builddir}/tools/po_cos_naming/po_cos_naming${TOOL_EXE_SUFFIX} ${prefix}/bin
@@ -822,7 +836,7 @@ install: all
 	${INSTALL} ${top_builddir}/tools/po_names/po_names${TOOL_EXE_SUFFIX} ${prefix}/bin
 	${INSTALL} ${top_builddir}/tools/po_dumpir/po_dumpir${TOOL_EXE_SUFFIX} ${prefix}/bin
 	${INSTALL} ${top_builddir}/polyorb-config ${prefix}/bin
-	ls ${top_builddir}/lib/*.a | ${XARGS_I} ${INSTALL} -m 444 {} ${prefix}/lib
+	ls ${top_builddir}/lib/*.a | ${XARGS_I} ${INSTALL} -m 444 {} ${prefix}/lib/polyorb/static
 	ls ${top_srcdir}/projects-distrib/*.gpr | ${XARGS_I} ${INSTALL} -m 444 {} ${prefix}/lib/gnat
 	ls ${top_builddir}/projects-distrib/*.gpr | ${XARGS_I} ${INSTALL} -m 444 {} ${prefix}/lib/gnat
 	ls ${top_srcdir}/projects-distrib/polyorb/*.gpr | ${XARGS_I} ${INSTALL} -m 444 {} ${prefix}/lib/gnat/polyorb
@@ -840,12 +854,17 @@ install: all
 	  ${top_builddir}/ali \
 	  -name '*.ali' \
 	  -a ! -name 'polyorb-dsa_p-partitions.ali' \
+	  -a ! -name 'polyorb-dsa_p-storages-config.ali' \
 	  -a ! -name 'polyorb-partition_elaboration.ali') | \
 	${XARGS_I} ${INSTALL} -m 444 {} ${prefix}/lib/polyorb
-	# Install documentation only if it has been built:
+	# Install documentation only if it has been built locally, or
+	# pre-built and packaged with sources.
 	if [ -r docs/polyorb_ug.html ]; \
 	then \
 	  (cd docs && ${MAKE} install-data-local prefix="${prefix}"); \
+	elif [ -r $(top_srcdir)/docs/polyorb_ug.html ]; \
+	then \
+	  (cd docs && ${MAKE} install-data-local prefix="${prefix}" doc_build_dir="$(top_srcdir)/docs/"); \
 	fi
 
 # polyorb-dsa_p-partitions.ali is a special case above.
@@ -869,11 +888,11 @@ force::
 clean:
 	${RM} -f ${all_idl_stamps} ./cos/ir/orb.idl-stamp # ???and more
 	${RM} -f ${idlac_output_files}
-	find . -name '*.ali' | xargs ${RM} -f
-	find . -name '*.o'   | xargs ${RM} -f
+	find . -name '*.ali' -o -name '*.o' | xargs ${RM} -f
 	${RM} -f lib/lib*.a
 	${RM} -f ${all_example_exes}
 	(cd compilers && ${RM} -f ${COMPILER_EXES})
+	${RM} -f ${MKDIR_FLAGS}
 	${RM} -f ${IAC_NODES_STAMPS}
 	${RM} -f ${IAC_NODES_SOURCES}
 	${RM} -f src/soap/polyorb-http_methods.adb src/soap/polyorb-http_headers.adb
@@ -894,7 +913,7 @@ clean:
 	${RM} -f tools/po_names/po_names
 
 distclean: clean
-	${SHELL} support/cleanup-conf-files
+	${SHELL} ${top_srcdir}/support/cleanup-conf-files
 	${RM} -f config.*
 
 .SUFFIXES: .c .o
@@ -2325,6 +2344,7 @@ debug-makefile:
 	@echo MAKEFLAGS = ${MAKEFLAGS}
 	@echo GNATMAKE_FLAGS = ${GNATMAKE_FLAGS}
 	@echo MAKECMDGOALS = ${MAKECMDGOALS}
+	@echo MKDIR_FLAGS = ${MKDIR_FLAGS}
 	@echo polyorb_idl_stamps = ${polyorb_idl_stamps}
 	@echo all_idl_stamps = ${all_idl_stamps}
 	@echo POLYORB_LIBS = ${POLYORB_LIBS}
@@ -2339,6 +2359,8 @@ debug-makefile:
 	@echo APPLI_EXES = ${APPLI_EXES}
 	@echo SERVICE_EXES = ${SERVICE_EXES}
 	@echo COMPILERS = ${COMPILERS}
+	@echo IAC_NODES_STAMPS = ${IAC_NODES_STAMPS}
+	@echo IAC_NODES_SOURCES = ${IAC_NODES_SOURCES}
 	@echo active_tests = ${active_tests}
 	@echo "debug-makefile done"
 

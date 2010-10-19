@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2006-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2006-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -48,7 +48,6 @@ with PolyORB.Requests;
 with PolyORB.Objects;
 with PolyORB.Obj_Adapters;
 with PolyORB.ORB;
-with PolyORB.Servants.Iface;
 with PolyORB.Types;
 with PolyORB.Setup;
 with PolyORB.Log;
@@ -322,7 +321,7 @@ package body AWS.Server.Servants is
             pragma Debug (C, O ("Integrate_Data:"
                              & " byte sequence response (file)"));
             declare
-               Sq_Type : PolyORB.Any.TypeCode.Local_Ref
+               Sq_Type : constant PolyORB.Any.TypeCode.Local_Ref
                  := PolyORB.Any.TypeCode.TC_Sequence;
             begin
                PolyORB.Any.TypeCode.Add_Parameter
@@ -427,75 +426,53 @@ package body AWS.Server.Servants is
    ---------------------
 
    function Execute_Servant
-     (S   : access Web_Servant;
-      Msg : Components.Message'Class)
-     return Components.Message'Class
+     (S   : not null access Web_Servant;
+      Req : Requests.Request_Access) return Boolean
    is
-      use PolyORB.Servants.Iface;
+      use PolyORB.Requests;
+      use PolyORB.Errors;
 
+      R : constant Request_Access := Req;
+      Error : Error_Container;
    begin
-      if Msg in Execute_Request then
-         declare
-            use PolyORB.Requests;
-            use PolyORB.Errors;
+      pragma Debug (C, O ("Execute_Servant: processing a Web request"));
+      Request_Handler (S, R);
 
-            R : constant Request_Access := Execute_Request (Msg).Req;
-            Error : Error_Container;
-         begin
-            pragma Debug (C, O ("Execute_Servant: processing a Web request"));
-            Request_Handler (S, R);
+      pragma Debug (C, O ("Execute_Servant:"
+                       & " executed, setting out args"));
+      Set_Out_Args (R, Error);
 
-            pragma Debug (C, O ("Execute_Servant:"
-                             & " executed, setting out args"));
-            Set_Out_Args (R, Error);
-
-            if Found (Error) then
-               raise Program_Error;
-            end if;
-
-            pragma Debug (C, O ("Execute_Servant: leave"));
-            return Executed_Request'(Req => R);
-         end;
-      else
-         pragma Debug (C, O ("Execute_Servant: this is not a request!"));
+      if Found (Error) then
          raise Program_Error;
       end if;
+
+      pragma Debug (C, O ("Execute_Servant: leave"));
+      return True;
    end Execute_Servant;
 
    function Execute_Servant
-     (S   : access SOAP_Servant;
-      Msg : Components.Message'Class)
-     return Components.Message'Class
+     (S   : not null access SOAP_Servant;
+      Req : Requests.Request_Access) return Boolean
    is
-      use PolyORB.Servants.Iface;
+      use PolyORB.Requests;
+      use PolyORB.Errors;
 
+      R : constant Request_Access := Req;
+      Error : Error_Container;
    begin
-      if Msg in Execute_Request then
-         declare
-            use PolyORB.Requests;
-            use PolyORB.Errors;
+      pragma Debug (C, O ("Execute_Servant: processing a SOAP request"));
+      Request_Handler (S, R);
 
-            R : constant Request_Access := Execute_Request (Msg).Req;
-            Error : Error_Container;
-         begin
-            pragma Debug (C, O ("Execute_Servant: processing a SOAP request"));
-            Request_Handler (S, R);
+      pragma Debug (C, O ("Execute_Servant:"
+                       & " executed, setting out args"));
+      Set_Out_Args (R, Error);
 
-            pragma Debug (C, O ("Execute_Servant:"
-                             & " executed, setting out args"));
-            Set_Out_Args (R, Error);
-
-            if Found (Error) then
-               raise Program_Error;
-            end if;
-
-            pragma Debug (C, O ("Execute_Servant: leave"));
-            return Executed_Request'(Req => R);
-         end;
-      else
-         pragma Debug (C, O ("Execute_Servant: this is not a request!"));
+      if Found (Error) then
          raise Program_Error;
       end if;
+
+      pragma Debug (C, O ("Execute_Servant: leave"));
+      return True;
    end Execute_Servant;
 
 end AWS.Server.Servants;

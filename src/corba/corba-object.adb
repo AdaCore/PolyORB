@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -50,16 +50,11 @@ package body CORBA.Object is
 
    use PolyORB.Smart_Pointers;
 
-   type Internal_Object is new PolyORB.Smart_Pointers.Entity with record
-      The_Object : PolyORB.Objects.Object_Id_Access;
-   end record;
-   type Internal_Object_Access is access all Internal_Object;
-
    --  Client stub for remote calls implementing predefined CORBA::Object
-   --  operations
+   --  operations.
 
-   RPC_Result_Name   : constant PolyORB.Types.Identifier
-                         := To_PolyORB_String ("Result");
+   RPC_Result_Name : constant PolyORB.Types.Identifier :=
+                       To_PolyORB_String ("Result");
 
    RPC_Is_A_Op_Name  : constant Standard.String := "_is_a";
    RPC_Is_A_Arg_Name : constant PolyORB.Types.Identifier :=
@@ -87,8 +82,7 @@ package body CORBA.Object is
 
    function Hash
      (Self    : Ref;
-      Maximum : CORBA.Unsigned_Long)
-      return CORBA.Unsigned_Long
+      Maximum : CORBA.Unsigned_Long) return CORBA.Unsigned_Long
    is
       use PolyORB.Utils.HFunctions.Mul;
 
@@ -103,11 +97,8 @@ package body CORBA.Object is
    -- Get_Interface --
    -------------------
 
-   function Get_Interface
-     (Self : Ref)
-     return CORBA.Object.Ref'Class
-   is
-      Request          : PolyORB.Requests.Request_Access;
+   function Get_Interface (Self : Ref) return CORBA.Object.Ref'Class is
+      Request          : aliased PolyORB.Requests.Request;
       Arg_List         : PolyORB.Any.NVList.Ref;
       Result           : PolyORB.Any.NamedValue;
 
@@ -129,20 +120,17 @@ package body CORBA.Object is
                  Argument  => CORBA.Internals.Get_Empty_Any (TC_Object),
                  Arg_Modes => 0);
 
-      PolyORB.Requests.Create_Request
-        (Target    => CORBA.Object.Internals.To_PolyORB_Ref (Self),
+      PolyORB.Requests.Setup_Request
+        (Req       => Request,
+         Target    => CORBA.Object.Internals.To_PolyORB_Ref (Self),
          Operation => RPC_Interface_Op_Name,
          Arg_List  => Arg_List,
-         Result    => Result,
-         Req       => Request);
+         Result    => Result);
 
       PolyORB.CORBA_P.Interceptors_Hooks.Client_Invoke
-        (Request, PolyORB.Requests.Flags (0));
+        (Request'Access, PolyORB.Requests.Flags (0));
 
       PolyORB.CORBA_P.Exceptions.Request_Raise_Occurrence (Request);
-
-      PolyORB.Requests.Destroy_Request (Request);
-
       return CORBA.Object.Helper.From_Any (CORBA.Any (Result.Argument));
    end Get_Interface;
 
@@ -154,7 +142,7 @@ package body CORBA.Object is
      (Self            : Ref;
       Logical_Type_Id : Standard.String) return CORBA.Boolean
    is
-      Request          : PolyORB.Requests.Request_Access;
+      Request          : aliased PolyORB.Requests.Request;
       Arg_List         : PolyORB.Any.NVList.Ref;
       Result           : PolyORB.Any.NamedValue;
 
@@ -174,20 +162,17 @@ package body CORBA.Object is
          Argument  => PolyORB.Any.Get_Empty_Any (PolyORB.Any.TC_Boolean),
          Arg_Modes => 0);
 
-      PolyORB.Requests.Create_Request
-        (Target    => CORBA.Object.Internals.To_PolyORB_Ref (Self),
+      PolyORB.Requests.Setup_Request
+        (Req       => Request,
+         Target    => CORBA.Object.Internals.To_PolyORB_Ref (Self),
          Operation => RPC_Is_A_Op_Name,
          Arg_List  => Arg_List,
-         Result    => Result,
-         Req       => Request);
+         Result    => Result);
 
       PolyORB.CORBA_P.Interceptors_Hooks.Client_Invoke
-        (Request, PolyORB.Requests.Flags (0));
+        (Request'Access, PolyORB.Requests.Flags (0));
 
       PolyORB.CORBA_P.Exceptions.Request_Raise_Occurrence (Request);
-
-      PolyORB.Requests.Destroy_Request (Request);
-
       return PolyORB.Any.From_Any (Result.Argument);
    end RPC_Is_A;
 
@@ -196,7 +181,7 @@ package body CORBA.Object is
    ----------------------
 
    function RPC_Non_Existent (Self : Ref) return CORBA.Boolean is
-      Request          : PolyORB.Requests.Request_Access;
+      Request          : aliased PolyORB.Requests.Request;
       Arg_List         : PolyORB.Any.NVList.Ref;
       Result           : PolyORB.Any.NamedValue;
 
@@ -213,26 +198,22 @@ package body CORBA.Object is
          Argument  => PolyORB.Any.Get_Empty_Any (PolyORB.Any.TC_Boolean),
          Arg_Modes => 0);
 
-      PolyORB.Requests.Create_Request
-        (Target    => CORBA.Object.Internals.To_PolyORB_Ref (Self),
+      PolyORB.Requests.Setup_Request
+        (Req       => Request,
+         Target    => CORBA.Object.Internals.To_PolyORB_Ref (Self),
          Operation => RPC_Non_Existent_Op_Name,
          Arg_List  => Arg_List,
-         Result    => Result,
-         Req       => Request);
+         Result    => Result);
 
       --  Special case: for a non-existent object, return True instead of
       --  raising OBJECT_NOT_EXIST.
 
       begin
          PolyORB.CORBA_P.Interceptors_Hooks.Client_Invoke
-           (Request, PolyORB.Requests.Flags (0));
+           (Request'Access, PolyORB.Requests.Flags (0));
 
          PolyORB.CORBA_P.Exceptions.Request_Raise_Occurrence (Request);
-
-         PolyORB.Requests.Destroy_Request (Request);
-
          return PolyORB.Any.From_Any (Result.Argument);
-
       exception
          when CORBA.Object_Not_Exist =>
             return True;
@@ -459,18 +440,6 @@ package body CORBA.Object is
 
    package body Internals is
 
-      -----------------------
-      -- To_PolyORB_Object --
-      -----------------------
-
-      function To_PolyORB_Object
-        (R : Ref)
-        return PolyORB.Objects.Object_Id
-      is
-      begin
-         return Internal_Object_Access (Entity_Of (R)).The_Object.all;
-      end To_PolyORB_Object;
-
       --------------------
       -- To_PolyORB_Ref --
       --------------------
@@ -487,23 +456,9 @@ package body CORBA.Object is
       function To_CORBA_Ref (R : PolyORB.References.Ref) return Ref is
          Result : Ref;
       begin
-         Convert_To_CORBA_Ref (R, Result);
+         Set (Result, PolyORB.References.Entity_Of (R));
          return Result;
       end To_CORBA_Ref;
-
-      --------------------------
-      -- Convert_To_CORBA_Ref --
-      --------------------------
-
-      procedure Convert_To_CORBA_Ref
-        (Neutral_Ref : PolyORB.References.Ref;
-         CORBA_Ref   : in out CORBA.Object.Ref'Class)
-      is
-         E : constant PolyORB.Smart_Pointers.Entity_Ptr
-           := PolyORB.References.Entity_Of (Neutral_Ref);
-      begin
-         Set (CORBA_Ref, E);
-      end Convert_To_CORBA_Ref;
 
    end Internals;
 

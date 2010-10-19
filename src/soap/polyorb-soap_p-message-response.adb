@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2000-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2000-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with AWS.MIME;
+with PolyORB.Web.MIME;
 
 with PolyORB.SOAP_P.Message.XML;
 
@@ -44,7 +44,8 @@ package body PolyORB.SOAP_P.Message.Response is
    function Build (R : Object'Class) return PolyORB.SOAP_P.Response.Data is
    begin
       return PolyORB.SOAP_P.Response.Build
-        (AWS.MIME.Text_XML, String'(PolyORB.SOAP_P.Message.XML.Image (R)));
+        (PolyORB.Web.MIME.Text_XML,
+         String'(PolyORB.SOAP_P.Message.XML.Image (R)));
    end Build;
 
    ----------

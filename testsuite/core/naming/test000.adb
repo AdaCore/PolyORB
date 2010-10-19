@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -83,8 +83,8 @@ begin
         := To_Ref (Ref_Context);
 
    begin
-      Append (Obj_Name, NameComponent'(Id => To_PolyORB_String ("object1"),
-                                       Kind => To_PolyORB_String ("")));
+      Append (Obj_Name, NameComponent'(id => To_PolyORB_String ("object1"),
+                                       kind => To_PolyORB_String ("")));
 
       Bind (Root_Context, Obj_Name, Ref_Context);
 

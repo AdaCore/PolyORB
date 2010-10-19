@@ -32,21 +32,20 @@ elif test "$HAVE_GCC_XIDL" = yes; then
 
 else
   # IDLCPP provided by C++ compiler
-  AC_REQUIRE([AC_PROG_CXXCPP])
+  AC_PROG_CXXCPP
   IDLCPP="$CXXCPP"
 
   case "$CXXCPP" in
     *g++*)
       if test "${CXXCPPFLAGS}" = ""; then
-        CXXCPPFLAGS="-x c++ -ansi"
-        # Default options for the GNU CXXCPP:
+        IDLCPPFLAGS="-x c++ -ansi"
+        # Options to use GNU C++ preprocessor as IDL preprocessor
         # -x c++       force C++ preprocessor mode (even though it cannot be
         #              inferred from filename extension .idl)
         # -ansi        disable GCC-specific behaviour
       fi
       ;;
   esac
-  IDLCPPFLAGS="$CXXCPPFLAGS"
 fi
 AC_MSG_RESULT([$IDLCPP $IDLCPPFLAGS])
 AC_SUBST(IDLCPP)
@@ -54,19 +53,24 @@ AC_SUBST(IDLCPPFLAGS)
 ])
 
 dnl Usage: AM_IDLCPP_NEEDS_DOT
-dnl Check whether it is necessary to add a trailing dot for the
-dnl C++ preprocessor to create an output file without extension.
+dnl Check whether it is necessary to add a trailing dot for the C++
+dnl preprocessor to create an output file without extension. On Windows,
+dnl a default extension ".exe" is appended if no trailing dot is present.
 AC_DEFUN([AM_IDLCPP_NEEDS_DOT],
 [AC_REQUIRE([AM_PROG_IDLCPP])
 AC_MSG_CHECKING([if the IDL preprocessor -o option requires a dot])
 mkdir conftest
 touch conftest/input
-ac_try="cd conftest && $IDLCPP $IDLCPPFLAGS -o output input && cat output > /dev/null"
+dnl Note: We test for presence of "output.exe", not absence of "output",
+dnl becuse as of Cygwin 1.7, if "output.exe" is present and "output" is
+dnl missing, then shell tools from coreutils append the .exe extension
+dnl automagically, and make it appear as though "output" was present.
+ac_try="cd conftest && $IDLCPP $IDLCPPFLAGS -o output input && cat output.exe > /dev/null"
 if AC_TRY_EVAL(ac_try); then
-  AC_MSG_RESULT(no)
-  AC_SUBST(IDLCPP_OUTPUT_SUFFIX, "")
-else
   AC_MSG_RESULT(yes)
   AC_SUBST(IDLCPP_OUTPUT_SUFFIX, ".")
+else
+  AC_MSG_RESULT(no)
+  AC_SUBST(IDLCPP_OUTPUT_SUFFIX, "")
 fi
 rm -fr conftest])

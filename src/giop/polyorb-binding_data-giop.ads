@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2004-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -74,7 +74,7 @@ package PolyORB.Binding_Data.GIOP is
 
    function Get_Primary_Transport_Mechanism_Factory
      (P : GIOP_Profile_Factory) return PGTM.Transport_Mechanism_Factory_Access;
-   --  Return primary transport mechanism factory for profile factory.
+   --  Return primary transport mechanism factory for profile factory
 
    type Is_Security_Selected_Hook is
      access function
@@ -93,19 +93,15 @@ private
       Version_Major : Types.Octet;
       Version_Minor : Types.Octet;
 
+      Components    : PGTC.Tagged_Component_List;
       --  Tagged components list
 
-      Components    : PGTC.Tagged_Component_List;
-
+      Mechanisms    : PGTM.Transport_Mechanism_List;
       --  Transport mechanisms list
-
-      Mechanisms    :
-        PGTM.Transport_Mechanism_List;
    end record;
 
    type GIOP_Profile_Factory is abstract new Profile_Factory with record
-      Mechanisms :
-        PGTM.Transport_Mechanism_Factory_List;
+      Mechanisms : PGTM.Transport_Mechanism_Factory_List;
    end record;
 
 end PolyORB.Binding_Data.GIOP;

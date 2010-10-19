@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -129,7 +129,7 @@ package body Backend.BE_Types is
          Set_Name_Table_Info (N, 1);
          Node := New_Node (K_Identifier, No_Location);
          Set_Name (Node, N);
-         Append_Node_To_List (Node, L);
+         Append_To (L, Node);
       end if;
    end Insert;
 
@@ -180,7 +180,7 @@ package body Backend.BE_Types is
    --------------
 
    procedure Generate (E : Node_Id) is
-      List_Of_Types : List_Id := New_List (K_List_Id, No_Location);
+      List_Of_Types : List_Id := New_List (No_Location);
       Descriptor    : File_Descriptor;
       Output_File   : constant String
          := Get_Name_String (IDL_Spec_Name) & ".typ";
@@ -195,11 +195,11 @@ package body Backend.BE_Types is
       end if;
 
       --  Open the temporary file
-      Descriptor := Create_New_File (Output_File, Text);
+      Descriptor := Create_File (Output_File, Text);
 
       --  Check the file descriptor
       if Descriptor = Invalid_FD then
-         DE ("fail to open the file called " & Output_File);
+         DE ("cannot create file: %", Output_File);
          raise Fatal_Error;
       end if;
 
@@ -552,7 +552,7 @@ package body Backend.BE_Types is
       Hdr : constant String (1 .. Indent - 1) := (others => ' ');
    begin
       Write_Str (Hdr);
-      Write_Str ("-p       Print the list generate");
+      Write_Str ("-p       Print the list generated");
       Write_Eol;
    end Usage;
 

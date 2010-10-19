@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -178,20 +178,22 @@ procedure Gen_Codeset is
       for J in Code_Set_Table.First .. Code_Set_Table.Last loop
          declare
             Info   : Code_Set_Info renames Code_Set_Table.Table (J);
-            Length : constant Natural
-              := Info.Character_Set_Last - Info.Character_Set_First + 1;
-            Index  : constant Natural
-              := Find (Info.Character_Set_First, Info.Character_Set_Last);
+            Length : constant Natural :=
+                       Info.Character_Set_Last - Info.Character_Set_First + 1;
+            Index  : constant Natural :=
+                       Find
+                         (Info.Character_Set_First, Info.Character_Set_Last);
             First  : constant Natural := Aux_Table.Last + 1;
          begin
             if Index = 0 then
-               for J in Info.Character_Set_First
-                          .. Info.Character_Set_Last
+               for J in Info.Character_Set_First .. Info.Character_Set_Last
                loop
                   Aux_Table.Append (Character_Sets_Table.Table (J));
                end loop;
+
                Info.Character_Set_First := First;
                Info.Character_Set_Last  := First + Length - 1;
+
             else
                Info.Character_Set_First := Index;
                Info.Character_Set_Last  := Index + Length - 1;
@@ -216,42 +218,63 @@ procedure Gen_Codeset is
       procedure Put is new Integer_Put (Integer);
    begin
       Put_Line ("--  AUTOMATICALLY GENERATED, DO NOT EDIT!");
+      New_Line;
+
+      --  Disable style checks (N), and set maximum line length to the largest
+      --  allowed value (M32766).
+
+      Put_Line ("pragma Style_Checks (""NM32766"");");
       Put_Line ("private package " & Pkg_Name & " is");
       New_Line;
 
       Put_Line
        ("   Info : constant array (Positive range <>)"
-          & " of Code_Set_Info_Record");
-      Put ("     := (");
+          & " of Code_Set_Info_Record :=");
+      Put ("     (");
 
       for J in 1 .. Code_Set_Table.Last loop
          declare
             Info : Code_Set_Info renames Code_Set_Table.Table (J);
             Buf  : String (1 .. 13);
+
+            procedure Put_Description;
+            --  Output Ada comment with description of current entry
+
+            procedure Put_Description is
+            begin
+               Put (" --  ");
+               for J in Info.Description_First .. Info.Description_Last loop
+                  Put (Description_Table.Table (J));
+               end loop;
+               New_Line;
+            end Put_Description;
+
          begin
             Put (Buf, Info.Code_Set);
 
             Put ('(');
             Put (Buf (2 .. 13));
             Put (',');
-            Put (Info.Character_Set_First, 4);
+            Put (Info.Character_Set_First, 3);
             Put (',');
-            Put (Info.Character_Set_Last, 4);
+            Put (Info.Character_Set_Last, 3);
             Put (')');
-         end;
 
-         if J /= Code_Set_Table.Last then
-            Put (',');
-            New_Line;
-            Put ("         ");
-         else
-            Put_Line (");");
-         end if;
+            if J /= Code_Set_Table.Last then
+               Put (", ");
+               Put_Description;
+               Put ("      ");
+
+            else
+               Put (");");
+               Put_Description;
+            end if;
+         end;
       end loop;
       New_Line;
 
-      Put_Line ("   Character_Sets : constant Character_Set_Id_Array");
-      Put ("     := (");
+      Put_Line ("   Character_Sets : constant Character_Set_Id_Array :=");
+      Put ("     (");
 
       for J in 1 .. Character_Sets_Table.Last loop
          declare
@@ -265,7 +288,7 @@ procedure Gen_Codeset is
             Put (",");
             if J mod 7 = 0 then
                New_Line;
-               Put ("         ");
+               Put ("      ");
             else
                Put (' ');
             end if;

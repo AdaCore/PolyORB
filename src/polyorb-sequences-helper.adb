@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -197,19 +197,32 @@ package body PolyORB.Sequences.Helper is
 
    function To_Any (Item : Sequence) return Any.Any is
       pragma Assert (Initialized);
-      Result : Any.Any := Get_Empty_Any_Aggregate (Sequence_TC);
-
+      Result : Any.Any;
    begin
-      Add_Aggregate_Element
-        (Result, To_Any (Types.Unsigned_Long (Length (Item))));
-
-      for J in 1 .. Length (Item) loop
-         Add_Aggregate_Element (Result,
-           Element_To_Any
-             (Unchecked_Element_Of (Item'Unrestricted_Access, J).all));
-      end loop;
+      Set_Type (Result, Sequence_TC);
+      Set_Value
+        (Get_Container (Result).all,
+         new Sequence_Content'
+           (Any.Aggregate_Content with
+              V            => new Sequence'(Item),
+              Length_Cache => Unsigned_Long (Length (Item))),
+         Foreign => False);
       return Result;
    end To_Any;
+
+   ---------------------
+   -- Unchecked_Get_V --
+   ---------------------
+
+   function Unchecked_Get_V
+     (ACC : not null access Sequence_Content) return System.Address
+   is
+   begin
+      if ACC.V = null or else Length (ACC.V.all) = 0 then
+         return System.Null_Address;
+      end if;
+      return Unchecked_Element_Of (ACC.V, 1).all'Address;
+   end Unchecked_Get_V;
 
    ----------
    -- Wrap --

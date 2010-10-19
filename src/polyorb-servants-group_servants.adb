@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -237,8 +237,7 @@ package body PolyORB.Servants.Group_Servants is
 
    function Execute_Servant
      (Self : not null access Group_Servant;
-      Msg  : Components.Message'Class)
-      return Components.Message'Class
+      Req  : Requests.Request_Access) return Boolean
    is
       use PolyORB.Requests;
       use PolyORB.ORB;
@@ -247,19 +246,13 @@ package body PolyORB.Servants.Group_Servants is
       use PolyORB.Servants.Iface;
       use Unsigned_Long_Flags;
 
-      Request : Request_Access;
       It : TPL.Iterator;
 
-      Res : PolyORB.Components.Null_Message;
-
    begin
-      pragma Assert (Msg in Execute_Request);
-
-      Request := Execute_Request (Msg).Req;
       if TPL.Length (Self.Target_List) = 0 then
          pragma Debug (C, O ("Request received in empty group !!!",
                           PolyORB.Log.Warning));
-         return Executed_Request'(Req => Request);
+         return True;
       end if;
 
       --  Initialize argument proxy
@@ -272,7 +265,7 @@ package body PolyORB.Servants.Group_Servants is
 
       --  Check if request is oneway
 
-      if not Is_Set (Sync_With_Transport, Request.Req_Flags) then
+      if not Is_Set (Sync_With_Transport, Req.Req_Flags) then
          Leave (Self.Group_Lock);
          Leave (Self.Mutex);
 
@@ -285,24 +278,23 @@ package body PolyORB.Servants.Group_Servants is
 
       Self.Counter := 0;
       Self.State := Wait_First;
-      Self.Args_Src := Request.Deferred_Arguments_Session;
+      Self.Args_Src := Req.Deferred_Arguments_Session;
 
       It := TPL.First (Self.Target_List);
 
-      --  Create requests
+      --  Create sub-requests
 
       while not TPL.Last (It) loop
          declare
-            Req  : Request_Access;
-            Args : Ref;
+            Sub_Req : Request_Access;
+            Args    : Ref;
 
          begin
-            if not Is_Nil (Request.Args) then
-               --  We are in the case where a request is issued
-               --  locally, on the same node, we copy directly the
-               --  argument NV list.
+            if not Is_Nil (Req.Args) then
+               --  We are in the case where a request is issued locally, on the
+               --  same node, we copy directly the argument NV list.
 
-               Args := Request.Args;
+               Args := Req.Args;
             end if;
 
             pragma Debug (C, O ("Forward to : "
@@ -311,21 +303,20 @@ package body PolyORB.Servants.Group_Servants is
             Create_Request
               (Target                     =>
                  PolyORB.References.Ref'(TPL.Value (It).all),
-               Operation                  =>
-                 Request.Operation.all,
+               Operation                  => Req.Operation.all,
                Arg_List                   => Args,
-               Result                     => Request.Result,
+               Result                     => Req.Result,
                Deferred_Arguments_Session =>
                  PolyORB.Components.Component_Access (Self),
-               Req                        => Req,
-               Req_Flags                  => Request.Req_Flags);
+               Req                        => Sub_Req,
+               Req_Flags                  => Req.Req_Flags);
             --  XXX Notepad is not copied, neither are QoS parameters ..
 
             --  Requeue request to ORB
 
             Queue_Request_To_Handler (The_ORB,
               Queue_Request'
-                (Request   => Req,
+                (Request   => Sub_Req,
                  Requestor => PolyORB.Components.Component_Access (Self)));
 
             pragma Debug (C, O ("Request sent"));
@@ -337,7 +328,7 @@ package body PolyORB.Servants.Group_Servants is
 
       pragma Debug (C, O ("Request dispatched to all servants in group"));
 
-      return Res;
+      return False;
    end Execute_Servant;
 
    --------------------
@@ -345,9 +336,8 @@ package body PolyORB.Servants.Group_Servants is
    --------------------
 
    function Handle_Message
-     (Self : access Group_Servant;
-      Msg  :        Components.Message'Class)
-     return Components.Message'Class
+     (Self : not null access Group_Servant;
+      Msg  : Components.Message'Class) return Components.Message'Class
    is
       use PolyORB.Servants.Iface;
       use PolyORB.Protocols.Iface;
@@ -417,7 +407,7 @@ package body PolyORB.Servants.Group_Servants is
 
    procedure Unregister
      (Self : access Group_Servant;
-      Ref  :        PolyORB.References.Ref)
+      Ref  : References.Ref)
    is
       use PolyORB.References;
 
@@ -428,7 +418,7 @@ package body PolyORB.Servants.Group_Servants is
 
       Enter (Self.Group_Lock);
 
-      TPL.Remove (Self.Target_List, Ref);
+      TPL.Remove_Occurrences (Self.Target_List, Ref);
       pragma Debug (C, O ("Group size:" & TPL.Length (Self.Target_List)'Img));
 
       Leave (Self.Group_Lock);

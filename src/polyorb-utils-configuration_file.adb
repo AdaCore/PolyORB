@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -252,6 +252,7 @@ package body PolyORB.Utils.Configuration_File is
          end if;
       end loop;
 
+      Free (Current_Section);
       Close (Conf_File);
    end Load_Configuration_Table;
 

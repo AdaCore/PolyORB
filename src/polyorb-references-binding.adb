@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -69,12 +69,12 @@ package body PolyORB.References.Binding is
    ----------
 
    procedure Bind
-     (R          :        Ref'Class;
-      Local_ORB  :        ORB.ORB_Access;
-      QoS        :        PolyORB.QoS.QoS_Parameters;
-      Servant    :    out Components.Component_Access;
-      Pro        :    out Binding_Data.Profile_Access;
-      Local_Only :        Boolean;
+     (R          : Ref'Class;
+      Local_ORB  : ORB.ORB_Access;
+      QoS        : PolyORB.QoS.QoS_Parameters;
+      Servant    : out Components.Component_Access;
+      Pro        : out Binding_Data.Profile_Access;
+      Local_Only : Boolean;
       Error      : in out PolyORB.Errors.Error_Container)
    is
       use type Components.Component_Access;
@@ -104,12 +104,13 @@ package body PolyORB.References.Binding is
          return;
       end if;
 
-      --  Initial values: failure.
-      Servant := null;
-      Pro := null;
+      --  Initial values: failure
 
-      --  First check whether the reference is already bound,
-      --  and in that case reuse the binding object.
+      Servant := null;
+      Pro     := null;
+
+      --  First check whether the reference is already bound, if so reuse the
+      --  existing binding object.
 
       pragma Debug (C, O ("Bind: Check for already bound reference"));
 
@@ -121,7 +122,7 @@ package body PolyORB.References.Binding is
            or else Is_Profile_Local (Local_ORB, Existing_Profile)
          then
             Servant := Existing_Servant;
-            Pro := Existing_Profile;
+            Pro     := Existing_Profile;
             pragma Debug (C, O ("Bind: The reference is already bound"));
          end if;
 
@@ -254,8 +255,7 @@ package body PolyORB.References.Binding is
 
                   pragma Debug (C, O ("Recursed."));
 
-                  Share_Binding_Info
-                    (Dest => Ref (R), Source => Continuation);
+                  Share_Binding_Info (Dest => Ref (R), Source => Continuation);
                   pragma Debug (C, O ("Cached binding data."));
                end if;
                pragma Debug (C, O ("About to finalize Continuation"));

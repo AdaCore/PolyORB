@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -116,21 +116,18 @@ package body PolyORB.POA_Policies.Implicit_Activation_Policy.Activation is
    -------------------------------
 
    procedure Implicit_Activate_Servant
-     (Self      :        Activation_Policy;
-      OA        :        PolyORB.POA_Types.Obj_Adapter_Access;
-      P_Servant :        Servants.Servant_Access;
-      Hint      :        Object_Id_Access;
-      Oid       :    out Object_Id_Access;
+     (Self      : Activation_Policy;
+      OA        : PolyORB.POA_Types.Obj_Adapter_Access;
+      P_Servant : Servants.Servant_Access;
+      Hint      : Object_Id_Access;
+      Oid       : out Object_Id_Access;
       Error     : in out PolyORB.Errors.Error_Container)
    is
       pragma Unreferenced (Self);
-
       U_Oid : Unmarshalled_Oid;
-
    begin
       PolyORB.POA.Activate_Object
         (PolyORB.POA.Obj_Adapter_Access (OA), P_Servant, Hint, U_Oid, Error);
-
       Oid := U_Oid_To_Oid (U_Oid);
    end Implicit_Activate_Servant;
 

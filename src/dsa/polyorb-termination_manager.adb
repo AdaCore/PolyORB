@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2006-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2006-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -44,7 +44,6 @@ with PolyORB.Tasking.Threads;
 with PolyORB.Tasking.Mutexes;
 with PolyORB.Termination_Activity;
 with PolyORB.Termination_Manager.Bootstrap;
-with System.Partition_Interface;
 with System.RPC;
 
 package body PolyORB.Termination_Manager is
@@ -58,36 +57,37 @@ package body PolyORB.Termination_Manager is
    use PolyORB.Tasking.Mutexes;
    use PolyORB.Termination_Activity;
    use PolyORB.Termination_Manager.Bootstrap;
-   use System.Partition_Interface;
 
    procedure Termination_Loop;
    --  Main loop of the task created by the termination manager
 
    procedure In_Initiator_Loop;
-   --  This procedure is executed in the termination loop for
-   --  the initiator(s) node.
+   --  Procedure executed in the termination loop for the initiator node
 
    procedure In_Slave_Loop;
-   --  This procedure is executed in the termination loop for
-   --  nodes which are not the initiator.
+   --  Procedure executed in the termination loop for non-initiator nodes
 
    type Action is access
      function (TM : Term_Manager_Access; Stamp : Stamp_Type) return Boolean;
    --  Comment needed???
 
    function Call_On_Neighbours
-     (A     : Action;
-      Stamp : Stamp_Type) return Boolean;
+     (A      : Action;
+      A_Name : String;
+      Stamp  : Stamp_Type) return Boolean;
    --  Call action A on all the neighbours of the local partition, and return
    --  the global AND of every neighbour return value to A.
 
-   function ">" (S1, S2 : Stamp_Type) return Boolean;
-   --  Compare two stamps. S1 > S2 means that S1 is very likely to have been
-   --  issued prior to S2. (Borrowed from GLADE s-garter).
+   function Newer (S1, S2 : Stamp_Type) return Boolean;
+   --  Compare two stamps. Newer (S1, S2) means that S2 is very likely to have
+   --  been issued prior to S1.
 
    function Is_Locally_Terminated
-     (Expected_Running_Tasks : Natural) return Boolean;
-   --  Wrapper for the Is_Locally_Terminated function defined in ORB_Controller
+     (TM             : Term_Manager;
+      In_Remote_Call : Boolean := False) return Boolean;
+   --  Check for local termination using ORB_Controller.Is_Locally_Terminated.
+   --  In_Remote_Call is set True when this is being called as part of
+   --  processing an Is_Terminated request from a remote node.
 
    type Request_Status is (Outdated, Not_From_Father, Valid);
    --  Comment needed???
@@ -151,47 +151,57 @@ package body PolyORB.Termination_Manager is
    ------------------------
 
    function Call_On_Neighbours
-     (A : Action; Stamp : Stamp_Type) return Boolean
+     (A      : Action;
+      A_Name : String;
+      Stamp  : Stamp_Type) return Boolean
    is
       use BO_Ref_Lists;
       use References;
       use Smart_Pointers;
 
-      L      : constant BO_Ref_List := Get_Binding_Objects (Setup.The_ORB);
-      It     : Iterator;
-      R      : References.Ref;
-      NK     : Node_Kind;
-      RACW   : Term_Manager_Access;
-      Status : Boolean := True;
+      L        : BO_Ref_List := Get_Binding_Objects (Setup.The_ORB);
+      R        : References.Ref;
+      NK       : Node_Kind;
+      RACW     : Term_Manager_Access;
+      Status   : Boolean := True;
+      N_Status : Boolean;
    begin
-      It := First (L);
+      pragma Debug (C,
+        O ("Call_On_Neighbours (" & A_Name & "," & Stamp'Img & "): enter"));
 
       All_Binding_Objects :
-      while not Last (It) loop
-         pragma Debug (C, O ("Calling Action on a neighbour..."));
-
+      while not Is_Empty (L) loop
          declare
             use Ada.Exceptions;
+            BO_Ref : Smart_Pointers.Ref;
          begin
+            Extract_First (L, BO_Ref);
             Extract_TM_Reference_From_BO
-              (BO  => Binding_Object_Access (Entity_Of (Value (It).all)),
+              (BO  => Binding_Object_Access (Entity_Of (BO_Ref)),
                Ref => R,
                NK  => NK);
 
             case NK is
                when DSA_Node | Unknown =>
                   RACW := Ref_To_Term_Manager_Access (R);
-                  Status := A (RACW, Stamp) and then Status;
+
+                  pragma Debug
+                    (C, O ("Calling "
+                           & A_Name & " (" & Stamp'Img & ")"
+                           & " on neighbour..."));
+                  N_Status := A (RACW, Stamp);
+                  pragma Debug (C, O ("-> " & N_Status'Img));
+                  Status := Status and N_Status;
 
                when DSA_Node_Without_TM =>
+                  pragma Debug
+                    (C, O ("DSA neighbour without TM"));
                   Status := False;
 
                when Non_DSA_Node =>
-
-                  --  Non DSA nodes do not take part in the global decision
+                  --  Non-DSA nodes do not take part in the global decision
 
                   null;
-
             end case;
 
             --  XXX A server only, no tasking partition, will not take part
@@ -206,9 +216,11 @@ package body PolyORB.Termination_Manager is
             when System.RPC.Communication_Error =>
                Decrement_Activity;
          end;
-
-         Next (It);
       end loop All_Binding_Objects;
+
+      pragma Debug (C,
+        O ("Call_On_Neighbours (" & A_Name & ", " & Stamp'Img & "): leave -> "
+           & Status'Img));
       return Status;
    end Call_On_Neighbours;
 
@@ -216,27 +228,26 @@ package body PolyORB.Termination_Manager is
    -- Check_Stamp --
    -----------------
 
-   function Check_Stamp (S : Stamp_Type) return Request_Status
-   is
+   function Check_Stamp (S : Stamp_Type) return Request_Status is
       Result : Request_Status;
    begin
-
       Enter (Critical_Section);
+      pragma Debug (C, O ("Check_Stamp: stamp =" & S'Img
+                            & ", Current =" & The_TM.Current_Stamp'Img));
 
-      if S < The_TM.Current_Stamp then
-
+      if Newer (The_TM.Current_Stamp, S) then
          --  If stamp is older than current stamp, this is an outdated message
 
          Result := Outdated;
 
       elsif S = The_TM.Current_Stamp then
-
          --  If stamp is equal to the current stamp then the request is not
-         --  from a Father node.
+         --  from a father node.
 
          Result := Not_From_Father;
 
-      elsif S > The_TM.Current_Stamp then
+      else
+         pragma Assert (Newer (S, The_TM.Current_Stamp));
 
          --  If stamp is more recent than current stamp, this is a new wave,
          --  update the current stamp.
@@ -246,17 +257,15 @@ package body PolyORB.Termination_Manager is
       end if;
 
       Leave (Critical_Section);
-
+      pragma Debug (C, O ("Check_Stamp: -> " & Result'Img));
       return Result;
-
    end Check_Stamp;
 
    ---------------
    -- Get_Stamp --
    ---------------
 
-   function Get_Stamp return Stamp_Type
-   is
+   function Get_Stamp return Stamp_Type is
       Result : Stamp_Type;
    begin
       Enter (Critical_Section);
@@ -271,16 +280,19 @@ package body PolyORB.Termination_Manager is
 
    procedure In_Initiator_Loop is
    begin
+      --  Do not bother to start a wave if the local node participates in the
+      --  decision and knows it is not locally terminated.
 
-      if The_TM.Termination_Policy = Local_Termination then
-         pragma Debug (C, O ("A partition cannot be the initiator"
-                         &" and have a local termination policy."));
-         raise Program_Error;
+      if The_TM.Termination_Policy = Global_Termination
+           and then
+         not Is_Locally_Terminated (The_TM.all)
+      then
+         return;
       end if;
 
-      if Is_Locally_Terminated (The_TM.Non_Terminating_Tasks)
-        and then Is_Terminated (The_TM, Get_Stamp + 1)
-      then
+      pragma Debug (C, O ("In_Initiator_Loop: start wave"));
+
+      if Is_Terminated (The_TM, Get_Stamp + 1) then
          The_TM.Terminated := Terminate_Now (The_TM, Get_Stamp + 1);
       end if;
    end In_Initiator_Loop;
@@ -293,8 +305,7 @@ package body PolyORB.Termination_Manager is
    begin
       case The_TM.Termination_Policy is
          when Local_Termination =>
-            The_TM.Terminated := Is_Locally_Terminated
-                                   (The_TM.Non_Terminating_Tasks);
+            The_TM.Terminated := Is_Locally_Terminated (The_TM.all);
 
          when Global_Termination | Deferred_Termination =>
             null;
@@ -306,25 +317,51 @@ package body PolyORB.Termination_Manager is
    ---------------------------
 
    function Is_Locally_Terminated
-     (Expected_Running_Tasks : Natural) return Boolean
+     (TM             : Term_Manager;
+      In_Remote_Call : Boolean := False) return Boolean
    is
-      Result : Boolean;
+      Expected_Running_Tasks : Natural := TM.Non_Terminating_Tasks;
+      Result                 : Boolean;
    begin
+      pragma Debug (C, O ("Is_Locally_Terminated: enter (in remote call: "
+                          & In_Remote_Call'Img & ")"));
+
+      --  Compute the number of expected non-terminating tasks
+
+      pragma Debug (C, O ("TM.Is_Initiator = " & TM.Is_Initiator'Img));
+      pragma Debug (C, O ("TM.Non_Terminating_Tasks ="
+                            & TM.Non_Terminating_Tasks'Img));
+
+      if In_Remote_Call and then not TM.Is_Initiator then
+         --  If the termination manager is not the initiator, local termination
+         --  is checked inside a request job so one of the ORB tasks will be
+         --  running at that time, so we have one more non-terminating task.
+
+         Expected_Running_Tasks := Expected_Running_Tasks + 1;
+      end if;
+
+      pragma Debug (C, O ("Expect" & Expected_Running_Tasks'Img
+        & " remaining tasks"));
+
       --  Theoretically we should just test Is_Locally_Terminated once.
-      --  However in some cases the I/O task that received the message
-      --  for a wave might still be running (about to be rescheduled)
-      --  at the first try, so we wait a tiny bit and check again if
-      --  at first we don't get a positive result.
+      --  However in some cases the I/O task that received the message for a
+      --  wave might still be running (about to be rescheduled) at the first
+      --  try, so we wait a tiny bit and check again if at first we don't get
+      --  a positive result.
 
       for J in 1 .. 3 loop
          Enter_ORB_Critical_Section (The_ORB.ORB_Controller);
-         Result := Is_Locally_Terminated (The_ORB.ORB_Controller,
-                                       Expected_Running_Tasks);
+         pragma Debug (C, O ("Is_Locally_Terminated: in critical section, "
+                             & "iteration" & J'Img));
+         Result := Is_Locally_Terminated
+                     (The_ORB.ORB_Controller, Expected_Running_Tasks);
          Leave_ORB_Critical_Section (The_ORB.ORB_Controller);
          exit when Result;
-         Relative_Delay (The_TM.Time_Between_Waves);
+         Relative_Delay (The_TM.Time_Between_Waves / 10);
       end loop;
 
+      pragma Debug (C, O ("Is_Locally_Terminated: leave, Result = "
+        & Result'Img));
       return Result;
    end Is_Locally_Terminated;
 
@@ -332,76 +369,74 @@ package body PolyORB.Termination_Manager is
    -- Is_Terminated --
    -------------------
 
-   function Is_Terminated (TM : access Term_Manager; Stamp : Stamp_Type)
-     return Boolean
+   function Is_Terminated
+     (TM    : access Term_Manager;
+      Stamp : Stamp_Type) return Boolean
    is
-      Local_Decision : Boolean := True;
+      Local_Decision      : Boolean := True;
       Neighbours_Decision : Boolean := True;
-      Non_Terminating_Tasks : Natural;
    begin
-
       case Check_Stamp (Stamp) is
          when Not_From_Father =>
-            return True;
-
-            --  If the request is not from a Father node, we immediatly answer
+            --  If the request is not from a father node, we immediatly answer
             --  True as this does not change the computation.
 
-         when Outdated        =>
+            return True;
+
+         when Outdated =>
             return False;
-         when Valid           =>
+
+         when Valid =>
             null;
             pragma Debug (C, O ("New wave (Is_Terminated) received"));
       end case;
 
-      --  Compute the number of expected non terminating tasks
+      --  Check local termination
 
-      if not TM.Is_Initiator then
-
-         --  If the termination manager is not the initiator, local termination
-         --  will be checked inside a request job so one of the orb tasks will
-         --  be running at that time, and we have one more non terminating
-         --  task.
-
-         Non_Terminating_Tasks := TM.Non_Terminating_Tasks + 1;
-      else
-         Non_Terminating_Tasks := TM.Non_Terminating_Tasks;
-      end if;
-
-      --  If node is not locally terminated or active, return False
-
-      pragma Debug (C, O ("Expect" & Non_Terminating_Tasks'Img
-        & " remaining tasks"));
-
-      if not Is_Locally_Terminated (Non_Terminating_Tasks) then
-         pragma
-           Debug (O ("Node is not locally terminated, refusing termination."));
+      if not Is_Locally_Terminated (TM.all, In_Remote_Call => True) then
+         pragma Debug
+           (C, O ("Node is not locally terminated, refusing termination."));
          Local_Decision := False;
       end if;
 
+      --  Check for pending communication with remote nodes
+
       if Is_Active then
-         pragma
-           Debug (O ("Node is active (has sent messages since the last wave),"
+         pragma Debug
+           (C, O ("Node is active (has sent messages since the last wave),"
                      & " refusing termination."));
          Local_Decision := False;
       end if;
 
       --  If node is locally terminated and has not sent any messages the
-      --  answer depends on its childs.
+      --  answer depends on its children.
 
       --  We propagate the wave even if locally we are refusing termination.
-      --  This is to reset the activity counter in all the childs partitions.
+      --  This is to reset the activity counter in all child partitions.
+      --  Is this desirable if we are the initiator???
 
       Neighbours_Decision :=
-        Call_On_Neighbours (Do_Is_Terminated'Access, Stamp);
+        Call_On_Neighbours
+          (Do_Is_Terminated'Access, "Do_Is_Terminated", Stamp);
 
-      --  Reset Activity counter
+      pragma Debug (C, O ("Is_Terminated: Local " & Local_Decision'Img
+                            & " / Neighbours " & Neighbours_Decision'Img));
+
+      --  Reset activity counter
 
       Reset_Activity;
 
-      return Local_Decision and then Neighbours_Decision;
-
+      return Local_Decision and Neighbours_Decision;
    end Is_Terminated;
+
+   -----------
+   -- Newer --
+   -----------
+
+   function Newer (S1, S2 : Stamp_Type) return Boolean is
+   begin
+      return S1 /= S2 and then S1 - S2 < 2 ** (Stamp_Type'Size - 1);
+   end Newer;
 
    -----------
    -- Start --
@@ -415,6 +450,12 @@ package body PolyORB.Termination_Manager is
    is
       Thread_Acc : Thread_Access;
    begin
+      --  Check consistency of settings
+
+      if T = Local_Termination and then Initiator then
+         raise Program_Error with
+           "termination initiator can't have local termination policy";
+      end if;
 
       Create (Critical_Section);
 
@@ -423,10 +464,13 @@ package body PolyORB.Termination_Manager is
       TM.Termination_Policy := T;
       TM.Is_Initiator       := Initiator;
 
-      --  Since we are running the termination loop in a new task,
-      --  we should consider it as a non terminating task.
+      --  Since we are running the termination loop in a new task, we should
+      --  consider it as a non-terminating task.
 
       TM.Non_Terminating_Tasks := TM.Non_Terminating_Tasks + 1;
+
+      pragma Debug (C, O ("Starting TM: Is_Initiator = " & Initiator'Img
+                            & " / NTT =" & TM.Non_Terminating_Tasks'Img));
 
       Thread_Acc := Run_In_Task
         (TF               => Get_Thread_Factory,
@@ -434,18 +478,15 @@ package body PolyORB.Termination_Manager is
          P                => Termination_Loop'Access);
 
       pragma Assert (Thread_Acc /= null);
-
    end Start;
 
    ----------------------
    -- Termination_Loop --
    ----------------------
 
-   procedure Termination_Loop
-   is
+   procedure Termination_Loop is
       use Ada.Exceptions;
    begin
-
       Relative_Delay (The_TM.Time_Before_Start);
       loop
          if The_TM.Is_Initiator then
@@ -459,7 +500,6 @@ package body PolyORB.Termination_Manager is
       end loop;
 
       PolyORB.Initialization.Shutdown_World (Wait_For_Completion => True);
-
    exception
       when E : others =>
          pragma Debug (C, O ("Termination_Loop: got "
@@ -481,9 +521,12 @@ package body PolyORB.Termination_Manager is
 
       case Check_Stamp (Stamp) is
          when Valid  =>
+            pragma Debug
+              (C, O ("Terminate_Now: received wave with valid time stamp"));
             null;
-            pragma Debug (C, O ("New wave (Terminate_Now) received"));
          when others =>
+            pragma Debug
+              (C, O ("Terminate_Now: received wave with junk time stamp"));
             return True;
       end case;
 
@@ -491,10 +534,12 @@ package body PolyORB.Termination_Manager is
 
       pragma Debug (C, O ("Terminating children"));
 
-      Status := Call_On_Neighbours (Do_Terminate_Now'Access, Stamp);
+      Status := Call_On_Neighbours
+                  (Do_Terminate_Now'Access, "Do_Terminate_Now", Stamp);
       pragma Assert (Status);
 
-      --  Terminate this partition but for Deferred Termination
+      --  Terminate this partition, except if it has the Deferred_Termination
+      --  policy.
 
       if TM.Termination_Policy /= Deferred_Termination then
          TM.Terminated := True;
@@ -502,22 +547,5 @@ package body PolyORB.Termination_Manager is
 
       return TM.Terminated;
    end Terminate_Now;
-
-   ---------
-   -- ">" --
-   ---------
-
-   function ">" (S1, S2 : Stamp_Type) return Boolean is
-      D : Integer;
-   begin
-      D := Integer (S1) - Integer (S2);
-      if D > Integer (Stamp_Type'Last) / 2 then
-         return False;
-      elsif D < -Integer (Stamp_Type'Last / 2) then
-         return True;
-      else
-         return D > 0;
-      end if;
-   end ">";
 
 end PolyORB.Termination_Manager;

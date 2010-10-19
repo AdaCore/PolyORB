@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1995-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -36,19 +36,10 @@ with XE_Defs.Defaults;
 with XE_Flags; use XE_Flags;
 
 procedure XE_Usage is
-   Version : constant String := "5.04w";
-   Length  : Positive := Version'First;
-
 begin
    if Verbose_Mode then
-      while Length < Version'Last and then Version (Length + 1) /= ' ' loop
-         Length := Length + 1;
-      end loop;
-      Write_Eol;
       Write_Str ("GNATDIST ");
-      Write_Str (Version (Version'First .. Length));
-      Write_Str (" / ");
-      Write_Str (Version (Version'First .. Length));
+      Write_Str (XE_Defs.Defaults.Version);
       Write_Eol;
       Write_Str ("Copyright 1996-2008, Free Software Foundation, Inc.");
       Write_Eol;
@@ -73,6 +64,8 @@ begin
    Write_Str ("  -a        Consider all files, even readonly ali files");
    Write_Eol;
    Write_Str ("  -f        Force recompilations");
+   Write_Eol;
+   Write_Str ("  -k        Keep going after compilation errors");
    Write_Eol;
    Write_Str ("  -q        Be quiet, do not display partitioning operations");
    Write_Eol;

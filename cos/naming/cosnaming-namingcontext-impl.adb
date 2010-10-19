@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -288,7 +288,7 @@ package body CosNaming.NamingContext.Impl is
    function Bind_New_Context
      (Self : access Object;
       N    : Name)
-     return NamingContext.Ref
+     return NamingContext.Ref'Class
    is
       Len  : Natural;
       Ctx  : NamingContext.Ref;
@@ -301,7 +301,7 @@ package body CosNaming.NamingContext.Impl is
          return Ref (bind_new_context (Ctx, To_Name (Last)));
 
       else
-         Ctx := New_Context (Self);
+         Ctx := NamingContext.Ref (New_Context (Self));
          Bind_Context (Self, N, Ctx);
          return Ctx;
       end if;
@@ -589,7 +589,7 @@ package body CosNaming.NamingContext.Impl is
 
    function New_Context
      (Self : access Object)
-     return NamingContext.Ref
+     return NamingContext.Ref'Class
    is
       pragma Warnings (Off);
       pragma Unreferenced (Self);

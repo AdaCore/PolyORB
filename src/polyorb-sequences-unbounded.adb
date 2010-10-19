@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -252,8 +252,7 @@ package body PolyORB.Sequences.Unbounded is
    -- Append --
    ------------
 
-   procedure Append (Source : in out Sequence; New_Item : Element_Array)
-   is
+   procedure Append (Source : in out Sequence; New_Item : Element_Array) is
       Left_Bounds : constant Bounds := Sequence_Bounds (Source);
    begin
       Run_In_Place
@@ -271,9 +270,7 @@ package body PolyORB.Sequences.Unbounded is
    -- Append --
    ------------
 
-   procedure Append
-     (Source   : in out Sequence;
-      New_Item : Element) is
+   procedure Append (Source : in out Sequence; New_Item : Element) is
    begin
       Append (Source, Element_Array'(1 => New_Item));
    end Append;
@@ -309,6 +306,11 @@ package body PolyORB.Sequences.Unbounded is
       Going   : Direction := Forward) return Natural
    is
       function Check_For_Pattern (Lo, Hi : Positive) return Boolean;
+      --  True when Source (Lo .. Hi) = Pattern
+
+      -----------------------
+      -- Check_For_Pattern --
+      -----------------------
 
       function Check_For_Pattern (Lo, Hi : Positive) return Boolean is
       begin
@@ -375,7 +377,8 @@ package body PolyORB.Sequences.Unbounded is
 
    function Get_Element
      (Source : Sequence;
-      Index  : Positive) return Element is
+      Index  : Positive) return Element
+   is
    begin
       if Index > Source.Length then
          raise Index_Error;
@@ -638,7 +641,7 @@ package body PolyORB.Sequences.Unbounded is
       end if;
 
       Run (Prog, New_Contents.all, Old_Contents (1 .. Left.Length), Right);
-      Left.Length := Prog.Result_Length;
+      Left.Length  := Prog.Result_Length;
       Left.Content := New_Contents;
 
       if New_Contents /= Old_Contents and then Old_Contents'Length > 0 then
@@ -661,7 +664,8 @@ package body PolyORB.Sequences.Unbounded is
 
    procedure Set
      (Item   : in out Sequence;
-      Source : Element_Array) is
+      Source : Element_Array)
+   is
    begin
       Item := To_Sequence (Source);
    end Set;

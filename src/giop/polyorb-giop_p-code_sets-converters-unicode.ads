@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---           Copyright (C) 2006, Free Software Foundation, Inc.             --
+--         Copyright (C) 2006-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,12 +31,12 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  This package provides character data code sets converters for
---  Unicode encoding: UTF-8 for char data and UTF-16 for wchar data.
+--  This package provides character data code sets converters for Unicode
+--  encodings: UTF-8 for char data and UTF-16 for wchar data.
 
---  Note: Client application which use these encodings should be ready
---  to dial with multibite character sequences and avoid use of char
---  IDL type (use string instead).
+--  Note: Client application which use these encodings should be ready to deal
+--  with multibyte character sequences and avoid use of char IDL type (use
+--  string instead).
 
 --  Supported char native code sets:
 --    0x05010001  X/Open UTF-8; UCS Transformation Format 8 (UTF-8)

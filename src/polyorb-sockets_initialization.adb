@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -50,7 +50,13 @@ package body PolyORB.Sockets_Initialization is
 
    procedure Initialize is
    begin
+      pragma Warnings (Off);
+      --  WAG:61
+      --  A call GNAT.Sockets.Initialize used to be necessary. This is not
+      --  the case anymore, and so the routine is marked as obsolescent on
+      --  newer compilers.
       GNAT.Sockets.Initialize;
+      pragma Warnings (On);
    end Initialize;
 
    use PolyORB.Initialization;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -87,7 +87,8 @@ package body PolyORB.Transport.Datagram is
          pragma Debug (C, O ("Create and register endpoint"));
 
          Binding_Objects.Setup_Binding_Object
-           (TE      => New_TE,
+           (ORB     => Components.Component_Access (H.ORB),
+            TE      => New_TE,
             FFC     => H.Filter_Factory_Chain.all,
             BO_Ref  => New_TE.Dependent_Binding_Object,
             Pro     => null);
@@ -109,9 +110,8 @@ package body PolyORB.Transport.Datagram is
    --------------------
 
    function Handle_Message
-     (TE  : access Datagram_Transport_Endpoint;
-      Msg : Components.Message'Class)
-     return Components.Message'Class
+     (TE  : not null access Datagram_Transport_Endpoint;
+      Msg : Components.Message'Class) return Components.Message'Class
    is
       use PolyORB.Buffers;
       use PolyORB.Components;
@@ -179,6 +179,8 @@ package body PolyORB.Transport.Datagram is
 
       elsif Msg in Set_Server then
          TE.Server := Set_Server (Msg).Server;
+         TE.Binding_Object :=
+           Smart_Pointers.Entity_Ptr (Set_Server (Msg).Binding_Object);
          return Emit (TE.Upper, Msg);
 
       elsif Msg in Disconnect_Indication then

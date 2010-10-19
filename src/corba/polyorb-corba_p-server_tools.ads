@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -46,14 +46,17 @@ package PolyORB.CORBA_P.Server_Tools is
    --  Access to a procedure to be called upon start up.
    --  See Initiate_Server for more details.
 
-   procedure Initiate_Server (Start_New_Task : Boolean := False);
+   procedure Activate_Server;
    --  Start a new ORB, and initialize the Root POA.
-   --  If Start_New_Task is True, a new task will be created and
-   --  control will be returned to the caller.  Otherwise, the ORB
-   --  will be executing in the current context.
-   --  If the Initiate_Server_Hook variable is not null, the
-   --  designated procedure will be called after initializing the ORB,
-   --  prior to entering the server loop.
+   --
+   --  If the Initiate_Server_Hook variable is not null, the designated
+   --  procedure will be called after initializing the ORB.
+
+   procedure Initiate_Server (Start_New_Task : Boolean := False);
+   --  Calls Activate_Server then starts ORB main loop.
+   --  If Start_New_Task is True, a new task will be created and control will
+   --  be returned to the caller. Otherwise, the ORB main loop will be executed
+   --  in the current context.
 
    function Get_Root_POA return PortableServer.POA.Local_Ref;
    --  Return the Root_POA attached to the current ORB instance.

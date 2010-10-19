@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -35,11 +35,17 @@ package Backend.BE_CORBA_Ada.Runtime is
 
    --  Runtime Units
 
+   --  Note: there is intentionally no RU_System so that users can have an IDL
+   --  identifier of that name. If an entity in package System needs to be
+   --  referenced in generated code, an appropriate renaming should be declared
+   --  under the PolyORB hierarchy.
+
    type RU_Id is
      (RU_Null,
       RU_Ada,
       RU_Ada_Exceptions,
       RU_Ada_Streams,
+      RU_Ada_Unchecked_Conversion,
       RU_Ada_Unchecked_Deallocation,
       RU_CORBA,
       RU_CORBA_AbstractBase,
@@ -166,8 +172,7 @@ package Backend.BE_CORBA_Ada.Runtime is
       RU_PolyORB_Utils_Strings,
       RU_PolyORB_Utils_Strings_Lists,
       RU_PortableServer,
-      RU_PortableServer_Internals,
-      RU_System);
+      RU_PortableServer_Internals);
 
    --  Runtime Entities
 
@@ -198,6 +203,7 @@ package Backend.BE_CORBA_Ada.Runtime is
       RE_Get_Element,               --  Get_Element
       RE_Exception_Occurrence,      --  Ada.Exceptions.Exception_Occurrence
       RE_Stream_Element_Count,      --  Ada.Streams.Stream_Element_Count
+      RE_Address,                   --  PolyORB.Types.Address
       RE_ARG_IN_0,                  --  CORBA.ARG_IN
       RE_ARG_OUT_0,                 --  CORBA.ARG_OUT
       RE_ARG_INOUT_0,               --  CORBA.ARG_INOUT
@@ -654,19 +660,19 @@ package Backend.BE_CORBA_Ada.Runtime is
                                     --     Insert_Raw_Data
       RE_Opaque_Pointer,            --  PolyORB.Opaque.Opaque_Pointer
       RE_Arguments_2,               --  PolyORB.Requests.Arguments
+      RE_Request,                   --  PolyORB.Requests.Request
       RE_Request_Access,            --  PolyORB.Requests.Request_Access
       RE_Request_Args,              --  PolyORB.Requests.Request_Args
       RE_Request_Args_Access,       --  PolyORB.Requests.Request_Args_Access
       RE_Request_Payload,           --  PolyORB.Requests.Request_Payload
       RE_Request_Payload_Access,    --  PolyORB.Requests.Request_Payload_Access
-      RE_Create_Request,            --  PolyORB.Requests.Create_Request
+      RE_Setup_Request,             --  PolyORB.Requests.Setup_Request
       RE_Flags,                     --  PolyORB.Requests.Flags
       RE_Sync_None,                 --  PolyORB.Requests.Sync_None
       RE_Sync_With_Transport,       --  PolyORB.Requests.Sync_With_Transport
       RE_Sync_With_Server,          --  PolyORB.Requests.Sync_With_Server
       RE_Sync_With_Target,          --  PolyORB.Requests.Sync_With_Target
       RE_Sync_Call_Back,            --  PolyORB.Requests.Sync_Call_Back
-      RE_Destroy_Request,           --  PolyORB.Requests.Destroy_Request
       RE_CORBA_Helper_1,            --  PolyORB.Sequences.Bounded.CORBA_Helper
       RE_CORBA_Helper_2,            --  PolyORB.Sequences.Unbounded.
       --                                   CORBA_Helper
@@ -1324,13 +1330,13 @@ package Backend.BE_CORBA_Ada.Runtime is
          RE_Opaque_Pointer            => RU_PolyORB_Opaque,
 
          RE_Arguments_2               => RU_PolyORB_Requests,
+         RE_Request                   => RU_PolyORB_Requests,
          RE_Request_Access            => RU_PolyORB_Requests,
          RE_Request_Args              => RU_PolyORB_Requests,
          RE_Request_Args_Access       => RU_PolyORB_Requests,
          RE_Request_Payload           => RU_PolyORB_Requests,
          RE_Request_Payload_Access    => RU_PolyORB_Requests,
-         RE_Create_Request            => RU_PolyORB_Requests,
-         RE_Destroy_Request           => RU_PolyORB_Requests,
+         RE_Setup_Request             => RU_PolyORB_Requests,
          RE_Flags                     => RU_PolyORB_Requests,
          RE_Sync_None                 => RU_PolyORB_Requests,
          RE_Sync_With_Transport       => RU_PolyORB_Requests,
@@ -1347,6 +1353,7 @@ package Backend.BE_CORBA_Ada.Runtime is
          RE_Natural                   => RU_PolyORB_Std,
          RE_String_2                  => RU_PolyORB_Std,
          RE_Nul                       => RU_PolyORB_Std_ASCII,
+         RE_Address                   => RU_PolyORB_Types,
          RE_Identifier                => RU_PolyORB_Types,
          RE_Long_1                    => RU_PolyORB_Types,
          RE_Short_1                   => RU_PolyORB_Types,

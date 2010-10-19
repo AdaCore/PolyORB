@@ -6,12 +6,12 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2005 Free Software Foundation, Inc.             --
+--         Copyright (C) 2005-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
--- provisions that follow apply solely to the contents neither explicitely  --
--- nor implicitely specified by the CORBA Specification defined by the OMG. --
+-- provisions that follow apply solely to the contents neither explicitly   --
+-- nor implicitly specified by the CORBA Specification defined by the OMG.  --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -135,7 +135,7 @@ package CORBA.IDL_SEQUENCES is
 
    --  StringSeq sequence
 
-   package IDL_SEQUENCE_String is new CORBA.Sequences.Unbounded (String);
+   package IDL_SEQUENCE_String is new CORBA.Sequences.Unbounded (CORBA.String);
 
    type StringSeq is new IDL_SEQUENCE_String.Sequence;
 

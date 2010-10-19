@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  A POA configuration corresponding to Minimum CORBA policies.
+--  A POA configuration corresponding to Minimum CORBA policies
 
 package PolyORB.POA_Config.Minimum is
 
@@ -39,16 +39,13 @@ package PolyORB.POA_Config.Minimum is
 
    type Minimum_Configuration is new Configuration_Type with private;
 
-   procedure Initialize
-     (C : Minimum_Configuration);
+   procedure Initialize (C : Minimum_Configuration);
 
    function Default_Policies
-     (C : Minimum_Configuration)
-     return PolyORB.POA_Policies.PolicyList;
+     (C : Minimum_Configuration) return PolyORB.POA_Policies.PolicyList;
 
 private
 
-   type Minimum_Configuration is new Configuration_Type
-     with null record;
+   type Minimum_Configuration is new Configuration_Type with null record;
 
 end PolyORB.POA_Config.Minimum;

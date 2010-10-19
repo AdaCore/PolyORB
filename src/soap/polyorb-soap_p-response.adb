@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2000-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2000-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -46,7 +46,7 @@ package body PolyORB.SOAP_P.Response is
    function Acknowledge
      (Status_Code  : HTTP_Status_Code;
       Message_Body : String := "";
-      Content_Type : String := AWS.MIME.Text_HTML)
+      Content_Type : String := PolyORB.Web.MIME.Text_HTML)
      return Data is
    begin
       if Message_Body = "" then
@@ -94,7 +94,7 @@ package body PolyORB.SOAP_P.Response is
       return Data'(Message,
                    S_401_Unauthorized,
                    Auth_Mess'Length,
-                   To_Unbounded_String (AWS.MIME.Text_HTML),
+                   To_Unbounded_String (PolyORB.Web.MIME.Text_HTML),
                    To_Unbounded_String (Auth_Mess),
                    Null_Unbounded_String,
                    To_Unbounded_String (Realm),
@@ -266,7 +266,7 @@ package body PolyORB.SOAP_P.Response is
       return Data'(Response.Message,
                    S_301_Moved_Permanently,
                    Message_Body'Length,
-                   To_Unbounded_String (AWS.MIME.Text_HTML),
+                   To_Unbounded_String (PolyORB.Web.MIME.Text_HTML),
                    To_Unbounded_String (Message_Body),
                    To_Unbounded_String (Location),
                    Null_Unbounded_String,

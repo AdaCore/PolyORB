@@ -6,12 +6,12 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
--- provisions that follow apply solely to the contents neither explicitely  --
--- nor implicitely specified by the CORBA Specification defined by the OMG. --
+-- provisions that follow apply solely to the contents neither explicitly   --
+-- nor implicitly specified by the CORBA Specification defined by the OMG.  --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -93,8 +93,7 @@ package PortableInterceptor.ServerRequestInfo.Impl is
 
    function Target_Is_A
      (Self : access Object;
-      Id   : CORBA.RepositoryId)
-      return CORBA.Boolean;
+      Id   : CORBA.RepositoryId) return CORBA.Boolean;
 
    procedure Add_Reply_Service_Context
      (Self            : access Object;
@@ -102,9 +101,8 @@ package PortableInterceptor.ServerRequestInfo.Impl is
       Replace         : CORBA.Boolean);
 
    function Is_A
-     (Self            : access Object;
-      Logical_Type_Id : Standard.String)
-      return Boolean;
+     (Self            : not null access Object;
+      Logical_Type_Id : Standard.String) return Boolean;
 
 private
 

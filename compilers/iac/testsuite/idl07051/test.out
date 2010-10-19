@@ -1,4 +1,0 @@
-tin.idl:10:11: multiple "L1" declarations
-tin.idl:10:11: found declaration at line 2
-tin.idl:10:11: found declaration at line 6
-iac: 1 error(s)

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2002 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -35,7 +35,7 @@ with Ada.Wide_Text_IO;
 with Ada.Text_IO; use Ada.Text_IO;
 with Ada.Characters.Latin_1;
 
-with Utils; use Utils;
+with Idlac_Utils; use Idlac_Utils;
 with Idl_Fe.Tree.Synthetic; use Idl_Fe.Tree, Idl_Fe.Tree.Synthetic;
 
 package body Idl_Fe.Display_Tree is

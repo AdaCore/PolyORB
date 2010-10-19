@@ -5,9 +5,6 @@
 # This script performs all the necessary steps to transform a checked
 # out copy of PolyORB into a source tree suitable for packaging.
 #
-# The VERSION.INFO file will be used to substitute some variables in files
-# such as README, etc.
-#
 # The file MANIFEST contains the list of files to be included in this
 # archive, one file per line.
 #
@@ -20,8 +17,9 @@ with_doc=false
 ###################################################
 
 usage() {
-   echo "Usage: $0 [-c CHANGE] [-V version] [-D] dir"
+   echo "Usage: $0 [-c CHANGE] [-R release] [-V version] [-D] dir"
    echo "  -c  optional CM change identifier"
+   echo "  -R  override release identifier"
    echo "  -V  optional additional version identifier"
    echo "  -D  build documentation"
    exit 1
@@ -33,10 +31,11 @@ set -e
 # Parse commande line
 ###################################################
 
-while getopts c:V:D opt; do
+while getopts c:R:V:D opt; do
   case "$opt" in
     c) change="$OPTARG" ;;
     D) with_doc=true ;;
+    R) override_release="$OPTARG" ;;
     V) additional_version="$OPTARG" ;;
     *) usage ;;
   esac
@@ -52,43 +51,80 @@ dir=$1
 
 cd $dir
 
+rm -f MANIFEST.distrib
+
 if [ ! -z "$change" ]; then
   taginfo="CHANGE_${change}"
 
   if [ ! -f "${taginfo}" ]; then
-    LANG=C date "+Pacakged from repository rev. ${change} on %c" > ${taginfo}
+    LANG=C date "+Packaged from repository rev. ${change} on %c" > ${taginfo}
   fi
-  echo ${taginfo} >> MANIFEST
+  echo ${taginfo} >> MANIFEST.distrib
 fi
 
 ###################################################
-# Update VERSION in all files
+# Update version in all files
 ###################################################
 
-if [ -f utils/VERSION.INFO ]; then
-  echo "Calling version file, then deleting it"
+# sed_in_place FILE ARG...
+# Apply "sed ARG..." transformation to FILE
 
-  if [ -z "$additional_version" ]; then
-    echo "(with no additional version information)"
-    sh utils/VERSION.INFO
-  else
-    echo "(with additional version information: $additional_version)"
-    sh utils/VERSION.INFO "$additional_version"
-  fi
-  rm -f utils/VERSION.INFO
-else
-  echo "WARNING: unable to locate VERSION.INFO in directory utils"
+sed_in_place() {
+  oldfile=$1; shift
+  newfile=$oldfile.new.$$
+  sed "$@" < $oldfile > $newfile
+  mv -f $newfile $oldfile
+}
+
+#
+# Generate configure script
+#
+
+# Generate distrib.m4 to pass additional information related to packaged
+# sources to autoconf.
+
+(
+# Switch default warnings mode to "n" (default is "e" when building from
+# a checkout).
+
+echo "define([DEFAULT_WARNINGS_MODE], [n])"
+
+# Release name override and additional version information from command line
+
+if [ -n "$override_release" ]; then
+  echo "define([OVERRIDE_RELEASE],[$override_release])"
+fi
+if [ -n "$additional_version" ]; then
+  echo "define([ADDITIONAL_VERSION],[$additional_version])"
 fi
 
-###################################################
-# Generating *.in files
-###################################################
+# Subversion revision information (optional)
+
+if [ -n "$change" ]; then
+  echo "define([DISTRIB_SVNREVISION],[${change}])"
+fi
+
+# Use MANIFEST to filter output files
+
+echo "define([OUTPUT_FILTER],[MANIFEST])"
+
+# Define longest file name (configure will check its presence)
+longest_file_name=`awk 'BEGIN{max=""}{if (length($0) > length(max)) {max=$0}}END{print max}' < MANIFEST`
+echo "define([LONGEST_FILE_NAME],[$longest_file_name])"
+
+) > support/distrib.m4
+
+echo support/distrib.m4 >> MANIFEST.distrib
 
 echo Generating auto-generated files
-if [ -f support/reconfig ]
-then
-  sh support/reconfig -w
-fi
+sh support/reconfig -w
+
+polyorb_version=`./configure --version | sed -n 's/^PolyORB configure //p'`
+echo "Setting version: ${polyorb_version}"
+
+for f in README VERSION; do
+  sed_in_place $f "s/@polyorb_version@/${polyorb_version}/g"
+done
 
 ###################################################
 # Build documentation (optional)
@@ -99,9 +135,12 @@ if $with_doc; then
   cd docs
   make
   cd ..
-  (cat MANIFEST ; sed 's#^#docs/#' < docs/MANIFEST) | sort | uniq > MANIFEST.new
-  mv -f MANIFEST.new MANIFEST
+  sed 's#^#docs/#' < docs/MANIFEST >> MANIFEST.distrib
 fi
+
+echo 'Updating MANIFEST'
+cat MANIFEST.distrib >> MANIFEST
+utils/sort_MANIFEST
 
 echo "Adapting modes"
 chmod -R og=u-w .

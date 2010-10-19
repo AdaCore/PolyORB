@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -523,13 +523,13 @@ package body PolyORB.Sequences is
          Target_Lo_Last : constant Integer :=
                             Target_Bounds.Hi - Source_Len_Minus_1;
       begin
-         --  Check that we do not leave any element of the target unassgined
+         --  Check that we do not leave any element of the target unassigned
 
          pragma Assert (Sequences.Length (Target_Bounds)
                         mod Sequences.Length (Source_Bounds) = 0);
 
-         --  Perform as many assignments of the source slice as necessary
-         --  into the target.
+         --  Perform as many assignments of the source slice as necessary into
+         --  the target.
 
          while Target_Lo <= Target_Lo_Last loop
             Target (Target_Lo .. Target_Lo + Source_Len_Minus_1) :=

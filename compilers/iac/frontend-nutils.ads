@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -34,6 +34,7 @@
 with Lexer;     use Lexer;
 with Locations; use Locations;
 with Types;     use Types;
+with Values;
 
 with Frontend.Nodes; use Frontend.Nodes;
 
@@ -45,14 +46,18 @@ package Frontend.Nutils is
    function First_Homonym (N : Node_Id) return Node_Id;
    procedure Set_First_Homonym (N : Node_Id; V : Node_Id);
 
-   procedure Append_Node_To_List (E : Node_Id; L : List_Id);
-   --  Append node N to list L.
+   procedure Append_To (L : List_Id; E : Node_Id);
+   --  Append node E to list L.
 
    procedure Insert_After_Node (E : Node_Id; N : Node_Id);
    --  Insert node E after node N
 
+   procedure Insert_Before_Node
+     (E : Node_Id; N : Node_Id; L : List_Id; Success : out Boolean);
    procedure Insert_Before_Node (E : Node_Id; N : Node_Id; L : List_Id);
-   --  Insert node E before node N in list L
+   --  Insert node E before node N in list L. The form with Success returns
+   --  True in Success if N was inserted, and False if E is not in list L. The
+   --  other one requires that E is in L.
 
    procedure Remove_Node_From_List (E : Node_Id; L : List_Id);
    --  Remove node N to list L.
@@ -71,7 +76,8 @@ package Frontend.Nutils is
 
    function Is_A_Forward_Of (X, Y : Node_Id) return Boolean;
    function Is_A_Scope (E : Node_Id) return Boolean;
-   function Is_A_Type (E : Node_Id) return Boolean;
+   function Is_Type (E : Node_Id) return Boolean;
+   function Is_Noninterface_Type (E : Node_Id) return Boolean;
    function Is_Attribute_Or_Operation (E : Node_Id) return Boolean;
    function Is_Interface_Redefinable_Node (E : Node_Id) return Boolean;
    function Is_A_Non_Module (E : Node_Id) return Boolean;
@@ -118,8 +124,7 @@ package Frontend.Nutils is
    --  element).
 
    function New_Node (Kind : Node_Kind; Loc : Location) return Node_Id;
-   function New_List (Kind : Node_Kind; Loc : Location) return List_Id;
-
+   function New_List (Loc : Location) return List_Id;
    function New_Copy (N : Node_Id)   return Node_Id;
 
    procedure Bind_Identifier_To_Entity  (N : Node_Id; E : Node_Id);
@@ -158,5 +163,18 @@ package Frontend.Nutils is
       Expression : Node_Id)
      return Node_Id;
    --  Return constant declaration
+
+   function Expr_Value (N : Node_Id) return Value_Id;
+   --  Returns the value of an expression, constant, or label node. This is
+   --  just Frontend.Nodes.Value, except in the case of a K_Scoped_Name, in
+   --  which case we have to get the Reference first. Possible alternative
+   --  design: attach the Value attribute to scoped name nodes as well, and
+   --  copy it over from the constant during analysis. We choose not to do that
+   --  because scoped names can refer to other things as well -- things that
+   --  have no "value".
+
+   function Expr_Value (N : Node_Id) return Values.Value_Type;
+   --  Same as previous Expr_Value, except fetches the Values.Value of the
+   --  Valid_Id.
 
 end Frontend.Nutils;

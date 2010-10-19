@@ -6,12 +6,12 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
--- provisions that follow apply solely to the contents neither explicitely  --
--- nor implicitely specified by the CORBA Specification defined by the OMG. --
+-- provisions that follow apply solely to the contents neither explicitly   --
+-- nor implicitly specified by the CORBA Specification defined by the OMG.  --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -36,6 +36,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with Ada.Exceptions;
 
 with CORBA.Forward;
@@ -48,7 +50,6 @@ with CORBA.Sequences.Unbounded;
 
 with PolyORB.Annotations;
 with PolyORB.Binding_Data;
-with PolyORB.Components;
 with PolyORB.Objects;
 with PolyORB.Requests;
 
@@ -92,7 +93,7 @@ package PortableServer is
      abstract new DynamicImplementation with private;
    --  21.41.1
    --  Conforming implementations must provide a controlled (tagged)
-   --  Servant_Base type and default implementations of the primitve
+   --  Servant_Base type and default implementations of the primitive
    --  operations on Servant_Base that meet the required semantics.
 
    procedure Invoke
@@ -136,7 +137,7 @@ package PortableServer is
 
    --  Implementation Notes: these functions are not defined in the
    --  CORBA specification, but defined in various C++ ORB
-   --  implementation. They are provided as a facility.
+   --  implementations. They are provided as a facility.
 
    type ObjectId_Access is access ObjectId;
 
@@ -288,10 +289,9 @@ private
    type DynamicImplementation is
      abstract new CORBA.Impl.Object with null record;
 
-   function Execute_Servant
+   overriding function Execute_Servant
      (Self : not null access DynamicImplementation;
-      Msg  : PolyORB.Components.Message'Class)
-     return PolyORB.Components.Message'Class;
+      Req  : PolyORB.Requests.Request_Access) return Boolean;
 
    type Servant_Base is
      abstract new DynamicImplementation with null record;

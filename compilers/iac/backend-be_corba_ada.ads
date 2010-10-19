@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -34,6 +34,8 @@
 --  This is the package responsible of generating the CORBA Ada tree
 --  from the IDL tree according to the CORBA Ada mapping
 --  specifications.
+
+with GNAT.Perfect_Hash_Generators;
 
 package Backend.BE_CORBA_Ada is
 
@@ -98,28 +100,29 @@ package Backend.BE_CORBA_Ada is
    -----------------------------
 
    --  Skeleton optimization using minimal perfect hash functions
-   --  instead of the big "if .. elsif .. elsif ..."
+   --  instead of the big "if .. elsif .. elsif ...". The cascading 'if'
+   --  statements are no longer used. There is no command-line switch to revert
+   --  to that behavior. However, we are keeping the code "just in case", and
+   --  it can be invoked by setting Use_Minimal_Hash_Function to False.
 
-   Use_Minimal_Hash_Function : Boolean := False;
-   Optimize_CPU              : Boolean := False;
-   Optimize_Memory           : Boolean := False;
+   Use_Minimal_Hash_Function : constant Boolean := True;
+   Optimization_Mode         : GNAT.Perfect_Hash_Generators.Optimization :=
+                                 GNAT.Perfect_Hash_Generators.Memory_Space;
 
    Use_SII : Boolean := False;
-   --  The request handling method (SSI or DII). By default, the DII
-   --  is used.
+   --  The request handling method (Static Implementation Interface or Dynamic
+   --  Implementation Interface). Default is DII.
 
    Use_Optimized_Buffers_Allocation : Boolean := False;
-   --  Marshaller optimization using a one time allocation by
-   --  calculating the message body size of a GIOP request (used with
-   --  SII handling).
+   --  Marshaller optimization using a one time allocation by calculating the
+   --  message body size of a GIOP request (used with SII handling).
 
    Use_Compiler_Alignment : Boolean := False;
-   --  Marshalling optimization using the representation clause of the
-   --  Ada language to make the padding between parameters (used with
-   --  SII handling).
+   --  Marshalling optimization using Ada representation clauses to create
+   --  the padding between parameters (used with SII handling).
 
-   --  In some particular cases, some parts of the IDL tree must not
-   --  be generated. The entities below achieve this goal.
+   --  In some particular cases, some parts of the IDL tree must not be
+   --  generated. The entities below achieve this goal.
 
    type Package_Type is
      (PK_CDR_Spec,
@@ -142,12 +145,10 @@ package Backend.BE_CORBA_Ada is
 
    function Map_Particular_CORBA_Parts
      (E  : Node_Id;
-      PK : Package_Type)
-     return Boolean;
-   --  The mapping for some predefined CORBA IDL entities (the CORBA
-   --  module) is slightly different from the mapping of other
-   --  ``normal'' IDL entities. This function maps these entities and
-   --  return True if the passed `E' parameter is a Particular CORBA
-   --  entity.
+      PK : Package_Type) return Boolean;
+   --  The mapping for some predefined CORBA IDL entities (the CORBA module)
+   --  is slightly different from the mapping of standard IDL entities. This
+   --  function maps these entities and return True if the E parameter falls
+   --  into the special cases.
 
 end Backend.BE_CORBA_Ada;

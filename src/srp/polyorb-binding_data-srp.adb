@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -106,7 +106,8 @@ package body PolyORB.Binding_Data.SRP is
       --  Create (P'Access, Filters.Filter_Access (Session));
 
       Binding_Objects.Setup_Binding_Object
-        (TE,
+        (The_ORB,
+         TE,
          SRP_Factories,
          BO_Ref,
          Profile_Access (Profile));

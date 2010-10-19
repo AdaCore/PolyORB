@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -42,7 +42,7 @@ with Idl_Fe.Tree.Synthetic; use Idl_Fe.Tree.Synthetic;
 with Idl_Fe.Debug;
 pragma Elaborate_All (Idl_Fe.Debug);
 
-with Utils; use Utils;
+with Idlac_Utils; use Idlac_Utils;
 
 package body Idl_Fe.Types is
 
@@ -137,6 +137,24 @@ package body Idl_Fe.Types is
         & "."
         & Minor_Image (Major_Image'First + 1 .. Minor_Image'Last);
    end Image;
+
+   --------
+   -- No --
+   --------
+
+   function No (N : Node_Id) return Boolean is
+   begin
+      return N = No_Node;
+   end No;
+
+   -------------
+   -- Present --
+   -------------
+
+   function Present (N : Node_Id) return Boolean is
+   begin
+      return N /= No_Node;
+   end Present;
 
    --------------------------------
    -- Management of const values --
@@ -658,7 +676,7 @@ package body Idl_Fe.Types is
 
    begin
       if T.Max < T.Last_Val then
-         if T.Length = 0 and T.Max = Min - 1 then
+         if T.Length = 0 and then T.Max = Min - 1 then
             T.Max := Min + Initial - 1;
             T.Length :=  T.Max - Min + 1;
          else

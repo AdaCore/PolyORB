@@ -68,6 +68,11 @@ package all_functions.Impl is
       b : out CORBA.Short;
       c : out CORBA.Short);
 
+   procedure out_in_proc
+     (Self : access Object;
+      a : out CORBA.Short;
+      b : CORBA.Long);
+
    procedure inout_proc
      (Self : access Object;
       a : in out CORBA.Short;

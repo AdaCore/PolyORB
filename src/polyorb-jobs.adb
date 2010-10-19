@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,10 +26,12 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
+
+pragma Ada_2005;
 
 with Ada.Unchecked_Deallocation;
 
@@ -50,42 +52,24 @@ package body PolyORB.Jobs is
 
    function Fetch_Job
      (Q        : access Job_Queue;
-      Selector :        Job_Selector := Any_Job)
+      Selector : access function (J : Job'Class) return Boolean := null)
       return Job_Access
    is
       use Job_Queues;
 
       Result : Job_Access;
+      It     : Iterator := First (Q.Contents);
    begin
-      if Is_Empty (Q) then
-         return null;
-      end if;
+      while not Last (It) loop
+         if Selector = null or else Selector (Value (It).all.all) then
+            Result := Job_Access (Value (It).all);
+            Remove (Q.Contents, It);
+            return Result;
+         end if;
+         Next (It);
+      end loop;
 
-      --  If no selector is provided, extract the first element
-
-      if Selector = null then
-         Extract_First (Q.Contents, Result);
-         return Result;
-      end if;
-
-      --  else return the first selected element
-
-      declare
-         It     : Iterator := First (Q.Contents);
-
-      begin
-         while not Last (It) loop
-            if Selector (Job_Access (Value (It).all)) then
-               Result := Job_Access (Value (It).all);
-               Remove (Q.Contents, It);
-               return Result;
-            end if;
-
-            Next (It);
-         end loop;
-
-         return null;
-      end;
+      return null;
    end Fetch_Job;
 
    ----------
@@ -93,10 +77,9 @@ package body PolyORB.Jobs is
    ----------
 
    procedure Free (X : in out Job_Access) is
-      procedure Do_Free is new Ada.Unchecked_Deallocation
-        (Job'Class, Job_Access);
+      procedure Free is new Ada.Unchecked_Deallocation (Job'Class, Job_Access);
    begin
-      Do_Free (X);
+      Free (X);
    end Free;
 
    --------------
@@ -109,7 +92,7 @@ package body PolyORB.Jobs is
    is
       use type Job_Queues.List;
    begin
-      return Q.Contents = Job_Queues.Empty;
+      return Job_Queues.Is_Empty (Q.Contents);
    end Is_Empty;
 
    ---------------
@@ -118,7 +101,7 @@ package body PolyORB.Jobs is
 
    procedure Queue_Job
      (Q : access Job_Queue;
-      J :        Job_Access) is
+      J : Job_Access) is
    begin
       Job_Queues.Append (Q.Contents, J);
    end Queue_Job;

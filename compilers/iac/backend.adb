@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -45,21 +45,21 @@ package body Backend is
       Usage     : Usage_Procedure;
    end record;
 
-   Table   : array (1 .. 8) of Backend_Record;
-   First   : constant Natural := Table'First;
-   Last    : Natural := 0;
+   type Table_Index is range 1 .. 8;
+   subtype Table_Count is Table_Index'Base range 0 .. Table_Index'Last;
+   Table : array (Table_Index) of Backend_Record;
+   First : constant Table_Index := Table'First;
+   Last  : Table_Count := 0;
 
-   --  Current = 1 => Backend = IDL
-   --  Current = 2 => Backend = Ada
-   --  Current = 3 => Backend = Types
-
-   Current : Natural := 2; --  Ada Backend
+   Current : Table_Count := 0;
+   --  Initialized to proper value in Backend.Config
 
    ----------------------
    -- Current_Language --
    ----------------------
 
    function Current_Language return String is
+      pragma Assert (Current in Table_Index);
    begin
       return Table (Current).Language.all;
    end Current_Language;
@@ -93,20 +93,20 @@ package body Backend is
    -- Register --
    --------------
 
-   procedure Register
+   procedure Register_Language
      (Generate  : Generate_Procedure;
       Usage     : Usage_Procedure;
       Language  : String;
       Comments  : String)
    is
    begin
-      if Last >= Table'Last then
+      if Last = Table'Last then
          DE ("too many target languages");
       end if;
       for I in First .. Last loop
          if Table (I).Language.all = Language then
             DE ("already declared target language");
-            raise Fatal_Error;
+            raise Internal_Error;
          end if;
       end loop;
       Last := Last + 1;
@@ -114,7 +114,7 @@ package body Backend is
       Table (Last).Usage     := Usage;
       Table (Last).Language  := new String'(Language);
       Table (Last).Comments  := new String'(Comments);
-   end Register;
+   end Register_Language;
 
    --------------------------
    -- Set_Current_Language --

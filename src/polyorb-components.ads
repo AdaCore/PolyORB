@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -35,7 +35,7 @@
 
 package PolyORB.Components is
 
-   pragma Elaborate_Body;
+   pragma Preelaborate;
 
    -------------------------------------
    -- Abstract message and components --
@@ -45,15 +45,14 @@ package PolyORB.Components is
    --  The root type for all messages that can be exchanged
    --  between components.
 
-   type Null_Message is new Message with private;
+   type Null_Message is new Message with null record;
 
    type Component is abstract tagged limited private;
    type Component_Access is access all Component'Class;
 
    function Handle_Message
-     (C : access Component;
-      M :        Message'Class)
-     return Message'Class
+     (C : not null access Component;
+      M : Message'Class) return Message'Class
       is abstract;
    --  Called internally when component C is to receive message M.
    --  Return a reply (possibly Null_Message if no specific contents
@@ -96,8 +95,5 @@ package PolyORB.Components is
    type Component_Factory is access function return Component_Access;
 
 private
-
-   type Null_Message is new Message with null record;
    type Component is abstract tagged limited null record;
-
 end PolyORB.Components;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -60,7 +60,7 @@ package body CORBA.DomainManager is
                                CORBA.Helper.To_Any (Policy_Type);
       Self_Ref             : constant CORBA.Object.Ref :=
                                CORBA.Object.Ref (Self);
-      Request              : PolyORB.Requests.Request_Access;
+      Request              : aliased PolyORB.Requests.Request;
       Arg_List             : PolyORB.Any.NVList.Ref;
       Result               : PolyORB.Any.NamedValue;
       Result_Name          : constant CORBA.String :=
@@ -84,22 +84,19 @@ package body CORBA.DomainManager is
                         (CORBA.Policy.Helper.TC_Policy),
          Arg_Modes => 0);
 
-      PolyORB.Requests.Create_Request
-        (Target    => CORBA.Object.Internals.To_PolyORB_Ref
-         (CORBA.Object.Ref (Self)),
+      PolyORB.Requests.Setup_Request
+        (Req       => Request,
+         Target    => CORBA.Object.Internals.To_PolyORB_Ref
+                        (CORBA.Object.Ref (Self)),
          Operation => Operation_Name,
          Arg_List  => Arg_List,
-         Result    => Result,
-         Req       => Request);
+         Result    => Result);
 
       PolyORB.CORBA_P.Interceptors_Hooks.Client_Invoke
-        (Request,
+        (Request'Access,
          PolyORB.Requests.Flags (0));
 
       PolyORB.CORBA_P.Exceptions.Request_Raise_Occurrence (Request);
-
-      PolyORB.Requests.Destroy_Request (Request);
-
       return CORBA.Policy.Helper.From_Any (CORBA.Any (Result.Argument));
    end Get_Domain_Policy;
 
@@ -109,19 +106,18 @@ package body CORBA.DomainManager is
 
    function Is_A
      (Self            : Ref;
-      Logical_Type_Id : Standard.String)
-      return CORBA.Boolean
+      Logical_Type_Id : Standard.String) return CORBA.Boolean
    is
    begin
       return Is_A (Logical_Type_Id)
-        or else Object.Is_A (Object.Ref (Self), Logical_Type_Id);
+               or else Object.Is_A (Object.Ref (Self), Logical_Type_Id);
    end Is_A;
 
    function Is_A (Logical_Type_Id : Standard.String) return CORBA.Boolean is
    begin
       return Is_Equivalent (Logical_Type_Id, Repository_Id)
-        or else Is_Equivalent
-        (Logical_Type_Id, "IDL:omg.org/CORBA/Object:1.0");
+               or else
+             Is_Equivalent (Logical_Type_Id, "IDL:omg.org/CORBA/Object:1.0");
    end Is_A;
 
 end CORBA.DomainManager;

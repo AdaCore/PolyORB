@@ -58,7 +58,7 @@ package body Ada_Be.Idl2Ada.Impl is
                PL (CU, ";");
 
             elsif not Is_Implicit_Inherited (Node) then
-               Gen_Operation_Profile (CU, Node, "access Object");
+               Gen_Operation_Profile (CU, Node, "not null access Object");
                PL (CU, ";");
             end if;
 
@@ -93,7 +93,7 @@ package body Ada_Be.Idl2Ada.Impl is
                                Kind (Operation_Type (Node)) /= K_Void;
             begin
                NL (CU);
-               Gen_Operation_Profile (CU, Node, "access Object");
+               Gen_Operation_Profile (CU, Node, "not null access Object");
                if Is_Function then
                   NL (CU);
                   PL (CU, "is");

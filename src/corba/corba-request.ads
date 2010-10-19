@@ -6,12 +6,12 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
--- provisions that follow apply solely to the contents neither explicitely  --
--- nor implicitely specified by the CORBA Specification defined by the OMG. --
+-- provisions that follow apply solely to the contents neither explicitly   --
+-- nor implicitly specified by the CORBA Specification defined by the OMG.  --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -37,8 +37,6 @@
 ------------------------------------------------------------------------------
 
 --  The CORBA Dynamic Invocation Interface.
-
-with Ada.Finalization;
 
 with CORBA.AbstractBase;
 with CORBA.Context;
@@ -88,13 +86,11 @@ package CORBA.Request is
 
 private
 
-   type Object is new Ada.Finalization.Limited_Controlled with record
-      The_Request : PolyORB.Requests.Request_Access;
+   type Object is limited record
+      The_Request : aliased PolyORB.Requests.Request;
    end record;
    --  XXX Would it not be simpler to declare
-   --  type Object is new PolyORB.Requests.Request_Access; ?
+   --  type Object is new PolyORB.Requests.Request; ?
    --  (as is presently done in CORBA.ServerRequest!)
-
-   procedure Finalize (X : in out Object);
 
 end CORBA.Request;

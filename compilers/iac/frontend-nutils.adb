@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -37,13 +37,13 @@ with Utils;  use Utils;
 
 package body Frontend.Nutils is
 
-   -------------------------
-   -- Append_Node_To_List --
-   -------------------------
+   ---------------
+   -- Append_To --
+   ---------------
 
-   procedure Append_Node_To_List (E : Node_Id; L : List_Id) is
-      Last : Node_Id;
-      Many : Int := Size (L);
+   procedure Append_To (L : List_Id; E : Node_Id) is
+      Last  : Node_Id;
+      Count : Int := Size (L);
 
    begin
       Last := Last_Entity (L);
@@ -52,14 +52,19 @@ package body Frontend.Nutils is
       else
          Set_Next_Entity (Last, E);
       end if;
+
+      Count := Count + 1;
+
       Last := E;
-      while Present (Last) loop
-         Set_Last_Entity (L, Last);
-         Many := Many + 1;
-         Last := Next_Entity (Last);
+
+      while Present (Next_Entity (Last)) loop
+         Count := Count + 1;
+         Last  := Next_Entity (Last);
       end loop;
-      Set_Size (L, Many);
-   end Append_Node_To_List;
+
+      Set_Last_Entity (L, Last);
+      Set_Size (L, Count);
+   end Append_To;
 
    -------------------------------
    -- Bind_Declarator_To_Entity --
@@ -136,20 +141,36 @@ package body Frontend.Nutils is
    -- Insert_Before_Node --
    ------------------------
 
-   procedure Insert_Before_Node (E : Node_Id; N : Node_Id; L : List_Id) is
+   procedure Insert_Before_Node
+     (E : Node_Id; N : Node_Id; L : List_Id; Success : out Boolean) is
       Entity : Node_Id;
    begin
+      Success := True;
       Entity := First_Entity (L);
       if Entity = N then
          Set_Next_Entity (E, Entity);
          Set_First_Entity (L, E);
       else
-         while Present (Entity) loop
-            exit when Next_Entity (Entity) = N;
+         loop
+            if No (Entity) then
+               Success := False;
+               return;
+
+            elsif Next_Entity (Entity) = N then
+               Insert_After_Node (E, Entity);
+               return;
+            end if;
+
             Entity := Next_Entity (Entity);
          end loop;
-         Insert_After_Node (E, Entity);
       end if;
+   end Insert_Before_Node;
+
+   procedure Insert_Before_Node (E : Node_Id; N : Node_Id; L : List_Id) is
+      Success : Boolean;
+   begin
+      Insert_Before_Node (E, N, L, Success);
+      pragma Assert (Success);
    end Insert_Before_Node;
 
    --------------------------
@@ -256,10 +277,34 @@ package body Frontend.Nutils is
    end Is_A_Scope;
 
    ---------------
-   -- Is_A_Type --
+   -- Is_Type --
    ---------------
 
-   function Is_A_Type (E : Node_Id) return Boolean is
+   function Is_Type (E : Node_Id) return Boolean is
+   begin
+      if Is_Noninterface_Type (E) then
+         return True;
+      end if;
+
+      case Kind (E) is
+         when K_Forward_Interface_Declaration
+           | K_Interface_Declaration =>
+            return True;
+
+         when K_Simple_Declarator
+           | K_Complex_Declarator =>
+            return Is_Type (Declaration (E));
+
+         when others =>
+            return False;
+      end case;
+   end Is_Type;
+
+   --------------------------
+   -- Is_Noninterface_Type --
+   --------------------------
+
+   function Is_Noninterface_Type (E : Node_Id) return Boolean is
    begin
       case Kind (E) is
          when K_Type_Declaration
@@ -294,7 +339,7 @@ package body Frontend.Nutils is
          when others =>
             return False;
       end case;
-   end Is_A_Type;
+   end Is_Noninterface_Type;
 
    -------------------------------
    -- Is_Attribute_Or_Operation --
@@ -726,13 +771,10 @@ package body Frontend.Nutils is
    -- New_List --
    --------------
 
-   function New_List
-     (Kind : Node_Kind;
-      Loc  : Location)
-     return List_Id
+   function New_List (Loc  : Location) return List_Id
    is
    begin
-      return List_Id (New_Node (Kind, Loc));
+      return List_Id (New_Node (K_List_Id, Loc));
    end New_List;
 
    --------------
@@ -848,5 +890,31 @@ package body Frontend.Nutils is
       B := Operator_Type'Pos (O);
       Set_Operator (E, Operator_Id (B));
    end Set_Operator;
+
+   ----------------
+   -- Expr_Value --
+   ----------------
+
+   function Expr_Value (N : Node_Id) return Value_Id is
+   begin
+      --  If N refers to a previously declared constant (concretely, it's a
+      --  scoped name), then use the value of that constant.
+
+      if Kind (N) = K_Scoped_Name then
+         return Value (Reference (N));
+
+      --  Otherwise, it's some other constant expression; use the
+      --  expression's value.
+
+      else
+         return Value (N);
+      end if;
+
+   end Expr_Value;
+
+   function Expr_Value (N : Node_Id) return Values.Value_Type is
+   begin
+      return Values.Value (Expr_Value (N));
+   end Expr_Value;
 
 end Frontend.Nutils;

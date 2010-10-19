@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -125,15 +125,15 @@ package body PolyORB.ORB.No_Tasking is
       ORB :        ORB_Access;
       RJ  : access Request_Job'Class)
    is
-      pragma Warnings (Off);
-      pragma Unreferenced (P, ORB);
-      pragma Warnings (On);
-
+      pragma Unreferenced (P);
+      J : Job_Access := Job_Access (RJ);
    begin
       pragma Debug (C, O ("Request execution"));
 
-      Run_Request (RJ);
       --  No tasking: execute the request in the current task.
+
+      Run_Request (ORB, RJ.Request);
+      Free (J);
    end Handle_Request_Execution;
 
    ----------
@@ -142,8 +142,8 @@ package body PolyORB.ORB.No_Tasking is
 
    procedure Idle
      (P         : access No_Tasking;
-      This_Task : in out PolyORB.Task_Info.Task_Info;
-      ORB       :        ORB_Access)
+      This_Task : PTI.Task_Info_Access;
+      ORB       : ORB_Access)
    is
       pragma Warnings (Off);
       pragma Unreferenced (P);
@@ -181,7 +181,7 @@ begin
       (Name      => +"orb.no_tasking",
        Conflicts => Empty,
        Depends   => Empty,
-       Provides  => +"orb.tasking_policy",
+       Provides  => +"orb.tasking_policy!",
        Implicit  => False,
        Init      => Initialize'Access,
        Shutdown  => null));

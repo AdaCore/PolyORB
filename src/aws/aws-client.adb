@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2000-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2000-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -565,7 +565,7 @@ package body AWS.Client is
                        (PolyORB.Any.Get_Aggregate_Element
                         (PolyORB_Request.Result.Argument,
                          PolyORB.Any.TypeCode.TC_Octet,
-                         Unsigned_Long (Index)));
+                         Index));
                   begin
                      Byte_Stream (Stream_Element_Offset (Index))
                        := Stream_Element (Element);
@@ -660,7 +660,7 @@ package body AWS.Client is
       if URI /= No_Data then
          declare
             Overriding_URI : URL.Object := Parse (URI);
-            Parameters : Unbounded_String :=
+            Parameters : constant Unbounded_String :=
               To_Unbounded_String (URL.Query (Overriding_URI));
          begin
             Connection.Host_URL := Overriding_URI;
@@ -670,7 +670,7 @@ package body AWS.Client is
          end;
       else
          declare
-            Parameters : Unbounded_String :=
+            Parameters : constant Unbounded_String :=
               To_Unbounded_String (URL.Query (Connection.Host_URL));
          begin
             Handle_Request (Connection, "GET", Parameters, Result);
@@ -1019,7 +1019,7 @@ package body AWS.Client is
       if URI /= No_Data then
          declare
             Overriding_URI : URL.Object := Parse (URI);
-            Parameters : Unbounded_String :=
+            Parameters : constant Unbounded_String :=
               To_Unbounded_String (URL.Query (Overriding_URI));
          begin
             Connection.Host_URL := Overriding_URI;
@@ -1029,7 +1029,7 @@ package body AWS.Client is
          end;
       else
          declare
-            Parameters : Unbounded_String :=
+            Parameters : constant Unbounded_String :=
               To_Unbounded_String (URL.Query (Connection.Host_URL));
          begin
             Handle_Request (Connection, "HEAD", Parameters, Result);

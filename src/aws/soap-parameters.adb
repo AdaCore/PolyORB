@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2000-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2000-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -125,7 +125,7 @@ package body SOAP.Parameters is
    -----------------
 
    procedure Check_Array (P : List; Name : String) is
-      O : Types.Object'Class := Argument (P, Name);
+      O : constant Types.Object'Class := Argument (P, Name);
    begin
       if O not in Types.SOAP_Array then
          Exceptions.Raise_Exception
@@ -140,7 +140,7 @@ package body SOAP.Parameters is
    ------------------
 
    procedure Check_Base64 (P : List; Name : String) is
-      O : Types.Object'Class := Argument (P, Name);
+      O : constant Types.Object'Class := Argument (P, Name);
    begin
       if O not in Types.SOAP_Base64 then
          Exceptions.Raise_Exception
@@ -155,7 +155,7 @@ package body SOAP.Parameters is
    -------------------
 
    procedure Check_Boolean (P : List; Name : String) is
-      O : Types.Object'Class := Argument (P, Name);
+      O : constant Types.Object'Class := Argument (P, Name);
    begin
       if O not in Types.XSD_Boolean then
          Exceptions.Raise_Exception
@@ -170,7 +170,7 @@ package body SOAP.Parameters is
    -----------------
 
    procedure Check_Float (P : List; Name : String) is
-      O : Types.Object'Class := Argument (P, Name);
+      O : constant Types.Object'Class := Argument (P, Name);
    begin
       if O not in Types.XSD_Float then
          Exceptions.Raise_Exception
@@ -185,7 +185,7 @@ package body SOAP.Parameters is
    -------------------
 
    procedure Check_Integer (P : List; Name : String) is
-      O : Types.Object'Class := Argument (P, Name);
+      O : constant Types.Object'Class := Argument (P, Name);
    begin
       if O not in Types.XSD_Integer then
          Exceptions.Raise_Exception
@@ -200,7 +200,7 @@ package body SOAP.Parameters is
    ----------------
 
    procedure Check_Null (P : List; Name : String) is
-      O : Types.Object'Class := Argument (P, Name);
+      O : constant Types.Object'Class := Argument (P, Name);
    begin
       if O not in Types.XSD_Null then
          Exceptions.Raise_Exception
@@ -215,7 +215,7 @@ package body SOAP.Parameters is
    ------------------
 
    procedure Check_Record (P : List; Name : String) is
-      O : Types.Object'Class := Argument (P, Name);
+      O : constant Types.Object'Class := Argument (P, Name);
    begin
       if O not in Types.SOAP_Record then
          Exceptions.Raise_Exception

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -82,24 +82,24 @@ package body Test000_Idl.ServerInterceptor.Impl is
    ----------
 
    function Is_A
-     (Self            : access Object;
-      Logical_Type_Id : Standard.String)
-      return Boolean
+     (Self            : not null access Object;
+      Logical_Type_Id : Standard.String) return Boolean
    is
       pragma Unreferenced (Self);
    begin
-      return CORBA.Is_Equivalent
-        (Logical_Type_Id,
-         Test000_Idl.ServerInterceptor.Repository_Id)
-        or else CORBA.Is_Equivalent
+      return
+        CORBA.Is_Equivalent
+          (Logical_Type_Id, Test000_Idl.ServerInterceptor.Repository_Id)
+          or else
+        CORBA.Is_Equivalent
           (Logical_Type_Id,
-           "IDL:omg.org/CORBA/Object:1.0")
-        or else CORBA.Is_Equivalent
-           (Logical_Type_Id,
-            PortableInterceptor.ServerRequestInterceptor.Repository_Id)
-        or else CORBA.Is_Equivalent
-           (Logical_Type_Id,
-            PortableInterceptor.Interceptor.Repository_Id);
+           PortableInterceptor.ServerRequestInterceptor.Repository_Id)
+          or else
+        CORBA.Is_Equivalent
+           (Logical_Type_Id, PortableInterceptor.Interceptor.Repository_Id)
+          or else
+        CORBA.Is_Equivalent
+          (Logical_Type_Id, "IDL:omg.org/CORBA/Object:1.0");
    end Is_A;
 
    ---------------------
@@ -117,7 +117,7 @@ package body Test000_Idl.ServerInterceptor.Impl is
       end if;
 
       Test000_Globals.Log_Point
-       (CORBA.To_Standard_String (Self.Name), Server_Receive_Request);
+        (CORBA.To_Standard_String (Self.Name), Server_Receive_Request);
 
       case Self.State (Server_Receive_Request) is
          when Do_Nothing =>
@@ -146,8 +146,8 @@ package body Test000_Idl.ServerInterceptor.Impl is
       end if;
 
       Test000_Globals.Log_Point
-       (CORBA.To_Standard_String (Self.Name),
-        Server_Receive_Request_Service_Contexts);
+        (CORBA.To_Standard_String (Self.Name),
+         Server_Receive_Request_Service_Contexts);
 
       case Self.State (Server_Receive_Request_Service_Contexts) is
          when Do_Nothing =>
@@ -176,7 +176,7 @@ package body Test000_Idl.ServerInterceptor.Impl is
       end if;
 
       Test000_Globals.Log_Point
-       (CORBA.To_Standard_String (Self.Name), Server_Send_Exception);
+        (CORBA.To_Standard_String (Self.Name), Server_Send_Exception);
 
       case Self.State (Server_Send_Exception) is
          when Do_Nothing =>
@@ -205,7 +205,7 @@ package body Test000_Idl.ServerInterceptor.Impl is
       end if;
 
       Test000_Globals.Log_Point
-       (CORBA.To_Standard_String (Self.Name), Server_Send_Other);
+        (CORBA.To_Standard_String (Self.Name), Server_Send_Other);
 
       case Self.State (Server_Send_Other) is
          when Do_Nothing =>
@@ -234,7 +234,7 @@ package body Test000_Idl.ServerInterceptor.Impl is
       end if;
 
       Test000_Globals.Log_Point
-       (CORBA.To_Standard_String (Self.Name), Server_Send_Reply);
+        (CORBA.To_Standard_String (Self.Name), Server_Send_Reply);
 
       case Self.State (Server_Send_Reply) is
          when Do_Nothing =>

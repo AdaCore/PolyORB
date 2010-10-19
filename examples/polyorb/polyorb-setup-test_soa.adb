@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -69,8 +69,7 @@ package body PolyORB.Setup.Test_SOA is
    -- Initialize_Test_Object --
    ----------------------------
 
-   procedure Initialize_Test_Object
-   is
+   procedure Initialize_Test_Object is
       My_Id  : Object_Id_Access;
       Error  : Error_Container;
 
@@ -167,24 +166,15 @@ package body PolyORB.Setup.Test_SOA is
               (Component_Access (The_ORB),
                Queue_Request'(Request   => Req,
                               Requestor => null));
-            --  Requesting_Task => null));
          end Create_echoString_Request;
       begin
-         Create_echoString_Request
-           ("request number 1");
-         Create_echoString_Request
-           ("request number 2");
-         Create_echoString_Request
-           ("request number 3");
-         Create_echoString_Request
-           ("request number 4");
+         for J in 1 .. 4 loop
+            Create_echoString_Request ("request number" & J'Img);
+         end loop;
 
-         Run (The_ORB,
-              (Condition =>
-                 Req.Completed'Access,
-               Task_Info => Req.Requesting_Task'Access),
-              May_Poll => True);
-         --  Execute the ORB.
+         --  Execute the ORB main loop
+
+         Run (The_ORB, Request  => Req, May_Exit => True);
 
          End_Report;
       end;

@@ -168,9 +168,8 @@ package body AWS.Object_Adapter is
 
       Result := True;
 
-      --  We always return 'true', as it is up to the AWS servant to
-      --  tell wether an object exists or not, whatever the path to it
-      --  may be.
+      --  We always return 'true', as it is up to the AWS servant to tell
+      --  whether an object exists or not, whatever the path to it may be.
    end Unknown_Adapter;
 
 end AWS.Object_Adapter;

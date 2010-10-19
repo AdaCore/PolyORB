@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2006-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2006-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -61,7 +61,7 @@ package body PolyORB.QoS.Exception_Informations is
    -------------------------------
 
    function Get_Exception_Information
-     (R : Requests.Request_Access) return String
+     (R : Requests.Request) return String
    is
       QoS : constant QoS_Ada_Exception_Information_Parameter_Access :=
               QoS_Ada_Exception_Information_Parameter_Access
@@ -80,7 +80,7 @@ package body PolyORB.QoS.Exception_Informations is
    ---------------------------
 
    function Get_Exception_Message
-     (R : Requests.Request_Access) return String
+     (R : Requests.Request) return String
    is
       Exception_Information    : constant String :=
                                    Get_Exception_Information (R);
@@ -123,7 +123,7 @@ package body PolyORB.QoS.Exception_Informations is
    -------------------------------
 
    procedure Set_Exception_Information
-     (Request    : PolyORB.Requests.Request_Access;
+     (Request    : in out Requests.Request;
       Occurrence : Ada.Exceptions.Exception_Occurrence)
    is
       use PolyORB.QoS.Exception_Informations;

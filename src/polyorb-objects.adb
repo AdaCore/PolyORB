@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -62,11 +62,9 @@ package body PolyORB.Objects is
    function String_To_Oid (S : String) return Object_Id is
       A : Object_Id (Stream_Element_Offset (S'First)
                   .. Stream_Element_Offset (S'Last));
+      for A'Address use S'Address;
+      pragma Import (Ada, A);
    begin
-      for J in A'Range loop
-         A (J) := Stream_Element (Character'Pos (S (Integer (J))));
-      end loop;
-
       return A;
    end String_To_Oid;
 
@@ -74,6 +72,19 @@ package body PolyORB.Objects is
    -- Image --
    -----------
 
-   function Image (Oid : Object_Id) return String renames Oid_To_Hex_String;
+   function Image (Oid : Object_Id) return String is
+      Oid_S  : String (1 .. Oid'Length);
+      for Oid_S'Address use Oid'Address;
+      pragma Import (Ada, Oid_S);
+
+      Result : String (1 .. Oid'Length) := Oid_S;
+   begin
+      for J in Result'Range loop
+         if Character'Pos (Result (J)) not in 32 .. 127 then
+            Result (J) := '.';
+         end if;
+      end loop;
+      return Result;
+   end Image;
 
 end PolyORB.Objects;

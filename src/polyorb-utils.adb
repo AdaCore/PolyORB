@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -39,51 +39,48 @@ package body PolyORB.Utils is
    -- Local declarations --
    ------------------------
 
-   Hex : constant array (16#0# .. 16#f#) of Character
-     := "0123456789abcdef";
+   Hex : constant array (16#0# .. 16#f#) of Character :=
+           "0123456789abcdef";
 
-   Hex_Val : constant array (Character) of Integer
-     := ('0' => 0,
-         '1' => 1,
-         '2' => 2,
-         '3' => 3,
-         '4' => 4,
-         '5' => 5,
-         '6' => 6,
-         '7' => 7,
-         '8' => 8,
-         '9' => 9,
-         'A' => 10,
-         'a' => 10,
-         'B' => 11,
-         'b' => 11,
-         'C' => 12,
-         'c' => 12,
-         'D' => 13,
-         'd' => 13,
-         'E' => 14,
-         'e' => 14,
-         'F' => 15,
-         'f' => 15,
-         others => -1);
+   Hex_Val : constant array (Character) of Integer :=
+               ('0' => 0,
+                '1' => 1,
+                '2' => 2,
+                '3' => 3,
+                '4' => 4,
+                '5' => 5,
+                '6' => 6,
+                '7' => 7,
+                '8' => 8,
+                '9' => 9,
+                'A' => 10,
+                'a' => 10,
+                'B' => 11,
+                'b' => 11,
+                'C' => 12,
+                'c' => 12,
+                'D' => 13,
+                'd' => 13,
+                'E' => 14,
+                'e' => 14,
+                'F' => 15,
+                'f' => 15,
+                others => -1);
 
    type Escape_Map is array (Character) of Boolean;
 
-   Default_Escape_Map : constant Escape_Map
-     := (Character'Val (0) .. Character'Val (16#1f#) |
-         ';' | '?' | ':' | '@' | '&' | '=' | '+' | '$' | ',' |
-         '<' | '>' | '#' | '%' | '"' |
-         '{' | '}' | '|' | '\' | '^' | '[' | ']' | '`' => True,
-         others => False);
+   Default_Escape_Map : constant Escape_Map :=
+                          (Character'Val (0) .. Character'Val (16#1f#) |
+                           ';' | '?' | ':' | '@' | '&' | '=' | '+' | '$' |
+                           ',' | '<' | '>' | '#' | '%' | '"' | '{' | '}' |
+                           '|' | '\' | '^' | '[' | ']' | '`' => True,
+                           others                            => False);
 
    ---------------
    -- Hex_Value --
    ---------------
 
-   function Hex_Value
-     (C : Character)
-     return Integer
-   is
+   function Hex_Value (C : Character) return Integer is
       V : constant Integer := Hex_Val (C);
    begin
       if V = -1 then
@@ -97,8 +94,7 @@ package body PolyORB.Utils is
    -- SEA_To_Hex_String --
    -----------------------
 
-   function SEA_To_Hex_String (A : Stream_Element_Array) return String
-   is
+   function SEA_To_Hex_String (A : Stream_Element_Array) return String is
       S : String (1 .. 2 * A'Length);
    begin
       for J in A'Range loop
@@ -115,8 +111,7 @@ package body PolyORB.Utils is
    -- Hex_String_To_SEA --
    -----------------------
 
-   function Hex_String_To_SEA (S : String) return Stream_Element_Array
-   is
+   function Hex_String_To_SEA (S : String) return Stream_Element_Array is
       A : Stream_Element_Array (1 .. S'Length / 2);
    begin
       for J in A'Range loop
@@ -134,12 +129,11 @@ package body PolyORB.Utils is
    ----------------
 
    function URI_Encode
-     (S : String; Also_Escape : String := "/")
-     return String
+     (S : String; Also_Escape : String := "/") return String
    is
       Need_Escape : Escape_Map := Default_Escape_Map;
-      Result : String (1 .. 3 * S'Length);
-      DI : Integer := Result'First;
+      Result      : String (1 .. 3 * S'Length);
+      DI          : Integer := Result'First;
    begin
       for J in Also_Escape'Range loop
          Need_Escape (Also_Escape (J)) := True;
@@ -147,8 +141,8 @@ package body PolyORB.Utils is
 
       for SI in S'Range loop
          if Need_Escape (S (SI)) then
-            Result (DI .. DI + 2)
-              := '%'
+            Result (DI .. DI + 2) :=
+              '%'
               & Hex (Character'Pos (S (SI)) / 16)
               & Hex (Character'Pos (S (SI)) mod 16);
             DI := DI + 3;
@@ -167,8 +161,8 @@ package body PolyORB.Utils is
 
    function URI_Decode (S : String) return String is
       Result : String (S'Range);
-      SI : Integer := S'First;
-      DI : Integer := Result'First;
+      SI     : Integer := S'First;
+      DI     : Integer := Result'First;
    begin
       while SI <= S'Last loop
          if S (SI) = '%' then
@@ -197,8 +191,7 @@ package body PolyORB.Utils is
       Start     : Integer;
       What      : Character;
       Skip      : Boolean;
-      Direction : Direction_Type)
-     return Integer
+      Direction : Direction_Type) return Integer
    is
       I : Integer := Start;
    begin
@@ -227,6 +220,12 @@ package body PolyORB.Utils is
    function To_Lower (S : String) return String is
 
       function To_Lower (C : Character) return Character;
+      --  Return C converted to lowercase, or unchanged if not an uppercase
+      --  letter.
+
+      --------------
+      -- To_Lower --
+      --------------
 
       function To_Lower (C : Character) return Character is
          C_Val : constant Natural := Character'Pos (C);
@@ -237,7 +236,6 @@ package body PolyORB.Utils is
            or else C_Val in 16#D8# .. 16#DE#
          then
             return Character'Val (C_Val + 16#20#);
-
          else
             return C;
          end if;
@@ -260,6 +258,12 @@ package body PolyORB.Utils is
    function To_Upper (S : String) return String is
 
       function To_Upper (C : Character) return Character;
+      --  Return C converted to uppercase, or unchanged if not a lowercase
+      --  letter.
+
+      --------------
+      -- To_Upper --
+      --------------
 
       function To_Upper (C : Character) return Character is
          C_Val : constant Natural := Character'Pos (C);
@@ -270,7 +274,6 @@ package body PolyORB.Utils is
            or else C_Val in 16#F8# .. 16#FE#
          then
             return Character'Val (C_Val - 16#20#);
-
          else
             return C;
          end if;

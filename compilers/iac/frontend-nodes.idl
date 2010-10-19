@@ -49,14 +49,18 @@ module Frontend::Nodes {
   };
 
   interface Identifier : Linkable_Node_Id {
-    Name_Id    Name;
     Name_Id    IDL_Name;
+    //  Name in original source form
+
+    Name_Id    Name;
+    //  Name converted to lowercase
+
     Node_Id    Homonym;
     Node_Id    Corresponding_Entity;
     Node_Id    Scope_Entity;
     Node_Id    Potential_Scope;
     boolean    Visible;
-    boolean    Implicitely_Visible;
+    boolean    Implicitly_Visible;
     Node_Id    Next_Identifier;
   };
 
@@ -107,7 +111,6 @@ module Frontend::Nodes {
      (51) <simple_declarator> ::= <identifier> 
   */
 
-  interface Array_Size_List : List_Id {};
   interface Simple_Declarator : Definition {
     Node_Id    Declaration;
   };
@@ -121,8 +124,6 @@ module Frontend::Nodes {
   interface Complex_Declarator : Simple_Declarator {
     List_Id      Array_Sizes;
   };
-
-  interface Declarators : List_Id {};
 
   /********************/
   /* Expression nodes */
@@ -160,8 +161,6 @@ module Frontend::Nodes {
     (3) <module> ::= "module" <identifier> "{" <definition> + "}" 
   */
 
-  interface Definition_List : List_Id {};
-  interface Imports_List : List_Id {};
   interface _Module : Scope_Definition {
     List_Id     Definitions;
     List_Id     Type_Prefixes;
@@ -219,8 +218,6 @@ module Frontend::Nodes {
                                [ <interface_inheritance_spec> ] 
   */
 
-  interface Interface_Name_List : List_Id {};
-  interface Interface_Body : List_Id {};
   interface Interface_Declaration : Scope_Definition {
     boolean     Is_Abstract_Interface;
     boolean     Is_Local_Interface;
@@ -279,9 +276,6 @@ module Frontend::Nodes {
   		    [ <raises_expr> ] [ <context_expr> ] 
   */
 
-  interface Exception_List : List_Id {};
-  interface Context_List : List_Id {};
-  interface Parameter_List : List_Id {};
   interface Operation_Declaration : Scope_Definition {
     boolean     Is_Oneway;
     Node_Id     Type_Spec;
@@ -324,7 +318,6 @@ module Frontend::Nodes {
                             [ <value_inheritance_spec> ] 
   */
 
-  interface Value_Body : List_Id {};
   interface Generic_Value_Declaration : Value_Box_Declaration {
     Node_Id     Value_Spec;
     List_Id     Value_Body;
@@ -343,7 +336,6 @@ module Frontend::Nodes {
              [ "supports" <interface_name> { "," <interface_name> }* ] 
   */
 
-  interface Value_Name_List : List_Id {};
   interface Value_Spec : Node_Id {
     boolean     Is_Truncatable;
     Node_Id     Identifier;
@@ -412,8 +404,6 @@ module Frontend::Nodes {
     Node_Id Type_Spec;
     List_Id Declarators;
   };
-  interface Member_List : List_Id {};
-
 
   /*******************/
   /* Structure nodes */
@@ -452,11 +442,10 @@ module Frontend::Nodes {
 
   interface Case_Label : Node_Id {
     Node_Id     Declaration;
-    Node_Id     Expression;
+    Node_Id     Expression; // No_Node for "default"
     Value_Id    Value;
   };
 
-  interface Case_Label_List : List_Id {};
   interface Switch_Alternative : Node_Id {
     Node_Id     Declaration;
     List_Id     Labels;
@@ -472,7 +461,6 @@ module Frontend::Nodes {
     Node_Id     Declarator;
   };
 
-  interface Switch_Type_Body : List_Id {};
   interface Union_Type : Scope_Definition {
     Node_Id     Switch_Type_Spec;
     List_Id     Switch_Type_Body;
@@ -494,11 +482,9 @@ module Frontend::Nodes {
     Value_Id    Value;
   };
 
-  interface Enumerator_List : List_Id {};
   interface Enumeration_Type : Definition {
     List_Id     Enumerators;
   };
-
 
   /*******************/
   /* Exception nodes */

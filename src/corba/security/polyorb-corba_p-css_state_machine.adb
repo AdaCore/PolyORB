@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -68,7 +68,7 @@ package body PolyORB.CORBA_P.CSS_State_Machine is
    procedure Initialize;
 
    procedure Security_Client_Invoke
-     (Request : PolyORB.Requests.Request_Access;
+     (Request : access PolyORB.Requests.Request;
       Flags   : PolyORB.Requests.Flags);
 
    ----------------
@@ -86,7 +86,7 @@ package body PolyORB.CORBA_P.CSS_State_Machine is
    ----------------------------
 
    procedure Security_Client_Invoke
-     (Request : PolyORB.Requests.Request_Access;
+     (Request : access PolyORB.Requests.Request;
       Flags   : PolyORB.Requests.Flags)
    is
       use PolyORB.CORBA_P.Security_Policy;
@@ -135,7 +135,7 @@ package body PolyORB.CORBA_P.CSS_State_Machine is
                (Minor     => 0,
                 Completed => PolyORB.Errors.Completed_No));
 
-            PolyORB.Requests.Set_Exception (Request, Error);
+            PolyORB.Requests.Set_Exception (Request.all, Error);
 
             return;
          end;
@@ -148,7 +148,6 @@ package body PolyORB.CORBA_P.CSS_State_Machine is
         or else not Is_Protected (Mechanism.all)
       then
          Legacy_Client_Invoke (Request, Flags);
-
          return;
       end if;
 
@@ -168,7 +167,7 @@ package body PolyORB.CORBA_P.CSS_State_Machine is
                (Minor     => 0,
                 Completed => PolyORB.Errors.Completed_No));
 
-            PolyORB.Requests.Set_Exception (Request, Error);
+            PolyORB.Requests.Set_Exception (Request.all, Error);
 
             return;
          end;
@@ -181,7 +180,9 @@ package body PolyORB.CORBA_P.CSS_State_Machine is
       Transport_QoS.Invocation_Credentials := Credentials;
 
       Add_Request_QoS
-        (Request, Transport_Security, QoS_Parameter_Access (Transport_QoS));
+        (Request.all,
+         Transport_Security,
+         QoS_Parameter_Access (Transport_QoS));
 
       --  Bind Object Reference with selected transport mechanism and obtained
       --  credentials
@@ -221,7 +222,7 @@ package body PolyORB.CORBA_P.CSS_State_Machine is
       end;
 
       Add_Request_QoS
-        (Request, Compound_Security, QoS_Parameter_Access (Request_QoS));
+        (Request.all, Compound_Security, QoS_Parameter_Access (Request_QoS));
 
       Legacy_Client_Invoke (Request, Flags);
 
@@ -236,7 +237,7 @@ package body PolyORB.CORBA_P.CSS_State_Machine is
 
       Reply_QoS :=
         QoS_Security_Context_Parameter_Access
-        (Extract_Reply_Parameter (Compound_Security, Request));
+        (Extract_Reply_Parameter (Compound_Security, Request.all));
 
       if Is_Forward_Request (Request.Exception_Info)
         or else Reply_QoS = null
@@ -248,12 +249,12 @@ package body PolyORB.CORBA_P.CSS_State_Machine is
          return;
       end if;
 
-      --  If reply security context received then analize it
+      --  If reply security context received then analyze it
 
       case Reply_QoS.Context_Kind is
          when Establish_Context =>
             raise Program_Error;
-            --  Never be happen
+            --  Never happens
 
          when Complete_Establish_Context =>
             Complete_Context

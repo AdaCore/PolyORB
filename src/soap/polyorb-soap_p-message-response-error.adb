@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2000-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2000-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -35,7 +35,6 @@ with PolyORB.Any; use PolyORB.Any;
 with PolyORB.Types; use PolyORB.Types;
 
 with PolyORB.SOAP_P.Types;
-with SOAP.Utils;
 
 package body PolyORB.SOAP_P.Message.Response.Error is
 
@@ -207,9 +206,9 @@ package body PolyORB.SOAP_P.Message.Response.Error is
                Append
                  (Message_Body,
                   "   "
-                  & SOAP.Utils.Tag (P_Name, Start => True)
-                  & Types.Image (P_K)
-                  & SOAP.Utils.Tag (P_Name, Start => False)
+                  & Tag (P_Name, Start => True)
+                  & Types.Value_Image (P_K)
+                  & Tag (P_Name, Start => False)
                   & NL);
             end;
          end loop;

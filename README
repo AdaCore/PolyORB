@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---         Copyright (C) 1999-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 1999-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -118,10 +118,14 @@ Note that unified diff files (-u option of GNU diff) are also welcomed.
 
 Unsupported users may directly send their patches and bug report via
 e-mail at the address
+   polyorb-bugs@lists.adacore.com
 
-	polyorb-bugs@lists.adacore.com
+or seek community support through the public mailing list:
+   polyorb-users@lists.adacore.com
 
 Please use the Problem Report Form in docs/PROBLEM-REPORT-FORM.
+Please include the complete output of "polyorb-config --version"
+in any problem report.
 
 If you are interested in becoming a supported PolyORB user, you should
 send an email to sales@adacore.com.
@@ -142,10 +146,13 @@ Contributors:
 PolyORB has been developed since January, 1999 by the following
 contributors:
 
+* Dmitriy Anisimkov
 * Nicolas Archambault
 * Fabien Azavant
 * Benjamin Bagland
 * Khaled Barbaria
+* Nikolay Boshnakov
+* Reto Buerki
 * Emmanuel Chavane
 * Karim Chine
 * Jean-Marie Cottin
@@ -162,8 +169,10 @@ contributors:
 * Fabrice Kordon
 * Narinder Kumar
 * Laurent Kubler
+* Stéphane Lanarre
 * Lionel Litty
 * Vincent Niebel
+* Pascal Obry
 * Pablo Oliveira
 * Pierre Palatin
 * Bertrand Paquet
@@ -180,4 +189,5 @@ contributors:
 * Thomas Vergnaud
 * Florian Villoing
 * Guillaume Wisniewski
+* Thomas Wolf
 * Bechir Zalila

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -39,7 +39,7 @@ with Ada.Unchecked_Deallocation;
 
 package PolyORB.Objects is
 
-   pragma Elaborate_Body;
+   pragma Preelaborate;
 
    type Object_Id is new Ada.Streams.Stream_Element_Array;
 

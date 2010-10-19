@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -59,7 +59,6 @@ with PolyORB.Security.Credentials;
 with PolyORB.Security.Security_Manager;
 with PolyORB.Security.Transport_Mechanisms;
 with PolyORB.Security.Types;
-with PolyORB.Smart_Pointers;
 with PolyORB.Tasking.Threads.Annotations;
 with PolyORB.Types;
 with PolyORB.Utils.Strings;
@@ -83,16 +82,16 @@ package body PolyORB.CORBA_P.TSS_State_Machine is
       Error : in out PolyORB.Errors.Error_Container);
 
    procedure Server_Invoke
-     (Self    : access PolyORB.Smart_Pointers.Entity'Class;
-      Request :        PolyORB.Requests.Request_Access;
-      Profile :        PolyORB.Binding_Data.Profile_Access);
+     (Self    : access PSPCE.Entity'Class;
+      Request : access PolyORB.Requests.Request;
+      Profile : PolyORB.Binding_Data.Profile_Access);
 
    procedure Throw_SAS_No_Permission
-     (Request     :     PolyORB.Requests.Request_Access;
-      Context_Id  :     PolyORB.Security.Types.Context_Id;
-      Major       :     PolyORB.Types.Long;
-      Minor       :     PolyORB.Types.Long;
-      Error_Token :     PolyORB.Security.Types.Stream_Element_Array_Access;
+     (Request     : access PolyORB.Requests.Request;
+      Context_Id  : PolyORB.Security.Types.Context_Id;
+      Major       : PolyORB.Types.Long;
+      Minor       : PolyORB.Types.Long;
+      Error_Token : PolyORB.Security.Types.Stream_Element_Array_Access;
       Reply_QoS   : out
         PolyORB.QoS.Security_Contexts.QoS_Security_Context_Parameter_Access);
    --  Issue NO_PERMISSION system exception with SAS ContextError service
@@ -301,9 +300,9 @@ package body PolyORB.CORBA_P.TSS_State_Machine is
    -------------------
 
    procedure Server_Invoke
-     (Self    : access PolyORB.Smart_Pointers.Entity'Class;
-      Request :        PolyORB.Requests.Request_Access;
-      Profile :        PolyORB.Binding_Data.Profile_Access)
+     (Self    : access PSPCE.Entity'Class;
+      Request : access PolyORB.Requests.Request;
+      Profile : PolyORB.Binding_Data.Profile_Access)
    is
       use PolyORB.CORBA_P.Security_Current;
       use PolyORB.CORBA_P.TSS_State_Machine_Actions;
@@ -313,10 +312,10 @@ package body PolyORB.CORBA_P.TSS_State_Machine is
 
       Request_QoS      : constant QoS_Security_Context_Parameter_Access
         := QoS_Security_Context_Parameter_Access
-        (Extract_Request_Parameter (Compound_Security, Request));
+        (Extract_Request_Parameter (Compound_Security, Request.all));
       Transport_QoS    : constant QoS_Transport_Context_Parameter_Access
         := QoS_Transport_Context_Parameter_Access
-        (Extract_Request_Parameter (Transport_Security, Request));
+        (Extract_Request_Parameter (Transport_Security, Request.all));
       Reply_QoS        : QoS_Security_Context_Parameter_Access;
       Stateful         : Boolean;
       Context_Accepted : Boolean := False;
@@ -352,7 +351,7 @@ package body PolyORB.CORBA_P.TSS_State_Machine is
                   System_Exception_Members'
                   (Minor => 0, Completed => Completed_No));
 
-               PolyORB.Requests.Set_Exception (Request, Error);
+               PolyORB.Requests.Set_Exception (Request.all, Error);
             end;
 
          else
@@ -465,7 +464,7 @@ package body PolyORB.CORBA_P.TSS_State_Machine is
       end if;
 
       Add_Reply_QoS
-        (Request, Compound_Security, QoS_Parameter_Access (Reply_QoS));
+        (Request.all, Compound_Security, QoS_Parameter_Access (Reply_QoS));
 
       --  Destroy current Security Current note
 
@@ -489,11 +488,11 @@ package body PolyORB.CORBA_P.TSS_State_Machine is
    -----------------------------
 
    procedure Throw_SAS_No_Permission
-     (Request     :     PolyORB.Requests.Request_Access;
-      Context_Id  :     PolyORB.Security.Types.Context_Id;
-      Major       :     PolyORB.Types.Long;
-      Minor       :     PolyORB.Types.Long;
-      Error_Token :     PolyORB.Security.Types.Stream_Element_Array_Access;
+     (Request     : access PolyORB.Requests.Request;
+      Context_Id  : PolyORB.Security.Types.Context_Id;
+      Major       : PolyORB.Types.Long;
+      Minor       : PolyORB.Types.Long;
+      Error_Token : PolyORB.Security.Types.Stream_Element_Array_Access;
       Reply_QoS   : out
         PolyORB.QoS.Security_Contexts.QoS_Security_Context_Parameter_Access)
    is
@@ -508,7 +507,7 @@ package body PolyORB.CORBA_P.TSS_State_Machine is
          No_Permission_E,
          System_Exception_Members'(Minor => 0, Completed => Completed_No));
 
-      PolyORB.Requests.Set_Exception (Request, Error);
+      PolyORB.Requests.Set_Exception (Request.all, Error);
 
       Reply_QoS := new QoS_Security_Context_Parameter (Context_Error);
       Reply_QoS.Client_Context_Id := Context_Id;

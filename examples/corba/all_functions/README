@@ -1,0 +1,33 @@
+README for the PolyORB all_types example
+----------------------------------------
+
+$Id$
+
+This demo tests the processing for various argument passing modes, both
+in the case where network communication is involved and in the case of
+local calls.
+
+Three executables are provided
+- server : a CORBA server application, provides various functions that
+  receive and return values.
+
+- client : a CORBA client application, built to interact with 'server',
+  test various combinations of argument modes
+
+- dynclient : same, using the DII
+
+* To run these tests :
+
+1) client/server test :
+
+- launch server
+- launch client using the IOR string output by server as an argument
+
+The client will interact with the server, doing several tests. The different
+results are displayed on the client side.
+
+2) local test :
+
+- launch 'server local'
+- the server runs the tests within the same partition
+

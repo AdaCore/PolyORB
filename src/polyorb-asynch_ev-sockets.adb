@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -33,6 +33,8 @@
 
 --  An asynchrous event source that is a set of socket descriptors.
 
+with Ada.Exceptions;
+
 with PolyORB.Constants;
 with PolyORB.Log;
 
@@ -52,8 +54,7 @@ package body PolyORB.Asynch_Ev.Sockets is
    -- Create --
    ------------
 
-   procedure Create
-     (AEM : out Socket_Event_Monitor) is
+   procedure Create (AEM : out Socket_Event_Monitor) is
    begin
       Empty (AEM.Monitored_Set);
       Create_Selector (AEM.Selector);
@@ -63,8 +64,7 @@ package body PolyORB.Asynch_Ev.Sockets is
    -- Destroy --
    -------------
 
-   procedure Destroy
-     (AEM : in out Socket_Event_Monitor) is
+   procedure Destroy (AEM : in out Socket_Event_Monitor) is
    begin
       Empty (AEM.Monitored_Set);
       Close_Selector (AEM.Selector);
@@ -79,14 +79,27 @@ package body PolyORB.Asynch_Ev.Sockets is
       return not Source_Lists.Is_Empty (AEM.Sources);
    end Has_Sources;
 
+   ----------
+   -- Link --
+   ----------
+
+   function Link
+     (S     : access Socket_Event_Source'Class;
+      Which : Ilists.Link_Type) return access SES_Access
+   is
+   begin
+      return S.Links (Which)'Unchecked_Access;
+   end Link;
+
    ---------------------
    -- Register_Source --
    ---------------------
 
    procedure Register_Source
      (AEM     : access Socket_Event_Monitor;
-      AES     :        Asynch_Ev_Source_Access;
-      Success :    out Boolean) is
+      AES     : Asynch_Ev_Source_Access;
+      Success : out Boolean)
+   is
    begin
       pragma Debug (C, O ("Register_Source: enter"));
 
@@ -96,8 +109,13 @@ package body PolyORB.Asynch_Ev.Sockets is
          return;
       end if;
 
-      Set (AEM.Monitored_Set, Socket_Event_Source (AES.all).Socket);
-      Source_Lists.Append (AEM.Sources, AES);
+      declare
+         S_AES : Socket_Event_Source'Class
+                   renames Socket_Event_Source'Class (AES.all);
+      begin
+         Set (AEM.Monitored_Set, S_AES.Socket);
+         Source_Lists.Append (AEM.Sources, S_AES'Access);
+      end;
       pragma Debug (C, O ("Register_Source: Sources'Length ="
                        & Integer'Image (Source_Lists.Length (AEM.Sources))));
       AES.Monitor := Asynch_Ev_Monitor_Access (AEM);
@@ -113,7 +131,10 @@ package body PolyORB.Asynch_Ev.Sockets is
    procedure Unregister_Source
      (AEM     : in out Socket_Event_Monitor;
       AES     : Asynch_Ev_Source_Access;
-      Success : out Boolean) is
+      Success : out Boolean)
+   is
+      S_AES : Socket_Event_Source'Class
+                renames Socket_Event_Source'Class (AES.all);
    begin
       pragma Debug (C, O ("Unregister_Source: enter"));
       if not Is_Set (AEM.Monitored_Set,
@@ -121,8 +142,8 @@ package body PolyORB.Asynch_Ev.Sockets is
       then
          Success := False;
       else
-         Clear (AEM.Monitored_Set, Socket_Event_Source (AES.all).Socket);
-         Source_Lists.Remove (AEM.Sources, AES);
+         Clear (AEM.Monitored_Set, S_AES.Socket);
+         Source_Lists.Remove_Element (AEM.Sources, S_AES'Access);
          pragma Debug (C, O ("Unregister_Source: Sources'Length:="
                           & Source_Lists.Length (AEM.Sources)'Img));
          Success := True;
@@ -137,18 +158,16 @@ package body PolyORB.Asynch_Ev.Sockets is
 
    function Check_Sources
      (AEM     : access Socket_Event_Monitor;
-      Timeout :        Duration)
-     return AES_Array
+      Timeout : Duration) return AES_Array
    is
       use Source_Lists;
 
       Result : AES_Array (1 .. Length (AEM.Sources));
       Last   : Integer := 0;
 
-      T : Duration := Timeout;
-
-      R_Set : Socket_Set_Type;
-      W_Set : Socket_Set_Type;
+      T      : Duration := Timeout;
+      R_Set  : Socket_Set_Type;
+      W_Set  : Socket_Set_Type;
       Status : Selector_Status;
 
    begin
@@ -159,6 +178,7 @@ package body PolyORB.Asynch_Ev.Sockets is
 
       if T = Constants.Forever then
          --  Convert special value of Timeout
+
          T := PolyORB.Sockets.Forever;
       end if;
 
@@ -181,6 +201,8 @@ package body PolyORB.Asynch_Ev.Sockets is
 
                   null;
                else
+                  O ("unexpected Socket_Error raised by Check_Selector: "
+                     & Ada.Exceptions.Exception_Message (E), Error);
                   raise;
                end if;
          end;
@@ -198,16 +220,15 @@ package body PolyORB.Asynch_Ev.Sockets is
             while not Source_Lists.Last (It) loop
 
                declare
-                  S : Asynch_Ev_Source_Access renames Value (It).all;
-                  Sock : Socket_Type
-                    renames Socket_Event_Source (S.all).Socket;
+                  S_AES : Socket_Event_Source'Class renames Value (It).all;
+                  Sock  : Socket_Type renames S_AES.Socket;
                begin
                   if Is_Set (R_Set, Sock) then
                      pragma Debug
                        (C, O ("Got event on socket" & Image (Sock)));
 
                      Last := Last + 1;
-                     Result (Last) := S;
+                     Result (Last) := S_AES'Access;
 
                      Clear (AEM.Monitored_Set, Sock);
                      Remove (AEM.Sources, It);
@@ -234,8 +255,7 @@ package body PolyORB.Asynch_Ev.Sockets is
    -- Abort_Check_Sources --
    -------------------------
 
-   procedure Abort_Check_Sources
-     (AEM : Socket_Event_Monitor) is
+   procedure Abort_Check_Sources (AEM : Socket_Event_Monitor) is
    begin
       --  XXX check that selector is currently blocking!
       --  (and do it in a thread-safe manner, if applicable!)
@@ -247,11 +267,9 @@ package body PolyORB.Asynch_Ev.Sockets is
    -------------------------
 
    function Create_Event_Source
-     (Socket : PolyORB.Sockets.Socket_Type)
-     return Asynch_Ev_Source_Access
+     (Socket : PolyORB.Sockets.Socket_Type) return Asynch_Ev_Source_Access
    is
-      Result : constant Asynch_Ev_Source_Access
-        := new Socket_Event_Source;
+      Result : constant Asynch_Ev_Source_Access := new Socket_Event_Source;
    begin
       Socket_Event_Source (Result.all).Socket := Socket;
       return Result;
@@ -261,11 +279,9 @@ package body PolyORB.Asynch_Ev.Sockets is
    -- Create_Socket_Event_Monitor --
    ---------------------------------
 
-   function Create_Socket_Event_Monitor
-     return Asynch_Ev_Monitor_Access;
+   function Create_Socket_Event_Monitor return Asynch_Ev_Monitor_Access;
 
-   function Create_Socket_Event_Monitor
-     return Asynch_Ev_Monitor_Access is
+   function Create_Socket_Event_Monitor return Asynch_Ev_Monitor_Access is
    begin
       return new Socket_Event_Monitor;
    end Create_Socket_Event_Monitor;

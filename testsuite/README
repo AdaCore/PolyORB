@@ -28,13 +28,11 @@ We suppose you build PolyORB in $build_dir.
 
 2/ Build PolyORB's examples
 
-Go in $build_dir/examples
-Run make
+$ make examples
 
 3/ Build the test suite
 
-Go in $build_dir/testsuite
-Run Make
+$ make testsuite
 
 Note: some tests are not built by default: they require the
 installation of third-party middleware, and adaptation of the
@@ -43,7 +41,7 @@ for more details.
 
 * Run the test suite
 
-In $buld_dir/testsuite, type 'make run_tests'.
+$ make run_tests
 
 This will launch the test suite. Output is in $build_dir/output.
 

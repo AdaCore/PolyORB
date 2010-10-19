@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -55,6 +55,20 @@ package body PolyORB.CORBA_P.Server_Tools is
 
    Root_POA : PortableServer.POA.Local_Ref;
 
+   ---------------------
+   -- Activate_Server --
+   ---------------------
+
+   procedure Activate_Server is
+   begin
+      PortableServer.POAManager.Activate
+        (PortableServer.POA.Get_The_POAManager (Get_Root_POA));
+
+      if Initiate_Server_Hook /= null then
+         Initiate_Server_Hook.all;
+      end if;
+   end Activate_Server;
+
    ------------------
    -- Get_Root_POA --
    ------------------
@@ -75,15 +89,10 @@ package body PolyORB.CORBA_P.Server_Tools is
 
    procedure Initiate_Server (Start_New_Task : Boolean := False) is
    begin
-      PortableServer.POAManager.Activate
-        (PortableServer.POA.Get_The_POAManager (Get_Root_POA));
-
-      if Initiate_Server_Hook /= null then
-         Initiate_Server_Hook.all;
-      end if;
-
+      Activate_Server;
       if Start_New_Task then
          PolyORB.Tasking.Threads.Create_Task (CORBA.ORB.Run'Access);
+
       else
          CORBA.ORB.Run;
       end if;

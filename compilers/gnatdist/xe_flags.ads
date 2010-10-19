@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 1995-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -37,20 +37,39 @@
 with GNAT.Table;
 with GNAT.OS_Lib; use GNAT.OS_Lib;
 
+with XE_Defs.Defaults;
+
 package XE_Flags is
 
-   Keep_Tmp_Files       : Boolean := False;
+   Quiet_Mode           : Boolean := False;
    Verbose_Mode         : Boolean := False;
    Debug_Mode           : Boolean := False;
-   Quiet_Mode           : Boolean := False;
    Check_Readonly_Files : Boolean := False;
+   Keep_Going           : Boolean := False;
+
+   Keep_Tmp_Files       : Boolean := False;
+   --  Do not remove temporary files
+
    User_Provided_S_RPC  : Boolean := False;
+   --  User provided his own version of s-rpc.adb, overriding the one from the
+   --  PCS.
+
+   Use_PolyORB_Project  : Boolean := XE_Defs.Defaults.Windows_On_Host;
+   --  True when the installed project file must be used to reference the
+   --  PolyORB PCS (otherwise the external script polyorb-config is used,
+   --  exception on Windows where the MinGW environment does not support
+   --  spawning arbitrary shell scripts).
+
+   Use_GPRBuild         : Boolean := False;
+   --  Use GPRBuild instead of gnatmake
+
+   Display_Compilation_Progress : Boolean := False;
 
    Readonly_Flag       : constant String_Access := new String'("-a");
    Bind_Only_Flag      : constant String_Access := new String'("-b");
    Compile_Only_Flag   : constant String_Access := new String'("-c");
    Object_Dir_Flag     : constant String_Access := new String'("-D");
-   Dependencies_Flag   : constant String_Access := new String'("-d");
+   Progress_Flag       : constant String_Access := new String'("-d");
    Keep_Going_Flag     : constant String_Access := new String'("-k");
    Link_Only_Flag      : constant String_Access := new String'("-l");
    Output_Flag         : constant String_Access := new String'("-o");

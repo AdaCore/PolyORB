@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1995-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -141,8 +141,7 @@ package body XE_Scan is
       Read_File (File, First, Last, Buffer);
 
       if Buffer = null then
-         Message ("cannot open file", File);
-         raise Fatal_Error;
+         raise Fatal_Error with "cannot open file " & Get_Name_String (File);
       end if;
 
       Scan_Ptr       := First;

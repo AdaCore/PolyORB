@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -33,8 +33,15 @@
 
 --  Definition of the universal container/wrapper type 'Any'
 
+pragma Ada_2005;
+
+pragma Warnings (Off);
+--  The following are internal GNAT units:
 with Ada.Strings.Superbounded;
 with Ada.Strings.Wide_Superbounded;
+pragma Warnings (On);
+
+with System;
 
 with PolyORB.Smart_Pointers;
 with PolyORB.Types;
@@ -93,6 +100,12 @@ package PolyORB.Any is
    function No_Wrap (X : access T) return Content'Class;
    --  Dummy Wrap function for types that do not implement proper wrapping
    --  (should never be called).
+
+   function Unchecked_Get_V
+     (X : not null access Content) return System.Address;
+   pragma Inline (Unchecked_Get_V);
+   --  Unchecked access to the wrapped value. Default implementation returns
+   --  Null_Address; derived types are allowed not to redefine it.
 
    ---------------
    -- TypeCodes --
@@ -163,6 +176,7 @@ package PolyORB.Any is
       ----------
 
       type Local_Ref is private;
+      pragma Preelaborable_Initialization (Local_Ref);
 
       type Object (Kind : TCKind) is
         new Smart_Pointers.Non_Controlled_Entity
@@ -571,6 +585,9 @@ package PolyORB.Any is
    function Get_Container (A : Any) return Any_Container_Ptr;
    --  Get the container designated by A
 
+   procedure Set_Container (A : in out Any; ACP : Any_Container_Ptr);
+   --  Set the container designated by A to ACP
+
    function Get_Value (C : Any_Container'Class) return Content_Ptr;
    --  Retrieve a pointer to C's contents wrapper. This pointer shall not be
    --  permanently saved.
@@ -583,10 +600,13 @@ package PolyORB.Any is
       TC : TypeCode.Local_Ref);
    --  Set the type of C to TC
 
-   procedure Set_Value (C : in out Any_Container'Class; CC : Content_Ptr);
-   --  Set the contents of C to CC. CC, and any associated storage, are
-   --  assumed to be externally managed and won't be deallocated by the Any
-   --  management subsystem.
+   procedure Set_Value
+     (C       : in out Any_Container'Class;
+      CC      : Content_Ptr;
+      Foreign : Boolean := True);
+   --  Set the contents of C to CC. If Foreign is True then CC, and any
+   --  associated storage, are assumed to be externally managed and won't be
+   --  deallocated by the Any management subsystem.
 
    procedure Finalize_Value (C : in out Any_Container'Class);
    --  Destroy the stored content wrapper for C, if non-null and non-foreign
@@ -733,6 +753,15 @@ package PolyORB.Any is
    function To_Any (X : Types.String)             return Any;
    function To_Any (X : Types.Wide_String)        return Any;
 
+   --  For bounded strings, need to provide the specific TC
+
+   function To_Any
+     (X  : Ada.Strings.Superbounded.Super_String;
+      TC : access function return TypeCode.Local_Ref) return Any;
+   function To_Any
+     (X  : Ada.Strings.Wide_Superbounded.Super_String;
+      TC : access function return TypeCode.Local_Ref) return Any;
+
    function Wrap (X : access Types.Short)              return Content'Class;
    function Wrap (X : access Types.Long)               return Content'Class;
    function Wrap (X : access Types.Long_Long)          return Content'Class;
@@ -794,6 +823,10 @@ package PolyORB.Any is
    function From_Any (A : Any) return TypeCode.Local_Ref;
    function From_Any (A : Any) return Types.String;
    function From_Any (A : Any) return Types.Wide_String;
+   function From_Any
+     (A : Any) return Ada.Strings.Superbounded.Super_String;
+   function From_Any
+     (A : Any) return Ada.Strings.Wide_Superbounded.Super_String;
 
    function From_Any (A : Any) return String;
    function From_Any (A : Any) return Wide_String;
@@ -842,19 +875,19 @@ package PolyORB.Any is
    function Get_Aggregate_Count (Value : Any) return Types.Unsigned_Long;
    --  Return the number of elements in an any aggregate
 
-   procedure Add_Aggregate_Element
-     (Value   : in out Any;
-      Element : Any);
-   --  Adds an element to an any aggregate
-   --  This element is given as a typecode but only its value is
-   --  added to the aggregate
+   procedure Add_Aggregate_Element (Value : in out Any; Element : Any);
+   --  Adds an element to an aggregate Any
 
    function Get_Aggregate_Element
      (Value : Any;
       TC    : TypeCode.Local_Ref;
       Index : Types.Unsigned_Long) return Any;
-   --  Gets an element in an any aggregate
-   --  Return an any made of the typecode Tc and the value read in
+   function Get_Aggregate_Element
+     (Value : Any;
+      TC    : TypeCode.Object_Ptr;
+      Index : Types.Unsigned_Long) return Any;
+   --  Gets an element in an aggregate Any.
+   --  Return an any made of the typecode TC and the value read in
    --  the aggregate. The first element has index 0.
 
    function Get_Aggregate_Element
@@ -1038,9 +1071,13 @@ private
 
       function Wrap (X : access T) return Content'Class;
 
-      function Unchecked_Get_V (X : access T_Content) return T_Ptr;
+      function Unchecked_Get_V
+        (X : not null access T_Content) return System.Address;
       pragma Inline (Unchecked_Get_V);
-      --  Unchecked access to the wrapper value
+
+      function Unchecked_Get_V (X : not null access T_Content) return T_Ptr;
+      pragma Inline (Unchecked_Get_V);
+      --  Unchecked access to the wrapped value
 
       function Get_Aggregate_Element
         (Value : Any_Container'Class;
