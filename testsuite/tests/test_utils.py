@@ -29,7 +29,9 @@ Env().restore(os.environ['TEST_CONFIG'])
 
 # All executable tests path are relative to PolyORB testsuite dir
 BASE_DIR = os.path.join(Env().options.build_dir, 'testsuite')
-CONF_DIR = os.path.join(BASE_DIR, 'tests', 'confs')
+
+# Conf dir are in tests/conf
+CONF_DIR = os.path.join(Env().options.testsuite_src_dir, 'tests', 'confs')
 
 EXE_EXT = Env().target.os.exeext
 
