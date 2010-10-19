@@ -1,6 +1,6 @@
 from test_utils import *
 import sys
 
-local(r'polyorb-config --version', r'')
+local(os.path.join(os.path.pardir, 'polyorb-config'), '', args=['--version'])
 fail()
 
