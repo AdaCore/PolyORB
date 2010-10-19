@@ -60,7 +60,7 @@ def main():
 
     # Add current directory in PYTHONPATH (to find test_utils.py)
     env = Env()
-    env.add_search_path('PYTHONPATH', os.getcwd())
+    env.add_search_path('PYTHONPATH', os.path.join(os.getcwd(), 'tests'))
 
     # Generate the discs list for test.opt parsing
     # Always add 'ALL'
@@ -70,12 +70,12 @@ def main():
 
     # Expand ~ and ~user contructions for user PATH
     if m.options.build_dir is None:
-        m.options.build_dir = os.path.join(os.getcwd(), os.pardir, os.pardir)
+        m.options.build_dir = os.path.join(os.getcwd(), os.pardir)
     else:
         m.options.build_dir = os.path.expanduser(m.options.build_dir)
 
     if m.options.testsuite_src_dir is None:
-        m.options.testsuite_src_dir = os.path.join(os.getcwd(), os.pardir)
+        m.options.testsuite_src_dir = os.path.join(os.getcwd())
     else:
         m.options.testsuite_src_dir = os.path.expanduser(
             m.options.testsuite_src_dir)
@@ -85,11 +85,11 @@ def main():
         test_glob = m.args[0]
     else:
         test_glob = None
-    test_list = filter_list('./*/*/*/test.py', test_glob)
+    test_list = filter_list('./tests/*/*/*/test.py', test_glob)
 
     collect_result = generate_collect_result(
         m.options.output_dir, results_file, m.options.diffs)
-    run_testcase = generate_run_testcase('run-test.py',
+    run_testcase = generate_run_testcase('tests/run-test.py',
                                          common_discs, m.options)
 
     os.environ['TEST_CONFIG'] = os.path.join(os.getcwd(), 'env.dump')
@@ -110,7 +110,7 @@ def filter_list(pattern, run_test=""):
     """
     test_list = [os.path.dirname(p) for p in glob(pattern)]
     if not run_test:
-        test_list.append("always_fail")
+        test_list.append("tests/always_fail")
         return test_list
     else:
         run_test = run_test.replace('test.py', '')

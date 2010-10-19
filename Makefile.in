@@ -720,7 +720,7 @@ examples: ${active_examples}
 
 .PHONY: run_tests
 run_tests:
-	cd testsuite/tests && ./testsuite.py --diffs --testsuite-src-dir=${top_srcdir}/testsuite
+	cd testsuite && ./testsuite.py --diffs --testsuite-src-dir=${top_srcdir}/testsuite
 
 # 'all' depends on either build-iac or build-idlac; we might as well build
 # both, here. We run_tests via recursive make, rather than having all-and-test
