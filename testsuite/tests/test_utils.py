@@ -1,4 +1,4 @@
-#!/usr/bin/env gnatpython
+#!/usr/bin/env python
 
 """test utils
 

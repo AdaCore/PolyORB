@@ -1,5 +1,4 @@
-
-#!/usr/bin/env gnatpython
+#!/usr/bin/env python
 """Usage: run-test [options] test_dir
 
 Run a test located in test_dir
