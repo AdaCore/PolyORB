@@ -643,7 +643,7 @@ environments.
 
 You may find additional technical literature on PolyORB, including research
 papers and implementation notes, on the project websites:
-@url{http://libre.adacore.com/polyorb/} and
+@url{http://libre.adacore.com/libre/tools/polyorb/} and
 @url{http://polyorb.objectweb.org/}.
 
 @i{Note: PolyORB is the project formerly known as DROOPI, a Distributed
@@ -722,7 +722,7 @@ Optional:
   refer to the documentation of your particular version of GNAT to know
   if it supports this feature.
 
-@item XML/Ada (@url{http://libre.adacore.com/xmlada/}) if you
+@item XML/Ada (@url{http://libre.adacore.com/libre/tools/xmlada/}) if you
   want to build the SOAP protocol personality.
 @end itemize
 
