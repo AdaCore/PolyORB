@@ -263,6 +263,7 @@ polyorb_lib="$polyorb_lib -lpolyorb-setup"
 if $require_xmlada; then
   xmlada_dir="`xmlada-config --cflags`"
   xmlada_lib="`xmlada-config --libs`"
+  xmlada_mflags="`xmlada-config`"
 fi
 
 if test x$have_gnatmake_aPdir = xyes; then
@@ -270,7 +271,7 @@ if test x$have_gnatmake_aPdir = xyes; then
 fi
 
 if test ! x"$echo_prefix" = x"true"  -a ! x"$echo_exec_prefix" = x"true" -a ! x"$echo_cflags" = x"true" -a ! x"$echo_libs" = x"true" -a ! x"$echo_idls" = x"true"; then
-   echo ${apdir} -aI${polyorb_dir} -aO${libdir}/polyorb ${xmlada_dir} -largs ${polyorb_lib} ${xmlada_lib}
+   echo ${apdir} -aI${polyorb_dir} -aO${libdir}/polyorb ${xmlada_mflags} -largs ${polyorb_lib} ${xmlada_lib}
 fi
 
 if test x"$echo_prefix" = x"true" ; then
