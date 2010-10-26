@@ -1899,6 +1899,7 @@ src/soap/polyorb-soap_p.adb
 src/soap/polyorb-soap_p.ads
 src/soap/polyorb-utils-text_buffers.adb
 src/soap/polyorb-utils-text_buffers.ads
+src/src.exclude.in
 src/srp/polyorb-binding_data-srp.adb
 src/srp/polyorb-binding_data-srp.ads
 src/srp/polyorb-protocols-srp.adb
