@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---            P O L Y O R B . S E T U P . C O M M O N _ B A S E             --
+--          POLYORB.TASKING.PROFILES.FULL_TASKING_ATC.ABORTABLES            --
 --                                                                          --
---                                 B o d y                                  --
+--                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,21 +31,16 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PolyORB.Log.Stderr;
-pragma Warnings (Off, PolyORB.Log.Stderr);
-pragma Elaborate_All (PolyORB.Log.Stderr);
+--  Abortable object using ATC
 
-with PolyORB.Log.Initialization;
-pragma Warnings (Off, PolyORB.Log.Initialization);
-pragma Elaborate_All (PolyORB.Log.Initialization);
+pragma Ada_2005;
 
-with PolyORB.Setup.Default_Parameters;
-pragma Warnings (Off, PolyORB.Setup.Default_Parameters);
-pragma Elaborate_All (PolyORB.Setup.Default_Parameters);
+package PolyORB.Tasking.Profiles.Full_Tasking_ATC.Abortables is
 
-with PolyORB.References.File;
-pragma Warnings (Off, PolyORB.References.File);
-pragma Elaborate_All (PolyORB.References.File);
+   pragma Elaborate_Body;
 
-package body PolyORB.Setup.Common_Base is
-end PolyORB.Setup.Common_Base;
+   --  The elaboration of this unit registers a new Abortable_Tag so that
+   --  PolyORB.Tasking.Abortables.Make_Abortable returns an abortable object
+   --  that uses asynchronous transfer of control to implement Abort_Run.
+
+end PolyORB.Tasking.Profiles.Full_Tasking_ATC.Abortables;

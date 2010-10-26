@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---      P O L Y O R B . S E T U P . T A S K I N G . R A V E N S C A R       --
+--           P O L Y O R B . T A S K I N G . A B O R T A B L E S            --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,59 +26,48 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  You should instantiate this package to set up a ravenscar profile.
+--  Runnables with optional support for abortion
 
-with System;
+pragma Ada_2005;
 
-with PolyORB.Tasking.Profiles.Ravenscar.Threads.Annotations;
+with Ada.Tags;
 
-with PolyORB.Tasking.Profiles.Ravenscar.Threads;
-with PolyORB.Tasking.Profiles.Ravenscar.Mutexes;
-with PolyORB.Tasking.Profiles.Ravenscar.Condition_Variables;
+with PolyORB.Tasking.Threads;
 
-generic
-   Number_Of_Application_Tasks    : Integer;
-   --  Number of tasks created by the user.
+package PolyORB.Tasking.Abortables is
 
-   Number_Of_System_Tasks         : Integer;
-   --  Number of tasks created by the PolyORB run-time library.
+   pragma Preelaborate;
 
-   Number_Of_Conditions           : Integer;
-   --  Number of preallocated conditions.
+   package PTT renames PolyORB.Tasking.Threads;
 
-   Number_Of_Mutexes              : Integer;
-   --  Number of preallocated mutexes.
+   ---------------
+   -- Abortable --
+   ---------------
 
-   Task_Priority                  : System.Priority;
-   --  Priority of the tasks of the pool.
+   --  A Runnable that can be asynchronously aborted (if supported by the
+   --  underlying tasking profile).
 
-   Storage_Size                   : Natural;
-   --  Stack size of the system tasks.
+   type Abortable (R : access PTT.Runnable'Class) is
+     new PTT.Runnable with null record;
+   function Create (R : not null access PTT.Runnable'Class) return Abortable;
 
-package PolyORB.Setup.Tasking.Ravenscar is
+   procedure Run (AR : access Abortable);
+   --  Runs R, but abort if Abort_Run is called
 
-   package Threads_Package is
-      new PolyORB.Tasking.Profiles.Ravenscar.Threads
-     (Number_Of_Application_Tasks,
-      Number_Of_System_Tasks,
-      Task_Priority,
-      Storage_Size);
+   procedure Abort_Run (AR : access Abortable);
+   --  Abort current call to Run
 
-   package Thread_Annotations_Package is new Threads_Package.Annotations;
+   -----------------------
+   -- Abortable factory --
+   -----------------------
 
-   package Conditions_Package is
-      new PolyORB.Tasking.Profiles.Ravenscar.Condition_Variables
-     (Threads_Package,
-      Number_Of_Conditions);
+   procedure Register_Abortable_Tag (T : Ada.Tags.Tag);
+   function Make_Abortable
+     (R : access PTT.Runnable'Class) return Abortable'Class;
 
-   package Mutexes_Package is
-      new PolyORB.Tasking.Profiles.Ravenscar.Mutexes
-     (Threads_Package,
-      Number_Of_Mutexes);
-
-end PolyORB.Setup.Tasking.Ravenscar;
+end PolyORB.Tasking.Abortables;

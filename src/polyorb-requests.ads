@@ -46,8 +46,8 @@ with PolyORB.Errors;
 with PolyORB.References;
 with PolyORB.Smart_Pointers;
 with PolyORB.Task_Info;
+with PolyORB.Tasking.Abortables;
 with PolyORB.Tasking.Mutexes;
-with PolyORB.Tasking.Threads;
 with PolyORB.Types;
 with PolyORB.Utils.Simple_Flags;
 with PolyORB.Utils.Strings;
@@ -181,7 +181,7 @@ package PolyORB.Requests is
       Profile : Binding_Data.Profile_Access;
       --  Profile of target ref selected when binding to Surrogate
 
-      Upcall_Abortable : access Tasking.Threads.Abortable'Class;
+      Upcall_Abortable : access Tasking.Abortables.Abortable'Class;
       Upcall_Abortable_Mutex : Tasking.Mutexes.Mutex_Access;
       --  While the request is being served by an upcall to an application
       --  servant, this handle is set to designate the corresponding abortable

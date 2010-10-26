@@ -63,9 +63,6 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
    procedure O (Message : String; Level : Log_Level := Debug) renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean renames L.Enabled;
 
-   Abortable_RPCs : Boolean;
-   --  If set True (at initialization), support RPC abortion
-
    --  Task type
 
    task type Generic_Task (P : System.Priority; S : Natural) is
@@ -115,74 +112,10 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
 
    procedure Run (SR : access Simple_Runnable);
 
-   --  Abortable_PO is a simple barrier used for Abortable control
-
-   protected type Abortable_PO is
-      entry Wait;
-      procedure Signal;
-   private
-      Signalled : Boolean := False;
-   end Abortable_PO;
-
-   ------------------
-   -- Abortable_PO --
-   ------------------
-
-   protected body Abortable_PO is
-
-      ----------
-      -- Wait --
-      ----------
-
-      entry Wait when Signalled is
-      begin
-         null;
-      end Wait;
-
-      ------------
-      -- Signal --
-      ------------
-
-      procedure Signal is
-      begin
-         Signalled := True;
-      end Signal;
-
-   end Abortable_PO;
-
-   type Full_Tasking_Abortable is new PTT.Abortable with record
-      P : Abortable_PO;
-   end record;
-
-   procedure Run (AR : access Full_Tasking_Abortable);
-   procedure Abort_Run (AR : access Full_Tasking_Abortable);
-
    task Reaper is
       entry Free (GT : Generic_Task_Access);
       --  Busy-wait for the designated task to terminate, then free it
    end Reaper;
-
-   ---------
-   -- Run --
-   ---------
-
-   procedure Run (AR : access Full_Tasking_Abortable) is
-   begin
-      select
-         AR.P.Wait;
-      then abort
-         AR.R.Run;
-      end select;
-   end Run;
-
-   ---------------
-   -- Abort_Run --
-   ---------------
-
-   procedure Abort_Run (AR : access Full_Tasking_Abortable) is
-   begin
-      AR.P.Signal;
-   end Abort_Run;
 
    ------------
    -- Reaper --
@@ -447,28 +380,6 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
       delay D;
    end Relative_Delay;
 
-   --------------------
-   -- Make_Abortable --
-   --------------------
-
-   function Make_Abortable
-     (TF : access Full_Tasking_Thread_Factory_Type;
-      R  : PTT.Runnable_Access) return PTT.Abortable'Class
-   is
-      pragma Unreferenced (TF);
-   begin
-      if Abortable_RPCs then
-         --  Abortable object with real abortion support
-
-         return Full_Tasking_Abortable'(R => R, others => <>);
-
-      else
-         --  Dummy abortable with no-op Abort_Run operation
-
-         return PTT.Abortable'(R => R);
-      end if;
-   end Make_Abortable;
-
    -----------------
    -- Awake_Count --
    -----------------
@@ -522,8 +433,6 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
          TID := TID.Common.Parent;
       end loop;
       The_Thread_Factory.Environment_Task := TID;
-      Abortable_RPCs :=
-        Parameters.Get_Conf ("tasking", "abortable_rpcs", Default => True);
    end Initialize;
 
    use PolyORB.Initialization;

@@ -115,10 +115,6 @@ package PolyORB.Tasking.Profiles.Full_Tasking.Threads is
    function Independent_Count (TF : access Full_Tasking_Thread_Factory_Type)
      return Natural;
 
-   function Make_Abortable
-     (TF : access Full_Tasking_Thread_Factory_Type;
-      R  : PTT.Runnable_Access) return PTT.Abortable'Class;
-
 private
 
    type Full_Tasking_Thread_Factory_Type is new PTT.Thread_Factory_Type
@@ -127,8 +123,8 @@ private
       --  The environment task
    end record;
 
-   The_Thread_Factory : constant Full_Tasking_Thread_Factory_Access
-     := new Full_Tasking_Thread_Factory_Type;
+   The_Thread_Factory : constant Full_Tasking_Thread_Factory_Access :=
+                          new Full_Tasking_Thread_Factory_Type;
 
    type Set_Priority_Hook is access procedure
      (TF : access Full_Tasking_Thread_Factory_Type;

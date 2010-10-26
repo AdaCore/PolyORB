@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---     P O L Y O R B . S E T U P . D E F A U L T _ P A R A M E T E R S      --
+--                POLYORB.TASKING.PROFILES.FULL_TASKING_ATC                 --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2005 Free Software Foundation, Inc.             --
+--         Copyright (C) 2002-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -31,8 +31,9 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-package PolyORB.Setup.Default_Parameters is
+--  Base package for the implementation of PolyORB.Tasking with full tasking
+--  and asynchronous transfer of control.
 
-   pragma Elaborate_Body;
-
-end PolyORB.Setup.Default_Parameters;
+package PolyORB.Tasking.Profiles.Full_Tasking_ATC is
+   pragma Preelaborate;
+end PolyORB.Tasking.Profiles.Full_Tasking_ATC;

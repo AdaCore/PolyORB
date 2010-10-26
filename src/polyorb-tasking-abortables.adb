@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---          P O L Y O R B . P R O F I L E S . N O _ T A S K I N G           --
+--           P O L Y O R B . T A S K I N G . A B O R T A B L E S            --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,29 +26,74 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PolyORB.Tasking.Profiles.No_Tasking.Threads.Annotations;
-pragma Elaborate_All (PolyORB.Tasking.Profiles.No_Tasking.Threads.Annotations);
-pragma Warnings (Off, PolyORB.Tasking.Profiles.No_Tasking.Threads.Annotations);
+with Ada.Tags.Generic_Dispatching_Constructor;
 
-with PolyORB.Tasking.Profiles.No_Tasking.Threads;
-pragma Elaborate_All (PolyORB.Tasking.Profiles.No_Tasking.Threads);
-pragma Warnings (Off, PolyORB.Tasking.Profiles.No_Tasking.Threads);
+package body PolyORB.Tasking.Abortables is
 
-with PolyORB.Tasking.Profiles.No_Tasking.Mutexes;
-pragma Elaborate_All (PolyORB.Tasking.Profiles.No_Tasking.Mutexes);
-pragma Warnings (Off, PolyORB.Tasking.Profiles.No_Tasking.Mutexes);
+   Abortable_Tag : Ada.Tags.Tag := Abortable'Tag;
+   Initialized   : Boolean      := False;
 
-with PolyORB.Tasking.Profiles.No_Tasking.Condition_Variables;
-pragma Elaborate_All
-  (PolyORB.Tasking.Profiles.No_Tasking.Condition_Variables);
-pragma Warnings
-  (Off, PolyORB.Tasking.Profiles.No_Tasking.Condition_Variables);
+   ---------------
+   -- Abort_Run --
+   ---------------
 
-package body PolyORB.Setup.Tasking.No_Tasking is
+   procedure Abort_Run (AR : access Abortable) is
+   begin
+      --  By default abortion is not supported and this opeartion has no effect
+      null;
+   end Abort_Run;
 
-end PolyORB.Setup.Tasking.No_Tasking;
+   ------------
+   -- Create --
+   ------------
+
+   function Create (R : not null access PTT.Runnable'Class) return Abortable is
+   begin
+      return Abortable'(R => PTT.Runnable_Access (R));
+   end Create;
+
+   --------------------
+   -- Make_Abortable --
+   --------------------
+
+   function Make_Abortable
+     (R : access PTT.Runnable'Class) return Abortable'Class
+   is
+      function Create is
+        new Ada.Tags.Generic_Dispatching_Constructor
+              (T           => Abortable,
+               Parameters  => PTT.Runnable'Class,
+               Constructor => Create);
+   begin
+      return Create (Abortable_Tag, R);
+   end Make_Abortable;
+
+   ----------------------------
+   -- Register_Abortable_Tag --
+   ----------------------------
+
+   procedure Register_Abortable_Tag (T : Ada.Tags.Tag) is
+   begin
+      pragma Assert (not Initialized);
+
+      if not Initialized then
+         Abortable_Tag := T;
+         Initialized := True;
+      end if;
+   end Register_Abortable_Tag;
+
+   ---------
+   -- Run --
+   ---------
+
+   procedure Run (AR : access Abortable) is
+   begin
+      PTT.Run (AR.R);
+   end Run;
+
+end PolyORB.Tasking.Abortables;

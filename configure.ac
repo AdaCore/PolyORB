@@ -89,6 +89,30 @@ AC_SUBST(WARNINGS_MODE)
 AM_ARG_ENABLE_POLICY(assertion, Ignore)
 AM_ARG_ENABLE_POLICY(debug, Check)
 
+#######################################
+# Additional configuration pragmas file
+#######################################
+
+AC_ARG_ENABLE(conf-pragmas,
+AS_HELP_STRING([--enable-conf-pragmas=F],
+               [Additional Ada configuration pragmas file for target]),
+[
+  if test -f "${enableval}"; then
+    # Set switch that will be incorporated into ADAFLAGS_FOR_TARGET (for
+    # configure's own purposes).
+
+    ADDITIONAL_CONF_PRAGMAS_SWITCH="-gnatec=${enableval}"
+
+    # Set substitution for project file
+
+    ADDITIONAL_CONF_PRAGMAS="\"${ADDITIONAL_CONF_PRAGMAS_SWITCH}\""
+  else
+    AC_ERROR([valid file name required for --enable-conf-pragmas])
+  fi
+],
+[ADDITIONAL_CONF_PRAGAMS=""])
+AC_SUBST(ADDITIONAL_CONF_PRAGMAS)
+
 ##########################################
 # Set platform-specific supplementary CFLAGS and options
 ##########################################
@@ -134,7 +158,7 @@ case $target_os in
     TARGET_EXE_SUFFIX=.exe
     ;;
 esac
-ADAFLAGS_FOR_TARGET="${CFLAGS_FOR_TARGET}"
+ADAFLAGS_FOR_TARGET="${CFLAGS_FOR_TARGET} ${ADDITIONAL_CONF_PRAGMAS_SWITCH}"
 AC_SUBST(CFLAGS_FOR_TARGET)
 AC_SUBST(ADAFLAGS_FOR_TARGET)
 AC_SUBST(WINDOWS_ON_TARGET)
@@ -254,7 +278,7 @@ LIBS_LIST=""
 
 AC_MSG_CHECKING([default protocol personalities])
 AC_ARG_WITH(proto-perso,
-AS_HELP_STRING([--with-proto-perso=x], [Enumerate protocol personalities]),
+AS_HELP_STRING([--with-proto-perso=X], [Enumerate protocol personalities]),
 [
   PROTO_LIST=""
 
@@ -282,7 +306,7 @@ AC_SUBST(PROTO_LIST)
 
 AC_MSG_CHECKING([default application personalities])
 AC_ARG_WITH(appli-perso,
-AS_HELP_STRING([--with-appli-perso=x], [Enumerate application personalities]),
+AS_HELP_STRING([--with-appli-perso=X], [Enumerate application personalities]),
 [
   APPLI_LIST=""
 
@@ -309,7 +333,7 @@ AC_SUBST(APPLI_LIST)
 ############################################
 
 AC_ARG_WITH(idl-compiler,
-AS_HELP_STRING([--with-idl-compiler=x], [Select IDL compiler]),
+AS_HELP_STRING([--with-idl-compiler=X], [Select IDL compiler]),
 [
   IDLAC=${withval}
 ],
@@ -325,7 +349,7 @@ AM_IDLCPP_NEEDS_DOT
 
 AC_MSG_CHECKING([default services])
 AC_ARG_WITH(corba-services,
-AS_HELP_STRING([--with-corba-services=x], [Enumerate services]),
+AS_HELP_STRING([--with-corba-services=X], [Enumerate services]),
 [
   SERVICE_LIST=""
 
@@ -550,9 +574,23 @@ AC_SUBST(SUPPORT_RPC_ABORTION)
 #
 # Check for exception model
 #
+
 AC_MSG_CHECKING(for exception model to use)
 AC_MSG_RESULT($EXCEPTION_MODEL)
 AC_SUBST(GNAT_RTS_FLAG)
+
+#
+# If ATC is not supported, remove corresponding unit
+#
+
+if $HAVE_ADA_ATC; then
+  EXCLUDED_SOURCE_FILES=""
+else
+  EXCLUDED_SOURCE_FILES="polyorb-tasking-profiles-full_tasking_atc.ads
+polyorb-tasking-profiles-full_tasking_atc-abortables.ads
+polyorb-tasking-profiles-full_tasking_atc-abortables.adb"
+fi
+AC_SUBST(EXCLUDED_SOURCE_FILES)
 
 ##########################################
 # XML/Ada
@@ -849,9 +887,11 @@ AC_OUTPUT(FILTER_OUTPUT_FILES(OUTPUT_FILTER,[
 	projects-distrib/polyorb.gpr
 	projects-distrib/polyorb/polyorb_src_setup.gpr
 	src/config.adc
+        src/src.exclude
 	src/setup/polyorb-setup-base.adb
 	src/setup/polyorb-setup-client_base.adb
 	src/setup/polyorb-setup-server.adb
+	src/setup/polyorb-setup-tasking-full_tasking.adb
 	src/polyorb-platform.ads
 	src/polyorb-platform-ssl_linker_options.ads
 	src/ravenscar.adc

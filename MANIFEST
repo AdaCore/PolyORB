@@ -1615,10 +1615,6 @@ src/polyorb-services-naming-tools.ads
 src/polyorb-services-naming.ads
 src/polyorb-services.ads
 src/polyorb-setup-access_points.ads
-src/polyorb-setup-common_base.adb
-src/polyorb-setup-common_base.ads
-src/polyorb-setup-default_parameters.adb
-src/polyorb-setup-default_parameters.ads
 src/polyorb-setup-oa-basic_poa.adb
 src/polyorb-setup-oa-basic_poa.ads
 src/polyorb-setup-oa-basic_rt_poa.adb
@@ -1628,12 +1624,6 @@ src/polyorb-setup-oa-simple_oa.ads
 src/polyorb-setup-oa.ads
 src/polyorb-setup-proxies_poa.adb
 src/polyorb-setup-proxies_poa.ads
-src/polyorb-setup-tasking-full_tasking.adb
-src/polyorb-setup-tasking-full_tasking.ads
-src/polyorb-setup-tasking-no_tasking.adb
-src/polyorb-setup-tasking-no_tasking.ads
-src/polyorb-setup-tasking-ravenscar.ads
-src/polyorb-setup-tasking.ads
 src/polyorb-setup.ads
 src/polyorb-smart_pointers-controlled_entities.adb
 src/polyorb-smart_pointers-controlled_entities.ads
@@ -1650,6 +1640,8 @@ src/polyorb-std.ads
 src/polyorb-storage_pools.ads
 src/polyorb-task_info.adb
 src/polyorb-task_info.ads
+src/polyorb-tasking-abortables.adb
+src/polyorb-tasking-abortables.ads
 src/polyorb-tasking-advanced_mutexes.adb
 src/polyorb-tasking-advanced_mutexes.ads
 src/polyorb-tasking-condition_variables.adb
@@ -1674,6 +1666,9 @@ src/polyorb-tasking-profiles-full_tasking-threads-static_priorities.ads
 src/polyorb-tasking-profiles-full_tasking-threads.adb
 src/polyorb-tasking-profiles-full_tasking-threads.ads
 src/polyorb-tasking-profiles-full_tasking.ads
+src/polyorb-tasking-profiles-full_tasking_atc-abortables.adb
+src/polyorb-tasking-profiles-full_tasking_atc-abortables.ads
+src/polyorb-tasking-profiles-full_tasking_atc.ads
 src/polyorb-tasking-profiles-no_tasking-condition_variables.adb
 src/polyorb-tasking-profiles-no_tasking-condition_variables.ads
 src/polyorb-tasking-profiles-no_tasking-mutexes.adb
@@ -1836,6 +1831,10 @@ src/setup/polyorb-setup-client.adb
 src/setup/polyorb-setup-client.ads
 src/setup/polyorb-setup-client_base.adb.in
 src/setup/polyorb-setup-client_base.ads
+src/setup/polyorb-setup-common_base.adb
+src/setup/polyorb-setup-common_base.ads
+src/setup/polyorb-setup-default_parameters.adb
+src/setup/polyorb-setup-default_parameters.ads
 src/setup/polyorb-setup-no_tasking_client.adb
 src/setup/polyorb-setup-no_tasking_client.ads
 src/setup/polyorb-setup-no_tasking_server.adb
@@ -1844,6 +1843,12 @@ src/setup/polyorb-setup-ravenscar_tp_server.adb
 src/setup/polyorb-setup-ravenscar_tp_server.ads
 src/setup/polyorb-setup-server.adb.in
 src/setup/polyorb-setup-server.ads
+src/setup/polyorb-setup-tasking-full_tasking.adb.in
+src/setup/polyorb-setup-tasking-full_tasking.ads
+src/setup/polyorb-setup-tasking-no_tasking.adb
+src/setup/polyorb-setup-tasking-no_tasking.ads
+src/setup/polyorb-setup-tasking-ravenscar.ads
+src/setup/polyorb-setup-tasking.ads
 src/setup/polyorb-setup-thread_per_request_server.adb
 src/setup/polyorb-setup-thread_per_request_server.ads
 src/setup/polyorb-setup-thread_per_session_server.adb

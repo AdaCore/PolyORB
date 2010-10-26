@@ -32,6 +32,7 @@
 ------------------------------------------------------------------------------
 
 with PolyORB.Servants.Iface;
+with PolyORB.Tasking.Abortables;
 with PolyORB.Tasking.Threads;
 
 package body PolyORB.Servants is
@@ -62,14 +63,13 @@ package body PolyORB.Servants is
      (S   : not null access Servant'Class;
       Req : Requests.Request_Access) return Boolean
    is
-      use PolyORB.Tasking.Threads;
+      use PolyORB.Tasking.Abortables;
 
       R : aliased Req_Runnable := (Servant => S, Req => Req, others => <>);
 
       pragma Warnings (Off); --  WAG:FSF-4.5.0
       --  Hide warning "A is not referenced"
-      A : aliased Abortable'Class :=
-            Make_Abortable (Get_Thread_Factory, R'Unchecked_Access);
+      A : aliased Abortable'Class := Make_Abortable (R'Unchecked_Access);
       pragma Warnings (On);
 
    begin

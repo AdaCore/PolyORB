@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---            P O L Y O R B . S E T U P . C O M M O N _ B A S E             --
+--   P O L Y O R B . S E T U P . T A S K I N G . F U L L _ T A S K I N G    --
 --                                                                          --
---                                 S p e c                                  --
+--                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,10 +31,27 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Base setup, common to all platforms and all middleware configurations
+with PolyORB.Tasking.Profiles.Full_Tasking.Threads.Annotations;
+pragma Unreferenced
+         (PolyORB.Tasking.Profiles.Full_Tasking.Threads.Annotations);
 
-package PolyORB.Setup.Common_Base is
+with PolyORB.Tasking.Profiles.Full_Tasking.Threads.Static_Priorities;
+pragma Unreferenced
+         (PolyORB.Tasking.Profiles.Full_Tasking.Threads.Static_Priorities);
 
-   pragma Elaborate_Body;
+with PolyORB.Tasking.Profiles.Full_Tasking.Threads;
+pragma Unreferenced (PolyORB.Tasking.Profiles.Full_Tasking.Threads);
 
-end PolyORB.Setup.Common_Base;
+with PolyORB.Tasking.Profiles.Full_Tasking.Mutexes;
+pragma Unreferenced (PolyORB.Tasking.Profiles.Full_Tasking.Mutexes);
+
+with PolyORB.Tasking.Profiles.Full_Tasking.Condition_Variables;
+pragma Unreferenced
+         (PolyORB.Tasking.Profiles.Full_Tasking.Condition_Variables);
+
+@ADA_ATC@with PolyORB.Tasking.Profiles.Full_Tasking_ATC.Abortables;
+@ADA_ATC@pragma Unreferenced (PolyORB.Tasking.Profiles.Full_Tasking_ATC.Abortables);
+
+package body PolyORB.Setup.Tasking.Full_Tasking is
+
+end PolyORB.Setup.Tasking.Full_Tasking;

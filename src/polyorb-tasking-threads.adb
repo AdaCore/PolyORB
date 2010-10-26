@@ -38,16 +38,6 @@ package body PolyORB.Tasking.Threads is
 
    Initialised       : Boolean := False;
 
-   ---------------
-   -- Abort_Run --
-   ---------------
-
-   procedure Abort_Run (AR : access Abortable) is
-   begin
-      --  By default abortion is not supported and this opeartion has no effect
-      null;
-   end Abort_Run;
-
    -----------------
    -- Awake_Count --
    -----------------
@@ -114,19 +104,6 @@ package body PolyORB.Tasking.Threads is
       return Independent_Count (My_Thread_Factory);
    end Independent_Count;
 
-   --------------------
-   -- Make_Abortable --
-   --------------------
-
-   function Make_Abortable
-     (TF : access Thread_Factory_Type;
-      R  : Runnable_Access) return Abortable'Class
-   is
-      pragma Unreferenced (TF);
-   begin
-      return Abortable'(R => R);
-   end Make_Abortable;
-
    -----------------------------
    -- Register_Thread_Factory --
    -----------------------------
@@ -160,15 +137,6 @@ package body PolyORB.Tasking.Threads is
    begin
       return Thread_Id (System.Null_Address);
    end Null_Thread_Id;
-
-   ---------
-   -- Run --
-   ---------
-
-   procedure Run (AR : access Abortable) is
-   begin
-      Run (AR.R);
-   end Run;
 
    ----------------
    -- To_Address --

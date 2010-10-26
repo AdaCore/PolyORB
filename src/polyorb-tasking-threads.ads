@@ -68,21 +68,6 @@ package PolyORB.Tasking.Threads is
    procedure Free is
      new Ada.Unchecked_Deallocation (Runnable'Class, Runnable_Access);
 
-   ---------------
-   -- Abortable --
-   ---------------
-
-   --  A Runnable that can be asynchronously aborted (if supported by the
-   --  underlying tasking profile).
-
-   type Abortable (R : access Runnable'Class) is new Runnable with null record;
-
-   procedure Run (AR : access Abortable);
-   --  Runs R, but abort if Abort_Run is called
-
-   procedure Abort_Run (AR : access Abortable);
-   --  Abort current call to Run
-
    ----------------
    -- Thread Ids --
    ----------------
@@ -212,11 +197,6 @@ package PolyORB.Tasking.Threads is
      (TF : access Thread_Factory_Type;
       D  : Duration) is abstract;
    --  Delay the calling task for duration D
-
-   function Make_Abortable
-     (TF : access Thread_Factory_Type;
-      R  : Runnable_Access) return Abortable'Class;
-   --  Return an Abortable object for execution of R
 
    Node_Boot_Time : Duration;
    --  Node boot time as a duration elapsed since some unspecified epoch, set
